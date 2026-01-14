@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import DelevieryGurantee from "public/svg/cart/DelevieryGurantee";
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
@@ -202,7 +202,7 @@ function Card({
             <span className="medium text-[#1d1d1d]">{shippingDay}</span>
             <span className="text-[#1d1d1d] bold">{shippingDate}</span>
             <span className="text-[#8d8d8d]">
-              <DelevieryGurantee />
+              <img src="/icons/DelevieryGurantee.svg" />
             </span>
           </div>
           {/*  */}

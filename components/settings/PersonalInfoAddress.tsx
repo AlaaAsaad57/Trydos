@@ -1,8 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
-import AddressInfo from "public/svg/cart/AddressInfo";
-import AddAddressIcon from "public/svg/cart/AddAddress";
 import { DeleteModalComponent } from "components/Cart/OrdersPage";
 import { useAppStore } from "store";
 import { GetAddressString } from "utils/tinyUtils";
@@ -142,12 +140,15 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
                 {orderLoading ? (
                   <Spinner />
                 ) : (
-                  <AddressInfo className="ml-[19px] cursor-pointer" />
+                  <img
+                    src="/icons/AddressInfo.svg"
+                    className="ml-[19px] cursor-pointer"
+                  />
                 )}
               </div>
               {addressLists.length === 0 ? (
                 <div className="w-full cursor-pointer py-[12px] h-[84px] mt-[12px] bg-[#F8F8F8] justify-start rounded-[15px] flex-col items-center">
-                  <AddressInfo />
+                  <img src="/icons/AddressInfo.svg" />
                   <span className="medium text-[12px] text-[#C4C2C2] mt-[11px]">
                     {translateFunction("Your Address List Is Empty")}
                   </span>
@@ -351,7 +352,7 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
                   // onClick();
                 }}
               >
-                <AddAddressIcon />
+                <img src="/icons/AddAddress.svg" />
                 <div className="medium text-[12px] ml-1 text-[#1D1D1D]">
                   {translateFunction("Add New Shipping Address")}
                 </div>

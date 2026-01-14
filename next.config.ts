@@ -102,19 +102,19 @@ let nextConfig: NextConfig = {
 };
 
 if (process.env.NODE_ENV !== "production") {
-  // const withBundleAnalyzer = require("@next/bundle-analyzer")({
-  //   enabled: true,
-  // });
-  // const finalConfig = withBundleAnalyzer(nextConfig);
-  // module.exports = finalConfig;
-  module.exports = nextConfig;
+  const withBundleAnalyzer = require("@next/bundle-analyzer")({
+    enabled: true,
+  });
+  const finalConfig = withBundleAnalyzer(nextConfig);
+  module.exports = finalConfig;
+  module.exports = finalConfig;
 } else {
-  // const withBundleAnalyzer = require("@next/bundle-analyzer")({
-  //   enabled: true,
-  // });
-  // const finalConfig = withBundleAnalyzer(nextConfig);
-  // module.exports = finalConfig;
-  module.exports = nextConfig;
+  const withBundleAnalyzer = require("@next/bundle-analyzer")({
+    enabled: true,
+  });
+  const finalConfig = withBundleAnalyzer(nextConfig);
+  module.exports = finalConfig;
+  module.exports = finalConfig;
 }
 
 export default withSentryConfig(nextConfig, {

@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from "react";
-import SearchMicIcon from "public/svg/SearchMicIcon";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";
@@ -218,7 +217,8 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
               </div>
             ) : (
               <div className="relative">
-                <SearchMicIcon
+                <img
+                  src="/icons/SearchMicIcon.svg"
                   data-cy="searchVoiceIcon"
                   onClick={handleOnRecord}
                   className={`${
@@ -282,7 +282,8 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
           </div>
         ) : (
           <div className="relative">
-            <SearchMicIcon
+            <img
+              src="/icons/SearchMicIcon.svg"
               data-cy="searchVoiceIcon"
               onClick={() => {
                 showErrorNotification("Browser does not support this feature");

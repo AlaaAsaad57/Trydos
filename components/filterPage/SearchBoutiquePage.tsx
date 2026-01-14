@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import SearchIcon from "public/svg/listing/searchIcon";
 import { DebounceInput } from "react-debounce-input/src";
 import { useRouter } from "next/navigation";
 import { buildParamsFromFilters, pollinateInput } from "utils/tinyUtils";
@@ -125,7 +124,8 @@ function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
           (search?.length || focuse) && "pl-[40px]"
         } rounded-[15px]  w-0 h-full border-0 outline-none text-[#5d5d5d]`}
       />
-      <SearchIcon
+      <img
+        src="/icons/searchIcon.svg"
         className={`absolute z-10 ${
           search?.length || focuse ? "top-[9px] left-[14px]" : "top-0 left-0"
         }`}

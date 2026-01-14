@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
-import AddressInfo from "public/svg/cart/AddressInfo";
 import auth from "services/auth";
 
 import { pollinateInput } from "utils/tinyUtils";
@@ -329,7 +328,8 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
           >
             {translateFunction("Your Size Info")}
           </div>
-          <AddressInfo
+          <img
+            src="/icons/AddressInfo.svg"
             className="ml-[12px] cursor-pointer"
             data-cy="Address-info-icon"
           />

@@ -1,6 +1,3 @@
-import React, { useState } from "react";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
-
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
@@ -22,7 +19,8 @@ function CategoryItem({ category, onClick, isActive, applied_filter }) {
         onClick={() => onClick(category)}
       >
         {isActive && (
-          <ActiveCategoryIcon
+          <img
+            src="/icons/ActiveCategoryIcon.svg"
             style={{ top: "-6px", left: "-4px", scale: "0.6" }}
             className="absolute"
           />
@@ -62,7 +60,8 @@ function CategoryItem({ category, onClick, isActive, applied_filter }) {
                 }}
               >
                 {isThisSubActive && (
-                  <ActiveCategoryIcon
+                  <img
+                    src="/icons/ActiveCategoryIcon.svg"
                     style={{ top: "-6px", left: "-4px", scale: "0.6" }}
                     className="absolute"
                   />

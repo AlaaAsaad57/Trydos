@@ -4,8 +4,6 @@ import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
 import OrderMarquee from "./OrderMarquee";
-import DiscoutIcon from "public/svg/cart/Disount";
-import ShippingIcon from "public/svg/cart/Shipping";
 import Spinner from "components/global/Spinner";
 import {
   COOKIE_NAMES,
@@ -15,7 +13,7 @@ import {
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
-import GiftIcon from "public/svg/cart/Gift";
+
 import home from "services/home";
 import { showErrorNotification } from "@/store/notifications/reducer";
 function OrderButton({ close, toOrders }) {
@@ -382,7 +380,7 @@ function OrderButton({ close, toOrders }) {
                       data-cy="discount-svg-container"
                       className="flex-row translate-y-[3px]"
                     >
-                      <DiscoutIcon data-cy="discount-svg" />
+                      <img src="/icons/Disount.svg" data-cy="discount-svg" />
                     </span>{" "}
                     <div className="flex-col px-1 text-[#A28E5B]">
                       <span
@@ -427,7 +425,7 @@ function OrderButton({ close, toOrders }) {
                 <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
                   <div className="flex-row px-[12px]">
                     <span className="flex-row translate-y-[3px]">
-                      <GiftIcon />
+                      <img src="/icons/Gift.svg" />
                     </span>{" "}
                     <div className="flex-col px-1 text-[#5BA260]">
                       <span className="medium text-[13px] text-[#5BA260]">
@@ -455,7 +453,7 @@ function OrderButton({ close, toOrders }) {
                       data-cy="Shipping-svg-container2"
                       className="flex-row translate-y-[3px]"
                     >
-                      <ShippingIcon data-cy="Shipping-svg" />
+                      <img src="/icons/Shipping.svg" data-cy="Shipping-svg" />
                     </span>{" "}
                     {
                       <div className="flex-col px-1 text-[#5BA260]">

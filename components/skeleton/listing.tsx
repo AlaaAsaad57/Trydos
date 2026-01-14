@@ -1,8 +1,6 @@
 import "styles/listing-components.css";
 import React from "react";
 import Skeleton from "react-loading-skeleton";
-import VerificationIcon from "public/svg/listing/VerificationIcon";
-import TopStarIcon from "public/svg/listing/TopStar";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
@@ -64,8 +62,6 @@ function ListingSkeleton({
                       height={20}
                       src={GetImageUrl(boutique?.icon)}
                     />
-                    <VerificationIcon />
-                    <TopStarIcon />
                   </>
                 ) : (
                   <Skeleton

@@ -18,7 +18,7 @@ async function WalletLinkCard({ isRtl, local, language, country }) {
       } flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px]  cursor-pointer`}
       aria-label={translateFunction("Wallet Transactions", language)}
     >
-      <img className="w-[25px] h-[25px]" src="/svg/TryDosWalletIcon.svg" />
+      <img className="w-[25px] h-[25px]" src="/icons/TryDosWalletIcon.svg" />
       <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
         {translateFunction("Trydos Wallet", language)}
       </span>

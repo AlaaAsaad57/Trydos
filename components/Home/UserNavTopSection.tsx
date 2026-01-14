@@ -3,7 +3,6 @@ import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useState } from "react";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
-import CartIcon from "public/svg/CartIcon";
 import { useParams } from "next/navigation";
 import Menu from "./Menu";
 import { useAppStore } from "store";
@@ -175,7 +174,7 @@ function UserNavTopSection({
             {localCart.length}
           </div>
         )}
-        <CartIcon data-cy="cartIcon_mainPage" />
+        <img src="/icons/CartIcon.svg" data-cy="cartIcon_mainPage" />
       </div>
 
       {(!userData || getUserType() === "NEW_USER") && (

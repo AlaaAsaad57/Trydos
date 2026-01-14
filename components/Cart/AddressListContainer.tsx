@@ -1,6 +1,5 @@
-import React from "react";
 import { translateFunction } from "utils/functions";
-import AddAddressIcon from "public/svg/cart/AddAddress";
+
 import order from "services/order";
 import { useAppStore } from "store";
 
@@ -239,7 +238,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
               slideNext();
             }}
           >
-            <AddAddressIcon />
+            <img src="/icons/AddAddress.svg" />
             <div className="medium text-[12px] ml-1 text-[#1D1D1D]">
               {translateFunction("Add New Shipping Address")}
             </div>

@@ -1,15 +1,9 @@
 "use client";
 import { useParams } from "next/navigation";
 
-import {
-  getConfiguredImage,
-  RoundPrice,
-  translateFunction,
-} from "utils/functions";
+import { getConfiguredImage, RoundPrice } from "utils/functions";
 import "styles/productDetails.css";
 import "styles/product-body.css";
-
-import VerifiedIcon from "public/svg/product/Verified";
 import Image from "next/image";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
@@ -89,9 +83,6 @@ function ProductLoader({ product }) {
                     alt={product.brand.name}
                   />
                 )}
-                <span>
-                  <VerifiedIcon />
-                </span>
               </div>
               <div
                 className={`${

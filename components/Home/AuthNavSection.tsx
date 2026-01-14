@@ -1,5 +1,5 @@
 "use client";
-import ChatIcon from "public/svg/ChatIcon";
+
 import { translateFunction } from "utils/functions";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "utils/tinyUtils";
@@ -99,12 +99,12 @@ function AuthNavSection({
         }}
       >
         {!LoggingOut && !chatVar && getNew(chats).length === 0 ? (
-          <ChatIcon data-cy="Chat-Icon" />
+          <img src="/icons/ChatIcon.svg" data-cy="Chat-Icon" />
         ) : (
           !LoggingOut &&
           !chatVar && <ChatNotification num={getNew(chats).length} />
         )}
-        {!LoggingOut && chatVar && <ChatIcon />}
+        {!LoggingOut && chatVar && <img src="/icons/ChatIcon.svg" />}
       </div>
       <div
         className={`welcome-user ${language + "-medium"}`}

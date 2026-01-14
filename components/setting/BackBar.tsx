@@ -1,7 +1,6 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import BackIcon from "public/svg/listing/backIcon";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
@@ -51,7 +50,7 @@ const BackBar = ({
         onClick={() => handleBack()}
         data-cy={(DataCy && `${DataCy}-back-button`) || "back-button"}
       >
-        <BackIcon />
+        <img src="/icons/backIcon.svg" />
       </span>
       {name && (
         <div className="flex-row gap-[4px] items-center">

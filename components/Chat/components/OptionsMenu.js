@@ -8,7 +8,7 @@ import RemindIcon from "../svg/remind";
 import { translateFunction, getUserChat } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import EyeIcon from "public/svg/product/EyeIcon";
+
 import { useState } from "react";
 import Spinner from "components/global/Spinner";
 function OptionsMenu(props) {
@@ -211,7 +211,7 @@ function OptionsMenu(props) {
                 props.setImg();
               }}
             >
-              <EyeIcon />
+              <img src="/icons/EyeIcon.svg" />
             </div>
           )}
           <div

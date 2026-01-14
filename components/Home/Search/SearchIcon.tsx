@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import Search from "public/svg/SearchIcon";
+
 import "styles/search.css";
 import {
   normalizeView,
@@ -21,10 +21,8 @@ import Spinner from "components/global/Spinner";
 import BrandItem from "./Results/BrandItem";
 import CategoryItem from "./Results/CategoryItem";
 import BoutiqueItem from "./Results/BoutiqueItem";
-import CloseIcon from "public/svg/CloseIcon";
 import SearchVoice from "./SearchVoice";
 import SearchImage from "./SearchImage";
-import SearchCloseIcon from "public/svg/SearchCloseIcon";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ActiveSearchFilterBar from "./ActiveSearchFilterBar";
 import NextLink from "components/global/NextLink";
@@ -298,7 +296,8 @@ function SearchIcon({ language, country }) {
           }
         }}
       >
-        <Search
+        <img
+          src="/icons/Search.svg"
           id="search-icon"
           className={`absolute duration-[0.4s] ml-[10px] z-50 ${
             focus && "black-fill"
@@ -327,7 +326,8 @@ function SearchIcon({ language, country }) {
             <>
               {focus || value.length > 0 ? (
                 <div className="input-icons flex-row close-search-icon">
-                  <SearchCloseIcon
+                  <img
+                    src="/icons/SearchCloseIcon.svg"
                     data-cy="SearchInputCloseIcon"
                     onClick={() => {
                       if (value.length > 0) {
@@ -354,7 +354,8 @@ function SearchIcon({ language, country }) {
               )}
               {!focus && value.length === 0 && (
                 <div className="search-colse-icon flex-row">
-                  <CloseIcon
+                  <img
+                    src="/icons/CloseIcon.svg"
                     data-cy="closeIcon_searchPage"
                     onClick={handleClose}
                   />

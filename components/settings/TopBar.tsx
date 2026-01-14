@@ -1,4 +1,3 @@
-import BackIcon from "public/svg/listing/backIcon";
 import OptionsIcon from "public/svg/OptionsIcon";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
@@ -31,7 +30,7 @@ function SettingTopBar({
           onClick={() => goBack()}
           data-cy={(DataCy && `${DataCy}-back-button`) || "back-button"}
         >
-          <BackIcon />
+          <img src="/icons/backIcon.svg" />
         </span>
         <div className="flex-row gap-[4px] items-center">
           {Icon || <></>}

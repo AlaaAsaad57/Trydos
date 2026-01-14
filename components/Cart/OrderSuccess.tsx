@@ -1,7 +1,5 @@
 "use client";
 import { useEffect } from "react";
-
-import OrderSuccessIcon from "public/svg/cart/OrderSuccess";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
@@ -77,7 +75,7 @@ function OrderSuccess() {
       }`}
       data-cy="The-Purchas"
     >
-      <OrderSuccessIcon />
+      <img src="/icons/OrderSuccess.svg" />
       <span className="regular text-[14px] text-[#1d1d1d] mt-[11px]">
         {translateFunction("The Purchase Was Completed Successfully")}
       </span>

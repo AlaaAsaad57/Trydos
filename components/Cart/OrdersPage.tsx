@@ -1,14 +1,14 @@
 import { useState } from "react";
-import BackIcon from "public/svg/listing/backIcon";
+
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import ShippingAddressContainer from "./ShippingAddressContainer";
 import { SlideWidget } from "components/global/SlideNavigation";
-import AddAddressIcon from "public/svg/cart/AddAddress";
+
 import AddAddressForm from "./AddAddressForm";
 import SelectRegion from "./SelectRegion";
 import AddressListContainer from "./AddressListContainer";
-import TrashIcon from "public/svg/cart/TrashIcon";
+
 import order from "services/order";
 import PaymentMethod from "./PaymentMethod";
 import PlaceOrderWidget from "./PlaceOrderWidget";
@@ -246,7 +246,8 @@ function OrdersPage({ setStep, close }) {
               data-cy="header-delivery-container"
               className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center "
             >
-              <BackIcon
+              <img
+                src="/icons/backIcon.svg"
                 data-cy="swiperSlide-backIcon"
                 className="cursor-pointer z-50"
                 onClick={() => {
@@ -404,7 +405,8 @@ function OrdersPage({ setStep, close }) {
               <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
                 {!orderData.success && (
                   <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
-                    <BackIcon
+                    <img
+                      src="/icons/backIcon.svg"
                       className="cursor-pointer z-50"
                       onClick={() => {
                         // Sendevent({
@@ -417,7 +419,7 @@ function OrdersPage({ setStep, close }) {
                       }}
                     />
                     <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                      <AddAddressIcon />
+                      <img src="/icons/AddAddress.svg" />
                       <span className="regular ml-[8px]">
                         <>{translateFunction("Shipping & Payment")}</>
                       </span>
@@ -461,7 +463,8 @@ function OrdersPage({ setStep, close }) {
             <>
               <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
                 <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
-                  <BackIcon
+                  <img
+                    src="/icons/backIcon.svg"
                     className="cursor-pointer z-50"
                     data-cy="back-icon-addadresspage" // Added data-cy
                     onClick={() => {
@@ -474,7 +477,10 @@ function OrdersPage({ setStep, close }) {
                     }}
                   />
                   <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                    <AddAddressIcon data-cy="add-address-icon" />
+                    <img
+                      src="/icons/AddAddress.svg"
+                      data-cy="add-address-icon"
+                    />
                     <span className="regular ml-[8px]" data-cy="address-text">
                       <>
                         {addressDetails.id
@@ -583,7 +589,7 @@ export const DeleteModalComponent = ({
       >
         <span />
         <div className="flex-col items-center">
-          <TrashIcon />
+          <img src="/icons/TrashIcon.svg" />
           <span className="medium text-[16px] mt-[1px] text-[#fff]">
             {translateFunction("Delete Below Address?")}
           </span>

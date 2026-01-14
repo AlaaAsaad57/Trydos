@@ -1,6 +1,4 @@
 import Spinner from "components/global/Spinner";
-import ChatIcon from "public/svg/ChatIcon";
-
 import { translateFunction } from "utils/functions";
 import { ShowNotificationSign } from "utils/tinyUtils";
 
@@ -28,7 +26,7 @@ function OrderChatIcon({
             </span>
           ) : (
             <>
-              <ChatIcon className="w-5 h-5" />
+              <img src="/icons/ChatIcon.svg" className="w-5 h-5" />
               {ShowNotificationSign({
                 order_id: id,
               }) && (

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { translateFunction } from "utils/functions";
-import TargetIcon from "public/svg/cart/Target";
+
 import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import { DebounceInput } from "react-debounce-input";
@@ -89,7 +89,7 @@ function SelectRegion({ closeSelect }) {
         data-cy="Extended-Choose-Area"
       >
         <div className="flex-row items-center w-full justify-center">
-          <TargetIcon data-cy="target-icon" />
+          <img src="/icons/Target.svg" data-cy="target-icon" />
           <span
             className="flex regular ml-[6px] text-[#1D1D1D] text-[14px]"
             data-cy="Select-From-List"

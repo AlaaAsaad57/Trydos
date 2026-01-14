@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import SearchTrendingicon from "public/svg/SearchTrendingicon";
-import SearchMiniIcon from "public/svg/SearchMiniIcon";
 import { useParams } from "next/navigation";
 function SearchTrending({ trending, clearAll, setValue }) {
   const [openMenu, setOpen] = useState(false);
@@ -19,7 +17,7 @@ function SearchTrending({ trending, clearAll, setValue }) {
         className="flex-row align-center cursor-pointer"
         onClick={() => setOpen(!openMenu)}
       >
-        <SearchTrendingicon />
+        <img src="/icons/SearchTrendingicon.svg" />
         {openMenu && (
           <span className="filter-label-search">Popular Search</span>
         )}
@@ -91,7 +89,7 @@ function SearchTrending({ trending, clearAll, setValue }) {
               )} */}
               <div className="flex-row trend-count">
                 <span>{s.count}</span>
-                <SearchMiniIcon />
+                <img src="/icons/SearchMiniIcon.svg" />
               </div>
             </div>
           ))}

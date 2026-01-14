@@ -20,7 +20,6 @@ import ProductDescriptorsWrapper from "components/Server/product/ProductDescript
 import ProductColorsWrapper from "components/Server/product/ProductColorsWrapper";
 import ProductExpectedDeleiveryWrapper from "components/Server/product/ProductExpectedDeleiveryWrapper";
 import FreeShippingOption from "components/products/FreeShippingOption";
-import FreeReturnIcon from "public/svg/product/FreeReturnIcon";
 import { translateFunction } from "utils/server";
 import ReturnDaysDetails from "components/products/ReturnDays.Details";
 import { getCurrency, GetStarttingSetting } from "serverRequests";
@@ -226,7 +225,7 @@ async function Page({ params, searchParams }) {
                   } colors-label w-full flex-col`}
                   data-cy="FreeReturn"
                 >
-                  <FreeReturnIcon />
+                  <img src="/icons/FreeReturnIcon.svg" />
                   <div
                     className={`${
                       isRtl && "dir-rtl"

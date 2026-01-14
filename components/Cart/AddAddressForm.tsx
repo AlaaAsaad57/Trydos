@@ -4,11 +4,6 @@ import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import Map from "./Map";
 import { useParams } from "next/navigation";
-import Addressicon from "public/svg/cart/AddressIcon";
-import AddressInfo from "public/svg/cart/AddressInfo";
-import TargetIcon from "public/svg/cart/Target";
-import ContactInfoIcon from "public/svg/cart/ContactInfoIcon";
-
 import order from "services/order";
 import { useAppStore } from "store";
 import { FlagIcon, sanitizePhone } from "utils/tinyUtils";
@@ -213,14 +208,15 @@ const AddressSection = ({ setOpenSelect }) => {
       data-cy="address-section"
     >
       <div className="flex-row px-[12px] items-center">
-        <Addressicon data-cy="address-icon" />
+        <img src="/icons/AddressIcon.svg" data-cy="address-icon" />
         <div
           className="flex ml-[6px] text-[#404040] text-[12px] medium"
           data-cy="address-info-text"
         >
           {translateFunction("Address Info")}
         </div>
-        <AddressInfo
+        <img
+          src="/icons/AddressInfo.svg"
           className="ml-[12px] cursor-pointer"
           data-cy="address-info-icon"
         />
@@ -305,7 +301,7 @@ const SelectRegion = ({ setOpenSelect }) => {
         {translateFunction("Change From List")}
       </div>
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] ">
-        <TargetIcon className="&>path:fill" data-cy="point-icon" />
+        <img src="/icons/Target.svg" data-cy="point-icon" />
 
         <div
           className={`medium flex ${
@@ -408,14 +404,15 @@ const ContactInfo = ({ userName = null }) => {
       data-cy="container-name-phone"
     >
       <div className="flex-row px-[12px] items-center">
-        <ContactInfoIcon data-cy="contact-info-icon" />
+        <img src="/icons/ContactInfoIcon.svg" data-cy="contact-info-icon" />
         <div
           className="flex ml-[6px] text-[#404040] text-[12px] medium"
           data-cy="contact-info-text"
         >
           {translateFunction("Contact Info")}
         </div>
-        <AddressInfo
+        <img
+          src="/icons/AddressInfo.svg"
           className="ml-[12px] cursor-pointer"
           data-cy="Address-info-icon"
         />

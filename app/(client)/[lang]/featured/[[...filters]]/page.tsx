@@ -1,8 +1,6 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-import BackIcon from "public/svg/listing/backIcon";
-import SortIcon from "public/svg/listing/sortIcon";
-import { redirect } from "next/navigation";
+
 import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import "styles/listing-components.css";
@@ -11,14 +9,12 @@ import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageBu
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
-import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
 import {
   generateMetadataForListing,
   GetStructuredData,
 } from "serverRequests/meta/listing";
-import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
@@ -128,7 +124,8 @@ export default async function Page({ params }) {
             ariaLabel={`TryDos Home ${Params.lang}`}
             className="back-icon"
           >
-            <BackIcon
+            <img
+              src="/icons/backIcon.svg"
               data-cy="back_icon_boutique_page"
               className={`${isRtl && "rotate-180"}`}
             />
@@ -153,7 +150,7 @@ export default async function Page({ params }) {
               data-cy="filter_option_loseSearchInput"
               className="filter-option"
             >
-              <SortIcon data-cy="closeSearchInput" />
+              <img src="/icons/sortIcon.svg" data-cy="closeSearchInput" />
             </div>
             <FilterBoutiquePageButton key={"filter-button"} />
             <ShareBoutiquePageButton />

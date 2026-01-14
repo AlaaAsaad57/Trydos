@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
-import OrderCartIcon from "public/svg/cart/orderCartIcon";
+
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-import FreeShippingIcon from "public/svg/product/FreeShipping";
-import AddAddressIcon from "public/svg/cart/AddAddress";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
@@ -105,7 +103,7 @@ const CartItemSelect = ({ items }) => {
         </svg>
       </span>
       <div data-cy="bag-viewer-inside" className="flex-row ">
-        <OrderCartIcon data-cy="Order-Cart-Icon" />
+        <img src="/icons/orderCartIcon.svg" data-cy="Order-Cart-Icon" />
         <div
           data-cy="Shopping-bag-texts"
           className="regular text-[#1D1D1D] text-[14px] ml-2"
@@ -279,7 +277,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
           {translateFunction("Shipping & Delivery Address", language)}
         </div>
         <span data-cy="freeShupping-container" className="bold ml-[11px]">
-          <FreeShippingIcon data-cy="WrapIcon1" />
+          <img src="/icons/FreeShipping.svg" data-cy="WrapIcon1" />
         </span>
         {orderLoading && (
           <span className="bold ml-[11px]">
@@ -542,7 +540,7 @@ const AddAddressButton = ({ onClick }) => {
         onClick();
       }}
     >
-      <AddAddressIcon data-cy="AddAddres-svg" />
+      <img src="/icons/AddAddress.svg" data-cy="AddAddres-svg" />
       <div
         data-cy="addShipping-text"
         className="medium text-[12px] ml-1 text-[#1D1D1D]"

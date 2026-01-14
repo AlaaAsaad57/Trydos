@@ -1,18 +1,6 @@
 import { useParams } from "next/navigation";
 import { RoundPrice, translateFunction } from "utils/functions";
-import WalletIcon from "assets/svg/cart/WalletIcon";
-import CreditIcon from "assets/svg/cart/CreditIcon";
-import PaymentIconOne from "assets/svg/cart/Payment/DimondPay";
-import PaymentIconTwo from "assets/svg/cart/Payment/DimondPay1";
-import PaymentIconThree from "assets/svg/cart/Payment/DimondPay2";
-import PaymentIconFour from "assets/svg/cart/Payment/DimondPay3";
-import VisaIcon from "assets/svg/cart/Payment/Visa";
-import MasterIcon from "assets/svg/cart/Payment/Master";
-import MaestroIcon from "assets/svg/cart/Payment/Maestro";
-import AmericanExpressIcon from "assets/svg/cart/Payment/AmericanExpress";
-import ApplePayIcon from "assets/svg/cart/Payment/ApplePay";
-import GooglePayIcon from "assets/svg/cart/Payment/GooglePay";
-import CryptoIcon from "assets/svg/cart/CryptoIcon";
+
 import Spinner from "components/global/Spinner";
 import CouponElement from "./couponElement";
 import { useAppStore } from "store";
@@ -20,7 +8,6 @@ import { useEffect, useState } from "react";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_PAYMENTS } from "utils/GAEvents";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import RefreshIcon from "public/svg/RefreshIcon";
 import order from "services/order";
 function PaymentMethod() {
   const {
@@ -390,7 +377,8 @@ function PaymentMethod() {
                         refreshWallet();
                       }}
                     >
-                      <RefreshIcon
+                      <img
+                        src="/icons/RefreshIcon.svg"
                         className={`${walletLoading && "animate-spin"}`}
                       />
                     </div>
@@ -629,7 +617,8 @@ const CODInput = ({ active, setActive, total }) => {
       }}
     >
       <div data-cy="WalletIcon-container" className="flex-row items-center">
-        <WalletIcon
+        <img
+          src="/icons/WalletIcon.svg"
           className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
           data-cy="WalletIcon-container-svg"
         />
@@ -680,7 +669,8 @@ const TryDosWalletInput = ({ active, setActive, balance }) => {
       }}
     >
       <div data-cy="second-bay-way-con" className="flex-row items-center">
-        <WalletIcon
+        <img
+          src="/icons/WalletIcon.svg"
           data-cy="second-bay-way-svg"
           className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
         />
@@ -739,7 +729,8 @@ const CreditInput = ({ active, setActive }) => {
       } mt-[6px] cursor-pointer w-full items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
       <div data-cy="dredit-way-con" className="flex-row items-center">
-        <CreditIcon
+        <img
+          src="/icons/CreditIcon.svg"
           data-cy="dredit-way-svg"
           className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
         />
@@ -753,15 +744,32 @@ const CreditInput = ({ active, setActive }) => {
         </span>
       </div>
       <div data-cy="container-icons" className="flex-row items-center">
-        <VisaIcon data-cy="Visa-Icon" />
-        <MasterIcon data-cy="Master-Icon" className="ml-[5px]" />
-        <MaestroIcon data-cy="Maestro-Icon" className="ml-[5px]" />
-        <AmericanExpressIcon
+        <img src="/icons/Visa.svg" data-cy="Visa-Icon" />
+        <img
+          src="/icons/Master.svg"
+          data-cy="Master-Icon"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/Maestro.svg"
+          data-cy="Maestro-Icon"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/AmericanExpress.svg"
           data-cy="AmericanExpress-Icon"
           className="ml-[5px]"
         />
-        <ApplePayIcon data-cy="ApplePay-Icon" className="ml-[5px]" />
-        <GooglePayIcon data-cy="GooglePay-Icon" className="ml-[5px]" />
+        <img
+          src="/icons/ApplePay.svg"
+          data-cy="ApplePay-Icon"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/GooglePay.svg"
+          data-cy="GooglePay-Icon"
+          className="ml-[5px]"
+        />
       </div>
     </div>
   );
@@ -788,7 +796,8 @@ const CryptoInput = ({ active, setActive }) => {
       } mt-[6px] cursor-pointer w-full items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
       <div data-cy="crypto-bay-way-container" className="flex-row items-center">
-        <CryptoIcon
+        <img
+          src="/icons/CryptoIcon.svg"
           data-cy="crypto-bay-way-svg"
           className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
         />
@@ -802,13 +811,22 @@ const CryptoInput = ({ active, setActive }) => {
         </span>
       </div>
       <div data-cy="containers-icons" className="flex-row items-center">
-        <PaymentIconOne data-cy="PaymentIconOne-icons" />
-        <PaymentIconTwo data-cy="PaymentIconTwo-icons" className="ml-[5px]" />
-        <PaymentIconThree
+        <img src="/icons/DimondPay.svg" data-cy="PaymentIconOne-icons" />
+        <img
+          src="/icons/DimondPay1.svg"
+          data-cy="PaymentIconTwo-icons"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/DimondPay2.svg"
           data-cy="PaymentIconThree-icons"
           className="ml-[5px]"
         />
-        <PaymentIconFour data-cy="PaymentIconFour-icons" className="ml-[5px]" />
+        <img
+          src="/icons/DimondPay3.svg"
+          data-cy="PaymentIconFour-icons"
+          className="ml-[5px]"
+        />
       </div>
     </div>
   );

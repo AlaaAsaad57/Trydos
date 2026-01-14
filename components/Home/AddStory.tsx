@@ -1,5 +1,5 @@
 "use client";
-import PlusIcon from "public/svg/chatplus";
+
 import { useAppStore } from "store";
 import {
   COOKIE_NAMES,
@@ -52,7 +52,7 @@ function AddStory() {
           handleClick();
         }}
       >
-        <PlusIcon />
+        <img src="/icons/chatplus.svg" />
       </div>
     </>
   );

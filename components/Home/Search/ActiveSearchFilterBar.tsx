@@ -1,8 +1,4 @@
 "use client";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
-import CloseIcon from "public/svg/CloseIcon";
-
-import Search from "public/svg/SearchIcon";
 import { GetImageUrl } from "utils/tinyUtils";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
@@ -36,7 +32,8 @@ function ActiveSearchFilterBar({ value, appliedFilters, reset }) {
       className="filter-info-bar gap-[8px] w-full mx-[10px] mt-[5px] h-[30px] bg-[#efefef] rounded-[10px] px-[10px] flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
       data-cy="filterInfo"
     >
-      <CloseIcon
+      <img
+        src="/icons/CloseIcon.svg"
         data-cy="closeIcon"
         className="mx-[10px]"
         onClick={() => {
@@ -45,7 +42,7 @@ function ActiveSearchFilterBar({ value, appliedFilters, reset }) {
       />
       {appliedFilters?.categories.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
 
           {appliedFilters?.categories.map(
             (category, key) =>
@@ -176,7 +173,7 @@ function ActiveSearchFilterBar({ value, appliedFilters, reset }) {
       )}
       {appliedFilters?.boutiques?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {appliedFilters?.boutiques?.map(
             (category) =>
               category.name && (
@@ -223,7 +220,7 @@ function ActiveSearchFilterBar({ value, appliedFilters, reset }) {
       )}
       {appliedFilters?.brands?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {appliedFilters?.brands?.map(
             (brand) =>
               (brand.name ||
@@ -288,9 +285,9 @@ function ActiveSearchFilterBar({ value, appliedFilters, reset }) {
 
       {value?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           <span>
-            <Search className="scale-75" />
+            <img src="/icons/Search.svg" className="scale-75" />
           </span>
           <div className="category-title filter-bar-main-title  text-[#5d5d5d]">
             {value}

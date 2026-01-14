@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import SearchCamIcon from "public/svg/SearchCamIcon";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
@@ -235,7 +234,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
           <Spinner />
         ) : (
           <>
-            <SearchCamIcon onClick={OpenMenu} />
+            <img src="/icons/SearchCamIcon.svg" onClick={OpenMenu} />
             {isDesktop && showMenu && (
               <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                 <div className="py-1">

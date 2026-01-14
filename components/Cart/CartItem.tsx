@@ -4,7 +4,6 @@ import React, { useCallback } from "react";
 import { useAppStore } from "store";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
-import ErrorIcon from "public/svg/cart/Error";
 import Image from "next/image";
 function CartItem({ product, index }) {
   const { language } = useAppStore();
@@ -206,7 +205,7 @@ function CartItem({ product, index }) {
           product.is_country_restricted === true ||
           product.is_active === false) && (
           <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
-            <ErrorIcon />
+            <img src="/icons/Error.svg" />
             <div className={`${language === "ar" && "dir-rtl"}`}>
               <span className="ml-1.5">
                 {translateFunction("Availabilty")}:

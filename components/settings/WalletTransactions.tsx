@@ -1,5 +1,4 @@
 "use client";
-import TryDosWalletIcon from "public/svg/TryDosWalletIcon";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
@@ -7,12 +6,7 @@ import { useEffect, useState } from "react";
 import order from "services/order";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { useParams, useRouter } from "next/navigation";
-
-interface WalletTransactionsProps {
-  goBack: () => void;
-  swipeToOrderDetails: () => void;
-}
+import { useRouter } from "next/navigation";
 
 interface Transaction {
   id: string;
@@ -153,7 +147,7 @@ function WalletTransactions({ isRtl, local }) {
           aria-label={translateFunction("Wallet")}
         >
           <div className="flex items-center gap-[12px]">
-            <TryDosWalletIcon />
+            <img src="/icons/WalletIcon.svg" />
             <div className="flex-col">
               <span className="text-[#1D1D1D] text-[14px] regular">
                 {translateFunction("Trydos Wallet")}

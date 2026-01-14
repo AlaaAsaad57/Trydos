@@ -1,5 +1,5 @@
 import ConfirmMobileChange from "./ConfirmMobileChange";
-import XIcon from "public/svg/Xicon";
+
 export const ConfirmationModal = ({
   closeWindow,
   value,
@@ -8,7 +8,8 @@ export const ConfirmationModal = ({
 }: any) => {
   return (
     <>
-      <XIcon
+      <img
+        src="/icons/settings/Xicon.svg"
         className="w-[20px] absolute z-30 top-[calc(50%-170px)]  right-[30px]  h-[20px] cursor-pointer"
         onClick={closeWindow}
       />

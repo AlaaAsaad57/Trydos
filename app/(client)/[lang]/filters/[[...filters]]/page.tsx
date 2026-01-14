@@ -1,7 +1,6 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-import BackIcon from "public/svg/listing/backIcon";
-import SortIcon from "public/svg/listing/sortIcon";
+
 import { redirect } from "next/navigation";
 import NextLink from "components/global/NextLink";
 import "styles/listing-components.css";
@@ -153,7 +152,8 @@ export default async function Page({ params }) {
             ariaLabel={`TryDos Home ${Params.lang}`}
             className="back-icon"
           >
-            <BackIcon
+            <img
+              src="/icons/backIcon.svg"
               data-cy="back_icon_boutique_page"
               className={`${isRtl && "rotate-180"}`}
             />
@@ -178,7 +178,7 @@ export default async function Page({ params }) {
               data-cy="filter_option_loseSearchInput"
               className="filter-option"
             >
-              <SortIcon data-cy="closeSearchInput" />
+              <img src="/icons/sortIcon.svg" data-cy="closeSearchInput" />
             </div>
             <FilterBoutiquePageButton key={"filter-button"} />
             <ShareBoutiquePageButton />

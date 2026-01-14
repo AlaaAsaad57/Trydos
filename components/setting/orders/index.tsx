@@ -19,7 +19,7 @@ async function OrdersLinkCard({ isRtl, user, local, language }) {
       href={user.phone !== "0" && user ? `/${local}/settings/orders` : "#login"}
     >
       <OrderNotified />
-      <img className="w-[32px] h-[25px]" src="/svg/OrdersIcon.svg" />
+      <img className="w-[32px] h-[25px]" src="/icons/OrdersIcon.svg" />
       <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
         {translateFunction("Orders", language)}
       </span>

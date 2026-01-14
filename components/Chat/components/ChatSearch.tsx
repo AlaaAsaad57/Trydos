@@ -1,7 +1,4 @@
 import React, { useEffect } from "react";
-import DownArrow from "public/svg/arrow-down";
-import UpArrow from "public/svg/arrow-up";
-import XIcon from "public/svg/Xicon";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 
@@ -308,7 +305,10 @@ function ChatSearch({ close }) {
               NextSearch();
           }}
         >
-          <DownArrow style={{ transform: "scale(0.8)" }} />
+          <img
+            src="/icons/arrow-down.svg"
+            style={{ transform: "scale(0.8)" }}
+          />
         </div>
         <div
           className={`flex ml-1 cursor-pointer  ${
@@ -324,7 +324,7 @@ function ChatSearch({ close }) {
               PreviousSearch();
           }}
         >
-          <UpArrow style={{ transform: "scale(0.8)" }} />
+          <img src="/icons/arrow-up.svg" style={{ transform: "scale(0.8)" }} />
         </div>
         <div
           className="flex ml-1 cursor-pointer"
@@ -332,7 +332,10 @@ function ChatSearch({ close }) {
             close();
           }}
         >
-          <XIcon style={{ transform: "scale(0.8)" }} />
+          <img
+            src="/icons/settings/Xicon.svg"
+            style={{ transform: "scale(0.8)" }}
+          />
         </div>
       </div>
     </div>

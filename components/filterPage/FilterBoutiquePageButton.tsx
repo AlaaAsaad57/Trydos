@@ -2,7 +2,6 @@
 import React from "react";
 import { useAppStore } from "store";
 
-import FilterIcon from "public/svg/listing/filterIcon";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 
 function FilterBoutiquePageButton() {
@@ -24,7 +23,8 @@ function FilterBoutiquePageButton() {
         className="filter-option"
         onClick={handleFilterButtonClick}
       >
-        <FilterIcon
+        <img
+          src="/icons/filterIcon.svg"
           data-cy="settingsIcon_svg"
           className={`${filterEnabled && "filter-icon-enabled"}`}
         />
