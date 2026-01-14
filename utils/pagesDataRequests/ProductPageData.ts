@@ -404,7 +404,7 @@ export async function GetFQACommentsForProduct({
   };
 }
 
-export async function GetFQACommentsForProductWithReactions({
+async function GetFQACommentsForProductWithReactions({
   user_id,
   commentsResult,
 }) {

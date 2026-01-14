@@ -58,7 +58,7 @@ function BoutiqueWrapper({ boutique, lang }) {
 
 export default BoutiqueWrapper;
 
-export const CategoriesSlider = ({ categories, boutique, lang }) => {
+const CategoriesSlider = ({ categories, boutique, lang }) => {
   const [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
   return (

@@ -1,5 +1,4 @@
 import React from "react";
-import { GetStarttingSetting } from "serverRequests";
 import ExpectedIcon from "public/svg/expectedDelevery";
 import { translateFunction } from "utils/server";
 import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";

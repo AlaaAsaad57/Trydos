@@ -28,7 +28,7 @@ export async function fetchProductDetails(
   }
 }
 
-export async function fetchProductGeneralDetails(
+async function fetchProductGeneralDetails(
   slug: string,
   language: string,
   country: string

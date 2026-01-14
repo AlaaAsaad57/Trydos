@@ -4,12 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
 import CartIcon from "public/svg/CartIcon";
-import {
-  usePathname,
-  useSearchParams,
-  useRouter,
-  useParams,
-} from "next/navigation";
+import { useParams } from "next/navigation";
 import Menu from "./Menu";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";

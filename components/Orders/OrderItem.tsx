@@ -1,16 +1,4 @@
-import {
-  translateFunction,
-  RoundPrice,
-  getConfiguredImage,
-} from "utils/functions";
-import { useParams } from "next/navigation";
-
-import { useAppStore } from "store";
-import OrderStatusIcon, {
-  BagStatusIcon,
-} from "components/settings/cards/OrderStatusIcon";
-import Image from "next/image";
-import { GetImageUrl, ShowNotificationSign } from "utils/tinyUtils";
+import { ShowNotificationSign } from "utils/tinyUtils";
 import NextLink from "components/global/NextLink";
 import {
   ModifiedOrderInterface,

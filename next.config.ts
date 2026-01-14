@@ -117,7 +117,7 @@ if (process.env.NODE_ENV !== "production") {
   module.exports = nextConfig;
 }
 
-export default withSentryConfig(undefined, {
+export default withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
   org: "ramaaz-fm",

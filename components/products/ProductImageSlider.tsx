@@ -1,10 +1,10 @@
 "use client";
 import useEmblaCarousel from "embla-carousel-react";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import auth from "services/auth";
-import { useAppStore } from "store";
+
 function ProductImagesSlider({ children, language, productGA }) {
   const isRtl = language === "ar" || language === "ku";
 

@@ -817,7 +817,7 @@ export async function GetProductFaqQuestions({
     total: (response.hits.total as any)?.value,
   };
 }
-export async function GetFaqItem({ id }) {
+async function GetFaqItem({ id }) {
   let query: any = {
     index: "comments",
     size: 1,

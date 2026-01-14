@@ -13,7 +13,7 @@ import {
   WhatsappIcon,
   WhatsappShareButton,
 } from "react-share";
-import { getUserChat, RoundPrice, translateFunction } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import CopyIcon from "public/svg/copyIcon";
 

@@ -9,7 +9,6 @@ import { GetAddressString } from "utils/tinyUtils";
 import SelectRegion from "components/Cart/SelectRegion";
 import AddAddressForm from "components/Cart/AddAddressForm";
 import ConfirmAddressModal from "./ConfirmAddressModal";
-import OrderItem from "./OrderItem";
 import orderService from "services/order";
 import BottomSheet from "components/global/BottomSheet";
 import Spinner from "components/global/Spinner";

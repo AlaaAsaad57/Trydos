@@ -132,7 +132,7 @@ export async function GetHomeMetaData({ language, country, category = null }) {
   return metadataObject;
 }
 // get Cateogires for metadata
-export async function GetCatgoriesMetaData({ country, language, limit = 20 }) {
+async function GetCatgoriesMetaData({ country, language, limit = 20 }) {
   try {
     const { mustConditions, mustNotConditions } = getRules(country);
     const query = {

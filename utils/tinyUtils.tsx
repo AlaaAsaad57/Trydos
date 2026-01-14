@@ -279,53 +279,7 @@ export const ShowNotificationSign = ({
   }
   return false;
 };
-export const formatPhone = (phone) => {
-  let valid = false;
-  let country = getCountry(phone);
-  let data;
-  switch (country?.iso2?.toLowerCase()) {
-    case "sy":
-      data = phone.replace(/\D/g, "")?.slice(0, 12);
-      if (country && data.length === 12) {
-        valid = true;
-      } else {
-        valid = false;
-      }
-    case "lb":
-      data = phone.replace(/\D/g, "")?.slice(0, 12);
-      if (country && data.length > 9 && data.length <= 12) {
-        valid = true;
-      } else {
-        valid = false;
-      }
-    case "iq":
-      data = phone.replace(/\D/g, "")?.slice(0, 13);
 
-      if (country && data.length === 13) {
-        valid = true;
-      } else {
-        valid = false;
-      }
-    case "tr":
-      data = phone.replace(/\D/g, "")?.slice(0, 12);
-
-      if (country && data.length === 12) {
-        valid = true;
-      } else {
-        valid = false;
-      }
-    default:
-      data = phone.replace(/\D/g, "")?.slice(0, 13);
-
-      if (country && data.length > 9 && data.length <= 13) {
-        valid = true;
-      } else {
-        valid = false;
-      }
-  }
-
-  return { data, valid };
-};
 const getCountry = (text?: string) => {
   return allCountries.filter((countryItem) =>
     text?.startsWith(countryItem.dialCode)
@@ -401,19 +355,6 @@ export const DetectScreen = () => {
     return GA_GLOBAL_SCREEN.HOME_SCREEN;
   }
 };
-
-export const totalAmount = (arr) => {
-  let total = 0;
-  arr?.map((s) => {
-    total += s.order_amount;
-  });
-  return total;
-};
-
-/**
- * Removes special characters and limits input to 90 characters.
- * Used for input sanitization (pollination).
- */
 export const pollinateInput = (value: string): string => {
   if (typeof value !== "string") return "";
   let input = value.replace(/[<>,#$%^&*()]/g, "");
@@ -617,24 +558,6 @@ export const ShowDayStr = (index, language) => {
   ];
   return days[index];
 };
-
-export function convertTextToXFormat(input) {
-  if (!input) return "";
-  // Split the input text into words
-  const words = input.split(" ");
-
-  // Transform each word
-  const transformedWords = words.map((word) => {
-    // If the word is empty, return it as is
-    if (word.length === 0) return word;
-
-    // Get the first letter and replace the rest with 'x'
-    return word.charAt(0) + "x".repeat(word.length - 1);
-  });
-
-  // Join the transformed words back into a string and return
-  return transformedWords.join(" ");
-}
 
 export function getFirstLetterLang(text: string): "right" | "left" {
   if (!text) return "left"; // default direction

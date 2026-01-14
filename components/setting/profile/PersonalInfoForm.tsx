@@ -586,7 +586,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
 }
 
 export default PersonalInfoForm;
-export const ConfirmationModal = ({
+const ConfirmationModal = ({
   closeWindow,
   value,
   successCallback,

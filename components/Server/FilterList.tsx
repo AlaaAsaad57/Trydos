@@ -734,17 +734,3 @@ const FilterItemsRow = ({
     </div>
   );
 };
-
-// Legacy function for backward compatibility with searchParams
-
-export const getActiveFilters = (parsedFilters: FilterParams): any => {
-  const activeFilters = {};
-  Object.keys(parsedFilters).forEach((key) => {
-    if (!["boutiques"]?.includes(key))
-      activeFilters[key] =
-        key === "Search"
-          ? parsedFilters[key][0] // Get first element for search text
-          : parsedFilters[key]; // Array is already parsed
-  });
-  return activeFilters;
-};

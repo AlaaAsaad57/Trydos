@@ -13,10 +13,7 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import home from "services/home";
-import {
-  showErrorNotification,
-  showSuccessNotification,
-} from "store/notifications/reducer";
+import { showErrorNotification } from "store/notifications/reducer";
 
 function AuthNavSection({
   onClick,

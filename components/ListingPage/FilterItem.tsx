@@ -12,7 +12,7 @@ import {
   FilterState,
 } from "utils/server";
 
-export const FilterItem = ({
+const FilterItem = ({
   term,
   item,
   filterParams,
