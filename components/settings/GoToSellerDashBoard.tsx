@@ -66,7 +66,7 @@ function GoToSellerDashBoard({ language }: { language: string }) {
         onClick={() => {
           window.location.href = `/${lang}/sellerProfile`;
         }}
-        className="h-[50px] cursor-pointer w-full rounded-[15px]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]"
+        className="h-[50px] cursor-pointer w-full rounded-[15px]  bg-[#f8f8f8] border text-[#1d1d1d]  border-gray-100 flex justify-center items-center my-[12px]"
       >
         {translateFunction("Go to Seller Dashboard", language)}
       </div>
