@@ -1032,8 +1032,10 @@ svg {
   transition-duration: 0.4s;
   transition-timing-function: ease-in-out;
   overflow: auto;
+  max-height: 100%;
 }
 
-.setting-screen > div {
+.setting-screen > div,
+.setting-screen > button {
   flex-shrink: 0;
 }
