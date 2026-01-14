@@ -34,7 +34,7 @@ function GoToSellerDashBoard({ language }: { language: string }) {
       <>
         <button
           onClick={() => setOpenSellerModal(true)}
-          className="h-[50px] cursor-pointer w-full rounded-[15px]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]"
+          className="h-[50px] cursor-pointer w-full rounded-[15px] text-[#1d1d1d]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]"
         >
           {translateFunction("Become A Seller At Trydos", language)}
         </button>
@@ -55,7 +55,7 @@ function GoToSellerDashBoard({ language }: { language: string }) {
     <>
       <button
         onClick={() => setOpenSellerModal(true)}
-        className="h-[50px] cursor-pointer w-full rounded-[15px]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]"
+        className="h-[50px] cursor-pointer w-full rounded-[15px]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px] text-[#1d1d1d]"
       >
         {translateFunction("Become A Seller At Trydos", language)}
       </button>
