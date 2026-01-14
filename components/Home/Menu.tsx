@@ -198,6 +198,9 @@ const Menu = ({ user, setMenuOpen }) => {
             data={{
               is_settings: true,
             }}
+            onClick={() => {
+              setMenuOpen(false);
+            }}
             href={`/${lang}/settings`}
             icon={
               <MenuIcon>
@@ -243,17 +246,6 @@ const Menu = ({ user, setMenuOpen }) => {
           >
             {translateFunction("Notifications")}
           </MenuItem>
-          {/* <MenuItem
-            dataCy="Orders-Icon"
-            onClick={() => setShowOrders(!showOrders)}
-            icon={
-              <MenuIcon>
-                <path d="M21 8v13H3V8M1 3h22v5H1V3zM10 12h4" />
-              </MenuIcon>
-            }
-          >
-            {translateFunction("Orders")}
-          </MenuItem> */}
           <MenuItem
             dataCy="Compare-Icon"
             data={{

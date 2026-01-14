@@ -68,7 +68,6 @@ function ProductColorCard({
             const image = product.images[index];
             return (
               <React.Fragment>
-                {/* <BorderImage isBig={true} /> */}
                 <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
                 <Image
                   width={200}

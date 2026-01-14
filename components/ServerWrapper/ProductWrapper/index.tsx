@@ -211,7 +211,6 @@ function ProductWrapper({
                       }}
                     >
                       <div className="flex w-full h-[290px] relative" key={idx}>
-                        {/* <BorderImage isBig={true} /> */}
                         <div
                           className={
                             "inset-shadow-img w-[200px] h-[290px] rounded-15 absolute "
@@ -252,7 +251,6 @@ function ProductWrapper({
                       }}
                     >
                       <div className="flex w-full h-[290px] relative" key={idx}>
-                        {/* <BorderImage isBig={true} /> */}
                         <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
                         <Image
                           width={400}

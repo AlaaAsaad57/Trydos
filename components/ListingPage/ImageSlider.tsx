@@ -19,7 +19,6 @@ function ImageSlider({ product_name, images, showBorder }) {
         const image = images?.[index];
         return (
           <div className="flex w-full h-[290px] relative" key={index}>
-            {/* <BorderImage isBig={true} /> */}
             <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
             <Image
               width={380}

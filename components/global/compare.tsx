@@ -9,7 +9,6 @@ import {
 } from "utils/functions";
 import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
-import CompareLoadingWidget from "./CompareLoadingWidget";
 
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
