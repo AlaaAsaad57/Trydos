@@ -40,7 +40,7 @@ import { showErrorNotification } from "@/store/notifications/reducer";
 import { translateFunction, getUserChat } from "utils/functions";
 import { db } from "utils/firebaseInitv1";
 import { useAppStore } from "store";
-import { pollinateInput, requestPermissions } from "@/utils/tinyUtils";
+import { requestPermissions } from "@/utils/tinyUtils";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
 import CustomPopup from "components/global/Popup";
 

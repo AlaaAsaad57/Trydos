@@ -2,62 +2,54 @@
 import InitialNavigation from "components/global/InitialNavigation";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useRef } from "react";
 
-export default function SettingsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Template({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [direction, setDirection] = useState(1);
+
+  // We use a ref to calculate direction immediately during render
+  // instead of waiting for a useEffect.
   const prevPathRef = useRef(pathname);
+  const direction =
+    pathname.split("/").length >= prevPathRef.current.split("/").length
+      ? 1
+      : -1;
 
-  useEffect(() => {
-    const prevDepth = prevPathRef.current.split("/").filter(Boolean).length;
-    const currentDepth = pathname.split("/").filter(Boolean).length;
-    setDirection(currentDepth < prevDepth ? -1 : 1);
-    prevPathRef.current = pathname;
-  }, [pathname]);
+  // Update the ref for the NEXT render
+  prevPathRef.current = pathname;
 
-  // تعريف النوع هنا يحل مشكلة الـ TypeScript
   const pageVariants: Variants = {
     enter: (d: number) => ({
       x: d > 0 ? "100%" : "-100%",
-      opacity: 1,
-      zIndex: 1,
+      opacity: 0,
     }),
     center: {
       x: 0,
       opacity: 1,
-      zIndex: 1,
       transition: {
-        x: { type: "spring", stiffness: 300, damping: 35 },
+        x: { type: "spring", stiffness: 300, damping: 30 },
         opacity: { duration: 0.2 },
       },
     },
     exit: (d: number) => ({
-      x: d > 0 ? "-30%" : "100%",
-      opacity: d > 0 ? 0 : 1,
-      zIndex: d > 0 ? 0 : 2,
-      transition: {
-        x: { duration: 0.3, ease: "easeInOut" },
-        opacity: { duration: 0.25 },
-      },
+      x: d > 0 ? "-100%" : "100%",
+      opacity: 0,
+      transition: { duration: 0.3 },
     }),
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-102px)] overflow-hidden bg-white">
-      <AnimatePresence initial={false} custom={direction} mode="popLayout">
+    // Ensure the container has a stable height and hidden overflow
+    <div className="relative w-full h-[calc(100vh-102px)] overflow-hidden">
+      <AnimatePresence mode="popLayout" custom={direction} initial={false}>
         <motion.div
-          key={pathname}
+          key={pathname} // Crucial: must change on every route change
           custom={direction}
           variants={pageVariants}
           initial="enter"
           animate="center"
           exit="exit"
-          className="absolute inset-0 w-full h-full bg-white flex flex-col"
+          className="w-full h-full"
         >
           {children}
         </motion.div>

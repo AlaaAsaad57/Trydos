@@ -108,16 +108,17 @@ function OrderDetailsWrapper({
           String(order.id) === String(order_chat_id) ||
           String(order.return_request_id) === String(order_chat_id)
       );
-      console.log(order_item);
+
       setOrderData(data);
       let active_order =
         data?.find((order) => String(order.id) === String(order_id)) ??
         data?.[0];
-      console.log(order_id);
+
       setActivePack(active_order);
       if (
-        order_item.order_status?.value === "out_for_delivery" ||
-        returnData.return_requests_data.find(
+        (order_chat_id &&
+          order_item?.order_status?.value === "out_for_delivery") ||
+        returnData?.return_requests_data?.find(
           (return_item) =>
             String(return_item.order_id) === String(order_chat_id) ||
             String(order_item?.return_request_id) === String(order_chat_id)
