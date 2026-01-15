@@ -170,14 +170,14 @@ function ChatItem({
   }, []);
 
   const handleClick = () => {
+    handleClickChat();
+    setMain("chat");
     timeout = setTimeout(() => {
       if (!isMove && Moving !== id) {
-        handleClickChat();
         xDown = null;
         yDown = null;
         moving = false;
         setMoving(false);
-        setMain("chat");
       } else {
         if (!isMove && Moving === id) {
         }
@@ -245,7 +245,7 @@ function ChatItem({
               : "right-[10px]"
           } arrow-right`}
         >
-          <img src="/icons/chat/arrowRight.svg" />
+          <img src="/icons/chat/arrowRight.svg" className="w-[3px] h-[13px]" />
         </div>
         {newMessage > 0 && (
           <div
@@ -255,7 +255,10 @@ function ChatItem({
               right: isRtl ? "initial" : "38px",
             }}
           >
-            <img src="/icons/chat/messageIcon.svg" />
+            <img
+              src="/icons/chat/messageIcon.svg"
+              className="w-[15px] h-[15px]"
+            />
             <div className="new-mes">{newMessage}</div>
           </div>
         )}

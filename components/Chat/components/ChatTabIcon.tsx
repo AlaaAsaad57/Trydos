@@ -8,11 +8,11 @@ function ChatTabIcon({
 }) {
   const getIcon = () => {
     if (SelectedTab) {
-      return <ActiveIcon />;
+      return ActiveIcon;
     } else if (NumberOfItems > 0) {
-      return <HasNewItemIcon />;
+      return HasNewItemIcon;
     } else {
-      return <Icon />;
+      return Icon;
     }
   };
   const getStyle = () => {

@@ -185,7 +185,7 @@ function OptionsMenu(props) {
               setDelete(true);
             }}
           >
-            <img src="/icons/chat/delete.svg" />
+            <img src="/icons/chat/delete.svg" className="w-[15px] h-[15px]" />
             <div className="rep-descs">{translate("Delete", language)}</div>
           </div>
         </div>
@@ -260,7 +260,7 @@ function OptionsMenu(props) {
                 setDelete(true);
               }}
             >
-              <img src="/icons/chat/delete.svg" />
+              <img src="/icons/chat/delete.svg" className="w-[15px] h-[15px]" />
               <div className="rep-descs">{translate("Delete", language)}</div>
             </div>
             {props.isSender &&

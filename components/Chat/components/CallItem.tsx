@@ -19,7 +19,7 @@ function CallItem({ photo, name, date, type, Delete, duration }) {
   return (
     <div className={`call-conversation-item ${type} call-item-row`}>
       <span className="options-icon" onClick={() => Delete()}>
-        <img src="/icons/chat/delete.svg" />
+        <img src="/icons/chat/delete.svg" className="w-[15px] h-[15px]" />
       </span>
       <Image
         loading="eager"

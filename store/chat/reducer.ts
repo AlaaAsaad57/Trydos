@@ -7,12 +7,13 @@ import {
   getCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import { Channel } from "utils/types/chat";
 
 interface ChatState {
   chatVar: boolean;
-  data: any[];
+  data: Channel[];
   MessageActiveCall: number | null;
-  activeChat: any | null;
+  activeChat: Channel | null;
   main: string;
   chat_loading: boolean;
   refs: boolean;
@@ -1113,7 +1114,7 @@ export const useChatStore = (set, get) => ({
 
   setFirebaseToken: (payload: string) => set({ fbToken: payload }),
 
-  setChats: (payload: any[], param: any[], replace = false) => {
+  setChats: (payload: Channel[], param: any[], replace = false) => {
     const state = get();
     let arr = [];
     let chatData = [];

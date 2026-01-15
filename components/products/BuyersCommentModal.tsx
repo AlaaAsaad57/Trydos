@@ -84,7 +84,10 @@ function BuyersCommentModal({
           <div className="w-full h-auto pb-[80px] flex-col">
             {/* Header */}
             <div className="flex-col px-[12px] gap-[6px]">
-              <img src="/icons/BuyersCommentsIcon.svg" />
+              <img
+                src="/icons/BuyersCommentsIcon.svg"
+                className="w-[30px] h-[30px]"
+              />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
                 {translateFunction("Buyers Comment", language)}
               </span>

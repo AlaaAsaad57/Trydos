@@ -18,8 +18,7 @@ function ChatLists(props) {
     pinnedChats: pinned,
     chatSearchResults: searchResults,
     activeChat,
-    setMain,
-    main,
+
     forwarded_message,
   } = useAppStore();
   const [hasMore, setHasMore] = useState(true);

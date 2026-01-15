@@ -277,7 +277,11 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
           {translateFunction("Shipping & Delivery Address", language)}
         </div>
         <span data-cy="freeShupping-container" className="bold ml-[11px]">
-          <img src="/icons/FreeShipping.svg" data-cy="WrapIcon1" />
+          <img
+            src="/icons/FreeShipping.svg"
+            data-cy="WrapIcon1"
+            className="w-[30px] h-[30px]"
+          />
         </span>
         {orderLoading && (
           <span className="bold ml-[11px]">

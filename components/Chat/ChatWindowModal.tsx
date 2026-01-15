@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
 import "styles/chat.css";
 import ChatWindow from "./pages/ChatWindow";
-const ConversationContainer = dynamic(
-  () => import("./pages/ConversationContainer"),
-  { ssr: false }
-);
+
 import NewChatsSide from "components/Chat/components/NewChatsSide";
 import { SSRDetect, translateFunction } from "utils/functions";
-import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import SearchParamUpdater from "components/global/ParamsUpdater";
+import ConversationContainer from "./pages/ConversationContainer";
+
 function Chat(props) {
   const {
     main: ViewedScreen,
@@ -57,7 +54,6 @@ function Chat(props) {
       <div
         className={`app ${language}-app xs:right-0 xs:left-auto xs:top-0 xs:z-[9999999999999] xs:h-screen`}
       >
-        <SearchParamUpdater searchKey="chat" searchValue="true" />
         <textarea id="text-copy"></textarea>
         {typeof Notification !== "undefined" &&
         Notification.permission === "granted" &&
@@ -68,8 +64,6 @@ function Chat(props) {
               setOpenContacts={(e) => setOpenContacts(e)}
               search={search}
               setSearch={(e) => setSearch(e)}
-              activeChat={activeChat}
-              ViewedScreen={ViewedScreen}
               close={props.close}
             />
             {SSRDetect() && (
@@ -78,7 +72,6 @@ function Chat(props) {
                 closeWidget={props.close}
                 first={first}
                 loading={loading}
-                active={activeChat}
                 setSearch={setSearch}
                 ViewedScreen={
                   ViewedScreen === "chat" && !contactOpen && activeChat?.id

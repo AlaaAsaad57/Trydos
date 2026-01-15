@@ -237,7 +237,7 @@ const AddressOrder = ({ success }) => {
           {translateFunction("Shipping & Delivery Address")}
         </div>
         <span className="bold ">
-          <img src="/icons/FreeShipping.svg" />
+          <img src="/icons/FreeShipping.svg" className="w-[30px] h-[30px]" />
         </span>
       </div>
       {/* <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">

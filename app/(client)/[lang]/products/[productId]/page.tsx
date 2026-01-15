@@ -225,7 +225,10 @@ async function Page({ params, searchParams }) {
                   } colors-label w-full flex-col`}
                   data-cy="FreeReturn"
                 >
-                  <img src="/icons/FreeReturnIcon.svg" />
+                  <img
+                    src="/icons/FreeReturnIcon.svg"
+                    className="w-[30px] h-[30px]"
+                  />
                   <div
                     className={`${
                       isRtl && "dir-rtl"

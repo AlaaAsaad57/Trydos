@@ -19,7 +19,7 @@ async function FreeShippingOption({ lang, qtyPricePromise }) {
           className={`${isRtl && "items-end"} w-full flex-col`}
           data-cy="FreeShipping"
         >
-          <img src="/icons/FreeShipping.svg" />
+          <img src="/icons/FreeShipping.svg" className="w-[30px] h-[30px]" />
           <div
             className={`flex-col text-[#1d1d1d] medium text-[11px] ${
               isRtl && "items-end"

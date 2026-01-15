@@ -78,7 +78,7 @@ html[lang="ar"] .chat-window-search-holder input {
 .chat-window-search-holder input::placeholder {
   color: #d3d3d3 !important;
 }
-.chat-window-search-holder svg {
+.chat-window-search-holder img {
   top: 10px;
   z-index: 6;
   position: absolute;
@@ -86,7 +86,7 @@ html[lang="ar"] .chat-window-search-holder input {
   width: 20px;
   height: 20px;
 }
-html[lang="ar"] .chat-window-search-holder svg {
+html[lang="ar"] .chat-window-search-holder img {
   top: 10px;
   z-index: 6;
   position: absolute;

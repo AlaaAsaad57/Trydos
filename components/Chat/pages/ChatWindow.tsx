@@ -9,9 +9,14 @@ import ContactLists from "./ContactLists";
 import { getUserChat, translateFunction } from "utils/functions";
 import { setLastSeen } from "store/chat/actions";
 import { useAppStore } from "store";
-function ChatWindow(props) {
-  const { language, forwarded_message, setMain, setForwardMessage, openChat } =
-    useAppStore();
+function ChatWindow({ close, setOpenContacts, open, setSearch, search }) {
+  const {
+    language,
+    forwarded_message,
+    setMain,
+    setForwardMessage,
+    activeChat,
+  } = useAppStore();
   const Tabs = ["Chats", "Calls", "Stories"];
   const [SelectedTab, setSelectedTab] = useState("Chats");
 
@@ -30,7 +35,7 @@ function ChatWindow(props) {
         data-cy="ContactsIcon"
         className="contact-icon-header"
         onClick={() => {
-          props.setOpenContacts(true);
+          setOpenContacts(true);
         }}
       />
       <div
@@ -38,16 +43,16 @@ function ChatWindow(props) {
         aria-label="close icon"
         onClick={() => {
           setForwardMessage(null);
-          props.close();
+          close();
           setMain("main");
         }}
       >
         <img src="/icons/chat/cancel.svg" />
       </div>
       <ChatWindowHeader
-        openContact={props.open}
-        search={props.search}
-        setSearch={(e) => props.setSearch(e)}
+        openContact={open}
+        search={search}
+        setSearch={(e) => setSearch(e)}
         Tabs={Tabs}
         SelectedTab={SelectedTab}
         setSelectedTab={setSelectedTab}
@@ -67,13 +72,13 @@ function ChatWindow(props) {
         </div>
       ) : (
         <>
-          {props.open ? (
+          {open ? (
             <>
               <div className="forwarded-label">
                 <div
                   className="forward-cancel-icon"
                   onClick={() => {
-                    props.setOpenContacts(false);
+                    setOpenContacts(false);
                   }}
                 >
                   <img src="/icons/chat/arrow.svg" />
@@ -91,16 +96,11 @@ function ChatWindow(props) {
           )}
         </>
       )}
-      {SelectedTab === "Chats" && !props.open && (
-        <ChatLists search={props.search} />
-      )}
+      {SelectedTab === "Chats" && !open && <ChatLists search={search} />}
       {SelectedTab === "Calls" && <CallList />}
       {SelectedTab === "Stories" && <StoriesList />}
-      {props.open && (
-        <ContactLists
-          search={props.search}
-          close={() => props.setOpenContacts(false)}
-        />
+      {open && (
+        <ContactLists search={search} close={() => setOpenContacts(false)} />
       )}
     </div>
   );

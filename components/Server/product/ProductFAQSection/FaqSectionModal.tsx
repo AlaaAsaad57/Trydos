@@ -86,7 +86,7 @@ function FaqSectionModal({
           <div className="w-full h-auto pb-[80px] flex-col">
             {/* Header */}
             <div className="flex-col px-[12px] gap-[6px]">
-              <img src="/icons/FAQIcon.svg" />
+              <img src="/icons/FAQIcon.svg" className="w-[30px] h-[30px]" />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
                 {translateFunction("FAQ Buyer & Seller", language)}
               </span>

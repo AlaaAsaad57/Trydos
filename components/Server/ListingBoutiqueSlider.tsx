@@ -24,7 +24,7 @@ function BoutiqueHeader({ boutique }) {
           data-cy="boutique_top_icons"
           className="boutique-top-info flex-col items-center"
         >
-          <div className="boutique-logo-container flex-row align-center">
+          <div className="boutique-logo-container flex-row align-center gap-[8px]">
             <Image
               alt={boutique?.name}
               width={130}

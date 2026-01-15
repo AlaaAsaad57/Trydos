@@ -30,7 +30,10 @@ async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
     <>
       <div className={`w-full flex-col`}>
         <BuyersCommentTopBar isRtl={isRtl}>
-          <img src="/icons/BuyersCommentsIcon.svg" />
+          <img
+            src="/icons/BuyersCommentsIcon.svg"
+            className="w-[30px] h-[30px]"
+          />
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"

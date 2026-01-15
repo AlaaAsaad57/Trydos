@@ -211,7 +211,7 @@ function ChatInfo({
               style={{ marginLeft: "106px" }}
             >
               <img
-                src="/icons/chat/VideoInfo.svg"
+                src="/icons/chat/videocall.svg"
                 className={`${
                   callLoading === "video" && " opacity-40 scale-75"
                 }`}
@@ -265,7 +265,10 @@ function ChatInfo({
                 </div>
               </div>
               <div className="chat-user-info-arrow">
-                <img src="/icons/chat/arrowRight.svg" />
+                <img
+                  src="/icons/chat/arrowRight.svg"
+                  className="w-[3px] h-[13px]"
+                />
               </div>
             </div>
           </div>
@@ -291,7 +294,10 @@ function ChatInfo({
           <div className="chat-user-gallery-container">
             <div className="chat-user-info-arrow gallery-option">
               <span> {translateFunction("Never")}</span>{" "}
-              <img src="/icons/chat/arrowRight.svg" />
+              <img
+                src="/icons/chat/arrowRight.svg"
+                className="w-[3px] h-[13px]"
+              />
             </div>
             <div className="chat-user-files-icon">
               <img src="/icons/chat/InfoGallery.svg" />

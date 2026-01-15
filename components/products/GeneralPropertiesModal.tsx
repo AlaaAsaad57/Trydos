@@ -54,7 +54,10 @@ function GeneralPropertiesModal({
             }}
           >
             <div className="flex-col gap-[6px]">
-              <img src="/icons/RateIconProperty.svg" />
+              <img
+                src="/icons/RateIconProperty.svg"
+                className="w-[30px] h-[30px]"
+              />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
                 {translateFunction("Buyers Product Rate", language)}
               </span>
@@ -143,7 +146,10 @@ function GeneralPropertiesModal({
               <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
             <div className="flex-col gap-[7px]">
-              <img src="/icons/SolidRecomendIcon.svg" />
+              <img
+                src="/icons/SolidRecomendIcon.svg"
+                className="w-[30px] h-[30px]"
+              />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
                 {translateFunction("Buyers Product Recommend To Buy", language)}
               </span>

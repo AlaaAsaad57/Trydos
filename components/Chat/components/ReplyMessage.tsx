@@ -44,7 +44,10 @@ function ReplyMessage({ message, cancel }) {
     if (message.message_type.name === "VideoMessage") {
       return (
         <>
-          <img src="/icons/chat/video.svg" className="message-type-icon" />
+          <img
+            src="/icons/chat/video.svg"
+            className="message-type-icon w-[10px] h-[10px]"
+          />
           {translateFunction("Video")}
         </>
       );
@@ -52,7 +55,10 @@ function ReplyMessage({ message, cancel }) {
     if (message.message_type.name === "VoiceMessage") {
       return (
         <>
-          <img src="/icons/chat/audio.svg" className="message-type-icon" />
+          <img
+            src="/icons/chat/audio.svg"
+            className="message-type-icon w-[10px] h-[10px]"
+          />
           {translateFunction("Audio")}
         </>
       );

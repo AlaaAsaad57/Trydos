@@ -35,7 +35,10 @@ function LastMessageBody({ message, status }) {
         <>
           {message.sender_user_id === getUser()?.id &&
             getMessageStatusIcon(message.message_status, message.mid)}
-          <img src="/icons/image.svg" className="message-type-icon" />{" "}
+          <img
+            src="/icons/image.svg"
+            className="message-type-icon w-[10px] h-[10px]"
+          />{" "}
           {translate("Image", language)}
         </>
       );
@@ -55,7 +58,10 @@ function LastMessageBody({ message, status }) {
         <>
           {message.sender_user_id === getUser()?.id &&
             getMessageStatusIcon(message.message_status, message.mid)}
-          <img src="/icons/chat/audio.svg" className="message-type-icon" />{" "}
+          <img
+            src="/icons/chat/audio.svg"
+            className="message-type-icon w-[10px] h-[10px]"
+          />{" "}
           {translate("Audio", language)}
         </>
       );
@@ -65,7 +71,10 @@ function LastMessageBody({ message, status }) {
         <>
           {message.sender_user_id === getUser()?.id &&
             getMessageStatusIcon(message.message_status, message.mid)}
-          <img src="/icons/chat/video.svg" className="message-type-icon" />{" "}
+          <img
+            src="/icons/chat/video.svg"
+            className="message-type-icon w-[10px] h-[10px]"
+          />{" "}
           {translate("Video", language)}
         </>
       );

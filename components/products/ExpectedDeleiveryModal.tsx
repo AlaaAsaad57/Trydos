@@ -63,7 +63,10 @@ function ExpectedDeleiveryModal() {
         >
           <div className="w-full px-[12px] h-auto pb-[80px] flex-col text-[#1d1d1d] regular text-[11px]">
             <div className="flex-col gap-[6px]">
-              <img src="/icons/expectedDelevery.svg" />
+              <img
+                src="/icons/expectedDelevery.svg"
+                className="w-[30px] h-[30px]"
+              />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
                 {translateFunction(
                   "Expected Shipping & delivery Date",

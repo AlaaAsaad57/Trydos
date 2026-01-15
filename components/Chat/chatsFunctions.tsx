@@ -47,7 +47,10 @@ export const getMessageStatusIcon = (status_array, mid) => {
   )
     return (
       <>
-        <img src="/icons/chat/read.svg" className="status-icon" />
+        <img
+          src="/icons/chat/read.svg"
+          className="status-icon w-[10px] h-[10px]"
+        />
       </>
     );
   else if (
@@ -58,9 +61,19 @@ export const getMessageStatusIcon = (status_array, mid) => {
       (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
     )[0]?.received_at
   )
-    return <img src="/icons/chat/recieved.svg" className="status-icon" />;
+    return (
+      <img
+        src="/icons/chat/recieved.svg"
+        className="status-icon w-[10px] h-[10px]"
+      />
+    );
   else {
-    return <img src="/icons/chat/sent.svg" className="status-icon" />;
+    return (
+      <img
+        src="/icons/chat/sent.svg"
+        className="status-icon w-[10px] h-[10px]"
+      />
+    );
   }
 };
 export const isNew = (ch) => {
@@ -82,7 +95,7 @@ export const getCallType = (type) => {
   if (type.duration <= 0) {
     return (
       <>
-        <img src="/icons/chat/missedCall.svg" />{" "}
+        <img src="/icons/chat/missedCall.svg" className="w-[15px] h-[15px]" />{" "}
         {translate("Missed Call", language)}
       </>
     );
@@ -92,14 +105,14 @@ export const getCallType = (type) => {
   ) {
     return (
       <>
-        <img src="/icons/chat/IncomingCall.svg" />{" "}
+        <img src="/icons/chat/IncomingCall.svg" className="w-[15px] h-[15px]" />{" "}
         {translate("Incoming Call", language)}
       </>
     );
   } else if (parseInt(type.sender) === parseInt(getUserChat().id)) {
     return (
       <>
-        <img src="/icons/chat/outgoingCall.svg" />{" "}
+        <img src="/icons/chat/outgoingCall.svg" className="w-[15px] h-[15px]" />{" "}
         {translate("Outgoing Call", language)}
       </>
     );
