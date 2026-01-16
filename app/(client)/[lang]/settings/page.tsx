@@ -80,7 +80,7 @@ async function page({ params }) {
     if (iso === "tr") return "Turkish";
     if (iso === "ku") return "کوردی";
   };
-  return <></>;
+
   return (
     <div
       className="flex-col w-full pt-[20px] px-[12px] flex setting-screen"
