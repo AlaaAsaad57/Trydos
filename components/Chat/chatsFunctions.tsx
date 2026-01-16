@@ -223,7 +223,7 @@ export const forwardMessage = async (m, activeChat) => {
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
         // )[0]?.role_id,
         // sender_role_id: user.role_id,
-        content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
+        content: [{ file_path: m.message_files[0]?.file_path, caption: "" }],
         parent_message_id: null,
         message_type: "ImageMessage",
       },
@@ -259,8 +259,8 @@ export const forwardMessage = async (m, activeChat) => {
             )[0]?.user_id,
           },
         ],
-        message_content: [
-          { file_path: m.message_content[0]?.file_path, caption: "" },
+        message_files: [
+          { file_path: m.message_files[0]?.file_path, caption: "" },
         ],
         cid: activeChat?.id,
       },
@@ -285,7 +285,7 @@ export const forwardMessage = async (m, activeChat) => {
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
         // )[0]?.role_id,
         // sender_role_id: user.role_id,
-        content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
+        content: [{ file_path: m.message_files[0]?.file_path, caption: "" }],
         parent_message_id: null,
         message_type: "VoiceMessage",
       },
@@ -323,8 +323,8 @@ export const forwardMessage = async (m, activeChat) => {
             )[0]?.user_id,
           },
         ],
-        message_content: [
-          { file_path: m.message_content[0]?.file_path, caption: "" },
+        message_files: [
+          { file_path: m.message_files[0]?.file_path, caption: "" },
         ],
       },
       isNew: false,
@@ -348,7 +348,7 @@ export const forwardMessage = async (m, activeChat) => {
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
         // )[0]?.role_id,
         // sender_role_id: user.role_id,
-        content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
+        content: [{ file_path: m.message_files[0]?.file_path, caption: "" }],
         parent_message_id: null,
         message_type: "VideoMessage",
       },
@@ -367,7 +367,7 @@ export const forwardMessage = async (m, activeChat) => {
         // )[0]?.role_id,
         // sender_role_id: user.role_id,
         sender_user_id: user.id,
-        message_type: { name: "VoiceMessage" },
+        message_type: { name: "VideoMessage" },
         type: "pending",
 
         created_at: new Date(),
@@ -385,8 +385,8 @@ export const forwardMessage = async (m, activeChat) => {
             )[0]?.user_id,
           },
         ],
-        message_content: [
-          { file_path: m.message_content[0]?.file_path, caption: "" },
+        message_files: [
+          { file_path: m.message_files?.[0]?.file_path, caption: "" },
         ],
         cid: activeChat?.id,
       },
@@ -411,7 +411,7 @@ export const forwardMessage = async (m, activeChat) => {
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
         // )[0]?.role_id,
         // sender_role_id: user.role_id,
-        content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
+        content: [{ file_path: m.message_files[0]?.file_path, caption: "" }],
         parent_message_id: null,
         message_type: "FileMessage",
       },
@@ -447,8 +447,8 @@ export const forwardMessage = async (m, activeChat) => {
             )[0]?.user_id,
           },
         ],
-        message_content: [
-          { file_path: m.message_content[0]?.file_path, caption: "" },
+        message_files: [
+          { file_path: m.message_files[0]?.file_path, caption: "" },
         ],
         cid: activeChat?.id,
       },
