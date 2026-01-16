@@ -94,5 +94,6 @@ export interface Channel {
   updated_at: string;
   channel_members: Member[];
   messages: Message[];
+  order_chat_participant_id?: number | string | null;
   channel_type: any | null;
 }

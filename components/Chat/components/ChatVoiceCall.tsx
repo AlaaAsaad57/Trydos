@@ -277,7 +277,7 @@ function ChatVoiceCall({ token }) {
           }
 
           <span className="caller-name">
-            {otherUser?.name || otherUser?.phone}
+            {otherUser?.name || otherUser?.mobile_phone}
           </span>
 
           <div

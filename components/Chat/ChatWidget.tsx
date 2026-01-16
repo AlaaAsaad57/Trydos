@@ -59,7 +59,6 @@ export default function ChatWidget({
           isPrivate={activeChat?.order_chat_participant_id}
           closeWidget={onClose}
           ViewedScreen={"chat"}
-          active={activeChat}
           setSearch={() => {}}
           loading={loading}
           first={first}

@@ -42,7 +42,7 @@ function ChatMessage({
   parent_message_id,
   duration_in_seconds,
 }: {
-  isPrivate: boolean;
+  isPrivate: number | string | null;
   setVid: (e: any) => void;
   setImg: (e: any) => void;
   GetMessage: (e: any, b: any) => void;

@@ -68,7 +68,7 @@ function Chat(props) {
             />
             {SSRDetect() && (
               <ConversationContainer
-                isPrivate={false}
+                isPrivate={null}
                 closeWidget={props.close}
                 first={first}
                 loading={loading}

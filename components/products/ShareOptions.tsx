@@ -15,7 +15,6 @@ import {
 } from "react-share";
 import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
-
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -109,15 +108,15 @@ function ShareOptions({ product }: any) {
 
         // Transform chat user into your specific schema
         return {
-          id: user.its_record_in_my_contact?.id || `chat_${user.id}`,
+          id: user.contact_user?.id || `chat_${user.id}`,
           user_id: String(currentUserId),
-          name: user.its_record_in_my_contact?.name || user.name,
+          name: user.contact_user?.name || user.name,
           mobile_phone: user.mobile_phone,
           contact_user_id: String(user.id),
           contact_user: {
             ...user,
             id: String(user.id),
-            its_record_in_my_contact: user.its_record_in_my_contact || {
+            contact_user: user.contact_user || {
               id: null,
               user_id: String(currentUserId),
               name: user.name,

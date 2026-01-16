@@ -47,7 +47,7 @@ interface ConversationContainerProps {
   loading: boolean;
   first: boolean;
   setSearch: (val: string) => void;
-  isPrivate: boolean;
+  isPrivate?: number | string | null;
   closeWidget: () => void;
 }
 
@@ -242,6 +242,7 @@ function ConversationContainer({
       const base = {
         receiver_user_id: receiverId,
         parent_message_id: replyMessage?.id,
+        parent_message: replyMessage,
         cid: activeChat.id,
       };
       return { ...base, ...overwrite };

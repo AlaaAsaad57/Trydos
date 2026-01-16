@@ -328,7 +328,7 @@ function ChatVideoCall({ token }) {
             </div>
           )} */}
           <span className="caller-name">
-            {otherUser?.name || otherUser?.phone}
+            {otherUser?.name || otherUser?.mobile_phone}
           </span>
 
           {users.length > 0 &&
