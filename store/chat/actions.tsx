@@ -300,6 +300,27 @@ export async function getMessagesBetweenMessage(payload) {
       reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
       method: "POST",
       server: "chat",
+      body: JSON.stringify({ limit: payload.second + 10 }),
+      // ###EDIT###
+      // body: JSON.stringify({ limit: payload.second + 1 }),
+    });
+    // @ts-ignore
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+    setPageData({ mes: response.data, ch: payload.first });
+  } catch (error) {
+    console.error(error);
+  }
+}
+export async function GetMessageforRepliedMessages(payload) {
+  const { setPageData } = useAppStore.getState();
+  try {
+    let response = await fetchData({
+      url: `/api/v1/messages/messages_of_channel/${payload.first}`,
+      reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
+      method: "POST",
+      server: "chat",
       body: JSON.stringify({ limit: payload.second + 1 }),
       // ###EDIT###
       // body: JSON.stringify({ limit: payload.second + 1 }),

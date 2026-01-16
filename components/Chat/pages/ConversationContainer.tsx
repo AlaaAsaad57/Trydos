@@ -164,9 +164,7 @@ function ConversationContainer({
         try {
           await getMessagesBetweenMessage({
             first: activeChat.id,
-            second:
-              parseInt(activeChat.messages[activeChat.messages.length - 1].id) -
-              parseInt(quoteId),
+            second: parseInt(sortedMessages?.[0].id) - parseInt(quoteId),
           });
           setQouted(quoteId);
           setPendingScrollToMessageId(quoteId);
