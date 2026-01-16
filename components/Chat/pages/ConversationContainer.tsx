@@ -242,7 +242,6 @@ function ConversationContainer({
       const base = {
         receiver_user_id: receiverId,
         parent_message_id: replyMessage?.id,
-        parent_message: replyMessage,
         cid: activeChat.id,
       };
       return { ...base, ...overwrite };
@@ -319,6 +318,7 @@ function ConversationContainer({
         optimisticMessage({
           ...baseMessagePayload({}),
           sender_user_id: senderId,
+          parent_message: replyMessage,
           message_type: { name: type },
           message_content: [{ file_path: base64 }],
           message_files: [{ file_path: base64, file_name: file.name }],
@@ -362,6 +362,7 @@ function ConversationContainer({
         message_files: [{ file_path: text, file_name: "Text" }],
         created_at: new Date(),
         type: "pending",
+        parent_message: replyMessage,
         mid: midLocal,
         message_status: buildMessageStatus(receiverId, senderId),
       };
@@ -622,6 +623,7 @@ function ConversationContainer({
             message_files: [{ file_path: base64data, file_name: "Audio" }],
             created_at: new Date(),
             type: "pending",
+            parent_message: replyMessage,
             mid: midLocal,
             message_status: buildMessageStatus(receiverId, senderId),
           });
