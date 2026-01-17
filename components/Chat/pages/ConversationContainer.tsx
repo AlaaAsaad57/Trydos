@@ -678,27 +678,27 @@ function ConversationContainer({
   }, [active, getPage, setMessagesPage]);
 
   /* --------------------- Scroll effect for list ------------------------ */
-  useLayoutEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || !activeChat?.messages?.length) return;
+  // useLayoutEffect(() => {
+  //   const container = scrollContainerRef.current;
+  //   if (!container || !activeChat?.messages?.length) return;
 
-    const currentLastMsgId =
-      activeChat.messages[activeChat.messages.length - 1]?.id;
+  //   const currentLastMsgId =
+  //     activeChat.messages[activeChat.messages.length - 1]?.id;
 
-    if (isFetchingOlderRef.current) {
-      const diff = container.scrollHeight - prevScrollHeightRef.current;
-      container.scrollTop = diff;
-      isFetchingOlderRef.current = false;
-    } else if (
-      prevLastMsgIdRef.current &&
-      currentLastMsgId !== prevLastMsgIdRef.current
-    ) {
-      container.scrollTop = container.scrollHeight;
-    }
+  //   if (isFetchingOlderRef.current) {
+  //     const diff = container.scrollHeight - prevScrollHeightRef.current;
+  //     container.scrollTop = diff;
+  //     isFetchingOlderRef.current = false;
+  //   } else if (
+  //     prevLastMsgIdRef.current &&
+  //     currentLastMsgId !== prevLastMsgIdRef.current
+  //   ) {
+  //     container.scrollTop = container.scrollHeight;
+  //   }
 
-    prevLastMsgIdRef.current = currentLastMsgId;
-    prevScrollHeightRef.current = container.scrollHeight;
-  }, [activeChat?.messages]);
+  //   prevLastMsgIdRef.current = currentLastMsgId;
+  //   prevScrollHeightRef.current = container.scrollHeight;
+  // }, [activeChat?.messages]);
 
   /* ------------------------- Native Recording --------------------------- */
   const [nativeRecorder, setNativeRecorder] = useState<MediaRecorder | null>(
@@ -753,6 +753,35 @@ function ConversationContainer({
     // Use .getTime() to get the numeric Unix timestamp
     return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   });
+
+  const firstMessageIdRef = useRef<string | null>(null);
+
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || !sortedMessages || sortedMessages.length === 0) return;
+
+    const currentScrollHeight = container.scrollHeight;
+    const currentFirstMessageId = sortedMessages[0]?.id;
+
+    // Check if we have prepended messages (older messages loaded)
+    // We do this by seeing if the height grew AND the first message ID is different
+    const isPrepended =
+      prevScrollHeightRef.current > 0 &&
+      currentFirstMessageId !== firstMessageIdRef.current;
+
+    if (isPrepended) {
+      // Calculate how much height was added
+      const heightDifference =
+        currentScrollHeight - prevScrollHeightRef.current;
+
+      // Instantly adjust scroll to maintain visual position
+      container.scrollTop += heightDifference;
+    }
+
+    // Update refs for the next render
+    prevScrollHeightRef.current = currentScrollHeight;
+    firstMessageIdRef.current = currentFirstMessageId;
+  }, [sortedMessages]);
   return (
     <>
       {/* hidden file input */}
@@ -906,7 +935,13 @@ function ConversationContainer({
         )}
 
         {/* Messages */}
-        <div ref={scrollContainerRef} className="chat-message-container">
+        <div
+          ref={scrollContainerRef}
+          className="chat-message-container mt-[51.5px] py-[40px] px-[20px] bg-[#f7f7f7] w-full flex flex-col overflow-x-hidden overflow-y-auto"
+          style={{
+            height: "calc(100% - 101px)",
+          }}
+        >
           {!(typeof active?.id === "string" && active?.id?.includes("ch")) &&
             active?.id && (
               <Observable loading={loading} getNext={fetchOlderMessages} />
