@@ -22,6 +22,7 @@ import { dataURLtoFile, upload, getUser } from "../chatsFunctions";
 import {
   GetChatDetails,
   getMessagesBetweenMessage,
+  getMessagesBetweenTwoMessages,
   getPage,
   SendMessage,
 } from "store/chat/actions";
@@ -59,7 +60,7 @@ const FILE_INPUT_ACCEPT = "*/*";
  * ------------------------------------------------------------------------*/
 const buildMessageStatus = (
   receiverId: number | string,
-  senderId: number | string
+  senderId: number | string,
 ) => [
   {
     is_watched: false,
@@ -112,7 +113,7 @@ function ConversationContainer({
   /* --------------------------- Derived values --------------------------- */
   const activeChat = active;
   const receiver = activeChat?.channel_members?.find(
-    (m: any) => +m.user_id !== +(getUser() as any)?.id
+    (m: any) => +m.user_id !== +(getUser() as any)?.id,
   );
   const senderId = (getUserChat() as any)?.id;
   const receiverId = receiver?.user_id;
@@ -131,7 +132,7 @@ function ConversationContainer({
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [croppedImageFile, setCroppedImageFile] = useState<File | null>(null);
   const [croppedImagePreview, setCroppedImagePreview] = useState<string | null>(
-    null
+    null,
   );
   /* ----------------------------- scroll function ----------------------------- */
   const scrollToMessage = (quoteId) => {
@@ -156,15 +157,16 @@ function ConversationContainer({
   const GetMessage = useCallback(
     async (msgId, quoteId) => {
       const found = activeChat?.messages?.some(
-        (m) => `${m.id}` === `${quoteId}`
+        (m) => `${m.id}` === `${quoteId}`,
       );
       if (found) {
         requestAnimationFrame(() => scrollToMessage(quoteId));
       } else {
         try {
-          await getMessagesBetweenMessage({
-            first: activeChat.id,
-            second: parseInt(sortedMessages?.[0].id) - parseInt(quoteId),
+          await getMessagesBetweenTwoMessages({
+            first: sortedMessages?.[0].id,
+            second: quoteId,
+            channel_id: activeChat?.id,
           });
           setQouted(quoteId);
           setPendingScrollToMessageId(quoteId);
@@ -173,7 +175,7 @@ function ConversationContainer({
         }
       }
     },
-    [activeChat, setQouted]
+    [activeChat, setQouted],
   );
 
   /* ------------------------- Scroll Refs ------------------------------- */
@@ -208,13 +210,13 @@ function ConversationContainer({
 
       const baseRef = ref(
         db,
-        `Transaction/${(getUser() as any)?.id}/${friendID}`
+        `Transaction/${(getUser() as any)?.id}/${friendID}`,
       );
 
       const promise = desc ? push(baseRef, desc) : set(baseRef, null);
       promise.catch(console.error);
     },
-    [activeChat?.id, receiverId]
+    [activeChat?.id, receiverId],
   );
 
   const handleTyping = useCallback(() => {
@@ -244,7 +246,7 @@ function ConversationContainer({
       };
       return { ...base, ...overwrite };
     },
-    [receiverId, replyMessage?.id, activeChat?.id]
+    [receiverId, replyMessage?.id, activeChat?.id],
   );
 
   const optimisticMessage = useCallback(
@@ -259,7 +261,7 @@ function ConversationContainer({
         isPrivate,
       });
     },
-    [sendMessage, activeChat, isPrivate]
+    [sendMessage, activeChat, isPrivate],
   );
 
   /* ----------------------------- Audio logic ----------------------------- */
@@ -306,7 +308,7 @@ function ConversationContainer({
   const handleMediaMessage = async (
     file: File,
     type: string,
-    midLocal: string
+    midLocal: string,
   ) => {
     try {
       // optimistic UI update (uses base64 for img preview)
@@ -375,7 +377,7 @@ function ConversationContainer({
           mid: midLocal,
         }),
         false,
-        isPrivate
+        isPrivate,
       );
     } catch (error) {
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
@@ -418,7 +420,7 @@ function ConversationContainer({
   useEffect(() => {
     if (pendingScrollToMessageId) {
       const exists = activeChat?.messages?.some(
-        (m) => `${m.id}` === `${pendingScrollToMessageId}`
+        (m) => `${m.id}` === `${pendingScrollToMessageId}`,
       );
       if (exists) {
         requestAnimationFrame(() => {
@@ -441,8 +443,8 @@ function ConversationContainer({
     else {
       showErrorNotification(
         translateFunction(
-          "Please enable camera permissions to use camera features"
-        )
+          "Please enable camera permissions to use camera features",
+        ),
       );
     }
   };
@@ -484,7 +486,7 @@ function ConversationContainer({
         return day;
       return dateString;
     },
-    [language]
+    [language],
   );
 
   const showRoute = useCallback(
@@ -549,7 +551,7 @@ function ConversationContainer({
       }
       return type;
     },
-    [showDate]
+    [showDate],
   );
 
   /* ----------------------- Camera Image Sender -------------------------- */
@@ -641,7 +643,7 @@ function ConversationContainer({
           typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
             ? activeChat.id
             : false,
-          isPrivate
+          isPrivate,
         );
       } catch (error) {
         deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
@@ -664,7 +666,7 @@ function ConversationContainer({
       senderId,
       receiverId,
       isPrivate,
-    ]
+    ],
   );
 
   /* ------------------------ Fetch Older Helper ------------------------- */
@@ -702,7 +704,7 @@ function ConversationContainer({
 
   /* ------------------------- Native Recording --------------------------- */
   const [nativeRecorder, setNativeRecorder] = useState<MediaRecorder | null>(
-    null
+    null,
   );
 
   const startNativeRecording = useCallback(async () => {
@@ -873,8 +875,8 @@ function ConversationContainer({
                 showErrorNotification(
                   translateFunction(
                     "You cannot send messages or calls to this user",
-                    language
-                  )
+                    language,
+                  ),
                 );
                 return;
               }
@@ -883,7 +885,7 @@ function ConversationContainer({
                 activeChat.id,
                 receiver?.user.name,
                 receiver?.user?.photo_path,
-                receiver?.user.mobile_phone
+                receiver?.user.mobile_phone,
               );
             }}
             makeVideoCall={() => {
@@ -891,8 +893,8 @@ function ConversationContainer({
                 showErrorNotification(
                   translateFunction(
                     "You cannot send messages or calls to this user",
-                    language
-                  )
+                    language,
+                  ),
                 );
                 return;
               }
@@ -901,7 +903,7 @@ function ConversationContainer({
                 activeChat.id,
                 receiver?.user.name,
                 receiver?.user?.photo_path,
-                receiver?.user.mobile_phone
+                receiver?.user.mobile_phone,
               );
             }}
             cancel={() => openDetails(false)}
@@ -980,7 +982,7 @@ function ConversationContainer({
                 type={showRoute(
                   mes,
                   sortedMessages?.[i - 1],
-                  sortedMessages?.[i + 1]
+                  sortedMessages?.[i + 1],
                 )}
               />
             </React.Fragment>
@@ -994,7 +996,7 @@ function ConversationContainer({
               <div className="flex grow flex-row items-center justify-center medium text-pretty text-[#1d1d1d] bg-gray-200 p-3 rounded-md">
                 {translateFunction(
                   "You cannot send messages or calls to this user",
-                  language
+                  language,
                 )}
               </div>
             </>
@@ -1122,8 +1124,8 @@ function ConversationContainer({
                                   .catch(() => {
                                     showErrorNotification(
                                       translateFunction(
-                                        "No available Microphone"
-                                      )
+                                        "No available Microphone",
+                                      ),
                                     );
                                   });
                               }
@@ -1142,7 +1144,7 @@ function ConversationContainer({
       {showMenu && (
         <CustomPopup
           modalTitle={translateFunction(
-            "chosse an image or video from camera or files"
+            "chosse an image or video from camera or files",
           )}
           close={() => {
             setShowMenu(false);
@@ -1156,7 +1158,7 @@ function ConversationContainer({
               onClick: () => {
                 const fileInput =
                   document.querySelector<HTMLInputElement>(
-                    'input[type="file"]'
+                    'input[type="file"]',
                   );
                 if (fileInput) {
                   // 1. Change "images/*" to "image/*"
