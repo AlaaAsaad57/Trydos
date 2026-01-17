@@ -172,7 +172,7 @@ export const getStatues = ({
 };
 
 export const DeleteMessage = (ch_id, msg_id, bool) => {
-  const { deleteMessage } = useAppStore();
+  const { deleteMessage } = useAppStore.getState();
   deleteMessage({ ch_id, msg_id, bool });
   DeleteMessageApi(msg_id, bool);
 };
@@ -189,7 +189,7 @@ export const copyText = ({
 };
 
 export const IsTextAvatar = () => {
-  const { activeChat } = useAppStore();
+  const { activeChat } = useAppStore.getState();
   if (
     (!activeChat.channel_members.filter(
       (a) => parseInt(a.user_id.toString()) === parseInt(getUserChat()?.id)

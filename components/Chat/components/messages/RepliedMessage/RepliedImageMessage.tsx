@@ -35,11 +35,19 @@ function RepliedImageMessage({ deleted_by_user_id, onClick, channel_member }) {
             className=""
           />
         </div>
-        <img
-          src="/icons/image.svg"
-          className="message-type-icon w-[10px] h-[10px]"
-        />{" "}
-        Image
+        {deleted_by_user_id ? (
+          <span className="message-body-text-content">
+            this message was deleted
+          </span>
+        ) : (
+          <>
+            <img
+              src="/icons/image.svg"
+              className="message-type-icon w-[10px] h-[10px]"
+            />{" "}
+            Image
+          </>
+        )}
       </div>
     </div>
   );

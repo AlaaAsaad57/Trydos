@@ -39,7 +39,13 @@ function RepliedProductMessage({
             className=""
           />
         </div>
-        Product
+        {deleted_by_user_id ? (
+          <span className="message-body-text-content">
+            this message was deleted
+          </span>
+        ) : (
+          <>Product</>
+        )}
       </div>
     </div>
   );

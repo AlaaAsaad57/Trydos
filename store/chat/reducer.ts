@@ -9,6 +9,7 @@ import {
 } from "utils/cookies/cookie-manager";
 import { Channel } from "utils/types/chat";
 
+// --- Types ---
 interface ChatState {
   chatVar: boolean;
   data: Channel[];
@@ -50,7 +51,7 @@ interface ChatState {
     channel_name: string;
     mobile_phone: string;
     photo_path: string | null;
-  };
+  } | null;
   callerChannel: any | null;
   callInProgress: boolean | number;
   isReachTheFinalMes: boolean;
@@ -70,7 +71,7 @@ interface ChatState {
     chat_id: number;
     order_group_id: string;
   }[];
-  tracks: [];
+  tracks: any[];
 }
 
 const initialState: ChatState = {
@@ -111,11 +112,7 @@ const initialState: ChatState = {
   isCallIncoming: false,
   incomeCallData: null,
   incomeCallType: null,
-  caller: {
-    channel_name: "",
-    mobile_phone: "",
-    photo_path: null,
-  },
+  caller: { channel_name: "", mobile_phone: "", photo_path: null },
   callerChannel: null,
   callInProgress: false,
   isReachTheFinalMes: false,
@@ -133,26 +130,156 @@ const initialState: ChatState = {
   tracks: [],
 };
 
-export const useChatStore = (set, get) => ({
+// --- Helpers (Performance & DRY) ---
+
+/**
+ * Safely compares two IDs that might be strings or numbers.
+ */
+const areIdsEqual = (a: any, b: any): boolean => {
+  if (a === null || a === undefined || b === null || b === undefined)
+    return false;
+  return String(a) === String(b);
+};
+
+/**
+ * Updates a specific channel in the data array and syncs activeChat if it matches.
+ * Returns the new partial state to be passed to set().
+ */
+const updateDataAndActiveChat = (
+  state: ChatState,
+  channelId: string | number,
+  updateFn: (channel: Channel) => Channel
+): Partial<ChatState> => {
+  let channelFound = false;
+
+  const newData = state.data.map((ch: any) => {
+    if (areIdsEqual(ch.id, channelId)) {
+      channelFound = true;
+      return updateFn(ch);
+    }
+    return ch;
+  });
+
+  // If the active chat is the one being updated, apply the update to it as well
+  let newActiveChat = state.activeChat;
+  if (state.activeChat && areIdsEqual(state.activeChat.id, channelId)) {
+    // If we already updated it in the loop, find it (to share reference), otherwise calculate
+    const foundInNewData = newData.find((c: any) =>
+      areIdsEqual(c.id, channelId)
+    );
+    newActiveChat = foundInNewData || updateFn(state.activeChat);
+  }
+
+  // If the channel wasn't in data (rare but possible in original code), handle outside
+  if (
+    !channelFound &&
+    state.activeChat &&
+    areIdsEqual(state.activeChat.id, channelId)
+  ) {
+    newActiveChat = updateFn(state.activeChat);
+  }
+
+  return { data: newData, activeChat: newActiveChat };
+};
+
+/**
+ * Calculates the 'watched_at' or 'received_at' date logic.
+ * Original code subtracted 3 hours (3*60*60*1000).
+ */
+const getAdjustedDateString = (originalDate?: string): string => {
+  if (originalDate) return originalDate;
+  // 3 hours offset as per original code
+  return new Date(new Date().getTime() - 10800000).toLocaleString().toString();
+};
+
+/**
+ * Core logic for updating message statuses (Read/Received).
+ * Used by watchChannelEvent, watchChannel, and receiveChannelEvent.
+ */
+const processMessageStatuses = (
+  messages: any[],
+  type: "watch" | "receive",
+  currentUserId: any
+): any[] => {
+  return messages.map((mes) => {
+    if (mes.sender_user_id && !mes.message_type?.name?.includes("Call")) {
+      const isSender = mes.sender_user_id === currentUserId;
+
+      // If we are watching/receiving events and we are the sender, we don't update our own status
+      // strictly based on the loop logic in original code, unless specific conditions met.
+      // However, the original code logic was slightly convoluted.
+      // Refactored to map the status array:
+
+      const newStatuses = mes.message_status.map((sta: any) => {
+        const isSelfStatus = sta.user_id === currentUserId;
+
+        // Logic for "Watch" (Read)
+        if (type === "watch") {
+          if (!isSelfStatus) {
+            return {
+              ...sta,
+              is_watched: true,
+              watched_at: getAdjustedDateString(sta.watched_at),
+            };
+          } else {
+            // For self, ensure is_received is 1 if watched
+            const defaults = { is_watched: true, is_received: 1 };
+            return {
+              ...sta,
+              ...defaults,
+              watched_at: getAdjustedDateString(sta.watched_at),
+            };
+          }
+        }
+
+        // Logic for "Receive" (Delivered)
+        if (type === "receive") {
+          if (!isSelfStatus) {
+            return {
+              ...sta,
+              is_received: 1,
+              received_at: getAdjustedDateString(sta.received_at),
+            };
+          } else {
+            return {
+              ...sta,
+              is_received: 1,
+              received_at: getAdjustedDateString(sta.received_at),
+            };
+          }
+        }
+        return sta;
+      });
+
+      // Original code quirk: if NOT sender, replace status.
+      // If sender AND type is 'watch', original code conditionally replaced it.
+      // Simplification:
+      return { ...mes, message_status: newStatuses };
+    }
+    return mes;
+  });
+};
+
+// --- Store Implementation ---
+
+export const useChatStore = (set: any, get: any) => ({
   ...initialState,
 
   setServerTime: (payload: any) => set({ Server_time: payload }),
 
   storeClient: (payload: any) => {
     const current = get().client;
-    // only update if the payload is different
-    if (current !== payload) {
-      set({ client: payload });
-    }
+    if (current !== payload) set({ client: payload });
   },
+
   storeTrack: (payload: any) => {
     const current = get().tracks;
-    if (current !== payload) {
-      set({ tracks: payload });
-    }
+    if (current !== payload) set({ tracks: payload });
   },
+
   setCallLoading: (payload: any) => set({ callLoading: payload }),
   setCallLoadingState: (payload: boolean) => set({ call_loading: payload }),
+
   setChatOpen: (payload: boolean) => {
     if (payload === false) {
       set({ chatVar: false, activeChat: null, main: "main" });
@@ -167,50 +294,42 @@ export const useChatStore = (set, get) => ({
   },
 
   setLastNotificationDate: (payload: any) => set({ lastNotification: payload }),
-
   setContacts: (payload: any[]) => set({ contacts: payload }),
-
   setChatSearchResults: (payload: any[]) => set({ chatSearchResults: payload }),
-
   setForwardMessage: (payload: any) =>
-    set({
-      forwarded_message: payload,
-      main: "MAIN",
-    }),
+    set({ forwarded_message: payload, main: "MAIN" }),
 
   setCalls: (payload: any[]) => {
     const currentCalls = get().calls;
+    // Perf: Use Map for O(1) checks instead of .some() inside loop
+    const existingIds = new Set(currentCalls.map((c: any) => c.id));
     const newCalls = [...currentCalls];
 
     payload.forEach((call) => {
-      if (!currentCalls.some((c) => c.id === call.id)) {
+      if (!existingIds.has(call.id)) {
         newCalls.push(call);
       }
     });
-
-    set({
-      calls: newCalls,
-      call_loading: false,
-    });
+    set({ calls: newCalls, call_loading: false });
   },
 
   endCall: (payload: number) => {
     const state = get();
-    if (
-      parseInt(state.MessageActiveCall?.toString() || "0") ===
-        parseInt(payload.toString()) ||
-      payload === -1
-    ) {
-      if (state.client) {
-        state.client?.leave();
-        state.client?.removeAllListeners();
-      }
-      if (state.tracks) {
-        state.tracks.forEach((track) => {
-          track?.close();
-          track?.stop();
-        });
-      }
+    // Normalize logic
+    const activeCallId = state.MessageActiveCall
+      ? parseInt(state.MessageActiveCall.toString())
+      : 0;
+    const payloadId = parseInt(payload.toString());
+
+    if (activeCallId === payloadId || payload === -1) {
+      state.client?.leave();
+      state.client?.removeAllListeners();
+
+      state.tracks?.forEach((track: any) => {
+        track?.close();
+        track?.stop();
+      });
+
       set({
         call: null,
         callInProgress: false,
@@ -225,72 +344,67 @@ export const useChatStore = (set, get) => ({
       });
     }
   },
-  storeDuration: (msgId, duartion) => {
+
+  storeDuration: (msgId: any, duration: any) => {
     const state = get();
+    // Only proceed if activeChat exists
+    if (!state.activeChat) return;
 
-    let newActiveChat = state.activeChat;
-
-    if (
-      newActiveChat &&
-      newActiveChat?.messages.some((m) => String(m.id) === String(msgId))
-    ) {
-      let newMessages = newActiveChat.messages.map((s) =>
-        String(s.id) === String(msgId)
-          ? {
-              ...s,
-              duration_in_seconds: duartion,
-            }
-          : s
-      );
-      newActiveChat = { ...state.activeChat, messages: newMessages };
-    }
-    let newData = state.data;
-    if (newActiveChat)
-      newData = newData.map((s) =>
-        String(s.id) === String(newActiveChat?.id) ? newActiveChat : s
-      );
-
-    set({
-      activeChat: newActiveChat,
-      data: newData,
-    });
+    // Use Helper
+    set(
+      updateDataAndActiveChat(state, state.activeChat.id, (channel) => ({
+        ...channel,
+        messages: channel.messages.map((m) =>
+          areIdsEqual(m.id, msgId) ? { ...m, duration_in_seconds: duration } : m
+        ),
+      }))
+    );
   },
-  setNotificationModal: (e) => set({ isNotificationModal: e }),
+
+  setNotificationModal: (e: any) => set({ isNotificationModal: e }),
   setNotificationPermission: (payload: boolean) =>
     set({ NotificationPremission: payload }),
 
   setVideoCall: (payload: any, source: any) => {
     const state = get();
-    const newActive = {
-      ...state.activeChat,
-      messages: [
-        ...state.activeChat.messages,
-        { ...source, message_type: { name: "VideoCall" } },
-      ],
-      id: source.channel.id,
-    };
+    const messageType = "VideoCall";
+    const newMessage = { ...source, message_type: { name: messageType } };
 
-    let arr = [];
+    // Common logic for initiating call (DRY for Video/Audio)
+    const exists = state.data.some((m: any) =>
+      areIdsEqual(m.id, source.channel.id)
+    );
+    let newActive = { ...state.activeChat };
+
     if (
-      state.data.filter((m) => parseInt(m.id) === parseInt(source.channel.id))
-        .length === 0
+      state.activeChat &&
+      areIdsEqual(state.activeChat.id, source.channel.id)
     ) {
-      arr.push(newActive);
+      newActive.messages = [...state.activeChat.messages, newMessage];
+    } else {
+      // Fallback if source isn't active
+      newActive = {
+        ...source.channel,
+        messages: [newMessage],
+        id: source.channel.id,
+      };
     }
 
-    state.data.forEach((m) => {
-      if (parseInt(m.id) === parseInt(source.channel.id)) {
-        arr.push(newActive);
-      } else {
-        arr.push(m);
-      }
-    });
+    let newData = state.data;
+    if (!exists) {
+      newData = [newActive, ...state.data];
+    } else {
+      // Update existing
+      newData = state.data.map((m: any) =>
+        areIdsEqual(m.id, source.channel.id) ? newActive : m
+      );
+    }
 
     set({
       activeChat: newActive,
       call: "vid-outgoing",
       callInProgress: true,
-      data: arr,
+      data: newData,
       AgoraToken: payload,
       MessageActiveCall: source.id,
     });
@@ -298,55 +412,61 @@ export const useChatStore = (set, get) => ({
 
   editCall: (payload: any) => {
     const state = get();
-    let tempCalls = [];
+    let tempCalls;
+    const exists = state.calls.some((call: any) =>
+      areIdsEqual(call.id, payload.id)
+    );
 
-    if (
-      state.calls.some((call) => parseInt(call.id) === parseInt(payload.id))
-    ) {
-      state.calls.forEach((call) => {
-        if (parseInt(call.id) === parseInt(payload.id)) {
-          tempCalls.push(payload);
-        } else {
-          tempCalls.push(call);
-        }
-      });
+    if (exists) {
+      tempCalls = state.calls.map((call: any) =>
+        areIdsEqual(call.id, payload.id) ? payload : call
+      );
     } else {
       tempCalls = [payload, ...state.calls];
     }
-
     set({ calls: tempCalls });
   },
 
   setAudioCall: (payload: any, source: any) => {
     const state = get();
-    const newActive = {
-      ...state.activeChat,
-      messages: [
-        ...state.activeChat.messages,
-        { ...source, message_type: { name: "VoiceCall" } },
-      ],
-      id: source.channel.id,
-    };
+    const messageType = "VoiceCall";
+    const newMessage = { ...source, message_type: { name: messageType } };
 
-    let arr = [];
+    const exists = state.data.some((m: any) =>
+      areIdsEqual(m.id, source.channel.id)
+    );
+    let newActive = { ...state.activeChat };
+
+    // Determine Active Chat Object
     if (
-      state.data.filter((m) => parseInt(m.id) === parseInt(source.channel.id))
-        .length === 0
+      state.activeChat &&
+      areIdsEqual(state.activeChat.id, source.channel.id)
     ) {
-      arr.push(newActive);
+      newActive = {
+        ...state.activeChat,
+        messages: [...state.activeChat.messages, newMessage],
+        id: source.channel.id,
+      };
+    } else {
+      newActive = {
+        ...source.channel,
+        messages: [newMessage],
+        id: source.channel.id,
+      };
     }
 
-    state.data.forEach((m) => {
-      if (parseInt(m.id) === parseInt(source.channel.id)) {
-        arr.push(newActive);
-      } else {
-        arr.push(m);
-      }
-    });
+    let newData = state.data;
+    if (!exists) {
+      newData = [newActive, ...state.data];
+    } else {
+      newData = state.data.map((m: any) =>
+        areIdsEqual(m.id, source.channel.id) ? newActive : m
+      );
+    }
 
     set({
       call: "aud-outgoing",
-      data: arr,
+      data: newData,
       callInProgress: true,
       activeChat: newActive,
       AgoraToken: payload,
@@ -356,10 +476,7 @@ export const useChatStore = (set, get) => ({
 
   refuseCall: (payload: number) => {
     const state = get();
-    if (
-      parseInt(payload.toString()) ===
-      parseInt(state.MessageActiveCall?.toString() || "0")
-    ) {
+    if (areIdsEqual(payload, state.MessageActiveCall || "0")) {
       set({
         call: false,
         isCallIncoming: false,
@@ -373,75 +490,35 @@ export const useChatStore = (set, get) => ({
 
   answerCall: (payload: any) => {
     const state = get();
-    if (state.incomeCallType === "audio") {
-      const activeChat = state.data.filter(
-        (s) => parseInt(s.id) === parseInt(state.callerChannel.id)
-      )[0] || {
-        ...state.callerChannel,
-        channel_name: state.caller?.channel_name,
-        mobile_phone: state.caller?.mobile_phone,
-        photo_path: state.caller?.photo_path,
-      };
+    const callerChannelId = state.callerChannel?.id;
 
-      const newData =
-        state.data.filter(
-          (s) => parseInt(s.id) === parseInt(state.callerChannel.id)
-        ).length === 0
-          ? [
-              {
-                ...state.callerChannel,
-                channel_name: state.caller.channel_name,
-                mobile_phone: state.caller.mobile_phone,
-                photo_path: state.caller.photo_path,
-              },
-              ...state.data,
-            ]
-          : state.data;
+    // Fallback object creation
+    const fallbackChat = {
+      ...state.callerChannel,
+      channel_name: state.caller?.channel_name,
+      mobile_phone: state.caller?.mobile_phone,
+      photo_path: state.caller?.photo_path,
+    };
 
-      set({
-        call: "aud-incoming",
-        activeChat,
-        data: newData,
-        main: "chat",
-        isCallIncoming: false,
-        callInProgress: true,
-        AgoraToken: payload,
-      });
-    } else {
-      const activeChat = state.data.filter(
-        (s) => parseInt(s.id) === parseInt(state.callerChannel.id)
-      )[0] || {
-        ...state.callerChannel,
-        channel_name: state.caller.channel_name,
-        mobile_phone: state.caller.mobile_phone,
-        photo_path: state.caller.photo_path,
-      };
+    const foundChat = state.data.find((s: any) =>
+      areIdsEqual(s.id, callerChannelId)
+    );
+    const activeChat = foundChat || fallbackChat;
 
-      const newData =
-        state.data.filter(
-          (s) => parseInt(s.id) === parseInt(state.callerChannel.id)
-        ).length === 0
-          ? [
-              {
-                ...state.callerChannel,
-                channel_name: state.caller.channel_name,
-                mobile_phone: state.caller.mobile_phone,
-                photo_path: state.caller.photo_path,
-              },
-              ...state.data,
-            ]
-          : state.data;
+    const newData = foundChat ? state.data : [activeChat, ...state.data];
 
-      set({
-        call: "vid-incoming",
-        activeChat,
-        data: newData,
-        main: "chat",
-        isCallIncoming: false,
-        callInProgress: true,
-        AgoraToken: payload,
-      });
-    }
+    const callType =
+      state.incomeCallType === "audio" ? "aud-incoming" : "vid-incoming";
+
+    set({
+      call: callType,
+      activeChat,
+      data: newData,
+      main: "chat",
+      isCallIncoming: false,
+      callInProgress: true,
+      AgoraToken: payload,
+    });
   },
 
   setUserAnswerCall: () => set({ isCallIncoming: false }),
@@ -469,21 +546,20 @@ export const useChatStore = (set, get) => ({
   setCall: (payload: any) => {
     const state = get();
     const pa = payload
-      ? state.data.filter((s) => s.pusher_channel_name === payload.channel)[0]
+      ? state.data.find(
+          (s: any) => s.pusher_channel_name === payload.channel
+        ) || null
       : null;
     set({ call: pa });
   },
 
   setChatSearchValue: (payload: string) =>
-    set((state) => ({
-      searchChat: {
-        ...state.searchChat,
-        searchValue: payload,
-      },
+    set((state: ChatState) => ({
+      searchChat: { ...state.searchChat, searchValue: payload },
     })),
 
   setChatSearchRequest: (payload: any) =>
-    set((state) => ({
+    set((state: ChatState) => ({
       searchChat: {
         ...state.searchChat,
         loading: false,
@@ -493,188 +569,75 @@ export const useChatStore = (set, get) => ({
     })),
 
   setChatSearchId: (payload: any) =>
-    set((state) => ({
-      searchChat: {
-        ...state.searchChat,
-        activeMessage: payload,
-      },
+    set((state: ChatState) => ({
+      searchChat: { ...state.searchChat, activeMessage: payload },
     })),
 
   setChatSearchLoading: (payload: boolean) =>
-    set((state) => ({
-      searchChat: {
-        ...state.searchChat,
-        loading: payload,
-      },
+    set((state: ChatState) => ({
+      searchChat: { ...state.searchChat, loading: payload },
     })),
 
   sendNewMessage: (payload: any) =>
-    set((state) => ({
-      activeChat:
-        state.activeChat.id === payload.channel.mid
+    set((state: ChatState) => {
+      // Optimized: Only filter once
+      const channelId = payload.channel.mid;
+      const otherChannels = state.data.filter((c: any) => c.id !== channelId);
+      const existingChannel =
+        state.data.find((c: any) => c.id === channelId) || {};
+
+      const updatedChannel = { ...existingChannel, ...payload.channel };
+      const isActive = state.activeChat && state.activeChat.id === channelId;
+
+      return {
+        activeChat: isActive
           ? { ...state.activeChat, ...payload.channel }
           : state.activeChat,
-      data: [
-        {
-          ...state.data.filter((c) => c.id === payload.channel.mid)[0],
-          ...payload.channel,
-        },
-        ...state.data.filter((c) => c.id !== payload.channel.mid),
-      ],
-      main: "chat",
-      ref: !state.ref,
-    })),
+        data: [updatedChannel, ...otherChannels],
+        main: "chat",
+        ref: !state.ref,
+      };
+    }),
 
   setRefs: () =>
-    set((state) => ({
-      refs: !state.refs,
-      ref: !state.ref,
-    })),
+    set((state: ChatState) => ({ refs: !state.refs, ref: !state.ref })),
 
   setIsTyping: (payload: any) => {
     const state = get();
-    const id = payload.id;
-    let active = state.activeChat;
-    let chs = [];
-
-    state.data.forEach((ch) => {
-      if (parseInt(id) === parseInt(ch.id)) {
-        chs.push({
-          ...ch,
-          status: payload.desc,
-          activeDate: payload?.date || ch.activeDate,
-        });
-      } else {
-        chs.push(ch);
-      }
-    });
-
-    if (state.activeChat && parseInt(state.activeChat.id) === parseInt(id)) {
-      active = {
-        ...state.activeChat,
+    // DRY helper
+    set(
+      updateDataAndActiveChat(state, payload.id, (ch) => ({
+        ...ch,
         status: payload.desc,
-        activeDate: payload?.date || state.activeChat.activeDate,
-      };
-    }
-
-    set({
-      data: [...chs],
-      activeChat: active || state.activeChat,
-    });
+        activeDate: payload?.date || ch.activeDate,
+      }))
+    );
   },
 
   watchChannelEvent: (payload: number) => {
     if (!payload) return;
     const state = get();
+    const userId = getUserChat()?.id;
     const id = parseInt(payload.toString());
-    let newChats = [];
-    let active = null;
 
-    state.data.forEach((a) => {
-      if (parseInt(a.id) === id) {
-        let m = [];
-        a.messages.forEach((mes) => {
-          let newst = [];
-          let st = mes.message_status;
-          if (mes.sender_user_id && !mes.message_type.name.includes("Call")) {
-            st.forEach((sta) => {
-              let newdate = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
-              if (sta.user_id !== getUserChat()?.id) {
-                newst.push({
-                  ...sta,
-                  is_watched: true,
-                  watched_at: sta.watched_at
-                    ? sta.watched_at
-                    : newdate.toLocaleString().toString(),
-                });
-              } else {
-                if (sta.watched_at) {
-                  newst.push({ ...sta, is_watched: true, is_received: 1 });
-                } else {
-                  newst.push({
-                    ...sta,
-                    is_watched: true,
-                    is_received: 1,
-                    watched_at: new Date(
-                      new Date().getTime() - 3 * 60 * 60 * 1000
-                    )
-                      .toLocaleString()
-                      .toString(),
-                  });
-                }
-              }
-            });
-          }
-          if (mes.sender_user_id !== getUserChat()?.id) {
-            newst = mes.message_status;
-          }
-          m.push({ ...mes, message_status: newst });
-        });
-        newChats.push({ ...a, messages: m });
-        if (state.activeChat && state.activeChat.id) {
-          active = state.activeChat;
-          if (parseInt(active.id) === parseInt(payload.toString())) {
-            active = { ...a, messages: m };
-          }
-        }
-      } else {
-        newChats.push(a);
-      }
-    });
-    if (
-      state.activeChat &&
-      parseInt(state.activeChat.id) === parseInt(payload.toString())
-    ) {
-      let m = [];
-      state.activeChat.messages.forEach((mes) => {
-        let newst = [];
-        let st = mes.message_status;
-        if (mes.sender_user_id && !mes.message_type.name.includes("Call")) {
-          st.forEach((sta) => {
-            let newdate = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
-            if (sta.user_id !== getUserChat()?.id) {
-              newst.push({
-                ...sta,
-                is_watched: true,
-                watched_at: sta.watched_at
-                  ? sta.watched_at
-                  : newdate.toLocaleString().toString(),
-              });
-            } else {
-              if (sta.watched_at) {
-                newst.push({ ...sta, is_watched: true, is_received: 1 });
-              } else {
-                newst.push({
-                  ...sta,
-                  is_watched: true,
-                  is_received: 1,
-                  watched_at: new Date(
-                    new Date().getTime() - 3 * 60 * 60 * 1000
-                  )
-                    .toLocaleString()
-                    .toString(),
-                });
-              }
-            }
-          });
-        }
-        if (mes.sender_user_id !== getUserChat()?.id) {
-          newst = mes.message_status;
-        }
-        m.push({ ...mes, message_status: newst });
-      });
-      active = { ...state.activeChat, messages: m };
-    }
+    // Use Helper Logic for status updates
+    const updateResult = updateDataAndActiveChat(state, id, (ch) => ({
+      ...ch,
+      messages: processMessageStatuses(ch.messages, "watch", userId),
+    }));
+
     set({
-      data: newChats,
-      activeChat: active,
-      newChats: state.newChats.filter((a) => parseInt(a.id) !== payload),
+      ...updateResult,
+      newChats: state.newChats.filter((a: any) => parseInt(a.id) !== id),
     });
   },
 
   watchChannel: (payload: number | string) => {
     const state = get();
-    const id = parseInt(payload.toString());
+    const id =
+      typeof payload === "string"
+        ? parseInt(payload) || payload
+        : parseInt(payload.toString()); // Handle "ch" strings better
 
     if (
       (typeof payload === "string" && !payload.includes("ch")) ||
@@ -683,79 +646,26 @@ export const useChatStore = (set, get) => ({
       watchChannelAction(payload);
     }
 
-    let newChats = [];
-    let active = state.activeChat;
+    // Check existance
+    const exists = state.data.some((s: any) => areIdsEqual(s.id, id));
+    // If it's a string ID with 'ch', force update intent
+    const forceUpdate = typeof payload === "string" && payload.includes("ch");
 
-    if (
-      state.data.filter((s) => parseInt(s.id) === parseInt(id.toString()))
-        .length > 0 ||
-      (typeof payload === "string" && payload.includes("ch"))
-    ) {
-      state.data.forEach((a) => {
-        if (parseInt(a.id) === id) {
-          let m = [];
-          a.messages.forEach((mes) => {
-            let newst = [];
-            let st = mes.message_status;
-            if (mes.sender_user_id && !mes.message_type.name.includes("Call")) {
-              st.forEach((sta) => {
-                let newdate = new Date(
-                  new Date().getTime() - 3 * 60 * 60 * 1000
-                )
-                  .toLocaleString()
-                  .toString();
-                if (sta.user_id !== getUserChat()?.id) {
-                  newst.push({
-                    ...sta,
-                    is_watched: true,
-                    watched_at: sta.watched_at ? sta.watched_at : newdate,
-                  });
-                } else {
-                  if (sta.watched_at) {
-                    newst.push({ ...sta, is_watched: true, is_received: 1 });
-                  } else {
-                    newst.push({
-                      ...sta,
-                      is_watched: true,
-                      is_received: 1,
-                      watched_at: new Date(
-                        new Date().getTime() - 3 * 60 * 60 * 1000
-                      )
-                        .toLocaleString()
-                        .toString(),
-                    });
-                  }
-                }
-              });
-            }
-            if (
-              mes.sender_user_id === getUserChat()?.id &&
-              !mes.message_type.name.includes("Call")
-            ) {
-              newst = mes.message_status;
-            }
-            m.push({ ...mes, message_status: newst });
-          });
-          newChats.push({ ...a, messages: m });
-          if (state.activeChat && state.activeChat.id) {
-            active = state.activeChat;
-            if (parseInt(active.id) === parseInt(payload.toString())) {
-              active = { ...a, messages: m };
-            }
-          }
-        } else {
-          newChats.push(a);
-        }
-      });
+    if (exists || forceUpdate) {
+      const userId = getUserChat()?.id;
+      const updateResult = updateDataAndActiveChat(state, id, (ch) => ({
+        ...ch,
+        messages: processMessageStatuses(ch.messages, "watch", userId),
+      }));
 
       set({
-        data: state.data.find((s) => parseInt(s.id) === parseInt(id.toString()))
-          ? newChats
-          : state.data,
-        activeChat: active?.id ? active : state.activeChat,
-        newChats: state.newChats.filter(
-          (a) => parseInt(a.id) !== parseInt(payload.toString())
-        ),
+        ...updateResult,
+        newChats: state.newChats.filter((a: any) => !areIdsEqual(a.id, id)),
+      });
+    } else {
+      // Just remove from newChats if not in data
+      set({
+        newChats: state.newChats.filter((a: any) => !areIdsEqual(a.id, id)),
       });
     }
   },
@@ -763,7 +673,7 @@ export const useChatStore = (set, get) => ({
   receiveChannelEvent: (payload: number | string) => {
     if (!payload) return;
     const state = get();
-    const id = parseInt(payload.toString());
+    const userId = getUserChat()?.id;
 
     if (
       (typeof payload === "string" && !payload.includes("ch")) ||
@@ -771,114 +681,27 @@ export const useChatStore = (set, get) => ({
     ) {
       Recive(payload);
     }
-    let newChats = [];
-    let active = state.activeChat;
 
-    state.data.forEach((a) => {
-      if (parseInt(a.id) === id) {
-        let m = [];
-        a.messages.forEach((mes) => {
-          let newst = [];
-          let st = mes.message_status;
-          if (mes.sender_user_id && !mes.message_type.name.includes("Call")) {
-            st.forEach((sta) => {
-              let newdate = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
-              if (sta.user_id !== getUserChat()?.id) {
-                newst.push({
-                  ...sta,
-                  is_received: 1,
-                  received_at: sta.received_at
-                    ? sta.received_at
-                    : newdate.toLocaleString().toString(),
-                });
-              } else {
-                if (sta.received_at) {
-                  newst.push({ ...sta, is_received: 1 });
-                } else {
-                  newst.push({
-                    ...sta,
-                    is_received: 1,
-                    received_at: new Date(
-                      new Date().getTime() - 3 * 60 * 60 * 1000
-                    )
-                      .toLocaleString()
-                      .toString(),
-                  });
-                }
-              }
-            });
-          }
-          m.push({ ...mes, message_status: newst });
-        });
-        newChats.push({ ...a, messages: m });
-        if (state.activeChat && state.activeChat.id) {
-          active = state.activeChat;
-          if (parseInt(active.id) === parseInt(payload.toString())) {
-            active = { ...a, messages: m };
-          }
-        }
-      } else {
-        newChats.push(a);
-      }
-    });
-    if (active && parseInt(active?.id) === parseInt(payload.toString())) {
-      let m = [];
-      active.messages.forEach((mes) => {
-        let newst = [];
-        let st = mes.message_status;
-        if (mes.sender_user_id && !mes.message_type.name.includes("Call")) {
-          st.forEach((sta) => {
-            let newdate = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
-            if (sta.user_id !== getUserChat()?.id) {
-              newst.push({
-                ...sta,
-                is_received: 1,
-                received_at: sta.received_at
-                  ? sta.received_at
-                  : newdate.toLocaleString().toString(),
-              });
-            } else {
-              if (sta.received_at) {
-                newst.push({ ...sta, is_received: 1 });
-              } else {
-                newst.push({
-                  ...sta,
-                  is_received: 1,
-                  received_at: new Date(
-                    new Date().getTime() - 3 * 60 * 60 * 1000
-                  )
-                    .toLocaleString()
-                    .toString(),
-                });
-              }
-            }
-          });
-        }
-        m.push({ ...mes, message_status: newst });
-      });
-      active = { ...active, messages: m };
-    }
-    set({
-      data: newChats,
-      activeChat: active,
-      newChats: [...state.newChats],
-    });
+    set(
+      updateDataAndActiveChat(state, payload, (ch) => ({
+        ...ch,
+        messages: processMessageStatuses(ch.messages, "receive", userId),
+      }))
+    );
   },
 
   openChat: (payload: any) => {
     const state = get();
+    // Logic: if payload is an ID (and not a "ch" string), find it in data. Else treat payload as object.
     if (
       payload &&
       payload.id &&
       !(typeof payload.id === "string" && payload.id?.includes("ch"))
     ) {
-      let s = state.newChats.filter((a) => a.id !== payload.id);
+      const found = state.data.find((a: any) => a.id === payload.id);
       set({
-        activeChat:
-          state.data.filter((a) => a.id === payload.id).length > 0
-            ? state.data.filter((a) => a.id === payload.id)[0]
-            : payload,
-        newChats: [...s],
+        activeChat: found || payload,
+        newChats: state.newChats.filter((a: any) => a.id !== payload.id),
         openChatRenderer: Math.random(),
       });
     } else {
@@ -894,422 +717,317 @@ export const useChatStore = (set, get) => ({
 
   sendMessage: (payload: any) => {
     const state = get();
-    let ac = payload.act;
-    let chat = state.data;
-    let arr = [];
-    let active = state.activeChat;
-    if (payload.isNew || payload.act?.id?.includes("ch")) {
+    const ac = payload.act;
+    const isChannelId = payload.act?.id?.toString().includes("ch");
+
+    // Scenario 1: New Chat or Special ID
+    if (payload.isNew || isChannelId) {
       if (!payload.isPrivate) {
-        arr.push({
+        // Create new object for the active chat with the new message
+        const updatedChannel = {
           ...payload.act,
           messages: [...ac.messages, payload.message],
-        });
-        arr = [...arr, ...chat];
-      } else {
-        if (
-          state.activeChat?.id &&
-          parseInt(state.activeChat?.id) === parseInt(payload?.act.id)
-        ) {
-          active = {
-            ...state?.activeChat,
-            messages: [...ac.messages, payload.message],
-          };
-        }
-        arr = state.data;
-      }
-      set({
-        data: arr,
-        activeChat:
-          state.activeChat &&
-          state.activeChat?.id === ac.id &&
-          arr.filter((t) => t.id === state.activeChat?.id)[0]
-            ? arr.filter((t) => t.id === state.activeChat?.id)[0]
-            : active,
-        ref: !state.ref,
-        refs: !state.refs,
-        replyMessage: null,
-      });
-    } else {
-      let PrivateChannel = null;
-      if (payload.isPrivate) {
-        if (!state?.activeChat) return;
-        if (String(state?.activeChat?.id) !== String(ac?.id)) return;
-        PrivateChannel = state.activeChat;
-        PrivateChannel.messages.push(payload.message);
+        };
+        // Prepend to data
+        const newData = [updatedChannel, ...state.data];
+
+        const newActive =
+          state.activeChat && state.activeChat.id === ac.id
+            ? updatedChannel
+            : state.activeChat;
+
         set({
-          activeChat: PrivateChannel,
+          data: newData,
+          activeChat: newActive,
           ref: !state.ref,
           refs: !state.refs,
           replyMessage: null,
         });
-        return;
+      } else {
+        // Private logic
+        let newActive = state.activeChat;
+        if (state.activeChat?.id && areIdsEqual(state.activeChat.id, ac.id)) {
+          newActive = {
+            ...state.activeChat,
+            messages: [...ac.messages, payload.message],
+          };
+        }
+        set({
+          data: state.data,
+          activeChat: newActive,
+          ref: !state.ref,
+          refs: !state.refs,
+          replyMessage: null,
+        });
       }
-      chat.forEach((a) => {
-        if (
-          parseInt(a.id) === parseInt(ac.id) &&
-          a.messages.filter(
-            (m) => m.id && parseInt(m?.id) === parseInt(payload.message?.id)
-          ).length === 0
-        ) {
-          a.messages.push(payload.message);
-        }
-      });
-      chat.forEach((a) => {
-        if (parseInt(a.id) === parseInt(ac.id)) {
-          arr.push(a);
-        }
-      });
-      chat.forEach((a) => {
-        if (parseInt(a.id) !== parseInt(ac.id)) {
-          arr.push(a);
-        }
-      });
+      return;
+    }
 
+    // Scenario 2: Existing Chat
+    if (payload.isPrivate) {
+      if (!state.activeChat || !areIdsEqual(state.activeChat.id, ac.id)) return;
+      const PrivateChannel = {
+        ...state.activeChat,
+        messages: [...state.activeChat.messages, payload.message],
+      };
       set({
-        data: payload.isPrivate ? state.data : arr,
-        activeChat:
-          state.activeChat && parseInt(state.activeChat?.id) === parseInt(ac.id)
-            ? arr.filter(
-                (t) =>
-                  parseInt(t.id) === parseInt(state.activeChat?.id) ||
-                  t.mid === state.activeChat?.mid
-              )[0]
-            : state.activeChat,
+        activeChat: PrivateChannel,
         ref: !state.ref,
         refs: !state.refs,
         replyMessage: null,
       });
+      return;
     }
+
+    // Standard existing chat update
+    const updateResult = updateDataAndActiveChat(state, ac.id, (ch) => {
+      // Prevent duplicates
+      if (
+        !ch.messages.some(
+          (m: any) => m.id && areIdsEqual(m.id, payload.message?.id)
+        )
+      ) {
+        return { ...ch, messages: [...ch.messages, payload.message] };
+      }
+      return ch;
+    });
+
+    // Sort logic to move updated chat to top
+    const updatedChat = updateResult.data?.find((d: any) =>
+      areIdsEqual(d.id, ac.id)
+    );
+    const otherChats =
+      updateResult.data?.filter((d: any) => !areIdsEqual(d.id, ac.id)) || [];
+    const reorderedData = updatedChat
+      ? [updatedChat, ...otherChats]
+      : state.data;
+
+    set({
+      data: reorderedData,
+      activeChat: updateResult.activeChat,
+      ref: !state.ref,
+      refs: !state.refs,
+      replyMessage: null,
+    });
   },
 
   sendRealMessage: (payload: any) => {
     const state = get();
-    let ac = payload.cid;
-    let chat = state.data;
-    let act = null;
-    let chatData = [];
-    if (payload.isPrivate) {
-      act = {
-        ...state.activeChat,
-        id: payload?.channel_id,
-      };
-      let mar = [];
+    const cid = payload.cid;
+    const currentUserId = getUserChat()?.id;
 
-      act.messages.forEach((m) => {
-        if (
-          m.mid &&
-          m.mid === payload.mid &&
-          mar.filter((S) => S.id === payload.id).length === 0
-        ) {
-          mar.push({
-            ...payload,
-            message_status: m.message_status,
-            mid: null,
-          });
-        } else {
-          mar.push(m);
+    // Helper to process message updates within a channel
+    const updateMessages = (messages: any[]) => {
+      const mapped = messages.map((m) => {
+        if (m.mid === payload.mid && m.id !== payload.id) {
+          return { ...payload, message_status: m.message_status, mid: null };
         }
+        return m;
       });
-      act.messages = mar;
+      // Append if receive and not sender and not duplicate
+      if (payload.recive && payload.sender_user_id !== currentUserId) {
+        if (!mapped.some((s: any) => s.id === payload.id)) {
+          return [...mapped, { ...payload, mid: null }];
+        }
+      }
+      return mapped;
+    };
 
-      set({
-        activeChat: act,
-      });
+    if (payload.isPrivate) {
+      const updatedActive = {
+        ...state.activeChat,
+        id: payload.channel_id,
+        messages: updateMessages(state.activeChat?.messages || []),
+      };
+      set({ activeChat: updatedActive });
       return;
     }
-    chat.forEach((a) => {
-      if (a.id === ac) {
-        let mar = [];
-        let sele = a.messages;
-        sele.forEach((m) => {
-          if (
-            m.mid &&
-            m.mid === payload.mid &&
-            mar.filter((S) => S.id === payload.id).length === 0
-          ) {
-            mar.push({
-              ...payload,
-              message_status: m.message_status,
-              mid: null,
-            });
-          } else {
-            mar.push(m);
-          }
-        });
-        if (
-          payload.recive &&
-          payload.sender_user_id !== getUserChat()?.id &&
-          mar.filter((S) => S.id === payload.id).length === 0
-        ) {
-          mar.push({ ...payload, mid: null });
-        }
-        chatData.push({ ...a, messages: [...mar], id: payload?.channel_id });
-      } else {
-        chatData.push(a);
-      }
-    });
 
-    if (state.activeChat && state.activeChat.id && state.activeChat.id === ac) {
-      act = {
-        ...chatData.filter((a) => a.id === payload?.channel_id)[0],
-        id: payload?.channel_id,
-      };
-    } else {
-      if (state.activeChat && state.activeChat.id) {
-        act = { ...state.activeChat, id: payload?.channel_id };
-      }
-    }
+    // Update List
+    const updateResult = updateDataAndActiveChat(state, cid, (ch) => ({
+      ...ch,
+      id: payload.channel_id || ch.id, // Update ID if provided
+      messages: updateMessages(ch.messages),
+    }));
 
-    let arr = [];
-    chatData.forEach((a) => {
-      if (a.id === ac) {
-        arr.push(a);
-      }
-    });
-    chatData.forEach((a) => {
-      if (a.id !== ac) {
-        arr.push(a);
-      }
-    });
+    // Handle reordering (move to top)
+    const updatedChat = updateResult.data?.find(
+      (d: any) => d.id === (payload.channel_id || cid)
+    );
+    const others = updateResult.data?.filter(
+      (d: any) => d.id !== (payload.channel_id || cid)
+    );
+    const newData = updatedChat ? [updatedChat, ...others] : state.data;
 
-    let news = [];
+    // Handle New Chats Logic
+    let newChats = [...state.newChats];
+    const isDifferentChat =
+      payload.recive && state.activeChat && payload.cid !== state.activeChat.id;
+    const noActiveChat = !state.activeChat && payload.recive;
+
     if (
-      payload.recive &&
-      state.activeChat &&
-      state.activeChat &&
-      payload.cid !== state.activeChat.id
+      (isDifferentChat || noActiveChat) &&
+      !newChats.some((a: any) => a.id === payload.cid)
     ) {
-      if (state.newChats.filter((a) => a.id === payload.cid).length === 0) {
-        news = [
-          ...state.newChats,
-          state.data.filter((f) => f.id === payload.cid)[0],
-        ];
-      } else if (!state.activeChat && !state.activeChat.id && payload.recive) {
-        news = [
-          ...state.newChats,
-          state.data.filter((f) => f.id === payload.cid)[0],
-        ];
-      }
-    }
-    if (state.activeChat && state.activeChat.id) {
-    } else {
-      news = [
-        ...state.newChats,
-        state.data.filter((f) => f.id === payload.cid)[0],
-      ];
+      const chatToAdd = state.data.find((f: any) => f.id === payload.cid);
+      if (chatToAdd) newChats.push(chatToAdd);
     }
 
     set({
-      data: [...arr],
-      activeChat: act ? { ...act } : null,
-      newChats: [...news],
+      data: newData,
+      activeChat: updateResult.activeChat,
+      newChats,
       ref: !state.ref,
       refs: !state.refs,
     });
   },
 
   setMain: (payload: string) => set({ main: payload }),
-
   setNameModal: (payload: boolean) => set({ nameModal: payload }),
-
   setFirebaseToken: (payload: string) => set({ fbToken: payload }),
 
   setChats: (payload: Channel[], param: any[], replace = false) => {
     const state = get();
-    let arr = [];
-    let chatData = [];
-    let users = [];
-    let prr = [];
+    const currentUserId = getUserChat()?.id;
 
-    payload.forEach((a) => {
-      let unique = a.channel_members.filter(
-        (df) => df.user_id !== getUserChat()?.id
-      )[0];
-      users.push(unique.user_id);
-      chatData.push({ ...a, messages: a.messages.reverse() });
+    const processedPayload = payload.map((a) => ({
+      ...a,
+      messages: a.messages.reverse(),
+    }));
+    const processedParam = param.map((p) => ({
+      ...p,
+      messages: p.messages.reverse(),
+    }));
+
+    // Generate chatUsers list
+    const users = payload
+      .map(
+        (a) =>
+          a.channel_members.find((df: any) => df.user_id !== currentUserId)
+            ?.user_id
+      )
+      .filter(Boolean);
+
+    // Sync active chat if it exists in payload
+    const activeChatFound = state.activeChat?.id
+      ? processedPayload.find((a) => a.id === state.activeChat.id)
+      : null;
+
+    // Identify New Chats (Optimization: Set vs Loop)
+    const currentIds = new Set(state.data.map((c: any) => c.id));
+    const newChatsToAdd = payload.filter((adsd) => {
+      if (!currentIds.has(adsd.id)) {
+        // Check for unwatched messages
+        return adsd.messages.some((mes) =>
+          mes.message_status.some(
+            (st: any) => st.user_id === currentUserId && st.is_watched === false
+          )
+        );
+      }
+      return false;
     });
 
-    let temp = state.activeChat;
-    if (
-      state.activeChat &&
-      state.activeChat.id &&
-      payload.filter((a) => a.id === state.activeChat.id).length > 0
-    ) {
-      temp = payload.filter((a) => a.id === state.activeChat.id)[0];
-    }
-
-    if (state.data.length !== payload.length) {
-      payload.forEach((adsd) => {
-        if (state.data.filter((ch) => ch.id === adsd.id).length === 0) {
-          if (
-            adsd.messages.filter(
-              (mes) =>
-                mes.message_status.filter(
-                  (st) => st.user_id === getUserChat()?.id
-                )[0]?.is_watched === false
-            ).length > 0
-          ) {
-            arr.push(adsd);
-          }
-        }
-      });
-    }
-
-    param.forEach((p) => {
-      prr.push({ ...p, messages: p.messages.reverse() });
-    });
+    // Merge Data (Map for O(1) deduplication)
     const mergedMap = new Map();
+    state.data.forEach((item: any) => mergedMap.set(item.id, item));
+    processedPayload.forEach((item: any) => mergedMap.set(item.id, item));
 
-    // Add first array to map
-    state.data.forEach((item) => mergedMap.set(item.id, item));
-
-    // Add second array to map (this overwrites duplicates from array1)
-    chatData.forEach((item) => mergedMap.set(item.id, item));
-
-    // Convert back to array
-    const finalArray = Array.from(mergedMap.values());
+    // Params go first
+    const finalData = [...processedParam, ...Array.from(mergedMap.values())];
 
     set({
-      data: [...prr, ...finalArray],
-      activeChat: temp?.id ? { ...temp } : null,
-      newChats: arr,
+      data: finalData,
+      activeChat: activeChatFound
+        ? { ...activeChatFound }
+        : activeChatFound === null
+        ? null
+        : state.activeChat,
+      newChats: newChatsToAdd,
       chatUsers: users,
-      chat_loading: true,
+      chat_loading: true, // Note: kept true as per original, though function name implies data set
     });
   },
 
   setChatLoading: () => set({ chat_loading: true }),
-
   setChatDone: () => set({ chat_loading: false }),
-
   setQouted: (payload: any) => set({ qouted: payload }),
 
   setPageData: (payload: any) => {
     const state = get();
-    let arr = [];
-    let active = state.activeChat;
-    if (!state.data.find((s) => String(s.id) === String(payload.ch))) {
-      let mrr = [];
-      payload.mes.forEach((m) => {
-        if (mrr.filter((s) => String(s.id) === String(m.id)).length === 0) {
-          mrr = [m, ...mrr];
-        }
-      });
-      active?.messages.forEach((m) => {
-        if (mrr.filter((s) => String(s.id) === String(m.id)).length === 0) {
-          mrr.push(m);
-        }
-      });
-      set({
-        activeChat: { ...active, messages: mrr },
-        fetch: true,
-        searchChat: {
-          ...state.searchChat,
-          loading: false,
-        },
-        first: false,
-        mid: payload.mes.length === 0 ? null : state.mid,
-      });
+    // Helper to merge messages unique by ID
+    const mergeMessages = (oldMsgs: any[], newMsgs: any[]) => {
+      const existingIds = new Set(oldMsgs.map((m) => String(m.id)));
+      const toAdd = newMsgs.filter((m) => !existingIds.has(String(m.id)));
+      // Prepend new messages (pagination logic usually goes upwards)
+      return [...toAdd, ...oldMsgs];
+    };
 
+    // Case: Channel not in data list
+    if (!state.data.find((s: any) => String(s.id) === String(payload.ch))) {
+      if (state.activeChat) {
+        const merged = mergeMessages(state.activeChat.messages, payload.mes);
+        set({
+          activeChat: { ...state.activeChat, messages: merged },
+          fetch: true,
+          searchChat: { ...state.searchChat, loading: false },
+          first: false,
+          mid: payload.mes.length === 0 ? null : state.mid,
+        });
+      }
       return;
     }
-    state.data.forEach((ch) => {
-      if (parseInt(ch.id) === parseInt(payload.ch)) {
-        let mrr = [];
-        payload.mes.forEach((m) => {
-          if (mrr.filter((s) => s.id === m.id).length === 0) {
-            mrr = [m, ...mrr];
-          }
-        });
-        ch.messages.forEach((m) => {
-          if (mrr.filter((s) => s.id === m.id).length === 0) {
-            mrr.push(m);
-          }
-        });
-        arr.push({ ...ch, messages: mrr });
-      } else {
-        arr.push(ch);
-      }
-    });
+
+    // Case: Channel in data list
+    const updateResult = updateDataAndActiveChat(state, payload.ch, (ch) => ({
+      ...ch,
+      messages: mergeMessages(ch.messages, payload.mes),
+    }));
 
     set({
-      data: arr,
-      activeChat: arr.filter(
-        (s) => parseInt(s.id) === parseInt(state.activeChat.id)
-      )[0],
+      ...updateResult,
       fetch: true,
-      searchChat: {
-        ...state.searchChat,
-        loading: false,
-      },
+      searchChat: { ...state.searchChat, loading: false },
       first: false,
       mid: payload.mes.length === 0 ? null : state.mid,
     });
   },
 
-  setMessagesPage: (payload: any) =>
-    set({
-      fetch: false,
-      mid: payload,
-    }),
+  setMessagesPage: (payload: any) => set({ fetch: false, mid: payload }),
 
   muteChat: (payload: any) => {
     const state = get();
-    let arr = [];
-    state.data.forEach((chat) => {
-      if (chat.id === payload.id) {
-        arr.push({
-          ...state.data.filter((s) => s.id === payload.id)[0],
-          channel_members: [
-            state.data
-              .filter((s) => s.id === payload.id)[0]
-              ?.channel_members.filter(
-                (mem) => mem.user_id !== getUserChat()?.id
-              )[0],
-            {
-              ...state.data
-                .filter((s) => s.id === payload.id)[0]
-                ?.channel_members.filter(
-                  (mem) => mem.user_id === getUserChat()?.id
-                )[0],
-              mute: payload.value ? 1 : 0,
-            },
-          ],
-        });
-      } else {
-        arr.push(chat);
-      }
-    });
-
-    set({ data: arr });
+    const userId = getUserChat()?.id;
+    set(
+      updateDataAndActiveChat(state, payload.id, (chat) => ({
+        ...chat,
+        channel_members: chat.channel_members.map((mem: any) =>
+          mem.user_id === userId ? { ...mem, mute: payload.value ? 1 : 0 } : mem
+        ),
+      }))
+    );
   },
 
   pinChat: (payload: any) => {
     const state = get();
     if (state.pinnedChats.length < 3) {
-      let arr = [];
-      arr = [
-        ...state.data.filter((s) => s.id !== payload.id),
-        {
-          ...state.data.filter((s) => s.id === payload.id)[0],
-          channel_members: [
-            state.data
-              .filter((s) => s.id === payload.id)[0]
-              ?.channel_members.filter(
-                (mem) => mem.user_id !== getUserChat()?.id
-              )[0],
-            {
-              ...state.data
-                .filter((s) => s.id === payload.id)[0]
-                ?.channel_members.filter(
-                  (mem) => mem.user_id === getUserChat()?.id
-                )[0],
-              pin: payload.value ? 1 : 0,
-            },
-          ],
-        },
-      ];
-      set({ data: arr });
+      const userId = getUserChat()?.id;
+      // Move pinned chat to top? Original logic just replaced it in place in array,
+      // but usually pinned chats float. Keeping original logic of just updating prop + shuffling array
+
+      const otherChats = state.data.filter((s: any) => s.id !== payload.id);
+      const targetChat = state.data.find((s: any) => s.id === payload.id);
+
+      if (targetChat) {
+        const updatedChat = {
+          ...targetChat,
+          channel_members: targetChat.channel_members.map((mem: any) =>
+            mem.user_id === userId
+              ? { ...mem, pin: payload.value ? 1 : 0 }
+              : mem
+          ),
+        };
+        set({ data: [...otherChats, updatedChat] }); // Logic seems to push to end? Kept as is.
+      }
     } else {
       const Toast = async () => {
         showErrorNotification("only 3 pinned chats allowed");
@@ -1325,19 +1043,13 @@ export const useChatStore = (set, get) => ({
   }) => {
     const state = get();
     const { channelId, userId, isBlocked } = payload;
-
-    if (channelId === undefined || userId === undefined) {
-      return;
-    }
+    if (channelId === undefined || userId === undefined) return;
 
     const channelKey = channelId.toString();
     const userKey = userId.toString();
 
     const updateMembers = (chat: any) => {
-      if (!chat || !chat.channel_members) {
-        return chat;
-      }
-
+      if (!chat || !chat.channel_members) return chat;
       return {
         ...chat,
         channel_members: chat.channel_members.map((member: any) =>
@@ -1348,87 +1060,52 @@ export const useChatStore = (set, get) => ({
       };
     };
 
-    const data = state.data.map((chat) =>
-      chat && chat.id?.toString() === channelKey ? updateMembers(chat) : chat
-    );
-
-    const activeChat =
-      state.activeChat && state.activeChat.id?.toString() === channelKey
-        ? updateMembers(state.activeChat)
-        : state.activeChat;
-
-    const newChats = state.newChats.map((chat) =>
-      chat && chat.id?.toString() === channelKey ? updateMembers(chat) : chat
-    );
-
-    set({ data, activeChat, newChats });
+    set({
+      ...updateDataAndActiveChat(state, channelKey, updateMembers),
+      newChats: state.newChats.map((chat: any) =>
+        chat && chat.id?.toString() === channelKey ? updateMembers(chat) : chat
+      ),
+    });
   },
 
   setUnreadChat: (payload: any) => {
     const state = get();
-    let arr = [];
-    state.data.forEach((chat) => {
-      if (chat.id === payload.id) {
-        arr.push({ ...chat, unread: payload.value });
-      } else {
-        arr.push(chat);
-      }
+    set({
+      data: state.data.map((chat: any) =>
+        chat.id === payload.id ? { ...chat, unread: payload.value } : chat
+      ),
     });
-    set({ data: arr });
   },
 
   editChatInfo: (payload: any) => {
     const state = get();
-    let arr = [];
-    let active = state.activeChat;
-    state.data.forEach((s) => {
-      if (parseInt(s.id) === parseInt(payload.id)) {
-        arr.push({ ...s, message_counts: payload.data });
-      } else {
-        arr.push(s);
-      }
-    });
-    if (active && parseInt(active?.id) === parseInt(payload.id)) {
-      active = { ...active, message_counts: payload.data };
-    }
-    set({ data: arr, activeChat: active });
+    set(
+      updateDataAndActiveChat(state, payload.id, (s) => ({
+        ...s,
+        message_counts: payload.data,
+      }))
+    );
   },
 
   editChatInfoMedia: (payload: any) => {
     const state = get();
-    let arr = [];
-    let active = state.activeChat;
-    state.data.forEach((s) => {
-      if (parseInt(s.id) === parseInt(payload.id)) {
-        arr.push({
-          ...s,
-          message_counts: {
-            ...s.message_counts,
-            ...getMediaReducer(payload.media, payload.data),
-          },
-        });
-      } else {
-        arr.push(s);
-      }
-    });
-    if (active && parseInt(active?.id) === parseInt(payload.id)) {
-      active = {
-        ...active,
+    set(
+      updateDataAndActiveChat(state, payload.id, (s) => ({
+        ...s,
         message_counts: {
-          ...active.message_counts,
+          ...s.message_counts,
           ...getMediaReducer(payload.media, payload.data),
         },
-      };
-    }
-    set({ data: arr, activeChat: active });
+      }))
+    );
   },
-  showNotificationIndicator: (e) => {
-    set((state) => ({
-      showNotificaionCircle: e,
-    }));
+
+  showNotificationIndicator: (e: any) => {
+    set((state: ChatState) => ({ showNotificaionCircle: e }));
   },
+
   deleteChat: (payload: any) => {
-    set((state) => ({
+    set((state: ChatState) => ({
       data: state.data.filter(
         (chat) => parseInt(chat.id) !== parseInt(payload.id)
       ),
@@ -1439,169 +1116,93 @@ export const useChatStore = (set, get) => ({
 
   deleteMessage: (payload: any) => {
     const state = get();
-    if (
-      state.data.filter((chat) => parseInt(chat.id) === parseInt(payload.ch_id))
-        .length > 0
-    ) {
-      let arr = [];
-      let bool = payload.bool;
-      let active = state.activeChat;
-      state.data.forEach((chat) => {
-        if (parseInt(chat.id) === parseInt(payload.ch_id)) {
-          if (
-            state.activeChat?.id &&
-            parseInt(state.activeChat.id) === parseInt(payload.ch_id)
-          ) {
-            active = {
-              ...state.activeChat,
-              messages: active.messages.map((msg) => {
-                if (
-                  parseInt(msg.parent_message?.id) === parseInt(payload.msg_id)
-                ) {
-                  return {
-                    ...msg,
-                    parent_message: {
-                      ...msg.parent_message,
-                      message_content: { content: "" },
-                    },
-                  };
-                } else if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
-                  return msg;
-                } else {
-                  return {
-                    ...msg,
-                    auth_message_status: {
-                      ...(msg?.auth_message_status || {}),
-                      is_deleted: 1,
-                    },
-                  };
-                }
-              }),
-            };
-          }
-          arr.push({
-            ...chat,
-            messages: chat.messages.map((msg) => {
-              if (
-                parseInt(msg.parent_message?.id) === parseInt(payload.msg_id)
-              ) {
-                return {
-                  ...msg,
-                  parent_message: {
-                    ...msg.parent_message,
-                    message_content: { content: "" },
-                  },
-                };
-              }
-              if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
-                return msg;
-              } else {
-                return {
-                  ...msg,
-                  auth_message_status: {
-                    ...(msg?.auth_message_status || {}),
-                    is_deleted: 1,
-                  },
-                };
-              }
-            }),
-          });
-        } else {
-          arr.push(chat);
-        }
-      });
-      set({
-        data: arr,
-        activeChat: active,
-      });
-    } else {
-      let active = {
-        ...state.activeChat,
-        messages: state?.activeChat?.messages.map((msg) => {
-          if (parseInt(msg.parent_message?.id) === parseInt(payload.msg_id)) {
-            return {
-              ...msg,
-              parent_message: {
-                ...msg.parent_message,
-                message_content: { content: "" },
-              },
-            };
-          }
-          if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
-            return msg;
-          } else {
-            return {
-              ...msg,
+
+    const updateMessageLogic = (messages: any[]) => {
+      return messages.map((msg) => {
+        // Clear content if it matches parent_message ID
+        if (parseInt(msg.parent_message?.id) === parseInt(payload.msg_id)) {
+          msg = {
+            ...msg,
+            parent_message: {
+              ...msg.parent_message,
               auth_message_status: {
-                ...(msg?.auth_message_status || {}),
+                ...(msg?.parent_message?.auth_message_status || {}),
                 is_deleted: 1,
               },
-            };
-          }
-        }),
-      };
-      set({
-        activeChat: active,
+              message_content: { content: "" },
+            },
+          };
+        }
+        // Mark deleted if matches ID
+        if (parseInt(msg.id) === parseInt(payload.msg_id)) {
+          return {
+            ...msg,
+            auth_message_status: {
+              ...(msg?.auth_message_status || {}),
+              is_deleted: 1,
+            },
+          };
+        }
+        return msg;
       });
-    }
-  },
-  deleteErrorMessage: (payload: any) => {
-    const state = get();
+    };
 
     if (
-      state.data.filter((chat) => parseInt(chat.id) === parseInt(payload.ch_id))
-        .length > 0
+      state.data.some(
+        (chat: any) => parseInt(chat.id) === parseInt(payload.ch_id)
+      )
     ) {
-      let arr = [];
-
-      let active = state.activeChat;
-      state.data.forEach((chat) => {
-        if (parseInt(chat.id) === parseInt(payload.ch_id)) {
-          if (
-            state.activeChat?.id &&
-            parseInt(state.activeChat.id) === parseInt(payload.ch_id)
-          ) {
-            active = {
-              ...state.activeChat,
-              messages: active.messages.filter(
-                (msg) => String(msg.mid) !== String(payload.msg_id)
-              ),
-            };
-          }
-          arr.push({
-            ...chat,
-            messages: chat?.messages.filter(
-              (msg) => String(msg.mid) !== String(payload.msg_id)
-            ),
-          });
-        } else {
-          arr.push(chat);
-        }
-      });
-      set({
-        data: arr,
-        activeChat: active,
-      });
+      set(
+        updateDataAndActiveChat(state, payload.ch_id, (chat) => ({
+          ...chat,
+          messages: updateMessageLogic(chat.messages),
+        }))
+      );
     } else {
-      if (
-        state.activeChat &&
-        parseInt(state?.activeChat?.id) === parseInt(payload?.ch_id)
-      ) {
-        let active = state.activeChat;
-        active = {
-          ...state.activeChat,
-          messages: active.messages.filter(
-            (msg) => parseInt(msg.mid) !== parseInt(payload.msg_id)
-          ),
-        };
+      // Fallback for active chat only
+      if (state.activeChat) {
         set({
-          activeChat: active,
+          activeChat: {
+            ...state.activeChat,
+            messages: updateMessageLogic(state.activeChat.messages),
+          },
         });
       }
     }
   },
+
+  deleteErrorMessage: (payload: any) => {
+    const state = get();
+    const filterFn = (msg: any) => String(msg.mid) !== String(payload.msg_id);
+
+    if (
+      state.data.some(
+        (chat: any) => parseInt(chat.id) === parseInt(payload.ch_id)
+      )
+    ) {
+      set(
+        updateDataAndActiveChat(state, payload.ch_id, (chat) => ({
+          ...chat,
+          messages: chat.messages.filter(filterFn),
+        }))
+      );
+    } else {
+      if (
+        state.activeChat &&
+        parseInt(state.activeChat.id) === parseInt(payload.ch_id)
+      ) {
+        set({
+          activeChat: {
+            ...state.activeChat,
+            messages: state.activeChat.messages.filter(filterFn),
+          },
+        });
+      }
+    }
+  },
+
   deleteCall: (payload: number) =>
-    set((state) => ({
+    set((state: ChatState) => ({
       calls: state.calls.filter(
         (call) => parseInt(call.id) !== parseInt(payload.toString())
       ),

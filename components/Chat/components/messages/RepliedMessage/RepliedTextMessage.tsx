@@ -44,7 +44,13 @@ function RepliedTextMessage({
             />
           </div>
         }
-        <span className="message-body-text-content">{content}</span>
+        {deleted_by_user_id ? (
+          <span className="message-body-text-content">
+            this message was deleted
+          </span>
+        ) : (
+          <span className="message-body-text-content">{content}</span>
+        )}
       </div>
     </div>
   );

@@ -87,8 +87,14 @@ export interface Channel {
   id: string;
   channel_name: string;
   mobile_phone: string;
+  message_counts?: {
+    file_messages_count: number;
+    video_messages_count: number;
+    image_messages_count: number;
+  };
   photo_path: string | null;
   total_unread_message_count: number;
+  activeDate: any;
   created_at: string;
   is_mute: number;
   updated_at: string;

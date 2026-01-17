@@ -35,14 +35,22 @@ function RepliedFileMessage({ deleted_by_user_id, onClick, channel_member }) {
             className=""
           />
         </div>
-        <img
-          alt="user-img"
-          width={26}
-          className="message-type-icon w-[10px] h-[10px]"
-          height={20}
-          src={"/icons/chat/output.png"}
-        />{" "}
-        File
+        {deleted_by_user_id ? (
+          <span className="message-body-text-content">
+            this message was deleted
+          </span>
+        ) : (
+          <>
+            <img
+              alt="user-img"
+              width={26}
+              className="message-type-icon w-[10px] h-[10px]"
+              height={20}
+              src={"/icons/chat/output.png"}
+            />{" "}
+            File
+          </>
+        )}
       </div>
     </div>
   );

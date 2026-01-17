@@ -35,11 +35,19 @@ function RepliedVoiceMessage({ deleted_by_user_id, onClick, channel_member }) {
             className=""
           />
         </div>
-        <img
-          src="/icons/chat/audio.svg"
-          className="message-type-icon w-[10px] h-[10px]"
-        />{" "}
-        Audio
+        {deleted_by_user_id ? (
+          <span className="message-body-text-content">
+            this message was deleted
+          </span>
+        ) : (
+          <>
+            <img
+              src="/icons/chat/audio.svg"
+              className="message-type-icon w-[10px] h-[10px]"
+            />{" "}
+            Audio
+          </>
+        )}
       </div>
     </div>
   );
