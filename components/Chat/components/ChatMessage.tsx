@@ -99,7 +99,7 @@ function ChatMessage({
   return (
     <Wrapper
       channel_member={activeChat?.channel_members?.find(
-        (member) => member.user_id === parent_message?.sender_user_id
+        (member) => member.user_id === parent_message?.sender_user_id,
       )}
       isDeleted={parent_message?.auth_message_status?.is_deleted === 1}
       onClick={() => {
@@ -120,6 +120,7 @@ function ChatMessage({
         <React.Fragment>
           {message_type?.name === "TextMessage" && (
             <TextMessage
+              key={id ?? mid}
               sender_user_id={sender_user_id}
               is_from_sender={isSentByMe}
               DeleteModal={DeleteModal}
@@ -142,17 +143,18 @@ function ChatMessage({
                 isSentByMe
                   ? activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) === String(getUserChat()?.id)
+                        String(user.user_id) === String(getUserChat()?.id),
                     )[0]?.user
                   : activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) !== String(getUserChat()?.id)
+                        String(user.user_id) !== String(getUserChat()?.id),
                     )[0]?.user
               }
             />
           )}
           {message_type?.name === "ImageMessage" && (
             <ImageMessage
+              key={id ?? mid}
               sender_user_id={sender_user_id}
               is_from_sender={isSentByMe}
               message_files={message_files}
@@ -177,17 +179,18 @@ function ChatMessage({
                 isSentByMe
                   ? activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) === String(getUserChat()?.id)
+                        String(user.user_id) === String(getUserChat()?.id),
                     )[0]?.user
                   : activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) !== String(getUserChat()?.id)
+                        String(user.user_id) !== String(getUserChat()?.id),
                     )[0]?.user
               }
             />
           )}
           {message_type?.name === "VideoMessage" && (
             <VideoMessage
+              key={id ?? mid}
               sender_user_id={sender_user_id}
               is_from_sender={isSentByMe}
               channel_id={activeChat.id}
@@ -195,11 +198,11 @@ function ChatMessage({
                 isSentByMe
                   ? activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) === String(getUserChat()?.id)
+                        String(user.user_id) === String(getUserChat()?.id),
                     )[0]?.user
                   : activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) !== String(getUserChat()?.id)
+                        String(user.user_id) !== String(getUserChat()?.id),
                     )[0]?.user
               }
               message_files={message_files}
@@ -223,6 +226,7 @@ function ChatMessage({
           )}
           {message_type?.name === "VoiceMessage" && (
             <AudioMessage
+              key={id ?? mid}
               sender_user_id={sender_user_id}
               is_from_sender={isSentByMe}
               message_files={message_files}
@@ -245,17 +249,18 @@ function ChatMessage({
                 isSentByMe
                   ? activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) === String(getUserChat()?.id)
+                        String(user.user_id) === String(getUserChat()?.id),
                     )[0]?.user
                   : activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) !== String(getUserChat()?.id)
+                        String(user.user_id) !== String(getUserChat()?.id),
                     )[0]?.user
               }
             />
           )}
           {message_type?.name === "FileMessage" && (
             <FileMessage
+              key={id ?? mid}
               sender_user_id={sender_user_id}
               message_files={message_files}
               is_from_sender={isSentByMe}
@@ -278,17 +283,18 @@ function ChatMessage({
                 isSentByMe
                   ? activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) === String(getUserChat()?.id)
+                        String(user.user_id) === String(getUserChat()?.id),
                     )[0]?.user
                   : activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) !== String(getUserChat()?.id)
+                        String(user.user_id) !== String(getUserChat()?.id),
                     )[0]?.user
               }
             />
           )}
           {message_type?.name === "ShareProduct" && (
             <ProductMessage
+              key={id ?? mid}
               sender_user_id={sender_user_id}
               is_from_sender={isSentByMe}
               DeleteModal={DeleteModal}
@@ -309,17 +315,18 @@ function ChatMessage({
                 isSentByMe
                   ? activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) === String(getUserChat()?.id)
+                        String(user.user_id) === String(getUserChat()?.id),
                     )[0]?.user
                   : activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) !== String(getUserChat()?.id)
+                        String(user.user_id) !== String(getUserChat()?.id),
                     )[0]?.user
               }
             />
           )}
           {message_type?.name?.includes("Call") && (
             <CallMessage
+              key={id ?? mid}
               sender_user_id={sender_user_id}
               DeleteModal={DeleteModal}
               created_at={created_at}
@@ -336,11 +343,11 @@ function ChatMessage({
                 isSentByMe
                   ? activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) === String(getUserChat()?.id)
+                        String(user.user_id) === String(getUserChat()?.id),
                     )[0]?.user
                   : activeChat.channel_members.filter(
                       (user) =>
-                        String(user.user_id) !== String(getUserChat()?.id)
+                        String(user.user_id) !== String(getUserChat()?.id),
                     )[0]?.user
               }
             />
