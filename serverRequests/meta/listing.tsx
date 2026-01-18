@@ -5,7 +5,8 @@ import {
   parseFiltersFromParams,
   translateFunction,
 } from "utils/server";
-import { site_url, trydosTranslations } from "./constants-meta";
+import { trydosTranslations } from "./constants-meta";
+import { General_Site_Data } from "./StructuredData/Constants";
 
 const GenerateTitleBasedOnFilters = ({ filters, language }) => {
   let parsedFilters = parseFiltersFromParams(filters);
@@ -143,20 +144,20 @@ const getMetadataLabels = async ({ parsedFilters, language }) => {
   });
   if (parsedFilters.boutiques?.length)
     shouldQueries.push(
-      buildNestedShould("custom_boutiques", "slug", parsedFilters.boutiques)
+      buildNestedShould("custom_boutiques", "slug", parsedFilters.boutiques),
     );
   if (parsedFilters.categories?.length)
     shouldQueries.push(
-      buildNestedShould("custom_categories", "slug", parsedFilters.categories)
+      buildNestedShould("custom_categories", "slug", parsedFilters.categories),
     );
   if (parsedFilters.brands?.length)
     shouldQueries.push(
-      buildNestedShould("custom_brands", "slug", parsedFilters.brands)
+      buildNestedShould("custom_brands", "slug", parsedFilters.brands),
     );
   // إضافة الألوان للبحث
   if (parsedFilters.colors?.length)
     shouldQueries.push(
-      buildNestedShould("colors", "color", parsedFilters.colors)
+      buildNestedShould("colors", "color", parsedFilters.colors),
     );
 
   if (shouldQueries.length === 0) return { labels: {}, banner: null };
@@ -286,7 +287,7 @@ const getMetadataLabels = async ({ parsedFilters, language }) => {
     // الألوان قد تكون متعددة، لذا نجمع كل الأسماء الفريدة
     const colorHits = response.aggregations.color_info.filtered.top.hits.hits;
     const colorNames = [...new Set(colorHits.map((h) => h._source.name))].join(
-      ", "
+      ", ",
     );
 
     const bData = getAggData(response.aggregations.boutique_info);
@@ -353,9 +354,9 @@ export async function generateMetadataForListing({ params }) {
   // بناء رابط صورة الـ OpenGraph (يفضل استخدام رابط الـ CDN الكامل)
   const ogImage = banner
     ? getConfiguredImage({ src: GetImageUrl(banner), width: 1200, height: 630 })
-    : `${site_url}/default-og-image.jpg`;
+    : `${General_Site_Data.url}/default-og-image.jpg`;
 
-  const currentUrl = `${site_url}/${lang}/filters/${
+  const currentUrl = `${General_Site_Data.url}/${lang}/filters/${
     filterParams?.join("/") || ""
   }`;
 
