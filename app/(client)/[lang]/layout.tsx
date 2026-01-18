@@ -15,12 +15,14 @@ import VersionChecker from "components/global/VersionChecker";
 import NavbarClient from "components/Home/NavbarClient";
 import dynamic from "next/dynamic";
 import PageLoadingIndicator from "hooks/PageLoadingIndicator";
+import Organaization from "serverRequests/meta/StructuredData/Organaization";
+import Website from "serverRequests/meta/StructuredData/Website";
 
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_REMOTE_FRONT || "https://trydos.vercel.app"
+    process.env.NEXT_PUBLIC_REMOTE_FRONT || "https://trydos.vercel.app",
   ),
 };
 export const viewport = {
@@ -80,6 +82,8 @@ export default async function RootLayout({ params, children }) {
       lang={lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
     >
       <head>
+        <Organaization local={lang} />
+        <Website local={lang} />
         <Script
           strategy="lazyOnload"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}

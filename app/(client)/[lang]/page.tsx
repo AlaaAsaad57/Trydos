@@ -15,20 +15,20 @@ import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrap
 import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
 import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
 import { GetHomeMetaData } from "serverRequests/meta/home";
+import HomeWebPage from "serverRequests/meta/StructuredData/home/HomeWebPage";
 
 export async function generateMetadata({ params, searchParams }) {
   try {
     let [Params, query] = await Promise.all([params, searchParams]);
-    let [country, language] = Params.lang.split("-");
     let mainCategory = query?.mainCategory || null;
     const metadata = await GetHomeMetaData({
-      language,
-      country,
+      local: Params.lang,
       category: mainCategory,
     });
-
+    console.log(metadata);
     return { ...metadata };
   } catch (error) {
+    console.log(error);
     return {
       title: "TryDos - Premium Shopping Experience",
       description:
@@ -48,7 +48,7 @@ async function HomePage({ params, searchParams }) {
     return (
       <>
         {/* <StructuredDataScript lang={lang} /> */}
-
+        <HomeWebPage local={lang} />
         <div
           className={`${
             isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
