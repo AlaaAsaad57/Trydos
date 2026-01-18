@@ -384,6 +384,10 @@ export const getMedia = async (id, media) => {
     let response = await fetchData({
       url: `/api/v1/messages/messages_of_channel/${id}?limit=10&message_type=${media}`,
       reqTitle: REQUESTS_DATA.GET_MEDIA_FOR_A_CHANNEL,
+      body: JSON.stringify({
+        limit: 10,
+        message_type: media,
+      }),
       method: "POST",
       server: "chat",
 
