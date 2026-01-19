@@ -29,23 +29,25 @@ export async function BoutiquesListWrapper({
   let data: any = response.data ?? {};
 
   return (
-    <OfferListServer
-      boutiquesData={{ ...(data ?? {}) }}
-      params={params}
-      mainCategory={mainCategory}
-    >
-      {!mainCategory ? (
-        <Suspense fallback={<FeaturedProductsSkeleton />}>
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <RecomendedProductWrapper
-            lang={params.lang}
-            currency={currencyData}
-          />
-        </Suspense>
-      ) : (
-        <></>
-      )}
-    </OfferListServer>
+    <>
+      <OfferListServer
+        boutiquesData={{ ...(data ?? {}) }}
+        params={params}
+        mainCategory={mainCategory}
+      >
+        {!mainCategory ? (
+          <Suspense fallback={<FeaturedProductsSkeleton />}>
+            {/*@ts-expect-error Async Server Component is valid in Next  */}
+            <RecomendedProductWrapper
+              lang={params.lang}
+              currency={currencyData}
+            />
+          </Suspense>
+        ) : (
+          <></>
+        )}
+      </OfferListServer>
+    </>
   );
 }
 

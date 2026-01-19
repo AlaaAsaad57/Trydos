@@ -10,6 +10,9 @@ function Website({ local }) {
     url: `${General_Site_Data.url}`,
     name: General_Site_Data.name,
     inLanguage: mapLocaleToBCP47(local),
+    publisher: {
+      "@id": `${General_Site_Data.url}/#organization`,
+    },
   };
   return (
     <Script

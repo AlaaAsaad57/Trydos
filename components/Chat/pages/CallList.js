@@ -6,7 +6,7 @@ import Spinner from "components/global/Spinner";
 import { DeleteMessageApi } from "store/chat/actions";
 import { useAppStore } from "store";
 import chat from "services/chat";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
+import Skeleton from "react-loading-skeleton";
 
 function CallList() {
   const { calls, call_loading, deleteMessage, deleteCall, activeChat } =

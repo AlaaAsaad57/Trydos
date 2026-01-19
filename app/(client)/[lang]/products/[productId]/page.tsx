@@ -36,7 +36,7 @@ import { Suspense } from "react";
 import ProductPhotosSkeleton from "components/skeleton/product/ProductPhotosSkeleton";
 import ProductNameAndBrandSkeleton from "components/skeleton/product/ProductNameAndBrandSkeleton";
 import Skeleton from "react-loading-skeleton";
-import { redirect } from "node_modules/next/navigation";
+import { redirect } from "next/navigation";
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
@@ -238,7 +238,7 @@ async function Page({ params, searchParams }) {
                     <span className="label-description text-[#1d1d1d] regular text-[9px]">
                       {translateFunction(
                         "Return Is Completely Free Without Any Extras",
-                        language
+                        language,
                       )}
                     </span>
                     <div

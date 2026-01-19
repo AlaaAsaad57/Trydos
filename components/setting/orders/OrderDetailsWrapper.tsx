@@ -21,11 +21,7 @@ import {
 } from "utils/functions";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import NextLink from "components/global/NextLink";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-} from "node_modules/next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
 import OrderStatusIcon from "components/settings/cards/OrderStatusIcon";
@@ -86,7 +82,7 @@ function OrderDetailsWrapper({
     try {
       let data: OrderInterface[] = await Order.getOrderDetails(order_group_id);
       let shouldGetRatingValues = data.find(
-        (order) => order?.order_status?.value === "delivered"
+        (order) => order?.order_status?.value === "delivered",
       );
       if (shouldGetRatingValues) {
         let order_ids = data.flatMap((order) => order.details.map((d) => d.id));
@@ -106,7 +102,7 @@ function OrderDetailsWrapper({
       let order_item = data?.find(
         (order) =>
           String(order.id) === String(order_chat_id) ||
-          String(order.return_request_id) === String(order_chat_id)
+          String(order.return_request_id) === String(order_chat_id),
       );
 
       setOrderData(data);
@@ -130,10 +126,10 @@ function OrderDetailsWrapper({
         returnData?.return_requests_data?.find(
           (return_item) =>
             String(return_item.order_id) === String(order_id) ||
-            String(order_item?.return_request_id) === String(order_chat_id)
+            String(order_item?.return_request_id) === String(order_chat_id),
         ),
         returnData?.return_requests_data,
-        order_id
+        order_id,
       );
       if (
         order_chat_id &&
@@ -141,7 +137,7 @@ function OrderDetailsWrapper({
           returnRequests?.return_requests_data?.find(
             (return_item) =>
               String(return_item.order_id) === String(order_id) ||
-              String(order_item?.return_request_id) === String(order_chat_id)
+              String(order_item?.return_request_id) === String(order_chat_id),
           )?.status?.value === "out_for_return")
       ) {
         console.log("from getOrderDetails");
@@ -201,7 +197,7 @@ function OrderDetailsWrapper({
       return ActivePack?.id;
     if (
       returnData?.return_requests_data?.find(
-        (s) => s.order_id === ActivePack.id
+        (s) => s.order_id === ActivePack.id,
       )?.status?.value === "out_for_return"
     ) {
       return ActivePack?.return_request_id;
@@ -218,7 +214,7 @@ function OrderDetailsWrapper({
       ...showNotificaionCircle?.filter(
         (s) =>
           s?.order_id !== shouldShowChatIcon(ActivePack) &&
-          s?.order_group_id !== order_group_id
+          s?.order_group_id !== order_group_id,
       ),
     ]);
     try {
@@ -250,13 +246,13 @@ function OrderDetailsWrapper({
               : {
                   ...s,
                   user: { ...s.user, name: "Deleivery Worker", phone: "" },
-                }
+                },
           ),
           messages:
             response.data.channel.messages?.sort(
               (a, b) =>
                 new Date(a.created_at).getTime() -
-                new Date(b.created_at).getTime()
+                new Date(b.created_at).getTime(),
             ) || [],
         };
         setChatInfo(chat);
@@ -368,7 +364,7 @@ function OrderDetailsWrapper({
               setShouldConfirmReturn={setShouldConfirmReturn}
             />
           </>,
-          document.body
+          document.body,
         )}
       {chatInfo && (
         <ChatWidget
@@ -510,7 +506,7 @@ function OrderDetailsWrapper({
                     return ratingDetails?.find(
                       (s) =>
                         String(s.product_id) === String(product_id) &&
-                        String(s?.order_details_id) === String(order_detail_id)
+                        String(s?.order_details_id) === String(order_detail_id),
                     );
                   }}
                   getOrderDetails={() => {
@@ -628,7 +624,7 @@ const OrderExpandedDetails = ({
       returnDetails?.return_requests_data?.filter(
         (s) =>
           s?.status?.value === null &&
-          s.order_details.find((d) => d.already_return)
+          s.order_details.find((d) => d.already_return),
       )?.length > 0 && isThereAReturnedProduct()
     );
   };
@@ -873,7 +869,7 @@ const ProductCard = ({
 
   // 2. The function return type is the product AND the return item merged
   const getProductWithReturn = (
-    product: OrderInterface["details"][0]
+    product: OrderInterface["details"][0],
   ): OrderInterface["details"][0] & Partial<ReturnItem> => {
     const return_item = returnDetails?.return_requests_data
       ?.find((s) => s.order_id === order.id)
@@ -1071,7 +1067,7 @@ const ProductCard = ({
               product={{
                 ...product,
                 return_status: returnDetails.return_requests_data.find(
-                  (s) => s.order_id === order.id
+                  (s) => s.order_id === order.id,
                 )?.status,
               }}
               price={RoundPrice({
@@ -1079,7 +1075,7 @@ const ProductCard = ({
                   (product?.price_after_discount / product?.qty) *
                   Number(
                     getProductWithReturn(product)
-                      ?.return_request_product_quantity
+                      ?.return_request_product_quantity,
                   ),
                 language: language,
                 returnNumber: true,

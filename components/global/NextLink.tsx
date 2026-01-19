@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "node_modules/next/navigation";
+import { usePathname } from "next/navigation";
 import { useAppStore } from "store";
 import { DisableScroll } from "utils/tinyUtils";
 

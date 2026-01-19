@@ -85,10 +85,12 @@ export async function FlashProductWrapper({
       };
   });
   return (
-    <FlashDealsProducts
-      currencyData={currency}
-      flashDealsProducts={{ data: { products: productsData } }}
-      lang={lang}
-    />
+    <>
+      <FlashDealsProducts
+        currencyData={currency}
+        flashDealsProducts={{ data: { products: productsData } }}
+        lang={lang}
+      />
+    </>
   );
 }

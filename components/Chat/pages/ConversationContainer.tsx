@@ -300,7 +300,9 @@ function ConversationContainer({
     } catch (error) {
       console.error("Error sending message:", error);
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-      showErrorNotification(translateFunction("Failed to Upload file"));
+      showErrorNotification(
+        error?.message ?? translateFunction("Failed to Upload file"),
+      );
       sendStatus(null);
     }
   };
@@ -340,9 +342,10 @@ function ConversationContainer({
       // @ts-ignore – original util returns promise
       SendMessage(sendPayload, false, isPrivate);
     } catch (err) {
-      console.log("the error is: ", err);
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-      showErrorNotification(translateFunction("Failed to Upload file"));
+      showErrorNotification(
+        err?.message ?? translateFunction("Failed to Upload file"),
+      );
     } finally {
       sendStatus(null);
     }
@@ -590,7 +593,9 @@ function ConversationContainer({
     } catch (error) {
       console.error("Error sending cropped image:", error);
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-      showErrorNotification(translateFunction("Failed to Upload file"));
+      showErrorNotification(
+        error?.message ?? translateFunction("Failed to Upload file"),
+      );
       sendStatus(null);
       setCroppedImageFile(null);
       setCroppedImagePreview(null);

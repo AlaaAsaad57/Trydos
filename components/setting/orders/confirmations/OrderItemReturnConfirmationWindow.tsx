@@ -1,7 +1,7 @@
 import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Spinner from "components/global/Spinner";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import React, { useState } from "react";
 import { useAppStore } from "store";
 import {
@@ -70,10 +70,10 @@ function OrderItemReturnConfirmationWindow({
           if (s.already_return) {
             let product = orderData
               ?.find(
-                (order_data_item) => order_data_item.id === ret_ite.order_id
+                (order_data_item) => order_data_item.id === ret_ite.order_id,
               )
               ?.details?.find(
-                (order_detail) => order_detail.id === s.product_id
+                (order_detail) => order_detail.id === s.product_id,
               );
             if (arr?.filter((d) => d.detail_id === s.detail_id)?.length === 0) {
               arr = [...arr, { ...product, ...s }];
@@ -185,7 +185,7 @@ function OrderItemReturnConfirmationWindow({
           </span>
           <span className="mt-[45px] regular text-white text-[16px] text-center">
             {translateFunction(
-              "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us."
+              "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.",
             )}
           </span>
         </div>
@@ -249,7 +249,7 @@ function OrderItemReturnConfirmationWindow({
                 <Spinner />
               ) : (
                 translateFunction(
-                  "Delay Confirmation. I want to Return more product"
+                  "Delay Confirmation. I want to Return more product",
                 )
               )}
             </div>
@@ -366,7 +366,7 @@ const RenderReturnedItem = ({
                       return_item.product_price *
                       parseInt(
                         return_item.return_request_product_quantity ||
-                          return_item.quantity?.toString()
+                          return_item.quantity?.toString(),
                       ),
                     language: language,
                   })}

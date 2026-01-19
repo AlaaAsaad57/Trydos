@@ -1,5 +1,5 @@
 "use client";
-import useEmblaCarousel from "node_modules/embla-carousel-react/esm";
+import useEmblaCarousel from "embla-carousel-react";
 
 function ProductPhotosWrapper({ children }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({

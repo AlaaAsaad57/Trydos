@@ -1,6 +1,6 @@
 import NextLink from "components/global/NextLink";
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
-import Image from "node_modules/next/image";
+import Image from "next/image";
 
 import {
   getConfiguredImage,
@@ -162,7 +162,7 @@ function ProductColorsCards({
               sync_color_images: [
                 color,
                 ...InitialProductData?.sync_color_images.filter(
-                  (c) => c.color_name !== color.color_name
+                  (c) => c.color_name !== color.color_name,
                 ),
               ],
             }}

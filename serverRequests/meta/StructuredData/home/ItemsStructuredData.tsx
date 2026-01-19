@@ -1,6 +1,6 @@
 import React from "react";
 import { General_Site_Data } from "../Constants";
-import Script from "node_modules/next/script";
+import Script from "next/script";
 
 function ItemsStructuredData({ local, data, name, schema_name }) {
   let payload = {

@@ -1,6 +1,6 @@
 import NextLink from "components/global/NextLink";
 import Spinner from "components/global/Spinner";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { EnableScroll } from "utils/tinyUtils";
@@ -86,7 +86,7 @@ function FiltersButton({
 export default FiltersButton;
 
 const buildParamsFromFilters = (
-  filters: Record<string, string[]>
+  filters: Record<string, string[]>,
 ): string[] => {
   const params: string[] = [];
   const filterOrder = [
@@ -114,7 +114,7 @@ const buildParamsFromFilters = (
       } else if (filterType === "colors") {
         // Colors should be hex without #
         const colorValues = values.map((color) =>
-          color.startsWith("#") ? color.substring(1) : color
+          color.startsWith("#") ? color.substring(1) : color,
         );
         params.push(colorValues.join(","));
       } else {
@@ -135,11 +135,11 @@ function getSearchPageUrl({ lang, searchFilters, isFeatured, isFlashDeal }) {
     brands: searchFilters?.brands,
     colors:
       searchFilters?.colors?.map((c) =>
-        typeof c === "string" ? c : c.toString()
+        typeof c === "string" ? c : c.toString(),
       ) || [],
     sizes:
       searchFilters?.sizes?.map((s) =>
-        typeof s === "string" ? s : s.toString()
+        typeof s === "string" ? s : s.toString(),
       ) || [],
     prices:
       searchFilters?.prices?.[0] &&
@@ -161,8 +161,8 @@ function getSearchPageUrl({ lang, searchFilters, isFeatured, isFlashDeal }) {
   let base_url = isFeatured
     ? `/${lang}/featured`
     : isFlashDeal
-    ? `/${lang}/flashDeals`
-    : `/${lang}/filters`;
+      ? `/${lang}/flashDeals`
+      : `/${lang}/filters`;
   if (pathParams.length > 0) {
     return `${base_url}/${pathParams.join("/")}`;
   } else {
