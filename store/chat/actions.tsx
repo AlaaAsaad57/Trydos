@@ -313,6 +313,29 @@ export async function getMessagesBetweenMessage(payload) {
     console.error(error);
   }
 }
+export const getMessagesBetweenTwoMessages = async ({
+  first,
+  second,
+  channel_id,
+}) => {
+  const { setPageData } = useAppStore.getState();
+  let response = await fetchData({
+    url: `/api/v1/messages/get_all_messages_between_two_messages`,
+    reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
+    method: "POST",
+    server: "chat",
+    body: JSON.stringify({
+      channel_id: channel_id,
+      first_message_id: first,
+      second_message_id: second,
+    }),
+  });
+
+  if (!response.success) {
+    throw new Error(response.message);
+  }
+  setPageData({ mes: response.data, ch: channel_id });
+};
 export async function GetMessageforRepliedMessages(payload) {
   const { setPageData } = useAppStore.getState();
   try {
@@ -361,6 +384,10 @@ export const getMedia = async (id, media) => {
     let response = await fetchData({
       url: `/api/v1/messages/messages_of_channel/${id}?limit=10&message_type=${media}`,
       reqTitle: REQUESTS_DATA.GET_MEDIA_FOR_A_CHANNEL,
+      body: JSON.stringify({
+        limit: 10,
+        message_type: media,
+      }),
       method: "POST",
       server: "chat",
 

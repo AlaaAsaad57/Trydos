@@ -647,17 +647,15 @@ html[lang="ar"] .new-chats {
   max-height: 919px;
   position: absolute;
   left: initial;
+  top: 0px;
+  z-index: 1000 !important;
+  width: 100%;
+  background-color: #f7f7f7;
 }
 .opacity-hidden {
   opacity: 0;
 }
 
-.chat-screen {
-  position: absolute;
-  top: 0px;
-  z-index: 1000 !important;
-  transition: all 0.4s ease;
-}
 .chat-screen-top {
   position: absolute;
   top: 0px;

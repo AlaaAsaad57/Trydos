@@ -16,7 +16,7 @@ import {
   getMessageTime,
 } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 
 function ProductMessage({
   setOpen,
@@ -42,7 +42,7 @@ function ProductMessage({
   const showTextAvatar = React.useMemo(() => {
     if (!activeChat) return false;
     const member = activeChat.channel_members.find(
-      (a) => parseInt(a.user_id.toString()) === parseInt(user?.id)
+      (a) => parseInt(a.user_id.toString()) === parseInt(user?.id),
     );
     return (
       (!member?.user?.photo_path || member?.user?.photo_path?.includes("eu")) &&
@@ -91,25 +91,25 @@ function ProductMessage({
             data={{
               is_product: true,
               slug: JSON.parse(
-                !Array.isArray(message_content) && message_content.content
+                !Array.isArray(message_content) && message_content.content,
               )[0].product_slug,
               href: `/${lang}/products/${
                 JSON.parse(
-                  !Array.isArray(message_content) && message_content.content
+                  !Array.isArray(message_content) && message_content.content,
                 )[0].product_slug
               }`,
             }}
             href={`/${lang}/products/${
               JSON.parse(
-                !Array.isArray(message_content) && message_content.content
+                !Array.isArray(message_content) && message_content.content,
               )[0].product_slug
             }`}
             sameHref={isSamePage(
               `/${lang}/products/${
                 JSON.parse(
-                  !Array.isArray(message_content) && message_content.content
+                  !Array.isArray(message_content) && message_content.content,
                 )[0].product_slug
-              }`
+              }`,
             )}
           >
             {translateFunction("View Product")}
@@ -122,21 +122,21 @@ function ProductMessage({
               getConfiguredImage({
                 src: GetImageUrl(
                   JSON.parse(
-                    !Array.isArray(message_content) && message_content.content
-                  )[0].product_image_url
+                    !Array.isArray(message_content) && message_content.content,
+                  )[0].product_image_url,
                 ),
                 width: 315,
                 height: 521,
                 q: 80,
-              })
+              }),
             )
           }
           className="message-img product-share-image w-full min-w-[280px]"
           src={getConfiguredImage({
             src: GetImageUrl(
               JSON.parse(
-                !Array.isArray(message_content) && message_content.content
-              )[0].product_image_url
+                !Array.isArray(message_content) && message_content.content,
+              )[0].product_image_url,
             ),
             width: 315,
             height: 521,
@@ -146,7 +146,7 @@ function ProductMessage({
         <span className="product-share-span flex-col px-[10px]">
           {
             JSON.parse(
-              !Array.isArray(message_content) && message_content.content
+              !Array.isArray(message_content) && message_content.content,
             )[0].product_name
           }
         </span>
@@ -189,7 +189,7 @@ function ProductMessage({
                 window.location.origin +
                 `/${lang}/products/${
                   JSON.parse(
-                    !Array.isArray(message_content) && message_content.content
+                    !Array.isArray(message_content) && message_content.content,
                   )[0].product_slug
                 }`,
               is_locked_by_admin_for_delete: 0,

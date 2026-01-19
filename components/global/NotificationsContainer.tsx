@@ -49,7 +49,7 @@ const NotificationsContainer = () => {
       const channel =
         chatData.find(
           (chat) =>
-            parseInt(chat.id) === parseInt(notification.chatData.channelId)
+            parseInt(chat.id) === parseInt(notification.chatData.channelId),
         ) || notification.chatData.channel;
 
       if (channel) {
@@ -93,7 +93,7 @@ const NotificationsContainer = () => {
       if (!timers[notification.id] && !dismissingIds.has(notification.id)) {
         timers[notification.id] = setTimeout(() => {
           handleDismiss(notification.id);
-        }, notification.duration || 10000);
+        }, notification.duration || 5000);
       }
     });
 
@@ -157,8 +157,8 @@ const NotificationsContainer = () => {
               notification.type === "success"
                 ? "bg-[#E2FFF1] border border-[#2CDD926f]"
                 : notification.type === "chat"
-                ? "bg-white border-2 border-[#402CDD2f] shadow-2xl"
-                : "bg-[#FFEDE2] border border-[#402CDD6f]"
+                  ? "bg-white border-2 border-[#402CDD2f] shadow-2xl"
+                  : "bg-[#FFEDE2] border border-[#402CDD6f]"
             }
             ${
               notification.href || isChatNotification

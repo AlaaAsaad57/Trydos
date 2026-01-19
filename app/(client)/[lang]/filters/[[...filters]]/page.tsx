@@ -12,10 +12,7 @@ import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
-import {
-  generateMetadataForListing,
-  GetStructuredData,
-} from "serverRequests/meta/listing";
+import { generateMetadataForListing } from "serverRequests/meta/listing";
 import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
@@ -90,7 +87,7 @@ export default async function Page({ params }) {
       parsedFilters = {
         ...parsedFilters,
         prices: parsedFilters.prices?.map((s) =>
-          s.split("-").map((d) => Number(d))
+          s.split("-").map((d) => Number(d)),
         )?.[0],
       };
     }
@@ -116,16 +113,6 @@ export default async function Page({ params }) {
 
     return (
       <>
-        {/* <Suspense fallback={<></>}> */}
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-
-        <GetStructuredData
-          is_fearured={false}
-          responsePromise={filtersData}
-          is_flashDeals={false}
-          params={Params}
-        />
-
         {/*@ts-expect-error Async Server Component is valid in Next  */}
         <FilterWidgetServer
           isFeatured={false}
@@ -214,6 +201,7 @@ export default async function Page({ params }) {
           currencyPromise={currency}
           filtersDataPromise={filtersData}
           parsedFilters={parsedFilters}
+          language={language}
         />
       </>
     );

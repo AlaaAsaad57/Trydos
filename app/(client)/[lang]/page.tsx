@@ -19,16 +19,15 @@ import { GetHomeMetaData } from "serverRequests/meta/home";
 export async function generateMetadata({ params, searchParams }) {
   try {
     let [Params, query] = await Promise.all([params, searchParams]);
-    let [country, language] = Params.lang.split("-");
     let mainCategory = query?.mainCategory || null;
     const metadata = await GetHomeMetaData({
-      language,
-      country,
+      local: Params.lang,
       category: mainCategory,
     });
 
     return { ...metadata };
   } catch (error) {
+    console.log(error);
     return {
       title: "TryDos - Premium Shopping Experience",
       description:

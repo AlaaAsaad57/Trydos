@@ -3,133 +3,9 @@ import {
   getConfiguredImage,
   GetImageUrl,
   parseFiltersFromParams,
-  translateFunction,
 } from "utils/server";
-import { site_url, trydosTranslations } from "./constants-meta";
-
-const GenerateTitleBasedOnFilters = ({ filters, language }) => {
-  let parsedFilters = parseFiltersFromParams(filters);
-  let { categories, brands, colors, boutiques, sizes, tags_names } =
-    parsedFilters;
-  let title = translateFunction("Trydos - ", language);
-  let description = translateFunction("Discover New ", language);
-  if (tags_names?.length > 0) {
-    title += translateFunction(" Tags: ", language);
-    description += " Tags: ";
-    tags_names.forEach((tag) => {
-      title += `${tag}`;
-      description += ` ${tag},`;
-    });
-  }
-  if (boutiques?.length > 0) {
-    title += translateFunction(" Boutiques: ", language);
-    description += " Boutiques: ";
-    boutiques.forEach((boutique) => {
-      title += `${boutique}`;
-      description += ` ${boutique},`;
-    });
-  }
-  if (categories?.length > 0) {
-    title += translateFunction(" Categories: ", language);
-    description += translateFunction(" Categories: ", language);
-    categories.forEach((category) => {
-      title += `${category}`;
-      description += ` ${category},`;
-    });
-  }
-  if (brands?.length > 0) {
-    title += translateFunction(" Brands: ", language);
-    description += translateFunction(" Brands: ", language);
-    brands.forEach((brand) => {
-      title += ` ${brand}`;
-      description += ` ${brand},`;
-    });
-  }
-  if (colors?.length > 0) {
-    title += translateFunction(" Colors: ", language);
-    description += translateFunction(" Colors: ", language);
-    colors.forEach((color) => {
-      title += ` ${color}`;
-      description += ` ${color},`;
-    });
-  }
-  if (sizes?.length > 0) {
-    title += translateFunction(" Sizes: ", language);
-    description += translateFunction(" Sizes: ", language);
-    sizes.forEach((size) => {
-      title += ` ${size}`;
-      description += ` ${size},`;
-    });
-  }
-  description += translateFunction(" Products on Trydos", language);
-  return {
-    title,
-    description,
-  };
-};
-
-export const GetStructuredData = async ({
-  params,
-  is_flashDeals,
-  is_fearured,
-  responsePromise,
-}) => {
-  let response = await responsePromise;
-  let filtersUrl =
-    params?.filters?.length > 0 ? `/${params.filters?.join("/")}` : "/";
-  let [country, language] = params.lang.split("-");
-  let jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    name: GenerateTitleBasedOnFilters({ filters: params.filters, language })
-      .title,
-    url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/filters${filtersUrl}`,
-    description: GenerateTitleBasedOnFilters({
-      filters: params.filters,
-      language,
-    }).description,
-    mainEntity: {
-      "@type": "ItemList",
-      itemListElement: response.products.map((product, index) => {
-        return {
-          "@type": "Product",
-          position: index + 1,
-          name: product?.name,
-          image: product?.images?.[0]?.file_path ?? product.images?.[0],
-          url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
-          category: product?.category?.name,
-          brand: {
-            "@type": "Brand",
-            name: product?.brand?.name,
-          },
-          manufacturer: {
-            "@type": "Organization",
-            name: product?.boutique?.name,
-            url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/boutiques/${product?.boutique?.slug}`,
-          },
-          sku: product.slug,
-          description: product?.description,
-          offers: {
-            "@type": "Offer",
-            priceCurrency: "USD",
-            price: product?.price,
-            availability: "https://schema.org/InStock",
-            url:
-              process.env.NEXT_PUBLIC_REMOTE_FRONT +
-              `/products/${product?.slug}`,
-          },
-        };
-      }),
-    },
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
-};
+import { trydosTranslations } from "./constants-meta";
+import { General_Site_Data } from "./StructuredData/Constants";
 
 const getMetadataLabels = async ({ parsedFilters, language }) => {
   const shouldQueries = [];
@@ -143,20 +19,20 @@ const getMetadataLabels = async ({ parsedFilters, language }) => {
   });
   if (parsedFilters.boutiques?.length)
     shouldQueries.push(
-      buildNestedShould("custom_boutiques", "slug", parsedFilters.boutiques)
+      buildNestedShould("custom_boutiques", "slug", parsedFilters.boutiques),
     );
   if (parsedFilters.categories?.length)
     shouldQueries.push(
-      buildNestedShould("custom_categories", "slug", parsedFilters.categories)
+      buildNestedShould("custom_categories", "slug", parsedFilters.categories),
     );
   if (parsedFilters.brands?.length)
     shouldQueries.push(
-      buildNestedShould("custom_brands", "slug", parsedFilters.brands)
+      buildNestedShould("custom_brands", "slug", parsedFilters.brands),
     );
   // إضافة الألوان للبحث
   if (parsedFilters.colors?.length)
     shouldQueries.push(
-      buildNestedShould("colors", "color", parsedFilters.colors)
+      buildNestedShould("colors", "color", parsedFilters.colors),
     );
 
   if (shouldQueries.length === 0) return { labels: {}, banner: null };
@@ -286,7 +162,7 @@ const getMetadataLabels = async ({ parsedFilters, language }) => {
     // الألوان قد تكون متعددة، لذا نجمع كل الأسماء الفريدة
     const colorHits = response.aggregations.color_info.filtered.top.hits.hits;
     const colorNames = [...new Set(colorHits.map((h) => h._source.name))].join(
-      ", "
+      ", ",
     );
 
     const bData = getAggData(response.aggregations.boutique_info);
@@ -353,9 +229,9 @@ export async function generateMetadataForListing({ params }) {
   // بناء رابط صورة الـ OpenGraph (يفضل استخدام رابط الـ CDN الكامل)
   const ogImage = banner
     ? getConfiguredImage({ src: GetImageUrl(banner), width: 1200, height: 630 })
-    : `${site_url}/default-og-image.jpg`;
+    : `${General_Site_Data.url}/default-og-image.jpg`;
 
-  const currentUrl = `${site_url}/${lang}/filters/${
+  const currentUrl = `${General_Site_Data.url}/${lang}/filters/${
     filterParams?.join("/") || ""
   }`;
 

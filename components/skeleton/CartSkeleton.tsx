@@ -1,4 +1,4 @@
-import Skeleton from "node_modules/react-loading-skeleton/dist";
+import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { EnableScroll } from "utils/tinyUtils";

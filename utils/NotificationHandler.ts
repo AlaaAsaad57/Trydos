@@ -11,7 +11,7 @@ import { fetchData } from "./fetchData";
 import { InCall } from "store/chat/callActions";
 import { getUserChat, translateFunction } from "./functions";
 import chat from "services/chat";
-import { Recive, watchChannel as watchChannelAction } from "store/chat/actions";
+import { watchChannel as watchChannelAction } from "store/chat/actions";
 import { REQUESTS_DATA } from "./Requests";
 
 // --- Interfaces ---
@@ -194,7 +194,7 @@ class ForegroundNotificationHandler {
         5000,
         url,
         extra || {},
-        data.image || null
+        data.image || null,
       );
     };
 
@@ -219,7 +219,7 @@ class ForegroundNotificationHandler {
           ? `/${lang}/filters/boutiques/${data.boutique_id}`
           : undefined,
         { is_boutique: true },
-        data.image
+        data.image,
       );
     } else if (type === "product cart expiration") {
       notify("/?cart=true");
@@ -228,7 +228,7 @@ class ForegroundNotificationHandler {
         data?.category_slug
           ? `/${lang}/filters/categories/${data.category_slug}`
           : undefined,
-        { is_boutique: true }
+        { is_boutique: true },
       );
     } else if (type === "product availability") {
       // Logic to update cart if selected product matches
@@ -282,7 +282,7 @@ class ForegroundNotificationHandler {
           5000,
           url,
           { is_settings: true, href: url },
-          null
+          null,
         );
         if (state.orderData.agree) {
           state.setOrderData({ data: response.data, success: true });
@@ -309,7 +309,7 @@ class ForegroundNotificationHandler {
     data: any,
     state: any,
     resolve: any,
-    payload: any
+    payload: any,
   ) {
     const isVideo = eventType === "VideoCallEvent";
     const msgType = isVideo ? "VideoCall" : "VoiceCall";
@@ -337,7 +337,7 @@ class ForegroundNotificationHandler {
     // Determine Channel Data
     const payloadData = data.payload;
     const existingChannel = state.data?.find(
-      (ch: any) => parseInt(ch.id) === parseInt(payloadData.channelId)
+      (ch: any) => parseInt(ch.id) === parseInt(payloadData.channelId),
     );
 
     // Construct mock channel if it doesn't exist in store
@@ -430,7 +430,7 @@ class ForegroundNotificationHandler {
     data: any,
     state: any,
     resolve: any,
-    payload: any
+    payload: any,
   ) {
     const { activeChat, chatVar, country, language } = state;
     const currentUser = getUserChat();
@@ -491,7 +491,7 @@ class ForegroundNotificationHandler {
           messageImage,
           messageType,
           5000,
-          deepLink
+          deepLink,
         );
 
         // Add red circle indicator
@@ -506,7 +506,7 @@ class ForegroundNotificationHandler {
               item.order_id === newItem.order_id &&
               item.chat_id === newItem.chat_id &&
               item.order_group_id === newItem.order_group_id
-            )
+            ),
         );
         state.showNotificationIndicator([...existingItems, newItem]);
         return; // Exit for private msg not in view
@@ -526,10 +526,10 @@ class ForegroundNotificationHandler {
 
     // Update "Last Notification" date if the message connects to previous history
     const chatExists = state.data?.find(
-      (c: any) => parseInt(c.id) === parseInt(messageData.channel.id)
+      (c: any) => parseInt(c.id) === parseInt(messageData.channel.id),
     );
     const isLinkedMessage = chatExists?.messages.some(
-      (m: any) => parseInt(m.id) === parseInt(data.prev_message_id)
+      (m: any) => parseInt(m.id) === parseInt(data.prev_message_id),
     );
 
     if (isLinkedMessage || chatExists) {
@@ -559,7 +559,7 @@ class ForegroundNotificationHandler {
             senderPhoto,
             messageImage,
             messageType,
-            5000
+            5000,
           );
         }
       }
@@ -590,7 +590,7 @@ class ForegroundNotificationHandler {
             senderPhoto,
             messageImage,
             messageType,
-            5000
+            5000,
           );
         }
       }

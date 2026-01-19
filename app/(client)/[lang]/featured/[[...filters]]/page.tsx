@@ -1,7 +1,5 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import "styles/listing-components.css";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
@@ -11,10 +9,7 @@ import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
-import {
-  generateMetadataForListing,
-  GetStructuredData,
-} from "serverRequests/meta/listing";
+import { generateMetadataForListing } from "serverRequests/meta/listing";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
@@ -63,7 +58,7 @@ export default async function Page({ params }) {
       parsedFilters = {
         ...parsedFilters,
         prices: parsedFilters.prices?.map((s) =>
-          s.split("-").map((d) => Number(d))
+          s.split("-").map((d) => Number(d)),
         )?.[0],
       };
     }
@@ -88,16 +83,6 @@ export default async function Page({ params }) {
 
     return (
       <>
-        <Suspense fallback={<></>}>
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <GetStructuredData
-            is_fearured={false}
-            responsePromise={filtersData}
-            is_flashDeals={false}
-            params={Params}
-          />
-        </Suspense>
-
         {/*@ts-expect-error Async Server Component is valid in Next  */}
         <FilterWidgetServer
           isFeatured={true}
@@ -178,6 +163,7 @@ export default async function Page({ params }) {
           currencyPromise={currency}
           filtersDataPromise={filtersData}
           parsedFilters={parsedFilters}
+          language={language}
         />
       </>
     );

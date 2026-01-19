@@ -148,7 +148,7 @@ const areIdsEqual = (a: any, b: any): boolean => {
 const updateDataAndActiveChat = (
   state: ChatState,
   channelId: string | number,
-  updateFn: (channel: Channel) => Channel
+  updateFn: (channel: Channel) => Channel,
 ): Partial<ChatState> => {
   let channelFound = false;
 
@@ -165,7 +165,7 @@ const updateDataAndActiveChat = (
   if (state.activeChat && areIdsEqual(state.activeChat.id, channelId)) {
     // If we already updated it in the loop, find it (to share reference), otherwise calculate
     const foundInNewData = newData.find((c: any) =>
-      areIdsEqual(c.id, channelId)
+      areIdsEqual(c.id, channelId),
     );
     newActiveChat = foundInNewData || updateFn(state.activeChat);
   }
@@ -199,8 +199,9 @@ const getAdjustedDateString = (originalDate?: string): string => {
 const processMessageStatuses = (
   messages: any[],
   type: "watch" | "receive",
-  currentUserId: any
+  watchForSender: boolean,
 ): any[] => {
+  let currentUserId = getUserChat()?.id;
   return messages.map((mes) => {
     if (mes.sender_user_id && !mes.message_type?.name?.includes("Call")) {
       const isSender = mes.sender_user_id === currentUserId;
@@ -212,42 +213,72 @@ const processMessageStatuses = (
 
       const newStatuses = mes.message_status.map((sta: any) => {
         const isSelfStatus = sta.user_id === currentUserId;
-
+        if (watchForSender) {
+          if (isSelfStatus) {
+            if (type === "watch")
+              return {
+                ...sta,
+                is_watched: true,
+                watched_at: getAdjustedDateString(sta.watched_at),
+              };
+            if (type === "receive")
+              return {
+                ...sta,
+                is_received: 1,
+                received_at: getAdjustedDateString(sta.received_at),
+              };
+          }
+        } else {
+          if (!isSelfStatus) {
+            if (type === "watch")
+              return {
+                ...sta,
+                is_watched: true,
+                watched_at: getAdjustedDateString(sta.watched_at),
+              };
+            if (type === "receive")
+              return {
+                ...sta,
+                is_received: 1,
+                received_at: getAdjustedDateString(sta.received_at),
+              };
+          }
+        }
         // Logic for "Watch" (Read)
-        if (type === "watch") {
-          if (!isSelfStatus) {
-            return {
-              ...sta,
-              is_watched: true,
-              watched_at: getAdjustedDateString(sta.watched_at),
-            };
-          } else {
-            // For self, ensure is_received is 1 if watched
-            const defaults = { is_watched: true, is_received: 1 };
-            return {
-              ...sta,
-              ...defaults,
-              watched_at: getAdjustedDateString(sta.watched_at),
-            };
-          }
-        }
+        // if (type === "watch") {
+        //   if (!isSelfStatus) {
+        //     return {
+        //       ...sta,
+        //       is_watched: true,
+        //       watched_at: getAdjustedDateString(sta.watched_at),
+        //     };
+        //   } else {
+        //     // For self, ensure is_received is 1 if watched
+        //     const defaults = { is_watched: true, is_received: 1 };
+        //     return {
+        //       ...sta,
+        //       ...defaults,
+        //       watched_at: getAdjustedDateString(sta.watched_at),
+        //     };
+        //   }
+        // }
 
-        // Logic for "Receive" (Delivered)
-        if (type === "receive") {
-          if (!isSelfStatus) {
-            return {
-              ...sta,
-              is_received: 1,
-              received_at: getAdjustedDateString(sta.received_at),
-            };
-          } else {
-            return {
-              ...sta,
-              is_received: 1,
-              received_at: getAdjustedDateString(sta.received_at),
-            };
-          }
-        }
+        // // Logic for "Receive" (Delivered)
+        // if (type === "receive") {
+        //   if (!isSelfStatus) {
+        //     return {
+        //       ...sta,
+        //       is_received: 1,
+        //       received_at: getAdjustedDateString(sta.received_at),
+        //     };
+        //   } else {
+        //     return {
+        //       ...sta,
+        //       is_received: 1,
+        //       received_at: getAdjustedDateString(sta.received_at),
+        //     };
+        //   }
+        // }
         return sta;
       });
 
@@ -355,9 +386,11 @@ export const useChatStore = (set: any, get: any) => ({
       updateDataAndActiveChat(state, state.activeChat.id, (channel) => ({
         ...channel,
         messages: channel.messages.map((m) =>
-          areIdsEqual(m.id, msgId) ? { ...m, duration_in_seconds: duration } : m
+          areIdsEqual(m.id, msgId)
+            ? { ...m, duration_in_seconds: duration }
+            : m,
         ),
-      }))
+      })),
     );
   },
 
@@ -372,7 +405,7 @@ export const useChatStore = (set: any, get: any) => ({
 
     // Common logic for initiating call (DRY for Video/Audio)
     const exists = state.data.some((m: any) =>
-      areIdsEqual(m.id, source.channel.id)
+      areIdsEqual(m.id, source.channel.id),
     );
     let newActive = { ...state.activeChat };
 
@@ -396,7 +429,7 @@ export const useChatStore = (set: any, get: any) => ({
     } else {
       // Update existing
       newData = state.data.map((m: any) =>
-        areIdsEqual(m.id, source.channel.id) ? newActive : m
+        areIdsEqual(m.id, source.channel.id) ? newActive : m,
       );
     }
 
@@ -414,12 +447,12 @@ export const useChatStore = (set: any, get: any) => ({
     const state = get();
     let tempCalls;
     const exists = state.calls.some((call: any) =>
-      areIdsEqual(call.id, payload.id)
+      areIdsEqual(call.id, payload.id),
     );
 
     if (exists) {
       tempCalls = state.calls.map((call: any) =>
-        areIdsEqual(call.id, payload.id) ? payload : call
+        areIdsEqual(call.id, payload.id) ? payload : call,
       );
     } else {
       tempCalls = [payload, ...state.calls];
@@ -433,7 +466,7 @@ export const useChatStore = (set: any, get: any) => ({
     const newMessage = { ...source, message_type: { name: messageType } };
 
     const exists = state.data.some((m: any) =>
-      areIdsEqual(m.id, source.channel.id)
+      areIdsEqual(m.id, source.channel.id),
     );
     let newActive = { ...state.activeChat };
 
@@ -460,7 +493,7 @@ export const useChatStore = (set: any, get: any) => ({
       newData = [newActive, ...state.data];
     } else {
       newData = state.data.map((m: any) =>
-        areIdsEqual(m.id, source.channel.id) ? newActive : m
+        areIdsEqual(m.id, source.channel.id) ? newActive : m,
       );
     }
 
@@ -501,7 +534,7 @@ export const useChatStore = (set: any, get: any) => ({
     };
 
     const foundChat = state.data.find((s: any) =>
-      areIdsEqual(s.id, callerChannelId)
+      areIdsEqual(s.id, callerChannelId),
     );
     const activeChat = foundChat || fallbackChat;
 
@@ -547,7 +580,7 @@ export const useChatStore = (set: any, get: any) => ({
     const state = get();
     const pa = payload
       ? state.data.find(
-          (s: any) => s.pusher_channel_name === payload.channel
+          (s: any) => s.pusher_channel_name === payload.channel,
         ) || null
       : null;
     set({ call: pa });
@@ -610,7 +643,7 @@ export const useChatStore = (set: any, get: any) => ({
         ...ch,
         status: payload.desc,
         activeDate: payload?.date || ch.activeDate,
-      }))
+      })),
     );
   },
 
@@ -623,7 +656,7 @@ export const useChatStore = (set: any, get: any) => ({
     // Use Helper Logic for status updates
     const updateResult = updateDataAndActiveChat(state, id, (ch) => ({
       ...ch,
-      messages: processMessageStatuses(ch.messages, "watch", userId),
+      messages: processMessageStatuses(ch.messages, "watch", false),
     }));
 
     set({
@@ -655,7 +688,7 @@ export const useChatStore = (set: any, get: any) => ({
       const userId = getUserChat()?.id;
       const updateResult = updateDataAndActiveChat(state, id, (ch) => ({
         ...ch,
-        messages: processMessageStatuses(ch.messages, "watch", userId),
+        messages: processMessageStatuses(ch.messages, "watch", true),
       }));
 
       set({
@@ -685,8 +718,8 @@ export const useChatStore = (set: any, get: any) => ({
     set(
       updateDataAndActiveChat(state, payload, (ch) => ({
         ...ch,
-        messages: processMessageStatuses(ch.messages, "receive", userId),
-      }))
+        messages: processMessageStatuses(ch.messages, "receive", true),
+      })),
     );
   },
 
@@ -784,7 +817,7 @@ export const useChatStore = (set: any, get: any) => ({
       // Prevent duplicates
       if (
         !ch.messages.some(
-          (m: any) => m.id && areIdsEqual(m.id, payload.message?.id)
+          (m: any) => m.id && areIdsEqual(m.id, payload.message?.id),
         )
       ) {
         return { ...ch, messages: [...ch.messages, payload.message] };
@@ -794,7 +827,7 @@ export const useChatStore = (set: any, get: any) => ({
 
     // Sort logic to move updated chat to top
     const updatedChat = updateResult.data?.find((d: any) =>
-      areIdsEqual(d.id, ac.id)
+      areIdsEqual(d.id, ac.id),
     );
     const otherChats =
       updateResult.data?.filter((d: any) => !areIdsEqual(d.id, ac.id)) || [];
@@ -852,10 +885,10 @@ export const useChatStore = (set: any, get: any) => ({
 
     // Handle reordering (move to top)
     const updatedChat = updateResult.data?.find(
-      (d: any) => d.id === (payload.channel_id || cid)
+      (d: any) => d.id === (payload.channel_id || cid),
     );
     const others = updateResult.data?.filter(
-      (d: any) => d.id !== (payload.channel_id || cid)
+      (d: any) => d.id !== (payload.channel_id || cid),
     );
     const newData = updatedChat ? [updatedChat, ...others] : state.data;
 
@@ -904,7 +937,7 @@ export const useChatStore = (set: any, get: any) => ({
       .map(
         (a) =>
           a.channel_members.find((df: any) => df.user_id !== currentUserId)
-            ?.user_id
+            ?.user_id,
       )
       .filter(Boolean);
 
@@ -920,8 +953,9 @@ export const useChatStore = (set: any, get: any) => ({
         // Check for unwatched messages
         return adsd.messages.some((mes) =>
           mes.message_status.some(
-            (st: any) => st.user_id === currentUserId && st.is_watched === false
-          )
+            (st: any) =>
+              st.user_id === currentUserId && st.is_watched === false,
+          ),
         );
       }
       return false;
@@ -940,8 +974,8 @@ export const useChatStore = (set: any, get: any) => ({
       activeChat: activeChatFound
         ? { ...activeChatFound }
         : activeChatFound === null
-        ? null
-        : state.activeChat,
+          ? null
+          : state.activeChat,
       newChats: newChatsToAdd,
       chatUsers: users,
       chat_loading: true, // Note: kept true as per original, though function name implies data set
@@ -1001,9 +1035,11 @@ export const useChatStore = (set: any, get: any) => ({
       updateDataAndActiveChat(state, payload.id, (chat) => ({
         ...chat,
         channel_members: chat.channel_members.map((mem: any) =>
-          mem.user_id === userId ? { ...mem, mute: payload.value ? 1 : 0 } : mem
+          mem.user_id === userId
+            ? { ...mem, mute: payload.value ? 1 : 0 }
+            : mem,
         ),
-      }))
+      })),
     );
   },
 
@@ -1023,7 +1059,7 @@ export const useChatStore = (set: any, get: any) => ({
           channel_members: targetChat.channel_members.map((mem: any) =>
             mem.user_id === userId
               ? { ...mem, pin: payload.value ? 1 : 0 }
-              : mem
+              : mem,
           ),
         };
         set({ data: [...otherChats, updatedChat] }); // Logic seems to push to end? Kept as is.
@@ -1055,7 +1091,7 @@ export const useChatStore = (set: any, get: any) => ({
         channel_members: chat.channel_members.map((member: any) =>
           member && member.user_id?.toString() === userKey
             ? { ...member, is_blocked: isBlocked ? 1 : 0 }
-            : member
+            : member,
         ),
       };
     };
@@ -1063,7 +1099,7 @@ export const useChatStore = (set: any, get: any) => ({
     set({
       ...updateDataAndActiveChat(state, channelKey, updateMembers),
       newChats: state.newChats.map((chat: any) =>
-        chat && chat.id?.toString() === channelKey ? updateMembers(chat) : chat
+        chat && chat.id?.toString() === channelKey ? updateMembers(chat) : chat,
       ),
     });
   },
@@ -1072,7 +1108,7 @@ export const useChatStore = (set: any, get: any) => ({
     const state = get();
     set({
       data: state.data.map((chat: any) =>
-        chat.id === payload.id ? { ...chat, unread: payload.value } : chat
+        chat.id === payload.id ? { ...chat, unread: payload.value } : chat,
       ),
     });
   },
@@ -1083,7 +1119,7 @@ export const useChatStore = (set: any, get: any) => ({
       updateDataAndActiveChat(state, payload.id, (s) => ({
         ...s,
         message_counts: payload.data,
-      }))
+      })),
     );
   },
 
@@ -1096,7 +1132,7 @@ export const useChatStore = (set: any, get: any) => ({
           ...s.message_counts,
           ...getMediaReducer(payload.media, payload.data),
         },
-      }))
+      })),
     );
   },
 
@@ -1107,7 +1143,7 @@ export const useChatStore = (set: any, get: any) => ({
   deleteChat: (payload: any) => {
     set((state: ChatState) => ({
       data: state.data.filter(
-        (chat) => parseInt(chat.id) !== parseInt(payload.id)
+        (chat) => parseInt(chat.id) !== parseInt(payload.id),
       ),
       activeChat: null,
       main: "main",
@@ -1149,14 +1185,14 @@ export const useChatStore = (set: any, get: any) => ({
 
     if (
       state.data.some(
-        (chat: any) => parseInt(chat.id) === parseInt(payload.ch_id)
+        (chat: any) => parseInt(chat.id) === parseInt(payload.ch_id),
       )
     ) {
       set(
         updateDataAndActiveChat(state, payload.ch_id, (chat) => ({
           ...chat,
           messages: updateMessageLogic(chat.messages),
-        }))
+        })),
       );
     } else {
       // Fallback for active chat only
@@ -1177,14 +1213,14 @@ export const useChatStore = (set: any, get: any) => ({
 
     if (
       state.data.some(
-        (chat: any) => parseInt(chat.id) === parseInt(payload.ch_id)
+        (chat: any) => parseInt(chat.id) === parseInt(payload.ch_id),
       )
     ) {
       set(
         updateDataAndActiveChat(state, payload.ch_id, (chat) => ({
           ...chat,
           messages: chat.messages.filter(filterFn),
-        }))
+        })),
       );
     } else {
       if (
@@ -1204,7 +1240,7 @@ export const useChatStore = (set: any, get: any) => ({
   deleteCall: (payload: number) =>
     set((state: ChatState) => ({
       calls: state.calls.filter(
-        (call) => parseInt(call.id) !== parseInt(payload.toString())
+        (call) => parseInt(call.id) !== parseInt(payload.toString()),
       ),
     })),
 

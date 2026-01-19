@@ -3,7 +3,7 @@ import { translateFunction } from "./functions";
 import { allCountries } from "country-telephone-data";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
-import Image from "node_modules/next/image";
+import Image from "next/image";
 import { REQUESTS_DATA } from "./Requests";
 
 export const ChatConroller = (payload) => {
@@ -109,7 +109,7 @@ export const formatTime = (timeString: string) => {
 };
 export const formatTimeForAddress = (
   timeString: string,
-  languageVar = null
+  languageVar = null,
 ) => {
   const { language } = useAppStore.getState();
   const MONTH_NAMES = [
@@ -151,7 +151,7 @@ export const formatTimeForAddress = (
   if (isSameYear && isNewerThanToday) {
     let translated_month = translateFunction(
       MONTH_NAMES[date.getMonth()],
-      languageVar || language
+      languageVar || language,
     );
     const day = date.getDate();
     const monthName = translated_month;
@@ -222,7 +222,7 @@ export const getVideoUrl = (
     end?: number | string;
     width?: number | string;
     height?: number | string;
-  }
+  },
 ): string => {
   // Build transformation string
   let transformations = [];
@@ -248,7 +248,7 @@ export const getVideoUrl = (
   if (input.startsWith("http") && input.includes("/video/upload/")) {
     return input.replace(
       /\/video\/upload\/(v\d+)?/,
-      `/video/upload/${transformStr}/$1`
+      `/video/upload/${transformStr}/$1`,
     );
   }
 
@@ -272,7 +272,7 @@ export const ShowNotificationSign = ({
   const { showNotificaionCircle } = useAppStore.getState();
   if (
     showNotificaionCircle?.find(
-      (e) => e.order_id === order_id || e.order_group_id === order_group_id
+      (e) => e.order_id === order_id || e.order_group_id === order_group_id,
     )
   ) {
     return true;
@@ -282,18 +282,18 @@ export const ShowNotificationSign = ({
 
 const getCountry = (text?: string) => {
   return allCountries.filter((countryItem) =>
-    text?.startsWith(countryItem.dialCode)
+    text?.startsWith(countryItem.dialCode),
   ).length === 1
     ? allCountries?.filter((countryItem) =>
-        text?.startsWith(countryItem.dialCode)
+        text?.startsWith(countryItem.dialCode),
       )[0]
     : allCountries.filter((countryItem) =>
-        text?.startsWith(countryItem.dialCode)
+        text?.startsWith(countryItem.dialCode),
       )[0];
 };
 
 export const buildParamsFromFilters = (
-  filters: Record<string, string[]>
+  filters: Record<string, string[]>,
 ): string[] => {
   const params: string[] = [];
   const filterOrder = [
@@ -321,7 +321,7 @@ export const buildParamsFromFilters = (
       } else if (filterType === "colors") {
         // Colors should be hex without #
         const colorValues = values.map((color) =>
-          color.startsWith("#") ? color.substring(1) : color
+          color.startsWith("#") ? color.substring(1) : color,
         );
         params.push(colorValues.join(","));
       } else {
@@ -391,7 +391,7 @@ export function findVariation(
   colors,
   sizes,
   selectedColor,
-  selectedSize
+  selectedSize,
 ) {
   // Normalize comparison for flexibility
   const normalize = (str) => (str ? str.toLowerCase().trim() : "");
@@ -402,7 +402,7 @@ export function findVariation(
     color = colors.find(
       (c) =>
         normalize(c?.color_name) === normalize(selectedColor) ||
-        normalize(c?.color_option) === normalize(selectedColor)
+        normalize(c?.color_option) === normalize(selectedColor),
     );
   }
 
@@ -412,7 +412,7 @@ export function findVariation(
     size = sizes.find(
       (s) =>
         normalize(s.name) === normalize(selectedSize) ||
-        normalize(s.option) === normalize(selectedSize)
+        normalize(s.option) === normalize(selectedSize),
     );
   }
 
@@ -467,7 +467,7 @@ interface Country {
 
 export async function fetchCountries(
   country = "tr",
-  language = "en"
+  language = "en",
 ): Promise<CountriesResponse> {
   try {
     return {
@@ -599,7 +599,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
     if (!g) return Promise.reject(new Error("getUserMedia unsupported"));
 
     return new Promise<MediaStream>((resolve, reject) =>
-      g.call(legacyNavigator, c, resolve, reject)
+      g.call(legacyNavigator, c, resolve, reject),
     );
   };
 
@@ -619,7 +619,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
       if (camera) {
         try {
           queries.push(
-            navigator.permissions.query({ name: "camera" as PermissionName })
+            navigator.permissions.query({ name: "camera" as PermissionName }),
           );
         } catch {}
       }
@@ -628,7 +628,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
           queries.push(
             navigator.permissions.query({
               name: "microphone" as PermissionName,
-            })
+            }),
           );
         } catch {}
       }
@@ -638,7 +638,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
 
         if (
           results.some(
-            (r) => r.status === "fulfilled" && r.value.state === "denied"
+            (r) => r.status === "fulfilled" && r.value.state === "denied",
           )
         ) {
           return false;
@@ -646,7 +646,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
 
         if (
           results.every(
-            (r) => r.status === "fulfilled" && r.value.state === "granted"
+            (r) => r.status === "fulfilled" && r.value.state === "granted",
           )
         ) {
           return true;

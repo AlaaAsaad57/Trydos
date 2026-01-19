@@ -2,6 +2,8 @@ import ListingSkeleton from "components/skeleton/listing";
 import React, { Suspense } from "react";
 import ProductListServer from "./ProductList";
 import { getCookieServer } from "utils/cookies/cookie-manager";
+import { getTitleAndTargetofListing } from "serverRequests/meta/StructuredData/utils";
+import ListingBreadcrumbList from "serverRequests/meta/StructuredData/ListingBreadcrumbList";
 
 async function ProductListConainer({
   currencyPromise,
@@ -11,6 +13,7 @@ async function ProductListConainer({
   Params,
   isFlashDeals = false,
   isFeatured = false,
+  language,
 }) {
   let [filtersData, currency, boutique] = await Promise.all([
     filtersDataPromise,
@@ -86,12 +89,24 @@ async function ProductListConainer({
     search_text:
       filtersData?.isAnalyzed?.name ?? parsedFilters?.search_text?.[0],
   };
+  let { path, title } = getTitleAndTargetofListing({
+    filters: parsedFilters,
+    filtersData: filtersData,
+    language: language,
+  });
 
   return (
     <Suspense
       key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
       fallback={<ListingSkeleton forProducts={true} />}
     >
+      <ListingBreadcrumbList
+        currency={currency}
+        local={Params.lang}
+        products={productsData}
+        target={path}
+        title={title}
+      />
       <ProductListServer
         boutique={boutique?.name}
         products={productsData ?? []}
@@ -102,6 +117,8 @@ async function ProductListConainer({
         params={Params}
         isFeatured={isFeatured}
         isFlashDeals={isFlashDeals}
+        target={path}
+        title={title}
       />
     </Suspense>
   );

@@ -41,7 +41,7 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
     set((state) => ({
       notifications: [
         ...state.notifications.filter(
-          (n) => n?.chatData?.channelId !== notification?.chatData?.channelId
+          (n) => n?.chatData?.channelId !== notification?.chatData?.channelId,
         ),
         {
           ...notification,
@@ -65,7 +65,7 @@ export const showSuccessNotification = (
   duration?: number,
   href?: string,
   href_type?: any,
-  image?: string
+  image?: string,
 ) => {
   const { addNotification } = useNotificationStore.getState();
   addNotification({
@@ -83,7 +83,7 @@ export const showErrorNotification = (
   duration?: number,
   href?: string,
   href_type?: any,
-  error_code?: number
+  error_code?: number,
 ) => {
   const { addNotification } = useNotificationStore.getState();
   if (message?.toLowerCase()?.includes("authorized")) {
@@ -108,13 +108,13 @@ export const showChatNotification = (
   messageImage?: string,
   messageType?: string,
   duration?: number,
-  isPrivate?: any
+  isPrivate?: any,
 ) => {
   const { addNotification } = useNotificationStore.getState();
   addNotification({
     type: "chat",
     message: messagePreview,
-    duration: 100000000000000,
+    duration: 5000,
     chatData: {
       senderName,
       senderPhoto,

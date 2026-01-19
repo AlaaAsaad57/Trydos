@@ -22,6 +22,7 @@ import { dataURLtoFile, upload, getUser } from "../chatsFunctions";
 import {
   GetChatDetails,
   getMessagesBetweenMessage,
+  getMessagesBetweenTwoMessages,
   getPage,
   SendMessage,
 } from "store/chat/actions";
@@ -59,7 +60,7 @@ const FILE_INPUT_ACCEPT = "*/*";
  * ------------------------------------------------------------------------*/
 const buildMessageStatus = (
   receiverId: number | string,
-  senderId: number | string
+  senderId: number | string,
 ) => [
   {
     is_watched: false,
@@ -112,7 +113,7 @@ function ConversationContainer({
   /* --------------------------- Derived values --------------------------- */
   const activeChat = active;
   const receiver = activeChat?.channel_members?.find(
-    (m: any) => +m.user_id !== +(getUser() as any)?.id
+    (m: any) => +m.user_id !== +(getUser() as any)?.id,
   );
   const senderId = (getUserChat() as any)?.id;
   const receiverId = receiver?.user_id;
@@ -131,7 +132,7 @@ function ConversationContainer({
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [croppedImageFile, setCroppedImageFile] = useState<File | null>(null);
   const [croppedImagePreview, setCroppedImagePreview] = useState<string | null>(
-    null
+    null,
   );
   /* ----------------------------- scroll function ----------------------------- */
   const scrollToMessage = (quoteId) => {
@@ -156,15 +157,16 @@ function ConversationContainer({
   const GetMessage = useCallback(
     async (msgId, quoteId) => {
       const found = activeChat?.messages?.some(
-        (m) => `${m.id}` === `${quoteId}`
+        (m) => `${m.id}` === `${quoteId}`,
       );
       if (found) {
         requestAnimationFrame(() => scrollToMessage(quoteId));
       } else {
         try {
-          await getMessagesBetweenMessage({
-            first: activeChat.id,
-            second: parseInt(sortedMessages?.[0].id) - parseInt(quoteId),
+          await getMessagesBetweenTwoMessages({
+            first: sortedMessages?.[0].id,
+            second: quoteId,
+            channel_id: activeChat?.id,
           });
           setQouted(quoteId);
           setPendingScrollToMessageId(quoteId);
@@ -173,7 +175,7 @@ function ConversationContainer({
         }
       }
     },
-    [activeChat, setQouted]
+    [activeChat, setQouted],
   );
 
   /* ------------------------- Scroll Refs ------------------------------- */
@@ -208,13 +210,13 @@ function ConversationContainer({
 
       const baseRef = ref(
         db,
-        `Transaction/${(getUser() as any)?.id}/${friendID}`
+        `Transaction/${(getUser() as any)?.id}/${friendID}`,
       );
 
       const promise = desc ? push(baseRef, desc) : set(baseRef, null);
       promise.catch(console.error);
     },
-    [activeChat?.id, receiverId]
+    [activeChat?.id, receiverId],
   );
 
   const handleTyping = useCallback(() => {
@@ -244,7 +246,7 @@ function ConversationContainer({
       };
       return { ...base, ...overwrite };
     },
-    [receiverId, replyMessage?.id, activeChat?.id]
+    [receiverId, replyMessage?.id, activeChat?.id],
   );
 
   const optimisticMessage = useCallback(
@@ -259,7 +261,7 @@ function ConversationContainer({
         isPrivate,
       });
     },
-    [sendMessage, activeChat, isPrivate]
+    [sendMessage, activeChat, isPrivate],
   );
 
   /* ----------------------------- Audio logic ----------------------------- */
@@ -298,7 +300,9 @@ function ConversationContainer({
     } catch (error) {
       console.error("Error sending message:", error);
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-      showErrorNotification(translateFunction("Failed to Upload file"));
+      showErrorNotification(
+        error?.message ?? translateFunction("Failed to Upload file"),
+      );
       sendStatus(null);
     }
   };
@@ -306,7 +310,7 @@ function ConversationContainer({
   const handleMediaMessage = async (
     file: File,
     type: string,
-    midLocal: string
+    midLocal: string,
   ) => {
     try {
       // optimistic UI update (uses base64 for img preview)
@@ -338,9 +342,10 @@ function ConversationContainer({
       // @ts-ignore – original util returns promise
       SendMessage(sendPayload, false, isPrivate);
     } catch (err) {
-      console.log("the error is: ", err);
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-      showErrorNotification(translateFunction("Failed to Upload file"));
+      showErrorNotification(
+        err?.message ?? translateFunction("Failed to Upload file"),
+      );
     } finally {
       sendStatus(null);
     }
@@ -375,7 +380,7 @@ function ConversationContainer({
           mid: midLocal,
         }),
         false,
-        isPrivate
+        isPrivate,
       );
     } catch (error) {
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
@@ -418,7 +423,7 @@ function ConversationContainer({
   useEffect(() => {
     if (pendingScrollToMessageId) {
       const exists = activeChat?.messages?.some(
-        (m) => `${m.id}` === `${pendingScrollToMessageId}`
+        (m) => `${m.id}` === `${pendingScrollToMessageId}`,
       );
       if (exists) {
         requestAnimationFrame(() => {
@@ -441,8 +446,8 @@ function ConversationContainer({
     else {
       showErrorNotification(
         translateFunction(
-          "Please enable camera permissions to use camera features"
-        )
+          "Please enable camera permissions to use camera features",
+        ),
       );
     }
   };
@@ -484,7 +489,7 @@ function ConversationContainer({
         return day;
       return dateString;
     },
-    [language]
+    [language],
   );
 
   const showRoute = useCallback(
@@ -549,7 +554,7 @@ function ConversationContainer({
       }
       return type;
     },
-    [showDate]
+    [showDate],
   );
 
   /* ----------------------- Camera Image Sender -------------------------- */
@@ -588,7 +593,9 @@ function ConversationContainer({
     } catch (error) {
       console.error("Error sending cropped image:", error);
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-      showErrorNotification(translateFunction("Failed to Upload file"));
+      showErrorNotification(
+        error?.message ?? translateFunction("Failed to Upload file"),
+      );
       sendStatus(null);
       setCroppedImageFile(null);
       setCroppedImagePreview(null);
@@ -641,7 +648,7 @@ function ConversationContainer({
           typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
             ? activeChat.id
             : false,
-          isPrivate
+          isPrivate,
         );
       } catch (error) {
         deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
@@ -664,7 +671,7 @@ function ConversationContainer({
       senderId,
       receiverId,
       isPrivate,
-    ]
+    ],
   );
 
   /* ------------------------ Fetch Older Helper ------------------------- */
@@ -678,31 +685,31 @@ function ConversationContainer({
   }, [active, getPage, setMessagesPage]);
 
   /* --------------------- Scroll effect for list ------------------------ */
-  useLayoutEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || !activeChat?.messages?.length) return;
+  // useLayoutEffect(() => {
+  //   const container = scrollContainerRef.current;
+  //   if (!container || !activeChat?.messages?.length) return;
 
-    const currentLastMsgId =
-      activeChat.messages[activeChat.messages.length - 1]?.id;
+  //   const currentLastMsgId =
+  //     activeChat.messages[activeChat.messages.length - 1]?.id;
 
-    if (isFetchingOlderRef.current) {
-      const diff = container.scrollHeight - prevScrollHeightRef.current;
-      container.scrollTop = diff;
-      isFetchingOlderRef.current = false;
-    } else if (
-      prevLastMsgIdRef.current &&
-      currentLastMsgId !== prevLastMsgIdRef.current
-    ) {
-      container.scrollTop = container.scrollHeight;
-    }
+  //   if (isFetchingOlderRef.current) {
+  //     const diff = container.scrollHeight - prevScrollHeightRef.current;
+  //     container.scrollTop = diff;
+  //     isFetchingOlderRef.current = false;
+  //   } else if (
+  //     prevLastMsgIdRef.current &&
+  //     currentLastMsgId !== prevLastMsgIdRef.current
+  //   ) {
+  //     container.scrollTop = container.scrollHeight;
+  //   }
 
-    prevLastMsgIdRef.current = currentLastMsgId;
-    prevScrollHeightRef.current = container.scrollHeight;
-  }, [activeChat?.messages]);
+  //   prevLastMsgIdRef.current = currentLastMsgId;
+  //   prevScrollHeightRef.current = container.scrollHeight;
+  // }, [activeChat?.messages]);
 
   /* ------------------------- Native Recording --------------------------- */
   const [nativeRecorder, setNativeRecorder] = useState<MediaRecorder | null>(
-    null
+    null,
   );
 
   const startNativeRecording = useCallback(async () => {
@@ -753,6 +760,35 @@ function ConversationContainer({
     // Use .getTime() to get the numeric Unix timestamp
     return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   });
+
+  const firstMessageIdRef = useRef<string | null>(null);
+
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || !sortedMessages || sortedMessages.length === 0) return;
+
+    const currentScrollHeight = container.scrollHeight;
+    const currentFirstMessageId = sortedMessages[0]?.id;
+
+    // Check if we have prepended messages (older messages loaded)
+    // We do this by seeing if the height grew AND the first message ID is different
+    const isPrepended =
+      prevScrollHeightRef.current > 0 &&
+      currentFirstMessageId !== firstMessageIdRef.current;
+
+    if (isPrepended) {
+      // Calculate how much height was added
+      const heightDifference =
+        currentScrollHeight - prevScrollHeightRef.current;
+
+      // Instantly adjust scroll to maintain visual position
+      container.scrollTop += heightDifference;
+    }
+
+    // Update refs for the next render
+    prevScrollHeightRef.current = currentScrollHeight;
+    firstMessageIdRef.current = currentFirstMessageId;
+  }, [sortedMessages]);
   return (
     <>
       {/* hidden file input */}
@@ -844,8 +880,8 @@ function ConversationContainer({
                 showErrorNotification(
                   translateFunction(
                     "You cannot send messages or calls to this user",
-                    language
-                  )
+                    language,
+                  ),
                 );
                 return;
               }
@@ -854,7 +890,7 @@ function ConversationContainer({
                 activeChat.id,
                 receiver?.user.name,
                 receiver?.user?.photo_path,
-                receiver?.user.mobile_phone
+                receiver?.user.mobile_phone,
               );
             }}
             makeVideoCall={() => {
@@ -862,8 +898,8 @@ function ConversationContainer({
                 showErrorNotification(
                   translateFunction(
                     "You cannot send messages or calls to this user",
-                    language
-                  )
+                    language,
+                  ),
                 );
                 return;
               }
@@ -872,7 +908,7 @@ function ConversationContainer({
                 activeChat.id,
                 receiver?.user.name,
                 receiver?.user?.photo_path,
-                receiver?.user.mobile_phone
+                receiver?.user.mobile_phone,
               );
             }}
             cancel={() => openDetails(false)}
@@ -906,7 +942,13 @@ function ConversationContainer({
         )}
 
         {/* Messages */}
-        <div ref={scrollContainerRef} className="chat-message-container">
+        <div
+          ref={scrollContainerRef}
+          className="chat-message-container mt-[51.5px] py-[40px] px-[20px] bg-[#f7f7f7] w-full flex flex-col overflow-x-hidden overflow-y-auto"
+          style={{
+            height: "calc(100% - 101px)",
+          }}
+        >
           {!(typeof active?.id === "string" && active?.id?.includes("ch")) &&
             active?.id && (
               <Observable loading={loading} getNext={fetchOlderMessages} />
@@ -945,7 +987,7 @@ function ConversationContainer({
                 type={showRoute(
                   mes,
                   sortedMessages?.[i - 1],
-                  sortedMessages?.[i + 1]
+                  sortedMessages?.[i + 1],
                 )}
               />
             </React.Fragment>
@@ -959,7 +1001,7 @@ function ConversationContainer({
               <div className="flex grow flex-row items-center justify-center medium text-pretty text-[#1d1d1d] bg-gray-200 p-3 rounded-md">
                 {translateFunction(
                   "You cannot send messages or calls to this user",
-                  language
+                  language,
                 )}
               </div>
             </>
@@ -1087,8 +1129,8 @@ function ConversationContainer({
                                   .catch(() => {
                                     showErrorNotification(
                                       translateFunction(
-                                        "No available Microphone"
-                                      )
+                                        "No available Microphone",
+                                      ),
                                     );
                                   });
                               }
@@ -1107,7 +1149,7 @@ function ConversationContainer({
       {showMenu && (
         <CustomPopup
           modalTitle={translateFunction(
-            "chosse an image or video from camera or files"
+            "chosse an image or video from camera or files",
           )}
           close={() => {
             setShowMenu(false);
@@ -1121,7 +1163,7 @@ function ConversationContainer({
               onClick: () => {
                 const fileInput =
                   document.querySelector<HTMLInputElement>(
-                    'input[type="file"]'
+                    'input[type="file"]',
                   );
                 if (fileInput) {
                   // 1. Change "images/*" to "image/*"
