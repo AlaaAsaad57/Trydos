@@ -390,11 +390,13 @@ async function Page({ params, searchParams }) {
           <Suspense fallback={<></>}>
             {/*@ts-expect-error Async Server Component is valid in Next  */}
             <ProductFooterWrapper
+              local={Params.lang}
               QtyPricePromise={QtyPricesData}
               globalPromise={GlobalData}
               isRtl={isRtl}
               color={color}
               size={Size}
+              currencyPromise={currency}
             />
           </Suspense>
         </div>

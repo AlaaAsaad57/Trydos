@@ -90,7 +90,7 @@ export default async function Page({ params }) {
       parsedFilters = {
         ...parsedFilters,
         prices: parsedFilters.prices?.map((s) =>
-          s.split("-").map((d) => Number(d))
+          s.split("-").map((d) => Number(d)),
         )?.[0],
       };
     }
@@ -116,16 +116,6 @@ export default async function Page({ params }) {
 
     return (
       <>
-        {/* <Suspense fallback={<></>}> */}
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-
-        <GetStructuredData
-          is_fearured={false}
-          responsePromise={filtersData}
-          is_flashDeals={false}
-          params={Params}
-        />
-
         {/*@ts-expect-error Async Server Component is valid in Next  */}
         <FilterWidgetServer
           isFeatured={false}
@@ -214,6 +204,7 @@ export default async function Page({ params }) {
           currencyPromise={currency}
           filtersDataPromise={filtersData}
           parsedFilters={parsedFilters}
+          language={language}
         />
       </>
     );

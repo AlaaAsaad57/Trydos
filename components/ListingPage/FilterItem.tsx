@@ -26,7 +26,7 @@ const FilterItem = ({
   const getFilterState = (
     itemValue: string,
     filterKey: string,
-    parentValue?: string[]
+    parentValue?: string[],
   ): FilterState => {
     if (isUsingParsedFilters) {
       return getFilterStateForItem(
@@ -35,7 +35,7 @@ const FilterItem = ({
         filterKey,
         parentValue,
         params.lang,
-        baseUrlOfFiltersPage
+        baseUrlOfFiltersPage,
       );
     } else {
       // For backward compatibility with searchParams
@@ -43,7 +43,7 @@ const FilterItem = ({
         filterParams,
         itemValue,
         filterKey,
-        parentValue
+        parentValue,
       );
     }
   };
@@ -52,7 +52,7 @@ const FilterItem = ({
     let { href, isFiltered } = getFilterState(
       slug,
       "categories",
-      grand_slug ? [item.slug, grand_slug] : [item.slug]
+      grand_slug ? [item.slug, grand_slug] : [item.slug],
     );
     return { href, isFiltered };
   };
@@ -96,7 +96,7 @@ const FilterItem = ({
             {isFiltered && (
               <img
                 src="/icons/ActiveCategoryIcon.svg"
-                className="active-category-icon"
+                className="active-category-icon w-[30px] h-[30px] z-50"
               />
             )}
             <svg
@@ -153,8 +153,8 @@ const FilterItem = ({
               right: isRtl
                 ? "initial"
                 : shouldShowSubCategories()
-                ? "0px"
-                : "40px",
+                  ? "0px"
+                  : "40px",
 
               left: isRtl
                 ? shouldShowSubCategories()
@@ -189,7 +189,7 @@ const FilterItem = ({
                     {getSubCategoryUrl(s.slug)?.isFiltered && (
                       <img
                         src="/icons/ActiveCategoryIcon.svg"
-                        className="active-category-icon"
+                        className="active-category-icon w-[30px] h-[30px] z-50"
                         style={{ top: "-5px", left: "-5px" }}
                       />
                     )}
@@ -278,7 +278,7 @@ const FilterItem = ({
                                 ?.isFiltered && (
                                 <img
                                   src="/icons/ActiveCategoryIcon.svg"
-                                  className="active-category-icon"
+                                  className="active-category-icon w-[30px] h-[30px] z-50"
                                   style={{ top: "-5px", left: "-5px" }}
                                 />
                               )}
@@ -329,11 +329,11 @@ const FilterItem = ({
                                   src:
                                     (sub_s.most_viewed_product_thumbnail &&
                                       GetImageUrl(
-                                        sub_s.most_viewed_product_thumbnail
+                                        sub_s.most_viewed_product_thumbnail,
                                       )) ??
                                     (sub_s.flat_photo_path?.file_path &&
                                       GetImageUrl(
-                                        sub_s.flat_photo_path?.file_path
+                                        sub_s.flat_photo_path?.file_path,
                                       )) ??
                                     (sub_s?.icon?.file_path &&
                                       GetImageUrl(item?.icon?.file_path)),
@@ -381,7 +381,7 @@ const FilterItem = ({
           {isFiltered && (
             <img
               src="/icons/ActiveCategoryIcon.svg"
-              className="active-category-icon"
+              className="active-category-icon w-[30px] h-[30px] z-50"
             />
           )}
           <svg
@@ -444,7 +444,7 @@ const FilterItem = ({
           {isFiltered && (
             <img
               src="/icons/ActiveCategoryIcon.svg"
-              className="active-category-icon"
+              className="active-category-icon w-[30px] h-[30px] z-50"
             />
           )}
 
@@ -500,7 +500,7 @@ const FilterItem = ({
           {isFiltered && (
             <img
               src="/icons/ActiveCategoryIcon.svg"
-              className="active-category-icon"
+              className="active-category-icon w-[30px] h-[30px] z-50"
             />
           )}
 
@@ -550,7 +550,7 @@ const FilterItem = ({
   if (term === "prices") {
     const { href, isFiltered } = getFilterState(
       `${item.min_price}-${item.max_price}`,
-      term
+      term,
     );
     return (
       <NextLink
@@ -567,7 +567,7 @@ const FilterItem = ({
           {isFiltered && (
             <img
               src="/icons/ActiveCategoryIcon.svg"
-              className="active-category-icon"
+              className="active-category-icon w-[30px] h-[30px] z-50"
             />
           )}
 
@@ -612,7 +612,7 @@ function getFilterStateForItem(
   filterKey: string,
   parentValue?: string[],
   lang?: string,
-  baseUrlOfFiltersPage?: string
+  baseUrlOfFiltersPage?: string,
 ): FilterState {
   let currentValues: any[] = [];
 
@@ -661,7 +661,7 @@ function getFilterStateForItem(
     if (isFiltered) {
       // Remove both possible formats
       newFilters[filterKey] = newFilters[filterKey].filter(
-        (val) => val !== colorValue && val !== itemValue
+        (val) => val !== colorValue && val !== itemValue,
       );
       if (newFilters[filterKey].length === 0) {
         delete newFilters[filterKey];
@@ -677,7 +677,7 @@ function getFilterStateForItem(
 
     if (isFiltered) {
       newFilters[filterKey] = newFilters[filterKey].filter(
-        (val) => val !== itemValue
+        (val) => val !== itemValue,
       );
       if (newFilters[filterKey].length === 0) {
         delete newFilters[filterKey];
@@ -686,7 +686,7 @@ function getFilterStateForItem(
       // Remove parent values if specified
       if (parentValue) {
         newFilters[filterKey] = newFilters[filterKey].filter(
-          (val) => !parentValue.includes(val)
+          (val) => !parentValue.includes(val),
         );
       }
       newFilters[filterKey] = [...(newFilters[filterKey] || []), itemValue];
@@ -711,7 +711,7 @@ function getFilterStateForItemLegacy(
   itemValue: string,
   filterKey: string,
   parentValue?: string[],
-  lang?: string
+  lang?: string,
 ): FilterState {
   // Convert to URLSearchParams if it's an object
   const params =
@@ -743,7 +743,7 @@ function getFilterStateForItemLegacy(
 
   // For legacy mode, return search params format
   const newParams = new URLSearchParams(
-    params.toString ? params.toString() : ""
+    params.toString ? params.toString() : "",
   );
 
   // Handle filter updates the old way
