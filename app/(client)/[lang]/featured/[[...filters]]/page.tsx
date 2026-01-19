@@ -1,7 +1,5 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import "styles/listing-components.css";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";

@@ -7,7 +7,6 @@ import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageBu
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
-import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
 import { generateMetadataForListing } from "serverRequests/meta/listing";
