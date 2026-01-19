@@ -14,8 +14,8 @@ export async function GetHomeMetaData({ local, category = null }) {
     : `meta-obj-home-${lang}-${country}`;
 
   // 1. Redis Cache Check
-  // const cachedMeta = await RedisGet(cacheKey);
-  // if (cachedMeta) return cachedMeta;
+  const cachedMeta = await RedisGet(cacheKey);
+  if (cachedMeta) return cachedMeta;
 
   // 2. Parallel Data Fetch
   const categoriesMeta = await GetCatgoriesMetaData({
@@ -101,7 +101,7 @@ export async function GetHomeMetaData({ local, category = null }) {
   };
 
   // 5. Cache the final result
-  // await RedisSet(cacheKey, JSON.stringify(metadataObject));
+  await RedisSet(cacheKey, JSON.stringify(metadataObject));
 
   return metadataObject;
 }
