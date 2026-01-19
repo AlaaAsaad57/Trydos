@@ -12,10 +12,7 @@ import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
-import {
-  generateMetadataForListing,
-  GetStructuredData,
-} from "serverRequests/meta/listing";
+import { generateMetadataForListing } from "serverRequests/meta/listing";
 import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";

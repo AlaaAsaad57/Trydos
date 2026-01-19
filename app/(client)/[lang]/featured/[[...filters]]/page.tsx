@@ -11,10 +11,7 @@ import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
-import {
-  generateMetadataForListing,
-  GetStructuredData,
-} from "serverRequests/meta/listing";
+import { generateMetadataForListing } from "serverRequests/meta/listing";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
