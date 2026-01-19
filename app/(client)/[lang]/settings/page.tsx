@@ -108,7 +108,7 @@ async function page({ params }) {
           SafeUserProfile={SafeUserProfile}
         />
       </Suspense>
-      {/* <GoToSellerDashBoard language={language} /> */}
+      <GoToSellerDashBoard language={language} />
       <div
         className={`flex w-full ${
           isRtl ? "flex-row-reverse" : "flex-row"
