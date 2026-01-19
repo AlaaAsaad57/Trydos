@@ -7,17 +7,16 @@ import { RoundPrice } from "utils/server";
 function ProductStructuredData({ product, local, currency, color, size }) {
   const [country, language] = local.split("-");
   let payload: any = {
-    "@context": "https://schema.org/",
-    "@type": "ProductGroup",
+    // "@type": "ProductGroup",
+    "@type": "Product",
     name: product?.name,
-    variesBy: ["https://schema.org/size"],
-    description: product?.details,
+    // variesBy: ["https://schema.org/size"],
+    description: `${product?.categories?.map((s) => s.name).join("-")}`,
     url: `${General_Site_Data.url}/${local}/products/${product?.slug}`,
     brand: {
       "@type": "Brand",
       name: product?.brand?.name,
     },
-    productGroupID: "k250814447486",
     image: product?.images?.map((im) => GetImageUrl(im?.file_path ?? im)),
     aggregateRating: {
       "@type": "AggregateRating",
@@ -31,53 +30,78 @@ function ProductStructuredData({ product, local, currency, color, size }) {
       color: product?.colors?.find((s) => s.option === color)?.name,
     };
   }
-  if (product?.variations?.length) {
-    payload = {
-      ...payload,
-      hasVariant: product?.variations.map((variant) => ({
-        "@type": "Product",
-        sku: variant?.sku,
-        name: `${product?.name} - ${variant?.type}`,
-        image: product?.images?.[0]?.file_path ?? product?.images?.[0],
-        offers: {
-          "@type": "Offer",
-          priceCurrency: mapCurrencyToSymbol(country),
-          url: `${General_Site_Data.url}/${local}/products/${product?.slug}`,
-          price: RoundPrice({
-            num: variant?.offer_price ?? variant?.price,
-            language: language,
-            points: currency.decimal_digits,
-            rate: currency.exchange_rate,
-          }),
-          itemCondition: "https://schema.org/NewCondition",
-          availability: "https://schema.org/InStock",
-        },
-      })),
-    };
-  } else {
-    payload = {
-      ...payload,
-      offers: {
-        "@type": "Offer",
-        priceCurrency: mapCurrencyToSymbol(country),
-        url: `${General_Site_Data.url}/${local}/products/${product?.slug}`,
-        price: RoundPrice({
-          num: product?.offer_price ?? product?.price,
-          language: language,
-          points: currency.decimal_digits,
-          rate: currency.exchange_rate,
-        }),
-        itemCondition: "https://schema.org/NewCondition",
-        availability: "https://schema.org/InStock",
+  // if (product?.variation?.length) {
+  //   payload = {
+  //     ...payload,
+  //     hasVariant: product?.variation.map((variant) => ({
+  //       "@type": "Product",
+  //       sku: variant?.sku,
+  //       name: `${product?.name} - ${variant?.type}`,
+  //       image: product?.images?.[0]?.file_path ?? product?.images?.[0],
+  //       offers: {
+  //         "@type": "Offer",
+  //         priceCurrency: mapCurrencyToSymbol(country),
+  //         url: `${General_Site_Data.url}/${local}/products/${product?.slug}`,
+  //         price: RoundPrice({
+  //           num: variant?.offer_price ?? variant?.price,
+  //           language: language,
+  //           points: currency.decimal_digits,
+  //           rate: currency.exchange_rate,
+  //         }),
+  //         itemCondition: "https://schema.org/NewCondition",
+  //         availability: "https://schema.org/InStock",
+  //       },
+  //     })),
+  //   };
+  // } else {
+
+  // }
+  //
+  payload = {
+    ...payload,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: mapCurrencyToSymbol(country),
+      url: `${General_Site_Data.url}/${local}/products/${product?.slug}`,
+      price: RoundPrice({
+        num: product?.offer_price ?? product?.price,
+        language: language,
+        points: currency.decimal_digits,
+        rate: currency.exchange_rate,
+      }),
+      itemCondition: "https://schema.org/NewCondition",
+      availability: "https://schema.org/InStock",
+    },
+  };
+  let jsonLd: any = {
+    "@context": "https://schema.org/",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: `${General_Site_Data.url}/${local}`,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: product.name,
+            item: `${General_Site_Data.url}/${local}/${product.slug}`,
+          },
+        ],
       },
-    };
-  }
-  console.log(payload);
+      payload,
+    ],
+  };
+
   return (
     <Script
       id={`product-${product.slug}-schema`}
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(payload) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
     />
   );
 }
