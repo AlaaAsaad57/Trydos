@@ -181,7 +181,7 @@ function OrderButton({ close, toOrders }) {
           (s) =>
             s?.check_availability === false ||
             s.is_country_restricted === true ||
-            s.is_active === false
+            s.is_active === false,
         ).length === 0
       ) {
         setTimeout(() => {
@@ -199,8 +199,8 @@ function OrderButton({ close, toOrders }) {
         showErrorNotification(
           translateFunction(
             "Please Review Your Cart Some Products Not Available",
-            languageVariable
-          )
+            languageVariable,
+          ),
         );
       }
     } catch (error) {
@@ -398,12 +398,14 @@ function OrderButton({ close, toOrders }) {
                           {" " + getDiscount()} %
                         </span>
                       </span>
-                      <span
-                        data-cy="ShowDiscount"
-                        className="regular text-[11px] text-[#A28E5B]"
-                      >
-                        {translate("Click To Show All Discount")}
-                      </span>
+                      {!expanded && (
+                        <span
+                          data-cy="ShowDiscount"
+                          className="regular text-[11px] text-[#A28E5B]"
+                        >
+                          {translate("Click To Show All Discount")}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -463,7 +465,7 @@ function OrderButton({ close, toOrders }) {
                         {total_shipping_cost === 0 && (
                           <span className="regular text-[11px] text-[#5BA260]">
                             {translate(
-                              "Shipping Is Completely Free Without Any Extras"
+                              "Shipping Is Completely Free Without Any Extras",
                             )}
                           </span>
                         )}
@@ -630,7 +632,7 @@ function OrderButton({ close, toOrders }) {
                         >
                           {translate(
                             "Back To HomePage",
-                            LocalizationServiceClass.GetAppLanguage()
+                            LocalizationServiceClass.GetAppLanguage(),
                           )}
                         </span>
                       </>
@@ -642,7 +644,7 @@ function OrderButton({ close, toOrders }) {
                         >
                           {translate(
                             "Confirm And Continue",
-                            LocalizationServiceClass.GetAppLanguage()
+                            LocalizationServiceClass.GetAppLanguage(),
                           )}
                         </span>
                         <span
