@@ -10,25 +10,26 @@ export default async function AnalyzeSearchText(query): Promise<any> {
 
   const prompt = `
 Act as an expert semantic parser for an e-commerce store. 
-Analyze the user's query regardless of language and extract specific attributes.
+Analyze the user's query and extract specific attributes into a valid JSON object.
 
-### AVAILABLE DATA:
+### DATA:
 - ALLOWED_COLORS (HEX): ${JSON.stringify(data?.colors)}
 - ALLOWED_SIZES: ${JSON.stringify(data?.sizes)}
 
 ### EXTRACTION RULES:
-1. **name**: Product name only. Remove colors, sizes, and materials. Default: "Unknown".
-2. **color**: Array of HEX codes. 
-   - Perform "Fuzzy Matching": If the user says "زرقاء", "navy", or "light blue", map it to the closest HEX code in ALLOWED_COLORS.
-   - If no semantic match exists, return [].
+1. **name**: Product name only. Exclude colors, sizes, and materials mentioned in the query. Default: "Unknown".
+2. **color**: Array of HEX codes.
+   - Match the user's color description (in any language) to the most logical name in ALLOWED_COLORS.
+   - **TIE-BREAKER**: If multiple entries exist for the same color name (e.g., "Black"), prioritize the standard HEX (like #000000) over custom or "test" codes.
+   - If the user says "dark" or "light" versions, pick the closest visual match from the list.
 3. **size**: Array of strings from ALLOWED_SIZES.
-   - Perform "Smart Mapping": Map "كبير جدا" to "XXL", "small" to "S", "مقاس محير" to the appropriate standard, etc., based on ALLOWED_SIZES.
-4. **type**: Material or category (e.g., "قطن", "Silk", "Leather"). Default: "Unknown".
-
+   - Map terms like "كبير جدا" or "extra large" to "XL" or "XXL" based strictly on what is available in ALLOWED_SIZES.
+   - Map "small" to "S", "medium" to "M", etc.
+   
 ### CONSTRAINTS:
 - Return ONLY a valid JSON object.
-- Do not include markdown formatting (no \`\`\`json).
-- If a value is not found, use "Unknown" for strings and [] for arrays.
+- NO markdown formatting.
+- NO prose or explanation.
 
 ### INPUT QUERY:
 "${modifiedQuery}"
