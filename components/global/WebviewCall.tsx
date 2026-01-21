@@ -98,19 +98,25 @@ function WebviewCall() {
     photo: "",
     status: null,
     fcm: searchParams?.get("fcm"),
+    is_private: searchParams?.get("is_private") ?? null,
   });
   const [userData, setUserData] = useState({ name: "", phone: "", photo: "" });
   useEffect(() => {}, []);
   const onAnswer = async (bool) => {
     try {
       if (!data.loading) {
-        setData({ ...data, loading: true, fcm: searchParams?.get("fcm") });
+        setData({
+          ...data,
+          loading: true,
+          fcm: searchParams?.get("fcm"),
+          is_private: searchParams?.get("is_private"),
+        });
         let [token, status] = await getAgoraToken(
           data.channel_id,
           data.authToken,
           data.msgId,
           data.sender_user_id,
-          searchParams?.get("fcm")
+          searchParams?.get("fcm"),
         );
 
         if (status) {
@@ -121,8 +127,13 @@ function WebviewCall() {
             token: token,
             action: "sent",
             fcm: searchParams?.get("fcm"),
+            is_private: searchParams?.get("is_private"),
           });
-          window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`;
+          if (searchParams?.get("is_private")) {
+            window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}&is_private=${searchParams?.get("is_private")}`;
+          } else {
+            window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`;
+          }
         }
       }
     } catch (error) {
@@ -150,11 +161,14 @@ function WebviewCall() {
         let token = await getAgoraTokenForInit(
           data.channel_id,
           data.authToken,
-          data.msgId
+          data.msgId,
         );
         if (token) {
           setData({ ...data, token: token, action: "sent" });
-          window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}&ring=true`;
+          if (searchParams?.get("is_private"))
+            window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}&ring=true&is_private=${searchParams?.get("is_private")}`;
+          else
+            window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}&ring=true`;
         } else {
           setError("failed to initialize call ..Try again");
           setTimeout(() => {
@@ -309,7 +323,7 @@ function WebviewCall() {
         onClick={() => {
           navigator.clipboard.writeText(window.location.href).then(
             function () {},
-            function () {}
+            function () {},
           );
           alert(window.location.href);
         }}
