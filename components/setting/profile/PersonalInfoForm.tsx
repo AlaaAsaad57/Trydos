@@ -86,7 +86,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
     ) {
       errors.email = translateFunction(
         "Please enter a valid email address",
-        language
+        language,
       );
     }
     if (!userProfileData.gender) {
@@ -137,7 +137,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         />
       )}
       <BackBar
-        name="Profile | Personal Info"
+        name={translateFunction("Profile | Personal Info", language)}
         isRtl={isRtl}
         local={local}
         preivous_page={`/${local}/settings/profile`}
@@ -199,7 +199,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
 
           <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
             {translateFunction(
-              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
+              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
             )}
           </div>
         </div>
@@ -416,7 +416,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
                 inputMode="numeric"
                 placeholder={translateFunction(
                   "Enter Alternative Phone",
-                  language
+                  language,
                 )}
                 className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
               />

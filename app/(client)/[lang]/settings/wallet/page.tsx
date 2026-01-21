@@ -1,6 +1,7 @@
 import BackBar from "components/setting/BackBar";
 import WalletTransactions from "components/settings/WalletTransactions";
 import React from "react";
+import { translateFunction } from "utils/server";
 
 async function Wallet({ params, searchParams }) {
   let Params = await params;
@@ -16,7 +17,7 @@ async function Wallet({ params, searchParams }) {
       <BackBar
         isRtl={isRtl}
         local={local}
-        name={"Wallet Transactions"}
+        name={translateFunction("Wallet Transactions", language)}
         preivous_page={`/${local}/settings`}
       />
       <WalletTransactions isRtl={isRtl} local={local} />

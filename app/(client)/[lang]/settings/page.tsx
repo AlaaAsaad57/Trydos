@@ -143,7 +143,7 @@ async function page({ params }) {
       </div>
       <div className="flex-col mt-[8px] flex w-full">
         {options.map((option) => (
-          <SettingOption key={option.name} {...option} />
+          <SettingOption key={option.name} language={language} {...option} />
         ))}
       </div>
       <div

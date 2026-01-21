@@ -46,7 +46,7 @@ async function Profile({ params }) {
         isRtl={isRtl}
         local={Params?.lang}
         Icon={""}
-        name={"Profile"}
+        name={translateFunction("Profile", language)}
         preivous_page={`/${Params?.lang}/settings`}
       />
       <div className="flex-row justify-center mt-[12px] w-full">

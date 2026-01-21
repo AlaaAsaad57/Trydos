@@ -11,6 +11,7 @@ import order from "services/order";
 import Spinner from "components/global/Spinner";
 
 function PersonalInfoAddress({ countries, isRtl, local }) {
+  const [, language] = local.split("-");
   const {
     setCountries,
     addressLists,
@@ -44,7 +45,7 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
           isRtl={isRtl}
           local={local}
           Icon={""}
-          name="Profile | Address Info"
+          name={translateFunction("Profile | Address Info", language)}
           preivous_page={`/${local}/settings/profile`}
         />
       )}
@@ -122,7 +123,7 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
 
               <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
                 {translateFunction(
-                  "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
+                  "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
                 )}
               </div>
             </div>
@@ -154,7 +155,7 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
                   </span>
                   <span className="medium text-[12px] text-[#C4C2C2] mt-[3px]">
                     {translateFunction(
-                      "You Can Also Create Multiple Addresses To Use"
+                      "You Can Also Create Multiple Addresses To Use",
                     )}
                   </span>
                 </div>

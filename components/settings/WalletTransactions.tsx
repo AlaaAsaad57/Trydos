@@ -29,7 +29,7 @@ function WalletTransactions({ isRtl, local }) {
   const router = useRouter();
   const [walletBalance, setWalletBalance] = useState(0);
   const [currencySymbol, setCurrencySymbol] = useState<string | undefined>(
-    currency?.symbol
+    currency?.symbol,
   );
   const PAGE_SIZE = 10;
   const GoToOrders = async (order_id) => {
@@ -45,12 +45,12 @@ function WalletTransactions({ isRtl, local }) {
 
       if (respons) {
         router.push(
-          `/${local}/settings/orders/${respons.data.order_group_id}?order_id=${order_id}&is_from_wallet=true`
+          `/${local}/settings/orders/${respons.data.order_group_id}?order_id=${order_id}&is_from_wallet=true`,
         );
-        setLoadingNavigation(false);
       }
     } catch (error) {
       console.log(error);
+      setLoadingNavigation(false);
       // setLoadingNavigation(false);
     }
   };
@@ -96,7 +96,7 @@ function WalletTransactions({ isRtl, local }) {
       const currentOffset = offset;
       const response = await order.GetWalletTransactions(
         PAGE_SIZE,
-        currentOffset
+        currentOffset,
       );
       if (response) {
         const newTransactions: Transaction[] =
