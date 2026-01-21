@@ -25,7 +25,7 @@ class AuthService {
     mobilePhone: string,
     is_via_whatsapp: number | string,
 
-    errorCallback: Function
+    errorCallback: Function,
   ) {
     let msg = "";
     const { setVerificationId, setWrongNumber } = useAppStore.getState();
@@ -61,7 +61,7 @@ class AuthService {
     code: string,
     verficationID: string,
     Username: string,
-    EditPhoneFunc: Function
+    EditPhoneFunc: Function,
   ) {
     const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
     let old_geust_id = userData?.id;
@@ -431,6 +431,8 @@ class AuthService {
       market_done = true;
       setCookie(COOKIE_NAMES.USER_DATA, {
         ...user,
+        weight: userObj?.weight ?? userProfile?.weight,
+        tall: userObj?.tall ?? userProfile?.tall,
         name: userObj?.name ?? userProfile?.name,
         phone: userObj?.phone ?? userProfile?.phone,
         image: this.getImageForCookie(userObj?.image),
@@ -565,7 +567,7 @@ class AuthService {
         try {
           await this.UpdateProfile(
             { name: username_market },
-            { name: username_market }
+            { name: username_market },
           );
         } catch (error) {}
       }
