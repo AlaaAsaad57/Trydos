@@ -1,8 +1,6 @@
 // webview voice call component
 import { useState, useEffect, useRef } from "react";
 
-import MicIcon from "public/icons/chat/micIcon.svg";
-
 import AgoraRTC, {
   createClient,
   createMicrophoneAudioTrack,
@@ -56,7 +54,7 @@ function WebViewVoiceCall(props) {
         if ((window as any)?.flutter_inappwebview)
           (window as any)?.flutter_inappwebview?.callHandler?.(
             "flutterMessageHandler",
-            "stop-ring" // <-- this becomes args[0] in Flutter
+            "stop-ring", // <-- this becomes args[0] in Flutter
           );
       });
 
@@ -76,7 +74,7 @@ function WebViewVoiceCall(props) {
           console.log("Available output devices:", devices);
 
           const earpiece = devices.find((d) =>
-            /earpiece|receiver|handset/i.test(d.label)
+            /earpiece|receiver|handset/i.test(d.label),
           );
 
           if (earpiece && user.audioTrack.setPlaybackDevice) {
@@ -84,7 +82,7 @@ function WebViewVoiceCall(props) {
           } else {
             // If we are on mobile, we often can't switch, so we just play.
             console.log(
-              "No earpiece detected via Web API. Playing on default device."
+              "No earpiece detected via Web API. Playing on default device.",
             );
           }
 
@@ -121,7 +119,7 @@ function WebViewVoiceCall(props) {
         appId,
         name.toString(),
         token,
-        parseInt(props.data.sender_user_id)
+        parseInt(props.data.sender_user_id),
       );
       if (track) {
         await track.setEnabled(trackStateRef.current.audio);
@@ -147,7 +145,7 @@ function WebViewVoiceCall(props) {
     if ((window as any)?.flutter_inappwebview)
       (window as any)?.flutter_inappwebview?.callHandler?.(
         "flutterMessageHandler",
-        durationRef.current // <-- this becomes args[0] in Flutter
+        durationRef.current, // <-- this becomes args[0] in Flutter
       );
     await props.onDecline(duration);
     window.location.href = "/endCall";
@@ -182,7 +180,17 @@ function WebViewVoiceCall(props) {
         )}
         {
           <>
-            {props.active ? (
+            {props.data?.is_private ? (
+              <div
+                className="hgg"
+                style={{
+                  backgroundImage: `url(${"/images/profileNo.png"})`,
+                  left: 0,
+                  right: 0,
+                  margin: "0 auto",
+                }}
+              ></div>
+            ) : props.active ? (
               <div
                 className="hgg"
                 style={{
@@ -213,7 +221,11 @@ function WebViewVoiceCall(props) {
           </>
         }
         <span className="caller-name">
-          {props.userData.name || props.userData.phone}
+          {props.data?.is_private
+            ? props.data?.is_private === "customer"
+              ? "Customer"
+              : "Deleivery Worker"
+            : props.userData.name || props.userData.phone}
         </span>
 
         <div className="fixed bottom-[3dvh] left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]">
@@ -224,7 +236,55 @@ function WebViewVoiceCall(props) {
               }
               onClick={mute}
             >
-              <MicIcon />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                xmlnsXlink="http://www.w3.org/1999/xlink"
+                width="25"
+                height="25"
+                viewBox="0 0 25 25"
+              >
+                <g
+                  id="Group_10695"
+                  data-name="Group 10695"
+                  transform="translate(-80 -825)"
+                >
+                  <g
+                    id="_25x25_Back"
+                    data-name="25x25 Back"
+                    transform="translate(80 825)"
+                  >
+                    <g id="Mask_Group_295" data-name="Mask Group 295">
+                      <g id="microphone-black-shape">
+                        <g id="Group_10694" data-name="Group 10694">
+                          <path
+                            id="Path_21396"
+                            data-name="Path 21396"
+                            d="M12.5,17.307A4.821,4.821,0,0,0,17.307,12.5V4.808a4.629,4.629,0,0,0-1.412-3.4A4.63,4.63,0,0,0,12.5,0,4.63,4.63,0,0,0,9.1,1.412a4.629,4.629,0,0,0-1.412,3.4V12.5A4.821,4.821,0,0,0,12.5,17.307Z"
+                            fill="#d3d3d3"
+                          />
+                          <path
+                            id="Path_21397"
+                            data-name="Path 21397"
+                            d="M20.868,9.9a.961.961,0,0,0-1.637.676V12.5a6.482,6.482,0,0,1-1.976,4.755A6.481,6.481,0,0,1,12.5,19.231a6.482,6.482,0,0,1-4.755-1.976A6.481,6.481,0,0,1,5.769,12.5V10.577A.956.956,0,0,0,4.132,9.9a.924.924,0,0,0-.286.676V12.5a8.345,8.345,0,0,0,2.216,5.777,8.39,8.39,0,0,0,5.476,2.817v1.983H7.692a.962.962,0,0,0,0,1.923h9.615a.962.962,0,0,0,0-1.923H13.462V21.093a8.391,8.391,0,0,0,5.476-2.817A8.344,8.344,0,0,0,21.154,12.5V10.577A.924.924,0,0,0,20.868,9.9Z"
+                            fill="#d3d3d3"
+                          />
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                  <line
+                    id="Line_903"
+                    data-name="Line 903"
+                    x2="20"
+                    y2="20"
+                    transform="translate(82.5 827.5)"
+                    fill="none"
+                    stroke="#ff5f61"
+                    strokeLinecap="round"
+                    strokeWidth="3"
+                  />
+                </g>
+              </svg>
             </div>
           ) : (
             <span />
@@ -236,13 +296,13 @@ function WebViewVoiceCall(props) {
                   if ((window as any)?.flutter_inappwebview)
                     (window as any)?.flutter_inappwebview?.callHandler?.(
                       "flutterMessageHandler",
-                      "IsEarpiece" // <-- this becomes args[0] in Flutter
+                      "IsEarpiece", // <-- this becomes args[0] in Flutter
                     );
                 } else {
                   if ((window as any)?.flutter_inappwebview)
                     (window as any)?.flutter_inappwebview?.callHandler?.(
                       "flutterMessageHandler",
-                      "IsSpeaker" // <-- this becomes args[0] in Flutter
+                      "IsSpeaker", // <-- this becomes args[0] in Flutter
                     );
                 }
               }
