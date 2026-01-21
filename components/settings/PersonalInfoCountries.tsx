@@ -21,9 +21,9 @@ function PersonalInfoCountries({
   const { setSettings } = useAppStore.getState();
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { lang } = useParams();
+
   // @ts-ignore
-  const [country, language] = lang?.split("-");
+  const [country, language] = local?.split("-");
   const getCountries = async () => {
     try {
       setLoading(true);
@@ -34,7 +34,7 @@ function PersonalInfoCountries({
         const data = await fetchCountries(country, language);
         sessionStorage.setItem(
           `countries-${country}-${language}`,
-          JSON.stringify(data.countries)
+          JSON.stringify(data.countries),
         );
         setCountries(data.countries);
       }
@@ -49,16 +49,16 @@ function PersonalInfoCountries({
     countries.find(
       // @ts-ignore
 
-      (s) => s?.iso?.toLowerCase() === lang?.split("-")[0].toLowerCase()
-    )
+      (s) => s?.iso?.toLowerCase() === local?.split("-")[0].toLowerCase(),
+    ),
   );
   useEffect(() => {
     if (countries)
       setSelectedCountry(
         countries.find(
           // @ts-ignore
-          (s) => s.iso.toLowerCase() === lang?.split("-")[0].toLowerCase()
-        )
+          (s) => s.iso.toLowerCase() === local?.split("-")[0].toLowerCase(),
+        ),
       );
   }, [countries]);
   const [isSettingCountry, setIsSettingCountry] = useState(false);
@@ -89,7 +89,7 @@ function PersonalInfoCountries({
           window.location.origin +
           window.location.pathname.replace(
             `/gb-${language}`,
-            `/${country.iso.toLowerCase()}-${language}`
+            `/${country.iso.toLowerCase()}-${language}`,
           );
       } else
         window.location.pathname = `/${country.iso.toLowerCase()}-${language}/settings`;
@@ -105,7 +105,7 @@ function PersonalInfoCountries({
     getCountries();
   }, []);
   const defaultInfoMessage = translateFunction(
-    "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
+    "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
   );
   const resolvedInfoMessage = infoMessage ?? defaultInfoMessage;
 
@@ -118,7 +118,7 @@ function PersonalInfoCountries({
         <BackBar
           isRtl={isRtl}
           local={local}
-          name={"Profile | Countries"}
+          name={translateFunction("Profile | Countries", language)}
           DataCy="personal-info-countries"
           preivous_page={`/${local}/settings`}
         />
@@ -366,7 +366,7 @@ function PersonalInfoCountries({
               </span>
               <span className="text-sm  mb-4 text-center">
                 {translateFunction(
-                  "Are you sure you want to change your country?"
+                  "Are you sure you want to change your country?",
                 )}
               </span>
               <div className="flex flex-row items-center justify-between w-full mb-6">

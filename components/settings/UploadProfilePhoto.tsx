@@ -11,6 +11,7 @@ import BackBar from "components/setting/BackBar";
 import { useRouter } from "next/navigation";
 
 function UploadProfilePhoto({ local, isRtl, userProfile }) {
+  const [, language] = local.split("-");
   const [file, setFile] = useState(GetImageUrl(userProfile?.image));
   const [isDragged, setIsDragged] = useState(false);
   const [isUploading, setIsUploading] = useState(null);
@@ -138,7 +139,7 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
         {
           image: file ? res.sub_path : null,
         },
-        userProfile
+        userProfile,
       );
       // setFile(res.data.image);
 
@@ -173,7 +174,7 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
             isDragged
           );
         }}
-        name="Profile"
+        name={translateFunction("Profile", language)}
         Save={
           (!file?.includes(userProfile?.image) &&
             userProfile?.image !== file) ||

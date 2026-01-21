@@ -50,6 +50,7 @@ function OrderDetailsWrapper({
   order_group_id,
   order_chat_id,
 }) {
+  const [, language] = local.split("-");
   // State
   const [isExpanded, setIsExpanded] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -406,7 +407,7 @@ function OrderDetailsWrapper({
           isRtl={isRtl}
           local={local}
           DataCy="order-details-screen"
-          name={"Orders Details"}
+          name={translateFunction("Orders Details", language)}
           Icon={"/icons/OrderDetailsIcon.svg"}
           options={() => {
             if (ActivePack) setShowOrderOption(ActivePack);

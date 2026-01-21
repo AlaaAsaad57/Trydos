@@ -7,6 +7,7 @@ import { pollinateInput } from "utils/tinyUtils";
 import BackBar from "components/setting/BackBar";
 
 function ProfileSizeInfo({ local, initialData, isRtl }) {
+  const [, language] = local.split("-");
   const [userProfileData, setUserProfileData] = useState({
     email: initialData?.email,
     name: initialData?.name,
@@ -72,7 +73,7 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
         local={local}
         Save={handleSave}
         Icon={""}
-        name={"Profile"}
+        name={translateFunction("Profile", language)}
         preivous_page={`/${local}/settings/profile`}
       />
       <div className="flex-row justify-center mt-[12px] w-full">
@@ -130,7 +131,7 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
 
           <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
             {translateFunction(
-              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
+              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
             )}
           </div>
         </div>

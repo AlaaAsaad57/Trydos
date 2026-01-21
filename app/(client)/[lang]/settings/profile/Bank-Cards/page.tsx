@@ -1,6 +1,6 @@
 import BackBar from "components/setting/BackBar";
 import { cookies } from "next/headers";
-import React from "react";
+import { translateFunction } from "utils/server";
 
 async function ProfileBankCards({ params }) {
   let Params = await params;
@@ -19,7 +19,7 @@ async function ProfileBankCards({ params }) {
       <BackBar
         isRtl={isRtl}
         local={Params?.lang}
-        name={"Profile | Bank Cards"}
+        name={translateFunction("Profile | Bank Cards", language)}
         preivous_page={`/${Params.lang}/settings/profile`}
       />
     </div>
