@@ -4,6 +4,7 @@ import { GetColorAndSizes } from "serverRequests/analyticsUtility";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GL_API_KEY}`;
 
 export default async function AnalyzeSearchText(query): Promise<any> {
+  let modifiedQuery = decodeURIComponent(query);
   let start = process.hrtime.bigint();
   let data = await GetColorAndSizes();
 
@@ -30,7 +31,7 @@ Analyze the user's query regardless of language and extract specific attributes.
 - If a value is not found, use "Unknown" for strings and [] for arrays.
 
 ### INPUT QUERY:
-"${query}"
+"${modifiedQuery}"
 `;
   // const proxyUrl = "http://kedaprax:qi1yxs8k11ol@142.111.48.253:7030";
   // const agent = new HttpsProxyAgent(proxyUrl);
@@ -59,14 +60,14 @@ Analyze the user's query regardless of language and extract specific attributes.
 
     // Filter out "Unknown" values
     const filtered = Object.fromEntries(
-      Object.entries(parsed).filter(([_, v]) => v !== "Unknown")
+      Object.entries(parsed).filter(([_, v]) => v !== "Unknown"),
     );
 
     let end = process.hrtime.bigint();
     return { ...filtered, Geminitime: Number(end - start) / 1_000_000 };
   } catch (error) {
     console.error(
-      `$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-${error}-$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$`
+      `$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-${error}-$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$`,
     );
     return { error: `${error?.message}`, details: error.message };
   }
