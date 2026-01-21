@@ -15,6 +15,7 @@ const BackBar = ({
   Save = null,
   preivous_page = null,
 }) => {
+  const [language] = local.split("-");
   const { lastPathname } = useAppStore();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -66,7 +67,7 @@ const BackBar = ({
           if (Save) Save();
         }}
       >
-        {Save ? translateFunction("Save") : <></>}
+        {Save ? translateFunction("Save", language) : <></>}
 
         {options && (
           <img
