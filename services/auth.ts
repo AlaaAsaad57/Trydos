@@ -339,6 +339,8 @@ class AuthService {
     }
   }
   async ExpiredUser(noReq = false) {
+    let { LoggingOut } = useAppStore.getState();
+    if (LoggingOut) return;
     let userChat: any = getCookie(COOKIE_NAMES.USER_CHAT);
     let userStories: any = getCookie(COOKIE_NAMES.USER_STORIES);
     if (!noReq) await home.registerForExpire(this.UserID());

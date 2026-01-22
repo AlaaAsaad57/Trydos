@@ -126,18 +126,19 @@ class HomeService {
   }
 
   async registerForExpire(id?: number) {
-    const { isRegisteringReady, setIsRegisteringReady } =
+    const { isRegisteringReady, setIsRegisteringReady, LoggingOut } =
       useAppStore.getState();
 
+    if (LoggingOut) return;
     if (isRegisteringReady) {
       const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
       let requestBody = id
         ? { old_guest_user_id: id }
         : user?.id
-        ? {
-            old_guest_user_id: user.id,
-          }
-        : { old_guest_user_id: null };
+          ? {
+              old_guest_user_id: user.id,
+            }
+          : { old_guest_user_id: null };
 
       try {
         let response = await fetchData({
@@ -219,8 +220,8 @@ class HomeService {
       console.error(error);
       throw new Error(
         translateFunction(
-          "Notification Is Not Enabled! please Allow Notification Access"
-        )
+          "Notification Is Not Enabled! please Allow Notification Access",
+        ),
       );
     }
   }
