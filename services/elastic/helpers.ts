@@ -147,7 +147,7 @@ interface CategoryFilter extends FilterResult {
 }
 
 export function normalizeCustomProducts(
-  productsWithFilters: ExtractFiltersResult
+  productsWithFilters: ExtractFiltersResult,
 ): ExtractFiltersResult {
   if (
     !productsWithFilters.custom_products ||
@@ -186,7 +186,7 @@ export function normalizeCustomProducts(
 
 function filterColorSyncObj(
   colors: ColorItem[],
-  syncColorImages: SyncColorImage[]
+  syncColorImages: SyncColorImage[],
 ): {
   colors: ColorItem[];
   sync_color_images: SyncColorImage[];
@@ -207,7 +207,7 @@ function filterColorSyncObj(
 export function extractFilters(
   products: any[],
   languageCode: string,
-  isFromBrowser: boolean
+  isFromBrowser: boolean,
 ): ExtractFiltersResult {
   const customProducts: Record<string, CustomProduct> = {};
 
@@ -220,7 +220,7 @@ export function extractFilters(
             product,
             customProduct,
             languageCode,
-            isFromBrowser
+            isFromBrowser,
           );
         }
       });
@@ -240,7 +240,7 @@ export function processCustomProduct(
   product: any,
   customProduct: any,
   languageCode: string,
-  isFromBrowser: boolean
+  isFromBrowser: boolean,
 ): CustomProduct {
   const result: CustomProduct = { ...customProduct };
 
@@ -265,7 +265,7 @@ export function processCustomProduct(
     result.flash_deal_price = calculateDiscountedPrice(
       product.unit_price,
       flashDealDiscount,
-      "percent"
+      "percent",
     );
     result.is_flash_deal_active = false;
 
@@ -300,14 +300,14 @@ export function processCustomProduct(
     result.redeem_price = calculateDiscountedPrice(
       product.unit_price,
       redeemDiscountRate,
-      "percent"
+      "percent",
     );
   }
 
   // Process categories and brands
   result.category = getCustomCategoryFromHighestPositionCategory(
     product,
-    languageCode
+    languageCode,
   );
   result.categories = getAllCustomCategories(product, languageCode);
   let categories_data = extractCategoryHierarchy(product, languageCode);
@@ -371,7 +371,7 @@ function getAllCustomCategories(productData: any, lang: string): any[] {
     let matchingCategory: any = null;
     if (productData.categories && Array.isArray(productData.categories)) {
       matchingCategory = productData.categories.find(
-        (cat: any) => cat.id == currentCategoryId
+        (cat: any) => cat.id == currentCategoryId,
       );
     }
 
@@ -387,7 +387,7 @@ function getAllCustomCategories(productData: any, lang: string): any[] {
     ) {
       customCategory = productData.custom_categories.find(
         (cat: any) =>
-          cat.category_id == currentCategoryId && cat.language_code === lang
+          cat.category_id == currentCategoryId && cat.language_code === lang,
       );
     }
 
@@ -405,7 +405,7 @@ function getAllCustomCategories(productData: any, lang: string): any[] {
 export function calculateDiscountedPrice(
   originalPrice: number,
   discount: number,
-  discountType: string
+  discountType: string,
 ): number {
   if (discountType === "percent") {
     return originalPrice - (originalPrice * discount) / 100;
@@ -449,15 +449,15 @@ function extractCategoryHierarchy(productData: any, lang: string): any {
     ) {
       customCategory = productData.custom_categories.find(
         (cat: any) =>
-          cat.category_id == categoryId && cat.language_code === lang
+          cat.category_id == categoryId && cat.language_code === lang,
       );
       categories_data.push({
         ...productData.custom_categories.find(
           (cat: any) =>
-            cat.category_id == categoryId && cat.language_code === lang
+            cat.category_id == categoryId && cat.language_code === lang,
         ),
         parent_id: productData?.categories?.find(
-          (s) => parseInt(s.id) === parseInt(categoryId)
+          (s) => parseInt(s.id) === parseInt(categoryId),
         )?.parent_id,
       });
     }
@@ -517,7 +517,7 @@ function buildCategoryTree(categories) {
 
 function getCustomCategoryFromHighestPositionCategory(
   productData: any,
-  lang: string
+  lang: string,
 ): any {
   if (!productData.category_ids || !Array.isArray(productData.category_ids)) {
     return null;
@@ -541,7 +541,7 @@ function getCustomCategoryFromHighestPositionCategory(
   let matchingCategory: any = null;
   if (productData.categories && Array.isArray(productData.categories)) {
     matchingCategory = productData.categories.find(
-      (cat: any) => cat.id == highestCategoryId
+      (cat: any) => cat.id == highestCategoryId,
     );
   }
 
@@ -557,7 +557,7 @@ function getCustomCategoryFromHighestPositionCategory(
   ) {
     customCategory = productData.custom_categories.find(
       (cat: any) =>
-        cat.category_id == highestCategoryId && cat.language_code === lang
+        cat.category_id == highestCategoryId && cat.language_code === lang,
     );
   }
 
@@ -595,7 +595,7 @@ export function calculatePriceRange(products: any[]): {
 
   products?.forEach((product) => {
     const price = parseFloat(
-      product.offered_price || product.unit_price || "0"
+      product.offered_price || product.unit_price || "0",
     );
     if (price > 0) {
       minPrice = Math.min(minPrice, price);
@@ -646,7 +646,7 @@ function calculatePriceFilter(products: CustomProduct[]): FinalPrices | null {
     const rangeMax = boundaries[i + 1];
 
     const productsCount = discountedPrices.filter(
-      (price) => price >= rangeMin && price <= rangeMax
+      (price) => price >= rangeMin && price <= rangeMax,
     ).length;
 
     priceRanges.push({
@@ -774,8 +774,8 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
         filters.search_text,
         searchWords,
         wordCount,
-        fuzziness
-      )
+        fuzziness,
+      ),
     );
   }
 
@@ -876,7 +876,7 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
             },
           },
         },
-      }
+      },
     );
   }
 
@@ -902,7 +902,7 @@ function buildSearchTextConditions(
   searchText: string,
   searchWords: string[],
   wordCount: number,
-  fuzziness: string | number | null
+  fuzziness: string | number | null,
 ): any {
   const shouldClauses: any[] = [];
 
@@ -1113,7 +1113,7 @@ function buildSearchTextConditions(
 }
 function buildMultiWordSearch(
   searchWords: string[],
-  fuzziness: string | number | null
+  fuzziness: string | number | null,
 ): any {
   const mustClauses: any[] = [];
 
@@ -1254,7 +1254,7 @@ function buildMultiWordSearch(
 function buildAtLeastTwoClause(
   searchWords: string[],
   fuzziness: string | number | null,
-  boost: number = 1
+  boost: number = 1,
 ): any | null {
   if (searchWords.length < 2) {
     return null;
@@ -1413,7 +1413,7 @@ export function buildAggregations(
   mustConditions: any[],
   mustNotConditions: any[],
   languageCode: string,
-  filtersSize: number
+  filtersSize: number,
 ): Record<string, any> {
   const filterCondition = {
     bool: {
@@ -1590,7 +1590,7 @@ export async function getChildrenAndGrandchildren(
   parentCategoryIds,
   languageCode,
   country,
-  filters
+  filters,
 ) {
   const baseConditions = buildBaseConditions(filters, country);
   const { must, must_not } = baseConditions;
@@ -1706,7 +1706,7 @@ export async function getChildrenAndGrandchildren(
 
 export function processBrandsAggregation(
   buckets: any[],
-  filtersOffset: number
+  filtersOffset: number,
 ): FilterResult[] {
   const brandsFilter: FilterResult[] = [];
 
@@ -1736,7 +1736,7 @@ export function processBrandsAggregation(
  */
 export function processBoutiquesAggregation(
   buckets: any[],
-  filtersOffset: number
+  filtersOffset: number,
 ): FilterResult[] {
   const boutiquesFilter: FilterResult[] = [];
 
@@ -1779,7 +1779,7 @@ export function processBoutiquesAggregation(
 export function processCategoriesAggregation(
   transBuckets: any[],
   origBuckets: any[],
-  filtersOffset: number
+  filtersOffset: number,
 ): CategoryFilter[] {
   // Create original categories map
   const origMap: Record<string | number, any> = {};
@@ -1842,7 +1842,7 @@ export function processCategoriesAggregation(
 
   // Collect tree: only roots (parent_id = 0 or null)
   const categoriesTree = Object.values(indexed).filter(
-    (cat) => !cat.parent_id || cat.parent_id === 0
+    (cat) => !cat.parent_id || cat.parent_id === 0,
   );
 
   return paginateFilters(categoriesTree, filtersOffset);
@@ -1850,56 +1850,55 @@ export function processCategoriesAggregation(
 export function paginateFilters<T>(
   filters: T[],
   filtersSize: number,
-  perPage: number = 10
+  perPage: number = 10,
 ): T[] {
   const offset = Math.max(0, (filtersSize - 1) * perPage);
   return filters.slice(offset, offset + perPage);
 }
 export function sortSyncColorImagesByFilteredColor(
   products: CustomProduct[],
-  filters: SearchFilters
-): any {
+  filters: SearchFilters,
+): CustomProduct[] | undefined {
   if (!filters.colors || filters.colors.length === 0) {
-    return;
+    return products;
   }
 
-  const filteredColorCode = filters.colors[0];
-  let productsArr = [];
-  products?.forEach((product) => {
+  // Convert filter colors to lowercase once for efficiency
+  const filteredColorCodes = filters.colors.map((c) => c.toLowerCase());
+
+  const productsArr = products?.map((product) => {
     if (!product.colors || !product.sync_color_images) {
-      productsArr.push(product);
-      return;
+      return product;
     }
 
-    // Find color name matching the code
-    let colorName: string | null = null;
-    for (const color of product.colors) {
-      if (
-        color.color &&
-        color?.color?.toLowerCase() === filteredColorCode?.toLowerCase()
-      ) {
-        colorName = color.name;
-        break;
-      }
+    // Find all color names that match ANY of the filtered color codes
+    const matchingColorNames = product.colors
+      .filter(
+        (c) => c.color && filteredColorCodes.includes(c.color.toLowerCase()),
+      )
+      .map((c) => c.name);
+
+    if (matchingColorNames.length === 0) {
+      return product;
     }
 
-    if (!colorName) {
-      productsArr.push(product);
-      return;
-    }
     let arr = Array.isArray(product.sync_color_images)
-      ? product.sync_color_images
+      ? [...product.sync_color_images] // Clone to avoid mutating original state
       : JSON.parse(product.sync_color_images || "[]");
-    // Sort sync_color_images to show matching color first
+
+    // Sort: If the image's color_name is in our "matching" list, move it to the front
     arr.sort((a: any, b: any) => {
-      if (a.color_name === colorName) return -1;
-      if (b.color_name !== colorName) return 1;
+      const aMatch = matchingColorNames.includes(a.color_name);
+      const bMatch = matchingColorNames.includes(b.color_name);
+
+      if (aMatch && !bMatch) return -1;
+      if (!aMatch && bMatch) return 1;
       return 0;
     });
-    product = { ...product, sync_color_images: arr };
-    // @ts-ignore
-    productsArr.push(product);
+
+    return { ...product, sync_color_images: arr };
   });
+
   return productsArr;
 }
 
@@ -1908,7 +1907,7 @@ export function sortSyncColorImagesByFilteredColor(
  */
 export function sortColorsByFilteredColor(
   products: CustomProduct[],
-  filters: SearchFilters
+  filters: SearchFilters,
 ): void {
   if (!filters.colors || filters.colors.length === 0) {
     return;
