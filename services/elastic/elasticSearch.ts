@@ -389,6 +389,11 @@ async function fetchRecommendationCandidates(userId: string | number) {
     queryConfig = {
       index: "cold_start_recommendations",
       // Sort by the nested field MAX score to find the best *Document*, not the best product
+    };
+  } else {
+    queryConfig = {
+      index: "recommended_system",
+      query: { term: { user_id: Number(userId) } },
       sort: [
         {
           "recommended_products.score": {
@@ -398,11 +403,6 @@ async function fetchRecommendationCandidates(userId: string | number) {
           },
         },
       ],
-    };
-  } else {
-    queryConfig = {
-      index: "recommended_system",
-      query: { term: { user_id: Number(userId) } },
     };
   }
 
@@ -419,15 +419,6 @@ async function fetchRecommendationCandidates(userId: string | number) {
       index: "cold_start_recommendations",
       _source: sourceFields,
       size: 1,
-      sort: [
-        {
-          "recommended_products.score": {
-            order: "desc",
-            mode: "max",
-            nested: { path: "recommended_products" },
-          },
-        },
-      ],
     });
   }
 
