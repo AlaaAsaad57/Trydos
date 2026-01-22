@@ -17,8 +17,8 @@ import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct
 import { GetHomeMetaData } from "serverRequests/meta/home";
 
 export async function generateMetadata({ params, searchParams }) {
+  let [Params, query] = await Promise.all([params, searchParams]);
   try {
-    let [Params, query] = await Promise.all([params, searchParams]);
     let mainCategory = query?.mainCategory || null;
     const metadata = await GetHomeMetaData({
       local: Params.lang,
@@ -27,7 +27,7 @@ export async function generateMetadata({ params, searchParams }) {
 
     return { ...metadata };
   } catch (error) {
-    console.log(error);
+    LogServerError({ error, type: "meta" }, `/${Params.lang}`);
     return {
       title: "TryDos - Premium Shopping Experience",
       description:

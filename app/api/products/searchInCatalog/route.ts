@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(req: NextRequest) {
   const headers = {
@@ -76,10 +77,18 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       { data: result, appliedFilters: filters },
-      { headers }
+      { headers },
     );
   } catch (error: any) {
     let errorDesc = JSON.stringify(filters);
+    LogServerError({
+      error,
+      type: "search products api route",
+      source: "search products",
+      filters: filters,
+      url: req.url,
+      method: "get",
+    });
     return NextResponse.json(
       {
         error: `${
@@ -87,7 +96,7 @@ export async function GET(req: NextRequest) {
         }----${errorDesc}`,
         appliedFilters: filters,
       },
-      { status: 500, headers }
+      { status: 500, headers },
     );
   }
 }

@@ -7,7 +7,7 @@ import AgoraRTC, {
 } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
 import { useAppStore } from "store";
-import { getUserChat } from "utils/functions";
+import { getUserChat, LogError } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getTwoLetters } from "../chatsFunctions";
 import { fetchData } from "utils/fetchData";
@@ -45,7 +45,7 @@ function ChatVoiceCall({ token }) {
             await client.leave();
           }
         } catch (agoraError) {
-          console.warn("Agora cleanup error:", agoraError);
+          // console.warn("Agora cleanup error:", agoraError);
         }
       }
 
@@ -64,6 +64,11 @@ function ChatVoiceCall({ token }) {
           body: JSON.stringify({ user_id: getUserChat()?.id }),
         });
       } catch (apiError) {
+        LogError({
+          error: apiError,
+          scenario: "end call api in web voice call - chat widget",
+          userId: getUserChat()?.id,
+        });
         console.error("End call API error:", apiError);
       }
 
@@ -76,7 +81,11 @@ function ChatVoiceCall({ token }) {
       storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
     } catch (error) {
-      console.error("Error ending call:", error);
+      LogError({
+        error: error,
+        scenario: "error in end call function  web voice call - chat widget",
+        userId: getUserChat()?.id,
+      });
       // Still try to unmount
       storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
@@ -140,7 +149,14 @@ function ChatVoiceCall({ token }) {
         if (mediaType === "audio") {
           try {
             user?.audioTrack?.play();
-          } catch (e) {}
+          } catch (e) {
+            LogError({
+              error: e,
+              scenario:
+                "failed to play call audio  web voice call - chat widget",
+              userId: getUserChat()?.id,
+            });
+          }
         }
       });
 

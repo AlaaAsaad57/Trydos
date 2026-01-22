@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { LogServerError } from "utils/serverErrorReporter";
 
 // Helper function to convert file to generative part
 async function fileToGenerativePart(file: File) {
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
           error: "Missing required fields",
           details: "file, language  are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -50,13 +51,13 @@ export async function POST(request: NextRequest) {
           error: "Invalid file type",
           details: "Only image files (JPEG, PNG, JPG, WEBP, GIF) are supported",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Initialize Google Generative AI
     const genAI = new GoogleGenerativeAI(
-      process.env.NEXT_PUBLIC_GEMINI_API_KEY!
+      process.env.NEXT_PUBLIC_GEMINI_API_KEY!,
     );
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -71,8 +72,8 @@ export async function POST(request: NextRequest) {
       language.toLowerCase() === "ar"
         ? `${basePrompt}. If you cannot identify any clear product in the image, respond exactly with "NO_PRODUCT_FOUND". (Please respond in Arabic)`
         : language.toLowerCase() === "en"
-        ? `${basePrompt}. If you cannot identify any clear product in the image, respond exactly with "NO_PRODUCT_FOUND". (Please respond in English)`
-        : `${basePrompt}. If you cannot identify any clear product in the image, respond exactly with "NO_PRODUCT_FOUND". (Please respond in Turkish)`;
+          ? `${basePrompt}. If you cannot identify any clear product in the image, respond exactly with "NO_PRODUCT_FOUND". (Please respond in English)`
+          : `${basePrompt}. If you cannot identify any clear product in the image, respond exactly with "NO_PRODUCT_FOUND". (Please respond in Turkish)`;
 
     // Generate content using Google AI
     const result = await model.generateContent([
@@ -97,7 +98,7 @@ export async function POST(request: NextRequest) {
           details: "No clear product could be identified in the uploaded image",
           success: false,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -106,8 +107,15 @@ export async function POST(request: NextRequest) {
       response: text,
     });
   } catch (error) {
-    console.error("Google AI API Error:", error);
-
+    console.error("Image Search - Google AI API Error:", error);
+    LogServerError(
+      {
+        error: error,
+        type: "search image api route",
+        url: request.url,
+      },
+      "/api/auth/image-search",
+    );
     // Handle specific Google AI errors
     if (error.message?.includes("API_KEY")) {
       return NextResponse.json(
@@ -115,7 +123,7 @@ export async function POST(request: NextRequest) {
           error: "API Configuration Error",
           details: "Google AI API key is missing or invalid",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -125,7 +133,7 @@ export async function POST(request: NextRequest) {
           error: "Content Safety Error",
           details: "The content was flagged by safety filters",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -134,7 +142,7 @@ export async function POST(request: NextRequest) {
         error: "Internal server error",
         details: error.message || "An unexpected error occurred",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

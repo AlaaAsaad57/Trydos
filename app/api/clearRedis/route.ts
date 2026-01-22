@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
     "Cache-Control": "no-store",
   };
 
+  return NextResponse.json({ message: "unauth-401" });
   if (req.method === "OPTIONS") {
     return new NextResponse(null, { status: 204, headers });
   }
@@ -29,13 +30,13 @@ export async function GET(req: NextRequest) {
         message: `Removed ${keys.length} keys`,
         removedKeys: keys,
       },
-      { headers }
+      { headers },
     );
   } catch (error: any) {
     console.error(error);
     return NextResponse.json(
       { error: error.message || "Failed to remove keys" },
-      { status: 500, headers }
+      { status: 500, headers },
     );
   }
 }

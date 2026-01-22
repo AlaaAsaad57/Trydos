@@ -5,7 +5,7 @@ import auth from "services/auth";
 import cart from "services/cart";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
-import { getCart, translateFunction } from "utils/functions";
+import { getCart, LogError, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { DetectScreen } from "utils/tinyUtils";
@@ -87,9 +87,9 @@ function AddToCartButton({
               product?.colors?.find(
                 (cl) =>
                   cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.selected_option
+                  cl.name === selectedColor?.selected_option,
               )?.color) &&
-          s.size === (selectedSize?.option ?? selectedSize)
+          s.size === (selectedSize?.option ?? selectedSize),
       );
     }
     if (colors?.length > 0) {
@@ -101,13 +101,13 @@ function AddToCartButton({
               product?.colors?.find(
                 (cl) =>
                   cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.selected_option
-              )?.color)
+                  cl.name === selectedColor?.selected_option,
+              )?.color),
       );
     }
     if (sizes?.length > 0) {
       return localCart.find(
-        (s) => s.id === id && s.size === (selectedSize?.option ?? selectedSize)
+        (s) => s.id === id && s.size === (selectedSize?.option ?? selectedSize),
       );
     }
     return null;
@@ -129,7 +129,7 @@ function AddToCartButton({
   };
   const animateText = (text) => {
     let newText = document.querySelector<HTMLDivElement>(
-      "#text-request-response"
+      "#text-request-response",
     );
     let oldText = document.querySelector<HTMLDivElement>("#button-cart-text");
     newText.innerText = translateFunction(text);
@@ -195,7 +195,7 @@ function AddToCartButton({
         await updateQuantity(
           true,
           isVariantInCart({ exact: false })?.type,
-          "add"
+          "add",
         );
       } else {
         animateButton();
@@ -204,7 +204,7 @@ function AddToCartButton({
           color: product?.colors?.find(
             (s) =>
               s.option === selectedColor?.color_option ||
-              s.name === selectedColor?.color_option
+              s.name === selectedColor?.color_option,
           )?.color,
           type: type,
           choice_1: selectedSize?.option || selectedSize,
@@ -256,7 +256,7 @@ function AddToCartButton({
             [selectedColor?.color_option, selectedSize?.option || selectedSize]
               .filter((e) => Boolean(e))
               .join("-"),
-            "add"
+            "add",
           );
           await getCart({
             callback: () => {},
@@ -267,7 +267,13 @@ function AddToCartButton({
       }
       setLoading(false);
     } catch (error) {
-      console.log("add/update", error);
+      LogError({
+        error: error,
+        scenario: "click handler for add to cart buttons - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+        variant: isVariantInCart({ exact: false }),
+      });
       await updateQuantity(false);
       setLoading(false);
     }
@@ -294,7 +300,7 @@ function AddToCartButton({
         await updateQuantity(
           true,
           isVariantInCart({ exact: true })?.type,
-          "decrease"
+          "decrease",
         );
       } else if (isVariantInCart({ exact: true })?.quantity === 1) {
         setLoading(true);
@@ -325,11 +331,17 @@ function AddToCartButton({
         await updateQuantity(
           true,
           isVariantInCart({ exact: true })?.type,
-          "decrease"
+          "decrease",
         );
       }
     } catch (error) {
-      console.log("decrease", error);
+      LogError({
+        error: error,
+        scenario: "decrase qty button - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+        variant,
+      });
       await updateQuantity(false);
       setLoading(false);
     }

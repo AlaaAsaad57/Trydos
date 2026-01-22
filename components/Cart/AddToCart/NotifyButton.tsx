@@ -1,6 +1,6 @@
 import React from "react";
 import { useAppStore } from "store";
-import { getCart, translateFunction } from "utils/functions";
+import { getCart, LogError, translateFunction } from "utils/functions";
 import { RemoveIconHolder } from "./Button";
 import cart from "services/cart";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
@@ -45,9 +45,9 @@ function NotifyButton({
               product?.colors?.find(
                 (cl) =>
                   cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.selected_option
+                  cl.name === selectedColor?.selected_option,
               )?.color) &&
-          s.size === (selectedSize?.option ?? selectedSize)
+          s.size === (selectedSize?.option ?? selectedSize),
       );
     }
     if (colors?.length > 0) {
@@ -59,13 +59,13 @@ function NotifyButton({
               product?.colors?.find(
                 (cl) =>
                   cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.selected_option
-              )?.color)
+                  cl.name === selectedColor?.selected_option,
+              )?.color),
       );
     }
     if (sizes?.length > 0) {
       return localCart.find(
-        (s) => s.id === id && s.size === (selectedSize?.option ?? selectedSize)
+        (s) => s.id === id && s.size === (selectedSize?.option ?? selectedSize),
       );
     }
     return null;
@@ -93,7 +93,7 @@ function NotifyButton({
         await updateQuantity(
           true,
           isVariantInCart({ exact: true })?.type,
-          "decrease"
+          "decrease",
         );
       } else if (isVariantInCart({ exact: true })?.quantity === 1) {
         setLoading(true);
@@ -124,11 +124,17 @@ function NotifyButton({
         await updateQuantity(
           true,
           isVariantInCart({ exact: true })?.type,
-          "decrease"
+          "decrease",
         );
       }
     } catch (error) {
-      console.log("decrease", error);
+      LogError({
+        error: error,
+        scenario: "decrase qty button - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+        variant,
+      });
       await updateQuantity(false);
       setLoading(false);
     }

@@ -37,6 +37,7 @@ import ProductPhotosSkeleton from "components/skeleton/product/ProductPhotosSkel
 import ProductNameAndBrandSkeleton from "components/skeleton/product/ProductNameAndBrandSkeleton";
 import Skeleton from "react-loading-skeleton";
 import { redirect } from "next/navigation";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
@@ -58,6 +59,16 @@ export async function generateMetadata({ params, searchParams }) {
 
     return metaData;
   } catch (error) {
+    LogServerError(
+      {
+        error,
+        type: "get product meta error",
+        country,
+        language,
+        product_slug: Params.productId,
+      },
+      `/${country}-${language}/featured`,
+    );
     redirect(`/${country}-${language}?message=product_not_found`);
   }
 }

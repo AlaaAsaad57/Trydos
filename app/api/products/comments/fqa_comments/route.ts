@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ReportError } from "utils/errorReported";
 import { LogError } from "utils/functions";
 import { GetFQACommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(req: NextRequest) {
   const headers = {
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
     if (!product_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const user_id = req.nextUrl.searchParams.get("user_id");
@@ -51,22 +52,16 @@ export async function GET(req: NextRequest) {
         },
         code: 200,
       },
-      { status: 200, headers }
+      { status: 200, headers },
     );
   } catch (error: any) {
-    ReportError(error, {
+    LogServerError({
+      error,
       source: "get faq comments for prooduct server api",
       product_id,
       page: referer,
-      url: "/public_comment/comments/fqa_comments",
       method: "get",
-    });
-    LogError({
-      source: "get faq comments for prooduct server api",
-      product_id,
-      page: referer,
-      url: "/public_comment/comments/fqa_comments",
-      method: "get",
+      url: req.url,
     });
     return NextResponse.json(
       {
@@ -78,7 +73,7 @@ export async function GET(req: NextRequest) {
         data: null,
         code: 500,
       },
-      { status: 500, headers }
+      { status: 500, headers },
     );
   }
 }

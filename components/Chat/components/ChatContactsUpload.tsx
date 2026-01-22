@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { getContacts } from "store/chat/actions";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
@@ -102,6 +102,12 @@ function ChatContactsUpload() {
       setLocalPhone("");
       setShowAddForm(false);
     } catch (err) {
+      LogError({
+        error: err,
+        scenario: "add contact - chat widget",
+        name: manualName.trim(),
+        mobile_phone: fullPhoneString.replace(/\s+/g, ""),
+      });
       setError("Failed to add contact");
     } finally {
       setIsUploading(false);
@@ -135,7 +141,7 @@ function ChatContactsUpload() {
 
       if (!("contacts" in navigator)) {
         throw new Error(
-          translateFunction("Contacts API not supported on this browser")
+          translateFunction("Contacts API not supported on this browser"),
         );
       }
 
@@ -143,7 +149,7 @@ function ChatContactsUpload() {
         ["name", "tel"],
         {
           multiple: true,
-        }
+        },
       );
 
       if (!rawContacts || !rawContacts.length) return;
@@ -154,6 +160,10 @@ function ChatContactsUpload() {
 
       await uploadToServer(finalPayload);
     } catch (err) {
+      LogError({
+        error: err,
+        scenario: "sync contact - chat widget",
+      });
       showErrorNotification(err?.message);
       setError(err instanceof Error ? err.message : "Sync failed");
     } finally {

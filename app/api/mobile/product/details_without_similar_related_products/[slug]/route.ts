@@ -5,21 +5,22 @@ import {
   GetProductData,
   getProductDataFromElastic,
 } from "utils/pagesDataRequests/ProductPageData";
+import { LogServerError } from "utils/serverErrorReporter";
 
 // Apply CORS headers to any response
 function withCORS(res: NextResponse) {
   res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set(
     "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
+    "GET, POST, PUT, DELETE, OPTIONS",
   );
   res.headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
+    "Content-Type, Authorization",
   );
   res.headers.set(
     "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate"
+    "no-store, no-cache, must-revalidate, proxy-revalidate",
   );
   res.headers.set("Pragma", "no-cache");
   res.headers.set("Expires", "0");
@@ -74,17 +75,25 @@ export async function GET(request: NextRequest, { params }) {
           isSuccessful: true,
           code: 200,
         },
-        { status: 200 }
-      )
+        { status: 200 },
+      ),
     );
   } catch (error) {
-    console.error("***** fetch failed *****", error);
-
+    console.error("Get Product Details with Cache api route", error);
+    LogServerError(
+      {
+        error: error,
+        type: "product details api route",
+        url: request.url,
+        headers: request.headers,
+      },
+      "/api/mobile/product/details_without_similar_related_products/[slug]",
+    );
     return withCORS(
       NextResponse.json(
         { isSuccessful: false, error, code: 500 },
-        { status: 500 }
-      )
+        { status: 500 },
+      ),
     );
   }
 }

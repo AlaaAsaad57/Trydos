@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { buildParamsFromFilters, pollinateInput } from "utils/tinyUtils";
 import { useAppStore } from "store";
 import { showSuccessNotification } from "store/notifications/reducer";
+import { LogError } from "utils/functions";
 function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
   const router = useRouter();
 
@@ -67,7 +68,12 @@ function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
       });
       router.push(newPath);
     } catch (error) {
-      console.error(error);
+      LogError({
+        error: error,
+        scenario:
+          "on Enter pressed in search bar in listing page - SearhcBoutique Component",
+        filters: currentFilters,
+      });
     }
   };
   useEffect(() => {

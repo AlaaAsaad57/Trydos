@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
-import { getCart, RoundPrice, translateFunction } from "utils/functions";
+import {
+  getCart,
+  LogError,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import { pollinateInput } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
 
@@ -19,14 +24,8 @@ const CouponElement = ({
   close,
   language,
 }: CouponElementProps) => {
-  const {
-    setOrderData,
-    initCart,
-    orderData,
-    currency,
-    coupon_discount,
-    setCouponDiscount,
-  } = useAppStore();
+  const { setOrderData, initCart, orderData, currency, coupon_discount } =
+    useAppStore();
   const isRtl = language === "ar" || language === "ku";
   const [coupon, setCoupon] = useState<number | false | string>(false);
   const [loading, setLoading] = useState(false);
@@ -73,6 +72,11 @@ const CouponElement = ({
 
       setCoupon(response?.data?.discount);
     } catch (err) {
+      LogError({
+        error: err,
+        scenario: "Apply Coupon widget",
+        coupon: e,
+      });
       setError(err.message);
     } finally {
       setLoading(false);
@@ -145,8 +149,8 @@ const CouponElement = ({
                 {loading
                   ? translateFunction("Applying...")
                   : coupon
-                  ? `- ${RoundPrice({ num: coupon })} ${currency.symbol}`
-                  : translateFunction("Apply")}
+                    ? `- ${RoundPrice({ num: coupon })} ${currency.symbol}`
+                    : translateFunction("Apply")}
               </div>
             </div>
           </div>

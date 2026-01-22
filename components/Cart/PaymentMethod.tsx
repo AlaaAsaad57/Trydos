@@ -1,5 +1,5 @@
 import { useParams } from "next/navigation";
-import { RoundPrice, translateFunction } from "utils/functions";
+import { LogError, RoundPrice, translateFunction } from "utils/functions";
 
 import Spinner from "components/global/Spinner";
 import CouponElement from "./couponElement";
@@ -87,7 +87,7 @@ function PaymentMethod() {
   const handleCODPayment = () => {
     if (getWalletInUSD() >= total) {
       showErrorNotification(
-        translateFunction("Only Allowed To Pay through TryDos Wallet")
+        translateFunction("Only Allowed To Pay through TryDos Wallet"),
       );
     } else {
       if (orderData?.payment?.find((s) => s.id === 0)) {
@@ -126,7 +126,7 @@ function PaymentMethod() {
     } else {
       if (getWalletInUSD() <= 0) {
         showErrorNotification(
-          translateFunction("your TryDos Wallet balance is empty")
+          translateFunction("your TryDos Wallet balance is empty"),
         );
       }
     }
@@ -134,7 +134,7 @@ function PaymentMethod() {
   const handleCryptoPayment = () => {
     if (getWalletInUSD() >= total) {
       showErrorNotification(
-        translateFunction("Only Allowed To Pay through TryDos Wallet")
+        translateFunction("Only Allowed To Pay through TryDos Wallet"),
       );
     } else {
       if (orderData?.payment?.find((s) => s.id === 3)) {
@@ -170,7 +170,7 @@ function PaymentMethod() {
   const handleCardPayment = () => {
     if (getWalletInUSD() >= total) {
       showErrorNotification(
-        translateFunction("Only Allowed To Pay through TryDos Wallet")
+        translateFunction("Only Allowed To Pay through TryDos Wallet"),
       );
     } else {
       if (orderData?.payment?.find((s) => s.id === 2)) {
@@ -217,6 +217,10 @@ function PaymentMethod() {
       await order.GetWallet();
       setWalletLoading(false);
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "refresh wallet - cart widget",
+      });
       setWalletLoading(false);
     }
   };
@@ -327,7 +331,7 @@ function PaymentMethod() {
           >
             {translateFunction(
               "Please Choose Your Payment Method About Your Bag",
-              language
+              language,
             )}
           </div>
           {available_payment_method &&
@@ -359,7 +363,7 @@ function PaymentMethod() {
                     <TryDosWalletInput
                       key={key}
                       balance={wallet?.wallet_balance?.toFixed(
-                        currency?.decimal_digits
+                        currency?.decimal_digits,
                       )}
                       active={
                         orderData?.payment?.filter((s) => s.id === 1).length > 0

@@ -10,7 +10,7 @@ import {
 import MediaContainer from "./MediaContainer";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { deleteChat as DeleteChatAction } from "store/chat/actions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -25,17 +25,21 @@ function ChatInfo({
   const { deleteChat, language, updateChannelBlockStatus } = useAppStore();
   const ref = useRef<any>();
   const otherUserId = activeChat?.channel_members?.filter(
-    (user) => String(user.user_id) !== String(getUser()?.id)
+    (user) => String(user.user_id) !== String(getUser()?.id),
   )?.[0]?.user?.id;
   const handleCopyPhone = async (phoneNumber) => {
     try {
       if (typeof navigator !== "undefined") {
         await navigator.clipboard.writeText(phoneNumber);
         showSuccessNotification(
-          translateFunction("The number was copied successfully")
+          translateFunction("The number was copied successfully"),
         );
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "handleCopyPhone in chat info - chat widget",
+      });
       showErrorNotification("Number copy failed");
     }
   };
@@ -88,7 +92,10 @@ function ChatInfo({
       setIsBlocked(true);
       updateBlockedState(true);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "BlockUser in chat info - chat widget",
+      });
     } finally {
       setLoading(false);
     }
@@ -110,7 +117,10 @@ function ChatInfo({
       setIsBlocked(false);
       updateBlockedState(false);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "UnBlock in chat info - chat widget",
+      });
     } finally {
       setLoading(false);
     }
@@ -133,12 +143,12 @@ function ChatInfo({
         <>
           <div className="chat-info-user-avatar">
             {activeChat?.channel_members?.filter(
-              (user) => user.user_id !== getUser()?.id
+              (user) => user.user_id !== getUser()?.id,
             )[0]?.user?.photo_path ? (
               <ChatPhoto
                 user={
                   activeChat?.channel_members.filter(
-                    (user) => user.user_id !== getUser()?.id
+                    (user) => user.user_id !== getUser()?.id,
                   )[0]?.user
                 }
                 className="w-full h-full"
@@ -149,11 +159,11 @@ function ChatInfo({
               <div className="text-avatar">
                 {getTwoLetters(
                   activeChat?.channel_members.filter(
-                    (user) => user.user_id !== getUser()?.id
+                    (user) => user.user_id !== getUser()?.id,
                   )[0]?.user.name ||
                     activeChat?.channel_members.filter(
-                      (user) => user.user_id !== getUser()?.id
-                    )[0]?.user.username
+                      (user) => user.user_id !== getUser()?.id,
+                    )[0]?.user.username,
                 )}
               </div>
             )}
@@ -161,10 +171,10 @@ function ChatInfo({
           <div className="chat-user-info w-full flex items-center">
             <div className="chat-info-user-name p-0">
               {activeChat?.channel_members.filter(
-                (user) => user.user_id !== getUser()?.id
+                (user) => user.user_id !== getUser()?.id,
               )[0]?.user?.name ||
                 activeChat?.channel_members.filter(
-                  (user) => user.user_id !== getUser()?.id
+                  (user) => user.user_id !== getUser()?.id,
                 )[0]?.user?.username}
             </div>
             <div className="chaat-info-user-phone">
@@ -173,14 +183,14 @@ function ChatInfo({
                 onClick={() =>
                   handleCopyPhone(
                     activeChat?.channel_members.filter(
-                      (user) => user.user_id !== getUser()?.id
-                    )[0]?.user?.mobile_phone
+                      (user) => user.user_id !== getUser()?.id,
+                    )[0]?.user?.mobile_phone,
                   )
                 }
               >
                 {
                   activeChat?.channel_members.filter(
-                    (user) => user.user_id !== getUser()?.id
+                    (user) => user.user_id !== getUser()?.id,
                   )[0]?.user?.mobile_phone
                 }
               </span>
@@ -287,7 +297,7 @@ function ChatInfo({
                       alt="Image"
                     />
                   </div>
-                )
+                ),
               )}
             </div>
           }

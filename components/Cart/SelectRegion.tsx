@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
@@ -142,7 +142,11 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
       }
       setSearchResults(response.results || []);
     } catch (err) {
-      console.error(err);
+      LogError({
+        error: err,
+        scenario: "search for address by text - cart widget",
+        search_text: val,
+      });
     }
 
     setLoading(false);
@@ -205,7 +209,7 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
           onInput={(e) => {}}
           value={search}
           placeholder={translateFunction(
-            "Search Province | District | Town | Street"
+            "Search Province | District | Town | Street",
           )}
           className="pl-[47px] pr-[15px] border-none outline-none flex rounded-[12px] bg-[#F8F8F8] regular text-[#1D1D1D] w-full h-[40px]"
           data-cy="SearchProvince-District-Town-Street"

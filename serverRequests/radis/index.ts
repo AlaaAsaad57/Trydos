@@ -1,4 +1,5 @@
 import Redis from "ioredis";
+import { LogServerError } from "utils/serverErrorReporter";
 
 declare global {
   // Ensure global redis persists between hot reloads in dev
@@ -100,7 +101,10 @@ export async function getCurrencyFromCache(country) {
       return null;
     }
     return cachedValue ? JSON.parse(cachedValue) : {};
-  } catch (error) {}
+  } catch (error) {
+    LogServerError({ error, type: "getting currency from redis" }, `/`);
+    throw error;
+  }
 }
 export async function StoreCurrency(country, value) {
   try {
@@ -110,7 +114,9 @@ export async function StoreCurrency(country, value) {
       "EX",
       Number(process.env.PRODUCT_REDIS_TTL_SECONDS),
     );
-  } catch (error) {}
+  } catch (error) {
+    LogServerError({ error, type: "storing currency in redis" }, `/`);
+  }
 }
 
 export async function RedisGet(key) {

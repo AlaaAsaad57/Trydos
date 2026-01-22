@@ -16,6 +16,7 @@ import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
 export const dynamicParams = true;
 export async function generateMetadata({ params }) {
+  let Params = await params;
   // Fetch your main product categories
   try {
     const metadata = await generateMetadataForListing({
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }) {
 
     return metadata;
   } catch (error) {
-    console.log(error);
+    LogServerError(error, `/${Params.lang}/featured`);
     return [];
   }
 }
@@ -44,7 +45,12 @@ async function getCurrency(country, language) {
       StoreCurrency(country, currency);
       return { ...currency, redis: false };
     }
-  } catch (error) {}
+  } catch (error) {
+    LogServerError(
+      { error, type: "get currency error", country, language },
+      `/${country}-${language}/featured`,
+    );
+  }
 }
 export default async function Page({ params }) {
   let Params = await params;
@@ -168,11 +174,10 @@ export default async function Page({ params }) {
       </>
     );
   } catch (error) {
-    const filtersPath =
-      Array.isArray(Params.filters) && Params.filters.length > 0
-        ? `/${Params.filters.join("/")}`
-        : "";
-    LogServerError(error, `/${Params.lang}/filters/${filtersPath}`);
+    LogServerError(
+      { error, filters: Params.filters },
+      `/${Params.lang}/featured`,
+    );
     throw error instanceof Error ? error : new Error(String(error));
   }
 }

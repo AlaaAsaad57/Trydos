@@ -227,7 +227,6 @@ class OrderService {
       }
       setOrderLoading(false);
     } catch (error) {
-      console.error(error);
       setOrderLoading(false);
     }
   }

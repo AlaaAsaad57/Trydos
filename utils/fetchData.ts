@@ -521,8 +521,8 @@ export const fetchData = async <T = any>(
         ) {
           return { ...(responseData || {}), success: false };
         }
-        LogError(errorObj);
-        ReportError(err, {
+        LogError({
+          ...errorObj,
           source: "fetchData",
           userId: auth.UserID()?.toString(),
           token: await getToken(server),

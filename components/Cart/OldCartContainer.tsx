@@ -5,6 +5,7 @@ import {
   areProductsEqual,
   getConfiguredImage,
   getOldCart,
+  LogError,
   translateFunction,
 } from "utils/functions";
 import { CartItemLink, QuantutyInput } from ".";
@@ -17,7 +18,7 @@ function OldCartContainer() {
   const filteredOldCart =
     oldCart?.oldCart?.filter(
       (oldProduct) =>
-        !cart.some((cartProduct) => areProductsEqual(oldProduct, cartProduct))
+        !cart.some((cartProduct) => areProductsEqual(oldProduct, cartProduct)),
     ) || [];
   let shippingDurationDays = 0;
   if (sessionStorage.getItem("starttingSetting")) {
@@ -40,7 +41,10 @@ function OldCartContainer() {
       await getOldCart();
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "getInitialData for old cart widget",
+      });
       setLoading(false);
     }
   };

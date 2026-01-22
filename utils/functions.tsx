@@ -13,6 +13,7 @@ import {
 import { REQUESTS_DATA } from "./Requests";
 import { readStoredLastPaths } from "./history";
 import { getLastRequest } from "./requestLoggerClient";
+import { ReportError } from "./errorReported";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -28,8 +29,9 @@ export function translateFunction(key: string, language?: string | string[]) {
   }
   if (!languageUrl) return key;
   if (languageUrl === "en") return key;
-  let translations =
-    require(`public/translations/translations.${languageUrl}.js`).default;
+  let translations = require(
+    `public/translations/translations.${languageUrl}.js`,
+  ).default;
   // Ensure translations object exists and has the requested language
   if (!translations) {
     return key;
@@ -62,7 +64,7 @@ export const getConfiguredImage = ({ src, width, height, q, c_pad }: any) => {
       "/upload",
       `/upload/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`
+      }/f_auto/q_auto:good/fl_lossy/so_0`,
     );
   }
   if (src?.file_path?.includes("cloudinary")) {
@@ -70,7 +72,7 @@ export const getConfiguredImage = ({ src, width, height, q, c_pad }: any) => {
       "/upload/v1",
       `/upload/v1/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`
+      }/f_auto/q_auto:good/fl_lossy/so_0`,
     );
   } else return src?.file_path || src || "";
 };
@@ -94,7 +96,7 @@ export const expandView = ({ filter }) => {
       .querySelector<HTMLElement>(".filter-listing-bar")
       .classList.remove("relative");
     document.querySelector<HTMLElement>(
-      ".filter-listing-bar"
+      ".filter-listing-bar",
     ).style.paddingRight = "5px";
     document.querySelector<HTMLElement>(".filter-listing-bar").style.zIndex =
       "999999";
@@ -111,7 +113,7 @@ export const expandView = ({ filter }) => {
     document.querySelector<HTMLElement>(".boutique-top-info .boutique-text")
   ) {
     document.querySelector<HTMLElement>(
-      ".boutique-top-info .boutique-text"
+      ".boutique-top-info .boutique-text",
     ).style.display = "none";
     document
       .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
@@ -122,7 +124,7 @@ export const expandView = ({ filter }) => {
         document.querySelector<HTMLElement>(".boutique-top-info").style.width =
           "auto";
         document.querySelector<HTMLElement>(
-          ".boutique-top-info"
+          ".boutique-top-info",
         ).style.marginLeft = "60px";
         document
           .querySelector<HTMLElement>(".boutique-top-info")
@@ -137,11 +139,11 @@ export const expandView = ({ filter }) => {
   }
   if (
     document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container"
+      ".boutique-photo-holder .offer-slider-container",
     )
   )
     document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container"
+      ".boutique-photo-holder .offer-slider-container",
     ).style.maxHeight = "0px";
 };
 export const normalizeView = () => {
@@ -163,7 +165,7 @@ export const normalizeView = () => {
     document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
       "static";
     document.querySelector<HTMLElement>(
-      ".filter-listing-bar"
+      ".filter-listing-bar",
     ).style.paddingRight = "20px";
     document.querySelector<HTMLElement>(".filter-listing-bar").style.top =
       "initial";
@@ -180,7 +182,7 @@ export const normalizeView = () => {
       document.querySelector<HTMLElement>(".boutique-top-info .boutique-text")
     ) {
       document.querySelector<HTMLElement>(
-        ".boutique-top-info .boutique-text"
+        ".boutique-top-info .boutique-text",
       ).style.display = "flex";
     }
     document
@@ -216,11 +218,11 @@ export const normalizeView = () => {
       "0px";
   if (
     document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container"
+      ".boutique-photo-holder .offer-slider-container",
     )
   ) {
     document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container"
+      ".boutique-photo-holder .offer-slider-container",
     ).style.maxHeight = "342px";
 
     document.querySelector<HTMLElement>(".boutique-photo-holder").style.height =
@@ -324,7 +326,7 @@ export const onClickSearchHistory = (searchValue) => {
       let arr = JSON.parse(localStorage.getItem("search-history"));
       localStorage.setItem(
         "search-history",
-        JSON.stringify([searchValue, ...arr])
+        JSON.stringify([searchValue, ...arr]),
       );
     }
     return [searchValue, ...arr];
@@ -429,6 +431,7 @@ export const LogError = async (error) => {
     country,
     userIP,
   };
+  ReportError(Error_Object);
   await storeError(Error_Object);
 };
 export async function storeError(error) {

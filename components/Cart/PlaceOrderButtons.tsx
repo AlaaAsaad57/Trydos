@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { getCart, RoundPrice, translateFunction } from "utils/functions";
+import {
+  getCart,
+  LogError,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
@@ -68,7 +73,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
         backToCart();
         setLoading(false);
         showErrorNotification(
-          translateFunction("Please Verify Your Phone Number")
+          translateFunction("Please Verify Your Phone Number"),
         );
       }
       if (a.length === 0) {
@@ -80,7 +85,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
           (s) =>
             s?.check_availability === false ||
             s.is_country_restricted === true ||
-            s.is_active === false
+            s.is_active === false,
         ).length === 0
       ) {
         setLoading(false);
@@ -89,8 +94,14 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
         throw Error("Please Review Your Cart Info");
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "check availabilty for creating order - cart widget",
+      });
       showErrorNotification(
-        translateFunction("Please Review Your Cart Some Products Not Available")
+        translateFunction(
+          "Please Review Your Cart Some Products Not Available",
+        ),
       );
 
       backToCart();
@@ -197,8 +208,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
               orderData.success
                 ? "bg-[#1D1D1D]"
                 : isValid()
-                ? "bg-[#346BFF]"
-                : "bg-[#C4C2C2]"
+                  ? "bg-[#346BFF]"
+                  : "bg-[#C4C2C2]"
             } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
           >
             {orderData.loading || loading ? (

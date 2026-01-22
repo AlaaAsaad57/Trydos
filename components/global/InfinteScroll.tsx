@@ -7,6 +7,7 @@ import { GAevent } from "utils/gtag";
 
 import { useAppStore } from "store";
 import { GetNextBoutiques } from "serverRequests/home";
+import { LogError } from "utils/functions";
 const useInfiniteScroll = (fetchNextPage) => {
   useEffect(() => {
     // Function to check scroll position
@@ -62,7 +63,12 @@ function InfinteScroll({ offsetVariable, mainCategory = null }) {
           setEnd(true);
         }
       } catch (error) {
-        console.error("Error fetching boutiques:", error);
+        LogError({
+          error: error,
+          scenario: "get Next Boutiques in Home Page",
+          offset: offset,
+          category: mainCategory,
+        });
         setLoading(false);
         setEnd(true);
       }

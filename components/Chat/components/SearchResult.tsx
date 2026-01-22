@@ -51,7 +51,7 @@ function SearchResult({
 
   const isMobileDevice = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
+      navigator.userAgent,
     );
   };
 
@@ -92,7 +92,7 @@ function SearchResult({
     const encodedText = encodeURIComponent(text);
     window.open(
       `https://wa.me/${item.mobile_phone}?text=${encodedText}`,
-      "_blank"
+      "_blank",
     );
     setShowInviteModal(false);
   };
@@ -102,7 +102,7 @@ function SearchResult({
     const encodedText = encodeURIComponent(text);
     window.open(
       `https://t.me/share/url?url=${window.location.origin}&text=${encodedText}`,
-      "_blank"
+      "_blank",
     );
     setShowInviteModal(false);
   };
@@ -145,7 +145,7 @@ function SearchResult({
             <img
               onError={({ currentTarget }) => {
                 currentTarget.onerror = null; // prevents looping
-                currentTarget.src = ProfilePicture;
+                (currentTarget as any).src = ProfilePicture;
               }}
               alt=""
               src={photo ? GetImageUrl(photo) : ProfilePicture.src}

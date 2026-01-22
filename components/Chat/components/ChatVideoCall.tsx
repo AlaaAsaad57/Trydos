@@ -11,7 +11,7 @@ import AgoraRTC, {
 } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
 import { useAppStore } from "store";
-import { getUserChat } from "utils/functions";
+import { getUserChat, LogError } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getTwoLetters } from "../chatsFunctions";
 import { fetchData } from "utils/fetchData";
@@ -53,7 +53,7 @@ function ChatVideoCall({ token }) {
             await client.leave();
           }
         } catch (agoraError) {
-          console.warn("Agora cleanup error:", agoraError);
+          // console.warn("Agora cleanup error:", agoraError);
         }
       }
 
@@ -74,7 +74,11 @@ function ChatVideoCall({ token }) {
           body: JSON.stringify({ user_id: getUserChat()?.id }),
         });
       } catch (apiError) {
-        console.error("End call API error:", apiError);
+        LogError({
+          error: apiError,
+          scenario: "end call api in web video call - chat widget",
+          userId: getUserChat()?.id,
+        });
       }
 
       // Handle RefuseCall if we have the necessary data
@@ -86,7 +90,11 @@ function ChatVideoCall({ token }) {
       storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
     } catch (error) {
-      console.error("Error ending call:", error);
+      LogError({
+        error: error,
+        scenario: "end call function in web video call - chat widget",
+        userId: getUserChat()?.id,
+      });
       // Still try to unmount
       storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
@@ -150,7 +158,14 @@ function ChatVideoCall({ token }) {
           if (mediaType === "audio") {
             try {
               user?.audioTrack?.play();
-            } catch (e) {}
+            } catch (e) {
+              LogError({
+                error: e,
+                scenario:
+                  "failed to play call audio  web video call - chat widget",
+                userId: getUserChat()?.id,
+              });
+            }
           }
         });
 
@@ -192,7 +207,11 @@ function ChatVideoCall({ token }) {
           setIsPublished(true);
         }
       } catch (error) {
-        console.error(error);
+        LogError({
+          error: error,
+          scenario: "error in init function web video call - chat widget",
+          userId: getUserChat()?.id,
+        });
       }
     };
 
@@ -239,9 +258,7 @@ function ChatVideoCall({ token }) {
   const cleanUp = async () => {
     try {
       await clientRef?.current?.unpublish(tracks);
-    } catch (error) {
-      console.error("Error during cleanup:", error);
-    }
+    } catch (error) {}
     try {
       await clientRef?.current?.leave();
     } catch (error) {}

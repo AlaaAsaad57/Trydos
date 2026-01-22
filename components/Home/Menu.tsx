@@ -11,7 +11,7 @@ const NotificationsPanel = dynamic(
   {
     ssr: false,
     loading: () => <NotificationSkeleton />,
-  }
+  },
 );
 import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
@@ -146,7 +146,6 @@ const Menu = ({ user, setMenuOpen }) => {
       deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
       clearSimulatedUserSession();
       clearHashedUserId();
-
       sessionStorage.clear();
       deleteCookie(COOKIE_NAMES.USER_DATA);
       localStorage.clear();

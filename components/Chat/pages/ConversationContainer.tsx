@@ -28,7 +28,7 @@ import {
 } from "store/chat/actions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import { translateFunction, getUserChat } from "utils/functions";
+import { translateFunction, getUserChat, LogError } from "utils/functions";
 import { db } from "utils/firebaseInitv1";
 import { useAppStore } from "store";
 import { requestPermissions } from "@/utils/tinyUtils";
@@ -171,7 +171,11 @@ function ConversationContainer({
           setQouted(quoteId);
           setPendingScrollToMessageId(quoteId);
         } catch (err) {
-          console.error(err);
+          LogError({
+            error: err,
+            scenario:
+              "get messages between two messages in conversation container - chat widget",
+          });
         }
       }
     },
@@ -214,7 +218,7 @@ function ConversationContainer({
       );
 
       const promise = desc ? push(baseRef, desc) : set(baseRef, null);
-      promise.catch(console.error);
+      promise.catch(() => {});
     },
     [activeChat?.id, receiverId],
   );
@@ -228,10 +232,10 @@ function ConversationContainer({
       if (!friendID) return;
 
       const path = `Transaction/${(getUser() as any)?.id}/${friendID}`;
-      push(ref(db, path), "Typing...").catch(console.error);
+      push(ref(db, path), "Typing...").catch(() => {});
 
       timer = setTimeout(() => {
-        set(ref(db, path), null).catch(console.error);
+        set(ref(db, path), null).catch(() => {});
       }, 2000);
     };
   }, [receiverId])();
@@ -298,7 +302,10 @@ function ConversationContainer({
         await handleMediaMessage(file, "FileMessage", midLocal);
       }
     } catch (error) {
-      console.error("Error sending message:", error);
+      LogError({
+        error: error,
+        scenario: "handleFileChange in conversation container - chat widget",
+      });
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
       showErrorNotification(
         error?.message ?? translateFunction("Failed to Upload file"),
@@ -342,6 +349,10 @@ function ConversationContainer({
       // @ts-ignore – original util returns promise
       SendMessage(sendPayload, false, isPrivate);
     } catch (err) {
+      LogError({
+        error: err,
+        scenario: "handleMediaMessage in conversation container - chat widget",
+      });
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
       showErrorNotification(
         err?.message ?? translateFunction("Failed to Upload file"),
@@ -383,6 +394,10 @@ function ConversationContainer({
         isPrivate,
       );
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "sendTextMessage in conversation container - chat widget",
+      });
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
       showErrorNotification(translateFunction("Failed to send message"));
       sendStatus(null);
@@ -591,7 +606,12 @@ function ConversationContainer({
       setCroppedImagePreview(null);
       setPendingImageFile(null);
     } catch (error) {
-      console.error("Error sending cropped image:", error);
+      LogError({
+        error: error,
+        scenario:
+          "handleImagePreviewSend in conversation container - chat widget",
+      });
+
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
       showErrorNotification(
         error?.message ?? translateFunction("Failed to Upload file"),
@@ -651,9 +671,12 @@ function ConversationContainer({
           isPrivate,
         );
       } catch (error) {
+        LogError({
+          error: error,
+          scenario: "sendAudio in conversation container - chat widget",
+        });
         deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-        console.log(error);
-        console.error("Error sending audio:", error);
+
         showErrorNotification(translateFunction("Failed to Upload audio"));
         sendStatus(null);
       }
@@ -732,7 +755,11 @@ function ConversationContainer({
       recorder.start();
       return true;
     } catch (error) {
-      console.error("Native recording failed:", error);
+      LogError({
+        error: error,
+        scenario:
+          "startNativeRecording in conversation container - chat widget",
+      });
       return false;
     }
   }, [onStopRecording]);

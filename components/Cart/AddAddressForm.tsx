@@ -1,7 +1,7 @@
 "use client";
 import { allCountries } from "country-telephone-data";
 import React, { useEffect, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import Map from "./Map";
 import { useParams } from "next/navigation";
 import order from "services/order";
@@ -35,7 +35,7 @@ function AddAddressForm({
     let UserCountries = countries.filter(
       // @ts-ignore
 
-      (s) => s.iso.toLowerCase() === lang.split("-")[0].toLowerCase()
+      (s) => s.iso.toLowerCase() === lang.split("-")[0].toLowerCase(),
     )[0];
 
     setCenter({
@@ -155,7 +155,7 @@ function AddAddressForm({
             data-cy="info-text"
           >
             {translateFunction(
-              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
+              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
             )}
           </div>
         </div>
@@ -345,7 +345,7 @@ const DetailsAddress = () => {
               setAddressDetails({ address_detail: e.target.value });
             }}
             placeholder={translateFunction(
-              "Write The Address Clearly, Including The Street Address, Building, Flat, Door, Unit."
+              "Write The Address Clearly, Including The Street Address, Building, Flat, Door, Unit.",
             )}
             className="w-full pr-6  min-h-[38px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
           />
@@ -581,7 +581,7 @@ const ContactInfo = ({ userName = null }) => {
                 });
               }}
               placeholder={translateFunction(
-                "Enter Alternative Recipient Phone"
+                "Enter Alternative Recipient Phone",
               )}
               className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
             />
@@ -597,8 +597,13 @@ const AddAddressButtons = ({
   isInSettings,
   userName = null,
 }) => {
-  const { addAddress, updateAddress, addressDetails, orderLoading } =
-    useAppStore();
+  const {
+    addAddress,
+    updateAddress,
+    addressDetails,
+    orderLoading,
+    setOrderLoading,
+  } = useAppStore();
 
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {
@@ -668,7 +673,8 @@ const AddAddressButtons = ({
         auth.UpdateName(addressDetails.user_name);
       }
     } catch (error) {
-      throw error;
+      setOrderLoading(false);
+      LogError({ error, scenario: "Add Address", addressDetails });
     }
   };
   return (

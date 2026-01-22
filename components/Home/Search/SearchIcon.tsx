@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 
 import "styles/search.css";
 import {
+  LogError,
   normalizeView,
   onClickSearchHistory,
   translateFunction,
@@ -98,7 +99,10 @@ function SearchIcon({ language, country }) {
       ]);
       setTrending(trendingRes.popular_search_terms);
     } catch (error) {
-      console.error(error);
+      LogError({
+        error: error,
+        scenario: "getInitialStaticData in SearchIcon",
+      });
     }
   };
   const normalizeFilters = (applied_filters) => {
@@ -166,11 +170,15 @@ function SearchIcon({ language, country }) {
         }
       } catch (error) {
         if (requestId === latestRequestRef.current) {
+          LogError({
+            error: error,
+            scenario: "performSearch in SearchIcon",
+          });
           setLoading(false);
         }
       }
     },
-    [language, country, appliedFilters, value]
+    [language, country, appliedFilters, value],
   );
 
   // --- Watch Input Change for Debounce ---
@@ -183,7 +191,7 @@ function SearchIcon({ language, country }) {
 
     debounceTimeoutRef.current = setTimeout(() => {
       const hasFilters = Object.values(appliedFilters).some(
-        (arr) => arr.length > 0
+        (arr) => arr.length > 0,
       );
 
       if (value.length > 0 || hasFilters) {
@@ -247,6 +255,10 @@ function SearchIcon({ language, country }) {
 
       setLoading(false);
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "handleLoadMore in SearchIcon",
+      });
       setLoading(false);
     }
   };
@@ -449,7 +461,7 @@ const SearchContainer = ({
           // is child
           updatedSection = updatedSection.filter(
             (filteredItem) =>
-              !filteredItem.childes?.some((c) => c.slug === item.slug)
+              !filteredItem.childes?.some((c) => c.slug === item.slug),
           );
         }
 
@@ -458,14 +470,14 @@ const SearchContainer = ({
           // is parent
           const childSlugs = item.childes.map((c) => c.slug);
           updatedSection = updatedSection.filter(
-            (filteredItem) => !childSlugs.includes(filteredItem.slug)
+            (filteredItem) => !childSlugs.includes(filteredItem.slug),
           );
         }
       }
 
       // Now check if the clicked item should be toggled (AFTER parent/child cleanup)
       const isAlreadySelected = updatedSection.some(
-        (s) => s.slug === item.slug
+        (s) => s.slug === item.slug,
       );
 
       if (isAlreadySelected) {
@@ -520,7 +532,7 @@ const SearchContainer = ({
                 setSearchHistory(searchHistoryItems.filter((s) => s !== e));
                 localStorage.setItem(
                   "search-history",
-                  JSON.stringify(searchHistoryItems.filter((s) => s !== e))
+                  JSON.stringify(searchHistoryItems.filter((s) => s !== e)),
                 );
               }}
             />
@@ -588,7 +600,7 @@ const SearchContainer = ({
                   key={brand?.slug}
                   onClick={() => toggleFilter("brands", brand)}
                   isActive={applied_filter?.brands.some(
-                    (s) => s.slug === brand.slug
+                    (s) => s.slug === brand.slug,
                   )}
                 />
               ))}
@@ -626,7 +638,7 @@ const SearchContainer = ({
                   key={category?.slug}
                   onClick={(e) => toggleFilter("categories", e)}
                   isActive={applied_filter?.categories.some(
-                    (s) => s.slug === category.slug
+                    (s) => s.slug === category.slug,
                   )}
                 />
               ))}
@@ -666,7 +678,7 @@ const SearchContainer = ({
                   key={boutique?.slug}
                   onClick={() => toggleFilter("boutiques", boutique)}
                   isActive={applied_filter?.boutiques.some(
-                    (s) => s.slug === boutique.slug
+                    (s) => s.slug === boutique.slug,
                   )}
                 />
               ))}

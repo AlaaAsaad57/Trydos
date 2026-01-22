@@ -21,6 +21,7 @@ import ProductListConainer from "components/Server/ProductListConainer";
 export const dynamicParams = true;
 export async function generateMetadata({ params }) {
   // Fetch your main product categories
+  let Params = await params;
   try {
     const metadata = await generateMetadataForListing({
       params,
@@ -28,6 +29,10 @@ export async function generateMetadata({ params }) {
 
     return metadata;
   } catch (error) {
+    LogServerError(
+      { error, type: "get page meta error", filters: Params.filters },
+      `/${Params.lang}/filters`,
+    );
     console.log(error);
     return [];
   }
@@ -52,6 +57,16 @@ async function GetBoutique(boutique, country, language) {
       };
     }
   } catch (error) {
+    LogServerError(
+      {
+        error,
+        type: "get boutique details error",
+        country,
+        language,
+        boutique,
+      },
+      `/${country}-${language}/featured`,
+    );
     return {
       banners: null,
       name: "Search",
@@ -206,11 +221,10 @@ export default async function Page({ params }) {
       </>
     );
   } catch (error) {
-    const filtersPath =
-      Array.isArray(Params.filters) && Params.filters.length > 0
-        ? `/${Params.filters.join("/")}`
-        : "";
-    LogServerError(error, `/${Params.lang}/filters/${filtersPath}`);
+    LogServerError(
+      { error, filters: Params.filters },
+      `/${Params.lang}/filters`,
+    );
     throw error instanceof Error ? error : new Error(String(error));
   }
 }
