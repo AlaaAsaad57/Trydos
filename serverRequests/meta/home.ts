@@ -51,8 +51,8 @@ export async function GetHomeMetaData({ local, category = null }) {
     keywords: ["Trydos", "e-commerce", "boutiques", "fashion", country, lang],
     icons: {
       icon: "/favicon.ico",
-      shortcut: "/favicon-16x16.png",
-      apple: "/apple-touch-icon.png",
+      shortcut: "/favicon.ico",
+      apple: "/favicon.ico",
     },
     alternates: {
       canonical: fullUrl,

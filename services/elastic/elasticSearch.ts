@@ -132,7 +132,7 @@ let client = elasticSearchClient;
  * Main function to search products and get filters from Elasticsearch
  */
 export async function getProductsAndFiltersFromElastic(
-  params: SearchParams
+  params: SearchParams,
 ): Promise<SearchResult> {
   let {
     limit = 10,
@@ -156,7 +156,7 @@ export async function getProductsAndFiltersFromElastic(
         console.error(
           `##################${
             CleanSearchText?.error || CleanSearchText?.message
-          }#######################`
+          }#######################`,
         );
         isAnalyzed = CleanSearchText?.error || CleanSearchText?.message;
         throw new Error(CleanSearchText?.error || CleanSearchText?.message);
@@ -227,7 +227,7 @@ export async function getProductsAndFiltersFromElastic(
         mustConditions,
         mustNotConditions,
         language_code,
-        filtersSize
+        filtersSize,
       ),
     };
 
@@ -254,13 +254,13 @@ export async function getProductsAndFiltersFromElastic(
     const productsWithFilters: any = extractFilters(
       customProducts,
       language_code,
-      is_from_browser
+      is_from_browser,
     );
     prices = productsWithFilters.prices;
     if (filters.colors?.length) {
       productsWithFilters.custom_products = sortSyncColorImagesByFilteredColor(
         productsWithFilters.custom_products,
-        filters
+        filters,
       );
       sortColorsByFilteredColor(productsWithFilters.custom_products, filters);
     }
@@ -287,7 +287,7 @@ export async function getProductsAndFiltersFromElastic(
     let CategoriesIds = (
       aggregations as any
     ).top_categories?.filtered_categories?.categories_by_id?.buckets.map(
-      (s) => s?.category_details.hits.hits[0]._source.category_id
+      (s) => s?.category_details.hits.hits[0]._source.category_id,
     );
     let categories_childs = await getChildrenAndGrandchildren(
       client,
@@ -295,48 +295,48 @@ export async function getProductsAndFiltersFromElastic(
       CategoriesIds,
       language_code,
       country,
-      filters
+      filters,
     );
     let categiresCombo = (
       aggregations as any
     ).top_categories?.filtered_categories?.categories_by_id?.buckets.concat(
       categories_childs.top_categories?.filtered_categories?.categories_by_id
-        ?.buckets || []
+        ?.buckets || [],
     );
     let by_id_categories_comb = (
       (aggregations as any).top_orig_categories?.orig_categories_by_id
         ?.buckets || []
     ).concat(
       categories_childs.top_orig_categories?.orig_categories_by_id?.buckets ||
-        []
+        [],
     );
 
     categoriesFilter = processCategoriesAggregation(
       categiresCombo,
       by_id_categories_comb,
-      filters_offset
+      filters_offset,
     );
 
     colorsFilter = processColorsAggregation(
       (aggregations as any).top_colors?.colors_by_color?.buckets || [],
-      filters_offset
+      filters_offset,
     );
 
     sizesFilter = processSizesAggregation(
       (aggregations as any).top_sizes?.available_size_as_json_by_size
         ?.buckets || [],
-      filters_offset
+      filters_offset,
     );
 
     brandsFilter = processBrandsAggregation(
       (aggregations as any).top_brands?.filtered_brands?.brands_by_id
         ?.buckets || [],
-      filters_offset
+      filters_offset,
     );
     boutiquesFilter = processBoutiquesAggregation(
       (aggregations as any).top_boutiques?.filtered_boutiques?.boutiques_by_id
         ?.buckets || [],
-      filters_offset
+      filters_offset,
     );
 
     return {
@@ -371,126 +371,198 @@ export async function getProductsAndFiltersFromElastic(
     throw new Error(
       `Search failed: ${
         error instanceof Error ? error.message : "Unknown error"
-      }`
+      }`,
     );
   }
+}
+
+async function fetchRecommendationCandidates(userId: string | number) {
+  const sourceFields = [
+    "recommended_products.product_id",
+    "recommended_products.item_id",
+    "recommended_products.score",
+  ];
+
+  // 1. Build Query (User vs Cold Start)
+  let queryConfig = {};
+  if (!userId) {
+    queryConfig = {
+      index: "cold_start_recommendations",
+      // Sort by the nested field MAX score to find the best *Document*, not the best product
+      sort: [
+        {
+          "recommended_products.score": {
+            order: "desc",
+            mode: "max",
+            nested: { path: "recommended_products" },
+          },
+        },
+      ],
+    };
+  } else {
+    queryConfig = {
+      index: "recommended_system",
+      query: { term: { user_id: Number(userId) } },
+    };
+  }
+
+  // 2. Execute Search
+  let response = await client.search({
+    ...queryConfig,
+    _source: sourceFields,
+    size: 1,
+  });
+
+  // 3. Fallback to Cold Start if User not found
+  if (response.hits.hits.length === 0 && userId) {
+    response = await client.search({
+      index: "cold_start_recommendations",
+      _source: sourceFields,
+      size: 1,
+      sort: [
+        {
+          "recommended_products.score": {
+            order: "desc",
+            mode: "max",
+            nested: { path: "recommended_products" },
+          },
+        },
+      ],
+    });
+  }
+
+  // 4. Extract and Deterministically SORT the array
+  const source = response.hits.hits?.[0]?._source as any;
+  if (!source?.recommended_products) return [];
+
+  return source.recommended_products
+    .map((item) => ({
+      id: String(item.product_id || item.item_id),
+      score: item.score || 0,
+    }))
+    .sort((a, b) => b.score - a.score); // Highest score first
+}
+async function fetchProductDetailsBatch(ids: string[], country: string) {
+  if (ids.length === 0) return [];
+
+  const baseConditions = buildBaseConditions({}, country);
+  const { must, must_not } = baseConditions;
+
+  // We strictly look for these specific IDs
+  must.push({ terms: { id: ids } });
+
+  const response = await client.search({
+    index: "products_catalog",
+    _source: getSourceFields(),
+    size: ids.length, // Fetch exactly what we asked for
+    query: {
+      bool: { must, must_not },
+    },
+  });
+  return response.hits.hits.map((hit) => ({
+    ...(hit._source as any),
+    is_redeem: (hit._source as any)?.has_redeem_discount,
+  }));
 }
 export async function GetRecomendationsForUser({
   userId,
   language,
   country,
-  search_after = [],
-  page = 1,
+  search_after = [0], // Default to Index 0
   limit = 50,
 }) {
   try {
-    let rec;
-    let start = process.hrtime.bigint();
-    // @ts-ignore
-    if (!userId) {
-      rec = await client.search({
-        index: "cold_start_recommendations",
-        sort: [{ _score: { order: "desc" } }],
-      });
-    } else {
-      rec = await client.search({
-        index: "recommended_system",
-        query: {
-          term: { user_id: Number(userId) },
-        },
-        sort: [{ _score: { order: "desc" } }],
-      });
+    const start = process.hrtime.bigint();
 
-      if (rec.hits.hits?.length === 0)
-        rec = await client.search({
-          index: "cold_start_recommendations",
-          sort: [{ _score: { order: "desc" } }],
-        });
-    }
-    if (
-      (rec.hits.hits?.[0]?._source as any)?.recommended_products?.length ===
-        0 ||
-      rec.hits.hits?.length === 0
-    ) {
-      return { products: [], search_after: [] };
-    }
-    const recommendedIds: string[] =
-      // @ts-ignore
-      (rec.hits.hits?.[0]?._source as any)?.recommended_products?.map(
-        (s) => s?.product_id ?? s?.item_id
-      ) || [];
-    if (!recommendedIds.length) {
-      return { products: [], offset: [], limit };
-    }
-    const numericIds = recommendedIds.filter((id) => /^\d+$/.test(id));
+    // STEP 1: Master list (source of truth)
+    const allCandidates = await fetchRecommendationCandidates(userId);
+    const totalCandidates = allCandidates.length;
 
-    if (numericIds.length === 0)
-      return {
-        products: [],
-        limit,
-        offset: [],
-      };
-    const baseConditions = buildBaseConditions({}, country);
-    const { must: mustConditions, must_not: mustNotConditions } =
-      baseConditions;
-    mustConditions.push({ terms: { id: numericIds } });
-    // // 3. Query products_catalog by IDs
-    const searchQuery = {
-      index: "products_catalog",
-      _source: getSourceFields(),
-      size: limit,
-      query: {
-        bool: {
-          must: mustConditions,
-          must_not: mustNotConditions,
-        },
-      },
-      sort: [{ _score: { order: "desc" } }, { id: { order: "asc" } }],
-    };
+    // STEP 2: Cursor
+    let currentIndex =
+      typeof search_after[0] === "number" ? search_after[0] : 0;
 
-    if (search_after?.length > 0) {
-      // @ts-ignore
-      searchQuery.search_after = search_after;
+    const validProducts: any[] = [];
+
+    // STEP 3: Fill the bucket
+    while (validProducts.length < limit && currentIndex < totalCandidates) {
+      // how many we still need
+      const needed = limit - validProducts.length;
+
+      // IMPORTANT: fetch only as many candidates as we actually need.
+      // If you want an optimization, you can multiply 'needed' by some factor (e.g. *1.5)
+      // BUT if you do that you must *buffer* any extra accepted products for next page.
+      const batchSize = Math.min(needed, totalCandidates - currentIndex);
+
+      const batchSlice = allCandidates.slice(
+        currentIndex,
+        currentIndex + batchSize,
+      );
+      if (batchSlice.length === 0) break;
+
+      const batchIds = batchSlice
+        .map((c) => c.id)
+        .filter((id) => /^\d+$/.test(id));
+
+      // Fetch details for the batch (we inspected every candidate in batchSlice)
+      const fetchedProductsRaw = await fetchProductDetailsBatch(
+        batchIds,
+        country,
+      );
+      const productsWithFilters: any = extractFilters(
+        fetchedProductsRaw,
+        language,
+        true,
+      );
+      const fetchedProducts =
+        normalizeCustomProducts(productsWithFilters).custom_products;
+
+      // Restore recommendation order
+      fetchedProducts.sort(
+        (a, b) =>
+          batchIds.indexOf(String(a.id)) - batchIds.indexOf(String(b.id)),
+      );
+
+      // Add up to 'needed' products
+      for (const product of fetchedProducts) {
+        if (validProducts.length >= limit) break;
+        validProducts.push(product);
+      }
+
+      // We inspected the entire slice we requested -> advance past it.
+      currentIndex += batchSlice.length;
     }
 
-    // // 4. Run query
-    const response = await client.search(searchQuery);
-    const hits = response.hits.hits;
-    // @ts-ignore
-    let total_size = response.hits?.total?.value;
-    // // 5. Extract products
-    const products = hits.map((hit) => ({
-      // @ts-ignore
-      ...hit._source,
-      // @ts-ignore
-      is_redeem: hit._source?.has_redeem_discount,
-    }));
-    const productsWithFilters = extractFilters(products, language, true);
-    const normalizedProducts = normalizeCustomProducts(productsWithFilters);
-    // // 6. Get new search_after value
-    const newSearchAfter = hits.length > 0 ? hits[hits.length - 1].sort : [];
-    let end = process.hrtime.bigint();
+    // STEP 4: Finalize & sort to match original ordering
+    const allCandidatesNum = allCandidates
+      .map((c) => String(c.id))
+      .filter((id) => /^\d+$/.test(id));
 
+    const sortedFetchedProducts = validProducts.slice().sort((a, b) => {
+      const indexA = allCandidatesNum.indexOf(String(a.product_id));
+      const indexB = allCandidatesNum.indexOf(String(b.product_id));
+      const posA = indexA === -1 ? Infinity : indexA;
+      const posB = indexB === -1 ? Infinity : indexB;
+      return posA - posB;
+    });
+
+    const end = process.hrtime.bigint();
     return {
-      products: normalizedProducts.custom_products?.map((s) => ({
+      products: sortedFetchedProducts.map((s) => ({
         ...s,
         is_redeem: s.has_redeem_discount,
       })),
-
       limit,
-      total_size,
-      offset: newSearchAfter,
+      total_size: totalCandidates,
+      offset: [currentIndex],
       time: Number(end - start) / 1_000_000,
     };
-    // return { products: [], search_after: [] };
   } catch (error) {
-    console.error(
-      "************************RECOMENDED************************",
-      error
-    );
-    return { products: [], limit };
+    console.error("Recommendation System Error:", error);
+    return { products: [], limit, offset: [] };
   }
 }
+
 /**
  * Build base conditions for the search query
  */
@@ -506,7 +578,7 @@ export async function GetRecomendationsForUser({
  */
 function processColorsAggregation(
   buckets: any[],
-  filtersOffset: number
+  filtersOffset: number,
 ): string[] {
   const colorsFilter = buckets.map((bucket) => bucket.key);
   return paginateFilters(colorsFilter, filtersOffset);
@@ -517,7 +589,7 @@ function processColorsAggregation(
  */
 function processSizesAggregation(
   buckets: any[],
-  filtersOffset: number
+  filtersOffset: number,
 ): string[] {
   const sizesFilter = buckets.map((bucket) => bucket.key);
   return paginateFilters(sizesFilter, filtersOffset);
@@ -529,7 +601,7 @@ function processSizesAggregation(
 function extractFilters(
   products: any[],
   languageCode: string,
-  isFromBrowser: boolean
+  isFromBrowser: boolean,
 ): ExtractFiltersResult {
   const customProducts: CustomProduct[] = [];
 
@@ -541,7 +613,7 @@ function extractFilters(
             product,
             customProduct,
             languageCode,
-            isFromBrowser
+            isFromBrowser,
           );
           customProducts.push(processed);
         }
@@ -679,7 +751,7 @@ function processImageItem(image: any): ProductImage {
  * Get sync color images with additional details and processing
  */
 function getSyncColorImagesProductWithDetails(
-  syncColorImages: any
+  syncColorImages: any,
 ): SyncColorImage[] {
   if (!syncColorImages) {
     return [];
@@ -784,13 +856,13 @@ function executePriceCatalogFilter(products: any[]): {
       product.flash_deal_discount
     ) {
       const basePrice = parseFloat(
-        product.unit_price || product.offered_price || "0"
+        product.unit_price || product.offered_price || "0",
       );
       if (basePrice > 0) {
         const flashDealPrice = calculateDiscountedPrice(
           basePrice,
           parseFloat(product.flash_deal_discount),
-          "percent"
+          "percent",
         );
         if (flashDealPrice > 0) {
           prices.push(flashDealPrice);
@@ -803,13 +875,13 @@ function executePriceCatalogFilter(products: any[]): {
       const redeemRate = parseFloat(product.redeem_discount_rate);
       if (!isNaN(redeemRate) && redeemRate > 0 && redeemRate < 100) {
         const basePrice = parseFloat(
-          product.unit_price || product.offered_price || "0"
+          product.unit_price || product.offered_price || "0",
         );
         if (basePrice > 0) {
           const redeemPrice = calculateDiscountedPrice(
             basePrice,
             redeemRate,
-            "percent"
+            "percent",
           );
           if (redeemPrice > 0) {
             prices.push(redeemPrice);
@@ -888,7 +960,7 @@ function parseJsonFieldAdvanced(jsonData: any, defaultValue: any = []): any {
 function getNestedProperty(
   obj: any,
   path: string,
-  defaultValue: any = null
+  defaultValue: any = null,
 ): any {
   if (!obj || typeof obj !== "object") {
     return defaultValue;
