@@ -1,7 +1,7 @@
 "use client";
 import Spinner from "components/global/Spinner";
 import React, { useEffect, useRef, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 import { fetchData } from "utils/fetchData";
 import { useAppStore } from "store";
@@ -19,7 +19,7 @@ function BuyersCommentMenu({
   const [loading, setLoading] = useState(false);
   const { BuyerCommentModalOption, setBuyerCommentModalOption } = useAppStore();
   const [translatedComment, setTranslatedComment] = useState<string | null>(
-    null
+    null,
   );
   const [originalComment, setOriginalComment] = useState<string | null>(null);
   const [translateLoading, setTranslateLoading] = useState(false);
@@ -38,7 +38,7 @@ function BuyersCommentMenu({
       setTranslatedComment(null);
       setMenuOpen(false);
       document.querySelector<HTMLDivElement>(
-        `#comment-${comment.id}-text`
+        `#comment-${comment.id}-text`,
       ).innerText = comment?.comment ?? "";
       return;
     }
@@ -72,12 +72,15 @@ function BuyersCommentMenu({
         }
 
         document.querySelector<HTMLDivElement>(
-          `#comment-${comment.id}-text`
+          `#comment-${comment.id}-text`,
         ).innerText = response.translated_text;
       }
       setMenuOpen(false);
     } catch (error) {
-      console.error("Error translating comment:", error);
+      LogError({
+        error: error,
+        scenario: "Error In handleTranslateComment in BuyersCommentMenu",
+      });
     } finally {
       setTranslateLoading(false);
     }

@@ -10,7 +10,7 @@ import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { fetchData } from "utils/fetchData";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 import { getFirstLetterLang } from "utils/tinyUtils";
 
@@ -54,7 +54,7 @@ export const AskInput = ({
       let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
       if (userData.need_auth) {
         showErrorNotification(
-          translateFunction("Please Verify Your Phone Number")
+          translateFunction("Please Verify Your Phone Number"),
         );
         return null;
       }
@@ -99,7 +99,10 @@ export const AskInput = ({
       setComment("");
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error In addComment in FaqAskInput",
+      });
       setLoading(false);
     }
   };
@@ -145,7 +148,7 @@ export const AskInput = ({
       <input
         placeholder={translateFunction(
           "Ask Seller Your Question About This Product …",
-          language
+          language,
         )}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !loading) {

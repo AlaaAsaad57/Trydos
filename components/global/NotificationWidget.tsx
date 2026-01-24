@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import Illustration from "public/images/notifications.png";
 import Image from "next/image";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import home from "services/home";
@@ -42,9 +42,6 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
 
     if (typeof Notification === "undefined") return;
     if (Notification.permission === "granted") return;
-
-    try {
-    } catch {}
   }, [isClient]);
 
   const handleClose = useCallback(() => {
@@ -75,8 +72,8 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
         showErrorNotification(
           translateFunction(
             "Notification is Blocked in This Browser Please Enable Notification premission and refresh",
-            language
-          )
+            language,
+          ),
         );
         onDismiss();
         handleClose();
@@ -94,7 +91,10 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
             : await permissionResult;
       } catch (error) {
         // Edge browser might throw an error if permission was already requested
-        console.error("Error requesting notification permission:", error);
+        LogError({
+          error: error,
+          scenario: "handleAllowClick in block 1 Notification Modal",
+        });
         result = Notification.permission;
       }
 
@@ -104,8 +104,8 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
         showErrorNotification(
           translateFunction(
             "Notification is Blocked in This Browser Please Enable Notification premission and refresh",
-            language
-          )
+            language,
+          ),
         );
         onDismiss();
       } else {
@@ -113,13 +113,16 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
         onDismiss();
       }
     } catch (error) {
-      console.error("Error in handleAllowClick:", error);
+      LogError({
+        error: error,
+        scenario: "handleAllowClick in block 2 Notification Modal",
+      });
 
       showErrorNotification(
         translateFunction(
           "Notification is Blocked in This Browser Please Enable Notification premission and refresh",
-          language
-        )
+          language,
+        ),
       );
       onDismiss();
     } finally {
@@ -136,7 +139,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.key === "Escape") handleDismissClick();
     },
-    [handleDismissClick]
+    [handleDismissClick],
   );
 
   if (!isClient) return null;
@@ -145,8 +148,8 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
     position === "bottom-right"
       ? "right-4 sm:right-6"
       : position === "bottom-left"
-      ? "left-4 sm:left-6"
-      : "left-1/2 -translate-x-1/2";
+        ? "left-4 sm:left-6"
+        : "left-1/2 -translate-x-1/2";
 
   return (
     <div
@@ -187,7 +190,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
             <p className="mt-1 text-sm text-zinc-700">
               {translateFunction(
                 "Enable notifications for a more effortless shopping experience:",
-                language
+                language,
               )}
             </p>
             <ul className="mt-2 text-sm text-zinc-700 list-disc pl-5 space-y-1">
@@ -199,7 +202,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
               <li>
                 {translateFunction(
                   "Back-in-stock and quantity alerts",
-                  language
+                  language,
                 )}
               </li>
             </ul>

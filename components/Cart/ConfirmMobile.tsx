@@ -13,6 +13,7 @@ import {
 } from "utils/cookies/cookie-manager";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import { useRouter } from "next/navigation";
+import { LogError } from "utils/functions";
 
 function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
@@ -35,13 +36,17 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
       await AuthService.SendOtp(
         mobilePhone,
         is_via_whatsapp,
-        errorCallbackFunc
+        errorCallbackFunc,
       );
       successCallback();
     } catch (error) {
-      console.log(error);
+      LogError({
+        error,
+        scenario: "Send Otp widget",
+        mobilePhone,
+        is_via_whatsapp,
+      });
       errorCallback();
-      console.error("SendOtp failed:", error);
     }
   };
   const [rendere, setRender] = useState(true);
@@ -58,12 +63,15 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         code,
         verificationID,
         Username,
-        EditPhoneFunc
+        EditPhoneFunc,
       );
       await successCallback(exists, name);
     } catch (error) {
+      LogError({
+        error,
+        scenario: "VerifyOtp  widget",
+      });
       errorCallback(error);
-      console.error("VerifyOtp failed:", error);
     }
   };
   const FinaliseLogin = async () => {

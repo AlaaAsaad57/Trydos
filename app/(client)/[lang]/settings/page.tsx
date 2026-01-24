@@ -12,22 +12,14 @@ import { allCountries } from "country-telephone-data";
 
 export async function generateMetadata({ params }) {
   let Params = await params;
-  try {
-    const metadata = {
-      title: "Settings - TryDos",
-      description: "Manage your TryDos account settings and preferences.",
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${Params.lang}/setting`,
-      },
-    };
-    return metadata;
-  } catch (error) {
-    console.log(error);
-    return {
-      title: "Settings - TryDos",
-      description: "Manage your TryDos account settings and preferences.",
-    };
-  }
+  const metadata = {
+    title: "Settings - TryDos",
+    description: "Manage your TryDos account settings and preferences.",
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${Params.lang}/setting`,
+    },
+  };
+  return metadata;
 }
 
 async function page({ params }) {

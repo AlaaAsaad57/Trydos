@@ -1,5 +1,5 @@
 import { useAppStore } from "store";
-import { translateFunction } from "./functions";
+import { LogError, translateFunction } from "./functions";
 import { allCountries } from "country-telephone-data";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
@@ -30,6 +30,10 @@ export const getCurrency = async ({ callback }) => {
     callback({ currency: response.data?.currency, res: {} });
     return response.data?.currency;
   } catch (err) {
+    LogError({
+      scenario: "getCurrency in ProductPageData",
+      error: err instanceof Error ? err.message : String(err),
+    });
     callback({ currency: null, res: {} });
     return null;
   }
@@ -507,7 +511,6 @@ export async function fetchCountries(
       ],
     };
   } catch (error) {
-    console.error("Error fetching countries:", error);
     return {
       countries: [
         {
@@ -607,7 +610,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
     stream?.getTracks().forEach((t) => {
       try {
         t.stop();
-      } catch (_) {}
+      } catch (e) {}
     });
   };
 

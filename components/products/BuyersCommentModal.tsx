@@ -3,7 +3,7 @@ import BottomSheet from "components/global/BottomSheet";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 import { GetProductBuyersComment } from "serverRequests/product";
 import auth from "services/auth";
@@ -46,7 +46,10 @@ function BuyersCommentModal({
       setCommentsData((prev) => [...(prev as any), ...data.comments]);
       OffsetRef.current = data.offset;
     } catch (err) {
-      console.error("Error loading comments:", err);
+      LogError({
+        error: err,
+        scenario: "Error In loadMore in BuyersCommentModal",
+      });
     } finally {
       setLoading(false);
     }
@@ -98,7 +101,7 @@ function BuyersCommentModal({
               >
                 {translateFunction(
                   "All Comments Are Genuine From Customers Who Purchased And Actually Received The Product Through",
-                  language
+                  language,
                 )}
                 <span className="bold px-[4px]">trydos</span>
               </p>
@@ -179,7 +182,7 @@ function BuyersCommentModal({
               setActionLoading(true);
               let comment_id = await deleteComment(id);
               setCommentsData(
-                commentsData.filter((node) => node.key !== comment_id)
+                commentsData.filter((node) => node.key !== comment_id),
               );
               setActionLoading(false);
             }}
@@ -188,8 +191,8 @@ function BuyersCommentModal({
               let { commentElement, id } = await editComment(comment);
               setCommentsData(
                 commentsData?.map((node) =>
-                  node.key === id ? commentElement : node
-                )
+                  node.key === id ? commentElement : node,
+                ),
               );
               setActionLoading(false);
             }}

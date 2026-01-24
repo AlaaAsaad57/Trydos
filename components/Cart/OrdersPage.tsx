@@ -1,6 +1,11 @@
 import { useState } from "react";
 
-import { getCart, RoundPrice, translateFunction } from "utils/functions";
+import {
+  getCart,
+  LogError,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import { useParams } from "next/navigation";
 import ShippingAddressContainer from "./ShippingAddressContainer";
 import { SlideWidget } from "components/global/SlideNavigation";
@@ -136,10 +141,10 @@ function OrdersPage({ setStep, close }) {
           orderData?.payment[0]?.id === 0
             ? "cash_on_delivery"
             : orderData?.payment[0]?.id === 1
-            ? "trydos_wallet"
-            : orderData?.payment[0]?.id === 2
-            ? "card"
-            : "crypto";
+              ? "trydos_wallet"
+              : orderData?.payment[0]?.id === 2
+                ? "card"
+                : "crypto";
         setLoading(true);
         await order.PlaceOrder({
           payment_method,
@@ -182,6 +187,10 @@ function OrdersPage({ setStep, close }) {
         }
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "create  order function - cart widget",
+      });
       getCart({
         callback: ([data, res]) => {
           initCart(data ?? { cart: [] });
@@ -815,7 +824,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     if (!isBalanceEnough()) {
       shake("payment-valid-border");
       showErrorNotification(
-        translateFunction("Your Balance Not meet purchase value")
+        translateFunction("Your Balance Not meet purchase value"),
       );
     }
     if (
@@ -852,7 +861,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
       setPrev();
       setLoading(false);
       showErrorNotification(
-        translateFunction("Please Verify Your Phone Number")
+        translateFunction("Please Verify Your Phone Number"),
       );
 
       return null;
@@ -865,13 +874,15 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
         (s) =>
           s?.check_availability === false ||
           s.is_country_restricted === true ||
-          s.is_active === false
+          s.is_active === false,
       ).length === 0
     ) {
       setNext();
     } else {
       showErrorNotification(
-        translateFunction("Please Review Your Cart Some Products Not Available")
+        translateFunction(
+          "Please Review Your Cart Some Products Not Available",
+        ),
       );
 
       setPrev();

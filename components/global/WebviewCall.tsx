@@ -137,9 +137,8 @@ function WebviewCall() {
         }
       }
     } catch (error) {
-      console.error(error);
       let errorObj = {
-        type: "front-end-calls",
+        type: "front-end-calls-webview",
         message: error.message,
         url: window.location.href,
         user_id: data.sender_user_id,
@@ -179,7 +178,7 @@ function WebviewCall() {
     } catch (error) {
       console.error(error);
       let errorObj = {
-        type: "front-end-calls",
+        type: "front-end-calls-webview",
         message: error.message,
         url: window.location.href,
         user_id: data.sender_user_id,

@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import Image from "next/image";
 import { showErrorNotification } from "store/notifications/reducer";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 
 import { ImageCropWidget } from "components/global/ImageCropWidget";
@@ -58,7 +58,7 @@ const UploadImageComponent = ({
       }
     } catch (error) {
       showErrorNotification(
-        translateFunction("Failed To Upload Image..Try Again")
+        translateFunction("Failed To Upload Image..Try Again"),
       );
     }
   };
@@ -101,9 +101,13 @@ const UploadImageComponent = ({
       setImageToCrop(null);
       setLoading(false);
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In handleFileUpload in UploadImageComponent",
+      });
       setLoading(false);
       showErrorNotification(
-        translateFunction("Failed To Upload Image..Try Again")
+        translateFunction("Failed To Upload Image..Try Again"),
       );
     }
   };
@@ -125,7 +129,7 @@ const UploadImageComponent = ({
       setCapturedImage(null);
     } catch (error) {
       showErrorNotification(
-        translateFunction("Failed To Upload Image..Try Again")
+        translateFunction("Failed To Upload Image..Try Again"),
       );
     }
   };
@@ -168,8 +172,12 @@ const UploadImageComponent = ({
       await removeImageAction(i);
       setImages(images.filter((im) => im !== i));
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In removeImage in UploadImageComponent",
+      });
       showErrorNotification(
-        translateFunction("Failed To Remove Image..Try Again")
+        translateFunction("Failed To Remove Image..Try Again"),
       );
     }
   };
@@ -342,7 +350,7 @@ const UploadImageComponent = ({
         <>
           <CustomPopup
             modalTitle={translateFunction(
-              "chosse an image or video from camera or files"
+              "chosse an image or video from camera or files",
             )}
             close={() => setShowMenu(false)}
             options={[
@@ -444,7 +452,7 @@ const UploadImageComponent = ({
         {!isForRating && images.length === 0 && (
           <div className="flex-row w-full text-center items-center justify-center mt-[12px] text-[#402CDD] text-[10px] regular">
             {translateFunction(
-              "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue."
+              "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.",
             )}
           </div>
         )}

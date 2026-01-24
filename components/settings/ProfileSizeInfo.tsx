@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import auth from "services/auth";
 
 import { pollinateInput } from "utils/tinyUtils";
@@ -30,6 +30,10 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
       setLoading(false);
       window.location.href = `/${local}/settings/profile`;
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In updateUserProfile in ProfileSizeInfo",
+      });
       setLoading(false);
 
       console.log(error);

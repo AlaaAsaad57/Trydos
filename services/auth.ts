@@ -15,10 +15,10 @@ import {
   getCookie,
   setCookie,
   UserData,
-  storeHashedUserId,
 } from "utils/cookies/cookie-manager";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogServerError } from "utils/serverErrorReporter";
 
 class AuthService {
   async SendOtp(
@@ -51,6 +51,10 @@ class AuthService {
         throw new Error(msg);
       }
     } catch (e) {
+      LogServerError({
+        error: e,
+        scenario: "Error In SendOtp in services/auth",
+      });
       errorCallback();
       setWrongNumber(msg);
 
@@ -193,6 +197,10 @@ class AuthService {
       } else {
         loginFailed();
       }
+      LogServerError({
+        error: e,
+        scenario: "Error In VerifyOtp in services/auth",
+      });
       throw e;
     }
   }
@@ -219,6 +227,10 @@ class AuthService {
       return response.data.id_token;
     } catch (error) {
       setWrongNumber(error.message);
+      LogServerError({
+        error: error,
+        scenario: "Error In VerifyOtpForUpdatePhone in services/auth",
+      });
       throw error;
     }
   }
@@ -282,7 +294,10 @@ class AuthService {
       }
       StoryService.getStories();
     } catch (e) {
-      console.error(e);
+      LogServerError({
+        error: e,
+        scenario: "Error In UpdateName in services/auth",
+      });
     }
   }
 
@@ -339,6 +354,8 @@ class AuthService {
     }
   }
   async ExpiredUser(noReq = false) {
+    let { LoggingOut } = useAppStore.getState();
+    if (LoggingOut) return;
     let userChat: any = getCookie(COOKIE_NAMES.USER_CHAT);
     let userStories: any = getCookie(COOKIE_NAMES.USER_STORIES);
     if (!noReq) await home.registerForExpire(this.UserID());
@@ -445,7 +462,10 @@ class AuthService {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       return res;
     } catch (error) {
-      console.log(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In UpdateProfile in services/auth",
+      });
       if (market_done) {
         let res = await fetchData({
           url: "/customer/update-profile",
@@ -539,7 +559,10 @@ class AuthService {
       }
       return response.data;
     } catch (err) {
-      console.error(err);
+      LogServerError({
+        error: err,
+        scenario: "Error In UpdateProfileImage in services/auth",
+      });
       return null;
     }
   }
@@ -569,7 +592,12 @@ class AuthService {
             { name: username_market },
             { name: username_market },
           );
-        } catch (error) {}
+        } catch (error) {
+          LogServerError({
+            error: error,
+            scenario: "Error In CheckUserName in services/auth",
+          });
+        }
       }
   }
 }

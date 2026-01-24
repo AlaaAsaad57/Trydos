@@ -1,7 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
@@ -10,7 +10,7 @@ import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 const MapElement = dynamic(
   () => import("./MapElement").then((mod) => mod.MapElement),
-  { ssr: false }
+  { ssr: false },
 );
 
 const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
@@ -37,6 +37,11 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
       setCordinates(res.country.boundary.coordinates);
       setLoading(false);
     } catch (e) {
+      LogError({
+        error: e,
+        scenario: "getCountryBoundries  in Map widget",
+        country,
+      });
       setCordinates(null);
       setLoading(false);
     }
@@ -122,7 +127,7 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
                     className="medium whitespace-nowrap  text-[12px] mt-[10px] flex"
                   >
                     {translateFunction(
-                      "Location Is Accurate, Making It Easy To Receive Shipments"
+                      "Location Is Accurate, Making It Easy To Receive Shipments",
                     )}
                   </div>
                 )}

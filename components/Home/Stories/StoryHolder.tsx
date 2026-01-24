@@ -13,7 +13,7 @@ import {
   showSuccessNotification,
   showErrorNotification,
 } from "store/notifications/reducer";
-import { getUserStories, translateFunction } from "utils/functions";
+import { getUserStories, LogError, translateFunction } from "utils/functions";
 import { fetchStoriesForUser } from "serverRequests";
 import {
   COOKIE_NAMES,
@@ -28,7 +28,7 @@ function StoryHolder({ story, active, isPaused }) {
   const { language, country, setStoryData } = useAppStore();
   const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
   const [currentStoryId, setCurrentStoryId] = useState(
-    userStories?.id !== story.id ? 0 : story?.stories?.length - 1
+    userStories?.id !== story.id ? 0 : story?.stories?.length - 1,
   );
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -49,7 +49,7 @@ function StoryHolder({ story, active, isPaused }) {
         language,
         country,
         1,
-        userToken
+        userToken,
       );
       setStoryData(storiesResult.data);
       setShowDeleteModal(false);
@@ -58,13 +58,17 @@ function StoryHolder({ story, active, isPaused }) {
       setNextStory(story.id);
       showSuccessNotification(
         translateFunction(`${response?.message}`) ||
-          translateFunction("Story deleted successfully.")
+          translateFunction("Story deleted successfully."),
       );
     } catch (err: any) {
+      LogError({
+        error: err,
+        scenario: "Error in Delete User Story",
+      });
       setShowDeleteModal(false);
       setLoading(false);
       showErrorNotification(
-        err?.message || translateFunction("Failed to delete story.")
+        err?.message || translateFunction("Failed to delete story."),
       );
     }
   };
@@ -75,7 +79,7 @@ function StoryHolder({ story, active, isPaused }) {
       // const storyId = story.stories[currentStoryId]?.id;
       // await StoryServiceClass.reportStory(storyId);
       showSuccessNotification(
-        translateFunction("Story reported successfully.")
+        translateFunction("Story reported successfully."),
       );
       setShowReportModal(false);
     } catch (err) {

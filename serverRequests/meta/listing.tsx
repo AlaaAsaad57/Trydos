@@ -6,6 +6,7 @@ import {
 } from "utils/server";
 import { trydosTranslations } from "./constants-meta";
 import { General_Site_Data } from "./StructuredData/Constants";
+import { LogServerError } from "utils/serverErrorReporter";
 
 const getMetadataLabels = async ({ parsedFilters, language }) => {
   const shouldQueries = [];
@@ -180,7 +181,11 @@ const getMetadataLabels = async ({ parsedFilters, language }) => {
       banner: bData?.banners?.[0]?.file_path || null,
     };
   } catch (error) {
-    console.error("Elastic Metadata Error:", error);
+    LogServerError({
+      language,
+      error: error,
+      scenario: "Error In getMetadataLabels in serverRequest/listing",
+    });
     return { labels: {}, banner: null };
   }
 };

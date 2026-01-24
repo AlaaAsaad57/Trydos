@@ -26,16 +26,15 @@ const mergeExtras = (...extras: ReportExtras[]): Record<string, unknown> => {
   return out;
 };
 
-export async function ReportError(error: unknown, ...extras: ReportExtras[]) {
+export async function ReportError(error: any, ...extras: ReportExtras[]) {
   // Auto context (best-effort, safe in SSR)
   const auto: Record<string, unknown> = {};
   if (typeof window !== "undefined") {
     auto.url = window.location?.href;
     auto.userAgent = window.navigator?.userAgent;
-    auto.language = window.navigator?.language;
   }
 
-  const merged = mergeExtras(auto, ...extras);
+  const merged = mergeExtras(auto, ...(error ?? extras ?? {}));
 
   // Reserved optional fields
   const tags = (merged.tags as Record<string, string>) || undefined;

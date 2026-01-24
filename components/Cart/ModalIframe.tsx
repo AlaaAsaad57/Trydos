@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
+import { LogError } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 
 const LoadingColorSvg = ({ w = "14", h = "14", loading = false }) => {
@@ -77,6 +78,11 @@ const ModalIframe = ({
               setOrderData({ data: response.data, success: true });
             }
           } catch (err) {
+            LogError({
+              error: err,
+              scenario: "handleMessage for crypto modal widget",
+              cart_group_id: cart?.[0]?.cart_group_id,
+            });
             console.error(err);
           }
         }
@@ -112,6 +118,11 @@ const ModalIframe = ({
                     setOrderData({ data: response.data, success: true });
                   }
                 } catch (err) {
+                  LogError({
+                    error: err,
+                    scenario: "close function for crypto modal widget",
+                    cart_group_id: cart?.[0]?.cart_group_id,
+                  });
                   console.error(err);
                 }
               }

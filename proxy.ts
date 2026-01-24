@@ -63,7 +63,7 @@ function getAllSupportedCountries(): string[] {
 // Validation utilities
 function isValidCountry(
   country: string | undefined,
-  supportedCountries: string[]
+  supportedCountries: string[],
 ): boolean {
   if (!country) return false;
   const normalizedCountry = country.toLowerCase();
@@ -78,7 +78,7 @@ function isValidLanguage(language: string | undefined): boolean {
 function validateLocalePair(
   country: string | undefined,
   language: string | undefined,
-  supportedCountries: string[]
+  supportedCountries: string[],
 ): ValidationResult {
   const validCountry = isValidCountry(country, supportedCountries);
   const validLanguage = isValidLanguage(language);
@@ -93,12 +93,12 @@ function validateLocalePair(
 function validateCookieValues(
   countryFromCookies: string | undefined,
   langFromCookies: string | undefined,
-  supportedCountries: string[]
+  supportedCountries: string[],
 ): ValidationResult {
   return validateLocalePair(
     countryFromCookies,
     langFromCookies,
-    supportedCountries
+    supportedCountries,
   );
 }
 
@@ -155,7 +155,7 @@ function buildSupportedLocales(supportedCountries: string[]): Set<string> {
 function setLocaleCookies(
   response: NextResponse,
   country: string,
-  language: string
+  language: string,
 ): void {
   response.cookies.set("country", country.toLowerCase(), COOKIE_OPTIONS);
   response.cookies.set("lang", language.toLowerCase(), COOKIE_OPTIONS);
@@ -173,14 +173,14 @@ function createRedirectResponse(url: URL, redirectCount: number): NextResponse {
   const redirectResponse = NextResponse.redirect(url);
   redirectResponse.headers.set(
     "x-redirect-count",
-    (redirectCount + 1).toString()
+    (redirectCount + 1).toString(),
   );
   return redirectResponse;
 }
 
 function getCleanPathname(
   pathname: string,
-  urlLocale: LocaleInfo | null
+  urlLocale: LocaleInfo | null,
 ): string {
   if (urlLocale) {
     return pathname.slice(urlLocale.locale.length + 1);
@@ -200,7 +200,7 @@ export async function proxy(request: NextRequest) {
     const allowed = await checkRateLimit(ip, 50, 60);
     if (!allowed) {
       await sendSecurityAlert(
-        `🚨 IP ${ip} exceeded rate limit. Path: ${request.nextUrl.pathname}`
+        `🚨 IP ${ip} exceeded rate limit. Path: ${request.nextUrl.pathname}`,
       );
       return new NextResponse("Too many requests", { status: 429 });
     }
@@ -280,7 +280,7 @@ export async function proxy(request: NextRequest) {
   const cookieValidation = validateCookieValues(
     countryFromCookies,
     langFromCookies,
-    allSupportedCountries
+    allSupportedCountries,
   );
 
   // Handle bypass parameter - skip all checks and clean URL
@@ -303,7 +303,7 @@ export async function proxy(request: NextRequest) {
 
   // Redirect protection
   const redirectCount = parseInt(
-    request.headers.get("x-redirect-count") || "0"
+    request.headers.get("x-redirect-count") || "0",
   );
   if (redirectCount > 2) {
     // Even if we hit redirect limit, ensure we have a proper locale
@@ -312,8 +312,8 @@ export async function proxy(request: NextRequest) {
     const cleanPathname = urlLocale
       ? pathname.replace(urlLocale.locale, defaultLocale)
       : pathname.startsWith("/")
-      ? pathname
-      : `/${pathname}`;
+        ? pathname
+        : `/${pathname}`;
 
     url.pathname = `/${defaultLocale}${cleanPathname}`;
     url.searchParams.delete("cart");
@@ -327,7 +327,7 @@ export async function proxy(request: NextRequest) {
     const urlLocaleValidation = validateLocalePair(
       urlLocale.country,
       urlLocale.language,
-      allSupportedCountries
+      allSupportedCountries,
     );
 
     // If URL locale is not valid, treat as no valid URL locale
@@ -338,7 +338,17 @@ export async function proxy(request: NextRequest) {
       if (url.searchParams.get("_t")) {
         url.searchParams.delete("_t");
       }
+      if (urlLocale.country === "gb" && cookieValidation.isValid) {
+        const cookieCountry = cookieValidation.country!;
+        const cookieLanguage = cookieValidation.language!; // If cookie is a supported country other than GB, redirect to it
 
+        if (cookieCountry !== "gb") {
+          const targetLocale = buildLocale(cookieCountry, cookieLanguage);
+          const cleanPath = getCleanPathname(pathname, urlLocale);
+          url.pathname = `/${targetLocale}${cleanPath}`;
+          return createRedirectResponse(url, redirectCount);
+        }
+      }
       // CASE 1A: Handle no-country parameter
       if (url.searchParams.get("no-country")) {
         setLocaleCookies(response, urlLocale.country, urlLocale.language);
@@ -368,7 +378,7 @@ export async function proxy(request: NextRequest) {
           url.searchParams.delete("cart");
           url.searchParams.set(
             "changed-country",
-            `${urlLocale.country},${cookieCountry}`
+            `${urlLocale.country},${cookieCountry}`,
           );
           return createRedirectResponse(url, redirectCount);
         }
@@ -398,7 +408,7 @@ export async function proxy(request: NextRequest) {
   if (cookieValidation.isValid) {
     const locale = buildLocale(
       cookieValidation.country!,
-      cookieValidation.language!
+      cookieValidation.language!,
     );
     const cleanPathname = getCleanPathname(pathname, urlLocale);
 
@@ -414,7 +424,7 @@ export async function proxy(request: NextRequest) {
   const geoValidation = validateLocalePair(
     geoCountry,
     preferredLanguage,
-    allSupportedCountries
+    allSupportedCountries,
   );
 
   if (geoValidation.isValid) {
@@ -428,8 +438,8 @@ export async function proxy(request: NextRequest) {
   const cleanPathname = urlLocale
     ? pathname.replace(urlLocale.locale, defaultLocale)
     : pathname.startsWith("/")
-    ? pathname
-    : `/${pathname}`;
+      ? pathname
+      : `/${pathname}`;
 
   url.pathname = `/${defaultLocale}${cleanPathname}`;
   url.searchParams.delete("cart");

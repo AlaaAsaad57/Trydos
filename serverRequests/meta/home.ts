@@ -4,6 +4,7 @@ import { trydosTranslations } from "./constants-meta";
 import { getRobotsConfig } from "utils/server";
 import { mapLocaleToBCP47 } from "./StructuredData/utils";
 import { General_Site_Data } from "./StructuredData/Constants";
+import { LogServerError } from "utils/serverErrorReporter";
 let client = elasticSearchComment;
 
 export async function GetHomeMetaData({ local, category = null }) {
@@ -51,8 +52,8 @@ export async function GetHomeMetaData({ local, category = null }) {
     keywords: ["Trydos", "e-commerce", "boutiques", "fashion", country, lang],
     icons: {
       icon: "/favicon.ico",
-      shortcut: "/favicon-16x16.png",
-      apple: "/apple-touch-icon.png",
+      shortcut: "/favicon.ico",
+      apple: "/favicon.ico",
     },
     alternates: {
       canonical: fullUrl,
@@ -168,7 +169,12 @@ async function GetCatgoriesMetaData({ country, language, slug }) {
 
     return categoriesData;
   } catch (error) {
-    console.error("Elasticsearch Query Error:", error);
+    LogServerError({
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetCatgoriesMetaData in serverRequest/home",
+    });
     throw error;
   }
 }

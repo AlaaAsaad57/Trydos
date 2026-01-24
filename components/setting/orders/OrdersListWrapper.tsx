@@ -4,7 +4,7 @@ import OrderSkeletons from "components/settings/OrderSkeletons";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { fetchOrders } from "services/orders";
 import { useAppStore } from "store";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import {
   ModifiedOrderInterface,
   OrderInterface,
@@ -36,7 +36,7 @@ function OrdersListWrapper({ isRtl, language, order_group_statuses, local }) {
 
       if (node) observerRef.current.observe(node);
     },
-    [loading, hasMore]
+    [loading, hasMore],
   );
 
   // Main Fetch Logic
@@ -60,7 +60,7 @@ function OrdersListWrapper({ isRtl, language, order_group_statuses, local }) {
           // Prevent duplicates by group ID during merge
           const existingIds = new Set(prev.map((o) => o.order_group_id));
           const filteredNew = mergedBatch.filter(
-            (o) => !existingIds.has(o.order_group_id)
+            (o) => !existingIds.has(o.order_group_id),
           );
           return [...prev, ...filteredNew];
         });
@@ -68,13 +68,16 @@ function OrdersListWrapper({ isRtl, language, order_group_statuses, local }) {
         // hasMore is true if we haven't reached the total count yet
         // We use response.data.orders.length to check if the current page returned items
         setHasMore(
-          rawOrders.length > 0 && currentPage * PAGE_LIMIT < totalAvailable
+          rawOrders.length > 0 && currentPage * PAGE_LIMIT < totalAvailable,
         );
       } else {
         setHasMore(false);
       }
     } catch (error) {
-      console.error("Error loading orders:", error);
+      LogError({
+        error: error,
+        scenario: "Error In handleFetchOrders in OrderListWrapper",
+      });
       setHasMore(false);
     } finally {
       setLoading(false);
@@ -99,7 +102,7 @@ function OrdersListWrapper({ isRtl, language, order_group_statuses, local }) {
 
   // Helper: Process and Merge Orders
   const processOrders = (
-    rawOrders: OrderInterface[]
+    rawOrders: OrderInterface[],
   ): ModifiedOrderInterface[] => {
     const grouped = rawOrders.reduce((acc: any, curr: any) => {
       const groupId = curr.order_group_id;
@@ -118,11 +121,11 @@ function OrdersListWrapper({ isRtl, language, order_group_statuses, local }) {
           order_status: base.order_status?.value,
           order_id: base.id,
           original_order_id: detail.order_id,
-        }))
+        })),
       );
       base.order_amount = group.reduce(
         (sum, o) => sum + (o.order_amount || 0),
-        0
+        0,
       );
       return base;
     });

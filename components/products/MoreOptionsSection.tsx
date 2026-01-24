@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import home from "services/home";
 import {
   addToCompare,
+  LogError,
   removeFromCompare,
   translateFunction,
 } from "utils/functions";
@@ -52,7 +53,7 @@ function MoreOptionsSection({ product }) {
   const [loading, setLoading] = useState(false);
   const [addedToCompare, setAddedToCompare] = useState(
     getCookie<string>("f_p") === product?.slug ||
-      getCookie<string>("s_p") === product?.slug
+      getCookie<string>("s_p") === product?.slug,
   );
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
@@ -80,11 +81,15 @@ function MoreOptionsSection({ product }) {
         setLoading(false);
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In enableNotificationTopic in MoreOptionsSection",
+      });
       showErrorNotification(
         error?.message ??
           translateFunction(
-            "Notification Is Not Enabled! please Allow Notification Access"
-          )
+            "Notification Is Not Enabled! please Allow Notification Access",
+          ),
       );
     }
   };
@@ -108,7 +113,7 @@ function MoreOptionsSection({ product }) {
       if (product?.id) {
         try {
           const inWishlist = await wishlistService.isInWishlist(
-            String(product?.id)
+            String(product?.id),
           );
           setIsInWishlist(inWishlist);
         } catch (error) {
@@ -252,7 +257,7 @@ function MoreOptionsSection({ product }) {
                   onClick={async () => {
                     enableNotificationTopic(
                       `${type.topic}_${product?.id}`,
-                      type
+                      type,
                     );
                   }}
                   data-cy={`notify-type`}
@@ -281,7 +286,7 @@ function MoreOptionsSection({ product }) {
                 await wishlistService.removeFromWishlist(productId);
                 setIsInWishlist(false);
                 showSuccessNotification(
-                  translate("Removed from checklist", language)
+                  translate("Removed from checklist", language),
                 );
               } else {
                 await wishlistService.addToWishlist({
@@ -299,7 +304,7 @@ function MoreOptionsSection({ product }) {
                 });
                 setIsInWishlist(true);
                 showSuccessNotification(
-                  translate("Added to checklist", language)
+                  translate("Added to checklist", language),
                 );
               }
               GAevent({
@@ -316,9 +321,8 @@ function MoreOptionsSection({ product }) {
                 },
               });
             } catch (error) {
-              console.error("Error updating wishlist:", error);
               showErrorNotification(
-                translate("Failed to update checklist", language)
+                translate("Failed to update checklist", language),
               );
             } finally {
               setWishlistLoading(false);
@@ -474,7 +478,7 @@ function MoreOptionsSection({ product }) {
               removeFromCompare(product?.slug);
               setAddedToCompare(false);
               showSuccessNotification(
-                translate("Removed From Compare", language)
+                translate("Removed From Compare", language),
               );
             } else {
               setAddedToCompare(true);
@@ -482,9 +486,9 @@ function MoreOptionsSection({ product }) {
               showSuccessNotification(
                 translate(
                   "Added To Compare! Click To Go To Compare Page",
-                  language
+                  language,
                 ),
-                5000
+                5000,
               );
             }
           }}

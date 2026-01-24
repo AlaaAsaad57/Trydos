@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GetRecomendationsForUser } from "services/elastic/elasticSearch";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(req: NextRequest) {
   const headers = {
@@ -74,10 +75,18 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       { data: result, appliedFilters: filters },
-      { headers }
+      { headers },
     );
   } catch (error: any) {
     let errorDesc = JSON.stringify(filters);
+    LogServerError({
+      error,
+      type: "get recomended products api route",
+      source: "get recomended products",
+      filters: filters,
+      url: req.url,
+      method: "get",
+    });
     return NextResponse.json(
       {
         error: `${
@@ -85,7 +94,7 @@ export async function GET(req: NextRequest) {
         }----${errorDesc}`,
         appliedFilters: filters,
       },
-      { status: 500, headers }
+      { status: 500, headers },
     );
   }
 }

@@ -2,6 +2,7 @@ import Spinner from "components/global/Spinner";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import chat from "services/chat";
 import { useAppStore } from "store";
+import { LogError } from "utils/functions";
 
 function GetMoreChats({ hasMore, setHasMore }) {
   const loaderRef = useRef(null);
@@ -44,7 +45,7 @@ function GetMoreChats({ hasMore, setHasMore }) {
 
       // 2. Check for duplicates (assuming ID comparison)
       const isDuplicate = data.some(
-        (existingChat) => existingChat.id === chat_arrays[0].id
+        (existingChat) => existingChat.id === chat_arrays[0].id,
       );
 
       if (isDuplicate) {
@@ -57,7 +58,10 @@ function GetMoreChats({ hasMore, setHasMore }) {
       // 3. If data is valid, you'd update your store here
       // updateStore(chat_arrays);
     } catch (error) {
-      console.error("Fetch error:", error);
+      LogError({
+        error: error,
+        scenario: "get more chats (pagination) - chat widget",
+      });
     } finally {
       isFetching.current = false; // Unlock
       setLoading(false);
@@ -71,7 +75,7 @@ function GetMoreChats({ hasMore, setHasMore }) {
           GetNextChats();
         }
       },
-      { threshold: 0.1 } // Lower threshold is often more reliable for loaders
+      { threshold: 0.1 }, // Lower threshold is often more reliable for loaders
     );
 
     if (loaderRef.current) observer.observe(loaderRef.current);

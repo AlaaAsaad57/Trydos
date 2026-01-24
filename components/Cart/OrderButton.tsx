@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { getCart, RoundPrice, translateFunction } from "utils/functions";
+import {
+  getCart,
+  LogError,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
@@ -204,6 +209,10 @@ function OrderButton({ close, toOrders }) {
         );
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "check availabilty for creating order - cart widget",
+      });
       setLoading(false);
       setOption(true);
       if (error?.message?.length > 0) {

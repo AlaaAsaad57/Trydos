@@ -13,7 +13,7 @@ import {
   WhatsappIcon,
   WhatsappShareButton,
 } from "react-share";
-import { getUserChat, translateFunction } from "utils/functions";
+import { getUserChat, LogError, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
@@ -77,7 +77,10 @@ function ShareOptions({ product }: any) {
       //   sharesCount: (SelectedProduct?.sharesCount || 0) + 1,
       // });
     } catch (err) {
-      console.error(err);
+      LogError({
+        error: err,
+        scenario: "Error In shareSocial in ShareOptions",
+      });
     }
   };
   const generateUrlForSharing = (app) => {
@@ -99,7 +102,7 @@ function ShareOptions({ product }: any) {
       .map((channel) => {
         // Find the member who is NOT the current user
         const otherMember = channel.channel_members?.find(
-          (member) => String(member.user_id) !== String(currentUserId)
+          (member) => String(member.user_id) !== String(currentUserId),
         );
 
         const user = otherMember?.user;
@@ -138,7 +141,7 @@ function ShareOptions({ product }: any) {
     });
 
     return Array.from(allContactsMap.values()).filter(
-      (s) => String(s.contact_user_id) !== String(getUserChat()?.id)
+      (s) => String(s.contact_user_id) !== String(getUserChat()?.id),
     );
   };
   useEffect(() => {
@@ -248,7 +251,7 @@ function ShareOptions({ product }: any) {
             if (typeof navigator !== "undefined") {
               navigator.clipboard.writeText(window.location.href).then(() => {
                 showSuccessNotification(
-                  translateFunction("Link Copied to Clipboard")
+                  translateFunction("Link Copied to Clipboard"),
                 );
               });
             }
@@ -266,7 +269,7 @@ function ShareOptions({ product }: any) {
             contact={key}
             disable={shareLoading}
             active={selectedContactsForShare?.some(
-              (s) => s === key.contact_user_id
+              (s) => s === key.contact_user_id,
             )}
             setActive={() => {
               if (
@@ -274,7 +277,7 @@ function ShareOptions({ product }: any) {
               )
                 setSelectedContactsForShare([
                   ...selectedContactsForShare.filter(
-                    (s) => s !== key.contact_user_id
+                    (s) => s !== key.contact_user_id,
                   ),
                 ]);
               else

@@ -11,7 +11,7 @@ interface ProductDetailsResponse {
 export async function fetchProductDetails(
   slug: string,
   language: string,
-  country: string
+  country: string,
 ): Promise<ProductDetailsResponse> {
   try {
     let [generalDetails, extendedDetails] = await Promise.all([
@@ -24,6 +24,13 @@ export async function fetchProductDetails(
       redis: false,
     };
   } catch (error) {
+    LogServerError({
+      slug,
+      language,
+      country,
+      error: error,
+      scenario: "Error In fetchProductDetails in serverRequest/products",
+    });
     throw error;
   }
 }
@@ -31,7 +38,7 @@ export async function fetchProductDetails(
 async function fetchProductGeneralDetails(
   slug: string,
   language: string,
-  country: string
+  country: string,
 ) {
   try {
     let response = await fetchServerData({
@@ -49,7 +56,7 @@ async function fetchProductGeneralDetails(
           language,
           country,
         },
-        `/mobile/product/details/${slug}?lang=${language}`
+        `/mobile/product/details/${slug}?lang=${language}`,
       );
       ReportError(
         new Error(`Product Simple Details Error: ${response.status}`),
@@ -59,20 +66,27 @@ async function fetchProductGeneralDetails(
           language,
           country,
           response: JSON.stringify(response),
-        }
+        },
       );
       throw response.error;
     }
 
     return response.data;
   } catch (error) {
+    LogServerError({
+      slug,
+      language,
+      country,
+      error: error,
+      scenario: "Error In fetchProductGeneralDetails in serverRequest/products",
+    });
     throw error;
   }
 }
 export async function fetchProductExtendedDetails(
   slug: string,
   language: string,
-  country: string
+  country: string,
 ) {
   try {
     let response = await fetchServerData({
@@ -90,7 +104,7 @@ export async function fetchProductExtendedDetails(
           language,
           country,
         },
-        `/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`
+        `/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`,
       );
       ReportError(
         new Error(`Product Extended Details Error: ${response.status}`),
@@ -99,12 +113,20 @@ export async function fetchProductExtendedDetails(
           page: "product-extended-details",
           language,
           country,
-        }
+        },
       );
       throw response.error;
     }
     return response.data;
   } catch (error) {
+    LogServerError({
+      slug,
+      language,
+      country,
+      error: error,
+      scenario:
+        "Error In fetchProductExtendedDetails in serverRequest/products",
+    });
     throw error;
   }
 }
@@ -157,7 +179,7 @@ export async function getProductDataForAddToCart({ language, country, slug }) {
       else {
         return item;
       }
-    }
+    },
   );
 
   return {

@@ -6,7 +6,7 @@ import { EnableScroll } from "utils/tinyUtils";
 
 import { GetFilters } from "serverRequests/listing";
 import { PriceSliderComponent } from "./PriceSliderComponent";
-import { RoundPrice, translateFunction } from "utils/functions";
+import { LogError, RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import SmoothPolygon from "../PriceShape";
 import FiltersButton from "./FiltersButton";
@@ -102,7 +102,10 @@ const FiltersWindowUI = ({
         total_size: response?.total_size,
       });
     } catch (error) {
-      console.error(error);
+      LogError({
+        error: error,
+        scenario: "Update Filters in FiltersWindow",
+      });
     } finally {
       setLoading(false);
     }

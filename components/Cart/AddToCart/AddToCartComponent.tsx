@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   getCart,
   getConfiguredImage,
+  LogError,
   translateFunction,
 } from "utils/functions";
 import { useAppStore } from "store";
@@ -44,7 +45,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     let redeemed_products_ids = getCookie<any[]>("redemed_ids");
     if (redeemed_products_ids) {
       return !redeemed_products_ids.find(
-        (s) => s.id === (product?.product_id ?? product?.id)
+        (s) => s.id === (product?.product_id ?? product?.id),
       );
     }
     return true;
@@ -105,7 +106,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     ProductData?.sync_color_images?.find(
       (s) =>
         s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
-        s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
+        s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase(),
     ) || null;
   if (selected_color) {
     selected_color = {
@@ -124,10 +125,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const [selectedColor, setSelectedColor] = useState(selected_color);
   const [selectedSize, setSelectedSize] = useState(
     ProductData?.choice_options?.[0]?.options?.find(
-      (option) => option.option === sizeFromUrl || option.name === sizeFromUrl
+      (option) => option.option === sizeFromUrl || option.name === sizeFromUrl,
     ) ||
       ProductData?.choice_options?.[0]?.options?.[0] ||
-      null
+      null,
   );
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
@@ -243,6 +244,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         size: best.size,
       };
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "resolve variant for add to cart - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+      });
       console.error(error);
     }
   }
@@ -283,13 +290,13 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           : [
               (data?.sync_color_images ?? product?.sync_color_images)?.find(
                 (s) =>
-                  s?.color_name === data?.sync_color_images?.[0]?.color_name
+                  s?.color_name === data?.sync_color_images?.[0]?.color_name,
               ),
               ...(
                 data?.sync_color_images ?? product?.sync_color_images
               )?.filter(
                 (s) =>
-                  s?.color_name !== data?.sync_color_images?.[0]?.color_name
+                  s?.color_name !== data?.sync_color_images?.[0]?.color_name,
               ),
             ],
       };
@@ -304,8 +311,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           tempProductData?.sync_color_images?.find(
             (s) =>
               s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
-              s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
-          ) ?? tempProductData?.sync_color_images?.[0]
+              s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase(),
+          ) ?? tempProductData?.sync_color_images?.[0],
         );
       } else {
         // setSelectedColor(tempProductData?.sync_color_images[0]);
@@ -326,9 +333,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             tempProductData?.choice_options?.[0]?.options.find(
               (s) =>
                 s.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
-                s.name?.toLowerCase() === sizeFromUrl?.toLowerCase()
+                s.name?.toLowerCase() === sizeFromUrl?.toLowerCase(),
             )?.option ??
-              tempProductData?.choice_options?.[0]?.options?.[0]?.option
+              tempProductData?.choice_options?.[0]?.options?.[0]?.option,
           );
         } else {
           // setSelectedSize(tempProductData?.choice_options?.[0]?.options?.[0]);
@@ -341,8 +348,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
 
       return tempProductData;
     } catch (err) {
-      // Handle error as needed
-      console.error(err);
+      LogError({
+        error: err,
+        scenario: "getAllProductData for add to cart - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+      });
       if (!abortControllerRef.current?.signal.aborted) setLoading(false);
     }
   };
@@ -373,11 +384,11 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
               ProductData?.colors?.find(
                 (cl) =>
                   cl?.option === selectedColor?.color_option ||
-                  cl?.name === selectedColor?.color_name
+                  cl?.name === selectedColor?.color_name,
               )?.color) &&
           (s?.size === selectedSize?.option ||
             s.size === selectedSize?.name ||
-            s.size === selectedSize)
+            s.size === selectedSize),
       );
     }
 
@@ -392,8 +403,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
               ProductData?.colors?.find(
                 (cl) =>
                   cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.color_name
-              )?.color)
+                  cl.name === selectedColor?.color_name,
+              )?.color),
       );
     }
 
@@ -404,7 +415,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           s?.id === ProductData.id &&
           (s?.size === selectedSize?.option ||
             s.size === selectedSize?.name ||
-            s.size === selectedSize)
+            s.size === selectedSize),
       );
     }
 
@@ -431,7 +442,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             s.type?.toLowerCase() ===
             `${selectedColor?.color_option}-${
               size?.option ?? size
-            }`?.toLowerCase()
+            }`?.toLowerCase(),
         );
       }
       if (
@@ -442,7 +453,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
-            (selectedColor?.color_option ?? "")?.toLowerCase()
+            (selectedColor?.color_option ?? "")?.toLowerCase(),
         );
       }
       if (
@@ -455,7 +466,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             s.type?.toLowerCase() ===
             (
               size && `${(size?.option ?? size)?.replace(" ", "")}`
-            )?.toLowerCase()
+            )?.toLowerCase(),
         );
       }
       return {
@@ -467,10 +478,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                 selected_variant?.redeem_price ?? product?.redeem_price,
             }
           : product?.flash_deal_end_date !== null
-          ? {
-              flash_deal_price: product?.offer_price,
-            }
-          : {}),
+            ? {
+                flash_deal_price: product?.offer_price,
+              }
+            : {}),
       };
     } else {
       // no variants
@@ -529,7 +540,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             s.type?.toLowerCase() ===
             `${selectedColor?.color_option}-${
               selectedSize?.option ?? selectedSize
-            }`?.toLowerCase()
+            }`?.toLowerCase(),
         );
       }
       if (
@@ -540,7 +551,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
-            (selectedColor?.color_option ?? "")?.toLowerCase()
+            (selectedColor?.color_option ?? "")?.toLowerCase(),
         );
       }
       if (
@@ -554,7 +565,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             (
               selectedSize &&
               `${(selectedSize?.option ?? selectedSize)?.replace(" ", "")}`
-            )?.toLowerCase()
+            )?.toLowerCase(),
         );
       }
 
@@ -567,10 +578,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                 selected_variant?.redeem_price ?? product?.redeem_price,
             }
           : product?.flash_deal_end_date !== null
-          ? {
-              flash_deal_price: product?.offer_price,
-            }
-          : {}),
+            ? {
+                flash_deal_price: product?.offer_price,
+              }
+            : {}),
       };
     } else {
       // no variants
@@ -597,7 +608,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selectedColor:
           selectedColor ??
           product?.sync_color_images?.find(
-            (s) => s?.color_name === product?.sync_color_images?.[0]?.color_name
+            (s) =>
+              s?.color_name === product?.sync_color_images?.[0]?.color_name,
           ),
         selectedSize:
           selectedSize ?? tempProductData?.choice_options?.[0]?.options?.[0],
@@ -612,18 +624,25 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             (s) =>
               s?.option === res?.color ||
               s?.name === res.color ||
-              s?.color_option === res.color
-          )
+              s?.color_option === res.color,
+          ),
         );
       }
       if (res.size) {
         setSelectedSize(
           tempProductData?.choice_options?.[0]?.options?.find(
-            (s) => s.option === res.size || s.name === res.size
-          )?.option
+            (s) => s.option === res.size || s.name === res.size,
+          )?.option,
         );
       }
-    } catch (error) {}
+    } catch (error) {
+      LogError({
+        error: error,
+        scenario: "get Initial Data for add to cart - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+      });
+    }
   };
 
   useEffect(() => {
@@ -632,7 +651,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       document.querySelector<HTMLElement>(".alternate-product-details-footer")
     )
       document.querySelector<HTMLElement>(
-        ".alternate-product-details-footer"
+        ".alternate-product-details-footer",
       ).style.display = "none";
     initializeUI();
     return () => {
@@ -642,7 +661,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         document.querySelector<HTMLElement>(".alternate-product-details-footer")
       )
         document.querySelector<HTMLElement>(
-          ".alternate-product-details-footer"
+          ".alternate-product-details-footer",
         ).style.display = "flex";
     };
   }, []);
@@ -682,7 +701,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         return {
           ...variant,
           notify_for_user: ProductData?.variation?.find(
-            (s) => s.type === variant.type
+            (s) => s.type === variant.type,
           )?.notify_for_user,
         };
       }),
@@ -701,7 +720,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             ...s,
             qty: operation === "add" ? s.qty - 1 : s.qty + 1,
             notify_for_user: ProductData?.variation?.find(
-              (s) => s.type === type
+              (s) => s.type === type,
             )?.notify_for_user,
           };
         }
@@ -735,14 +754,14 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             ?.startsWith(
               colorVariant?.color_option?.toLowerCase() ||
                 s?.type.toLowerCase() ===
-                  colorVariant?.color_name?.toLowerCase()
+                  colorVariant?.color_name?.toLowerCase(),
             ) &&
           s?.type
             .toLowerCase()
             .endsWith(
               `-${(selectedSize?.option ?? selectedSize)
                 ?.toString()
-                .toLowerCase()}`
+                .toLowerCase()}`,
             )
         );
       } else {
@@ -750,7 +769,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           ?.toLowerCase()
           ?.startsWith(
             colorVariant?.color_option?.toLowerCase() ||
-              s?.type.toLowerCase() === colorVariant?.color_name?.toLowerCase()
+              s?.type.toLowerCase() === colorVariant?.color_name?.toLowerCase(),
           );
       }
     });
@@ -759,13 +778,13 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       // if(variant?.redeem_price < ProductData?.redeem_price)
       return Math.round(
         ((GetFinalPriceOfProduct() - variant?.redeem_price) * 100) /
-          GetFinalPriceOfProduct()
+          GetFinalPriceOfProduct(),
       );
     } else {
       // if(variant?.offer_price < ProductData?.offer_price)
       return Math.round(
         ((GetFinalPriceOfProduct() - variant?.offer_price) * 100) /
-          GetFinalPriceOfProduct()
+          GetFinalPriceOfProduct(),
       );
     }
   };
@@ -783,7 +802,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             s.type?.toLowerCase() ===
             `${colorVariant?.color_option}-${
               selectedSize?.option ?? selectedSize
-            }`?.toLowerCase()
+            }`?.toLowerCase(),
         );
       }
       if (
@@ -794,7 +813,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
-            (colorVariant?.color_option ?? "")?.toLowerCase()
+            (colorVariant?.color_option ?? "")?.toLowerCase(),
         );
       }
       return {
@@ -806,10 +825,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                 selected_variant?.redeem_price ?? product?.redeem_price,
             }
           : product?.flash_deal_end_date !== null
-          ? {
-              flash_deal_price: product?.offer_price,
-            }
-          : {}),
+            ? {
+                flash_deal_price: product?.offer_price,
+              }
+            : {}),
       };
     } else {
       // no variants
@@ -849,7 +868,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                 GetImageUrl(selectedColor?.images?.[0]?.file_path)) ||
               (ProductData?.sync_color_images?.[0]?.images?.[0] &&
                 GetImageUrl(
-                  ProductData?.sync_color_images?.[0]?.images?.[0]?.file_path
+                  ProductData?.sync_color_images?.[0]?.images?.[0]?.file_path,
                 )) ||
               GetImageUrl(selectedColor?.images?.[0]) ||
               (ProductData?.images?.[0]?.file_path &&
@@ -882,8 +901,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             colors={ProductData?.sync_color_images?.filter((s) =>
               ProductData.colors?.find(
                 (color) =>
-                  color.option === s.color_option || color.name === s.color_name
-              )
+                  color.option === s.color_option ||
+                  color.name === s.color_name,
+              ),
             )}
             isQtyIsLast={(e) => {
               return isQtyIsLast(e);
@@ -1123,23 +1143,29 @@ const NotifyCartButton = ({
       } else {
         showSuccessNotification(
           translateFunction("You will be notified for this product already"),
-          5000
+          5000,
         );
       }
       setLoading(false);
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Notify Action add to cart - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+      });
       setLoading(false);
       showErrorNotification(
         error?.message ??
           translateFunction(
-            "Notification Is Not Enabled! please Allow Notification Access"
-          )
+            "Notification Is Not Enabled! please Allow Notification Access",
+          ),
       );
       showErrorMessage(
         error?.message ??
           translateFunction(
-            "Notification Is Not Enabled! please Allow Notification Access"
-          )
+            "Notification Is Not Enabled! please Allow Notification Access",
+          ),
       );
     }
   };

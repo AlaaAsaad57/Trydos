@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { LogServerError } from "utils/serverErrorReporter";
 
 const ASSEMBLYAI_API_KEY = "570c38c748e94bc29e774c441d9315ad";
 const ASSEMBLYAI_BASE_URL = "https://api.assemblyai.com/v2";
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
       console.error("AssemblyAI API key not configured");
       return NextResponse.json(
         { error: "AssemblyAI API key not configured" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
     if (!audioFile) {
       return NextResponse.json(
         { error: "No audio file provided" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       console.error("Audio file is empty");
       return NextResponse.json(
         { error: "Audio file is empty" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     console.log("Upload response status:", uploadResponse.status);
     console.log(
       "Upload response headers:",
-      Object.fromEntries(uploadResponse.headers.entries())
+      Object.fromEntries(uploadResponse.headers.entries()),
     );
 
     if (!uploadResponse.ok) {
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
         error: errorText,
       });
       throw new Error(
-        `Upload failed: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorText}`
+        `Upload failed: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorText}`,
       );
     }
 
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify(transcriptionPayload),
         credentials: "omit",
-      }
+      },
     );
 
     console.log("Transcription response status:", transcriptResponse.status);
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
         error: errorText,
       });
       throw new Error(
-        `Transcription request failed: ${transcriptResponse.status} ${transcriptResponse.statusText} - ${errorText}`
+        `Transcription request failed: ${transcriptResponse.status} ${transcriptResponse.statusText} - ${errorText}`,
       );
     }
 
@@ -129,7 +130,7 @@ export async function POST(request: NextRequest) {
           headers: {
             Authorization: `Bearer ${ASSEMBLYAI_API_KEY}`,
           },
-        }
+        },
       );
 
       if (!pollResponse.ok) {
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
           error: errorText,
         });
         throw new Error(
-          `Polling failed: ${pollResponse.status} ${pollResponse.statusText} - ${errorText}`
+          `Polling failed: ${pollResponse.status} ${pollResponse.statusText} - ${errorText}`,
         );
       }
 
@@ -156,7 +157,7 @@ export async function POST(request: NextRequest) {
       }
 
       console.log(
-        `Transcript status: ${transcript.status}, waiting 1 second...`
+        `Transcript status: ${transcript.status}, waiting 1 second...`,
       );
       // Wait 1 second before next poll
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -175,10 +176,17 @@ export async function POST(request: NextRequest) {
       language: language,
     });
   } catch (error) {
+    LogServerError({
+      error,
+      type: "search voice api route",
+      headers: request.headers,
+      url: request.url,
+      method: request.method,
+    });
     console.error("Speech recognition error:", error);
     return NextResponse.json(
       { error: "Failed to process audio", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

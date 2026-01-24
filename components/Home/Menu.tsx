@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import NotificationSkeleton from "components/skeleton/NotificationSkeleton";
 
@@ -11,7 +11,7 @@ const NotificationsPanel = dynamic(
   {
     ssr: false,
     loading: () => <NotificationSkeleton />,
-  }
+  },
 );
 import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
@@ -146,11 +146,15 @@ const Menu = ({ user, setMenuOpen }) => {
       deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
       clearSimulatedUserSession();
       clearHashedUserId();
-
       sessionStorage.clear();
       deleteCookie(COOKIE_NAMES.USER_DATA);
       localStorage.clear();
-    } catch (error) {}
+    } catch (error) {
+      LogError({
+        error: error,
+        scenario: "handleLogout in Nav Menu",
+      });
+    }
     await new Promise((resolve) => setTimeout(resolve, 2000));
     if (window.location.pathname.includes("/seller")) {
       window.location.href = `/${lang}`;

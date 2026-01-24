@@ -1,6 +1,7 @@
 import { useAppStore } from "store";
 import { COOKIE_NAMES, getCookie, UserData } from "./cookies/cookie-manager";
 import { DetectScreen } from "./tinyUtils";
+import { LogError } from "./functions";
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID; // replace with your ID
 let countries = [
   { name: "Syria", iso: "sy" },
@@ -82,7 +83,10 @@ export const GAevent = ({
         .join(",\n")},  🟡🟡`);
     }
   } catch (error) {
-    console.log(error);
+    LogError({
+      scenario: "Error in GAEvent in  gtag",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 const getUserParam = () => {

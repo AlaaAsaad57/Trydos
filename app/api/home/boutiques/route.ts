@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ElasticsearchReader } from "@/services/elastic/elasticsearch-reader.service";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(request: NextRequest) {
   try {
-    // Get country and language from headers
     const country = request.headers.get("country")?.trim() || "sy";
     let language = request.headers.get("language")?.trim();
     const lang = request.headers.get("lang")?.trim();
     language = language ?? lang ?? "en";
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const offset = searchParams.get("offset") || null;
+    let category_slug = searchParams.get("category_slugs") || undefined;
+    // Get country and language from headers
 
     // Validate required headers
     if (!country || !language) {
@@ -16,15 +21,11 @@ export async function GET(request: NextRequest) {
           error: "Missing required headers",
           message: "Both 'country' and 'language' headers are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get query parameters
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const offset = searchParams.get("offset") || null;
-    let category_slug = searchParams.get("category_slugs") || undefined;
 
     if (typeof category_slug === "string") {
       let categorySlg = JSON.parse(category_slug);
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
           error: "Invalid limit parameter",
           message: "Limit must be between 1 and 100",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
           error: "No boutiques found",
           message: "Failed to fetch boutiques data",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
     const response = {
@@ -87,13 +88,21 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching boutiques:", error);
-
+    LogServerError(
+      {
+        error: error,
+        type: "home boutiques api route",
+        headers: request.headers,
+        url: request.url,
+      },
+      "/api/home/boutiques",
+    );
     return NextResponse.json(
       {
         error: "Internal server error",
         message: "Failed to fetch boutiques",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

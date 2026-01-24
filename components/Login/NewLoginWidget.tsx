@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import PrivacyConfirm from "./PrivacyConfirm";
@@ -71,7 +71,7 @@ function NewLoginWidget() {
       await AuthService.SendOtp(
         mobilePhone,
         is_via_whatsapp,
-        errorCallbackFunc
+        errorCallbackFunc,
       );
       successCallback();
     } catch (error) {
@@ -83,7 +83,10 @@ function NewLoginWidget() {
           mission_name: operation === "login" ? operation : "signup",
         },
       });
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error in SendOtpHook in LoginWidget",
+      });
       errorCallback();
       console.error("SendOtp failed:", error);
     }
@@ -158,7 +161,7 @@ function NewLoginWidget() {
         code,
         verificationID,
         Username,
-        EditPhoneFunc
+        EditPhoneFunc,
       );
       successCallback(exists, name);
     } catch (error) {
@@ -172,7 +175,10 @@ function NewLoginWidget() {
         },
       });
       errorCallback(error);
-      console.error("VerifyOtp failed:", error);
+      LogError({
+        error: error,
+        scenario: "Error in VerifyOtp in LoginWidget",
+      });
     }
   };
   const [loadingPin, setLoadingPin] = useState(false);
@@ -342,8 +348,8 @@ function NewLoginWidget() {
         return signStep === "alreadyExists"
           ? GA_AUTH_SCREEN.USER_ALREADY_EXISTS_SCREEN
           : signStep === "notFound"
-          ? GA_AUTH_SCREEN.USER_NOT_FOUND_SCREEN
-          : GA_AUTH_SCREEN.WELCOME_SCREEN;
+            ? GA_AUTH_SCREEN.USER_NOT_FOUND_SCREEN
+            : GA_AUTH_SCREEN.WELCOME_SCREEN;
       case 7:
         return GA_AUTH_SCREEN.USER_NAME_INPUT_SCREEN;
 
@@ -452,7 +458,7 @@ function NewLoginWidget() {
                 >
                   {translate(
                     "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time",
-                    language
+                    language,
                   )}
                 </div>
                 <div

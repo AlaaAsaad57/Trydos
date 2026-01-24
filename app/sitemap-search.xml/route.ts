@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateSearchTermsSitemapXML } from "services/elastic/sitemap.service";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +16,13 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error generating search terms sitemap:", error);
-
+    LogServerError({
+      error,
+      type: "get sitemap for search api route",
+      source: "get sitemap for search",
+      url: request.url,
+      method: "get",
+    });
     return new NextResponse("Error generating sitemap", {
       status: 500,
       headers: {

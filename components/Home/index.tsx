@@ -20,16 +20,13 @@ export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { resetFilters, selectedStory, enable_search, nameModal } =
-    useAppStore();
+  const { nameModal } = useAppStore();
   useEffect(() => {
     deleteCookie("last-page");
     const { setIsNavigating } = useAppStore.getState();
     setIsNavigating(null);
     EnableScroll();
-    try {
-      initFB();
-    } catch (e) {}
+    initStoryToken();
     if (searchParams?.get("message")?.length > 0) {
       let message = searchParams.get("message");
       if (message === "product_not_found") {
@@ -44,8 +41,7 @@ export default function Home() {
       router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
   }, []);
-  const initFB = async () => {
-    resetFilters();
+  const initStoryToken = async () => {
     if (StoryServiceClass.getUserStories()?.id) {
       const Cookies = (await import("js-cookie")).default;
       Cookies.set("token", StoryServiceClass.getUserStories()?.access_token);

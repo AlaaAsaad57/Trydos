@@ -34,10 +34,12 @@ function RecomendedProducts({ lang, InitialOffset, userId }) {
       setLoadingMore(false);
     } catch (error) {
       showErrorMessage(
-        translateFunction("Failed To Load Products Retring in 3 seconds")
+        translateFunction("Failed To Load Products Retring in 3 seconds"),
       );
-      LogError(error);
-      console.error(error);
+      LogError({
+        error: error,
+        scenario: "Error In loadMore Recomended in RecommendedProducts",
+      });
     }
   };
   useEffect(() => {

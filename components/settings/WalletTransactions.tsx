@@ -1,6 +1,6 @@
 "use client";
 import { useAppStore } from "store";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useEffect, useState } from "react";
 import order from "services/order";
@@ -49,7 +49,10 @@ function WalletTransactions({ isRtl, local }) {
         );
       }
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error In GoToOrders in WalletTransactions",
+      });
       setLoadingNavigation(false);
       // setLoadingNavigation(false);
     }
@@ -64,7 +67,10 @@ function WalletTransactions({ isRtl, local }) {
       }
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error In getWallet in WalletTransations",
+      });
       setLoading(false);
     }
   };
@@ -84,7 +90,7 @@ function WalletTransactions({ isRtl, local }) {
       const hours = String(date.getHours()).padStart(2, "0");
       const minutes = String(date.getMinutes()).padStart(2, "0");
       return `${year}-${month}-${day} ${hours}:${minutes}`;
-    } catch {
+    } catch (e) {
       return dateString;
     }
   };
@@ -125,7 +131,10 @@ function WalletTransactions({ isRtl, local }) {
         setOffset(currentOffset + 1);
       }
     } catch (error) {
-      console.error("Error loading transactions:", error);
+      LogError({
+        error: error,
+        scenario: "Error In loadMore in walletTransations",
+      });
       setHasMore(false);
     } finally {
       setIsFetching(false);

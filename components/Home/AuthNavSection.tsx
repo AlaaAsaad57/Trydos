@@ -1,6 +1,6 @@
 "use client";
 
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "utils/tinyUtils";
 import { getNew } from "components/Chat/chatsFunctions";
@@ -55,8 +55,8 @@ function AuthNavSection({
         if (num === 0) {
           showErrorNotification(
             translateFunction(
-              "Notification Is Not Enabled! please Allow Notification Access"
-            )
+              "Notification Is Not Enabled! please Allow Notification Access",
+            ),
           );
           return;
         }
@@ -76,7 +76,10 @@ function AuthNavSection({
         }
       }
     } catch (error) {
-      console.error("Error opening chat:", error);
+      LogError({
+        error: error,
+        scenario: "error in openChatAction in AuthNavSection ",
+      });
     }
   };
 

@@ -1,5 +1,5 @@
 import { getNew, showDate } from "../chatsFunctions";
-import { getUserChat } from "utils/functions";
+import { getUserChat, LogError } from "utils/functions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { translateFunction } from "../../../utils/functions";
 import { useParams } from "next/navigation";
@@ -44,7 +44,7 @@ function ChatHeader({
       if (activeChat?.activeDate) {
         if (time_differenc(activeChat.activeDate) > 5) {
           return `${translate("last Seen ", language)} ${showDate(
-            activeChat.activeDate
+            activeChat.activeDate,
           )}`;
         } else {
           return translate("Online", language);
@@ -61,7 +61,7 @@ function ChatHeader({
       payload = {
         order_chat_participant_id: activeChat?.order_chat_participant_id,
         receiver_user_id: activeChat?.channel_members?.find(
-          (s) => String(s?.user_id) !== String(getUserChat()?.id)
+          (s) => String(s?.user_id) !== String(getUserChat()?.id),
         )?.user_id,
         is_private: true,
       };
@@ -71,17 +71,21 @@ function ChatHeader({
         makeVoiceCall(
           activeChat.id,
           activeChat.channel_members.filter(
-            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
           )[0]?.user.name,
           activeChat.channel_members.filter(
-            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
           )[0]?.user?.photo_path,
           activeChat.channel_members.filter(
-            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
           )[0]?.user.mobile_phone,
-          payload
+          payload,
         );
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "initial audioCallFunction in chat header - chat widget",
+      });
       showErrorNotification(translateFunction("Failed to Initialize Call"));
     }
   };
@@ -93,7 +97,7 @@ function ChatHeader({
       payload = {
         order_chat_participant_id: activeChat?.order_chat_participant_id,
         receiver_user_id: activeChat?.channel_members?.find(
-          (s) => String(s?.user_id) !== String(getUserChat()?.id)
+          (s) => String(s?.user_id) !== String(getUserChat()?.id),
         )?.user_id,
         is_private: true,
       };
@@ -103,17 +107,21 @@ function ChatHeader({
         makeVideoCall(
           activeChat.id,
           activeChat.channel_members.filter(
-            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
           )[0]?.user.name,
           activeChat.channel_members.filter(
-            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
           )[0]?.user?.photo_path,
           activeChat.channel_members.filter(
-            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
           )[0]?.user.mobile_phone,
-          payload
+          payload,
         );
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "initial videoCallFunction in chat header - chat widget",
+      });
       showErrorNotification(translateFunction("Failed to Initialize Call"));
     }
   };
@@ -154,7 +162,7 @@ function ChatHeader({
             <ChatPhoto
               user={
                 activeChat.channel_members.filter(
-                  (user) => String(user.user_id) !== String(getUserChat()?.id)
+                  (user) => String(user.user_id) !== String(getUserChat()?.id),
                 )[0]?.user
               }
               width={40}
@@ -174,13 +182,13 @@ function ChatHeader({
               )}
             {(activeChat.channel_members &&
               activeChat.channel_members.filter(
-                (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id),
               )[0] &&
               activeChat.channel_members.filter(
-                (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id),
               )[0]?.user &&
               activeChat.channel_members.filter(
-                (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id),
               )[0]?.user.name) ||
               "User-" + activeChat.id}
           </div>
@@ -205,8 +213,8 @@ function ChatHeader({
                 showErrorNotification(
                   translateFunction(
                     "You cannot send messages or calls to this user",
-                    language
-                  )
+                    language,
+                  ),
                 );
                 return;
               }
@@ -224,8 +232,8 @@ function ChatHeader({
               showErrorNotification(
                 translateFunction(
                   "You cannot send messages or calls to this user",
-                  language
-                )
+                  language,
+                ),
               );
               return;
             }

@@ -1,6 +1,6 @@
 import RatingStars from "components/settings/cards/RatingStars";
 import React, { useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 import order from "services/order";
 import Spinner from "components/global/Spinner";
@@ -58,6 +58,10 @@ function RatingOrderItem({
       setShowCommentModal(false);
       refresh();
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error in RateOrder in RatingOrderItem",
+      });
       setLoading(false);
     }
   };
@@ -232,7 +236,7 @@ const RatingUploadImages = ({
 }) => {
   const UploadImage = async () => {
     const input = document.querySelector<HTMLInputElement>(
-      "#rating-order-file-input"
+      "#rating-order-file-input",
     );
     input?.click();
   };
@@ -247,13 +251,17 @@ const RatingUploadImages = ({
         setLoading(false);
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error in UploadImage for Rating in RatingOrderItem",
+      });
       setLoading(false);
     }
   };
 
   const removeImage = (
     e: React.MouseEvent<HTMLSpanElement | HTMLDivElement>,
-    img: string
+    img: string,
   ) => {
     e.stopPropagation();
     e.preventDefault();

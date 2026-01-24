@@ -1,4 +1,5 @@
 import { GetColorAndSizes } from "serverRequests/analyticsUtility";
+import { LogServerError } from "utils/serverErrorReporter";
 // import { HttpsProxyAgent } from "https-proxy-agent";
 // import fetch from "node-fetch";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GL_API_KEY}`;
@@ -67,9 +68,10 @@ Analyze the user's query and extract specific attributes into a valid JSON objec
     let end = process.hrtime.bigint();
     return { ...filtered, Geminitime: Number(end - start) / 1_000_000 };
   } catch (error) {
-    console.error(
-      `$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-${error}-$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$`,
-    );
+    LogServerError({
+      scenario: "AnalyzeSearchText in services/analyzeSearchText",
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { error: `${error?.message}`, details: error.message };
   }
 }

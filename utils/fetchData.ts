@@ -18,6 +18,7 @@ import {
 } from "./cookies/cookie-manager";
 import { logRequest } from "./requestLoggerClient";
 import { ReportError } from "./errorReported";
+import { useAppStore } from "../store";
 
 // ---------- Types ----------
 type ServerType =
@@ -122,7 +123,7 @@ const getToken = async (server: ServerType): Promise<string> => {
 const getHeader = async (server = null) => {
   if (server) return null;
   const [country, lang] = (window.location.pathname.split("/")[1] || "").split(
-    "-"
+    "-",
   );
   const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
   const languageCookie = getCookie("language");
@@ -178,15 +179,15 @@ const waitUntilRegisteringComplete = async (): Promise<void> => {
       }, 300);
       setTimeout(() => clearInterval(interval), 300000); // 5 minutes timeout
     });
-  } catch (err) {
-    console.error("Failed to wait for registration to complete:", err);
-  }
+  } catch (err) {}
 };
 
 const handleUnauthorized = async (
   server: ServerType,
-  options
+  options,
 ): Promise<boolean> => {
+  const { LoggingOut } = useAppStore.getState();
+  if (LoggingOut) return;
   let userChat: any = getCookie(COOKIE_NAMES.USER_CHAT);
   let userStories: any = getCookie(COOKIE_NAMES.USER_STORIES);
   let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
@@ -216,7 +217,7 @@ const handleUnauthorized = async (
             ...options,
             token: token,
             date: new Date().toISOString(),
-          })
+          }),
         );
         const { useAppStore } = await import("../store");
         const { setShouldAuthinticated } = useAppStore.getState();
@@ -270,7 +271,6 @@ const handleUnauthorized = async (
         return false;
     }
   } catch (err) {
-    console.error("Error in handleUnauthorized:", err);
     return false;
   }
 };
@@ -283,7 +283,7 @@ const generateCacheKey = (params: FetchDataParams): string => {
 // ---------- Main Function ----------
 export const fetchData = async <T = any>(
   params: FetchDataParams,
-  isRetryAfterUnauthorized = false
+  isRetryAfterUnauthorized = false,
 ): Promise<T> => {
   const {
     url,
@@ -401,7 +401,7 @@ export const fetchData = async <T = any>(
         throw new Error(
           responseData?.message ??
             responseData?.data?.message ??
-            `Error fetching data for request ${reqTitle?.code}`
+            `Error fetching data for request ${reqTitle?.code}`,
         );
       }
 
@@ -518,8 +518,8 @@ export const fetchData = async <T = any>(
         ) {
           return { ...(responseData || {}), success: false };
         }
-        LogError(errorObj);
-        ReportError(err, {
+        LogError({
+          ...errorObj,
           source: "fetchData",
           userId: auth.UserID()?.toString(),
           token: await getToken(server),

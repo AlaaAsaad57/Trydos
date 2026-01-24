@@ -5,6 +5,7 @@ import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { HandleIsActive } from "utils/server";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GetFilters({
   language,
@@ -96,7 +97,12 @@ export async function GetFilters({
       total_size: response.total_size,
     };
   } catch (error) {
-    console.error(error);
+    LogServerError({
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetFilters in serverRequest/listing",
+    });
   }
 }
 
@@ -338,6 +344,11 @@ export async function GetNextPageFilters({
       total_size: response?.total_size,
     };
   } catch (error) {
-    console.error(error);
+    LogServerError({
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetNextPageFilters in serverRequest/listing",
+    });
   }
 }

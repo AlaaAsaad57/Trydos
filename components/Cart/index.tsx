@@ -6,6 +6,7 @@ import {
   RoundPrice,
   translateFunction,
   GetCartOreview,
+  LogError,
 } from "utils/functions";
 
 import Skeleton from "react-loading-skeleton";
@@ -120,7 +121,11 @@ function CartContainer({ close, toOrders }) {
         }
         getProductDetailsForCart(response.data);
       } catch (err) {
-        console.error(err);
+        LogError({
+          error: err,
+          scenario: "updateDataForProduct in cart widget",
+          slug,
+        });
       }
     }
   };
@@ -335,7 +340,7 @@ function CartContainer({ close, toOrders }) {
                         product={product}
                         maxAllowed={product.max_allowed_qty}
                         isCollectedAfterOrdering={Boolean(
-                          product.collected_after_ordering
+                          product.collected_after_ordering,
                         )}
                         isHurry={true || product.have_hurry_up_notify}
                         disabled={false}
@@ -484,13 +489,18 @@ export const QuantutyInput = ({
       }
       updateData();
     } catch (error) {
-      console.error(error);
       setLoading(false);
       if (bool) {
         setInputValue(inputValue);
       } else {
         setInputValue(inputValue);
       }
+      LogError({
+        error: error,
+        scenario: "Update Qty For Cart Item widget",
+        id: id,
+        quantity,
+      });
     }
   };
 
@@ -580,6 +590,11 @@ export const QuantutyInput = ({
       removeFromCart(id);
       await getOldCart();
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "convert cart item to old cart widget",
+        id: id,
+      });
       setLoading(false);
     }
   };
@@ -843,7 +858,7 @@ export const QuantutyInput = ({
                             ((product.price - product?.offer_price) /
                               product.price) *
                             100
-                          ).toString()
+                          ).toString(),
                         )}
                         %
                       </span>

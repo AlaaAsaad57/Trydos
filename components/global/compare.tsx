@@ -6,6 +6,7 @@ import {
   translateFunction,
   RoundPrice,
   getConfiguredImage,
+  LogError,
 } from "utils/functions";
 import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
@@ -49,12 +50,12 @@ const ComparePage = ({ showInstantLoading = true }) => {
 
         if (storedFp) {
           promises.push(
-            handleProductSelect(storedFp, setProduct1, setLoading1, true)
+            handleProductSelect(storedFp, setProduct1, setLoading1, true),
           );
         }
         if (storedSp) {
           promises.push(
-            handleProductSelect(storedSp, setProduct2, setLoading2, false)
+            handleProductSelect(storedSp, setProduct2, setLoading2, false),
           );
         }
 
@@ -94,7 +95,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
     selectedOption: { label: string; value: string } | null,
     setProduct: (product: any | null) => void,
     setLoading: (loading: boolean) => void,
-    isFirstProduct: boolean
+    isFirstProduct: boolean,
   ) => {
     if (!selectedOption) {
       setProducts([]);
@@ -104,7 +105,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
       selectedOption.value,
       setProduct,
       setLoading,
-      isFirstProduct
+      isFirstProduct,
     );
   };
 
@@ -139,7 +140,11 @@ const ComparePage = ({ showInstantLoading = true }) => {
       const result = await response.json();
       return result.data?.products || [];
     } catch (error) {
-      console.error("Search error:", error);
+      LogError({
+        error: error,
+        scenario: "searchFunction in Compare Page",
+        search_text: inputValue,
+      });
       return [];
     }
   };
@@ -159,7 +164,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
             lang: lang.toString().split("-")[1],
           },
           credentials: "omit",
-        }
+        },
       );
       if (!res.ok) throw new Error("Product not found");
       const globalDetails = await res.json();
@@ -172,12 +177,17 @@ const ComparePage = ({ showInstantLoading = true }) => {
             lang: lang.toString().split("-")[1],
           },
           credentials: "omit",
-        }
+        },
       );
       if (!res1.ok) throw new Error("Product not found");
       const QtyDetails = await res1.json();
       return { ...globalDetails.data, ...QtyDetails.data };
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "GetProductData in Compare Page",
+        slug: slug,
+      });
       throw new Error("Product not found");
     }
   };
@@ -186,7 +196,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
     slug: string,
     setProduct: (product: any | null) => void,
     setLoading: (loading: boolean) => void,
-    isFirstProduct: boolean
+    isFirstProduct: boolean,
   ) => {
     setLoading(true);
     try {
@@ -212,10 +222,14 @@ const ComparePage = ({ showInstantLoading = true }) => {
       window.history.replaceState(
         {},
         "",
-        `${window.location.pathname}?${currentParams.toString()}`
+        `${window.location.pathname}?${currentParams.toString()}`,
       );
     } catch (error) {
-      console.error("Error fetching product:", error);
+      LogError({
+        error: error,
+        scenario: "handleProductSelect in Compare Page",
+        slug: slug,
+      });
       const currentParams = new URLSearchParams(window.location.search);
       if (isFirstProduct) {
         currentParams.delete("f_p");
@@ -229,12 +243,12 @@ const ComparePage = ({ showInstantLoading = true }) => {
       window.history.replaceState(
         {},
         "",
-        `${window.location.pathname}?${currentParams.toString()}`
+        `${window.location.pathname}?${currentParams.toString()}`,
       );
       showErrorNotification(
         translateFunction(
-          "One of the products was not found. Please try searching for a different product."
-        )
+          "One of the products was not found. Please try searching for a different product.",
+        ),
       );
     } finally {
       setLoading(false);
@@ -243,7 +257,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
 
   const loadOptions = (
     inputValue: string,
-    callback: (options: any[]) => void
+    callback: (options: any[]) => void,
   ) => {
     const options =
       products?.map((s) => ({ label: s.name, value: s.slug })) || [];
@@ -252,7 +266,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
   };
   const debounce = <T extends (...args: any[]) => Promise<void>>(
     func: T,
-    delay: number
+    delay: number,
   ) => {
     let timeout: NodeJS.Timeout;
     return async (...args: Parameters<T>): Promise<void> => {
@@ -285,16 +299,21 @@ const ComparePage = ({ showInstantLoading = true }) => {
               p.thumbnail?.file_path ||
               "",
             price: p.price,
-          })) || []
+          })) || [],
         );
       } catch (error) {
+        LogError({
+          error: error,
+          scenario: "debouncedChangeHandler in Compare Page",
+          search_text: value,
+        });
         console.error("Search error:", error);
         setProducts([]);
       } finally {
         setSearchLoading(false);
       }
     }, 500),
-    [language, country]
+    [language, country],
   );
 
   const LoadingCell = () => (
@@ -312,7 +331,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
       window.history.replaceState(
         {},
         "",
-        `${window.location.pathname}?${params.toString()}`
+        `${window.location.pathname}?${params.toString()}`,
       );
     } else {
       setProduct2(null);
@@ -322,7 +341,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
       window.history.replaceState(
         {},
         "",
-        `${window.location.pathname}?${params.toString()}`
+        `${window.location.pathname}?${params.toString()}`,
       );
     }
   };
@@ -354,7 +373,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
             src={getConfiguredImage({
               src: GetImageUrl(
                 product?.sync_color_images?.[0]?.images?.[0] ??
-                  product.images?.[0]
+                  product.images?.[0],
               ),
               height: 100,
               width: 100,

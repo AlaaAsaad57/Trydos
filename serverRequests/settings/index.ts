@@ -1,6 +1,7 @@
 "use server";
 import { GetStarttingSetting } from "serverRequests";
 import { HandleAuthedFetch } from "serverRequests/HandleAuthedFetch";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GetOrders({
   page = 1,
@@ -17,6 +18,10 @@ export async function GetOrders({
     });
     return res?.data;
   } catch (error) {
+    LogServerError({
+      error: error,
+      scenario: "Error In GetOrders in serverRequest/settings",
+    });
     return null;
   }
 }
@@ -37,7 +42,10 @@ export async function getWallet({ language, country, offset = 1, limit = 10 }) {
 
     return res?.data?.data;
   } catch (error) {
-    console.log(error);
+    LogServerError({
+      error: error,
+      scenario: "Error In getWallet in serverRequest/settings",
+    });
   }
 }
 
@@ -45,5 +53,10 @@ export async function getOrderStatues({ language, country }) {
   try {
     let res = await GetStarttingSetting({ language, country });
     return res?.order_group_statuses ?? [];
-  } catch (error) {}
+  } catch (error) {
+    LogServerError({
+      error: error,
+      scenario: "Error In getOrderStatues in serverRequest/settings",
+    });
+  }
 }

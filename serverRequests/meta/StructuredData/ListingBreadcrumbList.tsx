@@ -21,7 +21,7 @@ function ListingBreadcrumbList({ local, target, title, products, currency }) {
             "@type": "ListItem",
             position: 2,
             name: title.join(" - "),
-            item: `${General_Site_Data.url}/${local}/${target}`,
+            item: `${General_Site_Data.url}/${local}${target}`,
           },
         ],
       },

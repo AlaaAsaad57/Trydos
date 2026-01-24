@@ -81,7 +81,10 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error("Error loading notifications:", error);
+      LogError({
+        error: error,
+        scenario: "Error in loadMoreNotifications in Notifications Panel",
+      });
     } finally {
       setLoading(false);
     }
@@ -290,9 +293,8 @@ const NotificationInfo = ({ closeWindow }) => {
     if (permission !== "granted") {
       return null;
     }
-    const { requestFirebaseNotificationPermission } = await import(
-      "utils/firebaseInitv1"
-    );
+    const { requestFirebaseNotificationPermission } =
+      await import("utils/firebaseInitv1");
     const { isSupported } = await import("firebase/messaging");
     isSupported().then((bool) => {
       setSupported(bool);

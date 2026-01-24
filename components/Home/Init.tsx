@@ -8,7 +8,7 @@ import { fetchCountries } from "utils/tinyUtils";
 
 import Smartlook from "smartlook-client";
 
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import {
   COOKIE_NAMES,
@@ -40,7 +40,7 @@ function Init() {
         const data = await fetchCountries(country, language);
         sessionStorage.setItem(
           `countries-${country}-${language}`,
-          JSON.stringify(data.countries)
+          JSON.stringify(data.countries),
         );
         setCountriesData(data.countries);
       } catch (error) {
@@ -70,7 +70,7 @@ function Init() {
           "",
           params.toString()
             ? `${window.location.pathname}?${params.toString()}`
-            : window.location.pathname
+            : window.location.pathname,
         );
       }
       return true;
@@ -89,7 +89,7 @@ function Init() {
         "",
         params.toString()
           ? `${window.location.pathname}?${params.toString()}`
-          : window.location.pathname
+          : window.location.pathname,
       );
     }
 
@@ -108,24 +108,23 @@ function Init() {
     }
 
     try {
-      if (process.env.NODE_ENV === "production") {
-        Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
-      }
+      Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
+
       const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
 
       if (user) {
-        if (process.env.NODE_ENV === "production") {
-          Smartlook.identify(user.id, {
-            name: user?.name || "Guest",
-            phone: user?.mobilePhone || "null",
-            // other custom properties
-          });
-        }
+        Smartlook.identify(user.id, {
+          name: user?.name || "Guest",
+          phone: user?.mobilePhone || "null",
+          // other custom properties
+        });
       }
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Init SmartLook in Init",
+      });
     }
-    // let images = document.querySelectorAll("img");
   }, []);
   const initPageLoad = async () => {
     const permission = Notification.permission;
@@ -139,10 +138,12 @@ function Init() {
         try {
           await home.AllowNotifications();
         } catch (error) {
-          console.error("Error handling topics on page refresh:", error);
+          LogError({
+            error: error,
+            scenario: "initPageLoad in Init",
+          });
         }
       };
-
       handlePageRefresh(); // Run the function on initial load
     }
   };
@@ -153,7 +154,10 @@ function Init() {
     try {
       await home.AllowNotifications();
     } catch (error) {
-      console.error("Error allowing notifications:", error);
+      LogError({
+        error: error,
+        scenario: "onAllow in Init",
+      });
     }
   };
   const onDismiss = () => {

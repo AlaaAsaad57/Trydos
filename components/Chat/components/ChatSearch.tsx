@@ -7,6 +7,7 @@ import { getMessagesBetweenMessage } from "store/chat/actions";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogError } from "utils/functions";
 
 function ChatSearch({ close }) {
   const {
@@ -53,7 +54,7 @@ function ChatSearch({ close }) {
             newOffset,
           });
           setQouted(
-            response.data.messages_ids[response.data.messages_ids.length - 1]
+            response.data.messages_ids[response.data.messages_ids.length - 1],
           );
           if (
             activeChat.messages.filter(
@@ -61,7 +62,7 @@ function ChatSearch({ close }) {
                 parseInt(s.id) ===
                 response.data.messages_ids[
                   response.data.messages_ids.length - 1
-                ]
+                ],
             ).length > 0
           ) {
           } else
@@ -69,12 +70,12 @@ function ChatSearch({ close }) {
               first: activeChat?.id,
               second:
                 parseInt(
-                  activeChat.messages[activeChat.messages.length - 1]?.id
+                  activeChat.messages[activeChat.messages.length - 1]?.id,
                 ) -
                 parseInt(
                   response.data?.messages_ids?.[
                     response?.data?.messages_ids?.length - 1
-                  ]?.toString()
+                  ]?.toString(),
                 ),
             });
           var numb = response.data.messages_ids[
@@ -87,7 +88,7 @@ function ChatSearch({ close }) {
           let el = document.querySelector(
             `#main-container-${
               response.data.messages_ids[response.data.messages_ids.length - 1]
-            }`
+            }`,
           );
 
           if (el) {
@@ -104,7 +105,10 @@ function ChatSearch({ close }) {
           setChatSearchLoading(false);
         }
       } catch (err) {
-        console.error(err);
+        LogError({
+          error: err,
+          scenario: "getMessagesForSearch in chat search - chat widget",
+        });
         setChatSearchLoading(false);
       }
     }
@@ -198,7 +202,7 @@ function ChatSearch({ close }) {
         .querySelector(`#main-container-${searchChat.activeMessage}`)
         ?.scrollIntoView({ block: "center", inline: "center" });
       let el = document.querySelector(
-        `#main-container-${searchChat.activeMessage}`
+        `#main-container-${searchChat.activeMessage}`,
       );
       if (el) {
         el.scrollIntoView({ block: "center" });

@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { useAppStore } from "store";
 import {
   getConfiguredImage,
+  LogError,
   RoundPrice,
   translateFunction,
 } from "utils/functions";
@@ -154,7 +155,10 @@ function OrderItemReturnConfirmationWindow({
       setShouldConfirmReturn(false);
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error In ReturnRequest in OrdreItemReturnConfirmation",
+      });
       setLoading(false);
     }
   };

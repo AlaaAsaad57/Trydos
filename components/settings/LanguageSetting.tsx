@@ -20,7 +20,6 @@ function LanguageSetting({ local, languageVar }) {
       }-${language}/settings`;
     } catch (error) {
       setIsSettingLanguage(false);
-      console.error(error);
     }
   };
   return (
@@ -80,7 +79,7 @@ function LanguageSetting({ local, languageVar }) {
 
           <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
             {translateFunction(
-              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
+              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
             )}
           </div>
         </div>

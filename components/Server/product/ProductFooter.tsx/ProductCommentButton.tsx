@@ -2,6 +2,7 @@ import CommentIcon from "components/products/CommentIcon";
 import { useEffect, useState } from "react";
 import { GetProductCommentsCount } from "serverRequests/product";
 import { useAppStore } from "store";
+import { LogError } from "utils/functions";
 
 function ProductCommentButton({
   isActive,
@@ -19,7 +20,12 @@ function ProductCommentButton({
 
       setCommentsTotal(res.total);
       setShouldUpdateComeentsCount(false);
-    } catch (error) {}
+    } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In UpdateCommentCount in ProductCommentButton",
+      });
+    }
   };
   useEffect(() => {
     if (shouldUpdateComeentsCount) UpdateCommentCount();

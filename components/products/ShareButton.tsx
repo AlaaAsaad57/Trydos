@@ -5,7 +5,7 @@ import chat from "services/chat";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 
@@ -75,10 +75,14 @@ function ShareButton({
         });
       } else {
         showErrorNotification(
-          translate("please select one contact at least", language)
+          translate("please select one contact at least", language),
         );
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In shareAction in ShareButton",
+      });
       setShareLoading(false);
     }
   };

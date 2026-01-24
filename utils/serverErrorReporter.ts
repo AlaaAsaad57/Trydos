@@ -1,4 +1,5 @@
 import { COOKIE_NAMES, getCookieServer } from "./cookies/cookie-manager";
+import { ReportError } from "./errorReported";
 import { storeError } from "./functions";
 import { readStoredLastPaths } from "./history";
 
@@ -27,8 +28,8 @@ export const LogServerError = async (error?: unknown, pagePath?: string) => {
     typeof error === "object" && error !== null
       ? (error as Record<string, any>)
       : error !== undefined
-      ? { message: String(error) }
-      : {};
+        ? { message: String(error) }
+        : {};
 
   const Error_Object = {
     ...baseError,
@@ -49,6 +50,6 @@ export const LogServerError = async (error?: unknown, pagePath?: string) => {
     country: country,
     language: language,
   };
-  // Sentry.captureException(errorObj);
+  ReportError(Error_Object);
   await storeError(Error_Object);
 };

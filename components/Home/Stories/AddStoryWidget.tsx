@@ -15,7 +15,7 @@ import {
   showErrorNotification,
   showSuccessNotification,
 } from "store/notifications/reducer";
-import { getUserStories, translateFunction } from "utils/functions";
+import { getUserStories, LogError, translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
 import { DisableScroll, EnableScroll, pollinateInput } from "@/utils/tinyUtils";
 import Spinner from "components/global/Spinner";
@@ -124,7 +124,7 @@ const validateLink = (urlString: string) => {
     return {
       valid: false,
       error: translateFunction(
-        "Please enter a valid URL (e.g., example.com or www.example.com)"
+        "Please enter a valid URL (e.g., example.com or www.example.com)",
       ),
     };
   }
@@ -137,7 +137,7 @@ const validateLink = (urlString: string) => {
       return {
         valid: false,
         error: translateFunction(
-          "Please enter a valid URL (e.g., example.com or www.example.com)"
+          "Please enter a valid URL (e.g., example.com or www.example.com)",
         ),
       };
     }
@@ -149,7 +149,7 @@ const validateLink = (urlString: string) => {
     return {
       valid: false,
       error: translateFunction(
-        "Please enter a valid URL (e.g., example.com or www.example.com)"
+        "Please enter a valid URL (e.g., example.com or www.example.com)",
       ),
     };
   }
@@ -197,7 +197,7 @@ export default function AddStoryWidget() {
                 let getTime = videoElement.duration;
                 if (getTime > 59) {
                   showErrorNotification(
-                    translateFunction("1 minutes video only")
+                    translateFunction("1 minutes video only"),
                   );
 
                   setFile(null);
@@ -215,7 +215,7 @@ export default function AddStoryWidget() {
                       setIsSelected(null);
                       setFile(null);
                     },
-                    link
+                    link,
                   )
                     .then((data) => {
                       resolve(true);
@@ -225,10 +225,14 @@ export default function AddStoryWidget() {
                       //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
                       //   value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_FAILED,
                       // });
+                      LogError({
+                        error: e,
+                        scenario: "Upload Video Story",
+                      });
                       setUpload(0);
                       setLoading(false);
                       showErrorNotification(
-                        translateFunction("Upload Failed Try Again")
+                        translateFunction("Upload Failed Try Again"),
                       );
                     });
                   setIsSelected(null);
@@ -262,16 +266,20 @@ export default function AddStoryWidget() {
               (e) => setUpload(e),
               0,
               () => {},
-              link
+              link,
             )
               .then((data) => {
                 resolve(true);
               })
               .catch((e) => {
+                LogError({
+                  error: e,
+                  scenario: "Upload Image Story",
+                });
                 setUpload(0);
                 setLoading(false);
                 showErrorNotification(
-                  translateFunction("Upload Failed Try Again")
+                  translateFunction("Upload Failed Try Again"),
                 );
               });
             setIsSelected(null);
@@ -291,6 +299,10 @@ export default function AddStoryWidget() {
         onClose();
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Upload Image Story",
+      });
       showErrorNotification("Error Uploading Story");
     }
   };
@@ -302,7 +314,7 @@ export default function AddStoryWidget() {
     const file = e.target.files?.[0];
     if (file && file.type === "image/svg+xml") {
       showErrorNotification(
-        translateFunction("SVG Images Not Allowed", language)
+        translateFunction("SVG Images Not Allowed", language),
       );
       e.target.value = ""; // reset input
       return;
@@ -335,8 +347,8 @@ export default function AddStoryWidget() {
       checkCameraPermissions();
       showErrorNotification(
         translateFunction(
-          "Please enable camera permissions to use camera features"
-        )
+          "Please enable camera permissions to use camera features",
+        ),
       );
       return;
     }
@@ -370,7 +382,7 @@ export default function AddStoryWidget() {
     setSelectedFile(null);
     // Reset file input value
     const fileInput = document.querySelector<HTMLInputElement>(
-      "#stories-input-holder"
+      "#stories-input-holder",
     );
     if (fileInput) {
       fileInput.value = "";
@@ -420,7 +432,7 @@ export default function AddStoryWidget() {
           send={(e) => {
             let a = dataURLtoFile(
               e,
-              "image-story" + parseInt((Math.random() * 1000).toString())
+              "image-story" + parseInt((Math.random() * 1000).toString()),
             );
 
             // @ts-ignore

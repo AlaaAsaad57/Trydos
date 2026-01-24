@@ -49,7 +49,7 @@ function FilterList({
                   filters[s] &&
                   filters[s]?.length > 0 &&
                   s !== "search_text" &&
-                  s !== "boutiques"
+                  s !== "boutiques",
               ).length
             }
           />
@@ -68,7 +68,7 @@ function FilterList({
                   filter !== "search_text" &&
                   filter !== "boutiques" &&
                   filters[filter] &&
-                  filters[filter]?.length > 0
+                  filters[filter]?.length > 0,
               )
               .map((filter, index) => {
                 if (
@@ -166,9 +166,6 @@ const ActiveFiltersBar = ({
         return selected_filters_array.find((item) => item[key] === value);
       else return selected_filters_array.find((item) => item === value);
     } catch (error) {
-      console.log(
-        `getItemData Error: ${error} , ${selected_filters_array} , ${value} , ${key}`
-      );
       return null;
     }
   };
@@ -178,7 +175,7 @@ const ActiveFiltersBar = ({
   // Check if only one boutique is selected and no other filters
   const hasOnlyOneBoutique = activeFilters?.boutiques?.length === 1;
   const otherFiltersCount = Object.keys(activeFilters).filter(
-    (key) => key !== "boutiques" && activeFilters[key]?.length > 0
+    (key) => key !== "boutiques" && activeFilters[key]?.length > 0,
   ).length;
 
   // If only one boutique and no other filters, don't show ActiveFiltersBar
@@ -284,7 +281,7 @@ const ActiveFiltersBar = ({
                                 arr: filters.categories,
                                 key: "slug",
                                 isCategory: true,
-                              })?.icon?.file_path
+                              })?.icon?.file_path,
                             )) ??
                           (getItemData({
                             value: category,
@@ -298,7 +295,7 @@ const ActiveFiltersBar = ({
                                 arr: filters.categories,
                                 key: "slug",
                                 isCategory: true,
-                              }).most_viewed_product_thumbnail
+                              }).most_viewed_product_thumbnail,
                             )) ??
                           GetImageUrl(
                             getItemData({
@@ -306,7 +303,7 @@ const ActiveFiltersBar = ({
                               arr: filters.categories,
                               key: "slug",
                               isCategory: true,
-                            }).flat_photo_path?.file_path
+                            }).flat_photo_path?.file_path,
                           ),
                         height: 100,
                       })}
@@ -368,12 +365,12 @@ const ActiveFiltersBar = ({
                                   (s.icon?.file_path &&
                                     GetImageUrl(s.icon?.file_path)) ||
                                   (filters.categories.filter(
-                                    (sub) => sub.slug === s.slug
+                                    (sub) => sub.slug === s.slug,
                                   )[0]?.icon?.file_path &&
                                     GetImageUrl(
                                       filters.categories.filter(
-                                        (sub) => sub.slug === s.slug
-                                      )[0]?.icon?.file_path
+                                        (sub) => sub.slug === s.slug,
+                                      )[0]?.icon?.file_path,
                                     )),
                                 height: 100,
                               })}
@@ -438,7 +435,7 @@ const ActiveFiltersBar = ({
                             value: category,
                             arr: filters.boutiques,
                             key: "slug",
-                          })?.banner?.file_path
+                          })?.banner?.file_path,
                         ),
                         height: 100,
                       })}
@@ -503,7 +500,7 @@ const ActiveFiltersBar = ({
                             value: brand,
                             arr: filters.brands,
                             key: "slug",
-                          })?.icon
+                          })?.icon,
                         ),
                         height: 100,
                       })}

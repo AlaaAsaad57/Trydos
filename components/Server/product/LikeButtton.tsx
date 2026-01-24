@@ -5,7 +5,7 @@ import home from "services/home";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 export function LikeButton({
   comment_id,
@@ -54,7 +54,10 @@ export function LikeButton({
       // handleLikeAction(!isLiked, isLiked ? likes - 1 : likes + 1);
       setLoading(false);
     } catch (error) {
-      // Revert to previous state if error occurred
+      LogError({
+        error: error,
+        scenario: "Error In ReactOnComment in LikeButton",
+      });
       setLoading(false);
       setIsLiked(previousIsLiked);
       setLikes(previousLikes);

@@ -16,6 +16,7 @@ import OrderItemsList from "components/settings/cards/OrderItemsList";
 import {
   getConfiguredImage,
   getUserChat,
+  LogError,
   RoundPrice,
   translateFunction,
 } from "utils/functions";
@@ -150,7 +151,10 @@ function OrderDetailsWrapper({
       }
       setShouldUpdateOrders(0);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error In getOrderDetails in OrderDetailsWrapper",
+      });
       setShouldUpdateOrders(0);
     }
 
@@ -295,6 +299,10 @@ function OrderDetailsWrapper({
       if (error.name === "AbortError") {
         return;
       }
+      LogError({
+        error: error,
+        scenario: "Error In getChatWithShipping in OrderDetailsWrapper",
+      });
       setIsGettingChat(false);
       console.log(error);
       EnableScroll();
@@ -574,6 +582,10 @@ const OrderExpandedDetails = ({
         setCancelling(false);
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In CancelReturnRequest in OrderDetailsWrapper",
+      });
       setCancelling(false);
     }
   };

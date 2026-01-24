@@ -1,7 +1,7 @@
 import { useAppStore } from "store";
 
 import { SendMessage } from "store/chat/actions";
-import { getUserChat, translateFunction } from "utils/functions";
+import { getUserChat, LogError, translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -39,10 +39,10 @@ export const getMessageStatusIcon = (status_array, mid) => {
   }
   if (
     status_array.filter(
-      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id),
     )[0]?.is_watched === true ||
     status_array.filter(
-      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id),
     )[0]?.watched_at
   )
     return (
@@ -55,10 +55,10 @@ export const getMessageStatusIcon = (status_array, mid) => {
     );
   else if (
     status_array.filter(
-      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id),
     )[0]?.is_received === 1 ||
     status_array.filter(
-      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id),
     )[0]?.received_at
   )
     return (
@@ -82,8 +82,8 @@ export const isNew = (ch) => {
       !mes.message_type.name.includes("Call") &&
       String(mes.sender_user_id) !== String(getUserChat()?.id) &&
       mes.message_status.filter(
-        (st) => String(st.user_id) === String(getUserChat()?.id)
-      )[0]?.is_watched === false
+        (st) => String(st.user_id) === String(getUserChat()?.id),
+      )[0]?.is_watched === false,
   ).length;
   return a;
 };
@@ -154,7 +154,7 @@ export const forwardMessage = async (m, activeChat) => {
     SendMessage(
       {
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -167,13 +167,13 @@ export const forwardMessage = async (m, activeChat) => {
         mid: i,
         cid: activeChat?.id,
       },
-      false
+      false,
     );
     sendMessage({
       act: activeChat,
       message: {
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -194,7 +194,7 @@ export const forwardMessage = async (m, activeChat) => {
             is_received: 0,
             is_watched: false,
             user_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(user.id)
+              (a) => parseInt(a.user_id) !== parseInt(user.id),
             )[0]?.user_id,
           },
         ],
@@ -217,7 +217,7 @@ export const forwardMessage = async (m, activeChat) => {
         cid: activeChat?.id,
         is_forward: 1,
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -227,14 +227,14 @@ export const forwardMessage = async (m, activeChat) => {
         parent_message_id: null,
         message_type: "ImageMessage",
       },
-      false
+      false,
     );
     sendMessage({
       act: activeChat,
       message: {
         mid: i,
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -255,7 +255,7 @@ export const forwardMessage = async (m, activeChat) => {
             is_received: 0,
             is_watched: false,
             user_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(user.id)
+              (a) => parseInt(a.user_id) !== parseInt(user.id),
             )[0]?.user_id,
           },
         ],
@@ -279,7 +279,7 @@ export const forwardMessage = async (m, activeChat) => {
         cid: activeChat?.id,
         is_forward: 1,
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -289,7 +289,7 @@ export const forwardMessage = async (m, activeChat) => {
         parent_message_id: null,
         message_type: "VoiceMessage",
       },
-      false
+      false,
     );
     sendMessage({
       act: activeChat,
@@ -298,7 +298,7 @@ export const forwardMessage = async (m, activeChat) => {
         cid: activeChat?.id,
         is_forward: 1,
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -319,7 +319,7 @@ export const forwardMessage = async (m, activeChat) => {
             is_received: 0,
             is_watched: false,
             user_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(user.id)
+              (a) => parseInt(a.user_id) !== parseInt(user.id),
             )[0]?.user_id,
           },
         ],
@@ -342,7 +342,7 @@ export const forwardMessage = async (m, activeChat) => {
         cid: activeChat?.id,
         is_forward: 1,
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -352,7 +352,7 @@ export const forwardMessage = async (m, activeChat) => {
         parent_message_id: null,
         message_type: "VideoMessage",
       },
-      false
+      false,
     );
     sendMessage({
       act: activeChat,
@@ -360,7 +360,7 @@ export const forwardMessage = async (m, activeChat) => {
         is_forward: 1,
         mid: i,
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -381,7 +381,7 @@ export const forwardMessage = async (m, activeChat) => {
             is_received: 0,
             is_watched: false,
             user_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(user.id)
+              (a) => parseInt(a.user_id) !== parseInt(user.id),
             )[0]?.user_id,
           },
         ],
@@ -405,7 +405,7 @@ export const forwardMessage = async (m, activeChat) => {
         cid: activeChat?.id,
         is_forward: 1,
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -415,14 +415,14 @@ export const forwardMessage = async (m, activeChat) => {
         parent_message_id: null,
         message_type: "FileMessage",
       },
-      false
+      false,
     );
     sendMessage({
       act: activeChat,
       message: {
         mid: i,
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -443,7 +443,7 @@ export const forwardMessage = async (m, activeChat) => {
             is_received: 0,
             is_watched: false,
             user_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(user.id)
+              (a) => parseInt(a.user_id) !== parseInt(user.id),
             )[0]?.user_id,
           },
         ],
@@ -467,7 +467,7 @@ export const forwardMessage = async (m, activeChat) => {
         cid: activeChat?.id,
         is_forward: 1,
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -477,14 +477,14 @@ export const forwardMessage = async (m, activeChat) => {
         parent_message_id: null,
         message_type: "ShareProduct",
       },
-      false
+      false,
     );
     sendMessage({
       act: activeChat,
       message: {
         mid: i,
         receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
+          (a) => parseInt(a.user_id) !== parseInt(user.id),
         )[0]?.user_id,
         // receiver_role_id: activeChat.channel_members.filter(
         //   (a) => parseInt(a.user_id) !== parseInt(user.id)
@@ -505,7 +505,7 @@ export const forwardMessage = async (m, activeChat) => {
             is_received: 0,
             is_watched: false,
             user_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(user.id)
+              (a) => parseInt(a.user_id) !== parseInt(user.id),
             )[0]?.user_id,
           },
         ],
@@ -538,7 +538,11 @@ const uploadFile = async (file_name, file) => {
     }
     return response;
   } catch (err) {
-    console.error(err);
+    LogError({
+      error: err,
+      scenario: "Upload file for chat",
+      file_name: file,
+    });
     return null;
   }
 };
@@ -549,7 +553,7 @@ export const upload = async (file) => {
     b = "";
   let response = await uploadFile(
     currentFile.name?.split(".")[0] || "image",
-    file
+    file,
   );
   if (response && response.code === 200 && response.data?.file_path) {
     a = response.data.file_path;

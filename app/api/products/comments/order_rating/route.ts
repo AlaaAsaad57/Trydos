@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ReportError } from "utils/errorReported";
 import { LogError } from "utils/functions";
 import { GetRatingCommentsFromElastic } from "utils/pagesDataRequests/ProductPageData";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function POST(req: NextRequest) {
   const headers = {
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     if (!order_detail_ids || !user_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     let data = await GetRatingCommentsFromElastic({
@@ -37,21 +38,13 @@ export async function POST(req: NextRequest) {
 
         code: 200,
       },
-      { status: 200, headers }
+      { status: 200, headers },
     );
   } catch (error: any) {
-    ReportError(error, {
+    LogServerError({
+      error,
       source: "get rating comment for order server api",
       userId: user_id,
-      page: referer,
-      url: "/public_comment/comments/order_rating",
-      method: "POST",
-      body,
-    });
-    LogError({
-      source: "get rating comment for order server api",
-      userId: user_id,
-      error: error,
       page: referer,
       url: "/public_comment/comments/order_rating",
       method: "POST",
@@ -67,7 +60,7 @@ export async function POST(req: NextRequest) {
         data: null,
         code: 500,
       },
-      { status: 500, headers }
+      { status: 500, headers },
     );
   }
 }

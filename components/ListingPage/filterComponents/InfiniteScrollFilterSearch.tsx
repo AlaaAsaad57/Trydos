@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import search from "services/search";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 type Term = "brands" | "categories" | "boutiques";
 
@@ -47,7 +47,10 @@ export function useInfiniteScrollFiltersSearch() {
 
       setLoading(false);
     } catch (error) {
-      console.log(error, "getSearchOptions");
+      LogError({
+        error: error,
+        scenario: "Get Next Search Filters",
+      });
       setLoading(false);
     }
   };

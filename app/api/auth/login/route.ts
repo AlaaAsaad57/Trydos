@@ -7,6 +7,7 @@ import {
   VERIFY_OTP_ENDPOINT,
 } from "utils/fetch/Endpoints";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { LogServerError } from "utils/serverErrorReporter";
 
 // Helper to handle sub-service fetches safely
 async function safeServiceLogin(url: string, body: any) {
@@ -22,13 +23,20 @@ async function safeServiceLogin(url: string, body: any) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch((e) => {
+        LogServerError(
+          { error: e, type: "login api route", url, body },
+          "/api/auth/login",
+        );
+        return {};
+      });
       return { success: false, status: response.status, data: errorData };
     }
 
     const data = await response.json();
     return { success: true, status: 200, data };
   } catch (err) {
+    LogServerError({ error: err, type: "login api route", url, body });
     return { success: false, status: 503, error: err.message };
   }
 }
@@ -55,7 +63,7 @@ export async function GET(request: NextRequest) {
     if (!verificationId || !otp) {
       return NextResponse.json(
         { error: "Bad Request", message: "Missing params" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -93,14 +101,14 @@ export async function GET(request: NextRequest) {
           mobile_phone: String(InventoryUser.phone),
           name: String(name || InventoryUser.name),
           original_user_id: String(InventoryUser.id),
-        }
+        },
       ),
       safeServiceLogin(
         process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
         {
           otp_id_token: idToken,
           mobile_phone: InventoryUser.phone,
-        }
+        },
       ),
       safeServiceLogin(
         process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL + LOG_IN_COMMENTS_ENDPOINT,
@@ -108,7 +116,7 @@ export async function GET(request: NextRequest) {
           user_id: String(InventoryUser.id),
           phone: String(InventoryUser.phone),
           id_token: idToken,
-        }
+        },
       ),
     ]);
 
@@ -175,13 +183,14 @@ export async function GET(request: NextRequest) {
         StoriesUser: storiesRes.data?.data || null,
         is_failed: failures.length > 0 ? failures : undefined,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
+    LogServerError({ error, type: "api route Login Handler Error" });
     console.error("Login Handler Error:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
