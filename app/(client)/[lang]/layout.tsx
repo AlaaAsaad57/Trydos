@@ -17,13 +17,12 @@ import dynamic from "next/dynamic";
 import PageLoadingIndicator from "hooks/PageLoadingIndicator";
 import Organaization from "serverRequests/meta/StructuredData/Organaization";
 import Website from "serverRequests/meta/StructuredData/Website";
+import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_REMOTE_FRONT || "https://trydos.vercel.app",
-  ),
+  metadataBase: new URL(General_Site_Data.url),
 };
 export const viewport = {
   width: "device-width",

@@ -9,6 +9,7 @@ import { BuyersCommentItem } from "components/Server/product/ProductBuyersCommen
 import { cookies } from "next/headers";
 import FaqItemComponent from "components/Server/product/ProductFAQSection/FaqItemComponent";
 import { LogServerError } from "utils/serverErrorReporter";
+import { General_Site_Data } from "./meta/StructuredData/Constants";
 
 let client = elasticSearchClient;
 export async function GetGlobalProduct({ slug, country, language }) {
@@ -140,17 +141,17 @@ export async function GetProductMeta({
       title: title,
       description: stripHtml(product?.details),
       alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-${language}/products/${slug}`,
+        canonical: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
         languages: {
-          en: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-en/products/${slug}`,
-          tr: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-tr/products/${slug}`,
-          ar: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-ar/products/${slug}`,
+          en: `${General_Site_Data.url}/${country}-en/products/${slug}`,
+          tr: `${General_Site_Data.url}/${country}-tr/products/${slug}`,
+          ar: `${General_Site_Data.url}/${country}-ar/products/${slug}`,
         },
       },
       openGraph: {
         title: title,
         description: stripHtml(product?.details),
-        url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-${language}/products/${slug}`,
+        url: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
         siteName: "Trydos",
         images: [
           {
