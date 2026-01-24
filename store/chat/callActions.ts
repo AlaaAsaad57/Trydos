@@ -1,5 +1,5 @@
 import { useAppStore } from "store";
-import { getUserChat, translateFunction } from "utils/functions";
+import { getUserChat, LogError, translateFunction } from "utils/functions";
 import {
   showSuccessNotification,
   showErrorNotification,
@@ -13,14 +13,14 @@ export const makeVideoCall = async (
   callerName,
   callerPhoto,
   mobilePhone,
-  privatePayload = null
+  privatePayload = null,
 ) => {
   let permissions = await requestPermissions({ camera: true, mic: true });
   if (!permissions) {
     showErrorNotification(
       translateFunction(
-        "Please enable  permissions (camera,mic) to use calls features"
-      )
+        "Please enable  permissions (camera,mic) to use calls features",
+      ),
     );
     return;
   }
@@ -78,9 +78,12 @@ export const makeVideoCall = async (
     editCall(response.data.message);
     setCallLoading(null);
   } catch (e) {
+    LogError({
+      scenario: "Error in makeVideoCall in  callActions",
+      error: e instanceof Error ? e.message : String(e),
+    });
     showErrorNotification(translateFunction("User in Another Call"));
     endCall(-1);
-    console.error(e);
   }
 };
 export const makeVoiceCall = async (
@@ -88,14 +91,14 @@ export const makeVoiceCall = async (
   callerName,
   callerPhoto,
   mobilePhone,
-  privatePayload = null
+  privatePayload = null,
 ) => {
   let permissions = await requestPermissions({ camera: false, mic: true });
   if (!permissions) {
     showErrorNotification(
       translateFunction(
-        "Please enable  permissions (camera,mic) to use calls features"
-      )
+        "Please enable  permissions (camera,mic) to use calls features",
+      ),
     );
     throw new Error("Permissions not granted for calls");
   }
@@ -146,7 +149,10 @@ export const makeVoiceCall = async (
     editCall(response.data.message);
     setCallLoading(null);
   } catch (e) {
-    console.error(e);
+    LogError({
+      scenario: "Error in makeVoiceCall in  callActions",
+      error: e instanceof Error ? e.message : String(e),
+    });
     showErrorNotification(translateFunction("User in Another Call"));
     setCallLoading(null);
   }
@@ -160,7 +166,7 @@ export const AnswerCall = async (channelId, messageId) => {
     let status = null;
 
     showSuccessNotification(
-      translateFunction("Initialize Call please wait..", language)
+      translateFunction("Initialize Call please wait..", language),
     );
     let response = await fetchData({
       url: `/api/v1/messages/${messageId}/users`,
@@ -173,7 +179,7 @@ export const AnswerCall = async (channelId, messageId) => {
     }
     if (
       response.data.filter(
-        (user) => parseInt(user.user.id) === parseInt(getUserChat().id as any)
+        (user) => parseInt(user.user.id) === parseInt(getUserChat().id as any),
       )[0].status === "active"
     )
       status = true;
@@ -194,14 +200,17 @@ export const AnswerCall = async (channelId, messageId) => {
       answerCall(response2.data);
     } else {
       showErrorNotification(
-        translateFunction("Call Answered from another account", language)
+        translateFunction("Call Answered from another account", language),
       );
       endCall(messageId);
     }
     setCallLoading(null);
   } catch (e) {
     setCallLoading(null);
-    console.error(e);
+    LogError({
+      scenario: "Error in AnswerCall in  callActions",
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 };
 export const InCall = async (user_id, messageId) => {
@@ -224,7 +233,10 @@ export const InCall = async (user_id, messageId) => {
       }
     }
   } catch (e) {
-    console.error(e);
+    LogError({
+      scenario: "Error in InCall in  callActions",
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 };
 export const RefuseCall = async (channelId, messageId, duration) => {
@@ -260,7 +272,10 @@ export const RefuseCall = async (channelId, messageId, duration) => {
       endCall(messageId);
     }
   } catch (e) {
-    console.error(e);
+    LogError({
+      scenario: "Error in RefuseCall in  callActions",
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 };
 export const Answer = async (channelId, messageId) => {
@@ -282,6 +297,9 @@ export const Answer = async (channelId, messageId) => {
       throw new Error(response.message);
     }
   } catch (e) {
-    console.error(e);
+    LogError({
+      scenario: "Error in Answer in  callActions",
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 };

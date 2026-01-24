@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 import auth from "services/auth";
 
@@ -48,6 +48,10 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
       //   goBack();
       window.location.href = `/${local}/settings/profile`;
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In updateUserProfile in PersonalInfoForm",
+      });
       setLoading(false);
       setUserProfileData({
         name: initialData?.name,

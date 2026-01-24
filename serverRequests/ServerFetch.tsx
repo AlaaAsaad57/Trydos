@@ -1,3 +1,5 @@
+import { LogServerError } from "utils/serverErrorReporter";
+
 interface FetchOptions {
   url: string;
   revalidate?: number;
@@ -69,10 +71,10 @@ const createServerFetch = async <T = any,>({
         attempt < retryAttempts
       ) {
         console.warn(
-          `Attempt ${attempt} failed with status ${response.status}, retrying...`
+          `Attempt ${attempt} failed with status ${response.status}, retrying...`,
         );
         await new Promise((resolve) =>
-          setTimeout(resolve, retryDelay * attempt)
+          setTimeout(resolve, retryDelay * attempt),
         );
         return handleRetry(attempt + 1);
       }
@@ -96,14 +98,19 @@ const createServerFetch = async <T = any,>({
 
       if (isNetworkError && attempt < retryAttempts) {
         console.warn(
-          `Attempt ${attempt} failed due to network error, retrying...`
+          `Attempt ${attempt} failed due to network error, retrying...`,
         );
         await new Promise((resolve) =>
-          setTimeout(resolve, retryDelay * attempt)
+          setTimeout(resolve, retryDelay * attempt),
         );
         return handleRetry(attempt + 1);
       }
-
+      LogServerError({
+        local,
+        error: error,
+        url,
+        scenario: "Error In fetchServerData in serverRequest/ServerFetch",
+      });
       return {
         data: null,
         error:

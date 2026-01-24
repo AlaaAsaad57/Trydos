@@ -356,11 +356,14 @@ export const getOldCart = async () => {
     const { storeOldCart } = useAppStore.getState();
     storeOldCart(response.data?.original?.data);
   } catch (error) {
-    console.error(error);
+    LogError({
+      scenario: "Error in getOldCart in  functions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 export const getCart = async ({ callback }) => {
-  const { initCart, cart, setCartShippingSuccess } = useAppStore.getState();
+  const { initCart, setCartShippingSuccess } = useAppStore.getState();
   const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
   const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
   if (!deviceToken && !marketToken) return { cart: [] };
@@ -380,6 +383,10 @@ export const getCart = async ({ callback }) => {
     initCart(response.data);
     return response.data;
   } catch (err) {
+    LogError({
+      scenario: "Error in getCart in  functions",
+      error: err instanceof Error ? err.message : String(err),
+    });
     if (callback) callback([{ cart: [] }]);
     return { cart: [] };
   }
@@ -399,7 +406,10 @@ export const GetCartOreview = async () => {
     }
     setCartPreview(response.data);
   } catch (error) {
-    console.error(error);
+    LogError({
+      scenario: "Error in GetCartOreview in  functions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 export const LogError = async (error) => {

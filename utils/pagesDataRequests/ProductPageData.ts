@@ -3,6 +3,7 @@ import { fetchProductDetails } from "serverRequests";
 import { GetRecommendationCountForProduct } from "serverRequests/product";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { LogServerError } from "utils/serverErrorReporter";
 
 let client = elasticSearchClient;
 export const GetProductData = async (params: {
@@ -14,7 +15,7 @@ export const GetProductData = async (params: {
     let productData = await fetchProductDetails(
       params.productId,
       language,
-      country
+      country,
     );
     if (!productData?.id) {
       throw { message: "Couldnt Fetch Product" };
@@ -23,6 +24,10 @@ export const GetProductData = async (params: {
       product: productData,
     };
   } catch (error) {
+    LogServerError({
+      scenario: "GetProductData in ProductPageData",
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   }
 };
@@ -98,7 +103,10 @@ export const getProductDataFromElastic = async ({
       good_quality_product: likeDetails?.good_quality_product,
     };
   } catch (error) {
-    console.error(error);
+    LogServerError({
+      scenario: "getProductDataFromElastic in ProductPageData",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 async function getProductSharedCountFromElasticsearch(productId, slug, lang) {
@@ -114,6 +122,10 @@ async function getProductSharedCountFromElasticsearch(productId, slug, lang) {
     });
     return { ...res, isError: false, error: null };
   } catch (error) {
+    LogServerError({
+      scenario: "getProductSharedCountFromElasticsearch in ProductPageData",
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { isError: true, error: error };
   }
 }
@@ -559,6 +571,10 @@ async function getProductInteractions(productId: string, userId?: string) {
       is_liked: isLiked,
     };
   } catch (err: any) {
+    LogServerError({
+      scenario: "getProductInteractions in ProductPageData",
+      error: err instanceof Error ? err.message : String(err),
+    });
     if (err.meta?.statusCode === 404) {
       return {
         is_liked: false,

@@ -69,7 +69,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
         const currentLang = Array.isArray(lang) ? lang[0] : lang;
         const newPath = pathname.replace(
           `/${currentLang}`,
-          `/${localizationVar}`
+          `/${localizationVar}`,
         );
 
         // Create final URL with bypass flag
@@ -80,18 +80,15 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
         finalUrl.searchParams.delete("changed-country");
         finalUrl.searchParams.delete("no-country");
 
-        console.log("🚀 Navigating to:", finalUrl.toString());
-
         // Use replace to prevent back button issues
         window.location.replace(finalUrl.toString());
       } catch (error) {
-        console.error("Navigation error:", error);
         setLoadingWidget(false);
         setNavigating(false);
         navigationInProgress.current = false;
       }
     },
-    [lang, pathname, navigating, setCookiesAllMethods]
+    [lang, pathname, navigating, setCookiesAllMethods],
   );
 
   // Initialize countries loading
@@ -125,10 +122,10 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
       if (!countryValue || !options) return null;
       return options.find(
         (country) =>
-          country.value?.toLowerCase() === countryValue?.toLowerCase()
+          country.value?.toLowerCase() === countryValue?.toLowerCase(),
       );
     },
-    [options]
+    [options],
   );
 
   // Get current language
@@ -199,7 +196,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
           <p className="text-gray-600 text-sm text-center">
             {translateFunction(
               "Please wait while we set up your country selection",
-              currentLanguage
+              currentLanguage,
             )}
           </p>
         </div>
@@ -238,7 +235,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                   <CountryInfoRow
                     message={`${translateFunction(
                       "You previously visited from",
-                      currentLanguage
+                      currentLanguage,
                     )} ${
                       getCountryInfo(decodeURI(forChanged).split(",")[1])
                         ?.label ||
@@ -270,7 +267,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                         UpdateUrl(
                           `${
                             decodeURI(forChanged).split(",")[0]
-                          }-${currentLanguage}`
+                          }-${currentLanguage}`,
                         );
                       }}
                     >
@@ -333,7 +330,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                   hideTopBar
                   infoMessage={translateFunction(
                     "Choose your country to get the best experience",
-                    currentLanguage
+                    currentLanguage,
                   )}
                 />
               )}
@@ -430,7 +427,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
               ? translateFunction("Do not close this window", currentLanguage)
               : translateFunction(
                   "Preparing your experience...",
-                  currentLanguage
+                  currentLanguage,
                 )}
           </p>
         </div>

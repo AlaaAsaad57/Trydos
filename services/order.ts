@@ -7,6 +7,7 @@ import auth from "./auth";
 import { REQUESTS_DATA } from "utils/Requests";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { returnDetails } from "utils/types/OrderInterface";
+import { LogServerError } from "utils/serverErrorReporter";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
@@ -43,6 +44,10 @@ class OrderService {
 
       setOrderLoading(false);
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In PlaceOrder in services/order",
+      });
       setOrderLoading(false);
     }
   }
@@ -75,7 +80,10 @@ class OrderService {
       return response.data;
     } catch (error) {
       setOrderLoading(false);
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In GetWallet in services/order",
+      });
     }
   }
   async GetWalletTransactions(limit: number = 10, offset: number = 1) {
@@ -93,7 +101,10 @@ class OrderService {
       }
       return response.data;
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In GetWalletTransactions in services/order",
+      });
       throw error;
     }
   }
@@ -117,7 +128,10 @@ class OrderService {
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In GetAddressList in services/order",
+      });
     }
   }
   async SetDefault({ id }) {
@@ -142,6 +156,10 @@ class OrderService {
       await GetCartOreview();
       setOrderLoading(false);
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In SetDefault Address in services/order",
+      });
       setOrderLoading(false);
     }
   }
@@ -186,7 +204,10 @@ class OrderService {
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In AddAddressList in services/order",
+      });
     }
   }
   async UpdateAddressList({ address, callback }) {
@@ -227,6 +248,10 @@ class OrderService {
       }
       setOrderLoading(false);
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In UpdateAddressList in services/order",
+      });
       setOrderLoading(false);
     }
   }
@@ -248,7 +273,10 @@ class OrderService {
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In DeleteAddressList in services/order",
+      });
     }
   }
   async GetProvinces() {
@@ -267,7 +295,10 @@ class OrderService {
       setProvinces(response.data);
       setOrderLoading(false);
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In GetProvinces in services/order",
+      });
       setOrderLoading(false);
     }
   }
@@ -286,7 +317,10 @@ class OrderService {
       }
       return response.data;
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In getOrderDetails in services/order",
+      });
       return null;
     }
   }
@@ -305,7 +339,10 @@ class OrderService {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In CancelOrder in services/order",
+      });
     }
   }
   async CancelOrderItem({ order_id, qty, item_id }) {
@@ -323,7 +360,10 @@ class OrderService {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In CancelOrderItem in services/order",
+      });
     }
   }
   async changeOrderAddress({ order_id, address_id }) {
@@ -344,7 +384,10 @@ class OrderService {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In changeOrderAddress in services/order",
+      });
     }
   }
   async changeOrderItemVariant({ color, choice_1, order_detail_id, image }) {
@@ -367,7 +410,10 @@ class OrderService {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In changeOrderItemVariant in services/order",
+      });
     }
   }
   async RateOrderWithhComment({
@@ -433,7 +479,10 @@ class OrderService {
         throw new Error(res?.message);
       }
     } catch (e) {
-      console.log(e);
+      LogServerError({
+        error: e,
+        scenario: "Error In RateOrderWithhComment in services/order",
+      });
       throw new Error(e?.message);
     }
   }
@@ -452,7 +501,10 @@ class OrderService {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In getReturnReasons in services/order",
+      });
     }
   }
   async CreateReturnRequest({ order_id }) {
@@ -464,7 +516,12 @@ class OrderService {
         server: "market",
       });
       return resp?.data?.return_request_id;
-    } catch (error) {}
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In CreateReturnRequest in services/order",
+      });
+    }
   }
   async UploadImageForOrderReturn({ image }) {
     let formData = new FormData();
@@ -485,7 +542,10 @@ class OrderService {
       }
       return response?.data;
     } catch (err) {
-      console.error(err);
+      LogServerError({
+        error: err,
+        scenario: "Error In UploadImageForOrderReturn in services/order",
+      });
       return null;
     }
   }
@@ -508,7 +568,10 @@ class OrderService {
       }
       return response?.data;
     } catch (err) {
-      console.error(err);
+      LogServerError({
+        error: err,
+        scenario: "Error In UploadImageForRating in services/order",
+      });
       return null;
     }
   }
@@ -531,7 +594,12 @@ class OrderService {
       } else {
         throw new Error(response.message);
       }
-    } catch (error) {}
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In UpdateReturnedProduct in services/order",
+      });
+    }
   }
   async ReturnProduct({
     product_id,
@@ -569,7 +637,12 @@ class OrderService {
       } else {
         throw new Error(response.message);
       }
-    } catch (error) {}
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In ReturnProduct in services/order",
+      });
+    }
   }
   async CancelReturn({ return_request_product_id }) {
     try {
@@ -584,7 +657,12 @@ class OrderService {
       } else {
         throw new Error(response.message);
       }
-    } catch (error) {}
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In CancelReturn in services/order",
+      });
+    }
   }
   async getReturnRequestDetails({ order_id = null, return_request_id = null }) {
     try {
@@ -603,6 +681,10 @@ class OrderService {
       if (response?.success) return response.data;
       else throw new Error();
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In getReturnRequestDetails in services/order",
+      });
       throw error;
     }
   }
@@ -620,6 +702,10 @@ class OrderService {
       if (response?.success) return response.data;
       else throw new Error();
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In ConfirmReturnRequest in services/order",
+      });
       throw error;
     }
   }
@@ -634,6 +720,10 @@ class OrderService {
       if (response?.success) return response.data;
       else throw new Error();
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In ViewReturnRequest in services/order",
+      });
       throw error;
     }
   }
@@ -651,6 +741,10 @@ class OrderService {
       if (response?.success) return response.data;
       else throw new Error();
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In CancelReturnRequest in services/order",
+      });
       throw error;
     }
   }

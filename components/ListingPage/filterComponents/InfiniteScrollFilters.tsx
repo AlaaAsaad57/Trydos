@@ -2,6 +2,7 @@
 import Spinner from "components/global/Spinner";
 import React from "react";
 import { GetNextPageFilters } from "serverRequests/listing";
+import { LogError } from "utils/functions";
 import { translateFunction } from "utils/server";
 
 function InfiniteScrollFilters({
@@ -58,6 +59,10 @@ function InfiniteScrollFilters({
       }
       setLoading(false);
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Get Next Filters in InfinteScrollFiters",
+      });
       setLoading(false);
     }
   };

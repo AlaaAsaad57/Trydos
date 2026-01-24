@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   getConfiguredImage,
+  LogError,
   RoundPrice,
   translateFunction,
 } from "utils/functions";
@@ -45,8 +46,8 @@ function ChangeOrderItem({
     item?.variation?.[0]?.color
       ? "Change Color"
       : item?.variation?.[0]?.Size
-      ? "Change Size"
-      : "Change Qty"
+        ? "Change Size"
+        : "Change Qty",
   );
   let optinsTabs = [
     {
@@ -63,7 +64,7 @@ function ChangeOrderItem({
     },
   ];
   const [color, setColor] = useState<string>(
-    item?.variation?.[0]?.color_options
+    item?.variation?.[0]?.color_options,
   );
 
   const [size, setSize] = useState<string>(item?.variation?.[0]?.size_options);
@@ -76,7 +77,7 @@ function ChangeOrderItem({
 
     let variationText = variation.join("-");
     let selected_vartion = productData?.variation?.find(
-      (s) => s.type?.toLowerCase() === variationText?.toLowerCase()
+      (s) => s.type?.toLowerCase() === variationText?.toLowerCase(),
     );
 
     return selected_vartion;
@@ -119,6 +120,10 @@ function ChangeOrderItem({
       ]);
       setProductData({ ...data1.data, ...data2.data });
     } catch (err) {
+      LogError({
+        error: err,
+        scenario: "Error in getProductDetails in ChangeOrderItem ",
+      });
       console.error(err);
     }
   };
@@ -141,7 +146,7 @@ function ChangeOrderItem({
         ?.filter(
           (s) =>
             item?.variation?.[0]?.color === s.color_name ||
-            item?.variation?.[0]?.color === s.color_option
+            item?.variation?.[0]?.color === s.color_option,
         )[0];
       if (!isSameColor(selectedColor, previousColor)) {
         return true;
@@ -244,7 +249,7 @@ function ChangeOrderItem({
           </span>
           <span className="regular text-[12px] mt-[11px] text-[#8D8D8D] text-center gap-[4px]">
             {translateFunction(
-              "You Can Change Size, Color, Qty Of  The Product Without Any Conditions According To The Change Policy"
+              "You Can Change Size, Color, Qty Of  The Product Without Any Conditions According To The Change Policy",
             )}
             {isChanged() && (
               <pre
@@ -277,7 +282,7 @@ function ChangeOrderItem({
                 onClick={() => {
                   if (canNavigateToNextTab()) {
                     showErrorNotification(
-                      translateFunction("Confirm the Changes First")
+                      translateFunction("Confirm the Changes First"),
                     );
                   } else {
                     setTabs(s.name);
@@ -376,8 +381,8 @@ const ChangeColorWidget = ({ color, setColor, item, productData }) => {
         colors={productData?.sync_color_images?.filter((s) =>
           productData.colors?.find(
             (color) =>
-              color.option === s.color_option || color.name === s.color_name
-          )
+              color.option === s.color_option || color.name === s.color_name,
+          ),
         )}
         setColor={setColor}
         sizes={productData?.choice_options?.[0]?.options || []}
@@ -491,8 +496,8 @@ const ChangeQtyWidget = ({
             if (parseInt(pollinateInput(e.target.value)) > item.qty) {
               showErrorNotification(
                 translateFunction(
-                  "You Can't Change Qty To Higher Than The Current Qty"
-                )
+                  "You Can't Change Qty To Higher Than The Current Qty",
+                ),
               );
             } else {
               setQty(Math.max(0, parseInt(pollinateInput(e.target.value))));

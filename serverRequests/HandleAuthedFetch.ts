@@ -1,6 +1,7 @@
 "use server";
 import { cookies } from "next/headers";
 import { fetchServerData } from "./ServerFetch"; // Adjust path accordingly
+import { LogError } from "utils/functions";
 
 // Interfaces based on your snippets
 interface UserData {
@@ -30,7 +31,7 @@ const REGISTER_DEVICE_URL = "/auth/register-guest";
  * Utility to handle authenticated fetches with automatic 401 token refreshing.
  */
 export const HandleAuthedFetch = async <T = any>(
-  options: FetchOptions
+  options: FetchOptions,
 ): Promise<any> => {
   const cookieStore = await cookies();
   let token =
@@ -90,6 +91,10 @@ export const HandleAuthedFetch = async <T = any>(
         return res;
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In HandleAuthedFetch in HandleAuthedFetch",
+      });
       console.error("Auth Refresh Failed:", error);
     }
   }

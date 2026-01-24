@@ -1,3 +1,4 @@
+import { LogServerError } from "utils/serverErrorReporter";
 import { elasticSearchClient } from "./elasticsearch.config";
 
 import { estypes } from "@elastic/elasticsearch";
@@ -40,7 +41,10 @@ export class ElasticsearchReader {
 
       return result;
     } catch (error) {
-      console.error("Elastic Categories:", error);
+      LogServerError({
+        scenario: "getCategories in elasticsearch-reader",
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw new Error(`Search failed: ${error}`);
     }
   }
@@ -291,7 +295,7 @@ export class ElasticsearchReader {
       for (const boutique of customProducts) {
         if (Array.isArray(boutique.custom_boutiques)) {
           boutique.custom_boutiques = boutique.custom_boutiques.filter(
-            (cb) => cb.language_code === language
+            (cb) => cb.language_code === language,
           );
         }
       }
@@ -482,7 +486,7 @@ export class ElasticsearchReader {
               origMap[catId] &&
               origMap[catId].most_viewed_product_thumbnail !== null
                 ? origMap[catId].most_viewed_product_thumbnail
-                : thumbHit.thumbnail ?? null,
+                : (thumbHit.thumbnail ?? null),
 
             most_viewed_product_name: thumbHit.name ?? null,
           });
@@ -526,7 +530,7 @@ export class ElasticsearchReader {
         for (const cb of boutique.custom_boutiques) {
           if (cb.banners) {
             cb.banners = cb.banners.filter(
-              (banner: any) => banner.deleted_at === null
+              (banner: any) => banner.deleted_at === null,
             );
           }
         }
@@ -553,7 +557,10 @@ export class ElasticsearchReader {
 
       return { boutiques: final, searchAfter: newSearchAfter };
     } catch (error) {
-      console.error("GET BOUTIQUE ERROR FROM ELASTIC:", error);
+      LogServerError({
+        scenario: "getBoutiques in elasticsearch-reader",
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -686,7 +693,7 @@ export class ElasticsearchReader {
               },
             },
           },
-        }
+        },
       );
     }
 
@@ -764,7 +771,7 @@ export class ElasticsearchReader {
 
       // Get the correct language version
       const matched = (boutique.custom_boutiques || []).find(
-        (cb: any) => cb.language_code === language && cb.slug === slug
+        (cb: any) => cb.language_code === language && cb.slug === slug,
       );
 
       if (!matched) return null;
@@ -779,7 +786,10 @@ export class ElasticsearchReader {
         banners: filteredBanners,
       };
     } catch (error) {
-      console.log("Elastic Get Boutique Data:", error);
+      LogServerError({
+        scenario: "getBoutiqueInfo in elasticsearch-reader",
+        error: error instanceof Error ? error.message : String(error),
+      });
       return null;
     }
   }

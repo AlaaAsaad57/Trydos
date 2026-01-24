@@ -4,7 +4,7 @@ import AvatarEditor from "react-avatar-editor";
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
 
 import auth from "services/auth";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 import { GetImageUrl } from "utils/tinyUtils";
 import BackBar from "components/setting/BackBar";
@@ -150,7 +150,10 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
       return () => URL.revokeObjectURL(file);
     } catch (err) {
       setIsDragged(false);
-      console.error("Error uploading file:", err);
+      LogError({
+        error: err,
+        scenario: "Error In UploadFile in UploadProfilePhoto",
+      });
     } finally {
       setIsUploading(false);
     }

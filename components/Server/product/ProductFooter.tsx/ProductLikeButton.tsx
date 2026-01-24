@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import auth from "services/auth";
 import { showErrorNotification } from "store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -118,11 +118,15 @@ function ProductLikeButton({
         // Unsubscribe from topics
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In LikeProduct in ProductLikeProduct",
+      });
       setTotalLikes(currentLikes);
       setLiked(currentIsLiked);
       // Show error notification
       showErrorNotification(
-        translateFunction("Failed to update like status. Please try again.")
+        translateFunction("Failed to update like status. Please try again."),
       );
 
       console.error("Like/Unlike error:", error);

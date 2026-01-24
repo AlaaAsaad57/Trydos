@@ -1,7 +1,11 @@
 import Spinner from "components/global/Spinner";
 
 import React, { useState } from "react";
-import { getConfiguredImage, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  LogError,
+  translateFunction,
+} from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import { OrderInterface, returnDetails } from "utils/types/OrderInterface";
 import Order from "services/order";
@@ -88,11 +92,15 @@ function OrderItemOptions({
         setSelectedScreen("return");
       } else {
         showErrorNotification(
-          translateFunction("return this product is not allowed")
+          translateFunction("return this product is not allowed"),
         );
       }
       setIsInitializing(false);
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In initializeReturn in OrderItemOptions",
+      });
       setIsInitializing(false);
     }
   };
@@ -244,10 +252,10 @@ function OrderItemOptions({
                       {returnDetails?.return_requests_data
                         ?.find((s) => s.order_id === parentOrder?.id)
                         ?.order_details?.find(
-                          (s) => s.detail_id === orderItem?.id
+                          (s) => s.detail_id === orderItem?.id,
                         )?.already_return
                         ? translateFunction(
-                            "Update Return Request For This Product"
+                            "Update Return Request For This Product",
                           )
                         : translateFunction("Return This Product")}
                     </span>
@@ -292,7 +300,7 @@ function OrderItemOptions({
                     }`}
                   >
                     {translateFunction(
-                      "Delivery Time, Delivery Man, Delivery Car"
+                      "Delivery Time, Delivery Man, Delivery Car",
                     )}
                   </span>
                 </div>
@@ -429,7 +437,7 @@ function OrderItemOptions({
 
       {renderConfirmation()}
     </>,
-    document.body
+    document.body,
   );
 }
 

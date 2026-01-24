@@ -7,6 +7,7 @@ import {
 } from "utils/cookies/cookie-manager";
 import { fetchServerData } from "./ServerFetch";
 import { ReportError } from "utils/errorReported";
+import { LogServerError } from "utils/serverErrorReporter";
 
 interface StoryItem {
   id: string | number;
@@ -35,10 +36,10 @@ export async function fetchStoriesForUser(
   language: string,
   country: string,
   page: number = 1,
-  userToken?: string
+  userToken?: string,
 ): Promise<StoriesResponse> {
   const STORIES_TOKEN = await getCookieServer<UserData>(
-    COOKIE_NAMES.USER_STORIES
+    COOKIE_NAMES.USER_STORIES,
   );
 
   let headers = {
@@ -74,7 +75,12 @@ export async function fetchStoriesForUser(
       next_page_url: response.data?.data?.next_page_url,
     };
   } catch (error) {
-    console.error("Error fetching stories:", error);
+    LogServerError({
+      language,
+      country,
+      error: error,
+      scenario: "Error In fetchStoriesForUser in serverRequest/stories",
+    });
     return {
       data: [],
       next_page_url: undefined,
@@ -85,7 +91,7 @@ export async function fetchStoriesForUser(
 export async function fetchStoriesForGuest(
   language: string,
   country: string,
-  page: number = 1
+  page: number = 1,
 ): Promise<StoriesResponse> {
   let headers = {
     Accept: "application/json",
@@ -119,7 +125,12 @@ export async function fetchStoriesForGuest(
       next_page_url: response.data?.data?.next_page_url,
     };
   } catch (error) {
-    console.error("Error fetching stories:", error);
+    LogServerError({
+      language,
+      country,
+      error: error,
+      scenario: "Error In fetchStoriesForGuest in serverRequest/stories",
+    });
     return {
       data: [],
       next_page_url: undefined,

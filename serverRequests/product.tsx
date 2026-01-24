@@ -8,12 +8,13 @@ import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import { BuyersCommentItem } from "components/Server/product/ProductBuyersComment/BuyerCommentItem";
 import { cookies } from "next/headers";
 import FaqItemComponent from "components/Server/product/ProductFAQSection/FaqItemComponent";
+import { LogServerError } from "utils/serverErrorReporter";
 
 let client = elasticSearchClient;
 export async function GetGlobalProduct({ slug, country, language }) {
   try {
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
-      country
+      country,
     )}`;
 
     let productId = await GetFromRedis(slugKey);
@@ -41,11 +42,18 @@ export async function GetGlobalProduct({ slug, country, language }) {
       RedisSet(slugKey, freshGlobalData.data.data?.id);
       RedisSet(
         `product-id-${freshGlobalData.data.data?.id}-${country}-${language}-global`,
-        freshGlobalData.data.data
+        freshGlobalData.data.data,
       );
     }
     return { ...freshGlobalData.data?.data, globalFromRedis: false };
   } catch (error) {
+    LogServerError({
+      slug,
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetGlobalProduct in serverRequest/product",
+    });
     return { error };
     // log error
   }
@@ -53,7 +61,7 @@ export async function GetGlobalProduct({ slug, country, language }) {
 export async function GetProductPriceQtyDetails({ slug, country, language }) {
   try {
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
-      country
+      country,
     )}`;
     let productId = await GetFromRedis(slugKey);
     let cacheKey = `product-id-${productId}-${country}-${language}`;
@@ -79,11 +87,18 @@ export async function GetProductPriceQtyDetails({ slug, country, language }) {
       RedisSet(slugKey, freshQtyPricesData.data.data?.id);
       RedisSet(
         `product-id-${freshQtyPricesData.data.data?.id}-${country}-${language}-qtyPrices`,
-        freshQtyPricesData.data.data
+        freshQtyPricesData.data.data,
       );
     }
     return { ...freshQtyPricesData.data?.data, qtyPricesDataFromRedis: false };
   } catch (error) {
+    LogServerError({
+      slug,
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetProductPriceQtyDetails in serverRequest/product",
+    });
     // log error
   }
 }
@@ -164,6 +179,13 @@ export async function GetProductMeta({
     RedisSet(cacheKey, data, 3600);
     return { ...data, metaFromRedis: false };
   } catch (error) {
+    LogServerError({
+      slug,
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetProductMeta in serverRequest/product",
+    });
     // log error
   }
 }
@@ -184,6 +206,11 @@ export async function GetProductGeneralData({ id }) {
       });
       return res._source as any;
     } catch (error) {
+      LogServerError({
+        error: error,
+        id: id,
+        scenario: "Error In getProductGeneralQuery in serverRequest/product",
+      });
       return {
         _source: {
           final_rating: 0,
@@ -217,7 +244,13 @@ export async function GetProductGeneralData({ id }) {
       total_buyers: recommendation_stats.total_buyers,
     };
     return productInfo;
-  } catch (error) {}
+  } catch (error) {
+    LogServerError({
+      id: id,
+      error: error,
+      scenario: "Error In GetProductGeneralData in serverRequest/product",
+    });
+  }
 }
 
 export const GetRecommendationCountForProduct = async ({ product_id }) => {
@@ -687,7 +720,7 @@ export async function GetProductStories({ page, productId }) {
               // @ts-ignore
               story.stories[0]?.photo_path,
             // @ts-ignore
-            Boolean(story.stories[0]?.full_video_path)
+            Boolean(story.stories[0]?.full_video_path),
           )}
         />
         <div className="inset-story-shadow absolute" />
@@ -925,6 +958,12 @@ async function getProductSharedCountFromElasticsearch(productId) {
 
     return sharesData;
   } catch (error) {
+    LogServerError({
+      slug: productId,
+      error: error,
+      scenario:
+        "Error In getProductSharedCountFromElasticsearch in serverRequest/product",
+    });
     return null;
   }
 }
@@ -979,6 +1018,11 @@ async function getProductInteractions(productId: string, userId?: string) {
       is_liked: isLiked,
     };
   } catch (err: any) {
+    LogServerError({
+      slug: productId,
+      error: err,
+      scenario: "Error In getProductInteractions in serverRequest/product",
+    });
     return {
       is_liked: false,
       total_likes: 0,

@@ -28,6 +28,7 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogServerError } from "utils/serverErrorReporter";
 class HomeService {
   async getClientData() {
     const { setSettings, initCart, language } = useAppStore.getState();
@@ -65,7 +66,10 @@ class HomeService {
         if (chatUser) chat.getChats(false);
       }, 5000);
     } catch (e) {
-      console.error(e);
+      LogServerError({
+        error: e,
+        scenario: "Error In getClientData in services/home",
+      });
     }
   }
   async GetFireBaseSettings() {
@@ -83,6 +87,10 @@ class HomeService {
       const { getFirebaseSettings } = useAppStore.getState();
       getFirebaseSettings(response.data?.firebase_settings);
     } catch (err) {
+      LogServerError({
+        error: err,
+        scenario: "Error In GetFireBaseSettings in services/home",
+      });
       // Handle error as needed, e.g., set state or log
       const { getFirebaseSettings } = useAppStore.getState();
       getFirebaseSettings(null);
@@ -121,6 +129,10 @@ class HomeService {
         throw new Error("Customer Info Error");
       }
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In getCustomerInfo in services/home",
+      });
       showErrorNotification("Customer Info Error");
     }
   }
@@ -185,7 +197,10 @@ class HomeService {
         }
         setIsRegisteringReady(true);
       } catch (error) {
-        console.error(error);
+        LogServerError({
+          error: error,
+          scenario: "Error In registerForExpire in services/home",
+        });
         setIsRegisteringReady(true);
       }
     }
@@ -211,13 +226,19 @@ class HomeService {
             .then((payload) => {})
             .catch((err) => {
               LogError(err);
-              console.log(err);
+              LogServerError({
+                error: err,
+                scenario: "Error In onMessageListener in services/home",
+              });
             });
         }
       }
     } catch (error) {
       LogError(error);
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In AllowNotifications in services/home",
+      });
       throw new Error(
         translateFunction(
           "Notification Is Not Enabled! please Allow Notification Access",
@@ -383,7 +404,10 @@ class HomeService {
               });
           }
         } catch (err) {
-          console.error(err);
+          LogServerError({
+            error: err,
+            scenario: "Error In RegisterDevice in services/home",
+          });
         }
       }
     }
@@ -417,7 +441,10 @@ class HomeService {
         }
         getFirebaseSettings(response.data.firebase_settings);
       } catch (err) {
-        console.error(err);
+        LogServerError({
+          error: err,
+          scenario: "Error In subscribeToTopic in services/home",
+        });
       }
     }
   }
@@ -439,7 +466,10 @@ class HomeService {
       }
       getFirebaseSettings(response.data.firebase_settings);
     } catch (err) {
-      console.error(err);
+      LogServerError({
+        error: err,
+        scenario: "Error In UnsubscripeFromTopic in services/home",
+      });
     }
   }
   async handleTopicsOnPageRefresh(token: string) {
@@ -474,7 +504,10 @@ class HomeService {
         getFirebaseSettings(response?.data?.firebase_settings);
         localStorage.setItem("lastPair", countryCode + languageCode);
       } catch (err) {
-        console.error(err);
+        LogServerError({
+          error: err,
+          scenario: "Error In handleTopicsOnPageRefresh in services/home",
+        });
       }
     }
   }
@@ -493,7 +526,10 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (e) {
-      console.error(e);
+      LogServerError({
+        error: e,
+        scenario: "Error In hideOldCart in services/home",
+      });
     }
   }
 
@@ -707,7 +743,12 @@ class HomeService {
       if (!response.success) {
         throw new Error(response.message);
       }
-    } catch (error) {}
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In EditNotificationSettings in services/home",
+      });
+    }
   }
   async LikeComment({ comment_id, target_type, product_id }) {
     let resp = await fetchData({

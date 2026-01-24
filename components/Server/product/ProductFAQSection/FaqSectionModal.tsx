@@ -4,7 +4,7 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "react-loading-skeleton";
 
 import { useAppStore } from "store";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 import { GetProductFaqQuestions } from "serverRequests/product";
 import auth from "services/auth";
@@ -49,7 +49,10 @@ function FaqSectionModal({
       setCommentsData((prev) => [...(prev as any), ...data.comments]);
       OffsetRef.current = data.offset;
     } catch (err) {
-      console.error("Error loading comments:", err);
+      LogError({
+        error: err,
+        scenario: "Error In loadMore Faq Questions in FaqSectionModal",
+      });
     } finally {
       setLoading(false);
     }
@@ -97,7 +100,7 @@ function FaqSectionModal({
               >
                 {translateFunction(
                   "All The Questions Below Are From",
-                  language
+                  language,
                 )}
                 <span className="bold px-[4px]">
                   trydos {translateFunction("Visitors", language)}
@@ -105,7 +108,7 @@ function FaqSectionModal({
                 <span>
                   {translateFunction(
                     "And Not Necessarily From Customers Who Have Purchased The Product Before. These Are Pre-Purchase Questions, And They Are Answered Directly By The Seller",
-                    language
+                    language,
                   )}
                 </span>
               </p>
@@ -186,7 +189,7 @@ function FaqSectionModal({
               setActionLoading(true);
               let comment_id = await deleteComment(id);
               setCommentsData(
-                commentsData.filter((node) => node.key !== comment_id)
+                commentsData.filter((node) => node.key !== comment_id),
               );
               setActionLoading(false);
             }}
@@ -195,8 +198,8 @@ function FaqSectionModal({
               let { commentElement, id } = await editComment(comment);
               setCommentsData(
                 commentsData?.map((node) =>
-                  node.key === id ? commentElement : node
-                )
+                  node.key === id ? commentElement : node,
+                ),
               );
               setActionLoading(false);
             }}

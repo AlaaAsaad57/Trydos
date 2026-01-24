@@ -179,9 +179,7 @@ const waitUntilRegisteringComplete = async (): Promise<void> => {
       }, 300);
       setTimeout(() => clearInterval(interval), 300000); // 5 minutes timeout
     });
-  } catch (err) {
-    console.error("Failed to wait for registration to complete:", err);
-  }
+  } catch (err) {}
 };
 
 const handleUnauthorized = async (
@@ -273,7 +271,6 @@ const handleUnauthorized = async (
         return false;
     }
   } catch (err) {
-    console.error("Error in handleUnauthorized:", err);
     return false;
   }
 };

@@ -72,6 +72,11 @@ export const requestFirebaseNotificationPermission = async () => {
       }
     })
     .catch((err) => {
+      LogError({
+        scenario:
+          "Error in getToken in requestFirebaseNotificationPermission in  firebaseInit",
+        error: err instanceof Error ? err.message : String(err),
+      });
       setNotificationPermission(false);
       LogError(err);
       localStorage.setItem("FCMError", null);
@@ -95,7 +100,11 @@ export const requestFirebaseNotificationPermission = async () => {
           throw new Error(response.message);
         }
       } catch (err) {
-        console.error(err);
+        LogError({
+          scenario:
+            "Error in requestFirebaseNotificationPermission 2nd Block in  firebaseInit",
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 

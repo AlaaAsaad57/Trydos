@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import Order from "services/order";
 import Spinner from "components/global/Spinner";
 import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
@@ -34,6 +34,10 @@ function OrderItemCancelConfirmationWindow({
       setLoading(false);
       close();
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In ConfirmFunction in CancelOrderItemConfirmation",
+      });
       setLoading(false);
     }
   };
@@ -60,7 +64,7 @@ function OrderItemCancelConfirmationWindow({
           </span>
           <span className="mt-[45px] regular text-white text-[16px] text-center">
             {translateFunction(
-              "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us."
+              "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.",
             )}
           </span>
         </div>

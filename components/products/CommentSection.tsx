@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import CommentBar from "./CommentBar";
 import { useParams } from "next/navigation";
 
@@ -58,6 +58,10 @@ function CommentSection({ product_data }) {
       setLoading(false);
       setIsLoading(false);
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In getMoreComments in CommentSection",
+      });
       setIsLoading(false);
       setLoading(false);
     }

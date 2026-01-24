@@ -14,6 +14,7 @@ import BuyersCommentModal from "components/products/BuyersCommentModal";
 import { RatingCommentOptions } from "./RatingCommentOptions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogError } from "utils/functions";
 
 function ProductBuyersCommentList({
   children,
@@ -76,14 +77,18 @@ function ProductBuyersCommentList({
 
       setCommentsNodes(
         commentsNodes?.map((node) =>
-          node.key === BuyerCommentModalOption.id ? res.comment : node
-        )
+          node.key === BuyerCommentModalOption.id ? res.comment : node,
+        ),
       );
       setBuyerCommentModalOption(null);
       setLoading(false);
       setModalKey(new Date().getDate());
       return { commentElement: res.comment, id: comment.id };
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In EditComment in ProductBuyersCommentList",
+      });
       setLoading(false);
     }
   };
@@ -98,12 +103,16 @@ function ProductBuyersCommentList({
       });
 
       setCommentsNodes(
-        commentsNodes.filter((node) => node.key !== BuyerCommentModalOption.id)
+        commentsNodes.filter((node) => node.key !== BuyerCommentModalOption.id),
       );
       setLoading(false);
       setBuyerCommentModalOption(null);
       return id;
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In deleteComment in ProductBuyersCommentList",
+      });
       setLoading(false);
     }
   };

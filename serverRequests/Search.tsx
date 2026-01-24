@@ -33,7 +33,7 @@ export async function GetSearchData({
         console.error(
           `##################${
             CleanSearchText?.error || CleanSearchText?.message
-          }#######################`
+          }#######################`,
         );
         isAnalyzed = CleanSearchText?.error || CleanSearchText?.message;
         throw new Error(CleanSearchText?.error || CleanSearchText?.message);
@@ -68,7 +68,14 @@ export async function GetSearchData({
       isAnalyzed = CleanSearchText;
     }
   } catch (error) {
-    LogServerError(`Gemini Search Analyze ${error}`, JSON.stringify(filters));
+    LogServerError({
+      language,
+      country,
+      error: error,
+      error_text: `Gemini Search Analyze ${error}`,
+      filters: JSON.stringify(filters),
+      scenario: "Error In GetSearchData in serverRequest/Search",
+    });
     isAnalyzed?.length > 4 ? isAnalyzed : "failed to Analyze";
     console.error(error);
   }
@@ -164,7 +171,7 @@ export async function GetSearchData({
         mustConditions,
         mustNotConditions,
         language,
-        filtersSize
+        filtersSize,
       ),
     };
 
@@ -185,13 +192,13 @@ export async function GetSearchData({
     const productsWithFilters: any = extractFilters(
       customProducts,
       language,
-      false
+      false,
     );
 
     if (filters.colors?.length) {
       productsWithFilters.custom_products = sortSyncColorImagesByFilteredColor(
         productsWithFilters.custom_products,
-        filters
+        filters,
       );
       sortColorsByFilteredColor(productsWithFilters.custom_products, filters);
     }
@@ -201,7 +208,7 @@ export async function GetSearchData({
     let CategoriesIds = (
       aggregations as any
     ).top_categories?.filtered_categories?.categories_by_id?.buckets.map(
-      (s) => s?.category_details.hits.hits[0]._source.category_id
+      (s) => s?.category_details.hits.hits[0]._source.category_id,
     );
     let categories_childs = await getChildrenAndGrandchildren(
       client,
@@ -209,37 +216,37 @@ export async function GetSearchData({
       CategoriesIds,
       language,
       country,
-      filters
+      filters,
     );
     let categiresCombo = (
       aggregations as any
     ).top_categories?.filtered_categories?.categories_by_id?.buckets.concat(
       categories_childs.top_categories?.filtered_categories?.categories_by_id
-        ?.buckets || []
+        ?.buckets || [],
     );
     let by_id_categories_comb = (
       (aggregations as any).top_orig_categories?.orig_categories_by_id
         ?.buckets || []
     ).concat(
       categories_childs.top_orig_categories?.orig_categories_by_id?.buckets ||
-        []
+        [],
     );
 
     categoriesFilter = processCategoriesAggregation(
       categiresCombo,
       by_id_categories_comb,
-      filters_offset
+      filters_offset,
     );
 
     brandsFilter = processBrandsAggregation(
       (aggregations as any).top_brands?.filtered_brands?.brands_by_id
         ?.buckets || [],
-      filters_offset
+      filters_offset,
     );
     boutiquesFilter = processBoutiquesAggregation(
       (aggregations as any).top_boutiques?.filtered_boutiques?.boutiques_by_id
         ?.buckets || [],
-      filters_offset
+      filters_offset,
     );
 
     return {
@@ -261,11 +268,18 @@ export async function GetSearchData({
       applied: filters,
     };
   } catch (error) {
-    console.error("Elasticsearch search error:", error);
+    LogServerError({
+      language,
+      country,
+      error: error,
+      error_text: `Gemini Search Analyze ${error}`,
+      filters: JSON.stringify(filters),
+      scenario: "Error In GetSearchData in serverRequest/Search",
+    });
     throw new Error(
       `Search failed: ${
         error instanceof Error ? error.message : "Unknown error"
-      }`
+      }`,
     );
   }
 }

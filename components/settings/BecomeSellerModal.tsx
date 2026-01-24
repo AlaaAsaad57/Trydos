@@ -210,7 +210,7 @@ export default function BecomeSellerModal({ onClose }) {
       // If backend returned validation errors in thrown error
       if (err?.detailed_error && Array.isArray(err.detailed_error)) {
         err.detailed_error.forEach((d) =>
-          showErrorNotification(d?.message || d)
+          showErrorNotification(d?.message || d),
         );
       } else if (err?.response?.data?.message) {
         showErrorNotification(err.response.data.message);
@@ -400,7 +400,7 @@ export default function BecomeSellerModal({ onClose }) {
                               setForm((prev) => ({
                                 ...prev,
                                 documents: prev.documents.filter(
-                                  (_, idx) => idx !== i
+                                  (_, idx) => idx !== i,
                                 ),
                               }));
                             }}

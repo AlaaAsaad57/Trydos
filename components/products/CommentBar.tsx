@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import auth from "services/auth";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
@@ -25,7 +25,7 @@ function CommentBar({ product_data, setCommentsData }) {
       let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
       if (userData.need_auth) {
         showErrorNotification(
-          translateFunction("Please Verify Your Phone Number")
+          translateFunction("Please Verify Your Phone Number"),
         );
         return null;
       }
@@ -72,7 +72,10 @@ function CommentBar({ product_data, setCommentsData }) {
       setVal("");
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error In addComment in CommentBar",
+      });
       setLoading(false);
     }
   };

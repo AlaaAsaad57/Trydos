@@ -12,6 +12,7 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogError } from "utils/functions";
 
 interface StoriesPaginationWrapperProps {
   next_page_url: string | number;
@@ -72,7 +73,10 @@ function StoriesPaginationWrapper({
         setNextPage(null);
       }
     } catch (error) {
-      console.error("Error fetching next stories:", error);
+      LogError({
+        error: error,
+        scenario: "Get Next Stories",
+      });
       setNextPage(null);
     } finally {
       setLoading(false);

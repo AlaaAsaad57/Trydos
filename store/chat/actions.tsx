@@ -55,8 +55,11 @@ export const GetLastSeen = async (chatId, friendID) => {
         setIsTyping({ id: chatId.toString(), desc: null, date: null });
       }
     });
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    LogError({
+      scenario: "Error in GetLastSeen in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 export const setLastSeen = async (MyId) => {
@@ -86,8 +89,11 @@ export const setLastSeen = async (MyId) => {
       .catch((error) => {
         LogError(error);
       });
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    LogError({
+      scenario: "Error in setLastSeen in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 export const getCalls = async (id) => {
@@ -106,9 +112,12 @@ export const getCalls = async (id) => {
     }
     setCalls(response.data);
     setCallLoading(false);
-  } catch (e) {
+  } catch (error) {
     setCallLoading(false);
-    console.error(e);
+    LogError({
+      scenario: "Error in getCalls in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 export const SendMessage = async (payload, isNew, isPrivate?) => {
@@ -150,9 +159,12 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
         });
       }
     }
-  } catch (e) {
+  } catch (error) {
     deleteErrorMessage({ msg_id: payload.mid, ch_id: payload.cid });
-    console.error(e);
+    LogError({
+      scenario: "Error in SendMessage in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 export async function watchChannel(payload) {
@@ -166,8 +178,11 @@ export async function watchChannel(payload) {
     if (!response.success) {
       throw new Error(response.message);
     }
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    LogError({
+      scenario: "Error in watchChannel in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -189,8 +204,11 @@ export async function deleteChat(payload) {
       method: "POST",
       server: "chat",
     });
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    LogError({
+      scenario: "Error in deleteChat in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 export async function Recive(payload) {
@@ -204,8 +222,11 @@ export async function Recive(payload) {
     if (!response.success) {
       throw new Error(response.message);
     }
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    LogError({
+      scenario: "Error in Recive in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 export async function getPage(channel, mid) {
@@ -226,8 +247,11 @@ export async function getPage(channel, mid) {
       throw new Error(response.message);
     }
     setPageData({ mes: response.data, ch: channel_id });
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    LogError({
+      scenario: "Error in getMessagesBetweenMessage in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 export async function SearchContact(payload) {
@@ -246,8 +270,11 @@ export async function SearchContact(payload) {
       }
       setChatSearchResults(response.data);
     }
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    LogError({
+      scenario: "Error in SearchContact in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 export async function PinnChat(payload) {
@@ -288,8 +315,11 @@ export async function MuteChat(payload) {
     if (!response.success) {
       throw new Error(response.message);
     }
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    LogError({
+      scenario: "Error in MuteChat in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 export async function getMessagesBetweenMessage(payload) {
@@ -310,7 +340,10 @@ export async function getMessagesBetweenMessage(payload) {
     }
     setPageData({ mes: response.data, ch: payload.first });
   } catch (error) {
-    console.error(error);
+    LogError({
+      scenario: "Error in getMessagesBetweenMessage in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 export const getMessagesBetweenTwoMessages = async ({
@@ -354,7 +387,10 @@ export async function GetMessageforRepliedMessages(payload) {
     }
     setPageData({ mes: response.data, ch: payload.first });
   } catch (error) {
-    console.error(error);
+    LogError({
+      scenario: "Error in GetMessageforRepliedMessages in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -375,7 +411,10 @@ export async function getContacts() {
     }
     setContacts(response.data);
   } catch (error) {
-    console.error(error);
+    LogError({
+      scenario: "Error in getContacts in  chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 export const getMedia = async (id, media) => {
@@ -398,7 +437,10 @@ export const getMedia = async (id, media) => {
     }
     editChatInfoMedia({ id: id, data: response.data, media: media });
   } catch (e) {
-    console.error(e);
+    LogError({
+      scenario: "Error in getMedia in  chat/actions",
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 };
 export const getMediaReducer = (media, data) => {
@@ -427,6 +469,9 @@ export const GetChatDetails = async (id) => {
     }
     editChatInfo({ id: id, data: response.data });
   } catch (e) {
-    console.error(e);
+    LogError({
+      scenario: "Error in GetChatDetails in  chat/actions",
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 };

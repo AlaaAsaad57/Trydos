@@ -9,7 +9,7 @@ import {
 } from "store/notifications/reducer";
 import { fetchData } from "./fetchData";
 import { InCall } from "store/chat/callActions";
-import { getUserChat, translateFunction } from "./functions";
+import { getUserChat, LogError, translateFunction } from "./functions";
 import chat from "services/chat";
 import { watchChannel as watchChannelAction } from "store/chat/actions";
 import { REQUESTS_DATA } from "./Requests";
@@ -102,15 +102,15 @@ class ForegroundNotificationHandler {
       const body = safeParse(rawData.body);
       const data = safeParse(rawData.data); // This is the inner 'data' object used in most events
 
-      // Logging
-      console.log({
-        ...payload,
-        data: {
-          ...rawData,
-          body: body,
-          data: data,
-        },
-      });
+      // // Logging
+      // console.log({
+      //   ...payload,
+      //   data: {
+      //     ...rawData,
+      //     body: body,
+      //     data: data,
+      //   },
+      // });
 
       // 1. Handle Market/E-commerce Notifications
       if (rawData.title === "market") {
@@ -173,7 +173,11 @@ class ForegroundNotificationHandler {
           break;
       }
     } catch (error) {
-      console.error("Notification Error:", error);
+      LogError({
+        scenario: "Error in handleNotification NotificationHandler",
+        notification_type: payload?.data?.type,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -289,7 +293,10 @@ class ForegroundNotificationHandler {
         }
       }
     } catch (error) {
-      console.error(error);
+      LogError({
+        scenario: "Error in handleOrderPlaced in  NotificationHandler",
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

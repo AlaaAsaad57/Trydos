@@ -1,5 +1,5 @@
 "use client";
-import { _isStoreLastJson } from "utils/functions";
+import { _isStoreLastJson, LogError } from "utils/functions";
 import { LOG_IN_STORIES } from "utils/endpointConfig";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
@@ -43,7 +43,10 @@ class StoryService {
       }
       return { data, next_page_url: repo.data.next_page_url };
     } catch (error) {
-      console.error(error);
+      LogError({
+        error,
+        scenario: "Error in getStories in services/story",
+      });
       throw new Error("get stories error");
     }
     // @ts-ignore
@@ -72,7 +75,10 @@ class StoryService {
       });
       await this.getStories();
     } catch (error) {
-      console.error(error);
+      LogError({
+        error,
+        scenario: "Error in loginStories in services/story",
+      });
     }
   }
   async WatchStory(pid: number | string, id: number | string) {
@@ -90,8 +96,11 @@ class StoryService {
           throw new Error(res?.message);
         }
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      LogError({
+        error,
+        scenario: "Error in WatchStory in services/story",
+      });
     }
   }
   async UploadToCloudinary(file: File) {
@@ -120,7 +129,7 @@ class StoryService {
     callback: Function,
     is_video: any,
     endUpload: Function,
-    link
+    link,
   ) {
     try {
       let response = await this.UploadToCloudinary(file);
@@ -147,6 +156,10 @@ class StoryService {
         return add_story_response.data;
       } else throw new Error("Failed");
     } catch (error) {
+      LogError({
+        error,
+        scenario: "Error in upload in services/story",
+      });
       throw new Error(error?.message);
     }
   }
@@ -166,7 +179,10 @@ class StoryService {
       }
       return response.data;
     } catch (error) {
-      console.error(error);
+      LogError({
+        error,
+        scenario: "Error in deleteStory in services/story",
+      });
       return null;
     }
   }
@@ -185,7 +201,10 @@ class StoryService {
       }
       return response.data;
     } catch (error) {
-      console.error(error);
+      LogError({
+        error,
+        scenario: "Error in reportStory in services/story",
+      });
       return null;
     }
   }
@@ -198,7 +217,7 @@ class StoryService {
       if (storyItem.full_video_path) {
         let vid = storyItem.full_video_path.replace(
           "/upload",
-          "/upload/w_720,h_1280,c_limit/f_auto/q_auto:good/fl_lossy/so_0"
+          "/upload/w_720,h_1280,c_limit/f_auto/q_auto:good/fl_lossy/so_0",
         );
         returnedData.push({
           url: vid,
@@ -222,14 +241,14 @@ class StoryService {
       } else if (storyItem.photo_path) {
         let img = storyItem.photo_path.replace(
           "/upload",
-          "/upload/w_720,h_1280,c_pad/f_auto/q_auto:good/fl_progressive:steep/e_sharpen"
+          "/upload/w_720,h_1280,c_pad/f_auto/q_auto:good/fl_progressive:steep/e_sharpen",
         );
         returnedData.push({
           url: img,
           link: storyItem.link,
           placeholderUrl: storyItem.photo_path.replace(
             "/upload",
-            "/upload/w_50,h_90,c_limit/f_auto/q_auto:low/e_blur:2000"
+            "/upload/w_50,h_90,c_limit/f_auto/q_auto:low/e_blur:2000",
           ),
           FixedUrl: img,
           is_seen: storyItem.is_seen,
@@ -273,7 +292,10 @@ class StoryService {
         throw new Error(data.message);
       }
     } catch (error) {
-      console.log(error);
+      LogError({
+        error,
+        scenario: "Error in getStoriesForProducts in services/story",
+      });
       return [];
     }
   }

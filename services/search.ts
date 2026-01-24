@@ -3,6 +3,7 @@ import { buildParamsFromFilters } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import { LogError } from "utils/functions";
 
 class SearchService {
   private searchAbortController: AbortController | null = null;
@@ -21,7 +22,10 @@ class SearchService {
       }
       return response;
     } catch (error) {
-      console.error(error);
+      LogError({
+        error,
+        scenario: "Error in GetTrendingSearch in services/search",
+      });
       return null;
     }
   }
@@ -61,11 +65,11 @@ class SearchService {
         brands: searchFilters?.brands?.map((b) => b.slug) || [],
         colors:
           searchFilters?.colors?.map((c) =>
-            typeof c === "string" ? c : c.toString()
+            typeof c === "string" ? c : c.toString(),
           ) || [],
         sizes:
           searchFilters?.sizes?.map((s) =>
-            typeof s === "string" ? s : s.toString()
+            typeof s === "string" ? s : s.toString(),
           ) || [],
         prices:
           searchFilters?.prices &&
@@ -83,8 +87,8 @@ class SearchService {
           searchValue?.length > 0
             ? searchValue
             : value?.length > 0
-            ? value
-            : null,
+              ? value
+              : null,
       };
 
       const filtersResponse = await getProductsAndFiltersFromElastic({
@@ -119,7 +123,7 @@ class SearchService {
           },
           prices_ranges: /*filtersResponse?.prices?.priceRanges*/ [],
         },
-        replace
+        replace,
       );
       setSearchPartialLoading(false);
       setSearchLoading(false);
@@ -129,6 +133,10 @@ class SearchService {
       if (error.name === "AbortError") {
         return null;
       }
+      LogError({
+        error,
+        scenario: "Error in getSearchOptions in services/search",
+      });
       setSearchPartialLoading(false);
       setSearchLoading(false);
       throw error;
@@ -188,7 +196,7 @@ class SearchService {
           },
           prices_ranges: /*filtersResponse?.prices?.priceRanges*/ [],
         },
-        true
+        true,
       );
       return filtersResponse;
     } catch (error) {
@@ -196,6 +204,10 @@ class SearchService {
       if (error.name === "AbortError") {
         return null;
       }
+      LogError({
+        error,
+        scenario: "Error in resetSearchFilters in services/search",
+      });
       throw error;
     } finally {
       // Clear the controller reference if this request completed
@@ -228,11 +240,11 @@ class SearchService {
       brands: searchFilters?.brands?.map((b) => b.slug) || [],
       colors:
         searchFilters?.colors?.map((c) =>
-          typeof c === "string" ? c : c.toString()
+          typeof c === "string" ? c : c.toString(),
         ) || [],
       sizes:
         searchFilters?.sizes?.map((s) =>
-          typeof s === "string" ? s : s.toString()
+          typeof s === "string" ? s : s.toString(),
         ) || [],
       prices:
         searchFilters?.prices &&

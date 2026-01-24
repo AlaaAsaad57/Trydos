@@ -167,7 +167,6 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
         showErrorNotification("Try again with clear voice");
       }
     } catch (error) {
-      console.error("Error processing audio:", error);
       showErrorNotification("Failed to process audio");
     } finally {
       setIsProcessing(false);

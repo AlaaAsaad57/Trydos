@@ -1,10 +1,11 @@
 import { fetchData } from "utils/fetchData";
 
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export const fetchNotifications = async (
   page: number,
-  pageSize: number = 10
+  pageSize: number = 10,
 ): Promise<any> => {
   try {
     const response = await fetchData({
@@ -18,7 +19,10 @@ export const fetchNotifications = async (
     }
     return response;
   } catch (error) {
-    console.error("Error fetching notifications:", error);
+    LogServerError({
+      error: error,
+      scenario: "Error In fetchNotifications in services/notifications",
+    });
     // Fallback to mock data if API is not available
   }
 };
@@ -35,7 +39,10 @@ export const getNotificationsTypes = async () => {
     }
     return response;
   } catch (error) {
-    console.error("Error fetching notifications Types:", error);
+    LogServerError({
+      error: error,
+      scenario: "Error In getNotificationsTypes in services/notifications",
+    });
     // Fallback to mock data if API is not available
   }
 };

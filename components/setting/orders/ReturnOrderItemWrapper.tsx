@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import {
   getConfiguredImage,
+  LogError,
   RoundPrice,
   translateFunction,
 } from "utils/functions";
@@ -47,7 +48,7 @@ function ReturnOrderItemWrapper({
     }
   };
   const [images, setImages] = useState<string[]>(
-    ProductReturnDetails()?.img ?? []
+    ProductReturnDetails()?.img ?? [],
   );
   const [loading, setLoading] = useState(true);
   const getReasons = async () => {
@@ -59,12 +60,16 @@ function ReturnOrderItemWrapper({
         setSelectedOptions(
           response?.data?.return_reasons?.find(
             (s) =>
-              s.id === ProductReturnDetails()?.return_request_product_reason_id
-          )
+              s.id === ProductReturnDetails()?.return_request_product_reason_id,
+          ),
         );
       }
       setLoading(false);
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In getReasons in ReturnOrderItemWrapper",
+      });
       setLoading(false);
     }
   };
@@ -75,7 +80,7 @@ function ReturnOrderItemWrapper({
   const [returnedQty, setReturnedQty] = useState(
     (ProductReturnDetails()?.return_request_product_quantity &&
       parseInt(ProductReturnDetails()?.return_request_product_quantity)) ??
-      item.qty
+      item.qty,
   );
   return (
     <>
@@ -121,7 +126,7 @@ function ReturnOrderItemWrapper({
           } text-[#8D8D8D] text-[12px] regular text-center`}
         >
           {translateFunction(
-            "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Refund"
+            "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Refund",
           )}
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
@@ -253,6 +258,11 @@ function ReturnOrderItemWrapper({
                   setLoading(false);
                 }
               } catch (error) {
+                LogError({
+                  error: error,
+                  scenario:
+                    "Error In removeImageAction in ReturnOrderItemWrapper",
+                });
                 setLoading(false);
                 throw error;
               }

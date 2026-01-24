@@ -9,6 +9,7 @@ import { useAppStore } from "store";
 import PhoneInput from "components/Login/PhoneInput";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import { useRouter } from "next/navigation";
+import { LogError } from "utils/functions";
 
 function ConfirmMobileChange({
   closeWindow,
@@ -39,12 +40,15 @@ function ConfirmMobileChange({
       let data = await AuthService.SendOtp(
         mobilePhone,
         is_via_whatsapp,
-        errorCallbackFunc
+        errorCallbackFunc,
       );
 
       successCallback();
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error In SendOtpHook in ConfirmMobileChange",
+      });
       errorCallback();
       console.error("SendOtp failed:", error);
     }
@@ -57,19 +61,21 @@ function ConfirmMobileChange({
           code,
           verficationID,
           "",
-          () => {}
+          () => {},
         );
         FinaliseLogin();
         return data;
       }
       let data = await AuthService.VerifyOtpForUpdatePhone(
         code,
-        verificationID
+        verificationID,
       );
       return data;
     } catch (error) {
-      console.error("VerifyOtp failed:", error);
-      // errorCallback(error);
+      LogError({
+        error: error,
+        scenario: "Error In VerifyOtpHook in ConfirmMobileChange",
+      });
       throw error;
     }
   };
@@ -91,6 +97,10 @@ function ConfirmMobileChange({
 
       setLoadingPin(false);
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In loginFunction in ConfirmMobileChange",
+      });
       setLoadingPin(false);
     }
   };

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
@@ -41,7 +41,7 @@ function SendMethod({
       await AuthService.SendOtp(
         mobilePhone,
         is_via_whatsapp,
-        errorCallbackFunc
+        errorCallbackFunc,
       );
 
       successCallback();
@@ -49,7 +49,10 @@ function SendMethod({
       setLoading(false);
       // console.log(error);
       errorCallback();
-      console.error("SendOtp failed:", error);
+      LogError({
+        error: error,
+        scenario: "Error in SendOtpHook in SendMethod",
+      });
     }
   };
   const SendCodeRequest = (method: string) => {
@@ -150,7 +153,7 @@ function SendMethod({
           >
             {translate(
               "We Will Send A Verification Code To The Number",
-              language
+              language,
             )}
           </div>
           <div
@@ -275,7 +278,7 @@ function SendMethod({
             <span data-cy="choose-text">
               {translate(
                 "Choose The Verification Method, Receive Code Via:",
-                language
+                language,
               )}
             </span>
           </div>

@@ -138,7 +138,7 @@ function AccountNotFound({
             <div className="text-login-item not-registered">
               {translate(
                 "Sorry, This Number Is Not Registered With Us !",
-                language
+                language,
               )}
             </div>
             <div className="icon-detail">
@@ -193,7 +193,7 @@ function AccountNotFound({
               >
                 {translate(
                   "Register & Create New Account With Us In A Few Simple Steps",
-                  language
+                  language,
                 )}
               </span>
             </div>
