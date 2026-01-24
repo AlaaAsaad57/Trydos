@@ -1,5 +1,6 @@
 "use server";
 
+import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 import { elasticSearchClient } from "./elasticsearch.config";
 
 interface SitemapUrl {
@@ -185,8 +186,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
  * Generate home page sitemap URLs for all country-language combinations
  */
 export async function generateHomeSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const locales = await getHomeSitemapLocales();
   const currentDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
 
@@ -267,8 +267,7 @@ export async function getProductsForSitemap(
  * Generate product sitemap URLs
  */
 export async function generateProductSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const products = await getProductsForSitemap();
   const locales = await getHomeSitemapLocales();
   const sitemapUrls: SitemapUrl[] = [];
@@ -316,8 +315,7 @@ export async function generateProductSitemapUrls(): Promise<SitemapUrl[]> {
  * Get static pages configuration (following PHP pattern)
  */
 function getStaticPages(): StaticPage[] {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
 
   // Define static pages configuration (similar to PHP config)
   const staticPagesConfig = [
@@ -374,8 +372,7 @@ function getStaticPages(): StaticPage[] {
  * Generate static pages sitemap URLs for all country-language combinations
  */
 export async function generateStaticPagesSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const locales = await getHomeSitemapLocales();
   const staticPages = getStaticPages();
   const sitemapUrls: SitemapUrl[] = [];
@@ -630,8 +627,7 @@ async function getMostCommonCountryAndLanguageForTerm(
  * Generate search terms sitemap URLs
  */
 export async function generateSearchTermsSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const searchTerms = await getTopSearchTerms(100);
   const sitemapUrls: SitemapUrl[] = [];
   const currentDate = new Date().toISOString().split("T")[0];
@@ -1056,8 +1052,7 @@ export async function testSearchTermsSitemapGeneration() {
 }
 
 export async function generateSitemapIndexXML(): Promise<string> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const now = new Date().toISOString();
 
   const sitemaps = [
@@ -1140,8 +1135,7 @@ export async function generateLocaleSpecificSitemapUrls(
   console.log(
     `language : ${language} and the country : ${country} from the url`,
   );
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const sitemapUrls: SitemapUrl[] = [];
 
   // 1. Home page for this locale
@@ -1233,8 +1227,7 @@ export async function generateLocaleSpecificSitemapXML(
 }
 
 export async function generateLocaleSitemapIndexXML(): Promise<string> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const now = new Date().toISOString();
   const combinations = await getAllCountryLanguageCombinations();
   console.log("combinations :", combinations);

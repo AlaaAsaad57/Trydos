@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import Skeleton from "react-loading-skeleton";
 import { translateFunction } from "utils/server";
 import { allCountries } from "country-telephone-data";
+import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }) {
     title: "Settings - TryDos",
     description: "Manage your TryDos account settings and preferences.",
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${Params.lang}/setting`,
+      canonical: `${General_Site_Data.url}/${Params.lang}/setting`,
     },
   };
   return metadata;

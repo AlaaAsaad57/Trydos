@@ -2,6 +2,7 @@ import "styles/productDetails.css";
 import ComparePage from "components/global/compare";
 import { Suspense } from "react";
 import CompareSkeleton from "components/skeleton/loaders/CompareSkeleton";
+import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 
 export const dynamic = "auto";
 
@@ -12,7 +13,7 @@ export async function generateMetadata({ params }) {
     description:
       "Compare products side by side on TryDos - Make informed purchasing decisions.",
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${Params.lang}/compare`,
+      canonical: `${General_Site_Data.url}/${Params.lang}/compare`,
     },
   };
   return metadata;
