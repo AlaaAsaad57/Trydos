@@ -32,6 +32,7 @@ export interface UserData {
 
 // Constants for cookie names
 export const COOKIE_NAMES = {
+  WALLET_TOKEN: "WALLET_TOKEN",
   DEVICE_TOKEN: "DEVICE-TOKEN",
   USER_DATA: "User-Data",
   MARKET_TOKEN: "MARKET-TOKEN",
@@ -92,7 +93,7 @@ function deserialize<T = any>(value: string): T {
  * Get cookie value (server-side)
  */
 export async function getCookieServer<T = string>(
-  name: string
+  name: string,
 ): Promise<T | null> {
   if (!isServer()) {
     console.warn("getCookieServer can only be used on the server");
@@ -160,11 +161,11 @@ export function getCookie<T = string>(name: string): T | null {
 export function setCookie(
   name: string,
   value: any,
-  options?: CookieOptions
+  options?: CookieOptions,
 ): void {
   if (isServer()) {
     throw new Error(
-      "setCookie can only be used on the client. Use setCookieServer instead."
+      "setCookie can only be used on the client. Use setCookieServer instead.",
     );
   }
 
@@ -207,7 +208,7 @@ export function setCookie(
 export function deleteCookie(name: string): void {
   if (isServer()) {
     throw new Error(
-      "deleteCookie can only be used on the client. Use deleteCookieServer instead."
+      "deleteCookie can only be used on the client. Use deleteCookieServer instead.",
     );
   }
 

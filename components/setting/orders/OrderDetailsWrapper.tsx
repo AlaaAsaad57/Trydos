@@ -122,17 +122,7 @@ function OrderDetailsWrapper({
         });
         setReturnData(returnRequests);
       }
-      console.log(
-        order_chat_id,
-        order_item,
-        returnData?.return_requests_data?.find(
-          (return_item) =>
-            String(return_item.order_id) === String(order_id) ||
-            String(order_item?.return_request_id) === String(order_chat_id),
-        ),
-        returnData?.return_requests_data,
-        order_id,
-      );
+
       if (
         order_chat_id &&
         (order_item?.order_status?.value === "out_for_delivery" ||
@@ -142,7 +132,6 @@ function OrderDetailsWrapper({
               String(order_item?.return_request_id) === String(order_chat_id),
           )?.status?.value === "out_for_return")
       ) {
-        console.log("from getOrderDetails");
         safeGetChatWithShipping({
           is_return: order_item?.return_request_id,
           order_id: order_item?.return_request_id,
@@ -304,7 +293,7 @@ function OrderDetailsWrapper({
         scenario: "Error In getChatWithShipping in OrderDetailsWrapper",
       });
       setIsGettingChat(false);
-      console.log(error);
+
       EnableScroll();
     }
   };
@@ -332,7 +321,6 @@ function OrderDetailsWrapper({
             isGettingChat={isGettingChat}
             setIsGettingChat={setIsGettingChat}
             getChatWithShipping={() => {
-              console.log("from orderChatIcon");
               safeGetChatWithShipping({
                 order_id: ActivePack?.return_request_id ?? ActivePack?.id,
                 parent_order_id: ActivePack?.id,

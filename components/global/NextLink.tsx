@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppStore } from "store";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 import { DisableScroll } from "utils/tinyUtils";
 
 export interface INextLinkProps {
@@ -17,6 +19,7 @@ export interface INextLinkProps {
   id?: string;
   onClick?: any;
   isFromSetting?: boolean;
+  fromRecomended?: any;
 }
 export default function NextLink({
   sameHref,
@@ -30,6 +33,7 @@ export default function NextLink({
   ignoreConditionCase = false,
   onClick,
   isFromSetting,
+  fromRecomended = null,
   ...props
 }: INextLinkProps) {
   const pathname = usePathname();
@@ -59,6 +63,12 @@ export default function NextLink({
           setLastPathname(pathname);
         }}
         onClick={() => {
+          if (fromRecomended) {
+            GAevent({
+              action: GA_EVENT_NAMES.RECOMENDED,
+              params: fromRecomended,
+            });
+          }
           if (isFromSetting) {
             let element = document.querySelector(".setting-screen");
 
@@ -123,6 +133,12 @@ export default function NextLink({
         setLastPathname(pathname);
       }}
       onClick={() => {
+        if (fromRecomended) {
+          GAevent({
+            action: GA_EVENT_NAMES.RECOMENDED,
+            params: fromRecomended,
+          });
+        }
         if (isFromSetting) {
           let element = document.querySelector(".setting-screen");
 

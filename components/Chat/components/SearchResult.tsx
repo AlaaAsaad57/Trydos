@@ -67,7 +67,6 @@ function SearchResult({
         });
       } catch (err) {
         // User cancelled or error occurred
-        console.log("Share cancelled or failed:", err);
       }
     } else {
       // On desktop, show modal

@@ -33,7 +33,7 @@ function InfiniteScrollFilters({
       });
       let filter_response;
       setOffset(offset + 1);
-      console.log("response", response, term);
+
       switch (term) {
         case "categories":
           filter_response = response.categories;

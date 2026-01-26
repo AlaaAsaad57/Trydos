@@ -124,7 +124,7 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
       // Simulate file upload delay
       let res;
       // Create object URL for preview
-      console.log(file);
+
       // Get edited image as PNG
       if (file) {
         const editedCanvas = getImage();

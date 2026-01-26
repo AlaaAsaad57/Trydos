@@ -64,7 +64,7 @@ function OrderItemReturnConfirmationWindow({
         variant: confirmationData.item.variant,
       });
     }
-    console.log(confirmationData, returnDetails);
+
     returnDetails?.return_requests_data?.map((ret_ite) => {
       if (!ret_ite?.status?.value || ret_ite.status?.name?.includes("draft")) {
         ret_ite?.order_details?.map((s) => {

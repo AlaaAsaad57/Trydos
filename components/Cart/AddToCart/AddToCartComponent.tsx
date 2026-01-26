@@ -101,7 +101,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       ]);
     }
   };
-  // console.log(ProductData?.seconds);
+
   let selected_color =
     ProductData?.sync_color_images?.find(
       (s) =>
@@ -854,7 +854,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       }}
       height={75}
     >
-      <SearchParamUpdater searchKey="addToCart" searchValue={product?.slug} />
       <div
         className={`${
           isRtl ? "items-end" : "items-start"

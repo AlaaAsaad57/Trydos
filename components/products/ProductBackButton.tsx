@@ -24,7 +24,7 @@ function ProductBackButton({ lang }) {
   const handleBack = () => {
     // Keywords that trigger the boutique navigation state
     const boutiqueKeywords = ["boutiques", "filters", "featured", "flashdeals"];
-    console.log(lastPathname);
+
     // Check if lastPathname exists and matches any keyword
     const isBoutiquePath =
       lastPathname &&

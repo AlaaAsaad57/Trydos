@@ -42,8 +42,6 @@ interface SearchTerm {
  */
 export async function getHomeSitemapLocales(): Promise<LocaleData> {
   try {
-    console.log("[getHomeSitemapLocales] Starting to fetch locales...");
-
     // Build base conditions (same as your existing buildBaseConditions but without country filter)
     const baseConditions = buildSitemapBaseConditions();
     const { must: mustConditions, must_not: mustNotConditions } =
@@ -89,11 +87,6 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
         },
       },
     };
-
-    console.log(
-      "[getHomeSitemapLocales] Search query:",
-      JSON.stringify(searchQuery, null, 2),
-    );
 
     const response = await elasticSearchClient.search(searchQuery);
 

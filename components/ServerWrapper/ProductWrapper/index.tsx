@@ -42,6 +42,7 @@ function ProductWrapper({
   country,
   Sliders = false,
   InitialProductData,
+  fromRecomended = false,
 }) {
   let isRtl = language === "ar" || language === "ku";
   let isFlash: any = null;
@@ -57,7 +58,7 @@ function ProductWrapper({
     if (difference > 0) {
       const days = Math.floor(difference / (1000 * 60 * 60 * 24));
       const hours = Math.floor(
-        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
       );
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
@@ -176,7 +177,13 @@ function ProductWrapper({
         //   }
         //   storeCookies();
         // }}
-
+        fromRecomended={
+          fromRecomended
+            ? {
+                select_item_recommended: id,
+              }
+            : null
+        }
         ariaLabel={`go to product ${name} ${language}`}
         href={getUrlofProduct(color, language, country, slug)}
         className="product-container  align-center flex-col relative pb-[12px]"

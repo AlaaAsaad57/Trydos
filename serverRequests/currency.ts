@@ -1,7 +1,6 @@
 "use server";
 
 import { fetchServerData } from "./ServerFetch";
-import { ReportError } from "utils/errorReported";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
 interface CurrencyResponse {

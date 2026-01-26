@@ -101,17 +101,7 @@ class ForegroundNotificationHandler {
       const rawData = payload?.data || {};
       const body = safeParse(rawData.body);
       const data = safeParse(rawData.data); // This is the inner 'data' object used in most events
-
-      // // Logging
-      // console.log({
-      //   ...payload,
-      //   data: {
-      //     ...rawData,
-      //     body: body,
-      //     data: data,
-      //   },
-      // });
-
+      console.log(data, body);
       // 1. Handle Market/E-commerce Notifications
       if (rawData.title === "market") {
         await this.handleMarketEvent(body, state);

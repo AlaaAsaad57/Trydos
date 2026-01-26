@@ -26,38 +26,31 @@ const mergeExtras = (...extras: ReportExtras[]): Record<string, unknown> => {
   return out;
 };
 
-export async function ReportError(error: any, ...extras: ReportExtras[]) {
+export async function ReportError(error: any) {
   // Auto context (best-effort, safe in SSR)
   const auto: Record<string, unknown> = {};
   if (typeof window !== "undefined") {
     auto.url = window.location?.href;
     auto.userAgent = window.navigator?.userAgent;
   }
-
-  const merged = mergeExtras(auto, ...(error ?? extras ?? {}));
-
-  // Reserved optional fields
-  const tags = (merged.tags as Record<string, string>) || undefined;
-  const user = (merged.user as Record<string, unknown>) || undefined;
-  const level = (merged.level as Sentry.SeverityLevel) || undefined;
-
-  // Remove reserved keys from extras (so they don't duplicate under extras)
-  delete (merged as any).tags;
-  delete (merged as any).user;
-  delete (merged as any).level;
+  const merged = {
+    ...auto,
+    ...error,
+  };
 
   Sentry.withScope((scope) => {
-    if (tags && typeof tags === "object") scope.setTags(tags);
-    if (user && typeof user === "object") scope.setUser(user as any);
-    if (level) scope.setLevel(level);
+    if (merged) scope.setTags(merged);
 
     if (Object.keys(merged).length > 0) scope.setExtras(merged);
     if ((merged as any).source)
-      scope.setTag("source", String((merged as any).source));
-    if ((merged as any).page)
-      scope.setTag("page", String((merged as any).page));
-    if ((merged as any).url) scope.setTag("url", String((merged as any).url));
-
+      scope.setTag(
+        "source",
+        String(
+          (merged as any)?.source ??
+            (merged as any)?.scenario ??
+            (merged as any)?.type,
+        ),
+      );
     Sentry.captureException(error);
   });
 }

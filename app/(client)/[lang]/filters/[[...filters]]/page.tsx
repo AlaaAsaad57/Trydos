@@ -33,7 +33,7 @@ export async function generateMetadata({ params }) {
       { error, type: "get page meta error", filters: Params.filters },
       `/${Params.lang}/filters`,
     );
-    console.log(error);
+
     return [];
   }
 }

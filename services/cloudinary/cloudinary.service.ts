@@ -59,19 +59,12 @@ export class CloudinaryService {
     publicId: string,
   ): Promise<UploadResult | null> {
     try {
-      console.log(`[CloudinaryService] Uploading sitemap: ${publicId}`);
-
       const result = await cloudinary.uploader.upload(filePath, {
         resource_type: "raw",
         public_id: `${this.folder}/${publicId}`,
         overwrite: true,
         access_mode: "public",
         type: "upload",
-      });
-
-      console.log("[CloudinaryService] Sitemap uploaded successfully", {
-        public_id: publicId,
-        url: result.secure_url,
       });
 
       return result as UploadResult;
@@ -98,8 +91,6 @@ export class CloudinaryService {
     publicId: string,
   ): Promise<UploadResult | null> {
     try {
-      console.log(`[CloudinaryService] Uploading sitemap content: ${publicId}`);
-
       // Convert content to buffer
       const buffer = Buffer.from(content, "utf8");
 
@@ -135,11 +126,6 @@ export class CloudinaryService {
         type: "upload",
       });
 
-      console.log("[CloudinaryService] Sitemap content uploaded successfully", {
-        public_id: publicId,
-        url: uploadResult.secure_url,
-      });
-
       return uploadResult as UploadResult;
     } catch (error) {
       LogServerError({
@@ -160,19 +146,12 @@ export class CloudinaryService {
    */
   async getSitemapUrl(publicId: string): Promise<string | null> {
     try {
-      console.log(`[CloudinaryService] Getting sitemap URL: ${publicId}`);
-
       const result = await cloudinary.api.resource(
         `${this.folder}/${publicId}`,
         {
           resource_type: "raw",
         },
       );
-
-      console.log("[CloudinaryService] Sitemap URL retrieved successfully", {
-        public_id: publicId,
-        url: result.secure_url,
-      });
 
       return result.secure_url;
     } catch (error) {
@@ -194,19 +173,12 @@ export class CloudinaryService {
    */
   async deleteSitemap(publicId: string): Promise<boolean> {
     try {
-      console.log(`[CloudinaryService] Deleting sitemap: ${publicId}`);
-
       const result = await cloudinary.uploader.destroy(
         `${this.folder}/${publicId}`,
         {
           resource_type: "raw",
         },
       );
-
-      console.log("[CloudinaryService] Sitemap deleted successfully", {
-        public_id: publicId,
-        result: result.result,
-      });
 
       return result.result === "ok";
     } catch (error) {
@@ -227,8 +199,6 @@ export class CloudinaryService {
    */
   async getLatestSitemapUrl(): Promise<string> {
     try {
-      console.log("[CloudinaryService] Getting latest sitemap URL");
-
       const result = await this.getSitemapUrl("sitemap");
 
       if (result) {
@@ -265,18 +235,12 @@ export class CloudinaryService {
    */
   async listSitemaps(): Promise<AssetResult[]> {
     try {
-      console.log("[CloudinaryService] Listing sitemaps");
-
       const result = await cloudinary.api.resources({
         type: "upload",
         resource_type: "raw",
         prefix: `${this.folder}/`,
         max_results: 100,
       });
-
-      console.log(
-        `[CloudinaryService] Found ${result.resources.length} sitemaps`,
-      );
 
       return result.resources as AssetResult[];
     } catch (error) {
@@ -316,8 +280,6 @@ export class CloudinaryService {
    */
   async getSitemapInfo(publicId: string): Promise<AssetResult | null> {
     try {
-      console.log(`[CloudinaryService] Getting sitemap info: ${publicId}`);
-
       const result = await cloudinary.api.resource(
         `${this.folder}/${publicId}`,
         {

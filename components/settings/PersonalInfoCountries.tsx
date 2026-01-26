@@ -39,7 +39,6 @@ function PersonalInfoCountries({
         setCountries(data.countries);
       }
     } catch (error) {
-      console.log(error);
     } finally {
       setLoading(false);
     }

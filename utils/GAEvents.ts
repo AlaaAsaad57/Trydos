@@ -46,6 +46,7 @@ export const GA_EVENT_NAMES = {
   READ_MORE: "read_more_about_product",
   ENABLE_PRODUCT_NOTIFICATION: "enable_product_notifications",
   ADD_TO_FAV: "add_product_to_favorites",
+  RECOMENDED: "recommended",
 };
 export const GA_PAYMENTS = {
   WALLET: "wallet",

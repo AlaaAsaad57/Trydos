@@ -23,7 +23,6 @@ const localeMap: Record<string, string> = {
 };
 
 export function mapLocaleToBCP47(locale: string): string {
-  console.log(locale, locale.toLowerCase());
   const mapped = localeMap[locale.toLowerCase()];
   if (!mapped) {
     console.warn(`Locale "${locale}" not mapped. Defaulting to en-US.`);

@@ -143,7 +143,7 @@ const validateLink = (urlString: string) => {
     }
 
     const parsed = new URL(url);
-    console.log(parsed);
+
     return { valid: true, error: "" };
   } catch {
     return {

@@ -31,7 +31,7 @@ export async function generateMetadata({ params }) {
       { error, type: "get page meta error" },
       `/${Params.lang}/flashDeals`,
     );
-    console.log(error);
+
     return [];
   }
 }

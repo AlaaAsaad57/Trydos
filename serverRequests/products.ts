@@ -1,7 +1,7 @@
 "use server";
 import { LogServerError } from "utils/serverErrorReporter";
 import { fetchServerData } from "./ServerFetch";
-import { ReportError } from "utils/errorReported";
+
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { cookies } from "next/headers";
 // import { getProductFromCache, storeProduct } from "./radis";
@@ -58,16 +58,7 @@ async function fetchProductGeneralDetails(
         },
         `/mobile/product/details/${slug}?lang=${language}`,
       );
-      ReportError(
-        new Error(`Product Simple Details Error: ${response.status}`),
-        {
-          source: "products",
-          page: "product-simple-details",
-          language,
-          country,
-          response: JSON.stringify(response),
-        },
-      );
+
       throw response.error;
     }
 
@@ -106,15 +97,7 @@ export async function fetchProductExtendedDetails(
         },
         `/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`,
       );
-      ReportError(
-        new Error(`Product Extended Details Error: ${response.status}`),
-        {
-          source: "products",
-          page: "product-extended-details",
-          language,
-          country,
-        },
-      );
+
       throw response.error;
     }
     return response.data;

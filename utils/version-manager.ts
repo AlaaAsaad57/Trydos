@@ -44,13 +44,11 @@ const clearAllStorage = (): void => {
     // Clear localStorage
     if (typeof window !== "undefined" && window.localStorage) {
       localStorage.clear();
-      console.log("LocalStorage cleared");
     }
 
     // Clear sessionStorage
     if (typeof window !== "undefined" && window.sessionStorage) {
       sessionStorage.clear();
-      console.log("SessionStorage cleared");
     }
 
     // Clear all cookies (except essential ones)
@@ -67,11 +65,7 @@ const clearAllStorage = (): void => {
       }
     });
     clearHashedUserId();
-
-    console.log("Non-essential cookies cleared");
-  } catch (error) {
-    console.error("Failed to clear storage:", error);
-  }
+  } catch (error) {}
 };
 
 // Check if version needs update
@@ -96,15 +90,11 @@ const performVersionUpdate = (): void => {
     // Set new version cookie
     setVersionCookie(currentVersion);
 
-    console.log(`Version updated to ${currentVersion}`);
-
     // Reload the page
     if (typeof window !== "undefined") {
       window.location.reload();
     }
-  } catch (error) {
-    console.error("Failed to perform version update:", error);
-  }
+  } catch (error) {}
 };
 
 // Main version check function
@@ -116,10 +106,8 @@ export const checkAndUpdateVersion = (): void => {
 
   try {
     if (checkVersionUpdate()) {
-      console.log("Version mismatch detected, performing update...");
       performVersionUpdate();
     } else {
-      console.log("Version is up to date");
     }
   } catch (error) {
     console.error("Version check failed:", error);

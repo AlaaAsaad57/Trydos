@@ -47,7 +47,7 @@ function SendMethod({
       successCallback();
     } catch (error) {
       setLoading(false);
-      // console.log(error);
+
       errorCallback();
       LogError({
         error: error,

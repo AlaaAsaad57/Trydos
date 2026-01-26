@@ -49,7 +49,6 @@ function GetMoreChats({ hasMore, setHasMore }) {
       );
 
       if (isDuplicate) {
-        console.log("Duplicate detected. Stopping.");
         isDone.current = true; // Permanent lock
         setHasMore(false);
         return;

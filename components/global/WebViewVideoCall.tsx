@@ -70,7 +70,6 @@ function WebViewVideoCall(props) {
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
-      console.log("Initializing AgoraRTC client with video call");
       client.on("user-joined", async (user) => {
         if (!isRunningRef.current) start();
         setUsers((prevUsers) => {
@@ -97,9 +96,6 @@ function WebViewVideoCall(props) {
         if (mediaType === "audio") {
           const devices = await AgoraRTC.getPlaybackDevices();
 
-          // Log devices to your console so you can see exactly what the browser sees
-          console.log("Available output devices:", devices);
-
           const earpiece = devices.find((d) =>
             /earpiece|receiver|handset/i.test(d.label),
           );
@@ -108,9 +104,6 @@ function WebViewVideoCall(props) {
             await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
           } else {
             // If we are on mobile, we often can't switch, so we just play.
-            console.log(
-              "No earpiece detected via Web API. Playing on default device.",
-            );
           }
 
           try {
@@ -162,7 +155,7 @@ function WebViewVideoCall(props) {
         setIsPublished(true);
       }
     };
-    console.log("tracks in video call", tracks);
+
     if (ready && tracks) {
       init(props.data.channel_id);
     }
@@ -228,7 +221,17 @@ function WebViewVideoCall(props) {
           )}
           {
             <>
-              {props.active ? (
+              {props.data?.is_private ? (
+                <div
+                  className="hgg"
+                  style={{
+                    backgroundImage: `url(${"/images/profileNo.png"})`,
+                    left: 0,
+                    right: 0,
+                    margin: "0 auto",
+                  }}
+                ></div>
+              ) : props.active ? (
                 <div
                   className="hgg"
                   style={{
@@ -269,7 +272,11 @@ function WebViewVideoCall(props) {
             </div>
           )} */}
           <span className="caller-name">
-            {props.userData.name || props.userData.phone}
+            {props.data?.is_private
+              ? props.data?.is_private === "customer"
+                ? "Customer"
+                : "Deleivery Worker"
+              : props.userData.name || props.userData.phone}
           </span>
 
           {users.length > 0 &&

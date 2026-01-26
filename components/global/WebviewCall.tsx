@@ -98,10 +98,11 @@ function WebviewCall() {
     photo: "",
     status: null,
     fcm: searchParams?.get("fcm"),
-    is_private: searchParams?.get("is_private") ?? null,
+    is_private: searchParams?.get("is_private")?.length
+      ? searchParams?.get("is_private")
+      : null,
   });
   const [userData, setUserData] = useState({ name: "", phone: "", photo: "" });
-  useEffect(() => {}, []);
   const onAnswer = async (bool) => {
     try {
       if (!data.loading) {
@@ -109,7 +110,9 @@ function WebviewCall() {
           ...data,
           loading: true,
           fcm: searchParams?.get("fcm"),
-          is_private: searchParams?.get("is_private"),
+          is_private: searchParams?.get("is_private")?.length
+            ? searchParams?.get("is_private")
+            : null,
         });
         let [token, status] = await getAgoraToken(
           data.channel_id,
@@ -127,9 +130,11 @@ function WebviewCall() {
             token: token,
             action: "sent",
             fcm: searchParams?.get("fcm"),
-            is_private: searchParams?.get("is_private"),
+            is_private: searchParams?.get("is_private")?.length
+              ? searchParams?.get("is_private")
+              : null,
           });
-          if (searchParams?.get("is_private")) {
+          if (searchParams?.get("is_private")?.length) {
             window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}&is_private=${searchParams?.get("is_private")}`;
           } else {
             window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`;

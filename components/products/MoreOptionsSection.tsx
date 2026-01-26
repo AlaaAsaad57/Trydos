@@ -58,7 +58,7 @@ function MoreOptionsSection({ product }) {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const isRtl = language === "ar" || language === "ku";
-  console.log(product);
+
   const AddedToCompare = () => {
     return addedToCompare;
   };

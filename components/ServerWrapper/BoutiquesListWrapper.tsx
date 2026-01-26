@@ -116,6 +116,7 @@ async function RecomendedProductWrapper({
       >
         {productsData?.map((product, key) => (
           <ProductWrapper
+            fromRecomended={true}
             key={product?.product_id ?? product?.id}
             category_tree={product?.categories?.map((s) => s.name)}
             labels={product?.label_names}
