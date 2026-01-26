@@ -92,7 +92,7 @@ const FiltersWindowUI = ({
         filters,
         filter_offset: 1,
       });
-      console.log(response, filters);
+
       setFiltersNodes({
         categories: response?.categories,
         brands: response?.brands,
@@ -115,7 +115,6 @@ const FiltersWindowUI = ({
 
   // 2. The Debounced Effect
   useEffect(() => {
-    console.log(isFirstMount.current);
     // If it's the first time, just flip the flag and skip
     if (isFirstMount.current) {
       isFirstMount.current = false; // We have now finished the first mount

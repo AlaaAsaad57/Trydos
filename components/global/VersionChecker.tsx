@@ -7,7 +7,6 @@ interface VersionCheckerProps {
 
 const VersionChecker = () => {
   React.useEffect(() => {
-    console.log("🚀 VersionChecker mounted:", new Date().toISOString());
     // Run version check on component mount
     checkAndUpdateVersion();
   }, []);

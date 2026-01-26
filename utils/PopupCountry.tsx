@@ -48,7 +48,6 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
     async (localizationVar) => {
       // Prevent multiple simultaneous navigations
       if (navigationInProgress.current || navigating) {
-        console.log("🚫 Navigation blocked - already in progress");
         return;
       }
 

@@ -70,7 +70,6 @@ function WebViewVideoCall(props) {
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
-      console.log("Initializing AgoraRTC client with video call");
       client.on("user-joined", async (user) => {
         if (!isRunningRef.current) start();
         setUsers((prevUsers) => {
@@ -97,9 +96,6 @@ function WebViewVideoCall(props) {
         if (mediaType === "audio") {
           const devices = await AgoraRTC.getPlaybackDevices();
 
-          // Log devices to your console so you can see exactly what the browser sees
-          console.log("Available output devices:", devices);
-
           const earpiece = devices.find((d) =>
             /earpiece|receiver|handset/i.test(d.label),
           );
@@ -108,9 +104,6 @@ function WebViewVideoCall(props) {
             await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
           } else {
             // If we are on mobile, we often can't switch, so we just play.
-            console.log(
-              "No earpiece detected via Web API. Playing on default device.",
-            );
           }
 
           try {
@@ -162,7 +155,7 @@ function WebViewVideoCall(props) {
         setIsPublished(true);
       }
     };
-    console.log("tracks in video call", tracks);
+
     if (ready && tracks) {
       init(props.data.channel_id);
     }

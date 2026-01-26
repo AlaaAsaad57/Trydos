@@ -58,7 +58,7 @@ export const requestFirebaseNotificationPermission = async () => {
     nowDate.getTime() - tokenDate.getTime() > 24 * 60 * 60 * 1000
   ) {
     should_register_fcm = true;
-    console.log("FCM token is older than 1 day. Refreshing...");
+
     await deleteToken(messaging); // Delete old token
   }
   let fcm_token = await getToken(messaging)

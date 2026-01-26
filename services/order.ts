@@ -488,7 +488,6 @@ class OrderService {
   }
   async getReturnReasons() {
     try {
-      console.log(REQUESTS_DATA.RETURN_REASONS);
       let response = await fetchData({
         url: `/customer/order/return_requests/reasons`,
         reqTitle: REQUESTS_DATA.RETURN_REASONS,

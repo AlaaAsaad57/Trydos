@@ -110,7 +110,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
             translateFunction("failed to search with image"),
         ),
       );
-      console.log(error);
+
       setLoading(false);
     }
   };

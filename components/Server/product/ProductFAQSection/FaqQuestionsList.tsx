@@ -42,13 +42,7 @@ function FaqQuestionsList({
   const GetNextComments = async () => {
     if (!offset || loading) return;
     setLoading(true);
-    console.log({
-      language: language,
-      productId: productId,
-      filter: null,
-      offset: offsetValue,
-      userId: auth.UserID(),
-    });
+
     let response = await GetProductFaqQuestions({
       language: language,
       productId: productId,

@@ -21,7 +21,7 @@ function Timer({
   const { selected_product_for_add_to_cart } = useAppStore();
   const data = TimerUtil({
     expiryTimestamp: new Date(
-      Date.now() + minutes * 60 * 1000 + seconds * 1000
+      Date.now() + minutes * 60 * 1000 + seconds * 1000,
     ),
     autoStart: true,
     onExpire() {
@@ -32,7 +32,6 @@ function Timer({
     data.start();
   }, []);
   useEffect(() => {
-    console.log(selected_product_for_add_to_cart);
     if (isForRedeem) {
       if (
         selected_product_for_add_to_cart &&

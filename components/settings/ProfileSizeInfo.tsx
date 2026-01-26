@@ -35,8 +35,6 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
         scenario: "Error In updateUserProfile in ProfileSizeInfo",
       });
       setLoading(false);
-
-      console.log(error);
     }
   };
 

@@ -34,9 +34,8 @@ function AddToCartButton({ product }: { product: any }) {
         if (product) {
           if (shoulShowRedeem()) {
             seconds = document.querySelector<HTMLSpanElement>(
-              "#product-redeem-counter-label"
+              "#product-redeem-counter-label",
             )?.innerText;
-            console.log(seconds);
           }
           DisableScroll();
           setSelectedProductForCart({

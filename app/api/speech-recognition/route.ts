@@ -36,10 +36,9 @@ export async function POST(request: NextRequest) {
     // Convert File to Buffer
     const arrayBuffer = await audioFile.arrayBuffer();
     const audioBuffer = Buffer.from(arrayBuffer);
-    console.log("Audio buffer size:", audioBuffer.length);
 
     // Step 1: Upload audio to AssemblyAI
-    console.log("Uploading to AssemblyAI...");
+
     const uploadResponse = await fetch(`${ASSEMBLYAI_BASE_URL}/upload`, {
       method: "POST",
       headers: {
@@ -50,12 +49,6 @@ export async function POST(request: NextRequest) {
 
       body: audioBuffer,
     });
-
-    console.log("Upload response status:", uploadResponse.status);
-    console.log(
-      "Upload response headers:",
-      Object.fromEntries(uploadResponse.headers.entries()),
-    );
 
     if (!uploadResponse.ok) {
       const errorText = await uploadResponse.text();
@@ -70,11 +63,11 @@ export async function POST(request: NextRequest) {
     }
 
     const uploadResult = await uploadResponse.json();
-    console.log("Upload successful:", uploadResult);
+
     const { upload_url } = uploadResult;
 
     // Step 2: Request transcription
-    console.log("Requesting transcription...");
+
     const transcriptionPayload = {
       audio_url: upload_url,
       language_code: language === "ar" ? "ar" : "en_us",
@@ -83,7 +76,6 @@ export async function POST(request: NextRequest) {
       disfluencies: false,
       speaker_labels: false,
     };
-    console.log("Transcription payload:", transcriptionPayload);
 
     const transcriptResponse = await fetch(
       `${ASSEMBLYAI_BASE_URL}/transcript`,
@@ -96,8 +88,6 @@ export async function POST(request: NextRequest) {
         credentials: "omit",
       },
     );
-
-    console.log("Transcription response status:", transcriptResponse.status);
 
     if (!transcriptResponse.ok) {
       const errorText = await transcriptResponse.text();
@@ -112,18 +102,14 @@ export async function POST(request: NextRequest) {
     }
 
     const transcriptResult = await transcriptResponse.json();
-    console.log("Transcription request successful:", transcriptResult);
+
     const { id: transcriptId } = transcriptResult;
 
-    // Step 3: Poll for completion
-    console.log("Starting polling for transcript ID:", transcriptId);
     let transcript;
     let attempts = 0;
     const maxAttempts = 60; // 60 seconds timeout
 
     while (attempts < maxAttempts) {
-      console.log(`Polling attempt ${attempts + 1}/${maxAttempts}`);
-
       const pollResponse = await fetch(
         `${ASSEMBLYAI_BASE_URL}/transcript/${transcriptId}`,
         {
@@ -135,37 +121,25 @@ export async function POST(request: NextRequest) {
 
       if (!pollResponse.ok) {
         const errorText = await pollResponse.text();
-        console.error("Polling failed:", {
-          status: pollResponse.status,
-          statusText: pollResponse.statusText,
-          error: errorText,
-        });
+
         throw new Error(
           `Polling failed: ${pollResponse.status} ${pollResponse.statusText} - ${errorText}`,
         );
       }
 
       transcript = await pollResponse.json();
-      console.log("Polling response:", transcript);
 
       if (transcript.status === "completed") {
-        console.log("Transcription completed successfully");
         break;
       } else if (transcript.status === "error") {
-        console.error("Transcription failed:", transcript.error);
         throw new Error(`Transcription failed: ${transcript.error}`);
       }
 
-      console.log(
-        `Transcript status: ${transcript.status}, waiting 1 second...`,
-      );
-      // Wait 1 second before next poll
       await new Promise((resolve) => setTimeout(resolve, 1000));
       attempts++;
     }
 
     if (attempts >= maxAttempts) {
-      console.error("Transcription timeout after", maxAttempts, "attempts");
       throw new Error("Transcription timeout");
     }
 

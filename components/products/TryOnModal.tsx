@@ -56,18 +56,7 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
 
   // Handle video stream when camera is enabled
   useEffect(() => {
-    console.log(
-      "useEffect triggered - enableCamera:",
-      enableCamera,
-      "streamRef:",
-      streamRef.current,
-      "videoRef:",
-      videoRef.current
-    );
     if (enableCamera && streamRef.current && videoRef.current) {
-      console.log("Setting video srcObject in useEffect");
-      videoRef.current.srcObject = streamRef.current;
-      videoRef.current.play().catch(console.error);
     }
   }, [enableCamera]);
 
@@ -86,29 +75,25 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
   // Handle camera capture
   const handleCameraCapture = async () => {
     try {
-      console.log("Requesting camera access...");
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" }, // Fixed typo: "enviroment" -> "environment"
       });
 
-      console.log("Camera stream obtained:", stream);
       streamRef.current = stream;
       setEnableCamera(true);
 
       // Wait for the next tick to ensure the video element is rendered
       setTimeout(() => {
-        console.log("Setting video srcObject, videoRef:", videoRef.current);
         if (videoRef.current && stream) {
           videoRef.current.srcObject = stream;
           videoRef.current.play().catch(console.error);
         }
       }, 100);
     } catch (error) {
-      console.error("Error accessing camera:", error);
       alert(
         translateFunction(
-          "Please enable notification permissions to use camera features"
-        )
+          "Please enable notification permissions to use camera features",
+        ),
       );
     }
   };
@@ -337,7 +322,7 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
 
               <p className="text-gray-600 mb-6">
                 {translateFunction(
-                  "Click 'Try On' to see how this product looks on you"
+                  "Click 'Try On' to see how this product looks on you",
                 )}
               </p>
 

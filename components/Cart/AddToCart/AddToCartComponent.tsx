@@ -101,7 +101,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       ]);
     }
   };
-  // console.log(ProductData?.seconds);
+
   let selected_color =
     ProductData?.sync_color_images?.find(
       (s) =>

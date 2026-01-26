@@ -50,7 +50,7 @@ function ProductStories({ id, children, InitialStoriesData }) {
   const handleWrapperClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // 1. Find the link that was clicked (or the link containing the clicked element)
     const link = (e.target as HTMLElement).closest(
-      ".product-story"
+      ".product-story",
     ) as HTMLElement | null;
 
     // 2. Check if the link exists and is inside this specific wrapper
@@ -60,10 +60,9 @@ function ProductStories({ id, children, InitialStoriesData }) {
 
       setSelectStory(
         StoryServiceClass.configureStory(
-          storiesData.find((s) => String(s.id) === String(id))
-        )
+          storiesData.find((s) => String(s.id) === String(id)),
+        ),
       );
-      console.log("ID from data-id:", id);
 
       // If you want to prevent the page from actually changing:
       // e.preventDefault();

@@ -144,9 +144,7 @@ function ShareOptions({ product }: any) {
       (s) => String(s.contact_user_id) !== String(getUserChat()?.id),
     );
   };
-  useEffect(() => {
-    console.log(getContactsForSharing());
-  }, [contacts]);
+
   return (
     <div className="share-options">
       <div className={`share-avatar`}>

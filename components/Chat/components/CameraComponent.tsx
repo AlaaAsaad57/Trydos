@@ -17,14 +17,11 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
   };
 
   const onUserMedia = (stream) => {
-    console.log("stream", stream);
     streamRef.current = stream;
   };
   const stopStream = () => {
-    console.log("Stopping stream", streamRef.current?.getTracks());
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => {
-        console.log("Stopping track", track);
         track.stop();
       });
       streamRef.current = null;
@@ -166,7 +163,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
                 onClick={() => {
                   if (!twoCameras) {
                     showErrorNotification(
-                      translateFunction("this device has only one camera")
+                      translateFunction("this device has only one camera"),
                     );
                     return;
                   }

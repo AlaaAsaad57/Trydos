@@ -24,7 +24,7 @@ function ProductBackButton({ lang }) {
   const handleBack = () => {
     // Keywords that trigger the boutique navigation state
     const boutiqueKeywords = ["boutiques", "filters", "featured", "flashdeals"];
-    console.log(lastPathname);
+
     // Check if lastPathname exists and matches any keyword
     const isBoutiquePath =
       lastPathname &&
@@ -38,11 +38,8 @@ function ProductBackButton({ lang }) {
 
     // Navigation logic
     if (lastPathname) {
-      console.log("back to lastPathname:", lastPathname);
       router.back();
     } else {
-      console.log("push to main", lastPathname);
-
       // Fallback for direct entry or page refresh (where lastPathname is null)
       router.push(`/${lang}`);
     }

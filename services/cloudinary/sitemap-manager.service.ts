@@ -38,18 +38,12 @@ export class SitemapManagerService {
    * Generate and upload all sitemaps to Cloudinary
    */
   async generateAndUploadAllSitemaps(): Promise<SitemapManagerResult> {
-    console.log(
-      "[SitemapManager] Starting generation and upload of all sitemaps",
-    );
-
     const results: SitemapManagerResult["results"] = {};
     let hasErrors = false;
 
     try {
       // Generate and upload each sitemap type
       for (const type of this.sitemapTypes) {
-        console.log(`[SitemapManager] Processing ${type} sitemap`);
-
         const result = await this.generateAndUploadSitemap(type);
         results[type] = result;
 
@@ -60,7 +54,6 @@ export class SitemapManagerService {
 
       // Generate and upload sitemap index
       if (!hasErrors) {
-        console.log("[SitemapManager] Generating sitemap index");
         const indexResult = await this.generateAndUploadSitemapIndex();
         results.index = indexResult;
 
@@ -97,8 +90,6 @@ export class SitemapManagerService {
     type: "home" | "products" | "static" | "search",
   ): Promise<SitemapUploadResult> {
     try {
-      console.log(`[SitemapManager] Generating ${type} sitemap XML`);
-
       // Generate XML content
       let xmlContent: string;
       switch (type) {
@@ -120,8 +111,6 @@ export class SitemapManagerService {
 
       const publicId = `sitemap-${type}`;
 
-      console.log(`[SitemapManager] Uploading ${type} sitemap to Cloudinary`);
-
       // Upload to Cloudinary
       const uploadResult = await cloudinaryService.uploadSitemapContent(
         xmlContent,
@@ -129,8 +118,6 @@ export class SitemapManagerService {
       );
 
       if (uploadResult) {
-        console.log(`[SitemapManager] ${type} sitemap uploaded successfully`);
-
         return {
           success: true,
           publicId,
@@ -164,8 +151,6 @@ export class SitemapManagerService {
    */
   async generateAndUploadSitemapIndex(): Promise<SitemapUploadResult> {
     try {
-      console.log("[SitemapManager] Generating sitemap index XML");
-
       // Get URLs for all sitemaps
       const sitemapUrls = [];
 
@@ -192,8 +177,6 @@ export class SitemapManagerService {
 
       const publicId = "sitemap";
 
-      console.log("[SitemapManager] Uploading sitemap index to Cloudinary");
-
       // Upload to Cloudinary
       const uploadResult = await cloudinaryService.uploadSitemapContent(
         xml,
@@ -201,8 +184,6 @@ export class SitemapManagerService {
       );
 
       if (uploadResult) {
-        console.log("[SitemapManager] Sitemap index uploaded successfully");
-
         return {
           success: true,
           publicId,

@@ -18,10 +18,6 @@ function NavbarServer({ lang, mainCategory, categoriesData, children }: any) {
     // 2. Check if the link exists and is inside this specific wrapper
     if (link && e.currentTarget.contains(link)) {
       // 3. Extract data from the 'dataset' object
-      const { id } = link.dataset;
-
-      console.log("ID from data-id:", id);
-
       // If you want to prevent the page from actually changing:
       // e.preventDefault();
     }

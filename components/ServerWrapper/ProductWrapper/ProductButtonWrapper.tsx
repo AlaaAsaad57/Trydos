@@ -83,12 +83,7 @@ function ProductButtonWrapper({
     let is_redeem_product_card = document
       .querySelector(`#product_${slug}`)
       ?.classList.contains("product_redeem");
-    console.log(
-      "is_redeem-",
-      is_redeem_product_card,
-      is_redeem,
-      !redeem_expired
-    );
+
     setSelectedProductForCart({
       ...InitialProductData,
       shouldUpdate: 0,
