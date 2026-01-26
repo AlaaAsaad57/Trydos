@@ -221,7 +221,17 @@ function WebViewVideoCall(props) {
           )}
           {
             <>
-              {props.active ? (
+              {props.data?.is_private ? (
+                <div
+                  className="hgg"
+                  style={{
+                    backgroundImage: `url(${"/images/profileNo.png"})`,
+                    left: 0,
+                    right: 0,
+                    margin: "0 auto",
+                  }}
+                ></div>
+              ) : props.active ? (
                 <div
                   className="hgg"
                   style={{
@@ -262,7 +272,11 @@ function WebViewVideoCall(props) {
             </div>
           )} */}
           <span className="caller-name">
-            {props.userData.name || props.userData.phone}
+            {props.data?.is_private
+              ? props.data?.is_private === "customer"
+                ? "Customer"
+                : "Deleivery Worker"
+              : props.userData.name || props.userData.phone}
           </span>
 
           {users.length > 0 &&
