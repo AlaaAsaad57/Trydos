@@ -17,7 +17,6 @@ import {
   setCookie,
 } from "./cookies/cookie-manager";
 import { logRequest } from "./requestLoggerClient";
-import { ReportError } from "./errorReported";
 import { useAppStore } from "../store";
 
 // ---------- Types ----------

@@ -133,6 +133,12 @@ export default function NextLink({
         setLastPathname(pathname);
       }}
       onClick={() => {
+        if (fromRecomended) {
+          GAevent({
+            action: GA_EVENT_NAMES.RECOMENDED,
+            params: fromRecomended,
+          });
+        }
         if (isFromSetting) {
           let element = document.querySelector(".setting-screen");
 

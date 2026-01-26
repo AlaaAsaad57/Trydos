@@ -6,7 +6,6 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import { fetchServerData } from "./ServerFetch";
-import { ReportError } from "utils/errorReported";
 import { LogServerError } from "utils/serverErrorReporter";
 
 interface StoryItem {
@@ -57,9 +56,10 @@ export async function fetchStoriesForUser(
       headers: headers,
     });
     if (response.isError) {
-      ReportError(new Error(`Stories Error: ${response.status}`), {
+      LogServerError({
         source: "stories",
         page: "stories",
+        status: response.status,
         language,
         country,
         response: JSON.stringify(response)?.substring(0, 300),
@@ -107,9 +107,10 @@ export async function fetchStoriesForGuest(
       headers: headers,
     });
     if (response.isError) {
-      ReportError(new Error(`Stories Error: ${response.status}`), {
+      LogServerError({
         source: "stories",
         page: "stories",
+        status: response.status,
         language,
         country,
         response: JSON.stringify(response)?.substring(0, 300),

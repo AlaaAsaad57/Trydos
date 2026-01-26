@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-
-import { ReportError } from "utils/errorReported";
-import { LogError } from "utils/functions";
 import { GetRatingCommentsFromElastic } from "utils/pagesDataRequests/ProductPageData";
 import { LogServerError } from "utils/serverErrorReporter";
 

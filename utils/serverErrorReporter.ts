@@ -43,13 +43,7 @@ export const LogServerError = async (error?: unknown, pagePath?: string) => {
     current_url: pagePath,
     last_paths: last_paths,
   };
-  let errorObj = {
-    type: "server-front-end-exception",
-    message: error ?? (error as any)?.message,
-    user_id: (userData as any)?.user_id,
-    country: country,
-    language: language,
-  };
+
   ReportError(Error_Object);
   await storeError(Error_Object);
 };
