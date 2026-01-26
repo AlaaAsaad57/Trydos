@@ -93,6 +93,7 @@ export async function GetNextRecommendations({
   let newOffset = response?.offset;
   let items = productsData?.map((product) => (
     <ProductWrapper
+      fromRecomended={true}
       key={product?.product_id ?? product?.id}
       category_tree={product?.categories?.map((s) => s.name)}
       labels={product?.label_names}
@@ -161,12 +162,12 @@ export async function GetMainCategories({ country, language }) {
   let mainCategories = a.hits.hits.map((s) => {
     // @ts-ignore
     return s._source?.custom_categories?.find(
-      (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
+      (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase(),
     );
   });
   mainCategories = mainCategories.filter((c) => c !== undefined);
   mainCategories = Array.from(
-    new Map(mainCategories.map((c: any) => [c.id, c])).values()
+    new Map(mainCategories.map((c: any) => [c.id, c])).values(),
   );
   return {
     data: {
