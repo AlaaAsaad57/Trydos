@@ -1,5 +1,3 @@
-import jwt from "jsonwebtoken";
-
 let cookies: any;
 try {
   if (typeof window === "undefined") {

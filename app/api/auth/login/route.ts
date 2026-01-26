@@ -5,6 +5,7 @@ import {
   LOG_IN_STORIES_ENDPOINT,
   LOG_IN_COMMENTS_ENDPOINT,
   VERIFY_OTP_ENDPOINT,
+  LOG_IN_WALLET_ENDPOINT,
 } from "utils/fetch/Endpoints";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -93,7 +94,7 @@ export async function GET(request: NextRequest) {
     } = otp_response.data;
 
     // 3. Sub-service Logins (Resilient Path)
-    const [chatRes, storiesRes, commentRes] = await Promise.all([
+    const [chatRes, storiesRes, commentRes, walletRes] = await Promise.all([
       safeServiceLogin(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + LOG_IN_CHAT_ENDPOINT,
         {
@@ -116,6 +117,13 @@ export async function GET(request: NextRequest) {
           user_id: String(InventoryUser.id),
           phone: String(InventoryUser.phone),
           id_token: idToken,
+        },
+      ),
+      safeServiceLogin(
+        process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + LOG_IN_WALLET_ENDPOINT,
+        {
+          otp_id_token: idToken,
+          mobile_phone: InventoryUser.phone,
         },
       ),
     ]);
@@ -143,9 +151,18 @@ export async function GET(request: NextRequest) {
         user_id: String(InventoryUser?.id),
         phone: String(InventoryUser.phone),
       });
-
+    if (!walletRes.success) {
+      failures.push({
+        endpoint: "WALLET",
+        ...walletRes,
+      });
+    }
     const tokensToSet = [
       { name: COOKIE_NAMES.MARKET_TOKEN, value: MainToken },
+      {
+        name: COOKIE_NAMES.WALLET_TOKEN,
+        value: walletRes.data?.accessToken?.token,
+      },
       {
         name: COOKIE_NAMES.CHAT_TOKEN,
         value: chatRes.data?.data?.access_token,
@@ -179,9 +196,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         ...otp_response,
-        ChatUser: chatRes.data?.data || null,
-        StoriesUser: storiesRes.data?.data || null,
-        is_failed: failures.length > 0 ? failures : undefined,
+        ChatUser: chatRes?.data?.data || null,
+        StoriesUser: storiesRes?.data?.data || null,
+        is_failed: failures?.length > 0 ? failures : undefined,
+        WalletUser: walletRes?.data?.user || null,
       },
       { status: 200 },
     );
