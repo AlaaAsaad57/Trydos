@@ -255,7 +255,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
             }}
           >
             <NextLink
-              sameHref={isSamePage(`/${lang}`)}
+              sameHref={window.location.pathname === `/${lang}`}
               href={`/${lang}`}
               data-cy="back-to-home-page"
               data={{
