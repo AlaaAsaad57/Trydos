@@ -251,6 +251,7 @@ class ForegroundNotificationHandler {
         : undefined;
       notify(url, { is_product: true, href: url });
     } else if (type === "order placed") {
+      state.setShouldUpdateOrders(state.shouldUpdateOrders + 1);
       await this.handleOrderPlaced(data, lang, state);
     }
   }

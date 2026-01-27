@@ -10,6 +10,7 @@ import Skeleton from "react-loading-skeleton";
 import { translateFunction } from "utils/server";
 import { allCountries } from "country-telephone-data";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
+import RouterRefresh from "components/global/RouterRefresh";
 
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -84,6 +85,7 @@ async function page({ params }) {
         local={Params?.lang}
         preivous_page={`/${Params.lang}`}
       />
+      <RouterRefresh />
       <Suspense
         fallback={
           <Skeleton
