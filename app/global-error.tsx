@@ -9,7 +9,6 @@ import {
   NetworkErrorIllustration,
 } from "../components/global/ErrorIllustrations";
 import "styles/globals.css";
-import * as Sentry from "@sentry/nextjs";
 export default function GlobalError({ error, reset }) {
   const sendError = async () => {
     const userAgent =
@@ -36,7 +35,6 @@ export default function GlobalError({ error, reset }) {
       country: country,
       language: lang,
     };
-    Sentry.captureException(errorObj);
     LogError(errorObj);
   };
   useEffect(() => {
