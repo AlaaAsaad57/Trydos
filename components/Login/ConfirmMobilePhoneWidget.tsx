@@ -29,10 +29,10 @@ function ConfirmMobilePhoneWidget() {
   const copyInitialData = async () => {
     let last_verify_date = localStorage.getItem("LAST-VERIFY");
     let last_unauthorized_request = localStorage.getItem(
-      "last_unauthorized_request"
+      "last_unauthorized_request",
     );
     await navigator.clipboard.writeText(
-      JSON.stringify({ last_verify_date, last_unauthorized_request }, null, 2)
+      JSON.stringify({ last_verify_date, last_unauthorized_request }, null, 2),
     );
     showSuccessNotification("copy success!");
   };
@@ -92,7 +92,11 @@ function ConfirmMobilePhoneWidget() {
             setShouldAuthinticated(false);
           }}
           // @ts-ignore
-          hasMobile={userData?.phone !== null && userData?.phone !== 0}
+          hasMobile={
+            userData?.phone !== null &&
+            (userData as any)?.phone !== 0 &&
+            userData?.phone !== "0"
+          }
           goToOrders={() => {
             // equal to success flag when goToOrders trigrred then it means the verification success
 
