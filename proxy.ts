@@ -10,7 +10,7 @@ const DEFAULT_COUNTRY = "gb";
 const COOKIE_OPTIONS = {
   path: "/",
   httpOnly: false,
-  secure: process.env.NODE_ENV === "production",
+  secure: true,
   sameSite: "lax" as const,
   maxAge: 360 * 7 * 24 * 60 * 60,
 };
