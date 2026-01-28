@@ -200,7 +200,7 @@ function InputName({
             <span style={{ marginLeft: "10px" }}>
               {translate(
                 "Your Privacy Is Completely Safe, We Not Share Your Information With Anyone",
-                language
+                language,
               )}
             </span>
           </div>
@@ -288,7 +288,7 @@ function InputName({
                   updateName();
                 }}
               >
-                <img src="/icons/Le" />
+                <img src="/icons/LeftArrowIcon.svg" />
               </span>
             )}
           </>
