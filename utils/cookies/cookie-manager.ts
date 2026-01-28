@@ -1,3 +1,5 @@
+import jwt from "jsonwebtoken";
+
 let cookies: any;
 try {
   if (typeof window === "undefined") {
@@ -255,7 +257,7 @@ export function setLocaizationCookies(country: string, language: string): void {
     setCookie(COOKIE_NAMES.COUNTRY, country, {
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 365 * 24 * 60 * 60, // 1 year
       httpOnly: false,
     });
@@ -264,14 +266,14 @@ export function setLocaizationCookies(country: string, language: string): void {
     setCookie(COOKIE_NAMES.LANG, language, {
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 365 * 24 * 60 * 60, // 1 year
       httpOnly: false,
     });
     setCookie(COOKIE_NAMES.lANGUAGE, language, {
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 365 * 24 * 60 * 60, // 1 year
       httpOnly: false,
     });
