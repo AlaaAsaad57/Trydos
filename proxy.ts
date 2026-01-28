@@ -10,7 +10,7 @@ const DEFAULT_COUNTRY = "gb";
 const COOKIE_OPTIONS = {
   path: "/",
   httpOnly: false,
-  secure: process.env.NODE_ENV === "production",
+  secure: true,
   sameSite: "lax" as const,
   maxAge: 360 * 7 * 24 * 60 * 60,
 };
@@ -265,13 +265,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/robots.txt", request.url));
   }
 
-  // Skip non-HTML requests
-  if (
-    request.method === "POST" ||
-    !request.headers.get("accept")?.includes("text/html")
-  ) {
-    return response;
-  }
   // Get and validate cookie values
   const countryFromCookies = request.cookies.get("country")?.value;
   const langFromCookies =
@@ -409,46 +402,48 @@ export async function proxy(request: NextRequest) {
   // SCENARIO 2: No valid URL locale - determine redirect
 
   // Try valid cookies first
-  if (cookieValidation.isValid) {
-    const locale = buildLocale(
-      cookieValidation.country!,
-      cookieValidation.language!,
-    );
-    const cleanPathname = getCleanPathname(pathname, urlLocale);
-
-    url.pathname = `/${locale}${cleanPathname}`;
-    const redirectResponse = NextResponse.redirect(url);
-    redirectResponse.cookies.set(
-      "country",
+  if (
+    cookieValidation.isValid &&
+    cookieValidation.country &&
+    cookieValidation.language
+  ) {
+    const targetLocale = buildLocale(
       cookieValidation.country,
-      COOKIE_OPTIONS,
-    );
-    redirectResponse.cookies.set(
-      "lang",
       cookieValidation.language,
-      COOKIE_OPTIONS,
+    );
+    const cleanPath = getCleanPathname(pathname, urlLocale);
+    url.pathname = `/${targetLocale}${cleanPath === "/" ? "" : cleanPath}`;
+
+    const redirectResponse = NextResponse.redirect(url);
+    // نقل الكوكيز الصالحة للـ Response الجديد لضمان عدم ضياعها
+    setLocaleCookies(
+      redirectResponse,
+      cookieValidation.country,
+      cookieValidation.language,
     );
     return redirectResponse;
   }
 
-  // Try Geo IP detection (first visit)
+  // 2. محاولة Geo IP
   const geoCountry = getGeoCountry(request);
   const preferredLanguage = getPreferredLanguage(request);
-
-  // Validate geo country and preferred language combination
   const geoValidation = validateLocalePair(
     geoCountry,
     preferredLanguage,
     allSupportedCountries,
   );
 
-  if (geoValidation.isValid) {
-    const locale = buildLocale(geoValidation.country!, geoValidation.language!);
-    url.pathname = `/${locale}${pathname}`;
+  if (
+    geoValidation.isValid &&
+    geoValidation.country &&
+    geoValidation.language
+  ) {
+    const locale = buildLocale(geoValidation.country, geoValidation.language);
+    url.pathname = `/${locale}${pathname.startsWith("/") ? pathname : "/" + pathname}`;
     return NextResponse.redirect(url);
   }
 
-  // Fallback to default locale - ALWAYS redirect to gb-en
+  // 3. Fallback الافتراضي (فقط هنا يظهر no-country)
   const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
   const cleanPathname = urlLocale
     ? pathname.replace(urlLocale.locale, defaultLocale)
@@ -456,7 +451,7 @@ export async function proxy(request: NextRequest) {
       ? pathname
       : `/${pathname}`;
 
-  url.pathname = `/${defaultLocale}${cleanPathname}`;
+  url.pathname = `/${defaultLocale}${cleanPathname === "/" ? "" : cleanPathname}`;
   url.searchParams.delete("cart");
   url.searchParams.set("no-country", "true");
   return NextResponse.redirect(url);
