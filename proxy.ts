@@ -11,7 +11,7 @@ const COOKIE_OPTIONS = {
   path: "/",
   httpOnly: false,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
+  sameSite: "lax" as const,
   maxAge: 360 * 7 * 24 * 60 * 60,
 };
 
@@ -338,15 +338,19 @@ export async function proxy(request: NextRequest) {
       if (url.searchParams.get("_t")) {
         url.searchParams.delete("_t");
       }
-      if (urlLocale.country === "gb" && cookieValidation.isValid) {
-        const cookieCountry = cookieValidation.country!;
-        const cookieLanguage = cookieValidation.language!; // If cookie is a supported country other than GB, redirect to it
+      if (cookieValidation.isValid) {
+        const { country: cKey, language: lKey } = cookieValidation;
 
-        if (cookieCountry !== "gb") {
-          const targetLocale = buildLocale(cookieCountry, cookieLanguage);
+        // If URL is GB but cookie is something else (e.g., TR), REDIRECT
+        if (urlLocale.country === "gb" && cKey !== "gb") {
+          const targetLocale = buildLocale(cKey!, lKey!);
           const cleanPath = getCleanPathname(pathname, urlLocale);
-          url.pathname = `/${targetLocale}${cleanPath}`;
-          return createRedirectResponse(url, redirectCount);
+          url.pathname = `/${targetLocale}${cleanPath === "/" ? "" : cleanPath}`;
+
+          const res = createRedirectResponse(url, redirectCount);
+          // IMPORTANT: You must attach cookies to the redirect response
+          setLocaleCookies(res, cKey!, lKey!);
+          return res;
         }
       }
       // CASE 1A: Handle no-country parameter
@@ -413,7 +417,18 @@ export async function proxy(request: NextRequest) {
     const cleanPathname = getCleanPathname(pathname, urlLocale);
 
     url.pathname = `/${locale}${cleanPathname}`;
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+    redirectResponse.cookies.set(
+      "country",
+      cookieValidation.country,
+      COOKIE_OPTIONS,
+    );
+    redirectResponse.cookies.set(
+      "lang",
+      cookieValidation.language,
+      COOKIE_OPTIONS,
+    );
+    return redirectResponse;
   }
 
   // Try Geo IP detection (first visit)
