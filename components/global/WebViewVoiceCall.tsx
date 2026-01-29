@@ -7,6 +7,7 @@ import AgoraRTC, {
 } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
 import { getTwoLetters } from "components/Chat/chatsFunctions";
+import { GetImageUrl } from "utils/tinyUtils";
 
 const config: any = {
   mode: "rtc",
@@ -188,7 +189,7 @@ function WebViewVoiceCall(props) {
               <div
                 className="hgg"
                 style={{
-                  backgroundImage: `url(${props.active})`,
+                  backgroundImage: `url(${GetImageUrl(props.active)})`,
                   left: 0,
                   right: 0,
                   margin: "0 auto",
