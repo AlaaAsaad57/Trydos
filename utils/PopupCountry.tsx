@@ -31,12 +31,12 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
     const cookieMaxAge = 360 * 7 * 24 * 60 * 60; // 1 year
 
     // Method 1: document.cookie (immediate)
-    document.cookie = `country=${countryCode.toLowerCase()}; path=/; max-age=${cookieMaxAge}; SameSite=Strict`;
-    document.cookie = `lang=${langCode.toLowerCase()}; path=/; max-age=${cookieMaxAge}; SameSite=Strict`;
-    document.cookie = `language=${langCode.toLowerCase()}; path=/; max-age=${cookieMaxAge}; SameSite=Strict`;
+    document.cookie = `country=${countryCode.toLowerCase()}; path=/; max-age=${cookieMaxAge}; SameSite=lax`;
+    document.cookie = `lang=${langCode.toLowerCase()}; path=/; max-age=${cookieMaxAge}; SameSite=lax`;
+    document.cookie = `language=${langCode.toLowerCase()}; path=/; max-age=${cookieMaxAge}; SameSite=lax`;
 
     // Method 2: js-cookie library
-    const cookieOptions = { expires: 365, path: "/", sameSite: "strict" };
+    const cookieOptions = { expires: 365, path: "/", sameSite: "lax" };
     Cookies.set("country", countryCode.toLowerCase(), cookieOptions);
     Cookies.set("lang", langCode.toLowerCase(), cookieOptions);
     Cookies.set("language", langCode.toLowerCase(), cookieOptions);
