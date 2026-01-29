@@ -84,6 +84,14 @@ function ProductDetailsSlider({ images, productGA, resetLoader = true }: any) {
     }
   }, [emblaApi, imageShow]);
   useEffect(() => {
+    GAevent({
+      action: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
+      params: {
+        user_id_custom: auth.UserID(),
+
+        ...productGA,
+      },
+    });
     const handleTwentySecondAction = () => {
       // Add your 20-second action here
 
