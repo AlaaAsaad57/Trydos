@@ -42,7 +42,7 @@ function ProductWrapper({
   country,
   Sliders = false,
   InitialProductData,
-  fromRecomended = false,
+  fromRecomended = null,
 }) {
   let isRtl = language === "ar" || language === "ku";
   let isFlash: any = null;
@@ -181,6 +181,7 @@ function ProductWrapper({
           fromRecomended
             ? {
                 select_item_recommended: id,
+                ...fromRecomended,
               }
             : null
         }

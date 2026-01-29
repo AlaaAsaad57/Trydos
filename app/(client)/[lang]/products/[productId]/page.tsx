@@ -121,7 +121,7 @@ async function Page({ params, searchParams }) {
             key={color}
             color={color}
             globalPromise={GlobalData}
-            language={language}
+            qtyPricePromise={QtyPricesData}
           />
         </Suspense>
         <div className="product-details-body bg-[#ffffff] flex-row relative mt-[3px] pb-[50px]">
