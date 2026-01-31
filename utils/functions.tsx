@@ -413,6 +413,10 @@ export const GetCartOreview = async () => {
   }
 };
 export const LogError = async (error) => {
+  if (typeof window !== "undefined") {
+    let { LoggingOut } = useAppStore.getState();
+    if (LoggingOut) return;
+  }
   let last_request;
   const userData = getCookie(COOKIE_NAMES.USER_DATA);
   const userChat = getCookie(COOKIE_NAMES.USER_CHAT);

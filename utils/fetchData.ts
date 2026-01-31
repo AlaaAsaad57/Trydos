@@ -29,6 +29,7 @@ type ServerType =
   | "nest-stories"
   | "local"
   | "comments"
+  | "wallet"
   | "market-dashboard";
 
 type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -83,6 +84,8 @@ const getServerBaseUrl = (server: ServerType) => {
       return process.env.NEXT_PUBLIC_STORIES_BACKEND_URL;
     case "comments":
       return process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL;
+    case "wallet":
+      return process.env.NEXT_PUBLIC_WALLET_BACKEND_URL;
     case "upload story":
     case "nest-stories":
     case "local":
@@ -94,6 +97,8 @@ const getServerBaseUrl = (server: ServerType) => {
 
 const getToken = async (server: ServerType): Promise<string> => {
   switch (server) {
+    case "wallet":
+      return getCookie(COOKIE_NAMES.WALLET_TOKEN);
     case "comments":
       return getHashedUserId();
     case "local":
@@ -129,6 +134,8 @@ const getHeader = async (server = null) => {
   const countryCookie = getCookie("country");
   return {
     lang: lang ?? languageCookie,
+    "Accept-Language": lang ?? languageCookie,
+    "x-lang": lang ?? languageCookie,
     accept: "application/json",
     country: country ?? countryCookie,
     current_role_id: userChat?.role_id || "-1",
@@ -209,6 +216,7 @@ const handleUnauthorized = async (
       case "chat":
       case "stories":
       case "comments":
+      case "wallet":
         let token = await getToken(server);
         localStorage.setItem(
           "last_unauthorized_request",

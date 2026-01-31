@@ -32,6 +32,7 @@ export interface UserData {
 
 // Constants for cookie names
 export const COOKIE_NAMES = {
+  WALLET_USER: "WALLET_USER",
   WALLET_TOKEN: "WALLET_TOKEN",
   DEVICE_TOKEN: "DEVICE-TOKEN",
   USER_DATA: "User-Data",

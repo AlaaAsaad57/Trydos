@@ -220,4 +220,7 @@ export const REQUESTS_DATA = {
   UPDATE_USER_ROLE: { reqTitle: "UPDATE_USER_ROLE", code: 154 },
   LEAVE_SHOP: { reqTitle: "LEAVE_SHOP", code: 155 },
   VENDOR_REQUEST: { reqTitle: "Vendor Request", code: 156 },
+  CREATE_WALLET: { reqTitle: "CREATE_WALLET", code: 157 },
+  CHECK_USER_WALLET: { reqTitle: "CHECK_USER_WALLET", code: 158 },
+  GET_CURRENCIES: { reqTitle: "GET_CURRENCIES", code: 159 },
 };

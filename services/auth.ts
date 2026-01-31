@@ -19,6 +19,7 @@ import {
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
+import wallet from "./wallet";
 
 class AuthService {
   async SendOtp(
@@ -111,7 +112,8 @@ class AuthService {
         });
       }
       setCookie(COOKIE_NAMES.MARKET_TOKEN, response.data.token);
-
+      setCookie(COOKIE_NAMES.WALLET_USER, response.WalletUser);
+      wallet.checkWallet({ id: response?.WalletUser?.id });
       setCookie(COOKIE_NAMES.USER_DATA, {
         ...response.data.user,
         already_exists: response.data.already_exists,
