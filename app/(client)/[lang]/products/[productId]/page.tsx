@@ -53,7 +53,7 @@ export async function generateMetadata({ params, searchParams }) {
     // @ts-ignore
     if (metaData?.error || !metaData) {
       // @ts-ignore
-      throw new Error(metaData?.error);
+      throw new Error(metaData?.error ?? metaData);
     }
     RedisSet(`${Params.productId}-${Params.lang}`, JSON.stringify(metaData));
 

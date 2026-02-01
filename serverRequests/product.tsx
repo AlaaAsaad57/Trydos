@@ -121,6 +121,9 @@ export async function GetProductMeta({
       method: "GET",
       local: `${country}-${language}`,
     });
+    if (freshMeta?.error) {
+      throw new Error(freshMeta?.error);
+    }
     let product = freshMeta.data.data;
 
     let title = `${product?.name}`;
