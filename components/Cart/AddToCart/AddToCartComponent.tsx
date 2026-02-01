@@ -8,10 +8,8 @@ import {
 } from "utils/functions";
 import { useAppStore } from "store";
 import { useParams, useSearchParams } from "next/navigation";
-
 import auth from "services/auth";
 import home from "services/home";
-
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GetImageUrl } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
@@ -30,7 +28,7 @@ import ExtraInfoArea from "./ExtraInfoArea";
 import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import AddToCartButton from "./Button";
 import NotifyButton from "./NotifyButton";
-import SearchParamUpdater from "components/global/ParamsUpdater";
+
 import { showErrorMessage } from "components/global/AddToCartMessage";
 const normalizeSize = (s) => {
   if (typeof s === "string") return s.replace(/_/g, "-");
