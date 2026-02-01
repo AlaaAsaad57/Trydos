@@ -1,6 +1,7 @@
 "use server";
 
 import AnalyzeSearchText from "services/elastic/analyzeSearchText";
+import { DEFAULT_INDEX } from "services/elastic/elasticsearch-reader.service";
 
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import {
@@ -92,7 +93,7 @@ export async function GetSearchData({
     // Build the main search query
 
     const searchQuery = {
-      index: "products_catalog",
+      index: DEFAULT_INDEX,
       _source: [
         "id",
         "status",
@@ -212,7 +213,7 @@ export async function GetSearchData({
     );
     let categories_childs = await getChildrenAndGrandchildren(
       client,
-      "products_catalog",
+      DEFAULT_INDEX,
       CategoriesIds,
       language,
       country,

@@ -9,15 +9,17 @@ export function getSourceFields(): string[] {
     "videos",
     "thumbnail",
     "flash_deal_status",
-    "flash_deal_discount",
+    // "flash_deal_discount",
+    "flash_deal_price",
     "offered_price",
     "unit_price",
     "colors",
     "text_colors",
     "sync_color_images",
-    "discount",
-    "discount_type",
-    "redeem_discount_rate",
+    // "discount",
+    // "discount_type",
+    // "redeem_discount_rate",
+    "redeem_price",
     "current_stock",
     "boutique_id",
     // "available_size",
@@ -250,7 +252,7 @@ export function processCustomProduct(
   const flashDealEndDate = product.end_date || null;
   const flashDealStartDate = product.start_date || null;
   const flashDealStatus = product.flash_deal_status || null;
-  const flashDealDiscount = product.flash_deal_discount || null;
+  const flash_deal_price = product.flash_deal_price || null;
 
   // Handle flash deal
   if (
@@ -261,12 +263,7 @@ export function processCustomProduct(
     result.flash_deal_start_date = flashDealStartDate;
     result.flash_deal_end_date = flashDealEndDate;
     result.flash_deal_status = flashDealStatus;
-    result.flash_deal_discount = flashDealDiscount;
-    result.flash_deal_price = calculateDiscountedPrice(
-      product.unit_price,
-      flashDealDiscount,
-      "percent",
-    );
+    result.flash_deal_price = flash_deal_price;
     result.is_flash_deal_active = false;
 
     try {
@@ -291,17 +288,11 @@ export function processCustomProduct(
   result.in_stock = parseFloat(product.current_stock || "0") > 0;
 
   // Handle redeem discount
-  const redeemDiscountRate = parseFloat(product.redeem_discount_rate || "0");
-  result.has_redeem_discount =
-    redeemDiscountRate > 0 && redeemDiscountRate < 100;
+  const redeem_price = product.redeem_price;
+
   result.seller_status = product?.seller_status || null;
   if (result.has_redeem_discount) {
-    result.redeem_discount_rate = redeemDiscountRate;
-    result.redeem_price = calculateDiscountedPrice(
-      product.unit_price,
-      redeemDiscountRate,
-      "percent",
-    );
+    result.redeem_price = redeem_price;
   }
 
   // Process categories and brands

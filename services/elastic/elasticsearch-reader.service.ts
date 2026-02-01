@@ -5,14 +5,13 @@ import { estypes } from "@elastic/elasticsearch";
 
 export class ElasticsearchReader {
   private client = elasticSearchClient;
-  private readonly index = "products_catalog";
 
   async getCategories<T>(ReqQuery: any) {
     let country = ReqQuery.country || "sy";
     try {
       const { mustConditions, mustNotConditions } = this.getRules(country);
       const query: estypes.SearchRequest = {
-        index: "products_catalog",
+        index: DEFAULT_INDEX,
         _source: [
           "id",
           "custom_categories.id",
@@ -33,7 +32,7 @@ export class ElasticsearchReader {
         },
       };
       const searchParams = {
-        index: this.index,
+        index: DEFAULT_INDEX,
         size: ReqQuery.size ?? 20,
         ...query,
       };
@@ -196,7 +195,7 @@ export class ElasticsearchReader {
       const customProducts: any[] = [];
 
       const customQuery = {
-        index: "products_catalog",
+        index: DEFAULT_INDEX,
         body: {
           size: 0,
           query: {
@@ -306,7 +305,7 @@ export class ElasticsearchReader {
       ];
 
       const categoriesQuery: any = {
-        index: "products_catalog",
+        index: DEFAULT_INDEX,
         body: {
           size: 0,
           query: {
@@ -742,7 +741,7 @@ export class ElasticsearchReader {
       });
 
       const query = {
-        index: "products_catalog",
+        index: DEFAULT_INDEX,
         body: {
           size: 1,
           _source: [
@@ -794,7 +793,7 @@ export class ElasticsearchReader {
     }
   }
 }
-
+export const DEFAULT_INDEX = "products_catalog_develop";
 type InputInitialized = {
   categorySlugs?: string | string[];
   limit: number;

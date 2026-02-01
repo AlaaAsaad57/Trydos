@@ -2,6 +2,7 @@
 
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 import { elasticSearchClient } from "./elasticsearch.config";
+import { DEFAULT_INDEX } from "./elasticsearch-reader.service";
 
 interface SitemapUrl {
   loc: string;
@@ -48,7 +49,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
       baseConditions;
 
     const searchQuery = {
-      index: "products_catalog",
+      index: DEFAULT_INDEX,
       size: 0, // We only need aggregations, not documents
       query: {
         bool: {
@@ -136,7 +137,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
       // Try to get countries from a simple query
       try {
         const simpleQuery = {
-          index: "products_catalog",
+          index: DEFAULT_INDEX,
           size: 1,
           _source: ["countries_iso"],
         };
@@ -730,7 +731,7 @@ export async function generateProductSitemapXML(): Promise<string> {
  */
 function buildProductSearchParams(batchSize: number, scrollTimeout: string) {
   return {
-    index: "products_catalog",
+    index: DEFAULT_INDEX,
     scroll: scrollTimeout,
     size: batchSize,
     _source: [

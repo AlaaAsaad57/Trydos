@@ -18,6 +18,7 @@ import {
   sortSyncColorImagesByFilteredColor,
 } from "./helpers";
 import { LogServerError } from "utils/serverErrorReporter";
+import { DEFAULT_INDEX } from "./elasticsearch-reader.service";
 
 // Types and Interfaces
 interface SearchFilters {
@@ -209,7 +210,7 @@ export async function getProductsAndFiltersFromElastic(
     // Build the main search query
 
     const searchQuery = {
-      index: "products_catalog",
+      index: DEFAULT_INDEX,
       _source: getSourceFields(),
       track_scores: true,
       track_total_hits: true,
@@ -289,7 +290,7 @@ export async function getProductsAndFiltersFromElastic(
     );
     let categories_childs = await getChildrenAndGrandchildren(
       client,
-      "products_catalog",
+      DEFAULT_INDEX,
       CategoriesIds,
       language_code,
       country,
@@ -444,7 +445,7 @@ async function fetchProductDetailsBatch(ids: string[], country: string) {
   must.push({ terms: { id: ids } });
 
   const response = await client.search({
-    index: "products_catalog",
+    index: DEFAULT_INDEX,
     _source: getSourceFields(),
     size: ids.length, // Fetch exactly what we asked for
     query: {
