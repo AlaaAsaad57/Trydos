@@ -2,7 +2,7 @@ import { useAppStore } from "store";
 import Smartlook from "smartlook-client";
 import { _isStoreLastJson, LogError, translateFunction } from "utils/functions";
 import { SEND_OTP } from "utils/endpointConfig";
-import ChatService from "services/chat";
+
 import StoryService from "services/story";
 import home from "./home";
 import { GAevent, SetGAUser } from "utils/gtag";
@@ -19,7 +19,7 @@ import {
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
-import wallet from "./wallet";
+import { checkWallet } from "./wallet";
 
 class AuthService {
   async SendOtp(
@@ -113,7 +113,7 @@ class AuthService {
       }
       setCookie(COOKIE_NAMES.MARKET_TOKEN, response.data.token);
       setCookie(COOKIE_NAMES.WALLET_USER, response.WalletUser);
-      wallet.checkWallet({ id: response?.WalletUser?.id });
+      checkWallet({ id: response?.WalletUser?.id });
       setCookie(COOKIE_NAMES.USER_DATA, {
         ...response.data.user,
         already_exists: response.data.already_exists,

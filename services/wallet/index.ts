@@ -1,65 +1,61 @@
-import { fetchData } from "utils/fetchData";
+"use server";
+import { fetchServerData } from "serverRequests/ServerFetch";
+import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+
 import { LogError } from "utils/functions";
-import { REQUESTS_DATA } from "utils/Requests";
 import { Currencies } from "utils/types/wallet";
 
-class AuthService {
-  async checkWallet({ id }) {
-    let res = null;
-    // let res = await new Promise((resolve) => setTimeout(resolve, 1000));
-    try {
-      res = await fetchData({
-        method: "GET",
-        url: `/wallets/myAcounts?currencySymbol=SAR`,
-        server: "wallet",
-        reqTitle: REQUESTS_DATA.CHECK_USER_WALLET,
-        noMessage: true,
-      });
-    } catch (error) {
-      res = null;
-    }
+export async function checkWallet({ id }) {
+  let res = null;
 
-    if (!res || res?.length === 0 || !res.success) this.createWallet({ id });
-  }
-  async createWallet({ id }) {
-    try {
-      let response = await fetchData({
-        method: "POST",
-        url: "/wallets?subtype=MAIN",
-        server: "wallet",
-        body: JSON.stringify({
-          userId: id,
-          subtype: "MAIN",
-          name: "Primary Funding Wallet",
-        }),
-        reqTitle: REQUESTS_DATA.CREATE_WALLET,
-        noMessage: true,
-      });
-    } catch (error) {
-      LogError({
-        error,
-        scenario: "creating wallet for user",
-        user_id: id,
-      });
-    }
-  }
-  async getCurrencies({ language }) {
-    try {
-      let response = await fetchData({
-        method: "GET",
-        url: "/currencies",
-        server: "wallet",
-        reqTitle: REQUESTS_DATA.GET_CURRENCIES,
-        noMessage: true,
-      });
-      let currencies: Currencies = response.data;
-    } catch (error) {
-      LogError({
-        error,
-        scenario: "get currencies",
-      });
-    }
+  res = await fetchServerData({
+    method: "GET",
+    url:
+      process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
+      `/wallets/myAcounts?currencySymbol=SAR`,
+    headers: {
+      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+    },
+  });
+  console.log(res);
+
+  if (!res || res?.length === 0 || !res.success) createWallet({ id });
+}
+export async function createWallet({ id }) {
+  // try {
+  let response = await fetchServerData({
+    method: "POST",
+    body: JSON.stringify({
+      userId: id,
+      subtype: "MAIN",
+      name: "Primary Funding Wallet",
+    }),
+    url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/wallets?subtype=MAIN",
+    headers: {
+      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+    },
+  });
+  console.log(response);
+  return response;
+  // } catch (error) {
+  //   LogError({
+  //     error,
+  //     scenario: "creating wallet for user",
+  //     user_id: id,
+  //   });
+  // }
+}
+export async function getCurrencies({ language }) {
+  try {
+    let response = await fetchServerData({
+      method: "GET",
+      url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/currencies",
+    });
+    let currencies: Currencies = response.data;
+  } catch (error) {
+    LogError({
+      error,
+      scenario: "get currencies",
+    });
   }
 }
-
-export default new AuthService();
