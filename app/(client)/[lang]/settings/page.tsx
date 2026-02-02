@@ -11,6 +11,8 @@ import { translateFunction } from "utils/server";
 import { allCountries } from "country-telephone-data";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 import RouterRefresh from "components/global/RouterRefresh";
+import { getCurrency } from "serverRequests";
+import { getWallet } from "serverRequests/settings";
 
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -74,7 +76,10 @@ async function page({ params }) {
     if (iso === "tr") return "Turkish";
     if (iso === "ku") return "کوردی";
   };
-
+  let [currency, wallet] = await Promise.all([
+    getCurrency(country, language),
+    getWallet({ language, country, limit: 1, offset: 1 }),
+  ]);
   return (
     <div
       className="flex-col w-full pt-[20px] px-[12px] flex setting-screen"
@@ -130,9 +135,9 @@ async function page({ params }) {
           {/* @ts-ignore */}
           <WalletLinkCard
             country={country}
+            local={Params.lang}
             isRtl={isRtl}
             language={language}
-            local={Params?.lang}
           />
         </Suspense>
       </div>

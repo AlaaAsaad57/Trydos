@@ -12,7 +12,7 @@ interface FetchOptions {
   body?: any;
 }
 
-interface FetchResponse<T = any> {
+export interface FetchResponse<T = any> {
   data: T | null;
   error: string | null;
   status: number;
