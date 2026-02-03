@@ -120,7 +120,7 @@ const CategoriesSlider = ({ categories, boutique, lang }) => {
               alt={category?.most_viewed_product_name}
               src={GetImageUrl(category.most_viewed_product_thumbnail).replace(
                 "/upload",
-                `/upload/h_200,w_200,c_fit/f_auto/q_auto:good/fl_lossy/so_0`
+                `/upload/h_200,w_200,c_fit/f_auto/q_auto:good/fl_lossy/so_0`,
               )}
               width={300}
               className="rounded-[15px] w-[90px] h-[90px] object-contain object-center "

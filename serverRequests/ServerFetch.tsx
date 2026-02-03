@@ -46,6 +46,9 @@ const createServerFetch = async <T = any,>({
         },
         body: body,
       };
+      if (headers.ContentType === "MULTIPART") {
+        delete fetchOptions.headers["Content-Type"];
+      }
 
       const response = await fetch(url, {
         ...fetchOptions,

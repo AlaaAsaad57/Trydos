@@ -1,6 +1,14 @@
 /**
  * SHARED UTILITY TYPES
  */
+export interface FetchResponse<T = any> {
+  data: T | null;
+  error: string | null;
+  status: number;
+  isError?: boolean;
+  url?: string;
+  success: boolean;
+}
 
 interface Timestamps {
   createdAt: string;
@@ -214,4 +222,16 @@ export interface GetJournalEntriesApi extends CursorPagination {
 
 export interface GetTransactionsApi extends CursorPagination {
   items: Transaction[];
+}
+
+export interface CheckoutOrderApi {
+  success: boolean;
+  status: string;
+  currencyId: string;
+  items: Array<{
+    cartId: string;
+    amount: number;
+    status: string;
+    receiptId: string;
+  }>;
 }
