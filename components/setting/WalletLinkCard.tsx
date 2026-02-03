@@ -11,7 +11,6 @@ import {
   UploadMedia,
   CreateBankDeposit,
   CheckoutOrder,
-  GetTransactions,
 } from "services/wallet";
 import { createPortal } from "react-dom";
 import { translateFunction } from "utils/functions";
@@ -60,7 +59,7 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
                 alert("handleUnauthenticated is Called");
               }}
               onReceivedAuthToken={() => {}}
-              local={local ?? "gb-en"}
+              local={(local as string) ?? "gb-en"}
             />
           </BottomSheet>,
           document.body,
