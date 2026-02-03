@@ -78,7 +78,7 @@ importers:
         version: 8.5.6
       ramaaz-digital-banking:
         specifier: git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git
-        version: git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#abc5fadf8b9d67e529699a9fb0a5cd6b7cc53cda(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#96af838aae25557ddda7ae9c6c7399ab9f0cb826(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react:
         specifier: 19.2.0
         version: 19.2.0
@@ -3563,8 +3563,8 @@ packages:
   queue@6.0.2:
     resolution: {integrity: sha512-iHZWu+q3IdFZFX36ro/lKBkSvfkztY5Y7HMiPlOUjhupPcG2JMfst2KKEpu5XndviX/3UhFbRngUPNKtgvtZiA==}
 
-  ramaaz-digital-banking@git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#abc5fadf8b9d67e529699a9fb0a5cd6b7cc53cda:
-    resolution: {commit: abc5fadf8b9d67e529699a9fb0a5cd6b7cc53cda, repo: https://gitlab.com/new-trydos/ramaaz-digital-banking.git, type: git}
+  ramaaz-digital-banking@git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#96af838aae25557ddda7ae9c6c7399ab9f0cb826:
+    resolution: {commit: 96af838aae25557ddda7ae9c6c7399ab9f0cb826, repo: https://gitlab.com/new-trydos/ramaaz-digital-banking.git, type: git}
     version: 1.0.0
     peerDependencies:
       next: '>=14'
@@ -8111,7 +8111,7 @@ snapshots:
     dependencies:
       inherits: 2.0.4
 
-  ramaaz-digital-banking@git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#abc5fadf8b9d67e529699a9fb0a5cd6b7cc53cda(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  ramaaz-digital-banking@git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#96af838aae25557ddda7ae9c6c7399ab9f0cb826(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
     dependencies:
       axios: 1.13.4
       framer-motion: 12.31.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
