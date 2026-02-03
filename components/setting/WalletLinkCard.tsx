@@ -51,7 +51,7 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
             height={80}
           >
             <RDB
-              baseUrl={process.env.NEXT_PUBLIC_WALLET_BACKEND_URL}
+              base_url={process.env.NEXT_PUBLIC_WALLET_BACKEND_URL}
               storeKey="trydos"
               authToken={getCookie(COOKIE_NAMES.WALLET_TOKEN)}
               handleUnauthenticated={() => {
