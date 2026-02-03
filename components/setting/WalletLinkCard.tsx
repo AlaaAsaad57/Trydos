@@ -59,7 +59,8 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
                 setOpen(true);
                 alert("handleUnauthenticated is Called");
               }}
-              local={local}
+              onReceivedAuthToken={() => {}}
+              local={local ?? "gb-en"}
             />
           </BottomSheet>,
           document.body,
