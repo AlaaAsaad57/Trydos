@@ -113,7 +113,10 @@ class AuthService {
       }
       setCookie(COOKIE_NAMES.MARKET_TOKEN, response.data.token);
       setCookie(COOKIE_NAMES.WALLET_USER, response.WalletUser);
-      checkWallet({ id: response?.WalletUser?.id });
+      checkWallet({
+        id: response?.WalletUser?.id,
+        handleUnauthenticated: () => {},
+      });
       setCookie(COOKIE_NAMES.USER_DATA, {
         ...response.data.user,
         already_exists: response.data.already_exists,

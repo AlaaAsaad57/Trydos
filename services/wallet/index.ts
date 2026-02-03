@@ -138,9 +138,7 @@ export async function checkWallet({
   let res = await fetchServerData({
     method: "GET",
     local: local,
-    url:
-      process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
-      `/wallets/myAcounts?currencySymbol=SAR`,
+    url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/wallets/myAcounts`,
     headers: {
       Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
     },
@@ -152,7 +150,7 @@ export async function checkWallet({
     return;
   }
 
-  if (!res || !res.data) {
+  if (!res || !res.success) {
     // Pass the handler down to the creation function if needed
     await createWallet({ id, local, handleUnauthenticated });
   }

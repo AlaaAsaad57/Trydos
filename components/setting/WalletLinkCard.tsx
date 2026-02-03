@@ -11,6 +11,7 @@ import {
   UploadMedia,
   CreateBankDeposit,
   CheckoutOrder,
+  GetTransactions,
 } from "services/wallet";
 import { createPortal } from "react-dom";
 import { translateFunction } from "utils/functions";
@@ -23,6 +24,8 @@ import {
 } from "services/wallet/types";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
+import { RDB } from "ramaaz-digital-banking";
+import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 
 async function WalletLinkCard({
   isRtl,
@@ -53,8 +56,11 @@ async function WalletLinkCard({
             }}
             height={80}
           >
-            <TestNewWalletIntegrations
-              handleUnauthenticatedFromParent={() => {
+            <RDB
+              base_url={process.env.NEXT_PUBLIC_WALLET_BACKEND_URL}
+              storeKey="trydos"
+              authToken={getCookie(COOKIE_NAMES.WALLET_TOKEN)}
+              handleUnauthenticated={() => {
                 setShouldAuthinticated(true);
                 setOpen(true);
                 alert("handleUnauthenticated is Called");

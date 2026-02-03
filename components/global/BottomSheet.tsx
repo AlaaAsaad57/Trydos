@@ -2,7 +2,6 @@
 import AddToCartButton from "components/products/AddToCartButton";
 import React, { useEffect, useRef, useState } from "react";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
-
 export default function BottomSheet({
   isOpen,
   onClose,
@@ -29,7 +28,7 @@ export default function BottomSheet({
 
     if (sheetRef.current) {
       let buttonElement = document.querySelector<HTMLDivElement>(
-        "#bottom-sheet-button"
+        "#bottom-sheet-button",
       );
       if (buttonElement) buttonElement.style.transition = "none";
 
@@ -44,7 +43,7 @@ export default function BottomSheet({
     const newY = Math.max(0, Math.min(maxDrag, delta));
     currentY.current = newY;
     let buttonElement = document.querySelector<HTMLDivElement>(
-      "#bottom-sheet-button"
+      "#bottom-sheet-button",
     );
     requestAnimationFrame(() => {
       if (sheetRef.current) {
@@ -67,7 +66,7 @@ export default function BottomSheet({
     requestAnimationFrame(() => {
       if (!sheetRef.current) return;
       let buttonElement = document.querySelector<HTMLDivElement>(
-        "#bottom-sheet-button"
+        "#bottom-sheet-button",
       );
       sheetRef.current.style.transition = "transform 0.3s ease-out";
       if (buttonElement) {
@@ -149,7 +148,7 @@ export default function BottomSheet({
     requestAnimationFrame(() => {
       if (!sheetRef.current) return;
       let buttonElement = document.querySelector<HTMLDivElement>(
-        "#bottom-sheet-button"
+        "#bottom-sheet-button",
       );
       if (isOpen) {
         if (buttonElement) {
@@ -181,7 +180,7 @@ export default function BottomSheet({
   }, [onClose]);
   const debouncedOnColse = () => {
     let buttonElement = document.querySelector<HTMLDivElement>(
-      "#bottom-sheet-button"
+      "#bottom-sheet-button",
     );
     if (buttonElement) {
       buttonElement.style.transition = "transform 0.3s ease-out";
@@ -223,7 +222,7 @@ export default function BottomSheet({
         </div>
         <div
           ref={sheetRef}
-          className={`w-full rounded-t-[30px] max-h-[${height}dvh] transition-all duration-300  bg-white ${
+          className={`w-full min-h-[60dvh] rounded-t-[30px] max-h-[${height}dvh] transition-all duration-300  bg-white ${
             !noPadding && "p-1 overflow-y-auto"
           } sm:p-4 shadow-2xl  max-w-[1365px]`}
           style={{

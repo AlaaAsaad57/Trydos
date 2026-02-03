@@ -61,7 +61,7 @@ export default BoutiqueWrapper;
 const CategoriesSlider = ({ categories, boutique, lang }) => {
   const [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
-  console.log(categories);
+
   return (
     <HortiznalScrollBar
       id={`boutique-${boutique.slug}-slider ${isRtl ? "dir-rtl" : ""}`}
