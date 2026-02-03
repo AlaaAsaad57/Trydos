@@ -61,6 +61,7 @@ export default BoutiqueWrapper;
 const CategoriesSlider = ({ categories, boutique, lang }) => {
   const [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
+  console.log(categories);
   return (
     <HortiznalScrollBar
       id={`boutique-${boutique.slug}-slider ${isRtl ? "dir-rtl" : ""}`}
@@ -116,7 +117,7 @@ const CategoriesSlider = ({ categories, boutique, lang }) => {
           </svg>
 
           {category.most_viewed_product_thumbnail ? (
-            <Image
+            <img
               alt={category?.most_viewed_product_name}
               src={GetImageUrl(category.most_viewed_product_thumbnail).replace(
                 "/upload",

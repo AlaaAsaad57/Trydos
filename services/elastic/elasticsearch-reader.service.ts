@@ -538,7 +538,7 @@ export class ElasticsearchReader {
 
       if (uniqueBoutiquesNeedingProducts.length > 0) {
         const productsQuery: any = {
-          index: "products_catalog",
+          index: DEFAULT_INDEX,
           body: {
             size: 0,
             query: {
@@ -567,7 +567,7 @@ export class ElasticsearchReader {
                           "custom_products.slug",
                           "custom_products.name",
                           "custom_products.language_code",
-                          "thumbnail",
+                          "images",
                           "boutique_id",
                         ],
                       },
@@ -621,7 +621,9 @@ export class ElasticsearchReader {
                 name: fallbackName,
                 language_code: language,
                 most_viewed_product_name: fallbackName,
-                most_viewed_product_thumbnail: product.thumbnail || null,
+                most_viewed_product_thumbnail: product.images
+                  ? `/product/${JSON.parse(product.images)?.[0]}`
+                  : null,
                 num_available_product: 0,
                 is_product: true,
                 is_product_url: true,
@@ -635,7 +637,7 @@ export class ElasticsearchReader {
           const categoriesLength =
             boutique.mainCategoriesForProductIds?.length ?? 0;
           if (
-            categoriesLength <= 1 &&
+            categoriesLength <= 5 &&
             fallbackProductsByBoutique[key]?.length
           ) {
             boutique.mainCategoriesForProductIds =
@@ -643,6 +645,7 @@ export class ElasticsearchReader {
           }
         }
       }
+
       // === Filter banners (same as PHP) ===
       for (const boutique of customProducts) {
         for (const cb of boutique.custom_boutiques) {
