@@ -8,7 +8,7 @@ function ImageAvatar({ image, width, height, alt, isActive, name, priority }) {
         xmlns="http://www.w3.org/2000/svg"
         width="100%"
         height="100%"
-        className="no-navigate absolute top-0 left-0 z-[5] overflow-visible"
+        className="no-navigate absolute top-0 left-0 z-5 overflow-visible"
         viewBox="0 0 35 35"
       >
         <g

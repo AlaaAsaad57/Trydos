@@ -19,13 +19,13 @@ function ProductColorsWrapper({
 
   return (
     <div
-      className="product-photos-slider min-w-full h-[20px] bg-transparent  max-w-[176px] w-auto left-0 right-0 m-0 z-[9999999] cursor-pointer hover:scale-125 transition-all origin-bottom top-[274px] overflow-hidden flex absolute align-center justify-center"
+      className="product-photos-slider min-w-full h-[20px] bg-transparent  max-w-[176px] w-auto left-0 right-0 m-0 z-9999999 cursor-pointer hover:scale-125 transition-all origin-bottom top-[274px] overflow-hidden flex absolute align-center justify-center"
       data-cy="productPhotoSlider"
       onClick={handleClick}
       style={{ opacity: "1", zIndex: "10" }}
     >
       <div
-        className="avatar-slider mx-auto my-0 !w-fit"
+        className="avatar-slider mx-auto my-0 w-fit!"
         onClick={handleClick}
         onTouchEnd={handleClick}
         onMouseUp={handleClick}
@@ -104,7 +104,7 @@ export const StaticStackedSlider = ({
               marginRight: `${marginAdjustment}px`,
               transition: "transform 0.3s ease", // Optional: keeps it smooth if props change
             }}
-            className="flex-shrink-0 flex items-center justify-center relative transform-gpu"
+            className="shrink-0 flex items-center justify-center relative transform-gpu"
           >
             {/* Clone the child to pass 'isActive' prop if the child supports it,
                otherwise just render the child.

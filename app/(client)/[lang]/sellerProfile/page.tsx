@@ -107,14 +107,14 @@ function Page() {
                             setActiveTab(shop.seller_id);
                           }}
                         >
-                          <button className="px-3 py-1 bg-blue-500 text-white rounded">
+                          <button className="px-3 py-1 bg-blue-500 text-white rounded-sm">
                             {translateFunction("Enter", language)}
                           </button>
                         </Link>
 
                         <button
                           onClick={() => setLeaveConfirmShopId(shop.seller_id)}
-                          className="px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded disabled:opacity-50"
+                          className="px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-sm disabled:opacity-50"
                         >
                           {translateFunction("Leave", language)}
                         </button>
@@ -134,7 +134,7 @@ function Page() {
               className="absolute inset-0 bg-black opacity-40"
               onClick={() => setLeaveConfirmShopId(null)}
             />
-            <div className="bg-white p-6 rounded shadow-lg z-10 w-full max-w-md">
+            <div className="bg-white p-6 rounded-sm shadow-lg z-10 w-full max-w-md">
               <h3 className="text-[16px] font-bold mb-2">
                 {translateFunction("Confirm leave shop", language)}
               </h3>
@@ -147,14 +147,14 @@ function Page() {
               {leaveError && <p className="text-red-500 mt-3">{leaveError}</p>}
               <div className="flex justify-end gap-2 mt-4">
                 <button
-                  className="px-4 py-2 bg-gray-100 rounded"
+                  className="px-4 py-2 bg-gray-100 rounded-sm"
                   onClick={() => setLeaveConfirmShopId(null)}
                   disabled={leaveProcessing}
                 >
                   {translateFunction("Cancel", language)}
                 </button>
                 <button
-                  className="px-4 py-2 bg-red-600 text-white rounded"
+                  className="px-4 py-2 bg-red-600 text-white rounded-sm"
                   onClick={confirmLeaveShop}
                   disabled={leaveProcessing}
                 >

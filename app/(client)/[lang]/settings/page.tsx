@@ -127,19 +127,14 @@ async function page({ params }) {
             user={SafeUserProfile}
           />
         </Suspense>
-        <Suspense
-          fallback={
-            <Skeleton className="flex-col w-full h-[94px] bg-[#F8F8F8] relative rounded-[12px] p-[12px] cursor-pointer" />
-          }
-        >
-          {/* @ts-ignore */}
-          <WalletLinkCard
-            country={country}
-            local={Params.lang}
-            isRtl={isRtl}
-            language={language}
-          />
-        </Suspense>
+
+        {/* @ts-ignore */}
+        <WalletLinkCard
+          country={country}
+          local={Params.lang}
+          isRtl={isRtl}
+          language={language}
+        />
       </div>
       <div className="flex-col mt-[8px] flex w-full">
         {options.map((option) => (

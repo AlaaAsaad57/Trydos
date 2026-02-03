@@ -305,7 +305,7 @@ const SettingsModal = ({ onClose, lang }) => {
                     {topics.map((topic, index) => (
                       <li
                         key={index}
-                        className="flex justify-between items-center p-2 rounded"
+                        className="flex justify-between items-center p-2 rounded-sm"
                         data-cy="NotificationsItem-Can-Enabled"
                       >
                         <span
@@ -371,7 +371,7 @@ const SettingsModal = ({ onClose, lang }) => {
                     {unsubscribedTopics.map((topic, index) => (
                       <li
                         key={index}
-                        className="flex justify-between items-center p-2 rounded"
+                        className="flex justify-between items-center p-2 rounded-sm"
                         data-cy="NotificationsItem-Can-Disenabled"
                       >
                         <span
@@ -456,7 +456,7 @@ const SettingsModal = ({ onClose, lang }) => {
                       onChange={() => {}}
                       aria-describedby="helper-checkbox-text"
                       type="checkbox"
-                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-sm"
+                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-xs"
                     />
                   </div>
                   <div
@@ -493,7 +493,7 @@ const SettingsModal = ({ onClose, lang }) => {
                       onChange={() => {}}
                       aria-describedby="helper-checkbox-text"
                       type="checkbox"
-                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-sm"
+                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-xs"
                     />
                   </div>
                   <div
@@ -533,7 +533,7 @@ const SettingsModal = ({ onClose, lang }) => {
                       value=""
                       aria-describedby="helper-checkbox-text"
                       type="checkbox"
-                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-sm"
+                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-xs"
                     />
                   </div>
                   <div className="flex-row items-center bg-gray-100 rounded-md p-3 h-[50px]">

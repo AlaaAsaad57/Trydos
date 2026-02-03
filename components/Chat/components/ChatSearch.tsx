@@ -218,7 +218,7 @@ function ChatSearch({ close }) {
     }
   }, [searchChat.activeMessage]);
   return (
-    <div className=" z-[99] absolute h-[50px] top-[48px] items-center left-0 w-full bg-[#fafafa] py-2 px-3 flex-row justify-between">
+    <div className=" z-99 absolute h-[50px] top-[48px] items-center left-0 w-full bg-[#fafafa] py-2 px-3 flex-row justify-between">
       <div className="flex relative w-full">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -279,10 +279,10 @@ function ChatSearch({ close }) {
           </g>
         </svg>
         {searchChat.loading && (
-          <Spinner className=" absolute right-2 top-3 z-[99] " />
+          <Spinner className=" absolute right-2 top-3 z-99 " />
         )}
         <DebounceInput
-          className="w-full text-[#1d1d1d] h-full border-none outline-none absolute top-0 left-0 pl-11 z-10 light rounded-[15px] bg-[#fafafa]"
+          className="w-full text-[#1d1d1d] h-full border-none outline-hidden absolute top-0 left-0 pl-11 z-10 light rounded-[15px] bg-[#fafafa]"
           minLength={1}
           placeholder="Search"
           value={searchChat.searchValue}

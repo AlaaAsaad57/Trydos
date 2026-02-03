@@ -20,7 +20,7 @@ function NameModal() {
   return (
     <>
       <div
-        className={`fixed inset-0 w-screen h-screen bg-black/30 z-[9999999999998] ${
+        className={`fixed inset-0 w-screen h-screen bg-black/30 z-9999999999998 ${
           Open && "open"
         }`}
         onClick={(e) => {

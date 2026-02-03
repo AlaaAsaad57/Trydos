@@ -143,8 +143,8 @@ const FiltersWindowUI = ({
   };
 
   return (
-    <div className="fixed pt-[20px] gap-[10px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-hidden top-[97px]   left-0 z-[9999999999]">
-      <div className="justify-between fil flex-row align-center h-[50px] flex-shrink-0 pl-[15px] pr-[25px]">
+    <div className="fixed pt-[20px] gap-[10px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-hidden top-[97px]   left-0 z-9999999999">
+      <div className="justify-between fil flex-row align-center h-[50px] shrink-0 pl-[15px] pr-[25px]">
         <div
           data-cy="backIcon_productPage"
           className={`back-icon flex-row`}

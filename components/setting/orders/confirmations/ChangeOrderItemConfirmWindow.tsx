@@ -60,9 +60,9 @@ export const ModifyOrderItemModal = ({
 
   return (
     <div
-      className={`z-[9999999999999] pb-[70px] px-[24px] w-full flex-col ${
+      className={`z-9999999999999 pb-[70px] px-[24px] w-full flex-col ${
         confirmationData.loading ? "justify-start pt-[30px]" : "justify-end"
-      } items-center h-[calc(100vh)] overflow-auto max-h-full fixed top-[0px] left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
+      } items-center h-[calc(100vh)] overflow-auto max-h-full fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
     >
       {confirmationData?.loading ? (
         <span className="scale-[4]">
@@ -98,7 +98,7 @@ export const ModifyOrderItemModal = ({
                   q: 100,
                 })}
               />
-              <span className="text-[#fff] text-[14px] medium mt-[9px]">
+              <span className="text-white text-[14px] medium mt-[9px]">
                 {type === "Color"
                   ? confirmationData?.productDetails?.sync_color_images?.find(
                       (s) =>
@@ -111,7 +111,7 @@ export const ModifyOrderItemModal = ({
               </span>
             </div>
           </div>
-          <span className="text-[#fff] text-[16px] medium mt-[15px]">
+          <span className="text-white text-[16px] medium mt-[15px]">
             {type === "Color"
               ? translateFunction("To New Color", language)
               : translateFunction("To New Size", language)}
@@ -194,7 +194,7 @@ export const ModifyOrderItemModal = ({
             className={`cursor-pointer mt-[10px] w-full h-[50px] rounded-[15px]  text-[16px] bold flex items-center justify-center ${
               isChanged() && active
                 ? "bg-[#F8F8F8] text-[#402CDD]"
-                : "bg-[#C4C2C2] text-[#fff]"
+                : "bg-[#C4C2C2] text-white"
             }`}
             style={{
               border: isChanged() && active && "1px solid #402CDD80",
@@ -213,7 +213,7 @@ export const ModifyOrderItemModal = ({
             )}
           </div>
           <div
-            className="cursor-pointer w-full h-[50px] text-[#fff] text-[16px] regular flex items-center justify-center"
+            className="cursor-pointer w-full h-[50px] text-white text-[16px] regular flex items-center justify-center"
             onClick={() => {
               if (!loading) setConfirmationData(false);
             }}
@@ -247,7 +247,7 @@ const ColorList = ({
   };
   return (
     <HortiznalScrollBar
-      className="w-full h-[98px] flex-row gap-[10px] pt-[1px]"
+      className="w-full h-[98px] flex-row gap-[10px] pt-px"
       id="color-list-container"
     >
       {colors?.map((s) => {
@@ -326,7 +326,7 @@ const SizeList = ({
       className="flex-row h-[96px] max-h-[96px] w-full  relative"
     >
       <HortiznalScrollBar
-        className="w-full h-[98px] flex-row gap-[10px] mt-[1px]"
+        className="w-full h-[98px] flex-row gap-[10px] mt-px"
         id="color-list-container"
       >
         {sizes?.map((s) => {
@@ -347,7 +347,7 @@ const SizeList = ({
               key={s?.name}
               className={`${
                 disabled && "opacity-75"
-              } w-auto h-[98px] flex-col items-center justify-center pt-[1px]`}
+              } w-auto h-[98px] flex-col items-center justify-center pt-px`}
               onClick={() => {
                 if (!disabled) setSize(s?.option);
                 else

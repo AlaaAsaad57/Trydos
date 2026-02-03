@@ -83,7 +83,7 @@ function InfiniteScrollFilters({
             onClick={() => {
               getNextFilters();
             }}
-            className=" mb-[34px] p-2 text-wrap text-center category-circle h-[70px] flex-col align-center extended-circle text-[#5d5d5d] light shadow-sm bg-[#e8e8e8] rounded-full justify-center items-center"
+            className=" mb-[34px] p-2 text-wrap text-center category-circle h-[70px] flex-col align-center extended-circle text-[#5d5d5d] light shadow-xs bg-[#e8e8e8] rounded-full justify-center items-center"
           >
             {translateFunction("More From", language)}{" "}
             {translateFunction(term, language)}

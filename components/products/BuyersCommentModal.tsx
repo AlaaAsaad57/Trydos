@@ -108,7 +108,7 @@ function BuyersCommentModal({
             </div>
 
             <div className="w-full px-[12px] bg-[#FFFFFF] py-[11px]">
-              <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
+              <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
 
             {/* Filters */}

@@ -76,7 +76,7 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
           <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
           {translateFunction("To Your Account")}.
         </p>
-        <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
+        <span className="border-[#C4C2C280] border-b w-full mt-[12px]" />
       </div>
 
       <div className="flex-row w-full items-center justify-center mt-[30px]">
@@ -118,7 +118,7 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
         <div
           className={`w-full h-[53px] items-center justify-center  flex cursor-pointer ${
             selectedOptions.length === 0 ? "bg-[#D3D3D3] " : "bg-[#FF5F61] "
-          } rounded-[20px] text-[16px] text-[#fff] medium`}
+          } rounded-[20px] text-[16px] text-white medium`}
           onClick={() => {
             if (selectedOptions.length === 0) {
               backToMain();

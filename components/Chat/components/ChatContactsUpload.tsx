@@ -203,7 +203,7 @@ function ChatContactsUpload() {
           </button>
         </div>
       ) : (
-        <div className="w-full p-4 rounded-md bg-white border border-gray-200 shadow-sm">
+        <div className="w-full p-4 rounded-md bg-white border border-gray-200 shadow-xs">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold text-gray-700">Add a new contact</h3>
             <button onClick={() => setShowAddForm(false)}>
@@ -220,7 +220,7 @@ function ChatContactsUpload() {
                 type="text"
                 value={manualName}
                 onChange={(e) => setManualName(pollinateInput(e.target.value))}
-                className="w-full p-2 text-[#1d1d1d] border border-gray-300 rounded-md outline-none"
+                className="w-full p-2 text-[#1d1d1d] border border-gray-300 rounded-md outline-hidden"
                 placeholder="John Doe"
               />
             </div>
@@ -328,14 +328,14 @@ const PhoneInput = ({
           <img
             src={`/icons/flag/${activeCountry.iso2}.svg`}
             alt="flag"
-            className="w-5 h-3 object-cover rounded-sm"
+            className="w-5 h-3 object-cover rounded-xs"
             onError={(e) => (e.currentTarget.style.display = "none")}
           />
         </div>
         <select
           value={dialCode}
           onChange={(e) => onDialChange(e.target.value)}
-          className="w-full pl-8 p-2 border border-gray-300 rounded-md bg-white text-sm outline-none appearance-none text-[#1d1d1d]"
+          className="w-full pl-8 p-2 border border-gray-300 rounded-md bg-white text-sm outline-hidden appearance-none text-[#1d1d1d]"
         >
           {allCountries.map((country) => (
             <option
@@ -353,7 +353,7 @@ const PhoneInput = ({
         type="tel"
         value={phoneNumber}
         onChange={(e) => onPhoneChange(e.target.value)}
-        className={`flex-1 p-2 border rounded-md outline-none text-[#1d1d1d] transition-colors ${
+        className={`flex-1 p-2 border rounded-md outline-hidden text-[#1d1d1d] transition-colors ${
           hasConflict
             ? "border-orange-400 bg-orange-50"
             : "border-gray-300 focus:ring-2 focus:ring-blue-200"

@@ -8,7 +8,7 @@ function ChatImagePreviewBeforeSend({
   handleImagePreviewSend,
 }) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999999999]">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-9999999999">
       <div className="bg-white rounded-lg w-[90%] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col items-end">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-semibold">

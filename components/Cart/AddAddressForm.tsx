@@ -347,7 +347,7 @@ const DetailsAddress = () => {
             placeholder={translateFunction(
               "Write The Address Clearly, Including The Street Address, Building, Flat, Door, Unit.",
             )}
-            className="w-full pr-6  min-h-[38px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+            className="w-full pr-6  min-h-[38px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
           />
         </div>
       </div>
@@ -383,7 +383,7 @@ const AddressTitle = () => {
               setAddressDetails({ address: pollinateInput(e.target.value) });
             }}
             placeholder={translateFunction("Ex: Home, My Office, 2 Home Ect.")}
-            className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+            className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
           />
         </div>
       </div>
@@ -447,7 +447,7 @@ const ContactInfo = ({ userName = null }) => {
                   });
                 }}
                 placeholder={translateFunction("Enter Full User Name")}
-                className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+                className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
               />
             </div>
           </div>
@@ -489,7 +489,7 @@ const ContactInfo = ({ userName = null }) => {
                 });
               }}
               placeholder={translateFunction("Enter Full Recipient Name")}
-              className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+              className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
             />
           </div>
         </div>
@@ -534,7 +534,7 @@ const ContactInfo = ({ userName = null }) => {
                 });
               }}
               placeholder={translateFunction("Enter Recipient Phone")}
-              className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+              className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
             />
           </div>
         </div>
@@ -583,7 +583,7 @@ const ContactInfo = ({ userName = null }) => {
               placeholder={translateFunction(
                 "Enter Alternative Recipient Phone",
               )}
-              className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+              className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
             />
           </div>
         </div>
@@ -684,7 +684,7 @@ const AddAddressButtons = ({
       }}
       className={`${"add-address-button"} ${
         orderLoading && "opacity-55"
-      } absolute text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+      } absolute text-center  left-0 w-full h-[100px] bg-white px-[20px] pt-[12px]`}
       data-cy="add-address-buttons-container" // Added data-cy
     >
       <div

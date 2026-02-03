@@ -229,7 +229,7 @@ function CartItem({ product, index }) {
           min={1}
           disabled
           max={product.available_quantity}
-          className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
+          className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border border-solid outline-hidden bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
         />
       </div>
       {(product.have_hurry_up_notify_time_left ||

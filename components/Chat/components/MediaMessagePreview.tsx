@@ -3,10 +3,10 @@ import React from "react";
 
 function MediaMessagePreview({ setImgs, setVid, vid, imgs }) {
   return (
-    <div className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-[99999999999999]">
-      <div className="absolute top-0 left-0 w-screen h-screen bg-[#585751] opacity-60 z-[9999]" />
+    <div className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-99999999999999">
+      <div className="absolute top-0 left-0 w-screen h-screen bg-[#585751] opacity-60 z-9999" />
       <div
-        className="absolute top-[29px] right-[30px] cursor-pointer z-[9999999999999]"
+        className="absolute top-[29px] right-[30px] cursor-pointer z-9999999999999"
         onClick={() => (setImgs(null), setVid(null))}
       >
         {/* close icon (duplicated) */}
@@ -41,7 +41,7 @@ function MediaMessagePreview({ setImgs, setVid, vid, imgs }) {
         <video
           src={vid}
           controls
-          className="object-contain h-full w-auto bg-[#0000005d] z-[999999]"
+          className="object-contain h-full w-auto bg-[#0000005d] z-999999"
         >
           <source src={vid} />
         </video>
@@ -52,7 +52,7 @@ function MediaMessagePreview({ setImgs, setVid, vid, imgs }) {
             alt="preview"
             fill
             sizes="100vw"
-            className="object-contain h-full w-auto -[9999] left-0 right-0 m-[0_auto] p-4 z-[99999999]"
+            className="object-contain h-full w-auto -[9999] left-0 right-0 m-[0_auto] p-4 z-99999999"
           />
         )
       )}

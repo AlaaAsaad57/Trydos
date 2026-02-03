@@ -150,7 +150,7 @@ const Page = () => {
       </p>
       <textarea
         aria-label="Error JSON payload"
-        className="text-[#1d1d1d] min-h-56 w-full resize-y rounded-md border border-gray-300 p-3 font-mono text-sm outline-none focus:ring-2 focus:ring-blue-500"
+        className="text-[#1d1d1d] min-h-56 w-full resize-y rounded-md border border-gray-300 p-3 font-mono text-sm outline-hidden focus:ring-2 focus:ring-blue-500"
         value={raw}
         onChange={handleChange}
       />
@@ -175,7 +175,7 @@ const Page = () => {
             return (
               <div className="md:col-span-2">
                 <span
-                  className="block max-w-full break-words whitespace-pre-wrap items-center rounded-full bg-red-100 px-3 py-1 text-[20px] font-medium text-red-800"
+                  className="block max-w-full wrap-break-word whitespace-pre-wrap items-center rounded-full bg-red-100 px-3 py-1 text-[20px] font-medium text-red-800"
                   aria-label="Parsed message"
                 >
                   {messageText}
@@ -199,7 +199,7 @@ const Page = () => {
           })()}
           {/* All Parsed Fields */}
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:col-span-2 min-w-0"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs md:col-span-2 min-w-0"
             role="region"
             aria-label="All Parsed Fields"
             tabIndex={0}
@@ -207,7 +207,7 @@ const Page = () => {
             <div className="mb-2 text-sm font-semibold text-gray-900">
               All Parsed Fields
             </div>
-            <div className="overflow-y-auto overflow-x-hidden rounded border border-gray-100 w-full max-w-full">
+            <div className="overflow-y-auto overflow-x-hidden rounded-sm border border-gray-100 w-full max-w-full">
               <table className="table-fixed w-full max-w-full text-left text-xs">
                 <thead className="bg-gray-50 text-gray-600">
                   <tr>
@@ -229,7 +229,7 @@ const Page = () => {
                         {key}
                       </td>
                       <td className="px-3 py-2 align-top text-gray-900 break-all">
-                        <span className="block max-w-full break-words whitespace-pre-wrap font-mono  break-all">
+                        <span className="block max-w-full wrap-break-word whitespace-pre-wrap font-mono  break-all">
                           {value}
                         </span>
                       </td>
@@ -240,55 +240,55 @@ const Page = () => {
             </div>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs"
             role="region"
             aria-label="User Data"
           >
             <div className="mb-2 text-sm font-semibold text-gray-900">
               User Data
             </div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.userData ?? null, null, 2)}
             </pre>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs text-[#1d1d1d]"
             role="region"
             aria-label="User Chat"
           >
             <div className="mb-2 text-sm font-semibold text-gray-900">
               User Chat
             </div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.userChat ?? null, null, 2)}
             </pre>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs text-[#1d1d1d]"
             role="region"
             aria-label="User Stories"
           >
             <div className="mb-2 text-sm font-semibold text-gray-900">
               User Stories
             </div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.userStories ?? null, null, 2)}
             </pre>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs text-[#1d1d1d]"
             role="region"
             aria-label="last_request"
           >
             <div className="mb-2 text-sm font-semibold text-gray-900">
               last_request
             </div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.last_request ?? null, null, 2)}
             </pre>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs text-[#1d1d1d]"
             role="region"
             aria-label="Language and Country"
           >
@@ -311,7 +311,7 @@ const Page = () => {
             </div>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:col-span-2 text-[#1d1d1d]"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs md:col-span-2 text-[#1d1d1d]"
             role="region"
             aria-label="Last Paths"
           >
@@ -342,7 +342,7 @@ const Page = () => {
                   <a
                     key={`${p}-${i}`}
                     href={href}
-                    className="text-blue-600 underline underline-offset-2 break-all hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                    className="text-blue-600 underline underline-offset-2 break-all hover:text-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 rounded-sm"
                     aria-label={`Open ${p} on same origin`}
                   >
                     {p}

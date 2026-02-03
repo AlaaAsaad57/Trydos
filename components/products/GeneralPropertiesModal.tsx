@@ -70,7 +70,7 @@ function GeneralPropertiesModal({
               </p>
             </div>
             <div className="w-full bg-[#FFFFFF] py-[11px]">
-              <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
+              <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
             <div className="flex-col gap-[2px]">
               <RatingStars
@@ -81,7 +81,7 @@ function GeneralPropertiesModal({
               />
               <HortiznalScrollBar
                 id="product-properties-general-modal"
-                className="flex-row px-[3px] product-properties items-center justify-start w-100 text-[#1d1d1d] text-[11px] [&>*]:!text-[11px]"
+                className="flex-row px-[3px] product-properties items-center justify-start w-100 text-[#1d1d1d] text-[11px] *:text-[11px]!"
               >
                 <div className="flex-row items-center">
                   <span className="bold pr-[4px]"> {TotalBuyers}</span>
@@ -127,7 +127,7 @@ function GeneralPropertiesModal({
               </div>
             </div>
             <div className="w-full bg-[#FFFFFF] py-[11px]">
-              <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
+              <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
             <div className="flex-col regular text-[13px] text-[#1d1d1d] gap-[12px]">
               <div className="flex">
@@ -143,7 +143,7 @@ function GeneralPropertiesModal({
               </div>
             </div>
             <div className="w-full bg-[#FFFFFF] py-[11px]">
-              <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
+              <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
             <div className="flex-col gap-[7px]">
               <img

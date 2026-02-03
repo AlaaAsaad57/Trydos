@@ -149,17 +149,17 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[99999999999] flex items-center justify-center ">
+    <div className="fixed inset-0 z-99999999999 flex items-center justify-center ">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-xs"
         onClick={handleClose}
       />
 
       {/* Modal */}
       <div className="relative w-full max-w-2xl mx-4 bg-white rounded-3xl shadow-2xl overflow-hidden flex-1">
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-2">
+        <div className="relative bg-linear-to-r from-gray-900 via-gray-800 to-gray-900 p-2">
           <div className="flex items-center justify-end">
             <button
               onClick={handleClose}
@@ -213,7 +213,7 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
                 {/* Camera Option */}
                 <button
                   onClick={handleCameraCapture}
-                  className="group p-6 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-2xl border-2 border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg"
+                  className="group p-6 bg-linear-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-2xl border-2 border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg"
                 >
                   <div className="flex flex-col items-center space-y-3">
                     <div className="p-[14px] bg-[#a3c0ff] rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300">
@@ -236,7 +236,7 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
                 {/* Upload Option */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="group p-6 bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-2xl border-2 border-purple-200 hover:border-purple-300 transition-all duration-300 hover:shadow-lg"
+                  className="group p-6 bg-linear-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-2xl border-2 border-purple-200 hover:border-purple-300 transition-all duration-300 hover:shadow-lg"
                 >
                   <div className="flex flex-col items-center space-y-3">
                     <div className="p-[14px] bg-[#d1a0ff] rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300">
@@ -290,13 +290,13 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
               <div className="flex space-x-4 justify-center">
                 <button
                   onClick={capturePhoto}
-                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="px-6 py-3 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   {translateFunction("Capture Photo", language)}
                 </button>
                 <button
                   onClick={stopCamera}
-                  className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="px-6 py-3 bg-linear-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   {translateFunction("Cancel", language)}
                 </button>
@@ -317,7 +317,7 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
                   alt="Selected"
                   className="w-full max-w-md mx-auto rounded-2xl shadow-lg"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent rounded-2xl" />
               </div>
 
               <p className="text-gray-600 mb-6">
@@ -329,13 +329,13 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
               <div className="flex space-x-4 justify-center">
                 <button
                   onClick={handleTryOn}
-                  className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  className="px-8 py-4 bg-linear-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 >
                   {translateFunction("Try On")}
                 </button>
                 <button
                   onClick={handleRetry}
-                  className="px-6 py-4 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="px-6 py-4 bg-linear-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   {translateFunction("Try again", language)}
                 </button>
@@ -347,8 +347,8 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
           {isProcessing && (
             <div className="text-center py-12">
               <div className="relative mb-6">
-                <div className="w-20 h-20 mx-auto bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full animate-pulse shadow-lg" />
-                <div className="absolute inset-0 w-20 h-20 mx-auto bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full animate-ping opacity-20" />
+                <div className="w-20 h-20 mx-auto bg-linear-to-r from-yellow-400 to-yellow-600 rounded-full animate-pulse shadow-lg" />
+                <div className="absolute inset-0 w-20 h-20 mx-auto bg-linear-to-r from-yellow-400 to-yellow-600 rounded-full animate-ping opacity-20" />
               </div>
 
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
@@ -376,19 +376,19 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
                   alt="Result"
                   className="w-full max-w-md mx-auto rounded-2xl shadow-lg"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent rounded-2xl" />
               </div>
 
               <div className="flex space-x-4 justify-center">
                 <button
                   onClick={handleRetry}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="px-6 py-3 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   {translateFunction("Try again")}
                 </button>
                 <button
                   onClick={handleClose}
-                  className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="px-6 py-3 bg-linear-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   {translateFunction("Close")}
                 </button>

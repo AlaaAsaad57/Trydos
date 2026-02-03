@@ -80,14 +80,14 @@ function ProductColorCard({
                     height: 400,
                   })}
                   key={`${product.name}-${index}`}
-                  className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10  object-cover object-[top_center]"
+                  className="w-[200px] h-[290px] border-[#d3d3d387] border rounded-15 z-10  object-cover object-[top_center]"
                   alt={product.name || "alt"}
                 />
               </React.Fragment>
             );
           }}
         />
-        <div className="flex-row w-full justify-center gap-[1px] mt-[2px]">
+        <div className="flex-row w-full justify-center gap-px mt-[2px]">
           {product?.images?.map((s, i) => (
             <svg
               key={`product-image-dot-${i}`}

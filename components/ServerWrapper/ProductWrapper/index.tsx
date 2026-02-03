@@ -212,7 +212,7 @@ function ProductWrapper({
                   {videos.map((video, idx) => (
                     <div
                       key={idx}
-                      className="embla__slide flex-shrink-0"
+                      className="embla__slide shrink-0"
                       style={{
                         width: `${200}px`,
                         height: "100%",
@@ -241,7 +241,7 @@ function ProductWrapper({
                           }}
                           className={`${
                             is_redeem && "product-media-redeem-show"
-                          } w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border-[1px] rounded-15 z-10`}
+                          } w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border rounded-15 z-10`}
                         />
                       </div>
                     </div>
@@ -252,7 +252,7 @@ function ProductWrapper({
                   {images?.map((image, idx) => (
                     <div
                       key={idx}
-                      className="embla__slide flex-shrink-0"
+                      className="embla__slide shrink-0"
                       style={{
                         width: `${200}px`,
                         height: "100%",
@@ -278,7 +278,7 @@ function ProductWrapper({
                           }}
                           className={`${
                             is_redeem && "product-media-redeem-show"
-                          } w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border-[1px] rounded-15 z-10`}
+                          } w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border rounded-15 z-10`}
                           alt={name || "alt"}
                         />
                       </div>
@@ -347,7 +347,7 @@ function ProductWrapper({
                   draggable="false"
                 />
               ) : (
-                <div className="h-[15px] w-[49.358px] bg-gray-200 rounded" />
+                <div className="h-[15px] w-[49.358px] bg-gray-200 rounded-sm" />
               )}
               {brand?.is_verified === 1 && (
                 <img src="/icons/VerifiedIcon.svg" />

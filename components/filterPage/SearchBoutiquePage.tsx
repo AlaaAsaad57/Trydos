@@ -151,7 +151,7 @@ function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
         }}
         className={`${
           (search?.length || focuse) && "pl-[40px]"
-        } rounded-[15px]  w-0 h-full border-0 outline-none text-[#5d5d5d]`}
+        } rounded-[15px]  w-0 h-full border-0 outline-hidden text-[#5d5d5d]`}
       />
       <img
         src="/icons/searchIcon.svg"

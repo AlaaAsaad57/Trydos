@@ -58,7 +58,7 @@ function CancelOrderWrapper({
           <span className="text-[#8D8D8D] mx-[3px]">{currency?.symbol}</span>
           {translateFunction("To Your Account")}.
         </p>
-        <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
+        <span className="border-[#C4C2C280] border-b w-full mt-[12px]" />
       </div>
       <div
         className={`${

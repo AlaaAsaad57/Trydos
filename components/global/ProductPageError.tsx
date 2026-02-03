@@ -29,7 +29,7 @@ const ProductPageError = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         {/* Animated Error Icon */}
         <div className="flex justify-center mb-8">
@@ -93,7 +93,7 @@ const ProductPageError = () => {
           <NextLink href={`/${lang}`} data={{ i_full_home: true }}>
             <button
               //   onClick={handleBackToHome}
-              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl regular"
+              className="flex-1 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl regular"
             >
               {translate("Back to Home")}
             </button>
@@ -102,7 +102,7 @@ const ProductPageError = () => {
           <button
             onClick={handleTryAgain}
             disabled={isRetrying}
-            className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed regular"
+            className="flex-1 bg-linear-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed regular"
           >
             {isRetrying ? (
               <div className="flex items-center justify-center">

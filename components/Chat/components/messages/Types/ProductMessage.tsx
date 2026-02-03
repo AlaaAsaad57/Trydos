@@ -85,7 +85,7 @@ function ProductMessage({
             />
           </div>
         )}
-        <div className="flex justify-center z-[9999999999] absolute bottom-[20px] left-0 right-0 mx-auto my-0">
+        <div className="flex justify-center z-9999999999 absolute bottom-[20px] left-0 right-0 mx-auto my-0">
           <NextLink
             className="py-2 px-4 text-center flex justify-center light text-[12px] text-[#1d1d1d] bg-slate-50 rounded-md"
             data={{

@@ -36,7 +36,7 @@ const FormInput = ({
         w-full h-[40px] px-3 
         rounded border border-gray-300 
         text-[13px] text-gray-800
-        focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent
+        focus:outline-hidden focus:ring-2 focus:ring-blue-400 focus:border-transparent
       "
     />
   </div>
@@ -426,7 +426,7 @@ export default function BecomeSellerModal({ onClose }) {
                     <input
                       value={newDocType}
                       onChange={(e) => setNewDocType(e.target.value)}
-                      className="w-full h-[40px] px-3 rounded border border-gray-300 text-[13px]"
+                      className="w-full h-[40px] px-3 rounded-sm border border-gray-300 text-[13px]"
                       placeholder={t("e.g., Trade License")}
                     />
                   </div>
@@ -444,7 +444,7 @@ export default function BecomeSellerModal({ onClose }) {
 
                   <div className="col-span-1">
                     <button
-                      className="w-full px-3 py-2 rounded bg-[#346BFF] text-white hover:bg-blue-600"
+                      className="w-full px-3 py-2 rounded-sm bg-[#346BFF] text-white hover:bg-blue-600"
                       onClick={uploadDocument}
                       disabled={uploadingDoc}
                     >
@@ -461,14 +461,14 @@ export default function BecomeSellerModal({ onClose }) {
         <div className="flex gap-4 w-full justify-center shrink-0 min-h-[40px]">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
+            className="px-4 py-2 rounded-sm bg-gray-200 text-gray-800 hover:bg-gray-300 focus:outline-hidden focus:ring-2 focus:ring-gray-400 transition-colors"
           >
             {t("Cancel")}
           </button>
           <button
             onClick={submit}
             disabled={loading || uploadingDoc}
-            className="px-4 py-2 rounded bg-[#346BFF] text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 min-w-[100px] flex justify-center items-center transition-colors"
+            className="px-4 py-2 rounded-sm bg-[#346BFF] text-white hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-400 min-w-[100px] flex justify-center items-center transition-colors"
           >
             {loading || uploadingDoc ? <Spinner /> : t("Submit")}
           </button>

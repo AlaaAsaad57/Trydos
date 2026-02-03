@@ -93,7 +93,7 @@ function CommentBar({ product_data, setCommentsData }) {
         data-cy="CommentField"
         tabIndex={0}
         aria-label={translateFunction("Comment input")}
-        className={`w-full resize-none outline-none p-2 rounded border border-gray-300 min-h-[56px] max-h-[120px] transition-all duration-200 `}
+        className={`w-full resize-none outline-hidden p-2 rounded-sm border border-gray-300 min-h-[56px] max-h-[120px] transition-all duration-200 `}
         style={{
           textAlign: getFirstLetterLang(val),
         }}
@@ -125,7 +125,7 @@ function CommentBar({ product_data, setCommentsData }) {
           className={`${
             getFirstLetterLang(val) === "left"
               ? "right-[30px]"
-              : "left-[30px] rotate-[180deg]"
+              : "left-[30px] rotate-180"
           } absolute h-full flex items-center top-0 ${
             loading ? "cursor-help" : "cursor-pointer"
           }`}

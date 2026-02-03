@@ -201,7 +201,7 @@ function ChangeOrderItem({
   return (
     <>
       <div className="flex-col w-full items-center  pb-[12px] px-[24px]">
-        <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px]">
+        <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px]">
           <span className="w-[40px] h-[4px] bg-[#C4C2C2] rounded-[2px]"></span>
           <div className="w-[104px] h-[144px] mt-[20px] relative">
             <span
@@ -299,7 +299,7 @@ function ChangeOrderItem({
       <div
         className={`w-full min-h-[53px] items-center justify-center  flex cursor-pointer ${
           !isChanged() ? "bg-[#D3D3D3] " : "bg-[#402CDD] "
-        } rounded-[20px] text-[16px] text-[#fff] medium`}
+        } rounded-[20px] text-[16px] text-white medium`}
         onClick={() => {
           if (isChangedQtyOnly()) {
             CancelQty();
@@ -346,7 +346,7 @@ function ChangeOrderItem({
 export default ChangeOrderItem;
 const ChangeColorWidget = ({ color, setColor, item, productData }) => {
   return (
-    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
+    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
         <Image
           alt={item.name || "Image"}
@@ -368,7 +368,7 @@ const ChangeColorWidget = ({ color, setColor, item, productData }) => {
           }}
         />
       </div>
-      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b-[1px] pb-[12px] justify-center text-center">
+      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center">
         {translateFunction("Change From")}
         <span className="mx-[4px]">{item?.variation?.color}</span>
       </span>
@@ -395,7 +395,7 @@ const ChangeColorWidget = ({ color, setColor, item, productData }) => {
 };
 const ChangeSizeWidget = ({ size, setSize, item, productData }) => {
   return (
-    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
+    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
         <Image
           alt={item.name || "Image"}
@@ -417,7 +417,7 @@ const ChangeSizeWidget = ({ size, setSize, item, productData }) => {
           }}
         />
       </div>
-      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b-[1px] pb-[12px] justify-center text-center">
+      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center">
         {translateFunction("Change From")}
         <span className="mx-[4px]">{item?.variation?.[0]?.Size}</span>
       </span>
@@ -455,7 +455,7 @@ const ChangeQtyWidget = ({
   productData: any;
 }) => {
   return (
-    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
+    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
         <Image
           alt={item.name || "Image"}
@@ -477,7 +477,7 @@ const ChangeQtyWidget = ({
           }}
         />
       </div>
-      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b-[1px] pb-[12px] justify-center text-center">
+      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center">
         {translateFunction("Change From")}
         <span className="mx-[4px]">{item?.qty}</span>
         <span className="medium">{translateFunction("Qty")}</span>
@@ -503,7 +503,7 @@ const ChangeQtyWidget = ({
               setQty(Math.max(0, parseInt(pollinateInput(e.target.value))));
             }
           }}
-          className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-none focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
+          className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-hidden focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
           min="1"
         />
         {item.qty !== qty && (

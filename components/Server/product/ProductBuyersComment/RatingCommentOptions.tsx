@@ -96,11 +96,11 @@ export const RatingCommentOptions = ({
     return (
       <>
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-[9999999999]"
+          className="fixed inset-0 bg-black bg-opacity-50 z-9999999999"
           onClick={handleCloseModal}
         />
         <div
-          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[99999999999] w-full max-w-md mx-4"
+          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-99999999999 w-full max-w-md mx-4"
           aria-modal="true"
           role="dialog"
           tabIndex={-1}
@@ -146,7 +146,7 @@ export const RatingCommentOptions = ({
                 onKeyDown={handleInputKeyDown}
                 className={`${
                   isRtl ? "text-right" : "text-left"
-                } w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors`}
+                } w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors`}
                 placeholder={translateFunction("Add your comment")}
                 aria-label="Comment input"
                 disabled={loading}
@@ -170,7 +170,7 @@ export const RatingCommentOptions = ({
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 focus:ring-gray-300"
                 disabled={loading}
               >
                 {translateFunction("Cancel")}
@@ -178,7 +178,7 @@ export const RatingCommentOptions = ({
               <button
                 type="button"
                 onClick={handleSubmit}
-                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 ${
+                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 ${
                   isSubmitDisabled
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300"

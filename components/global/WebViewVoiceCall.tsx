@@ -223,7 +223,7 @@ function WebViewVoiceCall(props) {
             : props.userData.name || props.userData.phone}
         </span>
 
-        <div className="fixed bottom-[3dvh] left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]">
+        <div className="fixed bottom-[3dvh] left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-9999999999">
           {isPublished ? (
             <div
               className={

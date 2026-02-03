@@ -92,7 +92,7 @@ function WebviewCall() {
     actionInit: searchParams.get("action"),
     authToken: searchParams.get("authToken"),
     msgId: searchParams.get("message_id"),
-    ring: searchParams.get("ring"),
+    ring: searchParams.get("ring-3"),
     error: null,
     loading: false,
     photo: "",

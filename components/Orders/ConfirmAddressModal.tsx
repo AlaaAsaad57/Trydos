@@ -12,10 +12,10 @@ function ConfirmAddressModal({ close, confirm, confirmationData }) {
   const isRtl = language === "ar" || language === "ku";
 
   return (
-    <div className="z-[9999999999999] px-[24px] pb-[70px] w-full flex-col justify-start items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] absolute top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]">
+    <div className="z-9999999999999 px-[24px] pb-[70px] w-full flex-col justify-start items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] absolute top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]">
       <div className="flex-col justify-end items-center h-auto">
         <img src="/icons/OrderCancelConfirm.svg" className="mt-[20px]" />
-        <span className="medium text-[#fff] text-[40px] mt-[7px] text-center">
+        <span className="medium text-white text-[40px] mt-[7px] text-center">
           {translateFunction("Clarification")}
         </span>
         <span className="text-white regular text-[16px] mt-[2px] text-center">
@@ -162,7 +162,7 @@ function ConfirmAddressModal({ close, confirm, confirmationData }) {
             </div>
           </div>
         </div>
-        <span className="text-[#fff] text-[16px] medium mt-[15px]">
+        <span className="text-white text-[16px] medium mt-[15px]">
           {translateFunction("To New Address")}
         </span>
         <div
@@ -330,7 +330,7 @@ function ConfirmAddressModal({ close, confirm, confirmationData }) {
         </p>
         <div
           className={`${
-            !active ? "bg-[#D3D3D3] text-[#fff]" : "bg-[#3066CC] text-[#fff]"
+            !active ? "bg-[#D3D3D3] text-white" : "bg-[#3066CC] text-white"
           } cursor-pointer mt-[10px] w-full h-[50px] rounded-[15px]  text-[16px] bold flex items-center justify-center `}
           style={{
             border: "1px solid #402CDD80",
@@ -343,7 +343,7 @@ function ConfirmAddressModal({ close, confirm, confirmationData }) {
           {translateFunction("Agree & Change")}
         </div>
         <div
-          className={`w-full h-[53px] items-center justify-center underline  flex cursor-pointer  rounded-[20px] text-[16px] text-[#fff] medium`}
+          className={`w-full h-[53px] items-center justify-center underline  flex cursor-pointer  rounded-[20px] text-[16px] text-white medium`}
           onClick={() => {
             close();
           }}

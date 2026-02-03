@@ -45,7 +45,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
         <AddStoryWidget />
 
         <div
-          className={` stories-bar-container h-[183px] items-center flex w-full z-[99999999] max-w-[1365px] justify-start`}
+          className={` stories-bar-container h-[183px] items-center flex w-full z-99999999 max-w-[1365px] justify-start`}
         >
           <div
             id="stories-bar"

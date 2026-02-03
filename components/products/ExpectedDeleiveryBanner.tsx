@@ -11,7 +11,7 @@ function ExpectedDeleiveryBanner({ children, language, country }) {
       <div
         className={`${
           isRtl && "items-end"
-        } py-[8px] gap-[1px] flex-col  w-full h-auto text-[#1D1D1D] text-[9px] regular rounded-none`}
+        } py-[8px] gap-px flex-col  w-full h-auto text-[#1D1D1D] text-[9px] regular rounded-none`}
         onClick={() => {
           setColorBottomSheet({
             is_for_deleviery: true,

@@ -35,13 +35,13 @@ function OrderCancelConfirmationWindow({
   };
   return (
     <div
-      className={`z-[9999999999999] px-[24px]  w-full flex-col ${"justify-start"} items-center h-[calc(100vh)] max-h-full overflow-auto  pb-[30px] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
+      className={`z-9999999999999 px-[24px]  w-full flex-col ${"justify-start"} items-center h-[calc(100vh)] max-h-full overflow-auto  pb-[30px] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
     >
       <div className="w-full overflow-auto flex-col items-center justify-between h-full">
         <div className="flex-col items-center">
           <img src="/icons/OrderCancelConfirm.svg" className="mt-[100px]" />
 
-          <span className="medium text-[#fff] text-[40px] mt-[7px] text-center">
+          <span className="medium text-white text-[40px] mt-[7px] text-center">
             {translateFunction("Clarification")}
           </span>
           <span className="text-white regular text-[16px] mt-[2px] text-center">
@@ -89,8 +89,8 @@ function OrderCancelConfirmationWindow({
 
           <div
             className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${
-              !agree ? "bg-[#D3D3D3] text-[#fff]" : "bg-[#3066CC] text-[#fff]"
-            } rounded-[15px] text-[16px] text-[#fff] medium`}
+              !agree ? "bg-[#D3D3D3] text-white" : "bg-[#3066CC] text-white"
+            } rounded-[15px] text-[16px] text-white medium`}
             onClick={() => {
               if (!agree) return;
               ConfirmFunction();
@@ -102,7 +102,7 @@ function OrderCancelConfirmationWindow({
             onClick={() => {
               close();
             }}
-            className={`w-full h-[53px] items-center justify-center underline  flex cursor-pointer  rounded-[20px] text-[16px] text-[#fff] medium`}
+            className={`w-full h-[53px] items-center justify-center underline  flex cursor-pointer  rounded-[20px] text-[16px] text-white medium`}
           >
             {translateFunction("I Disagree")}
           </div>

@@ -395,7 +395,7 @@ function PersonalInfoCountries({
               </div>
               <div className="flex w-full gap-4">
                 <button
-                  className="flex-1 py-2 rounded-lg bg-gray-200  text-gray-700  font-medium focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  className="flex-1 py-2 rounded-lg bg-gray-200  text-gray-700  font-medium focus:outline-hidden focus:ring-2 focus:ring-gray-400"
                   onClick={() => {
                     setShowConfirmationModal(false);
                     setPendingCountry(null);
@@ -405,7 +405,7 @@ function PersonalInfoCountries({
                   {translateFunction("Cancel")}
                 </button>
                 <button
-                  className="flex-1 py-2 rounded-lg bg-primary text-[#402CDD] font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="flex-1 py-2 rounded-lg bg-primary text-[#402CDD] font-medium focus:outline-hidden focus:ring-2 focus:ring-primary"
                   onClick={async () => {
                     setShowConfirmationModal(false);
                     if (pendingCountry) {

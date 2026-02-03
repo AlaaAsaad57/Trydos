@@ -124,7 +124,7 @@ function ProductDetailsSlider({ images, productGA, resetLoader = true }: any) {
   return (
     <>
       {imageShow >= 0 && (
-        <div className="fixed cursor-pointer bg-[#0000004d] flex justify-center items-center h-[100vh] w-[100vw] top-0 left-0 p-4 z-[9999999999]">
+        <div className="fixed cursor-pointer bg-[#0000004d] flex justify-center items-center h-screen w-screen top-0 left-0 p-4 z-9999999999">
           <span className="absolute right-3 top-4 z-50">
             {" "}
             <CloseIcon

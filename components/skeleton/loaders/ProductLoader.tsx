@@ -120,7 +120,7 @@ function ProductLoader({ product }) {
             {/* footer */}
           </div>
         </div>
-        <div className="product-details-footer alternate-product-details-footer z-[999999999] bottom-[50px]">
+        <div className="product-details-footer alternate-product-details-footer z-999999999 bottom-[50px]">
           <div className="product-info-container p-0 h-[40px] overflow-hidden">
             <div
               className={`flex h-[40px] w-full relative items-end pb-[8px] overflow-hidden ${
@@ -129,7 +129,7 @@ function ProductLoader({ product }) {
             >
               {/* 10% Client Logic: Only this component interacts with cookies */}
               <div
-                className={`flex items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff] ${
+                className={`flex items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-white ${
                   isRtl ? "flex-row-reverse" : "flex-row"
                 }`}
               >

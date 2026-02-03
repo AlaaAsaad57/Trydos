@@ -96,7 +96,7 @@ function FlashDealBanner({
   return (
     <div
       data-cy="flash-deal-banner"
-      className={`absolute pr-[5px] pl-[8px] text-nowrap flex-row h-[19px] gap-[2px] items-center  ${top} left-[0px] z-[99] rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px] bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]`}
+      className={`absolute pr-[5px] pl-[8px] text-nowrap flex-row h-[19px] gap-[2px] items-center  ${top} left-0 z-99 rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px] bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]`}
       style={{
         border: "1px solid #FF6200",
       }}

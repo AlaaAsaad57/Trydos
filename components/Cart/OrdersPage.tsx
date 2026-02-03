@@ -209,7 +209,7 @@ function OrdersPage({ setStep, close }) {
   return (
     <div
       className={`pb-[10px]
-     flex-col relative  top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+     flex-col relative  top-0 left-0 min-h-screen max-h-screen h-auto overflow-hidden w-full bg-[#ffffff] min-w-screen z-9999999999 pt-1`}
     >
       {deleteModal && (
         <DeleteModalComponent
@@ -230,7 +230,7 @@ function OrdersPage({ setStep, close }) {
       <SlideWidget step={orderStep} duration={400}>
         <div
           data-cy="swiper-slide"
-          className={`min-w-[100vw] h-[100vh] relative cart-widget`}
+          className={`min-w-screen h-screen relative cart-widget`}
         >
           {AddressListsOpen && (
             <AddressListContainer
@@ -249,7 +249,7 @@ function OrdersPage({ setStep, close }) {
           )}
           <div
             data-cy="header-delivery"
-            className="flex-col pl-2 pr-2 bg-[#fff] p-1 "
+            className="flex-col pl-2 pr-2 bg-white p-1 "
           >
             <div
               data-cy="header-delivery-container"
@@ -408,10 +408,10 @@ function OrdersPage({ setStep, close }) {
             orderLoading={false}
           />
         </div>
-        <div className="min-w-[100vw] relative max-h-[100vh] h-[100vh] cart-widget overflow-hidden">
+        <div className="min-w-screen relative max-h-screen h-screen cart-widget overflow-hidden">
           {nextStep ? (
             <>
-              <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+              <div className="flex-col pl-2 pr-2 bg-white p-1">
                 {!orderData.success && (
                   <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
                     <img
@@ -470,7 +470,7 @@ function OrdersPage({ setStep, close }) {
             </>
           ) : (
             <>
-              <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+              <div className="flex-col pl-2 pr-2 bg-white p-1">
                 <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
                   <img
                     src="/icons/backIcon.svg"
@@ -581,7 +581,7 @@ export const DeleteModalComponent = ({
   return (
     <>
       <div
-        className="absolute top-0 left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-60 bg-[black]"
+        className="absolute top-0 left-0 min-w-screen z-999999998 min-h-screen opacity-60 bg-[black]"
         onClick={() => {
           // Sendevent({
           //   event: GA_EVENT_NAMES.CLICK,
@@ -591,7 +591,7 @@ export const DeleteModalComponent = ({
         }}
       />
       <div
-        className="flex-col w-full h-[90%] px-[24px] absolute z-[999999999]  justify-between"
+        className="flex-col w-full h-[90%] px-[24px] absolute z-999999999  justify-between"
         style={{
           backdropFilter: "blur(7px) brightness(1.3)",
         }}
@@ -599,7 +599,7 @@ export const DeleteModalComponent = ({
         <span />
         <div className="flex-col items-center">
           <img src="/icons/TrashIcon.svg" />
-          <span className="medium text-[16px] mt-[1px] text-[#fff]">
+          <span className="medium text-[16px] mt-px text-white">
             {translateFunction("Delete Below Address?")}
           </span>
           <div
@@ -764,7 +764,7 @@ export const DeleteModalComponent = ({
               // });
               closeModal();
             }}
-            className="w-full flex justify-center items-center cursor-pointer  rounded-[15px] h-[50px] bg-transparent regular text-[16px] text-[#fff]"
+            className="w-full flex justify-center items-center cursor-pointer  rounded-[15px] h-[50px] bg-transparent regular text-[16px] text-white"
           >
             {translateFunction("Cancel")}
           </div>
@@ -895,7 +895,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
         style={{
           boxShadow: "0px -3px 20px #0000001a",
         }}
-        className={`   text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+        className={`   text-center  left-0 w-full h-[100px] bg-white px-[20px] pt-[12px]`}
       >
         <div
           onClick={() => {

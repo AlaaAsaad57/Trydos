@@ -32,7 +32,7 @@ export default function PricesRowClientLogic({
   if (showRedeemUI) {
     return (
       <div
-        className={`flex items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff] ${
+        className={`flex items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-white ${
           isRtl ? "flex-row-reverse" : "flex-row"
         }`}
       >
@@ -48,7 +48,7 @@ export default function PricesRowClientLogic({
   // Fallback to Standard Price UI
   return (
     <div
-      className={`flex items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff] ${
+      className={`flex items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-white ${
         isRtl ? "flex-row-reverse" : "flex-row"
       }`}
     >

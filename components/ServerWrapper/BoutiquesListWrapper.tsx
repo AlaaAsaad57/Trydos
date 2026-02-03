@@ -78,7 +78,7 @@ async function RecomendedProductWrapper({
       <div
         // href={`/${lang}/featured`}
         // data={{ is_boutique: true }}
-        className={`flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-sm rounded-[15px]  regular bg-[#f3f3f3] regular text-[#5d5d5d] ${
+        className={`flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-xs rounded-[15px]  regular bg-[#f3f3f3] regular text-[#5d5d5d] ${
           isRtl ? "flex-row-reverse " : " "
         }`}
       >

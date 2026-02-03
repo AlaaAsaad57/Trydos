@@ -475,7 +475,7 @@ export default PaymentMethod;
 //         border: active && "1px solid rgb(56 144 255 / 51%)",
 //       }}
 //       className={`w-full cursor-pointer pt-[12px] ite mt-[30px] ${
-//         active ? "h-[111px] bg-[#fff]" : " h-[42px] bg-[#f8f8f8]"
+//         active ? "h-[111px] bg-white" : " h-[42px] bg-[#f8f8f8]"
 //       } rounded-[15px]  flex-col items-start px-[12px]`}
 //     >
 //       <div className="flex-row ">
@@ -573,7 +573,7 @@ export default PaymentMethod;
 //                       close();
 //                     }
 //                   }}
-//                   className={`coupon-element-input pl-[49px]  bg-transparent w-full h-[42px] border-none outline-none  text-[#1D1D1D] regular text-[12px] placeholder:text-[#C4C2C2]`}
+//                   className={`coupon-element-input pl-[49px]  bg-transparent w-full h-[42px] border-none outline-hidden  text-[#1D1D1D] regular text-[12px] placeholder:text-[#C4C2C2]`}
 //                 />
 //               )}
 //               <div

@@ -144,7 +144,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
         // Initial loading screen with progress bar
         <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center justify-center animate-in zoom-in-95 duration-200">
           {/* Progress Header */}
-          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+          <div className="w-12 h-12 bg-linear-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
             <svg
               className="w-6 h-6 text-white"
               fill="currentColor"
@@ -171,7 +171,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300 ease-out"
+                className="h-full bg-linear-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
@@ -206,7 +206,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
             data-cy="Change-Url-Container"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4">
+            <div className="bg-linear-to-r from-blue-500 to-purple-600 px-6 py-4">
               <div className="flex items-center justify-center">
                 <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3">
                   <svg
@@ -373,7 +373,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                 //                 msTransition: "none",
                 //               }}
                 //             >
-                //               <div className="w-5 h-5 flex-shrink-0 flex items-center">
+                //               <div className="w-5 h-5 shrink-0 flex items-center">
                 //                 <FlagIcon iso={country.value} />
                 //               </div>
                 //               <span className="text-sm font-medium text-gray-700 truncate light">
@@ -394,7 +394,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
       ) : (
         <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center justify-center animate-in zoom-in-95 duration-200">
           {/* Progress Header */}
-          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+          <div className="w-12 h-12 bg-linear-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
             <svg
               className="w-6 h-6 text-white"
               fill="currentColor"

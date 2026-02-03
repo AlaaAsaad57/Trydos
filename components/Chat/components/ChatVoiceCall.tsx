@@ -311,7 +311,7 @@ function ChatVoiceCall({ token }) {
             style={{
               bottom: "60px",
             }}
-            className="fixed  left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]"
+            className="fixed  left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-9999999999"
           >
             {isPublished ? (
               <div

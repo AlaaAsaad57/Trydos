@@ -27,14 +27,7 @@ import { useAppStore } from "store";
 import { RDB } from "ramaaz-digital-banking";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 
-async function WalletLinkCard({
-  isRtl,
-  language,
-  wallet,
-  currency,
-  country,
-  local,
-}) {
+function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
   const [open, setOpen] = useState(false);
   const { setShouldAuthinticated } = useAppStore();
   return (
@@ -54,10 +47,11 @@ async function WalletLinkCard({
             onClose={() => {
               setOpen(false);
             }}
+            noScroll={true}
             height={80}
           >
             <RDB
-              base_url={process.env.NEXT_PUBLIC_WALLET_BACKEND_URL}
+              baseUrl={process.env.NEXT_PUBLIC_WALLET_BACKEND_URL}
               storeKey="trydos"
               authToken={getCookie(COOKIE_NAMES.WALLET_TOKEN)}
               handleUnauthenticated={() => {
@@ -306,7 +300,7 @@ function TestNewWalletIntegrations({
                 setFeeDetails(null);
               }}
               className={`
-                relative p-5 rounded-xl border text-left transition-all duration-200 shadow-sm
+                relative p-5 rounded-xl border text-left transition-all duration-200 shadow-xs
                 ${
                   isSelected
                     ? "bg-blue-600 text-white border-blue-600 ring-2 ring-blue-300 shadow-lg scale-[1.02]"
@@ -353,7 +347,7 @@ function TestNewWalletIntegrations({
           <div className="lg:col-span-1 space-y-6">
             {loading && <Skeleton width={292} height={107} />}
             {!showDepositForm ? (
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+              <div className="bg-white p-6 rounded-xl shadow-xs border border-gray-100 text-center">
                 <h3 className="text-lg font-semibold mb-4 text-gray-800">
                   Actions for {activeCurrency.displayName}
                 </h3>
@@ -399,7 +393,7 @@ function TestNewWalletIntegrations({
                       Source Bank
                     </label>
                     <select
-                      className="w-full text-black border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-full text-black border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-hidden"
                       onChange={(e) => setSelectedBankId(e.target.value)}
                       value={selectedBankId}
                     >
@@ -421,7 +415,7 @@ function TestNewWalletIntegrations({
                     <div className="relative">
                       <input
                         type="number"
-                        className="w-full text-black border border-gray-300 rounded-lg p-2.5 pl-4 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full text-black border border-gray-300 rounded-lg p-2.5 pl-4 text-sm focus:ring-2 focus:ring-blue-500 outline-hidden"
                         placeholder="0.00"
                         onChange={(e) =>
                           handleAmountChange(Number(e.target.value))
@@ -481,7 +475,7 @@ function TestNewWalletIntegrations({
                     disabled={
                       isSubmitting || !imageUrl || !amount || !selectedBankId
                     }
-                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold shadow-sm transition-all mt-2"
+                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold shadow-xs transition-all mt-2"
                   >
                     {isSubmitting ? "Processing..." : "Confirm Deposit"}
                   </button>
@@ -502,12 +496,12 @@ function TestNewWalletIntegrations({
 
           {/* RIGHT COLUMN: HISTORY TABLE */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                 <h3 className="font-bold text-gray-800">
                   Transaction History ({activeCurrency.symbol})
                 </h3>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-sm">
                   {filteredHistory.length} records
                 </span>
               </div>
@@ -577,7 +571,7 @@ const LoadingCurrnecies = () => {
           width={222}
           height={98}
           className={`
-                relative  p-5 rounded-xl border text-left transition-all duration-200 shadow-sm
+                relative  p-5 rounded-xl border text-left transition-all duration-200 shadow-xs
                
               `}
         />
@@ -688,7 +682,7 @@ export function CheckoutSection({
             type="text"
             value={cartId}
             onChange={(e) => setCartId(e.target.value)}
-            className="w-full text-black border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+            className="w-full text-black border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-hidden"
             placeholder="e.g. CART-12345"
           />
         </div>
@@ -702,7 +696,7 @@ export function CheckoutSection({
               type="number"
               value={checkoutAmount || ""}
               onChange={(e) => setCheckoutAmount(Number(e.target.value))}
-              className="w-full text-black border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+              className="w-full text-black border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-hidden"
               placeholder="0.00"
             />
             <span className="absolute right-4 top-2.5 text-gray-400 text-sm">
@@ -718,7 +712,7 @@ export function CheckoutSection({
         <button
           onClick={handleCheckout}
           disabled={isProcessing || !cartId || checkoutAmount <= 0}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white py-3 rounded-lg font-bold transition-all shadow-sm"
+          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white py-3 rounded-lg font-bold transition-all shadow-xs"
         >
           {isProcessing ? "Processing Payment..." : "Pay Now"}
         </button>

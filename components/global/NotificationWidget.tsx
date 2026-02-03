@@ -159,13 +159,13 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
       tabIndex={0}
       onKeyDown={handleKeyDown}
       className={[
-        "fixed flex justify-center items-center top-0 z-[9999999999] w-full backdrop-brightness-75 left-0 right-0 mx-auto h-[100dvh]",
+        "fixed flex justify-center items-center top-0 z-9999999999 w-full backdrop-brightness-75 left-0 right-0 mx-auto h-dvh",
         "pointer-events-auto",
       ].join(" ")}
     >
       <div
         className={[
-          "group w-[min(92vw,28rem)] sm:w-[28rem] regular",
+          "group w-[min(92vw,28rem)] sm:w-md regular",
           "rounded-2xl bg-white",
           "shadow-xl ring-1 ring-black/5",
           "border border-zinc-100",
@@ -209,14 +209,14 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
             <div className="mt-4 flex items-center gap-2">
               <button
                 onClick={handleAllowClick}
-                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-[#1d1d1d] bg-[#ff6464] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
+                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-[#1d1d1d] bg-[#ff6464] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
                 aria-label="Allow notifications"
               >
                 {translateFunction("Allow", language)}
               </button>
               <button
                 onClick={handleDismissClick}
-                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
+                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 shadow-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
                 aria-label="Not now"
               >
                 {translateFunction("Not now", language)}

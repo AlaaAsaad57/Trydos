@@ -179,7 +179,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
         }}
         className={` ${
           orderLoading && "opacity-55"
-        }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+        }  text-center  left-0 w-full h-[100px] bg-white px-[20px] pt-[12px]`}
       >
         {!orderData.success && (
           <div

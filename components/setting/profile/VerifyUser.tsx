@@ -55,7 +55,7 @@ function VerifyUser({ is_phone_verified, phone }) {
       {isModalOpen &&
         mounted &&
         createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 backdrop-blur-xs">
             <div className="w-full max-w-md animate-in zoom-in-95 duration-200">
               <ConfirmationModal
                 forVerify={true}

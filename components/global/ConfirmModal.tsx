@@ -40,7 +40,7 @@ export const ConfirmModal = ({
           ) : (
             <>
               <button
-                className="px-4 py-2 rounded bg-gray-200  text-gray-800  hover:bg-gray-300  focus:outline-none focus:ring-2 focus:ring-gray-400"
+                className="px-4 py-2 rounded-sm bg-gray-200  text-gray-800  hover:bg-gray-300  focus:outline-hidden focus:ring-2 focus:ring-gray-400"
                 onClick={onCancel}
                 tabIndex={0}
                 aria-label={
@@ -50,7 +50,7 @@ export const ConfirmModal = ({
                 {translateFunction("Cancel")}
               </button>
               <button
-                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400"
+                className="px-4 py-2 rounded-sm bg-red-600 text-white hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-red-400"
                 onClick={onConfirm}
                 tabIndex={0}
                 aria-label={

@@ -31,7 +31,7 @@ function RateOrderButton({ setExpanded }) {
       <div
         className={`${
           isRtl ? "items-end" : "items-start"
-        } flex-col pt-[8px] pb-[12px] px-[12px] justify-start  w-full bg-[#F4F4F4] rounded-[15px] border-[#412cdd8d] border-[1px] h-[155px]`}
+        } flex-col pt-[8px] pb-[12px] px-[12px] justify-start  w-full bg-[#F4F4F4] rounded-[15px] border-[#412cdd8d] border h-[155px]`}
       >
         <span>
           <svg

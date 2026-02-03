@@ -115,7 +115,7 @@ export default async function RootLayout({ params, children }) {
       <body className={lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <SpeedInsights />
         <div className="site-container items-center">
-          <div className="home-navbar z-[999999996] duration-[1s] max-w-[1365px] min-h-[98px]  px-[20px] pt-[52px] bg-white flex-row items-start w-full justify-start">
+          <div className="home-navbar z-999999996 duration-1000 max-w-[1365px] min-h-[98px]  px-[20px] pt-[52px] bg-white flex-row items-start w-full justify-start">
             <a href={`/`} aria-label="TryDos Home" data-cy="NavLogo">
               <div className="logo-container" data-cy="storeLogo">
                 <img

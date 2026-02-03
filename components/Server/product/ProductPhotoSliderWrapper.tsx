@@ -302,7 +302,7 @@ async function ProductPhotoSliderWrapper({
       {getImages(globalDetails, color)?.images?.map((img, i) => (
         <div
           key={i}
-          className={`${i === 0 ? "z-[99999999]" : "z-[88]"} relative flex`}
+          className={`${i === 0 ? "z-99999999" : "z-88"} relative flex`}
         >
           <div
             className={`${getRoundedClass(

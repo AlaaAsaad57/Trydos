@@ -105,8 +105,8 @@ function BuyersCommentMenu({
             right: isRtl ? "50px" : "initial",
           }}
           className={`${
-            isOwner ? "bottom-[0px]" : "bottom-[20px]"
-          }  absolute z-[80]   bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]`}
+            isOwner ? "bottom-0" : "bottom-[20px]"
+          }  absolute z-80   bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]`}
         >
           <button
             className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"

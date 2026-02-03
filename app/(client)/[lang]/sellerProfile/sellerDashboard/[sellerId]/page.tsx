@@ -998,7 +998,7 @@ function SellerDashBoard() {
           return (
             <div
               key={order.id || order.order_group_id}
-              className="border border-gray-200 rounded-[15px] bg-white p-5 shadow-sm"
+              className="border border-gray-200 rounded-[15px] bg-white p-5 shadow-xs"
             >
               <div className="flex flex-col gap-4 border-b border-gray-100 pb-4 mb-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -1049,7 +1049,7 @@ function SellerDashBoard() {
                             [String(order.id)]: e.target.value,
                           }))
                         }
-                        className="px-3 py-2 border border-gray-300 rounded-lg text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 py-2 border border-gray-300 rounded-lg text-[13px] bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">{translateFunction("Select")}</option>
                         {orderStatusOptions.map((statusOption) => (
@@ -1243,7 +1243,7 @@ function SellerDashBoard() {
     return (
       <div className="space-y-6">
         {isSuperAdmin && (
-          <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 rounded-[15px] mb-6">
+          <div className="bg-linear-to-r from-blue-500 to-purple-500 text-white p-4 rounded-[15px] mb-6">
             <div className="flex items-center gap-2">
               <span className="text-[20px]">⭐</span>
               <div>
@@ -1357,7 +1357,7 @@ function SellerDashBoard() {
                   setAddUserForm({ ...addUserForm, phone: e.target.value })
                 }
                 placeholder={translateFunction("+(country_code)XXX")}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-[14px]"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-[14px]"
                 required
               />
               <p className="text-[12px] text-[#8D8D8D] mt-1">
@@ -1386,12 +1386,12 @@ function SellerDashBoard() {
                     setTimeout(() => setRolesDropdownOpen(false), 150)
                   }
                   placeholder={translateFunction("Search roles...")}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-[14px] mb-2"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-[14px] mb-2"
                   aria-autocomplete="list"
                 />
 
                 {rolesDropdownOpen && (
-                  <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded max-h-48 overflow-auto">
+                  <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-sm max-h-48 overflow-auto">
                     {rolesSearching && roles.length === 0 ? (
                       <div className="flex items-center gap-2 p-3">
                         <Spinner />
@@ -1436,7 +1436,7 @@ function SellerDashBoard() {
                               onMouseDown={() =>
                                 getRoles(rolesPage + 1, rolesQuery)
                               }
-                              className="px-3 py-1 bg-white border rounded"
+                              className="px-3 py-1 bg-white border rounded-sm"
                               disabled={rolesLoadingMore}
                             >
                               {rolesLoadingMore ? (
@@ -1484,7 +1484,7 @@ function SellerDashBoard() {
                     seller_id: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-[14px] bg-gray-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-[14px] bg-gray-50"
                 readOnly
                 disabled
               />
@@ -1602,7 +1602,7 @@ function SellerDashBoard() {
                                   if (rolesForChange.length === 0)
                                     getRolesForChange();
                                 }}
-                                className="px-2 py-1 border rounded"
+                                className="px-2 py-1 border rounded-sm"
                               >
                                 Change role
                               </button>
@@ -1610,7 +1610,7 @@ function SellerDashBoard() {
                               {rolesForChangeOpenUserId === String(user.id) && (
                                 <div
                                   ref={rolesForChangeRef}
-                                  className="absolute z-50 right-0 mt-1 w-56 bg-white border border-gray-200 rounded max-h-48 overflow-auto"
+                                  className="absolute z-50 right-0 mt-1 w-56 bg-white border border-gray-200 rounded-sm max-h-48 overflow-auto"
                                 >
                                   <input
                                     type="text"
@@ -1680,7 +1680,7 @@ function SellerDashBoard() {
                                                 rolesForChangeQuery
                                               )
                                             }
-                                            className="px-3 py-1 bg-white border rounded"
+                                            className="px-3 py-1 bg-white border rounded-sm"
                                             disabled={rolesForChangeLoadingMore}
                                           >
                                             {rolesForChangeLoadingMore ? (
@@ -1704,7 +1704,7 @@ function SellerDashBoard() {
                           {hasPermission("SUPER_ADMIN") && (
                             <button
                               onClick={() => handleDeleteUser(user.id)}
-                              className="px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded disabled:opacity-50"
+                              className="px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-sm disabled:opacity-50"
                             >
                               {translateFunction("Delete")}
                             </button>
@@ -1712,7 +1712,7 @@ function SellerDashBoard() {
                           {String(user.id) === String(currentUserId) && (
                             <button
                               onClick={handleLeaveShop}
-                              className="px-3 py-1 bg-yellow-50 text-yellow-700 border border-yellow-100 rounded"
+                              className="px-3 py-1 bg-yellow-50 text-yellow-700 border border-yellow-100 rounded-sm"
                             >
                               {translateFunction("Leave Shop")}
                             </button>

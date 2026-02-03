@@ -147,11 +147,11 @@ function CartContainer({ close, toOrders }) {
     <div
       className={`flex-col ${
         cart.length > 0 ? "pb-[283px]" : "100px"
-      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-screen z-9999999999 pt-1`}
       data-cy="cartPage-container"
     >
       <div
-        className="flex-col pl-2 pr-2 bg-[#fff] p-1"
+        className="flex-col pl-2 pr-2 bg-white p-1"
         data-cy="cartPage-header-container"
       >
         <div
@@ -695,7 +695,7 @@ export const QuantutyInput = ({
               </div>
               {!loading && (
                 <div
-                  className="absolute h-[24px] flex items-center hide-btn right-[-20px] top-[-1px] scale-125  cursor-pointer"
+                  className="absolute h-[24px] flex items-center hide-btn right-[-20px] -top-px scale-125  cursor-pointer"
                   data-cy="DeleteIcon_CartPage"
                   onClick={() => {
                     // Sendevent({
@@ -743,13 +743,13 @@ export const QuantutyInput = ({
             max={max}
             disabled
             onChange={(e) => {}}
-            className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
+            className="outline-hidden hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
           />
           {loading && <Spinner />}
         </div>
         {!disabled && (
           <div
-            className="flex rounded-md p-[5px] items-center whitespace-nowrap bg-[#54b8ff] shadow-sm text-[10px] light mt-[5px] text-[#fafafa] cursor-pointer"
+            className="flex rounded-md p-[5px] items-center whitespace-nowrap bg-[#54b8ff] shadow-xs text-[10px] light mt-[5px] text-[#fafafa] cursor-pointer"
             onClick={() => {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,

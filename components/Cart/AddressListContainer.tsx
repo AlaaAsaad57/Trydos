@@ -40,7 +40,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
   return (
     <>
       <div
-        className="absolute top-[50px] left-0 min-w-[100vw] z-[999999998] min-h-screen opacity-40 bg-[black]"
+        className="absolute top-[50px] left-0 min-w-screen z-999999998 min-h-screen opacity-40 bg-[black]"
         onClick={() => {
           closeSelect();
         }}
@@ -50,7 +50,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
           bottom: "0px",
           paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)",
         }}
-        className="flex-col items-center px-[12px]   absolute z-[999999999] rounded-t-[30px] bg-[#fff] h-[481px] w-full pt-[11px]"
+        className="flex-col items-center px-[12px]   absolute z-999999999 rounded-t-[30px] bg-white h-[481px] w-full pt-[11px]"
         data-cy="AddressListContainer"
       >
         <div className="flex-row items-center w-full justify-center">
@@ -79,7 +79,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                 className={`flex-col relative  ${
                   addressLists.length === 0
                     ? "items-center h-[84px]   py-[12px]"
-                    : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
+                    : "items-start h-auto min-h-[90px] px-[24px]  py-[7px]"
                 } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
                 data-cy="Address"
               >
@@ -259,7 +259,7 @@ const EditIcon = ({ address, onClick }) => {
         startUpdateAddress(address);
         onClick();
       }}
-      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[32px] top-[8px]"
+      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-10 right-[32px] top-[8px]"
       data-cy="Edit-Addres-Icon"
     >
       <svg
@@ -334,7 +334,7 @@ const DeleteIcon = ({ address, onClick }) => {
       onClick={() => {
         onClick();
       }}
-      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[8px] top-[8px]"
+      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-10 right-[8px] top-[8px]"
       data-cy="Delete-Address-Icon"
     >
       <svg

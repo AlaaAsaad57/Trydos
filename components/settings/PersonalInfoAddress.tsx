@@ -177,7 +177,7 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
                             s.is_default === 0 ? "" : "#388bff8c 1px solid",
                         }}
                         className={`flex-col relative  
-                       items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]
+                       items-start h-auto min-h-[90px] px-[24px]  py-[7px]
                       
                     
                      mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
@@ -201,7 +201,7 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
                         <div
                           className={`flex-col ${
                             s.is_default === 1 &&
-                            " [&_*]:!text-[#1D1D1D]   [&_svg_path]:!fill-[#1D1D1D]"
+                            " **:text-[#1D1D1D]!   [&_svg_path]:fill-[#1D1D1D]!"
                           }`}
                         >
                           <div className="flex-row items-center">
@@ -422,7 +422,7 @@ const EditIcon = ({ address, onClick }) => {
         startUpdateAddress(address);
         onClick();
       }}
-      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[32px] top-[8px]"
+      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-10 right-[32px] top-[8px]"
       data-cy="Edit-Addres-Icon"
     >
       <svg
@@ -497,7 +497,7 @@ const DeleteIcon = ({ address, onClick }) => {
       onClick={() => {
         onClick();
       }}
-      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[8px] top-[8px]"
+      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-10 right-[8px] top-[8px]"
       data-cy="Delete-Address-Icon"
     >
       <svg

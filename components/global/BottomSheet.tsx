@@ -9,6 +9,7 @@ export default function BottomSheet({
   height = 60,
   noPadding = false,
   fromProductPage = false,
+  noScroll = false,
 }) {
   const sheetRef = useRef(null);
   const overlayRef = useRef(null);
@@ -198,12 +199,12 @@ export default function BottomSheet({
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 m-0 z-[9999999998] bg-black/50"
+          className="fixed inset-0 m-0 z-9999999998 bg-black/50"
           onClick={debouncedOnColse}
         />
       )}
       <div
-        className={`fixed inset-0 z-[9999999999] m-0 flex justify-end flex-col  items-center transition-all duration-300 ${
+        className={`fixed inset-0 z-9999999999 m-0 flex justify-end flex-col  items-center transition-all duration-300 ${
           isOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
         ref={overlayRef}
@@ -224,7 +225,7 @@ export default function BottomSheet({
           ref={sheetRef}
           className={`w-full min-h-[60dvh] rounded-t-[30px] max-h-[${height}dvh] transition-all duration-300  bg-white ${
             !noPadding && "p-1 overflow-y-auto"
-          } sm:p-4 shadow-2xl  max-w-[1365px]`}
+          } sm:p-4 shadow-2xl  max-w-[1365px] ${noScroll && "overflow-y-hidden pb-8"}`}
           style={{
             willChange: "transform",
             transform: "translateY(100dvh)",

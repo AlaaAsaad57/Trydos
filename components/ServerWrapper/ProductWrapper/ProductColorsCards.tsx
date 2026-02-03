@@ -99,7 +99,7 @@ function ProductColorsCards({
                       draggable="false"
                     />
                   ) : (
-                    <div className="h-[15px] w-[49.358px] bg-gray-200 rounded" />
+                    <div className="h-[15px] w-[49.358px] bg-gray-200 rounded-sm" />
                   )}
                   {InitialProductData.brand?.is_verified === 1 && (
                     <img src="/icons/VerifiedIcon.svg" />

@@ -114,7 +114,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
           />
         )}
         <div
-          className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-[99999999999]"
+          className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-99999999999"
           style={{ position: "static" }}
         >
           {!capturing && !vidUrl && !vidUrl && (
@@ -232,14 +232,14 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
   };
   return (
     <div
-      className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-[9999999999]"
+      className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-9999999999"
       style={{
         top: "-180px",
         justifyContent: "flex-end",
         paddingBottom: "60px",
       }}
     >
-      <div className="w-full h-[50px] flex z-[999999999] rounded-md bg-[#fafafa] absolute top-[25px] left-0">
+      <div className="w-full h-[50px] flex z-999999999 rounded-md bg-[#fafafa] absolute top-[25px] left-0">
         <div
           className={`text-[#1d1d1d] w-1/2 h-[50px] flex text-center items-center justify-center  ${
             active ? "bg-[#a0a0a0]" : "bg-[#fafafa]"
@@ -257,12 +257,12 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
           Video
         </div>
       </div>
-      <div className="absolute top-0 left-0 w-screen h-screen bg-[#585751] opacity-60 z-[9999]"></div>
+      <div className="absolute top-0 left-0 w-screen h-screen bg-[#585751] opacity-60 z-9999"></div>
       {active ? (
         imageFile && imageFile !== "null" ? (
           <>
             <div
-              className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-[99999999999]"
+              className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-99999999999"
               style={{ position: "static" }}
             >
               <button
@@ -343,7 +343,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
               </button>
             </div>
             <Image
-              className="h-full absolute w-full inset-0 max-h-[100dvh] text-transparent object-fill  z-[99999999]"
+              className="h-full absolute w-full inset-0 max-h-dvh text-transparent object-fill  z-99999999"
               loading="eager"
               fill
               sizes="100vw"
@@ -354,7 +354,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
         ) : (
           <>
             <Webcam
-              className="cameraInput h-[100%] w-full inset-0 max-h-[100dvh] text-transparent object-fill static z-[99999999]"
+              className="cameraInput h-full w-full inset-0 max-h-dvh text-transparent object-fill static z-99999999"
               audio={false}
               height={800}
               ref={webcamRef}
@@ -364,7 +364,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
             />
             {!imageFile && (
               <div
-                className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-[99999999999]"
+                className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-99999999999"
                 style={{ position: "static" }}
               >
                 <button
