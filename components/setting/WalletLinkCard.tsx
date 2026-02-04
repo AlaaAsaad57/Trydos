@@ -52,23 +52,19 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
           >
             {/* // @ts-ignore */}
             <RDB
-              // @ts-ignore
+              onClose={() => {
+                setOpen(false);
+              }}
               actions={serverActions}
-              // @ts-ignore
-              base_url={process.env.NEXT_PUBLIC_WALLET_BACKEND_URL}
-              // @ts-ignore
+              baseUrl={process.env.NEXT_PUBLIC_WALLET_BACKEND_URL}
               storeKey="trydos"
-              // @ts-ignore
               authToken={getCookie(COOKIE_NAMES.WALLET_TOKEN)}
-              // @ts-ignore
               handleUnauthenticated={() => {
                 setShouldAuthinticated(true);
                 setOpen(true);
                 alert("handleUnauthenticated is Called");
               }}
-              // @ts-ignore
               onReceivedAuthToken={() => {}}
-              // @ts-ignore
               local={(local as string) ?? "gb-en"}
             />
           </BottomSheet>,
