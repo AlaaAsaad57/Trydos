@@ -25,6 +25,7 @@ import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import { RDB } from "ramaaz-digital-banking";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import { serverActions } from "services/RDB";
 
 function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
   const [open, setOpen] = useState(false);
@@ -51,6 +52,8 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
           >
             {/* // @ts-ignore */}
             <RDB
+              // @ts-ignore
+              actions={serverActions}
               // @ts-ignore
               base_url={process.env.NEXT_PUBLIC_WALLET_BACKEND_URL}
               // @ts-ignore
