@@ -51,7 +51,7 @@ function ProductGeneralProperties({
         id="product-properties-general"
         className={`${
           isRtl ? "flex-row-reverse pl-[90px]" : "flex-row pr-[90px]"
-        }  product-properties items-center justify-start w-100 text-[#1d1d1d] text-[9px]`}
+        }  product-properties items-center justify-start w-full text-[#1d1d1d] text-[9px]`}
       >
         {children}
       </HortiznalScrollBar>

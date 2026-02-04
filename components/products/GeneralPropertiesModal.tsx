@@ -64,7 +64,7 @@ function GeneralPropertiesModal({
               <p className="text-[11px] text-[#1d1d1d] regular gap-[4px] inline">
                 {translateFunction(
                   "All Reviews Are Genuine From Customers Who Purchased And Actually Received The Product Through",
-                  language
+                  language,
                 )}
                 <span className="bold px-[4px]">trydos</span>
               </p>
@@ -81,7 +81,7 @@ function GeneralPropertiesModal({
               />
               <HortiznalScrollBar
                 id="product-properties-general-modal"
-                className="flex-row px-[3px] product-properties items-center justify-start w-100 text-[#1d1d1d] text-[11px] *:text-[11px]!"
+                className="flex-row px-[3px] product-properties items-center justify-start w-full text-[#1d1d1d] text-[11px] *:text-[11px]!"
               >
                 <div className="flex-row items-center">
                   <span className="bold pr-[4px]"> {TotalBuyers}</span>
@@ -133,7 +133,7 @@ function GeneralPropertiesModal({
               <div className="flex">
                 {translateFunction(
                   "Buyers Reviews On Product Sizing",
-                  language
+                  language,
                 )}
               </div>
               <div className="flex-col gap-[4px]">
@@ -156,7 +156,7 @@ function GeneralPropertiesModal({
               <span className="inline text-[11px] text-[#1d1d1d] regular ">
                 {translateFunction(
                   "All Recommendations Are Genuine From Customers Who Purchased And Actually Received The Product Through",
-                  language
+                  language,
                 )}
                 <span className="bold px-[4px]">trydos</span>
               </span>

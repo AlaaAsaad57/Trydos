@@ -7,7 +7,7 @@ export const OfferPrice = ({ price, is_redeem }) => {
       {price}
       {is_redeem && (
         <svg
-          className="absolute w-100 redeem_show"
+          className="absolute w-full redeem_show"
           xmlns="http://www.w3.org/2000/svg"
           width="100%"
           height="1"

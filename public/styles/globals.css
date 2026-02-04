@@ -224,7 +224,7 @@ p {
   font-family: var(--Quicksand-Medium);
 }
 
-.w-100 {
+.w-full {
   width: 100%;
 }
 
