@@ -527,7 +527,10 @@ export class ElasticsearchReader {
         .filter((boutique) => {
           const categoriesLength =
             boutique.mainCategoriesForProductIds?.length ?? 0;
-          return categoriesLength < 5;
+          return (
+            categoriesLength <
+            (parseInt(process.env.MIN_CATEGORIES_UNDER_BOUTIQUE) ?? 5)
+          );
         })
         .map((boutique) => boutique.boutique_id)
         .filter((id) => id !== null && id !== undefined);

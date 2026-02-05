@@ -78,7 +78,7 @@ importers:
         version: 8.5.6
       ramaaz-digital-banking:
         specifier: git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git
-        version: git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#7eb401ce71b1417b8fe236b068740434a78d84a7(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#9c43815823cdce1da6e5d16c7ddc762e6df48f14(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react:
         specifier: 19.2.0
         version: 19.2.0
@@ -2600,8 +2600,8 @@ packages:
       react-dom:
         optional: true
 
-  framer-motion@12.31.0:
-    resolution: {integrity: sha512-Tnd0FU05zGRFI3JJmBegXonF1rfuzYeuXd1QSdQ99Ysnppk0yWBWSW2wUsqzRpS5nv0zPNx+y0wtDj4kf0q5RQ==}
+  framer-motion@12.33.0:
+    resolution: {integrity: sha512-ca8d+rRPcDP5iIF+MoT3WNc0KHJMjIyFAbtVLvM9eA7joGSpeqDfiNH/kCs1t4CHi04njYvWyj0jS4QlEK/rJQ==}
     peerDependencies:
       '@emotion/is-prop-valid': '*'
       react: ^18.0.0 || ^19.0.0
@@ -3254,8 +3254,8 @@ packages:
   motion-dom@12.24.11:
     resolution: {integrity: sha512-DlWOmsXMJrV8lzZyd+LKjG2CXULUs++bkq8GZ2Sr0R0RRhs30K2wtY+LKiTjhmJU3W61HK+rB0GLz6XmPvTA1A==}
 
-  motion-dom@12.30.1:
-    resolution: {integrity: sha512-QXB+iFJRzZTqL+Am4a1CRoHdH+0Nq12wLdqQQZZsfHlp9AMt6PA098L/61oVZsDA+Ep3QSGudzpViyRrhYhGcQ==}
+  motion-dom@12.33.0:
+    resolution: {integrity: sha512-XRPebVypsl0UM+7v0Hr8o9UAj0S2djsQWRdHBd5iVouVpMrQqAI0C/rDAT3QaYnXnHuC5hMcwDHCboNeyYjPoQ==}
 
   motion-utils@12.24.10:
     resolution: {integrity: sha512-x5TFgkCIP4pPsRLpKoI86jv/q8t8FQOiM/0E8QKBzfMozWHfkKap2gA1hOki+B5g3IsBNpxbUnfOum1+dgvYww==}
@@ -3563,8 +3563,8 @@ packages:
   queue@6.0.2:
     resolution: {integrity: sha512-iHZWu+q3IdFZFX36ro/lKBkSvfkztY5Y7HMiPlOUjhupPcG2JMfst2KKEpu5XndviX/3UhFbRngUPNKtgvtZiA==}
 
-  ramaaz-digital-banking@git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#7eb401ce71b1417b8fe236b068740434a78d84a7:
-    resolution: {commit: 7eb401ce71b1417b8fe236b068740434a78d84a7, repo: https://gitlab.com/new-trydos/ramaaz-digital-banking.git, type: git}
+  ramaaz-digital-banking@git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#9c43815823cdce1da6e5d16c7ddc762e6df48f14:
+    resolution: {commit: 9c43815823cdce1da6e5d16c7ddc762e6df48f14, repo: https://gitlab.com/new-trydos/ramaaz-digital-banking.git, type: git}
     version: 1.0.0
     peerDependencies:
       next: '>=14'
@@ -7045,9 +7045,9 @@ snapshots:
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
 
-  framer-motion@12.31.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  framer-motion@12.33.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
     dependencies:
-      motion-dom: 12.30.1
+      motion-dom: 12.33.0
       motion-utils: 12.29.2
       tslib: 2.8.1
     optionalDependencies:
@@ -7841,7 +7841,7 @@ snapshots:
     dependencies:
       motion-utils: 12.24.10
 
-  motion-dom@12.30.1:
+  motion-dom@12.33.0:
     dependencies:
       motion-utils: 12.29.2
 
@@ -8111,10 +8111,10 @@ snapshots:
     dependencies:
       inherits: 2.0.4
 
-  ramaaz-digital-banking@git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#7eb401ce71b1417b8fe236b068740434a78d84a7(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  ramaaz-digital-banking@git+https://gitlab.com/new-trydos/ramaaz-digital-banking.git#9c43815823cdce1da6e5d16c7ddc762e6df48f14(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
     dependencies:
       axios: 1.13.4
-      framer-motion: 12.31.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      framer-motion: 12.33.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       next: 16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0)
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
