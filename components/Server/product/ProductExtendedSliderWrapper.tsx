@@ -35,6 +35,7 @@ async function ProductExtendedSliderWrapper({
           price: priceDetails?.offer_price ?? priceDetails?.price,
           interaction_type: "view",
           likes_count: socialData.total_likes,
+          boutique_id: globalDetails?.boutique_id,
         }}
         images={
           globalDetails?.sync_color_images?.find(
