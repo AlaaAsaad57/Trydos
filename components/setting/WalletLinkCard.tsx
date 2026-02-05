@@ -29,18 +29,21 @@ import { serverActions } from "services/RDB";
 
 function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
   const [open, setOpen] = useState(false);
-  const { setShouldAuthinticated } = useAppStore();
+  const { setShouldAuthinticated, shouldAuthinticated, user, setLoginOpen } =
+    useAppStore();
   return (
     <div
       onClick={() => {
-        setOpen(true);
+        if (user && user?.phone?.length > 3) setOpen(true);
+        else setLoginOpen(true);
       }}
-      className={` ${
+      className={`${(!user || user?.phone === "0") && "opacity-65"} ${
         isRtl && "items-end"
       } flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px]  cursor-pointer`}
       aria-label={translateFunction("Wallet Transactions", language)}
     >
       {open &&
+        !shouldAuthinticated &&
         createPortal(
           <BottomSheet
             isOpen={open}
@@ -61,12 +64,14 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
               authToken={getCookie(COOKIE_NAMES.WALLET_TOKEN)}
               handleUnauthenticated={() => {
                 setShouldAuthinticated(true);
-                setOpen(true);
-                alert("handleUnauthenticated is Called");
               }}
               onReceivedAuthToken={() => {}}
               local={(local as string) ?? "gb-en"}
             />
+            {/* <TestNewWalletIntegrations
+              handleUnauthenticatedFromParent={() => {}}
+              local="gb-en"
+            /> */}
           </BottomSheet>,
           document.body,
         )}
