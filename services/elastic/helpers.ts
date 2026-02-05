@@ -209,18 +209,19 @@ export function extractFilters(
   languageCode: string,
   isFromBrowser: boolean,
 ): ExtractFiltersResult {
-  const customProducts: Record<string, CustomProduct> = {};
+  const customProducts: CustomProduct[] = [];
 
   products?.forEach((product) => {
-    // Process custom products
-    if (product.custom_products && Array.isArray(product.custom_products)) {
+    if (Array.isArray(product.custom_products)) {
       product.custom_products.forEach((customProduct: any) => {
         if (customProduct.language_code === languageCode) {
-          customProducts[customProduct.id] = processCustomProduct(
-            product,
-            customProduct,
-            languageCode,
-            isFromBrowser,
+          customProducts.push(
+            processCustomProduct(
+              product,
+              customProduct,
+              languageCode,
+              isFromBrowser,
+            ),
           );
         }
       });
