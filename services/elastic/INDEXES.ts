@@ -1,4 +1,4 @@
-export const catalog_index = "products_catalog";
+export const catalog_index = "products_catalog_develop";
 export const views_index = "product_views";
 export const recommendation_index = "recommended_system";
 export const recommendation_cold_index = "cold_start_recommendations";
