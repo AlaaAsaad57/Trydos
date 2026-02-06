@@ -418,7 +418,7 @@ export default AddToCartButton;
 const PlusIconHolder = ({ isValid }) => {
   return (
     <>
-      <div className="w-[55px] h-[55px] rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-[#fff] p-[5px] flex-row justify-start items-end absolute top-[-33px] right-[-33px]">
+      <div className="w-[55px] h-[55px] rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-white p-[5px] flex-row justify-start items-end absolute top-[-33px] right-[-33px]">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="15"
@@ -448,7 +448,7 @@ export const RemoveIconHolder = ({ qty, decreaseHandler }) => {
         style={{
           paddingBottom: qty > 1 ? "9px" : "7px",
         }}
-        className={`z-[99] w-[55px] minuse-qty-icon h-[55px] rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-[#fff] pr-[5px]  flex-row justify-end items-end absolute top-[-33px] left-[-33px]`}
+        className={`z-99 w-[55px] minuse-qty-icon h-[55px] rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-white pr-[5px]  flex-row justify-end items-end absolute top-[-33px] left-[-33px]`}
       >
         {qty > 1 ? (
           <svg

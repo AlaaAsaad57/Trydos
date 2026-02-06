@@ -43,7 +43,7 @@ function ProductColorsCards({
             id={slug}
           >
             <div
-              className="product-photos z-10 min-h-[290px]  max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
+              className="product-photos z-10 min-h-[290px]  max-h-[290px] overflow-visible w-full justify-start align-center flex-col"
               style={{
                 position: "static",
                 opacity: "1",
@@ -83,7 +83,7 @@ function ProductColorsCards({
               style={{
                 direction: isRtl ? "rtl" : "ltr",
               }}
-              className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px] w-100 flex-col align-start justify-start max-h-[60px] min-h-[30px]"
+              className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px] w-full flex-col align-start justify-start max-h-[60px] min-h-[30px]"
             >
               <div
                 className="prouct-details max-w-full whitespace-normal inline-block  text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[28px]"
@@ -99,7 +99,7 @@ function ProductColorsCards({
                       draggable="false"
                     />
                   ) : (
-                    <div className="h-[15px] w-[49.358px] bg-gray-200 rounded" />
+                    <div className="h-[15px] w-[49.358px] bg-gray-200 rounded-sm" />
                   )}
                   {InitialProductData.brand?.is_verified === 1 && (
                     <img src="/icons/VerifiedIcon.svg" />
@@ -127,7 +127,7 @@ function ProductColorsCards({
               style={{
                 direction: isRtl ? "rtl" : "ltr",
               }}
-              className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-100 flex-row align-center max-h-[30px]"
+              className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-full flex-row align-center max-h-[30px]"
             >
               <div className={`${isRtl && "dir-rtl"} price-label flex`}>
                 {InitialProductData?.price !==

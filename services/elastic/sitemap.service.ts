@@ -2,6 +2,7 @@
 
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 import { elasticSearchClient } from "./elasticsearch.config";
+import { catalog_index, search_log_index } from "./INDEXES";
 
 interface SitemapUrl {
   loc: string;
@@ -48,7 +49,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
       baseConditions;
 
     const searchQuery = {
-      index: "products_catalog",
+      index: catalog_index,
       size: 0, // We only need aggregations, not documents
       query: {
         bool: {
@@ -136,7 +137,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
       // Try to get countries from a simple query
       try {
         const simpleQuery = {
-          index: "products_catalog",
+          index: catalog_index,
           size: 1,
           _source: ["countries_iso"],
         };
@@ -404,7 +405,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
 
     // First, get the most used search terms (following PHP pattern)
     const searchQuery = {
-      index: "search_logs",
+      index: search_log_index,
       size: 0,
       query: {
         range: {
@@ -453,14 +454,14 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
       // Check if index exists
       try {
         const indexExists = await elasticSearchClient.indices.exists({
-          index: "search_logs",
+          index: search_log_index,
         });
         console.log("[getTopSearchTerms] Index exists check:", indexExists);
 
         if (indexExists) {
           // Get index stats to see if there's any data
           const indexStats = await elasticSearchClient.indices.stats({
-            index: "search_logs",
+            index: search_log_index,
           });
           console.log(
             "[getTopSearchTerms] Index stats:",
@@ -469,7 +470,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
 
           // Try a simple count query to see total documents
           const countResponse = await elasticSearchClient.count({
-            index: "search_logs",
+            index: search_log_index,
           });
           console.log(
             "[getTopSearchTerms] Total documents in index:",
@@ -478,7 +479,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
 
           // Try a query without the range filter to see if any documents exist
           const simpleQuery = {
-            index: "search_logs",
+            index: search_log_index,
             size: 0,
             aggs: {
               all_terms: {
@@ -549,7 +550,7 @@ async function getMostCommonCountryAndLanguageForTerm(
 ): Promise<{ country_iso: string; language_code: string }> {
   try {
     const params = {
-      index: "search_logs",
+      index: search_log_index,
       size: 0,
       query: {
         bool: {
@@ -730,7 +731,7 @@ export async function generateProductSitemapXML(): Promise<string> {
  */
 function buildProductSearchParams(batchSize: number, scrollTimeout: string) {
   return {
-    index: "products_catalog",
+    index: catalog_index,
     scroll: scrollTimeout,
     size: batchSize,
     _source: [

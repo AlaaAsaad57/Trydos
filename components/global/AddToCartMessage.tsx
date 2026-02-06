@@ -162,7 +162,7 @@ const createToastElement = (message: string, type: "success" | "error") => {
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			flex-shrink: 0;
+			shrink: 0;
 		}
 		
 		.toast-text {

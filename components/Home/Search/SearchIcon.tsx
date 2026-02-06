@@ -518,7 +518,7 @@ const SearchContainer = ({
   };
   return (
     <div
-      className="search-container pt-[12px] max-h-[100%]"
+      className="search-container pt-[12px] max-h-full"
       data-cy="searchContainer"
     >
       {/* 1. Empty State: History & Trending */}
@@ -713,7 +713,7 @@ const SearchContainer = ({
             (loading ? (
               <div
                 aria-disabled={loading}
-                className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
+                className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-white justify-center items-center rounded-xl"
                 data-cy="apply-filters-search"
               >
                 {translateFunction("Search")}{" "}
@@ -744,7 +744,7 @@ const SearchContainer = ({
                   setSearchEnable(false);
                 }}
                 aria-disabled={loading}
-                className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
+                className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-white justify-center items-center rounded-xl"
                 data-cy="apply-filters-search"
               >
                 {translateFunction("Search")}{" "}

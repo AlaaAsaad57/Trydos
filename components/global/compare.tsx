@@ -318,7 +318,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
 
   const LoadingCell = () => (
     <div className="animate-pulse flex space-x-4">
-      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+      <div className="h-4 bg-gray-200 rounded-sm w-3/4"></div>
     </div>
   );
 
@@ -410,7 +410,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
             ?.options?.map((size) => (
               <span
                 key={size.name}
-                className="px-2 py-1 bg-gray-100 rounded regular"
+                className="px-2 py-1 bg-gray-100 rounded-sm regular"
               >
                 {size.name}
               </span>
@@ -563,7 +563,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
           </h1>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white rounded-lg shadow-xs p-6">
           <div className="flex gap-6 mb-4">
             <div className="min-w-[25%]" />
             <div className="flex-1">

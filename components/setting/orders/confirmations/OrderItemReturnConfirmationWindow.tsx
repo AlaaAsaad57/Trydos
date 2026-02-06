@@ -167,12 +167,12 @@ function OrderItemReturnConfirmationWindow({
 
   return (
     <div
-      className={`z-[9999999999999] px-[24px] pb-[70px]  w-full flex-col ${"justify-start"} items-center h-[calc(100vh)] overflow-auto max-h-full fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
+      className={`z-9999999999999 px-[24px] pb-[70px]  w-full flex-col ${"justify-start"} items-center h-[calc(100vh)] overflow-auto max-h-full fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
     >
       <div className="w-full overflow-auto flex-col items-center max-w-[800px] justify-between h-full">
         <div className="flex-col items-center">
           <img src="/icons/OrderCancelConfirm.svg" className="mt-[100px]" />
-          <span className="medium text-[#fff] text-[40px] mt-[7px] text-center">
+          <span className="medium text-white text-[40px] mt-[7px] text-center">
             {translateFunction("Clarification")}
           </span>
           <span className="text-white regular text-[16px] mt-[2px] text-center">
@@ -222,8 +222,8 @@ function OrderItemReturnConfirmationWindow({
 
           <div
             className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${
-              !active ? "bg-[#D3D3D3] text-[#fff]" : "bg-[#3066CC] text-[#fff]"
-            } rounded-[15px] text-[16px] text-[#fff] medium`}
+              !active ? "bg-[#D3D3D3] text-white" : "bg-[#3066CC] text-white"
+            } rounded-[15px] text-[16px] text-white medium`}
             style={{
               border: "1px solid #F8F8F880",
             }}
@@ -238,8 +238,8 @@ function OrderItemReturnConfirmationWindow({
             <div
               className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${
                 !active
-                  ? "bg-[#D3D3D3] text-[#fff]"
-                  : "bg-[#84afff] text-[#fff]"
+                  ? "bg-[#D3D3D3] text-white"
+                  : "bg-[#84afff] text-white"
               } rounded-[15px] text-[16px]  medium`}
               style={{
                 border: "1px solid #F8F8F880",
@@ -264,7 +264,7 @@ function OrderItemReturnConfirmationWindow({
                 setOrderOptions(false);
                 setShouldConfirmReturn(false);
               }}
-              className={`w-full h-[53px] items-center justify-center underline  flex cursor-pointer  rounded-[20px] text-[16px] text-[#fff] medium`}
+              className={`w-full h-[53px] items-center justify-center underline  flex cursor-pointer  rounded-[20px] text-[16px] text-white medium`}
             >
               {translateFunction("I Disagree")}
             </div>
@@ -311,10 +311,10 @@ const RenderReturnedItem = ({
       {(returned_items as any).map((return_item, index) => (
         <div
           key={`${return_item.detail_id}-${index}`}
-          className="flex-shrink-0 w-[170px] regular mx-2 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform"
+          className="shrink-0 w-[170px] regular mx-2 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform"
         >
           {/* Image Container */}
-          <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="relative h-48 bg-linear-to-br from-gray-50 to-gray-100">
             <img
               src={getConfiguredImage({
                 src: return_item.image,
@@ -330,7 +330,7 @@ const RenderReturnedItem = ({
 
             {/* Quantity Badge */}
             <div className="absolute bottom-3 left-3">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 backdrop-blur-sm">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 backdrop-blur-xs">
                 Qty: {parseInt(return_item.return_request_product_quantity)}
               </span>
             </div>

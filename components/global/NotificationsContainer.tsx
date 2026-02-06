@@ -171,7 +171,7 @@ const NotificationsContainer = () => {
         const chatNotificationContent = notification.chatData ? (
           <div className="flex items-start gap-3 relative w-full">
             {/* Sender Photo */}
-            <div className="flex-shrink-0 relative">
+            <div className="shrink-0 relative">
               {notification.chatData.senderPhoto ? (
                 <div className="relative w-[30px] h-[30px] rounded-full overflow-hidden ">
                   <Image
@@ -217,7 +217,7 @@ const NotificationsContainer = () => {
                 e.stopPropagation();
                 handleDismiss(notification.id);
               }}
-              className="flex-shrink-0 p-1 absolute right-[-30px] top-[-23px] rounded-md transition-colors"
+              className="shrink-0 p-1 absolute right-[-30px] top-[-23px] rounded-md transition-colors"
               tabIndex={0}
               aria-label="Close notification"
             >
@@ -305,7 +305,7 @@ const NotificationsContainer = () => {
         const notificationContent = !isChatNotification ? (
           <div className="flex items-start gap-3 relative">
             {/* Icon */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {notification?.image ? (
                 <Image
                   className="object-cover object-center max-w-[40px] max-h-[40px] w-full h-full"
@@ -348,7 +348,7 @@ const NotificationsContainer = () => {
             <button
               onClick={() => handleDismiss(notification.id)}
               className={`
-                  flex-shrink-0 p-1 absolute right-[-30px] top-[-23px] rounded-md transition-colors
+                  shrink-0 p-1 absolute right-[-30px] top-[-23px] rounded-md transition-colors
                   
                 `}
               tabIndex={0}

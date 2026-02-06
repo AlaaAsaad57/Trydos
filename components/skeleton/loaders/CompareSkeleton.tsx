@@ -15,7 +15,7 @@ const CompareSkeleton = () => {
           <Skeleton width={200} height={32} />
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white rounded-lg shadow-xs p-6">
           <div className="flex gap-6 mb-8">
             <div className="flex-1">
               <Skeleton height={48} className="rounded-lg" />

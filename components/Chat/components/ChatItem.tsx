@@ -241,7 +241,7 @@ function ChatItem({
         <div
           className={`${
             isRtl
-              ? "left-[10px] right-[initial] rotate-[180deg] "
+              ? "left-[10px] right-[initial] rotate-180 "
               : "right-[10px]"
           } arrow-right`}
         >

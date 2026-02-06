@@ -138,10 +138,10 @@ function ProductRedeemCounter({ language, product_id }) {
       className={`${
         isRtl
           ? " flex-row-reverse right-0 rounded-tl-[4px] rounded-tr-[15px] rounded-br-[4px] rounded-bl-[15px]"
-          : "flex-row left-[0px] rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px]"
+          : "flex-row left-0 rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px]"
       } ${
         selected_product_for_add_to_cart?.done && "opacity-0"
-      } absolute pr-[5px] pl-[8px] text-nowrap  h-[19px] gap-[2px] items-center  top-[5px]  z-[99999999999]  bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]`}
+      } absolute pr-[5px] pl-[8px] text-nowrap  h-[19px] gap-[2px] items-center  top-[5px]  z-99999999999  bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]`}
       style={{
         border: "1px solid #FF6200",
       }}

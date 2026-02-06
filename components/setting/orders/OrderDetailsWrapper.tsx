@@ -339,7 +339,7 @@ function OrderDetailsWrapper({
         createPortal(
           <>
             <div
-              className="fixed top-[0px]   left-0 min-w-[100vw] z-[99999999998] min-h-[100vh] opacity-40 bg-[black]"
+              className="fixed top-0   left-0 min-w-screen z-99999999998 min-h-screen opacity-40 bg-[black]"
               onClick={() => {
                 setShouldConfirmReturn(false);
               }}
@@ -454,7 +454,7 @@ function OrderDetailsWrapper({
                     <div
                       className={`${
                         s.id === ActivePack?.id
-                          ? "bold border-[1px] border-[#402cdd]"
+                          ? "bold border border-[#402cdd]"
                           : "regular"
                       } text-[#1d1d1d] h-[50px] rounded-[20px]  cursor-pointer text-[12px] flex-1 px-[5px] items-center justify-center flex-row basis-0`}
                       key={i}
@@ -644,7 +644,7 @@ const OrderExpandedDetails = ({
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
-      className="bg-[#fff] mt-[20px] rounded-[10px] w-full h-auto p-[12px] flex-col flex items-start"
+      className="bg-white mt-[20px] rounded-[10px] w-full h-auto p-[12px] flex-col flex items-start"
       style={{
         direction: isRtl ? "rtl" : "ltr",
       }}
@@ -770,7 +770,7 @@ const OrderExpandedDetails = ({
             className="text-[#1D1D1D] flex flex-row text-[12px] regular mt-[3px] gap-[3px]"
           >
             <span>Monday</span>
-            <span className="bold text-[#1D1D1D] text-[12px]  mx-[1px]">
+            <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
               2.Jun
             </span>
             <span> | 3 {translateFunction("Work Days")}</span>
@@ -805,7 +805,7 @@ const OrderExpandedDetails = ({
           // order.edit_return_request &&
           (cancelling ? (
             <div
-              className={` h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fff] "} rounded-[15px] text-[16px] text-[#fb7070] medium`}
+              className={` h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-white "} rounded-[15px] text-[16px] text-[#fb7070] medium`}
             >
               <Spinner />
             </div>
@@ -821,7 +821,7 @@ const OrderExpandedDetails = ({
           ))}
         {shouldShowConfirmReturn() && (
           <div
-            className={` underline h-[30px] mt-[31px] items-center justify-center  flex cursor-pointer bg-[#fff]  rounded-[15px] text-[12px] text-green-500 medium`}
+            className={` underline h-[30px] mt-[31px] items-center justify-center  flex cursor-pointer bg-white  rounded-[15px] text-[12px] text-green-500 medium`}
             onClick={() => {
               setSelectedOrderItem();
               setShouldConfirmReturn(true);

@@ -46,7 +46,7 @@ export default function GlobalError({ error, reset }) {
   ) {
     return (
       <html lang="en" className="">
-        <body className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 min-h-screen">
+        <body className="bg-linear-to-br from-blue-50 via-white to-indigo-50 min-h-screen">
           <div className="flex justify-center flex-col items-center p-8 min-h-screen">
             {/* Logo Section */}
             <div className="mb-8">
@@ -131,7 +131,7 @@ export default function GlobalError({ error, reset }) {
   }
   return (
     <html lang="en" className="">
-      <body className="bg-gradient-to-br from-red-50 via-white to-pink-50 min-h-screen">
+      <body className="bg-linear-to-br from-red-50 via-white to-pink-50 min-h-screen">
         <div className="flex justify-center flex-col items-center p-8 min-h-screen">
           {/* Logo Section */}
           <div className="mb-8">

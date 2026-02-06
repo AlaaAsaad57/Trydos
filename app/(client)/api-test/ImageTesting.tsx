@@ -114,13 +114,13 @@ const ImageTestingFull = () => {
 
   const [showOriginals, setShowOriginals] = useState(true);
   return (
-    <div className="bg-white rounded-xl shadow p-6 space-y-6">
+    <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
       <h2 className="text-xl font-semibold">
         Cloudinary Full Testing Playground
       </h2>
 
       {/* <textarea
-        className="w-full border rounded p-2 text-sm h-32"
+        className="w-full border rounded-sm p-2 text-sm h-32"
         value={imageUrls.join("\n")}
         onChange={(e) => setImageUrls(e.target.value.split("\n"))}
         placeholder="Paste one image URL per line"
@@ -130,7 +130,7 @@ const ImageTestingFull = () => {
         <div>
           <label className="font-medium">Crop Mode</label>
           <select
-            className="w-full border p-2 rounded"
+            className="w-full border p-2 rounded-sm"
             value={cropMode}
             onChange={(e) => setCropMode(e.target.value)}
           >
@@ -148,7 +148,7 @@ const ImageTestingFull = () => {
           </label>
           <input
             type="number"
-            className="w-full border p-2 rounded"
+            className="w-full border p-2 rounded-sm"
             value={width}
             onChange={(e) => setWidth(parseInt(e.target.value))}
           />
@@ -160,7 +160,7 @@ const ImageTestingFull = () => {
           </label>
           <input
             type="number"
-            className="w-full border p-2 rounded"
+            className="w-full border p-2 rounded-sm"
             value={height}
             onChange={(e) => setHeight(parseInt(e.target.value))}
           />
@@ -172,7 +172,7 @@ const ImageTestingFull = () => {
           </label>
           <input
             type="text"
-            className="w-full border p-2 rounded"
+            className="w-full border p-2 rounded-sm"
             value={format}
             onChange={(e) => setFormat(e.target.value)}
           />
@@ -180,7 +180,7 @@ const ImageTestingFull = () => {
         <div>
           <label className="font-medium">Fit</label>
           <select
-            className="w-full border p-2 rounded"
+            className="w-full border p-2 rounded-sm"
             value={objectFit}
             onChange={(e) => setObjectFit(e.target.value)}
           >
@@ -195,13 +195,13 @@ const ImageTestingFull = () => {
 
       <button
         onClick={apply}
-        className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        className="px-6 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700"
       >
         Apply Transformations
       </button>
       <button
         onClick={() => setShowOriginals(!showOriginals)}
-        className="mx-[20px] px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        className="mx-[20px] px-6 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700"
       >
         show {showOriginals ? "Results" : "Originals"}
       </button>

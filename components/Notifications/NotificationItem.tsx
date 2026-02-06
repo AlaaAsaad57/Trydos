@@ -41,7 +41,7 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
             className="w-10 h-10 rounded-full mr-3 object-cover"
           />
         ) : (
-          <div className="w-10 h-10 rounded-full mr-3 bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full mr-3 bg-linear-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
             <svg
               data-cy="svg-notification"
               width="20"

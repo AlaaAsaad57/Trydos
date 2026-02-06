@@ -131,7 +131,7 @@ export const AskInput = ({
       )}
       {!loading && comment.length > 0 && (
         <span
-          className={`absolute top-[0px] cursor-pointer z-50 flex items-center justify-center h-full w-[50px] ${
+          className={`absolute top-0 cursor-pointer z-50 flex items-center justify-center h-full w-[50px] ${
             isRtl ? "left-[5px] rotate-180" : "right-[5px]"
           }`}
           onClick={() => {
@@ -167,7 +167,7 @@ export const AskInput = ({
             showErrorNotification(translateFunction("Please log in first"));
         }}
         readOnly={loading || user?.phone === "0" || !user}
-        className={`outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center pl-[40px] pr-[45px] flex items-center`}
+        className={`outline-hidden w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center pl-[40px] pr-[45px] flex items-center`}
       />
     </div>
   );

@@ -24,7 +24,7 @@ function ExtendedAreaInfo({ option, active, product_data }) {
           Extended-area-product
           overflow-hidden transition-all duration-300 ease-in-out
           ${active ? "max-h-[500px]" : "max-h-0"}
-          w-full z-[99999999999999]
+          w-full z-99999999999999
         `}
         style={{ animationFillMode: "forwards" }}
       >

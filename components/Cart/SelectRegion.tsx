@@ -75,7 +75,7 @@ function SelectRegion({ closeSelect }) {
   return (
     <>
       <div
-        className="absolute top-[50px]  left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
+        className="absolute top-[50px]  left-0 min-w-screen z-999999998 min-h-screen opacity-40 bg-[black]"
         onClick={() => {
           if (focused) {
             setFocused(false);
@@ -85,7 +85,7 @@ function SelectRegion({ closeSelect }) {
         }}
       />
       <div
-        className="flex-col items-center px-[12px] bottom-0  absolute z-[999999999] rounded-t-[30px] bg-[#fff] h-[441px] w-full pt-[19px]"
+        className="flex-col items-center px-[12px] bottom-0  absolute z-999999999 rounded-t-[30px] bg-white h-[441px] w-full pt-[19px]"
         data-cy="Extended-Choose-Area"
       >
         <div className="flex-row items-center w-full justify-center">
@@ -211,7 +211,7 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
           placeholder={translateFunction(
             "Search Province | District | Town | Street",
           )}
-          className="pl-[47px] pr-[15px] border-none outline-none flex rounded-[12px] bg-[#F8F8F8] regular text-[#1D1D1D] w-full h-[40px]"
+          className="pl-[47px] pr-[15px] border-none outline-hidden flex rounded-[12px] bg-[#F8F8F8] regular text-[#1D1D1D] w-full h-[40px]"
           data-cy="SearchProvince-District-Town-Street"
           debounceTimeout={400}
         />

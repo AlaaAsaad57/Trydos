@@ -237,7 +237,7 @@ function OrderButton({ close, toOrders }) {
     <>
       {expanded && (
         <div
-          className="fixed top-[50px] min-w-[100vw] min-h-screen opacity-40 bg-[black] z-[9999999999999999]"
+          className="fixed top-[50px] min-w-screen min-h-screen opacity-40 bg-[black] z-[9999999999999999]"
           onClick={() => {
             setExpanded(false);
           }}

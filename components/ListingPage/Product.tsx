@@ -92,7 +92,7 @@ export const BuyButtonProduct = ({
               language: language,
             })}
             <svg
-              className="absolute w-100"
+              className="absolute w-full"
               xmlns="http://www.w3.org/2000/svg"
               width="100%"
               height="1"
@@ -137,7 +137,7 @@ export const BuyButtonProduct = ({
                 language: language,
               })}
               <svg
-                className="absolute w-100"
+                className="absolute w-full"
                 xmlns="http://www.w3.org/2000/svg"
                 width="100%"
                 height="1"
@@ -171,7 +171,7 @@ export const BuyButtonProduct = ({
                     language: language,
                   })}
               <svg
-                className="absolute w-100"
+                className="absolute w-full"
                 xmlns="http://www.w3.org/2000/svg"
                 width="100%"
                 height="1"
@@ -204,7 +204,7 @@ export const BuyButtonProduct = ({
             })}
 
             <svg
-              className="absolute w-100"
+              className="absolute w-full"
               xmlns="http://www.w3.org/2000/svg"
               width="100%"
               height="1"
@@ -239,7 +239,7 @@ export const BuyButtonProduct = ({
                 language: language,
               })}
               <svg
-                className="absolute w-100"
+                className="absolute w-full"
                 xmlns="http://www.w3.org/2000/svg"
                 width="100%"
                 height="1"
@@ -305,7 +305,7 @@ export const BuyButtonProduct = ({
           style={{
             direction: isRtl ? "rtl" : "ltr",
           }}
-          className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-100 flex-row align-center max-h-[30px]"
+          className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-full flex-row align-center max-h-[30px]"
         >
           <div
             className={`${
@@ -343,7 +343,7 @@ export const BuyButtonProduct = ({
         style={{
           direction: isRtl ? "rtl" : "ltr",
         }}
-        className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-100 flex-row align-center max-h-[30px]"
+        className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-full flex-row align-center max-h-[30px]"
       >
         <div
           className={`${

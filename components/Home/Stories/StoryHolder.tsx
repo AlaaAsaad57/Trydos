@@ -96,7 +96,7 @@ function StoryHolder({ story, active, isPaused }) {
       style={{ width: "100%", height: "100%", position: "relative" }}
     >
       {active && (
-        <div className="z-[99] top-[30px] right-[20px] absolute flex flex-row items-center gap-x-2">
+        <div className="z-99 top-[30px] right-[20px] absolute flex flex-row items-center gap-x-2">
           {isOwner && (
             <span
               className="cursor-pointer pr-5"

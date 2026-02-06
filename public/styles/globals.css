@@ -1,6 +1,24 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@config '../../tailwind.config.js';
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 img {
   user-select: none;
@@ -202,10 +220,6 @@ p {
 
 .med-text {
   font-family: var(--Quicksand-Medium);
-}
-
-.w-100 {
-  width: 100%;
 }
 
 .h-100 {
@@ -657,7 +671,8 @@ a {
   left: 0;
   width: 100%;
   z-index: 10;
-  box-shadow: inset 0 3px 6px rgba(255, 255, 255, 0.5),
+  box-shadow:
+    inset 0 3px 6px rgba(255, 255, 255, 0.5),
     0px 3px 10px rgb(0 0 0 / 20%);
   border-radius: 15px;
 }
@@ -986,7 +1001,9 @@ svg {
 
 .heart {
   fill: transparent;
-  transition: fill 0.3s ease, transform 0.3s ease;
+  transition:
+    fill 0.3s ease,
+    transform 0.3s ease;
 }
 .heart.liked {
   fill: url(#heartGradient);

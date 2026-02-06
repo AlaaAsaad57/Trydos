@@ -16,6 +16,7 @@ import {
   sortColorsByFilteredColor,
   sortSyncColorImagesByFilteredColor,
 } from "services/elastic/helpers";
+import { catalog_index } from "services/elastic/INDEXES";
 import { LogServerError } from "utils/serverErrorReporter";
 let client = elasticSearchClient;
 export async function GetSearchData({
@@ -92,7 +93,7 @@ export async function GetSearchData({
     // Build the main search query
 
     const searchQuery = {
-      index: "products_catalog",
+      index: catalog_index,
       _source: [
         "id",
         "status",
@@ -212,7 +213,7 @@ export async function GetSearchData({
     );
     let categories_childs = await getChildrenAndGrandchildren(
       client,
-      "products_catalog",
+      catalog_index,
       CategoriesIds,
       language,
       country,

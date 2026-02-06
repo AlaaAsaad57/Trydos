@@ -16,7 +16,7 @@ function FeatureProducts({ lang, fetauredProductsData, currencyData }) {
       <NextLink
         href={`/${lang}/featured`}
         data={{ is_boutique: true }}
-        className={`flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-sm rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d] ${
+        className={`flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-xs rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d] ${
           isRtl ? "flex-row-reverse " : " "
         }`}
       >
@@ -76,7 +76,7 @@ function FeatureProducts({ lang, fetauredProductsData, currencyData }) {
             data={{ is_boutique: true }}
             className="product-container items-center justify-center min-w-[150px] max-h-[377px] bg-[#0002]  align-center flex-col relative"
           >
-            <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
+            <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-white">
               {translateFunction("Show More", lang.split("-")[1])}
             </div>
           </NextLink>

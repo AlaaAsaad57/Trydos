@@ -2,6 +2,7 @@ import { LogServerError } from "utils/serverErrorReporter";
 import { elasticSearchClient } from "./elasticsearch.config";
 
 import { estypes } from "@elastic/elasticsearch";
+import { catalog_index, views_index } from "./INDEXES";
 
 export class ElasticsearchReader {
   private client = elasticSearchClient;
@@ -11,7 +12,7 @@ export class ElasticsearchReader {
     try {
       const { mustConditions, mustNotConditions } = this.getRules(country);
       const query: estypes.SearchRequest = {
-        index: DEFAULT_INDEX,
+        index: catalog_index,
         _source: [
           "id",
           "custom_categories.id",
@@ -32,7 +33,7 @@ export class ElasticsearchReader {
         },
       };
       const searchParams = {
-        index: DEFAULT_INDEX,
+        index: catalog_index,
         size: ReqQuery.size ?? 20,
         ...query,
       };
@@ -195,7 +196,7 @@ export class ElasticsearchReader {
       const customProducts: any[] = [];
 
       const customQuery = {
-        index: DEFAULT_INDEX,
+        index: catalog_index,
         body: {
           size: 0,
           query: {
@@ -305,7 +306,7 @@ export class ElasticsearchReader {
       ];
 
       const categoriesQuery: any = {
-        index: DEFAULT_INDEX,
+        index: catalog_index,
         body: {
           size: 0,
           query: {
@@ -753,7 +754,7 @@ export class ElasticsearchReader {
   ): Promise<{ productIds: number[]; total: number }> {
     try {
       const response = await this.client.search({
-        index: PRODUCT_VIEWS_INDEX,
+        index: views_index,
         body: {
           from,
           size,
@@ -787,7 +788,7 @@ export class ElasticsearchReader {
     if (productIds.length === 0) return [];
 
     const response = await this.client.search({
-      index: DEFAULT_INDEX,
+      index: catalog_index,
       body: {
         size: productIds.length,
         query: {
@@ -929,7 +930,7 @@ export class ElasticsearchReader {
     }
 
     const response = await this.client.search({
-      index: DEFAULT_INDEX,
+      index: catalog_index,
       body: {
         size: limit,
         query: {
@@ -1020,7 +1021,7 @@ export class ElasticsearchReader {
       });
 
       const query = {
-        index: DEFAULT_INDEX,
+        index: catalog_index,
         body: {
           size: 1,
           _source: [
@@ -1072,8 +1073,7 @@ export class ElasticsearchReader {
     }
   }
 }
-export const DEFAULT_INDEX = "products_catalog";
-export const PRODUCT_VIEWS_INDEX = "product_views";
+
 type InputInitialized = {
   categorySlugs?: string | string[];
   limit: number;

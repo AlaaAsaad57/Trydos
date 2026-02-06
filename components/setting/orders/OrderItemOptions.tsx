@@ -108,7 +108,7 @@ function OrderItemOptions({
     if (selectedScreen === "options") {
       return (
         <>
-          <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px]">
+          <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px]">
             <span className="w-[40px] h-[4px] bg-[#C4C2C2] rounded-[2px]"></span>
             <div className="w-[104px] h-[144px] mt-[20px] relative">
               <span
@@ -426,12 +426,12 @@ function OrderItemOptions({
   return createPortal(
     <>
       <div
-        className="absolute top-[0px]   left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
+        className="absolute top-0   left-0 min-w-screen z-999999998 min-h-screen opacity-40 bg-[black]"
         onClick={() => {
           close();
         }}
       />
-      <div className="flex-col max-h-[calc(100vh-100px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[0px]  left-0 rounded-t-[30px] bg-white">
+      <div className="flex-col max-h-[calc(100vh-100px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-999999999 pb-[27px] absolute bottom-0  left-0 rounded-t-[30px] bg-white">
         {renderScreen()}
       </div>
 

@@ -73,7 +73,7 @@ function ProductStories({ id, children, InitialStoriesData }) {
       {selectedStory && selectedStory?.id && (
         <StoriesContainer stories={storiesData} selectedStory={selectedStory} />
       )}
-      <div className={`stories-row flex-row w-100`} onClick={() => {}}>
+      <div className={`stories-row flex-row w-full`} onClick={() => {}}>
         <HortiznalScrollBar
           id="product-stories-scroll-bar"
           className={`${

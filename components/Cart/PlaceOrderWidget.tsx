@@ -11,7 +11,7 @@ function PlaceOrderWidget() {
   const { orderData } = useAppStore();
 
   return (
-    <div className="flex-col overflow-auto pb-[292px] max-h-[100vh]">
+    <div className="flex-col overflow-auto pb-[292px] max-h-screen">
       {orderData.success && <OrderSuccess />}
       <OrderCartItem />
       <AddressOrder success={orderData.success} />
@@ -252,7 +252,7 @@ const AddressOrder = ({ success }) => {
             ? "items-center h-[84px]   py-[12px]"
             : `${
                 isRtl ? "items-end" : "items-start"
-              }  h-[auto] min-h-[90px] px-[24px]  py-[7px]`
+              }  h-auto min-h-[90px] px-[24px]  py-[7px]`
         } $ mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
       >
         <>

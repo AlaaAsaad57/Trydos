@@ -27,7 +27,7 @@ export function BoutiqueSliderWrapper({ boutique, children }) {
         style={{
           direction: isRtl ? "rtl" : "ltr",
         }}
-        className="absolute flex-col px-[12px] items-start gap-[3px] z-20 bottom-0 left-0 w-full h-[54px] bg-gradient-to-t from-[rgba(0,0,0,0.5)] to-[rgba(0,0,0,0)] flex"
+        className="absolute flex-col px-[12px] items-start gap-[3px] z-20 bottom-0 left-0 w-full h-[54px] bg-linear-to-t from-[rgba(0,0,0,0.5)] to-[rgba(0,0,0,0)] flex"
       >
         <span
           className="bold text-[16px] uppercase text-white"

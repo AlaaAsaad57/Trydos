@@ -199,12 +199,12 @@ export default function BottomSheet({
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 m-0 z-[9999999998] bg-black/50"
+          className="fixed inset-0 m-0 z-9999999998 bg-black/50"
           onClick={debouncedOnColse}
         />
       )}
       <div
-        className={`fixed inset-0 z-[9999999999] m-0 flex justify-end flex-col  items-center transition-all duration-300 ${
+        className={`fixed inset-0 z-9999999999 m-0 flex justify-end flex-col  items-center transition-all duration-300 ${
           isOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
         ref={overlayRef}

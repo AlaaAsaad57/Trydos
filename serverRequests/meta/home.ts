@@ -5,6 +5,7 @@ import { getRobotsConfig } from "utils/server";
 import { mapLocaleToBCP47 } from "./StructuredData/utils";
 import { General_Site_Data } from "./StructuredData/Constants";
 import { LogServerError } from "utils/serverErrorReporter";
+import { catalog_index } from "services/elastic/INDEXES";
 let client = elasticSearchComment;
 
 export async function GetHomeMetaData({ local, category = null }) {
@@ -111,7 +112,7 @@ async function GetCatgoriesMetaData({ country, language, slug }) {
   try {
     const { mustConditions, mustNotConditions } = getRules(country);
     const query = {
-      index: "products_catalog",
+      index: catalog_index,
       _source: [
         "custom_categories.name",
         "custom_categories.language_code",
@@ -151,7 +152,7 @@ async function GetCatgoriesMetaData({ country, language, slug }) {
       },
     };
     const searchParams = {
-      index: "products_catalog",
+      index: catalog_index,
       size: 1,
       ...query,
     };
@@ -306,7 +307,7 @@ export async function GetBoutiqueForMetaData({ language, country, category }) {
   let { must, must_not } = buildBaseConditions({ language, country, category });
 
   const customQuery = {
-    index: "products_catalog",
+    index: catalog_index,
     body: {
       size: 10, // How many product hits to return
       query: {

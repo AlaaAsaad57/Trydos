@@ -2,6 +2,13 @@ import { cookies } from "next/headers";
 import { fetchProductDetails } from "serverRequests";
 import { GetRecommendationCountForProduct } from "serverRequests/product";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
+import {
+  comments_index,
+  comments_interactions_index,
+  product_interactions_index,
+  share_index,
+  user_interactions_index,
+} from "services/elastic/INDEXES";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 
@@ -112,7 +119,7 @@ export const getProductDataFromElastic = async ({
 async function getProductSharedCountFromElasticsearch(productId, slug, lang) {
   try {
     let res = await client.search({
-      index: "shared_products",
+      index: share_index,
       size: 1, // just one document if you expect a single match
       query: {
         term: {
@@ -143,7 +150,7 @@ export async function GetRatingCommentsFromElastic({
   order_ids: any;
 }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: order_ids.length,
     sort: [
       { created_at: "desc" }, // newest first
@@ -211,7 +218,7 @@ export async function GetRatingCommentsForProduct({
   language = "en",
 }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: pageSize,
     sort: [
       { created_at: "desc" }, // newest first
@@ -321,7 +328,7 @@ export async function GetFQACommentsForProduct({
   language = "en",
 }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: pageSize,
     sort: [
       { created_at: "desc" }, // newest first
@@ -424,7 +431,7 @@ async function GetFQACommentsForProductWithReactions({
   if (commentIds.length === 0) return commentsResult;
 
   const reactionsQuery: any = {
-    index: "comments_reactions",
+    index: comments_interactions_index,
     size: 0,
     query: {
       bool: {
@@ -516,12 +523,12 @@ async function getProductInteractions(productId: string, userId?: string) {
     // Run both queries in parallel
     const [productRes, likeRes] = await Promise.all([
       client.get({
-        index: "product_interactions",
+        index: product_interactions_index,
         id: productId,
       }),
       userId
         ? client.search({
-            index: "user_product_likes",
+            index: user_interactions_index,
             body: {
               query: {
                 bool: {

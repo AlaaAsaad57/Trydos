@@ -123,7 +123,7 @@ const CartItemSelect = ({ items }) => {
       <div
         data-cy="bag-product-viewer"
         className={`${
-          !openCart ? "h-0 pb-[0px] pt-[0px]" : `pl-[11px] pb-[12px] pt-[11px] `
+          !openCart ? "h-0 pb-0 pt-0" : `pl-[11px] pb-[12px] pt-[11px] `
         } transition flex-row `}
       >
         {openCart &&
@@ -455,7 +455,7 @@ const AddressContainer = ({ openAddressList, lang }) => {
       className={`flex-col  ${
         addressLists?.length === 0
           ? "items-center h-[84px]   py-[12px]"
-          : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
+          : "items-start h-auto min-h-[90px] px-[24px]  py-[7px]"
       } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full ${
         lang === "ar" || lang === "ku" ? "text-right" : ""
       } ${lang === "ar" || lang === "ku" ? "flex-row-reverse" : ""}`}

@@ -95,7 +95,7 @@ function ChangeAddressWidget({
           close();
         }}
       >
-        <div className="flex-col items-center overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] rounded-t-[30px] bg-white">
+        <div className="flex-col items-center overflow-auto w-full pt-[14px] px-[24px] z-999999999 pb-[27px] rounded-t-[30px] bg-white">
           <div className="flex-col  items-center w-full justify-center flex-1">
             <OrderItemBanner
               isRtl={isRtl}
@@ -114,7 +114,7 @@ function ChangeAddressWidget({
               )}
             </span>
             <div
-              className="w-full h-[1px] mt-[22px]"
+              className="w-full h-px mt-[22px]"
               style={{ borderTop: "1px solid #C4C2C280" }}
             />
           </div>
@@ -148,7 +148,7 @@ function ChangeAddressWidget({
             </div>
           </div>
           {tabs === "address" && (
-            <div className="flex-col items-center mt-[20px]  bg-[#fff] max-h-[481px] w-full ">
+            <div className="flex-col items-center mt-[20px]  bg-white max-h-[481px] w-full ">
               <div className="flex-row items-center w-full justify-center">
                 <span className="flex medium text-[#1D1D1D] text-[12px]">
                   {translateFunction("Your Address List")}
@@ -184,7 +184,7 @@ function ChangeAddressWidget({
                         s.id === selectedAddressId
                           ? "text-[#1D1D1D]"
                           : "text-[#8D8D8D]"
-                      }  mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]`}
+                      }  mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full items-start h-auto min-h-[90px] px-[24px]  py-[7px]`}
                       data-cy="Address"
                     >
                       <img
@@ -413,7 +413,7 @@ function ChangeAddressWidget({
             </div>
           )}
           {tabs === "note" && (
-            <div className="flex-col items-center mt-[20px]  bg-[#fff] h-[481px] w-full ">
+            <div className="flex-col items-center mt-[20px]  bg-white h-[481px] w-full ">
               <div className="flex-col items-center w-full justify-center">
                 <span className="flex-col medium text-[#1D1D1D] text-[12px]">
                   {translateFunction("Change Delivery Note")}
@@ -432,7 +432,7 @@ function ChangeAddressWidget({
                     placeholder={translateFunction(
                       "Add delivery instructions..."
                     )}
-                    className="w-full h-[120px] p-[15px] rounded-[15px] bg-[#F8F8F8] border border-[#C4C2C280] resize-none regular text-[14px] text-[#1D1D1D] placeholder:text-[#8D8D8D] focus:outline-none focus:border-[#402CDD80]"
+                    className="w-full h-[120px] p-[15px] rounded-[15px] bg-[#F8F8F8] border border-[#C4C2C280] resize-none regular text-[14px] text-[#1D1D1D] placeholder:text-[#8D8D8D] focus:outline-hidden focus:border-[#402CDD80]"
                     rows={4}
                   />
                   <div className="flex-row justify-end mt-[8px]">
@@ -449,7 +449,7 @@ function ChangeAddressWidget({
               selectedAddressId === address_id && deliveryNote === ""
                 ? "bg-[#D3D3D3] "
                 : "bg-[#402CDD] "
-            } rounded-[20px] text-[16px] text-[#fff] medium`}
+            } rounded-[20px] text-[16px] text-white medium`}
             onClick={() => {
               if (address_id === selectedAddressId && deliveryNote === "") {
                 // close();
@@ -491,7 +491,7 @@ function ChangeAddressWidget({
         </div>
       </BottomSheet>
       {openModal && (
-        <div className="absolute z-[99999999999] top-0 left-0 bg-white overflow-auto w-full flex-col h-full ">
+        <div className="absolute z-99999999999 top-0 left-0 bg-white overflow-auto w-full flex-col h-full ">
           <div className="flex-row min-h-[50px] w-full px-[20px] items-center">
             <span
               onClick={() => {

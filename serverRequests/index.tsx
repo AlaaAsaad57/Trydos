@@ -14,5 +14,6 @@ export async function GetStarttingSetting({ language, country }) {
     local: `${country}-${language}`,
     method: "GET",
   });
-  return response.data.data?.["starting-setting"];
+
+  return response?.data?.data?.["starting-setting"];
 }

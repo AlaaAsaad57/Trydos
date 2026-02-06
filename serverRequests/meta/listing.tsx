@@ -7,6 +7,7 @@ import {
 import { trydosTranslations } from "./constants-meta";
 import { General_Site_Data } from "./StructuredData/Constants";
 import { LogServerError } from "utils/serverErrorReporter";
+import { catalog_index } from "services/elastic/INDEXES";
 
 const getMetadataLabels = async ({ parsedFilters, language }) => {
   const shouldQueries = [];
@@ -40,7 +41,7 @@ const getMetadataLabels = async ({ parsedFilters, language }) => {
 
   try {
     const response: any = await client.search({
-      index: "products_catalog",
+      index: catalog_index,
       size: 0,
       query: {
         bool: { should: shouldQueries, minimum_should_match: 1 },

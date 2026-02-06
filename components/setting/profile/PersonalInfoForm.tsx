@@ -306,7 +306,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
                 }}
                 data-cy="personal-info-recipient-name-input"
                 placeholder={translateFunction("Enter Full Name", language)}
-                className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+                className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
               />
             </div>
           </div>
@@ -365,7 +365,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
                 autoFocus={false}
                 tabIndex={-1}
                 placeholder={translateFunction("Enter Phone", language)}
-                className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+                className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
               />
             </div>
           </div>
@@ -422,7 +422,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
                   "Enter Alternative Phone",
                   language,
                 )}
-                className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+                className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
               />
             </div>
           </div>
@@ -474,7 +474,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
                 autoCorrect="off"
                 inputMode="numeric"
                 placeholder={translateFunction("Enter Email", language)}
-                className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+                className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
               />
             </div>
           </div>

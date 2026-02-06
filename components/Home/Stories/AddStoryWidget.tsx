@@ -447,7 +447,7 @@ export default function AddStoryWidget() {
           }}
         />
       )}
-      <div className="fixed top-0 left-0 w-screen h-screen text-[#5d5d5d] regular z-[999999999] bg-white rounded-t-2xl shadow-lg p-4">
+      <div className="fixed top-0 left-0 w-screen h-screen text-[#5d5d5d] regular z-999999999 bg-white rounded-t-2xl shadow-lg p-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">
             {translateFunction("Add Story")}
@@ -541,7 +541,7 @@ export default function AddStoryWidget() {
                     }
                   }}
                   placeholder={translateFunction("Add link...")}
-                  className={`w-full outline-none ${
+                  className={`w-full outline-hidden ${
                     linkError ? "border-b border-red-500" : ""
                   }`}
                 />

@@ -145,7 +145,7 @@ function ReturnOrderItemWrapper({
           <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
           {translateFunction("To Your Account")}.
         </p>
-        <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
+        <span className="border-[#C4C2C280] border-b w-full mt-[12px]" />
       </div>
 
       <div className="flex-row rounded-[12px] bg-white  border border-[#E6E6E680] items-center justify-center mt-[20px] w-full max-w-[350px]">
@@ -244,7 +244,7 @@ function ReturnOrderItemWrapper({
       </div>
       {selectedOptions && (
         <>
-          <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
+          <span className="border-[#C4C2C280] border-b w-full mt-[12px]" />
           <UploadImageComponent
             removeImageAction={async (i) => {
               try {
@@ -280,7 +280,7 @@ function ReturnOrderItemWrapper({
             !selectedOptions || images.length === 0
               ? "bg-[#D3D3D3] "
               : "bg-[#402CDD] "
-          } rounded-[20px] text-[16px] text-[#fff] medium`}
+          } rounded-[20px] text-[16px] text-white medium`}
           onClick={() => {
             if (loadingImage) return;
             if (!selectedOptions || images.length === 0) {

@@ -132,7 +132,7 @@ function ChatHeader({
     >
       <img
         src="/icons/chat/arrow.svg"
-        className={`${isRtl ? "rotate-[180deg]" : ""}`}
+        className={`${isRtl ? "rotate-180" : ""}`}
         onClick={() => {
           setMain("main");
           openChat(null);
@@ -153,8 +153,8 @@ function ChatHeader({
         onClick={() => openDetails()}
         className={`${
           isRtl
-            ? "flex-row-reverse ml-[0px] mr-[11px]"
-            : "mr-[0px] ml-[11px] flex-row"
+            ? "flex-row-reverse ml-0 mr-[11px]"
+            : "mr-0 ml-[11px] flex-row"
         } user-top-chat`}
       >
         {activeChat && activeChat.channel_members && (

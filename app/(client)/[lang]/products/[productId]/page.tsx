@@ -377,7 +377,7 @@ async function Page({ params, searchParams }) {
             {/* footer */}
           </div>
         </div>
-        <div className="product-details-footer alternate-product-details-footer z-[999999999]">
+        <div className="product-details-footer alternate-product-details-footer z-999999999">
           <Suspense fallback={<></>}>
             {/*@ts-expect-error Async Server Component is valid in Next  */}
             <ProductVideosWrapper

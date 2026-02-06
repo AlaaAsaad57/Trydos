@@ -10,6 +10,13 @@ import { cookies } from "next/headers";
 import FaqItemComponent from "components/Server/product/ProductFAQSection/FaqItemComponent";
 import { LogServerError } from "utils/serverErrorReporter";
 import { General_Site_Data } from "./meta/StructuredData/Constants";
+import {
+  comments_index,
+  comments_interactions_index,
+  product_interactions_index,
+  share_index,
+  user_interactions_index,
+} from "services/elastic/INDEXES";
 
 let client = elasticSearchClient;
 export async function GetGlobalProduct({ slug, country, language }) {
@@ -202,7 +209,7 @@ export async function GetProductGeneralData({ id }) {
           "size_analysis",
           "good_quality_product",
         ],
-        index: "product_interactions",
+        index: product_interactions_index,
         id: id,
       });
       return res._source as any;
@@ -256,7 +263,7 @@ export async function GetProductGeneralData({ id }) {
 
 export const GetRecommendationCountForProduct = async ({ product_id }) => {
   const result = await client.search({
-    index: "comments",
+    index: comments_index,
     size: 0,
     query: {
       bool: {
@@ -338,7 +345,7 @@ export async function GetProductBuyersComment({
 }) {
   let commentsData = [];
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: pageSize,
     sort: [
       { created_at: "desc" }, // newest first
@@ -457,7 +464,7 @@ export async function GetFQACommentsForProductWithReactions({
   if (commentIds.length === 0) return commentsResult;
 
   const reactionsQuery: any = {
-    index: "comments_reactions",
+    index: comments_interactions_index,
     size: 0,
     query: {
       bool: {
@@ -549,7 +556,7 @@ async function GetBuyerComment({ id }) {
   let userCookies = cookieStore.get("User-Data")?.value;
   let userId = JSON.parse(userCookies)?.id;
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: 1,
     sort: [
       { created_at: "desc" }, // newest first
@@ -740,7 +747,7 @@ export async function GetProductFaqQuestions({
   width = 90,
 }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: pageSize,
     sort: [
       { created_at: "desc" }, // newest first
@@ -853,7 +860,7 @@ export async function GetProductFaqQuestions({
 }
 async function GetFaqItem({ id }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: 1,
     query: {
       bool: {
@@ -945,7 +952,7 @@ export async function GetSocialInfoForProduct({ productId, userId }) {
 async function getProductSharedCountFromElasticsearch(productId) {
   try {
     let res = await client.search({
-      index: "shared_products",
+      index: share_index,
       _source: ["shared_count"],
       size: 1, // just one document if you expect a single match
       query: {
@@ -973,13 +980,13 @@ async function getProductInteractions(productId: string, userId?: string) {
     // Run both queries in parallel
     const [productRes, likeRes] = await Promise.all([
       client.get({
-        index: "product_interactions",
+        index: product_interactions_index,
         id: productId,
         _source: ["total_likes", "total_comments"],
       }),
       userId
         ? client.search({
-            index: "user_product_likes",
+            index: user_interactions_index,
             _source: ["status"],
             body: {
               query: {
@@ -1034,7 +1041,7 @@ async function getProductInteractions(productId: string, userId?: string) {
 
 export async function GetProductCommentsCount({ productId }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     query: {
       bool: {
         must: [{ term: { product_id: String(productId) } }],

@@ -993,7 +993,7 @@ export default function ApiTestPage() {
                   setSelectedEndpoint("");
                   setUrl("");
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 {servers.map((s) => (
                   <option key={s.value} value={s.value}>
@@ -1010,7 +1010,7 @@ export default function ApiTestPage() {
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 {languages.map((lang) => (
                   <option key={lang.value} value={lang.value}>
@@ -1027,7 +1027,7 @@ export default function ApiTestPage() {
               <select
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 {countries.map((c) => (
                   <option key={c.value} value={c.value}>
@@ -1056,7 +1056,7 @@ export default function ApiTestPage() {
             <select
               value={selectedEndpoint}
               onChange={(e) => handleEndpointSelect(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select an endpoint...</option>
               {filteredEndpoints.map((endpoint, index) => (
@@ -1076,7 +1076,7 @@ export default function ApiTestPage() {
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               {methods.map((m) => (
                 <option key={m} value={m}>
@@ -1090,7 +1090,7 @@ export default function ApiTestPage() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="Enter request URL or select from endpoints above"
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
 
             <button
@@ -1145,7 +1145,7 @@ export default function ApiTestPage() {
                       }
                       placeholder="Header name"
                       disabled={isDefaultHeader}
-                      className={`flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 ${
                         isDefaultHeader ? "bg-gray-100" : ""
                       }`}
                     />
@@ -1156,7 +1156,7 @@ export default function ApiTestPage() {
                         updateHeader(header.id, "value", e.target.value)
                       }
                       placeholder="Header value"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                     />
                     <button
                       onClick={() => removeHeader(header.id)}
@@ -1187,7 +1187,7 @@ export default function ApiTestPage() {
               value={body}
               onChange={(e) => setBody(e.target.value)}
               placeholder="Request body (JSON)"
-              className="w-full h-64 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              className="w-full h-64 px-4 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
             />
           )}
         </div>
@@ -1547,7 +1547,7 @@ export default function ApiTestPage() {
                 onChange={(e) =>
                   updateElasticParams("featured", e.target.checked, true)
                 }
-                className="rounded border-gray-300"
+                className="rounded-sm border-gray-300"
               />
               Featured
             </label>
@@ -1559,7 +1559,7 @@ export default function ApiTestPage() {
                 onChange={(e) =>
                   updateElasticParams("flashdeal", e.target.checked, true)
                 }
-                className="rounded border-gray-300"
+                className="rounded-sm border-gray-300"
               />
               Flash Deal
             </label>

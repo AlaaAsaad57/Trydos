@@ -107,7 +107,7 @@ async function ProductExpectedDeleiveryWrapper({
             language
           )}
         </span>
-        <span className="bold text-[#1D1D1D] text-[12px]  mx-[1px]">
+        <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
           {formatTimeForAddress(
             new Date(
               new Date().getTime() +

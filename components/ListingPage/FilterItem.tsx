@@ -576,8 +576,8 @@ const FilterItem = ({
               isFiltered && "bold-size"
             } whitespace-pre-wrap text-center uppercase rounded-xl ${
               isFiltered
-                ? "border-[#FF5F61] border-[1px] border-dashed"
-                : " border-[#6b6b6b] border-[1px] border-dashed"
+                ? "border-[#FF5F61] border border-dashed"
+                : " border-[#6b6b6b] border border-dashed"
             }`}
             style={{
               backgroundColor: "#fff",

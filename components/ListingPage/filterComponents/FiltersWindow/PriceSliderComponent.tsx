@@ -78,10 +78,10 @@ export function PriceSliderComponent({
 
   return (
     <div className="w-full px-4 pt-12 pb-8">
-      <div className="relative h-[2px] bg-[#5D5C5D] rounded">
+      <div className="relative h-[2px] bg-[#5D5C5D] rounded-sm">
         {/* Sliding Labels */}
         <div
-          className="absolute bottom-[50px] text-xs font-medium text-white bg-[#FF5F61] px-2 py-1 rounded transition-opacity duration-200 pointer-events-none"
+          className="absolute bottom-[50px] text-xs font-medium text-white bg-[#FF5F61] px-2 py-1 rounded-sm transition-opacity duration-200 pointer-events-none"
           style={{
             left: `${getPercent(minVal)}%`,
             transform: "translateX(-50%)",
@@ -94,7 +94,7 @@ export function PriceSliderComponent({
         </div>
 
         <div
-          className="absolute bottom-[50px] text-xs font-medium text-white bg-[#FF5F61] px-2 py-1 rounded transition-opacity duration-200 pointer-events-none"
+          className="absolute bottom-[50px] text-xs font-medium text-white bg-[#FF5F61] px-2 py-1 rounded-sm transition-opacity duration-200 pointer-events-none"
           style={{
             left: `${getPercent(maxVal)}%`,
             transform: "translateX(-50%)",
@@ -109,7 +109,7 @@ export function PriceSliderComponent({
         {/* Active range fill */}
         <div
           ref={rangeRef}
-          className="absolute h-full bg-[#FF5F61] rounded"
+          className="absolute h-full bg-[#FF5F61] rounded-sm"
         ></div>
 
         {/* Min range input */}

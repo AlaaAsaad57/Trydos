@@ -406,7 +406,7 @@ const ButtonBorder = () => {
 const NotificationIconHolder = ({ isNotified }) => {
   return (
     <>
-      <div className="bagIcon w-[55px] h-[55px] z-40 rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-[#fff] p-[7px] flex-row justify-start items-end absolute top-[-33px] right-[-33px]">
+      <div className="bagIcon w-[55px] h-[55px] z-40 rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-white p-[7px] flex-row justify-start items-end absolute top-[-33px] right-[-33px]">
         {isNotified ? (
           <svg
             xmlns="http://www.w3.org/2000/svg"

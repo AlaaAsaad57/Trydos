@@ -70,7 +70,7 @@ export const NormalSlider = ({
           {slidesArray.map((slide, index) => (
             <div
               key={index}
-              className="embla__slide flex-shrink-0"
+              className="embla__slide shrink-0"
               style={{
                 width: `${slideWidth}px`,
                 height: "100%",

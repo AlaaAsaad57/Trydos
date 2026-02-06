@@ -61,7 +61,7 @@ export const BuyersCommentItem = ({ id, comment, language, width = 90 }) => {
           id={`comment-${comment.id}-text`}
           className={`${
             !isRtl ? "pr-[27px]" : "pl-[27px]"
-          } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-[0px]`}
+          } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0`}
         >
           {comment?.comment}
         </div>

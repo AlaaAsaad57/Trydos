@@ -18,7 +18,7 @@ function BoutiqueLoader({ boutique, isForSearch = false }) {
     >
       <div
         data-cy="filter_listing_bar"
-        className={`filter-listing-bar z-[99999999] relative ${
+        className={`filter-listing-bar z-99999999 relative ${
           isRtl ? "flex-row-reverse flex" : "flex-row flex"
         } align-center w-full h-[50px] pl-[15px] pr-[20px] justify-between bg-white z-10`}
       >

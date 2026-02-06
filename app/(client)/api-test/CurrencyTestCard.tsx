@@ -133,7 +133,7 @@ const CurrencyTestCard = () => {
             value={price}
             onChange={handlePriceChange}
             placeholder="0.00"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -149,7 +149,7 @@ const CurrencyTestCard = () => {
             id="country"
             value={selectedCountry}
             onChange={handleCountryChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
           >
             <option value="">-- Select a country --</option>
             {countries.map((country) => (
@@ -167,7 +167,7 @@ const CurrencyTestCard = () => {
             type="checkbox"
             checked={returnNumber}
             onChange={(e) => setReturnNumber(e.target.checked)}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500"
           />
           <label
             htmlFor="returnNumber"

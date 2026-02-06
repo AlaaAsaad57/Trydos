@@ -35,7 +35,7 @@ function BuyButton({
           right: isRtl ? "initial" : "0px",
           direction: isRtl ? "rtl" : "ltr",
         }}
-        className={`buy-button pb-[10px] px-[4px]  ${showOrangeFont()} light-text flex-col align-start justify-end cursor-pointer absolute z-[50] bottom-0  pr-[10px] h-[40px] items-center`}
+        className={`buy-button pb-[10px] px-[4px]  ${showOrangeFont()} light-text flex-col align-start justify-end cursor-pointer absolute z-50 bottom-0  pr-[10px] h-[40px] items-center`}
         data-cy="buy-button"
         onClick={(e) => {
           e.preventDefault();

@@ -164,7 +164,7 @@ function RatingOrderItem({
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               onKeyDown={handleInputKeyDown}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors"
               placeholder={translateFunction("Add your comment")}
               aria-label="Comment input"
               disabled={loading}
@@ -189,7 +189,7 @@ function RatingOrderItem({
             <button
               type="button"
               onClick={handleCloseModal}
-              className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+              className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 focus:ring-gray-300"
               disabled={loading}
             >
               {translateFunction("Cancel")}
@@ -197,7 +197,7 @@ function RatingOrderItem({
             <button
               type="button"
               onClick={handleSubmit}
-              className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 ${
+              className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 ${
                 isSubmitDisabled
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300"

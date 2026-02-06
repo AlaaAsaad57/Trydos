@@ -42,7 +42,7 @@ async function ProductSizesWrapper({
               IN
             </div>
             <div
-              className="uppercase cursor-pointer flex-col rounded-[6px] bg-[#fff] text-[#1d1d1d] text-[11px] w-auto h-[20px] items-center px-[6px]"
+              className="uppercase cursor-pointer flex-col rounded-[6px] bg-white text-[#1d1d1d] text-[11px] w-auto h-[20px] items-center px-[6px]"
               style={{
                 border: "1px solid #D3D3D37f",
               }}
@@ -60,7 +60,7 @@ async function ProductSizesWrapper({
             <div
               key={s}
               className={`uppercase cursor-pointer rounded-[6px] flex-col w-auto h-[20px] items-center px-[6px] ${
-                s === "Standard" ? "bg-[#F4F4F4]" : "bg-[#fff]"
+                s === "Standard" ? "bg-[#F4F4F4]" : "bg-white"
               } text-[#1d1d1d] text-[11px]`}
               style={{
                 border: "1px solid #D3D3D37f",

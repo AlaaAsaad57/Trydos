@@ -9,11 +9,11 @@ function CartSkeleton() {
     <div
       className={`flex-col ${
         cart.length > 0 ? "pb-[283px]" : "100px"
-      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-screen z-9999999999 pt-1`}
       data-cy="cartPage-container"
     >
       <div
-        className="flex-col pl-2 pr-2 bg-[#fff] p-1"
+        className="flex-col pl-2 pr-2 bg-white p-1"
         data-cy="cartPage-header-container"
       >
         <div

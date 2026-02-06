@@ -6,7 +6,7 @@ export const OldPrice = ({ price }) => {
     >
       {price}
       <svg
-        className="absolute w-100 top-1/2"
+        className="absolute w-full top-1/2"
         xmlns="http://www.w3.org/2000/svg"
         width="100%"
         height="1"

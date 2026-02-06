@@ -39,7 +39,7 @@ function ConfirmMobilePhoneWidget() {
 
   return (
     <>
-      <div className="fixed top-0 left-0 w-screen h-screen z-[999999999999998] bg-[#00000080] flex items-center justify-center" />
+      <div className="fixed top-0 left-0 w-screen h-screen z-999999999999998 bg-[#00000080] flex items-center justify-center" />
 
       <div className="w-auto  min-h-[200px] min-w-[350px]  h-auto p-[23px] flex-col items-end justify-center bg-[#f8f8f8] fixed rounded-[10px]  z-[9999999999999999] left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div
@@ -51,7 +51,7 @@ function ConfirmMobilePhoneWidget() {
             copyInitialData();
             window.location.reload();
           }}
-          className="flex-row cursor-pointer justify-end items-center p-[10px] z-[99999999999] rounded-full  bg-[#0000004d]"
+          className="flex-row cursor-pointer justify-end items-center p-[10px] z-99999999999 rounded-full  bg-[#0000004d]"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

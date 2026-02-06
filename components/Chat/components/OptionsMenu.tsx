@@ -26,7 +26,7 @@ function OptionsMenu(props) {
   if (DeleteModal)
     return (
       <div
-        className="fixed inset-0 z-[999999999] flex items-center justify-center bg-black bg-opacity-50"
+        className="fixed inset-0 z-999999999 flex items-center justify-center bg-black bg-opacity-50"
         onClick={handleBackdropClick}
       >
         <div
@@ -38,7 +38,7 @@ function OptionsMenu(props) {
           </h2>
           <div className="flex flex-row justify-between">
             <button
-              className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow text-gray-900 font-medium"
+              className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-xs hover:shadow-md transition-shadow text-gray-900 font-medium"
               onClick={() => props.deleteMessage(false)}
               tabIndex={0}
               aria-label={translateFunction("For Me")}
@@ -53,7 +53,7 @@ function OptionsMenu(props) {
             </button>
             {isSender && !props.isCall ? (
               <button
-                className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow text-gray-900 font-medium"
+                className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-xs hover:shadow-md transition-shadow text-gray-900 font-medium"
                 data-cy="DELETE-OPTION"
                 onClick={() => props.deleteMessage(true)}
                 tabIndex={0}
@@ -69,7 +69,7 @@ function OptionsMenu(props) {
               </button>
             ) : (
               <button
-                className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow text-gray-900 font-medium"
+                className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-xs hover:shadow-md transition-shadow text-gray-900 font-medium"
                 data-cy="DELETE-OPTION"
                 onClick={() => setDelete(false)}
                 tabIndex={0}
@@ -86,13 +86,13 @@ function OptionsMenu(props) {
     return (
       <>
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-[9999999999]"
+          className="fixed inset-0 bg-black bg-opacity-50 z-9999999999"
           onClick={() => {
             setEdit(false);
           }}
         />
         <div
-          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[99999999999] w-full max-w-md mx-4"
+          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-99999999999 w-full max-w-md mx-4"
           aria-modal="true"
           role="dialog"
           tabIndex={-1}
@@ -122,7 +122,7 @@ function OptionsMenu(props) {
                 onChange={(e) => setEdit(e.target.value)}
                 className={`${
                   isRtl ? "text-right" : "text-left"
-                } w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors`}
+                } w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors`}
                 placeholder={translateFunction("Edit")}
                 aria-label="Message input"
                 disabled={false}
@@ -136,7 +136,7 @@ function OptionsMenu(props) {
                 onClick={() => {
                   setEdit(false);
                 }}
-                className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 focus:ring-gray-300"
                 disabled={false}
               >
                 {translateFunction("Cancel")}
@@ -144,7 +144,7 @@ function OptionsMenu(props) {
               <button
                 type="button"
                 onClick={() => {}}
-                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 ${
+                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 ${
                   props.message.message_content?.content === edit ||
                   edit?.length === 0
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"

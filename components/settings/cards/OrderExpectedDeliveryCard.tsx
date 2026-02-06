@@ -166,7 +166,7 @@ function OrderExpectedDeliveryCard({ time, status }: any) {
             className="text-[#1D1D1D] flex flex-row text-[12px] regular mt-[3px] gap-[3px]"
           >
             <span>Monday</span>
-            <span className="bold text-[#1D1D1D] text-[12px]  mx-[1px]">
+            <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
               2.Jun
             </span>
             <span> | 3 {translateFunction("Work Days")}</span>

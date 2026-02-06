@@ -50,7 +50,7 @@ function CallMessage({
       className={`${openMenu && "ac"} flex flex-col gap-[10px] message-hold`}
     >
       <div
-        className={` call-body ${duration_in_seconds > 0 && "!bg-teal-100"} `}
+        className={` call-body ${duration_in_seconds > 0 && "bg-teal-100!"} `}
         onClick={() => setOpen(id)}
       >
         <>

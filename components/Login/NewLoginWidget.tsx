@@ -380,12 +380,12 @@ function NewLoginWidget() {
           // });
           setLoginOpenAction(false);
         }}
-        className="backdrop-login z-[9999999999]"
+        className="backdrop-login z-9999999999"
       />
       <div
         data-testid="login-widget-container"
         data-cy="login-widget-container"
-        className={`login-widget-container  z-[99999999999] login-w2-container lg2:right-5 lg2:top-[82px] pb-${stepIndicator} step${stepIndicator}`}
+        className={`login-widget-container  z-99999999999 login-w2-container lg2:right-5 lg2:top-[82px] pb-${stepIndicator} step${stepIndicator}`}
         id="widget-auth"
         style={{
           backgroundColor: stepIndicator >= 6 && getPageColor(),

@@ -28,7 +28,7 @@ function PricesRow({
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
-            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-white`}
           >
             <span className="relative text-[#C4C2C2]">
               <svg
@@ -67,7 +67,7 @@ function PricesRow({
       } else {
         return (
           <div
-            className={`flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+            className={`flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-white`}
           >
             <span className="relative text-[#C4C2C2]">
               <svg
@@ -134,7 +134,7 @@ function PricesRow({
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
-            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-white`}
           >
             <span className="relative text-[#1D1D1D] bold">
               {RoundPrice({
@@ -151,7 +151,7 @@ function PricesRow({
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
-            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-white`}
           >
             <span className="relative text-[#C4C2C2]">
               <svg
@@ -198,7 +198,7 @@ function PricesRow({
     >
       {renderPrice()}
 
-      <span className="text-[9px] translate-x-[-1px] text-[#C4C2C2] regular">
+      <span className="text-[9px] -translate-x-px text-[#C4C2C2] regular">
         {currency?.symbol}
       </span>
       <span className="flex ml-[3px] pb-[8px]">

@@ -97,7 +97,7 @@ const AsyncSelectCustom = ({
       <div className="relative">
         <input
           type="text"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 text-gray-900 placeholder-gray-400 transition-colors"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-400 bg-gray-50 text-gray-900 placeholder-gray-400 transition-colors"
           placeholder={placeholder}
           value={searchTerm}
           onChange={handleInputChange}
@@ -151,7 +151,7 @@ const AsyncSelectCustom = ({
                   <img
                     src={GetImageUrl(option.images?.file_path)}
                     alt={option.label}
-                    className="w-10 h-10 object-cover rounded"
+                    className="w-10 h-10 object-cover rounded-sm"
                   />
                 )}
                 <div className="flex-1">

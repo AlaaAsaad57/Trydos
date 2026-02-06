@@ -94,7 +94,7 @@ function OrderItemsList({
       </div>
       <div
         className={` ${
-          isExpanded ? "h-0 pb-[0px] mt-[0px]" : "pb-[72px] mt-[12px] "
+          isExpanded ? "h-0 pb-0 mt-0" : "pb-[72px] mt-[12px] "
         }   ${
           isRtl ? "flex-row-reverse" : "flex-row"
         }  items-center pl-[12px] flex whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden`}
