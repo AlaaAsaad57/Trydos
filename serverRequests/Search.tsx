@@ -1,7 +1,6 @@
 "use server";
 
 import AnalyzeSearchText from "services/elastic/analyzeSearchText";
-import { DEFAULT_INDEX } from "services/elastic/elasticsearch-reader.service";
 
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import {
