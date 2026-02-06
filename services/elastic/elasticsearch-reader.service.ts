@@ -5,14 +5,13 @@ import { estypes } from "@elastic/elasticsearch";
 
 export class ElasticsearchReader {
   private client = elasticSearchClient;
-  private readonly index = "products_catalog";
 
   async getCategories<T>(ReqQuery: any) {
     let country = ReqQuery.country || "sy";
     try {
       const { mustConditions, mustNotConditions } = this.getRules(country);
       const query: estypes.SearchRequest = {
-        index: "products_catalog",
+        index: DEFAULT_INDEX,
         _source: [
           "id",
           "custom_categories.id",
@@ -33,7 +32,7 @@ export class ElasticsearchReader {
         },
       };
       const searchParams = {
-        index: this.index,
+        index: DEFAULT_INDEX,
         size: ReqQuery.size ?? 20,
         ...query,
       };
@@ -196,7 +195,7 @@ export class ElasticsearchReader {
       const customProducts: any[] = [];
 
       const customQuery = {
-        index: "products_catalog",
+        index: DEFAULT_INDEX,
         body: {
           size: 0,
           query: {
@@ -306,7 +305,7 @@ export class ElasticsearchReader {
       ];
 
       const categoriesQuery: any = {
-        index: "products_catalog",
+        index: DEFAULT_INDEX,
         body: {
           size: 0,
           query: {
@@ -524,6 +523,44 @@ export class ElasticsearchReader {
         boutique.mainCategoriesForProductIds = grouped[bid]?.main || [];
         boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
       }
+      const boutiquesNeedingProducts = customProducts
+        .filter((boutique) => {
+          const categoriesLength =
+            boutique.mainCategoriesForProductIds?.length ?? 0;
+          return (
+            categoriesLength <
+            (parseInt(process.env.MIN_CATEGORIES_UNDER_BOUTIQUE) ?? 5)
+          );
+        })
+        .map((boutique) => boutique.boutique_id)
+        .filter((id) => id !== null && id !== undefined);
+
+      const uniqueBoutiquesNeedingProducts = [
+        ...new Set(boutiquesNeedingProducts),
+      ];
+
+      if (uniqueBoutiquesNeedingProducts.length > 0) {
+        const fallbackProductsByBoutique = await this.fillBoutiqueProducts(
+          uniqueBoutiquesNeedingProducts,
+          must,
+          must_not,
+          language,
+        );
+
+        for (const boutique of customProducts) {
+          const key =
+            boutique.boutique_id?.toString?.() ?? `${boutique.boutique_id}`;
+          const categoriesLength =
+            boutique.mainCategoriesForProductIds?.length ?? 0;
+          if (
+            categoriesLength <= 5 &&
+            fallbackProductsByBoutique[key]?.length
+          ) {
+            boutique.mainCategoriesForProductIds =
+              fallbackProductsByBoutique[key];
+          }
+        }
+      }
 
       // === Filter banners (same as PHP) ===
       for (const boutique of customProducts) {
@@ -709,6 +746,247 @@ export class ElasticsearchReader {
     return { must, must_not };
   }
 
+  private async fetchMostViewedProductIds(
+    boutiqueId: number | string,
+    from: number,
+    size: number,
+  ): Promise<{ productIds: number[]; total: number }> {
+    try {
+      const response = await this.client.search({
+        index: PRODUCT_VIEWS_INDEX,
+        body: {
+          from,
+          size,
+          query: { term: { boutique_id: boutiqueId } },
+          sort: [{ view_count: { order: "desc" } }],
+          _source: ["product_id"],
+        },
+      });
+
+      const productIds = (response.hits.hits ?? [])
+        .map((hit: any) => hit._source?.product_id)
+        .filter((id) => id !== null && id !== undefined);
+
+      const total =
+        typeof response.hits.total === "number"
+          ? response.hits.total
+          : (response.hits.total?.value ?? 0);
+
+      return { productIds, total };
+    } catch {
+      return { productIds: [], total: 0 };
+    }
+  }
+
+  private async validateAndFormatProducts(
+    productIds: number[],
+    must: any[],
+    mustNot: any[],
+    language: string,
+  ): Promise<any[]> {
+    if (productIds.length === 0) return [];
+
+    const response = await this.client.search({
+      index: DEFAULT_INDEX,
+      body: {
+        size: productIds.length,
+        query: {
+          bool: {
+            must: [...must, { terms: { id: productIds } }],
+            must_not: mustNot,
+          },
+        },
+        _source: [
+          "id",
+          "custom_products.slug",
+          "custom_products.name",
+          "custom_products.language_code",
+          "images",
+          "boutique_id",
+        ],
+      },
+    });
+
+    return (response.hits.hits ?? [])
+      .map((hit: any) => hit?._source ?? null)
+      .filter(Boolean)
+      .map((product: any) => {
+        const customProductEntries = Array.isArray(product.custom_products)
+          ? product.custom_products
+          : [];
+
+        const localizedCustomProduct =
+          customProductEntries.find(
+            (entry: any) => entry.language_code === language,
+          ) ??
+          customProductEntries.find(
+            (entry: any) => entry.language_code === "en",
+          ) ??
+          customProductEntries[0] ??
+          null;
+
+        const slug = localizedCustomProduct?.slug ?? product.slug ?? null;
+        const name = localizedCustomProduct?.name ?? product.name ?? null;
+
+        return {
+          id: product.id,
+          slug,
+          name,
+          language_code: language,
+          most_viewed_product_name: name,
+          most_viewed_product_thumbnail: product.images
+            ? `/product/${JSON.parse(product.images)?.[0]}`
+            : null,
+          num_available_product: 0,
+          is_product: true,
+          is_product_url: true,
+        };
+      });
+  }
+
+  private async fillBoutiqueProducts(
+    boutiqueIds: (number | string)[],
+    must: any[],
+    mustNot: any[],
+    language: string,
+    productLimit = 6,
+    batchSize = 20,
+  ): Promise<Record<string, any[]>> {
+    const result: Record<string, any[]> = {};
+
+    await Promise.all(
+      boutiqueIds.map(async (boutiqueId) => {
+        const key = boutiqueId?.toString?.() ?? `${boutiqueId}`;
+        const collected: any[] = [];
+        let from = 0;
+
+        while (collected.length < productLimit) {
+          const { productIds, total } = await this.fetchMostViewedProductIds(
+            boutiqueId,
+            from,
+            batchSize,
+          );
+
+          if (productIds.length === 0) break;
+
+          const validated = await this.validateAndFormatProducts(
+            productIds,
+            must,
+            mustNot,
+            language,
+          );
+
+          // Preserve view_count order from product_views
+          const orderedValidated = productIds
+            .map((pid) => validated.find((p) => p.id === pid))
+            .filter(Boolean);
+
+          for (const product of orderedValidated) {
+            if (collected.length >= productLimit) break;
+            collected.push(product);
+          }
+
+          from += batchSize;
+          if (from >= total) break;
+        }
+
+        // Fallback: if product_views didn't yield enough, fill from DEFAULT_INDEX
+        if (collected.length < productLimit) {
+          const fallback = await this.fetchFallbackProducts(
+            boutiqueId,
+            must,
+            mustNot,
+            language,
+            productLimit,
+            collected.map((p) => p.id),
+          );
+
+          for (const product of fallback) {
+            if (collected.length >= productLimit) break;
+            collected.push(product);
+          }
+        }
+
+        result[key] = collected;
+      }),
+    );
+
+    return result;
+  }
+
+  private async fetchFallbackProducts(
+    boutiqueId: number | string,
+    must: any[],
+    mustNot: any[],
+    language: string,
+    limit: number,
+    excludeIds: number[],
+  ): Promise<any[]> {
+    const mustClause = [...must, { term: { boutique_id: boutiqueId } }];
+
+    if (excludeIds.length > 0) {
+      mustNot = [...mustNot, { terms: { id: excludeIds } }];
+    }
+
+    const response = await this.client.search({
+      index: DEFAULT_INDEX,
+      body: {
+        size: limit,
+        query: {
+          bool: {
+            must: mustClause,
+            must_not: mustNot,
+          },
+        },
+        sort: [{ id: { order: "asc" } }],
+        _source: [
+          "id",
+          "custom_products.slug",
+          "custom_products.name",
+          "custom_products.language_code",
+          "images",
+          "boutique_id",
+        ],
+      },
+    });
+
+    return (response.hits.hits ?? [])
+      .map((hit: any) => hit?._source ?? null)
+      .filter(Boolean)
+      .map((product: any) => {
+        const customProductEntries = Array.isArray(product.custom_products)
+          ? product.custom_products
+          : [];
+
+        const localizedCustomProduct =
+          customProductEntries.find(
+            (entry: any) => entry.language_code === language,
+          ) ??
+          customProductEntries.find(
+            (entry: any) => entry.language_code === "en",
+          ) ??
+          customProductEntries[0] ??
+          null;
+
+        const slug = localizedCustomProduct?.slug ?? product.slug ?? null;
+        const name = localizedCustomProduct?.name ?? product.name ?? null;
+
+        return {
+          id: product.id,
+          slug,
+          name,
+          language_code: language,
+          most_viewed_product_name: name,
+          most_viewed_product_thumbnail: product.images
+            ? `/product/${JSON.parse(product.images)?.[0]}`
+            : null,
+          num_available_product: 0,
+          is_product: true,
+          is_product_url: true,
+        };
+      });
+  }
+
   async getBoutiqueInfo({
     slug,
     country,
@@ -742,7 +1020,7 @@ export class ElasticsearchReader {
       });
 
       const query = {
-        index: "products_catalog",
+        index: DEFAULT_INDEX,
         body: {
           size: 1,
           _source: [
@@ -794,7 +1072,8 @@ export class ElasticsearchReader {
     }
   }
 }
-
+export const DEFAULT_INDEX = "products_catalog";
+export const PRODUCT_VIEWS_INDEX = "product_views";
 type InputInitialized = {
   categorySlugs?: string | string[];
   limit: number;
