@@ -18,7 +18,11 @@ import {
   sortSyncColorImagesByFilteredColor,
 } from "./helpers";
 import { LogServerError } from "utils/serverErrorReporter";
-import { DEFAULT_INDEX } from "./elasticsearch-reader.service";
+import {
+  catalog_index,
+  recommendation_cold_index,
+  recommendation_index,
+} from "./INDEXES";
 
 // Types and Interfaces
 interface SearchFilters {
@@ -210,7 +214,7 @@ export async function getProductsAndFiltersFromElastic(
     // Build the main search query
 
     const searchQuery = {
-      index: DEFAULT_INDEX,
+      index: catalog_index,
       _source: getSourceFields(),
       track_scores: true,
       track_total_hits: true,
@@ -290,7 +294,7 @@ export async function getProductsAndFiltersFromElastic(
     );
     let categories_childs = await getChildrenAndGrandchildren(
       client,
-      DEFAULT_INDEX,
+      catalog_index,
       CategoriesIds,
       language_code,
       country,
@@ -389,12 +393,12 @@ async function fetchRecommendationCandidates(userId: string | number) {
   let queryConfig = {};
   if (!userId) {
     queryConfig = {
-      index: "cold_start_recommendations",
+      index: recommendation_cold_index,
       // Sort by the nested field MAX score to find the best *Document*, not the best product
     };
   } else {
     queryConfig = {
-      index: "recommended_system",
+      index: recommendation_index,
       query: { term: { user_id: Number(userId) } },
       sort: [
         {
@@ -418,7 +422,7 @@ async function fetchRecommendationCandidates(userId: string | number) {
   // 3. Fallback to Cold Start if User not found
   if (response.hits.hits.length === 0 && userId) {
     response = await client.search({
-      index: "cold_start_recommendations",
+      index: recommendation_cold_index,
       _source: sourceFields,
       size: 1,
     });
@@ -445,7 +449,7 @@ async function fetchProductDetailsBatch(ids: string[], country: string) {
   must.push({ terms: { id: ids } });
 
   const response = await client.search({
-    index: DEFAULT_INDEX,
+    index: catalog_index,
     _source: getSourceFields(),
     size: ids.length, // Fetch exactly what we asked for
     query: {

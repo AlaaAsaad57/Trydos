@@ -23,7 +23,7 @@ function ImageAvatar({ image, width, height, alt, isActive, name, priority }) {
         </g>
       </svg>
 
-      <div className="shadow-inset-avatar rounded-50 absolute w-full h-full" />
+      <div className="shadow-inset-avatar rounded-50 absolute w-full h-100" />
       <Image
         loading="eager"
         width={50}
