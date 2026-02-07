@@ -566,7 +566,7 @@ export default function ApiTestPage() {
     },
     {
       name: "Share Product on Apps",
-      url: "/api/v2/elastic/share_product_on_apps",
+      url: "/api/v1/elasticsearch/share_product_on_apps",
       method: "POST",
       server: "elastic",
     },
@@ -710,7 +710,7 @@ export default function ApiTestPage() {
         if (header.key === "lang") return { ...header, value: language };
         if (header.key === "country") return { ...header, value: country };
         return header;
-      })
+      }),
     );
   }, [language, country]);
 
@@ -722,7 +722,7 @@ export default function ApiTestPage() {
     // Prevent removal of default headers
     if (
       ["lang", "country", "accept"].includes(
-        headers.find((h) => h.id === id)?.key || ""
+        headers.find((h) => h.id === id)?.key || "",
       )
     ) {
       return;
@@ -732,7 +732,7 @@ export default function ApiTestPage() {
 
   const updateHeader = (id: string, field: "key" | "value", value: string) => {
     setHeaders(
-      headers.map((h) => (h.id === id ? { ...h, [field]: value } : h))
+      headers.map((h) => (h.id === id ? { ...h, [field]: value } : h)),
     );
   };
   const test = async () => {
@@ -895,7 +895,7 @@ export default function ApiTestPage() {
       setElasticResponse(result);
     } catch (error) {
       setElasticError(
-        error instanceof Error ? error.message : "An error occurred"
+        error instanceof Error ? error.message : "An error occurred",
       );
     } finally {
       setElasticLoading(false);
@@ -906,7 +906,7 @@ export default function ApiTestPage() {
   const updateElasticParams = (
     field: string,
     value: any,
-    isFilter: boolean = false
+    isFilter: boolean = false,
   ) => {
     setElasticTestParams((prev) => {
       if (isFilter) {
@@ -945,13 +945,13 @@ export default function ApiTestPage() {
   ];
 
   const [transformation, setTransformation] = useState(
-    cloudinaryTransformations[0].value
+    cloudinaryTransformations[0].value,
   );
   const [width, setWidth] = useState(200);
   const [height, setHeight] = useState(290);
   const [objectFit, setObjectFit] = useState(objectFitOptions[0].value);
   const [objectPosition, setObjectPosition] = useState(
-    objectPositionOptions[0].value
+    objectPositionOptions[0].value,
   );
   const [imageUrls, setImageUrls] = useState<string[]>([
     // Add your Cloudinary image URLs here
@@ -1133,7 +1133,7 @@ export default function ApiTestPage() {
             <div className="space-y-2">
               {headers.map((header) => {
                 const isDefaultHeader = ["lang", "country", "accept"].includes(
-                  header.key
+                  header.key,
                 );
                 return (
                   <div key={header.id} className="flex gap-2">
@@ -1364,7 +1364,7 @@ export default function ApiTestPage() {
                       parseInt(e.target.value),
                       elasticTestParams.filters.priceRange[1],
                     ],
-                    true
+                    true,
                   )
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1380,7 +1380,7 @@ export default function ApiTestPage() {
                       elasticTestParams.filters.priceRange[0],
                       parseInt(e.target.value),
                     ],
-                    true
+                    true,
                   )
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1403,7 +1403,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1425,7 +1425,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1447,7 +1447,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1469,7 +1469,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1490,7 +1490,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  false
+                  false,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1511,7 +1511,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1532,7 +1532,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"

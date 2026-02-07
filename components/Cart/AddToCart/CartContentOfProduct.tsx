@@ -23,7 +23,7 @@ function CartContentOfProduct() {
                 (color) =>
                   color.code === s.color ||
                   color.name === s.color ||
-                  color?.option === s.color
+                  color?.option === s.color,
               )?.name
             }
           </span>
@@ -44,7 +44,7 @@ function CartContentOfProduct() {
                     color.code === s.color ||
                     color.name === s.color ||
                     color?.option === s.color ||
-                    color?.color_option === s.color
+                    color?.color_option === s.color,
                 )?.name
               }
             </span>
@@ -65,7 +65,7 @@ function CartContentOfProduct() {
     let total_products = localCart.filter(
       (s) =>
         s.id === selected_product_for_add_to_cart?.product_id ||
-        selected_product_for_add_to_cart?.id
+        selected_product_for_add_to_cart?.id,
     );
 
     let total_price = 0;
@@ -89,7 +89,7 @@ function CartContentOfProduct() {
               (s) =>
                 s.id ===
                 (selected_product_for_add_to_cart?.product_id ??
-                  selected_product_for_add_to_cart?.id)
+                  selected_product_for_add_to_cart?.id),
             )
             .map((s) => (
               <div
@@ -99,7 +99,7 @@ function CartContentOfProduct() {
                 <ProductImageCircle image={s.image} />
                 <div className="text-[10px] text-[#1D1D1D] items-center regular flex flex-row">
                   <span className="medium px-[2px]"> {s.quantity} </span>{" "}
-                  <span>{translateFunction("Item")}</span>
+                  <span className="mx-1">{translateFunction("Item")}</span>
                   {renderVaritionString(s)}
                 </div>
               </div>
@@ -117,7 +117,7 @@ function CartContentOfProduct() {
               localCart.filter(
                 (s) =>
                   s.id === selected_product_for_add_to_cart?.product_id ||
-                  selected_product_for_add_to_cart?.id
+                  selected_product_for_add_to_cart?.id,
               )?.length
             }
           </span>
@@ -157,7 +157,7 @@ const ProductImageCircle = ({ image }) => {
     <div className="w-[13px] h-[13px] rounded-full relative">
       <Image
         src={GetImageUrl(
-          getConfiguredImage({ src: image, width: 20, height: 20, q: 100 })
+          getConfiguredImage({ src: image, width: 20, height: 20, q: 100 }),
         )}
         alt="product-image h-[13px]"
         width={13}

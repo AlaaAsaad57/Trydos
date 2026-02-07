@@ -1,5 +1,6 @@
 import { allCountries } from "country-telephone-data";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
+import { CartApiInterface } from "utils/types/cart";
 
 const getCountry = () => {
   const countryParam =
@@ -362,7 +363,7 @@ export const useCartStore = (set, get) => ({
       }
     }),
 
-  initCart: (data) =>
+  initCart: (data: CartApiInterface) =>
     set((state) => ({
       ...data,
       localCart: [
@@ -371,22 +372,19 @@ export const useCartStore = (set, get) => ({
           item_id: s.id,
           image: s.image,
           quantity: s.quantity,
-          is_redeem: s.is_redeem,
-          size: s.variations?.[0]?.size_options
-            ? s.variations?.[0]?.size_options
-            : undefined,
-          color: s?.variations?.[0]?.color_options ?? undefined,
+          is_redeem: s.is_luck,
+          size: s.variations?.size_options ?? undefined,
+          color: s?.variations?.color_options ?? undefined,
           sku: `${s.product_id}${
-            s.variations?.length > 0 && s?.variations[0]?.color_options
-              ? `-${s.variations[0].color_options}`
+            s?.variations?.color && s?.variations?.color_options
+              ? `-${s.variations?.color_options}`
               : ""
           }${
-            s.variations?.[0]?.size_options
-              ? `-${s.variations?.[0]?.size_options}`
-              : ""
+            s.variations?.size_options ? `-${s.variations?.size_options}` : ""
           }`,
-          type: s?.variant,
+          type: s?.product_variation_id,
           offer_price: s.offer_price,
+          product_variation_id: s.product_variation_id,
         })),
       ],
     })),
@@ -452,12 +450,12 @@ export const useCartStore = (set, get) => ({
           let size =
             temp_product.choice_options &&
             temp_product.choice_options[0]?.options.filter((s) =>
-              temp_variant.type.endsWith(s.name)
+              temp_variant.type.endsWith(s.name),
             )[0];
           let color =
             temp_product.sync_color_images &&
             temp_product.sync_color_images?.filter((s) =>
-              temp_variant.type.startsWith(s.color_name)
+              temp_variant.type.startsWith(s.color_name),
             )[0];
           temp = {
             AddToCartOption: {
@@ -584,11 +582,11 @@ export const useCartStore = (set, get) => ({
       let arr_of_selected = [];
       if (
         state.AddToCartOption.selectedOptions.filter(
-          (s) => s.UID === option.UID
+          (s) => s.UID === option.UID,
         ).length > 0
       ) {
         let variable = state.AddToCartOption.selectedOptions.filter(
-          (s) => s.UID === option.UID
+          (s) => s.UID === option.UID,
         )[0];
         arr_of_selected = state.AddToCartOption.selectedOptions.map((s) => {
           if (s.UID === option.UID)
@@ -625,8 +623,8 @@ export const useCartStore = (set, get) => ({
           .filter(
             (s) =>
               s.type.includes(
-                state?.AddToCartOption?.selectedColor?.color_name || ""
-              ) && s.type.endsWith(`-${size?.name}` || "")
+                state?.AddToCartOption?.selectedColor?.color_name || "",
+              ) && s.type.endsWith(`-${size?.name}` || ""),
           )[0];
         return {
           AddToCartOption: {
@@ -655,7 +653,7 @@ export const useCartStore = (set, get) => ({
       let variant = (state.variants?.variation || state.variants || []).filter(
         (s) =>
           s.type.includes(color?.color_name || "") &&
-          s.type.includes(state?.AddToCartOption?.selectedSize?.name || "")
+          s.type.includes(state?.AddToCartOption?.selectedSize?.name || ""),
       )[0];
 
       return {

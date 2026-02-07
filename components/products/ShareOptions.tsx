@@ -35,7 +35,7 @@ function ShareOptions({ product }: any) {
   const shareSocial = async (appName) => {
     try {
       let response = await fetchData({
-        url: "/api/v2/elastic/share_product_on_apps",
+        url: "/api/v1/elasticsearch/share_product_on_apps",
         reqTitle: REQUESTS_DATA.SHARE_SOCIAL,
         method: "POST",
         server: "chat",

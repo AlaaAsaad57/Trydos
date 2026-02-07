@@ -14,6 +14,7 @@ import { REQUESTS_DATA } from "./Requests";
 import { readStoredLastPaths } from "./history";
 import { getLastRequest } from "./requestLoggerClient";
 import { ReportError } from "./errorReported";
+import { CartApiInterface } from "./types/cart";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -360,11 +361,11 @@ export const getOldCart = async () => {
     });
   }
 };
-export const getCart = async ({ callback }) => {
+export const getCart = async ({ callback }): Promise<CartApiInterface> => {
   const { initCart, setCartShippingSuccess } = useAppStore.getState();
   const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
   const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
-  if (!deviceToken && !marketToken) return { cart: [] };
+  if (!deviceToken && !marketToken) return { cart: [] } as CartApiInterface;
   try {
     let response: any = await fetchData({
       url: "/cart/cart_shipping",
@@ -386,7 +387,7 @@ export const getCart = async ({ callback }) => {
       error: err instanceof Error ? err.message : String(err),
     });
     if (callback) callback([{ cart: [] }]);
-    return { cart: [] };
+    return { cart: [] } as CartApiInterface;
   }
 };
 export const GetCartOreview = async () => {

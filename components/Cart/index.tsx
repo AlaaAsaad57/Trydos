@@ -92,7 +92,7 @@ function CartContainer({ close, toOrders }) {
             item_name: item.name,
             price: item.offer_price,
             quantity: item.quantity,
-            item_variant: item.variant ?? "N/A",
+            item_variant: item.product_variation_id ?? "N/A",
           })),
           screen_name: GA_GLOBAL_SCREEN.CART_SCREEN,
           screen_path: window.location.pathname,
@@ -467,6 +467,25 @@ export const QuantutyInput = ({
   isCollectedAfterOrdering,
 }) => {
   const { initCart, settings, currency, removeFromCart } = useAppStore();
+  const luckPrice = (product as any)?.luck_price;
+  const effectiveOfferPrice =
+    product?.is_luck && typeof luckPrice === "number"
+      ? luckPrice
+      : product?.offer_price;
+  const hasDiscount =
+    typeof effectiveOfferPrice === "number" &&
+    effectiveOfferPrice >= 0 &&
+    product.price !== effectiveOfferPrice;
+  const currentUnitPrice = hasDiscount ? effectiveOfferPrice : product.price;
+  const savingPercent =
+    product.price > 0 && hasDiscount
+      ? Math.max(
+          0,
+          Math.floor(
+            ((product.price - currentUnitPrice) / product.price) * 100,
+          ),
+        )
+      : 0;
   const [inputValue, setInputValue] = useState(parseInt(value));
   useEffect(() => {
     if (parseInt(value) === inputValue) return;
@@ -780,8 +799,7 @@ export const QuantutyInput = ({
       <div className="flex-col">
         <div className={`pl-[30px]`} data-cy="oldNew-price-container">
           <div className="product-info-price" data-cy="oldNew-price-container2">
-            {product?.offer_price >= 0 &&
-            product.price !== product.offer_price ? (
+            {hasDiscount ? (
               <>
                 <div className="flex-col" data-cy="Subdivisions">
                   <div
@@ -826,7 +844,7 @@ export const QuantutyInput = ({
                       data-cy="new-price"
                     >
                       {RoundPrice({
-                        num: product?.offer_price * product.quantity,
+                        num: currentUnitPrice * product.quantity,
                         rate: currency?.exchange_rate,
                         points: currency?.decimal_digits,
                         language: languageVariable,
@@ -853,14 +871,7 @@ export const QuantutyInput = ({
                     >
                       {translate("Saved")}{" "}
                       <span className="bold" data-cy="rate">
-                        {parseInt(
-                          (
-                            ((product.price - product?.offer_price) /
-                              product.price) *
-                            100
-                          ).toString(),
-                        )}
-                        %
+                        {savingPercent}%
                       </span>
                     </span>
                   </div>
@@ -870,7 +881,7 @@ export const QuantutyInput = ({
               <>
                 <div className="product-new-price text-[14px] light text-[#1D1D1D]">
                   {RoundPrice({
-                    num: product.price * product.quantity,
+                    num: currentUnitPrice * product.quantity,
                     rate: currency?.exchange_rate,
                     points: currency?.decimal_digits,
                     language: languageVariable,
@@ -892,29 +903,30 @@ export const CartItemLink = ({ normalHeight = "191px", product, children }) => {
   let lang = params.lang;
   const isRtl = language === "ar" || language === "ku";
 
+  const pickVariation = (item) => {
+    if (!item) return {};
+    if (Array.isArray(item?.variations)) return item.variations[0] ?? {};
+    return item?.variations ?? {};
+  };
+
   const getURLOfProduct = ({ product }) => {
     let productUrl;
-    const hasValidColor =
-      product?.variations[0]?.color_options &&
-      product?.variations[0]?.color_options !== "undefined";
-    const hasValidSize =
-      product?.variations[0]?.size_options &&
-      product?.variations[0]?.size_options !== "undefined";
+    const variation = pickVariation(product);
+    const colorParam = variation?.color_options || variation?.color;
+    const sizeParam = variation?.size_options || variation?.Size;
+    const hasValidColor = colorParam && colorParam !== "undefined";
+    const hasValidSize = sizeParam && sizeParam !== "undefined";
 
     if (hasValidColor && !hasValidSize)
-      productUrl = `/${lang}/products/${
-        product.slug
-      }${`?color=${product?.variations[0]?.color_options}`}`;
+      productUrl = `/${lang}/products/${product.slug}${`?color=${colorParam}`}`;
     else if (!hasValidColor && hasValidSize)
-      productUrl = `/${lang}/products/${
-        product.slug
-      }${`?size=${product?.variations[0]?.size_options}`}`;
+      productUrl = `/${lang}/products/${product.slug}${`?size=${sizeParam}`}`;
     else if (!hasValidColor && !hasValidSize)
       productUrl = `/${lang}/products/${product.slug}`;
     else if (hasValidColor && hasValidSize)
       productUrl = `/${lang}/products/${
         product.slug
-      }${`?size=${product?.variations[0]?.size_options}&color=${product?.variations[0]?.color_options}`}`;
+      }${`?size=${sizeParam}&color=${colorParam}`}`;
     return productUrl;
   };
   const getProductCartUrl = (product) => {
@@ -947,14 +959,14 @@ export const CartItemLink = ({ normalHeight = "191px", product, children }) => {
         }}
         onClick={(e) => {
           const newParams = new URLSearchParams();
-          if (
-            product?.variations[0]?.color &&
-            product.variations[0]?.color !== "undefined"
-          ) {
-            newParams.set("color", product.variations[0]?.color);
+          const variation = pickVariation(product);
+          const colorParam = variation?.color || variation?.color_options;
+          const sizeParam = variation?.Size || variation?.size_options;
+          if (colorParam && colorParam !== "undefined") {
+            newParams.set("color", colorParam);
           }
-          if (product.variations[0]?.Size) {
-            newParams.set("size", product.variations[0]?.Size);
+          if (sizeParam) {
+            newParams.set("size", sizeParam);
           }
           router.push(pathname + `?${newParams.toString()}`, {
             scroll: false,

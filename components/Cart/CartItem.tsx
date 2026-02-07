@@ -16,7 +16,7 @@ function CartItem({ product, index }) {
           const settingsObj = JSON.parse(settingsStr);
           shippingDurationDays =
             parseInt(
-              settingsObj?.["starting-setting"]?.shipping_duration_days
+              settingsObj?.["starting-setting"]?.shipping_duration_days,
             ) || 0;
           return shippingDurationDays;
         } catch (e) {
@@ -27,6 +27,11 @@ function CartItem({ product, index }) {
     }
   }, []);
   const isRtl = language === "ar" || language === "ku";
+  const variation = Array.isArray(product?.variations)
+    ? (product.variations[0] ?? {})
+    : (product?.variations ?? {});
+  const colorValue = variation?.color ?? variation?.color_options;
+  const sizeValue = variation?.Size ?? variation?.size_options;
   return (
     <>
       <div
@@ -93,7 +98,7 @@ function CartItem({ product, index }) {
           className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex-wrap`}
           data-cy="color-div"
         >
-          {product.variations[0]?.color && (
+          {colorValue && (
             <div
               className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mx-2"
               data-cy="color-div2"
@@ -111,12 +116,12 @@ function CartItem({ product, index }) {
               >
                 {translateFunction("Color")}:{" "}
                 <span className="regular" data-cy="color-name">
-                  {product.variations[0].color}
+                  {colorValue}
                 </span>
               </span>
             </div>
           )}
-          {product.variations[0]?.Size && (
+          {sizeValue && (
             <div
               className="flex-row items-center text-[12px] light text-[#505050] mt-1"
               data-cy="size-container"
@@ -135,7 +140,7 @@ function CartItem({ product, index }) {
               >
                 {translateFunction("Size")}:
                 <span className="regular" data-cy="size-container-size">
-                  {product.variations[0].Size}
+                  {sizeValue}
                 </span>
               </span>
             </div>

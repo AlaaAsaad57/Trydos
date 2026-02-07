@@ -302,7 +302,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         country: country,
         slug: slug,
       });
-
+      console.log("data from server", data);
       let tempProductData = {
         ...product,
         ...data,
