@@ -19,6 +19,7 @@ function ShareButton({
   name,
   close,
   Image,
+  boutique_id,
 }) {
   const {
     shareLoading,
@@ -59,6 +60,7 @@ function ShareButton({
           params: {
             content_id: id,
             item_id: id,
+            boutique_id: boutique_id,
             item_name: name,
             user_id_custom: auth.UserID(),
             brand_id: brand.id,

@@ -38,6 +38,7 @@ function ProductFooter({ isRtl, productLightData }) {
       >
         {selectedContactsForShare?.length > 0 ? (
           <ShareButton
+            boutique_id={productLightData?.boutique_id}
             Image={productLightData?.image}
             brand={productLightData.brand}
             category={productLightData.category}

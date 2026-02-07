@@ -53,6 +53,7 @@ function ShareOptions({ product }: any) {
         params: {
           user_id_custom: auth.UserID(),
           content_id: product?.id,
+          boutique_id: product?.boutique_id,
           item_id: product?.id,
           item_name: product?.name,
           brand_id: product?.brand?.id,
