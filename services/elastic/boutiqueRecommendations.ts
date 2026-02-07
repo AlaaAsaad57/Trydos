@@ -184,7 +184,7 @@ async function fetchBoutiqueRecCandidates(
                 term: { "recommended_products.boutique_id": boutiqueId },
               },
               inner_hits: {
-                size: 10000,
+                size: 100,
                 sort: [{ "recommended_products.score": { order: "desc" } }],
               },
             },
@@ -210,7 +210,7 @@ async function fetchBoutiqueRecCandidates(
             term: { "recommended_products.boutique_id": boutiqueId },
           },
           inner_hits: {
-            size: 10000,
+            size: 100,
             sort: [{ "recommended_products.score": { order: "desc" } }],
           },
         },
