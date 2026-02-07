@@ -5,14 +5,130 @@ import { fetchServerData } from "./ServerFetch";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { cookies } from "next/headers";
 // import { getProductFromCache, storeProduct } from "./radis";
-interface ProductDetailsResponse {
-  [key: string]: any;
+
+interface ProductData {
+  id: number;
+  name: string;
+  slug: string;
+  share_link: string;
+  details: string;
+  images: Array<string>;
+  videos: Array<any>;
+  categories: Array<{
+    id: number;
+    name: string;
+    position: number;
+    icon: string;
+  }>;
+  brand: {
+    id: number;
+    slug: string;
+    name: string;
+    icon: string;
+  };
+  label_names: any;
+  flash_deal_end_date: any;
+  colors: Array<{
+    name: string;
+    code: string;
+    option: string;
+  }>;
+  sync_color_images: Array<{
+    color_name: string;
+    color_option: string;
+    color_code: string;
+    images: Array<string | { file_path?: string }>;
+    color_trend: boolean;
+  }>;
+  choice_options?: Array<{
+    name?: string;
+    title?: string;
+    options: Array<{
+      option?: string;
+      name?: string;
+    }>;
+  }>;
+  flash_deal_max_allowed_quantity: any;
+  shipping_days: number;
+  is_featured: boolean;
+  description: any;
+  model: any;
+  variations: Array<{
+    id: string;
+    size: string;
+    color: {
+      name: string;
+      code: string;
+    };
+    type: string;
+    price: number;
+    offer_price: number;
+    luck_price: number;
+    sku: string;
+    qty: number;
+    product_variation_id?: string;
+    variation_id?: string;
+  }>;
+  sizes: Array<string>;
+  max_allowed_qty: string;
+  shipping_cost_multiply_with_quantity: boolean;
+  shipping_cost: number;
+  price: number;
+  is_luck: boolean;
+  luck_price: number;
+  offer_price: number;
+  offer_type: string;
+  unit_price: number;
+  seller_id: number;
+  seller: {
+    name: any;
+    f_name: string;
+    l_name: string;
+    email: string;
+    gender: any;
+    birthdate: string;
+    review: number;
+    image: string;
+  };
+  shop: {
+    image: string;
+    name: string;
+  };
+  owner_type: string;
+  owner_id: number;
+  has_whole_sale: boolean;
+  whole_sale_link: any;
+  views_count: number;
+  descriptors: Array<any>;
+  is_country_restricted: boolean;
+  is_active: boolean;
+  collected_after_ordering: number;
+  available_quantity: number;
+  variation: Array<{
+    variant_notify_for_user: boolean;
+    type: string;
+    id: string;
+    size: string;
+    color: {
+      name: string;
+      code: string;
+    };
+    price: number;
+    offer_price: number;
+    luck_price: number;
+    sku: string;
+    qty: number;
+    product_variation_id?: string;
+    variation_id?: string;
+    notify_for_user?: boolean;
+  }>;
 }
+
 export async function fetchProductDetails(
   slug: string,
   language: string,
   country: string,
-): Promise<ProductDetailsResponse> {
+): Promise<ProductData> {
   try {
     let [generalDetails, extendedDetails] = await Promise.all([
       fetchProductGeneralDetails(slug, language, country),
@@ -114,7 +230,11 @@ export async function fetchProductExtendedDetails(
   }
 }
 
-export async function getProductDataForAddToCart({ language, country, slug }) {
+export async function getProductDataForAddToCart({
+  language,
+  country,
+  slug,
+}): Promise<ProductData> {
   let cookiesStore = await cookies();
   let token =
     cookiesStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ||
@@ -150,20 +270,29 @@ export async function getProductDataForAddToCart({ language, country, slug }) {
     }),
   ]);
 
-  let variants_arr = pricesData.data.data.variation;
-  let newVariants = notificationsSettings?.data?.data?.variation?.map(
-    (item) => {
-      let d = variants_arr.find((s) => s.type === item.type);
-      if (d)
-        return {
-          ...item,
-          ...d,
-        };
-      else {
+  const variants_arr = Array.isArray(pricesData?.data?.data?.variations)
+    ? pricesData.data.data.variations
+    : Array.isArray(pricesData?.data?.data?.variation)
+      ? pricesData.data.data.variation
+      : [];
+
+  const notifyVariants = Array.isArray(
+    notificationsSettings?.data?.data?.variation,
+  )
+    ? notificationsSettings.data.data.variation
+    : [];
+
+  const newVariants = notifyVariants.length
+    ? notifyVariants.map((item) => {
+        let d = variants_arr.find((s) => s.type === item.type);
+        if (d)
+          return {
+            ...item,
+            ...d,
+          };
         return item;
-      }
-    },
-  );
+      })
+    : variants_arr;
 
   return {
     ...globalData.data?.data,

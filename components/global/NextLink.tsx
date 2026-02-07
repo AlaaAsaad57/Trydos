@@ -20,6 +20,7 @@ export interface INextLinkProps {
   onClick?: any;
   isFromSetting?: boolean;
   fromRecomended?: any;
+  disableScroll?: boolean;
 }
 export default function NextLink({
   sameHref,
@@ -34,6 +35,7 @@ export default function NextLink({
   onClick,
   isFromSetting,
   fromRecomended = null,
+  disableScroll = true,
   ...props
 }: INextLinkProps) {
   const pathname = usePathname();
@@ -58,8 +60,7 @@ export default function NextLink({
             }
           }
           setColorBottomSheet(null);
-
-          DisableScroll();
+          if (disableScroll) DisableScroll();
           setLastPathname(pathname);
         }}
         onClick={() => {
@@ -80,7 +81,7 @@ export default function NextLink({
           if (onClick) {
             onClick();
           }
-          DisableScroll();
+          if (disableScroll) DisableScroll();
           setColorBottomSheet(null);
           setLastPathname(pathname);
           setIsNavigating(data);
@@ -127,7 +128,7 @@ export default function NextLink({
             return;
           }
         }
-        DisableScroll();
+        if (disableScroll) DisableScroll();
         setColorBottomSheet(null);
 
         setLastPathname(pathname);
@@ -150,7 +151,7 @@ export default function NextLink({
         if (onClick) {
           onClick();
         }
-        DisableScroll();
+        if (disableScroll) DisableScroll();
         setColorBottomSheet(null);
 
         setLastPathname(pathname);

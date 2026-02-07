@@ -11,7 +11,8 @@ async function ProductSizesWrapper({
   activeSize,
 }) {
   let productData = await qtyPricePromise;
-  let sizes = productData?.choice_options?.[0]?.options;
+  let sizes = productData?.sizes;
+
   if (!sizes || sizes?.length === 0) return <></>;
   let new_sizes_options = ["Standard", "EU", "IN", "US", "UK"];
   return (
@@ -86,9 +87,9 @@ async function ProductSizesWrapper({
       >
         <SizeItemWrapper ActiveSize={activeSize}>
           {sizes?.map((s) => (
-            <React.Fragment key={s?.option}>
-              <span> {s?.name}</span>
-              <span> {s?.option}</span>
+            <React.Fragment key={s}>
+              <span> {s}</span>
+              <span> {s}</span>
             </React.Fragment>
           ))}
         </SizeItemWrapper>

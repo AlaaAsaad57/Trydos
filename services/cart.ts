@@ -10,6 +10,7 @@ class CartService {
     product_id,
     color,
     choice_1,
+    product_variation_id = null,
     qty,
     image,
     isFromAddWidget = false,
@@ -21,10 +22,9 @@ class CartService {
     const imageVar = image.split("/")[image.split("/").length - 1];
     let details = {
       id: product_id,
-      color,
       image: imageVar,
       quantity: qty,
-      choice_1,
+      product_variation_id: product_variation_id ?? null,
       is_redeem,
     };
     let formBody = [];
@@ -61,6 +61,7 @@ class CartService {
         addProductToCart({
           id: product_id,
           item_id: response?.data?.id_cart,
+          product_variation_id: product_variation_id ?? null,
           color,
           size: choice_1,
           image,

@@ -28,7 +28,7 @@ async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
   if (buyersComments.comments.length === 0) return <></>;
   return (
     <>
-      <div className={`w-full flex-col`}>
+      <div className={`w-full flex-col mt-[12px]`}>
         <BuyersCommentTopBar isRtl={isRtl}>
           <img
             src="/icons/BuyersCommentsIcon.svg"

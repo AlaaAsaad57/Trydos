@@ -19,7 +19,106 @@ import {
 } from "services/elastic/INDEXES";
 
 let client = elasticSearchClient;
-export async function GetGlobalProduct({ slug, country, language }) {
+interface ProdutGlobalData {
+  id: number;
+  name: string;
+  slug: string;
+  share_link: string;
+  details: string;
+  images: Array<string>;
+  videos: Array<any>;
+  categories: Array<{
+    id: number;
+    name: string;
+    position: number;
+    icon: string;
+  }>;
+  brand: {
+    id: number;
+    slug: string;
+    name: string;
+    icon: string;
+  };
+  label_names: any;
+  flash_deal_end_date: any;
+  colors: Array<{
+    name: string;
+    code: string;
+    option: string;
+  }>;
+  sync_color_images: Array<{
+    color_name: string;
+    color_option: string;
+    color_code: string;
+    images: Array<string>;
+    color_trend: boolean;
+  }>;
+  flash_deal_max_allowed_quantity: any;
+  shipping_days: number;
+  is_featured: boolean;
+  globalFromRedis: boolean;
+}
+
+interface QtyProductData {
+  id: number;
+  description: any;
+  model: any;
+  variations: Array<{
+    id: string;
+    size: string;
+    color: {
+      name: string;
+      code: string;
+    };
+    type: string;
+    price: number;
+    offer_price: number;
+    luck_price: number;
+    sku: string;
+    qty: number;
+  }>;
+  sizes: Array<string>;
+  max_allowed_qty: string;
+  shipping_cost_multiply_with_quantity: boolean;
+  shipping_cost: number;
+  shipping_days: number;
+  price: number;
+  is_luck: boolean;
+  luck_price: number;
+  offer_price: number;
+  offer_type: string;
+  unit_price: number;
+  seller_id: number;
+  seller: {
+    name: any;
+    f_name: string;
+    l_name: string;
+    email: string;
+    gender: any;
+    birthdate: string;
+    review: number;
+    image: string;
+  };
+  shop: {
+    image: string;
+    name: string;
+  };
+  owner_type: string;
+  owner_id: number;
+  has_whole_sale: boolean;
+  whole_sale_link: any;
+  views_count: number;
+  descriptors: Array<any>;
+  is_country_restricted: boolean;
+  is_active: boolean;
+  collected_after_ordering: number;
+  available_quantity: number;
+}
+export async function GetGlobalProduct({
+  slug,
+  country,
+  language,
+}): Promise<ProdutGlobalData> {
   try {
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
       country,
@@ -62,11 +161,17 @@ export async function GetGlobalProduct({ slug, country, language }) {
       error: error,
       scenario: "Error In GetGlobalProduct in serverRequest/product",
     });
-    return { error };
+    throw new Error(
+      error?.message ?? error ?? "Failed to Get Global Product Data",
+    );
     // log error
   }
 }
-export async function GetProductPriceQtyDetails({ slug, country, language }) {
+export async function GetProductPriceQtyDetails({
+  slug,
+  country,
+  language,
+}): Promise<QtyProductData> {
   try {
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
       country,

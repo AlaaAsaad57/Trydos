@@ -78,6 +78,7 @@ async function ProductColorsWrapper({
             </div>
           ) : (
             <NextLink
+              disableScroll={false}
               href={`/${country}-${language}/products/${slug}?color=${color?.color_option}`}
               key={color?.color_name || color?.color_option}
               className="min-w-[50px] w-[50px] h-[73px] relative select-none cursor-pointer"
@@ -100,7 +101,7 @@ async function ProductColorsWrapper({
                 alt={color.color_name}
               />
             </NextLink>
-          )
+          ),
         )}
       </ProductColors>
     </div>

@@ -145,6 +145,13 @@ function AddToCartButton({
   };
   const clickHandler = async ({ variant }) => {
     let type = selectedVariant?.type;
+    const hasVariants = (product?.variation?.length ?? 0) > 0;
+    const productVariationId = hasVariants
+      ? (selectedVariant?.id ??
+        selectedVariant?.product_variation_id ??
+        selectedVariant?.variation_id ??
+        null)
+      : null;
 
     try {
       setLoading(true);
@@ -201,6 +208,7 @@ function AddToCartButton({
         animateButton();
         let val = await cart.AddToCart({
           product_id: id,
+          product_variation_id: productVariationId,
           color: product?.colors?.find(
             (s) =>
               s.option === selectedColor?.color_option ||

@@ -32,14 +32,34 @@ import NotifyButton from "./NotifyButton";
 import { showErrorMessage } from "components/global/AddToCartMessage";
 const normalizeSize = (s) => {
   if (typeof s === "string") return s.replace(/_/g, "-");
-  else return s;
+  return s;
+};
+
+const buildSizeOptions = (data) => {
+  const choiceOptions = data?.choice_options?.[0]?.options;
+  if (Array.isArray(choiceOptions) && choiceOptions.length > 0) {
+    return choiceOptions;
+  }
+
+  const sizesFromField = Array.isArray(data?.sizes) ? data.sizes : [];
+  const sizesFromVariation = Array.isArray(data?.variation)
+    ? data.variation.map((v) => v?.size).filter(Boolean)
+    : [];
+
+  const merged = [...sizesFromField, ...sizesFromVariation]
+    .map((s) => (typeof s === "string" ? s.trim() : s))
+    .filter(Boolean);
+
+  const unique = Array.from(new Set(merged.map((s) => normalizeSize(s))));
+
+  return unique.map((s) => ({ option: s, name: s }));
 };
 import { getProductDataForAddToCart } from "serverRequests";
 
 function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const shouldShowRedeem = () => {
-    if (!product.is_redeem) return false;
+    if (!product.is_luck) return false;
     let redeemed_products_ids = getCookie<any[]>("redemed_ids");
     if (redeemed_products_ids) {
       return !redeemed_products_ids.find(
@@ -121,13 +141,18 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     };
   }
   const [selectedColor, setSelectedColor] = useState(selected_color);
-  const [selectedSize, setSelectedSize] = useState(
-    ProductData?.choice_options?.[0]?.options?.find(
-      (option) => option.option === sizeFromUrl || option.name === sizeFromUrl,
-    ) ||
-      ProductData?.choice_options?.[0]?.options?.[0] ||
-      null,
-  );
+  const [selectedSize, setSelectedSize] = useState(() => {
+    const initialSizes = buildSizeOptions(ProductData);
+    return (
+      initialSizes.find(
+        (option) =>
+          option.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
+          option.name?.toLowerCase() === sizeFromUrl?.toLowerCase(),
+      ) ||
+      initialSizes[0] ||
+      null
+    );
+  });
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
   function resolveVariant({
@@ -266,12 +291,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           initCart(data ?? { cart: [] });
         },
       });
-      fetchData({
-        method: "GET",
-        url: `/api/mobile/product/details/${slug}`,
-        reqTitle: { reqTitle: "", code: 100 },
-        server: "local",
-      });
+      // fetchData({
+      //   method: "GET",
+      //   url: `/api/mobile/product/details/${slug}`,
+      //   reqTitle: { reqTitle: "", code: 100 },
+      //   server: "local",
+      // });
       let data = await getProductDataForAddToCart({
         language: languageVariable,
         country: country,
@@ -281,7 +306,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       let tempProductData = {
         ...product,
         ...data,
-        is_redeem: data.is_redeem && shouldShowRedeem(),
+        is_redeem: data.is_luck && shouldShowRedeem(),
         shared_count: 0,
         sync_color_images: !product.singleColor
           ? data.sync_color_images || product?.sync_color_images || []
@@ -325,18 +350,18 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           shouldUpdate: 0,
         });
 
-      if (tempProductData?.choice_options?.[0]?.options?.length > 0) {
+      const tempSizeOptions = buildSizeOptions(tempProductData);
+      if (tempSizeOptions.length > 0) {
         if (sizeFromUrl?.length > 0) {
           setSelectedSize(
-            tempProductData?.choice_options?.[0]?.options.find(
+            tempSizeOptions.find(
               (s) =>
                 s.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
                 s.name?.toLowerCase() === sizeFromUrl?.toLowerCase(),
-            )?.option ??
-              tempProductData?.choice_options?.[0]?.options?.[0]?.option,
+            )?.option ?? tempSizeOptions?.[0]?.option,
           );
         } else {
-          // setSelectedSize(tempProductData?.choice_options?.[0]?.options?.[0]);
+          // setSelectedSize(tempSizeOptions?.[0]);
         }
       }
       // checkIfVariantEmpty();
@@ -361,11 +386,11 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     return tempProductData;
   };
 
-  const getSelectedItemCart = () => {
-    const hasColorVariants = ProductData?.sync_color_images?.length > 0;
-    const hasSizeVariants =
-      ProductData?.choice_options?.[0]?.options?.length > 0;
+  const sizeOptions = buildSizeOptions(ProductData);
+  const hasSizeVariants = sizeOptions.length > 0;
+  const hasColorVariants = ProductData?.sync_color_images?.length > 0;
 
+  const getSelectedItemCart = () => {
     // Case 1: No variants at all (no color, no size)
     if (!hasColorVariants && !hasSizeVariants) {
       return localCart?.find((s) => s.id === ProductData.id);
@@ -431,10 +456,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const getVariantSizeQty = (size) => {
     if (ProductData?.variation?.length > 0) {
       let selected_variant;
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        ProductData?.choice_options?.length > 0
-      ) {
+      if (ProductData?.sync_color_images?.length > 0 && hasSizeVariants) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
@@ -443,11 +465,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             }`?.toLowerCase(),
         );
       }
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        (!ProductData?.choice_options ||
-          ProductData?.choice_options?.length === 0)
-      ) {
+      if (ProductData?.sync_color_images?.length > 0 && !hasSizeVariants) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
@@ -457,7 +475,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       if (
         (!ProductData?.sync_color_images ||
           ProductData?.sync_color_images?.length === 0) &&
-        ProductData?.choice_options?.length > 0
+        hasSizeVariants
       ) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
@@ -497,22 +515,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const IsValid = () => {
     let color_valid = false,
       size_valid = false;
-    if (
-      !ProductData?.sync_color_images ||
-      ProductData?.sync_color_images?.length === 0
-    )
-      color_valid = true;
-    else {
-      color_valid = Boolean(selectedColor);
-    }
-    if (
-      !ProductData?.choice_options ||
-      ProductData?.choice_options?.length === 0
-    )
-      size_valid = true;
-    else {
-      size_valid = Boolean(selectedSize);
-    }
+    if (!hasColorVariants) color_valid = true;
+    else color_valid = Boolean(selectedColor);
+    if (!hasSizeVariants) size_valid = true;
+    else size_valid = Boolean(selectedSize);
     return color_valid && size_valid;
   };
 
@@ -529,10 +535,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       };
     if (ProductData?.variation?.length > 0) {
       let selected_variant;
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        ProductData?.choice_options?.length > 0
-      ) {
+      if (ProductData?.sync_color_images?.length > 0 && hasSizeVariants) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
@@ -541,11 +544,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             }`?.toLowerCase(),
         );
       }
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        (!ProductData?.choice_options ||
-          ProductData?.choice_options?.length === 0)
-      ) {
+      if (ProductData?.sync_color_images?.length > 0 && !hasSizeVariants) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
@@ -555,7 +554,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       if (
         (!ProductData?.sync_color_images ||
           ProductData?.sync_color_images?.length === 0) &&
-        ProductData?.choice_options?.length > 0
+        hasSizeVariants
       ) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
@@ -598,19 +597,19 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const initializeUI = async () => {
     try {
       let tempProductData = await getProductData();
+      const tempSizeOptions = buildSizeOptions(tempProductData);
       let res = resolveVariant({
         colors: tempProductData.sync_color_images,
         isForCollect: tempProductData?.collected_after_ordering === 1,
         variations: tempProductData?.variation,
-        sizes: tempProductData?.choice_options?.[0]?.options,
+        sizes: tempSizeOptions,
         selectedColor:
           selectedColor ??
           product?.sync_color_images?.find(
             (s) =>
               s?.color_name === product?.sync_color_images?.[0]?.color_name,
           ),
-        selectedSize:
-          selectedSize ?? tempProductData?.choice_options?.[0]?.options?.[0],
+        selectedSize: selectedSize ?? tempSizeOptions?.[0],
       });
       setSelectedProductForCart({
         ...selected_product_for_add_to_cart,
@@ -628,7 +627,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       }
       if (res.size) {
         setSelectedSize(
-          tempProductData?.choice_options?.[0]?.options?.find(
+          tempSizeOptions?.find(
             (s) => s.option === res.size || s.name === res.size,
           )?.option,
         );
@@ -695,7 +694,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     setProductData({
       ...ProductData,
       ...response.data,
-      variation: response.data.variation?.map((variant) => {
+      variation: response.data.variations?.map((variant) => {
         return {
           ...variant,
           notify_for_user: ProductData?.variation?.find(
@@ -703,7 +702,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           )?.notify_for_user,
         };
       }),
-      is_redeem: response?.data?.is_redeem && shouldShowRedeem(),
+      is_redeem: response?.data?.is_luck && shouldShowRedeem(),
     });
   };
   const updateQuantityLocally = (type, operation) => {
@@ -727,7 +726,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         operation === "add"
           ? response.available_quantity - 1
           : response.available_quantity + 1,
-      is_redeem: response?.is_redeem && shouldShowRedeem(),
+      is_redeem: response?.is_luck && shouldShowRedeem(),
     });
   };
   const updateQuantity = async ({ isLocal = true, type, operation }) => {
@@ -743,9 +742,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   };
   const IsColorHasDiscount = (colorVariant) => {
     if (!colorVariant) return false;
-    if (ProductData?.choice_options?.length > 0 && !selectedSize) return false;
+    if (hasSizeVariants && !selectedSize) return false;
     const variant = ProductData?.variation?.find((s) => {
-      if (ProductData?.choice_options?.length > 0 && selectedSize) {
+      if (hasSizeVariants && selectedSize) {
         return (
           s?.type
             ?.toLowerCase()
@@ -791,10 +790,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     if (ProductData.collected_after_ordering === 1) return false;
     if (ProductData?.variation?.length > 0) {
       let selected_variant;
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        ProductData?.choice_options?.length > 0
-      ) {
+      if (ProductData?.sync_color_images?.length > 0 && hasSizeVariants) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
@@ -803,11 +799,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             }`?.toLowerCase(),
         );
       }
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        (!ProductData?.choice_options ||
-          ProductData?.choice_options?.length === 0)
-      ) {
+      if (ProductData?.sync_color_images?.length > 0 && !hasSizeVariants) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
@@ -928,7 +920,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             }}
           />
         )}
-        {ProductData?.choice_options?.[0]?.options?.length > 0 ? (
+        {hasSizeVariants ? (
           <SizeSelect
             isCollectAfterOrder={ProductData.collected_after_ordering === 1}
             isSizeNotified={(e) =>
@@ -958,7 +950,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
               });
               setSelectedSize(e);
             }}
-            sizes={ProductData?.choice_options?.[0]?.options}
+            sizes={sizeOptions}
           />
         ) : (
           <div className="my-[20px] w-full justify-center items-center flex flex-row">
@@ -1047,7 +1039,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             isNotified={getSelectedVariantQty()?.variant_notify_for_user}
             product={ProductData}
             colors={ProductData?.sync_color_images}
-            sizes={ProductData?.choice_options?.[0]?.options}
+            sizes={sizeOptions}
             selectedSize={selectedSize}
             selectedColor={selectedColor}
             selected_variant={getSelectedVariantQty()}
@@ -1063,7 +1055,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             reachedMaxQty={() => reachedMaxQty()}
             fullQty={localCart.filter((s) => s.id === product?.id)?.length}
             colors={ProductData?.sync_color_images}
-            sizes={ProductData?.choice_options?.[0]?.options}
+            sizes={sizeOptions}
             selectedSize={selectedSize}
             selectedColor={selectedColor}
             product={ProductData}
