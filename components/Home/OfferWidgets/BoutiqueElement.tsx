@@ -14,7 +14,7 @@ export function BoutiqueSliderWrapper({ boutique, children }) {
   const configureImage = (src) => {
     return src.replace(
       "/upload",
-      `/upload/w_1356,c_pad,b_auto/f_auto/q_auto:best/fl_lossy/so_0`
+      `/upload/w_1356,c_pad,b_auto/f_auto/q_auto:best/fl_lossy/so_0`,
     );
   };
   return (
@@ -35,13 +35,15 @@ export function BoutiqueSliderWrapper({ boutique, children }) {
         >
           {boutique?.name}
         </span>
-        <span
-          data-cy="boutique-description"
-          className="regular text-[16px] text-white"
-          dangerouslySetInnerHTML={{
-            __html: boutique?.description,
-          }}
-        ></span>
+        {!boutique?.description?.includes("script") && (
+          <span
+            data-cy="boutique-description"
+            className="regular text-[16px] text-white"
+            dangerouslySetInnerHTML={{
+              __html: boutique?.description,
+            }}
+          ></span>
+        )}
       </div>
     </div>
   );
