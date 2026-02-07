@@ -23,6 +23,10 @@ import {
   recommendation_cold_index,
   recommendation_index,
 } from "./INDEXES";
+import {
+  getEnrichedBoutiqueResults,
+  shouldEnrichWithBoutiqueRecs,
+} from "./boutiqueRecommendations";
 
 // Types and Interfaces
 interface SearchFilters {
@@ -49,6 +53,7 @@ interface SearchParams {
   filters_offset?: number;
   noProducts?: boolean;
   noFilters?: boolean;
+  userId?: string | number | null;
 }
 
 interface FilterResult {
@@ -147,6 +152,7 @@ export async function getProductsAndFiltersFromElastic(
     filters_offset = 1,
     noFilters = false,
     noProducts = false,
+    userId = null, //should edit in the other branch
   } = params;
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
@@ -211,6 +217,33 @@ export async function getProductsAndFiltersFromElastic(
     const { must: mustConditions, must_not: mustNotConditions } =
       baseConditions;
 
+    //should edit in the other branch
+    if (await shouldEnrichWithBoutiqueRecs(filters, userId)) {
+      try {
+        const enrichedResult = await getEnrichedBoutiqueResults({
+          filters,
+          country,
+          language_code,
+          is_from_browser,
+          limit,
+          search_after,
+          noFilters,
+          userId: userId!,
+          isAnalyzed,
+          filters_offset,
+        });
+        if (enrichedResult) return enrichedResult;
+      } catch (enrichError) {
+        LogServerError({
+          scenario:
+            "boutiqueRecommendations enrichment failed, falling back to normal",
+          error:
+            enrichError instanceof Error
+              ? enrichError.message
+              : String(enrichError),
+        });
+      }
+    }
     // Build the main search query
 
     const searchQuery = {

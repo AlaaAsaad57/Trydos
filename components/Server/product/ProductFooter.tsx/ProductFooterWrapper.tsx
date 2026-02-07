@@ -74,6 +74,7 @@ async function ProductFooterWrapper({
           owner_type: product?.owner_type,
           is_redeem: qtyData?.is_redeem,
           redeem_price: qtyData?.redeem_price,
+          boutique_id: product?.boutique_id,
         }}
       />
     </>

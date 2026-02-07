@@ -64,6 +64,7 @@ function ShareOptions({ product }: any) {
           screen_path: window.location.pathname,
           shared_from_page: window.location.pathname,
           method_share: appName,
+          boutique_id: product?.boutique_id,
         },
       });
       // @ts-ignore
