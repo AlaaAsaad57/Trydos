@@ -8,21 +8,21 @@ function PricesRow({
   shipping_cost,
   offer_price,
   price,
-  redeem_price,
+  luck_price,
   id,
   currency,
   language,
   noBorder = false,
-  is_redeem,
+  is_luck,
 }) {
-  const shouldShowRedeem = () => {
+  const shouldShowLuck = () => {
     if (typeof window === "undefined") return false;
     const redeemed_ids = getCookie<any[]>("redemed_ids");
     return !redeemed_ids?.find((s) => s.id === id);
   };
   const isRtl = language === "ar" || language === "ku";
   const renderPrice = () => {
-    if (redeem_price && redeem_price > 0 && shouldShowRedeem()) {
+    if (luck_price && luck_price > 0 && shouldShowLuck()) {
       if (price === offer_price) {
         return (
           <div
@@ -56,7 +56,7 @@ function PricesRow({
             </span>
             <span className="relative bold text-[#FF6200]">
               {RoundPrice({
-                num: redeem_price,
+                num: luck_price,
                 rate: currency?.exchange_rate,
                 language: language,
               })}
@@ -119,7 +119,7 @@ function PricesRow({
             </span>
             <span className="relative bold text-[#FF6200]">
               {RoundPrice({
-                num: redeem_price,
+                num: luck_price,
                 rate: currency?.exchange_rate,
                 language: language,
               })}

@@ -29,44 +29,15 @@ function NotifyButton({
     return num;
   };
   const isVariantInCart = ({ exact }) => {
-    if (product?.variation?.length === 0)
-      return localCart?.find((s) => s.id === id);
-    let cartIem = getLocalCartItem();
-    if (cartIem) return cartIem;
+    if (!product?.variation?.length) return localCart?.find((s) => s.id === id);
+    let cartItem = getLocalCartItem();
+    if (cartItem) return cartItem;
     if (exact) return localCart?.find((s) => s.id === id);
   };
   const getLocalCartItem = () => {
-    if (colors?.length > 0 && sizes?.length > 0) {
-      return localCart.find(
-        (s) =>
-          s.id === id &&
-          (s.color === selectedColor?.color_option ||
-            s.color ===
-              product?.colors?.find(
-                (cl) =>
-                  cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.selected_option,
-              )?.color) &&
-          s.size === (selectedSize?.option ?? selectedSize),
-      );
-    }
-    if (colors?.length > 0) {
-      return localCart.find(
-        (s) =>
-          s.id === id &&
-          (s.color === selectedColor?.color_option ||
-            s.color ===
-              product?.colors?.find(
-                (cl) =>
-                  cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.selected_option,
-              )?.color),
-      );
-    }
-    if (sizes?.length > 0) {
-      return localCart.find(
-        (s) => s.id === id && s.size === (selectedSize?.option ?? selectedSize),
-      );
+    const pvid = selectedVariant?.product_variation_id ?? selectedVariant?.id;
+    if (pvid) {
+      return localCart.find((s) => s.product_variation_id === pvid);
     }
     return null;
   };
@@ -92,7 +63,7 @@ function NotifyButton({
         setLoading(false);
         await updateQuantity(
           true,
-          isVariantInCart({ exact: true })?.type,
+          isVariantInCart({ exact: true })?.product_variation_id,
           "decrease",
         );
       } else if (isVariantInCart({ exact: true })?.quantity === 1) {
@@ -109,7 +80,7 @@ function NotifyButton({
               {
                 item_id: product.id,
                 item_name: product.name,
-                item_variant: variant?.type,
+                item_variant: variant?.product_variation_id ?? variant?.id,
                 quantity: 1,
                 price: variant?.offer_price,
               },
@@ -123,7 +94,7 @@ function NotifyButton({
         setLoading(false);
         await updateQuantity(
           true,
-          isVariantInCart({ exact: true })?.type,
+          isVariantInCart({ exact: true })?.product_variation_id,
           "decrease",
         );
       }

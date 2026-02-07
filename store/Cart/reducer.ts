@@ -335,9 +335,9 @@ export const useCartStore = (set, get) => ({
       return { oldCart: { ...state.oldCart, oldCart } };
     }),
 
-  editQuantity: (type) =>
+  editQuantity: (variantId) =>
     set((state) => {
-      if (type === "") {
+      if (variantId === "") {
         return {
           SelectedProduct: {
             ...state.SelectedProduct,
@@ -350,7 +350,7 @@ export const useCartStore = (set, get) => ({
       } else {
         const arr = [];
         state.SelectedProduct.variation.map((s) => {
-          if (s.type === type)
+          if ((s.product_variation_id ?? s.id) === variantId)
             arr.push({ ...s, qty: s.qty === 0 ? 0 : s.qty - 1 });
           else arr.push(s);
         });
@@ -372,7 +372,7 @@ export const useCartStore = (set, get) => ({
           item_id: s.id,
           image: s.image,
           quantity: s.quantity,
-          is_redeem: s.is_luck,
+          is_luck: s.is_luck,
           size: s.variations?.size_options ?? undefined,
           color: s?.variations?.color_options ?? undefined,
           sku: `${s.product_id}${
@@ -449,13 +449,13 @@ export const useCartStore = (set, get) => ({
         if (temp_variant) {
           let size =
             temp_product.choice_options &&
-            temp_product.choice_options[0]?.options.filter((s) =>
-              temp_variant.type.endsWith(s.name),
+            temp_product.choice_options[0]?.options.filter(
+              (s) => s.name === temp_variant.size,
             )[0];
           let color =
             temp_product.sync_color_images &&
-            temp_product.sync_color_images?.filter((s) =>
-              temp_variant.type.startsWith(s.color_name),
+            temp_product.sync_color_images?.filter(
+              (s) => s.color_name === temp_variant.color?.name,
             )[0];
           temp = {
             AddToCartOption: {
@@ -484,10 +484,10 @@ export const useCartStore = (set, get) => ({
       SelectedProduct: { ...state.SelectedProduct, ...info },
     }));
   },
-  expireRedeem: () =>
+  expireLuck: () =>
     set((state) => ({
       ...state,
-      SelectedProduct: { ...state.SelectedProduct, is_redeem: false },
+      SelectedProduct: { ...state.SelectedProduct, is_luck: false },
     })),
   storeVariants: (variants) =>
     set((state) => ({
@@ -542,7 +542,7 @@ export const useCartStore = (set, get) => ({
       }
     }),
 
-  notifyProduct: (type) =>
+  notifyProduct: (variantId) =>
     set((state) => {
       let temp = { ...state.SelectedProduct };
       let newVal = {};
@@ -550,7 +550,8 @@ export const useCartStore = (set, get) => ({
         newVal = {
           ...temp,
           variation: temp.variation.map((s) => {
-            if (s.type === type) return { ...s, variant_notify_for_user: true };
+            if ((s.product_variation_id ?? s.id) === variantId)
+              return { ...s, variant_notify_for_user: true };
             else return s;
           }),
         };
@@ -615,17 +616,16 @@ export const useCartStore = (set, get) => ({
   addToCartSize: (size) =>
     set((state) => {
       if ((state.variants?.variation || state.variants || [])?.length > 0) {
-        let variant = (state.variants?.variation || state.variants || [])
-          .map((s) => {
-            if (s.type.includes("-")) return s;
-            else return { ...s, type: `-${s.type}` };
-          })
-          .filter(
-            (s) =>
-              s.type.includes(
-                state?.AddToCartOption?.selectedColor?.color_name || "",
-              ) && s.type.endsWith(`-${size?.name}` || ""),
-          )[0];
+        let variant = (
+          state.variants?.variation ||
+          state.variants ||
+          []
+        ).filter(
+          (s) =>
+            (s.color?.name || "") ===
+              (state?.AddToCartOption?.selectedColor?.color_name || "") &&
+            s.size === size?.name,
+        )[0];
         return {
           AddToCartOption: {
             ...state.AddToCartOption,
@@ -652,8 +652,8 @@ export const useCartStore = (set, get) => ({
     set((state) => {
       let variant = (state.variants?.variation || state.variants || []).filter(
         (s) =>
-          s.type.includes(color?.color_name || "") &&
-          s.type.includes(state?.AddToCartOption?.selectedSize?.name || ""),
+          (s.color?.name || "") === (color?.color_name || "") &&
+          (s.size || "") === (state?.AddToCartOption?.selectedSize?.name || ""),
       )[0];
 
       return {

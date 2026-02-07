@@ -18,7 +18,7 @@ function Card({
   shippingDays,
   offer_price,
   price,
-  redeem_price,
+  luck_price,
 }) {
   const { settings } = useAppStore();
   const [countries, setCountries] = useState([]);
@@ -41,14 +41,14 @@ function Card({
           new Date().getTime() +
             Number(
               (settings?.["starting-setting"]?.shipping_duration_days || 0) +
-                shippingDays
+                shippingDays,
             ) *
               24 *
               60 *
               60 *
-              1000
+              1000,
         ).toString(),
-        language
+        language,
       );
   }, [shippingDays, settings]);
 
@@ -62,14 +62,14 @@ function Card({
           new Date().getTime() +
             Number(
               (settings?.["starting-setting"]?.shipping_duration_days || 0) +
-                shippingDays
+                shippingDays,
             ) *
               24 *
               60 *
               60 *
-              1000
+              1000,
         )?.getDay(),
-        language
+        language,
       );
   }, [shippingDays, settings]);
 
@@ -195,7 +195,7 @@ function Card({
                   translateFunction(
                     countries?.find((s) => s.iso?.toLowerCase() === country)
                       ?.name,
-                    language
+                    language,
                   )}
               </span>
             </span>
@@ -228,7 +228,7 @@ function Card({
           <Prices
             offer_price={offer_price}
             price={price}
-            redeem_price={redeem_price}
+            luck_price={luck_price}
           />
           <div className="flex items-center text-[10px] regular">
             {translateFunction("All Inclusive Without Additions", language)}
@@ -263,11 +263,11 @@ const ImageBorder = ({ isOrange = false }) => {
   );
 };
 
-const Prices = ({ offer_price, price, redeem_price }) => {
+const Prices = ({ offer_price, price, luck_price }) => {
   const { currency, language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
-  if (redeem_price && redeem_price > 0) {
+  if (luck_price && luck_price > 0) {
     if (price === offer_price) {
       return (
         <div
@@ -304,7 +304,7 @@ const Prices = ({ offer_price, price, redeem_price }) => {
             data-cy="redeem-price-label"
           >
             {RoundPrice({
-              num: redeem_price,
+              num: luck_price,
               rate: currency?.exchange_rate,
               language: language,
             })}
@@ -375,7 +375,7 @@ const Prices = ({ offer_price, price, redeem_price }) => {
             data-cy="redeem-price-label "
           >
             {RoundPrice({
-              num: redeem_price,
+              num: luck_price,
               rate: currency?.exchange_rate,
               language: language,
             })}

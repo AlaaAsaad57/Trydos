@@ -839,7 +839,7 @@ export const QuantutyInput = ({
                     </div>
                     <div
                       className={`${
-                        (product as any)?.is_redeem && "text-[#FF6200]"
+                        (product as any)?.is_luck && "text-[#FF6200]"
                       } product-new-price text-[18px] bold m-0`}
                       data-cy="new-price"
                     >

@@ -284,7 +284,11 @@ export async function getProductDataForAddToCart({
 
   const newVariants = notifyVariants.length
     ? notifyVariants.map((item) => {
-        let d = variants_arr.find((s) => s.type === item.type);
+        let d = variants_arr.find(
+          (s) =>
+            (s.product_variation_id ?? s.id) ===
+            (item.product_variation_id ?? item.id),
+        );
         if (d)
           return {
             ...item,

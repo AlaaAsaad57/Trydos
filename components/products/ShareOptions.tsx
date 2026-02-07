@@ -1,5 +1,4 @@
 "use client";
-import React, { useEffect } from "react";
 import ShareAvatar from "./ShareAvatar";
 import "styles/share-options.css";
 import {
