@@ -376,7 +376,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     const pvid = selectedVariant?.product_variation_id ?? selectedVariant?.id;
 
     if (pvid) {
-      return localCart?.find((s) => s.product_variation_id === pvid);
+      return localCart?.find(
+        (s) =>
+          s.product_variation_id === pvid ||
+          s.id === pvid ||
+          s.variation_id === pvid,
+      );
     }
 
     if (!hasColorVariants && !hasSizeVariants) {

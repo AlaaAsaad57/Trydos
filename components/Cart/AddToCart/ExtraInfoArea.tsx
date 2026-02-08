@@ -254,7 +254,7 @@ function ExtraInfoArea({
       );
     }
   } else {
-    return <CartContentOfProduct />;
+    return <CartContentOfProduct product={product} />;
   }
 
   return <></>;

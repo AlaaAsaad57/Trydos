@@ -81,14 +81,29 @@ function AddToCartButton({
   const getLocalCartItem = () => {
     const pvid = selectedVariant?.product_variation_id ?? selectedVariant?.id;
     if (pvid) {
-      return localCart.find((s) => s.product_variation_id === pvid);
+      return localCart.find(
+        (s) =>
+          s.product_variation_id === pvid ||
+          s.id === pvid ||
+          s.variation_id === pvid,
+      );
     }
     return null;
   };
   const isVariantInCart = ({ exact }) => {
     if (!product?.variation?.length) return localCart?.find((s) => s.id === id);
-    let cartItem = getLocalCartItem();
-    if (cartItem) return cartItem;
+
+    const pvid = selectedVariant?.product_variation_id ?? selectedVariant?.id;
+    if (pvid) {
+      const cartItem = localCart.find(
+        (s) =>
+          s.product_variation_id === pvid ||
+          s.id === pvid ||
+          s.variation_id === pvid,
+      );
+      if (cartItem) return cartItem;
+    }
+
     if (exact) return localCart?.find((s) => s.id === id);
   };
 
@@ -182,7 +197,11 @@ function AddToCartButton({
           color: product?.colors?.find(
             (s) =>
               s.option === selectedColor?.color_option ||
-              s.name === selectedColor?.color_option,
+              s.name === selectedColor?.color_option ||
+              s.option === selectedColor?.color_name ||
+              s.name === selectedColor?.color_name ||
+              s.color_option === selectedColor?.color_option ||
+              s.color_option === selectedColor?.color_name,
           )?.color,
           type: productVariationId,
           choice_1: selectedSize?.option || selectedSize,
