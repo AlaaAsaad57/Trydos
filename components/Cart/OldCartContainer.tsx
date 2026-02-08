@@ -20,6 +20,7 @@ function OldCartContainer() {
       (oldProduct) =>
         !cart.some((cartProduct) => areProductsEqual(oldProduct, cartProduct)),
     ) || [];
+
   let shippingDurationDays = 0;
   if (sessionStorage.getItem("starttingSetting")) {
     const settingsStr = sessionStorage.getItem("starttingSetting");
@@ -57,7 +58,7 @@ function OldCartContainer() {
         className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10"
         data-cy="oldCart-outOfBag"
       >
-        <hr className="p-4" data-cy="line" />
+        <hr className="p-4 border-[#e5e7eb]" data-cy="line" />
         <div
           className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]"
           data-cy="oldCart-viewer"
@@ -150,7 +151,7 @@ function OldCartContainer() {
       className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10"
       data-cy="oldCart-outOfBag"
     >
-      <hr className="p-4" data-cy="line" />
+      <hr className="p-4 border-[#e5e7eb]" data-cy="line" />
       <div
         className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]"
         data-cy="oldCart-viewer"
@@ -244,7 +245,7 @@ function OldCartContainer() {
                   <span className="ml-1.5"></span>
                 </div>
                 <div className="flex-row flex-wrap">
-                  {product.variations[0]?.color && (
+                  {product.variations?.color && (
                     <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                       <Image
                         src={"/icons/CartColorIcon.svg"}
@@ -259,12 +260,12 @@ function OldCartContainer() {
                       >
                         {translateFunction("Color")}:
                         <span className="regular">
-                          {product.variations[0].color}
+                          {product.variations?.color}
                         </span>
                       </span>
                     </div>
                   )}
-                  {product.variations[0]?.Size && (
+                  {product.variations?.Size && (
                     <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1">
                       <Image
                         src={"/icons/CartSizeIcon.svg"}
@@ -279,7 +280,7 @@ function OldCartContainer() {
                       >
                         {translateFunction("Size")}:
                         <span className="regular">
-                          {product.variations[0].Size}
+                          {product.variations?.Size}
                         </span>
                       </span>
                     </div>
@@ -432,7 +433,11 @@ function OldCartContainer() {
             </div>
             <QuantutyInput
               id={product.id}
-              product={product}
+              product={{
+                ...product,
+                quantity: parseInt(product.quantity),
+                offer_price: product?.offer_price,
+              }}
               updateData={async () => {}}
               isCollectedAfterOrdering={false}
               maxAllowed={product.max_allowed_qty}

@@ -524,10 +524,8 @@ export const removeFromCompare = (slug: string) => {
  */
 export const areProductsEqual = (prodA: any, prodB: any): boolean => {
   if (!prodA || !prodB) return false;
-  const varA =
-    prodA.variations && prodA.variations[0] ? prodA.variations[0] : {};
-  const varB =
-    prodB.variations && prodB.variations[0] ? prodB.variations[0] : {};
+  const varA = prodA.variations && prodA.variations ? prodA.variations : {};
+  const varB = prodB.variations && prodB.variations ? prodB.variations : {};
   return (
     prodA.product_id === prodB.product_id &&
     (varA.Size || "") === (varB.Size || "") &&

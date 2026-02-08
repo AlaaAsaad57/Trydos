@@ -436,7 +436,7 @@ function OrderButton({ close, toOrders }) {
                 <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
                   <div className="flex-row px-[12px]">
                     <span className="flex-row translate-y-[3px]">
-                      <img src="/icons/Gift.svg" />
+                      <img className="w-5 h-5" src="/icons/Gift.svg" />
                     </span>{" "}
                     <div className="flex-col px-1 text-[#5BA260]">
                       <span className="medium text-[13px] text-[#5BA260]">
@@ -464,7 +464,11 @@ function OrderButton({ close, toOrders }) {
                       data-cy="Shipping-svg-container2"
                       className="flex-row translate-y-[3px]"
                     >
-                      <img src="/icons/Shipping.svg" data-cy="Shipping-svg" />
+                      <img
+                        className="w-5 h-5"
+                        src="/icons/Shipping.svg"
+                        data-cy="Shipping-svg"
+                      />
                     </span>{" "}
                     {
                       <div className="flex-col px-1 text-[#5BA260]">

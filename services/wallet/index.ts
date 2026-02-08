@@ -1,6 +1,6 @@
-// "use server";
+"use server";
 
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import { LogError } from "utils/functions";
 
 import {
@@ -135,12 +135,13 @@ export async function checkWallet({
   local?: string;
   handleUnauthenticated: () => void;
 }) {
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let res = await fetchServerData({
     method: "GET",
     local: local,
     url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/wallets/myAcounts`,
     headers: {
-      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -165,6 +166,7 @@ export async function createWallet({
   local?: string;
   handleUnauthenticated: () => void;
 }) {
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response = await fetchServerData({
     method: "POST",
     local: local,
@@ -175,7 +177,7 @@ export async function createWallet({
     }),
     url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/wallets?subtype=MAIN",
     headers: {
-      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -195,13 +197,14 @@ export async function getCurrencies({
   local?: string;
   handleUnauthenticated: () => void;
 }) {
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   try {
     let response = await fetchServerData({
       method: "GET",
       local: local,
       url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/currencies",
       headers: {
-        Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -220,13 +223,14 @@ export async function GetBanks({
   local?: string;
   handleUnauthenticated: () => void;
 }) {
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   try {
     let response: FetchResponse<BanksApi> = await fetchServerData({
       method: "GET",
       local: local,
       url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/banks",
       headers: {
-        Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -245,6 +249,7 @@ export async function UploadMedia({
   local?: string;
   handleUnauthenticated: () => void;
 }) {
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let formData = new FormData();
   formData.append("file", file);
   formData.append("type", file.type?.split("/")[0]);
@@ -255,7 +260,7 @@ export async function UploadMedia({
     local: local,
     url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/media/upload/direct",
     headers: {
-      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+      Authorization: `Bearer ${token}`,
       // Using "MULTIPART" flag so your fetch wrapper knows to DELETE the content-type header
       ContentType: "MULTIPART",
     },
@@ -283,6 +288,7 @@ export async function CreateBankDeposit({
   local?: string;
   handleUnauthenticated: () => void;
 }) {
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<CreateBankDepositeApi> = await fetchServerData({
     method: "POST",
     local: local,
@@ -296,7 +302,7 @@ export async function CreateBankDeposit({
     }),
     url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/bank-deposits",
     headers: {
-      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -319,6 +325,7 @@ export async function CalculateFees({
   local?: string;
   handleUnauthenticated: () => void;
 }) {
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<CalculateFeesApi> = await fetchServerData({
     method: "POST",
     local: local,
@@ -331,7 +338,7 @@ export async function CalculateFees({
       process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
       "/bank-deposits/calculate-fees",
     headers: {
-      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -345,12 +352,13 @@ export async function GetBankDepostits({
   local?: string;
   handleUnauthenticated: () => void;
 }) {
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<GetBankDepositeApi> = await fetchServerData({
     method: "GET",
     local: local,
     url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/bank-deposits",
     headers: {
-      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -366,6 +374,7 @@ export async function GetWalletBalance({
   currencySymbol: string;
   handleUnauthenticated: () => void;
 }) {
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let params = new URLSearchParams();
   if (currencySymbol?.length > 0) {
     params.append("currencySymbol", currencySymbol);
@@ -380,7 +389,7 @@ export async function GetWalletBalance({
       process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
       `/wallets/myAcounts?${params.toString()}`,
     headers: {
-      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -394,6 +403,7 @@ export async function GetJournalEntries({
   local?: string;
   handleUnauthenticated: () => void;
 }) {
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<GetJournalEntriesApi> = await fetchServerData({
     method: "GET",
     local: local,
@@ -401,7 +411,7 @@ export async function GetJournalEntries({
       process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
       `/wallets/my/journal-entries`,
     headers: {
-      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -415,13 +425,14 @@ export async function GetTransactions({
   local?: string;
   handleUnauthenticated: () => void;
 }) {
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<GetTransactionsApi> = await fetchServerData({
     method: "GET",
     local: local,
     url:
       process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/wallets/my/transactions`,
     headers: {
-      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -445,26 +456,33 @@ export async function CheckoutOrder({
   storeKey?: "trydos";
   handleUnauthenticated: () => void;
 }) {
+  let user = await getCookieServer<any>(COOKIE_NAMES.USER_DATA);
+  let userId = user?.id as string;
+  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
+
   let response: FetchResponse<CheckoutOrderApi> = await fetchServerData({
     method: "POST",
     local: local,
     body: JSON.stringify({
       currencyId: currencyId,
-      carts: [
-        {
-          cartId: cartId,
-          amount: amount,
-        },
-      ],
+      store_user_id: String(userId),
+      amount: amount,
+      cart_groub_ids: [cartId],
       idempotencyKey: idempotencyKey,
     }),
     url:
       process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
       `/wallets/${storeKey}/checkout`,
     headers: {
-      Authorization: `Bearer ${getCookie(COOKIE_NAMES.WALLET_TOKEN)}`,
+      Authorization: `Bearer ${token}`,
     },
   });
-
+  console.log("Checkout response:", response, {
+    currencyId: currencyId,
+    store_user_id: String(userId),
+    amount: amount,
+    cart_groub_ids: [cartId],
+    idempotencyKey: idempotencyKey,
+  });
   return processResponse<CheckoutOrderApi>(response, handleUnauthenticated);
 }

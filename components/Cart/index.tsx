@@ -31,6 +31,7 @@ import CartItem from "./CartItem";
 import Image from "next/image";
 import EmptyCart from "./EmptyCart";
 import { isSamePage } from "utils/navigationsUtils";
+import CheckoutButton from "./CheckoutButton";
 
 function CartContainer({ close, toOrders }) {
   const {
@@ -447,6 +448,8 @@ function CartContainer({ close, toOrders }) {
       {!cart_loading && cartShippingSuccess === null && (
         <OrderButton toOrders={() => toOrders()} close={() => close()} />
       )}
+
+      <CheckoutButton local={`${params.lang}`} />
     </div>
   );
 }
@@ -617,6 +620,7 @@ export const QuantutyInput = ({
       setLoading(false);
     }
   };
+
   return (
     <div
       data-cy="card-footer"

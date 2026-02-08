@@ -312,10 +312,8 @@ export const useCartStore = (set, get) => ({
       const products = cart.oldCart ?? [];
       const oldCart = products.map((product) => ({
         ...product,
-        offer_price: product.discount
-          ? product.price_of_variant - product.discount
-          : 0,
-        price: product.price_of_variant,
+        offer_price: product?.offer_price,
+        price: product.unit_price,
       }));
       return { oldCart: { ...cart, oldCart } };
     }),
