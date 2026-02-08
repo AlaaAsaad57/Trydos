@@ -884,7 +884,7 @@ export class ElasticsearchReader {
 
           for (const product of orderedValidated) {
             if (collected.length >= productLimit) break;
-            collected.push(product);
+            collected.push({ ...product, most_views: true });
           }
 
           from += batchSize;
