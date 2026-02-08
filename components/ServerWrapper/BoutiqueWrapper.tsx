@@ -89,6 +89,11 @@ const CategoriesSlider = ({ categories, boutique, lang }) => {
           }
           className="w-[90px] min-w-[90px] h-[90px] rounded-[15px] bg-white relative"
         >
+          {category?.most_views && (
+            <span className="absolute top-0 -right-1.5 z-[9999999999]">
+              <img src="/icons/TrendingViews.svg" className="w-[20px] " />
+            </span>
+          )}
           <div className="rounded-[15px] absolute w-full h-full top-0 left-0 z-10 shadow-[inset_0px_3px_6px_rgba(255,255,255,0.5)]" />
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -120,7 +125,7 @@ const CategoriesSlider = ({ categories, boutique, lang }) => {
               alt={category?.most_viewed_product_name}
               src={GetImageUrl(category.most_viewed_product_thumbnail).replace(
                 "/upload",
-                `/upload/h_200,w_200,c_fit/f_auto/q_auto:good/fl_lossy/so_0`
+                `/upload/h_200,w_200,c_fit/f_auto/q_auto:good/fl_lossy/so_0`,
               )}
               width={300}
               className="rounded-[15px] w-[90px] h-[90px] object-contain object-center "
