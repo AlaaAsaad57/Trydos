@@ -879,7 +879,7 @@ export class ElasticsearchReader {
 
           // Preserve view_count order from product_views
           const orderedValidated = productIds
-            .map((pid) => validated.find((p) => p.id === pid))
+            .map((pid) => validated.find((p) => String(p.id) === String(pid)))
             .filter(Boolean);
 
           for (const product of orderedValidated) {
