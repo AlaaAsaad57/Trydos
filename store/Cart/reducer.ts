@@ -364,6 +364,7 @@ export const useCartStore = (set, get) => ({
   initCart: (data: CartApiInterface) =>
     set((state) => ({
       ...data,
+      cartShippingSuccess: null,
       localCart: [
         ...data.cart.map((s) => ({
           id: s.product_id,
@@ -392,6 +393,7 @@ export const useCartStore = (set, get) => ({
       ...data,
       cart: state.cart,
       localCart: state.localCart,
+      cartShippingSuccess: null,
     })),
 
   removeFromCart: (id) =>
