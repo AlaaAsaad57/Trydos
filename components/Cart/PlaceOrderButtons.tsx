@@ -248,6 +248,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
                 success: false,
                 data: [],
               });
+              // @ts-ignore
               initCart({ cart: [] });
               setCouponDiscount(null);
               close();
