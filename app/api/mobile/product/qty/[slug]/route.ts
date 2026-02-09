@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
+import { GetProductPriceQtyDetails } from "serverRequests/product";
 import { getProductFromCache, storeProduct } from "serverRequests/radis";
 import {
   GetProductData,
@@ -42,36 +43,17 @@ export async function GET(request: NextRequest, { params }) {
   language = language ?? lang ?? "en";
   let productDataVar;
   try {
-    const response = await getProductFromCache(Params.slug, language, country);
-    if (response.product?.id) {
-      productDataVar = { ...response.product, redis: true };
-    } else {
-      let { product: productData } = await GetProductData({
-        lang: `${country}-${language}`,
-        productId: Params.slug,
-      });
-
-      if (productData?.id && productData?.images) {
-        storeProduct(productData, Params.slug, language, country);
-      }
-
-      productDataVar = {
-        ...productData,
-
-        redis: false,
-      };
-    }
-    const user_id = request.nextUrl.searchParams.get("user_id");
-    let elasticData = await getProductDataFromElastic({
-      productId: productDataVar.id,
-      lang: language,
+    const response = await GetProductPriceQtyDetails({
+      country: country,
+      language: language,
       slug: Params.slug,
-      userId: user_id,
+      noCache: true,
     });
+    productDataVar = response;
     return withCORS(
       NextResponse.json(
         {
-          data: { ...productDataVar, ...elasticData },
+          data: { ...productDataVar },
           isSuccessful: true,
           code: 200,
         },
@@ -79,15 +61,15 @@ export async function GET(request: NextRequest, { params }) {
       ),
     );
   } catch (error) {
-    console.error("Get Product Details with Cache api route", error);
+    console.error("Get Product QTY api route", error);
     LogServerError(
       {
         error: error,
-        type: "product details api route",
+        type: "product QTY api route",
         url: request.url,
         headers: request.headers,
       },
-      "/api/mobile/product/details_without_similar_related_products/[slug]",
+      "/api/mobile/product/qty/[slug]",
     );
     return withCORS(
       NextResponse.json(

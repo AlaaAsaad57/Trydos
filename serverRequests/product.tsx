@@ -171,20 +171,23 @@ export async function GetProductPriceQtyDetails({
   slug,
   country,
   language,
+  noCache = false,
 }): Promise<QtyProductData> {
   try {
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
       country,
     )}`;
-    let productId = await GetFromRedis(slugKey);
-    let cacheKey = `product-id-${productId}-${country}-${language}`;
-    if (productId) {
-      let cachedProductData = await RedisGet(`${cacheKey}-qtyPrices`);
-      if (cachedProductData) {
-        return {
-          ...cachedProductData,
-          qtyPricesDataFromRedis: true,
-        };
+    if (!noCache) {
+      let productId = await GetFromRedis(slugKey);
+      let cacheKey = `product-id-${productId}-${country}-${language}`;
+      if (productId) {
+        let cachedProductData = await RedisGet(`${cacheKey}-qtyPrices`);
+        if (cachedProductData) {
+          return {
+            ...cachedProductData,
+            qtyPricesDataFromRedis: true,
+          };
+        }
       }
     }
     let freshQtyPricesData = await fetchServerData({

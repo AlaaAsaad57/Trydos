@@ -1,5 +1,9 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  GetGlobalProduct,
+  GetProductPriceQtyDetails,
+} from "serverRequests/product";
 import { getProductFromCache, storeProduct } from "serverRequests/radis";
 import {
   GetProductData,
@@ -41,26 +45,25 @@ export async function GET(request: NextRequest, { params }) {
   const lang = request.headers.get("lang")?.trim();
   language = language ?? lang ?? "en";
   let productDataVar;
+  let GlobalData = GetGlobalProduct({
+    slug: Params.slug,
+    language: language,
+    country: country,
+  });
+  let QtyPricesData = GetProductPriceQtyDetails({
+    slug: Params.slug,
+    language: language,
+    country: country,
+  });
+  let [GlobalDataResponse, QtyPricesDataResponse] = await Promise.all([
+    GlobalData,
+    QtyPricesData,
+  ]);
   try {
-    const response = await getProductFromCache(Params.slug, language, country);
-    if (response.product?.id) {
-      productDataVar = { ...response.product, redis: true };
-    } else {
-      let { product: productData } = await GetProductData({
-        lang: `${country}-${language}`,
-        productId: Params.slug,
-      });
-
-      if (productData?.id && productData?.images) {
-        storeProduct(productData, Params.slug, language, country);
-      }
-
-      productDataVar = {
-        ...productData,
-
-        redis: false,
-      };
-    }
+    productDataVar = {
+      ...GlobalDataResponse,
+      ...QtyPricesDataResponse,
+    };
 
     const user_id = request.nextUrl.searchParams.get("user_id");
     let elasticData = await getProductDataFromElastic({
