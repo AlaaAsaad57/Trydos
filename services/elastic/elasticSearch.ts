@@ -23,11 +23,6 @@ import {
   recommendation_cold_index,
   recommendation_index,
 } from "./INDEXES";
-import {
-  //should edit in the other branch
-  shouldEnrichWithBoutiqueRecs,
-  getEnrichedBoutiqueResults,
-} from "./boutiqueRecommendations";
 
 // Types and Interfaces
 interface SearchFilters {
@@ -217,42 +212,6 @@ export async function getProductsAndFiltersFromElastic(
     const baseConditions = buildBaseConditions(filters, country);
     const { must: mustConditions, must_not: mustNotConditions } =
       baseConditions;
-
-    //should edit in the other branch
-    // if (await shouldEnrichWithBoutiqueRecs(filters, userId)) {
-    //   console.log("Enriching with boutique recommendations");
-    //   try {
-    //     const enrichedResult = await getEnrichedBoutiqueResults({
-    //       filters,
-    //       country,
-    //       language_code,
-    //       is_from_browser,
-    //       limit,
-    //       search_after,
-    //       noFilters,
-    //       userId: userId!,
-    //       isAnalyzed,
-    //       filters_offset,
-    //     });
-    //     console.log("Boutique enrichment successful");
-    //     if (enrichedResult) return enrichedResult;
-    //   } catch (enrichError) {
-    //     console.error(
-    //       "Boutique enrichment failed, falling back to normal search",
-    //       enrichError,
-    //     );
-    //     LogServerError({
-    //       scenario:
-    //         "boutiqueRecommendations enrichment failed, falling back to normal",
-    //       error:
-    //         enrichError instanceof Error
-    //           ? enrichError.message
-    //           : String(enrichError),
-    //     });
-    //   }
-    // }
-
-    // Build the main search query
 
     const searchQuery = {
       index: catalog_index,
