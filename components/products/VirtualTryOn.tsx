@@ -22,9 +22,9 @@ const VirtualTryOn = ({ language, product }) => {
               isRtl
                 ? "rounded-[6px] rounded-br-[15px] right-0"
                 : "rounded-[6px] rounded-bl-[15px] left-0"
-            }  bg-[#513AAF] z-50 flex items-center justify-center w-[25px] h-[25px] bottom-[6px]  absolute`}
+            }  bg-[#513AAF] z-[999] z-50 flex items-center justify-center w-[25px] h-[25px] bottom-[6px]  absolute`}
       >
-        <img src="/icons/MailcanIcon.svg" />
+        <img src="/icons/MailcanIcon.svg" className="w-[8px] h-auto" />
       </span>
     </>
   );
