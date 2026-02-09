@@ -108,6 +108,8 @@ export async function GetProducts({
   offset,
   parsedFilters,
   currency,
+  userId = null,
+  recomended_offset = null,
 }) {
   let response = await getProductsAndFiltersFromElastic({
     country,
@@ -116,6 +118,8 @@ export async function GetProducts({
     limit: 10,
     noFilters: true,
     search_after: offset,
+    recommended_offset: recomended_offset,
+    userId: userId,
   });
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
   let productsData: any = response.products.map((product) => {
@@ -213,6 +217,7 @@ export async function GetProducts({
   return {
     items: items,
     offset: newOffset,
+    recomended_offset: response?.recommended_offset,
     GA_PRODUCTS_LIST: response?.products?.map((s) => ({
       item_id: s?.product_id,
       item_name: s?.name,
