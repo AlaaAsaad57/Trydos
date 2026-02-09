@@ -108,6 +108,7 @@ async function ProductListConainer({
         title={title}
       />
       <ProductListServer
+        recomended_offset={filtersData?.recommended_offset}
         boutique={boutique?.name}
         products={productsData ?? []}
         offset={filtersData?.offset}
