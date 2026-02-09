@@ -92,8 +92,8 @@ function ProductsInfiniteScroll({
   const getProductsReq = async () => {
     if (loading || isReachEnd) return;
     setLoading(true);
-    let user = getCookie(COOKIE_NAMES.USER_DATA);
-    let userId = user ? JSON.parse(user).id : null;
+    let user = getCookie<any>(COOKIE_NAMES.USER_DATA);
+    let userId = user?.id;
     const response = await GetProducts({
       country,
       language: languageVariable,
