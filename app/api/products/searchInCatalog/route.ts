@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
     const country = req.headers.get("country")?.trim() || "sy";
     let language = req.headers.get("language")?.trim();
     const lang = req.headers.get("lang")?.trim();
+    const user_id = req.headers.get("uid")?.trim();
     language = language ?? lang ?? "en";
 
     const searchParams = req.nextUrl.searchParams;
@@ -72,6 +73,7 @@ export async function GET(req: NextRequest) {
       filters_offset: Number(searchParams.get("filters_offset") || 1),
       country,
       language_code: language,
+      userId: user_id || null,
     };
     const result = await getProductsAndFiltersFromElastic(params);
 

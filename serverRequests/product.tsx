@@ -16,6 +16,7 @@ import {
   product_interactions_index,
   share_index,
   user_interactions_index,
+  views_index,
 } from "services/elastic/INDEXES";
 
 let client = elasticSearchClient;
@@ -315,7 +316,6 @@ export async function GetProductGeneralData({ id }) {
       let res = await client.get({
         _source: [
           "final_rating",
-          "total_views",
           "star_distribution",
           "size_analysis",
           "good_quality_product",
@@ -341,16 +341,29 @@ export async function GetProductGeneralData({ id }) {
       };
     }
   };
+  const getProductViewsQuery = async (productId) => {
+    try {
+      let res = await client.get({
+        id: productId,
+        _source: ["view_count"],
+        index: views_index,
+      });
+      return (res._source as any)?.view_count ?? 0;
+    } catch (error) {
+      return 0;
+    }
+  };
   try {
-    let [source, recommendation_stats] = await Promise.all([
+    let [source, recommendation_stats, views] = await Promise.all([
       getProductGeneralQuery(),
       GetRecommendationCountForProduct({ product_id: id }),
+      getProductViewsQuery(id),
     ]);
 
     const productInfo = {
       product_id: id,
       final_rating: source?.final_rating,
-      total_views: source?.total_views ?? 0,
+      total_views: views ?? 0,
       ratingDetails: source?.star_distribution
         ? Object.keys(source.star_distribution)?.map((s) => ({
             ratingGroup: s?.split("_")[1],
