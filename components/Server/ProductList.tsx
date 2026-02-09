@@ -16,6 +16,7 @@ function ProductListServer({
   boutique,
   target,
   title,
+  recomended_offset = null,
 }) {
   let [country, language] = params.lang.split("-");
   const isRtl = language === "ar" || language === "ku";
@@ -61,6 +62,7 @@ function ProductListServer({
           );
         })}
         <ProductsInfiniteScroll
+          recomended_offset={recomended_offset}
           boutiqueName={boutique?.name}
           analyticsData={products?.map((s) => ({
             item_id: s?.product_id,

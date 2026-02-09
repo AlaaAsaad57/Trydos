@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     let language = req.headers.get("language")?.trim();
     const lang = req.headers.get("lang")?.trim();
     language = language ?? lang ?? "en";
-
+    const userId = req.headers.get("uid")?.trim();
     const searchParams = req.nextUrl.searchParams;
 
     if (searchParams.get("category_slugs")) {
@@ -72,6 +72,8 @@ export async function GET(req: NextRequest) {
       filters_offset: Number(searchParams.get("filters_offset") || 1),
       country,
       language_code: language,
+      user_id: userId,
+      recommended_offset: Number(searchParams.get("recommended_offset") || 0),
     };
     const result = await getProductsAndFiltersFromElastic(params);
 

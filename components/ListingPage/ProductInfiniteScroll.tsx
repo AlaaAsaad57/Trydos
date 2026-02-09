@@ -11,6 +11,7 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { EnableScroll } from "utils/tinyUtils";
 import auth from "services/auth";
 import { GetProducts } from "serverRequests/listing";
+import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 
 function ProductsInfiniteScroll({
   offset,
@@ -20,6 +21,7 @@ function ProductsInfiniteScroll({
   parsedFilters,
   isFeatured,
   isFlashDeals,
+  recomended_offset = null,
 }: {
   offset: any;
   currency: any;
@@ -28,6 +30,7 @@ function ProductsInfiniteScroll({
   isFlashDeals?: boolean;
   parsedFilters: any;
   boutiqueName;
+  recomended_offset?: any;
 }) {
   const { resetBoutique } = useAppStore();
   const { lang }: { lang: string } = useParams();
@@ -72,6 +75,7 @@ function ProductsInfiniteScroll({
 
   const [products, setProducts] = useState<any[]>([]);
   const [offsetValue, setOffsetValue] = useState(offset);
+  const [recommendedOffset, setRecommendedOffset] = useState(recomended_offset);
   const [loading, setLoading] = useState(false);
   const [isReachEnd, setIsReachEnd] = useState(false);
   function areArraysEqual(oldArray: number[], newArray: number[]): boolean {
@@ -88,17 +92,20 @@ function ProductsInfiniteScroll({
   const getProductsReq = async () => {
     if (loading || isReachEnd) return;
     setLoading(true);
-
+    let user = getCookie(COOKIE_NAMES.USER_DATA);
+    let userId = user ? JSON.parse(user).id : null;
     const response = await GetProducts({
       country,
       language: languageVariable,
       currency,
       offset: offsetValue,
       parsedFilters: parsedFilters,
+      userId,
+      recomended_offset: recommendedOffset,
     });
     if (!response) {
       showErrorNotification(
-        translateFunction("Failed To Load Products Retring in 3 seconds")
+        translateFunction("Failed To Load Products Retring in 3 seconds"),
       );
       setTimeout(() => {
         getProductsReq();

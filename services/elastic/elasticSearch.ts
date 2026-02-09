@@ -23,6 +23,7 @@ import {
   recommendation_cold_index,
   recommendation_index,
 } from "./INDEXES";
+import { enrichWithRecommended } from "./recommendationService";
 
 // Types and Interfaces
 interface SearchFilters {
@@ -49,7 +50,8 @@ interface SearchParams {
   filters_offset?: number;
   noProducts?: boolean;
   noFilters?: boolean;
-  userId?: string | number | null; //should edit in the other branch
+  userId?: string | number | null;
+  recommended_offset?: number;
 }
 
 interface FilterResult {
@@ -96,6 +98,7 @@ interface SearchResult {
   };
   isAnalyzed?: any;
   applied?: any;
+  recommended_offset?: number;
 }
 
 interface ElasticsearchHit {
@@ -148,7 +151,8 @@ export async function getProductsAndFiltersFromElastic(
     filters_offset = 1,
     noFilters = false,
     noProducts = false,
-    userId = null, //should edit in the other branch
+    userId = null,
+    recommended_offset = 0,
   } = params;
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
@@ -269,6 +273,45 @@ export async function getProductsAndFiltersFromElastic(
     }
     // Normalize products
     const normalizedProducts = normalizeCustomProducts(productsWithFilters);
+    // ── Recommended products (fire-and-forget merge) ──────────────
+    let recommendedProducts: any[] = [];
+    let newRecommendedOffset = recommended_offset;
+
+    try {
+      const enrichResult = await enrichWithRecommended({
+        userId: userId ? String(userId) : null,
+        filters,
+        offset: recommended_offset,
+        limit,
+        language_code,
+        country,
+      });
+
+      if (enrichResult?.products?.length) {
+        recommendedProducts = enrichResult.products;
+        newRecommendedOffset = enrichResult.recommended_offset;
+      }
+    } catch {
+      // Silently continue — recommendations are non-critical
+    }
+
+    const catalogProducts =
+      normalizedProducts.custom_products?.map((s) => ({
+        ...s,
+        is_redeem: s.has_redeem_discount,
+        seller_status: s?.seller_status,
+      })) ?? [];
+
+    // Deduplicate: remove catalog products already present in recommendations
+    const recommendedIdSet = new Set(
+      recommendedProducts.map((p) => String(p.id ?? p.product_id)),
+    );
+    const deduplicatedCatalog = catalogProducts.filter(
+      (p) => !recommendedIdSet.has(String(p.id ?? p.product_id)),
+    );
+
+    const mergedProducts = [...recommendedProducts, ...deduplicatedCatalog];
+
     if (noFilters) {
       return {
         colors: colorsFilter,
@@ -277,12 +320,9 @@ export async function getProductsAndFiltersFromElastic(
         isAnalyzed: isAnalyzed,
         applied: filters,
         total_size: total_size,
-        products: normalizedProducts.custom_products?.map((s) => ({
-          ...s,
-          is_redeem: s.has_redeem_discount,
-          seller_status: s?.seller_status,
-        })),
+        products: mergedProducts,
         limit: limit,
+        recommended_offset: newRecommendedOffset,
       };
     }
 
@@ -346,11 +386,7 @@ export async function getProductsAndFiltersFromElastic(
       offset: lastSortValue,
       limit: limit,
       total_size: total_size,
-      products: normalizedProducts?.custom_products?.map((s) => ({
-        ...s,
-        is_redeem: s.has_redeem_discount,
-        seller_status: s?.seller_status,
-      })),
+      products: mergedProducts,
       brands: brandsFilter,
       boutiques: boutiquesFilter,
       categories: categoriesFilter,
@@ -368,6 +404,7 @@ export async function getProductsAndFiltersFromElastic(
       prices: prices,
       isAnalyzed: isAnalyzed,
       applied: filters,
+      recommended_offset: newRecommendedOffset,
     };
   } catch (error) {
     LogServerError({
