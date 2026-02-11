@@ -17,16 +17,14 @@ import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
 import auth from "services/auth";
 import {
-  clearHashedUserId,
   COOKIE_NAMES,
   deleteCookie,
   getCookie,
   setCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
-import { getReferralSource } from "utils/tinyUtils";
+import { clearAllUserData, getReferralSource } from "utils/tinyUtils";
 import dynamic from "next/dynamic";
-import { clearSimulatedUserSession } from "utils/sessionManager";
 import { useAppStore } from "store";
 import { showSuccessNotification } from "store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
@@ -138,17 +136,7 @@ const Menu = ({ user, setMenuOpen }) => {
     setLoading(true);
     try {
       await Promise.all([deleteToken(messaging), handleRemoveFCM()]);
-      deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-      deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
-      deleteCookie(COOKIE_NAMES.USER_CHAT);
-      deleteCookie(COOKIE_NAMES.USER_STORIES);
-      deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
-      deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-      clearSimulatedUserSession();
-      clearHashedUserId();
-      sessionStorage.clear();
-      deleteCookie(COOKIE_NAMES.USER_DATA);
-      localStorage.clear();
+      clearAllUserData();
     } catch (error) {
       LogError({
         error: error,

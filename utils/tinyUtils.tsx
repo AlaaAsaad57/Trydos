@@ -5,6 +5,11 @@ import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
 import Image from "next/image";
 import { REQUESTS_DATA } from "./Requests";
+import {
+  clearHashedUserId,
+  COOKIE_NAMES,
+  deleteCookie,
+} from "./cookies/cookie-manager";
 
 export const ChatConroller = (payload) => {
   try {
@@ -14,6 +19,18 @@ export const ChatConroller = (payload) => {
     openChat(payload);
     setChatOpen(payload);
   } catch (error) {}
+};
+export const clearAllUserData = () => {
+  deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
+  deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
+  deleteCookie(COOKIE_NAMES.USER_CHAT);
+  deleteCookie(COOKIE_NAMES.USER_STORIES);
+  deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
+  deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
+  clearHashedUserId();
+  sessionStorage.clear();
+  deleteCookie(COOKIE_NAMES.USER_DATA);
+  localStorage.clear();
 };
 export const getCurrency = async ({ callback }) => {
   try {

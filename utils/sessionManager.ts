@@ -1,4 +1,5 @@
 import { deleteCookie, COOKIE_NAMES } from "./cookies/cookie-manager";
+import { clearAllUserData } from "./tinyUtils";
 
 /**
  * Check if the simulated user session has expired
@@ -32,13 +33,7 @@ export const clearSimulatedUserSession = (): void => {
   if (typeof window === "undefined") return;
 
   // Clear all cookies
-  deleteCookie(COOKIE_NAMES.USER_DATA);
-  deleteCookie(COOKIE_NAMES.USER_CHAT);
-  deleteCookie(COOKIE_NAMES.USER_STORIES);
-  deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-  deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
-  deleteCookie(COOKIE_NAMES.COUNTRY);
-  deleteCookie(COOKIE_NAMES.LANG);
+  clearAllUserData();
 
   // Clear localStorage
   localStorage.removeItem("sessionExpiry");
