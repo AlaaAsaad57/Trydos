@@ -11,6 +11,7 @@ import {
   UploadMedia,
   CreateBankDeposit,
   CheckoutOrder,
+  GetWalletBalanceForCountryCurrency,
 } from "services/wallet";
 import { createPortal } from "react-dom";
 import { translateFunction } from "utils/functions";
@@ -26,11 +27,36 @@ import { useAppStore } from "store";
 import { RDB } from "ramaaz-digital-banking";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { serverActions } from "services/RDB";
+import Spinner from "components/global/Spinner";
 
 function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [walletBalance, setWallet] = useState(null);
   const { setShouldAuthinticated, shouldAuthinticated, user, setLoginOpen } =
     useAppStore();
+  const GetWalletBalanceToShow = async () => {
+    setLoading(true);
+    let walletBalance = null;
+    try {
+      walletBalance = await GetWalletBalanceForCountryCurrency({
+        country,
+      });
+    } catch (error) {}
+
+    if (walletBalance && "status" in walletBalance) {
+      if (walletBalance.status === 401) {
+        setShouldAuthinticated(true);
+      }
+    }
+    setWallet(walletBalance);
+    setLoading(false);
+  };
+  useEffect(() => {
+    if (!shouldAuthinticated) {
+      GetWalletBalanceToShow();
+    }
+  }, [shouldAuthinticated]);
   return (
     <div
       onClick={() => {
@@ -84,9 +110,15 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
         data-cy="user-wallet-amount"
       >
         <span className="medium">
-          {wallet?.wallet_balance?.toFixed(currency?.decimal_digits)}{" "}
+          {loading ? (
+            <Spinner />
+          ) : (
+            walletBalance?.totalAvailable?.toFixed(
+              walletBalance?.decimal_digits,
+            )
+          )}{" "}
         </span>
-        {currency?.symbol} {translateFunction("Your Balance", language)}
+        {walletBalance?.symbol} {translateFunction("Your Balance", language)}
       </span>
     </div>
   );

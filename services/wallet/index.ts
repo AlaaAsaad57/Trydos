@@ -16,6 +16,7 @@ import {
   GetWalletBalancesApi,
   UploadMediaApi,
 } from "./types";
+import { getCurrency } from "serverRequests";
 
 export async function fetchServerData<T>({
   url,
@@ -105,7 +106,12 @@ function processResponse<T>(
     // Return null or undefined to stop flow without crashing,
     // assuming the handleUnauthenticated (e.g. redirect) takes over.
     // @ts-ignore - casting to T to satisfy return type in failure case
-    return null;
+    return {
+      error: response.error || "Unauthorized",
+      status: 401,
+      success: false,
+      data: null,
+    };
   }
 
   // 2. Error Handling & Logging
@@ -392,7 +398,7 @@ export async function GetWalletBalance({
       Authorization: `Bearer ${token}`,
     },
   });
-
+  console.log("GetWalletBalance response:", response);
   return processResponse<GetWalletBalancesApi>(response, handleUnauthenticated);
 }
 
@@ -485,4 +491,22 @@ export async function CheckoutOrder({
     idempotencyKey: idempotencyKey,
   });
   return processResponse<CheckoutOrderApi>(response, handleUnauthenticated);
+}
+
+export async function GetWalletBalanceForCountryCurrency({ country }) {
+  let currency = await getCurrency(country, "en");
+  if (!currency) {
+    throw new Error("Currency not found for country: " + country);
+  }
+  let balances = await GetWalletBalance({
+    currencySymbol: currency.code,
+    local: "gb-en",
+    handleUnauthenticated: () => {},
+  });
+
+  return {
+    ...(balances ?? {}),
+    symbol: currency.symbol,
+    decimal_digits: currency.decimal_digits,
+  };
 }
