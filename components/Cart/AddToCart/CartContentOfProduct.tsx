@@ -24,7 +24,7 @@ function CartContentOfProduct({ product }) {
             color?.color_option === cartItemColor,
         )?.name || cartItemColor
       : null;
-    console.log(product);
+
     if (colorName && cartItemSize) {
       return (
         <div className="flex flex-row items-center gap-[3px]">
