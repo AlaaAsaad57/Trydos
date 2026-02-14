@@ -198,7 +198,7 @@ class ForegroundNotificationHandler {
         const url = `/${lang}/settings/orders/${data?.order_group_id}`;
         notify(url, {
           is_settings: true,
-          href: `/${lang}/setting/orders/${data?.order_group_id}`,
+          href: `/${lang}/settings/orders/${data?.order_group_id}`,
         });
       }
     } else if (type.includes("product hurry up")) {
@@ -271,7 +271,7 @@ class ForegroundNotificationHandler {
       if (!response.success) throw new Error(response.message);
 
       if (response.data && response.data?.length > 0) {
-        const url = `/${lang}/setting/orders/${data?.order_group_id}`;
+        const url = `/${lang}/settings/orders/${data?.order_group_id}`;
         showSuccessNotification(
           data.description,
           5000,
