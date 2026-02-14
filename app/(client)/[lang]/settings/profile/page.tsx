@@ -49,14 +49,24 @@ async function Profile({ params }) {
         name={translateFunction("Profile", language)}
         preivous_page={`/${Params?.lang}/settings`}
       />
-      <div className="flex-row justify-center mt-[12px] w-full">
+      <div
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="flex-row justify-center mt-[12px] w-full"
+      >
         <ProfilePicture
           language={language}
           local={Params.lang}
           photo={SafeUserProfile.image}
         />
       </div>
-      <div className="flex flex-col mt-[30px] w-full">
+      <div
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="flex flex-col mt-[30px] w-full"
+      >
         {options.map((option) => (
           <SettingOption {...option} key={option.name} />
         ))}
@@ -187,12 +197,10 @@ const SettingOption = ({ name, Icon, dataCy, href }: any) => {
       isFromSetting={true}
       href={href}
       data-cy={dataCy}
-      className="w-full cursor-pointer flex-row mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center"
+      className="w-full cursor-pointer flex-row mt-[4px] gap-2 h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center"
     >
       <img src={Icon} className="w-[25px] h-[25px]" />
-      <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
-        {name}
-      </span>
+      <span className="text-[14px] regular text-[#1d1d1d] ">{name}</span>
     </NextLink>
   );
 };

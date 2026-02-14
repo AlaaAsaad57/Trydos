@@ -26,7 +26,7 @@ function LanguageSetting({ local, languageVar }) {
     <div className="flex-col w-full">
       <div className="flex-row justify-center mt-[12px] w-full">
         <div
-          className="bg-[#F8F8F8] min-h-[50px] w-full flex-row items-center pl-[24px] pr-[20px] "
+          className="bg-[#F8F8F8] min-h-[50px] gap-[12px] w-full flex-row items-center pl-[24px] pr-[20px] "
           style={{
             border: "1px solid rgb(211 211 211 / 51%)",
           }}
@@ -77,7 +77,7 @@ function LanguageSetting({ local, languageVar }) {
             />
           </svg>
 
-          <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
+          <div className="regular text-[10px]  text-[#8D8D8D]">
             {translateFunction(
               "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
             )}
