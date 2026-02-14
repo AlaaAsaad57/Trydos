@@ -15,7 +15,7 @@ function ConfirmMobilePhoneWidget() {
     useAppStore();
   useEffect(() => {
     DisableScroll();
-    copyInitialData();
+
     return () => {
       EnableScroll();
     };
@@ -82,6 +82,14 @@ function ConfirmMobilePhoneWidget() {
             </g>
           </svg>
         </div>
+
+        <button
+          onClick={copyInitialData}
+          className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded font-medium"
+        >
+          Copy Data
+        </button>
+
         <ConfirmMobile
           closeWindow={() => {
             setShouldAuthinticated(false);
