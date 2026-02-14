@@ -78,7 +78,12 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
         name={translateFunction("Profile", language)}
         preivous_page={`/${local}/settings/profile`}
       />
-      <div className="flex-row justify-center mt-[12px] w-full">
+      <div
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="flex-row justify-center mt-[12px] w-full"
+      >
         <div
           className="bg-[#F8F8F8] min-h-[50px] w-full flex-row items-center pl-[24px] pr-[20px] "
           style={{
@@ -139,6 +144,9 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
         </div>
       </div>
       <div
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
         className="flex-col w-full mt-[30px] px-[12px] pb-[110px]"
         data-cy="container-name-phone"
       >
