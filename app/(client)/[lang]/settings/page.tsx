@@ -13,6 +13,7 @@ import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants"
 import RouterRefresh from "components/global/RouterRefresh";
 import { getCurrency } from "serverRequests";
 import { getWallet } from "serverRequests/settings";
+import DummyAddDeposite from "components/settings/DummyAddDeposite";
 
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -109,6 +110,7 @@ async function page({ params }) {
         />
       </Suspense>
       <GoToSellerDashBoard language={language} />
+      <DummyAddDeposite />
       <div
         className={`flex w-full ${
           isRtl ? "flex-row-reverse" : "flex-row"

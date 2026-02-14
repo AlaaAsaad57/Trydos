@@ -135,11 +135,11 @@ function processResponse<T>(
 export async function checkWallet({
   id,
   local = "gb-en",
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   id: string;
   local?: string;
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let res = await fetchServerData({
@@ -153,7 +153,7 @@ export async function checkWallet({
 
   // Specific logic for checkWallet: 401 check first
   if (res?.status === 401) {
-    handleUnauthenticated();
+    handleUnauthenticated?.();
     return;
   }
 
@@ -166,11 +166,11 @@ export async function checkWallet({
 export async function createWallet({
   id,
   local = "gb-en",
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   id: string;
   local?: string;
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response = await fetchServerData({
@@ -198,10 +198,10 @@ export async function createWallet({
 
 export async function getCurrencies({
   local = "gb-en",
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   local?: string;
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   try {
@@ -224,10 +224,10 @@ export async function getCurrencies({
 
 export async function GetBanks({
   local = "gb-en",
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   local?: string;
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   try {
@@ -249,11 +249,11 @@ export async function GetBanks({
 export async function UploadMedia({
   file,
   local = "gb-en",
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   file: File;
   local?: string;
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let formData = new FormData();
@@ -283,7 +283,7 @@ export async function CreateBankDeposit({
   transactionReference,
   idempotencyKey,
   local = "gb-en",
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   bankId: string;
   currencyId: string;
@@ -292,7 +292,7 @@ export async function CreateBankDeposit({
   transactionReference: string;
   idempotencyKey: string;
   local?: string;
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<CreateBankDepositeApi> = await fetchServerData({
@@ -323,13 +323,13 @@ export async function CalculateFees({
   currencyId,
   amount,
   local = "gb-en",
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   bankId: string;
   currencyId: string;
   amount: number;
   local?: string;
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<CalculateFeesApi> = await fetchServerData({
@@ -353,10 +353,10 @@ export async function CalculateFees({
 
 export async function GetBankDepostits({
   local = "gb-en",
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   local?: string;
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<GetBankDepositeApi> = await fetchServerData({
@@ -374,11 +374,11 @@ export async function GetBankDepostits({
 export async function GetWalletBalance({
   currencySymbol,
   local = "gb-en",
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   local?: string;
   currencySymbol: string;
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let params = new URLSearchParams();
@@ -404,10 +404,10 @@ export async function GetWalletBalance({
 
 export async function GetJournalEntries({
   local = "gb-en",
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   local?: string;
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<GetJournalEntriesApi> = await fetchServerData({
@@ -426,10 +426,10 @@ export async function GetJournalEntries({
 
 export async function GetTransactions({
   local = "gb-en",
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   local?: string;
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<GetTransactionsApi> = await fetchServerData({
@@ -452,7 +452,7 @@ export async function CheckoutOrder({
   idempotencyKey,
   local = "gb-en",
   currencyId,
-  handleUnauthenticated,
+  handleUnauthenticated = () => {},
 }: {
   cartId: string;
   amount: number;
@@ -460,7 +460,7 @@ export async function CheckoutOrder({
   local?: string;
   currencyId: string;
   storeKey?: "trydos";
-  handleUnauthenticated: () => void;
+  handleUnauthenticated?: () => void;
 }) {
   let user = await getCookieServer<any>(COOKIE_NAMES.USER_DATA);
   let userId = user?.id as string;
