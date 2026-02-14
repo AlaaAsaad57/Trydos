@@ -398,7 +398,7 @@ export async function GetWalletBalance({
       Authorization: `Bearer ${token}`,
     },
   });
-  console.log("GetWalletBalance response:", response);
+
   return processResponse<GetWalletBalancesApi>(response, handleUnauthenticated);
 }
 

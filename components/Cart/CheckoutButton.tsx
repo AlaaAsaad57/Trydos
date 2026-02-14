@@ -149,7 +149,6 @@ export default function CheckoutButton({ local = "gb-en" }) {
         local,
         handleUnauthenticated,
       });
-      console.log("Checkout result:", result);
 
       if (result) {
         alert("Payment successful!");

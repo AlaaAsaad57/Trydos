@@ -173,7 +173,6 @@ export const useCartStore = (set, get) => ({
     })),
 
   setWalletUser: (wallet) => {
-    console.log(wallet, "wallet in reducer");
     set({
       wallet: {
         ...wallet,
