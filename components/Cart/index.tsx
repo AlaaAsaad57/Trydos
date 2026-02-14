@@ -449,7 +449,7 @@ function CartContainer({ close, toOrders }) {
         <OrderButton toOrders={() => toOrders()} close={() => close()} />
       )}
 
-      <CheckoutButton local={`${params.lang}`} />
+      {/* <CheckoutButton local={`${params.lang}`} /> */}
     </div>
   );
 }

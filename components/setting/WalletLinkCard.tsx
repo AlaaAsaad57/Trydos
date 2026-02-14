@@ -28,6 +28,7 @@ import { RDB } from "ramaaz-digital-banking";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { serverActions } from "services/RDB";
 import Spinner from "components/global/Spinner";
+import order from "services/order";
 
 function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
   const [open, setOpen] = useState(false);
@@ -35,26 +36,15 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
   const [walletBalance, setWallet] = useState(null);
   const { setShouldAuthinticated, shouldAuthinticated, user, setLoginOpen } =
     useAppStore();
-  const GetWalletBalanceToShow = async () => {
+  const GetWalletForUser = async () => {
     setLoading(true);
-    let walletBalance = null;
-    try {
-      walletBalance = await GetWalletBalanceForCountryCurrency({
-        country,
-      });
-    } catch (error) {}
-
-    if (walletBalance && "status" in walletBalance) {
-      if (walletBalance.status === 401) {
-        setShouldAuthinticated(true);
-      }
-    }
-    setWallet(walletBalance);
+    let balance = await order.GetWalletBalanceToShow({ country: country });
+    setWallet(balance);
     setLoading(false);
   };
   useEffect(() => {
     if (!shouldAuthinticated) {
-      GetWalletBalanceToShow();
+      GetWalletForUser();
     }
   }, [shouldAuthinticated]);
   return (

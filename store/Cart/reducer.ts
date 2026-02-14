@@ -172,13 +172,15 @@ export const useCartStore = (set, get) => ({
       credit: state.total_cash || 0,
     })),
 
-  setWalletUser: (wallet) =>
+  setWalletUser: (wallet) => {
+    console.log(wallet, "wallet in reducer");
     set({
       wallet: {
         ...wallet,
         wallet_balance: wallet?.wallet_balance || 0,
       },
-    }),
+    });
+  },
 
   setMapCenter: (center) => set({ center }),
 

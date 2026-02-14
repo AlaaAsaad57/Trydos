@@ -8,6 +8,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { returnDetails } from "utils/types/OrderInterface";
 import { LogServerError } from "utils/serverErrorReporter";
+import { GetWalletBalanceForCountryCurrency } from "./wallet";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
@@ -61,20 +62,24 @@ class OrderService {
           setCurrency(data.currency);
         },
       });
-      let response: any = await fetchData({
-        url: "/customer/wallet/list?limit=10&offset=1",
-        reqTitle: REQUESTS_DATA.GET_WALLET,
-        method: "GET",
-        server: "market",
-      });
+      // let response: any = await fetchData({
+      //   url: "/customer/wallet/list?limit=10&offset=1",
+      //   reqTitle: REQUESTS_DATA.GET_WALLET,
+      //   method: "GET",
+      //   server: "market",
+      // });
+      let country = getCookie(COOKIE_NAMES.COUNTRY);
+      let response = await this.GetWalletBalanceToShow({ country });
+
       // @ts-ignore
       if (!response.success) {
         // @ts-ignore
         throw new Error(response.message);
       }
+
       setWalletUser({
-        ...response.data,
-        wallet_balance: response.data.wallet_balance || 0,
+        ...response,
+        wallet_balance: response?.totalAvailable,
       });
       setOrderLoading(false);
       return response.data;
@@ -85,6 +90,22 @@ class OrderService {
         scenario: "Error In GetWallet in services/order",
       });
     }
+  }
+  async GetWalletBalanceToShow({ country }) {
+    const { setShouldAuthinticated } = useAppStore.getState();
+    let walletBalance = null;
+    try {
+      walletBalance = await GetWalletBalanceForCountryCurrency({
+        country,
+      });
+    } catch (error) {}
+
+    if (walletBalance && "status" in walletBalance) {
+      if (walletBalance.status === 401) {
+        setShouldAuthinticated(true);
+      }
+    }
+    return { ...walletBalance, success: walletBalance ? true : false };
   }
   async GetWalletTransactions(limit: number = 10, offset: number = 1) {
     try {

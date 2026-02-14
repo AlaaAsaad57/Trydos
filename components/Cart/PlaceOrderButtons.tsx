@@ -13,6 +13,7 @@ import NextLink from "components/global/NextLink";
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { isSamePage } from "utils/navigationsUtils";
+import WalletPaymentModal from "./WalletPaymentModal";
 
 function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const {
@@ -59,6 +60,12 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   };
   const [loading, setLoading] = useState(false);
   const [agreeLoading, setAgreeLoading] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+
+  const hasWalletPayment = orderData.payment?.some((s) => s.id === 1);
+  const walletPaymentBalance =
+    orderData.payment?.find((s) => s.id === 1)?.balance || 0;
+
   const VerifyCart = async () => {
     try {
       setLoading(true);
@@ -75,10 +82,12 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
         showErrorNotification(
           translateFunction("Please Verify Your Phone Number"),
         );
+        return;
       }
       if (a.length === 0) {
         backToCart();
         setLoading(false);
+        return;
       }
       if (
         a?.filter(
@@ -89,7 +98,11 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
         ).length === 0
       ) {
         setLoading(false);
-        successOrder();
+        if (hasWalletPayment) {
+          setShowWalletModal(true);
+        } else {
+          successOrder();
+        }
       } else {
         throw Error("Please Review Your Cart Info");
       }
@@ -118,6 +131,18 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const isRtl = language === "ar" || language === "ku";
   return (
     <div className="absolute flex-col items-center payment-order-bottom left-0 w-full">
+      {showWalletModal && (
+        <WalletPaymentModal
+          walletAmount={walletPaymentBalance}
+          onSuccess={() => {
+            setShowWalletModal(false);
+            successOrder();
+          }}
+          onClose={() => {
+            setShowWalletModal(false);
+          }}
+        />
+      )}
       {!orderData.success && (
         <div className="px-[24px] mb-[12px] w-full">
           <div
