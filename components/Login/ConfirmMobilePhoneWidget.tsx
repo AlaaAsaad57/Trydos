@@ -15,12 +15,7 @@ function ConfirmMobilePhoneWidget() {
     useAppStore();
   useEffect(() => {
     DisableScroll();
-    let bool = confirm(
-      "mounted ConfirmMobilePhoneWidget confirm to copy the reason",
-    );
-    if (bool) {
-      copyInitialData();
-    }
+    copyInitialData();
     return () => {
       EnableScroll();
     };
@@ -34,7 +29,7 @@ function ConfirmMobilePhoneWidget() {
     await navigator.clipboard.writeText(
       JSON.stringify({ last_verify_date, last_unauthorized_request }, null, 2),
     );
-    showSuccessNotification("copy success!");
+    showSuccessNotification("copy reason of  verification success!");
   };
 
   return (
