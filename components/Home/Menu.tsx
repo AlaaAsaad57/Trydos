@@ -110,17 +110,12 @@ const Menu = ({ user, setMenuOpen }) => {
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
-    // Sendevent({
-    //   event: GA_EVENT_NAMES.CLICK,
-    //   value: GA_CLICK_EVENT_VALUES.LOGOUT_BUTTON,
-    // });
-    // localStorage.clear();
     if (loading) return;
     setLoggingOut(true);
+    setLoading(true);
 
-    const { messaging } = await import("utils/firebaseInitv1");
-    const { deleteToken } = await import("firebase/messaging");
-    const handleRemoveFCM = async () => {
+    // 1. Remove FCM token FIRST (while cookies still have valid tokens)
+    try {
       if (localStorage.getItem("FB-DEVICE-TOKEN")) {
         await fetchData({
           method: "POST",
@@ -132,21 +127,32 @@ const Menu = ({ user, setMenuOpen }) => {
           }),
         });
       }
-    };
-    setLoading(true);
-    try {
-      await Promise.all([deleteToken(messaging), handleRemoveFCM()]);
-      clearAllUserData();
-    } catch (error) {
-      LogError({
-        error: error,
-        scenario: "handleLogout in Nav Menu",
-      });
+    } catch (e) {
+      /* swallow — we're logging out anyway */
     }
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // 2. Delete firebase token locally
+    try {
+      const { messaging } = await import("utils/firebaseInitv1");
+      const { deleteToken } = await import("firebase/messaging");
+      await deleteToken(messaging);
+    } catch (e) {
+      /* swallow */
+    }
+
+    // 3. NOW clear all data (cookies, storage, store)
+    clearAllUserData();
+
+    // 4. Reset store auth state explicitly
+    const { cancelAuth } = useAppStore.getState();
+    cancelAuth(); // pass NO argument — full reset, not "expired"
+
+    // 5. Reload immediately — no need for 2s delay
     if (window.location.pathname.includes("/seller")) {
       window.location.href = `/${lang}`;
-    } else window.location.reload();
+    } else {
+      window.location.reload();
+    }
   };
   const shouldShowLogout = () => {
     if (loading) return true;
