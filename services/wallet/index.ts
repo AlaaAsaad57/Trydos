@@ -17,6 +17,7 @@ import {
   UploadMediaApi,
 } from "./types";
 import { getCurrency } from "serverRequests";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function fetchServerData<T>({
   url,
@@ -96,7 +97,9 @@ export async function fetchServerData<T>({
 function processResponse<T>(
   response: any,
   handleUnauthenticated: () => void,
-  logContext?: { scenario: string; userId?: string },
+  logContext?: { scenario: string; userId?: string } & Partial<
+    Record<string, any>
+  >,
 ): T {
   // 1. Priority Check: Authentication
   if (response?.status === 401) {
@@ -117,10 +120,12 @@ function processResponse<T>(
   // 2. Error Handling & Logging
   if (response?.error) {
     if (logContext) {
-      LogError({
+      LogServerError({
         error: response.error,
+        response: response,
         scenario: logContext.scenario,
         user_id: logContext.userId,
+        ...logContext,
       });
     }
     throw new Error(response.error);
@@ -214,12 +219,11 @@ export async function getCurrencies({
       },
     });
 
-    return processResponse<CurrenciesApi>(response, handleUnauthenticated);
-  } catch (error) {
-    // processResponse throws errors, which are caught here for logging if needed
-    // But since processResponse doesn't log for this case, we keep the outer catch
-    LogError({ error, scenario: "get currencies" });
-  }
+    return processResponse<CurrenciesApi>(response, handleUnauthenticated, {
+      scenario: "Get Currencies from wallet system",
+      userId: "server",
+    });
+  } catch (error) {}
 }
 
 export async function GetBanks({
@@ -240,10 +244,11 @@ export async function GetBanks({
       },
     });
 
-    return processResponse<BanksApi>(response, handleUnauthenticated);
-  } catch (error) {
-    LogError({ error, scenario: "get banks" });
-  }
+    return processResponse<BanksApi>(response, handleUnauthenticated, {
+      scenario: "Get Banks from wallet system",
+      userId: "server",
+    });
+  } catch (error) {}
 }
 
 export async function UploadMedia({
@@ -272,7 +277,10 @@ export async function UploadMedia({
     },
   });
 
-  return processResponse<UploadMediaApi>(response, handleUnauthenticated);
+  return processResponse<UploadMediaApi>(response, handleUnauthenticated, {
+    scenario: "UploadMedia from wallet system",
+    userId: "server",
+  });
 }
 
 export async function CreateBankDeposit({
@@ -315,6 +323,10 @@ export async function CreateBankDeposit({
   return processResponse<CreateBankDepositeApi>(
     response,
     handleUnauthenticated,
+    {
+      scenario: "CreateBankDeposit from wallet system",
+      userId: "server",
+    },
   );
 }
 
@@ -348,7 +360,10 @@ export async function CalculateFees({
     },
   });
 
-  return processResponse<CalculateFeesApi>(response, handleUnauthenticated);
+  return processResponse<CalculateFeesApi>(response, handleUnauthenticated, {
+    scenario: "CalculateFeess from wallet system",
+    userId: "server",
+  });
 }
 
 export async function GetBankDepostits({
@@ -368,7 +383,10 @@ export async function GetBankDepostits({
     },
   });
 
-  return processResponse<GetBankDepositeApi>(response, handleUnauthenticated);
+  return processResponse<GetBankDepositeApi>(response, handleUnauthenticated, {
+    scenario: "GetBankDepostits from wallet system",
+    userId: "server",
+  });
 }
 
 export async function GetWalletBalance({
@@ -399,7 +417,14 @@ export async function GetWalletBalance({
     },
   });
 
-  return processResponse<GetWalletBalancesApi>(response, handleUnauthenticated);
+  return processResponse<GetWalletBalancesApi>(
+    response,
+    handleUnauthenticated,
+    {
+      scenario: "GetWalletBalance from wallet system",
+      userId: "server",
+    },
+  );
 }
 
 export async function GetJournalEntries({
@@ -421,7 +446,14 @@ export async function GetJournalEntries({
     },
   });
 
-  return processResponse<GetJournalEntriesApi>(response, handleUnauthenticated);
+  return processResponse<GetJournalEntriesApi>(
+    response,
+    handleUnauthenticated,
+    {
+      scenario: "GetJournalEntries in wallet system",
+      userId: "server",
+    },
+  );
 }
 
 export async function GetTransactions({
@@ -442,7 +474,10 @@ export async function GetTransactions({
     },
   });
 
-  return processResponse<GetTransactionsApi>(response, handleUnauthenticated);
+  return processResponse<GetTransactionsApi>(response, handleUnauthenticated, {
+    scenario: "get transactions",
+    userId: "server",
+  });
 }
 
 export async function CheckoutOrder({
@@ -483,14 +518,19 @@ export async function CheckoutOrder({
       Authorization: `Bearer ${token}`,
     },
   });
-  console.log("Checkout response:", response, {
+
+  return processResponse<CheckoutOrderApi>(response, handleUnauthenticated, {
+    scenario: "CheckoutOrder in wallet system",
+    userId: String(userId),
+    url:
+      process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
+      `/wallets/${storeKey}/checkout`,
     currencyId: currencyId,
     store_user_id: String(userId),
     amount: amount,
     cart_groub_ids: [cartId],
     idempotencyKey: idempotencyKey,
   });
-  return processResponse<CheckoutOrderApi>(response, handleUnauthenticated);
 }
 
 export async function GetWalletBalanceForCountryCurrency({ country }) {
@@ -505,7 +545,10 @@ export async function GetWalletBalanceForCountryCurrency({ country }) {
   });
 
   return {
-    ...(balances ?? {}),
+    totalAvailable:
+      balances.wallets?.[0]?.balances?.find(
+        (s) => s.assetSymbol === currency.code,
+      )?.available || 0,
     symbol: currency.symbol,
     decimal_digits: currency.decimal_digits,
   };

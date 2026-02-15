@@ -71,7 +71,7 @@ function DummyAddDeposite() {
           getCurrencies({ local, handleUnauthenticated }),
           GetBanks({ local, handleUnauthenticated }),
         ]);
-        console.log("Currencies:", currRes, bankRes);
+
         if (bankRes?.items) setBanks(bankRes.items);
         if (currRes?.items?.length) {
           setCurrencies(currRes.items);

@@ -684,7 +684,7 @@ const TryDosWalletInput = ({ active, setActive, balance }) => {
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
         >
-          {translateFunction("Trydos Wallet")}
+          {translateFunction("Ramaaz Digital Bank Wallet")}
         </span>
         {orderLoading && (
           <span

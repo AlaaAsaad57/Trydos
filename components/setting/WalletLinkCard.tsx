@@ -39,6 +39,7 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
   const GetWalletForUser = async () => {
     setLoading(true);
     let balance = await order.GetWalletBalanceToShow({ country: country });
+
     setWallet(balance);
     setLoading(false);
   };
