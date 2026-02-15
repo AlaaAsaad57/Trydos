@@ -5,6 +5,7 @@ import {
   clearHashedUserId,
 } from "./cookies/cookie-manager";
 import React from "react";
+import { clearAllUserData } from "./tinyUtils";
 
 // Version cookie name
 const VERSION_COOKIE_NAME = "APP_VERSION";
@@ -86,7 +87,7 @@ const performVersionUpdate = (): void => {
 
     // Clear all storage
     clearAllStorage();
-
+    clearAllUserData();
     // Set new version cookie
     setVersionCookie(currentVersion);
 
