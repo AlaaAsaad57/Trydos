@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import HomeService from "services/home";
 import PopupCountry from "utils/PopupCountry";
 import home from "services/home";
-import { fetchCountries } from "utils/tinyUtils";
 
 import Smartlook from "smartlook-client";
 
@@ -17,6 +16,7 @@ import {
 } from "utils/cookies/cookie-manager";
 import NotificationWidget from "components/global/NotificationWidget";
 import { useAppStore } from "store";
+import { GetCountries } from "serverRequests/product";
 
 function Init() {
   const { lang } = useParams();
@@ -37,12 +37,12 @@ function Init() {
       setCountriesData(JSON.parse(data));
     } else {
       try {
-        const data = await fetchCountries(country, language);
+        const data = await GetCountries({ country, language });
         sessionStorage.setItem(
           `countries-${country}-${language}`,
-          JSON.stringify(data.countries),
+          JSON.stringify(data),
         );
-        setCountriesData(data.countries);
+        setCountriesData(data);
       } catch (error) {
         console.error("Failed to fetch countries:", error);
       }

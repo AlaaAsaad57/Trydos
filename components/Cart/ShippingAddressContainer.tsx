@@ -5,13 +5,13 @@ import { useParams } from "next/navigation";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import { fetchCountries } from "utils/tinyUtils";
 
 import { formatTimeForAddress, GetImageUrl } from "utils/tinyUtils";
 import home from "services/home";
 
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GetCountries } from "serverRequests/product";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const { setCountries, cart, user } = useAppStore();
   const { lang } = useParams();
@@ -26,12 +26,12 @@ function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
       setCountries(JSON.parse(data));
     } else {
       try {
-        const data = await fetchCountries(country, language);
+        const data = await GetCountries({ country, language });
         sessionStorage.setItem(
           `countries-${country}-${language}`,
-          JSON.stringify(data.countries)
+          JSON.stringify(data),
         );
-        setCountries(data.countries);
+        setCountries(data);
       } catch (error) {
         console.error("Failed to fetch countries:", error);
       }
@@ -297,7 +297,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
       >
         {translateFunction(
           "Please Enter Shipping Address To Receive Your Bag",
-          language
+          language,
         )}
       </div>
       <AddressContainer
@@ -575,8 +575,8 @@ const DefaultAddress = ({
       Number(settings?.["starting-setting"]?.shipping_duration_days) || 0;
     return formatTimeForAddress(
       new Date(
-        new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000
-      ).toString()
+        new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000,
+      ).toString(),
     );
   };
 

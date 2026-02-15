@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ipAddress } from "@vercel/functions";
 import { checkRateLimit, sendSecurityAlert } from "serverRequests/radis";
+
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
 const DEFAULT_LANGUAGE = "en";
@@ -56,8 +57,8 @@ function getCachedCountries(): string[] {
   return ["sy", "lb", "tr", "iq"];
 }
 
-function getAllSupportedCountries(): string[] {
-  return [...getCachedCountries(), "gb"];
+function getAllSupportedCountries(countries): string[] {
+  return [...countries.map((s) => s?.toLowerCase()), "gb"];
 }
 
 // Validation utilities
@@ -177,7 +178,42 @@ function createRedirectResponse(url: URL, redirectCount: number): NextResponse {
   );
   return redirectResponse;
 }
+let countriesCache: { data: any[]; expiry: number } | null = null;
+const COUNTRIES_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in-memory
 
+async function getCountriesForMiddleware({ language, country }) {
+  // Simple in-memory cache (lives per edge isolate)
+  if (countriesCache && Date.now() < countriesCache.expiry) {
+    return countriesCache.data;
+  }
+
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          lang: language,
+          country: country,
+        },
+      },
+    );
+
+    if (!res.ok) return getCachedCountries(); // fallback to hardcoded
+
+    const json = await res.json();
+    const countries = json?.data?.countries || [];
+
+    countriesCache = {
+      data: countries.map((s) => s.iso),
+      expiry: Date.now() + COUNTRIES_CACHE_TTL,
+    };
+    return countries?.map((s) => s.iso);
+  } catch {
+    return getCachedCountries(); // fallback to hardcoded
+  }
+}
 function getCleanPathname(
   pathname: string,
   urlLocale: LocaleInfo | null,
@@ -212,7 +248,13 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
   const urlLocale = parseUrlLocale(pathname);
-  const allSupportedCountries = getAllSupportedCountries();
+  let coutries = await getCountriesForMiddleware({
+    language: "en",
+    country: getGeoCountry(request) ?? "sy",
+  });
+  const allSupportedCountries = getAllSupportedCountries(coutries);
+  console.log(coutries, allSupportedCountries);
+
   const supportedLocales = buildSupportedLocales(allSupportedCountries);
   const response = NextResponse.next();
   if (ip && ip !== userIP) {

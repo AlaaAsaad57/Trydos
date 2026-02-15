@@ -115,6 +115,27 @@ interface QtyProductData {
   collected_after_ordering: number;
   available_quantity: number;
 }
+export async function GetCountries({ language, country }) {
+  let cacheKey = `countries-${country}-${language}`;
+  let cachedData = await RedisGet(cacheKey);
+  if (cachedData) {
+    return cachedData;
+  }
+
+  let response = await fetchServerData({
+    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/countries",
+    headers: { lang: language, country: country },
+    local: `${country}-${language}`,
+    method: "GET",
+  });
+  console.log("countries response", response);
+  if (response?.data?.data?.countries) {
+    await RedisSet(cacheKey, response.data.data.countries);
+    return response.data.data.countries;
+  }
+  return response?.data?.data?.countries || [];
+}
+
 export async function GetGlobalProduct({
   slug,
   country,

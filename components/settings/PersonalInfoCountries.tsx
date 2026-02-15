@@ -2,16 +2,15 @@
 import React, { useEffect, useState } from "react";
 
 import { translateFunction } from "utils/functions";
-import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
-import { fetchCountries } from "utils/tinyUtils";
 import Spinner from "components/global/Spinner";
 import { fetchData } from "utils/fetchData"; // Make sure this is imported
 import { STARTER_SETTINGS } from "utils/endpointConfig";
 import { REQUESTS_DATA } from "utils/Requests";
 import { setLocaizationCookies } from "utils/cookies/cookie-manager";
 import BackBar from "components/setting/BackBar";
+import { GetCountries } from "serverRequests/product";
 function PersonalInfoCountries({
   local = "",
   isRtl = false,
@@ -31,12 +30,12 @@ function PersonalInfoCountries({
         let data = sessionStorage.getItem(`countries-${country}-${language}`);
         setCountries(JSON.parse(data));
       } else {
-        const data = await fetchCountries(country, language);
+        const data = await GetCountries({ country, language });
         sessionStorage.setItem(
           `countries-${country}-${language}`,
-          JSON.stringify(data.countries),
+          JSON.stringify(data),
         );
-        setCountries(data.countries);
+        setCountries(data);
       }
     } catch (error) {
     } finally {

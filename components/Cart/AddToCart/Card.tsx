@@ -2,13 +2,10 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { GetCountries } from "serverRequests/product";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
-import {
-  fetchCountries,
-  formatTimeForAddress,
-  ShowDayStr,
-} from "utils/tinyUtils";
+import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
 
 function Card({
   image,
@@ -23,8 +20,8 @@ function Card({
   const { settings } = useAppStore();
   const [countries, setCountries] = useState([]);
   const getCountries = async () => {
-    let data = await fetchCountries(country, language);
-    setCountries(data.countries);
+    let data = await GetCountries({ country, language });
+    setCountries(data);
   };
   let { lang } = useParams();
   const [country, language] = (lang as string).split("-");

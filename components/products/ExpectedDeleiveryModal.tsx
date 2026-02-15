@@ -3,14 +3,11 @@ import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
-import {
-  fetchCountries,
-  formatTimeForAddress,
-  ShowDayStr,
-} from "utils/tinyUtils";
+import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
 import { useParams } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
 import ThinSepartor from "components/global/ThinSepartor";
+import { GetCountries } from "serverRequests/product";
 function ExpectedDeleiveryModal() {
   const [countriesData, setCountries] = useState([]);
   const { lang } = useParams();
@@ -23,12 +20,12 @@ function ExpectedDeleiveryModal() {
         let data = sessionStorage.getItem(`countries-${country}-${language}`);
         setCountries(JSON.parse(data));
       } else {
-        const data = await fetchCountries(country, language);
+        const data = await GetCountries({ country, language });
         sessionStorage.setItem(
           `countries-${country}-${language}`,
-          JSON.stringify(data.countries),
+          JSON.stringify(data),
         );
-        setCountries(data.countries);
+        setCountries(data);
       }
     } catch (error) {}
   };
