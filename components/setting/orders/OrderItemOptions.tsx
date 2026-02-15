@@ -408,6 +408,7 @@ function OrderItemOptions({
         return (
           <ModifyOrderItemModal
             close={() => {
+              close();
               setShowConfirmChangeOrder(null);
             }}
             confirmationData={ShowConfirmChangeOrder}

@@ -967,13 +967,19 @@ const ProductCard = ({
                   </span>
                 </div>
               )}
-              {product?.variation?.[0]?.size && (
+              {product?.variation?.find(
+                (s) => s.id === product?.product_variation_id,
+              )?.size && (
                 <div className="flex-row">
                   <span className="text-[10px] regular">
                     {translateFunction("Size")}:
                   </span>
                   <span className="text-[#505050] text-[10px] medium mx-[2px]">
-                    {product?.variation?.[0]?.size}
+                    {
+                      product?.variation?.find(
+                        (s) => s.id === product?.product_variation_id,
+                      )?.size
+                    }
                   </span>
                 </div>
               )}

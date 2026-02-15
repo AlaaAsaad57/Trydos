@@ -39,7 +39,7 @@ export const ModifyOrderItemModal = ({
       )?.images?.[0] || orderItem?.image;
     const imageVar = image.split("/")[image.split("/").length - 1];
 
-    await order.changeOrderItemVariant({
+    let res = await order.changeOrderItemVariant({
       choice_1: confirmationData?.newSize ?? "",
       color: confirmationData?.productDetails?.colors?.find(
         (s) =>
