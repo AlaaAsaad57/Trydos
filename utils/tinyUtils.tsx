@@ -435,19 +435,19 @@ export function findVariation(
   if (selectedSize) {
     size = sizes.find(
       (s) =>
-        normalize(s.name) === normalize(selectedSize) ||
-        normalize(s.option) === normalize(selectedSize),
+        normalize(s) === normalize(selectedSize) ||
+        normalize(s) === normalize(selectedSize),
     );
   }
 
   // Build variation type based on rules
   let variationType = null;
   if (color && size) {
-    variationType = `${color?.color_option}-${size.option}`;
+    variationType = `${color?.color_option}-${size}`;
   } else if (color) {
     variationType = color?.color_option;
   } else if (size) {
-    variationType = size?.option;
+    variationType = size;
   }
 
   if (!variationType) return null;

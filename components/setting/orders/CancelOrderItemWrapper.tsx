@@ -63,11 +63,11 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
         </span>
         <p className="text-[#8D8D8D] text-[12px] regular text-center">
           {translateFunction(
-            "You Can Cancel The Product Without Any Conditions According To The Cancel Policy And Get A Full Refund"
+            "You Can Cancel The Product Without Any Conditions According To The Cancel Policy And Get A Full Refund",
           )}
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
-              num: item.price_after_discount || item.price,
+              num: item.offer_price || item.price,
               rate: currency?.exchange_rate,
               language: language,
               returnNumber: true,
@@ -112,7 +112,7 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
       <div className="flex-col px-[24px] w-full mt-[15px] gap-[35px]">
         <div className="flex-row w-full items-center justify-center h-[50px] bg-[#388CFF] rounded-[20px] text-white text-[14px] medium">
           {translateFunction(
-            "We Have Other Solutions Instead Of Cancellation."
+            "We Have Other Solutions Instead Of Cancellation.",
           )}
         </div>
         <div

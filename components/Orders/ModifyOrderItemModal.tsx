@@ -35,7 +35,7 @@ export const ModifyOrderItemModal = ({
     setLoading(true);
     let image =
       confirmationData?.productDetails?.sync_color_images?.find(
-        (s) => s?.color_option === confirmationData?.newColor
+        (s) => s?.color_option === confirmationData?.newColor,
       )?.images?.[0] || orderItem?.image;
     const imageVar = image.split("/")[image.split("/").length - 1];
 
@@ -44,10 +44,11 @@ export const ModifyOrderItemModal = ({
       color: confirmationData?.productDetails?.colors?.find(
         (s) =>
           s.name === confirmationData.newColor ||
-          s.option === confirmationData?.newColor
+          s.option === confirmationData?.newColor,
       )?.color,
       image: imageVar,
       order_detail_id: confirmationData?.detail_id,
+      product_variant_id: confirmationData?.product_variant_id,
     });
     setLoading(false);
     setConfirmationData(false);
@@ -89,8 +90,8 @@ export const ModifyOrderItemModal = ({
                     confirmationData?.productDetails?.sync_color_images?.find(
                       (s) =>
                         s.color_name?.toLowerCase() ===
-                        confirmationData?.currentColor?.toLowerCase()
-                    )?.images[0]
+                        confirmationData?.currentColor?.toLowerCase(),
+                    )?.images[0],
                   ),
                   width: 70,
                   height: 70,
@@ -104,7 +105,7 @@ export const ModifyOrderItemModal = ({
                         s.color_name?.toLowerCase() ===
                           confirmationData?.currentColor?.toLowerCase() ||
                         s.color_option?.toLowerCase() ===
-                          confirmationData?.currentColor?.toLowerCase()
+                          confirmationData?.currentColor?.toLowerCase(),
                     )?.color_name
                   : confirmationData?.currentSize}
               </span>
@@ -130,11 +131,9 @@ export const ModifyOrderItemModal = ({
                 colors={confirmationData?.productDetails?.sync_color_images?.filter(
                   (s) =>
                     s.color_name !== confirmationData?.currentColor &&
-                    s.color_option !== confirmationData?.currentColor
+                    s.color_option !== confirmationData?.currentColor,
                 )}
-                sizes={
-                  confirmationData?.productDetails?.choice_options?.[0]?.options
-                }
+                sizes={confirmationData?.productDetails?.sizes}
                 current_size={confirmationData?.currentSize}
                 setColor={(e) => {
                   setConfirmationData({ ...confirmationData, newColor: e });
@@ -152,9 +151,7 @@ export const ModifyOrderItemModal = ({
                   setConfirmationData({ ...confirmationData, newSize: e });
                 }}
                 image={orderItem?.image}
-                sizes={
-                  confirmationData?.productDetails?.choice_options?.[0]?.options
-                }
+                sizes={confirmationData?.productDetails?.sizes}
               />
             )}
           </div>
@@ -182,11 +179,11 @@ export const ModifyOrderItemModal = ({
             {type === "Color"
               ? translateFunction(
                   "We Will Ignore The First Color And Send Your Order To The New Address.",
-                  language
+                  language,
                 )
               : translateFunction(
                   "We Will Ignore The First Size And Send Your Order To The New Address.",
-                  language
+                  language,
                 )}
           </p>
           <div
@@ -255,7 +252,7 @@ export const ColorList = ({
           colors,
           sizes,
           s?.color_name,
-          current_size
+          current_size,
         );
         let disabled =
           s?.color_name?.toLowerCase() === currentColor?.toLowerCase()
@@ -270,7 +267,7 @@ export const ColorList = ({
               if (!disabled) setColor(s?.color_option);
               else
                 showErrorNotification(
-                  translateFunction("this option dosent have enough quantity")
+                  translateFunction("this option dosent have enough quantity"),
                 );
             }}
           >
@@ -334,7 +331,7 @@ export const SizeList = ({
             colors,
             sizes,
             currentColor,
-            s?.option
+            s,
           );
           let disabled =
             s?.name?.toLowerCase() === currentSize?.toLowerCase()
@@ -343,21 +340,23 @@ export const SizeList = ({
 
           return (
             <div
-              key={s?.name}
+              key={s}
               className={`${
                 disabled && "opacity-75"
               } w-auto h-[98px] flex-col items-center justify-center pt-px`}
               onClick={() => {
-                if (!disabled) setSize(s?.option);
+                if (!disabled) setSize(s);
                 else
                   showErrorNotification(
-                    translateFunction("this option dosent have enough quantity")
+                    translateFunction(
+                      "this option dosent have enough quantity",
+                    ),
                   );
               }}
             >
               <img
                 style={{
-                  border: isActive(s?.name)
+                  border: isActive(s)
                     ? "1px solid #402CDDef"
                     : "1px solid #ffffffef",
                 }}
@@ -371,12 +370,12 @@ export const SizeList = ({
               />
               <span
                 className={`${
-                  isActive(s?.name)
+                  isActive(s)
                     ? "text-[#402CDD] medium"
                     : "text-[#5D5C5D] regular"
                 } text-[14px]  mt-[9px]`}
               >
-                {s?.name}
+                {s}
               </span>
             </div>
           );

@@ -343,6 +343,7 @@ function OrderItemOptions({
     if (selectedScreen === "changeOrder") {
       return (
         <ChangeOrderItem
+          isRtl={isRtl}
           order_id={parentOrder.id}
           shouldConfirmChange={ShowConfirmChangeOrder}
           backToMain={() => {

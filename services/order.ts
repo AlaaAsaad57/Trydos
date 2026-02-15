@@ -411,7 +411,13 @@ class OrderService {
       });
     }
   }
-  async changeOrderItemVariant({ color, choice_1, order_detail_id, image }) {
+  async changeOrderItemVariant({
+    color,
+    choice_1,
+    order_detail_id,
+    image,
+    product_variant_id,
+  }) {
     try {
       let response = await fetchData({
         url: `/customer/order/change-item-variant`,
@@ -419,6 +425,7 @@ class OrderService {
         method: "POST",
         server: "market",
         body: JSON.stringify({
+          product_variation_id: product_variant_id,
           color,
           choice_1: choice_1 ?? "",
           order_detail_id,

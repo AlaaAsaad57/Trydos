@@ -23,9 +23,11 @@ function ChangeOrderItem({
   backToMain,
   setShouldConfirmChange,
   shouldConfirmChange,
+  isRtl,
 }: {
   item: OrderInterface["details"][0];
   order_id: number;
+  isRtl: boolean;
   [key: string]: any;
 }) {
   const [loading, setLoading] = useState(false);
@@ -52,11 +54,13 @@ function ChangeOrderItem({
   let optinsTabs = [
     {
       name: "Change Color",
-      isExist: item?.variation?.[0]?.color,
+      isExist: item?.variation?.find((s) => s.id === item.product_variation_id)
+        ?.color,
     },
     {
       name: "Change Size",
-      isExist: item?.variation?.[0]?.Size,
+      isExist: item?.variation?.find((s) => s.id === item.product_variation_id)
+        ?.size,
     },
     {
       name: "Change Qty",
@@ -64,10 +68,13 @@ function ChangeOrderItem({
     },
   ];
   const [color, setColor] = useState<string>(
-    item?.variation?.[0]?.color_options,
+    item?.variation?.find((s) => s.id === item.product_variation_id)?.color
+      ?.name,
   );
 
-  const [size, setSize] = useState<string>(item?.variation?.[0]?.size_options);
+  const [size, setSize] = useState<string>(
+    item?.variation?.find((s) => s.id === item.product_variation_id)?.size,
+  );
   const getVariant = () => {
     if (!productData?.variation || productData?.variation?.length === 0)
       return { ...productData };
@@ -124,7 +131,6 @@ function ChangeOrderItem({
         error: err,
         scenario: "Error in getProductDetails in ChangeOrderItem ",
       });
-      console.error(err);
     }
   };
 
@@ -145,14 +151,19 @@ function ChangeOrderItem({
         })
         ?.filter(
           (s) =>
-            item?.variation?.[0]?.color === s.color_name ||
-            item?.variation?.[0]?.color === s.color_option,
+            item?.variation?.find((v) => v.id === item.product_variation_id)
+              ?.color?.name === s.color_name ||
+            item?.variation?.find((v) => v.id === item.product_variation_id)
+              ?.color?.name === s.color_option,
         )[0];
       if (!isSameColor(selectedColor, previousColor)) {
         return true;
       }
     }
-    if (size !== item?.variation?.[0]?.size_options) {
+    if (
+      size !==
+      item?.variation?.find((s) => s.id === item.product_variation_id)?.size
+    ) {
       return true;
     }
     if (qty !== item?.qty) {
@@ -170,6 +181,7 @@ function ChangeOrderItem({
     if (tabs === "Change Color")
       return (
         <ChangeColorWidget
+          isRtl={isRtl}
           item={item}
           productData={productData}
           color={color}
@@ -183,11 +195,13 @@ function ChangeOrderItem({
           productData={productData}
           size={size}
           setSize={setSize}
+          isRtl={isRtl}
         />
       );
     if (tabs === "Change Qty")
       return (
         <ChangeQtyWidget
+          isRtl={isRtl}
           item={item}
           productData={productData}
           qty={qty}
@@ -312,8 +326,12 @@ function ChangeOrderItem({
               setShouldConfirmChange({
                 ...shouldConfirmChange,
                 type: "Color",
-                currentColor: item?.variation?.[0]?.color,
-                currentSize: item?.variation?.[0]?.Size,
+                currentColor: item?.variation?.find(
+                  (s) => s.id === item.product_variation_id,
+                )?.color?.name,
+                currentSize: item?.variation?.find(
+                  (s) => s.id === item.product_variation_id,
+                )?.size,
                 newColor: color,
                 newSize: size,
                 productDetails: productData,
@@ -324,8 +342,12 @@ function ChangeOrderItem({
               setShouldConfirmChange({
                 ...shouldConfirmChange,
                 type: "Size",
-                currentColor: item?.variation?.[0]?.color,
-                currentSize: item?.variation?.[0]?.Size,
+                currentColor: item?.variation?.find(
+                  (s) => s.id === item.product_variation_id,
+                )?.color?.name,
+                currentSize: item?.variation?.find(
+                  (s) => s.id === item.product_variation_id,
+                )?.size,
                 newColor: color,
                 newSize: size,
                 productDetails: productData,
@@ -344,7 +366,7 @@ function ChangeOrderItem({
 }
 
 export default ChangeOrderItem;
-const ChangeColorWidget = ({ color, setColor, item, productData }) => {
+const ChangeColorWidget = ({ color, setColor, item, productData, isRtl }) => {
   return (
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
@@ -368,16 +390,26 @@ const ChangeColorWidget = ({ color, setColor, item, productData }) => {
           }}
         />
       </div>
-      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center">
+      <span
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center"
+      >
         {translateFunction("Change From")}
-        <span className="mx-[4px]">{item?.variation?.color}</span>
+        <span className="mx-[4px]">
+          {
+            item?.variation?.find((s) => s.id === item.product_variation_id)
+              ?.color?.name
+          }
+        </span>
       </span>
       <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full justify-center text-center">
         {translateFunction("To New Color?")}
       </span>
       <ColorList
         item={item}
-        variations={productData?.variation}
+        variations={productData?.variations}
         colors={productData?.sync_color_images?.filter((s) =>
           productData.colors?.find(
             (color) =>
@@ -386,14 +418,19 @@ const ChangeColorWidget = ({ color, setColor, item, productData }) => {
         )}
         setColor={setColor}
         sizes={productData?.choice_options?.[0]?.options || []}
-        current_size={item?.variation?.[0]?.Size}
-        currentColor={item?.variation?.[0]?.color}
+        current_size={
+          item?.variation?.find((s) => s.id === item.product_variation_id)?.size
+        }
+        currentColor={
+          item?.variation?.find((s) => s.id === item.product_variation_id)
+            ?.color?.name
+        }
         newColor={color}
       />
     </div>
   );
 };
-const ChangeSizeWidget = ({ size, setSize, item, productData }) => {
+const ChangeSizeWidget = ({ size, setSize, item, productData, isRtl }) => {
   return (
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
@@ -417,27 +454,42 @@ const ChangeSizeWidget = ({ size, setSize, item, productData }) => {
           }}
         />
       </div>
-      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center">
+      <span
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center"
+      >
         {translateFunction("Change From")}
-        <span className="mx-[4px]">{item?.variation?.[0]?.Size}</span>
+        <span className="mx-[4px]">
+          {
+            item?.variation?.find((s) => s.id === item.product_variation_id)
+              ?.size
+          }
+        </span>
       </span>
       <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full justify-center text-center">
         {translateFunction("To New Size?")}
       </span>
       <SizeList
         item={item}
-        variations={productData?.variation}
+        variations={productData?.variations}
         image={getConfiguredImage({
           src: item.image,
           width: 70,
           height: 70,
           q: 100,
         })}
-        currentColor={item?.variation?.[0]?.color}
+        currentColor={
+          item?.variation?.find((s) => s.id === item.product_variation_id)
+            ?.color?.name
+        }
         colors={productData?.sync_color_images}
-        sizes={productData?.choice_options?.[0]?.options}
+        sizes={productData?.sizes}
         setSize={setSize}
-        currentSize={item?.variation?.[0]?.Size}
+        currentSize={
+          item?.variation?.find((s) => s.id === item.product_variation_id)?.size
+        }
         newSize={size}
       />
     </div>
@@ -448,11 +500,13 @@ const ChangeQtyWidget = ({
   setQty,
   item,
   productData,
+  isRtl,
 }: {
   qty: number;
   setQty: (qty: number) => void;
   item: any;
   productData: any;
+  isRtl;
 }) => {
   return (
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px] mt-[10px]">
@@ -477,7 +531,12 @@ const ChangeQtyWidget = ({
           }}
         />
       </div>
-      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center">
+      <span
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center"
+      >
         {translateFunction("Change From")}
         <span className="mx-[4px]">{item?.qty}</span>
         <span className="medium">{translateFunction("Qty")}</span>

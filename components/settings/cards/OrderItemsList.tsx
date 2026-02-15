@@ -133,7 +133,7 @@ function OrderItemsList({
                 }}
               />
             </NextLink>
-            <div className="flex-col text-[10px] regular text-[#1d1d1d]  items-center left-0 right-0 mx-[0_auto] mt-[4px]">
+            <div className="flex-col text-[10px] regular text-[#1d1d1d]  items-center left-0 right-0 m-[0_auto] mt-[4px]">
               <div className="flex flex-row">
                 <span className={`origin-top-left scale-[0.75]`}>
                   {getStatusIcon(order_group_status?.value?.toLowerCase())}
@@ -149,9 +149,19 @@ function OrderItemsList({
               {!isDelevired(product) ? (
                 <>
                   <span className=" regular">
-                    {product?.variation?.[0]?.color}
+                    {
+                      product?.variation?.find(
+                        (s) => s.id === product?.product_variation_id,
+                      )?.color?.name
+                    }
                   </span>
-                  <span>{product?.variation?.[0]?.Size}</span>
+                  <span>
+                    {
+                      product?.variation?.find(
+                        (s) => s.id === product?.product_variation_id,
+                      )?.size
+                    }
+                  </span>
                 </>
               ) : (
                 <span className="capitalize">

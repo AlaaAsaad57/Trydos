@@ -163,11 +163,27 @@ function OrderDetailsWrapper({
     }`;
     if (product.variation?.length > 0) {
       let newParams = new URLSearchParams();
-      if (product?.variation?.[0]?.color_options) {
-        newParams.set("color", product?.variation?.[0]?.color_options);
+      if (
+        product?.variation?.find((s) => s.id === product?.product_variation_id)
+          ?.color?.name
+      ) {
+        newParams.set(
+          "color",
+          product?.variation?.find(
+            (s) => s.id === product?.product_variation_id,
+          )?.color?.name,
+        );
       }
-      if (product?.variation?.[0]?.size_options) {
-        newParams.set("size", product?.variation?.[0]?.size_options);
+      if (
+        product?.variation?.find((s) => s.id === product?.product_variation_id)
+          ?.size
+      ) {
+        newParams.set(
+          "size",
+          product?.variation?.find(
+            (s) => s.id === product?.product_variation_id,
+          )?.size,
+        );
       }
 
       return pathname + `?${newParams?.toString()}`;
@@ -935,23 +951,29 @@ const ProductCard = ({
               {product.product_details?.name}
             </span>
             <div className="flex-row justify-between w-full gap-[40px]">
-              {product?.variation?.[0]?.color && (
+              {product?.variation?.find(
+                (s) => s.id === product?.product_variation_id,
+              )?.color?.name && (
                 <div className="flex-row">
                   <span className="text-[10px] regular">
                     {translateFunction("Color")}:
                   </span>
                   <span className="text-[#505050] text-[10px] medium mx-[2px]">
-                    {product?.variation?.[0]?.color}
+                    {
+                      product?.variation?.find(
+                        (s) => s.id === product?.product_variation_id,
+                      )?.color?.name
+                    }
                   </span>
                 </div>
               )}
-              {product?.variation?.[0]?.Size && (
+              {product?.variation?.[0]?.size && (
                 <div className="flex-row">
                   <span className="text-[10px] regular">
                     {translateFunction("Size")}:
                   </span>
                   <span className="text-[#505050] text-[10px] medium mx-[2px]">
-                    {product?.variation?.[0]?.Size}
+                    {product?.variation?.[0]?.size}
                   </span>
                 </div>
               )}
@@ -1023,7 +1045,7 @@ const ProductCard = ({
               </div>
             )}
             <div className="flex-row  items-center gap-[5px]">
-              {product.price_after_discount >= 0 && (
+              {product.offer_price >= 0 && (
                 <div
                   className="line-through text-[#C4C2C2] regular text-[12px]  line-through-[#C4C2C2]"
                   data-cy="order-product-offer-price"
@@ -1045,7 +1067,7 @@ const ProductCard = ({
                   language: language,
                 })} */}
                 {RoundPrice({
-                  num: product?.price_after_discount,
+                  num: product?.offer_price,
                   language: language,
                   returnNumber: true,
                 })}
@@ -1073,7 +1095,7 @@ const ProductCard = ({
               }}
               price={RoundPrice({
                 num:
-                  (product?.price_after_discount / product?.qty) *
+                  (product?.offer_price / product?.qty) *
                   Number(
                     getProductWithReturn(product)
                       ?.return_request_product_quantity,

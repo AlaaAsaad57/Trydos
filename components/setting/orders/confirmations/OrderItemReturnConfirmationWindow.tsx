@@ -35,11 +35,10 @@ function OrderItemReturnConfirmationWindow({
     let arr = [];
     if (confirmationData?.item) {
       let product_price =
-        (confirmationData.item?.price_after_discount ??
-          confirmationData.item?.price) / confirmationData?.item?.quantity;
+        (confirmationData.item?.offer_price ?? confirmationData.item?.price) /
+        confirmationData?.item?.quantity;
       let sub_total =
-        ((confirmationData.item?.price_after_discount ??
-          confirmationData.item?.price) /
+        ((confirmationData.item?.offer_price ?? confirmationData.item?.price) /
           confirmationData?.item?.quantity) *
         confirmationData?.qty;
       arr.push({
@@ -237,9 +236,7 @@ function OrderItemReturnConfirmationWindow({
           {
             <div
               className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${
-                !active
-                  ? "bg-[#D3D3D3] text-white"
-                  : "bg-[#84afff] text-white"
+                !active ? "bg-[#D3D3D3] text-white" : "bg-[#84afff] text-white"
               } rounded-[15px] text-[16px]  medium`}
               style={{
                 border: "1px solid #F8F8F880",

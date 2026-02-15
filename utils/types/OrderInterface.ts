@@ -72,6 +72,7 @@ export interface OrderInterface {
     id: number;
     order_id: number;
     product_id: number;
+    product_variation_id: number;
     product_details: {
       id: number;
       name: string;
@@ -93,7 +94,7 @@ export interface OrderInterface {
     qty: number;
     price: number;
     discount: number;
-    price_after_discount: number;
+    offer_price: number;
     image: string;
     tax: number;
     delivery_status: string;
@@ -125,8 +126,10 @@ interface ModifiedOrderDetail extends OriginalOrderDetail {
 
 // 3. Define the final ModifiedOrderInterface
 // It keeps all original fields but overrides the 'details' array
-export interface ModifiedOrderInterface
-  extends Omit<OrderInterface, "details"> {
+export interface ModifiedOrderInterface extends Omit<
+  OrderInterface,
+  "details"
+> {
   details: ModifiedOrderDetail[];
 }
 
