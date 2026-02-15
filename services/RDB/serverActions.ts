@@ -18,3 +18,8 @@ export const CheckoutOrder = core.CheckoutOrder;
 
 export const checkWallet = core.checkWallet;
 export const createWallet = core.createWallet;
+
+export const sendOtp = core.sendOtp;
+export const verifyOtp = core.verifyOtp;
+export const reSendOtp = core.reSendOtp;
+export const verifyMe = core.verifyMe;

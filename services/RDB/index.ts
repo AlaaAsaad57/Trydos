@@ -21,4 +21,10 @@ export const serverActions = {
     checkWallet: actions.checkWallet,
     createWallet: actions.createWallet,
   },
+  auth: {
+    sendOtp: actions.sendOtp,
+    verifyOtp: actions.verifyOtp,
+    reSendOtp: actions.reSendOtp,
+    verifyMe: actions.verifyMe,
+  },
 };
