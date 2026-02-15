@@ -180,7 +180,7 @@ class HomeService {
             throw new Error(repo.message);
           }
         }
-
+        if (useAppStore.getState().LoggingOut) return;
         setCookie(COOKIE_NAMES.DEVICE_TOKEN, repo.data.token);
 
         setCookie(COOKIE_NAMES.USER_DATA, {

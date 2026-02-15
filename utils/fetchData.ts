@@ -193,7 +193,7 @@ const handleUnauthorized = async (
   options,
 ): Promise<boolean> => {
   const { LoggingOut } = useAppStore.getState();
-  if (LoggingOut) return;
+  if (LoggingOut) return false;
   let userChat: any = getCookie(COOKIE_NAMES.USER_CHAT);
   let userStories: any = getCookie(COOKIE_NAMES.USER_STORIES);
   let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
@@ -213,6 +213,7 @@ const handleUnauthorized = async (
           await authService.default.ExpiredUser();
           return true;
         }
+        return false;
       case "chat":
       case "stories":
       case "comments":
