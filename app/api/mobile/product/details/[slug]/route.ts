@@ -44,6 +44,7 @@ export async function GET(request: NextRequest, { params }) {
   let language = request.headers.get("language")?.trim();
   const lang = request.headers.get("lang")?.trim();
   language = language ?? lang ?? "en";
+  const noCache = request.nextUrl.searchParams.get("no_cache") === "true";
   let productDataVar;
   let GlobalData = GetGlobalProduct({
     slug: Params.slug,
@@ -54,6 +55,7 @@ export async function GET(request: NextRequest, { params }) {
     slug: Params.slug,
     language: language,
     country: country,
+    noCache: noCache,
   });
   let [GlobalDataResponse, QtyPricesDataResponse] = await Promise.all([
     GlobalData,
