@@ -276,7 +276,7 @@ export async function UploadMedia({
       ContentType: "MULTIPART",
     },
   });
-
+  console.log(response);
   return processResponse<UploadMediaApi>(response, handleUnauthenticated, {
     scenario: "UploadMedia from wallet system",
     userId: "server",

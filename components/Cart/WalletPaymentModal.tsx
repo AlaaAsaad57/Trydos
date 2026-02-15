@@ -54,7 +54,11 @@ export default function WalletPaymentModal({
         }
 
         setCurrencies(currRes.items);
-
+        handleCurrencyChange(
+          currRes.items.find(
+            (c) => c.symbol === currency?.code || c.symbol === currency?.code,
+          ) || currRes.items[0],
+        );
         const matchingCurrency =
           currRes.items.find(
             (c) => c.symbol === currency?.symbol || c.symbol === currency?.code,
@@ -161,7 +165,7 @@ export default function WalletPaymentModal({
       setIsProcessing(false);
     }
   };
-
+  let curr = currencies?.find((c) => c.symbol === currency?.code);
   return createPortal(
     <React.Fragment>
       <div
@@ -228,27 +232,18 @@ export default function WalletPaymentModal({
                       {translateFunction("Select Currency")}
                     </span>
                     <div className="flex-row gap-[8px] flex-wrap">
-                      {currencies.map((curr) => {
-                        const isSelected = selectedCurrency?.id === curr.id;
-                        return (
-                          <div
-                            key={curr.id}
-                            onClick={() => handleCurrencyChange(curr)}
-                            className={`cursor-pointer px-[14px] py-[8px] rounded-[12px] text-[12px] semibold ${
-                              isSelected
-                                ? "bg-[#346BFF] text-white"
-                                : "bg-[#F8F8F8] text-[#1D1D1D]"
-                            }`}
-                            style={{
-                              border: isSelected
-                                ? "1px solid #346BFF"
-                                : "1px solid transparent",
-                            }}
-                          >
-                            {curr.symbol}
-                          </div>
-                        );
-                      })}
+                      {curr && (
+                        <div
+                          key={curr.id}
+                          onClick={() => handleCurrencyChange(curr)}
+                          className={`cursor-pointer px-[14px] py-[8px] rounded-[12px] text-[12px] semibold ${"bg-[#346BFF] text-white"}`}
+                          style={{
+                            border: "1px solid #346BFF",
+                          }}
+                        >
+                          {curr.symbol}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

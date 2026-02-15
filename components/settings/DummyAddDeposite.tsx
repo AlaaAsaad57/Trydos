@@ -153,19 +153,24 @@ function DummyAddDeposite() {
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.[0]) return;
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+
     setIsUploading(true);
     try {
       const res = await UploadMedia({
-        file: e.target.files[0],
+        file,
         local,
         handleUnauthenticated,
       });
+      console.log(res);
       if (res?.url) setImageUrl(res.url);
     } catch (error) {
       console.error("Upload failed", error);
     } finally {
       setIsUploading(false);
+      input.value = "";
     }
   };
 

@@ -87,6 +87,9 @@ let nextConfig: NextConfig = {
   },
 
   experimental: {
+    serverActions: {
+      bodySizeLimit: "5mb",
+    },
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
     optimizeCss: true, // Disabled due to critters module error
