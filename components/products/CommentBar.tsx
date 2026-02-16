@@ -4,7 +4,6 @@ import { LogError, translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
 import { getFirstLetterLang } from "utils/tinyUtils";
@@ -22,7 +21,7 @@ function CommentBar({ product_data, setCommentsData }) {
       setTimeout(() => {
         document.querySelector(".comments-extended").scrollTop = 0;
       }, 300);
-      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+      let userData: any = useAppStore.getState().userProfile;
       if (userData.need_auth) {
         showErrorNotification(
           translateFunction("Please Verify Your Phone Number"),

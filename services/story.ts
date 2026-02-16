@@ -6,12 +6,7 @@ import { useAppStore } from "store";
 
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-  setCookie,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 import { REQUESTS_DATA } from "utils/Requests";
 
@@ -52,8 +47,8 @@ class StoryService {
     // @ts-ignore
   }
   async loginStories() {
-    const { loginSuccessStories } = useAppStore.getState();
-    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    const { loginSuccessStories, userProfile } = useAppStore.getState();
+    const user = userProfile;
     try {
       const response = await fetchData({
         url: LOG_IN_STORIES,
@@ -69,7 +64,15 @@ class StoryService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      setCookie(COOKIE_NAMES.USER_STORIES, response.data);
+      // Update HttpOnly cookie via server route
+      fetch("/api/auth/update-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          updates: [{ name: COOKIE_NAMES.USER_STORIES, value: response.data }],
+        }),
+        credentials: "include",
+      });
       loginSuccessStories({
         ...response.data,
       });
@@ -209,7 +212,7 @@ class StoryService {
     }
   }
   getUserStories() {
-    return getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+    return useAppStore.getState().userStories;
   }
   configureStory(story) {
     let returnedData = [];

@@ -1,16 +1,18 @@
 import NextLink from "components/global/NextLink";
 import BackBar from "components/setting/BackBar";
-import { cookies } from "next/headers";
+import {
+  COOKIE_NAMES,
+  getCookieServer,
+  UserData,
+} from "utils/cookies/cookie-manager";
 import { GetImageUrl, translateFunction } from "utils/server";
 async function Profile({ params }) {
   let Params = await params;
   let [country, language] = Params?.lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
-  let cookieStore = await cookies();
-  let SafeUserProfileCookie = cookieStore.get("User-Data")?.value;
-  let SafeUserProfile = SafeUserProfileCookie
-    ? JSON.parse(SafeUserProfileCookie)
-    : { name: "", phone: "", is_phone_verified: 0 };
+  let SafeUserProfile = (await getCookieServer<UserData>(
+    COOKIE_NAMES.USER_DATA,
+  )) || { name: "", phone: "", is_phone_verified: 0 };
   const options = [
     {
       name: translateFunction("Personal Info", language),

@@ -4,7 +4,6 @@ import OrdersLinkCard from "components/setting/orders";
 import Profile from "components/setting/profile";
 import WalletLinkCard from "components/setting/WalletLinkCard";
 import GoToSellerDashBoard from "components/settings/GoToSellerDashBoard";
-import { cookies } from "next/headers";
 import { Suspense } from "react";
 import Skeleton from "react-loading-skeleton";
 import { translateFunction } from "utils/server";
@@ -13,6 +12,11 @@ import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants"
 import RouterRefresh from "components/global/RouterRefresh";
 import { getCurrency } from "serverRequests";
 import { getWallet } from "serverRequests/settings";
+import {
+  COOKIE_NAMES,
+  getCookieServer,
+  UserData,
+} from "utils/cookies/cookie-manager";
 import DummyAddDeposite from "components/settings/DummyAddDeposite";
 
 export async function generateMetadata({ params }) {
@@ -32,11 +36,9 @@ async function page({ params }) {
   let Params = await params;
   let [country, language] = Params?.lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
-  let cookieStore = await cookies();
-  let SafeUserProfileCookie = cookieStore.get("User-Data")?.value;
-  let SafeUserProfile = SafeUserProfileCookie
-    ? JSON.parse(SafeUserProfileCookie)
-    : { name: "", phone: "", is_phone_verified: 0 };
+  let SafeUserProfile = (await getCookieServer<UserData>(
+    COOKIE_NAMES.USER_DATA,
+  )) || { name: "", phone: "", is_phone_verified: 0 };
   const options = [
     {
       name: "Settings",

@@ -458,7 +458,7 @@ class OrderService {
     images = [],
   }) {
     try {
-      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+      let userData: any = useAppStore.getState().userProfile;
       // if (userData.need_auth) {
       //   showErrorNotification(
       //     translateFunction("Please Verify Your Phone Number")

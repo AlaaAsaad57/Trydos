@@ -1,5 +1,4 @@
 import { useAppStore } from "store";
-import { COOKIE_NAMES, getCookie, UserData } from "./cookies/cookie-manager";
 import { DetectScreen } from "./tinyUtils";
 import { LogError } from "./functions";
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID; // replace with your ID
@@ -38,7 +37,7 @@ export const GAevent = ({
   try {
     let event_id = new Date().getTime();
     const { session_id, previous_event_button_name } = useAppStore.getState();
-    const userData = getCookie(COOKIE_NAMES.USER_DATA);
+    const userData = useAppStore.getState().userProfile;
     if (userData) {
       SetGAUser(userData, false);
     }
@@ -90,7 +89,7 @@ export const GAevent = ({
   }
 };
 const getUserParam = () => {
-  const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+  const userData = useAppStore.getState().userProfile as any;
   if (
     userData?.phone === "0" ||
     !userData?.phone ||

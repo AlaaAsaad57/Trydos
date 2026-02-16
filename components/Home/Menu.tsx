@@ -16,13 +16,7 @@ const NotificationsPanel = dynamic(
 import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
 import auth from "services/auth";
-import {
-  COOKIE_NAMES,
-  deleteCookie,
-  getCookie,
-  setCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, deleteCookie } from "utils/cookies/cookie-manager";
 import { clearAllUserData, getReferralSource } from "utils/tinyUtils";
 import dynamic from "next/dynamic";
 import { clearSimulatedUserSession } from "utils/sessionManager";
@@ -103,8 +97,8 @@ const MenuItem = ({
 
 const Menu = ({ user, setMenuOpen }) => {
   const { setSettingLastPath, setLoggingOut } = useAppStore();
-  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-  const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+  const userChat = useAppStore.getState().userChat;
+  const userStories = useAppStore.getState().userStories;
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWishList, setShowWishList] = useState(false);
   const { lang } = useParams();
@@ -142,7 +136,7 @@ const Menu = ({ user, setMenuOpen }) => {
     }
 
     // 3. NOW clear all data (cookies, storage, store)
-    clearAllUserData();
+    await clearAllUserData();
 
     // 4. Reset store auth state explicitly
     const { cancelAuth } = useAppStore.getState();
@@ -422,8 +416,20 @@ const Menu = ({ user, setMenuOpen }) => {
             dataCy="change-chat-token"
             icon={<></>}
             onClick={() => {
-              let user = { ...userChat, access_token: "skajdklajsd" };
-              setCookie(COOKIE_NAMES.USER_CHAT, user);
+              // Debug: invalidate chat token via server route
+              fetch("/api/auth/update-user", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  updates: [
+                    {
+                      name: COOKIE_NAMES.USER_CHAT,
+                      value: { ...userChat, access_token: "skajdklajsd" },
+                    },
+                  ],
+                }),
+                credentials: "include",
+              });
             }}
           >
             {translateFunction("Make Chat Token Expired")}
@@ -434,8 +440,20 @@ const Menu = ({ user, setMenuOpen }) => {
             dataCy="change-chat-token"
             icon={<></>}
             onClick={() => {
-              let user = { ...userStories, access_token: "skajdklajsd" };
-              setCookie(COOKIE_NAMES.USER_STORIES, user);
+              // Debug: invalidate stories token via server route
+              fetch("/api/auth/update-user", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  updates: [
+                    {
+                      name: COOKIE_NAMES.USER_STORIES,
+                      value: { ...userStories, access_token: "skajdklajsd" },
+                    },
+                  ],
+                }),
+                credentials: "include",
+              });
             }}
           >
             {translateFunction("Make Stories Token Expired")}

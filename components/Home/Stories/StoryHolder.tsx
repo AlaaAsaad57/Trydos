@@ -15,18 +15,13 @@ import {
 } from "store/notifications/reducer";
 import { getUserStories, LogError, translateFunction } from "utils/functions";
 import { fetchStoriesForUser } from "serverRequests";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 import { ConfirmModal } from "components/global/ConfirmModal";
 function StoryHolder({ story, active, isPaused }) {
   const { language, country, setStoryData } = useAppStore();
-  const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+  const userStories = useAppStore.getState().userStories;
   const [currentStoryId, setCurrentStoryId] = useState(
     userStories?.id !== story.id ? 0 : story?.stories?.length - 1,
   );

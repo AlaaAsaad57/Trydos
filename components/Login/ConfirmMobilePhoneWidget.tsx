@@ -1,10 +1,4 @@
 import ConfirmMobile from "components/Cart/ConfirmMobile";
-import {
-  COOKIE_NAMES,
-  deleteCookie,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
 import { ChatConroller, DisableScroll, EnableScroll } from "utils/tinyUtils";
@@ -20,7 +14,7 @@ function ConfirmMobilePhoneWidget() {
       EnableScroll();
     };
   }, []);
-  const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+  const userData = useAppStore.getState().userProfile;
   const copyInitialData = async () => {
     let last_verify_date = localStorage.getItem("LAST-VERIFY");
     let last_unauthorized_request = localStorage.getItem(
@@ -40,9 +34,15 @@ function ConfirmMobilePhoneWidget() {
         <div
           onClick={() => {
             setShouldAuthinticated(false);
-            deleteCookie(COOKIE_NAMES.USER_CHAT);
-            deleteCookie(COOKIE_NAMES.USER_STORIES);
-            deleteCookie(COOKIE_NAMES.USER_ID_HASH);
+            // Clear sub-service tokens via server route
+            fetch("/api/auth/clear-tokens", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                tokens: ["CHAT-TOKEN", "STORIES-TOKEN"],
+              }),
+              credentials: "include",
+            });
             copyInitialData();
             window.location.reload();
           }}

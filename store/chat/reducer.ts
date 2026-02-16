@@ -2,11 +2,6 @@ import { getUserChat, translateFunction as translate } from "utils/functions";
 import { Recive, watchChannel as watchChannelAction } from "./actions";
 import { getMediaReducer } from "./actions";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import { Channel } from "utils/types/chat";
 
 // --- Types ---
@@ -316,8 +311,8 @@ export const useChatStore = (set: any, get: any) => ({
       set({ chatVar: false, activeChat: null, main: "main" });
       return;
     }
-    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-    if (user?.name?.length > 0) {
+    const userName = get().userProfile?.name;
+    if (userName?.length > 0) {
       set({ chatVar: payload });
     } else {
       set({ nameModal: true });

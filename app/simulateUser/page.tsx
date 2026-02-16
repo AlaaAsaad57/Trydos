@@ -5,7 +5,6 @@ import {
   setCookie,
   getCookie,
   COOKIE_NAMES,
-  deleteCookie,
 } from "utils/cookies/cookie-manager";
 import SessionTimer from "components/Login/SessionTimer";
 import { initializeSessionCheck } from "utils/sessionManager";
@@ -50,7 +49,7 @@ const Page = () => {
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setRaw(e.target.value);
     },
-    []
+    [],
   );
 
   const handleParse = useCallback(() => {
@@ -70,39 +69,26 @@ const Page = () => {
         const sessionExpiry = new Date(Date.now() + 30 * 60 * 1000);
         localStorage.setItem("sessionExpiry", sessionExpiry.toISOString());
 
-        // Set cookies with 30-minute expiration
+        // Set auth cookies via server route (HttpOnly)
+        fetch("/api/auth/simulate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userData: parsed.userData,
+            userChat: parsed.userChat,
+            userStories: parsed.userStories,
+            marketToken: (parsed as any).marketToken,
+            deviceToken: (parsed as any).deviceToken,
+          }),
+          credentials: "include",
+        });
+
+        // Set non-auth cookies directly
         const cookieOptions = {
           expires: sessionExpiry,
-          maxAge: 30 * 60, // 30 minutes in seconds
+          maxAge: 30 * 60,
         };
 
-        if (parsed.userData !== undefined) {
-          setCookie(COOKIE_NAMES.USER_DATA, parsed.userData, cookieOptions);
-        }
-        if (parsed.userChat !== undefined)
-          setCookie(COOKIE_NAMES.USER_CHAT, parsed.userChat, cookieOptions);
-        else deleteCookie(COOKIE_NAMES.USER_CHAT);
-        if (parsed.userStories !== undefined)
-          setCookie(
-            COOKIE_NAMES.USER_STORIES,
-            parsed.userStories,
-            cookieOptions
-          );
-        else deleteCookie(COOKIE_NAMES.USER_STORIES);
-        if (parsed.marketToken !== undefined)
-          setCookie(
-            COOKIE_NAMES.MARKET_TOKEN,
-            parsed.marketToken,
-            cookieOptions
-          );
-        else deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-        if (parsed.deviceToken !== undefined)
-          setCookie(
-            COOKIE_NAMES.DEVICE_TOKEN,
-            parsed.deviceToken,
-            cookieOptions
-          );
-        deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
         // Set country and language cookies if provided in payload
         const countryVal = (parsed as any)?.country;
         const languageVal = (parsed as any)?.language;
@@ -121,7 +107,7 @@ const Page = () => {
           });
         } catch {}
         alert(
-          "Done...You Can Now Browse the Site as User ..check Last Page Paths below"
+          "Done...You Can Now Browse the Site as User ..check Last Page Paths below",
         );
       }
     } catch (err: any) {

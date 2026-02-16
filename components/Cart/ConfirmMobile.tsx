@@ -6,11 +6,6 @@ import AuthService from "services/auth";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import { useRouter } from "next/navigation";
 import { LogError } from "utils/functions";
@@ -21,7 +16,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const [inputValue, setInputValue] = useState("");
   const [MessageMethod, setMessageMethod] = useState("");
   const [pins, setPins] = useState("");
-  const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+  const userData = useAppStore.getState().userProfile;
   const [disabled, setDisabled] = useState(false);
   const [expired, setExpired] = useState(false);
   const [success, setSuccess] = useState(false);

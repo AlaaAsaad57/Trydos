@@ -6,11 +6,7 @@ import StoryElement from "./StoryElement";
 import { useAppStore } from "store";
 
 import { fetchData } from "utils/fetchData";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { UserData } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogError } from "utils/functions";
 
@@ -39,7 +35,7 @@ function StoriesPaginationWrapper({
       // Get user token from localStorage if available
       let userToken: string | undefined;
       if (typeof window !== "undefined") {
-        const userStoriesData = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+        const userStoriesData = useAppStore.getState().userStories;
         if (userStoriesData) {
           try {
             userToken = userStoriesData?.access_token;

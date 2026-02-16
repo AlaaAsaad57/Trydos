@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import home from "services/home";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { LogError, translateFunction } from "utils/functions";
 
 export function LikeButton({
@@ -22,7 +21,7 @@ export function LikeButton({
   const router = useRouter();
   const { setLoginOpen } = useAppStore();
   const ReactOnComment = async () => {
-    let user_cookies = getCookie(COOKIE_NAMES.USER_ID_HASH);
+    let user_cookies = useAppStore.getState().userProfile?.id;
     if (!user_cookies) {
       setLoginOpen(true);
       showErrorNotification(translateFunction("Please Login First"));

@@ -9,17 +9,27 @@ import { GAevent, SetGAUser } from "utils/gtag";
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-import {
-  COOKIE_NAMES,
-  deleteCookie,
-  getCookie,
-  setCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 import { checkWallet } from "./wallet";
+
+// Helper to update user metadata in HttpOnly cookies via server route
+async function updateSecureUserData(
+  updates: Array<{ name: string; value: unknown }>,
+) {
+  try {
+    await fetch("/api/auth/update-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ updates }),
+      credentials: "include",
+    });
+  } catch (err) {
+    // Non-critical — store state is the source of truth for client
+  }
+}
 
 class AuthService {
   async SendOtp(
@@ -68,8 +78,8 @@ class AuthService {
     Username: string,
     EditPhoneFunc: Function,
   ) {
-    const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-    let old_geust_id = userData?.id;
+    const { userProfile } = useAppStore.getState();
+    let old_geust_id = userProfile?.id;
     const {
       setTempUser,
       setWrongNumber,
@@ -77,6 +87,8 @@ class AuthService {
       loginSuccess,
       loginSuccessChat,
       loginSuccessStories,
+      setReAuthResult,
+      setShouldAuthinticated,
     } = useAppStore.getState();
     try {
       let response = await fetchData({
@@ -111,61 +123,41 @@ class AuthService {
           body: response.is_failed,
         });
       }
-      setCookie(COOKIE_NAMES.MARKET_TOKEN, response.data.token);
-      setCookie(COOKIE_NAMES.WALLET_USER, response.WalletUser);
+
+      // Tokens are now set as HttpOnly cookies by the server route.
+      // Only store non-sensitive user data in Zustand.
       checkWallet({
         id: response?.WalletUser?.id,
         handleUnauthenticated: () => {},
       });
-      setCookie(COOKIE_NAMES.USER_DATA, {
-        ...response.data.user,
-        already_exists: response.data.already_exists,
-        is_verified: false,
-        expires_at: response.data.expires_at,
-      });
-      if (old_geust_id !== response.data.user.id) {
+
+      const user = response.data.user;
+      if (old_geust_id !== user.id) {
         GAevent({
           action: GA_EVENT_NAMES.CUSTOM_USER_MAPPING,
           params: {
             user_id_guest: old_geust_id,
-            user_id_verify: response.data.user.id,
+            user_id_verify: user.id,
           },
         });
       }
-      SetGAUser(response.data.user, !response.data.already_exists);
+      SetGAUser(user, !response.data.already_exists);
       setTempUser({
-        ...response.data.user,
+        ...user,
         already_exists: response.data.already_exists,
         is_verified: false,
       });
-      let userLocal = response.data.user;
+
       let userChat = { ...response.ChatUser, need_auth: false };
       let userStories = { ...response.StoriesUser, need_auth: false };
-      setCookie(COOKIE_NAMES.USER_DATA, userLocal, {
-        httpOnly: false,
-        secure: true,
-        path: "/",
-        maxAge: 365 * 24 * 60 * 60,
-      });
-      setCookie(COOKIE_NAMES.USER_CHAT, userChat, {
-        httpOnly: false,
-        secure: true,
-        path: "/",
-        maxAge: 365 * 24 * 60 * 60,
-      });
-      setCookie(COOKIE_NAMES.USER_STORIES, userStories, {
-        httpOnly: false,
-        secure: true,
-        path: "/",
-        maxAge: 365 * 24 * 60 * 60,
-      });
+
       localStorage.setItem("LAST-VERIFY", new Date().toISOString());
       loginSuccess({
-        id: userLocal.id,
-        idToken: userLocal.id_token,
-        name: userLocal.name,
-        image: userLocal,
-        already_exists: userLocal.already_exists,
+        id: user.id,
+        idToken: user.id_token,
+        name: user.name,
+        image: user,
+        already_exists: response.data.already_exists,
         is_verified: 1,
         is_phone_verified: 1,
       });
@@ -179,12 +171,15 @@ class AuthService {
         is_verified: 1,
         is_phone_verified: 1,
       });
-      if (userLocal) {
+
+      // Signal re-auth completed (used by handleUnauthorized polling)
+      setReAuthResult("success");
+      setShouldAuthinticated(false);
+      if (user) {
         if (Smartlook.initialized())
-          Smartlook.identify(userLocal.id, {
-            name: userLocal.name,
-            phone: userLocal.mobilePhone,
-            // other custom properties
+          Smartlook.identify(user.id, {
+            name: user.name,
+            phone: user.mobilePhone,
           });
       }
       try {
@@ -195,7 +190,7 @@ class AuthService {
         }
         await this.CheckUserName();
       } catch (error) {}
-      return [response.data.already_exists, response.data.user.name];
+      return [response.data.already_exists, user.name];
     } catch (e) {
       if (e.message === "user not found") {
         setWrongNumber("user not found");
@@ -240,27 +235,22 @@ class AuthService {
     }
   }
   async UpdateName(name: string) {
-    const { updateName } = useAppStore.getState();
-    const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
-    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+    const { updateName, userChat, userStories, userProfile } =
+      useAppStore.getState();
     try {
-      setCookie(COOKIE_NAMES.USER_STORIES, {
-        ...userStories,
-        name: name,
-      });
-      setCookie(COOKIE_NAMES.USER_DATA, {
-        ...user,
-        name: name,
-      });
-      setCookie(COOKIE_NAMES.USER_DATA, {
-        ...user,
-        name: name,
-      });
+      // Update store immediately for responsive UI
       updateName(name);
+
+      // Update server-side HttpOnly cookies
+      updateSecureUserData([
+        { name: COOKIE_NAMES.USER_DATA, value: { name } },
+        { name: COOKIE_NAMES.USER_CHAT, value: { name } },
+        { name: COOKIE_NAMES.USER_STORIES, value: { name } },
+      ]);
+
       let res = await fetchData({
         url: "/customer/update-name",
-        body: JSON.stringify({ name: name }),
+        body: JSON.stringify({ name }),
         reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_MARKET,
         method: "POST",
         server: "market",
@@ -273,26 +263,18 @@ class AuthService {
         reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_CHAT,
         method: "PUT",
         server: "chat",
-        body: JSON.stringify({ name: name }),
+        body: JSON.stringify({ name }),
       });
       if (!chat_update.success) {
         throw new Error(chat_update.message);
       }
-      setCookie(COOKIE_NAMES.USER_CHAT, {
-        ...userChat,
-        name: name,
-      });
-      setCookie(COOKIE_NAMES.USER_STORIES, {
-        ...userStories,
-        name: name,
-      });
       await home.getCustomerInfo();
       let response = await fetchData({
         url: "/api/v1/users/update",
         reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_STORIES,
         method: "POST",
         server: "stories",
-        body: JSON.stringify({ name: name }),
+        body: JSON.stringify({ name }),
       });
       if (!response.success) {
         throw new Error(response.message);
@@ -307,8 +289,8 @@ class AuthService {
   }
 
   async cancelAuth(isForExpired?) {
-    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-    if (!user) {
+    const { userProfile } = useAppStore.getState();
+    if (!userProfile) {
       home.registerForExpire();
     }
 
@@ -328,19 +310,21 @@ class AuthService {
   }
 
   getUser() {
-    return getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    return useAppStore.getState().userProfile;
   }
   UserToken() {
-    return (
-      getCookie(COOKIE_NAMES.MARKET_TOKEN) ||
-      getCookie(COOKIE_NAMES.DEVICE_TOKEN)
-    );
+    // Token is HttpOnly — not accessible from JS.
+    // Returns a truthy indicator if user is authenticated.
+    const { user } = useAppStore.getState();
+    return user?.id ? "[HttpOnly]" : null;
   }
   UserID() {
-    return getCookie<UserData>(COOKIE_NAMES.USER_DATA)?.id;
+    return (
+      useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id
+    );
   }
   User() {
-    return getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    return useAppStore.getState().userProfile || useAppStore.getState().user;
   }
   ConfigurePhoto(imageVar, serverVar) {
     if (serverVar === "market") {
@@ -359,39 +343,49 @@ class AuthService {
     }
   }
   async ExpiredUser(noReq = false) {
-    let { LoggingOut } = useAppStore.getState();
+    let { LoggingOut, setReAuthResult } = useAppStore.getState();
     if (LoggingOut) return;
-    let userChat: any = getCookie(COOKIE_NAMES.USER_CHAT);
-    let userStories: any = getCookie(COOKIE_NAMES.USER_STORIES);
-    if (!noReq) await home.registerForExpire(this.UserID());
-    this.cancelAuth(true);
-    deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-    if (userChat?.id)
-      setCookie(COOKIE_NAMES.USER_CHAT, {
-        ...userChat,
-        need_auth: true,
-      });
-    if (userStories?.id)
-      setCookie(COOKIE_NAMES.USER_STORIES, {
-        ...userStories,
-        need_auth: true,
-      });
 
-    deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
-    deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-    // clearHashedUserId();
+    if (!noReq) {
+      // Call server route that handles: clear stale tokens, re-register as guest
+      const { country, language } = this._getLocale();
+      await fetch("/api/auth/expire", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-country": country,
+          "x-language": language,
+        },
+        body: JSON.stringify({ old_user_id: this.UserID() }),
+        credentials: "include",
+      });
+    }
+
+    this.cancelAuth(true);
+    setReAuthResult("cancelled");
+  }
+
+  _getLocale() {
+    const [country, lang] = (
+      window.location.pathname.split("/")[1] || ""
+    ).split("-");
+    return { country: country || "sy", language: lang || "en" };
   }
   async UpdateProfile(userObj, previousUserObj) {
-    const { userProfile } = useAppStore.getState();
-    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-    const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
-    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    const {
+      userProfile,
+      userChat,
+      userStories,
+      editUserInfo,
+      loginSuccessChat,
+      loginSuccessStories,
+    } = useAppStore.getState();
     let market_done = false,
       chat_done = false,
       stories_done = false;
 
     try {
-      if (userStories && user && userStories?.id) {
+      if (userStories?.id) {
         let res = await fetchData({
           url: "/api/v1/users/update",
           reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_STORIES,
@@ -407,14 +401,17 @@ class AuthService {
           throw new Error(res.message);
         }
         stories_done = true;
-        setCookie(COOKIE_NAMES.USER_STORIES, {
-          ...userStories,
+        const storiesUpdate = {
           name: userObj?.name ?? userProfile?.name,
           mobile_phone: userObj?.phone ?? userProfile?.phone,
           photo_path: this.ConfigurePhoto(userObj?.image, "story"),
-        });
+        };
+        loginSuccessStories(storiesUpdate);
+        updateSecureUserData([
+          { name: COOKIE_NAMES.USER_STORIES, value: storiesUpdate },
+        ]);
       }
-      if (userChat && user && userChat?.id) {
+      if (userChat?.id) {
         let chat_update = await fetchData({
           url: `/api/v1/users/${this.UserID()}`,
           reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_CHAT,
@@ -430,12 +427,15 @@ class AuthService {
           throw new Error(chat_update.message);
         }
         chat_done = true;
-        setCookie(COOKIE_NAMES.USER_CHAT, {
-          ...userChat,
+        const chatUpdate = {
           name: userObj?.name ?? userProfile?.name,
           mobile_phone: userObj?.phone ?? userProfile?.phone,
           photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
-        });
+        };
+        loginSuccessChat(chatUpdate);
+        updateSecureUserData([
+          { name: COOKIE_NAMES.USER_CHAT, value: chatUpdate },
+        ]);
       }
       let res = await fetchData({
         url: "/customer/update-profile",
@@ -451,14 +451,17 @@ class AuthService {
         throw new Error(res.message);
       }
       market_done = true;
-      setCookie(COOKIE_NAMES.USER_DATA, {
-        ...user,
+      const marketUpdate = {
         weight: userObj?.weight ?? userProfile?.weight,
         tall: userObj?.tall ?? userProfile?.tall,
         name: userObj?.name ?? userProfile?.name,
         phone: userObj?.phone ?? userProfile?.phone,
         image: this.getImageForCookie(userObj?.image),
-      });
+      };
+      editUserInfo(marketUpdate);
+      updateSecureUserData([
+        { name: COOKIE_NAMES.USER_DATA, value: marketUpdate },
+      ]);
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
       return res;
@@ -478,13 +481,15 @@ class AuthService {
         if (!res.success) {
           throw new Error(res.message);
         }
-        market_done = true;
-        setCookie(COOKIE_NAMES.USER_DATA, {
-          ...user,
+        const revertMarket = {
           name: userObj?.name ?? userProfile?.name,
           phone: userObj?.phone ?? userProfile?.phone,
           image: this.getImageForCookie(userProfile?.image),
-        });
+        };
+        editUserInfo(revertMarket);
+        updateSecureUserData([
+          { name: COOKIE_NAMES.USER_DATA, value: revertMarket },
+        ]);
       }
       if (stories_done) {
         let res = await fetchData({
@@ -501,12 +506,15 @@ class AuthService {
         if (!res.success) {
           throw new Error(res.message);
         }
-        setCookie(COOKIE_NAMES.USER_STORIES, {
-          ...userStories,
+        const revertStories = {
           name: userProfile?.name,
           mobile_phone: userProfile?.phone,
           photo_path: this.ConfigurePhoto(userProfile?.image, "story"),
-        });
+        };
+        loginSuccessStories(revertStories);
+        updateSecureUserData([
+          { name: COOKIE_NAMES.USER_STORIES, value: revertStories },
+        ]);
       }
       if (chat_done) {
         let res = await fetchData({
@@ -523,12 +531,15 @@ class AuthService {
         if (!res.success) {
           throw new Error(res.message);
         }
-        setCookie(COOKIE_NAMES.USER_CHAT, {
-          ...userChat,
+        const revertChat = {
           name: userObj?.name ?? userProfile?.name,
           mobile_phone: userObj?.phone ?? userProfile?.phone,
           photo_path: this.ConfigurePhoto(userProfile?.image, "chat"),
-        });
+        };
+        loginSuccessChat(revertChat);
+        updateSecureUserData([
+          { name: COOKIE_NAMES.USER_CHAT, value: revertChat },
+        ]);
       }
       showErrorNotification(translateFunction("Failed to update profile Info"));
       throw error;
@@ -568,26 +579,25 @@ class AuthService {
     }
   }
   async CheckUserName() {
-    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-    const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
-    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    const { userChat, userStories, userProfile } = useAppStore.getState();
     let username_stories = userStories?.name;
     let username_chat = userChat?.name;
-    let username_market = user?.name;
-    if (user?.name === "verified_guest") return null;
+    let username_market = userProfile?.name;
+    if (userProfile?.name === "verified_guest") return null;
     if (Boolean(userChat) && Boolean(userStories))
       if (
         username_chat !== username_market ||
         username_stories !== username_market
       ) {
-        setCookie(COOKIE_NAMES.USER_CHAT, {
-          ...userChat,
-          name: username_market,
-        });
-        setCookie(COOKIE_NAMES.USER_STORIES, {
-          ...userStories,
-          name: username_market,
-        });
+        // Update store and server-side cookies
+        const { loginSuccessChat, loginSuccessStories } =
+          useAppStore.getState();
+        loginSuccessChat({ name: username_market });
+        loginSuccessStories({ name: username_market });
+        updateSecureUserData([
+          { name: COOKIE_NAMES.USER_CHAT, value: { name: username_market } },
+          { name: COOKIE_NAMES.USER_STORIES, value: { name: username_market } },
+        ]);
         try {
           await this.UpdateProfile(
             { name: username_market },

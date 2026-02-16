@@ -25,7 +25,6 @@ import {
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import { RDB } from "rdb";
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { serverActions } from "services/RDB";
 import Spinner from "components/global/Spinner";
 import order from "services/order";
@@ -34,6 +33,7 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [walletBalance, setWallet] = useState(null);
+  const [walletToken, setWalletToken] = useState<string | null>(null);
   const { setShouldAuthinticated, shouldAuthinticated, user, setLoginOpen } =
     useAppStore();
   const GetWalletForUser = async () => {
@@ -48,6 +48,14 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
       GetWalletForUser();
     }
   }, [shouldAuthinticated]);
+  useEffect(() => {
+    if (open) {
+      fetch("/api/auth/wallet-token", { credentials: "include" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => d?.token && setWalletToken(d.token))
+        .catch(() => {});
+    }
+  }, [open]);
   return (
     <div
       onClick={() => {
@@ -78,7 +86,7 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
               actions={serverActions}
               baseUrl={process.env.NEXT_PUBLIC_WALLET_BACKEND_URL}
               storeKey="trydos"
-              authToken={getCookie(COOKIE_NAMES.WALLET_TOKEN)}
+              authToken={walletToken}
               handleUnauthenticated={() => {
                 setShouldAuthinticated(true);
               }}

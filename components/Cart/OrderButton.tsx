@@ -10,11 +10,6 @@ import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
 import OrderMarquee from "./OrderMarquee";
 import Spinner from "components/global/Spinner";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
@@ -44,7 +39,7 @@ function OrderButton({ close, toOrders }) {
   };
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
-  const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+  const userData = useAppStore.getState().userProfile;
   const [option, setOption] = useState(false);
   const getTotaPriceToShow = () => {
     if (orderData?.payment?.find((s) => s.id === 0)) {

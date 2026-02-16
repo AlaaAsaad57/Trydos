@@ -5,11 +5,7 @@ import { useParams } from "next/navigation";
 
 import chat from "services/chat";
 import Spinner from "components/global/Spinner";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { useAppStore } from "store";
 
 function ShareSection({ product }: any) {
   var language = "en";
@@ -21,7 +17,7 @@ function ShareSection({ product }: any) {
     return translateFunction(key, languageVariable);
   };
   useEffect(() => {
-    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+    const userChat = useAppStore.getState().userChat;
     if (userChat) {
       getContactsData();
     }

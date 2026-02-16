@@ -7,11 +7,7 @@ import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { UserData } from "utils/cookies/cookie-manager";
 import home from "services/home";
 import { showErrorNotification } from "store/notifications/reducer";
 
@@ -43,8 +39,8 @@ function AuthNavSection({
   };
   const openChatAction = async () => {
     try {
-      const userChatCookie: any = getCookie(COOKIE_NAMES.USER_CHAT);
-      const userDataCookie: any = getCookie(COOKIE_NAMES.USER_DATA);
+      const userChatCookie: any = useAppStore.getState().userChat;
+      const userDataCookie: any = useAppStore.getState().userProfile;
       if (userChatCookie && userChatCookie?.id) {
         let num = home.getNotificationPermissionStatus();
 

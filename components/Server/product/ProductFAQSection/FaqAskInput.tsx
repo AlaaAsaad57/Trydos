@@ -8,7 +8,6 @@ import auth from "services/auth";
 import { useAppStore } from "store";
 
 import { showErrorNotification } from "store/notifications/reducer";
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { fetchData } from "utils/fetchData";
 import { LogError, translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -51,7 +50,7 @@ export const AskInput = ({
   const [comment, setComment] = useState("");
   const addComment = async () => {
     try {
-      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+      let userData: any = useAppStore.getState().userProfile;
       if (userData.need_auth) {
         showErrorNotification(
           translateFunction("Please Verify Your Phone Number"),

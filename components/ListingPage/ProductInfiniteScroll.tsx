@@ -11,7 +11,6 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { EnableScroll } from "utils/tinyUtils";
 import auth from "services/auth";
 import { GetProducts } from "serverRequests/listing";
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 
 function ProductsInfiniteScroll({
   offset,
@@ -92,7 +91,7 @@ function ProductsInfiniteScroll({
   const getProductsReq = async () => {
     if (loading || isReachEnd) return;
     setLoading(true);
-    let user = getCookie<any>(COOKIE_NAMES.USER_DATA);
+    let user = useAppStore.getState().userProfile;
     let userId = user?.id;
     const response = await GetProducts({
       country,

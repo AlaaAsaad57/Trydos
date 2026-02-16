@@ -11,12 +11,7 @@ import {
   showErrorNotification,
 } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  setCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import home from "services/home";
 import UPDATED_API_DATA from "migration.staging";
@@ -25,8 +20,8 @@ import { LogServerError } from "utils/serverErrorReporter";
 class ChatService {
   async loginChat() {
     try {
-      const { loginSuccessChat } = useAppStore.getState();
-      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+      const { loginSuccessChat, userProfile } = useAppStore.getState();
+      const user = userProfile;
       const response = await fetchData({
         url: LOG_IN_CHAT,
         body: JSON.stringify({
@@ -42,7 +37,15 @@ class ChatService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      setCookie(COOKIE_NAMES.USER_CHAT, response.data);
+      // Update HttpOnly cookie via server route
+      fetch("/api/auth/update-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          updates: [{ name: COOKIE_NAMES.USER_CHAT, value: response.data }],
+        }),
+        credentials: "include",
+      });
       loginSuccessChat({
         ...response.data,
       });

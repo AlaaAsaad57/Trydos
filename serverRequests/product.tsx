@@ -7,6 +7,11 @@ import { Metadata } from "next";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import { BuyersCommentItem } from "components/Server/product/ProductBuyersComment/BuyerCommentItem";
 import { cookies } from "next/headers";
+import {
+  COOKIE_NAMES,
+  getCookieServer,
+  UserData,
+} from "utils/cookies/cookie-manager";
 import FaqItemComponent from "components/Server/product/ProductFAQSection/FaqItemComponent";
 import { LogServerError } from "utils/serverErrorReporter";
 import { General_Site_Data } from "./meta/StructuredData/Constants";
@@ -697,9 +702,8 @@ export async function GetFQACommentsForProductWithReactions({
 }
 
 async function GetBuyerComment({ id }) {
-  const cookieStore = await cookies();
-  let userCookies = cookieStore.get("User-Data")?.value;
-  let userId = JSON.parse(userCookies)?.id;
+  const userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_DATA);
+  let userId = userData?.id;
   let query: any = {
     index: comments_index,
     size: 1,
@@ -1021,9 +1025,8 @@ async function GetFaqItem({ id }) {
     ...((hit?._source as {}) ?? {}),
   }));
 
-  const cookieStore = await cookies();
-  let userCookies = cookieStore.get("User-Data")?.value;
-  let userId = JSON.parse(userCookies)?.id;
+  const userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_DATA);
+  let userId = userData?.id;
 
   if (results?.length > 0)
     results = await GetFQACommentsForProductWithReactions({

@@ -1,11 +1,6 @@
 "use client";
 
 import { useAppStore } from "store";
-import {
-  COOKIE_NAMES,
-  UserData,
-  getCookie,
-} from "utils/cookies/cookie-manager";
 
 function AddStory() {
   const {
@@ -20,7 +15,7 @@ function AddStory() {
 
   const handleClick = () => {
     if (userStories || !userStories?.need_auth) {
-      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+      const user = useAppStore.getState().userProfile;
       if (user?.name?.length > 0) {
         // Sendevent({
         //   event: GA_EVENT_NAMES.CLICK,

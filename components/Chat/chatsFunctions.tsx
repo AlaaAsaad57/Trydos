@@ -3,12 +3,11 @@ import { useAppStore } from "store";
 import { SendMessage } from "store/chat/actions";
 import { getUserChat, LogError, translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 
 export const FILE_SERVER = process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
 export const getUser: any = () => {
-  return getCookie(COOKIE_NAMES.USER_CHAT);
+  return useAppStore.getState().userChat;
 };
 
 export const getMessageStatusIcon = (status_array, mid) => {

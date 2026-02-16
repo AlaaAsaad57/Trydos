@@ -9,6 +9,12 @@ import {
 } from "utils/fetch/Endpoints";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
+import {
+  SECURE_COOKIE_OPTIONS,
+  setSecureCookieJSON,
+  sanitizeUserData,
+  sanitizeServiceUser,
+} from "utils/server/tokenManager";
 
 // Helper to handle sub-service fetches safely
 async function safeServiceLogin(url: string, body: any) {
@@ -159,6 +165,7 @@ export async function GET(request: NextRequest) {
         ...walletRes,
       });
     }
+    // 5. Set token cookies as HttpOnly (tokens NEVER reach client JS)
     const tokensToSet = [
       { name: COOKIE_NAMES.MARKET_TOKEN, value: MainToken },
       {
@@ -179,29 +186,58 @@ export async function GET(request: NextRequest) {
       },
     ];
 
-    // 5. Set Cookies (Only if value exists)
     tokensToSet.forEach((token) => {
       if (token.value) {
         cookiesStore.set({
           name: token.name,
           value: token.value,
-          httpOnly: false,
-          sameSite: "strict",
-          secure: process.env.NODE_ENV === "production",
-          path: "/",
-          maxAge: 60 * 60 * 24 * 365,
+          ...SECURE_COOKIE_OPTIONS,
         });
       }
     });
 
-    // 6. Final Response
+    // 6. Store user metadata in HttpOnly cookies (for server-side access)
+    const chatUserData = chatRes?.data?.data || null;
+    const storiesUserData = storiesRes?.data?.data || null;
+    const walletUserData = walletRes?.data?.user || null;
+
+    await Promise.all([
+      setSecureCookieJSON(COOKIE_NAMES.USER_DATA, {
+        ...InventoryUser,
+        already_exists: otp_response.data.already_exists,
+        is_verified: true,
+        is_phone_verified: 1,
+        expires_at: otp_response.data.expires_at,
+      }),
+      chatUserData
+        ? setSecureCookieJSON(COOKIE_NAMES.USER_CHAT, {
+            ...chatUserData,
+            need_auth: false,
+          })
+        : Promise.resolve(),
+      storiesUserData
+        ? setSecureCookieJSON(COOKIE_NAMES.USER_STORIES, {
+            ...storiesUserData,
+            need_auth: false,
+          })
+        : Promise.resolve(),
+      walletUserData
+        ? setSecureCookieJSON(COOKIE_NAMES.WALLET_USER, walletUserData)
+        : Promise.resolve(),
+    ]);
+
+    // 7. Return sanitized response (NO tokens in response body)
     return NextResponse.json(
       {
         ...otp_response,
-        ChatUser: chatRes?.data?.data || null,
-        StoriesUser: storiesRes?.data?.data || null,
+        data: {
+          ...otp_response.data,
+          token: undefined, // Strip market token from response
+        },
+        ChatUser: sanitizeServiceUser(chatUserData),
+        StoriesUser: sanitizeServiceUser(storiesUserData),
         is_failed: failures?.length > 0 ? failures : undefined,
-        WalletUser: walletRes?.data?.user || null,
+        WalletUser: walletUserData,
       },
       { status: 200 },
     );

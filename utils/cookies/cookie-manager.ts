@@ -48,6 +48,24 @@ export const COOKIE_NAMES = {
     "x7k9m2p4q8r1s5t3u6v2w9y4z7a1b5c8d2e6f9g3h7j1k4l8m2n5p9q3r6s1t4u7v2w5x8y1z4a7b2c5d8e1f4g7h2j5k8l1m4n7o2p5q8r1s4t7u2v5w8x1y4z7", // Random gibberish name
 } as const;
 
+/**
+ * Cookie names that are HttpOnly — tokens and user data.
+ * Client-side code CANNOT read or write these.
+ * Use /api/auth/me to read user data, /api/proxy to make authenticated requests.
+ */
+export const HTTPONLY_COOKIE_NAMES = new Set([
+  COOKIE_NAMES.MARKET_TOKEN,
+  COOKIE_NAMES.DEVICE_TOKEN,
+  COOKIE_NAMES.CHAT_TOKEN,
+  COOKIE_NAMES.STORIES_TOKEN,
+  COOKIE_NAMES.WALLET_TOKEN,
+  COOKIE_NAMES.USER_ID_HASH,
+  COOKIE_NAMES.USER_DATA,
+  COOKIE_NAMES.USER_CHAT,
+  COOKIE_NAMES.USER_STORIES,
+  COOKIE_NAMES.WALLET_USER,
+]);
+
 // Default cookie options
 const DEFAULT_OPTIONS: CookieOptions = {
   path: "/",
@@ -110,7 +128,8 @@ export async function getCookieServer<T = string>(
     const cookie = cookieStore.get(name);
 
     if (!cookie?.value) return null;
-    return deserialize<T>(cookie.value);
+    const decoded = decodeURIComponent(cookie.value);
+    return deserialize<T>(decoded);
   } catch (error) {
     console.warn("Failed to get cookie from server:", error);
     return null;

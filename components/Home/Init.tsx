@@ -9,11 +9,6 @@ import Smartlook from "smartlook-client";
 
 import { LogError, translateFunction } from "utils/functions";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import NotificationWidget from "components/global/NotificationWidget";
 import { useAppStore } from "store";
 import { GetCountries } from "serverRequests/product";
@@ -110,7 +105,7 @@ function Init() {
     try {
       Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
 
-      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+      const user = useAppStore.getState().userProfile;
 
       if (user) {
         Smartlook.identify(user.id, {

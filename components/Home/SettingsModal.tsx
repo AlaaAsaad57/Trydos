@@ -5,11 +5,6 @@ import home from "services/home";
 import NotificationsTest from "components/global/NotificationsTest";
 
 import { fetchData } from "utils/fetchData";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 
 const SettingsModal = ({ onClose, lang }) => {
@@ -32,7 +27,7 @@ const SettingsModal = ({ onClose, lang }) => {
   // Handle mounting and localStorage access
   useEffect(() => {
     setMounted(true);
-    const User = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    const User = useAppStore.getState().userProfile;
     // Set initial tab from hash if mounted
     const hash = window.location.hash.slice(1) as
       | "notifications"

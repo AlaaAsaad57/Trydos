@@ -9,12 +9,7 @@ import StoryServiceClass from "services/story";
 import { useAppStore } from "store";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import {
-  COOKIE_NAMES,
-  deleteCookie,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { deleteCookie } from "utils/cookies/cookie-manager";
 import { EnableScroll } from "utils/tinyUtils";
 export default function Home() {
   const router = useRouter();
@@ -52,9 +47,9 @@ export default function Home() {
     if (typeof window === "undefined") {
       return false;
     } else {
-      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-      const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-      const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+      const user = useAppStore.getState().userProfile;
+      const userChat = useAppStore.getState().userChat;
+      const userStories = useAppStore.getState().userStories;
       let name = user?.name;
       return (
         userChat?.id &&

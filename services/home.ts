@@ -12,7 +12,6 @@ import Smartlook from "smartlook-client";
 import {
   CUSTOMER_INFO_URL,
   FIREBASE_SETTINGS_URL,
-  REGISTER_DEVICE_URL,
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
 import auth from "./auth";
@@ -21,12 +20,7 @@ import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  setCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 class HomeService {
@@ -62,8 +56,8 @@ class HomeService {
       // await getOldCart();
 
       setTimeout(() => {
-        const chatUser = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-        if (chatUser) chat.getChats(false);
+        const { userChat } = useAppStore.getState();
+        if (userChat) chat.getChats(false);
       }, 5000);
     } catch (e) {
       LogServerError({
@@ -111,8 +105,19 @@ class HomeService {
         // @ts-ignore
         throw new Error(response_customer_Info.message);
       }
-      setCookie(COOKIE_NAMES.USER_DATA, {
-        ...response_customer_Info.data.customer_info,
+      // Update server-side HttpOnly cookie
+      fetch("/api/auth/update-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          updates: [
+            {
+              name: COOKIE_NAMES.USER_DATA,
+              value: response_customer_Info.data.customer_info,
+            },
+          ],
+        }),
+        credentials: "include",
       });
       if (response_customer_Info.data.customer_info) {
         if (response_customer_Info.data.customer_info) {
@@ -138,61 +143,49 @@ class HomeService {
   }
 
   async registerForExpire(id?: number) {
-    const { isRegisteringReady, setIsRegisteringReady, LoggingOut } =
-      useAppStore.getState();
+    const {
+      isRegisteringReady,
+      setIsRegisteringReady,
+      LoggingOut,
+      loginSuccess,
+    } = useAppStore.getState();
 
     if (LoggingOut) return;
     if (isRegisteringReady) {
-      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-      let requestBody = id
-        ? { old_guest_user_id: id }
-        : user?.id
-          ? {
-              old_guest_user_id: user.id,
-            }
-          : { old_guest_user_id: null };
+      const userId = id || auth.UserID();
 
       try {
-        let response = await fetchData({
-          url: REGISTER_DEVICE_URL,
-          body: JSON.stringify(requestBody),
-          reqTitle: REQUESTS_DATA.REGISTER_DEVICE_FOR_EXPIRED_USER,
+        // Use server route — sets DEVICE-TOKEN and USER-DATA as HttpOnly cookies
+        const [country, lang] = (
+          window.location.pathname.split("/")[1] || ""
+        ).split("-");
+        const response = await fetch("/api/auth/register-device", {
           method: "POST",
-          server: "market",
+          headers: {
+            "Content-Type": "application/json",
+            "x-country": country || "sy",
+            "x-language": lang || "en",
+          },
+          body: JSON.stringify({ old_guest_user_id: userId || null }),
+          credentials: "include",
         });
 
-        let repo: any = response;
-        // @ts-ignore
-        if (!repo.success) {
+        const repo = await response.json();
+        if (!response.ok) {
           throw new Error(repo.message);
         }
-        if (repo.message === "The user does not exist.") {
-          response = await fetchData({
-            url: REGISTER_DEVICE_URL,
-            body: JSON.stringify({ old_guest_user_id: null }),
-            reqTitle: REQUESTS_DATA["REGISTER_DEVICE_FOR_EXPIRED_USER_-_RETRY"],
-            method: "POST",
-            server: "market",
-          });
-          repo = response;
-          // @ts-ignore
-          if (!repo.success) {
-            throw new Error(repo.message);
-          }
-        }
         if (useAppStore.getState().LoggingOut) return;
-        setCookie(COOKIE_NAMES.DEVICE_TOKEN, repo.data.token);
 
-        setCookie(COOKIE_NAMES.USER_DATA, {
-          ...repo.data.user,
-          expired_at: repo.data.expires_at,
-        });
-        if (repo.data.user) {
+        // Update store with user data (token is already in HttpOnly cookie)
+        if (repo.data?.user) {
+          loginSuccess({
+            ...repo.data.user,
+            expired_at: repo.data.expires_at,
+          });
           if (process.env.NODE_ENV === "production" && Smartlook.initialized())
             Smartlook.identify(repo.data.user.id, {
               name: repo.data.user.name,
               phone: "guest",
-              // other custom properties
             });
         }
         setIsRegisteringReady(true);
@@ -277,29 +270,46 @@ class HomeService {
   }
 
   async CheckLogin() {
-    const marketToken = getCookie(COOKIE_NAMES.MARKET_TOKEN);
-    const deviceToken = getCookie(COOKIE_NAMES.DEVICE_TOKEN);
-    const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-    const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
     const {
       loginSuccess,
       loginSuccessChat,
       loginSuccessStories,
       editUserInfo,
     } = useAppStore.getState();
+
+    // Fetch user data from HttpOnly cookies via server route
+    let userData: any = null;
+    let userChat: any = null;
+    let userStories: any = null;
+    let hasDeviceToken = false;
+    let hasMarketToken = false;
+
+    try {
+      const meResponse = await fetch("/api/auth/me", {
+        credentials: "include",
+      });
+      if (meResponse.ok) {
+        const meData = await meResponse.json();
+        userData = meData.user;
+        userChat = meData.chatUser;
+        userStories = meData.storiesUser;
+        hasDeviceToken = meData.hasDeviceToken;
+        hasMarketToken = meData.hasMarketToken;
+      }
+    } catch (_) {}
+
     if (userData) {
       editUserInfo(userData);
       SetGAUser(userData, false);
     }
-    if (!deviceToken) await this.RegisterDevice();
-    if (userData && userData?.is_phone_verified === 1 && marketToken) {
-      setCookie(COOKIE_NAMES.MARKET_TOKEN, marketToken);
+
+    if (!hasDeviceToken) await this.RegisterDevice();
+
+    if (userData && userData?.is_phone_verified === 1 && hasMarketToken) {
       if (process.env.NODE_ENV === "production" && Smartlook.initialized())
         Smartlook.identify(userData.id, {
           name: userData.name,
           phone: userData.mobilePhone,
-          // other custom properties
         });
       loginSuccess({
         ...userData,
@@ -307,23 +317,14 @@ class HomeService {
         name: userData.name,
         image: userData.image,
       });
-      if (userChat) {
-        loginSuccessChat({
-          ...userChat,
-        });
-      }
-      if (userStories) {
-        loginSuccessStories({
-          ...userStories,
-        });
-      }
+      if (userChat) loginSuccessChat({ ...userChat });
+      if (userStories) loginSuccessStories({ ...userStories });
     } else {
       if (userData) {
         if (process.env.NODE_ENV === "production" && Smartlook.initialized())
           Smartlook.identify(userData.id, {
             name: userData.name,
             phone: userData.mobilePhone,
-            // other custom properties
           });
         loginSuccess({
           ...userData,
@@ -339,76 +340,54 @@ class HomeService {
   }
 
   async RegisterDevice() {
-    const deviceToken = getCookie(COOKIE_NAMES.DEVICE_TOKEN);
-    const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-
-    const { isRegisteringReady, setIsRegisteringReady } =
+    const { isRegisteringReady, setIsRegisteringReady, loginSuccess } =
       useAppStore.getState();
 
     if (isRegisteringReady) {
-      let isNewUser = !userData;
-      let requestBody = userData?.id
-        ? {
-            old_guest_user_id: userData?.id,
-          }
-        : { old_guest_user_id: null };
+      const userId = auth.UserID();
+      const isNewUser = !userId;
 
-      if (!deviceToken) {
-        try {
-          let response = await fetchData({
-            url: REGISTER_DEVICE_URL,
-            body: JSON.stringify(requestBody),
-            reqTitle: REQUESTS_DATA.REGISTER_DEVICE,
-            method: "POST",
-            server: "market",
-          });
-          // @ts-ignore
-          if (!response.success) {
-            throw new Error(response.message);
-          }
-          let repo: any = response;
-          if (repo.message === "The user does not exist.") {
-            response = await fetchData({
-              url: REGISTER_DEVICE_URL,
-              body: JSON.stringify({ old_guest_user_id: null }),
-              reqTitle:
-                REQUESTS_DATA["REGISTER_DEVICE_FOR_EXPIRED_USER_-_RETRY"],
-              method: "POST",
-              server: "market",
-            });
-            // @ts-ignore
-            if (!response.success) {
-              throw new Error(response.message);
-            }
-            repo = response;
-          }
-          setCookie(COOKIE_NAMES.DEVICE_TOKEN, repo.data.token);
+      try {
+        // Use server route — sets DEVICE-TOKEN and USER-DATA as HttpOnly cookies
+        const [country, lang] = (
+          window.location.pathname.split("/")[1] || ""
+        ).split("-");
+        const response = await fetch("/api/auth/register-device", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-country": country || "sy",
+            "x-language": lang || "en",
+          },
+          body: JSON.stringify({ old_guest_user_id: userId || null }),
+          credentials: "include",
+        });
 
-          if (repo?.data?.user) {
-            setCookie(COOKIE_NAMES.USER_DATA, {
-              ...repo.data.user,
-              expired_at: repo.data.expires_at,
-            });
-          }
-          SetGAUser(repo.data.user, isNewUser);
-          setIsRegisteringReady(true);
-          if (repo.data.user) {
-            if (
-              process.env.NODE_ENV === "production" &&
-              Smartlook.initialized()
-            )
-              Smartlook.identify(repo.data.user.id, {
-                name: repo.data.user.name,
-                phone: "guest",
-                // other custom properties
-              });
-          }
-        } catch (err) {
-          LogServerError({
-            error: err,
-            scenario: "Error In RegisterDevice in services/home",
+        const repo = await response.json();
+        if (!response.ok) {
+          throw new Error(repo.message);
+        }
+
+        if (repo.data?.user) {
+          loginSuccess({
+            ...repo.data.user,
+            expired_at: repo.data.expires_at,
           });
         }
+        SetGAUser(repo.data?.user, isNewUser);
+        setIsRegisteringReady(true);
+        if (repo.data?.user) {
+          if (process.env.NODE_ENV === "production" && Smartlook.initialized())
+            Smartlook.identify(repo.data.user.id, {
+              name: repo.data.user.name,
+              phone: "guest",
+            });
+        }
+      } catch (err) {
+        LogServerError({
+          error: err,
+          scenario: "Error In RegisterDevice in services/home",
+        });
       }
     }
   }

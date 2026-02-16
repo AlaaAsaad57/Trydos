@@ -3,13 +3,7 @@ import { useAppStore } from "store";
 import LocalizationServiceClass from "services/localization";
 
 import { fetchData } from "./fetchData";
-import {
-  COOKIE_NAMES,
-  UserData,
-  getCookie,
-  setCookie,
-  deleteCookie,
-} from "./cookies/cookie-manager";
+import { getCookie, setCookie, deleteCookie } from "./cookies/cookie-manager";
 import { REQUESTS_DATA } from "./Requests";
 import { readStoredLastPaths } from "./history";
 import { getLastRequest } from "./requestLoggerClient";
@@ -46,13 +40,12 @@ export function translateFunction(key: string, language?: string | string[]) {
 }
 
 export const getUserChat = (): any => {
-  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+  const userChat = useAppStore.getState().userChat;
   if (userChat) return userChat;
   else return {};
 };
 export const getUserStories = (): any => {
-  const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
-  return userStories;
+  return useAppStore.getState().userStories;
 };
 
 export const _isStoreLastJson = () => {
@@ -338,9 +331,9 @@ export const onClickSearchHistory = (searchValue) => {
 };
 
 export const getOldCart = async () => {
-  const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
-  const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
-  if (!deviceToken && !marketToken) return [];
+  const userId =
+    useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id;
+  if (!userId) return [];
   try {
     let response: any = await fetchData({
       url: "/old-cart/get_old_cart",
@@ -363,9 +356,9 @@ export const getOldCart = async () => {
 };
 export const getCart = async ({ callback }): Promise<CartApiInterface> => {
   const { initCart, setCartShippingSuccess } = useAppStore.getState();
-  const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
-  const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
-  if (!deviceToken && !marketToken) return { cart: [] } as CartApiInterface;
+  const userId =
+    useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id;
+  if (!userId) return { cart: [] } as CartApiInterface;
   try {
     let response: any = await fetchData({
       url: "/cart/cart_shipping",
@@ -417,11 +410,9 @@ export const LogError = async (error) => {
     if (LoggingOut) return;
   }
   let last_request;
-  const userData = getCookie(COOKIE_NAMES.USER_DATA);
-  const userChat = getCookie(COOKIE_NAMES.USER_CHAT);
-  const userStories = getCookie(COOKIE_NAMES.USER_STORIES);
-  const marketToken = getCookie(COOKIE_NAMES.MARKET_TOKEN);
-  const deviceToken = getCookie(COOKIE_NAMES.DEVICE_TOKEN);
+  const userData = useAppStore.getState().userProfile;
+  const userChat = useAppStore.getState().userChat;
+  const userStories = useAppStore.getState().userStories;
   const last_paths = await readStoredLastPaths();
   if (typeof window !== "undefined") {
     last_request = await getLastRequest();
@@ -448,8 +439,6 @@ export const LogError = async (error) => {
     userChat,
     userData,
     userStories,
-    marketToken,
-    deviceToken,
     last_paths,
     last_request,
     language,
