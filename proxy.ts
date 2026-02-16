@@ -253,7 +253,6 @@ export async function proxy(request: NextRequest) {
     country: getGeoCountry(request) ?? "sy",
   });
   const allSupportedCountries = getAllSupportedCountries(coutries);
-  console.log(coutries, allSupportedCountries);
 
   const supportedLocales = buildSupportedLocales(allSupportedCountries);
   const response = NextResponse.next();
