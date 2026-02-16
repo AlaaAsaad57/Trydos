@@ -24,7 +24,7 @@ import {
 } from "services/wallet/types";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
-import { RDB } from "ramaaz-digital-banking";
+import { RDB } from "rdb";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { serverActions } from "services/RDB";
 import Spinner from "components/global/Spinner";

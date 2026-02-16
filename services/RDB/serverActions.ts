@@ -1,6 +1,6 @@
 "use server";
 
-import * as core from "ramaaz-digital-banking/core";
+import * as core from "rdb/core";
 // let core: any = {};
 // Re-export individual functions so Next.js recognizes them as Server Actions
 export const getCurrencies = core.getCurrencies;

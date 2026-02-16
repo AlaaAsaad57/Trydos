@@ -76,9 +76,9 @@ importers:
       postcss:
         specifier: ^8.4.38
         version: 8.5.6
-      ramaaz-digital-banking:
+      rdb:
         specifier: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git
-        version: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#015dbcf49b35643ce8830522a38e2d27ffaed7d7(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#77e6e4dc3af86948ede990ce69e7b25fca19cc52(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react:
         specifier: 19.2.0
         version: 19.2.0
@@ -3568,20 +3568,20 @@ packages:
   queue@6.0.2:
     resolution: {integrity: sha512-iHZWu+q3IdFZFX36ro/lKBkSvfkztY5Y7HMiPlOUjhupPcG2JMfst2KKEpu5XndviX/3UhFbRngUPNKtgvtZiA==}
 
-  ramaaz-digital-banking@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#015dbcf49b35643ce8830522a38e2d27ffaed7d7:
-    resolution: {commit: 015dbcf49b35643ce8830522a38e2d27ffaed7d7, repo: https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git, type: git}
-    version: 1.0.0
-    peerDependencies:
-      next: '>=14'
-      react: '>=18'
-      react-dom: '>=18'
-
   randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
 
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
+
+  rdb@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#77e6e4dc3af86948ede990ce69e7b25fca19cc52:
+    resolution: {commit: 77e6e4dc3af86948ede990ce69e7b25fca19cc52, repo: https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git, type: git}
+    version: 1.0.0
+    peerDependencies:
+      next: '>=14'
+      react: '>=18'
+      react-dom: '>=18'
 
   react-avatar-editor@13.0.2:
     resolution: {integrity: sha512-a4ajbi7lwDh98kgEtSEeKMu0vs0CHTczkq4Xcxr1EiwMFH1GlgHCEtwGU8q/H5W8SeLnH4KPK8LUjEEaZXklxQ==}
@@ -8120,8 +8120,15 @@ snapshots:
     dependencies:
       inherits: 2.0.4
 
-  ramaaz-digital-banking@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#015dbcf49b35643ce8830522a38e2d27ffaed7d7(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  randombytes@2.1.0:
     dependencies:
+      safe-buffer: 5.2.1
+
+  range-parser@1.2.1: {}
+
+  rdb@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#77e6e4dc3af86948ede990ce69e7b25fca19cc52(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+    dependencies:
+      '@tailwindcss/postcss': 4.1.18
       axios: 1.13.5
       framer-motion: 12.34.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       js-cookie: 3.0.5
@@ -8134,12 +8141,6 @@ snapshots:
     transitivePeerDependencies:
       - '@emotion/is-prop-valid'
       - debug
-
-  randombytes@2.1.0:
-    dependencies:
-      safe-buffer: 5.2.1
-
-  range-parser@1.2.1: {}
 
   react-avatar-editor@13.0.2(@babel/core@7.28.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
     dependencies:
