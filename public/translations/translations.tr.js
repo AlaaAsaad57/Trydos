@@ -1250,6 +1250,7 @@ const translations = {
   "No shops available": "Mevcut mağaza yok",
   "Super Admin": "Süper Yönetici",
   "You have full access to all features": "Tüm özelliklere tam erişiminiz var",
+  "Recommended Products": ' "Önerilen Ürünler",',
 };
 
 export default translations;

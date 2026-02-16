@@ -1245,6 +1245,7 @@ const translations = {
   "No shops available": "لا توجد متاجر متاحة",
   "Super Admin": "مشرف عام",
   "You have full access to all features": "لديك حق الوصول الكامل لجميع الميزات",
+  "Recommended Products": "المنتجات الموصى بها"
 };
 
 export default translations;

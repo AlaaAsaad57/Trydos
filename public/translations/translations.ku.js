@@ -1271,6 +1271,7 @@ const translations = {
   "Super Admin": "Super Admin",
   "You have full access to all features":
     "Hûn têgihiştina tevahî yên hemû taybetmendiyan hene",
+  "Recommended Products": "بەرهەمە پێشنیارکراوەکان",
 };
 
 export default translations;
