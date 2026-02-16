@@ -131,7 +131,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const isRtl = language === "ar" || language === "ku";
   return (
     <div className="absolute flex-col items-center payment-order-bottom left-0 w-full">
-      {showWalletModal && (
+      {showWalletModal && !orderData.success && (
         <WalletPaymentModal
           walletAmount={walletPaymentBalance}
           onSuccess={() => {

@@ -21,14 +21,17 @@ export const LogServerError = async (error?: unknown, pagePath?: string) => {
     getCookieServer("userIP"),
     readStoredLastPaths(),
   ]);
-
+  const serializedError =
+    error instanceof Error
+      ? { message: error.message, stack: error.stack, name: error.name }
+      : error;
   // Build absolute URL from headers + provided path (server-safe)
 
   const baseError: Record<string, any> =
-    typeof error === "object" && error !== null
-      ? (error as Record<string, any>)
-      : error !== undefined
-        ? { message: String(error) }
+    typeof serializedError === "object" && serializedError !== null
+      ? (serializedError as Record<string, any>)
+      : serializedError !== undefined
+        ? { message: String(serializedError) }
         : {};
 
   const Error_Object = {

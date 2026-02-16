@@ -431,8 +431,20 @@ export const LogError = async (error) => {
   const language = getCookie("language");
   const country = getCookie("country");
   const userIP = getCookie("userIP");
+  const serializedError =
+    error instanceof Error
+      ? { message: error.message, stack: error.stack, name: error.name }
+      : error;
+  // Build absolute URL from headers + provided path (server-safe)
+
+  const baseError: Record<string, any> =
+    typeof serializedError === "object" && serializedError !== null
+      ? (serializedError as Record<string, any>)
+      : serializedError !== undefined
+        ? { message: String(serializedError) }
+        : {};
   const Error_Object = {
-    ...(error ?? {}),
+    ...(baseError ?? {}),
     userChat,
     userData,
     userStories,

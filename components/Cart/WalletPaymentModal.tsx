@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "store";
 import {
   CheckoutOrder,
@@ -11,12 +11,17 @@ import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { createPortal } from "react-dom";
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 export default function WalletPaymentModal({
   onSuccess,
   onClose,
   walletAmount,
 }) {
+  const POLLING_INTERVAL_MS = 5000;
+  const POLLING_TIMEOUT_MS = 10 * 60 * 1000;
+
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [currencies, setCurrencies] = useState<CurrenciesApi["items"]>([]);
   const [walletData, setWalletData] = useState<GetWalletBalancesApi | null>(
@@ -26,9 +31,18 @@ export default function WalletPaymentModal({
     CurrenciesApi["items"][0] | null
   >(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const pollingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isPollingActiveRef = useRef(false);
+  const stopPollingRef = useRef(false);
 
-  const { cart, currency, enableCart, setShouldAuthinticated, language } =
-    useAppStore();
+  const {
+    cart,
+    currency,
+    enableCart,
+    setShouldAuthinticated,
+    language,
+    setOrderData,
+  } = useAppStore();
 
   const { lang } = useParams();
   const local = String(lang);
@@ -39,6 +53,77 @@ export default function WalletPaymentModal({
     onClose();
     setShouldAuthinticated(true);
   };
+  const checkIfCartConvertToOrder = async (cartGroupId: string | number) => {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/getOrdersByCartGroupID?cart_group_id=${cartGroupId}`,
+        method: "GET",
+        server: "market",
+        reqTitle: REQUESTS_DATA.GETORDERSBYCARTGROUPID,
+      });
+
+      if (!response.success) {
+        return false;
+      }
+
+      if (response.data && response.data?.length > 0) {
+        onSuccess();
+        onClose();
+        setOrderData({ data: response.data, success: true });
+        return true;
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  const startOrderConversionPolling = async (cartGroupId: string | number) => {
+    if (isPollingActiveRef.current) return;
+
+    isPollingActiveRef.current = true;
+    stopPollingRef.current = false;
+    const pollingStartTime = Date.now();
+
+    const poll = async (): Promise<void> => {
+      if (stopPollingRef.current) {
+        isPollingActiveRef.current = false;
+        return;
+      }
+
+      const isConverted = await checkIfCartConvertToOrder(cartGroupId);
+      if (isConverted) {
+        isPollingActiveRef.current = false;
+        return;
+      }
+
+      if (stopPollingRef.current) {
+        isPollingActiveRef.current = false;
+        return;
+      }
+
+      if (Date.now() - pollingStartTime >= POLLING_TIMEOUT_MS) {
+        isPollingActiveRef.current = false;
+        return;
+      }
+
+      pollingTimeoutRef.current = setTimeout(() => {
+        void poll();
+      }, POLLING_INTERVAL_MS);
+    };
+
+    await poll();
+  };
+
+  useEffect(() => {
+    return () => {
+      stopPollingRef.current = true;
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -151,7 +236,7 @@ export default function WalletPaymentModal({
       });
 
       if (result) {
-        onSuccess();
+        void startOrderConversionPolling(cart[0].cart_group_id);
       } else {
         showErrorNotification(
           translateFunction("Wallet payment failed. Please try again"),
