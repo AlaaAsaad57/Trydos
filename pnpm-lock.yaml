@@ -77,8 +77,8 @@ importers:
         specifier: ^8.4.38
         version: 8.5.6
       rdb:
-        specifier: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git
-        version: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#42e7d8428e64683d4cc752bc3e78e957a93e91fd(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#dev
+        version: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#634fa2f5b0f1552f8d8d883e4c7dc20f3f3d64e2(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react:
         specifier: 19.2.0
         version: 19.2.0
@@ -2904,6 +2904,9 @@ packages:
     resolution: {integrity: sha512-cEiJEAEoIbWfCZYKWhVwFuvPX1gETRYPw6LlaTKoxD3s2AkXzkCjnp6h0V77ozyqj0jakteJ4YqDJT830+lVGw==}
     engines: {node: '>=14'}
 
+  js-cookies@1.0.4:
+    resolution: {integrity: sha512-cO1SHDH7zJsi8FihHmDtcWx90mWmrfGOrcLKPeaEX6tLyuTK2wnzgdmNa34Q6rNAd6VhQUgjDt5Eyl90VI/Fpg==}
+
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -3575,8 +3578,8 @@ packages:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
 
-  rdb@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#42e7d8428e64683d4cc752bc3e78e957a93e91fd:
-    resolution: {commit: 42e7d8428e64683d4cc752bc3e78e957a93e91fd, repo: https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git, type: git}
+  rdb@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#634fa2f5b0f1552f8d8d883e4c7dc20f3f3d64e2:
+    resolution: {commit: 634fa2f5b0f1552f8d8d883e4c7dc20f3f3d64e2, repo: https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git, type: git}
     version: 1.0.0
     peerDependencies:
       next: '>=14'
@@ -7399,6 +7402,8 @@ snapshots:
 
   js-cookie@3.0.5: {}
 
+  js-cookies@1.0.4: {}
+
   js-tokens@4.0.0: {}
 
   js-yaml@3.14.2:
@@ -8126,12 +8131,13 @@ snapshots:
 
   range-parser@1.2.1: {}
 
-  rdb@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#42e7d8428e64683d4cc752bc3e78e957a93e91fd(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  rdb@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#634fa2f5b0f1552f8d8d883e4c7dc20f3f3d64e2(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
     dependencies:
       '@tailwindcss/postcss': 4.1.18
       axios: 1.13.5
       framer-motion: 12.34.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       js-cookie: 3.0.5
+      js-cookies: 1.0.4
       lucide-react: 0.563.0(react@19.2.0)
       next: 16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0)
       react: 19.2.0

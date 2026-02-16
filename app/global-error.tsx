@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import Logo from "../components/Home/Logo";
 import { LogError } from "../utils/functions";
 import AuthService from "../services/auth";
@@ -27,7 +28,9 @@ export default function GlobalError({ error, reset }) {
     ).split("-");
     let errorObj = {
       type: "front-end-exception",
+      scenario: "global-error-boundary",
       message: error.message,
+      stack: error.stack,
       url: window.location.href,
       user_id: user_id,
       token: token,
@@ -38,6 +41,8 @@ export default function GlobalError({ error, reset }) {
     LogError(errorObj);
   };
   useEffect(() => {
+    // Sentry's built-in error boundary capture
+    Sentry.captureException(error);
     sendError();
   }, [error]);
   if (
@@ -159,7 +164,7 @@ export default function GlobalError({ error, reset }) {
                 </p>
               </div>
               <p className="text-xs text-gray-500">
-                Error ID: {Math.random().toString(36).substr(2, 9)}
+                Error ID: {Sentry.lastEventId() || "—"}
               </p>
             </div>
           </div>

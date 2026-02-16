@@ -422,12 +422,27 @@ export const LogError = async (error) => {
   const language = getCookie("language");
   const country = getCookie("country");
   const userIP = getCookie("userIP");
-  const serializedError =
-    error instanceof Error
-      ? { message: error.message, stack: error.stack, name: error.name }
-      : error;
-  // Build absolute URL from headers + provided path (server-safe)
-
+  let serializedError = error;
+  if (error instanceof Error) {
+    serializedError = {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    };
+  }
+  // Always ensure message is a non-empty string
+  let message = serializedError?.message ?? serializedError?.error;
+  if (typeof message !== "string") {
+    if (message === undefined || message === null) {
+      message = "Unknown error";
+    } else {
+      try {
+        message = JSON.stringify(message);
+      } catch {
+        message = String(message);
+      }
+    }
+  }
   const baseError: Record<string, any> =
     typeof serializedError === "object" && serializedError !== null
       ? (serializedError as Record<string, any>)
@@ -436,6 +451,7 @@ export const LogError = async (error) => {
         : {};
   const Error_Object = {
     ...(baseError ?? {}),
+    message,
     userChat,
     userData,
     userStories,
@@ -444,6 +460,10 @@ export const LogError = async (error) => {
     language,
     country,
     userIP,
+    timestamp: new Date().toISOString(),
+    url: typeof window !== "undefined" ? window.location.href : undefined,
+    user_agent:
+      typeof navigator !== "undefined" ? navigator.userAgent : undefined,
   };
   ReportError(Error_Object);
   await storeError(Error_Object);

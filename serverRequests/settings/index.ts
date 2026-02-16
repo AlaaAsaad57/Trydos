@@ -18,6 +18,7 @@ export async function GetOrders({
     });
     return res?.data;
   } catch (error) {
+    console.log("Error fetching orders:", error);
     LogServerError({
       error: error,
       scenario: "Error In GetOrders in serverRequest/settings",

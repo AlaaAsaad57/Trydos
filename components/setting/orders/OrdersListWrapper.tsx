@@ -47,7 +47,7 @@ function OrdersListWrapper({ isRtl, language, order_group_statuses, local }) {
 
       const response = await fetchOrders(currentPage, PAGE_LIMIT, statusParam);
 
-      if (response.isSuccessful && response.data) {
+      if (response?.isSuccessful && response?.data) {
         const rawOrders = response.data.orders || [];
         const totalAvailable = response.data.total || 0;
 
@@ -74,6 +74,7 @@ function OrdersListWrapper({ isRtl, language, order_group_statuses, local }) {
         setHasMore(false);
       }
     } catch (error) {
+      console.log("Error fetching orders:", error);
       LogError({
         error: error,
         scenario: "Error In handleFetchOrders in OrderListWrapper",

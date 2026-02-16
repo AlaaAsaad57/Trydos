@@ -14,6 +14,10 @@ type ParsedPayload = {
   userData?: unknown;
   userChat?: unknown;
   userStories?: unknown;
+  timestamp?: string;
+  scenario?: string;
+  source?: string;
+  type?: string;
   [key: string]: unknown;
 };
 
@@ -169,6 +173,32 @@ const Page = () => {
               </div>
             );
           })()}
+          {/* Error Metadata: timestamp, scenario, type */}
+          {(() => {
+            const ts = (preview as any)?.timestamp;
+            const scenario =
+              (preview as any)?.scenario ??
+              (preview as any)?.source ??
+              (preview as any)?.type;
+            if (!ts && !scenario) return null;
+            return (
+              <div
+                className="md:col-span-2 flex flex-wrap gap-3"
+                aria-label="Error metadata"
+              >
+                {ts ? (
+                  <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+                    {new Date(ts).toLocaleString()}
+                  </span>
+                ) : null}
+                {scenario ? (
+                  <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
+                    {String(scenario)}
+                  </span>
+                ) : null}
+              </div>
+            );
+          })()}
           {(() => {
             const userIP =
               (preview as any)?.userIP ??
@@ -267,11 +297,47 @@ const Page = () => {
             aria-label="last_request"
           >
             <div className="mb-2 text-sm font-semibold text-gray-900">
-              last_request
+              Last API Request
             </div>
             <pre className="max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.last_request ?? null, null, 2)}
             </pre>
+          </div>
+          <div
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs text-[#1d1d1d]"
+            role="region"
+            aria-label="Error Page URL"
+          >
+            <div className="mb-2 text-sm font-semibold text-gray-900">
+              Error Context
+            </div>
+            <div className="text-xs text-gray-700 space-y-1">
+              <div>
+                Page URL:{" "}
+                <span className="font-mono break-all">
+                  {String(
+                    (preview as any)?.url ??
+                      (preview as any)?.current_url ??
+                      (preview as any)?.page ??
+                      "",
+                  ) || "—"}
+                </span>
+              </div>
+              <div>
+                User Agent:{" "}
+                <span className="font-mono break-all">
+                  {String((preview as any)?.user_agent ?? "") || "—"}
+                </span>
+              </div>
+              {(preview as any)?.stack ? (
+                <div>
+                  <div className="font-semibold mt-2 mb-1">Stack Trace:</div>
+                  <pre className="max-h-32 overflow-auto whitespace-pre-wrap rounded-sm bg-red-50 p-2 text-xs text-red-800">
+                    {String((preview as any).stack)}
+                  </pre>
+                </div>
+              ) : null}
+            </div>
           </div>
           <div
             className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs text-[#1d1d1d]"
