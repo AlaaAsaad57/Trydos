@@ -396,6 +396,7 @@ function OrderItemOptions({
           <OrderItemCancelConfirmationWindow
             callback={update}
             close={() => {
+              close();
               setShowConfirmChangeOrder(null);
             }}
             isRtl={isRtl}
