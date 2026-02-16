@@ -84,8 +84,10 @@ export async function GET(request: NextRequest) {
     });
 
     const otp_response = await otpRes.json();
-    if (!otpRes.ok)
+    if (!otpRes.ok) {
+      LogServerError({ error: otp_response, type: "verify login api route" });
       return NextResponse.json(otp_response, { status: otpRes.status });
+    }
 
     const {
       token: MainToken,
