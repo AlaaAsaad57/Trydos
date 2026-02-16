@@ -148,7 +148,10 @@ const Menu = ({ user, setMenuOpen }) => {
     cancelAuth(); // pass NO argument — full reset, not "expired"
 
     // 5. Reload immediately — no need for 2s delay
-    if (window.location.pathname.includes("/seller")) {
+    if (
+      window.location.pathname.includes("/seller") ||
+      window.location.pathname.includes("/settings")
+    ) {
       window.location.href = `/${lang}`;
     } else {
       window.location.reload();
