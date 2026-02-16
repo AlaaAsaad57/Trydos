@@ -1,7 +1,7 @@
 import "styles/globals.css";
 import "styles/home.css";
 
-import "ramaaz-digital-banking/dist/styles/styles.css";
+// import "ramaaz-digital-banking/dist/styles/styles.css";
 
 import localFont from "next/font/local";
 import { SpeedInsights } from "@vercel/speed-insights/next";
