@@ -384,8 +384,11 @@ img {
   display: block;
   -webkit-user-drag: none;
   max-width: 100%;
+  color: transparent;
 }
-
+img::after {
+  background-color: white;
+}
 @media only screen and (max-width: 420px) {
   body .site-container {
     transform: none !important;
