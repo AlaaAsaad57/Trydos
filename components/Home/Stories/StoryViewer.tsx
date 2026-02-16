@@ -136,7 +136,7 @@ const StoryViewer = ({
         // Also log to console for debugging
         console.log(`Story ${storyIndex} viewed for ${activeViewingTime}ms`, {
           totalTime: totalElapsed,
-          pausedTime: totalPausedTimeRef.current,
+          // pausedTime: totalPausedTimeRef.current,
         });
       }
     }

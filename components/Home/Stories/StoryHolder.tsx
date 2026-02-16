@@ -145,10 +145,18 @@ function StoryHolder({ story, active, isPaused }) {
               if (e.key === "Enter" || e.key === " ") SelectStory(null);
             }}
           >
-            <img
-              src="/icons/settings/Xicon.svg"
-              className="[&>path]:fill-[#fafafa]"
-            />
+            <svg
+              width="24"
+              height="24"
+              xmlns="http://www.w3.org/2000/svg"
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+            >
+              <path
+                d="M12 11.293l10.293-10.293.707.707-10.293 10.293 10.293 10.293-.707.707-10.293-10.293-10.293 10.293-.707-.707 10.293-10.293-10.293-10.293.707-.707 10.293 10.293z"
+                fill="#fafafa"
+              />
+            </svg>
           </span>
         </div>
       )}

@@ -6,11 +6,11 @@ import { useEffect } from "react";
 import { useAppStore } from "store";
 
 function StoriesWrapper({ next_page_url, isRtl, stories, userData }) {
-  const { setStoryData, storiesData } = useAppStore();
+  const { setStoryData, storiesData, loginOpen } = useAppStore();
   useEffect(() => {
     setStoryData(stories);
   }, []);
-  let stories_data = storiesData?.length > 0 ? storiesData : stories;
+
   return (
     <HortiznalScrollBar
       id="stories-bar-container"
@@ -18,7 +18,7 @@ function StoriesWrapper({ next_page_url, isRtl, stories, userData }) {
         isRtl && "flex-row-reverse"
       } flex h-full pl-[10px] gap-[15px] items-center`}
     >
-      {stories_data.map((story, index) => (
+      {stories.map((story, index) => (
         <StoryElement
           key={story.id || index}
           index={index}
@@ -26,11 +26,10 @@ function StoriesWrapper({ next_page_url, isRtl, stories, userData }) {
           userData={userData}
         />
       ))}
-      {next_page_url && (
+      {next_page_url && !loginOpen && (
         <StoriesPaginationWrapper
           userData={null}
           next_page_url={next_page_url}
-          initialStories={stories}
         />
       )}
     </HortiznalScrollBar>

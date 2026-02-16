@@ -17,14 +17,12 @@ import { LogError } from "utils/functions";
 interface StoriesPaginationWrapperProps {
   next_page_url: string | number;
 
-  initialStories: any[];
   userData: UserData | null;
 }
 
 function StoriesPaginationWrapper({
   next_page_url,
 
-  initialStories,
   userData,
 }: StoriesPaginationWrapperProps) {
   const { storiesData, setStoryData } = useAppStore();
