@@ -54,9 +54,159 @@ const buildSizeOptions = (data) => {
 
   return unique.map((s) => ({ option: s, name: s }));
 };
+
+const resolveDefaultSelection = ({
+  productData,
+  colorProp,
+  colorFromUrl,
+  sizeFromUrl,
+}) => {
+  const colors = productData?.sync_color_images ?? [];
+  const sizeOpts = buildSizeOptions(productData);
+  const variations = productData?.variation ?? [];
+  const hasColors = colors.length > 0;
+  const hasSizes = sizeOpts.length > 0;
+  const hasVariations = variations.length > 0;
+  const isCollect = productData?.collected_after_ordering === 1;
+
+  const findColorObj = (str) => {
+    if (!str) return null;
+    return (
+      colors.find(
+        (c) =>
+          c?.color_option?.toLowerCase() === str.toLowerCase() ||
+          c?.color_name?.toLowerCase() === str.toLowerCase(),
+      ) ?? null
+    );
+  };
+
+  const getColorName = (obj) => obj?.color_name ?? obj?.color_option ?? null;
+
+  const getColorVariations = (name) =>
+    name ? variations.filter((v) => v.color?.name === name) : variations;
+
+  const hasColorStock = (name) =>
+    getColorVariations(name).some((v) => v.qty > 0);
+
+  const normColor = (obj) => {
+    if (!obj) return null;
+    return { ...obj, color_option: obj.color_option ?? obj.color_name };
+  };
+
+  const findSizeMatch = (str) => {
+    if (!str) return null;
+    return (
+      sizeOpts.find(
+        (s) =>
+          normalizeSize(s.option ?? s)
+            ?.toString()
+            .toLowerCase() === str.toLowerCase() ||
+          normalizeSize(s.name ?? s)
+            ?.toString()
+            .toLowerCase() === str.toLowerCase(),
+      ) ?? null
+    );
+  };
+
+  const getSizeVal = (sizeObj) =>
+    sizeObj?.option ?? sizeObj?.name ?? sizeObj ?? null;
+
+  // For collect-after-ordering or no variations: pick defaults by priority
+  if (isCollect || !hasVariations) {
+    return {
+      color: hasColors
+        ? normColor(
+            findColorObj(colorProp) ?? findColorObj(colorFromUrl) ?? colors[0],
+          )
+        : null,
+      size: hasSizes
+        ? getSizeVal(findSizeMatch(sizeFromUrl) ?? sizeOpts[0])
+        : null,
+    };
+  }
+
+  // --- Resolve Color ---
+  let resolvedColor = null;
+
+  if (hasColors) {
+    // Priority: colorProp → colorFromUrl → remaining colors in order
+    const candidates = [
+      findColorObj(colorProp),
+      findColorObj(colorFromUrl),
+      ...colors,
+    ].filter(Boolean);
+
+    const seen = new Set();
+    const uniqueCandidates = candidates.filter((c) => {
+      const name = getColorName(c);
+      if (seen.has(name)) return false;
+      seen.add(name);
+      return true;
+    });
+
+    // Pick the first candidate that has at least one in-stock variation
+    for (const candidate of uniqueCandidates) {
+      if (hasColorStock(getColorName(candidate))) {
+        resolvedColor = candidate;
+        break;
+      }
+    }
+
+    // If nothing has stock, fall back to first preferred color
+    if (!resolvedColor) resolvedColor = uniqueCandidates[0] ?? colors[0];
+  }
+
+  // --- Resolve Size ---
+  let resolvedSize = null;
+
+  if (hasSizes) {
+    const colorName = getColorName(resolvedColor);
+    const relevant = hasColors ? getColorVariations(colorName) : variations;
+
+    const preferred = findSizeMatch(sizeFromUrl);
+
+    if (preferred) {
+      const prefVal = normalizeSize(getSizeVal(preferred));
+      const match = relevant.find((v) => normalizeSize(v.size) === prefVal);
+
+      if (match && match.qty > 0) {
+        resolvedSize = getSizeVal(preferred);
+      } else {
+        // Preferred size out of stock — pick first in-stock size for this color
+        const inStock = relevant.find((v) => v.qty > 0);
+        if (inStock?.size) {
+          const found = sizeOpts.find(
+            (s) =>
+              normalizeSize(s.option ?? s) === normalizeSize(inStock.size) ||
+              normalizeSize(s.name ?? s) === normalizeSize(inStock.size),
+          );
+          resolvedSize = getSizeVal(found ?? preferred);
+        } else {
+          resolvedSize = getSizeVal(preferred);
+        }
+      }
+    } else {
+      // No preferred size — pick first in-stock size for this color
+      const inStock = relevant.find((v) => v.qty > 0);
+      if (inStock?.size) {
+        const found = sizeOpts.find(
+          (s) =>
+            normalizeSize(s.option ?? s) === normalizeSize(inStock.size) ||
+            normalizeSize(s.name ?? s) === normalizeSize(inStock.size),
+        );
+        resolvedSize = getSizeVal(found ?? sizeOpts[0]);
+      } else {
+        resolvedSize = getSizeVal(sizeOpts[0]);
+      }
+    }
+  }
+
+  return { color: normColor(resolvedColor), size: resolvedSize };
+};
+
 import { getProductDataForAddToCart } from "serverRequests";
 
-function AddToCartComponent({ product, slug, close, enableCartAction }) {
+function AddToCartComponent({ product, slug, color }) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const shouldShowLuck = () => {
     if (!product.is_luck) return false;
@@ -119,122 +269,16 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     }
   };
 
-  let selected_color =
-    ProductData?.sync_color_images?.find(
-      (s) =>
-        s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
-        s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase(),
-    ) || null;
-  if (selected_color) {
-    selected_color = {
-      ...selected_color,
-      color_option: selected_color?.color_option ?? selected_color?.color_name,
-    };
-  }
-  if (ProductData?.sync_color_images?.length === 1) {
-    selected_color = {
-      ...ProductData?.sync_color_images?.[0],
-      color_option:
-        ProductData?.sync_color_images?.[0]?.color_option ??
-        ProductData?.sync_color_images?.[0]?.color_name,
-    };
-  }
-  const [selectedColor, setSelectedColor] = useState(selected_color);
-  const [selectedSize, setSelectedSize] = useState(() => {
-    const initialSizes = buildSizeOptions(ProductData);
-    return (
-      initialSizes.find(
-        (option) =>
-          option.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
-          option.name?.toLowerCase() === sizeFromUrl?.toLowerCase(),
-      ) ||
-      initialSizes[0] ||
-      null
-    );
+  const initialDefaults = resolveDefaultSelection({
+    productData: ProductData,
+    colorProp: color,
+    colorFromUrl,
+    sizeFromUrl,
   });
+  const [selectedColor, setSelectedColor] = useState(initialDefaults.color);
+  const [selectedSize, setSelectedSize] = useState(initialDefaults.size);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
-  function resolveVariant({
-    colors = [],
-    sizes = [],
-    selectedColor = null,
-    selectedSize = null,
-    variations = [],
-    isForCollect = false,
-  }) {
-    if (isForCollect) {
-      let result: any = {};
-      if (colors && colors?.length > 0) {
-        result = {
-          ...result,
-          color: colors?.[0]?.color_option ?? colors?.[0]?.option,
-        };
-      }
-      if (sizes && sizes?.length > 0) {
-        result = { ...result, size: sizes?.[0]?.option ?? sizes?.[0] };
-      }
-      return result;
-    }
-    try {
-      if (!Array.isArray(variations) || variations.length === 0) {
-        return { variant: null, color: null, size: null };
-      }
-
-      const selColor =
-        selectedColor?.color_name || selectedColor?.color_option || null;
-      const selSize =
-        typeof selectedSize === "string"
-          ? selectedSize
-          : selectedSize?.option || null;
-
-      const inStock = (v) => v.qty > 0;
-
-      const exact = variations.find((v) => {
-        const vColor = v.color?.name;
-        const vSize = v.size;
-        return (
-          (!selColor || vColor === selColor) && (!selSize || vSize === selSize)
-        );
-      });
-
-      if (exact && inStock(exact)) {
-        return {
-          variant: exact,
-          color: exact.color?.name,
-          size: exact.size,
-        };
-      }
-
-      function rankVariants(source) {
-        return source
-          .map((v) => {
-            let score = 0;
-            if (selColor && v.color?.name === selColor) score += 2;
-            if (selSize && v.size === selSize) score += 1;
-            return { v, color: v.color?.name, size: v.size, score };
-          })
-          .sort((a, b) => b.score - a.score);
-      }
-
-      const inStockVariants = variations.filter(inStock);
-
-      if (inStockVariants.length > 0) {
-        const best = rankVariants(inStockVariants)[0];
-        return { variant: best.v, color: best.color, size: best.size };
-      }
-
-      const best = rankVariants(variations)[0];
-      return { variant: best.v, color: best.color, size: best.size };
-    } catch (error) {
-      LogError({
-        error: error,
-        scenario: "resolve variant for add to cart - add to cart widget",
-        slug: product?.slug,
-        url: window.location.href,
-      });
-      console.error(error);
-    }
-  }
 
   useEffect(() => {
     if (product.shouldUpdate > 0) {
@@ -282,23 +326,19 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
               ),
             ],
       };
-
       if (abortControllerRef.current?.signal.aborted) return;
 
       setProductData(tempProductData);
-      if (product?.singleColor) {
-        // setSelectedColor(tempProductData?.sync_color_images[0]);
-      } else if (colorFromUrl) {
-        setSelectedColor(
-          tempProductData?.sync_color_images?.find(
-            (s) =>
-              s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
-              s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase(),
-          ) ?? tempProductData?.sync_color_images?.[0],
-        );
-      } else {
-        // setSelectedColor(tempProductData?.sync_color_images[0]);
-      }
+
+      const defaults = resolveDefaultSelection({
+        productData: tempProductData,
+        colorProp: color,
+        colorFromUrl,
+        sizeFromUrl,
+      });
+      setSelectedColor(defaults.color);
+      setSelectedSize(defaults.size);
+
       if (
         product &&
         (selected_product_for_add_to_cart?.id === tempProductData.id ||
@@ -308,22 +348,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           ...tempProductData,
           shouldUpdate: 0,
         });
-
-      const tempSizeOptions = buildSizeOptions(tempProductData);
-      if (tempSizeOptions.length > 0) {
-        if (sizeFromUrl?.length > 0) {
-          setSelectedSize(
-            tempSizeOptions.find(
-              (s) =>
-                s.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
-                s.name?.toLowerCase() === sizeFromUrl?.toLowerCase(),
-            )?.option ?? tempSizeOptions?.[0]?.option,
-          );
-        } else {
-          // setSelectedSize(tempSizeOptions?.[0]);
-        }
-      }
-      // checkIfVariantEmpty();
 
       if (abortControllerRef.current?.signal.aborted) return;
       setLoading(false);
@@ -453,42 +477,11 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
 
   const initializeUI = async () => {
     try {
-      let tempProductData = await getProductData();
-      const tempSizeOptions = buildSizeOptions(tempProductData);
-      let res = resolveVariant({
-        colors: tempProductData.sync_color_images,
-        isForCollect: tempProductData?.collected_after_ordering === 1,
-        variations: tempProductData?.variation,
-        sizes: tempSizeOptions,
-        selectedColor:
-          selectedColor ??
-          product?.sync_color_images?.find(
-            (s) =>
-              s?.color_name === product?.sync_color_images?.[0]?.color_name,
-          ),
-        selectedSize: selectedSize ?? tempSizeOptions?.[0],
-      });
+      await getProductData();
       setSelectedProductForCart({
         ...selected_product_for_add_to_cart,
         done: true,
       });
-      if (res.color) {
-        setSelectedColor(
-          tempProductData?.sync_color_images?.find(
-            (s) =>
-              s?.option === res?.color ||
-              s?.name === res.color ||
-              s?.color_option === res.color,
-          ),
-        );
-      }
-      if (res.size) {
-        setSelectedSize(
-          tempSizeOptions?.find(
-            (s) => s.option === res.size || s.name === res.size,
-          )?.option,
-        );
-      }
     } catch (error) {
       LogError({
         error: error,

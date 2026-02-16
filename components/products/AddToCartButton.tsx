@@ -1,13 +1,14 @@
 "use client";
 
 import { translateFunction } from "utils/functions";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useAppStore } from "store";
 import { DisableScroll } from "utils/tinyUtils";
 import { getCookie } from "utils/cookies/cookie-manager";
 
 function AddToCartButton({ product }: { product: any }) {
   const { setSelectedProductForCart } = useAppStore();
+  const Params = useSearchParams();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -22,6 +23,16 @@ function AddToCartButton({ product }: { product: any }) {
     return false;
   };
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
+  const compare = (a: any) => {
+    let color_from_url = Params.get("color")?.toLowerCase();
+    let text = a?.color_option || a?.color_name || a;
+    text = text.toLowerCase();
+    if (text === color_from_url) {
+      return 1;
+    } else {
+      return -1;
+    }
+  };
 
   return (
     <div
@@ -44,6 +55,9 @@ function AddToCartButton({ product }: { product: any }) {
             fromProductPage: true,
             showRedeemPrice: shoulShowRedeem(),
             seconds: Number(seconds),
+            sync_color_images: product?.sync_color_images
+              ?.slice()
+              ?.sort((a, b) => compare(a.color_name)),
           });
         }
       }}

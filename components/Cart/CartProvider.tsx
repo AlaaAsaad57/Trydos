@@ -160,16 +160,19 @@ const CartProvider = ({ language, country }) => {
     setIsLoading(false);
     // init();
   };
-
+  const Search_Params = useSearchParams();
   return (
     <>
       {enable ? <StepSlider enableCart={(e) => enableCartAction(e)} /> : <></>}
       {selected_product_for_add_to_cart && (
         <AddToCartComponent
-          enableCartAction={enableCartAction}
-          close={() => {
-            setSelectedProductForCart(null);
-          }}
+          color={
+            selected_product_for_add_to_cart?.active_color ??
+            Search_Params?.get("color") ??
+            selected_product_for_add_to_cart?.sync_color_images?.[0]
+              ?.color_option ??
+            selected_product_for_add_to_cart?.sync_color_images?.[0]?.color_name
+          }
           product={selected_product_for_add_to_cart}
           slug={selected_product_for_add_to_cart?.slug}
         />

@@ -59,6 +59,7 @@ async function ProductFooterWrapper({
             product?.sync_color_images?.[0]?.images?.[0] ??
               product?.images?.[0],
           ),
+          sync_color_images: product?.sync_color_images,
           slug: product?.slug,
           name: product?.name,
           details: product?.details,

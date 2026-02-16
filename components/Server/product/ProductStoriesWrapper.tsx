@@ -21,7 +21,7 @@ async function ProductStoriesWrapper({ globalPromise, language }) {
           isRtl && "items-end"
         }`}
       >
-        <img src="/icons/StoreisIcon.svg" data-cy="StoriesIcon" />
+        <img src="/icons/StoreisIcon.svg" className="w-[30px] h-[30px]" data-cy="StoriesIcon" />
         <div className="flex-row gap-[11px] items-baseline">
           <span>{translateFunction("Product Story", language)}</span>
           <svg
