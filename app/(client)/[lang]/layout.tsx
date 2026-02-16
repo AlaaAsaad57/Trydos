@@ -1,8 +1,6 @@
 import "styles/globals.css";
 import "styles/home.css";
 
-// import "rdb/styles";
-
 import localFont from "next/font/local";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";

@@ -29,7 +29,7 @@ import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { serverActions } from "services/RDB";
 import Spinner from "components/global/Spinner";
 import order from "services/order";
-
+import "rdb/styles";
 function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
