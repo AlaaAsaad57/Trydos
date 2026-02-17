@@ -314,11 +314,21 @@ class AuthService {
   getUser() {
     return useAppStore.getState().userProfile;
   }
-  UserToken() {
-    // Token is HttpOnly — not accessible from JS.
-    // Returns a truthy indicator if user is authenticated.
-    const { user } = useAppStore.getState();
-    return user?.id ? "[HttpOnly]" : null;
+  async validateFCMToken() {
+    try {
+      let res = await fetchData({
+        server: "market",
+        url: "/firebase_device_tokens/validate_token",
+        method: "POST",
+        body: JSON.stringify({
+          firebase_token_id: localStorage.getItem("FBID"),
+        }),
+        reqTitle: REQUESTS_DATA.VALIDATE_FCM_TOKEN,
+      });
+      return res;
+    } catch (error) {
+      console.log(error);
+    }
   }
   UserID() {
     return (

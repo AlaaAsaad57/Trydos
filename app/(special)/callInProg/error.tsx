@@ -24,7 +24,7 @@ export default function Error({
         ? JSON.parse(localStorage.getItem("LAST_JSON"))
         : null;
     }
-    token = AuthService.UserToken();
+
     user_id = AuthService.UserID();
     let errorObj = {
       type: "front-end-exception",

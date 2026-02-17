@@ -13,6 +13,7 @@ import { getUserChat, LogError, translateFunction } from "./functions";
 import chat from "services/chat";
 import { watchChannel as watchChannelAction } from "store/chat/actions";
 import { REQUESTS_DATA } from "./Requests";
+import auth from "services/auth";
 
 // --- Interfaces ---
 
@@ -94,13 +95,19 @@ class ForegroundNotificationHandler {
 
   public async handleNotification(resolve: any, payload: any): Promise<void> {
     try {
+      console.log("Received foreground notification:", payload);
       const state = useAppStore.getState();
       if (state.LoggingOut) return;
 
       // Unify data parsing
       const rawData = payload?.data || {};
       const body = safeParse(rawData.body);
-      const data = safeParse(rawData.data); // This is the inner 'data' object used in most events
+      const data = safeParse(rawData?.data || "{}");
+      if (body.type === "greeting") {
+        console.log("Hello from the foreground notification handler!");
+        auth.validateFCMToken();
+      }
+      // This is the inner 'data' object used in most events
       console.log(data, body);
       // 1. Handle Market/E-commerce Notifications
       if (rawData.title === "market") {

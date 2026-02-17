@@ -95,7 +95,7 @@ class ChatService {
   }
   async StoreToken(payload: {
     id?: string | number;
-    user?: { access_token?: string; id: number };
+
     token: string;
   }) {
     try {

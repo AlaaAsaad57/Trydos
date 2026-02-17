@@ -223,4 +223,5 @@ export const REQUESTS_DATA = {
   CREATE_WALLET: { reqTitle: "CREATE_WALLET", code: 157 },
   CHECK_USER_WALLET: { reqTitle: "CHECK_USER_WALLET", code: 158 },
   GET_CURRENCIES: { reqTitle: "GET_CURRENCIES", code: 159 },
+  VALIDATE_FCM_TOKEN: { reqTitle: "VALIDATE_FCM_TOKEN", code: 160 },
 };

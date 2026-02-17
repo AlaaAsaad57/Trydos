@@ -83,41 +83,47 @@ export const requestFirebaseNotificationPermission = async () => {
       throw err;
     });
   if (fcm_token) {
-    if (auth.UserToken() && auth.UserID()) {
-      try {
-        const response = await fetchData({
-          url: "/firebase_device_tokens",
-          body: JSON.stringify({
-            device_token: fcm_token,
-            user_id: auth.UserID(),
-            auth_token: auth.UserToken(),
-          }),
-          reqTitle: REQUESTS_DATA.REGISTER_FIREBASE_TOKEN,
-          method: "POST",
-          server: "market",
-        });
-        if (!response.success) {
-          throw new Error(response.message);
-        }
-      } catch (err) {
-        LogError({
-          scenario:
-            "Error in requestFirebaseNotificationPermission 2nd Block in  firebaseInit",
-          error: err instanceof Error ? err.message : String(err),
-        });
-      }
-    }
+    registerFcmToken(fcm_token);
+  }
+  return fcm_token;
+};
 
-    // Store chat token if chat user exists
-    if (getUserChat()?.id) {
-      await ChatService.StoreToken({
-        id: getUserChat()?.id,
-        token: fcm_token,
-        user: getUserChat(),
+const registerFcmToken = async (fcmToken: string) => {
+  if (auth.UserID()) {
+    try {
+      const response = await fetchData({
+        url: "/firebase_device_tokens",
+        body: JSON.stringify({
+          device_token: fcmToken,
+          user_id: auth.UserID(),
+          auth_token: "some_random_token_for_now",
+        }),
+        reqTitle: REQUESTS_DATA.REGISTER_FIREBASE_TOKEN,
+        method: "POST",
+        server: "market",
+      });
+
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+
+      localStorage.setItem("FBID", response.data.id);
+    } catch (err) {
+      LogError({
+        scenario:
+          "Error in requestFirebaseNotificationPermission 2nd Block in firebaseInit",
+        error: err instanceof Error ? err.message : String(err),
       });
     }
   }
-  return fcm_token;
+
+  const chatUser = getUserChat();
+  if (chatUser?.id) {
+    await ChatService.StoreToken({
+      id: chatUser.id,
+      token: fcmToken,
+    });
+  }
 };
 
 export const onMessageListener = async () => {

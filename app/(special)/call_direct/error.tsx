@@ -24,14 +24,14 @@ export default function Error({
         ? JSON.parse(localStorage.getItem("LAST_JSON"))
         : null;
     }
-    token = AuthService.UserToken();
+
     user_id = AuthService.UserID();
     let errorObj = {
       type: "front-end-exception",
       message: error.message,
       url: window.location.href,
       user_id: user_id,
-      token: token,
+
       user_agent: userAgent,
     };
     LogError(errorObj);

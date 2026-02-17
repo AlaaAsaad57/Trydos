@@ -4,6 +4,7 @@ import {
   getServerBaseUrl,
   buildProxyHeaders,
   logSecureRequest,
+  getTokenForServer,
 } from "utils/server/tokenManager";
 import { LogServerError } from "utils/serverErrorReporter";
 
@@ -51,7 +52,24 @@ export async function POST(request: NextRequest) {
       } else if (contentType.includes("application/json")) {
         const rawBody = await request.text();
         if (rawBody) {
-          body = rawBody;
+          // Special case: inject auth_token for Firebase device token registration
+          if (targetUrl === "/firebase_device_tokens" && server === "market") {
+            try {
+              const bodyData = JSON.parse(rawBody);
+              const authToken = await getTokenForServer(server);
+
+              if (authToken) {
+                bodyData.auth_token = authToken;
+              }
+
+              body = JSON.stringify(bodyData);
+            } catch (e) {
+              // If parsing fails, use raw body
+              body = rawBody;
+            }
+          } else {
+            body = rawBody;
+          }
           headers["Content-Type"] = "application/json";
         }
       } else {

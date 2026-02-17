@@ -21,7 +21,7 @@ export default function GlobalError({ error, reset }) {
         ? JSON.parse(localStorage.getItem("LAST_JSON"))
         : null;
     }
-    token = AuthService.UserToken();
+
     user_id = AuthService.UserID();
     const [country, lang] = (
       window.location.pathname.split("/")[1] || ""
@@ -33,7 +33,7 @@ export default function GlobalError({ error, reset }) {
       stack: error.stack,
       url: window.location.href,
       user_id: user_id,
-      token: token,
+
       user_agent: userAgent,
       country: country,
       language: lang,

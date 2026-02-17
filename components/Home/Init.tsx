@@ -12,10 +12,12 @@ import { showErrorNotification } from "@/store/notifications/reducer";
 import NotificationWidget from "components/global/NotificationWidget";
 import { useAppStore } from "store";
 import { GetCountries } from "serverRequests/product";
+import auth from "services/auth";
 
 function Init() {
   const { lang } = useParams();
-  const { isNotificationModal, setNotificationModal } = useAppStore();
+  const { isNotificationModal, setNotificationModal, userProfile } =
+    useAppStore();
   // @ts-ignore
   const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
@@ -103,16 +105,19 @@ function Init() {
     }
 
     try {
-      Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
+      if (auth.UserID()) {
+        if (typeof Notification !== "undefined") initPageLoad();
+        Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
 
-      const user = useAppStore.getState().userProfile;
+        const user = useAppStore.getState().userProfile;
 
-      if (user) {
-        Smartlook.identify(user.id, {
-          name: user?.name || "Guest",
-          phone: user?.mobilePhone || "null",
-          // other custom properties
-        });
+        if (user) {
+          Smartlook.identify(user.id, {
+            name: user?.name || "Guest",
+            phone: user?.mobilePhone || "null",
+            // other custom properties
+          });
+        }
       }
     } catch (error) {
       LogError({
@@ -120,7 +125,7 @@ function Init() {
         scenario: "Init SmartLook in Init",
       });
     }
-  }, []);
+  }, [auth.UserID()]);
   const initPageLoad = async () => {
     const permission = Notification.permission;
 
@@ -142,9 +147,7 @@ function Init() {
       handlePageRefresh(); // Run the function on initial load
     }
   };
-  useEffect(() => {
-    if (typeof Notification !== "undefined") initPageLoad();
-  }, []); // Runs once when the app initializes
+  // Runs once when the app initializes
   const onAllow = async () => {
     try {
       await home.AllowNotifications();
