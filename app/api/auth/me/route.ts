@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "utils/server/tokenManager";
 import { LogServerError } from "utils/serverErrorReporter";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const currentUser = await getCurrentUser();

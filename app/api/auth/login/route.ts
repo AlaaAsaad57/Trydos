@@ -48,6 +48,8 @@ async function safeServiceLogin(url: string, body: any) {
   }
 }
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     // 1. Initial Headers and Params
