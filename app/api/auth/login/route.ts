@@ -88,7 +88,13 @@ export async function GET(request: NextRequest) {
         language,
       },
     });
-
+    console.log(
+      "OTP Verification Response:",
+      otpRes,
+      guest_token,
+      verificationId,
+      otp,
+    );
     const otp_response = await otpRes.json();
     if (!otpRes.ok) {
       LogServerError({ error: otp_response, type: "verify login api route" });

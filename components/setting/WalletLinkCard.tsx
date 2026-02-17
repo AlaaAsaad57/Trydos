@@ -102,7 +102,7 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
         )}
       <img className="w-[25px] h-[25px]" src="/icons/TryDosWalletIcon.svg" />
       <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
-        {translateFunction("Trydos Wallet", language)}
+        {translateFunction("Ramaaz Digital Bank Wallet", language)}
       </span>
       <span
         className="text-[#8D8D8D] text-[12px] regular"

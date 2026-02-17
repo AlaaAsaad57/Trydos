@@ -139,15 +139,8 @@ function OrdersPage({ setStep, close }) {
       if (orderData?.payment?.length === 1) {
         const selectedPayment = orderData?.payment[0];
 
-        // Wallet covers total — no payment_method needed
-        if (selectedPayment?.id === 1) {
-          setLoading(true);
-          await order.PlaceOrder({
-            pay_by_wallet: true,
-          });
-          setLoading(false);
-          return;
-        }
+        // Wallet checkout is handled entirely by WalletPaymentModal — skip PlaceOrder
+        if (selectedPayment?.id === 1) return;
 
         let payment_method =
           selectedPayment?.id === 0
