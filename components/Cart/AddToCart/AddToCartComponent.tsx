@@ -535,7 +535,7 @@ function AddToCartComponent({ product, slug, color }) {
       method: "GET",
       server: "market",
       url: `/web/product/qtyPriceDetails/${slug}`,
-      useCached: false,
+
       reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS,
       signal: abortControllerRef.current?.signal,
     });

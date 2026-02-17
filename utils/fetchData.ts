@@ -42,6 +42,7 @@ interface FetchDataParams {
 
 // ---------- Internal State ----------
 const requestCache = new Map<string, any>();
+const inflightRequests = new Map<string, Promise<any>>();
 const retryableStatusCodes = [502, 503, 504, 429];
 const ignoredMessages = [
   "Data Got!",
@@ -198,6 +199,26 @@ const generateCacheKey = (params: FetchDataParams): string => {
   return JSON.stringify({ url, method, body, server });
 };
 
+const raceWithSignal = <T>(
+  promise: Promise<T>,
+  signal?: AbortSignal,
+): Promise<T> => {
+  if (!signal) return promise;
+  if (signal.aborted)
+    return Promise.reject(
+      new DOMException("The user aborted a request.", "AbortError"),
+    );
+
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () =>
+      reject(new DOMException("The user aborted a request.", "AbortError"));
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise
+      .then(resolve, reject)
+      .finally(() => signal.removeEventListener("abort", onAbort));
+  });
+};
+
 // ---------- Main Function ----------
 export const fetchData = async <T = any>(
   params: FetchDataParams,
@@ -229,6 +250,12 @@ export const fetchData = async <T = any>(
 
   if (useCached && !isRetryAfterUnauthorized && requestCache.has(cacheKey)) {
     return { ...requestCache.get(cacheKey), success: true };
+  }
+
+  // Inflight dedup: if an identical request is already pending, share its promise
+  if (!isRetryAfterUnauthorized && inflightRequests.has(cacheKey)) {
+    const shared = inflightRequests.get(cacheKey)!.then((r) => ({ ...r }));
+    return raceWithSignal(shared, signal) as Promise<T>;
   }
 
   const doFetchWithRetry = async (): Promise<T> => {
@@ -478,5 +505,8 @@ export const fetchData = async <T = any>(
     }
   };
 
-  return doFetchWithRetry();
+  const promise = doFetchWithRetry();
+  inflightRequests.set(cacheKey, promise);
+  promise.finally(() => inflightRequests.delete(cacheKey));
+  return promise;
 };
