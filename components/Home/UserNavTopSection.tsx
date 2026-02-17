@@ -169,7 +169,7 @@ function UserNavTopSection({
         {localCart?.length > 0 && (
           <div
             data-cy="cart-item-counts"
-            className="bg-green-500 top[-4px] left-[13px] text-[10px] font-bold text-white rounded-full   absolute px-[5px] justify-center flex items-center "
+            className="bg-green-500 top-[-4px] left-[13px] text-[10px] font-bold text-white rounded-full   absolute px-[5px] justify-center flex items-center "
           >
             {localCart.length}
           </div>
