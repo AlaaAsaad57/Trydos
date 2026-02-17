@@ -14,7 +14,12 @@ import { useEffect } from "react";
 function ProductLoader({ product }) {
   const { lang } = useParams();
   // @ts-ignore
-
+  const safePriceCheck = (p) => {
+    if (isNaN(p)) {
+      return false;
+    }
+    return true;
+  };
   const { currency } = useAppStore();
 
   // @ts-ignore
@@ -134,19 +139,21 @@ function ProductLoader({ product }) {
                 }`}
               >
                 {/* If price != offer, show both original and offer as strikethrough */}
-                {product.price !== product?.offer_price && (
-                  <StrikethroughPrice
-                    val={RoundPrice({
-                      num: product.price,
+                {safePriceCheck(product.price) &&
+                  product.price !== product?.offer_price && (
+                    <StrikethroughPrice
+                      val={RoundPrice({
+                        num: product.price,
+                        language: languageVariable,
+                      })}
+                    />
+                  )}
+                <span className="bold text-[#1D1D1D]">
+                  {safePriceCheck(product.offer_price) &&
+                    RoundPrice({
+                      num: product.offer_price,
                       language: languageVariable,
                     })}
-                  />
-                )}
-                <span className="bold text-[#1D1D1D]">
-                  {RoundPrice({
-                    num: product.offer_price,
-                    language: languageVariable,
-                  })}
                 </span>
                 <span>{currency?.symbol}</span>
               </div>
