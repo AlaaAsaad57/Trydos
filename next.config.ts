@@ -27,7 +27,16 @@ let nextConfig: NextConfig = {
           },
           {
             key: "Cache-Control",
-            value: "s-maxage=86400, stale-while-revalidate=86400",
+            value: "private, no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/api/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-store, no-cache, must-revalidate",
           },
         ],
       },
@@ -95,8 +104,8 @@ let nextConfig: NextConfig = {
     optimizeCss: true, // Disabled due to critters module error
     optimizeServerReact: true,
     staleTimes: {
-      dynamic: 86400,
-      static: 86400,
+      dynamic: 0,
+      static: 180,
     },
   },
 

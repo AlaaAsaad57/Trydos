@@ -98,7 +98,7 @@ export const useAuthStore = (set, get) => ({
             is_phone_verified: 0,
             is_verified: 0,
           }
-        : state.userProfile,
+        : null,
       userChat: null,
       userStories: null,
       failedLogin: false,

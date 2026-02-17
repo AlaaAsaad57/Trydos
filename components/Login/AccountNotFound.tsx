@@ -60,14 +60,14 @@ function AccountNotFound({
     clearSimulatedUserSession();
     clearHashedUserId();
     setLoading(true);
-    clearAllUserData();
-    const { messaging } = await import("utils/firebaseInitv1");
-    const { deleteToken } = await import("firebase/messaging");
+    await clearAllUserData();
     try {
+      const { messaging } = await import("utils/firebaseInitv1");
+      const { deleteToken } = await import("firebase/messaging");
       await deleteToken(messaging);
-      clearAllUserData();
     } catch (error) {}
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const { cancelAuth } = useAppStore.getState();
+    cancelAuth();
     window.location.reload();
   };
   if (active)

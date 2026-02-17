@@ -151,51 +151,50 @@ class HomeService {
     } = useAppStore.getState();
 
     if (LoggingOut) return;
-    if (isRegisteringReady) {
-      const userId = id || auth.UserID();
+    if (!isRegisteringReady) return;
 
-      try {
-        // Use server route — sets DEVICE-TOKEN and USER-DATA as HttpOnly cookies
-        const [country, lang] = (
-          window.location.pathname.split("/")[1] || ""
-        ).split("-");
-        const response = await fetch("/api/auth/register-device", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-country": country || "sy",
-            "x-language": lang || "en",
-          },
-          body: JSON.stringify({ old_guest_user_id: userId || null }),
-          credentials: "include",
-        });
+    setIsRegisteringReady(false);
+    const userId = id || auth.UserID();
 
-        const repo = await response.json();
-        if (!response.ok) {
-          throw new Error(repo.message);
-        }
-        if (useAppStore.getState().LoggingOut) return;
+    try {
+      const [country, lang] = (
+        window.location.pathname.split("/")[1] || ""
+      ).split("-");
+      const response = await fetch("/api/auth/register-device", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-country": country || "sy",
+          "x-language": lang || "en",
+        },
+        body: JSON.stringify({ old_guest_user_id: userId || null }),
+        credentials: "include",
+      });
 
-        // Update store with user data (token is already in HttpOnly cookie)
-        if (repo.data?.user) {
-          loginSuccess({
-            ...repo.data.user,
-            expired_at: repo.data.expires_at,
-          });
-          if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-            Smartlook.identify(repo.data.user.id, {
-              name: repo.data.user.name,
-              phone: "guest",
-            });
-        }
-        setIsRegisteringReady(true);
-      } catch (error) {
-        LogServerError({
-          error: error,
-          scenario: "Error In registerForExpire in services/home",
-        });
-        setIsRegisteringReady(true);
+      const repo = await response.json();
+      if (!response.ok) {
+        throw new Error(repo.message);
       }
+      if (useAppStore.getState().LoggingOut) return;
+
+      if (repo.data?.user) {
+        loginSuccess({
+          ...repo.data.user,
+          expired_at: repo.data.expires_at,
+        });
+        if (process.env.NODE_ENV === "production" && Smartlook.initialized())
+          Smartlook.identify(repo.data.user.id, {
+            name: repo.data.user.name,
+            phone: "guest",
+          });
+      }
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In registerForExpire in services/home",
+      });
+    } finally {
+      setIsRegisteringReady(true);
     }
   }
 
@@ -343,52 +342,53 @@ class HomeService {
     const { isRegisteringReady, setIsRegisteringReady, loginSuccess } =
       useAppStore.getState();
 
-    if (isRegisteringReady) {
-      const userId = auth.UserID();
-      const isNewUser = !userId;
+    if (!isRegisteringReady) return;
 
-      try {
-        // Use server route — sets DEVICE-TOKEN and USER-DATA as HttpOnly cookies
-        const [country, lang] = (
-          window.location.pathname.split("/")[1] || ""
-        ).split("-");
-        const response = await fetch("/api/auth/register-device", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-country": country || "sy",
-            "x-language": lang || "en",
-          },
-          body: JSON.stringify({ old_guest_user_id: userId || null }),
-          credentials: "include",
-        });
+    setIsRegisteringReady(false);
+    const userId = auth.UserID();
+    const isNewUser = !userId;
 
-        const repo = await response.json();
-        if (!response.ok) {
-          throw new Error(repo.message);
-        }
+    try {
+      const [country, lang] = (
+        window.location.pathname.split("/")[1] || ""
+      ).split("-");
+      const response = await fetch("/api/auth/register-device", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-country": country || "sy",
+          "x-language": lang || "en",
+        },
+        body: JSON.stringify({ old_guest_user_id: userId || null }),
+        credentials: "include",
+      });
 
-        if (repo.data?.user) {
-          loginSuccess({
-            ...repo.data.user,
-            expired_at: repo.data.expires_at,
-          });
-        }
-        SetGAUser(repo.data?.user, isNewUser);
-        setIsRegisteringReady(true);
-        if (repo.data?.user) {
-          if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-            Smartlook.identify(repo.data.user.id, {
-              name: repo.data.user.name,
-              phone: "guest",
-            });
-        }
-      } catch (err) {
-        LogServerError({
-          error: err,
-          scenario: "Error In RegisterDevice in services/home",
+      const repo = await response.json();
+      if (!response.ok) {
+        throw new Error(repo.message);
+      }
+
+      if (repo.data?.user) {
+        loginSuccess({
+          ...repo.data.user,
+          expired_at: repo.data.expires_at,
         });
       }
+      SetGAUser(repo.data?.user, isNewUser);
+      if (repo.data?.user) {
+        if (process.env.NODE_ENV === "production" && Smartlook.initialized())
+          Smartlook.identify(repo.data.user.id, {
+            name: repo.data.user.name,
+            phone: "guest",
+          });
+      }
+    } catch (err) {
+      LogServerError({
+        error: err,
+        scenario: "Error In RegisterDevice in services/home",
+      });
+    } finally {
+      setIsRegisteringReady(true);
     }
   }
 

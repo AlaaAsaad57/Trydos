@@ -3,6 +3,10 @@ import { cookies } from "next/headers";
 import { fetchServerData } from "./ServerFetch"; // Adjust path accordingly
 import { LogError } from "utils/functions";
 import { getCookieServer } from "utils/cookies/cookie-manager";
+import {
+  setSecureCookieJSON,
+  SECURE_COOKIE_OPTIONS,
+} from "utils/server/tokenManager";
 
 // Interfaces based on your snippets
 interface UserData {
@@ -78,7 +82,20 @@ export const HandleAuthedFetch = async <T = any>(
       }
 
       if (repo?.data?.token) {
-        // 3. Update Cookies
+        // 3. Update cookies with the new user data
+        const cookieStoreInner = await cookies();
+        cookieStoreInner.set({
+          name: COOKIE_NAMES.DEVICE_TOKEN,
+          value: repo.data.token,
+          ...SECURE_COOKIE_OPTIONS,
+        });
+
+        if (repo.data?.user) {
+          await setSecureCookieJSON(COOKIE_NAMES.USER_DATA, {
+            ...repo.data.user,
+            expired_at: repo.data.expires_at,
+          });
+        }
 
         // 4. Retry the original request with the new token
         const newHeaders = {

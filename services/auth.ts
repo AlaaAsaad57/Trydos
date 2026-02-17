@@ -31,6 +31,8 @@ async function updateSecureUserData(
   }
 }
 
+let _expirePromise: Promise<void> | null = null;
+
 class AuthService {
   async SendOtp(
     mobilePhone: string,
@@ -343,26 +345,45 @@ class AuthService {
     }
   }
   async ExpiredUser(noReq = false) {
-    let { LoggingOut, setReAuthResult } = useAppStore.getState();
+    const { LoggingOut } = useAppStore.getState();
     if (LoggingOut) return;
 
-    if (!noReq) {
-      // Call server route that handles: clear stale tokens, re-register as guest
-      const { country, language } = this._getLocale();
-      await fetch("/api/auth/expire", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-country": country,
-          "x-language": language,
-        },
-        body: JSON.stringify({ old_user_id: this.UserID() }),
-        credentials: "include",
-      });
-    }
+    // Deduplicate concurrent 401 handlers — reuse in-flight expire
+    if (_expirePromise) return _expirePromise;
 
-    this.cancelAuth(true);
-    setReAuthResult("cancelled");
+    _expirePromise = this._doExpire(noReq);
+    try {
+      await _expirePromise;
+    } finally {
+      _expirePromise = null;
+    }
+  }
+
+  private async _doExpire(noReq: boolean) {
+    const { setReAuthResult, setIsRegisteringReady } = useAppStore.getState();
+
+    setIsRegisteringReady(false);
+
+    try {
+      if (!noReq) {
+        const { country, language } = this._getLocale();
+        await fetch("/api/auth/expire", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-country": country,
+            "x-language": language,
+          },
+          body: JSON.stringify({ old_user_id: this.UserID() }),
+          credentials: "include",
+        });
+      }
+
+      this.cancelAuth(true);
+      setReAuthResult("cancelled");
+    } finally {
+      setIsRegisteringReady(true);
+    }
   }
 
   _getLocale() {

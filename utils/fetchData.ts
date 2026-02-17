@@ -119,6 +119,15 @@ const handleUnauthorized = async (
           server === "market-dashboard" ||
           server === "market"
         ) {
+          const { useAppStore } = await import("../store");
+          // If a registration/expire is already in progress, wait for it
+          // instead of starting another one
+          const { isRegisteringReady } = useAppStore.getState();
+          if (!isRegisteringReady) {
+            await waitUntilRegisteringComplete();
+            return true;
+          }
+
           const authService = await import("../services/auth");
           await authService.default.ExpiredUser();
           return true;

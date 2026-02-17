@@ -29,9 +29,9 @@ export const useUserData = ({
         .then((data) => {
           if (data) {
             setServerData({
-              userData: userMarketStore || data.user,
-              userChat: userChatStore || data.chatUser,
-              userStories: userStoriesStore || data.storiesUser,
+              userData: data.user ?? null,
+              userChat: data.chatUser ?? null,
+              userStories: data.storiesUser ?? null,
             });
           }
         })
@@ -40,8 +40,8 @@ export const useUserData = ({
   }, [userMarketStore, userChatStore, userStoriesStore]);
 
   return {
-    userData: userMarketStore || serverData.userData,
-    userChat: userChatStore || serverData.userChat,
-    userStories: userStoriesStore || serverData.userStories,
+    userData: userMarketStore ?? serverData.userData,
+    userChat: userChatStore ?? serverData.userChat,
+    userStories: userStoriesStore ?? serverData.userStories,
   };
 };
