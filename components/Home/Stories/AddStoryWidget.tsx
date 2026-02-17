@@ -159,6 +159,7 @@ export default function AddStoryWidget() {
   useEffect(() => {
     getUserStories();
   }, []);
+  const router = useRouter();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -246,6 +247,7 @@ export default function AddStoryWidget() {
           };
         });
         let storiesData = await fetchStoriesForUser(language, country, 1);
+        router.refresh();
 
         setStoryData(storiesData.data);
         showSuccessNotification("Story Uploaded");
@@ -288,7 +290,7 @@ export default function AddStoryWidget() {
           };
         });
         let storiesData = await fetchStoriesForUser(language, country, 1);
-
+        router.refresh();
         setStoryData(storiesData.data);
         showSuccessNotification("Story Uploaded");
         setPreview(null);
