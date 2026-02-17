@@ -6,6 +6,7 @@ import NotificationsTest from "components/global/NotificationsTest";
 
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { useAppStore } from "store";
 
 const SettingsModal = ({ onClose, lang }) => {
   const [mounted, setMounted] = useState(false);

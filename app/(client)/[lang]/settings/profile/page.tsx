@@ -12,7 +12,7 @@ async function Profile({ params }) {
   const isRtl = language === "ar" || language === "ku";
   let SafeUserProfile = (await getCookieServer<UserData>(
     COOKIE_NAMES.USER_DATA,
-  )) || { name: "", phone: "", is_phone_verified: 0 };
+  )) || { name: "", phone: "", is_phone_verified: 0, image: null };
   const options = [
     {
       name: translateFunction("Personal Info", language),
@@ -60,7 +60,7 @@ async function Profile({ params }) {
         <ProfilePicture
           language={language}
           local={Params.lang}
-          photo={SafeUserProfile.image}
+          photo={SafeUserProfile?.image}
         />
       </div>
       <div

@@ -27,6 +27,7 @@ export interface UserData {
   is_phone_verified: number;
   expired_at?: string;
   access_token?: string;
+  image: string;
   [key: string]: any;
 }
 
