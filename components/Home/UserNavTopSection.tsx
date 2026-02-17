@@ -169,7 +169,7 @@ function UserNavTopSection({
         {localCart?.length > 0 && (
           <div
             data-cy="cart-item-counts"
-            className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center "
+            className="bg-green-500 top[-4px] left-[13px] text-[10px] font-bold text-white rounded-full   absolute px-[5px] justify-center flex items-center "
           >
             {localCart.length}
           </div>
@@ -208,7 +208,7 @@ function UserNavTopSection({
             >
               {translate(
                 `${loginOpen ? "Can We Know You ?" : "Why We Know You ?"}`,
-                language
+                language,
               )}
             </span>
           </div>
