@@ -104,6 +104,7 @@ function StoryHolder({ story, active, isPaused }) {
               }}
             >
               <img
+                data-cy={"delete-story-icon"}
                 src="/icons/DeleteIcon.svg"
                 className="w-[22px] h-[22px] fill-white"
               />
@@ -124,6 +125,7 @@ function StoryHolder({ story, active, isPaused }) {
               }}
             >
               <img
+                data-cy="report-story-icon"
                 src="/icons/ReportOrderItemIcon.svg"
                 className="w-[22px] h-[22px] fill-white"
               />
@@ -164,6 +166,7 @@ function StoryHolder({ story, active, isPaused }) {
           showModal={showDeleteModal}
           confirmMessage={"Are you sure you want to delete this story?"}
           confirmTilte={"Delete Story"}
+          dataCy={"delete-story-confirm-modal-button"}
         />
       )}
       {showReportModal && (
