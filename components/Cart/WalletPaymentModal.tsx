@@ -34,6 +34,8 @@ export default function WalletPaymentModal({
   const pollingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPollingActiveRef = useRef(false);
   const stopPollingRef = useRef(false);
+  const idempotencyKey = useRef(crypto.randomUUID());
+  const isSubmittedRef = useRef(false);
 
   const {
     cart,
@@ -105,6 +107,12 @@ export default function WalletPaymentModal({
 
       if (Date.now() - pollingStartTime >= POLLING_TIMEOUT_MS) {
         isPollingActiveRef.current = false;
+        setIsProcessing(false);
+        showErrorNotification(
+          translateFunction(
+            "Order processing timed out. Please check your orders",
+          ),
+        );
         return;
       }
 
@@ -214,7 +222,9 @@ export default function WalletPaymentModal({
   };
 
   const handleConfirmPayment = async () => {
-    if (!cart[0]?.cart_group_id || !selectedCurrency || checkoutAmount <= 0) {
+    if (isSubmittedRef.current) return;
+
+    if (!cart[0]?.cart_group_id || !selectedCurrency || checkoutAmount < 0) {
       showErrorNotification(translateFunction("Invalid cart data"));
       return;
     }
@@ -224,29 +234,30 @@ export default function WalletPaymentModal({
       return;
     }
 
+    isSubmittedRef.current = true;
     setIsProcessing(true);
     try {
       const result = await CheckoutOrder({
         cartId: cart[0].cart_group_id,
         amount: checkoutAmount,
         currencyId: selectedCurrency.id,
-        idempotencyKey: crypto.randomUUID(),
+        idempotencyKey: idempotencyKey.current,
         local,
         handleUnauthenticated,
       });
 
       if (result) {
-        void startOrderConversionPolling(cart[0].cart_group_id);
+        await startOrderConversionPolling(cart[0].cart_group_id);
       } else {
         showErrorNotification(
           translateFunction("Wallet payment failed. Please try again"),
         );
+        setIsProcessing(false);
       }
     } catch (error) {
       showErrorNotification(
         translateFunction("Wallet payment failed. Please try again"),
       );
-    } finally {
       setIsProcessing(false);
     }
   };
