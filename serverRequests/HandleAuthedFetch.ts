@@ -2,6 +2,7 @@
 import { cookies } from "next/headers";
 import { fetchServerData } from "./ServerFetch"; // Adjust path accordingly
 import { LogError } from "utils/functions";
+import { getCookieServer } from "utils/cookies/cookie-manager";
 
 // Interfaces based on your snippets
 interface UserData {
@@ -50,8 +51,7 @@ export const HandleAuthedFetch = async <T = any>(
 
   // 2. If 401 Unauthorized, try to re-register/refresh token
   if (response.status === 401) {
-    const userDataRaw = cookieStore.get(COOKIE_NAMES.USER_DATA)?.value;
-    const user: UserData | null = userDataRaw ? JSON.parse(userDataRaw) : null;
+    const user = await getCookieServer<UserData>(COOKIE_NAMES.USER_DATA);
 
     let requestBody = user?.id
       ? { old_guest_user_id: user.id }

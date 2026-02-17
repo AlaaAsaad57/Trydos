@@ -7,15 +7,15 @@ import {
   GetProductBuyersComment,
   GetRecommendationCountForProduct,
 } from "serverRequests/product";
-import { cookies } from "next/headers";
+import { getCookieServer, COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
   let product = await globalPromise;
   let productId = product?.id;
 
-  let cookiesStore = await cookies();
-  let user = cookiesStore.get("User-Data")?.value;
-  let parsedUser = user ? JSON.parse(user) : null;
+  let parsedUser = await getCookieServer<{ id: string }>(
+    COOKIE_NAMES.USER_DATA,
+  );
   let [buyersComments, recommendation_stats] = await Promise.all([
     GetProductBuyersComment({
       productId: productId,

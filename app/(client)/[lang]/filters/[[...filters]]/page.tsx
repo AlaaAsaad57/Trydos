@@ -18,8 +18,7 @@ import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
-import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
-import { cookies } from "next/headers";
+import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 export const dynamicParams = true;
 export async function generateMetadata({ params }) {
   // Fetch your main product categories
@@ -108,7 +107,10 @@ export default async function Page({ params }) {
         )?.[0],
       };
     }
-    let userId = (await cookies()).get(COOKIE_NAMES.USER_DATA)?.value;
+    const userData = await getCookieServer<{ id: string }>(
+      COOKIE_NAMES.USER_DATA,
+    );
+    const parsedUserId = userData?.id ?? null;
     let [filtersData, currency, boutique] = [
       getProductsAndFiltersFromElastic({
         country,
@@ -121,7 +123,7 @@ export default async function Page({ params }) {
           search_text: parsedFilters.search_text?.[0],
         },
         limit: 10,
-        userId: userId ? JSON.parse(userId).id : null,
+        userId: parsedUserId,
       }),
       getCurrency(country, language),
       GetBoutique(boutiqueItem, country, language),

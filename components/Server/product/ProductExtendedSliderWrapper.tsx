@@ -1,5 +1,5 @@
 import ProductDetailsSlider from "components/products/ProductDetailsSlider";
-import { cookies } from "next/headers";
+import { getCookieServer, COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import React, { Suspense } from "react";
 import { GetSocialInfoForProduct } from "serverRequests/product";
 
@@ -13,9 +13,9 @@ async function ProductExtendedSliderWrapper({
     qtyPricePromise,
   ]);
 
-  let cookiesStore = await cookies();
-  let user = cookiesStore.get("User-Data")?.value;
-  let parsedUser = user ? JSON.parse(user) : null;
+  let parsedUser = await getCookieServer<{ id: string }>(
+    COOKIE_NAMES.USER_DATA,
+  );
   let socialData = await GetSocialInfoForProduct({
     productId: globalDetails?.id,
     userId: parsedUser?.id,

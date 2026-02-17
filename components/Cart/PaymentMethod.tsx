@@ -34,8 +34,12 @@ function PaymentMethod() {
       return wallet?.wallet_balance / currency?.exchange_rate;
     else return 0;
   };
+
+  const walletCoversTotal = getWalletInUSD() >= total;
+  const walletInsufficient = !walletCoversTotal;
+
   useEffect(() => {
-    if (getWalletInUSD() > 0 && getWalletInUSD() < total) {
+    if (walletCoversTotal) {
       setWalletBalance();
       GAevent({
         action: GA_EVENT_NAMES.ADD_PAYMENT,
@@ -44,171 +48,109 @@ function PaymentMethod() {
           items: cart.map((item) => ({
             item_id: item.product_id,
             item_name: item.name,
-
             quantity: item.quantity,
           })),
         },
       });
       setOrderData({
         payment: [
-          ...orderData.payment?.filter((s) => s.id !== 1),
-          {
-            id: 1,
-            balance: getWalletInUSD(),
-          },
-        ],
-      });
-    }
-    if (getWalletInUSD() >= total) {
-      setWalletBalance();
-      GAevent({
-        action: GA_EVENT_NAMES.ADD_PAYMENT,
-        params: {
-          payment_type: GA_PAYMENTS.WALLET,
-          items: cart.map((item) => ({
-            item_id: item.product_id,
-            item_name: item.name,
-
-            quantity: item.quantity,
-          })),
-        },
-      });
-      setOrderData({
-        payment: [
-          ...orderData.payment?.filter((s) => s.id !== 1),
           {
             id: 1,
             balance: total,
           },
         ],
       });
+    } else {
+      setOrderData({
+        payment: orderData.payment?.filter((s) => s.id !== 1),
+      });
     }
   }, [available_payment_method, wallet]);
   const handleCODPayment = () => {
-    if (getWalletInUSD() >= total) {
-      showErrorNotification(
-        translateFunction("Only Allowed To Pay through TryDos Wallet"),
-      );
+    if (walletCoversTotal) return;
+    if (orderData?.payment?.find((s) => s.id === 0)) {
+      setOrderData({ payment: [] });
     } else {
-      if (orderData?.payment?.find((s) => s.id === 0)) {
-        setOrderData({
-          payment: orderData?.payment?.filter((s) => s.id !== 0),
-        });
-      } else {
-        setCodUser();
-        GAevent({
-          action: GA_EVENT_NAMES.ADD_PAYMENT,
-          params: {
-            payment_type: GA_PAYMENTS.COD,
-            items: cart.map((item) => ({
-              item_id: item.product_id,
-              item_name: item.name,
-
-              quantity: item.quantity,
-            })),
+      setCodUser();
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_PAYMENT,
+        params: {
+          payment_type: GA_PAYMENTS.COD,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            quantity: item.quantity,
+          })),
+        },
+      });
+      setOrderData({
+        payment: [
+          {
+            id: 0,
+            balance: total_cash,
           },
-        });
-        setOrderData({
-          payment: [
-            ...orderData.payment?.filter((s) => s.id === 1),
-            {
-              id: 0,
-              balance: total_cash - (getWalletInUSD() || 0),
-            },
-          ],
-        });
-      }
+        ],
+      });
     }
   };
   const handleWalletPayment = () => {
-    if (orderData?.payment?.find((s) => s.id === 1)) {
-      showErrorNotification(translateFunction("Wallet Already Selected"));
-    } else {
-      if (getWalletInUSD() <= 0) {
-        showErrorNotification(
-          translateFunction("your TryDos Wallet balance is empty"),
-        );
-      }
-    }
+    // Wallet is auto-managed: auto-selected when sufficient, disabled when not
   };
   const handleCryptoPayment = () => {
-    if (getWalletInUSD() >= total) {
-      showErrorNotification(
-        translateFunction("Only Allowed To Pay through TryDos Wallet"),
-      );
+    if (walletCoversTotal) return;
+    if (orderData?.payment?.find((s) => s.id === 3)) {
+      setOrderData({ payment: [] });
     } else {
-      if (orderData?.payment?.find((s) => s.id === 3)) {
-        setOrderData({
-          payment: orderData?.payment?.filter((s) => s.id !== 3),
-        });
-      } else {
-        GAevent({
-          action: GA_EVENT_NAMES.ADD_PAYMENT,
-          params: {
-            payment_type: GA_PAYMENTS.CRYPTO,
-            items: cart.map((item) => ({
-              item_id: item.product_id,
-              item_name: item.name,
-
-              quantity: item.quantity,
-            })),
+      setCryptoUser();
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_PAYMENT,
+        params: {
+          payment_type: GA_PAYMENTS.CRYPTO,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            quantity: item.quantity,
+          })),
+        },
+      });
+      setOrderData({
+        payment: [
+          {
+            id: 3,
+            balance: total,
           },
-        });
-        setCryptoUser();
-        setOrderData({
-          payment: [
-            ...orderData.payment?.filter((s) => s.id === 1),
-            {
-              id: 3,
-              balance: total - (getWalletInUSD() || 0),
-            },
-          ],
-        });
-      }
+        ],
+      });
     }
   };
   const handleCardPayment = () => {
-    if (getWalletInUSD() >= total) {
-      showErrorNotification(
-        translateFunction("Only Allowed To Pay through TryDos Wallet"),
-      );
+    if (walletCoversTotal) return;
+    if (orderData?.payment?.find((s) => s.id === 2)) {
+      setOrderData({ payment: [] });
     } else {
-      if (orderData?.payment?.find((s) => s.id === 2)) {
-        setOrderData({
-          payment: orderData?.payment?.filter((s) => s.id !== 2),
-        });
-      } else {
-        setCreditUser();
-        GAevent({
-          action: GA_EVENT_NAMES.ADD_PAYMENT,
-          params: {
-            payment_type: GA_PAYMENTS.CREDIT,
-            items: cart.map((item) => ({
-              item_id: item.product_id,
-              item_name: item.name,
-
-              quantity: item.quantity,
-            })),
+      setCreditUser();
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_PAYMENT,
+        params: {
+          payment_type: GA_PAYMENTS.CREDIT,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            quantity: item.quantity,
+          })),
+        },
+      });
+      setOrderData({
+        payment: [
+          {
+            id: 2,
+            balance: total,
           },
-        });
-        setOrderData({
-          payment: [
-            ...orderData.payment?.filter((s) => s.id === 1),
-            {
-              id: 2,
-              balance: total - (getWalletInUSD() || 0),
-            },
-          ],
-        });
-      }
+        ],
+      });
     }
   };
-  const showCodValue = () => {
-    if (getWalletInUSD() <= 0 || getWalletInUSD() >= total) return total_cash;
-    if (getWalletInUSD() > 0 && getWalletInUSD() < total) {
-      return total_cash - getWalletInUSD();
-    }
-  };
+  const showCodValue = () => total_cash;
   const [walletLoading, setWalletLoading] = useState(false);
   const refreshWallet = async () => {
     if (walletLoading) return;
@@ -344,6 +286,7 @@ function PaymentMethod() {
                     active={
                       orderData?.payment?.filter((s) => s.id === 0).length > 0
                     }
+                    disabled={walletCoversTotal}
                     setActive={() => {
                       if (!orderLoading) {
                         handleCODPayment();
@@ -368,6 +311,7 @@ function PaymentMethod() {
                       active={
                         orderData?.payment?.filter((s) => s.id === 1).length > 0
                       }
+                      disabled={walletInsufficient}
                       setActive={() => {
                         if (!orderLoading) {
                           handleWalletPayment();
@@ -396,6 +340,7 @@ function PaymentMethod() {
                     active={
                       orderData?.payment?.filter((s) => s.id === 3).length > 0
                     }
+                    disabled={walletCoversTotal}
                     setActive={() => {
                       if (!orderLoading) {
                         handleCryptoPayment();
@@ -411,6 +356,7 @@ function PaymentMethod() {
                     active={
                       orderData?.payment?.filter((s) => s.id === 2).length > 0
                     }
+                    disabled={walletCoversTotal}
                     setActive={() => {
                       handleCardPayment();
                     }}
@@ -438,7 +384,7 @@ function PaymentMethod() {
 }
 
 export default PaymentMethod;
-const CODInput = ({ active, setActive, total }) => {
+const CODInput = ({ active, setActive, total, disabled = false }) => {
   const { language, cod_cost, currency } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
@@ -446,15 +392,15 @@ const CODInput = ({ active, setActive, total }) => {
     <div
       data-cy="Cash-on-delivery"
       onClick={() => {
-        setActive();
+        if (!disabled) setActive();
       }}
-      className={`${
+      className={`${disabled ? "opacity-45 pointer-events-none" : ""} ${
         isRtl
           ? "flex-row-reverse pr-[23px] pl-[26px]"
           : "flex-row pr-[26px] pl-[23px]"
       } w-full cursor-pointer mt-[10px] items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
       style={{
-        border: active && "1px solid rgb(56 144 255 / 51%)",
+        border: active && !disabled && "1px solid rgb(56 144 255 / 51%)",
       }}
     >
       <div data-cy="WalletIcon-container" className="flex-row items-center">
@@ -489,7 +435,12 @@ const CODInput = ({ active, setActive, total }) => {
     </div>
   );
 };
-const TryDosWalletInput = ({ active, setActive, balance }) => {
+const TryDosWalletInput = ({
+  active,
+  setActive,
+  balance,
+  disabled = false,
+}) => {
   const { orderLoading, wallet, currency, settings, language } = useAppStore();
   const points = settings["starting-setting"]?.decimal_point_settings || 0;
   const isRtl = language === "ar" || language === "ku";
@@ -498,15 +449,15 @@ const TryDosWalletInput = ({ active, setActive, balance }) => {
     <div
       data-cy="second-bay-way"
       onClick={() => {
-        setActive();
+        if (!disabled) setActive();
       }}
-      className={`${wallet?.wallet_balance <= 0 && "opacity-45"} ${
+      className={`${(disabled || wallet?.wallet_balance <= 0) && "opacity-45"} ${disabled ? "pointer-events-none" : ""} ${
         isRtl
           ? "flex-row-reverse pr-[23px] pl-[26px]"
           : "flex-row pr-[26px] pl-[23px]"
       } w-full cursor-pointer mt-[10px] items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
       style={{
-        border: active && "1px solid rgb(56 144 255 / 51%)",
+        border: active && !disabled && "1px solid rgb(56 144 255 / 51%)",
       }}
     >
       <div data-cy="second-bay-way-con" className="flex-row items-center">
@@ -550,7 +501,7 @@ const TryDosWalletInput = ({ active, setActive, balance }) => {
   );
 };
 
-const CreditInput = ({ active, setActive }) => {
+const CreditInput = ({ active, setActive, disabled = false }) => {
   const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
@@ -558,12 +509,12 @@ const CreditInput = ({ active, setActive }) => {
     <div
       data-cy="dredit-way"
       onClick={() => {
-        setActive();
+        if (!disabled) setActive();
       }}
       style={{
-        border: active && "1px solid rgb(56 144 255 / 51%)",
+        border: active && !disabled && "1px solid rgb(56 144 255 / 51%)",
       }}
-      className={`${
+      className={`${disabled ? "opacity-45 pointer-events-none" : ""} ${
         isRtl
           ? "flex-row-reverse pr-[23px] pl-[26px]"
           : "flex-row pr-[26px] pl-[23px]"
@@ -615,7 +566,7 @@ const CreditInput = ({ active, setActive }) => {
     </div>
   );
 };
-const CryptoInput = ({ active, setActive }) => {
+const CryptoInput = ({ active, setActive, disabled = false }) => {
   const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
@@ -624,13 +575,12 @@ const CryptoInput = ({ active, setActive }) => {
       data-cy="crypto-bay-way"
       onClick={(e) => {
         // @ts-ignore
-
-        setActive();
+        if (!disabled) setActive();
       }}
       style={{
-        border: active && "1px solid rgb(56 144 255 / 51%)",
+        border: active && !disabled && "1px solid rgb(56 144 255 / 51%)",
       }}
-      className={`${
+      className={`${disabled ? "opacity-45 pointer-events-none" : ""} ${
         isRtl
           ? "flex-row-reverse pr-[23px] pl-[26px]"
           : "flex-row pr-[26px] pl-[23px]"

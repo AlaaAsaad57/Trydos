@@ -11,7 +11,13 @@ import { LogServerError } from "utils/serverErrorReporter";
 import { GetWalletBalanceForCountryCurrency } from "./wallet";
 
 class OrderService {
-  async PlaceOrder({ payment_method, pay_by_wallet }) {
+  async PlaceOrder({
+    payment_method,
+    pay_by_wallet,
+  }: {
+    payment_method?: string;
+    pay_by_wallet: boolean;
+  }) {
     const {
       addressLists,
       setOrderLoading,
@@ -22,8 +28,11 @@ class OrderService {
     let addressId = addressLists.filter((s) => s.is_default === 1)[0]?.id;
     try {
       setOrderLoading(true);
+      const checkoutPath = payment_method
+        ? `/customer/order/checkout/${payment_method}`
+        : `/customer/order/checkout`;
       let response: any = await fetchData({
-        url: `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}&pay_by_wallet=${
+        url: `${checkoutPath}?order_note=order note&address_id=${addressId}&pay_by_wallet=${
           pay_by_wallet ? 1 : 0
         }`,
         reqTitle: REQUESTS_DATA.PAY_ORDER,

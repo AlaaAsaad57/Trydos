@@ -1,7 +1,7 @@
 import { GetImageUrl } from "utils/server";
 import ProductFooter from "./ProductFooter";
 import { GetSocialInfoForProduct } from "serverRequests/product";
-import { cookies } from "next/headers";
+import { getCookieServer, COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import ProductStructuredData from "serverRequests/meta/StructuredData/ProductStructuredData";
 
 async function ProductFooterWrapper({
@@ -22,18 +22,16 @@ async function ProductFooterWrapper({
     ...globalData,
     ...qtyData,
   };
-  let cookiesStore = await cookies();
-  let user = cookiesStore.get("User-Data")?.value;
-  let parsedUser = user ? JSON.parse(user) : null;
+  let parsedUser = await getCookieServer<{ id: string }>(
+    COOKIE_NAMES.USER_DATA,
+  );
   let socialData = await GetSocialInfoForProduct({
     productId: product?.id,
     userId: parsedUser?.id,
   });
   const isRedeemed = async () => {
     if (!qtyData?.is_redeem) return false;
-    const cookiesStore = await cookies();
-    let redeemed: any = cookiesStore.get("redeemd_ids")?.value;
-    redeemed = redeemed ? JSON.parse(redeemed) : null;
+    let redeemed: any = await getCookieServer<any[]>("redeemd_ids");
     if (redeemed && redeemed.find((s) => String(s.id) === String(qtyData.id))) {
       return false;
     } else {

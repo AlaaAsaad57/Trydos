@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { fetchProductDetails } from "serverRequests";
 import { GetRecommendationCountForProduct } from "serverRequests/product";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
@@ -9,7 +8,7 @@ import {
   share_index,
   user_interactions_index,
 } from "services/elastic/INDEXES";
-import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 
 let client = elasticSearchClient;
@@ -48,9 +47,10 @@ export const getProductDataFromElastic = async ({
   let user_id;
 
   if (!userId) {
-    const cookiesStore = await cookies();
-    let user_data = cookiesStore.get(COOKIE_NAMES.USER_DATA)?.value;
-    user_id = typeof user_data === "string" ? JSON.parse(user_data)?.id : null;
+    const userData = await getCookieServer<{ id: string }>(
+      COOKIE_NAMES.USER_DATA,
+    );
+    user_id = userData?.id ?? null;
   } else {
     user_id = userId;
   }

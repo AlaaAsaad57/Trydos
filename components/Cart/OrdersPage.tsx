@@ -137,54 +137,30 @@ function OrdersPage({ setStep, close }) {
   const setOrderSuccess = async (e) => {
     try {
       if (orderData?.payment?.length === 1) {
+        const selectedPayment = orderData?.payment[0];
+
+        // Wallet covers total — no payment_method needed
+        if (selectedPayment?.id === 1) {
+          setLoading(true);
+          await order.PlaceOrder({
+            pay_by_wallet: true,
+          });
+          setLoading(false);
+          return;
+        }
+
         let payment_method =
-          orderData?.payment[0]?.id === 0
+          selectedPayment?.id === 0
             ? "cash_on_delivery"
-            : orderData?.payment[0]?.id === 1
-              ? "trydos_wallet"
-              : orderData?.payment[0]?.id === 2
-                ? "card"
-                : "crypto";
+            : selectedPayment?.id === 2
+              ? "card"
+              : "crypto";
         setLoading(true);
         await order.PlaceOrder({
           payment_method,
           pay_by_wallet: false,
         });
         setLoading(false);
-      } else {
-        if (
-          orderData.payment.length &&
-          orderData?.payment?.filter((one) => one.id === 2).length
-        ) {
-          setLoading(true);
-          await order.PlaceOrder({
-            payment_method: "card",
-            pay_by_wallet: true,
-          });
-          setLoading(false);
-        }
-        if (
-          orderData.payment.length &&
-          orderData?.payment?.filter((one) => one.id === 3).length
-        ) {
-          setLoading(true);
-          await order.PlaceOrder({
-            payment_method: "crypto",
-            pay_by_wallet: true,
-          });
-          setLoading(false);
-        }
-        if (
-          orderData.payment.length &&
-          orderData?.payment?.filter((one) => one.id === 0).length
-        ) {
-          setLoading(true);
-          await order.PlaceOrder({
-            payment_method: "cash_on_delivery",
-            pay_by_wallet: true,
-          });
-          setLoading(false);
-        }
       }
     } catch (error) {
       LogError({
