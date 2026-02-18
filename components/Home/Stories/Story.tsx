@@ -17,6 +17,7 @@ function Story({ media, Name, index, story }) {
       data-cy="story-element"
     >
       <StoryCard
+        key={media?.full_video_path || media?.photo_path}
         Name={Name}
         media={media?.full_video_path || media?.photo_path}
         isVideo={media.full_video_path}
