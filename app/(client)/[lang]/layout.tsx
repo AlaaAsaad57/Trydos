@@ -33,11 +33,13 @@ export const viewport = {
   maximumScale: 1.0,
   userScalable: false,
 };
+// Each weight gets its own CSS variable so existing CSS (font-family: var(--Quicksand-*)) keeps working.
+// Next.js injects these variables onto <html> via the className applied below.
 const quicksand_regular = localFont({
   src: "../../../public/fonts/Quicksand-Regular.woff2",
   variable: "--Quicksand-Regular",
   display: "swap",
-  preload: false,
+  preload: true,
   fallback: ["system-ui", "arial"],
 });
 const quicksand_light = localFont({
@@ -74,13 +76,14 @@ export default async function RootLayout({ params, children }) {
   const [country, language] = lang.split("-");
   return (
     <html
-      className={`
-      ${quicksand_regular.variable}
-      ${quicksand_light.variable}
-      ${quicksand_medium.variable}
-      ${quicksand_bold.variable}
-      ${quicksand_semibold.variable}
-      font-sans overflow-x-hidden`}
+      className={[
+        quicksand_regular.variable,
+        quicksand_light.variable,
+        quicksand_medium.variable,
+        quicksand_bold.variable,
+        quicksand_semibold.variable,
+        "overflow-x-hidden",
+      ].join(" ")}
       lang={lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
     >
       <head>
