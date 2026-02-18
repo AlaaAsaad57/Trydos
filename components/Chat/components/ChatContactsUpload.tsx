@@ -6,7 +6,7 @@ import { fetchData } from "utils/fetchData";
 import { pollinateInput, sanitizePhone } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
 
-import { allCountries } from "country-telephone-data";
+import { getCountriesSync } from "utils/countryData";
 import { showErrorNotification } from "store/notifications/reducer";
 // --- Utilities ---
 
@@ -316,6 +316,7 @@ const PhoneInput = ({
   hasConflict,
 }) => {
   // Find country for the flag
+  const allCountries = getCountriesSync();
   const activeCountry =
     allCountries.find((c) => c.dialCode === dialCode.replace("+", "")) ||
     allCountries[0];

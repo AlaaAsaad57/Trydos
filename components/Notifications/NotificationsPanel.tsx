@@ -112,7 +112,7 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
     scrollContainer.addEventListener("scroll", handleScroll);
     return () => scrollContainer.removeEventListener("scroll", handleScroll);
   }, [notifications.length, loading, hasMore]);
-
+  console.log(notifications);
   return (
     <div
       data-cy="notification-container"

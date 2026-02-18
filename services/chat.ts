@@ -159,7 +159,8 @@ class ChatService {
       }
 
       setChats(response.data.channels, response.data.pinned_channels);
-      const { db } = await import("../utils/firebaseInitv1");
+      const { getDb } = await import("../utils/firebaseInitv1");
+      const db = await getDb();
       let chats = [...response.data.channels, ...response.data.pinned_channels];
       const userChat = await getUserChat();
       chats.map((chat) => {

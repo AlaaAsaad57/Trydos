@@ -5,9 +5,8 @@ import HomeService from "services/home";
 import PopupCountry from "utils/PopupCountry";
 import home from "services/home";
 
-import Smartlook from "smartlook-client";
-
 import { LogError, translateFunction } from "utils/functions";
+import { smartlookInit, smartlookIdentify } from "utils/smartlook";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import NotificationWidget from "components/global/NotificationWidget";
 import { useAppStore } from "store";
@@ -107,15 +106,14 @@ function Init() {
     try {
       if (auth.UserID()) {
         if (typeof Notification !== "undefined") initPageLoad();
-        Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
+        smartlookInit(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
 
         const user = useAppStore.getState().userProfile;
 
         if (user) {
-          Smartlook.identify(user.id, {
+          smartlookIdentify(user.id, {
             name: user?.name || "Guest",
             phone: user?.mobilePhone || "null",
-            // other custom properties
           });
         }
       }

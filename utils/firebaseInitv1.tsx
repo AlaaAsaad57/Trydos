@@ -1,12 +1,3 @@
-import { initializeApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
-import {
-  deleteToken,
-  getMessaging,
-  getToken,
-  onMessage,
-  isSupported,
-} from "firebase/messaging";
 import { useAppStore } from "../store";
 
 import { foregroundNotificationHandler } from "./NotificationHandler";
@@ -15,37 +6,62 @@ import auth from "services/auth";
 import { REQUESTS_DATA } from "./Requests";
 import { fetchData } from "./fetchData";
 import ChatService from "services/chat";
-const firebaseConfig = {
-  // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
-  // authDomain: "trydos-ce234.firebaseapp.com",
-  // databaseURL: "https://trydos-ce234-default-rtdb.firebaseio.com",
-  // projectId: "trydos-ce234",
-  // storageBucket: "trydos-ce234.appspot.com",
-  // messagingSenderId: "912302743695",
-  // appId: "1:912302743695:web:17d05f7385b792bf4110fa",
-  // measurementId: "G-N8LNVEWJSJ",
 
+const firebaseConfig = {
   apiKey: "AIzaSyC3YInmCP8IqflkPjnpB9X4QCOQTa2bD64",
   authDomain: "trydos-2e2b2.firebaseapp.com",
   projectId: "trydos-2e2b2",
   storageBucket: "trydos-2e2b2.firebasestorage.app",
   messagingSenderId: "817506223106",
   appId: "1:817506223106:web:e9e39c9a34ac2aff82131b",
-  // measurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
   databaseURL:
     "https://trydos-2e2b2-default-rtdb.europe-west1.firebasedatabase.app/",
 };
-export const firebaseApp = initializeApp(firebaseConfig);
-export const db = getDatabase(firebaseApp);
-export const messaging =
-  typeof window !== "undefined" &&
-  "serviceWorker" in navigator &&
-  getMessaging(firebaseApp);
+
+// Lazy-initialized Firebase instances — loaded only on first access
+let _firebaseApp: any = null;
+let _db: any = null;
+let _messaging: any = null;
+
+export const getFirebaseApp = async () => {
+  if (!_firebaseApp) {
+    const { initializeApp } = await import("firebase/app");
+    _firebaseApp = initializeApp(firebaseConfig);
+  }
+  return _firebaseApp;
+};
+
+export const getDb = async () => {
+  if (!_db) {
+    const app = await getFirebaseApp();
+    const { getDatabase } = await import("firebase/database");
+    _db = getDatabase(app);
+  }
+  return _db;
+};
+
+export const getFirebaseMessaging = async () => {
+  if (_messaging) return _messaging;
+  if (typeof window === "undefined" || !("serviceWorker" in navigator))
+    return null;
+  const app = await getFirebaseApp();
+  const { getMessaging } = await import("firebase/messaging");
+  _messaging = getMessaging(app);
+  return _messaging;
+};
+
+// Backward-compatible lazy proxy for `db` (used by static imports)
+// Falls back to null until getDb() is called
+export { _db as db };
 
 export const requestFirebaseNotificationPermission = async () => {
-  if (!isSupported()) {
+  const { isSupported } = await import("firebase/messaging");
+  if (!(await isSupported())) {
     return;
   }
+  const messaging = await getFirebaseMessaging();
+  if (!messaging) return;
+  const { deleteToken, getToken } = await import("firebase/messaging");
   const { setNotificationPermission } = useAppStore.getState();
   const tokenExpiry = localStorage.getItem("FBTokenExpiry");
   const tokenDate = tokenExpiry ? new Date(tokenExpiry) : null;
@@ -127,9 +143,12 @@ const registerFcmToken = async (fcmToken: string) => {
 };
 
 export const onMessageListener = async () => {
-  if (!isSupported()) {
+  const { isSupported, onMessage } = await import("firebase/messaging");
+  if (!(await isSupported())) {
     return;
   }
+  const messaging = await getFirebaseMessaging();
+  if (!messaging) return;
   // Removed react-toastify import - using new notification system
   return new Promise((resolve) => {
     onMessage(messaging, async (payload) => {

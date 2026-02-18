@@ -7,7 +7,6 @@ import React, {
   ChangeEvent,
   KeyboardEvent,
 } from "react";
-import { push, ref, set } from "firebase/database";
 import { useStopwatch } from "react-timer-hook";
 /* ----------------------------- Local Imports ----------------------------- */
 import Recorder from "components/Chat/components/Recorder";
@@ -29,7 +28,7 @@ import {
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { translateFunction, getUserChat, LogError } from "utils/functions";
-import { db } from "utils/firebaseInitv1";
+import { getDb } from "utils/firebaseInitv1";
 import { useAppStore } from "store";
 import { requestPermissions } from "@/utils/tinyUtils";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
@@ -206,12 +205,14 @@ function ConversationContainer({
     }`;
 
   const sendStatus = useCallback(
-    (desc: string | null) => {
+    async (desc: string | null) => {
       if (!activeChat?.id) return;
 
       const friendID = receiverId;
       if (!friendID) return;
 
+      const db = await getDb();
+      const { ref, push, set } = await import("firebase/database");
       const baseRef = ref(
         db,
         `Transaction/${(getUser() as any)?.id}/${friendID}`,
@@ -225,16 +226,20 @@ function ConversationContainer({
 
   const handleTyping = useCallback(() => {
     let timer: NodeJS.Timeout | null = null;
-    return () => {
+    return async () => {
       if (timer) clearTimeout(timer);
 
       const friendID = receiverId;
       if (!friendID) return;
 
+      const db = await getDb();
+      const { ref, push, set } = await import("firebase/database");
       const path = `Transaction/${(getUser() as any)?.id}/${friendID}`;
       push(ref(db, path), "Typing...").catch(() => {});
 
-      timer = setTimeout(() => {
+      timer = setTimeout(async () => {
+        const db = await getDb();
+        const { ref, set } = await import("firebase/database");
         set(ref(db, path), null).catch(() => {});
       }, 2000);
     };

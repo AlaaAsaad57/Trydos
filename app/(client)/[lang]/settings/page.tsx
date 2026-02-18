@@ -7,7 +7,7 @@ import GoToSellerDashBoard from "components/settings/GoToSellerDashBoard";
 import { Suspense } from "react";
 import Skeleton from "react-loading-skeleton";
 import { translateFunction } from "utils/server";
-import { allCountries } from "country-telephone-data";
+import { getCountryNameByIso2 } from "utils/countryData";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 import RouterRefresh from "components/global/RouterRefresh";
 import { getCurrency } from "serverRequests";
@@ -68,7 +68,7 @@ async function page({ params }) {
   ];
 
   let countryData = {
-    name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
+    name: getCountryNameByIso2(country),
     iso: country,
   };
   const getLanguage = () => {

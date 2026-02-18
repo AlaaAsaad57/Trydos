@@ -24,7 +24,7 @@ export const useUserData = ({
   useEffect(() => {
     // Fetch from /api/auth/me if store data is not available
     if (!userMarketStore || !userChatStore || !userStoriesStore) {
-      fetch("/api/auth/me", { credentials: "include" })
+      fetch("/api/auth/me", { credentials: "include", method: "POST" })
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (data) {

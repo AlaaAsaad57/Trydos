@@ -1,6 +1,6 @@
 import Border from "components/global/Border";
 import { useEffect, useRef, useState } from "react";
-import { allCountries } from "country-telephone-data";
+import { getCountriesSync } from "utils/countryData";
 
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translateFunction } from "utils/functions";
@@ -61,14 +61,15 @@ function PhoneInput({
   const ref = useRef();
 
   const getCountry = (val) => {
+    const allCountries = getCountriesSync();
     return allCountries.filter((countryItem) =>
-      val?.startsWith(countryItem.dialCode)
+      val?.startsWith(countryItem.dialCode),
     ).length === 1
       ? allCountries.filter((countryItem) =>
-          val?.startsWith(countryItem.dialCode)
+          val?.startsWith(countryItem.dialCode),
         )[0]
       : allCountries.filter((countryItem) =>
-          val?.startsWith(countryItem.dialCode)
+          val?.startsWith(countryItem.dialCode),
         )[0];
   };
 
@@ -159,7 +160,7 @@ function PhoneInput({
               <span data-cy="FieldToInputNumber">
                 {translate(
                   "Enter Your Phone Number Registered With Us",
-                  language
+                  language,
                 )}
               </span>
             </div>
@@ -242,7 +243,7 @@ function PhoneInput({
               <span data-cy="login-detail-Verification-text">
                 {translate(
                   "We Will Send A Verification Code To The Number",
-                  language
+                  language,
                 )}
               </span>
             </div>
@@ -259,7 +260,7 @@ function PhoneInput({
             <div className="text-login-item" data-cy="FieldToInputNumber">
               {translate(
                 "Enter Your Phone Number Registered With Us",
-                language
+                language,
               )}
             </div>
             <div className="icon-detail" style={{ marginTop: "3px" }}>
@@ -270,7 +271,7 @@ function PhoneInput({
               <span>
                 {translate(
                   "Your Privacy Is Completely Safe, We Not Share Your Information With Anyone",
-                  language
+                  language,
                 )}
               </span>
             </div>
@@ -349,7 +350,7 @@ function PhoneInput({
               <span>
                 {translate(
                   "We Will Send A Verification Code To The Number",
-                  language
+                  language,
                 )}
               </span>
             </div>

@@ -1,5 +1,5 @@
 "use client";
-import { allCountries } from "country-telephone-data";
+import { getCountryNameByIso2 } from "utils/countryData";
 import React, { useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import Map from "./Map";
@@ -239,7 +239,7 @@ const CountryLabel = () => {
   // @ts-ignore
   let country = lang.split("-")[0];
   country = {
-    name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
+    name: getCountryNameByIso2(country),
     iso: country,
   };
 
@@ -647,7 +647,7 @@ const AddAddressButtons = ({
   // @ts-ignore
   let country = lang.split("-")[0];
   country = {
-    name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
+    name: getCountryNameByIso2(country),
     code: country,
   };
   const handleAddressAction = async () => {

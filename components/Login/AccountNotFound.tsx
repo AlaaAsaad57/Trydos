@@ -62,9 +62,10 @@ function AccountNotFound({
     setLoading(true);
     await clearAllUserData();
     try {
-      const { messaging } = await import("utils/firebaseInitv1");
+      const { getFirebaseMessaging } = await import("utils/firebaseInitv1");
       const { deleteToken } = await import("firebase/messaging");
-      await deleteToken(messaging);
+      const messaging = await getFirebaseMessaging();
+      if (messaging) await deleteToken(messaging);
     } catch (error) {}
     const { cancelAuth } = useAppStore.getState();
     cancelAuth();

@@ -1,5 +1,5 @@
 import { useAppStore } from "store";
-import Smartlook from "smartlook-client";
+import { smartlookIdentify } from "utils/smartlook";
 import { _isStoreLastJson, LogError, translateFunction } from "utils/functions";
 import { SEND_OTP } from "utils/endpointConfig";
 
@@ -178,11 +178,10 @@ class AuthService {
       setReAuthResult("success");
       setShouldAuthinticated(false);
       if (user) {
-        if (Smartlook.initialized())
-          Smartlook.identify(user.id, {
-            name: user.name,
-            phone: user.mobilePhone,
-          });
+        smartlookIdentify(user.id, {
+          name: user.name,
+          phone: user.mobilePhone,
+        });
       }
       try {
         home.getNotificationPermissionStatus();
@@ -324,6 +323,7 @@ class AuthService {
           firebase_token_id: localStorage.getItem("FBID"),
         }),
         reqTitle: REQUESTS_DATA.VALIDATE_FCM_TOKEN,
+        noMessage: true,
       });
       return res;
     } catch (error) {

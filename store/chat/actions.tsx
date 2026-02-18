@@ -16,7 +16,8 @@ export const GetLastSeen = async (chatId, friendID) => {
   const { setServerTime, setIsTyping } = useAppStore.getState();
   try {
     const { onValue, ref } = await import("firebase/database");
-    const { db } = await import("../../utils/firebaseInitv1");
+    const { getDb } = await import("../../utils/firebaseInitv1");
+    const db = await getDb();
     let server_time;
 
     let response = await fetchData({
@@ -80,7 +81,8 @@ export const setLastSeen = async (MyId) => {
     }
     server_time = response.data;
     setServerTime(response.data);
-    const { db } = await import("../../utils/firebaseInitv1");
+    const { getDb } = await import("../../utils/firebaseInitv1");
+    const db = await getDb();
     push(ref(db, `ConnectStatus/${MyId.toString()}`));
     set(ref(db, `ConnectStatus/${MyId.toString()}`), server_time)
       .then(() => {

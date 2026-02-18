@@ -1,4 +1,5 @@
 import { withSentryConfig } from "@sentry/nextjs";
+import withBundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 
 let nextConfig: NextConfig = {
@@ -104,7 +105,7 @@ let nextConfig: NextConfig = {
     optimizeCss: true, // Disabled due to critters module error
     optimizeServerReact: true,
     staleTimes: {
-      dynamic: 0,
+      dynamic: 30,
       static: 180,
     },
   },
@@ -112,7 +113,9 @@ let nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
 };
 
-export default withSentryConfig(nextConfig, {
+const analyze = withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" });
+
+export default withSentryConfig(analyze(nextConfig), {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 

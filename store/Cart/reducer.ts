@@ -1,4 +1,4 @@
-import { allCountries } from "country-telephone-data";
+import { getCountryNameByIso2 } from "utils/countryData";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 import { CartApiInterface } from "utils/types/cart";
 
@@ -8,7 +8,7 @@ const getCountry = () => {
     window.location.pathname.split("/")[1].split("-")[0];
   if (countryParam) {
     let country = {
-      name: allCountries.filter((s) => s.iso2 === countryParam)[0]?.name,
+      name: getCountryNameByIso2(countryParam),
       code: countryParam,
     };
     return country;

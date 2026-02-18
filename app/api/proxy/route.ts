@@ -91,7 +91,12 @@ export async function POST(request: NextRequest) {
       method,
       headers,
       body,
-      credentials: "omit", // server-to-server, no cookies forwarded
+      credentials: "omit",
+      next: {
+        revalidate: 0,
+      },
+      cache: "no-cache",
+      // server-to-server, no cookies forwarded
     });
     console.log(
       "Received response from backend with status:",
@@ -111,7 +116,12 @@ export async function POST(request: NextRequest) {
 
     if (responseContentType.includes("application/json")) {
       const data = await backendResponse.json();
-      return NextResponse.json(data, { status: backendResponse.status });
+      return NextResponse.json(data, {
+        status: backendResponse.status,
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      });
     }
 
     // Non-JSON responses (binary, text, etc.)

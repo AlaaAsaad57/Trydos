@@ -2,7 +2,7 @@ import { useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 
 import { useParams } from "next/navigation";
-import { allCountries } from "country-telephone-data";
+import { getCountryNameByIso2 } from "utils/countryData";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
@@ -16,7 +16,7 @@ function SelectRegion({ closeSelect }) {
   // @ts-ignore
   let country = lang.split("-")[0];
   country = {
-    name: allCountries.filter((s) => s.iso2 === country)[0].name,
+    name: getCountryNameByIso2(country),
     iso: country,
   };
   const showRegion = () => {

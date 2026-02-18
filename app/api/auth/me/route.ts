@@ -4,10 +4,15 @@ import { LogServerError } from "utils/serverErrorReporter";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function POST() {
   try {
     const currentUser = await getCurrentUser();
-    return NextResponse.json(currentUser, { status: 200 });
+    return NextResponse.json(currentUser, {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
   } catch (error) {
     LogServerError({ error, type: "auth/me route error" });
     return NextResponse.json(

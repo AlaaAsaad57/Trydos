@@ -13,30 +13,49 @@ export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
 
+// Cached translations per language — loaded once, reused forever
+const translationCache: Record<string, Record<string, string>> = {};
+
+async function loadTranslations(lang: string): Promise<Record<string, string>> {
+  if (translationCache[lang]) return translationCache[lang];
+
+  let mod: { default: Record<string, string> };
+  if (lang === "ar")
+    mod = await import("public/translations/translations.ar.js");
+  else if (lang === "ku")
+    mod = await import("public/translations/translations.ku.js");
+  else if (lang === "tr")
+    mod = await import("public/translations/translations.tr.js");
+  else return {};
+
+  translationCache[lang] = mod.default;
+  return mod.default;
+}
+
+// Eagerly kick off loading for the current language so it's ready fast
+if (typeof window !== "undefined") {
+  const pathLang = window.location.pathname.split("/")[1]?.split("-")[1];
+  if (pathLang && pathLang !== "en") loadTranslations(pathLang);
+}
+
 export function translateFunction(key: string, language?: string | string[]) {
-  let url, languageUrl;
-  // if (language === "en") return key;
+  let languageUrl: string | undefined;
 
   if (typeof window !== "undefined") {
     languageUrl = window.location.pathname.split("/")[1].split("-")[1];
   } else {
-    languageUrl = language || LocalizationServiceClass.GetAppLanguage();
+    languageUrl =
+      (language as string) || LocalizationServiceClass.GetAppLanguage();
   }
-  if (!languageUrl) return key;
-  if (languageUrl === "en") return key;
-  let translations = require(
-    `public/translations/translations.${languageUrl}.js`,
-  ).default;
-  // Ensure translations object exists and has the requested language
-  if (!translations) {
-    return key;
-  }
+  if (!languageUrl || languageUrl === "en") return key;
 
-  if (languageUrl) {
-    return translations?.[key] || key;
-  }
+  // Return from cache if already loaded (synchronous fast path)
+  const cached = translationCache[languageUrl];
+  if (cached) return cached[key] || key;
 
-  return translations?.[key] || key;
+  // Kick off async load — on next call it will be cached
+  loadTranslations(languageUrl);
+  return key;
 }
 
 export const getUserChat = (): any => {

@@ -128,9 +128,10 @@ const Menu = ({ user, setMenuOpen }) => {
 
     // 2. Delete firebase token locally
     try {
-      const { messaging } = await import("utils/firebaseInitv1");
+      const { getFirebaseMessaging } = await import("utils/firebaseInitv1");
       const { deleteToken } = await import("firebase/messaging");
-      await deleteToken(messaging);
+      const messaging = await getFirebaseMessaging();
+      if (messaging) await deleteToken(messaging);
     } catch (e) {
       /* swallow */
     }

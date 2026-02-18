@@ -7,7 +7,7 @@ import {
   translateFunction,
   WaitForCondition,
 } from "utils/functions";
-import Smartlook from "smartlook-client";
+import { smartlookIdentify } from "utils/smartlook";
 
 import {
   CUSTOMER_INFO_URL,
@@ -182,8 +182,8 @@ class HomeService {
           ...repo.data.user,
           expired_at: repo.data.expires_at,
         });
-        if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-          Smartlook.identify(repo.data.user.id, {
+        if (process.env.NODE_ENV === "production")
+          smartlookIdentify(repo.data.user.id, {
             name: repo.data.user.name,
             phone: "guest",
           });
@@ -286,6 +286,7 @@ class HomeService {
     try {
       const meResponse = await fetch("/api/auth/me", {
         credentials: "include",
+        method: "POST",
       });
       if (meResponse.ok) {
         const meData = await meResponse.json();
@@ -305,8 +306,8 @@ class HomeService {
     if (!hasDeviceToken) await this.RegisterDevice();
 
     if (userData && userData?.is_phone_verified === 1 && hasMarketToken) {
-      if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-        Smartlook.identify(userData.id, {
+      if (process.env.NODE_ENV === "production")
+        smartlookIdentify(userData.id, {
           name: userData.name,
           phone: userData.mobilePhone,
         });
@@ -320,8 +321,8 @@ class HomeService {
       if (userStories) loginSuccessStories({ ...userStories });
     } else {
       if (userData) {
-        if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-          Smartlook.identify(userData.id, {
+        if (process.env.NODE_ENV === "production")
+          smartlookIdentify(userData.id, {
             name: userData.name,
             phone: userData.mobilePhone,
           });
@@ -376,8 +377,8 @@ class HomeService {
       }
       SetGAUser(repo.data?.user, isNewUser);
       if (repo.data?.user) {
-        if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-          Smartlook.identify(repo.data.user.id, {
+        if (process.env.NODE_ENV === "production")
+          smartlookIdentify(repo.data.user.id, {
             name: repo.data.user.name,
             phone: "guest",
           });

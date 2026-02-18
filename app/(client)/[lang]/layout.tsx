@@ -2,22 +2,25 @@ import "styles/globals.css";
 import "styles/home.css";
 
 import localFont from "next/font/local";
+import dynamic from "next/dynamic";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
-import PathTracker from "components/PathTracker";
-import SessionChecker from "components/SessionChecker";
-import SessionTimer from "components/Login/SessionTimer";
 import CartProvider from "components/Cart/CartProvider";
 import Init from "components/Home/Init";
-import NotificationsContainer from "components/global/NotificationsContainer";
 import AuthNavContainer from "components/Home/AuthNavContainer";
-import VersionChecker from "components/global/VersionChecker";
 import NavbarClient from "components/Home/NavbarClient";
 import PageLoadingIndicator from "hooks/PageLoadingIndicator";
 import Organaization from "serverRequests/meta/StructuredData/Organaization";
 import Website from "serverRequests/meta/StructuredData/Website";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
+// remove dynamic and use direct import
+// Non-critical layout components — loaded after hydration
+import PathTracker from "components/PathTracker";
+import SessionChecker from "components/SessionChecker";
+import VersionChecker from "components/global/VersionChecker";
+import SessionTimer from "components/Login/SessionTimer";
+import NotificationsContainer from "components/global/NotificationsContainer";
 
 export const metadata = {
   title: "TryDos",
