@@ -143,6 +143,7 @@ class AuthService {
           },
         });
       }
+      localStorage.removeItem("FBID");
       SetGAUser(user, !response.data.already_exists);
       setTempUser({
         ...user,
