@@ -1138,9 +1138,10 @@ const translations = {
   Added: "زیاد کرا",
   "To Your Bag": "بۆ جانتاکەت",
   "Take A Look At Other Colors": "سەیرەکەی ڕەنگەکانی تر بکە",
-  "Notify Me When Size Is Available": "ئاگادارم بکە کاتێک قەبارەکە بەردەست بوو",
-  "We Will Inform You When Size Is Available":
-    "ئاگادارت دەکەین کاتێک قەبارەکە بەردەست ببێت",
+  "Notify Me When Variant Is Available":
+    "ئاگادارم بکە کاتێک گۆڕانکاری بەردەست بوو",
+  "We Will Inform You When Variant Is Available":
+    "ئاگادارت دەکەین کاتێک گۆڕانکاری بەردەست ببێت",
   "Rate Your Experience": "تاقیکردنەوەکەت هەڵسەنگێنە",
   "Share your thoughts about this product":
     "بیربوونەکانت بەش بکە سەبارەت بە ئەم بەرھەمە",

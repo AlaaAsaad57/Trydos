@@ -1104,8 +1104,9 @@ const translations = {
   Added: "تمت الإضافة",
   "To Your Bag": "إلى سلتك",
   "Take A Look At Other Colors": "ألقِ نظرة على الألوان الأخرى",
-  "Notify Me When Size Is Available": "أبلغني عندما يتوفر المقاس",
-  "We Will Inform You When Size Is Available": "سوف نعلمك عندما يتوفر المقاس",
+  "Notify Me When Variant Is Available": "أبلغني عندما يتوفر المنتج",
+  "We Will Inform You When Variant Is Available":
+    "سوف نعلمك عندما يتوفر المنتج",
   "Rate Your Experience": "قيّم تجربتك",
   "Share your thoughts about this product": "شارك أفكارك حول هذا المنتج",
   "See Our Many Offers And Take Advantage Of Discounts And Special Products":
@@ -1245,7 +1246,7 @@ const translations = {
   "No shops available": "لا توجد متاجر متاحة",
   "Super Admin": "مشرف عام",
   "You have full access to all features": "لديك حق الوصول الكامل لجميع الميزات",
-  "Recommended Products": "المنتجات الموصى بها"
+  "Recommended Products": "المنتجات الموصى بها",
 };
 
 export default translations;

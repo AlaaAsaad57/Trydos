@@ -339,11 +339,13 @@ function NotifyButton({
           </div>
           {isNotified ? (
             <span id="text-request-response">
-              {translateFunction("We Will Inform You When Size Is Available")}
+              {translateFunction(
+                "We Will Inform You When Variant Is Available",
+              )}
             </span>
           ) : (
             <span id="text-request-response">
-              {translateFunction("Notify Me When Size Is Available")}
+              {translateFunction("Notify Me When Variant Is Available")}
             </span>
           )}
         </div>

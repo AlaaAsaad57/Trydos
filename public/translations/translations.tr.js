@@ -1085,9 +1085,10 @@ const translations = {
   Added: "Eklendi",
   "To Your Bag": "Sepetine",
   "Take A Look At Other Colors": "Diğer Renkleri İncele",
-  "Notify Me When Size Is Available": "Beden mevcut olduğunda beni bilgilendir",
-  "We Will Inform You When Size Is Available":
-    "Beden mevcut olduğunda sizi bilgilendireceğiz",
+  "Notify Me When Variant Is Available":
+    "Ürün mevcut olduğunda beni bilgilendir",
+  "We Will Inform You When Variant Is Available":
+    "Ürün mevcut olduğunda sizi bilgilendireceğiz",
   "Rate Your Experience": "Deneyiminizi Değerlendirin",
   "Share your thoughts about this product":
     "Bu ürün hakkındaki düşüncelerinizi paylaşın",
