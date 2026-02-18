@@ -17,11 +17,11 @@ import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
 import auth from "services/auth";
 import { COOKIE_NAMES, deleteCookie } from "utils/cookies/cookie-manager";
-import { clearAllUserData, getReferralSource } from "utils/tinyUtils";
+import { clearAllUserData } from "utils/tinyUtils";
 import dynamic from "next/dynamic";
-import { clearSimulatedUserSession } from "utils/sessionManager";
+
 import { useAppStore } from "store";
-import { showSuccessNotification } from "store/notifications/reducer";
+
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
@@ -96,7 +96,7 @@ const MenuItem = ({
 };
 
 const Menu = ({ user, setMenuOpen }) => {
-  const { setSettingLastPath, setLoggingOut } = useAppStore();
+  const { setLoggingOut } = useAppStore();
   const userChat = useAppStore.getState().userChat;
   const userStories = useAppStore.getState().userStories;
   const [showNotifications, setShowNotifications] = useState(false);
@@ -117,6 +117,7 @@ const Menu = ({ user, setMenuOpen }) => {
           url: "/api/v1/firebase_tokens/remove-token",
           server: "chat",
           reqTitle: REQUESTS_DATA.REOMVE_FCM,
+          noMessage: true,
           body: JSON.stringify({
             token: localStorage.getItem("FB-DEVICE-TOKEN"),
           }),

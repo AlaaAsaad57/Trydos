@@ -38,7 +38,7 @@ function ProductBackButton({ lang }) {
 
     // Navigation logic
     if (lastPathname) {
-      router.back();
+      router.push(lastPathname);
     } else {
       // Fallback for direct entry or page refresh (where lastPathname is null)
       router.push(`/${lang}`);

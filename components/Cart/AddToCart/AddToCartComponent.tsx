@@ -208,6 +208,7 @@ import { getProductDataForAddToCart } from "serverRequests";
 
 function AddToCartComponent({ product, slug, color }) {
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isComponentActiveRef = useRef(true);
   const shouldShowLuck = () => {
     if (!product.is_luck) return false;
     let redeemed_products_ids = getCookie<any[]>("redemed_ids");
@@ -326,7 +327,18 @@ function AddToCartComponent({ product, slug, color }) {
               ),
             ],
       };
-      if (abortControllerRef.current?.signal.aborted) return;
+      const selectedProduct =
+        useAppStore.getState().selected_product_for_add_to_cart;
+      const isCurrentWidgetOpen = Boolean(
+        selectedProduct && selectedProduct?.slug === slug,
+      );
+
+      if (
+        abortControllerRef.current?.signal.aborted ||
+        !isComponentActiveRef.current ||
+        !isCurrentWidgetOpen
+      )
+        return;
 
       setProductData(tempProductData);
 
@@ -341,8 +353,9 @@ function AddToCartComponent({ product, slug, color }) {
 
       if (
         product &&
-        (selected_product_for_add_to_cart?.id === tempProductData.id ||
-          selected_product_for_add_to_cart?.product_id === tempProductData?.id)
+        selectedProduct &&
+        (selectedProduct?.id === tempProductData.id ||
+          selectedProduct?.product_id === tempProductData?.id)
       )
         setSelectedProductForCart({
           ...tempProductData,
@@ -478,10 +491,17 @@ function AddToCartComponent({ product, slug, color }) {
   const initializeUI = async () => {
     try {
       await getProductData();
-      setSelectedProductForCart({
-        ...selected_product_for_add_to_cart,
-        done: true,
-      });
+      const selectedProduct =
+        useAppStore.getState().selected_product_for_add_to_cart;
+      if (
+        isComponentActiveRef.current &&
+        selectedProduct?.id &&
+        selectedProduct?.slug === slug
+      )
+        setSelectedProductForCart({
+          ...selectedProduct,
+          done: true,
+        });
     } catch (error) {
       LogError({
         error: error,
@@ -494,6 +514,7 @@ function AddToCartComponent({ product, slug, color }) {
 
   useEffect(() => {
     abortControllerRef.current = new AbortController();
+    isComponentActiveRef.current = true;
     if (
       document.querySelector<HTMLElement>(".alternate-product-details-footer")
     )
@@ -502,6 +523,7 @@ function AddToCartComponent({ product, slug, color }) {
       ).style.display = "none";
     initializeUI();
     return () => {
+      isComponentActiveRef.current = false;
       abortControllerRef.current?.abort();
       abortControllerRef.current = null;
       if (

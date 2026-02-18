@@ -1,6 +1,5 @@
 // webview video call component
 import { useState, useEffect, useRef, useMemo } from "react";
-import MicIcon from "public/icons/chat/micIcon.svg";
 import AgoraRTC, {
   createClient,
   createMicrophoneAudioTrack,

@@ -5,7 +5,6 @@ import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
 import Image from "next/image";
 import { REQUESTS_DATA } from "./Requests";
-import { clearSimulatedUserSession } from "./sessionManager";
 
 export const ChatConroller = (payload) => {
   try {
