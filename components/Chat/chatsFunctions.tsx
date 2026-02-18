@@ -610,8 +610,7 @@ export const showDate = (d) => {
       : "0" + (d.getMonth() + 1).toString()
   }-${d.getDate() > 9 ? d.getDate() : "0" + parseInt(d.getDate()).toString()}`;
 
-  let day = new Date(d);
-  day = days[day.getDay()];
+  const day = days[new Date(d).getDay()];
   if (d === nowString)
     return `${
       date_mes.getHours() > 9 ? date_mes.getHours() : "0" + date_mes.getHours()
