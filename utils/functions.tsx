@@ -352,6 +352,11 @@ export const onClickSearchHistory = (searchValue) => {
 export const getOldCart = async () => {
   const userId =
     useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id;
+  let waited = 0;
+  while (!userId && waited < 300000) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    waited += 1000;
+  }
   if (!userId) return [];
   try {
     let response: any = await fetchData({
@@ -375,8 +380,17 @@ export const getOldCart = async () => {
 };
 export const getCart = async ({ callback }): Promise<CartApiInterface> => {
   const { initCart, setCartShippingSuccess } = useAppStore.getState();
-  const userId =
+  let userId =
     useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id;
+
+  // wait until user id has value for 5 minutes
+  let waited = 0;
+  while (!userId && waited < 300000) {
+    userId =
+      useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id;
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    waited += 1000;
+  }
   if (!userId) return { cart: [] } as CartApiInterface;
   try {
     let response: any = await fetchData({

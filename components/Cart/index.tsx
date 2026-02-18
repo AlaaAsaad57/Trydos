@@ -82,8 +82,8 @@ function CartContainer({ close, toOrders }) {
         initCart(data ?? { cart: [] });
       },
     });
-    setCartLoading(false);
 
+    setCartLoading(false);
     if (data?.cart?.length > 0) {
       GAevent({
         action: GA_EVENT_NAMES.VIEW_CART,

@@ -490,17 +490,6 @@ export const useCartStore = (set, get) => ({
       ...state,
       SelectedProduct: { ...state.SelectedProduct, is_luck: false },
     })),
-  storeVariants: (variants) =>
-    set((state) => ({
-      variants,
-      cart_loading: false,
-      loaded: true,
-      SelectedProduct: {
-        ...state.SelectedProduct,
-        slug_en_topic: variants.slug_en_topic,
-      },
-    })),
-
   enableAddToCartOption: (product) =>
     set((state) => {
       DisableScroll();
