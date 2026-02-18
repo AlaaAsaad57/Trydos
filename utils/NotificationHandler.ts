@@ -105,6 +105,7 @@ class ForegroundNotificationHandler {
       const data = safeParse(rawData?.data || "{}");
       if (body.type === "greeting") {
         console.log("Hello from the foreground notification handler!");
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         auth.validateFCMToken();
       }
       // This is the inner 'data' object used in most events

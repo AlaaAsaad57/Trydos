@@ -314,6 +314,7 @@ class AuthService {
     return useAppStore.getState().userProfile;
   }
   async validateFCMToken() {
+    if (!localStorage.getItem("FBID")) return;
     try {
       let res = await fetchData({
         server: "market",
