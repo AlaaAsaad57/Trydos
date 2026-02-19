@@ -123,11 +123,12 @@ class HomeService {
         if (response_customer_Info.data.customer_info) {
           updateUserInfo(response_customer_Info.data.customer_info);
 
-          if (
-            response_customer_Info.data.customer_info?.is_phone_verified !== 1
-          ) {
-            await auth.ExpiredUser(true);
-          }
+          // if (
+          //   response_customer_Info.data.customer_info &&
+          //   response_customer_Info.data.customer_info?.is_phone_verified !== 1
+          // ) {
+          //   await auth.ExpiredUser(true);
+          // }
         }
         return response_customer_Info.data.customer_info;
       } else {
@@ -138,7 +139,7 @@ class HomeService {
         error: error,
         scenario: "Error In getCustomerInfo in services/home",
       });
-      showErrorNotification("Customer Info Error");
+      // showErrorNotification("Customer Info Error");
     }
   }
 

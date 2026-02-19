@@ -44,7 +44,7 @@ function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   }, [user]);
   return (
     <div data-cy="deliveryAddress-viewer" className="flex flex-col w-full p-3">
-      <CartItemSelect items={cart} />
+      <CartItemSelect />
       <ShippingAddressInput
         openAddressList={(e) => {
           openAddressList(e);
@@ -58,11 +58,12 @@ function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
 
 export default ShippingAddressContainer;
 
-const CartItemSelect = ({ items }) => {
+const CartItemSelect = () => {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
   const [openCart, setOpenCart] = useState(true);
+  const { cart } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
@@ -113,7 +114,7 @@ const CartItemSelect = ({ items }) => {
             className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}
             data-cy="Count-Of-Shiping"
           >
-            {items.length}
+            {cart.length}
             <span data-cy="items-Shiping-text" className={"ml-1"}>
               {translateFunction("items", language)}
             </span>
@@ -127,31 +128,45 @@ const CartItemSelect = ({ items }) => {
         } transition flex-row `}
       >
         {openCart &&
-          items.map((s, i) => {
+          cart.map((s, i) => {
             return (
-              <div className="flex relative h-[125px]" key={i} data-cy="Item">
-                <span
-                  className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
-                  data-cy="cart-item-quantity-label"
-                >
-                  {s.quantity}
-                </span>
-                <span
-                  data-cy="span-item"
-                  className="absolute w-[91px] h-full z-10 rounded-[15px]"
-                  style={{
-                    boxShadow: "#ffffff80 0px 3px 6px inset",
-                  }}
-                />
-                <img
-                  data-cy="img-item"
-                  className="w-[91px] h-[125px] rounded-[15px]"
-                  src={getConfiguredImage({
-                    src: GetImageUrl(s.image),
-                    width: 91,
-                    height: 150,
-                  })}
-                />
+              <div className="flex flex-col items-center">
+                <div className="flex relative h-[125px]" key={i} data-cy="Item">
+                  <span
+                    className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
+                    data-cy="cart-item-quantity-label"
+                  >
+                    {s.quantity}
+                  </span>
+                  <span
+                    data-cy="span-item"
+                    className="absolute w-[91px] h-full z-10 rounded-[15px]"
+                    style={{
+                      boxShadow: "#ffffff80 0px 3px 6px inset",
+                    }}
+                  />
+                  <img
+                    data-cy="img-item"
+                    className="w-[91px] h-[125px] rounded-[15px]"
+                    src={getConfiguredImage({
+                      src: GetImageUrl(s.image),
+                      width: 91,
+                      height: 150,
+                    })}
+                  />
+                </div>
+                <div className="flex text-[12px] text-[#1d1d1d] flex-col items-center mt-1">
+                  {(s.variations?.Size || s?.variation?.size_options) && (
+                    <span>
+                      {s.variations?.Size ?? s?.variations?.size_options}
+                    </span>
+                  )}
+                  {(s.variations?.color || s?.variations?.color_options) && (
+                    <span>
+                      {s.variations?.color ?? s?.variations?.color_options}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}

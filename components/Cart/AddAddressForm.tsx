@@ -210,7 +210,7 @@ const AddressSection = ({ setOpenSelect }) => {
       <div className="flex-row px-[12px] items-center">
         <img src="/icons/AddressIcon.svg" data-cy="address-icon" />
         <div
-          className="flex ml-[6px] text-[#404040] text-[12px] medium"
+          className="flex mx-[6px] text-[#404040] text-[12px] medium"
           data-cy="address-info-text"
         >
           {translateFunction("Address Info")}
@@ -406,7 +406,7 @@ const ContactInfo = ({ userName = null }) => {
       <div className="flex-row px-[12px] items-center">
         <img src="/icons/ContactInfoIcon.svg" data-cy="contact-info-icon" />
         <div
-          className="flex ml-[6px] text-[#404040] text-[12px] medium"
+          className="flex mx-[6px] text-[#404040] text-[12px] medium"
           data-cy="contact-info-text"
         >
           {translateFunction("Contact Info")}

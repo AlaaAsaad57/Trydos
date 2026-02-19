@@ -8,6 +8,19 @@ import BackBar from "components/setting/BackBar";
 
 function ProfileSizeInfo({ local, initialData, isRtl }) {
   const [, language] = local.split("-");
+  const isArabic = language === "ar";
+
+  const toArabicNumerals = (val: string | number) =>
+    String(val).replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[parseInt(d)]);
+
+  const toWesternNumerals = (val: string) =>
+    val.replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+
+  const formatNum = (val: number | undefined | null) => {
+    if (!val && val !== 0) return "";
+    return isArabic ? toArabicNumerals(val) : String(val);
+  };
+
   const [userProfileData, setUserProfileData] = useState({
     email: initialData?.email,
     name: initialData?.name,
@@ -46,9 +59,14 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
 
     if (!userProfileData.tall) {
       errors.tall = translateFunction("Height is required");
+    } else if (userProfileData.tall < 110 || userProfileData.tall > 250) {
+      errors.tall = translateFunction("Height must be between 110 and 250 cm");
     }
+
     if (!userProfileData.weight) {
       errors.weight = translateFunction("Weight is required");
+    } else if (userProfileData.weight < 40 || userProfileData.weight > 180) {
+      errors.weight = translateFunction("Weight must be between 40 and 180 kg");
     }
 
     setValidationErrors(errors);
@@ -334,7 +352,7 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
           </svg>
 
           <div
-            className="flex ml-[6px] text-[#404040] text-[12px] medium"
+            className="flex mx-[6px] text-[#404040] text-[12px] medium"
             data-cy="contact-info-text"
           >
             {translateFunction("Your Size Info")}
@@ -361,18 +379,21 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
                 data-cy="personal-size-tall-input"
-                placeholder={translateFunction("000 CM")}
-                value={userProfileData.tall || ""}
+                placeholder={
+                  isArabic
+                    ? toArabicNumerals(translateFunction("000 CM"))
+                    : translateFunction("000 CM")
+                }
+                value={formatNum(userProfileData.tall)}
                 maxLength={3}
-                max={260}
-                type="number"
+                type="text"
                 inputMode="numeric"
                 onChange={(e) => {
+                  const westernValue = toWesternNumerals(e.target.value);
                   setUserProfileData({
                     ...userProfileData,
-                    tall: parseInt(pollinateInput(e.target.value)),
+                    tall: parseInt(pollinateInput(westernValue)),
                   });
-                  // Clear validation error when user starts typing
                   if (showValidation && validationErrors.tall) {
                     setValidationErrors({
                       ...validationErrors,
@@ -406,18 +427,21 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
                 data-cy="personal-size-weight-input"
-                placeholder={translateFunction("000 KG")}
-                value={userProfileData.weight || ""}
+                placeholder={
+                  isArabic
+                    ? toArabicNumerals(translateFunction("000 KG"))
+                    : translateFunction("000 KG")
+                }
+                value={formatNum(userProfileData.weight)}
                 maxLength={3}
-                max={200}
-                type="number"
+                type="text"
                 inputMode="numeric"
                 onChange={(e) => {
+                  const westernValue = toWesternNumerals(e.target.value);
                   setUserProfileData({
                     ...userProfileData,
-                    weight: parseInt(pollinateInput(e.target.value)),
+                    weight: parseInt(pollinateInput(westernValue)),
                   });
-                  // Clear validation error when user starts typing
                   if (showValidation && validationErrors.weight) {
                     setValidationErrors({
                       ...validationErrors,

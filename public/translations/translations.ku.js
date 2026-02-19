@@ -338,6 +338,12 @@ const translations = {
   Verified: "پشتڕاست کراو",
   "Discount Coupon": "کوپۆنی داشکان",
   "Your Size Info": "زانیاری قەبارەکانت",
+  "Height is required": "بەرزی پێویستە",
+  "Weight is required": "کێش پێویستە",
+  "Height must be between 110 and 250 cm":
+    "بەرزی دەبێت لە نێوان ١١٠ و ٢٥٠ سەنتیمەتەر بێت",
+  "Weight must be between 40 and 180 kg":
+    "کێش دەبێت لە نێوان ٤٠ و ١٨٠ کیلۆگرام بێت",
   "000 CM": "٠٠٠ سەنتیمەتەر",
   "Loading...": "بارکردن...",
   "No more orders": "داواکاری تر نیە",

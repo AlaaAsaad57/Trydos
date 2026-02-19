@@ -33,7 +33,8 @@ function OrderItemsList({
   const getStatusIcon = (status) => {
     if (status === "pending") return <PendingStatus isActive={false} />;
     if (status === "preparing") return <PreparingStatus isActive={false} />;
-    if (status === "shipped") return <ShippedSatus isActive={false} />;
+    if (status === "shipped" || status.includes("ship"))
+      return <ShippedSatus isActive={false} />;
     if (status === "delivered") return <DeliveredStatus isActive={false} />;
     return <PendingStatus isActive={false} />;
   };
@@ -136,14 +137,11 @@ function OrderItemsList({
             <div className="flex-col text-[10px] regular text-[#1d1d1d]  items-center left-0 right-0 m-[0_auto] mt-[4px]">
               <div className="flex flex-row">
                 <span className={`origin-top-left scale-[0.75]`}>
-                  {getStatusIcon(order_group_status?.value?.toLowerCase())}
+                  {getStatusIcon(order_status?.value?.toLowerCase())}
                 </span>
 
                 {!isDelevired(product) && (
-                  <OrderStatusIcon
-                    status={order_group_status?.value}
-                    isRtl={isRtl}
-                  />
+                  <OrderStatusIcon status={order_status?.value} isRtl={isRtl} />
                 )}
               </div>
               {!isDelevired(product) ? (

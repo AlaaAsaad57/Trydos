@@ -157,7 +157,7 @@ function OrderButton({ close, toOrders }) {
   };
   const getDiscount = () => {
     var a = ((total_discount / sub_total) * 100).toString();
-    return a;
+    return Math.ceil(Number(a));
   };
 
   const GoToOrders = async (bool?) => {

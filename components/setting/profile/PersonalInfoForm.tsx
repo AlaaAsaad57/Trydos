@@ -261,7 +261,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
           </svg>
 
           <div
-            className="flex ml-[6px] text-[#404040] text-[12px] medium"
+            className="flex mx-[6px] text-[#404040] text-[12px] medium"
             data-cy="contact-info-text"
           >
             {translateFunction("Full Name", language)}

@@ -58,6 +58,93 @@ function OrderStatusIcon({
   )
     return (
       <svg
+        id="_15x15_photo_back"
+        data-name="15x15 photo back"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+        width="15"
+        height="15"
+        viewBox="0 0 15 15"
+      >
+        <defs>
+          <clipPath id="clipPath">
+            <rect
+              id="Rectangle_4561"
+              data-name="Rectangle 4561"
+              width="15"
+              height="15"
+              fill="none"
+            />
+          </clipPath>
+        </defs>
+        <g
+          id="Mask_Group_768"
+          data-name="Mask Group 768"
+          clipPath="url(#clipPath)"
+        >
+          <g id="rocket-2">
+            <path
+              id="Path_23361"
+              data-name="Path 23361"
+              d="M2.431,6.932l2.119.16c.223-.55.466-1.1.726-1.623.283-.579.617-1.263,1-1.924A7.412,7.412,0,0,0,2.431,6.932Z"
+              fill="#1d1d1d"
+            />
+            <path
+              id="Path_23362"
+              data-name="Path 23362"
+              d="M7.741,10.231,7.9,12.339a7.519,7.519,0,0,0,3.417-3.8c-.3.168-.629.342-1.006.528-.178.1-.342.179-.493.251-.255.122-.514.241-.791.362-.423.2-.857.381-1.29.553Z"
+              fill="#1d1d1d"
+            />
+            <path
+              id="Path_23363"
+              data-name="Path 23363"
+              d="M14.871.026a12.282,12.282,0,0,0-3.661.3l3.355,3.315a10.862,10.862,0,0,0,.3-1.906c.027-.394.019-1.561.01-1.709Z"
+              fill="#1d1d1d"
+            />
+            <circle
+              id="Ellipse_548"
+              data-name="Ellipse 548"
+              cx="0.907"
+              cy="0.907"
+              r="0.907"
+              transform="translate(9.359 3.668)"
+              fill="#1d1d1d"
+            />
+            <path
+              id="Path_23364"
+              data-name="Path 23364"
+              d="M10.64.484a6.433,6.433,0,0,0-2.715,1.64A14.746,14.746,0,0,0,5.738,5.692,23.981,23.981,0,0,0,4.375,9.1L5.7,10.405A24.614,24.614,0,0,0,9.148,9.058,14.137,14.137,0,0,0,12.759,6.9,6.34,6.34,0,0,0,14.4,4.2Zm-.374,5.6a1.512,1.512,0,1,1,1.512-1.512A1.512,1.512,0,0,1,10.266,6.087Z"
+              fill="#1d1d1d"
+            />
+            <path
+              id="Path_23365"
+              data-name="Path 23365"
+              d="M.531,14.847a.258.258,0,0,1-.185-.433l3.518-3.622a.258.258,0,0,1,.363-.006.255.255,0,0,1,.006.361L.716,14.769a.257.257,0,0,1-.185.078Z"
+              fill="#1d1d1d"
+            />
+            <path
+              id="Path_23366"
+              data-name="Path 23366"
+              d="M3.007,15a.258.258,0,0,1-.192-.425l2.28-2.552A.258.258,0,0,1,5.458,12a.255.255,0,0,1,.021.361L3.2,14.914A.257.257,0,0,1,3.007,15Z"
+              fill="#1d1d1d"
+            />
+            <path
+              id="Path_23367"
+              data-name="Path 23367"
+              d="M.376,12.554a.258.258,0,0,1-.192-.425l2.28-2.552a.258.258,0,0,1,.363-.021.255.255,0,0,1,.021.361L.568,12.468a.257.257,0,0,1-.192.086Z"
+              fill="#1d1d1d"
+            />
+          </g>
+        </g>
+      </svg>
+    );
+  if (
+    status.toLowerCase() === "shipped" ||
+    status.toLowerCase() === "out_for_delivery" ||
+    status.toLowerCase() === "in_delivery_center"
+  )
+    return (
+      <svg
         className="ml-[7px]"
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -149,93 +236,6 @@ function OrderStatusIcon({
               data-name="Path 22958"
               d="M6.607,5.5a.373.373,0,1,0-.269-.7L4.288,5.6,2.925,4.152a.373.373,0,1,0-.543.512l1.535,1.63a.373.373,0,0,0,.406.092Z"
               transform="translate(-0.38 -0.176)"
-            />
-          </g>
-        </g>
-      </svg>
-    );
-  if (
-    status.toLowerCase() === "shipped" ||
-    status.toLowerCase() === "out_for_delivery" ||
-    status.toLowerCase() === "in_delivery_center"
-  )
-    return (
-      <svg
-        id="_15x15_photo_back"
-        data-name="15x15 photo back"
-        xmlns="http://www.w3.org/2000/svg"
-        xmlnsXlink="http://www.w3.org/1999/xlink"
-        width="15"
-        height="15"
-        viewBox="0 0 15 15"
-      >
-        <defs>
-          <clipPath id="clipPath">
-            <rect
-              id="Rectangle_4561"
-              data-name="Rectangle 4561"
-              width="15"
-              height="15"
-              fill="none"
-            />
-          </clipPath>
-        </defs>
-        <g
-          id="Mask_Group_768"
-          data-name="Mask Group 768"
-          clipPath="url(#clipPath)"
-        >
-          <g id="rocket-2">
-            <path
-              id="Path_23361"
-              data-name="Path 23361"
-              d="M2.431,6.932l2.119.16c.223-.55.466-1.1.726-1.623.283-.579.617-1.263,1-1.924A7.412,7.412,0,0,0,2.431,6.932Z"
-              fill="#1d1d1d"
-            />
-            <path
-              id="Path_23362"
-              data-name="Path 23362"
-              d="M7.741,10.231,7.9,12.339a7.519,7.519,0,0,0,3.417-3.8c-.3.168-.629.342-1.006.528-.178.1-.342.179-.493.251-.255.122-.514.241-.791.362-.423.2-.857.381-1.29.553Z"
-              fill="#1d1d1d"
-            />
-            <path
-              id="Path_23363"
-              data-name="Path 23363"
-              d="M14.871.026a12.282,12.282,0,0,0-3.661.3l3.355,3.315a10.862,10.862,0,0,0,.3-1.906c.027-.394.019-1.561.01-1.709Z"
-              fill="#1d1d1d"
-            />
-            <circle
-              id="Ellipse_548"
-              data-name="Ellipse 548"
-              cx="0.907"
-              cy="0.907"
-              r="0.907"
-              transform="translate(9.359 3.668)"
-              fill="#1d1d1d"
-            />
-            <path
-              id="Path_23364"
-              data-name="Path 23364"
-              d="M10.64.484a6.433,6.433,0,0,0-2.715,1.64A14.746,14.746,0,0,0,5.738,5.692,23.981,23.981,0,0,0,4.375,9.1L5.7,10.405A24.614,24.614,0,0,0,9.148,9.058,14.137,14.137,0,0,0,12.759,6.9,6.34,6.34,0,0,0,14.4,4.2Zm-.374,5.6a1.512,1.512,0,1,1,1.512-1.512A1.512,1.512,0,0,1,10.266,6.087Z"
-              fill="#1d1d1d"
-            />
-            <path
-              id="Path_23365"
-              data-name="Path 23365"
-              d="M.531,14.847a.258.258,0,0,1-.185-.433l3.518-3.622a.258.258,0,0,1,.363-.006.255.255,0,0,1,.006.361L.716,14.769a.257.257,0,0,1-.185.078Z"
-              fill="#1d1d1d"
-            />
-            <path
-              id="Path_23366"
-              data-name="Path 23366"
-              d="M3.007,15a.258.258,0,0,1-.192-.425l2.28-2.552A.258.258,0,0,1,5.458,12a.255.255,0,0,1,.021.361L3.2,14.914A.257.257,0,0,1,3.007,15Z"
-              fill="#1d1d1d"
-            />
-            <path
-              id="Path_23367"
-              data-name="Path 23367"
-              d="M.376,12.554a.258.258,0,0,1-.192-.425l2.28-2.552a.258.258,0,0,1,.363-.021.255.255,0,0,1,.021.361L.568,12.468a.257.257,0,0,1-.192.086Z"
-              fill="#1d1d1d"
             />
           </g>
         </g>

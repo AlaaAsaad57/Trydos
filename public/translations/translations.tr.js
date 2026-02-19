@@ -310,6 +310,12 @@ const translations = {
   "Order Invoice": "Sipariş Faturası",
   "Order Number": "Sipariş Numarası",
   "Your Size Info": "Boyut Bilgileriniz",
+  "Height is required": "Boy zorunludur",
+  "Weight is required": "Kilo zorunludur",
+  "Height must be between 110 and 250 cm":
+    "Boy 110 ile 250 cm arasında olmalıdır",
+  "Weight must be between 40 and 180 kg":
+    "Kilo 40 ile 180 kg arasında olmalıdır",
   "Profile | Countries": "Profil | Ülkeler",
   "Available Countries": "Mevcut Ülkeler",
   "Your Address Info": "Adres Bilgileriniz",
