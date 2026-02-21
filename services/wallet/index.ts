@@ -501,21 +501,39 @@ export async function CheckoutOrder({
   let userId = user?.id as string;
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
 
+  // Prepare checkout payload
+  const checkoutPayload = {
+    currencyId: currencyId,
+    store_user_id: String(userId),
+    amount: amount,
+    cart_groub_ids: [cartId],
+    idempotencyKey: idempotencyKey,
+  };
+
+  // Sign payload and add headers
+  const crypto = require("crypto");
+  const timestamp = Date.now().toString();
+  const payloadToSign = JSON.stringify({
+    ...checkoutPayload,
+    timestamp,
+  });
+  const signature = crypto
+    .createHmac("sha256", process.env.WALLET_SECRET_KEY)
+    .update(payloadToSign)
+    .digest("hex");
+
   let response: FetchResponse<CheckoutOrderApi> = await fetchServerData({
     method: "POST",
     local: local,
-    body: JSON.stringify({
-      currencyId: currencyId,
-      store_user_id: String(userId),
-      amount: amount,
-      cart_groub_ids: [cartId],
-      idempotencyKey: idempotencyKey,
-    }),
+    body: JSON.stringify(checkoutPayload),
     url:
       process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
       `/wallets/${storeKey}/checkout`,
     headers: {
       Authorization: `Bearer ${token}`,
+      "X-Merchant-Api-Key": process.env.WALLET_PUBLIC_API_KEY,
+      "X-Signature": signature,
+      "X-Timestamp": timestamp,
     },
   });
 

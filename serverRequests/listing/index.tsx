@@ -110,6 +110,7 @@ export async function GetProducts({
   currency,
   userId = null,
   recomended_offset = null,
+  sizes_filters = null,
 }) {
   let response = await getProductsAndFiltersFromElastic({
     country,
@@ -212,6 +213,7 @@ export async function GetProducts({
       language={language}
       offer_price={product.offer_price}
       price={product.price}
+      sizes_filters={sizes_filters?.length > 0 ? sizes_filters : null}
     />
   ));
   return {

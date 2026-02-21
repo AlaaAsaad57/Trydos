@@ -60,6 +60,7 @@ const resolveDefaultSelection = ({
   colorProp,
   colorFromUrl,
   sizeFromUrl,
+  sizesFilters = null,
 }) => {
   const colors = productData?.sync_color_images ?? [];
   const sizeOpts = buildSizeOptions(productData);
@@ -113,15 +114,28 @@ const resolveDefaultSelection = ({
 
   // For collect-after-ordering or no variations: pick defaults by priority
   if (isCollect || !hasVariations) {
+    let defaultSize = null;
+    if (hasSizes) {
+      if (sizesFilters?.length > 0) {
+        for (const filterSize of sizesFilters) {
+          const match = findSizeMatch(filterSize);
+          if (match) {
+            defaultSize = getSizeVal(match);
+            break;
+          }
+        }
+      }
+      if (!defaultSize) {
+        defaultSize = getSizeVal(findSizeMatch(sizeFromUrl) ?? sizeOpts[0]);
+      }
+    }
     return {
       color: hasColors
         ? normColor(
             findColorObj(colorProp) ?? findColorObj(colorFromUrl) ?? colors[0],
           )
         : null,
-      size: hasSizes
-        ? getSizeVal(findSizeMatch(sizeFromUrl) ?? sizeOpts[0])
-        : null,
+      size: defaultSize,
     };
   }
 
@@ -163,16 +177,25 @@ const resolveDefaultSelection = ({
     const colorName = getColorName(resolvedColor);
     const relevant = hasColors ? getColorVariations(colorName) : variations;
 
-    const preferred = findSizeMatch(sizeFromUrl);
-
-    if (preferred) {
-      const prefVal = normalizeSize(getSizeVal(preferred));
-      const match = relevant.find((v) => normalizeSize(v.size) === prefVal);
-
-      if (match && match.qty > 0) {
-        resolvedSize = getSizeVal(preferred);
+    if (sizesFilters?.length > 0) {
+      // Try each filter size in order — pick first with stock for the resolved color
+      let resolved = null;
+      for (const filterSize of sizesFilters) {
+        const sizeOpt = findSizeMatch(filterSize);
+        if (!sizeOpt) continue;
+        const sizeVal = normalizeSize(getSizeVal(sizeOpt));
+        const variant = relevant.find(
+          (v) => normalizeSize(v.size) === sizeVal && v.qty > 0,
+        );
+        if (variant) {
+          resolved = getSizeVal(sizeOpt);
+          break;
+        }
+      }
+      if (resolved) {
+        resolvedSize = resolved;
       } else {
-        // Preferred size out of stock — pick first in-stock size for this color
+        // None of the filter sizes have stock — pick first in-stock for this color
         const inStock = relevant.find((v) => v.qty > 0);
         if (inStock?.size) {
           const found = sizeOpts.find(
@@ -180,23 +203,47 @@ const resolveDefaultSelection = ({
               normalizeSize(s.option ?? s) === normalizeSize(inStock.size) ||
               normalizeSize(s.name ?? s) === normalizeSize(inStock.size),
           );
-          resolvedSize = getSizeVal(found ?? preferred);
+          resolvedSize = getSizeVal(found ?? sizeOpts[0]);
         } else {
-          resolvedSize = getSizeVal(preferred);
+          resolvedSize = getSizeVal(sizeOpts[0]);
         }
       }
     } else {
-      // No preferred size — pick first in-stock size for this color
-      const inStock = relevant.find((v) => v.qty > 0);
-      if (inStock?.size) {
-        const found = sizeOpts.find(
-          (s) =>
-            normalizeSize(s.option ?? s) === normalizeSize(inStock.size) ||
-            normalizeSize(s.name ?? s) === normalizeSize(inStock.size),
-        );
-        resolvedSize = getSizeVal(found ?? sizeOpts[0]);
+      const preferred = findSizeMatch(sizeFromUrl);
+
+      if (preferred) {
+        const prefVal = normalizeSize(getSizeVal(preferred));
+        const match = relevant.find((v) => normalizeSize(v.size) === prefVal);
+
+        if (match && match.qty > 0) {
+          resolvedSize = getSizeVal(preferred);
+        } else {
+          // Preferred size out of stock — pick first in-stock size for this color
+          const inStock = relevant.find((v) => v.qty > 0);
+          if (inStock?.size) {
+            const found = sizeOpts.find(
+              (s) =>
+                normalizeSize(s.option ?? s) === normalizeSize(inStock.size) ||
+                normalizeSize(s.name ?? s) === normalizeSize(inStock.size),
+            );
+            resolvedSize = getSizeVal(found ?? preferred);
+          } else {
+            resolvedSize = getSizeVal(preferred);
+          }
+        }
       } else {
-        resolvedSize = getSizeVal(sizeOpts[0]);
+        // No preferred size — pick first in-stock size for this color
+        const inStock = relevant.find((v) => v.qty > 0);
+        if (inStock?.size) {
+          const found = sizeOpts.find(
+            (s) =>
+              normalizeSize(s.option ?? s) === normalizeSize(inStock.size) ||
+              normalizeSize(s.name ?? s) === normalizeSize(inStock.size),
+          );
+          resolvedSize = getSizeVal(found ?? sizeOpts[0]);
+        } else {
+          resolvedSize = getSizeVal(sizeOpts[0]);
+        }
       }
     }
   }
@@ -275,6 +322,7 @@ function AddToCartComponent({ product, slug, color }) {
     colorProp: color,
     colorFromUrl,
     sizeFromUrl,
+    sizesFilters: product?.sizes_filters ?? null,
   });
   const [selectedColor, setSelectedColor] = useState(initialDefaults.color);
   const [selectedSize, setSelectedSize] = useState(initialDefaults.size);
@@ -347,6 +395,7 @@ function AddToCartComponent({ product, slug, color }) {
         colorProp: color,
         colorFromUrl,
         sizeFromUrl,
+        sizesFilters: product?.sizes_filters ?? null,
       });
       setSelectedColor(defaults.color);
       setSelectedSize(defaults.size);

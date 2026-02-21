@@ -43,6 +43,7 @@ function ProductWrapper({
   Sliders = false,
   InitialProductData,
   fromRecomended = null,
+  sizes_filters = null,
 }) {
   let isRtl = language === "ar" || language === "ku";
   let isFlash: any = null;
@@ -415,6 +416,7 @@ function ProductWrapper({
         offer_price={offer_price}
         price={price}
         redeem_price={redeem_price}
+        sizes_filters={sizes_filters}
       />
     </div>
   );

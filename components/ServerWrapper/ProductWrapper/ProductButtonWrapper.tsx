@@ -19,6 +19,7 @@ function ProductButtonWrapper({
   slug,
   seconds = null,
   InitialProductData = {},
+  sizes_filters = null,
 }) {
   const [redeem_expired, setRedeemExpired] = useState(!is_redeem);
   const timerHook = useLuckyDrawTimer({
@@ -90,6 +91,7 @@ function ProductButtonWrapper({
       id: id,
       showRedeemPrice: is_redeem_product_card && is_redeem && !redeem_expired,
       is_from_listing: true,
+      sizes_filters: sizes_filters?.length > 0 ? sizes_filters : undefined,
       seconds:
         is_redeem_product_card && is_redeem && !redeem_expired
           ? timerHook.secondsLeft

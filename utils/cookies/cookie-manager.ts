@@ -33,8 +33,9 @@ export interface UserData {
 
 // Constants for cookie names
 export const COOKIE_NAMES = {
+  LOCAL: "local",
   WALLET_USER: "WALLET_USER",
-  WALLET_TOKEN: "WALLET_TOKEN",
+  WALLET_TOKEN: "rdb_at",
   DEVICE_TOKEN: "DEVICE-TOKEN",
   USER_DATA: "User-Data",
   MARKET_TOKEN: "MARKET-TOKEN",

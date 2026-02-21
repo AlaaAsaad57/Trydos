@@ -19,12 +19,17 @@ import {
 // Helper to handle sub-service fetches safely
 async function safeServiceLogin(url: string, body: any) {
   try {
+    // Wallet login: add signature and API key if endpoint matches
+    let headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+    if (url.includes(LOG_IN_WALLET_ENDPOINT)) {
+      headers["X-merchant-api-key"] = process.env.WALLET_PUBLIC_API_KEY;
+    }
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers,
       body: JSON.stringify(body),
       credentials: "omit",
     });
@@ -90,13 +95,7 @@ export async function GET(request: NextRequest) {
         language,
       },
     });
-    console.log(
-      "OTP Verification Response:",
-      otpRes,
-      guest_token,
-      verificationId,
-      otp,
-    );
+
     const otp_response = await otpRes.json();
     if (!otpRes.ok) {
       LogServerError({ error: otp_response, type: "verify login api route" });

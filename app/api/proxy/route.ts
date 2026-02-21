@@ -77,14 +77,6 @@ export async function POST(request: NextRequest) {
         if (rawBody) body = rawBody;
       }
     }
-    console.log(
-      "Proxying request to:",
-      fullUrl,
-      "with method:",
-      method,
-      headers,
-      body,
-    );
 
     // 5. Forward the request to the actual backend
     const backendResponse = await fetch(fullUrl, {
@@ -98,10 +90,7 @@ export async function POST(request: NextRequest) {
       cache: "no-cache",
       // server-to-server, no cookies forwarded
     });
-    console.log(
-      "Received response from backend with status:",
-      backendResponse.status,
-    );
+
     // 6. Log securely (tokens masked)
     await logSecureRequest({
       server,

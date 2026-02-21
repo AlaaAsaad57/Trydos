@@ -21,6 +21,7 @@ function ProductsInfiniteScroll({
   isFeatured,
   isFlashDeals,
   recomended_offset = null,
+  sizes_filters = null,
 }: {
   offset: any;
   currency: any;
@@ -30,6 +31,7 @@ function ProductsInfiniteScroll({
   parsedFilters: any;
   boutiqueName;
   recomended_offset?: any;
+  sizes_filters?: string[] | null;
 }) {
   const { resetBoutique } = useAppStore();
   const { lang }: { lang: string } = useParams();
@@ -101,6 +103,7 @@ function ProductsInfiniteScroll({
       parsedFilters: parsedFilters,
       userId: userId,
       recomended_offset: recommendedOffset,
+      sizes_filters: sizes_filters,
     });
     if (!response) {
       showErrorNotification(

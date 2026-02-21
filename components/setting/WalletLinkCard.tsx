@@ -29,6 +29,7 @@ import { serverActions } from "services/RDB";
 import Spinner from "components/global/Spinner";
 import order from "services/order";
 import "rdb/styles";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -84,14 +85,15 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
                 setOpen(false);
               }}
               actions={serverActions}
-              baseUrl={process.env.NEXT_PUBLIC_WALLET_BACKEND_URL}
               storeKey="trydos"
-              authToken={walletToken}
               handleUnauthenticated={() => {
                 setShouldAuthinticated(true);
               }}
               onReceivedAuthToken={() => {}}
-              local={(local as string) ?? "gb-en"}
+              cookiesKeys={{
+                authToken: COOKIE_NAMES.WALLET_TOKEN,
+                local: COOKIE_NAMES.LOCAL,
+              }}
             />
             {/* <TestNewWalletIntegrations
               handleUnauthenticatedFromParent={() => {}}
@@ -524,16 +526,6 @@ function TestNewWalletIntegrations({
                 </div>
               </div>
             )}
-            <CheckoutSection
-              activeCurrency={activeCurrency}
-              availableBalance={activeBalance}
-              local={local}
-              handleUnauthenticated={handleUnauthenticated}
-              onSuccess={() => {
-                // Trigger a balance refresh by re-fetching wallet data
-                setActiveCurrency({ ...activeCurrency });
-              }}
-            />
           </div>
 
           {/* RIGHT COLUMN: HISTORY TABLE */}
@@ -645,120 +637,4 @@ interface CheckoutProps {
   local: string;
   handleUnauthenticated: () => void;
   onSuccess: () => void;
-}
-
-export function CheckoutSection({
-  activeCurrency,
-  availableBalance,
-  local,
-  handleUnauthenticated,
-  onSuccess,
-}: CheckoutProps) {
-  const [cartId, setCartId] = useState("");
-  const [checkoutAmount, setCheckoutAmount] = useState<number>(0);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const handleCheckout = async () => {
-    if (!cartId || checkoutAmount <= 0) {
-      alert("Please enter a valid Cart ID and Amount");
-      return;
-    }
-
-    if (checkoutAmount > availableBalance) {
-      alert("Insufficient balance in your wallet.");
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      const result = await CheckoutOrder({
-        cartId,
-        amount: checkoutAmount,
-        currencyId: activeCurrency.id,
-        idempotencyKey: crypto.randomUUID(),
-        local,
-        handleUnauthenticated,
-      });
-
-      if (result) {
-        alert("Payment successful!");
-        setCartId("");
-        setCheckoutAmount(0);
-        onSuccess(); // Refresh balance in parent
-      }
-    } catch (error) {
-      console.error("Checkout failed:", error);
-      alert("Payment failed. Please try again.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  return (
-    <div className="bg-white p-6 rounded-xl shadow-md border border-purple-100 relative mt-6">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-            />
-          </svg>
-        </div>
-        <h3 className="text-lg font-bold text-gray-800">Quick Checkout</h3>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-            Cart ID
-          </label>
-          <input
-            type="text"
-            value={cartId}
-            onChange={(e) => setCartId(e.target.value)}
-            className="w-full text-black border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-hidden"
-            placeholder="e.g. CART-12345"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-            Amount to Pay
-          </label>
-          <div className="relative">
-            <input
-              type="number"
-              value={checkoutAmount || ""}
-              onChange={(e) => setCheckoutAmount(Number(e.target.value))}
-              className="w-full text-black border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-hidden"
-              placeholder="0.00"
-            />
-            <span className="absolute right-4 top-2.5 text-gray-400 text-sm">
-              {activeCurrency.symbol}
-            </span>
-          </div>
-          <p className="mt-1 text-[10px] text-gray-500">
-            Wallet Balance: {availableBalance.toLocaleString()}{" "}
-            {activeCurrency.symbol}
-          </p>
-        </div>
-
-        <button
-          onClick={handleCheckout}
-          disabled={isProcessing || !cartId || checkoutAmount <= 0}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white py-3 rounded-lg font-bold transition-all shadow-xs"
-        >
-          {isProcessing ? "Processing Payment..." : "Pay Now"}
-        </button>
-      </div>
-    </div>
-  );
 }

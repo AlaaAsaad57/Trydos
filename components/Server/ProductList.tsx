@@ -57,6 +57,9 @@ function ProductListServer({
               language={language}
               offer_price={product.offer_price}
               price={product.price}
+              sizes_filters={
+                parsedFilters?.sizes?.length > 0 ? parsedFilters.sizes : null
+              }
             />
           );
         })}
@@ -80,6 +83,9 @@ function ProductListServer({
           offset={offset}
           isFeatured={isFeatured}
           isFlashDeals={isFlashDeals}
+          sizes_filters={
+            parsedFilters?.sizes?.length > 0 ? parsedFilters.sizes : null
+          }
         />
       </div>
     </>

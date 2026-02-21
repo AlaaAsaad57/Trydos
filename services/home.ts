@@ -20,7 +20,7 @@ import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, setCookie } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 class HomeService {
@@ -463,6 +463,7 @@ class HomeService {
       throw new Error("Invalid URL format for country-language pair");
     }
     const { getFirebaseSettings } = useAppStore.getState();
+    setCookie(COOKIE_NAMES.LOCAL, `${countryCode}-${languageCode}`);
 
     if (!token) return;
 

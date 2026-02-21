@@ -31,7 +31,6 @@ import CartItem from "./CartItem";
 import Image from "next/image";
 import EmptyCart from "./EmptyCart";
 import { isSamePage } from "utils/navigationsUtils";
-import CheckoutButton from "./CheckoutButton";
 
 function CartContainer({ close, toOrders }) {
   const {
