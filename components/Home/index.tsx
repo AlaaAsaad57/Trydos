@@ -5,34 +5,23 @@ import { useEffect } from "react";
 
 import { translateFunction } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
-
 import StoryServiceClass from "services/story";
-import SearchContainer from "./Search/SearchContainer";
 import { useAppStore } from "store";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
 import { showErrorNotification } from "@/store/notifications/reducer";
-import {
-  COOKIE_NAMES,
-  deleteCookie,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { deleteCookie } from "utils/cookies/cookie-manager";
 import { EnableScroll } from "utils/tinyUtils";
 export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { resetFilters, selectedStory, enable_search, nameModal } =
-    useAppStore();
+  const { nameModal } = useAppStore();
   useEffect(() => {
     deleteCookie("last-page");
     const { setIsNavigating } = useAppStore.getState();
     setIsNavigating(null);
     EnableScroll();
-    try {
-      initFB();
-    } catch (e) {}
+    initStoryToken();
     if (searchParams?.get("message")?.length > 0) {
       let message = searchParams.get("message");
       if (message === "product_not_found") {
@@ -47,8 +36,7 @@ export default function Home() {
       router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
   }, []);
-  const initFB = async () => {
-    resetFilters();
+  const initStoryToken = async () => {
     if (StoryServiceClass.getUserStories()?.id) {
       const Cookies = (await import("js-cookie")).default;
       Cookies.set("token", StoryServiceClass.getUserStories()?.access_token);
@@ -59,9 +47,9 @@ export default function Home() {
     if (typeof window === "undefined") {
       return false;
     } else {
-      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-      const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-      const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+      const user = useAppStore.getState().userProfile;
+      const userChat = useAppStore.getState().userChat;
+      const userStories = useAppStore.getState().userStories;
       let name = user?.name;
       return (
         userChat?.id &&
@@ -71,11 +59,5 @@ export default function Home() {
       );
     }
   };
-  return (
-    <>
-      {getNameModalOpen() && <NameModal />}
-
-      {enable_search && <SearchContainer active={enable_search} />}
-    </>
-  );
+  return <>{getNameModalOpen() && <NameModal />}</>;
 }

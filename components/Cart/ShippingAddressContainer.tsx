@@ -1,27 +1,18 @@
 import React, { useEffect, useState } from "react";
-import OrderCartIcon from "public/svg/cart/orderCartIcon";
+
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-import FreeShippingIcon from "public/svg/product/FreeShipping";
-import AddAddressIcon from "public/svg/cart/AddAddress";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import { fetchCountries } from "utils/tinyUtils";
 
 import { formatTimeForAddress, GetImageUrl } from "utils/tinyUtils";
 import home from "services/home";
-import { AddAddressButtonPropsType } from "models/componentType/AddAddressButtonPropsType";
-import { AddressContainerPropsType } from "models/componentType/AddressContainerPropsType";
-import { ShippingAddressContainerPropsType } from "models/componentType/ShippingAddressContainerPropsType";
-import { ShippingAddressInputPropsType } from "models/componentType/ShippingAddressInputPropsType";
+
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
-function ShippingAddressContainer({
-  slideNext,
-  slidePrev,
-  openAddressList,
-}: ShippingAddressContainerPropsType) {
+import { GetCountries } from "serverRequests/product";
+function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const { setCountries, cart, user } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
@@ -35,12 +26,12 @@ function ShippingAddressContainer({
       setCountries(JSON.parse(data));
     } else {
       try {
-        const data = await fetchCountries(country, language);
+        const data = await GetCountries({ country, language });
         sessionStorage.setItem(
           `countries-${country}-${language}`,
-          JSON.stringify(data.countries)
+          JSON.stringify(data),
         );
-        setCountries(data.countries);
+        setCountries(data);
       } catch (error) {
         console.error("Failed to fetch countries:", error);
       }
@@ -53,7 +44,7 @@ function ShippingAddressContainer({
   }, [user]);
   return (
     <div data-cy="deliveryAddress-viewer" className="flex flex-col w-full p-3">
-      <CartItemSelect items={cart} />
+      <CartItemSelect />
       <ShippingAddressInput
         openAddressList={(e) => {
           openAddressList(e);
@@ -67,11 +58,12 @@ function ShippingAddressContainer({
 
 export default ShippingAddressContainer;
 
-const CartItemSelect = ({ items }) => {
+const CartItemSelect = () => {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
   const [openCart, setOpenCart] = useState(true);
+  const { cart } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
@@ -112,7 +104,7 @@ const CartItemSelect = ({ items }) => {
         </svg>
       </span>
       <div data-cy="bag-viewer-inside" className="flex-row ">
-        <OrderCartIcon data-cy="Order-Cart-Icon" />
+        <img src="/icons/orderCartIcon.svg" data-cy="Order-Cart-Icon" />
         <div
           data-cy="Shopping-bag-texts"
           className="regular text-[#1D1D1D] text-[14px] ml-2"
@@ -122,7 +114,7 @@ const CartItemSelect = ({ items }) => {
             className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}
             data-cy="Count-Of-Shiping"
           >
-            {items.length}
+            {cart.length}
             <span data-cy="items-Shiping-text" className={"ml-1"}>
               {translateFunction("items", language)}
             </span>
@@ -132,35 +124,49 @@ const CartItemSelect = ({ items }) => {
       <div
         data-cy="bag-product-viewer"
         className={`${
-          !openCart ? "h-0 pb-[0px] pt-[0px]" : `pl-[11px] pb-[12px] pt-[11px] `
+          !openCart ? "h-0 pb-0 pt-0" : `pl-[11px] pb-[12px] pt-[11px] `
         } transition flex-row `}
       >
         {openCart &&
-          items.map((s, i) => {
+          cart.map((s, i) => {
             return (
-              <div className="flex relative h-[125px]" key={i} data-cy="Item">
-                <span
-                  className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
-                  data-cy="cart-item-quantity-label"
-                >
-                  {s.quantity}
-                </span>
-                <span
-                  data-cy="span-item"
-                  className="absolute w-[91px] h-full z-10 rounded-[15px]"
-                  style={{
-                    boxShadow: "#ffffff80 0px 3px 6px inset",
-                  }}
-                />
-                <img
-                  data-cy="img-item"
-                  className="w-[91px] h-[125px] rounded-[15px]"
-                  src={getConfiguredImage({
-                    src: GetImageUrl(s.image),
-                    width: 91,
-                    height: 150,
-                  })}
-                />
+              <div className="flex flex-col items-center">
+                <div className="flex relative h-[125px]" key={i} data-cy="Item">
+                  <span
+                    className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
+                    data-cy="cart-item-quantity-label"
+                  >
+                    {s.quantity}
+                  </span>
+                  <span
+                    data-cy="span-item"
+                    className="absolute w-[91px] h-full z-10 rounded-[15px]"
+                    style={{
+                      boxShadow: "#ffffff80 0px 3px 6px inset",
+                    }}
+                  />
+                  <img
+                    data-cy="img-item"
+                    className="w-[91px] h-[125px] rounded-[15px]"
+                    src={getConfiguredImage({
+                      src: GetImageUrl(s.image),
+                      width: 91,
+                      height: 150,
+                    })}
+                  />
+                </div>
+                <div className="flex text-[12px] text-[#1d1d1d] flex-col items-center mt-1">
+                  {(s.variations?.Size || s?.variation?.size_options) && (
+                    <span>
+                      {s.variations?.Size ?? s?.variations?.size_options}
+                    </span>
+                  )}
+                  {(s.variations?.color || s?.variations?.color_options) && (
+                    <span>
+                      {s.variations?.color ?? s?.variations?.color_options}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -169,11 +175,7 @@ const CartItemSelect = ({ items }) => {
   );
 };
 
-const ShippingAddressInput = ({
-  slideNext,
-  slidePrev,
-  openAddressList,
-}: ShippingAddressInputPropsType) => {
+const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
   const { initAddressForm, addressLists, orderLoading } = useAppStore();
   const { lang } = useParams();
 
@@ -290,7 +292,11 @@ const ShippingAddressInput = ({
           {translateFunction("Shipping & Delivery Address", language)}
         </div>
         <span data-cy="freeShupping-container" className="bold ml-[11px]">
-          <FreeShippingIcon data-cy="WrapIcon1" />
+          <img
+            src="/icons/FreeShipping.svg"
+            data-cy="WrapIcon1"
+            className="w-[30px] h-[30px]"
+          />
         </span>
         {orderLoading && (
           <span className="bold ml-[11px]">
@@ -306,7 +312,7 @@ const ShippingAddressInput = ({
       >
         {translateFunction(
           "Please Enter Shipping Address To Receive Your Bag",
-          language
+          language,
         )}
       </div>
       <AddressContainer
@@ -436,10 +442,7 @@ const ShippingAddressInput = ({
     </div>
   );
 };
-const AddressContainer = ({
-  openAddressList,
-  lang,
-}: AddressContainerPropsType) => {
+const AddressContainer = ({ openAddressList, lang }) => {
   const [loading, setLoading] = useState(false);
   const getData = async () => {
     setLoading(true);
@@ -467,7 +470,7 @@ const AddressContainer = ({
       className={`flex-col  ${
         addressLists?.length === 0
           ? "items-center h-[84px]   py-[12px]"
-          : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
+          : "items-start h-auto min-h-[90px] px-[24px]  py-[7px]"
       } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full ${
         lang === "ar" || lang === "ku" ? "text-right" : ""
       } ${lang === "ar" || lang === "ku" ? "flex-row-reverse" : ""}`}
@@ -543,7 +546,7 @@ const AddressContainer = ({
     </div>
   );
 };
-const AddAddressButton = ({ onClick }: AddAddressButtonPropsType) => {
+const AddAddressButton = ({ onClick }) => {
   return (
     <div
       data-cy="AddAddres"
@@ -556,7 +559,7 @@ const AddAddressButton = ({ onClick }: AddAddressButtonPropsType) => {
         onClick();
       }}
     >
-      <AddAddressIcon data-cy="AddAddres-svg" />
+      <img src="/icons/AddAddress.svg" data-cy="AddAddres-svg" />
       <div
         data-cy="addShipping-text"
         className="medium text-[12px] ml-1 text-[#1D1D1D]"
@@ -587,8 +590,8 @@ const DefaultAddress = ({
       Number(settings?.["starting-setting"]?.shipping_duration_days) || 0;
     return formatTimeForAddress(
       new Date(
-        new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000
-      ).toString()
+        new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000,
+      ).toString(),
     );
   };
 

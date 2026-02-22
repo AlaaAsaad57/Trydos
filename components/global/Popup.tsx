@@ -32,7 +32,7 @@ const CustomPopup: React.FC<CustomPopupProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[999999999999] flex items-center justify-center bg-black/40 px-[24px]"
+      className="fixed inset-0 z-999999999999 flex items-center justify-center bg-black/40 px-[24px]"
       onClick={close}
       role="dialog"
       aria-modal="true"

@@ -1,8 +1,8 @@
-import { cookies } from "next/headers";
+import { getCookieServer, COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import React from "react";
 import { GetProductFaqQuestions } from "serverRequests/product";
 import FaqSectionTopBar from "./FaqSectionTopBar";
-import FAQIcon from "public/svg/FAQIcon";
+
 import { translateFunction } from "utils/server";
 import FaqQuestionsList from "./FaqQuestionsList";
 
@@ -15,9 +15,9 @@ async function ProductFaqSectionWrapper({
   let product = await qtyPricePromise;
   let productId = product?.id;
 
-  let cookiesStore = await cookies();
-  let user = cookiesStore.get("User-Data")?.value;
-  let parsedUser = user ? JSON.parse(user) : null;
+  let parsedUser = await getCookieServer<{ id: string }>(
+    COOKIE_NAMES.USER_DATA,
+  );
   let faq_questions = await GetProductFaqQuestions({
     productId,
     language,
@@ -29,7 +29,7 @@ async function ProductFaqSectionWrapper({
   return (
     <div className={`w-full flex-col mt-[12px]`}>
       <FaqSectionTopBar isRtl={isRtl}>
-        <FAQIcon />
+        <img src="/icons/FAQIcon.svg" className="w-[30px] h-[30px]" />
 
         <div className="flex-row gap-[11px] items-baseline text-[#1d1d1d] regular text-[11px] mt-[5px]">
           <span>{translateFunction("FAQ Buyer & Seller", language)}</span>

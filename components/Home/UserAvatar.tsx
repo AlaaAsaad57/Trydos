@@ -1,7 +1,5 @@
-import UserIcon from "public/svg/userIcon";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
-import { getConfiguredImage } from "utils/functions";
 
 interface UserAvatarProps {
   avatar: string | any;
@@ -29,7 +27,7 @@ function UserAvatar({ avatar, onClick, showIndicator }: UserAvatarProps) {
             {showIndicator && (
               <span className="absolute test w-[10px] h-[10px] bg-[#f64f64] rounded-full top-[-2px] right-[-2px] animate-pulse z-20 left-[initial]"></span>
             )}
-            <div className="inset-shadow w-[30px] h-[30px] top-0 left-0"></div>
+            <div className="inset-shadow-sm w-[30px] h-[30px] top-0 left-0"></div>
             <Image
               alt="user-img"
               width={30}
@@ -50,7 +48,7 @@ function UserAvatar({ avatar, onClick, showIndicator }: UserAvatarProps) {
           {showIndicator && (
             <span className="absolute test w-[10px] h-[10px] left-[initial] bg-[#f64f64] rounded-full top-[-2px] right-[-2px] animate-pulse z-20"></span>
           )}
-          <UserIcon style={{ transform: "scale(1)" }} />
+          <img src="/icons/userIcon.svg" style={{ transform: "scale(1)" }} />
         </div>
       )}
     </>

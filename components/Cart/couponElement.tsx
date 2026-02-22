@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
-import { getCart, RoundPrice, translateFunction } from "utils/functions";
+import {
+  getCart,
+  LogError,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import { pollinateInput } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
 
@@ -19,14 +24,8 @@ const CouponElement = ({
   close,
   language,
 }: CouponElementProps) => {
-  const {
-    setOrderData,
-    initCart,
-    orderData,
-    currency,
-    coupon_discount,
-    setCouponDiscount,
-  } = useAppStore();
+  const { setOrderData, initCart, orderData, currency, coupon_discount } =
+    useAppStore();
   const isRtl = language === "ar" || language === "ku";
   const [coupon, setCoupon] = useState<number | false | string>(false);
   const [loading, setLoading] = useState(false);
@@ -73,6 +72,11 @@ const CouponElement = ({
 
       setCoupon(response?.data?.discount);
     } catch (err) {
+      LogError({
+        error: err,
+        scenario: "Apply Coupon widget",
+        coupon: e,
+      });
       setError(err.message);
     } finally {
       setLoading(false);
@@ -94,7 +98,7 @@ const CouponElement = ({
       }}
       style={{ border: active ? "1px solid rgb(56 144 255 / 51%)" : undefined }}
       className={`w-full cursor-pointer pt-[12px] mt-[30px] ${
-        active ? "h-[111px] bg-[#fff]" : " h-[42px] bg-[#f8f8f8]"
+        active ? "h-[111px] bg-white" : " h-[42px] bg-[#f8f8f8]"
       } rounded-[15px] items-start px-[12px] ${
         isRtl ? "flex-row-reverse" : " flex-col"
       }`}
@@ -132,7 +136,7 @@ const CouponElement = ({
                   onBlur={(e) => {
                     if (!e.target.value) close();
                   }}
-                  className="coupon-element-input pl-[12px] bg-transparent w-full h-[42px] border-none outline-none text-[#1D1D1D] text-[12px] placeholder:text-[#C4C2C2]"
+                  className="coupon-element-input pl-[12px] bg-transparent w-full h-[42px] border-none outline-hidden text-[#1D1D1D] text-[12px] placeholder:text-[#C4C2C2]"
                 />
               )}
               <div
@@ -145,8 +149,8 @@ const CouponElement = ({
                 {loading
                   ? translateFunction("Applying...")
                   : coupon
-                  ? `- ${RoundPrice({ num: coupon })} ${currency.symbol}`
-                  : translateFunction("Apply")}
+                    ? `- ${RoundPrice({ num: coupon })} ${currency.symbol}`
+                    : translateFunction("Apply")}
               </div>
             </div>
           </div>

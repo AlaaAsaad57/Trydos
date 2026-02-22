@@ -1,6 +1,5 @@
 import RatingStars from "components/settings/cards/RatingStars";
-import RecomendedIcon from "public/svg/RecomendedIcon";
-import NegRecomendedIcon from "public/svg/NegRecomendIcon";
+
 import { translateFunction } from "utils/server";
 import { LikeButton } from "../LikeButtton";
 
@@ -31,7 +30,7 @@ export const BuyerCommentRateInfo = ({
         </div>
         {recommendation && (
           <div className="flex-row gap-[4px] text-[#1d1d1d] text-[9px]">
-            <RecomendedIcon />
+            <img src="/icons/RecomendedIcon.svg" />
             <span>{translateFunction("Recommend It", language)}</span>
           </div>
         )}
@@ -67,7 +66,7 @@ export const BuyersRatingBar = ({ language, recommendation_stats }) => {
             isRtl ? "flex-row-reverse" : "flex-row"
           }  regular items-center text-[#1d1d1d] text-[9px] gap-[4px]`}
         >
-          <RecomendedIcon />
+          <img src="/icons/RecomendedIcon.svg" />
           <span className="bold ">{recomended}</span>
           <span>{translateFunction("Buyer", language)}</span>
           <span className="bold">
@@ -75,7 +74,7 @@ export const BuyersRatingBar = ({ language, recommendation_stats }) => {
           </span>
         </div>
         <div className="flex-row items-center regular text-[#1d1d1d] text-[9px] gap-[4px]">
-          <NegRecomendedIcon />
+          <img src="/icons/NegRecomendIcon.svg" />
           <span className="bold ">{not_recomended}</span>
           <span>{translateFunction("Buyer", language)}</span>
           <span className="bold">

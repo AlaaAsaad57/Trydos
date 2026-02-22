@@ -27,11 +27,15 @@ export interface UserData {
   is_phone_verified: number;
   expired_at?: string;
   access_token?: string;
+  image: string;
   [key: string]: any;
 }
 
 // Constants for cookie names
 export const COOKIE_NAMES = {
+  LOCAL: "local",
+  WALLET_USER: "WALLET_USER",
+  WALLET_TOKEN: "rdb_at",
   DEVICE_TOKEN: "DEVICE-TOKEN",
   USER_DATA: "User-Data",
   MARKET_TOKEN: "MARKET-TOKEN",
@@ -45,6 +49,24 @@ export const COOKIE_NAMES = {
   USER_ID_HASH:
     "x7k9m2p4q8r1s5t3u6v2w9y4z7a1b5c8d2e6f9g3h7j1k4l8m2n5p9q3r6s1t4u7v2w5x8y1z4a7b2c5d8e1f4g7h2j5k8l1m4n7o2p5q8r1s4t7u2v5w8x1y4z7", // Random gibberish name
 } as const;
+
+/**
+ * Cookie names that are HttpOnly — tokens and user data.
+ * Client-side code CANNOT read or write these.
+ * Use /api/auth/me to read user data, /api/proxy to make authenticated requests.
+ */
+export const HTTPONLY_COOKIE_NAMES = new Set([
+  COOKIE_NAMES.MARKET_TOKEN,
+  COOKIE_NAMES.DEVICE_TOKEN,
+  COOKIE_NAMES.CHAT_TOKEN,
+  COOKIE_NAMES.STORIES_TOKEN,
+  COOKIE_NAMES.WALLET_TOKEN,
+  COOKIE_NAMES.USER_ID_HASH,
+  COOKIE_NAMES.USER_DATA,
+  COOKIE_NAMES.USER_CHAT,
+  COOKIE_NAMES.USER_STORIES,
+  COOKIE_NAMES.WALLET_USER,
+]);
 
 // Default cookie options
 const DEFAULT_OPTIONS: CookieOptions = {
@@ -92,7 +114,7 @@ function deserialize<T = any>(value: string): T {
  * Get cookie value (server-side)
  */
 export async function getCookieServer<T = string>(
-  name: string
+  name: string,
 ): Promise<T | null> {
   if (!isServer()) {
     console.warn("getCookieServer can only be used on the server");
@@ -108,7 +130,8 @@ export async function getCookieServer<T = string>(
     const cookie = cookieStore.get(name);
 
     if (!cookie?.value) return null;
-    return deserialize<T>(cookie.value);
+    const decoded = decodeURIComponent(cookie.value);
+    return deserialize<T>(decoded);
   } catch (error) {
     console.warn("Failed to get cookie from server:", error);
     return null;
@@ -160,11 +183,11 @@ export function getCookie<T = string>(name: string): T | null {
 export function setCookie(
   name: string,
   value: any,
-  options?: CookieOptions
+  options?: CookieOptions,
 ): void {
   if (isServer()) {
     throw new Error(
-      "setCookie can only be used on the client. Use setCookieServer instead."
+      "setCookie can only be used on the client. Use setCookieServer instead.",
     );
   }
 
@@ -207,29 +230,13 @@ export function setCookie(
 export function deleteCookie(name: string): void {
   if (isServer()) {
     throw new Error(
-      "deleteCookie can only be used on the client. Use deleteCookieServer instead."
+      "deleteCookie can only be used on the client. Use deleteCookieServer instead.",
     );
   }
 
   setCookie(name, "", { maxAge: -1 });
 }
 
-export function generateToken(userId, SECRET_KEY) {
-  // The payload can contain any claims; here we just include userId
-  const payload = { userId };
-
-  // Create the token; expiresIn can be adjusted (e.g., "1h", "7d")
-  const token = jwt.sign(payload, SECRET_KEY);
-
-  return token;
-}
-export function verifyToken(token, SECRET_KEY) {
-  try {
-    return jwt.verify(token, SECRET_KEY);
-  } catch (error) {
-    return null;
-  }
-}
 /**
  * Store hashed user ID in cookie
  * Usage: storeHashedUserId(response.user.id)
@@ -272,7 +279,7 @@ export function setLocaizationCookies(country: string, language: string): void {
     setCookie(COOKIE_NAMES.COUNTRY, country, {
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 365 * 24 * 60 * 60, // 1 year
       httpOnly: false,
     });
@@ -281,14 +288,14 @@ export function setLocaizationCookies(country: string, language: string): void {
     setCookie(COOKIE_NAMES.LANG, language, {
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 365 * 24 * 60 * 60, // 1 year
       httpOnly: false,
     });
     setCookie(COOKIE_NAMES.lANGUAGE, language, {
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 365 * 24 * 60 * 60, // 1 year
       httpOnly: false,
     });

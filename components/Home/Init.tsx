@@ -4,23 +4,19 @@ import React, { useEffect, useState } from "react";
 import HomeService from "services/home";
 import PopupCountry from "utils/PopupCountry";
 import home from "services/home";
-import { fetchCountries } from "utils/tinyUtils";
 
-import Smartlook from "smartlook-client";
-
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
+import { smartlookInit, smartlookIdentify } from "utils/smartlook";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import NotificationWidget from "components/global/NotificationWidget";
 import { useAppStore } from "store";
+import { GetCountries } from "serverRequests/product";
+import auth from "services/auth";
 
 function Init() {
   const { lang } = useParams();
-  const { isNotificationModal, setNotificationModal } = useAppStore();
+  const { isNotificationModal, setNotificationModal, userProfile } =
+    useAppStore();
   // @ts-ignore
   const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
@@ -37,12 +33,12 @@ function Init() {
       setCountriesData(JSON.parse(data));
     } else {
       try {
-        const data = await fetchCountries(country, language);
+        const data = await GetCountries({ country, language });
         sessionStorage.setItem(
           `countries-${country}-${language}`,
-          JSON.stringify(data.countries)
+          JSON.stringify(data),
         );
-        setCountriesData(data.countries);
+        setCountriesData(data);
       } catch (error) {
         console.error("Failed to fetch countries:", error);
       }
@@ -70,7 +66,7 @@ function Init() {
           "",
           params.toString()
             ? `${window.location.pathname}?${params.toString()}`
-            : window.location.pathname
+            : window.location.pathname,
         );
       }
       return true;
@@ -89,7 +85,7 @@ function Init() {
         "",
         params.toString()
           ? `${window.location.pathname}?${params.toString()}`
-          : window.location.pathname
+          : window.location.pathname,
       );
     }
 
@@ -108,25 +104,26 @@ function Init() {
     }
 
     try {
-      if (process.env.NODE_ENV === "production") {
-        Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
-      }
-      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+      if (auth.UserID()) {
+        if (typeof Notification !== "undefined") initPageLoad();
+        smartlookInit(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
 
-      if (user) {
-        if (process.env.NODE_ENV === "production") {
-          Smartlook.identify(user.id, {
+        const user = useAppStore.getState().userProfile;
+
+        if (user) {
+          smartlookIdentify(user.id, {
             name: user?.name || "Guest",
             phone: user?.mobilePhone || "null",
-            // other custom properties
           });
         }
       }
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Init SmartLook in Init",
+      });
     }
-    // let images = document.querySelectorAll("img");
-  }, []);
+  }, [auth.UserID()]);
   const initPageLoad = async () => {
     const permission = Notification.permission;
 
@@ -139,21 +136,24 @@ function Init() {
         try {
           await home.AllowNotifications();
         } catch (error) {
-          console.error("Error handling topics on page refresh:", error);
+          LogError({
+            error: error,
+            scenario: "initPageLoad in Init",
+          });
         }
       };
-
       handlePageRefresh(); // Run the function on initial load
     }
   };
-  useEffect(() => {
-    if (typeof Notification !== "undefined") initPageLoad();
-  }, []); // Runs once when the app initializes
+  // Runs once when the app initializes
   const onAllow = async () => {
     try {
       await home.AllowNotifications();
     } catch (error) {
-      console.error("Error allowing notifications:", error);
+      LogError({
+        error: error,
+        scenario: "onAllow in Init",
+      });
     }
   };
   const onDismiss = () => {

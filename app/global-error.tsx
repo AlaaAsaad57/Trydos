@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import Logo from "../components/Home/Logo";
 import { LogError } from "../utils/functions";
 import AuthService from "../services/auth";
@@ -9,7 +10,6 @@ import {
   NetworkErrorIllustration,
 } from "../components/global/ErrorIllustrations";
 import "styles/globals.css";
-import * as Sentry from "@sentry/nextjs";
 export default function GlobalError({ error, reset }) {
   const sendError = async () => {
     const userAgent =
@@ -21,25 +21,28 @@ export default function GlobalError({ error, reset }) {
         ? JSON.parse(localStorage.getItem("LAST_JSON"))
         : null;
     }
-    token = AuthService.UserToken();
+
     user_id = AuthService.UserID();
     const [country, lang] = (
       window.location.pathname.split("/")[1] || ""
     ).split("-");
     let errorObj = {
       type: "front-end-exception",
+      scenario: "global-error-boundary",
       message: error.message,
+      stack: error.stack,
       url: window.location.href,
       user_id: user_id,
-      token: token,
+
       user_agent: userAgent,
       country: country,
       language: lang,
     };
-    Sentry.captureException(errorObj);
     LogError(errorObj);
   };
   useEffect(() => {
+    // Sentry's built-in error boundary capture
+    Sentry.captureException(error);
     sendError();
   }, [error]);
   if (
@@ -48,7 +51,7 @@ export default function GlobalError({ error, reset }) {
   ) {
     return (
       <html lang="en" className="">
-        <body className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 min-h-screen">
+        <body className="bg-linear-to-br from-blue-50 via-white to-indigo-50 min-h-screen">
           <div className="flex justify-center flex-col items-center p-8 min-h-screen">
             {/* Logo Section */}
             <div className="mb-8">
@@ -133,7 +136,7 @@ export default function GlobalError({ error, reset }) {
   }
   return (
     <html lang="en" className="">
-      <body className="bg-gradient-to-br from-red-50 via-white to-pink-50 min-h-screen">
+      <body className="bg-linear-to-br from-red-50 via-white to-pink-50 min-h-screen">
         <div className="flex justify-center flex-col items-center p-8 min-h-screen">
           {/* Logo Section */}
           <div className="mb-8">
@@ -161,7 +164,7 @@ export default function GlobalError({ error, reset }) {
                 </p>
               </div>
               <p className="text-xs text-gray-500">
-                Error ID: {Math.random().toString(36).substr(2, 9)}
+                Error ID: {Sentry.lastEventId() || "—"}
               </p>
             </div>
           </div>

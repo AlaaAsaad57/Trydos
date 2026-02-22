@@ -9,7 +9,7 @@ import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import LinkIcon from "public/svg/copyIcon";
+
 // Using a generic story media type to keep the component independent from
 // the previous `react-insta-stories` definitions.
 type StoryMedia = {
@@ -136,7 +136,7 @@ const StoryViewer = ({
         // Also log to console for debugging
         console.log(`Story ${storyIndex} viewed for ${activeViewingTime}ms`, {
           totalTime: totalElapsed,
-          pausedTime: totalPausedTimeRef.current,
+          // pausedTime: totalPausedTimeRef.current,
         });
       }
     }
@@ -320,7 +320,7 @@ const StoryViewer = ({
         {stories.map((_, i) => (
           <div
             key={i}
-            className="flex-1 bg-white/30 h-[2px] rounded overflow-hidden justify-start items-start"
+            className="flex-1 bg-white/30 h-[2px] rounded-sm overflow-hidden justify-start items-start"
           >
             <div
               className="bg-white h-full"
@@ -404,7 +404,7 @@ const StoryViewer = ({
           {link && (
             <a href={link}>
               <a
-                className="pointer-events-auto gap-[5px] items-end flex-row  regular p-3 rounded-[8px] text-[#1d1d1d] bg-[#F8F8F8]  break-all text-center text-base   no-underline backdrop-blur-sm"
+                className="pointer-events-auto gap-[5px] items-end flex-row  regular p-3 rounded-[8px] text-[#1d1d1d] bg-[#F8F8F8]  break-all text-center text-base   no-underline backdrop-blur-xs"
                 tabIndex={0}
                 aria-label="Story link"
                 target="_blank"
@@ -416,7 +416,10 @@ const StoryViewer = ({
                 onClick={(e) => e.stopPropagation()}
               >
                 <span>
-                  <LinkIcon className="w-[20px] h-[20px]" />
+                  <img
+                    src="/icons/copyIcon.svg"
+                    className="w-[20px] h-[20px]"
+                  />
                 </span>
                 {translateFunction("View More")}
               </a>

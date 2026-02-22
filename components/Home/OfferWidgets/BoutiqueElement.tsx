@@ -11,12 +11,35 @@ export function BoutiqueSliderWrapper({ boutique, children }) {
     Autoplay({ delay: 3000 }),
     AutoHeight(),
   ]);
-  const configureImage = (src) => {
-    return src.replace(
-      "/upload",
-      `/upload/w_1356,c_pad,b_auto/f_auto/q_auto:best/fl_lossy/so_0`
-    );
-  };
+  function decodeHtmlSSR(input, depth = 2) {
+    let str = input;
+
+    const entities = {
+      "&amp;": "&",
+      "&lt;": "<",
+      "&gt;": ">",
+      "&quot;": '"',
+      "&#34;": '"',
+      "&#39;": "'",
+      "&apos;": "'",
+      "&hellip;": "…",
+      "&rsquo;": "’",
+      "&lsquo;": "‘",
+      "&ldquo;": "“",
+      "&rdquo;": "”",
+      "&ndash;": "–",
+      "&mdash;": "—",
+    };
+
+    for (let i = 0; i < depth; i++) {
+      str = str?.replace(
+        /&(amp|lt|gt|quot|#34|#39|apos|hellip|rsquo|lsquo|ldquo|rdquo|ndash|mdash);/g,
+        (match) => entities[match] || match,
+      );
+    }
+
+    return str;
+  }
   return (
     <div
       className="w-full flex justify-center items-center overflow-hidden min-h-[15vh]  relative"
@@ -27,7 +50,7 @@ export function BoutiqueSliderWrapper({ boutique, children }) {
         style={{
           direction: isRtl ? "rtl" : "ltr",
         }}
-        className="absolute flex-col px-[12px] items-start gap-[3px] z-20 bottom-0 left-0 w-full h-[54px] bg-gradient-to-t from-[rgba(0,0,0,0.5)] to-[rgba(0,0,0,0)] flex"
+        className="absolute flex-col px-[12px] items-start gap-[3px] z-20 bottom-0 left-0 w-full h-[54px] bg-linear-to-t from-[rgba(0,0,0,0.5)] to-[rgba(0,0,0,0)] flex"
       >
         <span
           className="bold text-[16px] uppercase text-white"
@@ -35,13 +58,16 @@ export function BoutiqueSliderWrapper({ boutique, children }) {
         >
           {boutique?.name}
         </span>
-        <span
-          data-cy="boutique-description"
-          className="regular text-[16px] text-white"
-          dangerouslySetInnerHTML={{
-            __html: boutique?.description,
-          }}
-        ></span>
+        {boutique?.description &&
+          !boutique?.description?.includes("script") && (
+            <span
+              data-cy="boutique-description"
+              className="regular text-[16px] text-white"
+              dangerouslySetInnerHTML={{
+                __html: decodeHtmlSSR(boutique?.description),
+              }}
+            ></span>
+          )}
       </div>
     </div>
   );

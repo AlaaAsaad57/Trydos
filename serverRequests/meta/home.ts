@@ -1,11 +1,15 @@
 import { RedisGet, RedisSet } from "serverRequests/radis";
 import { elasticSearchComment } from "services/elastic/elasticsearch.config";
-
-import { site_og, site_url, trydosTranslations } from "./constants-meta";
+import { trydosTranslations } from "./constants-meta";
 import { getRobotsConfig } from "utils/server";
+import { mapLocaleToBCP47 } from "./StructuredData/utils";
+import { General_Site_Data } from "./StructuredData/Constants";
+import { LogServerError } from "utils/serverErrorReporter";
+import { catalog_index } from "services/elastic/INDEXES";
 let client = elasticSearchComment;
 
-export async function GetHomeMetaData({ language, country, category = null }) {
+export async function GetHomeMetaData({ local, category = null }) {
+  const [country, language] = local?.split("-");
   const lang = language || "en";
   const cacheKey = category
     ? `meta-obj-${category}-${lang}-${country}`
@@ -16,59 +20,42 @@ export async function GetHomeMetaData({ language, country, category = null }) {
   if (cachedMeta) return cachedMeta;
 
   // 2. Parallel Data Fetch
-  const [categoriesMeta, boutiquesData] = await Promise.all([
-    GetCatgoriesMetaData({ country, language: lang }),
-    GetBoutiqueForMetaData({ language: lang, country, category }),
-  ]);
+  const categoriesMeta = await GetCatgoriesMetaData({
+    country,
+    language: lang,
+    slug: category,
+  });
 
   const t = trydosTranslations[lang] || trydosTranslations.en;
 
   // 3. Build Content Strings
   let pageTitle = "";
   let pageDesc = "";
-  const baseUrl = site_url; // Ensure this is "https://trydos.com"
+  const baseUrl = General_Site_Data.url; // Ensure this is "https://trydos.com"
   const path = category ? `?mainCategory=${category}` : "";
   const fullUrl = `${baseUrl}/${country}-${lang}${path}`;
-  const ogImageUrl = site_og; // Relative path like "/opengraph-image.png"
+  const ogImageUrl = General_Site_Data.url + General_Site_Data.og; // Relative path like "/opengraph-image.png"
 
   if (category) {
-    const currentCat =
-      categoriesMeta.find((c) => c.slug === category)?.name || category;
-    pageTitle = t.categoryTitle(currentCat, boutiquesData.total);
-
-    const top3Names = boutiquesData.customBoutiques
-      .slice(0, 3)
-      .map((b) => b.custom_boutiques[0]?.name)
-      .filter(Boolean)
-      .join(", ");
-
-    pageDesc = `${t.homeDesc(boutiquesData.total)} ${
-      top3Names ? `Featuring: ${top3Names}` : ""
-    }`;
+    const currentCat = categoriesMeta?.[0]?.name || category;
+    pageTitle = t.home.categoryTitle(currentCat);
+    pageDesc = t.listingDesc(currentCat);
   } else {
-    pageTitle = t.homeTitle;
-    pageDesc = t.homeDesc(boutiquesData.total);
+    pageTitle = t.home.title;
+    pageDesc = t.home.description;
   }
 
   // 4. THE COMPLETE METADATA OBJECT
   const metadataObject = {
-    // NEW: metadataBase is required to resolve relative URLs for OG images
     metadataBase: new URL(baseUrl),
-
     title: pageTitle,
     description: pageDesc,
-
-    // NEW: Keywords help with internal/secondary search engines
     keywords: ["Trydos", "e-commerce", "boutiques", "fashion", country, lang],
-
-    // NEW: Icons block for browser tabs and mobile shortcuts
     icons: {
       icon: "/favicon.ico",
-      shortcut: "/favicon-16x16.png",
-      apple: "/apple-touch-icon.png",
+      shortcut: "/favicon.ico",
+      apple: "/favicon.ico",
     },
-
-    // SEO: Canonical & Multi-language
     alternates: {
       canonical: fullUrl,
       languages: {
@@ -79,8 +66,6 @@ export async function GetHomeMetaData({ language, country, category = null }) {
         "x-default": `${baseUrl}/${country}-en${path}`,
       },
     },
-
-    // Search Engine Behavior
     robots: getRobotsConfig({
       index: true,
       follow: true,
@@ -92,35 +77,26 @@ export async function GetHomeMetaData({ language, country, category = null }) {
         "max-snippet": -1,
       },
     }),
-
-    // Social Media: OpenGraph (Facebook/WhatsApp)
     openGraph: {
       title: pageTitle,
       description: pageDesc,
       url: fullUrl,
       siteName: "Trydos",
-      // UPDATED: Corrected locale logic
-      locale: lang === "ar" ? "ar_AR" : lang === "ku" ? "ku_TR" : "en_US",
+      locale: mapLocaleToBCP47(local),
       type: "website",
       images: [{ url: ogImageUrl, width: 1200, height: 630 }],
     },
-
-    // Social Media: Twitter Cards
     twitter: {
       card: "summary_large_image",
       title: pageTitle,
       description: pageDesc,
       images: [ogImageUrl],
     },
-
-    // Mobile / Apple PWA Experience
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",
       title: "Trydos",
     },
-
-    // Verification
     verification: {
       google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
     },
@@ -132,11 +108,11 @@ export async function GetHomeMetaData({ language, country, category = null }) {
   return metadataObject;
 }
 // get Cateogires for metadata
-export async function GetCatgoriesMetaData({ country, language, limit = 20 }) {
+async function GetCatgoriesMetaData({ country, language, slug }) {
   try {
     const { mustConditions, mustNotConditions } = getRules(country);
     const query = {
-      index: "products_catalog",
+      index: catalog_index,
       _source: [
         "custom_categories.name",
         "custom_categories.language_code",
@@ -144,30 +120,62 @@ export async function GetCatgoriesMetaData({ country, language, limit = 20 }) {
       ],
       query: {
         bool: {
-          must: mustConditions,
+          must: slug
+            ? [
+                ...mustConditions,
+                {
+                  bool: {
+                    must: [
+                      {
+                        nested: {
+                          path: "categories",
+                          query: { term: { "categories.status": 1 } },
+                        },
+                      },
+                      {
+                        nested: {
+                          path: "custom_categories",
+                          query: {
+                            term: {
+                              "custom_categories.slug.keyword": slug,
+                            },
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              ]
+            : mustConditions,
           must_not: mustNotConditions,
         },
       },
     };
     const searchParams = {
-      index: "products_catalog",
-      size: limit ?? 20,
+      index: catalog_index,
+      size: 1,
       ...query,
     };
     const mainCategories = await client.search(searchParams);
     let categoriesData = mainCategories.hits.hits.map((s) => {
       // @ts-ignore
       return s._source?.custom_categories?.find(
-        (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
+        (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase(),
       );
     });
     categoriesData = categoriesData.filter((c) => c !== undefined);
     categoriesData = Array.from(
-      new Map(categoriesData.map((c: any) => [c.id, c])).values()
+      new Map(categoriesData.map((c: any) => [c.id, c])).values(),
     );
+
     return categoriesData;
   } catch (error) {
-    console.error("Elasticsearch Query Error:", error);
+    LogServerError({
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetCatgoriesMetaData in serverRequest/home",
+    });
     throw error;
   }
 }
@@ -299,7 +307,7 @@ export async function GetBoutiqueForMetaData({ language, country, category }) {
   let { must, must_not } = buildBaseConditions({ language, country, category });
 
   const customQuery = {
-    index: "products_catalog",
+    index: catalog_index,
     body: {
       size: 10, // How many product hits to return
       query: {
@@ -340,7 +348,7 @@ export async function GetBoutiqueForMetaData({ language, country, category }) {
   customBoutiques.forEach((boutique) => {
     if (Array.isArray(boutique.custom_boutiques)) {
       boutique.custom_boutiques = boutique.custom_boutiques.filter(
-        (cb) => cb.language_code === language
+        (cb) => cb.language_code === language,
       );
     }
   });
@@ -474,7 +482,7 @@ function buildBaseConditions({ country, language, category }) {
             },
           },
         },
-      }
+      },
     );
   }
 

@@ -1,8 +1,15 @@
-import { cookies } from "next/headers";
 import { fetchProductDetails } from "serverRequests";
 import { GetRecommendationCountForProduct } from "serverRequests/product";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
-import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import {
+  comments_index,
+  comments_interactions_index,
+  product_interactions_index,
+  share_index,
+  user_interactions_index,
+} from "services/elastic/INDEXES";
+import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
+import { LogServerError } from "utils/serverErrorReporter";
 
 let client = elasticSearchClient;
 export const GetProductData = async (params: {
@@ -14,7 +21,7 @@ export const GetProductData = async (params: {
     let productData = await fetchProductDetails(
       params.productId,
       language,
-      country
+      country,
     );
     if (!productData?.id) {
       throw { message: "Couldnt Fetch Product" };
@@ -23,6 +30,10 @@ export const GetProductData = async (params: {
       product: productData,
     };
   } catch (error) {
+    LogServerError({
+      scenario: "GetProductData in ProductPageData",
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   }
 };
@@ -36,9 +47,10 @@ export const getProductDataFromElastic = async ({
   let user_id;
 
   if (!userId) {
-    const cookiesStore = await cookies();
-    let user_data = cookiesStore.get(COOKIE_NAMES.USER_DATA)?.value;
-    user_id = typeof user_data === "string" ? JSON.parse(user_data)?.id : null;
+    const userData = await getCookieServer<{ id: string }>(
+      COOKIE_NAMES.USER_DATA,
+    );
+    user_id = userData?.id ?? null;
   } else {
     user_id = userId;
   }
@@ -98,13 +110,16 @@ export const getProductDataFromElastic = async ({
       good_quality_product: likeDetails?.good_quality_product,
     };
   } catch (error) {
-    console.error(error);
+    LogServerError({
+      scenario: "getProductDataFromElastic in ProductPageData",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 async function getProductSharedCountFromElasticsearch(productId, slug, lang) {
   try {
     let res = await client.search({
-      index: "shared_products",
+      index: share_index,
       size: 1, // just one document if you expect a single match
       query: {
         term: {
@@ -114,6 +129,10 @@ async function getProductSharedCountFromElasticsearch(productId, slug, lang) {
     });
     return { ...res, isError: false, error: null };
   } catch (error) {
+    LogServerError({
+      scenario: "getProductSharedCountFromElasticsearch in ProductPageData",
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { isError: true, error: error };
   }
 }
@@ -131,7 +150,7 @@ export async function GetRatingCommentsFromElastic({
   order_ids: any;
 }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: order_ids.length,
     sort: [
       { created_at: "desc" }, // newest first
@@ -199,7 +218,7 @@ export async function GetRatingCommentsForProduct({
   language = "en",
 }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: pageSize,
     sort: [
       { created_at: "desc" }, // newest first
@@ -299,49 +318,6 @@ export async function GetRatingCommentsForProduct({
   };
 }
 
-function getLangField(lang: string) {
-  switch (lang) {
-    case "ar":
-      return "discussed_aspects_ar";
-    case "tr":
-      return "discussed_aspects_tr";
-    case "ku":
-      return "discussed_aspects_ku";
-    default:
-      return "discussed_aspects_en";
-  }
-}
-
-export async function GetAvailableFQAFilters({ product_id }) {
-  const query = {
-    index: "comments",
-    size: 0, // we don’t need actual documents
-    query: {
-      bool: {
-        must: [{ term: { product_id: String(product_id) } }],
-        must_not: [{ term: { status: "deleted" } }],
-      },
-    },
-    aggs: {
-      available_filters: {
-        terms: {
-          field: "discussed_aspects", // keyword ensures aggregation works
-          size: 50, // limit how many aspects we expect (can adjust)
-        },
-      },
-    },
-  };
-
-  const response = await client.search(query);
-
-  const filters =
-    (response.aggregations?.available_filters as any)?.buckets?.map((b) => ({
-      aspect: b.key,
-      count: b.doc_count,
-    })) || [];
-
-  return filters;
-}
 // comments with questions and replies
 export async function GetFQACommentsForProduct({
   product_id,
@@ -352,7 +328,7 @@ export async function GetFQACommentsForProduct({
   language = "en",
 }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: pageSize,
     sort: [
       { created_at: "desc" }, // newest first
@@ -447,7 +423,7 @@ export async function GetFQACommentsForProduct({
   };
 }
 
-export async function GetFQACommentsForProductWithReactions({
+async function GetFQACommentsForProductWithReactions({
   user_id,
   commentsResult,
 }) {
@@ -455,7 +431,7 @@ export async function GetFQACommentsForProductWithReactions({
   if (commentIds.length === 0) return commentsResult;
 
   const reactionsQuery: any = {
-    index: "comments_reactions",
+    index: comments_interactions_index,
     size: 0,
     query: {
       bool: {
@@ -547,12 +523,12 @@ async function getProductInteractions(productId: string, userId?: string) {
     // Run both queries in parallel
     const [productRes, likeRes] = await Promise.all([
       client.get({
-        index: "product_interactions",
+        index: product_interactions_index,
         id: productId,
       }),
       userId
         ? client.search({
-            index: "user_product_likes",
+            index: user_interactions_index,
             body: {
               query: {
                 bool: {
@@ -602,6 +578,10 @@ async function getProductInteractions(productId: string, userId?: string) {
       is_liked: isLiked,
     };
   } catch (err: any) {
+    LogServerError({
+      scenario: "getProductInteractions in ProductPageData",
+      error: err instanceof Error ? err.message : String(err),
+    });
     if (err.meta?.statusCode === 404) {
       return {
         is_liked: false,

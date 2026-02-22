@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateLocaleSpecificSitemapXML } from "services/elastic/sitemap.service";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(request: NextRequest, { params }) {
   const Params = await params;
@@ -48,7 +49,10 @@ export async function GET(request: NextRequest, { params }) {
     });
   } catch (error) {
     console.error(`Error generating sitemap for ${Params.lang}:`, error);
-
+    LogServerError(
+      { error, type: "get currency error", local: Params.lang },
+      `/api/${Params.lang}/sitemap.xml`,
+    );
     return new NextResponse("Error generating sitemap", {
       status: 500,
       headers: {

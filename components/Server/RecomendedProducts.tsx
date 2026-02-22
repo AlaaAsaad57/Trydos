@@ -34,10 +34,12 @@ function RecomendedProducts({ lang, InitialOffset, userId }) {
       setLoadingMore(false);
     } catch (error) {
       showErrorMessage(
-        translateFunction("Failed To Load Products Retring in 3 seconds")
+        translateFunction("Failed To Load Products Retring in 3 seconds"),
       );
-      LogError(error);
-      console.error(error);
+      LogError({
+        error: error,
+        scenario: "Error In loadMore Recomended in RecommendedProducts",
+      });
     }
   };
   useEffect(() => {
@@ -62,7 +64,7 @@ function RecomendedProducts({ lang, InitialOffset, userId }) {
           }}
           className="product-container items-center justify-center min-w-[150px] max-h-[377px] bg-[#0002]  align-center flex-col relative"
         >
-          <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
+          <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-white">
             {loadingMore ? (
               <Spinner />
             ) : (

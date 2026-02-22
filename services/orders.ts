@@ -1,13 +1,14 @@
 import { useAppStore } from "store";
-import { OrdersResponse } from "../types/orders";
+
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export const fetchOrders = async (
   page: number,
   pageSize: number = 8,
-  selectedStatus: string = ""
-): Promise<OrdersResponse> => {
+  selectedStatus: string = "",
+): Promise<any> => {
   try {
     const response = await fetchData({
       url: `/customer/order/list?offset=${page}&limit=${pageSize}${
@@ -17,14 +18,17 @@ export const fetchOrders = async (
       method: "GET",
       server: "market",
     });
-    if (!response.success) {
-      throw new Error(response.message);
+    if (!response?.success) {
+      throw new Error(response?.message);
     }
     const { setTotalOrders } = useAppStore.getState();
-    setTotalOrders(response.data.total);
+    setTotalOrders(response?.data?.total ?? 0);
     return response;
   } catch (error) {
-    console.error("Error fetching orders:", error);
+    LogServerError({
+      error: error,
+      scenario: "Error In fetchOrders in services/orders",
+    });
     // Fallback to mock data if API is not available
   }
 };

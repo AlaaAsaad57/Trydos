@@ -1,25 +1,22 @@
 import { useState } from "react";
-import { translateFunction } from "utils/functions";
-import TargetIcon from "public/svg/cart/Target";
+import { LogError, translateFunction } from "utils/functions";
+
 import { useParams } from "next/navigation";
-import { allCountries } from "country-telephone-data";
+import { getCountryNameByIso2 } from "utils/countryData";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import SyFlage from "public/svg/sy";
 import { FlagIcon } from "utils/tinyUtils";
-import { SelectRegionPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
-import { SearchLocationsPropsType } from "models/componentType/SearchLocationsPropsType";
-import { SearchResultsPropsType } from "models/componentType/SearchResultsPropsType";
+
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-function SelectRegion({ closeSelect }: SelectRegionPropsType) {
+function SelectRegion({ closeSelect }) {
   const { addressDetails } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   let country = lang.split("-")[0];
   country = {
-    name: allCountries.filter((s) => s.iso2 === country)[0].name,
+    name: getCountryNameByIso2(country),
     iso: country,
   };
   const showRegion = () => {
@@ -78,7 +75,7 @@ function SelectRegion({ closeSelect }: SelectRegionPropsType) {
   return (
     <>
       <div
-        className="absolute top-[50px]  left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
+        className="absolute top-[50px]  left-0 min-w-screen z-999999998 min-h-screen opacity-40 bg-[black]"
         onClick={() => {
           if (focused) {
             setFocused(false);
@@ -88,11 +85,11 @@ function SelectRegion({ closeSelect }: SelectRegionPropsType) {
         }}
       />
       <div
-        className="flex-col items-center px-[12px] bottom-0  absolute z-[999999999] rounded-t-[30px] bg-[#fff] h-[441px] w-full pt-[19px]"
+        className="flex-col items-center px-[12px] bottom-0  absolute z-999999999 rounded-t-[30px] bg-white h-[441px] w-full pt-[19px]"
         data-cy="Extended-Choose-Area"
       >
         <div className="flex-row items-center w-full justify-center">
-          <TargetIcon data-cy="target-icon" />
+          <img src="/icons/Target.svg" data-cy="target-icon" />
           <span
             className="flex regular ml-[6px] text-[#1D1D1D] text-[14px]"
             data-cy="Select-From-List"
@@ -123,10 +120,7 @@ function SelectRegion({ closeSelect }: SelectRegionPropsType) {
 
 export default SelectRegion;
 
-const SearchLocations = ({
-  closeSelect,
-  setFocused,
-}: SearchLocationsPropsType) => {
+const SearchLocations = ({ closeSelect, setFocused }) => {
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
@@ -148,7 +142,11 @@ const SearchLocations = ({
       }
       setSearchResults(response.results || []);
     } catch (err) {
-      console.error(err);
+      LogError({
+        error: err,
+        scenario: "search for address by text - cart widget",
+        search_text: val,
+      });
     }
 
     setLoading(false);
@@ -211,9 +209,9 @@ const SearchLocations = ({
           onInput={(e) => {}}
           value={search}
           placeholder={translateFunction(
-            "Search Province | District | Town | Street"
+            "Search Province | District | Town | Street",
           )}
-          className="pl-[47px] pr-[15px] border-none outline-none flex rounded-[12px] bg-[#F8F8F8] regular text-[#1D1D1D] w-full h-[40px]"
+          className="pl-[47px] pr-[15px] border-none outline-hidden flex rounded-[12px] bg-[#F8F8F8] regular text-[#1D1D1D] w-full h-[40px]"
           data-cy="SearchProvince-District-Town-Street"
           debounceTimeout={400}
         />
@@ -238,7 +236,7 @@ const SearchResults = ({
   closeSelect,
   shouldShowProvinces,
   searchAction,
-}: SearchResultsPropsType) => {
+}) => {
   const { setMapCenter, setAddressDetails, provinces } = useAppStore();
   const showLocationText = (location) => {
     let str = "";

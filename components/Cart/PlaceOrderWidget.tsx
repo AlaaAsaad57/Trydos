@@ -3,34 +3,15 @@ import {
   RoundPrice,
   translateFunction,
 } from "utils/functions";
-import OrderCartIcon from "public/svg/cart/orderCartIcon";
-import FreeShippingIcon from "public/svg/product/FreeShipping";
-import WalletIcon from "assets/svg/cart/WalletIcon";
-import CreditIcon from "assets/svg/cart/CreditIcon";
-import PaymentIconOne from "assets/svg/cart/Payment/DimondPay";
-import PaymentIconTwo from "assets/svg/cart/Payment/DimondPay1";
-import PaymentIconThree from "assets/svg/cart/Payment/DimondPay2";
-import PaymentIconFour from "assets/svg/cart/Payment/DimondPay3";
-import VisaIcon from "assets/svg/cart/Payment/Visa";
-import MasterIcon from "assets/svg/cart/Payment/Master";
-import MaestroIcon from "assets/svg/cart/Payment/Maestro";
-import AmericanExpressIcon from "assets/svg/cart/Payment/AmericanExpress";
-import ApplePayIcon from "assets/svg/cart/Payment/ApplePay";
-import GooglePayIcon from "assets/svg/cart/Payment/GooglePay";
-import CryptoIcon from "assets/svg/cart/CryptoIcon";
 import OrderSuccess from "./OrderSuccess";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
-import { AddressOrderPropsType } from "models/componentType/AddressOrderPropsType";
-import { PaymentOrderPropsType } from "models/componentType/PaymentOrderPropsType";
-import { CreditInputPropsType } from "models/componentType/CreditInputPropsType";
-import { CryptoInputPropsType } from "models/componentType/CryptoInputPropsType";
 function PlaceOrderWidget() {
   const { orderData } = useAppStore();
 
   return (
-    <div className="flex-col overflow-auto pb-[292px] max-h-[100vh]">
+    <div className="flex-col overflow-auto pb-[292px] max-h-screen">
       {orderData.success && <OrderSuccess />}
       <OrderCartItem />
       <AddressOrder success={orderData.success} />
@@ -69,7 +50,7 @@ const OrderCartItem = () => {
       className={`flex-col relative pl-[12px] justify-center w-full min-h-[170px] cursor-pointer`}
     >
       <div className={`${isRtl ? "flex-row-reverse" : "flex-row"} gap-[4px] `}>
-        <OrderCartIcon />
+        <img src="/icons/orderCartIcon.svg" />
         <div
           className={`regular text-[#1D1D1D] text-[14px] ml-2 flex gap-[4px] ${
             isRtl && "dir-rtl"
@@ -117,7 +98,7 @@ const OrderCartItem = () => {
     </div>
   );
 };
-const AddressOrder = ({ success }: AddressOrderPropsType) => {
+const AddressOrder = ({ success }) => {
   const { addressLists, language } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
@@ -256,7 +237,7 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
           {translateFunction("Shipping & Delivery Address")}
         </div>
         <span className="bold ">
-          <FreeShippingIcon />
+          <img src="/icons/FreeShipping.svg" className="w-[30px] h-[30px]" />
         </span>
       </div>
       {/* <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
@@ -271,7 +252,7 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
             ? "items-center h-[84px]   py-[12px]"
             : `${
                 isRtl ? "items-end" : "items-start"
-              }  h-[auto] min-h-[90px] px-[24px]  py-[7px]`
+              }  h-auto min-h-[90px] px-[24px]  py-[7px]`
         } $ mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
       >
         <>
@@ -421,7 +402,7 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
     </div>
   );
 };
-const PaymentOrder = ({ success }: PaymentOrderPropsType) => {
+const PaymentOrder = ({ success }) => {
   const {
     orderData,
     coupon_discount,
@@ -634,7 +615,7 @@ const CODInput = ({
       data-cy="cachondelivry-cartpage"
     >
       <div className="flex-row items-center">
-        <WalletIcon />
+        <img src="/icons/WalletIcon.svg" />
         <span className={`ml-[8px]  ${"text-[#1D1D1D]"} regular text-[12px]`}>
           {translateFunction("Cash On Delivery")}
         </span>
@@ -669,9 +650,9 @@ const TryDosWalletInput = ({ total }) => {
       }}
     >
       <div className="flex-row items-center">
-        <WalletIcon />
+        <img src="/icons/WalletIcon.svg" />
         <span className={`ml-[8px]  ${"text-[#1D1D1D]"} regular text-[12px]`}>
-          {translateFunction("Trydos Wallet")}
+          {translateFunction("Ramaaz Digital Bank Wallet")}
         </span>
       </div>
       <div className="flex-row items-center">
@@ -685,7 +666,7 @@ const TryDosWalletInput = ({ total }) => {
     </div>
   );
 };
-const CreditInput = ({ total }: CreditInputPropsType) => {
+const CreditInput = ({ total }) => {
   const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
@@ -701,23 +682,43 @@ const CreditInput = ({ total }: CreditInputPropsType) => {
       } mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
       <div className="flex-row items-center">
-        <CreditIcon />
+        <img src="/icons/CreditIcon.svg" />
         <span className={`ml-[8px] ${"text-[#1D1D1D]"} regular text-[12px]`}>
           {translateFunction("Credit Cards")}
         </span>
       </div>
       <div className="flex-row items-center">
-        <VisaIcon />
-        <MasterIcon className="ml-[5px]" />
-        <MaestroIcon className="ml-[5px]" />
-        <AmericanExpressIcon className="ml-[5px]" />
-        <ApplePayIcon className="ml-[5px]" />
-        <GooglePayIcon className="ml-[5px]" />
+        <img src="/icons/Visa.svg" data-cy="Visa-Icon" />
+        <img
+          src="/icons/Master.svg"
+          data-cy="Master-Icon"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/Maestro.svg"
+          data-cy="Maestro-Icon"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/AmericanExpress.svg"
+          data-cy="AmericanExpress-Icon"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/ApplePay.svg"
+          data-cy="ApplePay-Icon"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/GooglePay.svg"
+          data-cy="GooglePay-Icon"
+          className="ml-[5px]"
+        />
       </div>
     </div>
   );
 };
-const CryptoInput = ({ total }: CryptoInputPropsType) => {
+const CryptoInput = ({ total }) => {
   const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
   return (
@@ -737,16 +738,28 @@ const CryptoInput = ({ total }: CryptoInputPropsType) => {
       } mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
       <div className="flex-row items-center">
-        <CryptoIcon />
+        <img src="/icons/CryptoIcon.svg" />
         <span className={`ml-[8px] ${"text-[#1D1D1D]"} regular text-[12px]`}>
           {translateFunction("Crypto")}
         </span>
       </div>
       <div className="flex-row items-center">
-        <PaymentIconOne />
-        <PaymentIconTwo className="ml-[5px]" />
-        <PaymentIconThree className="ml-[5px]" />
-        <PaymentIconFour className="ml-[5px]" />
+        <img src="/icons/DimondPay.svg" data-cy="PaymentIconOne-icons" />
+        <img
+          src="/icons/DimondPay1.svg"
+          data-cy="PaymentIconTwo-icons"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/DimondPay2.svg"
+          data-cy="PaymentIconThree-icons"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/DimondPay3.svg"
+          data-cy="PaymentIconFour-icons"
+          className="ml-[5px]"
+        />
       </div>
     </div>
   );

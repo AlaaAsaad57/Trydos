@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useRef } from "react";
-import SearchMicIcon from "public/svg/SearchMicIcon";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";
 import { showErrorNotification } from "store/notifications/reducer";
+import { LogError } from "utils/functions";
 
 function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   const { language } = useAppStore();
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
-    null
+    null,
   );
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [timeLeft, setTimeLeft] = useState(8);
@@ -128,7 +128,10 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
         stopRecording();
       }, 8000);
     } catch (error) {
-      console.error("Error accessing microphone:", error);
+      LogError({
+        error: error,
+        scenario: "initializeMediaRecorder in SearchVoice",
+      });
       showErrorNotification("Microphone access denied");
     }
   };
@@ -164,7 +167,6 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
         showErrorNotification("Try again with clear voice");
       }
     } catch (error) {
-      console.error("Error processing audio:", error);
       showErrorNotification("Failed to process audio");
     } finally {
       setIsProcessing(false);
@@ -218,7 +220,8 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
               </div>
             ) : (
               <div className="relative">
-                <SearchMicIcon
+                <img
+                  src="/icons/SearchMicIcon.svg"
                   data-cy="searchVoiceIcon"
                   onClick={handleOnRecord}
                   className={`${
@@ -282,7 +285,8 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
           </div>
         ) : (
           <div className="relative">
-            <SearchMicIcon
+            <img
+              src="/icons/SearchMicIcon.svg"
               data-cy="searchVoiceIcon"
               onClick={() => {
                 showErrorNotification("Browser does not support this feature");

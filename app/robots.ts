@@ -1,16 +1,8 @@
 import { MetadataRoute } from "next";
+import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_REMOTE_FRONT;
-
-  return {
-    rules: [
-      {
-        userAgent: "*",
-        disallow: "*",
-      },
-    ],
-  };
+  const baseUrl = General_Site_Data.url;
   // return {
   //   rules: [
   //     {
@@ -18,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
   //       allow: "/",
   //       disallow: [
   //         "/api/",
-  //         "/admin/",
+  //         "/settings",
   //         "/dashboard/",
   //         "/_next/",
   //         "/static/",
@@ -39,4 +31,12 @@ export default function robots(): MetadataRoute.Robots {
   //   sitemap: `${baseUrl}/sitemap.xml`,
   //   host: baseUrl,
   // };
+  return {
+    rules: [
+      {
+        userAgent: "*",
+        disallow: "*",
+      },
+    ],
+  };
 }

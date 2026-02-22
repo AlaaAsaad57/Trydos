@@ -6,24 +6,21 @@ import {
   translateFunction,
   RoundPrice,
   getConfiguredImage,
+  LogError,
 } from "utils/functions";
 import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
-import CompareLoadingWidget from "./CompareLoadingWidget";
 
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
-import { ComparePageComponentPropsType } from "models/componentType/compareTypes/ComparePageComponentPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import {
   getCookie,
   setCookie,
   deleteCookie,
 } from "utils/cookies/cookie-manager";
-const ComparePage = ({
-  showInstantLoading = true,
-}: ComparePageComponentPropsType) => {
+const ComparePage = ({ showInstantLoading = true }) => {
   const { currency, setIsNavigating } = useAppStore();
   const searchParams = useSearchParams();
   const [product1, setProduct1] = useState<any>(null);
@@ -53,12 +50,12 @@ const ComparePage = ({
 
         if (storedFp) {
           promises.push(
-            handleProductSelect(storedFp, setProduct1, setLoading1, true)
+            handleProductSelect(storedFp, setProduct1, setLoading1, true),
           );
         }
         if (storedSp) {
           promises.push(
-            handleProductSelect(storedSp, setProduct2, setLoading2, false)
+            handleProductSelect(storedSp, setProduct2, setLoading2, false),
           );
         }
 
@@ -98,7 +95,7 @@ const ComparePage = ({
     selectedOption: { label: string; value: string } | null,
     setProduct: (product: any | null) => void,
     setLoading: (loading: boolean) => void,
-    isFirstProduct: boolean
+    isFirstProduct: boolean,
   ) => {
     if (!selectedOption) {
       setProducts([]);
@@ -108,7 +105,7 @@ const ComparePage = ({
       selectedOption.value,
       setProduct,
       setLoading,
-      isFirstProduct
+      isFirstProduct,
     );
   };
 
@@ -143,7 +140,11 @@ const ComparePage = ({
       const result = await response.json();
       return result.data?.products || [];
     } catch (error) {
-      console.error("Search error:", error);
+      LogError({
+        error: error,
+        scenario: "searchFunction in Compare Page",
+        search_text: inputValue,
+      });
       return [];
     }
   };
@@ -163,7 +164,7 @@ const ComparePage = ({
             lang: lang.toString().split("-")[1],
           },
           credentials: "omit",
-        }
+        },
       );
       if (!res.ok) throw new Error("Product not found");
       const globalDetails = await res.json();
@@ -176,12 +177,17 @@ const ComparePage = ({
             lang: lang.toString().split("-")[1],
           },
           credentials: "omit",
-        }
+        },
       );
       if (!res1.ok) throw new Error("Product not found");
       const QtyDetails = await res1.json();
       return { ...globalDetails.data, ...QtyDetails.data };
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "GetProductData in Compare Page",
+        slug: slug,
+      });
       throw new Error("Product not found");
     }
   };
@@ -190,7 +196,7 @@ const ComparePage = ({
     slug: string,
     setProduct: (product: any | null) => void,
     setLoading: (loading: boolean) => void,
-    isFirstProduct: boolean
+    isFirstProduct: boolean,
   ) => {
     setLoading(true);
     try {
@@ -216,10 +222,14 @@ const ComparePage = ({
       window.history.replaceState(
         {},
         "",
-        `${window.location.pathname}?${currentParams.toString()}`
+        `${window.location.pathname}?${currentParams.toString()}`,
       );
     } catch (error) {
-      console.error("Error fetching product:", error);
+      LogError({
+        error: error,
+        scenario: "handleProductSelect in Compare Page",
+        slug: slug,
+      });
       const currentParams = new URLSearchParams(window.location.search);
       if (isFirstProduct) {
         currentParams.delete("f_p");
@@ -233,12 +243,12 @@ const ComparePage = ({
       window.history.replaceState(
         {},
         "",
-        `${window.location.pathname}?${currentParams.toString()}`
+        `${window.location.pathname}?${currentParams.toString()}`,
       );
       showErrorNotification(
         translateFunction(
-          "One of the products was not found. Please try searching for a different product."
-        )
+          "One of the products was not found. Please try searching for a different product.",
+        ),
       );
     } finally {
       setLoading(false);
@@ -247,7 +257,7 @@ const ComparePage = ({
 
   const loadOptions = (
     inputValue: string,
-    callback: (options: any[]) => void
+    callback: (options: any[]) => void,
   ) => {
     const options =
       products?.map((s) => ({ label: s.name, value: s.slug })) || [];
@@ -256,7 +266,7 @@ const ComparePage = ({
   };
   const debounce = <T extends (...args: any[]) => Promise<void>>(
     func: T,
-    delay: number
+    delay: number,
   ) => {
     let timeout: NodeJS.Timeout;
     return async (...args: Parameters<T>): Promise<void> => {
@@ -289,21 +299,26 @@ const ComparePage = ({
               p.thumbnail?.file_path ||
               "",
             price: p.price,
-          })) || []
+          })) || [],
         );
       } catch (error) {
+        LogError({
+          error: error,
+          scenario: "debouncedChangeHandler in Compare Page",
+          search_text: value,
+        });
         console.error("Search error:", error);
         setProducts([]);
       } finally {
         setSearchLoading(false);
       }
     }, 500),
-    [language, country]
+    [language, country],
   );
 
   const LoadingCell = () => (
     <div className="animate-pulse flex space-x-4">
-      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+      <div className="h-4 bg-gray-200 rounded-sm w-3/4"></div>
     </div>
   );
 
@@ -316,7 +331,7 @@ const ComparePage = ({
       window.history.replaceState(
         {},
         "",
-        `${window.location.pathname}?${params.toString()}`
+        `${window.location.pathname}?${params.toString()}`,
       );
     } else {
       setProduct2(null);
@@ -326,7 +341,7 @@ const ComparePage = ({
       window.history.replaceState(
         {},
         "",
-        `${window.location.pathname}?${params.toString()}`
+        `${window.location.pathname}?${params.toString()}`,
       );
     }
   };
@@ -358,7 +373,7 @@ const ComparePage = ({
             src={getConfiguredImage({
               src: GetImageUrl(
                 product?.sync_color_images?.[0]?.images?.[0] ??
-                  product.images?.[0]
+                  product.images?.[0],
               ),
               height: 100,
               width: 100,
@@ -395,7 +410,7 @@ const ComparePage = ({
             ?.options?.map((size) => (
               <span
                 key={size.name}
-                className="px-2 py-1 bg-gray-100 rounded regular"
+                className="px-2 py-1 bg-gray-100 rounded-sm regular"
               >
                 {size.name}
               </span>
@@ -548,7 +563,7 @@ const ComparePage = ({
           </h1>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white rounded-lg shadow-xs p-6">
           <div className="flex gap-6 mb-4">
             <div className="min-w-[25%]" />
             <div className="flex-1">

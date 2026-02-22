@@ -1,7 +1,7 @@
 "use client";
-import { BuyButtonPropsType } from "models/componentType/BuyButtonPropsType";
+
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
@@ -14,7 +14,7 @@ function BuyButton({
   id,
   seconds,
   onExpire,
-}: BuyButtonPropsType) {
+}: any) {
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -35,7 +35,7 @@ function BuyButton({
           right: isRtl ? "initial" : "0px",
           direction: isRtl ? "rtl" : "ltr",
         }}
-        className={`buy-button pb-[10px] px-[4px]  ${showOrangeFont()} light-text flex-col align-start justify-end cursor-pointer absolute z-[50] bottom-0  pr-[10px] h-[40px] items-center`}
+        className={`buy-button pb-[10px] px-[4px]  ${showOrangeFont()} light-text flex-col align-start justify-end cursor-pointer absolute z-50 bottom-0  pr-[10px] h-[40px] items-center`}
         data-cy="buy-button"
         onClick={(e) => {
           e.preventDefault();
@@ -73,7 +73,7 @@ function BuyButton({
             )}
           </div>
           <img
-            src={"/svg/BuyButton.svg"}
+            src={"/icons/BuyButton.svg"}
             width={15}
             height={15}
             alt="buy Button"

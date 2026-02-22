@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { getCart, RoundPrice, translateFunction } from "utils/functions";
+import {
+  getCart,
+  LogError,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import NextLink from "components/global/NextLink";
-import { CheckBoxElementPropsType } from "models/componentType/CheckBoxElementPropsType";
-import { PlaceOrderButtonsPropsType } from "models/componentType/PlaceOrderButtonsPropsType";
+
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { isSamePage } from "utils/navigationsUtils";
+import WalletPaymentModal from "./WalletPaymentModal";
 
-function PlaceOrderButtons({
-  orderLoading,
-  successOrder,
-  backToCart,
-  close,
-}: PlaceOrderButtonsPropsType) {
+function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const {
     setOrderData,
     initCart,
@@ -60,6 +60,12 @@ function PlaceOrderButtons({
   };
   const [loading, setLoading] = useState(false);
   const [agreeLoading, setAgreeLoading] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+
+  const hasWalletPayment = orderData.payment?.some((s) => s.id === 1);
+  const walletPaymentBalance =
+    orderData.payment?.find((s) => s.id === 1)?.balance || 0;
+
   const VerifyCart = async () => {
     try {
       setLoading(true);
@@ -74,29 +80,41 @@ function PlaceOrderButtons({
         backToCart();
         setLoading(false);
         showErrorNotification(
-          translateFunction("Please Verify Your Phone Number")
+          translateFunction("Please Verify Your Phone Number"),
         );
+        return;
       }
       if (a.length === 0) {
         backToCart();
         setLoading(false);
+        return;
       }
       if (
         a?.filter(
           (s) =>
             s?.check_availability === false ||
             s.is_country_restricted === true ||
-            s.is_active === false
+            s.is_active === false,
         ).length === 0
       ) {
         setLoading(false);
-        successOrder();
+        if (hasWalletPayment) {
+          setShowWalletModal(true);
+        } else {
+          successOrder();
+        }
       } else {
         throw Error("Please Review Your Cart Info");
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "check availabilty for creating order - cart widget",
+      });
       showErrorNotification(
-        translateFunction("Please Review Your Cart Some Products Not Available")
+        translateFunction(
+          "Please Review Your Cart Some Products Not Available",
+        ),
       );
 
       backToCart();
@@ -113,6 +131,18 @@ function PlaceOrderButtons({
   const isRtl = language === "ar" || language === "ku";
   return (
     <div className="absolute flex-col items-center payment-order-bottom left-0 w-full">
+      {showWalletModal && !orderData.success && (
+        <WalletPaymentModal
+          walletAmount={walletPaymentBalance}
+          onSuccess={() => {
+            setShowWalletModal(false);
+            successOrder();
+          }}
+          onClose={() => {
+            setShowWalletModal(false);
+          }}
+        />
+      )}
       {!orderData.success && (
         <div className="px-[24px] mb-[12px] w-full">
           <div
@@ -174,7 +204,7 @@ function PlaceOrderButtons({
         }}
         className={` ${
           orderLoading && "opacity-55"
-        }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+        }  text-center  left-0 w-full h-[100px] bg-white px-[20px] pt-[12px]`}
       >
         {!orderData.success && (
           <div
@@ -203,8 +233,8 @@ function PlaceOrderButtons({
               orderData.success
                 ? "bg-[#1D1D1D]"
                 : isValid()
-                ? "bg-[#346BFF]"
-                : "bg-[#C4C2C2]"
+                  ? "bg-[#346BFF]"
+                  : "bg-[#C4C2C2]"
             } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
           >
             {orderData.loading || loading ? (
@@ -243,6 +273,7 @@ function PlaceOrderButtons({
                 success: false,
                 data: [],
               });
+              // @ts-ignore
               initCart({ cart: [] });
               setCouponDiscount(null);
               close();
@@ -250,7 +281,7 @@ function PlaceOrderButtons({
             }}
           >
             <NextLink
-              sameHref={isSamePage(`/${lang}`)}
+              sameHref={window.location.pathname === `/${lang}`}
               href={`/${lang}`}
               data-cy="back-to-home-page"
               data={{
@@ -277,7 +308,7 @@ function PlaceOrderButtons({
 }
 
 export default PlaceOrderButtons;
-export const CheckBoxElement = ({ active }: CheckBoxElementPropsType) => {
+export const CheckBoxElement = ({ active }) => {
   return (
     <>
       {active ? (

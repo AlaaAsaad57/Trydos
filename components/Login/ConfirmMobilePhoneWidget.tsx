@@ -1,10 +1,4 @@
 import ConfirmMobile from "components/Cart/ConfirmMobile";
-import {
-  COOKIE_NAMES,
-  deleteCookie,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
 import { ChatConroller, DisableScroll, EnableScroll } from "utils/tinyUtils";
@@ -15,43 +9,44 @@ function ConfirmMobilePhoneWidget() {
     useAppStore();
   useEffect(() => {
     DisableScroll();
-    // let bool = confirm(
-    //   "mounted ConfirmMobilePhoneWidget confirm to copy the reason"
-    // );
-    // if (bool) {
-    //   copyInitialData();
-    // }
+
     return () => {
       EnableScroll();
     };
   }, []);
-  const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+  const userData = useAppStore.getState().userProfile;
   const copyInitialData = async () => {
     let last_verify_date = localStorage.getItem("LAST-VERIFY");
     let last_unauthorized_request = localStorage.getItem(
-      "last_unauthorized_request"
+      "last_unauthorized_request",
     );
     await navigator.clipboard.writeText(
-      JSON.stringify({ last_verify_date, last_unauthorized_request }, null, 2)
+      JSON.stringify({ last_verify_date, last_unauthorized_request }, null, 2),
     );
-    showSuccessNotification("copy success!");
+    showSuccessNotification("copy reason of  verification success!");
   };
 
   return (
     <>
-      <div className="fixed top-0 left-0 w-screen h-screen z-[999999999999998] bg-[#00000080] flex items-center justify-center" />
+      <div className="fixed top-0 left-0 w-screen h-screen z-999999999999998 bg-[#00000080] flex items-center justify-center" />
 
       <div className="w-auto  min-h-[200px] min-w-[350px]  h-auto p-[23px] flex-col items-end justify-center bg-[#f8f8f8] fixed rounded-[10px]  z-[9999999999999999] left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div
           onClick={() => {
             setShouldAuthinticated(false);
-            deleteCookie(COOKIE_NAMES.USER_CHAT);
-            deleteCookie(COOKIE_NAMES.USER_STORIES);
-            deleteCookie(COOKIE_NAMES.USER_ID_HASH);
+            // Clear sub-service tokens via server route
+            fetch("/api/auth/clear-tokens", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                tokens: ["CHAT-TOKEN", "STORIES-TOKEN"],
+              }),
+              credentials: "include",
+            });
             copyInitialData();
             window.location.reload();
           }}
-          className="flex-row cursor-pointer justify-end items-center p-[10px] z-[99999999999] rounded-full  bg-[#0000004d]"
+          className="flex-row cursor-pointer justify-end items-center p-[10px] z-99999999999 rounded-full  bg-[#0000004d]"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -87,12 +82,24 @@ function ConfirmMobilePhoneWidget() {
             </g>
           </svg>
         </div>
+
+        <button
+          onClick={copyInitialData}
+          className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded font-medium"
+        >
+          Copy Data
+        </button>
+
         <ConfirmMobile
           closeWindow={() => {
             setShouldAuthinticated(false);
           }}
           // @ts-ignore
-          hasMobile={userData?.phone !== null && userData?.phone !== 0}
+          hasMobile={
+            userData?.phone !== null &&
+            (userData as any)?.phone !== 0 &&
+            userData?.phone !== "0"
+          }
           goToOrders={() => {
             // equal to success flag when goToOrders trigrred then it means the verification success
 

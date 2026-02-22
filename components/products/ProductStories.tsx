@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { SelectStory } from "store/homepage/actions";
 
 import StoryServiceClass from "services/story";
@@ -9,7 +9,6 @@ import { useAppStore } from "store";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import ProductStoriesSkeleton from "../skeleton/loaders/ProductStoriesSkeleton";
 import { GetProductStories } from "serverRequests/product";
 function ProductStories({ id, children, InitialStoriesData }) {
   const { selectedStory } = useAppStore();
@@ -51,7 +50,7 @@ function ProductStories({ id, children, InitialStoriesData }) {
   const handleWrapperClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // 1. Find the link that was clicked (or the link containing the clicked element)
     const link = (e.target as HTMLElement).closest(
-      ".product-story"
+      ".product-story",
     ) as HTMLElement | null;
 
     // 2. Check if the link exists and is inside this specific wrapper
@@ -61,10 +60,9 @@ function ProductStories({ id, children, InitialStoriesData }) {
 
       setSelectStory(
         StoryServiceClass.configureStory(
-          storiesData.find((s) => String(s.id) === String(id))
-        )
+          storiesData.find((s) => String(s.id) === String(id)),
+        ),
       );
-      console.log("ID from data-id:", id);
 
       // If you want to prevent the page from actually changing:
       // e.preventDefault();
@@ -75,7 +73,7 @@ function ProductStories({ id, children, InitialStoriesData }) {
       {selectedStory && selectedStory?.id && (
         <StoriesContainer stories={storiesData} selectedStory={selectedStory} />
       )}
-      <div className={`stories-row flex-row w-100`} onClick={() => {}}>
+      <div className={`stories-row flex-row w-full`} onClick={() => {}}>
         <HortiznalScrollBar
           id="product-stories-scroll-bar"
           className={`${

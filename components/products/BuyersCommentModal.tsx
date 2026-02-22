@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import BottomSheet from "components/global/BottomSheet";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "react-loading-skeleton";
-import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon";
 import { useAppStore } from "store";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 import { GetProductBuyersComment } from "serverRequests/product";
 import auth from "services/auth";
@@ -47,7 +46,10 @@ function BuyersCommentModal({
       setCommentsData((prev) => [...(prev as any), ...data.comments]);
       OffsetRef.current = data.offset;
     } catch (err) {
-      console.error("Error loading comments:", err);
+      LogError({
+        error: err,
+        scenario: "Error In loadMore in BuyersCommentModal",
+      });
     } finally {
       setLoading(false);
     }
@@ -85,7 +87,10 @@ function BuyersCommentModal({
           <div className="w-full h-auto pb-[80px] flex-col">
             {/* Header */}
             <div className="flex-col px-[12px] gap-[6px]">
-              <BuyersCommentIcon />
+              <img
+                src="/icons/BuyersCommentsIcon.svg"
+                className="w-[30px] h-[30px]"
+              />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
                 {translateFunction("Buyers Comment", language)}
               </span>
@@ -96,14 +101,14 @@ function BuyersCommentModal({
               >
                 {translateFunction(
                   "All Comments Are Genuine From Customers Who Purchased And Actually Received The Product Through",
-                  language
+                  language,
                 )}
                 <span className="bold px-[4px]">trydos</span>
               </p>
             </div>
 
             <div className="w-full px-[12px] bg-[#FFFFFF] py-[11px]">
-              <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
+              <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
 
             {/* Filters */}
@@ -177,7 +182,7 @@ function BuyersCommentModal({
               setActionLoading(true);
               let comment_id = await deleteComment(id);
               setCommentsData(
-                commentsData.filter((node) => node.key !== comment_id)
+                commentsData.filter((node) => node.key !== comment_id),
               );
               setActionLoading(false);
             }}
@@ -186,8 +191,8 @@ function BuyersCommentModal({
               let { commentElement, id } = await editComment(comment);
               setCommentsData(
                 commentsData?.map((node) =>
-                  node.key === id ? commentElement : node
-                )
+                  node.key === id ? commentElement : node,
+                ),
               );
               setActionLoading(false);
             }}

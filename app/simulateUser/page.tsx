@@ -5,7 +5,6 @@ import {
   setCookie,
   getCookie,
   COOKIE_NAMES,
-  deleteCookie,
 } from "utils/cookies/cookie-manager";
 import SessionTimer from "components/Login/SessionTimer";
 import { initializeSessionCheck } from "utils/sessionManager";
@@ -15,6 +14,10 @@ type ParsedPayload = {
   userData?: unknown;
   userChat?: unknown;
   userStories?: unknown;
+  timestamp?: string;
+  scenario?: string;
+  source?: string;
+  type?: string;
   [key: string]: unknown;
 };
 
@@ -50,7 +53,7 @@ const Page = () => {
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setRaw(e.target.value);
     },
-    []
+    [],
   );
 
   const handleParse = useCallback(() => {
@@ -70,39 +73,26 @@ const Page = () => {
         const sessionExpiry = new Date(Date.now() + 30 * 60 * 1000);
         localStorage.setItem("sessionExpiry", sessionExpiry.toISOString());
 
-        // Set cookies with 30-minute expiration
+        // Set auth cookies via server route (HttpOnly)
+        fetch("/api/auth/simulate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userData: parsed.userData,
+            userChat: parsed.userChat,
+            userStories: parsed.userStories,
+            marketToken: (parsed as any).marketToken,
+            deviceToken: (parsed as any).deviceToken,
+          }),
+          credentials: "include",
+        });
+
+        // Set non-auth cookies directly
         const cookieOptions = {
           expires: sessionExpiry,
-          maxAge: 30 * 60, // 30 minutes in seconds
+          maxAge: 30 * 60,
         };
 
-        if (parsed.userData !== undefined) {
-          setCookie(COOKIE_NAMES.USER_DATA, parsed.userData, cookieOptions);
-        }
-        if (parsed.userChat !== undefined)
-          setCookie(COOKIE_NAMES.USER_CHAT, parsed.userChat, cookieOptions);
-        else deleteCookie(COOKIE_NAMES.USER_CHAT);
-        if (parsed.userStories !== undefined)
-          setCookie(
-            COOKIE_NAMES.USER_STORIES,
-            parsed.userStories,
-            cookieOptions
-          );
-        else deleteCookie(COOKIE_NAMES.USER_STORIES);
-        if (parsed.marketToken !== undefined)
-          setCookie(
-            COOKIE_NAMES.MARKET_TOKEN,
-            parsed.marketToken,
-            cookieOptions
-          );
-        else deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-        if (parsed.deviceToken !== undefined)
-          setCookie(
-            COOKIE_NAMES.DEVICE_TOKEN,
-            parsed.deviceToken,
-            cookieOptions
-          );
-        deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
         // Set country and language cookies if provided in payload
         const countryVal = (parsed as any)?.country;
         const languageVal = (parsed as any)?.language;
@@ -121,7 +111,7 @@ const Page = () => {
           });
         } catch {}
         alert(
-          "Done...You Can Now Browse the Site as User ..check Last Page Paths below"
+          "Done...You Can Now Browse the Site as User ..check Last Page Paths below",
         );
       }
     } catch (err: any) {
@@ -150,7 +140,7 @@ const Page = () => {
       </p>
       <textarea
         aria-label="Error JSON payload"
-        className="text-[#1d1d1d] min-h-56 w-full resize-y rounded-md border border-gray-300 p-3 font-mono text-sm outline-none focus:ring-2 focus:ring-blue-500"
+        className="text-[#1d1d1d] min-h-56 w-full resize-y rounded-md border border-gray-300 p-3 font-mono text-sm outline-hidden focus:ring-2 focus:ring-blue-500"
         value={raw}
         onChange={handleChange}
       />
@@ -175,11 +165,37 @@ const Page = () => {
             return (
               <div className="md:col-span-2">
                 <span
-                  className="block max-w-full break-words whitespace-pre-wrap items-center rounded-full bg-red-100 px-3 py-1 text-[20px] font-medium text-red-800"
+                  className="block max-w-full wrap-break-word whitespace-pre-wrap items-center rounded-full bg-red-100 px-3 py-1 text-[20px] font-medium text-red-800"
                   aria-label="Parsed message"
                 >
                   {messageText}
                 </span>
+              </div>
+            );
+          })()}
+          {/* Error Metadata: timestamp, scenario, type */}
+          {(() => {
+            const ts = (preview as any)?.timestamp;
+            const scenario =
+              (preview as any)?.scenario ??
+              (preview as any)?.source ??
+              (preview as any)?.type;
+            if (!ts && !scenario) return null;
+            return (
+              <div
+                className="md:col-span-2 flex flex-wrap gap-3"
+                aria-label="Error metadata"
+              >
+                {ts ? (
+                  <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+                    {new Date(ts).toLocaleString()}
+                  </span>
+                ) : null}
+                {scenario ? (
+                  <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
+                    {String(scenario)}
+                  </span>
+                ) : null}
               </div>
             );
           })()}
@@ -199,7 +215,7 @@ const Page = () => {
           })()}
           {/* All Parsed Fields */}
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:col-span-2 min-w-0"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs md:col-span-2 min-w-0"
             role="region"
             aria-label="All Parsed Fields"
             tabIndex={0}
@@ -207,7 +223,7 @@ const Page = () => {
             <div className="mb-2 text-sm font-semibold text-gray-900">
               All Parsed Fields
             </div>
-            <div className="overflow-y-auto overflow-x-hidden rounded border border-gray-100 w-full max-w-full">
+            <div className="overflow-y-auto overflow-x-hidden rounded-sm border border-gray-100 w-full max-w-full">
               <table className="table-fixed w-full max-w-full text-left text-xs">
                 <thead className="bg-gray-50 text-gray-600">
                   <tr>
@@ -229,7 +245,7 @@ const Page = () => {
                         {key}
                       </td>
                       <td className="px-3 py-2 align-top text-gray-900 break-all">
-                        <span className="block max-w-full break-words whitespace-pre-wrap font-mono  break-all">
+                        <span className="block max-w-full wrap-break-word whitespace-pre-wrap font-mono  break-all">
                           {value}
                         </span>
                       </td>
@@ -240,55 +256,91 @@ const Page = () => {
             </div>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs"
             role="region"
             aria-label="User Data"
           >
             <div className="mb-2 text-sm font-semibold text-gray-900">
               User Data
             </div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.userData ?? null, null, 2)}
             </pre>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs text-[#1d1d1d]"
             role="region"
             aria-label="User Chat"
           >
             <div className="mb-2 text-sm font-semibold text-gray-900">
               User Chat
             </div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.userChat ?? null, null, 2)}
             </pre>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs text-[#1d1d1d]"
             role="region"
             aria-label="User Stories"
           >
             <div className="mb-2 text-sm font-semibold text-gray-900">
               User Stories
             </div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.userStories ?? null, null, 2)}
             </pre>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs text-[#1d1d1d]"
             role="region"
             aria-label="last_request"
           >
             <div className="mb-2 text-sm font-semibold text-gray-900">
-              last_request
+              Last API Request
             </div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.last_request ?? null, null, 2)}
             </pre>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs text-[#1d1d1d]"
+            role="region"
+            aria-label="Error Page URL"
+          >
+            <div className="mb-2 text-sm font-semibold text-gray-900">
+              Error Context
+            </div>
+            <div className="text-xs text-gray-700 space-y-1">
+              <div>
+                Page URL:{" "}
+                <span className="font-mono break-all">
+                  {String(
+                    (preview as any)?.url ??
+                      (preview as any)?.current_url ??
+                      (preview as any)?.page ??
+                      "",
+                  ) || "—"}
+                </span>
+              </div>
+              <div>
+                User Agent:{" "}
+                <span className="font-mono break-all">
+                  {String((preview as any)?.user_agent ?? "") || "—"}
+                </span>
+              </div>
+              {(preview as any)?.stack ? (
+                <div>
+                  <div className="font-semibold mt-2 mb-1">Stack Trace:</div>
+                  <pre className="max-h-32 overflow-auto whitespace-pre-wrap rounded-sm bg-red-50 p-2 text-xs text-red-800">
+                    {String((preview as any).stack)}
+                  </pre>
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs text-[#1d1d1d]"
             role="region"
             aria-label="Language and Country"
           >
@@ -311,7 +363,7 @@ const Page = () => {
             </div>
           </div>
           <div
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:col-span-2 text-[#1d1d1d]"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs md:col-span-2 text-[#1d1d1d]"
             role="region"
             aria-label="Last Paths"
           >
@@ -342,7 +394,7 @@ const Page = () => {
                   <a
                     key={`${p}-${i}`}
                     href={href}
-                    className="text-blue-600 underline underline-offset-2 break-all hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                    className="text-blue-600 underline underline-offset-2 break-all hover:text-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 rounded-sm"
                     aria-label={`Open ${p} on same origin`}
                   >
                     {p}

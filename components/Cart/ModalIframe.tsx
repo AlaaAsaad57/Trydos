@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
+import { LogError } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 
 const LoadingColorSvg = ({ w = "14", h = "14", loading = false }) => {
@@ -77,6 +78,11 @@ const ModalIframe = ({
               setOrderData({ data: response.data, success: true });
             }
           } catch (err) {
+            LogError({
+              error: err,
+              scenario: "handleMessage for crypto modal widget",
+              cart_group_id: cart?.[0]?.cart_group_id,
+            });
             console.error(err);
           }
         }
@@ -90,9 +96,9 @@ const ModalIframe = ({
     };
   }, []);
   return (
-    <div className="relative w-[100%] h-[100%] justify-center content-center ">
-      <div className="relative flex w-[100%] h-[100%]  flex-grow flex-col items-center justify-start">
-        <div className="absolute top-0 right-0 p-2 z-[9999]">
+    <div className="relative w-full h-full justify-center content-center ">
+      <div className="relative flex w-full h-full  grow flex-col items-center justify-start">
+        <div className="absolute top-0 right-0 p-2 z-9999">
           <button
             onClick={async () => {
               if (iframeRef.current) {
@@ -112,6 +118,11 @@ const ModalIframe = ({
                     setOrderData({ data: response.data, success: true });
                   }
                 } catch (err) {
+                  LogError({
+                    error: err,
+                    scenario: "close function for crypto modal widget",
+                    cart_group_id: cart?.[0]?.cart_group_id,
+                  });
                   console.error(err);
                 }
               }
@@ -122,7 +133,7 @@ const ModalIframe = ({
           </button>
         </div>
         {isLoading && (
-          <div className="absolute inset-0 flex items-center w-full h-full overflow-hidden justify-center bg-white bg-opacity-75 z-[999]">
+          <div className="absolute inset-0 flex items-center w-full h-full overflow-hidden justify-center bg-white bg-opacity-75 z-999">
             <LoadingColorSvg loading={isLoading} />
           </div>
         )}

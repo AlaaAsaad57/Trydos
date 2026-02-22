@@ -1,27 +1,31 @@
 import "styles/globals.css";
 import "styles/home.css";
+
 import localFont from "next/font/local";
+import dynamic from "next/dynamic";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
-import PathTracker from "components/PathTracker";
-import SessionChecker from "components/SessionChecker";
-import SessionTimer from "components/Login/SessionTimer";
 import CartProvider from "components/Cart/CartProvider";
 import Init from "components/Home/Init";
-import NotificationsContainer from "components/global/NotificationsContainer";
 import AuthNavContainer from "components/Home/AuthNavContainer";
-import VersionChecker from "components/global/VersionChecker";
 import NavbarClient from "components/Home/NavbarClient";
-import dynamic from "next/dynamic";
 import PageLoadingIndicator from "hooks/PageLoadingIndicator";
+import Organaization from "serverRequests/meta/StructuredData/Organaization";
+import Website from "serverRequests/meta/StructuredData/Website";
+import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
+// remove dynamic and use direct import
+// Non-critical layout components — loaded after hydration
+import PathTracker from "components/PathTracker";
+import SessionChecker from "components/SessionChecker";
+import VersionChecker from "components/global/VersionChecker";
+import SessionTimer from "components/Login/SessionTimer";
+import NotificationsContainer from "components/global/NotificationsContainer";
 
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_REMOTE_FRONT || "https://trydos.vercel.app"
-  ),
+  metadataBase: new URL(General_Site_Data.url),
 };
 export const viewport = {
   width: "device-width",
@@ -29,11 +33,13 @@ export const viewport = {
   maximumScale: 1.0,
   userScalable: false,
 };
+// Each weight gets its own CSS variable so existing CSS (font-family: var(--Quicksand-*)) keeps working.
+// Next.js injects these variables onto <html> via the className applied below.
 const quicksand_regular = localFont({
   src: "../../../public/fonts/Quicksand-Regular.woff2",
   variable: "--Quicksand-Regular",
   display: "swap",
-  preload: false,
+  preload: true,
   fallback: ["system-ui", "arial"],
 });
 const quicksand_light = localFont({
@@ -70,16 +76,19 @@ export default async function RootLayout({ params, children }) {
   const [country, language] = lang.split("-");
   return (
     <html
-      className={`
-      ${quicksand_regular.variable}
-      ${quicksand_light.variable}
-      ${quicksand_medium.variable}
-      ${quicksand_bold.variable}
-      ${quicksand_semibold.variable}
-      font-sans overflow-x-hidden`}
+      className={[
+        quicksand_regular.variable,
+        quicksand_light.variable,
+        quicksand_medium.variable,
+        quicksand_bold.variable,
+        quicksand_semibold.variable,
+        "overflow-x-hidden",
+      ].join(" ")}
       lang={lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
     >
       <head>
+        <Organaization local={lang} />
+        <Website local={lang} />
         <Script
           strategy="lazyOnload"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
@@ -110,7 +119,7 @@ export default async function RootLayout({ params, children }) {
       <body className={lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <SpeedInsights />
         <div className="site-container items-center">
-          <div className="home-navbar z-[999999996] duration-[1s] max-w-[1365px] min-h-[98px]  px-[20px] pt-[52px] bg-white flex-row items-start w-full justify-start">
+          <div className="home-navbar z-999999996 duration-1000 max-w-[1365px] min-h-[98px]  px-[20px] pt-[52px] bg-white flex-row items-start w-full justify-start">
             <a href={`/`} aria-label="TryDos Home" data-cy="NavLogo">
               <div className="logo-container" data-cy="storeLogo">
                 <img
@@ -119,7 +128,7 @@ export default async function RootLayout({ params, children }) {
                   width={130}
                   height={36}
                   loading="eager"
-                  src="/svg/Logo.svg"
+                  src="/icons/Logo.svg"
                 />
               </div>
             </a>

@@ -1,10 +1,5 @@
-import React, { useState } from "react";
-import BackIcon from "public/svg/listing/backIcon";
-import OptionsIcon from "public/svg/OptionsIcon";
 import { translateFunction } from "utils/functions";
-
 import { useAppStore } from "store";
-import { SettingTopBarPropsType } from "models/componentType/settingTypes/SettingTopBarPrpsType";
 import { DisableScroll } from "utils/tinyUtils";
 
 function SettingTopBar({
@@ -15,7 +10,7 @@ function SettingTopBar({
   Icon,
   DataCy,
   validateFunction,
-}: SettingTopBarPropsType) {
+}: any) {
   const { setOrderOptions, language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
   return (
@@ -34,7 +29,7 @@ function SettingTopBar({
           onClick={() => goBack()}
           data-cy={(DataCy && `${DataCy}-back-button`) || "back-button"}
         >
-          <BackIcon />
+          <img src="/icons/backIcon.svg" />
         </span>
         <div className="flex-row gap-[4px] items-center">
           {Icon || <></>}
@@ -58,7 +53,8 @@ function SettingTopBar({
 
           {hasOptions && (
             <>
-              <OptionsIcon
+              <img
+                src="/icons/OptionsIcon.svg"
                 onClick={() => {
                   DisableScroll();
 

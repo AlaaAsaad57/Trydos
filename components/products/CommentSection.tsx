@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import CommentBar from "./CommentBar";
 import { useParams } from "next/navigation";
 
@@ -34,10 +34,8 @@ function CommentSection({ product_data }) {
         item_id: product_data?.id,
         item_name: product_data?.name,
         brand_id: product_data?.brand?.id,
-        category:
-          product_data?.category?.name || product_data?.categories?.[0]?.name,
-        category_id:
-          product_data?.category?.id || product_data?.categories?.[0]?.id,
+        category: product_data?.categories?.[0]?.name,
+        category_id: product_data?.categories?.[0]?.id,
         brand: product_data?.brand?.name,
         price: product_data?.offer_price,
       },
@@ -60,6 +58,10 @@ function CommentSection({ product_data }) {
       setLoading(false);
       setIsLoading(false);
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In getMoreComments in CommentSection",
+      });
       setIsLoading(false);
       setLoading(false);
     }

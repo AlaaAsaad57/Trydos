@@ -1,6 +1,6 @@
 import React from "react";
 import { useAppStore } from "store";
-import { getCart, translateFunction } from "utils/functions";
+import { getCart, LogError, translateFunction } from "utils/functions";
 import { RemoveIconHolder } from "./Button";
 import cart from "services/cart";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
@@ -29,44 +29,15 @@ function NotifyButton({
     return num;
   };
   const isVariantInCart = ({ exact }) => {
-    if (product?.variation?.length === 0)
-      return localCart?.find((s) => s.id === id);
-    let cartIem = getLocalCartItem();
-    if (cartIem) return cartIem;
+    if (!product?.variation?.length) return localCart?.find((s) => s.id === id);
+    let cartItem = getLocalCartItem();
+    if (cartItem) return cartItem;
     if (exact) return localCart?.find((s) => s.id === id);
   };
   const getLocalCartItem = () => {
-    if (colors?.length > 0 && sizes?.length > 0) {
-      return localCart.find(
-        (s) =>
-          s.id === id &&
-          (s.color === selectedColor?.color_option ||
-            s.color ===
-              product?.colors?.find(
-                (cl) =>
-                  cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.selected_option
-              )?.color) &&
-          s.size === (selectedSize?.option ?? selectedSize)
-      );
-    }
-    if (colors?.length > 0) {
-      return localCart.find(
-        (s) =>
-          s.id === id &&
-          (s.color === selectedColor?.color_option ||
-            s.color ===
-              product?.colors?.find(
-                (cl) =>
-                  cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.selected_option
-              )?.color)
-      );
-    }
-    if (sizes?.length > 0) {
-      return localCart.find(
-        (s) => s.id === id && s.size === (selectedSize?.option ?? selectedSize)
-      );
+    const pvid = selectedVariant?.product_variation_id ?? selectedVariant?.id;
+    if (pvid) {
+      return localCart.find((s) => s.product_variation_id === pvid);
     }
     return null;
   };
@@ -92,8 +63,8 @@ function NotifyButton({
         setLoading(false);
         await updateQuantity(
           true,
-          isVariantInCart({ exact: true })?.type,
-          "decrease"
+          isVariantInCart({ exact: true })?.product_variation_id,
+          "decrease",
         );
       } else if (isVariantInCart({ exact: true })?.quantity === 1) {
         setLoading(true);
@@ -109,7 +80,7 @@ function NotifyButton({
               {
                 item_id: product.id,
                 item_name: product.name,
-                item_variant: variant?.type,
+                item_variant: variant?.product_variation_id ?? variant?.id,
                 quantity: 1,
                 price: variant?.offer_price,
               },
@@ -123,12 +94,18 @@ function NotifyButton({
         setLoading(false);
         await updateQuantity(
           true,
-          isVariantInCart({ exact: true })?.type,
-          "decrease"
+          isVariantInCart({ exact: true })?.product_variation_id,
+          "decrease",
         );
       }
     } catch (error) {
-      console.log("decrease", error);
+      LogError({
+        error: error,
+        scenario: "decrase qty button - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+        variant,
+      });
       await updateQuantity(false);
       setLoading(false);
     }
@@ -362,11 +339,13 @@ function NotifyButton({
           </div>
           {isNotified ? (
             <span id="text-request-response">
-              {translateFunction("We Will Inform You When Size Is Available")}
+              {translateFunction(
+                "We Will Inform You When Variant Is Available",
+              )}
             </span>
           ) : (
             <span id="text-request-response">
-              {translateFunction("Notify Me When Size Is Available")}
+              {translateFunction("Notify Me When Variant Is Available")}
             </span>
           )}
         </div>
@@ -400,7 +379,7 @@ const ButtonBorder = () => {
 const NotificationIconHolder = ({ isNotified }) => {
   return (
     <>
-      <div className="bagIcon w-[55px] h-[55px] z-40 rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-[#fff] p-[7px] flex-row justify-start items-end absolute top-[-33px] right-[-33px]">
+      <div className="bagIcon w-[55px] h-[55px] z-40 rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-white p-[7px] flex-row justify-start items-end absolute top-[-33px] right-[-33px]">
         {isNotified ? (
           <svg
             xmlns="http://www.w3.org/2000/svg"

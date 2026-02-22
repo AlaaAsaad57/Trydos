@@ -1,25 +1,30 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  GetGlobalProduct,
+  GetProductPriceQtyDetails,
+} from "serverRequests/product";
 import { getProductFromCache, storeProduct } from "serverRequests/radis";
 import {
   GetProductData,
   getProductDataFromElastic,
 } from "utils/pagesDataRequests/ProductPageData";
+import { LogServerError } from "utils/serverErrorReporter";
 
 // Apply CORS headers to any response
 function withCORS(res: NextResponse) {
   res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set(
     "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
+    "GET, POST, PUT, DELETE, OPTIONS",
   );
   res.headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
+    "Content-Type, Authorization",
   );
   res.headers.set(
     "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate"
+    "no-store, no-cache, must-revalidate, proxy-revalidate",
   );
   res.headers.set("Pragma", "no-cache");
   res.headers.set("Expires", "0");
@@ -39,27 +44,28 @@ export async function GET(request: NextRequest, { params }) {
   let language = request.headers.get("language")?.trim();
   const lang = request.headers.get("lang")?.trim();
   language = language ?? lang ?? "en";
+  const noCache = request.nextUrl.searchParams.get("no_cache") === "true";
   let productDataVar;
+  let GlobalData = GetGlobalProduct({
+    slug: Params.slug,
+    language: language,
+    country: country,
+  });
+  let QtyPricesData = GetProductPriceQtyDetails({
+    slug: Params.slug,
+    language: language,
+    country: country,
+    noCache: noCache,
+  });
+  let [GlobalDataResponse, QtyPricesDataResponse] = await Promise.all([
+    GlobalData,
+    QtyPricesData,
+  ]);
   try {
-    const response = await getProductFromCache(Params.slug, language, country);
-    if (response.product?.id) {
-      productDataVar = { ...response.product, redis: true };
-    } else {
-      let { product: productData } = await GetProductData({
-        lang: `${country}-${language}`,
-        productId: Params.slug,
-      });
-
-      if (productData?.id && productData?.images) {
-        storeProduct(productData, Params.slug, language, country);
-      }
-
-      productDataVar = {
-        ...productData,
-
-        redis: false,
-      };
-    }
+    productDataVar = {
+      ...GlobalDataResponse,
+      ...QtyPricesDataResponse,
+    };
 
     const user_id = request.nextUrl.searchParams.get("user_id");
     let elasticData = await getProductDataFromElastic({
@@ -75,16 +81,25 @@ export async function GET(request: NextRequest, { params }) {
           isSuccessful: true,
           code: 200,
         },
-        { status: 200 }
-      )
+        { status: 200 },
+      ),
     );
   } catch (error) {
-    console.error("***** fetch failed *****", error);
+    console.error("Get Product Details with Cache api route", error);
+    LogServerError(
+      {
+        error: error,
+        type: "product details api route",
+        url: request.url,
+        headers: request.headers,
+      },
+      "/api/mobile/product/details/[slug]",
+    );
     return withCORS(
       NextResponse.json(
         { isSuccessful: false, error, code: 500 },
-        { status: 500 }
-      )
+        { status: 500 },
+      ),
     );
   }
 }

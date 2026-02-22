@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import ShareIcon from "public/svg/listing/shareIcon";
 
 function ShareBoutiquePageButton() {
   return (
@@ -18,7 +17,7 @@ function ShareBoutiquePageButton() {
         }
       }}
     >
-      <ShareIcon data-cy="share_ortion_svg" />
+      <img src="/icons/shareIcon.svg" data-cy="share_ortion_svg" />
     </div>
   );
 }

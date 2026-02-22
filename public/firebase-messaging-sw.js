@@ -17,12 +17,10 @@ const GetImageUrl = (url) => {
 };
 // Skip waiting and claim clients immediately
 self.addEventListener("install", (event) => {
-  console.log("Service worker installing...");
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  console.log("Service worker activating...");
   event.waitUntil(
     caches
       .keys()
@@ -30,23 +28,22 @@ self.addEventListener("activate", (event) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (cacheName !== CACHE_VERSION) {
-              console.log("Deleting old cache:", cacheName);
               return caches.delete(cacheName);
             }
-          })
+          }),
         );
       })
       .then(() => {
         return self.clients.claim();
-      })
+      }),
   );
 });
 
 importScripts(
-  "https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"
+  "https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js",
 );
 importScripts(
-  "https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js"
+  "https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js",
 );
 
 const firebaseConfig = {
@@ -119,19 +116,10 @@ async function sendToForeground(payload) {
 
 messaging.onBackgroundMessage(async function (payload) {
   try {
-    console.log("📱 FCM payload received:", payload);
-
     // Check if any tabs are open
     const sentToForeground = await sendToForeground(payload);
 
-    if (sentToForeground) {
-      console.log(
-        "✅ Notification sent to foreground, skipping background notification"
-      );
-    }
-
     // If no tabs are open, proceed with background notifications
-    console.log("📋 No open tabs, showing background notification");
 
     if (payload.data.title === "market") {
       if (JSON.parse(payload.data.body).type === "boutique created") {
@@ -143,13 +131,13 @@ messaging.onBackgroundMessage(async function (payload) {
             url: buildUrl(
               `filters/boutiques/${
                 JSON.parse(payload?.data.body)?.boutique_slug
-              }`
+              }`,
             ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ?? "New Boutique",
-          notificationOptions
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "category created") {
@@ -161,13 +149,13 @@ messaging.onBackgroundMessage(async function (payload) {
             url: buildUrl(
               `filters/categories/${
                 JSON.parse(payload?.data.body).category_slug
-              }`
+              }`,
             ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ?? "New Category",
-          notificationOptions
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "product cart expiration") {
@@ -180,7 +168,7 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             "product cart expiration",
-          notificationOptions
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "product availability") {
@@ -189,13 +177,13 @@ messaging.onBackgroundMessage(async function (payload) {
           image: JSON.parse(payload.data.body).image,
           data: {
             url: buildUrl(
-              `products/${JSON.parse(payload.data.body).product_slug}`
+              `products/${JSON.parse(payload.data.body).product_slug}`,
             ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type,
-          notificationOptions
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type?.includes("product hurry up")) {
@@ -208,7 +196,7 @@ messaging.onBackgroundMessage(async function (payload) {
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type,
-          notificationOptions
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "product discount") {
@@ -217,14 +205,14 @@ messaging.onBackgroundMessage(async function (payload) {
           image: JSON.parse(payload.data.body).image,
           data: {
             url: buildUrl(
-              `products/${JSON.parse(payload.data.body).product_slug}`
+              `products/${JSON.parse(payload.data.body).product_slug}`,
             ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "product comment") {
@@ -233,14 +221,14 @@ messaging.onBackgroundMessage(async function (payload) {
           image: JSON.parse(payload.data.body).image,
           data: {
             url: buildUrl(
-              `products/${JSON.parse(payload.data.body).product_slug}`
+              `products/${JSON.parse(payload.data.body).product_slug}`,
             ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "product before stock out") {
@@ -249,14 +237,14 @@ messaging.onBackgroundMessage(async function (payload) {
           image: JSON.parse(payload.data.body).image,
           data: {
             url: buildUrl(
-              `products/${JSON.parse(payload.data.body).product_slug}`
+              `products/${JSON.parse(payload.data.body).product_slug}`,
             ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions
+          notificationOptions,
         );
       }
       if (
@@ -267,14 +255,14 @@ messaging.onBackgroundMessage(async function (payload) {
           image: JSON.parse(payload.data.body).image,
           data: {
             url: buildUrl(
-              `products/${JSON.parse(payload.data.body).product_slug}`
+              `products/${JSON.parse(payload.data.body).product_slug}`,
             ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "order placed") {
@@ -288,7 +276,7 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions
+          notificationOptions,
         );
       }
       if (
@@ -301,14 +289,14 @@ messaging.onBackgroundMessage(async function (payload) {
             url: buildUrl(
               `setting?tab=Orders&id=${
                 JSON.parse(payload.data.body).order_group_id
-              }`
+              }`,
             ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions
+          notificationOptions,
         );
       }
     } else if (
@@ -343,7 +331,7 @@ messaging.onBackgroundMessage(async function (payload) {
       };
       self.registration.showNotification(
         notificationTitle,
-        notificationOptions
+        notificationOptions,
       );
     } else if (payload.data.type === "message") {
       let notificationTitle = JSON.parse(payload.data.data).message.sender_user
@@ -360,7 +348,7 @@ messaging.onBackgroundMessage(async function (payload) {
               }&order_id_chat=${
                 JSON.parse(payload?.data?.data).parent_order_id ??
                 JSON.parse(payload?.data?.data).order_id
-              }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}`
+              }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}`,
             ),
           },
         };
@@ -453,7 +441,7 @@ messaging.onBackgroundMessage(async function (payload) {
       if (notificationOptions.body)
         self.registration.showNotification(
           notificationTitle,
-          notificationOptions
+          notificationOptions,
         );
     }
   } catch (error) {
@@ -488,7 +476,7 @@ self.addEventListener("notificationclick", function (event) {
           if (clients.openWindow) {
             return clients.openWindow(baseUrl);
           }
-        })
+        }),
       ); // Default URL (if any)
       break;
     case "reply":
@@ -509,7 +497,7 @@ self.addEventListener("notificationclick", function (event) {
             if (clients.openWindow) {
               return clients.openWindow(targetUrl);
             }
-          })
+          }),
       );
       event.notification.close();
       break;

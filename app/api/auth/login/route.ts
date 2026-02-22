@@ -1,222 +1,259 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-
 import {
   LOG_IN_CHAT_ENDPOINT,
   LOG_IN_STORIES_ENDPOINT,
   LOG_IN_COMMENTS_ENDPOINT,
   VERIFY_OTP_ENDPOINT,
+  LOG_IN_WALLET_ENDPOINT,
 } from "utils/fetch/Endpoints";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { LogServerError } from "utils/serverErrorReporter";
+import {
+  SECURE_COOKIE_OPTIONS,
+  setSecureCookieJSON,
+  sanitizeUserData,
+  sanitizeServiceUser,
+} from "utils/server/tokenManager";
+
+// Helper to handle sub-service fetches safely
+async function safeServiceLogin(url: string, body: any) {
+  try {
+    // Wallet login: add signature and API key if endpoint matches
+    let headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+    if (url.includes(LOG_IN_WALLET_ENDPOINT)) {
+      headers["X-merchant-api-key"] = process.env.WALLET_PUBLIC_API_KEY;
+    }
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+      credentials: "omit",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch((e) => {
+        LogServerError(
+          { error: e, type: "login api route", url, body },
+          "/api/auth/login",
+        );
+        return {};
+      });
+      return { success: false, status: response.status, data: errorData };
+    }
+
+    const data = await response.json();
+    return { success: true, status: 200, data };
+  } catch (err) {
+    LogServerError({ error: err, type: "login api route", url, body });
+    return { success: false, status: 503, error: err.message };
+  }
+}
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    // Get country and language from headers
+    // 1. Initial Headers and Params
     const country = request.headers.get("country")?.trim() || "sy";
-    let language = request.headers.get("language")?.trim();
-    const lang = request.headers.get("lang")?.trim();
-    language = language ?? lang ?? "en";
-    let cookiesStore = await cookies();
-    let guest_token =
+    const language =
+      request.headers.get("language")?.trim() ||
+      request.headers.get("lang")?.trim() ||
+      "en";
+    const cookiesStore = await cookies();
+    const guest_token =
       cookiesStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ||
       cookiesStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ||
       "";
 
-    let searchParams = request.nextUrl.searchParams;
-    let verificationId = searchParams.get("verificationId");
-    let otp = searchParams.get("otp");
-    let name = searchParams.get("name");
+    const { searchParams } = request.nextUrl;
+    const verificationId = searchParams.get("verificationId");
+    const otp = searchParams.get("otp");
+    const name = searchParams.get("name");
+
     if (!verificationId || !otp) {
       return NextResponse.json(
-        { error: "Bad Request", message: "Missing required query parameters" },
-        { status: 400 }
+        { error: "Bad Request", message: "Missing params" },
+        { status: 400 },
       );
     }
-    let newSearchParams = new URLSearchParams();
-    newSearchParams.append("verificationId", verificationId);
-    newSearchParams.append("otp", otp);
-    if (name && name?.length > 0) {
-      newSearchParams.append("name", name);
-    }
-    let url =
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-      VERIFY_OTP_ENDPOINT +
-      `?${newSearchParams.toString()}`;
-    let fetch_req = await fetch(url, {
-      method: "GET",
+
+    // 2. Primary OTP Verification (Critical Path)
+    const otpUrl = `${
+      process.env.NEXT_PUBLIC_BACKEND_URL
+    }${VERIFY_OTP_ENDPOINT}?verificationId=${verificationId}&otp=${otp}${
+      name ? `&name=${name}` : ""
+    }`;
+    const otpRes = await fetch(otpUrl, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${guest_token}`,
-        country: country,
-        language: language,
+        country,
+        language,
       },
-      credentials: "omit",
     });
-    let otp_response = await fetch_req.json();
 
-    if (fetch_req.status !== 200) {
-      return NextResponse.json(
-        { ...otp_response, request: VERIFY_OTP_ENDPOINT },
-        {
-          status: fetch_req.status,
-          headers: {
-            "Cache-Control":
-              "no-store, no-cache, must-revalidate, proxy-revalidate",
-            Pragma: "no-cache",
-            Expires: "0",
-            "Surrogate-Control": "no-store",
-          },
-        }
-      );
+    const otp_response = await otpRes.json();
+    if (!otpRes.ok) {
+      LogServerError({ error: otp_response, type: "verify login api route" });
+      return NextResponse.json(otp_response, { status: otpRes.status });
     }
 
-    let MainToken = otp_response.data.token;
-    let idToken = otp_response?.data?.id_token;
-    let InventoryUser = {
-      ...otp_response.data.user,
-      already_exists: otp_response.data.already_exists,
-    };
+    const {
+      token: MainToken,
+      id_token: idToken,
+      user: InventoryUser,
+    } = otp_response.data;
 
-    const [chatLoginResponse, StoriesLoginResponse, CommentLoginResponse] =
-      await Promise.all([
-        fetch(process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + LOG_IN_CHAT_ENDPOINT, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            otp_id_token: String(idToken),
-            mobile_phone: String(InventoryUser.phone),
-            name: String(name || InventoryUser.name),
-            original_user_id: String(InventoryUser.id),
-          }),
-          credentials: "omit",
-        }),
-        fetch(
-          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              otp_id_token: idToken,
-              mobile_phone: InventoryUser.phone,
-            }),
-            credentials: "omit",
-          }
-        ),
-        fetch(
-          process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL +
-            LOG_IN_COMMENTS_ENDPOINT,
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              user_id: String(InventoryUser.id),
-              phone: String(InventoryUser.phone),
-              id_token: idToken,
-            }),
-            credentials: "omit",
-          }
-        ),
-      ]);
-    let is_failed = [];
-    let [chat_response, stories_response, comment_response] = await Promise.all(
-      [
-        chatLoginResponse.json(),
-        StoriesLoginResponse.json(),
-        CommentLoginResponse.json(),
-      ]
-    );
-
-    if (!chatLoginResponse.ok) {
-      is_failed.push({
-        ...(chat_response ?? {}),
-        body: {
+    // 3. Sub-service Logins (Resilient Path)
+    const [chatRes, storiesRes, commentRes, walletRes] = await Promise.all([
+      safeServiceLogin(
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + LOG_IN_CHAT_ENDPOINT,
+        {
           otp_id_token: String(idToken),
           mobile_phone: String(InventoryUser.phone),
           name: String(name || InventoryUser.name),
           original_user_id: String(InventoryUser.id),
         },
-        request_url:
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + LOG_IN_CHAT_ENDPOINT,
-        request: LOG_IN_CHAT_ENDPOINT,
-        status: StoriesLoginResponse.status,
-      });
-    }
-    if (StoriesLoginResponse.status !== 200) {
-      is_failed.push({
-        ...stories_response,
-        request: LOG_IN_STORIES_ENDPOINT,
-        status: chatLoginResponse.status,
-      });
-    }
-    if (CommentLoginResponse.status !== 200) {
-      is_failed.push({
-        ...comment_response,
-        request: LOG_IN_COMMENTS_ENDPOINT,
-        status: CommentLoginResponse.status,
-      });
-    }
+      ),
+      safeServiceLogin(
+        process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
+        {
+          otp_id_token: idToken,
+          mobile_phone: InventoryUser.phone,
+        },
+      ),
+      safeServiceLogin(
+        process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL + LOG_IN_COMMENTS_ENDPOINT,
+        {
+          user_id: String(InventoryUser.id),
+          phone: String(InventoryUser.phone),
+          id_token: idToken,
+        },
+      ),
+      safeServiceLogin(
+        process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + LOG_IN_WALLET_ENDPOINT,
+        {
+          otp_id_token: idToken,
+          mobile_phone: InventoryUser.phone,
+        },
+      ),
+    ]);
 
-    let ChatUser = chat_response?.data ?? null;
-    let StoriesUser = stories_response?.data ?? null;
-    let ChatToken = chat_response?.data?.access_token ?? null;
-    let StoriesToken = stories_response?.data?.access_token ?? null;
-    let CommentToken = comment_response?.comments_token ?? null;
-    let finalResponse = {
-      ...otp_response,
-      ChatUser,
-      StoriesUser,
-    };
-    if (is_failed?.length) {
-      finalResponse = { ...finalResponse, is_failed };
+    // 4. Collect Failures and Extract Tokens
+    const failures = [];
+    if (!chatRes.success)
+      failures.push({
+        endpoint: "CHAT",
+        ...chatRes,
+        user_id: String(InventoryUser?.id),
+        phone: String(InventoryUser.phone),
+      });
+    if (!storiesRes.success)
+      failures.push({
+        endpoint: "STORIES",
+        ...storiesRes,
+        user_id: String(InventoryUser?.id),
+        phone: String(InventoryUser.phone),
+      });
+    if (!commentRes.success)
+      failures.push({
+        endpoint: "COMMENTS",
+        ...commentRes,
+        user_id: String(InventoryUser?.id),
+        phone: String(InventoryUser.phone),
+      });
+    if (!walletRes.success) {
+      failures.push({
+        endpoint: "WALLET",
+        ...walletRes,
+      });
     }
-    const tokenCookies = [
+    // 5. Set token cookies as HttpOnly (tokens NEVER reach client JS)
+    const tokensToSet = [
       { name: COOKIE_NAMES.MARKET_TOKEN, value: MainToken },
-      { name: COOKIE_NAMES.CHAT_TOKEN, value: ChatToken },
-      { name: COOKIE_NAMES.STORIES_TOKEN, value: StoriesToken },
-      { name: COOKIE_NAMES.USER_ID_HASH, value: CommentToken },
+      {
+        name: COOKIE_NAMES.WALLET_TOKEN,
+        value: walletRes.data?.accessToken?.token,
+      },
+      {
+        name: COOKIE_NAMES.CHAT_TOKEN,
+        value: chatRes.data?.data?.access_token,
+      },
+      {
+        name: COOKIE_NAMES.STORIES_TOKEN,
+        value: storiesRes.data?.data?.access_token,
+      },
+      {
+        name: COOKIE_NAMES.USER_ID_HASH,
+        value: commentRes.data?.comments_token,
+      },
     ];
 
-    tokenCookies.forEach((token) => {
-      cookiesStore.set({
-        name: token.name,
-        value: token.value,
-        httpOnly: false,
-        sameSite: "strict",
-        secure:
-          process.env.VERCEL_ENV === "production" ||
-          process.env.VERCEL_ENV === "preview",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 365 * 1, // 1 year
-      });
+    tokensToSet.forEach((token) => {
+      if (token.value) {
+        cookiesStore.set({
+          name: token.name,
+          value: token.value,
+          ...SECURE_COOKIE_OPTIONS,
+        });
+      }
     });
 
-    return NextResponse.json(finalResponse, {
-      status: fetch_req.status ?? 500,
-      headers: {
-        "Cache-Control":
-          "no-store, no-cache, must-revalidate, proxy-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-        "Surrogate-Control": "no-store",
-      },
-    });
-  } catch (error) {
-    console.error("Error Login", error);
+    // 6. Store user metadata in HttpOnly cookies (for server-side access)
+    const chatUserData = chatRes?.data?.data || null;
+    const storiesUserData = storiesRes?.data?.data || null;
+    const walletUserData = walletRes?.data?.user || null;
+
+    await Promise.all([
+      setSecureCookieJSON(COOKIE_NAMES.USER_DATA, {
+        ...InventoryUser,
+        already_exists: otp_response.data.already_exists,
+        is_verified: true,
+        is_phone_verified: 1,
+        expires_at: otp_response.data.expires_at,
+      }),
+      chatUserData
+        ? setSecureCookieJSON(COOKIE_NAMES.USER_CHAT, {
+            ...chatUserData,
+            need_auth: false,
+          })
+        : Promise.resolve(),
+      storiesUserData
+        ? setSecureCookieJSON(COOKIE_NAMES.USER_STORIES, {
+            ...storiesUserData,
+            need_auth: false,
+          })
+        : Promise.resolve(),
+      walletUserData
+        ? setSecureCookieJSON(COOKIE_NAMES.WALLET_USER, walletUserData)
+        : Promise.resolve(),
+    ]);
+
+    // 7. Return sanitized response (NO tokens in response body)
     return NextResponse.json(
       {
-        error: error,
-        message: "Internal Server Error",
+        ...otp_response,
+        data: {
+          ...otp_response.data,
+          token: undefined, // Strip market token from response
+        },
+        ChatUser: sanitizeServiceUser(chatUserData),
+        StoriesUser: sanitizeServiceUser(storiesUserData),
+        is_failed: failures?.length > 0 ? failures : undefined,
+        WalletUser: walletUserData,
       },
-      { status: 500 }
+      { status: 200 },
+    );
+  } catch (error) {
+    LogServerError({ error, type: "api route Login Handler Error" });
+    console.error("Login Handler Error:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
     );
   }
 }

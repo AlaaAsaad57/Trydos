@@ -5,7 +5,7 @@ import chat from "services/chat";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 
@@ -19,6 +19,7 @@ function ShareButton({
   name,
   close,
   Image,
+  boutique_id,
 }) {
   const {
     shareLoading,
@@ -60,6 +61,7 @@ function ShareButton({
             content_id: id,
             item_id: id,
             item_name: name,
+            boutique_id: boutique_id,
             user_id_custom: auth.UserID(),
             brand_id: brand.id,
             category: category,
@@ -75,10 +77,14 @@ function ShareButton({
         });
       } else {
         showErrorNotification(
-          translate("please select one contact at least", language)
+          translate("please select one contact at least", language),
         );
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In shareAction in ShareButton",
+      });
       setShareLoading(false);
     }
   };

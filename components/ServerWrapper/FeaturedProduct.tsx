@@ -88,10 +88,12 @@ export async function FeaturedProductWrapper({
   });
 
   return (
-    <FeatureProducts
-      currencyData={currency}
-      fetauredProductsData={{ data: { products: productsData } }}
-      lang={lang}
-    />
+    <>
+      <FeatureProducts
+        currencyData={currency}
+        fetauredProductsData={{ data: { products: productsData } }}
+        lang={lang}
+      />
+    </>
   );
 }

@@ -1,20 +1,13 @@
 "use client";
-import { allCountries } from "country-telephone-data";
+import { getCountryNameByIso2 } from "utils/countryData";
 import React, { useEffect, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import Map from "./Map";
 import { useParams } from "next/navigation";
-import Addressicon from "public/svg/cart/AddressIcon";
-import AddressInfo from "public/svg/cart/AddressInfo";
-import TargetIcon from "public/svg/cart/Target";
-import ContactInfoIcon from "public/svg/cart/ContactInfoIcon";
-
 import order from "services/order";
 import { useAppStore } from "store";
 import { FlagIcon, sanitizePhone } from "utils/tinyUtils";
-import { AddAddressFormPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
-import { AddressSectionPropsType } from "models/componentType/AddressSectionPropsType";
-import { SelectRegionPropsType } from "models/componentType/SelectRegionPropsType";
+
 import { pollinateInput } from "@/utils/tinyUtils";
 import auth from "services/auth";
 
@@ -25,7 +18,7 @@ function AddAddressForm({
   activeIndex,
   isInSettings = false,
   userName = null,
-}: AddAddressFormPropsType) {
+}) {
   const { setMapCenter, center, addressDetails, countries, orderLoading } =
     useAppStore();
   const { lang } = useParams();
@@ -42,7 +35,7 @@ function AddAddressForm({
     let UserCountries = countries.filter(
       // @ts-ignore
 
-      (s) => s.iso.toLowerCase() === lang.split("-")[0].toLowerCase()
+      (s) => s.iso.toLowerCase() === lang.split("-")[0].toLowerCase(),
     )[0];
 
     setCenter({
@@ -162,7 +155,7 @@ function AddAddressForm({
             data-cy="info-text"
           >
             {translateFunction(
-              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
+              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
             )}
           </div>
         </div>
@@ -208,21 +201,22 @@ function AddAddressForm({
 
 export default AddAddressForm;
 
-const AddressSection = ({ setOpenSelect }: AddressSectionPropsType) => {
+const AddressSection = ({ setOpenSelect }) => {
   return (
     <div
       className="flex-col w-full mt-[30px] px-[12px]"
       data-cy="address-section"
     >
       <div className="flex-row px-[12px] items-center">
-        <Addressicon data-cy="address-icon" />
+        <img src="/icons/AddressIcon.svg" data-cy="address-icon" />
         <div
-          className="flex ml-[6px] text-[#404040] text-[12px] medium"
+          className="flex mx-[6px] text-[#404040] text-[12px] medium"
           data-cy="address-info-text"
         >
           {translateFunction("Address Info")}
         </div>
-        <AddressInfo
+        <img
+          src="/icons/AddressInfo.svg"
           className="ml-[12px] cursor-pointer"
           data-cy="address-info-icon"
         />
@@ -245,7 +239,7 @@ const CountryLabel = () => {
   // @ts-ignore
   let country = lang.split("-")[0];
   country = {
-    name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
+    name: getCountryNameByIso2(country),
     iso: country,
   };
 
@@ -286,7 +280,7 @@ const CountryLabel = () => {
   );
 };
 
-const SelectRegion = ({ setOpenSelect }: SelectRegionPropsType) => {
+const SelectRegion = ({ setOpenSelect }) => {
   const { addressDetails } = useAppStore();
 
   return (
@@ -307,7 +301,7 @@ const SelectRegion = ({ setOpenSelect }: SelectRegionPropsType) => {
         {translateFunction("Change From List")}
       </div>
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] ">
-        <TargetIcon className="&>path:fill" data-cy="point-icon" />
+        <img src="/icons/Target.svg" data-cy="point-icon" />
 
         <div
           className={`medium flex ${
@@ -351,9 +345,9 @@ const DetailsAddress = () => {
               setAddressDetails({ address_detail: e.target.value });
             }}
             placeholder={translateFunction(
-              "Write The Address Clearly, Including The Street Address, Building, Flat, Door, Unit."
+              "Write The Address Clearly, Including The Street Address, Building, Flat, Door, Unit.",
             )}
-            className="w-full pr-6  min-h-[38px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+            className="w-full pr-6  min-h-[38px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
           />
         </div>
       </div>
@@ -389,7 +383,7 @@ const AddressTitle = () => {
               setAddressDetails({ address: pollinateInput(e.target.value) });
             }}
             placeholder={translateFunction("Ex: Home, My Office, 2 Home Ect.")}
-            className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+            className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
           />
         </div>
       </div>
@@ -410,14 +404,15 @@ const ContactInfo = ({ userName = null }) => {
       data-cy="container-name-phone"
     >
       <div className="flex-row px-[12px] items-center">
-        <ContactInfoIcon data-cy="contact-info-icon" />
+        <img src="/icons/ContactInfoIcon.svg" data-cy="contact-info-icon" />
         <div
-          className="flex ml-[6px] text-[#404040] text-[12px] medium"
+          className="flex mx-[6px] text-[#404040] text-[12px] medium"
           data-cy="contact-info-text"
         >
           {translateFunction("Contact Info")}
         </div>
-        <AddressInfo
+        <img
+          src="/icons/AddressInfo.svg"
           className="ml-[12px] cursor-pointer"
           data-cy="Address-info-icon"
         />
@@ -452,7 +447,7 @@ const ContactInfo = ({ userName = null }) => {
                   });
                 }}
                 placeholder={translateFunction("Enter Full User Name")}
-                className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+                className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
               />
             </div>
           </div>
@@ -494,7 +489,7 @@ const ContactInfo = ({ userName = null }) => {
                 });
               }}
               placeholder={translateFunction("Enter Full Recipient Name")}
-              className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+              className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
             />
           </div>
         </div>
@@ -539,7 +534,7 @@ const ContactInfo = ({ userName = null }) => {
                 });
               }}
               placeholder={translateFunction("Enter Recipient Phone")}
-              className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+              className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
             />
           </div>
         </div>
@@ -586,9 +581,9 @@ const ContactInfo = ({ userName = null }) => {
                 });
               }}
               placeholder={translateFunction(
-                "Enter Alternative Recipient Phone"
+                "Enter Alternative Recipient Phone",
               )}
-              className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+              className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
             />
           </div>
         </div>
@@ -602,8 +597,13 @@ const AddAddressButtons = ({
   isInSettings,
   userName = null,
 }) => {
-  const { addAddress, updateAddress, addressDetails, orderLoading } =
-    useAppStore();
+  const {
+    addAddress,
+    updateAddress,
+    addressDetails,
+    orderLoading,
+    setOrderLoading,
+  } = useAppStore();
 
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {
@@ -647,7 +647,7 @@ const AddAddressButtons = ({
   // @ts-ignore
   let country = lang.split("-")[0];
   country = {
-    name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
+    name: getCountryNameByIso2(country),
     code: country,
   };
   const handleAddressAction = async () => {
@@ -673,7 +673,8 @@ const AddAddressButtons = ({
         auth.UpdateName(addressDetails.user_name);
       }
     } catch (error) {
-      throw error;
+      setOrderLoading(false);
+      LogError({ error, scenario: "Add Address", addressDetails });
     }
   };
   return (
@@ -683,7 +684,7 @@ const AddAddressButtons = ({
       }}
       className={`${"add-address-button"} ${
         orderLoading && "opacity-55"
-      } absolute text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+      } absolute text-center  left-0 w-full h-[100px] bg-white px-[20px] pt-[12px]`}
       data-cy="add-address-buttons-container" // Added data-cy
     >
       <div

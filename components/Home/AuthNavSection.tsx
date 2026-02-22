@@ -1,22 +1,15 @@
 "use client";
-import ChatIcon from "public/svg/ChatIcon";
-import { translateFunction } from "utils/functions";
+
+import { LogError, translateFunction } from "utils/functions";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "utils/tinyUtils";
 import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { UserData } from "utils/cookies/cookie-manager";
 import home from "services/home";
-import {
-  showErrorNotification,
-  showSuccessNotification,
-} from "store/notifications/reducer";
+import { showErrorNotification } from "store/notifications/reducer";
 
 function AuthNavSection({
   onClick,
@@ -46,8 +39,8 @@ function AuthNavSection({
   };
   const openChatAction = async () => {
     try {
-      const userChatCookie: any = getCookie(COOKIE_NAMES.USER_CHAT);
-      const userDataCookie: any = getCookie(COOKIE_NAMES.USER_DATA);
+      const userChatCookie: any = useAppStore.getState().userChat;
+      const userDataCookie: any = useAppStore.getState().userProfile;
       if (userChatCookie && userChatCookie?.id) {
         let num = home.getNotificationPermissionStatus();
 
@@ -58,8 +51,8 @@ function AuthNavSection({
         if (num === 0) {
           showErrorNotification(
             translateFunction(
-              "Notification Is Not Enabled! please Allow Notification Access"
-            )
+              "Notification Is Not Enabled! please Allow Notification Access",
+            ),
           );
           return;
         }
@@ -79,7 +72,10 @@ function AuthNavSection({
         }
       }
     } catch (error) {
-      console.error("Error opening chat:", error);
+      LogError({
+        error: error,
+        scenario: "error in openChatAction in AuthNavSection ",
+      });
     }
   };
 
@@ -102,12 +98,12 @@ function AuthNavSection({
         }}
       >
         {!LoggingOut && !chatVar && getNew(chats).length === 0 ? (
-          <ChatIcon data-cy="Chat-Icon" />
+          <img src="/icons/ChatIcon.svg" data-cy="Chat-Icon" />
         ) : (
           !LoggingOut &&
           !chatVar && <ChatNotification num={getNew(chats).length} />
         )}
-        {!LoggingOut && chatVar && <ChatIcon />}
+        {!LoggingOut && chatVar && <img src="/icons/ChatIcon.svg" />}
       </div>
       <div
         className={`welcome-user ${language + "-medium"}`}

@@ -2,20 +2,12 @@ import BottomSheet from "components/global/BottomSheet";
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import ExpectedIcon from "public/svg/expectedDelevery";
-import {
-  fetchCountries,
-  formatTimeForAddress,
-  ShowDayStr,
-} from "utils/tinyUtils";
+
+import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
 import { useParams } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
 import ThinSepartor from "components/global/ThinSepartor";
-import RefundIcon from "public/svg/RefundIcon";
-import DeleiveryGurantee from "public/svg/DeleiveryGurantee";
-import ReturnGuranteeIcon from "public/svg/ReturnGurantee";
-import GreenBigTruck from "public/svg/GreenBigTruck";
-import RedBigTruck from "public/svg/RedBigTruck";
+import { GetCountries } from "serverRequests/product";
 function ExpectedDeleiveryModal() {
   const [countriesData, setCountries] = useState([]);
   const { lang } = useParams();
@@ -28,16 +20,14 @@ function ExpectedDeleiveryModal() {
         let data = sessionStorage.getItem(`countries-${country}-${language}`);
         setCountries(JSON.parse(data));
       } else {
-        const data = await fetchCountries(country, language);
+        const data = await GetCountries({ country, language });
         sessionStorage.setItem(
           `countries-${country}-${language}`,
-          JSON.stringify(data.countries)
+          JSON.stringify(data),
         );
-        setCountries(data.countries);
+        setCountries(data);
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
   useEffect(() => {
     getCountries();
@@ -68,11 +58,14 @@ function ExpectedDeleiveryModal() {
         >
           <div className="w-full px-[12px] h-auto pb-[80px] flex-col text-[#1d1d1d] regular text-[11px]">
             <div className="flex-col gap-[6px]">
-              <ExpectedIcon />
+              <img
+                src="/icons/expectedDelevery.svg"
+                className="w-[30px] h-[30px]"
+              />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
                 {translateFunction(
                   "Expected Shipping & delivery Date",
-                  language
+                  language,
                 )}
               </span>
               <span
@@ -87,14 +80,14 @@ function ExpectedDeleiveryModal() {
                         Number(
                           (settings?.["starting-setting"]
                             ?.shipping_duration_days || 0) +
-                            SelectedProduct?.shipping_days
+                            SelectedProduct?.shipping_days,
                         ) *
                           24 *
                           60 *
                           60 *
-                          1000
+                          1000,
                     )?.getDay(),
-                    language
+                    language,
                   )}
                 </span>
                 <span className="bold text-[#1D1D1D] text-[12px]  px-[3px]">
@@ -104,13 +97,13 @@ function ExpectedDeleiveryModal() {
                         Number(
                           (settings?.["starting-setting"]
                             ?.shipping_duration_days || 0) +
-                            SelectedProduct?.shipping_days
+                            SelectedProduct?.shipping_days,
                         ) *
                           24 *
                           60 *
                           60 *
-                          1000
-                    ).toString()
+                          1000,
+                    ).toString(),
                   )}
                 </span>{" "}
                 |
@@ -140,7 +133,7 @@ function ExpectedDeleiveryModal() {
             <div className="flex-col gap-[12px]">
               <div className="inline">
                 {translateFunction(
-                  "Based On The Previous Delivery Statistics Below To Your Area, We Conclude That The Expected Delivery Time For Your Product Is"
+                  "Based On The Previous Delivery Statistics Below To Your Area, We Conclude That The Expected Delivery Time For Your Product Is",
                 )}
                 <span className="bold px-[3px]">
                   {(settings?.["starting-setting"]?.shipping_duration_days ||
@@ -156,18 +149,18 @@ function ExpectedDeleiveryModal() {
             </div>
             <ThinSepartor className="py-[11px]   w-full" />
             <div className="flex-col gap-[8px]">
-              <DeleiveryGurantee />
+              <img src="/icons/DelevieryGurantee.svg" />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Delivery Guarantee", language)}
                 </span>
                 <span className="flex gap-[4px] mt-[5px]">
-                  <RefundIcon />
+                  <img src="/icons/RefundIcon.svg" />
                   <p>
                     <span>{translateFunction("Get a")}</span>
                     <span className="text-[#388CFF] medium px-[4px]">25%</span>
                     {translateFunction(
-                      "Refund Of The Product Price If Shipping Is Delayed"
+                      "Refund Of The Product Price If Shipping Is Delayed",
                     )}
                   </p>
                 </span>
@@ -180,14 +173,14 @@ function ExpectedDeleiveryModal() {
                           Number(
                             (settings?.["starting-setting"]
                               ?.shipping_duration_days || 0) +
-                              SelectedProduct?.shipping_days
+                              SelectedProduct?.shipping_days,
                           ) *
                             24 *
                             60 *
                             60 *
-                            1000
+                            1000,
                       )?.getDay(),
-                      language
+                      language,
                     )}{" "}
                     |{" "}
                     {formatTimeForAddress(
@@ -196,23 +189,23 @@ function ExpectedDeleiveryModal() {
                           Number(
                             (settings?.["starting-setting"]
                               ?.shipping_duration_days || 0) +
-                              SelectedProduct?.shipping_days
+                              SelectedProduct?.shipping_days,
                           ) *
                             24 *
                             60 *
                             60 *
-                            1000
-                      ).toString()
+                            1000,
+                      ).toString(),
                     )}
                   </span>
                   {translateFunction(
-                    "You Will Get 25 USD To Your Wallet Automatically"
+                    "You Will Get 25 USD To Your Wallet Automatically",
                   )}
                 </span>
               </div>
             </div>
             <div className="flex-col gap-[8px] mt-[10px]">
-              <GreenBigTruck />
+              <img src="/icons/GreenBigTruck.svg" />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Free Shipping", language)}
@@ -220,13 +213,13 @@ function ExpectedDeleiveryModal() {
                 <span>
                   {translateFunction(
                     "Shipping Is Completely Free Without Any Extras",
-                    language
+                    language,
                   )}
                 </span>
               </div>
             </div>
             <div className="flex-col gap-[8px] mt-[10px]">
-              <ReturnGuranteeIcon />
+              <img src="/icons/ReturnGurantee.svg" />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Delivery Guarantee", language)}
@@ -240,12 +233,12 @@ function ExpectedDeleiveryModal() {
                   <span>
                     {translateFunction(
                       "Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back",
-                      language
+                      language,
                     )}
                   </span>
                 </span>
                 <span className="flex gap-[4px] mt-[5px]">
-                  <RefundIcon />
+                  <img src="/icons/RefundIcon.svg" />
                   <p>
                     <span>{translateFunction("Get a")}</span>
                     <span className="text-[#388CFF] medium px-[4px]">
@@ -257,7 +250,7 @@ function ExpectedDeleiveryModal() {
               </div>
             </div>
             <div className="flex-col gap-[8px] mt-[10px]">
-              <RedBigTruck />
+              <img src="/icons/RedBigTruck.svg" />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Free Return", language)}
@@ -265,7 +258,7 @@ function ExpectedDeleiveryModal() {
                 <span>
                   {translateFunction(
                     "Return Is Completely Free Without Any Extras",
-                    language
+                    language,
                   )}
                 </span>
               </div>

@@ -1,7 +1,4 @@
 import React from "react";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
-import CloseIcon from "public/svg/CloseIcon";
-import Search from "public/svg/SearchIcon";
 import NextLink from "components/global/NextLink";
 import {
   GetImageUrl,
@@ -14,7 +11,7 @@ import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
 import { getConfiguredImage, RoundPrice } from "utils/functions";
-import { FilterItemsRowPropsType } from "models/componentType/FilterItemsRowPropsType";
+
 import FilterItem from "components/ListingPage/FilterItem";
 
 function FilterList({
@@ -25,7 +22,7 @@ function FilterList({
   isFeatured,
   isFlashDeals,
   itemsLength,
-}: FilterItemsRowPropsType) {
+}: any) {
   // Use parsedFilters if available, otherwise use searchParams for backward compatibility
   const filterParams = parsedFilters;
   const isUsingParsedFilters = Boolean(parsedFilters);
@@ -52,7 +49,7 @@ function FilterList({
                   filters[s] &&
                   filters[s]?.length > 0 &&
                   s !== "search_text" &&
-                  s !== "boutiques"
+                  s !== "boutiques",
               ).length
             }
           />
@@ -65,13 +62,13 @@ function FilterList({
                 : "flex-row flex ml-[45px]"
             }  items-center pr-[20px]   justify-start align-start filter-container overflow-auto scroll-smooth`}
           >
-            {Object.keys(filters)
+            {(Object.keys(filters) as any)
               .filter(
                 (filter) =>
                   filter !== "search_text" &&
                   filter !== "boutiques" &&
                   filters[filter] &&
-                  filters[filter]?.length > 0
+                  filters[filter]?.length > 0,
               )
               .map((filter, index) => {
                 if (
@@ -85,6 +82,7 @@ function FilterList({
                       index={index}
                       isFeatured={isFeatured}
                       isFlashDeals={isFlashDeals}
+                      isRtl={isRtl}
                       params={params}
                       currency={currency}
                       filterParams={filterParams}
@@ -168,9 +166,6 @@ const ActiveFiltersBar = ({
         return selected_filters_array.find((item) => item[key] === value);
       else return selected_filters_array.find((item) => item === value);
     } catch (error) {
-      console.log(
-        `getItemData Error: ${error} , ${selected_filters_array} , ${value} , ${key}`
-      );
       return null;
     }
   };
@@ -180,7 +175,7 @@ const ActiveFiltersBar = ({
   // Check if only one boutique is selected and no other filters
   const hasOnlyOneBoutique = activeFilters?.boutiques?.length === 1;
   const otherFiltersCount = Object.keys(activeFilters).filter(
-    (key) => key !== "boutiques" && activeFilters[key]?.length > 0
+    (key) => key !== "boutiques" && activeFilters[key]?.length > 0,
   ).length;
 
   // If only one boutique and no other filters, don't show ActiveFiltersBar
@@ -226,11 +221,15 @@ const ActiveFiltersBar = ({
         data-cy="reset_filter_button"
         ariaLabel={`close filter ${params.lang}`}
       >
-        <CloseIcon data-cy="closeIcon" className="mr-2 ml-2" />
+        <img
+          src="/icons/CloseIcon.svg"
+          data-cy="closeIcon"
+          className="mr-2 ml-2"
+        />
       </NextLink>
       {activeFilters?.categories?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
 
           {activeFilters?.categories.map((category) => (
             <React.Fragment key={category}>
@@ -282,7 +281,7 @@ const ActiveFiltersBar = ({
                                 arr: filters.categories,
                                 key: "slug",
                                 isCategory: true,
-                              })?.icon?.file_path
+                              })?.icon?.file_path,
                             )) ??
                           (getItemData({
                             value: category,
@@ -296,7 +295,7 @@ const ActiveFiltersBar = ({
                                 arr: filters.categories,
                                 key: "slug",
                                 isCategory: true,
-                              }).most_viewed_product_thumbnail
+                              }).most_viewed_product_thumbnail,
                             )) ??
                           GetImageUrl(
                             getItemData({
@@ -304,7 +303,7 @@ const ActiveFiltersBar = ({
                               arr: filters.categories,
                               key: "slug",
                               isCategory: true,
-                            }).flat_photo_path?.file_path
+                            }).flat_photo_path?.file_path,
                           ),
                         height: 100,
                       })}
@@ -366,12 +365,12 @@ const ActiveFiltersBar = ({
                                   (s.icon?.file_path &&
                                     GetImageUrl(s.icon?.file_path)) ||
                                   (filters.categories.filter(
-                                    (sub) => sub.slug === s.slug
+                                    (sub) => sub.slug === s.slug,
                                   )[0]?.icon?.file_path &&
                                     GetImageUrl(
                                       filters.categories.filter(
-                                        (sub) => sub.slug === s.slug
-                                      )[0]?.icon?.file_path
+                                        (sub) => sub.slug === s.slug,
+                                      )[0]?.icon?.file_path,
                                     )),
                                 height: 100,
                               })}
@@ -394,7 +393,7 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.boutiques?.length > 0 && !shouldHideBoutiques && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {activeFilters?.boutiques?.map((category) => (
             <React.Fragment key={category}>
               {getItemData({
@@ -436,7 +435,7 @@ const ActiveFiltersBar = ({
                             value: category,
                             arr: filters.boutiques,
                             key: "slug",
-                          })?.banner?.file_path
+                          })?.banner?.file_path,
                         ),
                         height: 100,
                       })}
@@ -459,7 +458,7 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.brands?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {activeFilters?.brands?.map((brand) => (
             <React.Fragment key={brand}>
               {getItemData({
@@ -501,7 +500,7 @@ const ActiveFiltersBar = ({
                             value: brand,
                             arr: filters.brands,
                             key: "slug",
-                          })?.icon
+                          })?.icon,
                         ),
                         height: 100,
                       })}
@@ -527,7 +526,7 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.colors?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {activeFilters?.colors.map((color) => {
             // Ensure color has # prefix for display
             const displayColor = color.startsWith("#") ? color : `#${color}`;
@@ -566,7 +565,7 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.prices?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {
             <>
               {activeFilters?.prices && (
@@ -598,7 +597,7 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.sizes?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {activeFilters?.sizes.map((size, index) => (
             <React.Fragment key={size}>
               <div
@@ -615,9 +614,9 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.search_text?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           <span>
-            <Search className="scale-75" />
+            <img src="/icons/Search.svg" className="scale-75" />
           </span>
           <div className="category-title filter-bar-main-title  text-[#5d5d5d]">
             {typeof activeFilters?.search_text?.[0] === "string"
@@ -649,6 +648,7 @@ interface FilterItemsRowProps {
   isFeatured?: boolean;
   isFlashDeals?: boolean;
   total?: number;
+  isRtl?: boolean;
 }
 
 const FilterItemsRow = ({
@@ -662,6 +662,7 @@ const FilterItemsRow = ({
   isFeatured,
   isFlashDeals,
   total = 10,
+  isRtl = false,
 }: FilterItemsRowProps) => {
   const [country, language] = params.lang.split("-");
   const getDataCy = () => {
@@ -684,7 +685,13 @@ const FilterItemsRow = ({
         term !== "categories" && term !== "brands" && "pt-[10px]"
       } scrollable-area-${index} boutique-category-filter flex-row`}
     >
-      <div className="category-row-container flex-row" data-cy={getDataCy()}>
+      <div
+        className="category-row-container flex-row"
+        data-cy={getDataCy()}
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+      >
         {items &&
           items?.map((item) => (
             // <FilterItemWrapper
@@ -692,6 +699,7 @@ const FilterItemsRow = ({
             //   key={item.id}
             // >
             <FilterItem
+              isRtl={isRtl}
               baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
               params={params}
               filterParams={filterParams}
@@ -723,18 +731,4 @@ const FilterItemsRow = ({
       </div>
     </div>
   );
-};
-
-// Legacy function for backward compatibility with searchParams
-
-export const getActiveFilters = (parsedFilters: FilterParams): any => {
-  const activeFilters = {};
-  Object.keys(parsedFilters).forEach((key) => {
-    if (!["boutiques"]?.includes(key))
-      activeFilters[key] =
-        key === "Search"
-          ? parsedFilters[key][0] // Get first element for search text
-          : parsedFilters[key]; // Array is already parsed
-  });
-  return activeFilters;
 };

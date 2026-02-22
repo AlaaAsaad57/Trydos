@@ -1,35 +1,50 @@
 "use client";
 import { useEffect, useState } from "react";
-import SearchIcon from "public/svg/listing/searchIcon";
 import { DebounceInput } from "react-debounce-input/src";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { buildParamsFromFilters, pollinateInput } from "utils/tinyUtils";
-import { SearchBoutiquePageProps } from "models/componentType/boutiqueTypes/SearchBoutiquePageProps";
 import { useAppStore } from "store";
-function SearchBoutiquePage({
-  search_text,
-  parsedFilters,
-  lang,
-}: SearchBoutiquePageProps) {
-  const params = useParams();
+import { showSuccessNotification } from "store/notifications/reducer";
+import { LogError } from "utils/functions";
+function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
   const router = useRouter();
 
   // Parse current filters from URL path
 
   const currentFilters = parsedFilters;
   const [search, setSearch] = useState(
-    parsedFilters?.search_text?.[0] ?? parsedFilters?.search_text ?? ""
+    parsedFilters?.search_text?.[0] ?? parsedFilters?.search_text ?? "",
   );
   const [focuse, setFocus] = useState(
     parsedFilters?.search_text?.[0]?.length ??
       parsedFilters?.search_text?.length ??
-      false
+      false,
   );
   const onChange = (e) => {
     setSearch(e.target.value);
   };
   const onKeyDown = (e) => {
     try {
+      if (isAnalyzed?.colors?.length > 0 && parsedFilters?.colors?.length > 0) {
+        currentFilters.colors = currentFilters.colors?.filter(
+          (color) =>
+            !isAnalyzed.colors
+              ?.map((s) => s.toLowerCase())
+              .includes(color?.toLowerCase()),
+        );
+        if (currentFilters.colors?.length === 0) {
+          delete currentFilters.colors;
+        }
+      }
+      if (isAnalyzed?.sizes?.length > 0 && parsedFilters?.sizes?.length > 0) {
+        currentFilters.sizes = currentFilters.sizes?.filter(
+          (size) =>
+            !isAnalyzed.sizes
+              ?.map((s) => s.toLowerCase())
+              .includes(size?.toLowerCase()),
+        );
+        if (currentFilters.sizes?.length === 0) delete currentFilters.sizes;
+      }
       const newFilters = { ...currentFilters };
       if (e.target.value.length > 0) {
         newFilters.search_text = [e.target.value];
@@ -53,7 +68,12 @@ function SearchBoutiquePage({
       });
       router.push(newPath);
     } catch (error) {
-      console.error(error);
+      LogError({
+        error: error,
+        scenario:
+          "on Enter pressed in search bar in listing page - SearhcBoutique Component",
+        filters: currentFilters,
+      });
     }
   };
   useEffect(() => {
@@ -64,6 +84,11 @@ function SearchBoutiquePage({
       document.querySelector<HTMLInputElement>("#filter-search")?.blur();
     }
   }, []);
+  useEffect(() => {
+    if (isAnalyzed) {
+      showSuccessNotification(JSON.stringify(isAnalyzed));
+    }
+  }, [isAnalyzed]);
   return (
     <div
       data-cy="searchIcon_boutiquePage"
@@ -78,7 +103,7 @@ function SearchBoutiquePage({
           document.querySelector<HTMLInputElement>(".boutique-logo-container")
         )
           document.querySelector<HTMLInputElement>(
-            ".boutique-logo-container"
+            ".boutique-logo-container",
           ).style.display = "none";
       }}
     >
@@ -98,11 +123,11 @@ function SearchBoutiquePage({
           if (search.length === 0) {
             if (
               document.querySelector<HTMLInputElement>(
-                ".boutique-logo-container"
+                ".boutique-logo-container",
               )
             ) {
               document.querySelector<HTMLInputElement>(
-                ".boutique-logo-container"
+                ".boutique-logo-container",
               ).style.display = "flex";
             }
 
@@ -112,6 +137,9 @@ function SearchBoutiquePage({
           }
         }}
         onChange={(e) => {
+          if (e.target.value.length === 0) {
+            onKeyDown(e);
+          }
           onChange(e);
         }}
         onKeyDown={(e: any) => {
@@ -123,9 +151,10 @@ function SearchBoutiquePage({
         }}
         className={`${
           (search?.length || focuse) && "pl-[40px]"
-        } rounded-[15px]  w-0 h-full border-0 outline-none text-[#5d5d5d]`}
+        } rounded-[15px]  w-0 h-full border-0 outline-hidden text-[#5d5d5d]`}
       />
-      <SearchIcon
+      <img
+        src="/icons/searchIcon.svg"
         className={`absolute z-10 ${
           search?.length || focuse ? "top-[9px] left-[14px]" : "top-0 left-0"
         }`}

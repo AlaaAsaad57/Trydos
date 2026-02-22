@@ -1,76 +1,83 @@
 // import translations from "public/translations/translations.js";
 import { useAppStore } from "store";
-import { CartResponse } from "models/API/market/CartShipping";
-import { OldCartApi } from "models/API/market/OldCart";
 import LocalizationServiceClass from "services/localization";
-import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/metaDataPropsType";
+
 import { fetchData } from "./fetchData";
-import {
-  COOKIE_NAMES,
-  UserData,
-  getCookie,
-  setCookie,
-  deleteCookie,
-} from "./cookies/cookie-manager";
+import { getCookie, setCookie, deleteCookie } from "./cookies/cookie-manager";
 import { REQUESTS_DATA } from "./Requests";
 import { readStoredLastPaths } from "./history";
 import { getLastRequest } from "./requestLoggerClient";
+import { ReportError } from "./errorReported";
+import { CartApiInterface } from "./types/cart";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
 
+// Cached translations per language — loaded once, reused forever
+const translationCache: Record<string, Record<string, string>> = {};
+
+async function loadTranslations(lang: string): Promise<Record<string, string>> {
+  if (translationCache[lang]) return translationCache[lang];
+
+  let mod: { default: Record<string, string> };
+  if (lang === "ar")
+    mod = await import("public/translations/translations.ar.js");
+  else if (lang === "ku")
+    mod = await import("public/translations/translations.ku.js");
+  else if (lang === "tr")
+    mod = await import("public/translations/translations.tr.js");
+  else return {};
+
+  translationCache[lang] = mod.default;
+  return mod.default;
+}
+
+// Eagerly kick off loading for the current language so it's ready fast
+if (typeof window !== "undefined") {
+  const pathLang = window.location.pathname.split("/")[1]?.split("-")[1];
+  if (pathLang && pathLang !== "en") loadTranslations(pathLang);
+}
+
 export function translateFunction(key: string, language?: string | string[]) {
-  let url, languageUrl;
-  // if (language === "en") return key;
+  let languageUrl: string | undefined;
 
   if (typeof window !== "undefined") {
     languageUrl = window.location.pathname.split("/")[1].split("-")[1];
   } else {
-    languageUrl = language || LocalizationServiceClass.GetAppLanguage();
+    languageUrl =
+      (language as string) || LocalizationServiceClass.GetAppLanguage();
   }
-  if (!languageUrl) return key;
-  if (languageUrl === "en") return key;
-  let translations =
-    require(`public/translations/translations.${languageUrl}.js`).default;
-  // Ensure translations object exists and has the requested language
-  if (!translations) {
-    return key;
-  }
+  if (!languageUrl || languageUrl === "en") return key;
 
-  if (languageUrl) {
-    return translations?.[key] || key;
-  }
+  // Return from cache if already loaded (synchronous fast path)
+  const cached = translationCache[languageUrl];
+  if (cached) return cached[key] || key;
 
-  return translations?.[key] || key;
+  // Kick off async load — on next call it will be cached
+  loadTranslations(languageUrl);
+  return key;
 }
 
 export const getUserChat = (): any => {
-  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+  const userChat = useAppStore.getState().userChat;
   if (userChat) return userChat;
   else return {};
 };
 export const getUserStories = (): any => {
-  const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
-  return userStories;
+  return useAppStore.getState().userStories;
 };
 
 export const _isStoreLastJson = () => {
   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;
 };
 
-export const getConfiguredImage = ({
-  src,
-  width,
-  height,
-  q,
-  c_pad,
-}: GetConfiguredImagePropsType) => {
+export const getConfiguredImage = ({ src, width, height, q, c_pad }: any) => {
   if (typeof src === "string") {
     return src.replace(
       "/upload",
       `/upload/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`
+      }/f_auto/q_auto:good/fl_lossy/so_0`,
     );
   }
   if (src?.file_path?.includes("cloudinary")) {
@@ -78,28 +85,9 @@ export const getConfiguredImage = ({
       "/upload/v1",
       `/upload/v1/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`
+      }/f_auto/q_auto:good/fl_lossy/so_0`,
     );
   } else return src?.file_path || src || "";
-};
-export const getLang = (lang, cookieLang) => {
-  if (lang) {
-    if (lang === "ar") {
-      return "ar";
-    } else {
-      return lang;
-    }
-  } else {
-    if (cookieLang) {
-      if (cookieLang === "ar") {
-        return "ar";
-      } else {
-        return cookieLang;
-      }
-    } else {
-      return "en";
-    }
-  }
 };
 
 export const expandView = ({ filter }) => {
@@ -121,7 +109,7 @@ export const expandView = ({ filter }) => {
       .querySelector<HTMLElement>(".filter-listing-bar")
       .classList.remove("relative");
     document.querySelector<HTMLElement>(
-      ".filter-listing-bar"
+      ".filter-listing-bar",
     ).style.paddingRight = "5px";
     document.querySelector<HTMLElement>(".filter-listing-bar").style.zIndex =
       "999999";
@@ -138,7 +126,7 @@ export const expandView = ({ filter }) => {
     document.querySelector<HTMLElement>(".boutique-top-info .boutique-text")
   ) {
     document.querySelector<HTMLElement>(
-      ".boutique-top-info .boutique-text"
+      ".boutique-top-info .boutique-text",
     ).style.display = "none";
     document
       .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
@@ -149,7 +137,7 @@ export const expandView = ({ filter }) => {
         document.querySelector<HTMLElement>(".boutique-top-info").style.width =
           "auto";
         document.querySelector<HTMLElement>(
-          ".boutique-top-info"
+          ".boutique-top-info",
         ).style.marginLeft = "60px";
         document
           .querySelector<HTMLElement>(".boutique-top-info")
@@ -164,11 +152,11 @@ export const expandView = ({ filter }) => {
   }
   if (
     document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container"
+      ".boutique-photo-holder .offer-slider-container",
     )
   )
     document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container"
+      ".boutique-photo-holder .offer-slider-container",
     ).style.maxHeight = "0px";
 };
 export const normalizeView = () => {
@@ -190,7 +178,7 @@ export const normalizeView = () => {
     document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
       "static";
     document.querySelector<HTMLElement>(
-      ".filter-listing-bar"
+      ".filter-listing-bar",
     ).style.paddingRight = "20px";
     document.querySelector<HTMLElement>(".filter-listing-bar").style.top =
       "initial";
@@ -207,7 +195,7 @@ export const normalizeView = () => {
       document.querySelector<HTMLElement>(".boutique-top-info .boutique-text")
     ) {
       document.querySelector<HTMLElement>(
-        ".boutique-top-info .boutique-text"
+        ".boutique-top-info .boutique-text",
       ).style.display = "flex";
     }
     document
@@ -243,11 +231,11 @@ export const normalizeView = () => {
       "0px";
   if (
     document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container"
+      ".boutique-photo-holder .offer-slider-container",
     )
   ) {
     document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container"
+      ".boutique-photo-holder .offer-slider-container",
     ).style.maxHeight = "342px";
 
     document.querySelector<HTMLElement>(".boutique-photo-holder").style.height =
@@ -351,20 +339,27 @@ export const onClickSearchHistory = (searchValue) => {
       let arr = JSON.parse(localStorage.getItem("search-history"));
       localStorage.setItem(
         "search-history",
-        JSON.stringify([searchValue, ...arr])
+        JSON.stringify([searchValue, ...arr]),
       );
     }
+    return [searchValue, ...arr];
   } else {
     localStorage.setItem("search-history", JSON.stringify([searchValue]));
+    return [searchValue];
   }
 };
 
 export const getOldCart = async () => {
-  const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
-  const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
-  if (!deviceToken && !marketToken) return [];
+  const userId =
+    useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id;
+  let waited = 0;
+  while (!userId && waited < 300000) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    waited += 1000;
+  }
+  if (!userId) return [];
   try {
-    let response: OldCartApi = await fetchData({
+    let response: any = await fetchData({
       url: "/old-cart/get_old_cart",
       reqTitle: REQUESTS_DATA.OLD_CART_REQUEST,
       method: "GET",
@@ -377,16 +372,28 @@ export const getOldCart = async () => {
     const { storeOldCart } = useAppStore.getState();
     storeOldCart(response.data?.original?.data);
   } catch (error) {
-    console.error(error);
+    LogError({
+      scenario: "Error in getOldCart in  functions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
-export const getCart = async ({ callback }) => {
-  const { initCart, cart, setCartShippingSuccess } = useAppStore.getState();
-  const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
-  const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
-  if (!deviceToken && !marketToken) return { cart: [] };
+export const getCart = async ({ callback }): Promise<CartApiInterface> => {
+  const { initCart, setCartShippingSuccess } = useAppStore.getState();
+  let userId =
+    useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id;
+
+  // wait until user id has value for 5 minutes
+  let waited = 0;
+  while (!userId && waited < 300000) {
+    userId =
+      useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id;
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    waited += 1000;
+  }
+  if (!userId) return { cart: [] } as CartApiInterface;
   try {
-    let response: CartResponse = await fetchData({
+    let response: any = await fetchData({
       url: "/cart/cart_shipping",
       reqTitle: REQUESTS_DATA.CART_REQUEST,
       method: "GET",
@@ -401,8 +408,12 @@ export const getCart = async ({ callback }) => {
     initCart(response.data);
     return response.data;
   } catch (err) {
+    LogError({
+      scenario: "Error in getCart in  functions",
+      error: err instanceof Error ? err.message : String(err),
+    });
     if (callback) callback([{ cart: [] }]);
-    return { cart: [] };
+    return { cart: [] } as CartApiInterface;
   }
 };
 export const GetCartOreview = async () => {
@@ -420,16 +431,21 @@ export const GetCartOreview = async () => {
     }
     setCartPreview(response.data);
   } catch (error) {
-    console.error(error);
+    LogError({
+      scenario: "Error in GetCartOreview in  functions",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 export const LogError = async (error) => {
+  if (typeof window !== "undefined") {
+    let { LoggingOut } = useAppStore.getState();
+    if (LoggingOut) return;
+  }
   let last_request;
-  const userData = getCookie(COOKIE_NAMES.USER_DATA);
-  const userChat = getCookie(COOKIE_NAMES.USER_CHAT);
-  const userStories = getCookie(COOKIE_NAMES.USER_STORIES);
-  const marketToken = getCookie(COOKIE_NAMES.MARKET_TOKEN);
-  const deviceToken = getCookie(COOKIE_NAMES.DEVICE_TOKEN);
+  const userData = useAppStore.getState().userProfile;
+  const userChat = useAppStore.getState().userChat;
+  const userStories = useAppStore.getState().userStories;
   const last_paths = await readStoredLastPaths();
   if (typeof window !== "undefined") {
     last_request = await getLastRequest();
@@ -439,19 +455,50 @@ export const LogError = async (error) => {
   const language = getCookie("language");
   const country = getCookie("country");
   const userIP = getCookie("userIP");
+  let serializedError = error;
+  if (error instanceof Error) {
+    serializedError = {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    };
+  }
+  // Always ensure message is a non-empty string
+  let message = serializedError?.message ?? serializedError?.error;
+  if (typeof message !== "string") {
+    if (message === undefined || message === null) {
+      message = "Unknown error";
+    } else {
+      try {
+        message = JSON.stringify(message);
+      } catch {
+        message = String(message);
+      }
+    }
+  }
+  const baseError: Record<string, any> =
+    typeof serializedError === "object" && serializedError !== null
+      ? (serializedError as Record<string, any>)
+      : serializedError !== undefined
+        ? { message: String(serializedError) }
+        : {};
   const Error_Object = {
-    ...(error ?? {}),
+    ...(baseError ?? {}),
+    message,
     userChat,
     userData,
     userStories,
-    marketToken,
-    deviceToken,
     last_paths,
     last_request,
     language,
     country,
     userIP,
+    timestamp: new Date().toISOString(),
+    url: typeof window !== "undefined" ? window.location.href : undefined,
+    user_agent:
+      typeof navigator !== "undefined" ? navigator.userAgent : undefined,
   };
+  ReportError(Error_Object);
   await storeError(Error_Object);
 };
 export async function storeError(error) {
@@ -531,10 +578,8 @@ export const removeFromCompare = (slug: string) => {
  */
 export const areProductsEqual = (prodA: any, prodB: any): boolean => {
   if (!prodA || !prodB) return false;
-  const varA =
-    prodA.variations && prodA.variations[0] ? prodA.variations[0] : {};
-  const varB =
-    prodB.variations && prodB.variations[0] ? prodB.variations[0] : {};
+  const varA = prodA.variations && prodA.variations ? prodA.variations : {};
+  const varB = prodB.variations && prodB.variations ? prodB.variations : {};
   return (
     prodA.product_id === prodB.product_id &&
     (varA.Size || "") === (varB.Size || "") &&

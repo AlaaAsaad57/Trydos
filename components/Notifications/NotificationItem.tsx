@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
-import { NotificationItem as NotificationItemType } from "../../types/notifications";
+import { useParams } from "next/navigation";
 import NextLink from "components/global/NextLink";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
@@ -13,9 +7,6 @@ import { useAppStore } from "store";
 
 const NotificationItem = ({ notification, onClose, closeWindow }) => {
   const { lang } = useParams();
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const { enableCart, disableAddToCartOption } = useAppStore();
 
   const parsedDescription = React.useMemo(() => {
@@ -50,7 +41,7 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
             className="w-10 h-10 rounded-full mr-3 object-cover"
           />
         ) : (
-          <div className="w-10 h-10 rounded-full mr-3 bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full mr-3 bg-linear-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
             <svg
               data-cy="svg-notification"
               width="20"
@@ -170,11 +161,7 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
 
       case parsedDescription.type.startsWith("order") &&
         parsedDescription.type: {
-        const href = `/${lang}/setting?tab=Orders${
-          parsedDescription.order_group_id
-            ? `&id=${parsedDescription.order_group_id}`
-            : ""
-        }`;
+        const href = `/${lang}/settings/orders/${parsedDescription.order_group_id}`;
         return (
           <div className="felx" onClick={baseOnClick}>
             <NextLink

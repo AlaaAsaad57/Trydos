@@ -29,7 +29,7 @@ function SizeSelect({
       >
         <Image
           alt="sizes-icon"
-          src={"/svg/NewSizesIcon.svg"}
+          src={"/icons/NewSizesIcon.svg"}
           width={14}
           height={14}
           className="max-h-[14px] object-contain"
@@ -246,12 +246,12 @@ const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
       <div className="flex flex-row items-center mt-[11px] gap-[4px] w-full justify-center px-[24px]">
         <Image
           alt="sizes-icon"
-          src={"/svg/addtocart/RecomendedSize.svg"}
+          src={"/icons/RecomendedSize.svg"}
           width={14}
           height={14}
           className="max-h-[14px] object-contain"
         />
-        <div className="flex flex-row items-center text-[11px] text-[#404040] regular gap-[4px] align-baseline pt-[1px]">
+        <div className="flex flex-row items-center text-[11px] text-[#404040] regular gap-[4px] align-baseline pt-px">
           <span className="bold flex items-center">M | 38</span>
           <span className="flex items-center">
             {translateFunction("Recommended")}
@@ -277,7 +277,7 @@ const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
   } else {
     return (
       <div className="flex flex-row items-center mt-[11px] gap-[4px] w-full justify-center px-[24px]">
-        <div className="flex flex-row items-center text-[11px] text-[#FF5F61] regular gap-[4px] align-baseline pt-[1px]">
+        <div className="flex flex-row items-center text-[11px] text-[#FF5F61] regular gap-[4px] align-baseline pt-px">
           <span className="bold flex items-center">
             {size?.name ?? size} | {size?.name ?? size}
           </span>

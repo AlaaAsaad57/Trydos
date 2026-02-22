@@ -49,6 +49,7 @@ function ProductFooter({ isRtl, productLightData }) {
             name={productLightData.name}
             price={productLightData?.offer_price}
             slug={productLightData?.slug}
+            boutique_id={productLightData?.boutique_id}
           />
         ) : (
           <div

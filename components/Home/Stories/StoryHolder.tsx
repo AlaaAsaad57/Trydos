@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ReportOrderItemIcon from "public/svg/ReportOrderItemIcon";
+
 import TransParentLoader from "components/global/TransParentLoader";
 import {
   SelectStory,
@@ -9,30 +9,21 @@ import {
 import StoryViewer from "./StoryViewer";
 import { useAppStore } from "store";
 import StoryServiceClass from "services/story";
-import { StoryHolderPropsType } from "models/componentType/StoryHolderPropsType";
-import Xicon from "public/svg/Xicon";
-import DeleteIcon from "public/svg/DeleteIcon";
 import {
   showSuccessNotification,
   showErrorNotification,
 } from "store/notifications/reducer";
-import { getUserStories, translateFunction } from "utils/functions";
-import { revalidateStories } from "utils/serverActions";
+import { getUserStories, LogError, translateFunction } from "utils/functions";
 import { fetchStoriesForUser } from "serverRequests";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 import { ConfirmModal } from "components/global/ConfirmModal";
-function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
+function StoryHolder({ story, active, isPaused }) {
   const { language, country, setStoryData } = useAppStore();
-  const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+  const userStories = useAppStore.getState().userStories;
   const [currentStoryId, setCurrentStoryId] = useState(
-    userStories?.id !== story.id ? 0 : story?.stories?.length - 1
+    userStories?.id !== story.id ? 0 : story?.stories?.length - 1,
   );
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -47,13 +38,13 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
     try {
       const storyId = story.stories[currentStoryId]?.id;
       const response = await StoryServiceClass.deleteStory(storyId);
-      await revalidateStories();
+
       const userToken = user?.access_token;
       const storiesResult = await fetchStoriesForUser(
         language,
         country,
         1,
-        userToken
+        userToken,
       );
       setStoryData(storiesResult.data);
       setShowDeleteModal(false);
@@ -62,13 +53,17 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       setNextStory(story.id);
       showSuccessNotification(
         translateFunction(`${response?.message}`) ||
-          translateFunction("Story deleted successfully.")
+          translateFunction("Story deleted successfully."),
       );
     } catch (err: any) {
+      LogError({
+        error: err,
+        scenario: "Error in Delete User Story",
+      });
       setShowDeleteModal(false);
       setLoading(false);
       showErrorNotification(
-        err?.message || translateFunction("Failed to delete story.")
+        err?.message || translateFunction("Failed to delete story."),
       );
     }
   };
@@ -79,7 +74,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       // const storyId = story.stories[currentStoryId]?.id;
       // await StoryServiceClass.reportStory(storyId);
       showSuccessNotification(
-        translateFunction("Story reported successfully.")
+        translateFunction("Story reported successfully."),
       );
       setShowReportModal(false);
     } catch (err) {
@@ -96,7 +91,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       style={{ width: "100%", height: "100%", position: "relative" }}
     >
       {active && (
-        <div className="z-[99] top-[30px] right-[20px] absolute flex flex-row items-center gap-x-2">
+        <div className="z-99 top-[30px] right-[20px] absolute flex flex-row items-center gap-x-2">
           {isOwner && (
             <span
               className="cursor-pointer pr-5"
@@ -108,7 +103,11 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
                   setShowDeleteModal(true);
               }}
             >
-              <DeleteIcon className="w-[22px] h-[22px] fill-white" />
+              <img
+                data-cy={"delete-story-icon"}
+                src="/icons/DeleteIcon.svg"
+                className="w-[22px] h-[22px] fill-white"
+              />
             </span>
           )}
           {!isOwner && (
@@ -125,7 +124,11 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
                   setShowReportModal(true);
               }}
             >
-              <ReportOrderItemIcon className="w-[22px] h-[22px] fill-white" />
+              <img
+                data-cy="report-story-icon"
+                src="/icons/ReportOrderItemIcon.svg"
+                className="w-[22px] h-[22px] fill-white"
+              />
             </span>
           )}
           <span
@@ -139,7 +142,18 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
               if (e.key === "Enter" || e.key === " ") SelectStory(null);
             }}
           >
-            <Xicon className="[&>path]:fill-[#fafafa]" />
+            <svg
+              width="24"
+              height="24"
+              xmlns="http://www.w3.org/2000/svg"
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+            >
+              <path
+                d="M12 11.293l10.293-10.293.707.707-10.293 10.293 10.293 10.293-.707.707-10.293-10.293-10.293 10.293-.707-.707 10.293-10.293-10.293-10.293.707-.707 10.293 10.293z"
+                fill="#fafafa"
+              />
+            </svg>
           </span>
         </div>
       )}
@@ -152,6 +166,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
           showModal={showDeleteModal}
           confirmMessage={"Are you sure you want to delete this story?"}
           confirmTilte={"Delete Story"}
+          dataCy={"delete-story-confirm-modal-button"}
         />
       )}
       {showReportModal && (

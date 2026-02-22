@@ -1,18 +1,13 @@
 import Spinner from "components/global/Spinner";
-import React from "react";
-import ChatIcon from "public/svg/ChatIcon";
-
-import { OrderChatIconPropsType } from "models/componentType/OrderChatIconPropsType";
 import { translateFunction } from "utils/functions";
 import { ShowNotificationSign } from "utils/tinyUtils";
-import { useAppStore } from "store";
 
 function OrderChatIcon({
   id,
   order_group_id,
   isGettingChat,
   getChatWithShipping,
-}: OrderChatIconPropsType) {
+}: any) {
   return (
     <>
       {id && (
@@ -31,7 +26,7 @@ function OrderChatIcon({
             </span>
           ) : (
             <>
-              <ChatIcon className="w-5 h-5" />
+              <img src="/icons/ChatIcon.svg" className="w-5 h-5" />
               {ShowNotificationSign({
                 order_id: id,
               }) && (

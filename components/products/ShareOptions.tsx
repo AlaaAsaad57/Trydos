@@ -1,5 +1,4 @@
 "use client";
-import React, { useEffect } from "react";
 import ShareAvatar from "./ShareAvatar";
 import "styles/share-options.css";
 import {
@@ -13,10 +12,8 @@ import {
   WhatsappIcon,
   WhatsappShareButton,
 } from "react-share";
-import { getUserChat, RoundPrice, translateFunction } from "utils/functions";
+import { getUserChat, LogError, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
-import CopyIcon from "public/svg/copyIcon";
-import { ShareOptionsPropsType } from "models/componentType/ShareOptionsPropsType";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -24,7 +21,7 @@ import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 
-function ShareOptions({ product }: ShareOptionsPropsType) {
+function ShareOptions({ product }: any) {
   const {
     setSelectedContactsForShare,
     selectedContactsForShare,
@@ -37,7 +34,7 @@ function ShareOptions({ product }: ShareOptionsPropsType) {
   const shareSocial = async (appName) => {
     try {
       let response = await fetchData({
-        url: "/api/v2/elastic/share_product_on_apps",
+        url: "/api/v1/elasticsearch/share_product_on_apps",
         reqTitle: REQUESTS_DATA.SHARE_SOCIAL,
         method: "POST",
         server: "chat",
@@ -58,8 +55,8 @@ function ShareOptions({ product }: ShareOptionsPropsType) {
           item_id: product?.id,
           item_name: product?.name,
           brand_id: product?.brand?.id,
-          category: product?.category?.name || product?.categories?.[0]?.name,
-          category_id: product?.category?.id || product?.categories?.[0]?.id,
+          category: product?.categories?.[0]?.name,
+          category_id: product?.categories?.[0]?.id,
           brand: product?.brand?.name,
           price: product?.offer_price,
           share_context: "external",
@@ -67,6 +64,7 @@ function ShareOptions({ product }: ShareOptionsPropsType) {
           screen_path: window.location.pathname,
           shared_from_page: window.location.pathname,
           method_share: appName,
+          boutique_id: product?.boutique_id,
         },
       });
       // @ts-ignore
@@ -79,7 +77,10 @@ function ShareOptions({ product }: ShareOptionsPropsType) {
       //   sharesCount: (SelectedProduct?.sharesCount || 0) + 1,
       // });
     } catch (err) {
-      console.error(err);
+      LogError({
+        error: err,
+        scenario: "Error In shareSocial in ShareOptions",
+      });
     }
   };
   const generateUrlForSharing = (app) => {
@@ -101,7 +102,7 @@ function ShareOptions({ product }: ShareOptionsPropsType) {
       .map((channel) => {
         // Find the member who is NOT the current user
         const otherMember = channel.channel_members?.find(
-          (member) => String(member.user_id) !== String(currentUserId)
+          (member) => String(member.user_id) !== String(currentUserId),
         );
 
         const user = otherMember?.user;
@@ -110,15 +111,15 @@ function ShareOptions({ product }: ShareOptionsPropsType) {
 
         // Transform chat user into your specific schema
         return {
-          id: user.its_record_in_my_contact?.id || `chat_${user.id}`,
+          id: user.contact_user?.id || `chat_${user.id}`,
           user_id: String(currentUserId),
-          name: user.its_record_in_my_contact?.name || user.name,
+          name: user.contact_user?.name || user.name,
           mobile_phone: user.mobile_phone,
           contact_user_id: String(user.id),
           contact_user: {
             ...user,
             id: String(user.id),
-            its_record_in_my_contact: user.its_record_in_my_contact || {
+            contact_user: user.contact_user || {
               id: null,
               user_id: String(currentUserId),
               name: user.name,
@@ -140,12 +141,10 @@ function ShareOptions({ product }: ShareOptionsPropsType) {
     });
 
     return Array.from(allContactsMap.values()).filter(
-      (s) => String(s.contact_user_id) !== String(getUserChat()?.id)
+      (s) => String(s.contact_user_id) !== String(getUserChat()?.id),
     );
   };
-  useEffect(() => {
-    console.log(getContactsForSharing());
-  }, [contacts]);
+
   return (
     <div className="share-options">
       <div className={`share-avatar`}>
@@ -250,13 +249,13 @@ function ShareOptions({ product }: ShareOptionsPropsType) {
             if (typeof navigator !== "undefined") {
               navigator.clipboard.writeText(window.location.href).then(() => {
                 showSuccessNotification(
-                  translateFunction("Link Copied to Clipboard")
+                  translateFunction("Link Copied to Clipboard"),
                 );
               });
             }
           }}
         >
-          <CopyIcon />
+          <img src="/icons/copyIcon.svg" />
         </div>
         <div className="share-name">Copy Link</div>
       </div>
@@ -268,7 +267,7 @@ function ShareOptions({ product }: ShareOptionsPropsType) {
             contact={key}
             disable={shareLoading}
             active={selectedContactsForShare?.some(
-              (s) => s === key.contact_user_id
+              (s) => s === key.contact_user_id,
             )}
             setActive={() => {
               if (
@@ -276,7 +275,7 @@ function ShareOptions({ product }: ShareOptionsPropsType) {
               )
                 setSelectedContactsForShare([
                   ...selectedContactsForShare.filter(
-                    (s) => s !== key.contact_user_id
+                    (s) => s !== key.contact_user_id,
                   ),
                 ]);
               else

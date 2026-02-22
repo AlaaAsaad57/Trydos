@@ -1,17 +1,32 @@
+"use client";
 import React, { useState } from "react";
-import SettingTopBar from "./TopBar";
-import { translateFunction } from "utils/functions";
-import AddressInfo from "public/svg/cart/AddressInfo";
+import { LogError, translateFunction } from "utils/functions";
 import auth from "services/auth";
-import { useAppStore } from "store";
-import { ProfileSizeInfoPropsType } from "models/componentType/settingTypes/ProfileSizeInfoPropsType";
-import { pollinateInput } from "utils/tinyUtils";
 
-function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
-  const { editUserInfo, userProfile } = useAppStore();
+import { pollinateInput } from "utils/tinyUtils";
+import BackBar from "components/setting/BackBar";
+
+function ProfileSizeInfo({ local, initialData, isRtl }) {
+  const [, language] = local.split("-");
+  const isArabic = language === "ar";
+
+  const toArabicNumerals = (val: string | number) =>
+    String(val).replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[parseInt(d)]);
+
+  const toWesternNumerals = (val: string) =>
+    val.replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+
+  const formatNum = (val: number | undefined | null) => {
+    if (!val && val !== 0) return "";
+    return isArabic ? toArabicNumerals(val) : String(val);
+  };
+
   const [userProfileData, setUserProfileData] = useState({
-    tall: userProfile?.tall,
-    weight: userProfile?.weight,
+    email: initialData?.email,
+    name: initialData?.name,
+    image: initialData?.image,
+    tall: initialData?.tall,
+    weight: initialData?.weight,
   });
   const [validationErrors, setValidationErrors] = useState({
     tall: "",
@@ -19,29 +34,21 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
   });
   const [showValidation, setShowValidation] = useState(false);
 
-  const isEdited = () => {
-    return (
-      userProfileData.tall !== userProfile?.tall ||
-      userProfileData.weight !== userProfile?.weight
-    );
-  };
   const [loading, setLoading] = useState(false);
   const updateUserProfile = async (payload) => {
     try {
       setLoading(true);
-      await auth.UpdateProfile(payload, userProfile);
+      await auth.UpdateProfile(payload, initialData);
 
-      editUserInfo(payload);
       setLoading(false);
-      goBack();
+      window.location.href = `/${local}/settings/profile`;
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In updateUserProfile in ProfileSizeInfo",
+      });
       setLoading(false);
-
-      console.log(error);
     }
-  };
-  const isValid = () => {
-    return userProfileData.tall && userProfileData.weight;
   };
 
   const validateFunction = () => {
@@ -52,9 +59,14 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
 
     if (!userProfileData.tall) {
       errors.tall = translateFunction("Height is required");
+    } else if (userProfileData.tall < 110 || userProfileData.tall > 250) {
+      errors.tall = translateFunction("Height must be between 110 and 250 cm");
     }
+
     if (!userProfileData.weight) {
       errors.weight = translateFunction("Weight is required");
+    } else if (userProfileData.weight < 40 || userProfileData.weight > 180) {
+      errors.weight = translateFunction("Weight must be between 40 and 180 kg");
     }
 
     setValidationErrors(errors);
@@ -69,22 +81,29 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
   };
 
   return (
-    <div className={`flex-col ${loading ? "opacity-50 scale-95" : ""}`}>
-      <SettingTopBar
-        goBack={() => {
-          setUserProfileData({
-            tall: userProfile?.tall ?? "",
-            weight: userProfile?.weight ?? "",
-          });
-          goBack();
-        }}
+    <div
+      className={`flex-col w-full  setting-screen ${
+        loading ? "opacity-50 scale-95" : ""
+      }`}
+      key="size-setting-page"
+    >
+      <BackBar
+        isRtl={isRtl}
         DataCy="personal-size-save-button"
-        screenName="Profile | Size Info"
+        local={local}
         Save={handleSave}
+        Icon={""}
+        name={translateFunction("Profile", language)}
+        preivous_page={`/${local}/settings/profile`}
       />
-      <div className="flex-row justify-center mt-[12px] w-full">
+      <div
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className={`flex-row justify-center mt-[12px] w-full`}
+      >
         <div
-          className="bg-[#F8F8F8] min-h-[50px] w-full flex-row items-center pl-[24px] pr-[20px] "
+          className="bg-[#F8F8F8] min-h-[50px] gap-[12px] w-full flex-row items-center pl-[24px] pr-[20px] "
           style={{
             border: "1px solid rgb(211 211 211 / 51%)",
           }}
@@ -135,14 +154,17 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
             />
           </svg>
 
-          <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
+          <div className="regular text-[10px]  text-[#8D8D8D]">
             {translateFunction(
-              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
+              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
             )}
           </div>
         </div>
       </div>
       <div
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
         className="flex-col w-full mt-[30px] px-[12px] pb-[110px]"
         data-cy="container-name-phone"
       >
@@ -330,12 +352,13 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
           </svg>
 
           <div
-            className="flex ml-[6px] text-[#404040] text-[12px] medium"
+            className="flex mx-[6px] text-[#404040] text-[12px] medium"
             data-cy="contact-info-text"
           >
             {translateFunction("Your Size Info")}
           </div>
-          <AddressInfo
+          <img
+            src="/icons/AddressInfo.svg"
             className="ml-[12px] cursor-pointer"
             data-cy="Address-info-icon"
           />
@@ -356,18 +379,21 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
                 data-cy="personal-size-tall-input"
-                placeholder={translateFunction("000 CM")}
-                value={userProfileData.tall || ""}
+                placeholder={
+                  isArabic
+                    ? toArabicNumerals(translateFunction("000 CM"))
+                    : translateFunction("000 CM")
+                }
+                value={formatNum(userProfileData.tall)}
                 maxLength={3}
-                max={260}
-                type="number"
+                type="text"
                 inputMode="numeric"
                 onChange={(e) => {
+                  const westernValue = toWesternNumerals(e.target.value);
                   setUserProfileData({
                     ...userProfileData,
-                    tall: parseInt(pollinateInput(e.target.value)),
+                    tall: parseInt(pollinateInput(westernValue)),
                   });
-                  // Clear validation error when user starts typing
                   if (showValidation && validationErrors.tall) {
                     setValidationErrors({
                       ...validationErrors,
@@ -375,7 +401,7 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
                     });
                   }
                 }}
-                className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+                className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
               />
             </div>
           </div>
@@ -401,18 +427,21 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
                 data-cy="personal-size-weight-input"
-                placeholder={translateFunction("000 KG")}
-                value={userProfileData.weight || ""}
+                placeholder={
+                  isArabic
+                    ? toArabicNumerals(translateFunction("000 KG"))
+                    : translateFunction("000 KG")
+                }
+                value={formatNum(userProfileData.weight)}
                 maxLength={3}
-                max={200}
-                type="number"
+                type="text"
                 inputMode="numeric"
                 onChange={(e) => {
+                  const westernValue = toWesternNumerals(e.target.value);
                   setUserProfileData({
                     ...userProfileData,
-                    weight: parseInt(pollinateInput(e.target.value)),
+                    weight: parseInt(pollinateInput(westernValue)),
                   });
-                  // Clear validation error when user starts typing
                   if (showValidation && validationErrors.weight) {
                     setValidationErrors({
                       ...validationErrors,
@@ -420,7 +449,7 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
                     });
                   }
                 }}
-                className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+                className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
               />
             </div>
           </div>

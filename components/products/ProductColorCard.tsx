@@ -2,7 +2,7 @@ import React, { memo, useState } from "react";
 import { BuyButtonProduct } from "../ListingPage/Product";
 import Image from "next/image";
 import ProductBanner from "components/products/ProductBanner";
-import VerifiedIcon from "public/svg/listing/VerifiedIcon";
+
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
@@ -68,7 +68,6 @@ function ProductColorCard({
             const image = product.images[index];
             return (
               <React.Fragment>
-                {/* <BorderImage isBig={true} /> */}
                 <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
                 <Image
                   width={200}
@@ -81,14 +80,14 @@ function ProductColorCard({
                     height: 400,
                   })}
                   key={`${product.name}-${index}`}
-                  className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10  object-cover object-[top_center]"
+                  className="w-[200px] h-[290px] border-[#d3d3d387] border rounded-15 z-10  object-cover object-[top_center]"
                   alt={product.name || "alt"}
                 />
               </React.Fragment>
             );
           }}
         />
-        <div className="flex-row w-full justify-center gap-[1px] mt-[2px]">
+        <div className="flex-row w-full justify-center gap-px mt-[2px]">
           {product?.images?.map((s, i) => (
             <svg
               key={`product-image-dot-${i}`}
@@ -130,11 +129,10 @@ function ProductColorCard({
                   draggable="false"
                 />
               )}
-              <VerifiedIcon />
+              <img src="/icons/VerifiedIcon.svg" />
             </span>
             {product.name?.substring(0, 50)}
             {product?.brand && ` | ${product?.brand?.name}`}
-            {product?.category && ` | ${product?.category?.name}`}
           </p>
           {product?.label_names?.length > 0 && (
             <ProductLabelsAnimated

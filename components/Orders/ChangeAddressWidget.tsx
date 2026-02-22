@@ -1,33 +1,31 @@
 import React, { useEffect, useState } from "react";
-import ChangeAddressIcon from "public/svg/ChangeAddressIcon";
+
 import { translateFunction } from "utils/functions";
-import EditIcon from "public/svg/editAddressIcon";
-import AddAddressIcon from "public/svg/cart/AddAddress";
-import BackIcon from "public/svg/listing/backIcon";
+
 import { useAppStore } from "store";
 import { GetAddressString } from "utils/tinyUtils";
 import SelectRegion from "components/Cart/SelectRegion";
 import AddAddressForm from "components/Cart/AddAddressForm";
 import ConfirmAddressModal from "./ConfirmAddressModal";
-import OrderItem from "./OrderItem";
-import { AddressModalPropsType } from "models/componentType/AddressModalPropsType";
-import { ChangeAddressWidgetPropsType } from "models/componentType/ChangeAddressWidgetPropsType";
 import orderService from "services/order";
 import BottomSheet from "components/global/BottomSheet";
 import Spinner from "components/global/Spinner";
+import { OrderInterface } from "utils/types/OrderInterface";
+import OrderItemBanner from "components/setting/orders/OrderItemBanner";
 function ChangeAddressWidget({
   address_id,
   close,
   getOrderDetails,
-}: ChangeAddressWidgetPropsType) {
+  ActivePacks,
+}: {
+  ActivePacks: OrderInterface;
+  [key: string]: any;
+}) {
   const {
     addressLists,
     setAddressDetails,
     setIsActiveAddress,
     initAddressForm,
-    selectedOrder,
-    ActivePacks,
-    setOrderPageLoading,
     language,
   } = useAppStore();
   const [openModal, setOpenModal] = useState(false);
@@ -43,7 +41,7 @@ function ChangeAddressWidget({
       contact_info: {
         name: ActivePacks?.shipping_address_data?.contact_person_name,
         phone: ActivePacks?.shipping_address_data?.phone,
-        alternate_phone: ActivePacks?.shipping_address_data?.alternate_phone,
+        alternate_phone: ActivePacks?.shipping_address_data?.alternative_phone,
       },
       iso: ActivePacks?.shipping_address_data?.country_iso,
       region_details: {
@@ -58,9 +56,9 @@ function ChangeAddressWidget({
     newAddress: addressLists?.find((s) => s.id === selectedAddressId),
   });
   const [tabs, setTabs] = useState<"address" | "note">("address");
-  const [deliveryNote, setDeliveryNote] = useState(selectedOrder?.note || "");
+  const [deliveryNote, setDeliveryNote] = useState("");
   const ChangeAddress = async () => {
-    setOrderPageLoading(true);
+    setLoading(true);
     close();
     let response = await orderService.changeOrderAddress({
       order_id: ActivePacks.order_group_id,
@@ -77,15 +75,15 @@ function ChangeAddressWidget({
   useEffect(() => {
     getAddressList();
   }, []);
-  const getTotalOrder = () => {
-    let arr = [];
-    selectedOrder.details.map((s) => {
-      s.details.map((d) => {
-        arr.push(d);
-      });
-    });
-    return { ...selectedOrder, details: arr };
-  };
+  // const getTotalOrder = () => {
+  //   let arr = [];
+  //   selectedOrder.details.map((s) => {
+  //     s.details.map((d) => {
+  //       arr.push(d);
+  //     });
+  //   });
+  //   return { ...selectedOrder, details: arr };
+  // };
   const isRtl = language === "ar" || language === "ku";
 
   return (
@@ -97,16 +95,16 @@ function ChangeAddressWidget({
           close();
         }}
       >
-        <div className="flex-col max-h-[calc(100vh-50px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] rounded-t-[30px] bg-white">
+        <div className="flex-col items-center overflow-auto w-full pt-[14px] px-[24px] z-999999999 pb-[27px] rounded-t-[30px] bg-white">
           <div className="flex-col  items-center w-full justify-center flex-1">
-            <OrderItem
-              key={selectedOrder.order_group_id}
-              order={getTotalOrder()}
-              showDetails={() => {}}
+            <OrderItemBanner
+              isRtl={isRtl}
+              key={ActivePacks.order_group_id}
+              order={ActivePacks}
             />
           </div>
           <div className="flex-col  items-center w-full justify-center mt-[10px]">
-            <ChangeAddressIcon />
+            <img src="/icons/ChangeAddressIcon.svg" />
             <span className="medium text-[#1D1D1D] text-[14px] mt-[5px] ">
               {translateFunction("Change Delivery Address & Note")}
             </span>
@@ -116,7 +114,7 @@ function ChangeAddressWidget({
               )}
             </span>
             <div
-              className="w-full h-[1px] mt-[22px]"
+              className="w-full h-px mt-[22px]"
               style={{ borderTop: "1px solid #C4C2C280" }}
             />
           </div>
@@ -150,7 +148,7 @@ function ChangeAddressWidget({
             </div>
           </div>
           {tabs === "address" && (
-            <div className="flex-col items-center mt-[20px]  bg-[#fff] h-[481px] w-full ">
+            <div className="flex-col items-center mt-[20px]  bg-white max-h-[481px] w-full ">
               <div className="flex-row items-center w-full justify-center">
                 <span className="flex medium text-[#1D1D1D] text-[12px]">
                   {translateFunction("Your Address List")}
@@ -186,10 +184,11 @@ function ChangeAddressWidget({
                         s.id === selectedAddressId
                           ? "text-[#1D1D1D]"
                           : "text-[#8D8D8D]"
-                      }  mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]`}
+                      }  mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full items-start h-auto min-h-[90px] px-[24px]  py-[7px]`}
                       data-cy="Address"
                     >
-                      <EditIcon
+                      <img
+                        src="/icons/editAddressIcon.svg"
                         className={`${
                           isRtl ? "left-[12px]" : " right-[12px]"
                         } absolute top-[10px] map-element-icon`}
@@ -405,7 +404,7 @@ function ChangeAddressWidget({
                     //   slideNext();
                   }}
                 >
-                  <AddAddressIcon />
+                  <img src="/icons/AddAddress.svg" />
                   <div className="medium text-[12px] mx-1 text-[#1D1D1D]">
                     {translateFunction("Add New Shipping Address")}
                   </div>
@@ -414,7 +413,7 @@ function ChangeAddressWidget({
             </div>
           )}
           {tabs === "note" && (
-            <div className="flex-col items-center mt-[20px]  bg-[#fff] h-[481px] w-full ">
+            <div className="flex-col items-center mt-[20px]  bg-white h-[481px] w-full ">
               <div className="flex-col items-center w-full justify-center">
                 <span className="flex-col medium text-[#1D1D1D] text-[12px]">
                   {translateFunction("Change Delivery Note")}
@@ -433,7 +432,7 @@ function ChangeAddressWidget({
                     placeholder={translateFunction(
                       "Add delivery instructions..."
                     )}
-                    className="w-full h-[120px] p-[15px] rounded-[15px] bg-[#F8F8F8] border border-[#C4C2C280] resize-none regular text-[14px] text-[#1D1D1D] placeholder:text-[#8D8D8D] focus:outline-none focus:border-[#402CDD80]"
+                    className="w-full h-[120px] p-[15px] rounded-[15px] bg-[#F8F8F8] border border-[#C4C2C280] resize-none regular text-[14px] text-[#1D1D1D] placeholder:text-[#8D8D8D] focus:outline-hidden focus:border-[#402CDD80]"
                     rows={4}
                   />
                   <div className="flex-row justify-end mt-[8px]">
@@ -450,7 +449,7 @@ function ChangeAddressWidget({
               selectedAddressId === address_id && deliveryNote === ""
                 ? "bg-[#D3D3D3] "
                 : "bg-[#402CDD] "
-            } rounded-[20px] text-[16px] text-[#fff] medium`}
+            } rounded-[20px] text-[16px] text-white medium`}
             onClick={() => {
               if (address_id === selectedAddressId && deliveryNote === "") {
                 // close();
@@ -468,7 +467,7 @@ function ChangeAddressWidget({
                         ?.contact_person_name,
                       phone: ActivePacks?.shipping_address_data?.phone,
                       alternate_phone:
-                        ActivePacks?.shipping_address_data?.alternate_phone,
+                        ActivePacks?.shipping_address_data?.alternative_phone,
                     },
                     iso: ActivePacks?.shipping_address_data?.country_iso,
                     region_details: {
@@ -492,14 +491,14 @@ function ChangeAddressWidget({
         </div>
       </BottomSheet>
       {openModal && (
-        <div className="absolute z-[99999999999] top-0 left-0 bg-white overflow-auto w-full flex-col max-h-[100dvh] ">
+        <div className="absolute z-99999999999 top-0 left-0 bg-white overflow-auto w-full flex-col h-full ">
           <div className="flex-row min-h-[50px] w-full px-[20px] items-center">
             <span
               onClick={() => {
                 setOpenModal(false);
               }}
             >
-              <BackIcon />
+              <img src="/icons/backIcon.svg" />
             </span>
           </div>
           <AddressModal
@@ -529,7 +528,7 @@ function ChangeAddressWidget({
                   name: ActivePacks?.shipping_address_data?.contact_person_name,
                   phone: ActivePacks?.shipping_address_data?.phone,
                   alternate_phone:
-                    ActivePacks?.shipping_address_data?.alternate_phone,
+                    ActivePacks?.shipping_address_data?.alternative_phone,
                 },
                 iso: ActivePacks?.shipping_address_data?.country_iso,
                 region_details: {
@@ -558,7 +557,7 @@ function ChangeAddressWidget({
                   name: ActivePacks?.shipping_address_data?.contact_person_name,
                   phone: ActivePacks?.shipping_address_data?.phone,
                   alternate_phone:
-                    ActivePacks?.shipping_address_data?.alternate_phone,
+                    ActivePacks?.shipping_address_data?.alternative_phone,
                 },
                 iso: ActivePacks?.shipping_address_data?.country_iso,
                 region_details: {
@@ -580,11 +579,7 @@ function ChangeAddressWidget({
 }
 
 export default ChangeAddressWidget;
-export const AddressModal = ({
-  id,
-  close,
-  setAddressId,
-}: AddressModalPropsType) => {
+export const AddressModal = ({ id = null, close, setAddressId }) => {
   const { setAddressDetails, isActiveAddress } = useAppStore();
 
   const [openSelect, setOpenSelect] = useState(false);

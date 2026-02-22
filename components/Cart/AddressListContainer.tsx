@@ -1,11 +1,8 @@
-import React from "react";
 import { translateFunction } from "utils/functions";
-import AddAddressIcon from "public/svg/cart/AddAddress";
+
 import order from "services/order";
 import { useAppStore } from "store";
-import { AddressListContainerPropsType } from "models/componentType/AddressListContainerPropsType";
-import { DeleteIconPropsType } from "models/componentType/DeleteIconPropsType";
-import { EditIconPropsType } from "models/componentType/EditIconPropsType";
+
 export const GetAddressString = (location) => {
   if (!location) return "";
   let str = "";
@@ -36,18 +33,14 @@ export const GetAddressString = (location) => {
     str += ` | ${location?.building}`;
   return str;
 };
-function AddressListContainer({
-  closeSelect,
-  slideNext,
-  Delete,
-}: AddressListContainerPropsType) {
+function AddressListContainer({ closeSelect, slideNext, Delete }) {
   const { addressLists, initAddressForm, updateAddress, setDefaultAddress } =
     useAppStore();
 
   return (
     <>
       <div
-        className="absolute top-[50px] left-0 min-w-[100vw] z-[999999998] min-h-screen opacity-40 bg-[black]"
+        className="absolute top-[50px] left-0 min-w-screen z-999999998 min-h-screen opacity-40 bg-[black]"
         onClick={() => {
           closeSelect();
         }}
@@ -57,7 +50,7 @@ function AddressListContainer({
           bottom: "0px",
           paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)",
         }}
-        className="flex-col items-center px-[12px]   absolute z-[999999999] rounded-t-[30px] bg-[#fff] h-[481px] w-full pt-[11px]"
+        className="flex-col items-center px-[12px]   absolute z-999999999 rounded-t-[30px] bg-white h-[481px] w-full pt-[11px]"
         data-cy="AddressListContainer"
       >
         <div className="flex-row items-center w-full justify-center">
@@ -86,7 +79,7 @@ function AddressListContainer({
                 className={`flex-col relative  ${
                   addressLists.length === 0
                     ? "items-center h-[84px]   py-[12px]"
-                    : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
+                    : "items-start h-auto min-h-[90px] px-[24px]  py-[7px]"
                 } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
                 data-cy="Address"
               >
@@ -245,7 +238,7 @@ function AddressListContainer({
               slideNext();
             }}
           >
-            <AddAddressIcon />
+            <img src="/icons/AddAddress.svg" />
             <div className="medium text-[12px] ml-1 text-[#1D1D1D]">
               {translateFunction("Add New Shipping Address")}
             </div>
@@ -257,7 +250,7 @@ function AddressListContainer({
 }
 
 export default AddressListContainer;
-const EditIcon = ({ address, onClick }: EditIconPropsType) => {
+const EditIcon = ({ address, onClick }) => {
   const { startUpdateAddress } = useAppStore();
 
   return (
@@ -266,7 +259,7 @@ const EditIcon = ({ address, onClick }: EditIconPropsType) => {
         startUpdateAddress(address);
         onClick();
       }}
-      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[32px] top-[8px]"
+      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-10 right-[32px] top-[8px]"
       data-cy="Edit-Addres-Icon"
     >
       <svg
@@ -335,13 +328,13 @@ const EditIcon = ({ address, onClick }: EditIconPropsType) => {
     </span>
   );
 };
-const DeleteIcon = ({ address, onClick }: DeleteIconPropsType) => {
+const DeleteIcon = ({ address, onClick }) => {
   return (
     <span
       onClick={() => {
         onClick();
       }}
-      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[8px] top-[8px]"
+      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-10 right-[8px] top-[8px]"
       data-cy="Delete-Address-Icon"
     >
       <svg

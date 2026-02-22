@@ -9,7 +9,6 @@ import { useAppStore } from "store";
 import chat from "services/chat";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import home from "services/home";
 
 function ChatModal() {
   const { callInProgress, chatVar } = useAppStore();

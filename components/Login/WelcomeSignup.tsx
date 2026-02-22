@@ -52,7 +52,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
       <div className="flex-col items-center w-full pb-[40px]">
         <div className="welcoming-container">
           <div className="welcoming-label">{translate("Hello,", language)}</div>
-          <div className="welcoming-user">{Name || "Alaa Asaad"}</div>
+          <div className="welcoming-user">{Name}</div>
         </div>
         <div
           className="welcoming-enjoy"
@@ -64,7 +64,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
         <div className="signup-detail">
           {translate(
             "We Recommend That You Complete Your Profile To Make The Most Of The App’s Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More",
-            language
+            language,
           )}
         </div>
         <div
@@ -78,7 +78,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
               is_settings: true,
             }}
             ariaLabel={`Complete My Profile ${lang}`}
-            href={`/${lang}/setting?tab=Profile`}
+            href={`/${lang}/settings/profile`}
             className="login-button"
             data-cy="Complate-Close"
             style={{

@@ -18,6 +18,7 @@ function ChatLists(props) {
     pinnedChats: pinned,
     chatSearchResults: searchResults,
     activeChat,
+
     forwarded_message,
   } = useAppStore();
   const [hasMore, setHasMore] = useState(true);
@@ -51,6 +52,7 @@ function ChatLists(props) {
       </div>
     );
   }
+
   const getSortedChats = () => {
     return [...chats]
       .filter((s) => !s.isPrivate || s.channel_name !== "Deleivery Worker")

@@ -1,14 +1,11 @@
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import DelevieryGurantee from "public/svg/cart/DelevieryGurantee";
+
 import React, { useEffect, useMemo, useState } from "react";
+import { GetCountries } from "serverRequests/product";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
-import {
-  fetchCountries,
-  formatTimeForAddress,
-  ShowDayStr,
-} from "utils/tinyUtils";
+import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
 
 function Card({
   image,
@@ -18,13 +15,13 @@ function Card({
   shippingDays,
   offer_price,
   price,
-  redeem_price,
+  luck_price,
 }) {
   const { settings } = useAppStore();
   const [countries, setCountries] = useState([]);
   const getCountries = async () => {
-    let data = await fetchCountries(country, language);
-    setCountries(data.countries);
+    let data = await GetCountries({ country, language });
+    setCountries(data);
   };
   let { lang } = useParams();
   const [country, language] = (lang as string).split("-");
@@ -41,14 +38,14 @@ function Card({
           new Date().getTime() +
             Number(
               (settings?.["starting-setting"]?.shipping_duration_days || 0) +
-                shippingDays
+                shippingDays,
             ) *
               24 *
               60 *
               60 *
-              1000
+              1000,
         ).toString(),
-        language
+        language,
       );
   }, [shippingDays, settings]);
 
@@ -62,14 +59,14 @@ function Card({
           new Date().getTime() +
             Number(
               (settings?.["starting-setting"]?.shipping_duration_days || 0) +
-                shippingDays
+                shippingDays,
             ) *
               24 *
               60 *
               60 *
-              1000
+              1000,
         )?.getDay(),
-        language
+        language,
       );
   }, [shippingDays, settings]);
 
@@ -126,7 +123,7 @@ function Card({
           >
             <span>
               <Image
-                src={"/svg/addtocart/DeleiverIcon.svg"}
+                src={"/icons/DeleiverIcon.svg"}
                 width={13}
                 height={13}
                 alt="deleivery-icon"
@@ -153,7 +150,7 @@ function Card({
           >
             <span>
               <Image
-                src={"/svg/addtocart/DeleiveryManIcon.svg"}
+                src={"/icons/DeleiveryManIcon.svg"}
                 alt="deleivery-icon"
                 width={13}
                 height={13}
@@ -178,7 +175,7 @@ function Card({
           >
             <span>
               <Image
-                src={"/svg/addtocart/TwoManDeleivery.svg"}
+                src={"/icons/TwoManDeleivery.svg"}
                 alt="deleivery-icon"
                 width={13}
                 height={13}
@@ -195,14 +192,14 @@ function Card({
                   translateFunction(
                     countries?.find((s) => s.iso?.toLowerCase() === country)
                       ?.name,
-                    language
+                    language,
                   )}
               </span>
             </span>
             <span className="medium text-[#1d1d1d]">{shippingDay}</span>
             <span className="text-[#1d1d1d] bold">{shippingDate}</span>
             <span className="text-[#8d8d8d]">
-              <DelevieryGurantee />
+              <img src="/icons/DelevieryGurantee.svg" />
             </span>
           </div>
           {/*  */}
@@ -228,7 +225,7 @@ function Card({
           <Prices
             offer_price={offer_price}
             price={price}
-            redeem_price={redeem_price}
+            luck_price={luck_price}
           />
           <div className="flex items-center text-[10px] regular">
             {translateFunction("All Inclusive Without Additions", language)}
@@ -263,11 +260,11 @@ const ImageBorder = ({ isOrange = false }) => {
   );
 };
 
-const Prices = ({ offer_price, price, redeem_price }) => {
+const Prices = ({ offer_price, price, luck_price }) => {
   const { currency, language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
-  if (redeem_price && redeem_price > 0) {
+  if (luck_price && luck_price > 0) {
     if (price === offer_price) {
       return (
         <div
@@ -304,7 +301,7 @@ const Prices = ({ offer_price, price, redeem_price }) => {
             data-cy="redeem-price-label"
           >
             {RoundPrice({
-              num: redeem_price,
+              num: luck_price,
               rate: currency?.exchange_rate,
               language: language,
             })}
@@ -375,7 +372,7 @@ const Prices = ({ offer_price, price, redeem_price }) => {
             data-cy="redeem-price-label "
           >
             {RoundPrice({
-              num: redeem_price,
+              num: luck_price,
               rate: currency?.exchange_rate,
               language: language,
             })}

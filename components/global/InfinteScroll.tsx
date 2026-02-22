@@ -4,9 +4,10 @@ import Spinner from "./Spinner";
 import { useParams } from "next/navigation";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { InfinteScrollPropsType } from "models/componentType/InfinteScrollPropsType";
+
 import { useAppStore } from "store";
 import { GetNextBoutiques } from "serverRequests/home";
+import { LogError } from "utils/functions";
 const useInfiniteScroll = (fetchNextPage) => {
   useEffect(() => {
     // Function to check scroll position
@@ -29,10 +30,7 @@ const useInfiniteScroll = (fetchNextPage) => {
     };
   }, [fetchNextPage]);
 };
-function InfinteScroll({
-  offsetVariable,
-  mainCategory = null,
-}: InfinteScrollPropsType) {
+function InfinteScroll({ offsetVariable, mainCategory = null }) {
   const [boutiques, setBoutiques] = useState([]);
   const [offset, setOffset] = useState<any>(offsetVariable);
   const [loading, setLoading] = useState(false);
@@ -65,7 +63,12 @@ function InfinteScroll({
           setEnd(true);
         }
       } catch (error) {
-        console.error("Error fetching boutiques:", error);
+        LogError({
+          error: error,
+          scenario: "get Next Boutiques in Home Page",
+          offset: offset,
+          category: mainCategory,
+        });
         setLoading(false);
         setEnd(true);
       }

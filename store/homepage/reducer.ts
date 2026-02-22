@@ -76,7 +76,12 @@ export const useHomeStore = (set, get) => ({
   setCurrency: (currency: any) => set({ currency }),
 
   setActiveRoute: (route: string) => set({ activeRoute: route }),
-  setIsNavigating: (bool) => set({ isNavigating: bool }),
+  setIsNavigating: (bool) => {
+    if (!bool) {
+      EnableScroll();
+    }
+    set({ isNavigating: bool });
+  },
   setGAEvent: (eventName: string) =>
     set({ previous_event_button_name: eventName }),
 

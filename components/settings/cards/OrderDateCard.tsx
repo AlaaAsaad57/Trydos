@@ -1,11 +1,10 @@
-import { OrderDateCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
-import React from "react";
 import { translateFunction } from "utils/functions";
 
 const OrderDateCard = ({ time }) => {
   // Format the date string to a more readable format
   const formatTime = (timeString: string) => {
-    const date = new Date(timeString + "Z");
+    // const date = new Date(timeString + "Z");
+    const date = new Date(timeString);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -15,13 +14,13 @@ const OrderDateCard = ({ time }) => {
     const seconds = date.getSeconds().toString().padStart(2, "0");
     const timeFormat = `${hours}:${minutes}:${seconds}`;
 
-    if (date.toDateString() === today.toDateString()) {
-      return `Today | ${timeFormat}`;
-    }
+    // if (date.toDateString() === today.toDateString()) {
+    //   return `Today | ${timeFormat}`;
+    // }
 
-    if (date.toDateString() === yesterday.toDateString()) {
-      return `Yesterday | ${timeFormat}`;
-    }
+    // if (date.toDateString() === yesterday.toDateString()) {
+    //   return `Yesterday | ${timeFormat}`;
+    // }
 
     const day = date.getDate().toString().padStart(2, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0");

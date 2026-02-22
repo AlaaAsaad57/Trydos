@@ -47,21 +47,19 @@ function ProductVideo({ videos = [], language }) {
     });
   }, [selectedIndex, expanded]); // Also re-run when expanding to ensure the right video plays
 
-  if (!showVideo || !videos?.length) return null;
-
   useEffect(() => {
     if (expanded) {
       DisableScroll();
       emblaApi?.reInit();
     }
   }, [expanded, emblaApi]);
-
+  if (!showVideo || !videos?.length) return null;
   return (
     <>
       {/* Backdrop */}
       {expanded && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-md z-[99999999999998]"
+          className="fixed inset-0 bg-black/80 backdrop-blur-md z-99999999999998"
           onClick={() => setExpanded(false)}
         />
       )}
@@ -74,7 +72,7 @@ function ProductVideo({ videos = [], language }) {
             ? "fixed inset-0 m-auto flex items-center justify-center h-full w-full"
             : "absolute bottom-[114px] w-[138px] h-[200px]"
         }
-        z-[99999999999999] transition-all duration-300`}
+        z-99999999999999 transition-all duration-300`}
       >
         <div className="relative w-full h-full flex items-center justify-center">
           {/* Embla Viewport */}
@@ -123,7 +121,7 @@ function ProductVideo({ videos = [], language }) {
 
               {/* Pagination Dots */}
               {videos.length > 1 && (
-                <div className="absolute bottom-2 flex gap-1 z-[1000] pointer-events-none">
+                <div className="absolute bottom-2 flex gap-1 z-1000 pointer-events-none">
                   {videos.map((_, i) => (
                     <div
                       key={i}
@@ -142,13 +140,13 @@ function ProductVideo({ videos = [], language }) {
             <>
               <button
                 onClick={() => emblaApi?.scrollPrev()}
-                className="absolute left-4 bg-black/40 hover:bg-black/60 p-3 rounded-full text-white z-[100] transition-all"
+                className="absolute left-4 bg-black/40 hover:bg-black/60 p-3 rounded-full text-white z-100 transition-all"
               >
                 {isRtl ? "→" : "←"}
               </button>
               <button
                 onClick={() => emblaApi?.scrollNext()}
-                className="absolute right-4 bg-black/40 hover:bg-black/60 p-3 rounded-full text-white z-[100] transition-all"
+                className="absolute right-4 bg-black/40 hover:bg-black/60 p-3 rounded-full text-white z-100 transition-all"
               >
                 {isRtl ? "←" : "→"}
               </button>
@@ -178,7 +176,7 @@ const VideoBorder = ({ onClick }) => {
       onClick={() => {
         onClick();
       }}
-      className="absolute top-0 left-0 z-[9998]"
+      className="absolute top-0 left-0 z-9998"
       xmlns="http://www.w3.org/2000/svg"
       width="138"
       height="200"
@@ -206,7 +204,7 @@ const CloseIcon = ({ clickHandler, isExpanded }) => {
       }}
       className={`${
         isExpanded ? "top-[15px] right-[15px]" : "top-[-12px] right-[-7px]"
-      } absolute  cursor-pointer w-[30px] z-[9999] h-[30px] flex justify-center items-center`}
+      } absolute  cursor-pointer w-[30px] z-9999 h-[30px] flex justify-center items-center`}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -272,7 +270,7 @@ const OverlayText = ({ language, onClick }) => {
       onClick={() => {
         onClick();
       }}
-      className="z-[999] absolute top-0 left-0 bold text-[13px] w-full h-full text-[#FFFFFF] text-center items-center justify-center flex "
+      className="z-999 absolute top-0 left-0 bold text-[13px] w-full h-full text-[#FFFFFF] text-center items-center justify-center flex "
       style={{
         textShadow: "0px 3px 6px rgba(0, 0, 0, 0.16)",
       }}

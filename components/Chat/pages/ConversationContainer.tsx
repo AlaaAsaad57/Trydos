@@ -7,8 +7,6 @@ import React, {
   ChangeEvent,
   KeyboardEvent,
 } from "react";
-import Image from "next/image";
-import { push, ref, set } from "firebase/database";
 import { useStopwatch } from "react-timer-hook";
 /* ----------------------------- Local Imports ----------------------------- */
 import Recorder from "components/Chat/components/Recorder";
@@ -19,30 +17,25 @@ import ChatInfo from "components/Chat/components/ChatInfo";
 import Observable from "components/Chat/components/ChatHistoryElement";
 import WebcamCapture from "components/Chat/components/CameraComponent";
 import ChatSearch from "../components/ChatSearch";
-
-import MicIcon from "../svg/mic";
-import RedMicIcon from "../svg/redmic";
-import WaveIcon from "../svg/wave";
-import ShareIcon from "../svg/sharechat";
-import PlusIcon from "../svg/chatplus";
-import CameraIcon from "../svg/camera";
-import SendIcon from "../svg/sendbutton";
-
 import { dataURLtoFile, upload, getUser } from "../chatsFunctions";
 import {
   GetChatDetails,
   getMessagesBetweenMessage,
+  getMessagesBetweenTwoMessages,
   getPage,
   SendMessage,
 } from "store/chat/actions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import { translateFunction, getUserChat } from "utils/functions";
-import { db } from "utils/firebaseInitv1";
+import { translateFunction, getUserChat, LogError } from "utils/functions";
+import { getDb } from "utils/firebaseInitv1";
 import { useAppStore } from "store";
-import { pollinateInput, requestPermissions } from "@/utils/tinyUtils";
+import { requestPermissions } from "@/utils/tinyUtils";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
 import CustomPopup from "components/global/Popup";
+import ChatImagePreviewBeforeSend from "../components/ChatImagePreviewBeforeSend";
+import MediaMessagePreview from "../components/MediaMessagePreview";
+import { Message } from "utils/types/chat";
 
 /* -------------------------- Dynamic Components --------------------------- */
 
@@ -51,11 +44,10 @@ import CustomPopup from "components/global/Popup";
  * ------------------------------------------------------------------------*/
 interface ConversationContainerProps {
   ViewedScreen: boolean | string;
-  active: any; // TODO: replace with accurate chat type
   loading: boolean;
   first: boolean;
   setSearch: (val: string) => void;
-  isPrivate: boolean;
+  isPrivate?: number | string | null;
   closeWidget: () => void;
 }
 
@@ -67,7 +59,7 @@ const FILE_INPUT_ACCEPT = "*/*";
  * ------------------------------------------------------------------------*/
 const buildMessageStatus = (
   receiverId: number | string,
-  senderId: number | string
+  senderId: number | string,
 ) => [
   {
     is_watched: false,
@@ -92,7 +84,6 @@ const scrollToBottom = () =>
  * ------------------------------------------------------------------------*/
 function ConversationContainer({
   ViewedScreen,
-  active,
   loading,
   first,
   setSearch,
@@ -104,17 +95,12 @@ function ConversationContainer({
   /* ---------------------------------------------------------------------- */
   const {
     callLoading,
-    mid,
-    AgoraToken,
     openChatRenderer,
-    qouted,
-    call,
     replyMessage,
     refs,
-    activeChat: selectedChat,
+    activeChat: active,
     language,
     data: chats,
-    setRefs,
     sendMessage,
     watchChannel,
     deleteErrorMessage,
@@ -124,13 +110,12 @@ function ConversationContainer({
   } = useAppStore();
 
   /* --------------------------- Derived values --------------------------- */
-  const activeChat = isPrivate ? active : selectedChat;
+  const activeChat = active;
   const receiver = activeChat?.channel_members?.find(
-    (m: any) => +m.user_id !== +(getUser() as any)?.id
+    (m: any) => +m.user_id !== +(getUser() as any)?.id,
   );
   const senderId = (getUserChat() as any)?.id;
   const receiverId = receiver?.user_id;
-  const receiverRoleId = receiver?.role_id;
 
   /* ----------------------------- Refs / state ----------------------------- */
   const [vid, setVid] = useState<string | null>(null);
@@ -146,7 +131,7 @@ function ConversationContainer({
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [croppedImageFile, setCroppedImageFile] = useState<File | null>(null);
   const [croppedImagePreview, setCroppedImagePreview] = useState<string | null>(
-    null
+    null,
   );
   /* ----------------------------- scroll function ----------------------------- */
   const scrollToMessage = (quoteId) => {
@@ -171,26 +156,29 @@ function ConversationContainer({
   const GetMessage = useCallback(
     async (msgId, quoteId) => {
       const found = activeChat?.messages?.some(
-        (m) => `${m.id}` === `${quoteId}`
+        (m) => `${m.id}` === `${quoteId}`,
       );
       if (found) {
         requestAnimationFrame(() => scrollToMessage(quoteId));
       } else {
         try {
-          await getMessagesBetweenMessage({
-            first: activeChat.id,
-            second:
-              parseInt(activeChat.messages[activeChat.messages.length - 1].id) -
-              parseInt(quoteId),
+          await getMessagesBetweenTwoMessages({
+            first: sortedMessages?.[0].id,
+            second: quoteId,
+            channel_id: activeChat?.id,
           });
           setQouted(quoteId);
           setPendingScrollToMessageId(quoteId);
         } catch (err) {
-          console.error(err);
+          LogError({
+            error: err,
+            scenario:
+              "get messages between two messages in conversation container - chat widget",
+          });
         }
       }
     },
-    [activeChat, setQouted]
+    [activeChat, setQouted],
   );
 
   /* ------------------------- Scroll Refs ------------------------------- */
@@ -217,36 +205,42 @@ function ConversationContainer({
     }`;
 
   const sendStatus = useCallback(
-    (desc: string | null) => {
+    async (desc: string | null) => {
       if (!activeChat?.id) return;
 
       const friendID = receiverId;
       if (!friendID) return;
 
+      const db = await getDb();
+      const { ref, push, set } = await import("firebase/database");
       const baseRef = ref(
         db,
-        `Transaction/${(getUser() as any)?.id}/${friendID}`
+        `Transaction/${(getUser() as any)?.id}/${friendID}`,
       );
 
       const promise = desc ? push(baseRef, desc) : set(baseRef, null);
-      promise.catch(console.error);
+      promise.catch(() => {});
     },
-    [activeChat?.id, receiverId]
+    [activeChat?.id, receiverId],
   );
 
   const handleTyping = useCallback(() => {
     let timer: NodeJS.Timeout | null = null;
-    return () => {
+    return async () => {
       if (timer) clearTimeout(timer);
 
       const friendID = receiverId;
       if (!friendID) return;
 
+      const db = await getDb();
+      const { ref, push, set } = await import("firebase/database");
       const path = `Transaction/${(getUser() as any)?.id}/${friendID}`;
-      push(ref(db, path), "Typing...").catch(console.error);
+      push(ref(db, path), "Typing...").catch(() => {});
 
-      timer = setTimeout(() => {
-        set(ref(db, path), null).catch(console.error);
+      timer = setTimeout(async () => {
+        const db = await getDb();
+        const { ref, set } = await import("firebase/database");
+        set(ref(db, path), null).catch(() => {});
       }, 2000);
     };
   }, [receiverId])();
@@ -256,14 +250,12 @@ function ConversationContainer({
     (overwrite: Partial<any>): any => {
       const base = {
         receiver_user_id: receiverId,
-        // receiver_role_id: receiverRoleId,
-        // sender_role_id: (getUser() as any).role_id,
         parent_message_id: replyMessage?.id,
         cid: activeChat.id,
       };
       return { ...base, ...overwrite };
     },
-    [receiverId, receiverRoleId, replyMessage?.id, activeChat?.id]
+    [receiverId, replyMessage?.id, activeChat?.id],
   );
 
   const optimisticMessage = useCallback(
@@ -278,7 +270,7 @@ function ConversationContainer({
         isPrivate,
       });
     },
-    [sendMessage, activeChat, isPrivate]
+    [sendMessage, activeChat, isPrivate],
   );
 
   /* ----------------------------- Audio logic ----------------------------- */
@@ -315,9 +307,14 @@ function ConversationContainer({
         await handleMediaMessage(file, "FileMessage", midLocal);
       }
     } catch (error) {
-      console.error("Error sending message:", error);
+      LogError({
+        error: error,
+        scenario: "handleFileChange in conversation container - chat widget",
+      });
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-      showErrorNotification(translateFunction("Failed to Upload file"));
+      showErrorNotification(
+        error?.message ?? translateFunction("Failed to Upload file"),
+      );
       sendStatus(null);
     }
   };
@@ -325,7 +322,7 @@ function ConversationContainer({
   const handleMediaMessage = async (
     file: File,
     type: string,
-    midLocal: string
+    midLocal: string,
   ) => {
     try {
       // optimistic UI update (uses base64 for img preview)
@@ -335,6 +332,7 @@ function ConversationContainer({
         optimisticMessage({
           ...baseMessagePayload({}),
           sender_user_id: senderId,
+          parent_message: replyMessage,
           message_type: { name: type },
           message_content: [{ file_path: base64 }],
           message_files: [{ file_path: base64, file_name: file.name }],
@@ -356,9 +354,14 @@ function ConversationContainer({
       // @ts-ignore – original util returns promise
       SendMessage(sendPayload, false, isPrivate);
     } catch (err) {
-      console.log("the error is: ", err);
+      LogError({
+        error: err,
+        scenario: "handleMediaMessage in conversation container - chat widget",
+      });
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-      showErrorNotification(translateFunction("Failed to Upload file"));
+      showErrorNotification(
+        err?.message ?? translateFunction("Failed to Upload file"),
+      );
     } finally {
       sendStatus(null);
     }
@@ -378,6 +381,7 @@ function ConversationContainer({
         message_files: [{ file_path: text, file_name: "Text" }],
         created_at: new Date(),
         type: "pending",
+        parent_message: replyMessage,
         mid: midLocal,
         message_status: buildMessageStatus(receiverId, senderId),
       };
@@ -392,9 +396,13 @@ function ConversationContainer({
           mid: midLocal,
         }),
         false,
-        isPrivate
+        isPrivate,
       );
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "sendTextMessage in conversation container - chat widget",
+      });
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
       showErrorNotification(translateFunction("Failed to send message"));
       sendStatus(null);
@@ -435,7 +443,7 @@ function ConversationContainer({
   useEffect(() => {
     if (pendingScrollToMessageId) {
       const exists = activeChat?.messages?.some(
-        (m) => `${m.id}` === `${pendingScrollToMessageId}`
+        (m) => `${m.id}` === `${pendingScrollToMessageId}`,
       );
       if (exists) {
         requestAnimationFrame(() => {
@@ -458,8 +466,8 @@ function ConversationContainer({
     else {
       showErrorNotification(
         translateFunction(
-          "Please enable camera permissions to use camera features"
-        )
+          "Please enable camera permissions to use camera features",
+        ),
       );
     }
   };
@@ -501,7 +509,7 @@ function ConversationContainer({
         return day;
       return dateString;
     },
-    [language]
+    [language],
   );
 
   const showRoute = useCallback(
@@ -566,7 +574,7 @@ function ConversationContainer({
       }
       return type;
     },
-    [showDate]
+    [showDate],
   );
 
   /* ----------------------- Camera Image Sender -------------------------- */
@@ -603,9 +611,16 @@ function ConversationContainer({
       setCroppedImagePreview(null);
       setPendingImageFile(null);
     } catch (error) {
-      console.error("Error sending cropped image:", error);
+      LogError({
+        error: error,
+        scenario:
+          "handleImagePreviewSend in conversation container - chat widget",
+      });
+
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-      showErrorNotification(translateFunction("Failed to Upload file"));
+      showErrorNotification(
+        error?.message ?? translateFunction("Failed to Upload file"),
+      );
       sendStatus(null);
       setCroppedImageFile(null);
       setCroppedImagePreview(null);
@@ -638,6 +653,7 @@ function ConversationContainer({
             message_files: [{ file_path: base64data, file_name: "Audio" }],
             created_at: new Date(),
             type: "pending",
+            parent_message: replyMessage,
             mid: midLocal,
             message_status: buildMessageStatus(receiverId, senderId),
           });
@@ -657,12 +673,15 @@ function ConversationContainer({
           typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
             ? activeChat.id
             : false,
-          isPrivate
+          isPrivate,
         );
       } catch (error) {
+        LogError({
+          error: error,
+          scenario: "sendAudio in conversation container - chat widget",
+        });
         deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-        console.log(error);
-        console.error("Error sending audio:", error);
+
         showErrorNotification(translateFunction("Failed to Upload audio"));
         sendStatus(null);
       }
@@ -680,7 +699,7 @@ function ConversationContainer({
       senderId,
       receiverId,
       isPrivate,
-    ]
+    ],
   );
 
   /* ------------------------ Fetch Older Helper ------------------------- */
@@ -694,33 +713,32 @@ function ConversationContainer({
   }, [active, getPage, setMessagesPage]);
 
   /* --------------------- Scroll effect for list ------------------------ */
-  useLayoutEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || !activeChat?.messages?.length) return;
+  // useLayoutEffect(() => {
+  //   const container = scrollContainerRef.current;
+  //   if (!container || !activeChat?.messages?.length) return;
 
-    const currentLastMsgId =
-      activeChat.messages[activeChat.messages.length - 1]?.id;
+  //   const currentLastMsgId =
+  //     activeChat.messages[activeChat.messages.length - 1]?.id;
 
-    if (isFetchingOlderRef.current) {
-      const diff = container.scrollHeight - prevScrollHeightRef.current;
-      container.scrollTop = diff;
-      isFetchingOlderRef.current = false;
-    } else if (
-      prevLastMsgIdRef.current &&
-      currentLastMsgId !== prevLastMsgIdRef.current
-    ) {
-      container.scrollTop = container.scrollHeight;
-    }
+  //   if (isFetchingOlderRef.current) {
+  //     const diff = container.scrollHeight - prevScrollHeightRef.current;
+  //     container.scrollTop = diff;
+  //     isFetchingOlderRef.current = false;
+  //   } else if (
+  //     prevLastMsgIdRef.current &&
+  //     currentLastMsgId !== prevLastMsgIdRef.current
+  //   ) {
+  //     container.scrollTop = container.scrollHeight;
+  //   }
 
-    prevLastMsgIdRef.current = currentLastMsgId;
-    prevScrollHeightRef.current = container.scrollHeight;
-  }, [activeChat?.messages]);
+  //   prevLastMsgIdRef.current = currentLastMsgId;
+  //   prevScrollHeightRef.current = container.scrollHeight;
+  // }, [activeChat?.messages]);
 
   /* ------------------------- Native Recording --------------------------- */
   const [nativeRecorder, setNativeRecorder] = useState<MediaRecorder | null>(
-    null
+    null,
   );
-  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
 
   const startNativeRecording = useCallback(async () => {
     try {
@@ -733,20 +751,20 @@ function ConversationContainer({
           chunks.push(e.data);
         }
       };
-
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: "audio/wav" });
         onStopRecording(blob);
-        setRecordedChunks([]);
         stream.getTracks().forEach((track) => track.stop());
       };
-
-      setRecordedChunks(chunks);
       setNativeRecorder(recorder);
       recorder.start();
       return true;
     } catch (error) {
-      console.error("Native recording failed:", error);
+      LogError({
+        error: error,
+        scenario:
+          "startNativeRecording in conversation container - chat widget",
+      });
       return false;
     }
   }, [onStopRecording]);
@@ -762,7 +780,47 @@ function ConversationContainer({
   /* JSX                                                                    */
   /* ---------------------------------------------------------------------- */
   const WebcamCaptureAny = WebcamCapture as any;
+  const isBlockedEachOther = () => {
+    if (!activeChat || !receiverId) return false;
+    if (activeChat?.channel_members?.some((m: any) => m.is_blocked === 1)) {
+      return true;
+    }
+    return false;
+  };
   const [showMenu, setShowMenu] = useState(false);
+  const sortedMessages = [...(activeChat?.messages || [])].sort((a, b) => {
+    // Use .getTime() to get the numeric Unix timestamp
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  });
+
+  const firstMessageIdRef = useRef<string | null>(null);
+
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || !sortedMessages || sortedMessages.length === 0) return;
+
+    const currentScrollHeight = container.scrollHeight;
+    const currentFirstMessageId = sortedMessages[0]?.id;
+
+    // Check if we have prepended messages (older messages loaded)
+    // We do this by seeing if the height grew AND the first message ID is different
+    const isPrepended =
+      prevScrollHeightRef.current > 0 &&
+      currentFirstMessageId !== firstMessageIdRef.current;
+
+    if (isPrepended) {
+      // Calculate how much height was added
+      const heightDifference =
+        currentScrollHeight - prevScrollHeightRef.current;
+
+      // Instantly adjust scroll to maintain visual position
+      container.scrollTop += heightDifference;
+    }
+
+    // Update refs for the next render
+    prevScrollHeightRef.current = currentScrollHeight;
+    firstMessageIdRef.current = currentFirstMessageId;
+  }, [sortedMessages]);
   return (
     <>
       {/* hidden file input */}
@@ -791,58 +849,18 @@ function ConversationContainer({
 
       {/* Cropped Image Preview with Send/Cancel buttons */}
       {croppedImageFile && croppedImagePreview && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999999999]">
-          <div className="bg-white rounded-lg w-[90%] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col items-end">
-            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-xl font-semibold">
-                {translateFunction("Preview", language) || "Preview"}
-              </h2>
-              <button
-                onClick={handleImagePreviewCancel}
-                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-                aria-label={translateFunction("Close", language)}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-auto p-4 flex items-center justify-center w-full">
-              <div className="w-full flex flex-col items-center gap-4">
-                <div className="relative w-full ">
-                  <Image
-                    src={croppedImagePreview}
-                    alt="Cropped preview"
-                    width={800}
-                    height={800}
-                    className="w-full h-auto rounded-lg object-contain max-h-[75vh]"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 border-t border-gray-200 flex justify-end gap-3 w-full">
-              <button
-                onClick={handleImagePreviewCancel}
-                className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                {translateFunction("Cancel", language)}
-              </button>
-              <button
-                onClick={handleImagePreviewSend}
-                className="px-6 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                {translateFunction("Send", language) || "Send"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ChatImagePreviewBeforeSend
+          croppedImagePreview={croppedImagePreview}
+          handleImagePreviewCancel={handleImagePreviewCancel}
+          handleImagePreviewSend={handleImagePreviewSend}
+        />
       )}
 
       {/* Camera overlay */}
       {cameraEnabled && (
-        <div className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-[9999999999]">
+        <div className="fixed top-0 left-0 w-full h-full bg-transparent flex flex-col items-center justify-start p-5 z-9999999999">
           <div
-            className="absolute top-0 left-0 w-screen h-screen bg-[#585751] opacity-60 z-[9999]"
+            className="absolute top-0 left-0 w-full h-full bg-[#585751] opacity-60 z-9999"
             onClick={() => enableCamera(false)}
           />
           {(() => {
@@ -865,60 +883,12 @@ function ConversationContainer({
 
       {/* Image / video preview modal */}
       {(imgs || vid) && (
-        <div className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-[99999999999999]">
-          <div className="absolute top-0 left-0 w-screen h-screen bg-[#585751] opacity-60 z-[9999]" />
-          <div
-            className="absolute top-[29px] right-[30px] cursor-pointer z-[9999999999999]"
-            onClick={() => (setImgs(null), setVid(null))}
-          >
-            {/* close icon (duplicated) */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="17.828"
-              height="17.829"
-              viewBox="0 0 17.828 17.829"
-            >
-              <g transform="translate(-67.032 -2460.283)">
-                <line
-                  y2="21.213"
-                  transform="translate(83.447 2461.697) rotate(45)"
-                  fill="none"
-                  stroke="#555"
-                  strokeLinecap="round"
-                  strokeWidth="2"
-                />
-                <line
-                  y2="21.213"
-                  transform="translate(83.447 2476.697) rotate(135)"
-                  fill="none"
-                  stroke="#555"
-                  strokeLinecap="round"
-                  strokeWidth="2"
-                />
-              </g>
-            </svg>
-          </div>
-
-          {vid ? (
-            <video
-              src={vid}
-              controls
-              className="object-contain h-full w-auto bg-[#0000005d]"
-            >
-              <source src={vid} />
-            </video>
-          ) : (
-            imgs && (
-              <Image
-                src={imgs}
-                alt="preview"
-                fill
-                sizes="100vw"
-                className="object-contain h-full w-auto -[9999] left-0 right-0 m-[0_auto] p-4 z-[99999999]"
-              />
-            )
-          )}
-        </div>
+        <MediaMessagePreview
+          imgs={imgs}
+          setImgs={setImgs}
+          setVid={setVid}
+          vid={vid}
+        />
       )}
 
       {/* Recorder component – client-side only */}
@@ -938,21 +908,39 @@ function ConversationContainer({
           <ChatInfo
             callLoading={callLoading}
             makeAudioCall={() => {
+              if (isBlockedEachOther()) {
+                showErrorNotification(
+                  translateFunction(
+                    "You cannot send messages or calls to this user",
+                    language,
+                  ),
+                );
+                return;
+              }
               if (callLoading || !activeChat?.id) return;
               makeVoiceCall(
                 activeChat.id,
                 receiver?.user.name,
                 receiver?.user?.photo_path,
-                receiver?.user.mobile_phone
+                receiver?.user.mobile_phone,
               );
             }}
             makeVideoCall={() => {
+              if (isBlockedEachOther()) {
+                showErrorNotification(
+                  translateFunction(
+                    "You cannot send messages or calls to this user",
+                    language,
+                  ),
+                );
+                return;
+              }
               if (callLoading || !activeChat?.id) return;
               makeVideoCall(
                 activeChat.id,
                 receiver?.user.name,
                 receiver?.user?.photo_path,
-                receiver?.user.mobile_phone
+                receiver?.user.mobile_phone,
               );
             }}
             cancel={() => openDetails(false)}
@@ -966,6 +954,7 @@ function ConversationContainer({
 
         {/* Header */}
         <ChatHeader
+          isBlockedEachOther={isBlockedEachOther()}
           openDetails={() => {
             openDetails(true);
             GetChatDetails(activeChat?.id);
@@ -985,189 +974,214 @@ function ConversationContainer({
         )}
 
         {/* Messages */}
-        <div ref={scrollContainerRef} className="chat-message-container">
+        <div
+          ref={scrollContainerRef}
+          className="chat-message-container mt-[51.5px] py-[40px] px-[20px] bg-[#f7f7f7] w-full flex flex-col overflow-x-hidden overflow-y-auto"
+          style={{
+            height: "calc(100% - 101px)",
+          }}
+        >
           {!(typeof active?.id === "string" && active?.id?.includes("ch")) &&
             active?.id && (
               <Observable loading={loading} getNext={fetchOlderMessages} />
             )}
 
-          {activeChat?.messages?.map((mes: any, i: number) => (
+          {sortedMessages?.map((mes: Message, i: number) => (
             <React.Fragment key={mes.id || i}>
               {(showDate(mes.created_at) !==
-                showDate(activeChat.messages[i - 1]?.created_at) ||
-                !activeChat.messages[i - 1]) && (
+                showDate(sortedMessages?.[i - 1]?.created_at) ||
+                !sortedMessages?.[i - 1]) && (
                 <div className="last-date-value">
                   {showDate(mes.created_at)}
                 </div>
               )}
               {/* date separators here – omitted for brevity */}
               <ChatMessage
+                auth_message_status={mes.auth_message_status}
+                created_at={mes.created_at}
+                duration_in_seconds={mes.duration_in_seconds}
+                id={mes.id}
+                is_forward={mes.is_forward}
+                message_content={mes.message_content}
+                message_files={mes.message_files}
+                message_status={mes.message_status}
+                message_type={mes.message_type}
+                parent_message={mes.parent_message}
+                parent_message_id={mes.parent_message_id}
+                sender_user_id={mes.sender_user_id}
+                mid={mes?.mid}
                 isPrivate={isPrivate}
-                AudioRef={AudioRef}
                 setVid={setVid}
                 setImg={(e) => setImgs(e)}
                 GetMessage={(msgId, qoutedId) => {
-                  // TODO migrate GetMessage logic to TS
-
                   GetMessage(msgId, qoutedId);
                 }}
                 type={showRoute(
                   mes,
-                  activeChat.messages[i - 1],
-                  activeChat.messages[i + 1]
+                  sortedMessages?.[i - 1],
+                  sortedMessages?.[i + 1],
                 )}
-                marg={
-                  (i !== 0 &&
-                    mes.sender_user_id !==
-                      activeChat.messages[i - 1]?.sender_user_id) ||
-                  mes.message_type.name.includes("Call") ||
-                  (i !== 0 &&
-                    activeChat.messages[i - 1]?.message_type.name.includes(
-                      "call"
-                    ))
-                }
-                message={mes}
               />
             </React.Fragment>
           ))}
           <div id="scroled" style={{ minHeight: 20 }} />
         </div>
 
-        {/* Footer input controls */}
-        {mics ? (
-          <>
-            {replyMessage && (
-              <ReplyMessage
-                message={replyMessage}
-                cancel={() => setReplyMessage(null)}
-              />
-            )}
-            <div className="chat-input-container bac40">
-              <MicIcon height={40} style={{ cursor: "pointer" }} />
-              <div className="mic-chat">
-                <span className="time-mic">{showDuration()}</span>
-                <WaveIcon className="wave-svg" />
-                <div
-                  className="cancel-button"
-                  onMouseUp={() => {
-                    if (nativeRecorder) {
-                      stopNativeRecording();
-                    }
-                    sendStatus(null);
-                    setMic(false);
-                    setRecording(false);
-                    reset();
-                  }}
-                >
-                  Cancel
-                </div>
+        <>
+          {isBlockedEachOther() ? (
+            <>
+              <div className="flex grow flex-row items-center justify-center medium text-pretty text-[#1d1d1d] bg-gray-200 p-3 rounded-md">
+                {translateFunction(
+                  "You cannot send messages or calls to this user",
+                  language,
+                )}
               </div>
-              <ShareIcon
-                onClick={() => {
-                  if (nativeRecorder) stopNativeRecording();
-                  const midLocal =
-                    "m" + Math.random().toString().replace(".", "");
-                  setRecording(false);
-                  setTimeout(() => {
-                    sendAudio(midLocal);
-                  }, 1500);
-                }}
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            {replyMessage && (
-              <ReplyMessage
-                message={replyMessage}
-                cancel={() => setReplyMessage(null)}
-              />
-            )}
-            <div
-              className={`${
-                message.length > 0 && "pr-[23px]"
-              } chat-input-container`}
-            >
-              <PlusIcon
-                style={{ minWidth: 43, cursor: "pointer" }}
-                className="chatplus"
-                onClick={() => {
-                  document
-                    .querySelector<HTMLInputElement>('input[type="file"]')
-                    .click();
-                  sendStatus("Sending file...");
-                }}
-                height={40}
-              />
-              <div className="input-chat-container">
-                <label htmlFor="type" className="hidden">
-                  Type
-                </label>
-                <input
-                  id="type"
-                  className={`input-chat wid31`}
-                  value={message}
-                  onChange={onChangeInput}
-                  onKeyDown={onKeyDown}
-                  onBlur={() => sendStatus(null)}
+            </>
+          ) : (
+            <>
+              {replyMessage && (
+                <ReplyMessage
+                  message={replyMessage}
+                  cancel={() => setReplyMessage(null)}
                 />
-              </div>
-              {message.length > 0 ? (
-                <SendIcon
-                  style={{ minWidth: 50, cursor: "pointer" }}
-                  onClick={() => {
-                    sendTextMessage(message);
-                    setMessage("");
-                  }}
-                />
+              )}
+              {/* Footer input controls */}
+              {mics ? (
+                <>
+                  <div className="chat-input-container bac40">
+                    <img
+                      src="/icons/chat/mic.svg"
+                      height={40}
+                      style={{ cursor: "pointer" }}
+                    />
+                    <div className="mic-chat">
+                      <span className="time-mic">{showDuration()}</span>
+                      <img src="/icons/chat/wave.svg" className="wave-svg" />
+                      <div
+                        className="cancel-button"
+                        onMouseUp={() => {
+                          if (nativeRecorder) {
+                            stopNativeRecording();
+                          }
+                          sendStatus(null);
+                          setMic(false);
+                          setRecording(false);
+                          reset();
+                        }}
+                      >
+                        {translateFunction("Cancel", language)}
+                      </div>
+                    </div>
+                    <img
+                      src="/icons/chat/sharechat.svg"
+                      onClick={() => {
+                        if (nativeRecorder) stopNativeRecording();
+                        const midLocal =
+                          "m" + Math.random().toString().replace(".", "");
+                        setRecording(false);
+                        setTimeout(() => {
+                          sendAudio(midLocal);
+                        }, 1500);
+                      }}
+                    />
+                  </div>
+                </>
               ) : (
                 <>
-                  <CameraIcon
-                    style={{ minWidth: 50, cursor: "pointer" }}
-                    className="camer-icon"
-                    onClick={() => {
-                      setShowMenu(true);
-                      sendStatus("Sending file...");
-                    }}
-                  />
-                  <RedMicIcon
-                    style={{ cursor: "pointer" }}
-                    onClick={() => {
-                      // Try native recording first, fallback to react-record
-                      startNativeRecording().then((success) => {
-                        if (success) {
-                          setMic(true);
-                          sendStatus("Recording...");
-                          start();
-                        } else {
-                          // Fallback to react-record (may have lamejs issues)
-                          navigator.mediaDevices
-                            .getUserMedia({ audio: true })
-                            .then(() => {
-                              setMic(true);
-                              sendStatus("Recording...");
-                              start();
-                              setRecording(true);
-                            })
-                            .catch(() => {
-                              showErrorNotification(
-                                translateFunction("No available Microphone")
-                              );
+                  <div
+                    className={`${
+                      message.length > 0 && "pr-[23px]"
+                    } chat-input-container`}
+                  >
+                    <img
+                      src="/icons/chat/chatplus.svg"
+                      style={{ minWidth: 43, cursor: "pointer" }}
+                      className="chatplus"
+                      onClick={() => {
+                        document
+                          .querySelector<HTMLInputElement>('input[type="file"]')
+                          .click();
+                        sendStatus("Sending file...");
+                      }}
+                      height={40}
+                    />
+                    <div className="input-chat-container">
+                      <label htmlFor="type" className="hidden">
+                        Type
+                      </label>
+                      <input
+                        id="type"
+                        className={`input-chat wid31`}
+                        value={message}
+                        onChange={onChangeInput}
+                        onKeyDown={onKeyDown}
+                        onBlur={() => sendStatus(null)}
+                      />
+                    </div>
+                    {message.length > 0 ? (
+                      <img
+                        src="/icons/chat/sendbutton.svg"
+                        style={{ minWidth: 50, cursor: "pointer" }}
+                        onClick={() => {
+                          sendTextMessage(message);
+                          setMessage("");
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <img
+                          src="/icons/chat/camera.svg"
+                          style={{ minWidth: 50, cursor: "pointer" }}
+                          className="camer-icon"
+                          onClick={() => {
+                            setShowMenu(true);
+                            sendStatus("Sending file...");
+                          }}
+                        />
+                        <img
+                          src="/icons/chat/redmic.svg"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            // Try native recording first, fallback to react-record
+                            startNativeRecording().then((success) => {
+                              if (success) {
+                                setMic(true);
+                                sendStatus("Recording...");
+                                start();
+                              } else {
+                                // Fallback to react-record (may have lamejs issues)
+                                navigator.mediaDevices
+                                  .getUserMedia({ audio: true })
+                                  .then(() => {
+                                    setMic(true);
+                                    sendStatus("Recording...");
+                                    start();
+                                    setRecording(true);
+                                  })
+                                  .catch(() => {
+                                    showErrorNotification(
+                                      translateFunction(
+                                        "No available Microphone",
+                                      ),
+                                    );
+                                  });
+                              }
                             });
-                        }
-                      });
-                    }}
-                  />
+                          }}
+                        />
+                      </>
+                    )}
+                  </div>
                 </>
               )}
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </>
       </div>
       {showMenu && (
         <CustomPopup
           modalTitle={translateFunction(
-            "chosse an image or video from camera or files"
+            "chosse an image or video from camera or files",
           )}
           close={() => {
             setShowMenu(false);
@@ -1181,7 +1195,7 @@ function ConversationContainer({
               onClick: () => {
                 const fileInput =
                   document.querySelector<HTMLInputElement>(
-                    'input[type="file"]'
+                    'input[type="file"]',
                   );
                 if (fileInput) {
                   // 1. Change "images/*" to "image/*"

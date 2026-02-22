@@ -245,7 +245,7 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
           }}
         >
           <div
-            className="relative w-20 h-[90px] flex-shrink-0"
+            className="relative w-20 h-[90px] shrink-0"
             data-cy="wishlist-container-img"
           >
             <Image
@@ -370,7 +370,7 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
           href={`/${lang}/products/${item.slug}`}
         >
           <div
-            className="relative w-20 h-[90px] flex-shrink-0"
+            className="relative w-20 h-[90px] shrink-0"
             data-cy="wishlist-container-img"
           >
             <Image

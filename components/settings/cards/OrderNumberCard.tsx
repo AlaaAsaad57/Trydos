@@ -1,6 +1,5 @@
-import React from "react";
 import { translateFunction } from "utils/functions";
-import { OrderNumberCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
+
 import { showSuccessNotification } from "@/store/notifications/reducer";
 
 const OrderNumberCard = ({ number }) => {

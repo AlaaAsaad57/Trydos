@@ -8,16 +8,9 @@ import {
   showSuccessNotification,
 } from "store/notifications/reducer";
 import auth from "../services/auth";
-import {
-  COOKIE_NAMES,
-  UserData,
-  deleteCookie,
-  getCookie,
-  getHashedUserId,
-  setCookie,
-} from "./cookies/cookie-manager";
+import { COOKIE_NAMES, getCookie } from "./cookies/cookie-manager";
 import { logRequest } from "./requestLoggerClient";
-import { ReportError } from "./errorReported";
+import { useAppStore } from "../store";
 
 // ---------- Types ----------
 type ServerType =
@@ -29,6 +22,7 @@ type ServerType =
   | "nest-stories"
   | "local"
   | "comments"
+  | "wallet"
   | "market-dashboard";
 
 type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -48,6 +42,7 @@ interface FetchDataParams {
 
 // ---------- Internal State ----------
 const requestCache = new Map<string, any>();
+const inflightRequests = new Map<string, Promise<any>>();
 const retryableStatusCodes = [502, 503, 504, 429];
 const ignoredMessages = [
   "Data Got!",
@@ -68,100 +63,24 @@ const ignoredMessages = [
 ];
 
 // ---------- Helper Functions ----------
-const getServerBaseUrl = (server: ServerType) => {
-  switch (server) {
-    // case "market-dashboard":
-    //   return process.env.NEXT_PUBLIC_MARKET_DASHBOARD_BACKEND_URL;
-    case "market":
-    case "market-dashboard":
-      return process.env.NEXT_PUBLIC_BACKEND_URL;
-    case "elastic":
-      return process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL;
-    case "chat":
-      return process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
-    case "stories":
-      return process.env.NEXT_PUBLIC_STORIES_BACKEND_URL;
-    case "comments":
-      return process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL;
-    case "upload story":
-    case "nest-stories":
-    case "local":
-      return "";
-    default:
-      throw new Error(`Unknown server type: ${server}`);
-  }
-};
 
-const getToken = async (server: ServerType): Promise<string> => {
-  switch (server) {
-    case "comments":
-      return getHashedUserId();
-    case "local":
-      return getHashedUserId();
-    case "chat":
-      return getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.access_token || "";
-    case "market":
-    case "market-dashboard":
-      return (
-        getCookie<string>(COOKIE_NAMES.MARKET_TOKEN) ||
-        getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN) ||
-        ""
-      );
-    case "stories":
-    case "nest-stories":
-      return getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.access_token || "";
-    case "upload story":
-    case "elastic":
-      return "";
+// Servers that are on the same origin — direct fetch, cookies sent automatically
+const isLocalServer = (server: ServerType) => server === "local";
 
-    default:
-      throw new Error(`Unknown server type: ${server}`);
-  }
-};
+// "upload story" goes to Cloudinary (cross-origin, no auth, no custom headers)
+const isUploadStory = (server: ServerType) => server === "upload story";
 
-const getHeader = async (server = null) => {
-  if (server) return null;
+const getLocale = () => {
   const [country, lang] = (window.location.pathname.split("/")[1] || "").split(
-    "-"
+    "-",
   );
-  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
   const languageCookie = getCookie("language");
   const countryCookie = getCookie("country");
   return {
-    lang: lang ?? languageCookie,
-    accept: "application/json",
-    country: country ?? countryCookie,
-    current_role_id: userChat?.role_id || "-1",
+    country: country ?? countryCookie ?? "sy",
+    language: lang ?? languageCookie ?? "en",
   };
 };
-
-// const waitForOnline = (): Promise<void> => {
-//   if (typeof window === "undefined" || navigator.onLine) {
-//     return Promise.resolve();
-//   }
-
-//   return new Promise((resolve) => {
-//     const checkOnline = () => {
-//       if (navigator.onLine) {
-//         cleanup();
-//         resolve();
-//       }
-//     };
-
-//     const onOnline = () => {
-//       cleanup();
-//       resolve();
-//     };
-
-//     const interval = setInterval(checkOnline, 3000);
-//     window.addEventListener("online", onOnline);
-
-//     const cleanup = () => {
-//       clearInterval(interval);
-//       window.removeEventListener("online", onOnline);
-//     };
-//   });
-// };
 
 const waitUntilRegisteringComplete = async (): Promise<void> => {
   try {
@@ -178,22 +97,21 @@ const waitUntilRegisteringComplete = async (): Promise<void> => {
       }, 300);
       setTimeout(() => clearInterval(interval), 300000); // 5 minutes timeout
     });
-  } catch (err) {
-    console.error("Failed to wait for registration to complete:", err);
-  }
+  } catch (err) {}
 };
 
 const handleUnauthorized = async (
   server: ServerType,
-  options
+  options,
 ): Promise<boolean> => {
-  let userChat: any = getCookie(COOKIE_NAMES.USER_CHAT);
-  let userStories: any = getCookie(COOKIE_NAMES.USER_STORIES);
-  let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+  const { LoggingOut } = useAppStore.getState();
+  if (LoggingOut) return false;
+
   try {
     switch (server) {
       case "elastic":
         return true;
+
       case "market":
       case "market-dashboard":
       case "local":
@@ -202,62 +120,63 @@ const handleUnauthorized = async (
           server === "market-dashboard" ||
           server === "market"
         ) {
+          const { useAppStore } = await import("../store");
+          // If a registration/expire is already in progress, wait for it
+          // instead of starting another one
+          const { isRegisteringReady } = useAppStore.getState();
+          if (!isRegisteringReady) {
+            await waitUntilRegisteringComplete();
+            return true;
+          }
+
           const authService = await import("../services/auth");
           await authService.default.ExpiredUser();
           return true;
         }
+        return false;
+
       case "chat":
       case "stories":
       case "comments":
-        let token = await getToken(server);
+      case "wallet":
         localStorage.setItem(
           "last_unauthorized_request",
           JSON.stringify({
             ...options,
-            token: token,
             date: new Date().toISOString(),
-          })
+          }),
         );
-        const { useAppStore } = await import("../store");
-        const { setShouldAuthinticated } = useAppStore.getState();
-        if (userChat?.id)
-          setCookie(COOKIE_NAMES.USER_CHAT, {
-            ...userChat,
-            need_auth: true,
-          });
-        if (userStories?.id)
-          setCookie(COOKIE_NAMES.USER_STORIES, {
-            ...userStories,
-            need_auth: true,
-          });
-        if (userData) {
-          setCookie(COOKIE_NAMES.USER_DATA, {
-            ...userData,
-            need_auth: true,
-            is_phone_verified: 0,
-          });
-        }
-        deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
-        deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
 
+        // Clear stale tokens server-side (tokens are HttpOnly)
+        await fetch("/api/auth/clear-tokens", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tokens: [COOKIE_NAMES.CHAT_TOKEN, COOKIE_NAMES.STORIES_TOKEN],
+          }),
+          credentials: "include",
+        });
+
+        const { useAppStore } = await import("../store");
+        const { setShouldAuthinticated, setReAuthResult } =
+          useAppStore.getState();
+
+        setReAuthResult("pending");
         setShouldAuthinticated(true);
 
         return new Promise((resolve) => {
           const interval = setInterval(() => {
-            const hasNewToken =
-              server === "chat"
-                ? getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.need_auth ===
-                  false
-                : getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.need_auth ===
-                  false;
-
             const currentState = useAppStore.getState();
-            if (!currentState.shouldAuthinticated) {
-              clearInterval(interval);
-              resolve(false);
-            } else if (hasNewToken) {
+
+            if (currentState.reAuthResult === "success") {
               clearInterval(interval);
               resolve(true);
+            } else if (
+              !currentState.shouldAuthinticated ||
+              currentState.reAuthResult === "cancelled"
+            ) {
+              clearInterval(interval);
+              resolve(false);
             }
           }, 500);
 
@@ -266,11 +185,11 @@ const handleUnauthorized = async (
             resolve(false);
           }, 300000); // 5 minutes timeout
         });
+
       default:
         return false;
     }
   } catch (err) {
-    console.error("Error in handleUnauthorized:", err);
     return false;
   }
 };
@@ -280,10 +199,30 @@ const generateCacheKey = (params: FetchDataParams): string => {
   return JSON.stringify({ url, method, body, server });
 };
 
+const raceWithSignal = <T>(
+  promise: Promise<T>,
+  signal?: AbortSignal,
+): Promise<T> => {
+  if (!signal) return promise;
+  if (signal.aborted)
+    return Promise.reject(
+      new DOMException("The user aborted a request.", "AbortError"),
+    );
+
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () =>
+      reject(new DOMException("The user aborted a request.", "AbortError"));
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise
+      .then(resolve, reject)
+      .finally(() => signal.removeEventListener("abort", onAbort));
+  });
+};
+
 // ---------- Main Function ----------
 export const fetchData = async <T = any>(
   params: FetchDataParams,
-  isRetryAfterUnauthorized = false
+  isRetryAfterUnauthorized = false,
 ): Promise<T> => {
   const {
     url,
@@ -313,6 +252,12 @@ export const fetchData = async <T = any>(
     return { ...requestCache.get(cacheKey), success: true };
   }
 
+  // Inflight dedup: if an identical request is already pending, share its promise
+  if (!isRetryAfterUnauthorized && inflightRequests.has(cacheKey)) {
+    const shared = inflightRequests.get(cacheKey)!.then((r) => ({ ...r }));
+    return raceWithSignal(shared, signal) as Promise<T>;
+  }
+
   const doFetchWithRetry = async (): Promise<T> => {
     await waitUntilRegisteringComplete();
     if (url === "/auth/register-guest") {
@@ -321,42 +266,69 @@ export const fetchData = async <T = any>(
       setIsRegisteringReady(false);
     }
     try {
-      const token = await getToken(server);
-      let headers: any = await getHeader(server === "upload story");
-      if (params.sellerId) {
-        headers = {
-          ...headers,
-          "X-Seller-ID": params.sellerId,
+      const { country, language } = getLocale();
+      let res: Response;
+
+      if (isUploadStory(server)) {
+        // ── UPLOAD STORY: cross-origin Cloudinary, no auth, no custom headers ──
+        res = await fetch(url, {
+          method,
+          body: body && method !== "GET" ? (body as BodyInit) : undefined,
+          credentials: "omit",
+          signal,
+        });
+      } else if (isLocalServer(server)) {
+        // ── LOCAL: same-origin fetch, HttpOnly cookies sent automatically ──
+        const localHeaders: Record<string, string> = {
+          "x-country": country,
+          "x-language": language,
         };
-      }
-      const fullUrl = getServerBaseUrl(server) + url;
-      const requestOptions: RequestInit = {
-        method,
-        headers: {
-          ...(token?.length > 0 ? { Authorization: `Bearer ${token}` } : {}),
-          ...headers,
-        },
-        cache: "no-store",
-        next: {
-          revalidate: 0,
-        },
+        if (body && !(body instanceof FormData)) {
+          localHeaders["Content-Type"] = "application/json";
+        }
 
-        signal,
-        credentials: server === "local" ? "include" : "omit",
-      };
-
-      if (body && !(body instanceof FormData)) {
-        requestOptions.headers = {
-          ...requestOptions.headers,
-          "Content-Type": "application/json",
+        res = await fetch(url, {
+          method,
+          headers: localHeaders,
+          body: body && method !== "GET" ? (body as BodyInit) : undefined,
+          credentials: "include",
+          signal,
+        });
+      } else {
+        // ── EXTERNAL: route through /api/proxy (token injected server-side) ──
+        const proxyHeaders: Record<string, string> = {
+          "x-proxy-server": server,
+          "x-proxy-url": url,
+          "x-proxy-method": method,
+          "x-country": country,
+          "x-language": language,
         };
+
+        if (sellerId) {
+          proxyHeaders["x-seller-id"] = sellerId;
+        }
+
+        let proxyBody: BodyInit | null = null;
+
+        if (body && method !== "GET") {
+          if (body instanceof FormData) {
+            proxyBody = body;
+            // Let browser set multipart boundary
+          } else {
+            proxyHeaders["Content-Type"] = "application/json";
+            proxyBody = typeof body === "string" ? body : JSON.stringify(body);
+          }
+        }
+
+        res = await fetch("/api/proxy", {
+          method: "POST",
+          headers: proxyHeaders,
+          body: proxyBody,
+          credentials: "include", // sends HttpOnly cookies to proxy
+          signal,
+        });
       }
 
-      if (body && method !== "GET") {
-        requestOptions.body = body as BodyInit;
-      }
-
-      const res = await fetch(fullUrl, requestOptions);
       status = res.status;
       try {
         responseData = await res.json();
@@ -381,11 +353,9 @@ export const fetchData = async <T = any>(
         });
 
         const shouldRetry = await handleUnauthorized(server, {
-          url: url,
-          token: token,
+          url,
           server,
           body,
-          headers,
           status,
           responseData,
         });
@@ -401,7 +371,7 @@ export const fetchData = async <T = any>(
         throw new Error(
           responseData?.message ??
             responseData?.data?.message ??
-            `Error fetching data for request ${reqTitle?.code}`
+            `Error fetching data for request ${reqTitle?.code}`,
         );
       }
 
@@ -488,7 +458,7 @@ export const fetchData = async <T = any>(
         request_method: method,
         request_body: body,
         request_server: server,
-        request_token: await getToken(server),
+        // Token is HttpOnly — not accessible from JS (secure by design)
       };
 
       if (
@@ -506,9 +476,7 @@ export const fetchData = async <T = any>(
           body: body?.toString(),
           timestamp: Date.now(),
         });
-        const [country, lang] = (
-          window.location.pathname.split("/")[1] || ""
-        ).split("-");
+        const { country, language } = getLocale();
         if (
           (url.includes("cart/update") ||
             reqTitle.reqTitle.includes("Add to cart widget") ||
@@ -518,19 +486,18 @@ export const fetchData = async <T = any>(
         ) {
           return { ...(responseData || {}), success: false };
         }
-        LogError(errorObj);
-        ReportError(err, {
+        LogError({
+          ...errorObj,
           source: "fetchData",
           userId: auth.UserID()?.toString(),
-          token: await getToken(server),
           lastJson: responseData,
           page: window.location.href,
           url,
           method,
           body,
           server,
-          country: country,
-          language: lang,
+          country,
+          language,
         });
       }
 
@@ -538,5 +505,8 @@ export const fetchData = async <T = any>(
     }
   };
 
-  return doFetchWithRetry();
+  const promise = doFetchWithRetry();
+  inflightRequests.set(cacheKey, promise);
+  promise.finally(() => inflightRequests.delete(cacheKey));
+  return promise;
 };

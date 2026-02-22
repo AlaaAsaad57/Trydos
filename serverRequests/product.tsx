@@ -7,13 +7,148 @@ import { Metadata } from "next";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import { BuyersCommentItem } from "components/Server/product/ProductBuyersComment/BuyerCommentItem";
 import { cookies } from "next/headers";
+import {
+  COOKIE_NAMES,
+  getCookieServer,
+  UserData,
+} from "utils/cookies/cookie-manager";
 import FaqItemComponent from "components/Server/product/ProductFAQSection/FaqItemComponent";
+import { LogServerError } from "utils/serverErrorReporter";
+import { General_Site_Data } from "./meta/StructuredData/Constants";
+import {
+  comments_index,
+  comments_interactions_index,
+  product_interactions_index,
+  share_index,
+  user_interactions_index,
+  views_index,
+} from "services/elastic/INDEXES";
 
 let client = elasticSearchClient;
-export async function GetGlobalProduct({ slug, country, language }) {
+interface ProdutGlobalData {
+  id: number;
+  name: string;
+  slug: string;
+  share_link: string;
+  details: string;
+  images: Array<string>;
+  videos: Array<any>;
+  categories: Array<{
+    id: number;
+    name: string;
+    position: number;
+    icon: string;
+  }>;
+  brand: {
+    id: number;
+    slug: string;
+    name: string;
+    icon: string;
+  };
+  label_names: any;
+  flash_deal_end_date: any;
+  colors: Array<{
+    name: string;
+    code: string;
+    option: string;
+  }>;
+  sync_color_images: Array<{
+    color_name: string;
+    color_option: string;
+    color_code: string;
+    images: Array<string>;
+    color_trend: boolean;
+  }>;
+  flash_deal_max_allowed_quantity: any;
+  shipping_days: number;
+  is_featured: boolean;
+  globalFromRedis: boolean;
+}
+
+interface QtyProductData {
+  id: number;
+  description: any;
+  model: any;
+  variations: Array<{
+    id: string;
+    size: string;
+    color: {
+      name: string;
+      code: string;
+    };
+    type: string;
+    price: number;
+    offer_price: number;
+    luck_price: number;
+    sku: string;
+    qty: number;
+  }>;
+  sizes: Array<string>;
+  max_allowed_qty: string;
+  shipping_cost_multiply_with_quantity: boolean;
+  shipping_cost: number;
+  shipping_days: number;
+  price: number;
+  is_luck: boolean;
+  luck_price: number;
+  offer_price: number;
+  offer_type: string;
+  unit_price: number;
+  seller_id: number;
+  seller: {
+    name: any;
+    f_name: string;
+    l_name: string;
+    email: string;
+    gender: any;
+    birthdate: string;
+    review: number;
+    image: string;
+  };
+  shop: {
+    image: string;
+    name: string;
+  };
+  owner_type: string;
+  owner_id: number;
+  has_whole_sale: boolean;
+  whole_sale_link: any;
+  views_count: number;
+  descriptors: Array<any>;
+  is_country_restricted: boolean;
+  is_active: boolean;
+  collected_after_ordering: number;
+  available_quantity: number;
+}
+export async function GetCountries({ language, country }) {
+  let cacheKey = `countries-${country}-${language}`;
+  let cachedData = await RedisGet(cacheKey);
+  if (cachedData) {
+    return cachedData;
+  }
+
+  let response = await fetchServerData({
+    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/countries",
+    headers: { lang: language, country: country },
+    local: `${country}-${language}`,
+    method: "GET",
+  });
+  console.log("countries response", response);
+  if (response?.data?.data?.countries) {
+    await RedisSet(cacheKey, response.data.data.countries);
+    return response.data.data.countries;
+  }
+  return response?.data?.data?.countries || [];
+}
+
+export async function GetGlobalProduct({
+  slug,
+  country,
+  language,
+}): Promise<ProdutGlobalData> {
   try {
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
-      country
+      country,
     )}`;
 
     let productId = await GetFromRedis(slugKey);
@@ -41,29 +176,45 @@ export async function GetGlobalProduct({ slug, country, language }) {
       RedisSet(slugKey, freshGlobalData.data.data?.id);
       RedisSet(
         `product-id-${freshGlobalData.data.data?.id}-${country}-${language}-global`,
-        freshGlobalData.data.data
+        freshGlobalData.data.data,
       );
     }
     return { ...freshGlobalData.data?.data, globalFromRedis: false };
   } catch (error) {
-    return { error };
+    LogServerError({
+      slug,
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetGlobalProduct in serverRequest/product",
+    });
+    throw new Error(
+      error?.message ?? error ?? "Failed to Get Global Product Data",
+    );
     // log error
   }
 }
-export async function GetProductPriceQtyDetails({ slug, country, language }) {
+export async function GetProductPriceQtyDetails({
+  slug,
+  country,
+  language,
+  noCache = false,
+}): Promise<QtyProductData> {
   try {
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
-      country
+      country,
     )}`;
-    let productId = await GetFromRedis(slugKey);
-    let cacheKey = `product-id-${productId}-${country}-${language}`;
-    if (productId) {
-      let cachedProductData = await RedisGet(`${cacheKey}-qtyPrices`);
-      if (cachedProductData) {
-        return {
-          ...cachedProductData,
-          qtyPricesDataFromRedis: true,
-        };
+    if (!noCache) {
+      let productId = await GetFromRedis(slugKey);
+      let cacheKey = `product-id-${productId}-${country}-${language}`;
+      if (productId) {
+        let cachedProductData = await RedisGet(`${cacheKey}-qtyPrices`);
+        if (cachedProductData) {
+          return {
+            ...cachedProductData,
+            qtyPricesDataFromRedis: true,
+          };
+        }
       }
     }
     let freshQtyPricesData = await fetchServerData({
@@ -79,11 +230,18 @@ export async function GetProductPriceQtyDetails({ slug, country, language }) {
       RedisSet(slugKey, freshQtyPricesData.data.data?.id);
       RedisSet(
         `product-id-${freshQtyPricesData.data.data?.id}-${country}-${language}-qtyPrices`,
-        freshQtyPricesData.data.data
+        freshQtyPricesData.data.data,
       );
     }
     return { ...freshQtyPricesData.data?.data, qtyPricesDataFromRedis: false };
   } catch (error) {
+    LogServerError({
+      slug,
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetProductPriceQtyDetails in serverRequest/product",
+    });
     // log error
   }
 }
@@ -105,6 +263,9 @@ export async function GetProductMeta({
       method: "GET",
       local: `${country}-${language}`,
     });
+    if (freshMeta?.error) {
+      throw new Error(freshMeta?.error);
+    }
     let product = freshMeta.data.data;
 
     let title = `${product?.name}`;
@@ -125,17 +286,17 @@ export async function GetProductMeta({
       title: title,
       description: stripHtml(product?.details),
       alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-${language}/products/${slug}`,
+        canonical: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
         languages: {
-          en: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-en/products/${slug}`,
-          tr: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-tr/products/${slug}`,
-          ar: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-ar/products/${slug}`,
+          en: `${General_Site_Data.url}/${country}-en/products/${slug}`,
+          tr: `${General_Site_Data.url}/${country}-tr/products/${slug}`,
+          ar: `${General_Site_Data.url}/${country}-ar/products/${slug}`,
         },
       },
       openGraph: {
         title: title,
         description: stripHtml(product?.details),
-        url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-${language}/products/${slug}`,
+        url: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
         siteName: "Trydos",
         images: [
           {
@@ -164,6 +325,13 @@ export async function GetProductMeta({
     RedisSet(cacheKey, data, 3600);
     return { ...data, metaFromRedis: false };
   } catch (error) {
+    LogServerError({
+      slug,
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetProductMeta in serverRequest/product",
+    });
     // log error
   }
 }
@@ -174,16 +342,20 @@ export async function GetProductGeneralData({ id }) {
       let res = await client.get({
         _source: [
           "final_rating",
-          "total_views",
           "star_distribution",
           "size_analysis",
           "good_quality_product",
         ],
-        index: "product_interactions",
+        index: product_interactions_index,
         id: id,
       });
       return res._source as any;
     } catch (error) {
+      LogServerError({
+        error: error,
+        id: id,
+        scenario: "Error In getProductGeneralQuery in serverRequest/product",
+      });
       return {
         _source: {
           final_rating: 0,
@@ -195,16 +367,29 @@ export async function GetProductGeneralData({ id }) {
       };
     }
   };
+  const getProductViewsQuery = async (productId) => {
+    try {
+      let res = await client.get({
+        id: productId,
+        _source: ["view_count"],
+        index: views_index,
+      });
+      return (res._source as any)?.view_count ?? 0;
+    } catch (error) {
+      return 0;
+    }
+  };
   try {
-    let [source, recommendation_stats] = await Promise.all([
+    let [source, recommendation_stats, views] = await Promise.all([
       getProductGeneralQuery(),
       GetRecommendationCountForProduct({ product_id: id }),
+      getProductViewsQuery(id),
     ]);
 
     const productInfo = {
       product_id: id,
       final_rating: source?.final_rating,
-      total_views: source?.total_views ?? 0,
+      total_views: views ?? 0,
       ratingDetails: source?.star_distribution
         ? Object.keys(source.star_distribution)?.map((s) => ({
             ratingGroup: s?.split("_")[1],
@@ -217,12 +402,18 @@ export async function GetProductGeneralData({ id }) {
       total_buyers: recommendation_stats.total_buyers,
     };
     return productInfo;
-  } catch (error) {}
+  } catch (error) {
+    LogServerError({
+      id: id,
+      error: error,
+      scenario: "Error In GetProductGeneralData in serverRequest/product",
+    });
+  }
 }
 
 export const GetRecommendationCountForProduct = async ({ product_id }) => {
   const result = await client.search({
-    index: "comments",
+    index: comments_index,
     size: 0,
     query: {
       bool: {
@@ -304,7 +495,7 @@ export async function GetProductBuyersComment({
 }) {
   let commentsData = [];
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: pageSize,
     sort: [
       { created_at: "desc" }, // newest first
@@ -423,7 +614,7 @@ export async function GetFQACommentsForProductWithReactions({
   if (commentIds.length === 0) return commentsResult;
 
   const reactionsQuery: any = {
-    index: "comments_reactions",
+    index: comments_interactions_index,
     size: 0,
     query: {
       bool: {
@@ -511,11 +702,10 @@ export async function GetFQACommentsForProductWithReactions({
 }
 
 async function GetBuyerComment({ id }) {
-  const cookieStore = await cookies();
-  let userCookies = cookieStore.get("User-Data")?.value;
-  let userId = JSON.parse(userCookies)?.id;
+  const userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_DATA);
+  let userId = userData?.id;
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: 1,
     sort: [
       { created_at: "desc" }, // newest first
@@ -687,7 +877,7 @@ export async function GetProductStories({ page, productId }) {
               // @ts-ignore
               story.stories[0]?.photo_path,
             // @ts-ignore
-            Boolean(story.stories[0]?.full_video_path)
+            Boolean(story.stories[0]?.full_video_path),
           )}
         />
         <div className="inset-story-shadow absolute" />
@@ -706,7 +896,7 @@ export async function GetProductFaqQuestions({
   width = 90,
 }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: pageSize,
     sort: [
       { created_at: "desc" }, // newest first
@@ -817,9 +1007,9 @@ export async function GetProductFaqQuestions({
     total: (response.hits.total as any)?.value,
   };
 }
-export async function GetFaqItem({ id }) {
+async function GetFaqItem({ id }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     size: 1,
     query: {
       bool: {
@@ -835,9 +1025,8 @@ export async function GetFaqItem({ id }) {
     ...((hit?._source as {}) ?? {}),
   }));
 
-  const cookieStore = await cookies();
-  let userCookies = cookieStore.get("User-Data")?.value;
-  let userId = JSON.parse(userCookies)?.id;
+  const userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_DATA);
+  let userId = userData?.id;
 
   if (results?.length > 0)
     results = await GetFQACommentsForProductWithReactions({
@@ -911,7 +1100,7 @@ export async function GetSocialInfoForProduct({ productId, userId }) {
 async function getProductSharedCountFromElasticsearch(productId) {
   try {
     let res = await client.search({
-      index: "shared_products",
+      index: share_index,
       _source: ["shared_count"],
       size: 1, // just one document if you expect a single match
       query: {
@@ -925,6 +1114,12 @@ async function getProductSharedCountFromElasticsearch(productId) {
 
     return sharesData;
   } catch (error) {
+    LogServerError({
+      slug: productId,
+      error: error,
+      scenario:
+        "Error In getProductSharedCountFromElasticsearch in serverRequest/product",
+    });
     return null;
   }
 }
@@ -933,13 +1128,13 @@ async function getProductInteractions(productId: string, userId?: string) {
     // Run both queries in parallel
     const [productRes, likeRes] = await Promise.all([
       client.get({
-        index: "product_interactions",
+        index: product_interactions_index,
         id: productId,
         _source: ["total_likes", "total_comments"],
       }),
       userId
         ? client.search({
-            index: "user_product_likes",
+            index: user_interactions_index,
             _source: ["status"],
             body: {
               query: {
@@ -979,6 +1174,11 @@ async function getProductInteractions(productId: string, userId?: string) {
       is_liked: isLiked,
     };
   } catch (err: any) {
+    LogServerError({
+      slug: productId,
+      error: err,
+      scenario: "Error In getProductInteractions in serverRequest/product",
+    });
     return {
       is_liked: false,
       total_likes: 0,
@@ -989,7 +1189,7 @@ async function getProductInteractions(productId: string, userId?: string) {
 
 export async function GetProductCommentsCount({ productId }) {
   let query: any = {
-    index: "comments",
+    index: comments_index,
     query: {
       bool: {
         must: [{ term: { product_id: String(productId) } }],

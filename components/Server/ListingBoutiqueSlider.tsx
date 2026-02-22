@@ -1,5 +1,3 @@
-import VerificationIcon from "public/svg/listing/VerificationIcon";
-import TopStarIcon from "public/svg/listing/TopStar";
 import Image from "next/image";
 import React, { Suspense } from "react";
 import BoutiquePhotoSliderWrapper from "components/clientWrapper/filtersPage/BoutiquePhotoSliderWrapper";
@@ -26,15 +24,15 @@ function BoutiqueHeader({ boutique }) {
           data-cy="boutique_top_icons"
           className="boutique-top-info flex-col items-center"
         >
-          <div className="boutique-logo-container flex-row align-center">
+          <div className="boutique-logo-container flex-row align-center gap-[8px]">
             <Image
               alt={boutique?.name}
               width={130}
               height={20}
               src={GetImageUrl(boutique?.icon)}
             />
-            <VerificationIcon />
-            <TopStarIcon />
+            <img src="/icons/VerificationIcon.svg" />
+            <img src="/icons/TopStar.svg" />
           </div>
           <div className="boutique-text">{boutique?.name}</div>
         </div>

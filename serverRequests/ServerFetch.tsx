@@ -1,3 +1,5 @@
+import { LogServerError } from "utils/serverErrorReporter";
+
 interface FetchOptions {
   url: string;
   revalidate?: number;
@@ -10,11 +12,12 @@ interface FetchOptions {
   body?: any;
 }
 
-interface FetchResponse<T = any> {
+export interface FetchResponse<T = any> {
   data: T | null;
   error: string | null;
   status: number;
   isError?: boolean;
+  url?: string;
 }
 
 const createServerFetch = async <T = any,>({
@@ -43,12 +46,14 @@ const createServerFetch = async <T = any,>({
         },
         body: body,
       };
+      if (headers.ContentType === "MULTIPART") {
+        delete fetchOptions.headers["Content-Type"];
+      }
 
       const response = await fetch(url, {
         ...fetchOptions,
         next: {
-          tags: tags,
-          revalidate: revalidate,
+          revalidate: 0,
         },
       });
 
@@ -59,6 +64,7 @@ const createServerFetch = async <T = any,>({
           data,
           error: null,
           status: response.status,
+          url: url,
         };
       }
 
@@ -68,10 +74,10 @@ const createServerFetch = async <T = any,>({
         attempt < retryAttempts
       ) {
         console.warn(
-          `Attempt ${attempt} failed with status ${response.status}, retrying...`
+          `Attempt ${attempt} failed with status ${response.status}, retrying...`,
         );
         await new Promise((resolve) =>
-          setTimeout(resolve, retryDelay * attempt)
+          setTimeout(resolve, retryDelay * attempt),
         );
         return handleRetry(attempt + 1);
       }
@@ -83,6 +89,7 @@ const createServerFetch = async <T = any,>({
         error: `HTTP ${response.status}: ${errorText}`,
         status: response.status,
         isError: true,
+        url: url,
       };
     } catch (error) {
       // Network errors or other exceptions
@@ -94,19 +101,25 @@ const createServerFetch = async <T = any,>({
 
       if (isNetworkError && attempt < retryAttempts) {
         console.warn(
-          `Attempt ${attempt} failed due to network error, retrying...`
+          `Attempt ${attempt} failed due to network error, retrying...`,
         );
         await new Promise((resolve) =>
-          setTimeout(resolve, retryDelay * attempt)
+          setTimeout(resolve, retryDelay * attempt),
         );
         return handleRetry(attempt + 1);
       }
-
+      LogServerError({
+        local,
+        error: error,
+        url,
+        scenario: "Error In fetchServerData in serverRequest/ServerFetch",
+      });
       return {
         data: null,
         error:
           error instanceof Error ? error.message : "Unknown error occurred",
         status: 0,
+        url: url,
         isError: true,
       };
     }

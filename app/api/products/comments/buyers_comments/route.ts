@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ReportError } from "utils/errorReported";
-import { LogError } from "utils/functions";
 import { GetRatingCommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(req: NextRequest) {
   const headers = {
@@ -26,7 +25,7 @@ export async function GET(req: NextRequest) {
     if (!product_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     let data = await GetRatingCommentsForProduct({
@@ -49,21 +48,16 @@ export async function GET(req: NextRequest) {
         },
         code: 200,
       },
-      { status: 200, headers }
+      { status: 200, headers },
     );
   } catch (error: any) {
-    ReportError(error, {
+    LogServerError({
+      error,
+      type: "get buyers comments for product api route",
       source: "get rating comment for prooduct server api",
       product_id,
       page: referer,
-      url: "/public_comment/comments/buers_comment",
-      method: "get",
-    });
-    LogError({
-      source: "get rating comment for prooduct server api",
-      product_id,
-      page: referer,
-      url: "/public_comment/comments/buers_comment",
+      url: req.url,
       method: "get",
     });
     return NextResponse.json(
@@ -76,7 +70,7 @@ export async function GET(req: NextRequest) {
         data: null,
         code: 500,
       },
-      { status: 500, headers }
+      { status: 500, headers },
     );
   }
 }

@@ -3,14 +3,13 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   getCart,
   getConfiguredImage,
+  LogError,
   translateFunction,
 } from "utils/functions";
 import { useAppStore } from "store";
 import { useParams, useSearchParams } from "next/navigation";
-
 import auth from "services/auth";
 import home from "services/home";
-
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GetImageUrl } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
@@ -29,22 +28,240 @@ import ExtraInfoArea from "./ExtraInfoArea";
 import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import AddToCartButton from "./Button";
 import NotifyButton from "./NotifyButton";
-import SearchParamUpdater from "components/global/ParamsUpdater";
+
 import { showErrorMessage } from "components/global/AddToCartMessage";
 const normalizeSize = (s) => {
   if (typeof s === "string") return s.replace(/_/g, "-");
-  else return s;
+  return s;
 };
+
+const buildSizeOptions = (data) => {
+  const choiceOptions = data?.choice_options?.[0]?.options;
+  if (Array.isArray(choiceOptions) && choiceOptions.length > 0) {
+    return choiceOptions;
+  }
+
+  const sizesFromField = Array.isArray(data?.sizes) ? data.sizes : [];
+  const sizesFromVariation = Array.isArray(data?.variation)
+    ? data.variation.map((v) => v?.size).filter(Boolean)
+    : [];
+
+  const merged = [...sizesFromField, ...sizesFromVariation]
+    .map((s) => (typeof s === "string" ? s.trim() : s))
+    .filter(Boolean);
+
+  const unique = Array.from(new Set(merged.map((s) => normalizeSize(s))));
+
+  return unique.map((s) => ({ option: s, name: s }));
+};
+
+const resolveDefaultSelection = ({
+  productData,
+  colorProp,
+  colorFromUrl,
+  sizeFromUrl,
+  sizesFilters = null,
+}) => {
+  const colors = productData?.sync_color_images ?? [];
+  const sizeOpts = buildSizeOptions(productData);
+  const variations = productData?.variation ?? [];
+  const hasColors = colors.length > 0;
+  const hasSizes = sizeOpts.length > 0;
+  const hasVariations = variations.length > 0;
+  const isCollect = productData?.collected_after_ordering === 1;
+
+  const findColorObj = (str) => {
+    if (!str) return null;
+    return (
+      colors.find(
+        (c) =>
+          c?.color_option?.toLowerCase() === str.toLowerCase() ||
+          c?.color_name?.toLowerCase() === str.toLowerCase(),
+      ) ?? null
+    );
+  };
+
+  const getColorName = (obj) => obj?.color_name ?? obj?.color_option ?? null;
+
+  const getColorVariations = (name) =>
+    name ? variations.filter((v) => v.color?.name === name) : variations;
+
+  const hasColorStock = (name) =>
+    getColorVariations(name).some((v) => v.qty > 0);
+
+  const normColor = (obj) => {
+    if (!obj) return null;
+    return { ...obj, color_option: obj.color_option ?? obj.color_name };
+  };
+
+  const findSizeMatch = (str) => {
+    if (!str) return null;
+    return (
+      sizeOpts.find(
+        (s) =>
+          normalizeSize(s.option ?? s)
+            ?.toString()
+            .toLowerCase() === str.toLowerCase() ||
+          normalizeSize(s.name ?? s)
+            ?.toString()
+            .toLowerCase() === str.toLowerCase(),
+      ) ?? null
+    );
+  };
+
+  const getSizeVal = (sizeObj) =>
+    sizeObj?.option ?? sizeObj?.name ?? sizeObj ?? null;
+
+  // For collect-after-ordering or no variations: pick defaults by priority
+  if (isCollect || !hasVariations) {
+    let defaultSize = null;
+    if (hasSizes) {
+      if (sizesFilters?.length > 0) {
+        for (const filterSize of sizesFilters) {
+          const match = findSizeMatch(filterSize);
+          if (match) {
+            defaultSize = getSizeVal(match);
+            break;
+          }
+        }
+      }
+      if (!defaultSize) {
+        defaultSize = getSizeVal(findSizeMatch(sizeFromUrl) ?? sizeOpts[0]);
+      }
+    }
+    return {
+      color: hasColors
+        ? normColor(
+            findColorObj(colorProp) ?? findColorObj(colorFromUrl) ?? colors[0],
+          )
+        : null,
+      size: defaultSize,
+    };
+  }
+
+  // --- Resolve Color ---
+  let resolvedColor = null;
+
+  if (hasColors) {
+    // Priority: colorProp → colorFromUrl → remaining colors in order
+    const candidates = [
+      findColorObj(colorProp),
+      findColorObj(colorFromUrl),
+      ...colors,
+    ].filter(Boolean);
+
+    const seen = new Set();
+    const uniqueCandidates = candidates.filter((c) => {
+      const name = getColorName(c);
+      if (seen.has(name)) return false;
+      seen.add(name);
+      return true;
+    });
+
+    // Pick the first candidate that has at least one in-stock variation
+    for (const candidate of uniqueCandidates) {
+      if (hasColorStock(getColorName(candidate))) {
+        resolvedColor = candidate;
+        break;
+      }
+    }
+
+    // If nothing has stock, fall back to first preferred color
+    if (!resolvedColor) resolvedColor = uniqueCandidates[0] ?? colors[0];
+  }
+
+  // --- Resolve Size ---
+  let resolvedSize = null;
+
+  if (hasSizes) {
+    const colorName = getColorName(resolvedColor);
+    const relevant = hasColors ? getColorVariations(colorName) : variations;
+
+    if (sizesFilters?.length > 0) {
+      // Try each filter size in order — pick first with stock for the resolved color
+      let resolved = null;
+      for (const filterSize of sizesFilters) {
+        const sizeOpt = findSizeMatch(filterSize);
+        if (!sizeOpt) continue;
+        const sizeVal = normalizeSize(getSizeVal(sizeOpt));
+        const variant = relevant.find(
+          (v) => normalizeSize(v.size) === sizeVal && v.qty > 0,
+        );
+        if (variant) {
+          resolved = getSizeVal(sizeOpt);
+          break;
+        }
+      }
+      if (resolved) {
+        resolvedSize = resolved;
+      } else {
+        // None of the filter sizes have stock — pick first in-stock for this color
+        const inStock = relevant.find((v) => v.qty > 0);
+        if (inStock?.size) {
+          const found = sizeOpts.find(
+            (s) =>
+              normalizeSize(s.option ?? s) === normalizeSize(inStock.size) ||
+              normalizeSize(s.name ?? s) === normalizeSize(inStock.size),
+          );
+          resolvedSize = getSizeVal(found ?? sizeOpts[0]);
+        } else {
+          resolvedSize = getSizeVal(sizeOpts[0]);
+        }
+      }
+    } else {
+      const preferred = findSizeMatch(sizeFromUrl);
+
+      if (preferred) {
+        const prefVal = normalizeSize(getSizeVal(preferred));
+        const match = relevant.find((v) => normalizeSize(v.size) === prefVal);
+
+        if (match && match.qty > 0) {
+          resolvedSize = getSizeVal(preferred);
+        } else {
+          // Preferred size out of stock — pick first in-stock size for this color
+          const inStock = relevant.find((v) => v.qty > 0);
+          if (inStock?.size) {
+            const found = sizeOpts.find(
+              (s) =>
+                normalizeSize(s.option ?? s) === normalizeSize(inStock.size) ||
+                normalizeSize(s.name ?? s) === normalizeSize(inStock.size),
+            );
+            resolvedSize = getSizeVal(found ?? preferred);
+          } else {
+            resolvedSize = getSizeVal(preferred);
+          }
+        }
+      } else {
+        // No preferred size — pick first in-stock size for this color
+        const inStock = relevant.find((v) => v.qty > 0);
+        if (inStock?.size) {
+          const found = sizeOpts.find(
+            (s) =>
+              normalizeSize(s.option ?? s) === normalizeSize(inStock.size) ||
+              normalizeSize(s.name ?? s) === normalizeSize(inStock.size),
+          );
+          resolvedSize = getSizeVal(found ?? sizeOpts[0]);
+        } else {
+          resolvedSize = getSizeVal(sizeOpts[0]);
+        }
+      }
+    }
+  }
+
+  return { color: normColor(resolvedColor), size: resolvedSize };
+};
+
 import { getProductDataForAddToCart } from "serverRequests";
 
-function AddToCartComponent({ product, slug, close, enableCartAction }) {
+function AddToCartComponent({ product, slug, color }) {
   const abortControllerRef = useRef<AbortController | null>(null);
-  const shouldShowRedeem = () => {
-    if (!product.is_redeem) return false;
+  const isComponentActiveRef = useRef(true);
+  const shouldShowLuck = () => {
+    if (!product.is_luck) return false;
     let redeemed_products_ids = getCookie<any[]>("redemed_ids");
     if (redeemed_products_ids) {
       return !redeemed_products_ids.find(
-        (s) => s.id === (product?.product_id ?? product?.id)
+        (s) => s.id === (product?.product_id ?? product?.id),
       );
     }
     return true;
@@ -61,7 +278,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     selected_product_for_add_to_cart,
     setSelectedProductForCart,
     initCart,
-    expireRedeem,
     SelectedProduct,
   } = useAppStore();
   const { lang } = useParams();
@@ -69,7 +285,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const [country, languageVariable] = lang?.split("-");
   const [ProductData, setProductData] = useState({
     ...product,
-    is_redeem: shouldShowRedeem(),
+    is_luck: shouldShowLuck(),
   });
   const configureRedeemedProducts = (id) => {
     let redeemed_products_ids = getCookie<any>("redemed_ids");
@@ -100,152 +316,18 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       ]);
     }
   };
-  // console.log(ProductData?.seconds);
-  let selected_color =
-    ProductData?.sync_color_images?.find(
-      (s) =>
-        s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
-        s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
-    ) || null;
-  if (selected_color) {
-    selected_color = {
-      ...selected_color,
-      color_option: selected_color?.color_option ?? selected_color?.color_name,
-    };
-  }
-  if (ProductData?.sync_color_images?.length === 1) {
-    selected_color = {
-      ...ProductData?.sync_color_images?.[0],
-      color_option:
-        ProductData?.sync_color_images?.[0]?.color_option ??
-        ProductData?.sync_color_images?.[0]?.color_name,
-    };
-  }
-  const [selectedColor, setSelectedColor] = useState(selected_color);
-  const [selectedSize, setSelectedSize] = useState(
-    ProductData?.choice_options?.[0]?.options?.find(
-      (option) => option.option === sizeFromUrl || option.name === sizeFromUrl
-    ) ||
-      ProductData?.choice_options?.[0]?.options?.[0] ||
-      null
-  );
+
+  const initialDefaults = resolveDefaultSelection({
+    productData: ProductData,
+    colorProp: color,
+    colorFromUrl,
+    sizeFromUrl,
+    sizesFilters: product?.sizes_filters ?? null,
+  });
+  const [selectedColor, setSelectedColor] = useState(initialDefaults.color);
+  const [selectedSize, setSelectedSize] = useState(initialDefaults.size);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
-  function resolveVariant({
-    colors = [],
-    sizes = [],
-    selectedColor = null,
-    selectedSize = null,
-    variations = [],
-    isForCollect = false,
-  }) {
-    if (isForCollect) {
-      let result: any = {};
-      if (colors && colors?.length > 0) {
-        result = {
-          ...result,
-          color: colors?.[0]?.color_option ?? colors?.[0]?.option,
-        };
-      }
-      if (sizes && sizes?.length > 0) {
-        result = { ...result, size: sizes?.[0]?.option ?? sizes?.[0] };
-      }
-      return result;
-    }
-    try {
-      if (!Array.isArray(variations) || variations.length === 0) {
-        return { variant: null, color: null, size: null };
-      }
-
-      // ---------------- normalization ----------------
-
-      const normalize = (v) => {
-        if (!v) return null;
-        if (typeof v === "string") return v;
-        return v.option || v.color_option || null;
-      };
-
-      const selColor = normalize(selectedColor);
-      const selSize = normalize(selectedSize);
-
-      const colorSet = new Set(colors.map((c) => c.color_option));
-      const sizeSet = new Set(sizes.map((s) => s.option));
-
-      // ---------------- variant parser ----------------
-
-      function parseVariantType(type) {
-        const parts = type.split("-");
-        let color = null;
-        let size = null;
-
-        for (const part of parts) {
-          if (colorSet.has(part)) color = part;
-          else if (sizeSet.has(part)) size = part;
-        }
-
-        return { color, size };
-      }
-
-      const inStock = (v) => v.qty > 0;
-
-      // ---------------- exact match ----------------
-
-      const exact = variations.find((v) => {
-        const { color, size } = parseVariantType(v.type);
-        return (
-          (!selColor || color === selColor) && (!selSize || size === selSize)
-        );
-      });
-
-      if (exact && inStock(exact)) {
-        const { color, size } = parseVariantType(exact.type);
-        return { variant: exact, color, size };
-      }
-
-      // ---------------- ranked matching ----------------
-
-      function rankVariants(source) {
-        return source
-          .map((v) => {
-            const { color, size } = parseVariantType(v.type);
-
-            let score = 0;
-            if (selColor && color === selColor) score += 2;
-            if (selSize && size === selSize) score += 1;
-
-            return { v, color, size, score };
-          })
-          .sort((a, b) => b.score - a.score);
-      }
-
-      const inStockVariants = variations.filter(inStock);
-
-      // ---------------- fallback logic ----------------
-
-      // 1) Prefer in-stock variants
-      if (inStockVariants.length > 0) {
-        const ranked = rankVariants(inStockVariants);
-        const best = ranked[0];
-        return {
-          variant: best.v,
-          color: best.color,
-          size: best.size,
-        };
-      }
-
-      // 2) Everything is out of stock → ignore qty
-      const rankedAll = rankVariants(variations);
-      const best = rankedAll[0];
-
-      return {
-        variant: best.v,
-        color: best.color,
-        size: best.size,
-      };
-    } catch (error) {
-      console.error(error);
-    }
-  }
 
   useEffect(() => {
     if (product.shouldUpdate > 0) {
@@ -261,6 +343,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           initCart(data ?? { cart: [] });
         },
       });
+      // fetchData({
+      //   method: "GET",
+      //   url: `/api/mobile/product/details/${slug}`,
+      //   reqTitle: { reqTitle: "", code: 100 },
+      //   server: "local",
+      // });
       let data = await getProductDataForAddToCart({
         language: languageVariable,
         country: country,
@@ -270,73 +358,70 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       let tempProductData = {
         ...product,
         ...data,
-        is_redeem: data.is_redeem && shouldShowRedeem(),
+        is_luck: data.is_luck && shouldShowLuck(),
         shared_count: 0,
         sync_color_images: !product.singleColor
           ? data.sync_color_images || product?.sync_color_images || []
           : [
               (data?.sync_color_images ?? product?.sync_color_images)?.find(
                 (s) =>
-                  s?.color_name === data?.sync_color_images?.[0]?.color_name
+                  s?.color_name === data?.sync_color_images?.[0]?.color_name,
               ),
               ...(
                 data?.sync_color_images ?? product?.sync_color_images
               )?.filter(
                 (s) =>
-                  s?.color_name !== data?.sync_color_images?.[0]?.color_name
+                  s?.color_name !== data?.sync_color_images?.[0]?.color_name,
               ),
             ],
       };
+      const selectedProduct =
+        useAppStore.getState().selected_product_for_add_to_cart;
+      const isCurrentWidgetOpen = Boolean(
+        selectedProduct && selectedProduct?.slug === slug,
+      );
 
-      if (abortControllerRef.current?.signal.aborted) return;
+      if (
+        abortControllerRef.current?.signal.aborted ||
+        !isComponentActiveRef.current ||
+        !isCurrentWidgetOpen
+      )
+        return;
 
       setProductData(tempProductData);
-      if (product?.singleColor) {
-        // setSelectedColor(tempProductData?.sync_color_images[0]);
-      } else if (colorFromUrl) {
-        setSelectedColor(
-          tempProductData?.sync_color_images?.find(
-            (s) =>
-              s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
-              s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
-          ) ?? tempProductData?.sync_color_images?.[0]
-        );
-      } else {
-        // setSelectedColor(tempProductData?.sync_color_images[0]);
-      }
+
+      const defaults = resolveDefaultSelection({
+        productData: tempProductData,
+        colorProp: color,
+        colorFromUrl,
+        sizeFromUrl,
+        sizesFilters: product?.sizes_filters ?? null,
+      });
+      setSelectedColor(defaults.color);
+      setSelectedSize(defaults.size);
+
       if (
         product &&
-        (selected_product_for_add_to_cart?.id === tempProductData.id ||
-          selected_product_for_add_to_cart?.product_id === tempProductData?.id)
+        selectedProduct &&
+        (selectedProduct?.id === tempProductData.id ||
+          selectedProduct?.product_id === tempProductData?.id)
       )
         setSelectedProductForCart({
           ...tempProductData,
           shouldUpdate: 0,
         });
 
-      if (tempProductData?.choice_options?.[0]?.options?.length > 0) {
-        if (sizeFromUrl?.length > 0) {
-          setSelectedSize(
-            tempProductData?.choice_options?.[0]?.options.find(
-              (s) =>
-                s.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
-                s.name?.toLowerCase() === sizeFromUrl?.toLowerCase()
-            )?.option ??
-              tempProductData?.choice_options?.[0]?.options?.[0]?.option
-          );
-        } else {
-          // setSelectedSize(tempProductData?.choice_options?.[0]?.options?.[0]);
-        }
-      }
-      // checkIfVariantEmpty();
-
       if (abortControllerRef.current?.signal.aborted) return;
       setLoading(false);
 
       return tempProductData;
     } catch (err) {
-      // Handle error as needed
-      console.error(err);
+      LogError({
+        error: err,
+        scenario: "getAllProductData for add to cart - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+      });
       if (!abortControllerRef.current?.signal.aborted) setLoading(false);
     }
   };
@@ -346,297 +431,155 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     return tempProductData;
   };
 
-  const getSelectedItemCart = () => {
-    const hasColorVariants = ProductData?.sync_color_images?.length > 0;
-    const hasSizeVariants =
-      ProductData?.choice_options?.[0]?.options?.length > 0;
+  const sizeOptions = buildSizeOptions(ProductData);
+  const hasSizeVariants = sizeOptions.length > 0;
+  const hasColorVariants = ProductData?.sync_color_images?.length > 0;
 
-    // Case 1: No variants at all (no color, no size)
+  const findVariantForSelection = (color, size) => {
+    if (!ProductData?.variation?.length) return null;
+    const colorName = color?.color_name || color?.color_option;
+    const sizeVal = size?.option ?? size;
+
+    if (colorName && sizeVal) {
+      return ProductData.variation.find(
+        (v) => v.color?.name === colorName && v.size === sizeVal,
+      );
+    }
+    if (colorName) {
+      return ProductData.variation.find((v) => v.color?.name === colorName);
+    }
+    if (sizeVal) {
+      return ProductData.variation.find((v) => v.size === sizeVal);
+    }
+    return ProductData.variation[0] ?? null;
+  };
+
+  const getSelectedItemCart = () => {
+    const selectedVariant = findVariantForSelection(
+      selectedColor,
+      selectedSize,
+    );
+    const pvid = selectedVariant?.product_variation_id ?? selectedVariant?.id;
+
+    if (pvid) {
+      return localCart?.find(
+        (s) =>
+          s.product_variation_id === pvid ||
+          s.id === pvid ||
+          s.variation_id === pvid,
+      );
+    }
+
     if (!hasColorVariants && !hasSizeVariants) {
       return localCart?.find((s) => s.id === ProductData.id);
     }
 
-    // Case 2: Has color AND size variants
-    if (hasColorVariants && hasSizeVariants) {
-      return localCart.find(
-        (s) =>
-          s.id === ProductData.id &&
-          (s.color === selectedColor?.color_option ||
-            s?.color === selectedColor?.color_name ||
-            s?.color ===
-              ProductData?.colors?.find(
-                (cl) =>
-                  cl?.option === selectedColor?.color_option ||
-                  cl?.name === selectedColor?.color_name
-              )?.color) &&
-          (s?.size === selectedSize?.option ||
-            s.size === selectedSize?.name ||
-            s.size === selectedSize)
-      );
-    }
-
-    // Case 3: Has color only (no size)
-    if (hasColorVariants && !hasSizeVariants) {
-      return localCart.find(
-        (s) =>
-          s?.id === ProductData?.id &&
-          (s?.color === selectedColor?.color_option ||
-            s?.color === selectedColor?.color_name ||
-            s?.color ===
-              ProductData?.colors?.find(
-                (cl) =>
-                  cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.color_name
-              )?.color)
-      );
-    }
-
-    // Case 4: Has size only (no color)
-    if (!hasColorVariants && hasSizeVariants) {
-      return localCart?.find(
-        (s) =>
-          s?.id === ProductData.id &&
-          (s?.size === selectedSize?.option ||
-            s.size === selectedSize?.name ||
-            s.size === selectedSize)
-      );
-    }
-
-    // Fallback
-    return localCart?.find((s) => s.id === ProductData?.id);
+    return null;
   };
 
   const reachedMaxQty = () => {
-    let selectedItem = getSelectedItemCart();
-
+    const selectedItem = getSelectedItemCart();
     if (!selectedItem) return false;
-    if (Number(product?.max_allowed_qty) === 0) return false;
-    return selectedItem.quantity >= Number(product?.max_allowed_qty);
+    const maxQty = Number(ProductData?.max_allowed_qty);
+    if (maxQty === 0) return false;
+    return selectedItem.quantity >= maxQty;
   };
   const getVariantSizeQty = (size) => {
-    if (ProductData?.variation?.length > 0) {
-      let selected_variant;
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        ProductData?.choice_options?.length > 0
-      ) {
-        selected_variant = ProductData?.variation?.find(
-          (s) =>
-            s.type?.toLowerCase() ===
-            `${selectedColor?.color_option}-${
-              size?.option ?? size
-            }`?.toLowerCase()
-        );
-      }
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        (!ProductData?.choice_options ||
-          ProductData?.choice_options?.length === 0)
-      ) {
-        selected_variant = ProductData?.variation?.find(
-          (s) =>
-            s.type?.toLowerCase() ===
-            (selectedColor?.color_option ?? "")?.toLowerCase()
-        );
-      }
-      if (
-        (!ProductData?.sync_color_images ||
-          ProductData?.sync_color_images?.length === 0) &&
-        ProductData?.choice_options?.length > 0
-      ) {
-        selected_variant = ProductData?.variation?.find(
-          (s) =>
-            s.type?.toLowerCase() ===
-            (
-              size && `${(size?.option ?? size)?.replace(" ", "")}`
-            )?.toLowerCase()
-        );
-      }
+    if (!ProductData?.variation?.length) {
       return {
-        ...selected_variant,
-        offer_price: selected_variant?.offer_price,
-        ...(product?.showRedeemPrice
-          ? {
-              redeem_price:
-                selected_variant?.redeem_price ?? product?.redeem_price,
-            }
-          : product?.flash_deal_end_date !== null
-          ? {
-              flash_deal_price: product?.offer_price,
-            }
-          : {}),
-      };
-    } else {
-      // no variants
-      return {
-        type: "N/A",
-        price: ProductData?.price,
-        offer_price: ProductData?.offer_price,
-        redeem_price: ProductData?.redeem_price,
-        flash_deal_price: ProductData?.offer_price,
         qty: ProductData?.available_quantity,
+        offer_price: ProductData?.offer_price,
+        luck_price: ProductData?.luck_price,
         variant_notify_for_user: ProductData?.is_product_notify_for_user,
       };
     }
+    const selected_variant = findVariantForSelection(selectedColor, size);
+    return {
+      ...selected_variant,
+      offer_price: selected_variant?.offer_price,
+      luck_price: selected_variant?.luck_price ?? ProductData?.luck_price,
+    };
   };
   const IsValid = () => {
     let color_valid = false,
       size_valid = false;
-    if (
-      !ProductData?.sync_color_images ||
-      ProductData?.sync_color_images?.length === 0
-    )
-      color_valid = true;
-    else {
-      color_valid = Boolean(selectedColor);
-    }
-    if (
-      !ProductData?.choice_options ||
-      ProductData?.choice_options?.length === 0
-    )
-      size_valid = true;
-    else {
-      size_valid = Boolean(selectedSize);
-    }
+    if (!hasColorVariants) color_valid = true;
+    else color_valid = Boolean(selectedColor);
+    if (!hasSizeVariants) size_valid = true;
+    else size_valid = Boolean(selectedSize);
     return color_valid && size_valid;
   };
 
   const getSelectedVariantQty = () => {
-    if (!IsValid())
-      return {
-        type: "N/A",
-        price: ProductData?.price,
-        offer_price: ProductData?.offer_price,
-        redeem_price: ProductData?.redeem_price,
-        flash_deal_price: ProductData?.offer_price,
-        qty: ProductData?.available_quantity,
-        variant_notify_for_user: ProductData?.is_product_notify_for_user,
-      };
-    if (ProductData?.variation?.length > 0) {
-      let selected_variant;
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        ProductData?.choice_options?.length > 0
-      ) {
-        selected_variant = ProductData?.variation?.find(
-          (s) =>
-            s.type?.toLowerCase() ===
-            `${selectedColor?.color_option}-${
-              selectedSize?.option ?? selectedSize
-            }`?.toLowerCase()
-        );
-      }
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        (!ProductData?.choice_options ||
-          ProductData?.choice_options?.length === 0)
-      ) {
-        selected_variant = ProductData?.variation?.find(
-          (s) =>
-            s.type?.toLowerCase() ===
-            (selectedColor?.color_option ?? "")?.toLowerCase()
-        );
-      }
-      if (
-        (!ProductData?.sync_color_images ||
-          ProductData?.sync_color_images?.length === 0) &&
-        ProductData?.choice_options?.length > 0
-      ) {
-        selected_variant = ProductData?.variation?.find(
-          (s) =>
-            s.type?.toLowerCase() ===
-            (
-              selectedSize &&
-              `${(selectedSize?.option ?? selectedSize)?.replace(" ", "")}`
-            )?.toLowerCase()
-        );
-      }
+    const noVariantFallback = {
+      product_variation_id: null,
+      price: ProductData?.price,
+      offer_price: ProductData?.offer_price,
+      luck_price: ProductData?.luck_price,
+      qty: ProductData?.available_quantity,
+      variant_notify_for_user: ProductData?.is_product_notify_for_user,
+    };
 
+    if (!IsValid()) return noVariantFallback;
+
+    if (ProductData?.variation?.length > 0) {
+      const selected_variant = findVariantForSelection(
+        selectedColor,
+        selectedSize,
+      );
       return {
         ...selected_variant,
         offer_price: selected_variant?.offer_price,
-        ...(product?.showRedeemPrice
-          ? {
-              redeem_price:
-                selected_variant?.redeem_price ?? product?.redeem_price,
-            }
-          : product?.flash_deal_end_date !== null
-          ? {
-              flash_deal_price: product?.offer_price,
-            }
-          : {}),
-      };
-    } else {
-      // no variants
-      return {
-        type: "N/A",
-        price: ProductData?.price,
-        offer_price: ProductData?.offer_price,
-        redeem_price: ProductData?.redeem_price,
-        flash_deal_price: ProductData?.offer_price,
-        qty: ProductData?.available_quantity,
-        variant_notify_for_user: ProductData?.is_product_notify_for_user,
+        luck_price: selected_variant?.luck_price ?? ProductData?.luck_price,
       };
     }
+
+    return noVariantFallback;
   };
 
   const initializeUI = async () => {
     try {
-      let tempProductData = await getProductData();
-      let res = resolveVariant({
-        colors: tempProductData.sync_color_images,
-        isForCollect: tempProductData?.collected_after_ordering === 1,
-        variations: tempProductData?.variation,
-        sizes: tempProductData?.choice_options?.[0]?.options,
-        selectedColor:
-          selectedColor ??
-          product?.sync_color_images?.find(
-            (s) => s?.color_name === product?.sync_color_images?.[0]?.color_name
-          ),
-        selectedSize:
-          selectedSize ?? tempProductData?.choice_options?.[0]?.options?.[0],
+      await getProductData();
+      const selectedProduct =
+        useAppStore.getState().selected_product_for_add_to_cart;
+      if (
+        isComponentActiveRef.current &&
+        selectedProduct?.id &&
+        selectedProduct?.slug === slug
+      )
+        setSelectedProductForCart({
+          ...selectedProduct,
+          done: true,
+        });
+    } catch (error) {
+      LogError({
+        error: error,
+        scenario: "get Initial Data for add to cart - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
       });
-      setSelectedProductForCart({
-        ...selected_product_for_add_to_cart,
-        done: true,
-      });
-      if (res.color) {
-        setSelectedColor(
-          tempProductData?.sync_color_images?.find(
-            (s) =>
-              s?.option === res?.color ||
-              s?.name === res.color ||
-              s?.color_option === res.color
-          )
-        );
-      }
-      if (res.size) {
-        setSelectedSize(
-          tempProductData?.choice_options?.[0]?.options?.find(
-            (s) => s.option === res.size || s.name === res.size
-          )?.option
-        );
-      }
-    } catch (error) {}
+    }
   };
 
   useEffect(() => {
     abortControllerRef.current = new AbortController();
+    isComponentActiveRef.current = true;
     if (
       document.querySelector<HTMLElement>(".alternate-product-details-footer")
     )
       document.querySelector<HTMLElement>(
-        ".alternate-product-details-footer"
+        ".alternate-product-details-footer",
       ).style.display = "none";
     initializeUI();
     return () => {
+      isComponentActiveRef.current = false;
       abortControllerRef.current?.abort();
       abortControllerRef.current = null;
       if (
         document.querySelector<HTMLElement>(".alternate-product-details-footer")
       )
         document.querySelector<HTMLElement>(
-          ".alternate-product-details-footer"
+          ".alternate-product-details-footer",
         ).style.display = "flex";
     };
   }, []);
@@ -663,7 +606,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       method: "GET",
       server: "market",
       url: `/web/product/qtyPriceDetails/${slug}`,
-      useCached: false,
+
       reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS,
       signal: abortControllerRef.current?.signal,
     });
@@ -672,151 +615,94 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     setProductData({
       ...ProductData,
       ...response.data,
-      variation: response.data.variation?.map((variant) => {
+      variation: response.data.variations?.map((variant) => {
         return {
           ...variant,
           notify_for_user: ProductData?.variation?.find(
-            (s) => s.type === variant.type
+            (s) =>
+              (s.product_variation_id ?? s.id) ===
+              (variant.product_variation_id ?? variant.id),
           )?.notify_for_user,
         };
       }),
-      is_redeem: response?.data?.is_redeem && shouldShowRedeem(),
+      is_luck: response?.data?.is_luck && shouldShowLuck(),
     });
   };
-  const updateQuantityLocally = (type, operation) => {
-    let response = ProductData;
+  const updateQuantityLocally = (variantId, operation) => {
     setProductData({
       ...ProductData,
-      variation: response?.variation?.map((s) => {
-        if (s.type !== type) {
+      variation: ProductData?.variation?.map((s) => {
+        const sId = s.product_variation_id ?? s.id;
+        if (sId !== variantId) {
           return s;
-        } else {
-          return {
-            ...s,
-            qty: operation === "add" ? s.qty - 1 : s.qty + 1,
-            notify_for_user: ProductData?.variation?.find(
-              (s) => s.type === type
-            )?.notify_for_user,
-          };
         }
+        return {
+          ...s,
+          qty: operation === "add" ? s.qty - 1 : s.qty + 1,
+        };
       }),
       available_quantity:
         operation === "add"
-          ? response.available_quantity - 1
-          : response.available_quantity + 1,
-      is_redeem: response?.is_redeem && shouldShowRedeem(),
+          ? ProductData.available_quantity - 1
+          : ProductData.available_quantity + 1,
+      is_luck: ProductData?.is_luck && shouldShowLuck(),
     });
   };
-  const updateQuantity = async ({ isLocal = true, type, operation }) => {
-    if (isLocal) updateQuantityLocally(type, operation);
+  const updateQuantity = async ({ isLocal = true, variantId, operation }) => {
+    if (isLocal) updateQuantityLocally(variantId, operation);
     else await updateQuantityRemotley();
   };
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
   const GetFinalPriceOfProduct = () => {
-    if (ProductData?.is_redeem && shouldShowRedeem()) {
-      return ProductData?.redeem_price;
+    if (ProductData?.is_luck && shouldShowLuck()) {
+      return ProductData?.luck_price;
     }
     return ProductData?.offer_price;
   };
   const IsColorHasDiscount = (colorVariant) => {
     if (!colorVariant) return false;
-    if (ProductData?.choice_options?.length > 0 && !selectedSize) return false;
+    if (hasSizeVariants && !selectedSize) return false;
     const variant = ProductData?.variation?.find((s) => {
-      if (ProductData?.choice_options?.length > 0 && selectedSize) {
+      const vColor = s.color?.name;
+      if (hasSizeVariants && selectedSize) {
         return (
-          s?.type
-            ?.toLowerCase()
-            ?.startsWith(
-              colorVariant?.color_option?.toLowerCase() ||
-                s?.type.toLowerCase() ===
-                  colorVariant?.color_name?.toLowerCase()
-            ) &&
-          s?.type
-            .toLowerCase()
-            .endsWith(
-              `-${(selectedSize?.option ?? selectedSize)
-                ?.toString()
-                .toLowerCase()}`
-            )
+          vColor === colorVariant?.color_name &&
+          s.size === (selectedSize?.option ?? selectedSize)
         );
-      } else {
-        return s?.type
-          ?.toLowerCase()
-          ?.startsWith(
-            colorVariant?.color_option?.toLowerCase() ||
-              s?.type.toLowerCase() === colorVariant?.color_name?.toLowerCase()
-          );
       }
+      return vColor === colorVariant?.color_name;
     });
     if (!variant) return false;
-    if (ProductData?.is_redeem && shouldShowRedeem()) {
-      // if(variant?.redeem_price < ProductData?.redeem_price)
+    if (ProductData?.is_luck && shouldShowLuck()) {
       return Math.round(
-        ((GetFinalPriceOfProduct() - variant?.redeem_price) * 100) /
-          GetFinalPriceOfProduct()
+        ((GetFinalPriceOfProduct() - variant?.luck_price) * 100) /
+          GetFinalPriceOfProduct(),
       );
     } else {
-      // if(variant?.offer_price < ProductData?.offer_price)
       return Math.round(
         ((GetFinalPriceOfProduct() - variant?.offer_price) * 100) /
-          GetFinalPriceOfProduct()
+          GetFinalPriceOfProduct(),
       );
     }
   };
   const isQtyIsLast = (colorVariant) => {
     if (!colorVariant) return false;
     if (ProductData.collected_after_ordering === 1) return false;
-    if (ProductData?.variation?.length > 0) {
-      let selected_variant;
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        ProductData?.choice_options?.length > 0
-      ) {
-        selected_variant = ProductData?.variation?.find(
-          (s) =>
-            s.type?.toLowerCase() ===
-            `${colorVariant?.color_option}-${
-              selectedSize?.option ?? selectedSize
-            }`?.toLowerCase()
-        );
-      }
-      if (
-        ProductData?.sync_color_images?.length > 0 &&
-        (!ProductData?.choice_options ||
-          ProductData?.choice_options?.length === 0)
-      ) {
-        selected_variant = ProductData?.variation?.find(
-          (s) =>
-            s.type?.toLowerCase() ===
-            (colorVariant?.color_option ?? "")?.toLowerCase()
-        );
-      }
+    if (!ProductData?.variation?.length) {
       return {
-        ...selected_variant,
-        offer_price: selected_variant?.offer_price,
-        ...(product?.showRedeemPrice
-          ? {
-              redeem_price:
-                selected_variant?.redeem_price ?? product?.redeem_price,
-            }
-          : product?.flash_deal_end_date !== null
-          ? {
-              flash_deal_price: product?.offer_price,
-            }
-          : {}),
-      };
-    } else {
-      // no variants
-      return {
-        type: "N/A",
-        price: ProductData?.price,
-        offer_price: ProductData?.offer_price,
-        redeem_price: ProductData?.redeem_price,
-        flash_deal_price: ProductData?.offer_price,
         qty: ProductData?.available_quantity,
-        variant_notify_for_user: ProductData?.is_product_notify_for_user,
+        offer_price: ProductData?.offer_price,
       };
     }
+    const selected_variant = findVariantForSelection(
+      colorVariant,
+      selectedSize,
+    );
+    return {
+      ...selected_variant,
+      offer_price: selected_variant?.offer_price,
+      luck_price: selected_variant?.luck_price ?? ProductData?.luck_price,
+    };
   };
 
   return (
@@ -829,7 +715,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       }}
       height={75}
     >
-      <SearchParamUpdater searchKey="addToCart" searchValue={product?.slug} />
       <div
         className={`${
           isRtl ? "items-end" : "items-start"
@@ -843,7 +728,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                 GetImageUrl(selectedColor?.images?.[0]?.file_path)) ||
               (ProductData?.sync_color_images?.[0]?.images?.[0] &&
                 GetImageUrl(
-                  ProductData?.sync_color_images?.[0]?.images?.[0]?.file_path
+                  ProductData?.sync_color_images?.[0]?.images?.[0]?.file_path,
                 )) ||
               GetImageUrl(selectedColor?.images?.[0]) ||
               (ProductData?.images?.[0]?.file_path &&
@@ -855,17 +740,15 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           })}
           name={ProductData?.name}
           offer_price={
-            getSelectedItemCart()?.is_redeem
+            getSelectedItemCart()?.is_luck
               ? getSelectedItemCart()?.offer_price
               : getSelectedVariantQty()?.offer_price
           }
           price={getSelectedVariantQty()?.price}
-          redeem_price={
-            shouldShowRedeem() && getSelectedVariantQty()?.redeem_price
-          }
+          luck_price={shouldShowLuck() && getSelectedVariantQty()?.luck_price}
           shippingDays={ProductData?.shipping_days}
           shouldShowOrangeBorder={
-            ProductData.is_redeem ||
+            ProductData.is_luck ||
             ProductData?.flash_deal_details ||
             ProductData?.flash_deal_end_date
           }
@@ -876,8 +759,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             colors={ProductData?.sync_color_images?.filter((s) =>
               ProductData.colors?.find(
                 (color) =>
-                  color.option === s.color_option || color.name === s.color_name
-              )
+                  color.option === s.color_option ||
+                  color.name === s.color_name,
+              ),
             )}
             isQtyIsLast={(e) => {
               return isQtyIsLast(e);
@@ -893,12 +777,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                   item_name: ProductData?.name,
                   brand: ProductData?.brand?.name,
                   brand_id: ProductData?.brand?.id,
-                  category:
-                    ProductData?.category?.name ||
-                    ProductData?.categories?.[0]?.name,
-                  category_id:
-                    ProductData?.category?.id ||
-                    ProductData?.categories?.[0]?.id,
+                  category: ProductData?.categories?.[0]?.name,
+                  category_id: ProductData?.categories?.[0]?.id,
                   price: ProductData?.offer_price,
                   selected_color: e?.color_option || e?.color_name,
                   selected_size:
@@ -909,7 +789,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             }}
           />
         )}
-        {ProductData?.choice_options?.[0]?.options?.length > 0 ? (
+        {hasSizeVariants ? (
           <SizeSelect
             isCollectAfterOrder={ProductData.collected_after_ordering === 1}
             isSizeNotified={(e) =>
@@ -929,12 +809,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                   item_name: ProductData?.name,
                   brand: ProductData?.brand?.name,
                   brand_id: ProductData?.brand?.id,
-                  category:
-                    ProductData?.category?.name ||
-                    ProductData?.categories?.[0]?.name,
-                  category_id:
-                    ProductData?.category?.id ||
-                    ProductData?.categories?.[0]?.id,
+                  category: ProductData?.categories?.[0]?.name,
+                  category_id: ProductData?.categories?.[0]?.id,
                   price: ProductData?.offer_price,
                   selected_color:
                     selectedColor?.color_option ?? selectedColor?.color_name,
@@ -943,7 +819,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
               });
               setSelectedSize(e);
             }}
-            sizes={ProductData?.choice_options?.[0]?.options}
+            sizes={sizeOptions}
           />
         ) : (
           <div className="my-[20px] w-full justify-center items-center flex flex-row">
@@ -970,37 +846,37 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         className=" flex pb-[18px] flex-col w-full min-h-[136px] rounded-t-[30px] gap-[8px] h-auto fixed bottom-0 bg-[#FFFFFF] shadow-[0px_-3px_20px_rgb(0,0,0,0.1)] z-50"
       >
         <PricesRow
-          is_redeem={product.is_redeem}
+          is_luck={ProductData.is_luck}
           currency={currency}
           language={languageVariable}
           offer_price={
-            getSelectedItemCart()?.is_redeem
+            getSelectedItemCart()?.is_luck
               ? getSelectedItemCart()?.offer_price
               : getSelectedVariantQty()?.offer_price
           }
           price={getSelectedVariantQty()?.price}
           id={ProductData?.id}
-          redeem_price={
-            shouldShowRedeem() &&
-            ProductData?.is_redeem &&
-            getSelectedVariantQty()?.redeem_price
+          luck_price={
+            shouldShowLuck() &&
+            ProductData?.is_luck &&
+            getSelectedVariantQty()?.luck_price
           }
           shipping_cost={product?.shipping_cost}
         />
         <ExtraInfoArea
           colors={ProductData?.sync_color_images}
           isCollectAfterOrder={ProductData.collected_after_ordering === 1}
-          redeem_price={getSelectedVariantQty()?.redeem_price}
+          luck_price={getSelectedVariantQty()?.luck_price}
           selected_color={selectedColor}
           selected_size={selectedSize}
           isQtyEmpty={getSelectedVariantQty()?.qty === 0}
           product={ProductData}
-          isRedeem={ProductData?.is_redeem && shouldShowRedeem()}
+          isLuck={ProductData?.is_luck && shouldShowLuck()}
           flashDeal={ProductData?.flash_deal_end_date}
           id={ProductData?.id}
-          RedemEnd={() => {
+          LuckEnd={() => {
             configureRedeemedProducts(ProductData?.id);
-            setProductData({ ...ProductData, is_redeem: false });
+            setProductData({ ...ProductData, is_luck: false });
             let element = document.querySelector(".product-redeem-counter");
             if (element) {
               element.classList.add("hidden");
@@ -1016,7 +892,11 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
               setProductData({
                 ...ProductData,
                 variation: ProductData?.variation?.map((s) => {
-                  if (s.type === getSelectedVariantQty()?.type) {
+                  const selectedPvid =
+                    getSelectedVariantQty()?.product_variation_id ??
+                    getSelectedVariantQty()?.id;
+                  const sPvid = s.product_variation_id ?? s.id;
+                  if (sPvid === selectedPvid) {
                     return { ...s, variant_notify_for_user: true };
                   }
                   return s;
@@ -1032,35 +912,36 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             isNotified={getSelectedVariantQty()?.variant_notify_for_user}
             product={ProductData}
             colors={ProductData?.sync_color_images}
-            sizes={ProductData?.choice_options?.[0]?.options}
+            sizes={sizeOptions}
             selectedSize={selectedSize}
             selectedColor={selectedColor}
             selected_variant={getSelectedVariantQty()}
             initialLoading={loading}
-            updateQuantity={async (isLocal, type = null, operation) => {
+            updateQuantity={async (isLocal, variantId = null, operation) => {
               if (ProductData.collected_after_ordering === 0)
-                await updateQuantity({ isLocal, type, operation });
+                await updateQuantity({ isLocal, variantId, operation });
             }}
           />
         ) : (
           <AddToCartButton
-            key={product?.is_redeem}
+            key={ProductData?.is_luck}
             reachedMaxQty={() => reachedMaxQty()}
             fullQty={localCart.filter((s) => s.id === product?.id)?.length}
             colors={ProductData?.sync_color_images}
-            sizes={ProductData?.choice_options?.[0]?.options}
+            sizes={sizeOptions}
             selectedSize={selectedSize}
             selectedColor={selectedColor}
             product={ProductData}
             initialLoading={loading}
             id={ProductData?.id}
-            updateQuantity={async (isLocal, type = null, operation) => {
-              await updateQuantity({ isLocal, type, operation });
+            updateQuantity={async (isLocal, variantId = null, operation) => {
+              if (ProductData.collected_after_ordering === 0)
+                await updateQuantity({ isLocal, variantId, operation });
             }}
-            expireRedeem={() => {
+            expireLuck={() => {
               setProductData({
                 ...ProductData,
-                is_redeem: false,
+                is_luck: false,
               });
               configureRedeemedProducts(ProductData?.id);
               let element = document.querySelector(".product-redeem-counter");
@@ -1119,29 +1000,36 @@ const NotifyCartButton = ({
 
         await auth.NotifyForProducts({
           id: id,
-          variant: selected_variant?.type ?? selected_variant,
+          variant:
+            selected_variant?.product_variation_id ?? selected_variant?.id,
         });
         await home.GetFireBaseSettings();
       } else {
         showSuccessNotification(
           translateFunction("You will be notified for this product already"),
-          5000
+          5000,
         );
       }
       setLoading(false);
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Notify Action add to cart - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+      });
       setLoading(false);
       showErrorNotification(
         error?.message ??
           translateFunction(
-            "Notification Is Not Enabled! please Allow Notification Access"
-          )
+            "Notification Is Not Enabled! please Allow Notification Access",
+          ),
       );
       showErrorMessage(
         error?.message ??
           translateFunction(
-            "Notification Is Not Enabled! please Allow Notification Access"
-          )
+            "Notification Is Not Enabled! please Allow Notification Access",
+          ),
       );
     }
   };
@@ -1149,8 +1037,8 @@ const NotifyCartButton = ({
     <NotifyButton
       setLoading={setLoading}
       sizes={sizes}
-      updateQuantity={async (isLocal, type = null, operation) => {
-        await updateQuantity(isLocal, type, operation);
+      updateQuantity={async (isLocal, variantId = null, operation) => {
+        await updateQuantity(isLocal, variantId, operation);
       }}
       colors={colors}
       id={id}

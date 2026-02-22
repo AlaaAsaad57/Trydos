@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(req: NextRequest) {
   const headers = {
@@ -17,6 +18,7 @@ export async function GET(req: NextRequest) {
     const country = req.headers.get("country")?.trim() || "sy";
     let language = req.headers.get("language")?.trim();
     const lang = req.headers.get("lang")?.trim();
+    const userId = req.headers.get("uid")?.trim();
     language = language ?? lang ?? "en";
 
     const searchParams = req.nextUrl.searchParams;
@@ -71,15 +73,25 @@ export async function GET(req: NextRequest) {
       filters_offset: Number(searchParams.get("filters_offset") || 1),
       country,
       language_code: language,
+      user_id: userId,
+      recommended_offset: Number(searchParams.get("recommended_offset") || 0),
     };
     const result = await getProductsAndFiltersFromElastic(params);
 
     return NextResponse.json(
       { data: result, appliedFilters: filters },
-      { headers }
+      { headers },
     );
   } catch (error: any) {
     let errorDesc = JSON.stringify(filters);
+    LogServerError({
+      error,
+      type: "search products api route",
+      source: "search products",
+      filters: filters,
+      url: req.url,
+      method: "get",
+    });
     return NextResponse.json(
       {
         error: `${
@@ -87,7 +99,7 @@ export async function GET(req: NextRequest) {
         }----${errorDesc}`,
         appliedFilters: filters,
       },
-      { status: 500, headers }
+      { status: 500, headers },
     );
   }
 }

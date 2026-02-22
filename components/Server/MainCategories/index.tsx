@@ -19,30 +19,32 @@ export default async function MainCategoriesNavbar({
     ];
   }
   return (
-    <NavbarServer
-      lang={lang}
-      mainCategory={mainCategory}
-      categoriesData={mainCategories}
-    >
-      {mainCategories?.map((category, key) => (
-        <div className="flex" key={key}>
-          <CategoryNavMobile
-            params={{ lang }}
-            mainCategory={mainCategory}
-            name={category.name}
-            active={
-              activeCategory === category.slug ||
-              (mainCategory === category.slug &&
-                activeCategory === category?.slug)
-            }
-            key={key}
-            myKey={key}
-            icon={category?.flat_photo_path?.file_path}
-            outline={category?.outline_photo_path?.file_path}
-            slug={category.slug}
-          />
-        </div>
-      ))}
-    </NavbarServer>
+    <>
+      <NavbarServer
+        lang={lang}
+        mainCategory={mainCategory}
+        categoriesData={mainCategories}
+      >
+        {mainCategories?.map((category, key) => (
+          <div className="flex" key={key}>
+            <CategoryNavMobile
+              params={{ lang }}
+              mainCategory={mainCategory}
+              name={category.name}
+              active={
+                activeCategory === category.slug ||
+                (mainCategory === category.slug &&
+                  activeCategory === category?.slug)
+              }
+              key={key}
+              myKey={key}
+              icon={category?.flat_photo_path?.file_path}
+              outline={category?.outline_photo_path?.file_path}
+              slug={category.slug}
+            />
+          </div>
+        ))}
+      </NavbarServer>
+    </>
   );
 }

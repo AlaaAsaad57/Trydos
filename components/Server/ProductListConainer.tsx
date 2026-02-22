@@ -2,6 +2,8 @@ import ListingSkeleton from "components/skeleton/listing";
 import React, { Suspense } from "react";
 import ProductListServer from "./ProductList";
 import { getCookieServer } from "utils/cookies/cookie-manager";
+import { getTitleAndTargetofListing } from "serverRequests/meta/StructuredData/utils";
+import ListingBreadcrumbList from "serverRequests/meta/StructuredData/ListingBreadcrumbList";
 
 async function ProductListConainer({
   currencyPromise,
@@ -11,6 +13,7 @@ async function ProductListConainer({
   Params,
   isFlashDeals = false,
   isFeatured = false,
+  language,
 }) {
   let [filtersData, currency, boutique] = await Promise.all([
     filtersDataPromise,
@@ -81,21 +84,42 @@ async function ProductListConainer({
         product_id: product.product_id,
       };
   });
+  let parsedFiltersVar = {
+    ...parsedFilters,
+    search_text:
+      filtersData?.isAnalyzed?.name ?? parsedFilters?.search_text?.[0],
+  };
+  let { path, title } = getTitleAndTargetofListing({
+    filters: parsedFilters,
+    filtersData: filtersData,
+    language: language,
+  });
+
   return (
     <Suspense
       key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
       fallback={<ListingSkeleton forProducts={true} />}
     >
+      <ListingBreadcrumbList
+        currency={currency}
+        local={Params.lang}
+        products={productsData}
+        target={path}
+        title={title}
+      />
       <ProductListServer
+        recomended_offset={filtersData?.recommended_offset}
         boutique={boutique?.name}
         products={productsData ?? []}
         offset={filtersData?.offset}
         currency={currency}
         key={`product-list-${JSON.stringify(parsedFilters)}`}
-        parsedFilters={parsedFilters}
+        parsedFilters={parsedFiltersVar}
         params={Params}
         isFeatured={isFeatured}
         isFlashDeals={isFlashDeals}
+        target={path}
+        title={title}
       />
     </Suspense>
   );

@@ -3,14 +3,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "store";
 import FiltersRowContainer from "./FiltersRowContainer";
 import { EnableScroll } from "utils/tinyUtils";
-import BackIcon from "public/svg/listing/backIcon";
-import FilterIcon from "public/svg/listing/filterIcon";
+
 import { GetFilters } from "serverRequests/listing";
 import { PriceSliderComponent } from "./PriceSliderComponent";
-import PriceCancel from "public/svg/listing/PriceCancel";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
-import FilterInfoIcon from "public/svg/listing/FilterInfoIcon";
-import { RoundPrice, translateFunction } from "utils/functions";
+import { LogError, RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import SmoothPolygon from "../PriceShape";
 import FiltersButton from "./FiltersButton";
@@ -96,7 +92,7 @@ const FiltersWindowUI = ({
         filters,
         filter_offset: 1,
       });
-      console.log(response, filters);
+
       setFiltersNodes({
         categories: response?.categories,
         brands: response?.brands,
@@ -106,7 +102,10 @@ const FiltersWindowUI = ({
         total_size: response?.total_size,
       });
     } catch (error) {
-      console.error(error);
+      LogError({
+        error: error,
+        scenario: "Update Filters in FiltersWindow",
+      });
     } finally {
       setLoading(false);
     }
@@ -116,7 +115,6 @@ const FiltersWindowUI = ({
 
   // 2. The Debounced Effect
   useEffect(() => {
-    console.log(isFirstMount.current);
     // If it's the first time, just flip the flag and skip
     if (isFirstMount.current) {
       isFirstMount.current = false; // We have now finished the first mount
@@ -145,8 +143,8 @@ const FiltersWindowUI = ({
   };
 
   return (
-    <div className="fixed pt-[20px] gap-[10px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-hidden top-[97px]   left-0 z-[9999999999]">
-      <div className="justify-between fil flex-row align-center h-[50px] flex-shrink-0 pl-[15px] pr-[25px]">
+    <div className="fixed pt-[20px] gap-[10px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-hidden top-[97px]   left-0 z-9999999999">
+      <div className="justify-between fil flex-row align-center h-[50px] shrink-0 pl-[15px] pr-[25px]">
         <div
           data-cy="backIcon_productPage"
           className={`back-icon flex-row`}
@@ -160,7 +158,7 @@ const FiltersWindowUI = ({
             setFilterEnabled(false);
           }}
         >
-          <BackIcon />
+          <img src="/icons/backIcon.svg" />
         </div>
         <div
           className={`filter-bar-options gap-[20px] justify-between ${
@@ -168,7 +166,8 @@ const FiltersWindowUI = ({
           }  align-center `}
         >
           <div className="filter-option w-[20px]" data-cy="settingsIcon">
-            <FilterIcon
+            <img
+              src="/icons/filterIcon.svg"
               className={`${filterEnabled && "filter-icon-enabled"}`}
             />
           </div>
@@ -281,7 +280,8 @@ const FiltersWindowUI = ({
               } filter-container relative w-full mt-[10px] pb-6`}
               key={`prices-container`}
             >
-              <PriceCancel
+              <img
+                src="/icons/PriceCancel.svg"
                 className="absolute top-[30px] right-[32px]"
                 onClick={() => {
                   // Sendevent({
@@ -294,11 +294,14 @@ const FiltersWindowUI = ({
               <div
                 className={`filter-label flex-row justify-start align-center m-0`}
               >
-                <ActiveCategoryIcon />
+                <img src="/icons/ActiveCategoryIcon.svg" />
                 <div className="filter-label-text">
                   {translateFunction("Filter By Prices")}
                 </div>
-                <FilterInfoIcon className="filter-info-icon" />
+                <img
+                  src="/icons/FilterInfoIcon.svg"
+                  className="filter-info-icon"
+                />
                 {loading && (
                   <span className="ml-2">
                     <Spinner />

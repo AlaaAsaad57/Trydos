@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { LogError, translateFunction } from "utils/functions";
-import { NotificationItem as NotificationItemType } from "../../types/notifications";
 import { fetchNotifications } from "../../services/notifications";
 import NotificationItem from "./NotificationItem";
 import auth from "services/auth";
@@ -22,9 +21,7 @@ interface NotificationsPanelProps {
 const NotificationsPanel = ({ onClose, closeWindow }) => {
   const notificationsRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [notifications, setNotifications] = useState<NotificationItemType[]>(
-    []
-  );
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
@@ -84,7 +81,10 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error("Error loading notifications:", error);
+      LogError({
+        error: error,
+        scenario: "Error in loadMoreNotifications in Notifications Panel",
+      });
     } finally {
       setLoading(false);
     }
@@ -112,7 +112,7 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
     scrollContainer.addEventListener("scroll", handleScroll);
     return () => scrollContainer.removeEventListener("scroll", handleScroll);
   }, [notifications.length, loading, hasMore]);
-
+  console.log(notifications);
   return (
     <div
       data-cy="notification-container"
@@ -293,9 +293,8 @@ const NotificationInfo = ({ closeWindow }) => {
     if (permission !== "granted") {
       return null;
     }
-    const { requestFirebaseNotificationPermission } = await import(
-      "utils/firebaseInitv1"
-    );
+    const { requestFirebaseNotificationPermission } =
+      await import("utils/firebaseInitv1");
     const { isSupported } = await import("firebase/messaging");
     isSupported().then((bool) => {
       setSupported(bool);
@@ -378,8 +377,8 @@ const NotificationInfo = ({ closeWindow }) => {
       >
         <NextLink
           data-cy="notification-settings"
-          data={{ is_settings: true, href: `/${lang}/setting?tab=Setting` }}
-          href={`/${lang}/setting?tab=Setting`}
+          data={{ is_settings: true, href: `/${lang}/settings/prefferences` }}
+          href={`/${lang}/settings/prefferences`}
           className="flex-row w-full rounded-md shadow-md h-[50px] bg-[#f8f8f8] text-[#5d5d5d] medium text-[14px] justify-center items-center"
         >
           <span>{translateFunction("Notification Settings")}</span>

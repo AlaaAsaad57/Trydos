@@ -10,13 +10,9 @@ import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { StoriesContainerPropsType } from "models/componentType/StoriesContainerPropType";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 
-function StoriesContainer({
-  selectedStory,
-  stories,
-}: StoriesContainerPropsType) {
+function StoriesContainer({ selectedStory, stories }: any) {
   const { storiesData: storiesCache } = useAppStore();
   let storiesData = (stories?.length > 0 && stories) || storiesCache || [];
   var dir = 0;
@@ -106,7 +102,7 @@ function StoriesContainer({
     !storiesData?.find((s) => s.id === selectedStory.id)
   )
     return (
-      <div className="bg-white rounded-lg w-[300px] h-[400px] flex-row p-4 fixed z-[99999999] justify-center items-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+      <div className="bg-white rounded-lg w-[300px] h-[400px] flex-row p-4 fixed z-99999999 justify-center items-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <span className="scale-[4]">
           <Spinner />
         </span>
@@ -114,7 +110,7 @@ function StoriesContainer({
     );
   return (
     <div
-      className="fixed-layout fixed top-0 left-0 w-screen h-full max-w-full max-h-full bg-black flex items-center justify-center z-[999999999999999]"
+      className="fixed-layout fixed top-0 left-0 w-screen h-full max-w-full max-h-full bg-black flex items-center justify-center z-999999999999999"
       {...handlers}
       onPointerLeave={() => {
         document.querySelector<HTMLDivElement>(

@@ -1,7 +1,6 @@
 import "styles/spinner.css";
-import { SpinnerPropsType } from "models/componentType/SpinnerPropsType";
 
-function Spinner(props: SpinnerPropsType) {
+function Spinner(props) {
   return (
     <div
       data-cy="spinner-container2"
@@ -9,7 +8,7 @@ function Spinner(props: SpinnerPropsType) {
         "spin-cont min-w-4 " +
         (props.no && " no-tran ") +
         props.className +
-        `${props.isMargen && "flex items-center justify-center ml-4"}`
+        ` ${props.isMargen && "flex items-center justify-center ml-4"}`
       }
     >
       <svg

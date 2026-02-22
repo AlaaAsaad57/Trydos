@@ -1,34 +1,13 @@
-import React, { useEffect, useState } from "react";
-import SettingTopBar from "./TopBar";
-import AddressInfo from "public/svg/cart/AddressInfo";
+"use client";
+import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
-
-import { useParams, useRouter } from "next/navigation";
-
 import { FlagIcon } from "utils/tinyUtils";
-import { LanguageFlagPropsType } from "models/componentType/LanguageFlagPropsType";
 import { setLocaizationCookies } from "utils/cookies/cookie-manager";
 
-function LanguageSetting({ goBack }: { goBack: () => void }) {
+function LanguageSetting({ local, languageVar }) {
   const languages = ["ar", "en", "tr", "ku"];
-
-  const { lang } = useParams();
-  const [selectedLanguage, setSelectedLanguage] = useState(
-    languages.find(
-      // @ts-ignore
-      (s) => s.toLowerCase() === lang?.split("-")[1].toLowerCase()
-    )
-  );
-  useEffect(() => {
-    setSelectedLanguage(
-      languages.find(
-        // @ts-ignore
-        (s) => s.toLowerCase() === lang?.split("-")[1].toLowerCase()
-      )
-    );
-  }, []);
+  const [selectedLanguage, setSelectedLanguage] = useState(languageVar);
   const [isSettingLanguage, setIsSettingLanguage] = useState(false);
-
   const changeLanguage = async (language: any) => {
     try {
       setIsSettingLanguage(true);
@@ -37,24 +16,17 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
       setSelectedLanguage(language);
       sessionStorage.removeItem("starttingSetting");
       window.location.href = `/${
-        (lang as string)?.split("-")[0]
-      }-${language}/setting?tab=Language`;
+        (local as string)?.split("-")[0]
+      }-${language}/settings`;
     } catch (error) {
       setIsSettingLanguage(false);
-      console.error(error);
     }
   };
   return (
-    <div className="flex-col max-h-[calc(100vh-200px)]">
-      <SettingTopBar
-        DataCy="language-setting"
-        goBack={() => goBack()}
-        screenName="Profile | Languages"
-        Save={null}
-      />
+    <div className="flex-col w-full">
       <div className="flex-row justify-center mt-[12px] w-full">
         <div
-          className="bg-[#F8F8F8] min-h-[50px] w-full flex-row items-center pl-[24px] pr-[20px] "
+          className="bg-[#F8F8F8] min-h-[50px] gap-[12px] w-full flex-row items-center pl-[24px] pr-[20px] "
           style={{
             border: "1px solid rgb(211 211 211 / 51%)",
           }}
@@ -105,9 +77,9 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
             />
           </svg>
 
-          <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
+          <div className="regular text-[10px]  text-[#8D8D8D]">
             {translateFunction(
-              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
+              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
             )}
           </div>
         </div>
@@ -238,7 +210,10 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
             <span className="ml-[6px] medium text-[#404040] text-[12px]">
               {translateFunction("Languages")}
             </span>
-            <AddressInfo className="ml-[19px] cursor-pointer" />
+            <img
+              src="/icons/AddressInfo.svg"
+              className="ml-[19px] cursor-pointer"
+            />
           </div>
           <div
             className={`flex flex-col w-full ${
@@ -288,7 +263,7 @@ const getLanguage = (iso) => {
   if (iso === "ku") return "کوردی";
 };
 export default LanguageSetting;
-const LanguageFlag = ({ lang }: LanguageFlagPropsType) => {
+const LanguageFlag = ({ lang }: any) => {
   if (lang === "ar") return <FlagIcon iso={"sa"} />;
   if (lang === "en") return <FlagIcon iso={"gb"} />;
   if (lang === "tr") return <FlagIcon iso="tr" />;

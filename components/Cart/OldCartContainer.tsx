@@ -5,6 +5,7 @@ import {
   areProductsEqual,
   getConfiguredImage,
   getOldCart,
+  LogError,
   translateFunction,
 } from "utils/functions";
 import { CartItemLink, QuantutyInput } from ".";
@@ -17,8 +18,9 @@ function OldCartContainer() {
   const filteredOldCart =
     oldCart?.oldCart?.filter(
       (oldProduct) =>
-        !cart.some((cartProduct) => areProductsEqual(oldProduct, cartProduct))
+        !cart.some((cartProduct) => areProductsEqual(oldProduct, cartProduct)),
     ) || [];
+
   let shippingDurationDays = 0;
   if (sessionStorage.getItem("starttingSetting")) {
     const settingsStr = sessionStorage.getItem("starttingSetting");
@@ -40,7 +42,10 @@ function OldCartContainer() {
       await getOldCart();
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "getInitialData for old cart widget",
+      });
       setLoading(false);
     }
   };
@@ -53,14 +58,14 @@ function OldCartContainer() {
         className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10"
         data-cy="oldCart-outOfBag"
       >
-        <hr className="p-4" data-cy="line" />
+        <hr className="p-4 border-[#e5e7eb]" data-cy="line" />
         <div
           className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]"
           data-cy="oldCart-viewer"
         >
           <span className="ml-[32px]" data-cy="spanContainer-oldCartIcon">
             <Image
-              src={"/svg/cart/OldCartIcon.svg"}
+              src={"/icons/OldCartIcon.svg"}
               alt="cart-color"
               width={20}
               height={20}
@@ -146,14 +151,14 @@ function OldCartContainer() {
       className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10"
       data-cy="oldCart-outOfBag"
     >
-      <hr className="p-4" data-cy="line" />
+      <hr className="p-4 border-[#e5e7eb]" data-cy="line" />
       <div
         className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]"
         data-cy="oldCart-viewer"
       >
         <span className="ml-[32px]" data-cy="spanContainer-oldCartIcon">
           <Image
-            src={"/svg/cart/OldCartIcon.svg"}
+            src={"/icons/OldCartIcon.svg"}
             alt="cart-color"
             width={20}
             height={20}
@@ -240,10 +245,10 @@ function OldCartContainer() {
                   <span className="ml-1.5"></span>
                 </div>
                 <div className="flex-row flex-wrap">
-                  {product.variations[0]?.color && (
+                  {product.variations?.color && (
                     <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                       <Image
-                        src={"/svg/cart/CartColorIcon.svg"}
+                        src={"/icons/CartColorIcon.svg"}
                         alt="cart-color"
                         width={10}
                         height={10}
@@ -255,15 +260,15 @@ function OldCartContainer() {
                       >
                         {translateFunction("Color")}:
                         <span className="regular">
-                          {product.variations[0].color}
+                          {product.variations?.color}
                         </span>
                       </span>
                     </div>
                   )}
-                  {product.variations[0]?.Size && (
+                  {product.variations?.Size && (
                     <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1">
                       <Image
-                        src={"/svg/cart/CartSizeIcon.svg"}
+                        src={"/icons/CartSizeIcon.svg"}
                         alt="cart-color"
                         width={10}
                         height={10}
@@ -275,7 +280,7 @@ function OldCartContainer() {
                       >
                         {translateFunction("Size")}:
                         <span className="regular">
-                          {product.variations[0].Size}
+                          {product.variations?.Size}
                         </span>
                       </span>
                     </div>
@@ -283,7 +288,7 @@ function OldCartContainer() {
                 </div>
                 <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                   <Image
-                    src={"/svg/cart/PiecesIcon.svg"}
+                    src={"/icons/PiecesIcon.svg"}
                     alt="cart-color"
                     width={10}
                     height={10}
@@ -304,7 +309,7 @@ function OldCartContainer() {
                 {product.shipping_days && (
                   <div className="flex-row whitespace-nowrap items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                     <Image
-                      src={"/svg/cart/DeleiveryIcon.svg"}
+                      src={"/icons/DeleiveryIcon.svg"}
                       alt="cart-color"
                       width={10}
                       height={10}
@@ -335,10 +340,10 @@ function OldCartContainer() {
                   min={1}
                   disabled
                   max={product.available_quantity}
-                  className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
+                  className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border border-solid outline-hidden bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
                 />
               </div>
-              <div className="absolute flex-row cursor-pointer items-center pl-3 pr-3 max-w-[90vw] bottom-[8px] left-[9px] mx-auto right-[0px] w-full h-[32px] rounded-[15px] bg-[#F8F8F8]">
+              <div className="absolute flex-row cursor-pointer items-center pl-3 pr-3 max-w-[90vw] bottom-[8px] left-[9px] mx-auto right-0 w-full h-[32px] rounded-[15px] bg-[#F8F8F8]">
                 <span
                   style={{
                     height: "15px",
@@ -347,7 +352,7 @@ function OldCartContainer() {
                   }}
                 >
                   <Image
-                    src={"/svg/cart/OldCartIcon.svg"}
+                    src={"/icons/OldCartIcon.svg"}
                     alt="cart-color"
                     width={20}
                     height={20}
@@ -428,7 +433,11 @@ function OldCartContainer() {
             </div>
             <QuantutyInput
               id={product.id}
-              product={product}
+              product={{
+                ...product,
+                quantity: parseInt(product.quantity),
+                offer_price: product?.offer_price,
+              }}
               updateData={async () => {}}
               isCollectedAfterOrdering={false}
               maxAllowed={product.max_allowed_qty}

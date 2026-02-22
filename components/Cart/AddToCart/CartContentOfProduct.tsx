@@ -8,54 +8,47 @@ import {
 } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 
-function CartContentOfProduct() {
-  const { localCart, selected_product_for_add_to_cart, currency, language } =
-    useAppStore();
+function CartContentOfProduct({ product }) {
+  const { localCart, currency, language } = useAppStore();
 
   const renderVaritionString = (s) => {
-    if (s.color && s.size) {
+    const cartItemColor = s.color;
+    const cartItemSize = s.size || s.choice_1;
+
+    const colorName = cartItemColor
+      ? product.colors?.find(
+          (color) =>
+            color.code === cartItemColor ||
+            color.name === cartItemColor ||
+            color?.option === cartItemColor ||
+            color?.color_option === cartItemColor,
+        )?.name || cartItemColor
+      : null;
+
+    if (colorName && cartItemSize) {
       return (
         <div className="flex flex-row items-center gap-[3px]">
           <span>{translateFunction("Color")}</span>
-          <span className="bold">
-            {
-              selected_product_for_add_to_cart.colors?.find(
-                (color) =>
-                  color.code === s.color ||
-                  color.name === s.color ||
-                  color?.option === s.color
-              )?.name
-            }
-          </span>
+          <span className="bold">{colorName}</span>
           <span>|</span>
           <span>{translateFunction("Size")}</span>
-          <span className="bold">{s.size}</span>
+          <span className="bold">{cartItemSize}</span>
         </div>
       );
     } else {
-      if (s.color) {
+      if (colorName) {
         return (
           <div className="flex flex-row items-center gap-[3px]">
             <span>{translateFunction("Color")}</span>
-            <span className="bold">
-              {
-                selected_product_for_add_to_cart.colors?.find(
-                  (color) =>
-                    color.code === s.color ||
-                    color.name === s.color ||
-                    color?.option === s.color ||
-                    color?.color_option === s.color
-                )?.name
-              }
-            </span>
+            <span className="bold">{colorName}</span>
           </div>
         );
       }
-      if (s.size) {
+      if (cartItemSize) {
         return (
           <div className="flex flex-row items-center gap-[3px]">
             <span>{translateFunction("Size")}</span>
-            <span className="bold">{s.size}</span>
+            <span className="bold">{cartItemSize}</span>
           </div>
         );
       }
@@ -63,9 +56,7 @@ function CartContentOfProduct() {
   };
   const getPriceOfProductInCart = () => {
     let total_products = localCart.filter(
-      (s) =>
-        s.id === selected_product_for_add_to_cart?.product_id ||
-        selected_product_for_add_to_cart?.id
+      (s) => s.id === product?.product_id || product?.id,
     );
 
     let total_price = 0;
@@ -85,12 +76,7 @@ function CartContentOfProduct() {
           className="flex-col flex items-start gap-[3px] z-10 max-h-full  overflow-auto w-fit horizntal-scroll"
         >
           {localCart
-            .filter(
-              (s) =>
-                s.id ===
-                (selected_product_for_add_to_cart?.product_id ??
-                  selected_product_for_add_to_cart?.id)
-            )
+            .filter((s) => s.id === (product?.product_id ?? product?.id))
             .map((s) => (
               <div
                 className="flex-row flex items-center justify-center gap-[3px]"
@@ -99,7 +85,7 @@ function CartContentOfProduct() {
                 <ProductImageCircle image={s.image} />
                 <div className="text-[10px] text-[#1D1D1D] items-center regular flex flex-row">
                   <span className="medium px-[2px]"> {s.quantity} </span>{" "}
-                  <span>{translateFunction("Item")}</span>
+                  <span className="mx-1">{translateFunction("Item")}</span>
                   {renderVaritionString(s)}
                 </div>
               </div>
@@ -115,9 +101,7 @@ function CartContentOfProduct() {
           <span>
             {
               localCart.filter(
-                (s) =>
-                  s.id === selected_product_for_add_to_cart?.product_id ||
-                  selected_product_for_add_to_cart?.id
+                (s) => s.id === product?.product_id || product?.id,
               )?.length
             }
           </span>
@@ -157,7 +141,7 @@ const ProductImageCircle = ({ image }) => {
     <div className="w-[13px] h-[13px] rounded-full relative">
       <Image
         src={GetImageUrl(
-          getConfiguredImage({ src: image, width: 20, height: 20, q: 100 })
+          getConfiguredImage({ src: image, width: 20, height: 20, q: 100 }),
         )}
         alt="product-image h-[13px]"
         width={13}

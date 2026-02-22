@@ -10,6 +10,11 @@ module.exports = {
   plugins: [],
   theme: {
     extend: {
+      fontFamily: {
+        // Wires Tailwind's `font-sans` utility to the Quicksand Regular CSS variable
+        // injected by next/font on <html>. Fallback mirrors what next/font uses.
+        sans: ["var(--Quicksand-Regular)", "system-ui", "arial"],
+      },
       keyframes: {
         expandWidth: {
           "0%": { width: "97px" }, // Tailwind w-20

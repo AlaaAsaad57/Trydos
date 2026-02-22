@@ -1,5 +1,3 @@
-import VerifiedIcon from "public/svg/listing/VerifiedIcon";
-
 import { GetImageUrl } from "utils/server";
 
 async function ProductNameAndBrand({ globalPromise, isRtl, color }) {
@@ -36,7 +34,7 @@ async function ProductNameAndBrand({ globalPromise, isRtl, color }) {
           />
         )}
         <span>
-          <VerifiedIcon />
+          <img src="/icons/VerifiedIcon.svg" />
         </span>
       </div>
       <div

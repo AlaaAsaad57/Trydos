@@ -10,6 +10,7 @@ import {
   COOKIE_NAMES,
   deleteCookie,
 } from "utils/cookies/cookie-manager";
+import { clearAllUserData } from "utils/tinyUtils";
 // import { GA_AUTH_SCREEN, GA_GLOBAL_PLATFORM } from "utils/GAEvents";
 // import { GA_EVENT_NAMES } from "utils/GAEvents";
 // import { GAevent } from "utils/gtag";
@@ -58,27 +59,14 @@ function AlreadyRegistered({
     clearSimulatedUserSession();
     clearHashedUserId();
     setLoading(true);
-    deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-    deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
-    deleteCookie(COOKIE_NAMES.USER_CHAT);
-    deleteCookie(COOKIE_NAMES.USER_STORIES);
-    deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
-    deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-    localStorage.clear();
-    deleteCookie(COOKIE_NAMES.USER_DATA);
-    const { messaging } = await import("utils/firebaseInitv1");
+    clearAllUserData();
+
+    const { getFirebaseMessaging } = await import("utils/firebaseInitv1");
     const { deleteToken } = await import("firebase/messaging");
     try {
-      await deleteToken(messaging);
-      deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-      deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
-      deleteCookie(COOKIE_NAMES.USER_CHAT);
-      deleteCookie(COOKIE_NAMES.USER_STORIES);
-      deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
-      deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-      localStorage.clear();
-
-      deleteCookie(COOKIE_NAMES.USER_DATA);
+      const messaging = await getFirebaseMessaging();
+      if (messaging) await deleteToken(messaging);
+      clearAllUserData();
     } catch (error) {}
     await new Promise((resolve) => setTimeout(resolve, 2000));
     window.location.reload();

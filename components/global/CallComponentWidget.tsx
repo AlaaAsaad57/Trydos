@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 interface CallComponentWidgetProps {
-  data: { photo: string };
+  data: any;
   type: string;
   onAnswer: Function;
   onDecline: Function;
@@ -24,9 +24,10 @@ function CallComponentWidget({
       <div
         className="hgg"
         style={{
-          backgroundImage: userData.photo
-            ? `url(${userData.photo})`
-            : `url(${"/images/profileNo.png"})`,
+          backgroundImage:
+            !data.is_private && userData.photo
+              ? `url(${userData.photo})`
+              : `url(${"/images/profileNo.png"})`,
           left: 0,
           right: 0,
           margin: "0 auto",
@@ -34,7 +35,11 @@ function CallComponentWidget({
       ></div>
       <span className="caller-name">Incoming {type} Call</span>
       <span className="caller-name" style={{ top: "400px" }}>
-        {userData.name || userData.phone}
+        {data?.is_private
+          ? data?.is_private === "customer"
+            ? "Customer"
+            : "Deleivery Worker"
+          : userData.name || userData.phone}
       </span>
       <div
         className={`toggle-mic call-rec ${

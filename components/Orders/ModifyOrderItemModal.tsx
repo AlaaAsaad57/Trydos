@@ -1,12 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import LargeColorIcon from "public/svg/LargeColorIcon";
+import { useState } from "react";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { findVariation, GetImageUrl } from "utils/tinyUtils";
-import { ColorListPropsType } from "models/componentType/ColorListPropsType";
-import { ModifyOrderItemModalPropsType } from "models/componentType/ModifyOrderItemModalPropsType";
-import { SizeListPropsType } from "models/componentType/SizeListPropsType";
 import order from "services/order";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
@@ -18,7 +14,7 @@ export const ModifyOrderItemModal = ({
   orderItem,
   getOrderDetails,
   close,
-}: ModifyOrderItemModalPropsType) => {
+}) => {
   const { language } = useAppStore();
   const [loading, setLoading] = useState(false);
 
@@ -39,19 +35,20 @@ export const ModifyOrderItemModal = ({
     setLoading(true);
     let image =
       confirmationData?.productDetails?.sync_color_images?.find(
-        (s) => s?.color_option === confirmationData?.newColor
+        (s) => s?.color_option === confirmationData?.newColor,
       )?.images?.[0] || orderItem?.image;
     const imageVar = image.split("/")[image.split("/").length - 1];
 
-    await order.changeOrderItemVariant({
+    let res = await order.changeOrderItemVariant({
       choice_1: confirmationData?.newSize ?? "",
       color: confirmationData?.productDetails?.colors?.find(
         (s) =>
           s.name === confirmationData.newColor ||
-          s.option === confirmationData?.newColor
+          s.option === confirmationData?.newColor,
       )?.color,
       image: imageVar,
       order_detail_id: confirmationData?.detail_id,
+      product_variant_id: confirmationData?.product_variant_id,
     });
     setLoading(false);
     setConfirmationData(false);
@@ -63,9 +60,9 @@ export const ModifyOrderItemModal = ({
 
   return (
     <div
-      className={`z-[9999999999999] pb-[70px] px-[24px] w-full flex-col ${
+      className={`z-9999999999999 pb-[70px] px-[24px] w-full flex-col ${
         confirmationData.loading ? "justify-start pt-[30px]" : "justify-end"
-      } items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] fixed top-[0px] left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
+      } items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
     >
       {confirmationData?.loading ? (
         <span className="scale-[4]">
@@ -73,7 +70,7 @@ export const ModifyOrderItemModal = ({
         </span>
       ) : (
         <div className="flex-col justify-end items-center h-auto">
-          <LargeColorIcon />
+          <img src="/icons/LargeColorIcon.svg" />
           <span className="mt-[11px] text-[#D3D3D3] text-[16px] medium">
             {type === "Color"
               ? translateFunction("Change Below Color", language)
@@ -93,28 +90,28 @@ export const ModifyOrderItemModal = ({
                     confirmationData?.productDetails?.sync_color_images?.find(
                       (s) =>
                         s.color_name?.toLowerCase() ===
-                        confirmationData?.currentColor?.toLowerCase()
-                    )?.images[0]
+                        confirmationData?.currentColor?.toLowerCase(),
+                    )?.images[0],
                   ),
                   width: 70,
                   height: 70,
                   q: 100,
                 })}
               />
-              <span className="text-[#fff] text-[14px] medium mt-[9px]">
+              <span className="text-white text-[14px] medium mt-[9px]">
                 {type === "Color"
                   ? confirmationData?.productDetails?.sync_color_images?.find(
                       (s) =>
                         s.color_name?.toLowerCase() ===
                           confirmationData?.currentColor?.toLowerCase() ||
                         s.color_option?.toLowerCase() ===
-                          confirmationData?.currentColor?.toLowerCase()
+                          confirmationData?.currentColor?.toLowerCase(),
                     )?.color_name
                   : confirmationData?.currentSize}
               </span>
             </div>
           </div>
-          <span className="text-[#fff] text-[16px] medium mt-[15px]">
+          <span className="text-white text-[16px] medium mt-[15px]">
             {type === "Color"
               ? translateFunction("To New Color", language)
               : translateFunction("To New Size", language)}
@@ -134,11 +131,9 @@ export const ModifyOrderItemModal = ({
                 colors={confirmationData?.productDetails?.sync_color_images?.filter(
                   (s) =>
                     s.color_name !== confirmationData?.currentColor &&
-                    s.color_option !== confirmationData?.currentColor
+                    s.color_option !== confirmationData?.currentColor,
                 )}
-                sizes={
-                  confirmationData?.productDetails?.choice_options?.[0]?.options
-                }
+                sizes={confirmationData?.productDetails?.sizes}
                 current_size={confirmationData?.currentSize}
                 setColor={(e) => {
                   setConfirmationData({ ...confirmationData, newColor: e });
@@ -156,9 +151,7 @@ export const ModifyOrderItemModal = ({
                   setConfirmationData({ ...confirmationData, newSize: e });
                 }}
                 image={orderItem?.image}
-                sizes={
-                  confirmationData?.productDetails?.choice_options?.[0]?.options
-                }
+                sizes={confirmationData?.productDetails?.sizes}
               />
             )}
           </div>
@@ -186,18 +179,18 @@ export const ModifyOrderItemModal = ({
             {type === "Color"
               ? translateFunction(
                   "We Will Ignore The First Color And Send Your Order To The New Address.",
-                  language
+                  language,
                 )
               : translateFunction(
                   "We Will Ignore The First Size And Send Your Order To The New Address.",
-                  language
+                  language,
                 )}
           </p>
           <div
             className={`cursor-pointer mt-[10px] w-full h-[50px] rounded-[15px]  text-[16px] bold flex items-center justify-center ${
               isChanged() && active
                 ? "bg-[#F8F8F8] text-[#402CDD]"
-                : "bg-[#C4C2C2] text-[#fff]"
+                : "bg-[#C4C2C2] text-white"
             }`}
             style={{
               border: isChanged() && active && "1px solid #402CDD80",
@@ -216,7 +209,7 @@ export const ModifyOrderItemModal = ({
             )}
           </div>
           <div
-            className="cursor-pointer w-full h-[50px] text-[#fff] text-[16px] regular flex items-center justify-center"
+            className="cursor-pointer w-full h-[50px] text-white text-[16px] regular flex items-center justify-center"
             onClick={() => {
               if (!loading) setConfirmationData(false);
             }}
@@ -250,7 +243,7 @@ export const ColorList = ({
   };
   return (
     <HortiznalScrollBar
-      className="w-full h-[98px] flex-row gap-[10px] pt-[1px]"
+      className="w-full h-[98px] flex-row gap-[10px] pt-px"
       id="color-list-container"
     >
       {colors?.map((s) => {
@@ -259,9 +252,12 @@ export const ColorList = ({
           colors,
           sizes,
           s?.color_name,
-          current_size
+          current_size,
         );
-        let disabled = variation?.qty < item.qty;
+        let disabled =
+          s?.color_name?.toLowerCase() === currentColor?.toLowerCase()
+            ? false
+            : variation?.qty < item.qty;
 
         return (
           <div
@@ -271,7 +267,7 @@ export const ColorList = ({
               if (!disabled) setColor(s?.color_option);
               else
                 showErrorNotification(
-                  translateFunction("this option dosent have enough quantity")
+                  translateFunction("this option dosent have enough quantity"),
                 );
             }}
           >
@@ -312,7 +308,7 @@ export const SizeList = ({
   currentColor,
   item,
   variations,
-}: SizeListPropsType) => {
+}: any) => {
   const isActive = (name) => {
     if (!newSize) return name?.toLowerCase() === currentSize?.toLowerCase();
     else {
@@ -326,7 +322,7 @@ export const SizeList = ({
       className="flex-row h-[96px] max-h-[96px] w-full  relative"
     >
       <HortiznalScrollBar
-        className="w-full h-[98px] flex-row gap-[10px] mt-[1px]"
+        className="w-full h-[98px] flex-row gap-[10px] mt-px"
         id="color-list-container"
       >
         {sizes?.map((s) => {
@@ -335,27 +331,32 @@ export const SizeList = ({
             colors,
             sizes,
             currentColor,
-            s?.option
+            s,
           );
-          let disabled = variation?.qty < item.qty;
+          let disabled =
+            s?.name?.toLowerCase() === currentSize?.toLowerCase()
+              ? false
+              : variation?.qty < item.qty;
 
           return (
             <div
-              key={s?.name}
+              key={s}
               className={`${
                 disabled && "opacity-75"
-              } w-auto h-[98px] flex-col items-center justify-center pt-[1px]`}
+              } w-auto h-[98px] flex-col items-center justify-center pt-px`}
               onClick={() => {
-                if (!disabled) setSize(s?.option);
+                if (!disabled) setSize(s);
                 else
                   showErrorNotification(
-                    translateFunction("this option dosent have enough quantity")
+                    translateFunction(
+                      "this option dosent have enough quantity",
+                    ),
                   );
               }}
             >
               <img
                 style={{
-                  border: isActive(s?.name)
+                  border: isActive(s)
                     ? "1px solid #402CDDef"
                     : "1px solid #ffffffef",
                 }}
@@ -369,12 +370,12 @@ export const SizeList = ({
               />
               <span
                 className={`${
-                  isActive(s?.name)
+                  isActive(s)
                     ? "text-[#402CDD] medium"
                     : "text-[#5D5C5D] regular"
                 } text-[14px]  mt-[9px]`}
               >
-                {s?.name}
+                {s}
               </span>
             </div>
           );

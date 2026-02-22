@@ -12,6 +12,7 @@ async function ListingSearchContainer({
     <Suspense fallback={<></>}>
       <SearchBoutiquePage
         lang={`${country}-${language}`}
+        isAnalyzed={filtersData.isAnalyzed}
         parsedFilters={parsedFilters}
         search_text={
           filtersData?.applied?.search_text ?? parsedFilters?.search_text?.[0]

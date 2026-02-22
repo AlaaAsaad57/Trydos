@@ -1,6 +1,3 @@
-import React from "react";
-import { GetStarttingSetting } from "serverRequests";
-import ExpectedIcon from "public/svg/expectedDelevery";
 import { translateFunction } from "utils/server";
 import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
 import Skeleton from "react-loading-skeleton";
@@ -53,7 +50,7 @@ async function ProductExpectedDeleiveryWrapper({
   const isRtl = language === "ar" || language === "ku";
   return (
     <ExpectedDeleiveryBanner country={country} language={language}>
-      <ExpectedIcon />
+      <img src="/icons/expectedDelevery.svg" className="w-[30px] h-[30px]" />
       <span className="flex-row gap-[12px] items-center">
         {translateFunction("Expected Delivery Date", language)}
 
@@ -110,7 +107,7 @@ async function ProductExpectedDeleiveryWrapper({
             language
           )}
         </span>
-        <span className="bold text-[#1D1D1D] text-[12px]  mx-[1px]">
+        <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
           {formatTimeForAddress(
             new Date(
               new Date().getTime() +

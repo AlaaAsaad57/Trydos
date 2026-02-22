@@ -3,12 +3,14 @@ import { _isStoreLastJson } from "utils/functions";
 import home from "./home";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogServerError } from "utils/serverErrorReporter";
 
 class CartService {
   async AddToCart({
     product_id,
     color,
     choice_1,
+    product_variation_id = null,
     qty,
     image,
     isFromAddWidget = false,
@@ -20,10 +22,9 @@ class CartService {
     const imageVar = image.split("/")[image.split("/").length - 1];
     let details = {
       id: product_id,
-      color,
       image: imageVar,
       quantity: qty,
-      choice_1,
+      product_variation_id: product_variation_id ?? null,
       is_redeem,
     };
     let formBody = [];
@@ -60,6 +61,7 @@ class CartService {
         addProductToCart({
           id: product_id,
           item_id: response?.data?.id_cart,
+          product_variation_id: product_variation_id ?? null,
           color,
           size: choice_1,
           image,
@@ -71,6 +73,10 @@ class CartService {
       }
       return false;
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In AddToCart in services/cart",
+      });
       return false;
     }
   }
@@ -117,6 +123,10 @@ class CartService {
       }
       return false;
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In UpdateCart in services/cart",
+      });
       return false;
     }
   }
@@ -138,6 +148,10 @@ class CartService {
       removeFromCart(cart_item?.item_id);
       return true;
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In RemoveFromCart in services/cart",
+      });
       errRemoveFromCart(cart_item);
       return false;
     }
@@ -168,7 +182,10 @@ class CartService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogServerError({
+        error: err,
+        scenario: "Error In ConvertToOldCart in services/cart",
+      });
     }
   }
 }

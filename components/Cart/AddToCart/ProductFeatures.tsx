@@ -68,7 +68,7 @@ function PropertiesFeaturesInAddToCart() {
         }}
       >
         <div className={`${"flex-row"} gap-[2px] flex-none`}>
-          <Image src="/svg/FastIcon.svg" alt="Fast" width={11} height={11} />
+          <Image src="/icons/FastIcon.svg" alt="Fast" width={11} height={11} />
           <div className={` text-[#388CFF] text-[9px] gap-[3px] flex`}>
             <span className="bold">{translateFunction("Fast Packing")}</span>
             <span>
@@ -77,12 +77,12 @@ function PropertiesFeaturesInAddToCart() {
           </div>
         </div>
         <div className={`${"flex-row"} gap-[2px] flex-none`}>
-          <Image
-            src={"/svg/BestPriceIcon.svg"}
+          {/* <Image
+            src={"/icons/BestPriceIcon.svg"}
             alt="best-pricee"
             width={11}
             height={11}
-          />
+          /> */}
           <div className={`text-[#388CFF] text-[9px] gap-[3px] flex`}>
             <span className="bold">{translateFunction("Best Price")}</span>
             <span>{translateFunction("Last 3 Days!")}</span>
@@ -90,12 +90,12 @@ function PropertiesFeaturesInAddToCart() {
         </div>
 
         <div className={`${"flex-row"} gap-[2px] flex-none`}>
-          <Image
-            src={"/svg/TrendIcon.svg"}
+          {/* <Image
+            src={"/icons/TrendIcon.svg"}
             alt="trend-icon"
             width={11}
             height={11}
-          />
+          /> */}
           <div className="text-[#FF641A] text-[9px] gap-[3px] flex">
             <span className="bold">{translateFunction("Trend")}</span>
             <span>{translateFunction("Color !")}</span>
@@ -103,12 +103,12 @@ function PropertiesFeaturesInAddToCart() {
         </div>
 
         <div className={`${"flex-row"} gap-[2px] flex-none`}>
-          <Image
-            src={"/svg/BestSellIcon.svg"}
+          {/* <Image
+            src={"/icons/BestSellIcon.svg"}
             alt="best sell"
             width={11}
             height={11}
-          />
+          /> */}
           <div className={`text-[#513AAF] text-[9px] gap-[3px] flex`}>
             <span className="bold">{translateFunction("Best Sell")}</span>
             <span>{translateFunction("Last Week !")}</span>

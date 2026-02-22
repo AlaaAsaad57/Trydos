@@ -1,16 +1,10 @@
 "use client";
 
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import { NavbarServerProps } from "models/componentType/HomePagePropsType";
 import { useState } from "react";
 import { useAppStore } from "store";
 
-function NavbarServer({
-  lang,
-  mainCategory,
-  categoriesData,
-  children,
-}: NavbarServerProps) {
+function NavbarServer({ lang, mainCategory, categoriesData, children }: any) {
   const [loading, setLoading] = useState(false);
   const categories = categoriesData;
   const { enable_search } = useAppStore();
@@ -24,10 +18,6 @@ function NavbarServer({
     // 2. Check if the link exists and is inside this specific wrapper
     if (link && e.currentTarget.contains(link)) {
       // 3. Extract data from the 'dataset' object
-      const { id } = link.dataset;
-
-      console.log("ID from data-id:", id);
-
       // If you want to prevent the page from actually changing:
       // e.preventDefault();
     }

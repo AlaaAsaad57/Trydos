@@ -1,23 +1,14 @@
-import { ImageAvatarPropsType } from "models/componentType/ImageAvatarPropsType";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 
-function ImageAvatar({
-  image,
-  width,
-  height,
-  alt,
-  isActive,
-  name,
-  priority,
-}: ImageAvatarPropsType) {
+function ImageAvatar({ image, width, height, alt, isActive, name, priority }) {
   return (
-    <div className="image-avatar h-full relative select-none overflow-visible w-100 rounded-50 flex no-navigate">
+    <div className="image-avatar h-full relative select-none overflow-visible w-full rounded-50 flex no-navigate">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="100%"
         height="100%"
-        className="no-navigate absolute top-0 left-0 z-[5] overflow-visible"
+        className="no-navigate absolute top-0 left-0 z-5 overflow-visible"
         viewBox="0 0 35 35"
       >
         <g
@@ -32,7 +23,7 @@ function ImageAvatar({
         </g>
       </svg>
 
-      <div className="shadow-inset-avatar rounded-50 absolute w-100 h-100" />
+      <div className="shadow-inset-avatar rounded-50 absolute w-full h-100" />
       <Image
         loading="eager"
         width={50}

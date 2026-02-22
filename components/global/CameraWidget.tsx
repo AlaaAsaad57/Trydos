@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import Webcam from "react-webcam";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { showErrorNotification } from "@/store/notifications/reducer";
 
 interface CameraWidgetProps {
@@ -14,7 +14,7 @@ export const CameraWidget = ({ onCapture, onClose }) => {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">(
-    "environment"
+    "environment",
   );
   const [constraintError, setConstraintError] = useState(false);
 
@@ -44,11 +44,15 @@ export const CameraWidget = ({ onCapture, onClose }) => {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter(
-          (device) => device.kind === "videoinput"
+          (device) => device.kind === "videoinput",
         );
         setHasMultipleCameras(videoDevices.length > 1);
       } catch (error) {
-        console.error("Error checking cameras:", error);
+        LogError({
+          error: error,
+          scenario:
+            "Error checking cameras in CheckCamera function in CameraWidget",
+        });
       }
     };
 
@@ -83,7 +87,10 @@ export const CameraWidget = ({ onCapture, onClose }) => {
           onCapture(file);
         })
         .catch((error) => {
-          console.error("Error converting image:", error);
+          LogError({
+            error: error,
+            scenario: "handleUsePhoto function in CameraWidget",
+          });
           showErrorNotification(translateFunction("Failed to process image"));
         });
     }
@@ -95,7 +102,7 @@ export const CameraWidget = ({ onCapture, onClose }) => {
       setConstraintError(false); // Reset error state when switching
     } else {
       showErrorNotification(
-        translateFunction("This device has only one camera")
+        translateFunction("This device has only one camera"),
       );
     }
   };
@@ -107,8 +114,8 @@ export const CameraWidget = ({ onCapture, onClose }) => {
       setConstraintError(true);
       showErrorNotification(
         translateFunction(
-          "Camera constraints not supported, trying fallback settings"
-        )
+          "Camera constraints not supported, trying fallback settings",
+        ),
       );
     } else if (error.name === "NotAllowedError") {
       showErrorNotification(translateFunction("Camera access denied"));
@@ -123,7 +130,7 @@ export const CameraWidget = ({ onCapture, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[99999999]">
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-99999999">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200">

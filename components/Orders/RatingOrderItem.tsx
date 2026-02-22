@@ -1,12 +1,11 @@
 import RatingStars from "components/settings/cards/RatingStars";
 import React, { useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import storyService from "services/story";
-import UploadImageOrder from "public/svg/UploadImageOrder";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import UploadImageComponent from "./UploadImageComponent";
 import { useRouter } from "next/navigation";
@@ -25,8 +24,10 @@ function RatingOrderItem({
   setShowCommentModal,
   loading,
   setLoading,
+  owner_id,
+  owner_type,
 }) {
-  const { ActivePacks, language } = useAppStore();
+  const { language } = useAppStore();
   const [rating, setRating] = useState(initialRating);
 
   const [comment, setComment] = useState(lastComment || "");
@@ -46,8 +47,8 @@ function RatingOrderItem({
         productId: productId,
         id: lastRatingId,
         variant: variant,
-        owner_id: ActivePacks?.owner_id,
-        owner_type: ActivePacks?.owner_type,
+        owner_id: owner_id,
+        owner_type: owner_type,
         images: images,
       });
       router.refresh();
@@ -57,6 +58,10 @@ function RatingOrderItem({
       setShowCommentModal(false);
       refresh();
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error in RateOrder in RatingOrderItem",
+      });
       setLoading(false);
     }
   };
@@ -159,7 +164,7 @@ function RatingOrderItem({
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               onKeyDown={handleInputKeyDown}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors"
               placeholder={translateFunction("Add your comment")}
               aria-label="Comment input"
               disabled={loading}
@@ -184,7 +189,7 @@ function RatingOrderItem({
             <button
               type="button"
               onClick={handleCloseModal}
-              className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+              className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 focus:ring-gray-300"
               disabled={loading}
             >
               {translateFunction("Cancel")}
@@ -192,7 +197,7 @@ function RatingOrderItem({
             <button
               type="button"
               onClick={handleSubmit}
-              className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 ${
+              className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 ${
                 isSubmitDisabled
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300"
@@ -231,7 +236,7 @@ const RatingUploadImages = ({
 }) => {
   const UploadImage = async () => {
     const input = document.querySelector<HTMLInputElement>(
-      "#rating-order-file-input"
+      "#rating-order-file-input",
     );
     input?.click();
   };
@@ -246,13 +251,17 @@ const RatingUploadImages = ({
         setLoading(false);
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error in UploadImage for Rating in RatingOrderItem",
+      });
       setLoading(false);
     }
   };
 
   const removeImage = (
     e: React.MouseEvent<HTMLSpanElement | HTMLDivElement>,
-    img: string
+    img: string,
   ) => {
     e.stopPropagation();
     e.preventDefault();
@@ -317,7 +326,7 @@ const RatingUploadImages = ({
                 <Spinner />
               ) : (
                 <span className="text-[#402CDD] text-[8px] regular flex-col items-center">
-                  <UploadImageOrder />
+                  <img src="/icons/UploadImageOrder.svg" />
                   {translateFunction("Add Photo")}
                 </span>
               )}

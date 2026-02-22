@@ -1,6 +1,5 @@
 "use client";
 
-import { CartErrorComponentPropsType } from "models/componentType/CartErrorIllustrationPropsType";
 import { useParams } from "next/navigation";
 import { translateFunction } from "utils/functions";
 
@@ -131,15 +130,12 @@ const CartErrorIllustration = ({
   );
 };
 
-const CartErrorComponent = ({
-  errorMessage,
-  onRetry,
-}: CartErrorComponentPropsType) => {
+const CartErrorComponent = ({ errorMessage, onRetry }) => {
   const { lang } = useParams();
   // @ts-ignore
   let language = lang.split("-")[1];
   return (
-    <div className="flex flex-col items-center justify-center p-8 min-h-[400px] bg-gradient-to-br from-red-50 via-white to-pink-50 rounded-lg z-[999999998]">
+    <div className="flex flex-col items-center justify-center p-8 min-h-[400px] bg-linear-to-br from-red-50 via-white to-pink-50 rounded-lg z-999999998">
       {/* Error Illustration */}
       <div className="mb-6">
         <CartErrorIllustration className="w-48 h-48" />

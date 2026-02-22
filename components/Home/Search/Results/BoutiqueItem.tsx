@@ -1,5 +1,3 @@
-import React from "react";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 
@@ -11,8 +9,9 @@ function BoutiqueItem({ boutique, onClick, isActive }) {
       onClick={() => onClick()}
     >
       {isActive && (
-        <ActiveCategoryIcon
-          style={{ top: "-6px", left: "-15px", scale: "0.6" }}
+        <img
+          src="/icons/ActiveCategoryIcon.svg"
+          style={{ top: "-6px", left: "-4px", scale: "0.6" }}
           className="absolute"
         />
       )}

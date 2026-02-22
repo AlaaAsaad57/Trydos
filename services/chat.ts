@@ -3,7 +3,6 @@ import HomeService from "services/home";
 import { useAppStore } from "store";
 import {
   _isStoreLastJson,
-  getLang,
   getUserChat,
   translateFunction as translate,
 } from "utils/functions";
@@ -12,21 +11,17 @@ import {
   showErrorNotification,
 } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  setCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import home from "services/home";
 import UPDATED_API_DATA from "migration.staging";
+import { LogServerError } from "utils/serverErrorReporter";
 
 class ChatService {
   async loginChat() {
     try {
-      const { loginSuccessChat } = useAppStore.getState();
-      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+      const { loginSuccessChat, userProfile } = useAppStore.getState();
+      const user = userProfile;
       const response = await fetchData({
         url: LOG_IN_CHAT,
         body: JSON.stringify({
@@ -42,7 +37,15 @@ class ChatService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      setCookie(COOKIE_NAMES.USER_CHAT, response.data);
+      // Update HttpOnly cookie via server route
+      fetch("/api/auth/update-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          updates: [{ name: COOKIE_NAMES.USER_CHAT, value: response.data }],
+        }),
+        credentials: "include",
+      });
       loginSuccessChat({
         ...response.data,
       });
@@ -51,7 +54,12 @@ class ChatService {
       } else {
         throw new Error();
       }
-    } catch (e) {}
+    } catch (e) {
+      LogServerError({
+        error: e,
+        scenario: "Error In loginChat in services/chat",
+      });
+    }
   }
   async ShareProduct({ userId, product, callback }) {
     const { language } = useAppStore.getState();
@@ -73,17 +81,21 @@ class ChatService {
       }
       await this.getChats("share");
       showSuccessNotification(
-        translate("Product is Shared Successfully", language)
+        translate("Product is Shared Successfully", language),
       );
       callback();
     } catch (e) {
+      LogServerError({
+        error: e,
+        scenario: "Error In ShareProduct in services/chat",
+      });
       showErrorNotification(translate("Product Share error", language));
       throw new Error(e);
     }
   }
   async StoreToken(payload: {
     id?: string | number;
-    user?: { access_token?: string; id: number };
+
     token: string;
   }) {
     try {
@@ -103,7 +115,10 @@ class ChatService {
       setFirebaseToken(payload.token);
       localStorage.setItem("firebase_id", response.data.id);
     } catch (error) {
-      console.log(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In StoreToken in services/chat",
+      });
     }
   }
   async getChats(payload, limit = 10, messages_limit = 10, timestamp = null) {
@@ -144,13 +159,14 @@ class ChatService {
       }
 
       setChats(response.data.channels, response.data.pinned_channels);
-      const { db } = await import("../utils/firebaseInitv1");
+      const { getDb } = await import("../utils/firebaseInitv1");
+      const db = await getDb();
       let chats = [...response.data.channels, ...response.data.pinned_channels];
       const userChat = await getUserChat();
       chats.map((chat) => {
         let friendID = chat.channel_members.filter(
           (member) =>
-            parseInt(member.user_id) !== parseInt(userChat.id?.toString())
+            parseInt(member.user_id) !== parseInt(userChat.id?.toString()),
         )[0]?.user_id;
         let MyId = userChat.id;
         //wew
@@ -181,7 +197,10 @@ class ChatService {
       setChatDone();
       return [...response.data.channels, ...response.data.pinned_channels];
     } catch (e) {
-      console.error(e);
+      LogServerError({
+        error: e,
+        scenario: "Error In getChats in services/chat",
+      });
     }
   }
   async getContacts() {
@@ -198,7 +217,10 @@ class ChatService {
       }
       setContacts(response.data);
     } catch (err) {
-      console.error(err);
+      LogServerError({
+        error: err,
+        scenario: "Error In getContacts in services/chat",
+      });
     }
   }
   async getCalls(id?: number) {
@@ -218,8 +240,11 @@ class ChatService {
       setCalls(response.data);
       setCallLoading(false);
     } catch (err) {
+      LogServerError({
+        error: err,
+        scenario: "Error In getCalls in services/chat",
+      });
       setCallLoading(false);
-      console.error(err);
     }
   }
 }

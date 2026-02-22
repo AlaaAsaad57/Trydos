@@ -1,37 +1,28 @@
+"use client";
 import React, { useEffect, useState } from "react";
-import SettingTopBar from "./TopBar";
-import AddressInfo from "public/svg/cart/AddressInfo";
+
 import { translateFunction } from "utils/functions";
-
-import { useParams } from "next/navigation";
-
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
-import { fetchCountries } from "utils/tinyUtils";
 import Spinner from "components/global/Spinner";
 import { fetchData } from "utils/fetchData"; // Make sure this is imported
 import { STARTER_SETTINGS } from "utils/endpointConfig";
 import { REQUESTS_DATA } from "utils/Requests";
 import { setLocaizationCookies } from "utils/cookies/cookie-manager";
-type PersonalInfoCountriesProps = {
-  swipeToScreen: (index: number) => void;
-  goBack: () => void;
-  hideTopBar?: boolean;
-  infoMessage?: string;
-};
-
+import BackBar from "components/setting/BackBar";
+import { GetCountries } from "serverRequests/product";
 function PersonalInfoCountries({
-  swipeToScreen,
-  goBack,
+  local = "",
+  isRtl = false,
   hideTopBar = false,
-  infoMessage,
-}: PersonalInfoCountriesProps) {
+  infoMessage = null,
+}) {
   const { setSettings } = useAppStore.getState();
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { lang } = useParams();
+
   // @ts-ignore
-  const [country, language] = lang?.split("-");
+  const [country, language] = local?.split("-");
   const getCountries = async () => {
     try {
       setLoading(true);
@@ -39,15 +30,14 @@ function PersonalInfoCountries({
         let data = sessionStorage.getItem(`countries-${country}-${language}`);
         setCountries(JSON.parse(data));
       } else {
-        const data = await fetchCountries(country, language);
+        const data = await GetCountries({ country, language });
         sessionStorage.setItem(
           `countries-${country}-${language}`,
-          JSON.stringify(data.countries)
+          JSON.stringify(data),
         );
-        setCountries(data.countries);
+        setCountries(data);
       }
     } catch (error) {
-      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -57,16 +47,16 @@ function PersonalInfoCountries({
     countries.find(
       // @ts-ignore
 
-      (s) => s?.iso?.toLowerCase() === lang?.split("-")[0].toLowerCase()
-    )
+      (s) => s?.iso?.toLowerCase() === local?.split("-")[0].toLowerCase(),
+    ),
   );
   useEffect(() => {
     if (countries)
       setSelectedCountry(
         countries.find(
           // @ts-ignore
-          (s) => s.iso.toLowerCase() === lang?.split("-")[0].toLowerCase()
-        )
+          (s) => s.iso.toLowerCase() === local?.split("-")[0].toLowerCase(),
+        ),
       );
   }, [countries]);
   const [isSettingCountry, setIsSettingCountry] = useState(false);
@@ -97,10 +87,10 @@ function PersonalInfoCountries({
           window.location.origin +
           window.location.pathname.replace(
             `/gb-${language}`,
-            `/${country.iso.toLowerCase()}-${language}`
+            `/${country.iso.toLowerCase()}-${language}`,
           );
       } else
-        window.location.pathname = `/${country.iso.toLowerCase()}-${language}/setting`;
+        window.location.pathname = `/${country.iso.toLowerCase()}-${language}/settings`;
     } catch (error) {
       console.error("Failed to update starter settings:", error);
     }
@@ -113,23 +103,27 @@ function PersonalInfoCountries({
     getCountries();
   }, []);
   const defaultInfoMessage = translateFunction(
-    "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
+    "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
   );
   const resolvedInfoMessage = infoMessage ?? defaultInfoMessage;
 
   return (
-    <div className="flex-col max-h-[calc(100vh-200px)]">
+    <div
+      className="flex-col w-full setting-screen"
+      key="countries-setting-page"
+    >
       {!hideTopBar && (
-        <SettingTopBar
-          goBack={() => goBack()}
-          screenName="Profile | Countries"
+        <BackBar
+          isRtl={isRtl}
+          local={local}
+          name={translateFunction("Profile | Countries", language)}
           DataCy="personal-info-countries"
-          Save={null}
+          preivous_page={`/${local}/settings`}
         />
       )}
       <div className="flex-row justify-center mt-[12px] w-full">
         <div
-          className="bg-[#F8F8F8] min-h-[50px] w-full flex-row items-center pl-[24px] pr-[20px] "
+          className="bg-[#F8F8F8] min-h-[50px] gap-[12px] w-full flex-row items-center pl-[24px] pr-[20px] "
           style={{
             border: "1px solid rgb(211 211 211 / 51%)",
           }}
@@ -181,7 +175,7 @@ function PersonalInfoCountries({
           </svg>
 
           {resolvedInfoMessage && (
-            <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
+            <div className="regular text-[10px]  text-[#8D8D8D]">
               {resolvedInfoMessage}
             </div>
           )}
@@ -300,7 +294,10 @@ function PersonalInfoCountries({
             <span className="ml-[6px] medium text-[#404040] text-[12px]">
               {translateFunction("Available Countries")}
             </span>
-            <AddressInfo className="ml-[19px] cursor-pointer" />
+            <img
+              src="/icons/AddressInfo.svg"
+              className="ml-[19px] cursor-pointer"
+            />
           </div>
           <div
             className={`flex flex-col w-full ${
@@ -367,7 +364,7 @@ function PersonalInfoCountries({
               </span>
               <span className="text-sm  mb-4 text-center">
                 {translateFunction(
-                  "Are you sure you want to change your country?"
+                  "Are you sure you want to change your country?",
                 )}
               </span>
               <div className="flex flex-row items-center justify-between w-full mb-6">
@@ -397,7 +394,7 @@ function PersonalInfoCountries({
               </div>
               <div className="flex w-full gap-4">
                 <button
-                  className="flex-1 py-2 rounded-lg bg-gray-200  text-gray-700  font-medium focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  className="flex-1 py-2 rounded-lg bg-gray-200  text-gray-700  font-medium focus:outline-hidden focus:ring-2 focus:ring-gray-400"
                   onClick={() => {
                     setShowConfirmationModal(false);
                     setPendingCountry(null);
@@ -407,7 +404,7 @@ function PersonalInfoCountries({
                   {translateFunction("Cancel")}
                 </button>
                 <button
-                  className="flex-1 py-2 rounded-lg bg-primary text-[#402CDD] font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="flex-1 py-2 rounded-lg bg-primary text-[#402CDD] font-medium focus:outline-hidden focus:ring-2 focus:ring-primary"
                   onClick={async () => {
                     setShowConfirmationModal(false);
                     if (pendingCountry) {

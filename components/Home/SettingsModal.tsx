@@ -1,41 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { FIREBASE_SETTINGS_URL } from "utils/endpointConfig";
-import { translateFunction } from "utils/functions";
-import FirebasIcon from "public/svg/FireBase";
-import MailIcon from "public/svg/mail";
-import WhatsIcon from "public/svg/whatsappNotification";
-import CalenderIcon from "public/svg/CalenderIcon";
+import { LogError, translateFunction } from "utils/functions";
 import home from "services/home";
 import NotificationsTest from "components/global/NotificationsTest";
-import {
-  ProfileData,
-  SettingsModalPropsType,
-} from "models/componentType/settingsType/SettingsModalPropsType";
-import { fetchData } from "utils/fetchData";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
-import { REQUESTS_DATA } from "utils/Requests";
 
-interface SettingsModalProps {
-  onClose: () => void;
-  lang: string | string[];
-}
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
+import { useAppStore } from "store";
 
 const SettingsModal = ({ onClose, lang }) => {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"notifications" | "preferences">(
-    "notifications"
+    "notifications",
   );
-  const [profileData, setProfileData] = useState<ProfileData>({
+  const [profileData, setProfileData] = useState<any>({
     name: "",
     email: "",
     phone: "",
   });
-  const [isEditing, setIsEditing] = useState<keyof ProfileData | null>(null);
-  const [editValue, setEditValue] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [loadingTopics, setLoadingTopics] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);
@@ -45,7 +28,7 @@ const SettingsModal = ({ onClose, lang }) => {
   // Handle mounting and localStorage access
   useEffect(() => {
     setMounted(true);
-    const User = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    const User = useAppStore.getState().userProfile;
     // Set initial tab from hash if mounted
     const hash = window.location.hash.slice(1) as
       | "notifications"
@@ -111,11 +94,14 @@ const SettingsModal = ({ onClose, lang }) => {
 
       if (firebase_settings.unsubscribed_topics) {
         setUnsubscribedTopics(
-          firebase_settings.unsubscribed_topics.map((s) => s.topic)
+          firebase_settings.unsubscribed_topics.map((s) => s.topic),
         );
       }
     } catch (err) {
-      console.error("the error is :", err);
+      LogError({
+        error: err,
+        scenario: "InitTopics in SettingModal",
+      });
       setFBSetting(null);
       setSelectValue("");
       setTopics([]);
@@ -162,6 +148,11 @@ const SettingsModal = ({ onClose, lang }) => {
           console.error("Failed to unsubscribe from topic");
         }
       } catch (error) {
+        LogError({
+          error: error,
+          scenario: "handleUnsubscribe in SettingModal",
+          topic: topic,
+        });
         console.error("Error unsubscribing from topic:", error);
       } finally {
         setLoading(false);
@@ -191,7 +182,7 @@ const SettingsModal = ({ onClose, lang }) => {
           }
           const updatedTopics = [...topics, topic];
           const updatedUnsubscribedTopics = unsubscribedTopics.filter(
-            (t: string) => t !== topic
+            (t: string) => t !== topic,
           );
 
           setTopics(updatedTopics);
@@ -200,6 +191,11 @@ const SettingsModal = ({ onClose, lang }) => {
           console.error("Failed to subscribe to topic");
         }
       } catch (error) {
+        LogError({
+          error: error,
+          scenario: "handleSubscribe in SettingModal",
+          topic: topic,
+        });
         console.error("Error subscribing to topic:", error);
       } finally {
         setLoading(false);
@@ -226,6 +222,11 @@ const SettingsModal = ({ onClose, lang }) => {
       try {
         await home.EditNotificationSettings({ url, body });
       } catch (error) {
+        LogError({
+          error: error,
+          scenario: "changeSetting in SettingModal",
+          url: url,
+        });
         past();
         setLoading(false);
       }
@@ -234,7 +235,7 @@ const SettingsModal = ({ onClose, lang }) => {
   };
 
   const [SelectValue, setSelectValue] = useState(
-    fbSettings?.notification_frequency || ""
+    fbSettings?.notification_frequency || "",
   );
 
   return (
@@ -260,7 +261,7 @@ const SettingsModal = ({ onClose, lang }) => {
           >
             {translateFunction(
               "Notifications Settings",
-              Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+              Array.isArray(lang) ? lang[0] : lang.split("-")[1],
             )}
           </button>
           <button
@@ -273,7 +274,7 @@ const SettingsModal = ({ onClose, lang }) => {
           >
             {translateFunction(
               "Notification Test",
-              Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+              Array.isArray(lang) ? lang[0] : lang.split("-")[1],
             )}
           </button>
         </div>
@@ -290,7 +291,7 @@ const SettingsModal = ({ onClose, lang }) => {
                   >
                     {translateFunction(
                       "Enabled Notifications Topic:",
-                      Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                      Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                     )}
                   </span>
                   <ul
@@ -300,7 +301,7 @@ const SettingsModal = ({ onClose, lang }) => {
                     {topics.map((topic, index) => (
                       <li
                         key={index}
-                        className="flex justify-between items-center p-2 rounded"
+                        className="flex justify-between items-center p-2 rounded-sm"
                         data-cy="NotificationsItem-Can-Enabled"
                       >
                         <span
@@ -320,13 +321,13 @@ const SettingsModal = ({ onClose, lang }) => {
                                 "Unsubscribing...",
                                 Array.isArray(lang)
                                   ? lang[0]
-                                  : lang.split("-")[1]
+                                  : lang.split("-")[1],
                               )
                             : translateFunction(
                                 "Unsubscribe",
                                 Array.isArray(lang)
                                   ? lang[0]
-                                  : lang.split("-")[1]
+                                  : lang.split("-")[1],
                               )}
                         </button>
                       </li>
@@ -338,11 +339,11 @@ const SettingsModal = ({ onClose, lang }) => {
                   {loadingTopics
                     ? translateFunction(
                         "Loading Topics...",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                       )
                     : translateFunction(
                         "No topics subscribed.",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                       )}
                 </p>
               )}
@@ -356,7 +357,7 @@ const SettingsModal = ({ onClose, lang }) => {
                   >
                     {translateFunction(
                       "Disabled Notifications Topic:",
-                      Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                      Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                     )}
                   </p>
                   <ul
@@ -366,7 +367,7 @@ const SettingsModal = ({ onClose, lang }) => {
                     {unsubscribedTopics.map((topic, index) => (
                       <li
                         key={index}
-                        className="flex justify-between items-center p-2 rounded"
+                        className="flex justify-between items-center p-2 rounded-sm"
                         data-cy="NotificationsItem-Can-Disenabled"
                       >
                         <span
@@ -386,13 +387,13 @@ const SettingsModal = ({ onClose, lang }) => {
                                 "Subscribing...",
                                 Array.isArray(lang)
                                   ? lang[0]
-                                  : lang.split("-")[1]
+                                  : lang.split("-")[1],
                               )
                             : translateFunction(
                                 "Subscribe",
                                 Array.isArray(lang)
                                   ? lang[0]
-                                  : lang.split("-")[1]
+                                  : lang.split("-")[1],
                               )}
                         </button>
                       </li>
@@ -408,7 +409,7 @@ const SettingsModal = ({ onClose, lang }) => {
                   >
                     {translateFunction(
                       "notifications subscription:",
-                      Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                      Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                     )}
                   </div>
                   <div
@@ -432,11 +433,15 @@ const SettingsModal = ({ onClose, lang }) => {
                       }
                     }}
                   >
-                    <MailIcon className="h-[30px]" data-cy="mail-icon" />
+                    <img
+                      src="/icons/mail.svg"
+                      className="h-[30px]"
+                      data-cy="mail-icon"
+                    />
                     <span className="ml-2" data-cy="statement-mail">
                       {translateFunction(
                         "Enable Email Notifications",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                       )}
                     </span>
                     <input
@@ -447,7 +452,7 @@ const SettingsModal = ({ onClose, lang }) => {
                       onChange={() => {}}
                       aria-describedby="helper-checkbox-text"
                       type="checkbox"
-                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-sm"
+                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-xs"
                     />
                   </div>
                   <div
@@ -470,11 +475,11 @@ const SettingsModal = ({ onClose, lang }) => {
                       }
                     }}
                   >
-                    <FirebasIcon className="h-[30px]" />
+                    <img src="/icons/FireBase.svg" className="h-[30px]" />
                     <span className="ml-2">
                       {translateFunction(
                         "Enable FireBase Notifications",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                       )}
                     </span>
                     <input
@@ -484,7 +489,7 @@ const SettingsModal = ({ onClose, lang }) => {
                       onChange={() => {}}
                       aria-describedby="helper-checkbox-text"
                       type="checkbox"
-                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-sm"
+                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-xs"
                     />
                   </div>
                   <div
@@ -507,11 +512,14 @@ const SettingsModal = ({ onClose, lang }) => {
                       }
                     }}
                   >
-                    <WhatsIcon className="h-[30px]" />
+                    <img
+                      src="/icons/whatsappNotification.svg"
+                      className="h-[30px]"
+                    />
                     <span className="ml-2">
                       {translateFunction(
                         "Enable WhatsApp Notifications",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                       )}
                     </span>
                     <input
@@ -521,15 +529,15 @@ const SettingsModal = ({ onClose, lang }) => {
                       value=""
                       aria-describedby="helper-checkbox-text"
                       type="checkbox"
-                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-sm"
+                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-xs"
                     />
                   </div>
                   <div className="flex-row items-center bg-gray-100 rounded-md p-3 h-[50px]">
-                    <CalenderIcon />
+                    <img src="/icons/CalenderIcon.svg" />
                     <div className="ml-3">
                       {translateFunction(
                         "notifications Receiving Preference:",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                       )}
                       <select
                         className="ml-2"
@@ -546,25 +554,25 @@ const SettingsModal = ({ onClose, lang }) => {
                         <option value="">
                           {translateFunction(
                             "Select An Option",
-                            Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                            Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                           )}
                         </option>
                         <option value="daily">
                           {translateFunction(
                             "daily",
-                            Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                            Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                           )}
                         </option>
                         <option value="weekly">
                           {translateFunction(
                             "weekly",
-                            Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                            Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                           )}
                         </option>
                         <option value="monthly">
                           {translateFunction(
                             "monthly",
-                            Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                            Array.isArray(lang) ? lang[0] : lang.split("-")[1],
                           )}
                         </option>
                       </select>

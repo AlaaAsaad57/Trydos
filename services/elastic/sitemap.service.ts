@@ -1,6 +1,8 @@
 "use server";
 
+import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 import { elasticSearchClient } from "./elasticsearch.config";
+import { catalog_index, search_log_index } from "./INDEXES";
 
 interface SitemapUrl {
   loc: string;
@@ -41,15 +43,13 @@ interface SearchTerm {
  */
 export async function getHomeSitemapLocales(): Promise<LocaleData> {
   try {
-    console.log("[getHomeSitemapLocales] Starting to fetch locales...");
-
     // Build base conditions (same as your existing buildBaseConditions but without country filter)
     const baseConditions = buildSitemapBaseConditions();
     const { must: mustConditions, must_not: mustNotConditions } =
       baseConditions;
 
     const searchQuery = {
-      index: "products_catalog",
+      index: catalog_index,
       size: 0, // We only need aggregations, not documents
       query: {
         bool: {
@@ -89,16 +89,11 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
       },
     };
 
-    console.log(
-      "[getHomeSitemapLocales] Search query:",
-      JSON.stringify(searchQuery, null, 2)
-    );
-
     const response = await elasticSearchClient.search(searchQuery);
 
     console.log(
       "[getHomeSitemapLocales] Raw response:",
-      JSON.stringify(response, null, 2)
+      JSON.stringify(response, null, 2),
     );
 
     const aggregations = response.aggregations as any;
@@ -108,7 +103,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
       aggregations?.countries?.country_codes?.buckets || [];
     console.log("[getHomeSitemapLocales] Country buckets:", countryBuckets);
     const countries = countryBuckets.map((bucket: any) =>
-      bucket.key.toLowerCase()
+      bucket.key.toLowerCase(),
     );
 
     // Extract languages
@@ -116,7 +111,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
       aggregations?.languages?.language_codes?.buckets || [];
     console.log("[getHomeSitemapLocales] Language buckets:", languageBuckets);
     const languages = languageBuckets.map((bucket: any) =>
-      bucket.key.toLowerCase()
+      bucket.key.toLowerCase(),
     );
 
     console.log("[getHomeSitemapLocales] Raw countries:", countries);
@@ -125,7 +120,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
     // Filter to only include supported languages
     const supportedLanguages = ["en", "ar", "tr", "ku"];
     const filteredLanguages = languages.filter((lang: string) =>
-      supportedLanguages.includes(lang)
+      supportedLanguages.includes(lang),
     );
 
     // If no languages found in ES, use the supported languages
@@ -136,13 +131,13 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
     let finalCountries = countries;
     if (countries.length === 0) {
       console.log(
-        "[getHomeSitemapLocales] No countries found, trying alternative approach..."
+        "[getHomeSitemapLocales] No countries found, trying alternative approach...",
       );
 
       // Try to get countries from a simple query
       try {
         const simpleQuery = {
-          index: "products_catalog",
+          index: catalog_index,
           size: 1,
           _source: ["countries_iso"],
         };
@@ -157,7 +152,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
       } catch (simpleError) {
         console.error(
           "[getHomeSitemapLocales] Simple query failed:",
-          simpleError
+          simpleError,
         );
         finalCountries = ["tr", "iq", "lb", "sy"];
       }
@@ -185,8 +180,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
  * Generate home page sitemap URLs for all country-language combinations
  */
 export async function generateHomeSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const locales = await getHomeSitemapLocales();
   const currentDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
 
@@ -213,7 +207,7 @@ export async function generateHomeSitemapUrls(): Promise<SitemapUrl[]> {
  * Get all products for sitemap generation using scroll search
  */
 export async function getProductsForSitemap(
-  batchSize: number = 1000
+  batchSize: number = 1000,
 ): Promise<ProductData[]> {
   const allProducts: ProductData[] = [];
   let scrollId: string | null = null;
@@ -267,8 +261,7 @@ export async function getProductsForSitemap(
  * Generate product sitemap URLs
  */
 export async function generateProductSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const products = await getProductsForSitemap();
   const locales = await getHomeSitemapLocales();
   const sitemapUrls: SitemapUrl[] = [];
@@ -277,7 +270,7 @@ export async function generateProductSitemapUrls(): Promise<SitemapUrl[]> {
   console.log("Available languages:", locales.languages.length);
   console.log(
     "Expected total URLs:",
-    products.length * locales.countries.length * locales.languages.length
+    products.length * locales.countries.length * locales.languages.length,
   );
 
   // Generate URLs for all country-language combinations for each product
@@ -316,8 +309,7 @@ export async function generateProductSitemapUrls(): Promise<SitemapUrl[]> {
  * Get static pages configuration (following PHP pattern)
  */
 function getStaticPages(): StaticPage[] {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
 
   // Define static pages configuration (similar to PHP config)
   const staticPagesConfig = [
@@ -374,8 +366,7 @@ function getStaticPages(): StaticPage[] {
  * Generate static pages sitemap URLs for all country-language combinations
  */
 export async function generateStaticPagesSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const locales = await getHomeSitemapLocales();
   const staticPages = getStaticPages();
   const sitemapUrls: SitemapUrl[] = [];
@@ -409,12 +400,12 @@ export async function generateStaticPagesSitemapUrls(): Promise<SitemapUrl[]> {
 async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
   try {
     console.log(
-      `[getTopSearchTerms] Starting search terms query with limit: ${limit}`
+      `[getTopSearchTerms] Starting search terms query with limit: ${limit}`,
     );
 
     // First, get the most used search terms (following PHP pattern)
     const searchQuery = {
-      index: "search_logs",
+      index: search_log_index,
       size: 0,
       query: {
         range: {
@@ -436,14 +427,14 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
 
     console.log(
       "[getTopSearchTerms] Elasticsearch query params:",
-      JSON.stringify(searchQuery, null, 2)
+      JSON.stringify(searchQuery, null, 2),
     );
 
     const response = await elasticSearchClient.search(searchQuery);
 
     console.log(
       "[getTopSearchTerms] Raw Elasticsearch response:",
-      JSON.stringify(response, null, 2)
+      JSON.stringify(response, null, 2),
     );
 
     const topTerms: SearchTerm[] = [];
@@ -452,43 +443,43 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
     const buckets =
       (response.aggregations as any)?.top_search_terms?.buckets || [];
     console.log(
-      `[getTopSearchTerms] Found ${buckets.length} buckets in response`
+      `[getTopSearchTerms] Found ${buckets.length} buckets in response`,
     );
 
     if (buckets.length === 0) {
       console.log(
-        "[getTopSearchTerms] No buckets found - checking if index exists and has data"
+        "[getTopSearchTerms] No buckets found - checking if index exists and has data",
       );
 
       // Check if index exists
       try {
         const indexExists = await elasticSearchClient.indices.exists({
-          index: "search_logs",
+          index: search_log_index,
         });
         console.log("[getTopSearchTerms] Index exists check:", indexExists);
 
         if (indexExists) {
           // Get index stats to see if there's any data
           const indexStats = await elasticSearchClient.indices.stats({
-            index: "search_logs",
+            index: search_log_index,
           });
           console.log(
             "[getTopSearchTerms] Index stats:",
-            JSON.stringify(indexStats, null, 2)
+            JSON.stringify(indexStats, null, 2),
           );
 
           // Try a simple count query to see total documents
           const countResponse = await elasticSearchClient.count({
-            index: "search_logs",
+            index: search_log_index,
           });
           console.log(
             "[getTopSearchTerms] Total documents in index:",
-            countResponse.count
+            countResponse.count,
           );
 
           // Try a query without the range filter to see if any documents exist
           const simpleQuery = {
-            index: "search_logs",
+            index: search_log_index,
             size: 0,
             aggs: {
               all_terms: {
@@ -503,7 +494,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
           const simpleResponse = await elasticSearchClient.search(simpleQuery);
           console.log(
             "[getTopSearchTerms] Simple query response:",
-            JSON.stringify(simpleResponse, null, 2)
+            JSON.stringify(simpleResponse, null, 2),
           );
         }
       } catch (error) {
@@ -514,7 +505,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
     for (const bucket of buckets) {
       let term = bucket.key;
       console.log(
-        `[getTopSearchTerms] Processing term: "${term}" with count: ${bucket.doc_count}`
+        `[getTopSearchTerms] Processing term: "${term}" with count: ${bucket.doc_count}`,
       );
 
       // Skip invalid terms
@@ -529,7 +520,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
       // For each search term, get the most common country and language used with it
       const termDetails = await getMostCommonCountryAndLanguageForTerm(term);
       console.log(
-        `[getTopSearchTerms] Term "${term}" - country: ${termDetails.country_iso}, language: ${termDetails.language_code}`
+        `[getTopSearchTerms] Term "${term}" - country: ${termDetails.country_iso}, language: ${termDetails.language_code}`,
       );
 
       topTerms.push({
@@ -541,7 +532,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
     }
 
     console.log(
-      `[getTopSearchTerms] Final result: ${topTerms.length} valid search terms`
+      `[getTopSearchTerms] Final result: ${topTerms.length} valid search terms`,
     );
     return topTerms;
   } catch (error) {
@@ -555,11 +546,11 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
  * (Following PHP pattern from TopSearchServiceForSiteMap.php)
  */
 async function getMostCommonCountryAndLanguageForTerm(
-  term: string
+  term: string,
 ): Promise<{ country_iso: string; language_code: string }> {
   try {
     const params = {
-      index: "search_logs",
+      index: search_log_index,
       size: 0,
       query: {
         bool: {
@@ -630,8 +621,7 @@ async function getMostCommonCountryAndLanguageForTerm(
  * Generate search terms sitemap URLs
  */
 export async function generateSearchTermsSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const searchTerms = await getTopSearchTerms(100);
   const sitemapUrls: SitemapUrl[] = [];
   const currentDate = new Date().toISOString().split("T")[0];
@@ -741,7 +731,7 @@ export async function generateProductSitemapXML(): Promise<string> {
  */
 function buildProductSearchParams(batchSize: number, scrollTimeout: string) {
   return {
-    index: "products_catalog",
+    index: catalog_index,
     scroll: scrollTimeout,
     size: batchSize,
     _source: [
@@ -1056,8 +1046,7 @@ export async function testSearchTermsSitemapGeneration() {
 }
 
 export async function generateSitemapIndexXML(): Promise<string> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const now = new Date().toISOString();
 
   const sitemaps = [
@@ -1135,13 +1124,12 @@ export async function getAllCountryLanguageCombinations(): Promise<
 
 export async function generateLocaleSpecificSitemapUrls(
   country: string,
-  language: string
+  language: string,
 ): Promise<SitemapUrl[]> {
   console.log(
-    `language : ${language} and the country : ${country} from the url`
+    `language : ${language} and the country : ${country} from the url`,
   );
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const sitemapUrls: SitemapUrl[] = [];
 
   // 1. Home page for this locale
@@ -1152,23 +1140,6 @@ export async function generateLocaleSpecificSitemapUrls(
     changefreq: "daily",
     priority: 1.0,
   });
-  console.log("1. Home page for this locale :", sitemapUrls);
-  console.log("1.base url  :", baseUrl);
-
-  // 2. Static pages for this locale
-  // const staticPages = getStaticPages();
-  // for (const page of staticPages) {
-  //   // Extract path from full URL
-  //   const urlPath = new URL(page.url).pathname;
-  //   const staticUrl = `${baseUrl}/${country}-${language}${urlPath}`;
-  //   sitemapUrls.push({
-  //     loc: staticUrl,
-  //     lastmod: page.last_modified,
-  //     changefreq: page.frequency,
-  //     priority: page.priority,
-  //   });
-  // }
-  // console.log("2. Static pages for this locale:" , sitemapUrls)
 
   // 3. Products for this locale
   try {
@@ -1176,7 +1147,7 @@ export async function generateLocaleSpecificSitemapUrls(
 
     // Filter products by language (since country_iso is 'global' for all products)
     const localeProducts = products.filter(
-      (product) => product.language_code === language
+      (product) => product.language_code === language,
     );
 
     for (const product of localeProducts) {
@@ -1220,7 +1191,7 @@ export async function generateLocaleSpecificSitemapUrls(
   } catch (error) {
     console.error(
       `Error fetching search terms for ${country}-${language}:`,
-      error
+      error,
     );
   }
 
@@ -1229,7 +1200,7 @@ export async function generateLocaleSpecificSitemapUrls(
 
 export async function generateLocaleSpecificSitemapXML(
   country: string,
-  language: string
+  language: string,
 ): Promise<string> {
   const urls = await generateLocaleSpecificSitemapUrls(country, language);
 
@@ -1250,8 +1221,7 @@ export async function generateLocaleSpecificSitemapXML(
 }
 
 export async function generateLocaleSitemapIndexXML(): Promise<string> {
-  const baseUrl =
-    "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+  const baseUrl = General_Site_Data.url;
   const now = new Date().toISOString();
   const combinations = await getAllCountryLanguageCombinations();
   console.log("combinations :", combinations);
@@ -1273,18 +1243,18 @@ export async function generateLocaleSitemapIndexXML(): Promise<string> {
 
 export async function testLocaleSitemapGeneration(
   country: string,
-  language: string
+  language: string,
 ) {
   try {
     console.log(
-      `[testLocaleSitemapGeneration] Testing sitemap for ${country}-${language}`
+      `[testLocaleSitemapGeneration] Testing sitemap for ${country}-${language}`,
     );
 
     const urls = await generateLocaleSpecificSitemapUrls(country, language);
     const xml = await generateLocaleSpecificSitemapXML(country, language);
 
     console.log(
-      `[testLocaleSitemapGeneration] Generated ${urls.length} URLs for ${country}-${language}`
+      `[testLocaleSitemapGeneration] Generated ${urls.length} URLs for ${country}-${language}`,
     );
     console.log(`[testLocaleSitemapGeneration] Sample URLs:`, urls.slice(0, 3));
     console.log(`[testLocaleSitemapGeneration] XML length: ${xml.length}`);
@@ -1301,7 +1271,7 @@ export async function testLocaleSitemapGeneration(
   } catch (error) {
     console.error(
       `[testLocaleSitemapGeneration] Error for ${country}-${language}:`,
-      error
+      error,
     );
     return {
       success: false,
@@ -1316,18 +1286,18 @@ export async function testLocaleSitemapGeneration(
 export async function testLocaleSitemapIndexGeneration() {
   try {
     console.log(
-      "[testLocaleSitemapIndexGeneration] Testing locale sitemap index generation"
+      "[testLocaleSitemapIndexGeneration] Testing locale sitemap index generation",
     );
 
     const combinations = await getAllCountryLanguageCombinations();
     const xml = await generateLocaleSitemapIndexXML();
 
     console.log(
-      `[testLocaleSitemapIndexGeneration] Generated ${combinations.length} locale combinations`
+      `[testLocaleSitemapIndexGeneration] Generated ${combinations.length} locale combinations`,
     );
     console.log(
       `[testLocaleSitemapIndexGeneration] Sample combinations:`,
-      combinations.slice(0, 5)
+      combinations.slice(0, 5),
     );
     console.log(`[testLocaleSitemapIndexGeneration] XML length: ${xml.length}`);
 

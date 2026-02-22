@@ -1,7 +1,6 @@
 "use client";
 import Spinner from "components/global/Spinner";
-import CommentPost from "public/svg/CommentPost";
-import FAQInputIcon from "public/svg/FAQInputIcon";
+
 import { useState } from "react";
 import { GetFaqItemElement } from "serverRequests/product";
 
@@ -9,9 +8,8 @@ import auth from "services/auth";
 import { useAppStore } from "store";
 
 import { showErrorNotification } from "store/notifications/reducer";
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { fetchData } from "utils/fetchData";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 import { getFirstLetterLang } from "utils/tinyUtils";
 
@@ -52,10 +50,10 @@ export const AskInput = ({
   const [comment, setComment] = useState("");
   const addComment = async () => {
     try {
-      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+      let userData: any = useAppStore.getState().userProfile;
       if (userData.need_auth) {
         showErrorNotification(
-          translateFunction("Please Verify Your Phone Number")
+          translateFunction("Please Verify Your Phone Number"),
         );
         return null;
       }
@@ -100,7 +98,10 @@ export const AskInput = ({
       setComment("");
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error In addComment in FaqAskInput",
+      });
       setLoading(false);
     }
   };
@@ -115,7 +116,7 @@ export const AskInput = ({
           isRtl ? "right-[10px]" : "left-[10px]"
         } z-10`}
       >
-        <FAQInputIcon />
+        <img src="/icons/FAQInputIcon.svg" />
       </span>
 
       {loading && (
@@ -129,21 +130,24 @@ export const AskInput = ({
       )}
       {!loading && comment.length > 0 && (
         <span
-          className={`absolute top-[0px] cursor-pointer z-50 flex items-center justify-center h-full w-[50px] ${
+          className={`absolute top-0 cursor-pointer z-50 flex items-center justify-center h-full w-[50px] ${
             isRtl ? "left-[5px] rotate-180" : "right-[5px]"
           }`}
           onClick={() => {
             addComment();
           }}
         >
-          <CommentPost className="[&>path]:fill-[#f0ecff] [&>path]:stroke-[#513aaf]" />
+          <img
+            src="/icons/CommentPost.svg"
+            className="[&>path]:fill-[#f0ecff] [&>path]:stroke-[#513aaf]"
+          />
         </span>
       )}
       {renderBorderSvg()}
       <input
         placeholder={translateFunction(
           "Ask Seller Your Question About This Product …",
-          language
+          language,
         )}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !loading) {
@@ -162,7 +166,7 @@ export const AskInput = ({
             showErrorNotification(translateFunction("Please log in first"));
         }}
         readOnly={loading || user?.phone === "0" || !user}
-        className={`outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center pl-[40px] pr-[45px] flex items-center`}
+        className={`outline-hidden w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center pl-[40px] pr-[45px] flex items-center`}
       />
     </div>
   );

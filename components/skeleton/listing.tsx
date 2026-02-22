@@ -1,19 +1,16 @@
 import "styles/listing-components.css";
 import React from "react";
 import Skeleton from "react-loading-skeleton";
-import VerificationIcon from "public/svg/listing/VerificationIcon";
-import TopStarIcon from "public/svg/listing/TopStar";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
-import { ListingSkeletonPropsType } from "models/componentType/ListingSkeletonPropsType";
 function ListingSkeleton({
   forProducts,
   withBanners,
   justFilters,
   boutique,
   isForSearch,
-}: ListingSkeletonPropsType) {
+}: any) {
   if (justFilters) {
     return (
       <div className={`w-full flex-row items-center pl-[15px] mt-[20px]`}>
@@ -65,8 +62,6 @@ function ListingSkeleton({
                       height={20}
                       src={GetImageUrl(boutique?.icon)}
                     />
-                    <VerificationIcon />
-                    <TopStarIcon />
                   </>
                 ) : (
                   <Skeleton

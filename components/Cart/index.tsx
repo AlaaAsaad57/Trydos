@@ -6,23 +6,21 @@ import {
   RoundPrice,
   translateFunction,
   GetCartOreview,
+  LogError,
 } from "utils/functions";
-import BackIcon from "public/svg/listing/backIcon";
-import ShareIcon from "public/svg/listing/shareIcon";
+
 import Skeleton from "react-loading-skeleton";
 import "styles/productDetails.css";
 import NextLink from "components/global/NextLink";
 import { useParams, usePathname } from "next/navigation";
 import OrderButton from "./OrderButton";
 import Spinner from "components/global/Spinner";
-import { QuantityDetailsProductApi } from "models/API/market/ProductQuantityDetails";
 import { useAppStore } from "store";
 import cartService from "services/cart";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { EnableScroll, GetImageUrl } from "utils/tinyUtils";
-import { CartContainerPropsType } from "models/componentType/CartContainerPropsType";
-import { QuantutyInputPropsType } from "models/componentType/QuantutyInputPropsType";
+import { EnableScroll } from "utils/tinyUtils";
+
 import { fetchData } from "utils/fetchData";
 import { useRouter } from "next/navigation";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -34,7 +32,7 @@ import Image from "next/image";
 import EmptyCart from "./EmptyCart";
 import { isSamePage } from "utils/navigationsUtils";
 
-function CartContainer({ close, toOrders }: CartContainerPropsType) {
+function CartContainer({ close, toOrders }) {
   const {
     storeOldCart,
     hideOldCart,
@@ -83,8 +81,8 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
         initCart(data ?? { cart: [] });
       },
     });
-    setCartLoading(false);
 
+    setCartLoading(false);
     if (data?.cart?.length > 0) {
       GAevent({
         action: GA_EVENT_NAMES.VIEW_CART,
@@ -94,7 +92,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
             item_name: item.name,
             price: item.offer_price,
             quantity: item.quantity,
-            item_variant: item.variant ?? "N/A",
+            item_variant: item.product_variation_id ?? "N/A",
           })),
           screen_name: GA_GLOBAL_SCREEN.CART_SCREEN,
           screen_path: window.location.pathname,
@@ -111,7 +109,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const updateDataForProduct = async (slug) => {
     if (params?.productId === slug) {
       try {
-        let response: QuantityDetailsProductApi = await fetchData({
+        let response = await fetchData({
           url: "/web/product/qtyPriceDetails" + `/${slug}`,
           reqTitle: REQUESTS_DATA.GET_PRODUCT_VRIANTES,
           method: "GET",
@@ -123,7 +121,11 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
         }
         getProductDetailsForCart(response.data);
       } catch (err) {
-        console.error(err);
+        LogError({
+          error: err,
+          scenario: "updateDataForProduct in cart widget",
+          slug,
+        });
       }
     }
   };
@@ -145,18 +147,19 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     <div
       className={`flex-col ${
         cart.length > 0 ? "pb-[283px]" : "100px"
-      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-screen z-9999999999 pt-1`}
       data-cy="cartPage-container"
     >
       <div
-        className="flex-col pl-2 pr-2 bg-[#fff] p-1"
+        className="flex-col pl-2 pr-2 bg-white p-1"
         data-cy="cartPage-header-container"
       >
         <div
           className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center "
           data-cy="cartPage-headerComponents-container"
         >
-          <BackIcon
+          <img
+            src="/icons/backIcon.svg"
             className="cursor-pointer z-50"
             data-cy="CartBackIcon"
             onClick={() => {
@@ -305,7 +308,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
             </span>
           </span>
 
-          <ShareIcon data-cy="shareIcon-onHeader" />
+          <img src="/icons/shareIcon.svg" data-cy="shareIcon-onHeader" />
         </div>
       </div>
 
@@ -337,7 +340,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                         product={product}
                         maxAllowed={product.max_allowed_qty}
                         isCollectedAfterOrdering={Boolean(
-                          product.collected_after_ordering
+                          product.collected_after_ordering,
                         )}
                         isHurry={true || product.have_hurry_up_notify}
                         disabled={false}
@@ -444,6 +447,8 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
       {!cart_loading && cartShippingSuccess === null && (
         <OrderButton toOrders={() => toOrders()} close={() => close()} />
       )}
+
+      {/* <CheckoutButton local={`${params.lang}`} /> */}
     </div>
   );
 }
@@ -462,8 +467,27 @@ export const QuantutyInput = ({
   product,
   maxAllowed,
   isCollectedAfterOrdering,
-}: QuantutyInputPropsType) => {
+}) => {
   const { initCart, settings, currency, removeFromCart } = useAppStore();
+  const luckPrice = (product as any)?.luck_price;
+  const effectiveOfferPrice =
+    product?.is_luck && typeof luckPrice === "number"
+      ? luckPrice
+      : product?.offer_price;
+  const hasDiscount =
+    typeof effectiveOfferPrice === "number" &&
+    effectiveOfferPrice >= 0 &&
+    product.price !== effectiveOfferPrice;
+  const currentUnitPrice = hasDiscount ? effectiveOfferPrice : product.price;
+  const savingPercent =
+    product.price > 0 && hasDiscount
+      ? Math.max(
+          0,
+          Math.floor(
+            ((product.price - currentUnitPrice) / product.price) * 100,
+          ),
+        )
+      : 0;
   const [inputValue, setInputValue] = useState(parseInt(value));
   useEffect(() => {
     if (parseInt(value) === inputValue) return;
@@ -486,13 +510,18 @@ export const QuantutyInput = ({
       }
       updateData();
     } catch (error) {
-      console.error(error);
       setLoading(false);
       if (bool) {
         setInputValue(inputValue);
       } else {
         setInputValue(inputValue);
       }
+      LogError({
+        error: error,
+        scenario: "Update Qty For Cart Item widget",
+        id: id,
+        quantity,
+      });
     }
   };
 
@@ -582,9 +611,15 @@ export const QuantutyInput = ({
       removeFromCart(id);
       await getOldCart();
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "convert cart item to old cart widget",
+        id: id,
+      });
       setLoading(false);
     }
   };
+
   return (
     <div
       data-cy="card-footer"
@@ -652,7 +687,7 @@ export const QuantutyInput = ({
                 height={12}
                 alt="cart-plus-icon"
                 className={"hide-btn"}
-                src={"/svg/cart/CartPlusIcon.svg"}
+                src={"/icons/CartPlusIcon.svg"}
               />
             </div>
           )}
@@ -677,12 +712,12 @@ export const QuantutyInput = ({
                   height={12}
                   alt="cart-plus-icon"
                   className={"hide-btn"}
-                  src={"/svg/cart/CartMinusIcon.svg"}
+                  src={"/icons/CartMinusIcon.svg"}
                 />
               </div>
               {!loading && (
                 <div
-                  className="absolute h-[24px] flex items-center hide-btn right-[-20px] top-[-1px] scale-125  cursor-pointer"
+                  className="absolute h-[24px] flex items-center hide-btn right-[-20px] -top-px scale-125  cursor-pointer"
                   data-cy="DeleteIcon_CartPage"
                   onClick={() => {
                     // Sendevent({
@@ -697,7 +732,7 @@ export const QuantutyInput = ({
                     width={12}
                     height={12}
                     alt="cart-delete-icon"
-                    src={"/svg/cart/CartDeleteIcon.svg"}
+                    src={"/icons/CartDeleteIcon.svg"}
                   />
                 </div>
               )}
@@ -719,7 +754,7 @@ export const QuantutyInput = ({
                 width={12}
                 height={12}
                 alt="cart-delete-icon"
-                src={"/svg/cart/CartDeleteIcon.svg"}
+                src={"/icons/CartDeleteIcon.svg"}
               />
             </div>
           )}
@@ -730,13 +765,13 @@ export const QuantutyInput = ({
             max={max}
             disabled
             onChange={(e) => {}}
-            className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
+            className="outline-hidden hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
           />
           {loading && <Spinner />}
         </div>
         {!disabled && (
           <div
-            className="flex rounded-md p-[5px] items-center whitespace-nowrap bg-[#54b8ff] shadow-sm text-[10px] light mt-[5px] text-[#fafafa] cursor-pointer"
+            className="flex rounded-md p-[5px] items-center whitespace-nowrap bg-[#54b8ff] shadow-xs text-[10px] light mt-[5px] text-[#fafafa] cursor-pointer"
             onClick={() => {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
@@ -767,8 +802,7 @@ export const QuantutyInput = ({
       <div className="flex-col">
         <div className={`pl-[30px]`} data-cy="oldNew-price-container">
           <div className="product-info-price" data-cy="oldNew-price-container2">
-            {product?.offer_price >= 0 &&
-            product.price !== product.offer_price ? (
+            {hasDiscount ? (
               <>
                 <div className="flex-col" data-cy="Subdivisions">
                   <div
@@ -808,12 +842,12 @@ export const QuantutyInput = ({
                     </div>
                     <div
                       className={`${
-                        (product as any)?.is_redeem && "text-[#FF6200]"
+                        (product as any)?.is_luck && "text-[#FF6200]"
                       } product-new-price text-[18px] bold m-0`}
                       data-cy="new-price"
                     >
                       {RoundPrice({
-                        num: product?.offer_price * product.quantity,
+                        num: currentUnitPrice * product.quantity,
                         rate: currency?.exchange_rate,
                         points: currency?.decimal_digits,
                         language: languageVariable,
@@ -832,7 +866,7 @@ export const QuantutyInput = ({
                       data-cy="saved-svg"
                       width={10}
                       height={10}
-                      src={"/svg/cart/SavedIcon.svg"}
+                      src={"/icons/SavedIcon.svg"}
                     />
                     <span
                       className="text-[8px] text-[#388CFF] flex-row-reverse flex mx-[4px]"
@@ -840,14 +874,7 @@ export const QuantutyInput = ({
                     >
                       {translate("Saved")}{" "}
                       <span className="bold" data-cy="rate">
-                        {parseInt(
-                          (
-                            ((product.price - product?.offer_price) /
-                              product.price) *
-                            100
-                          ).toString()
-                        )}
-                        %
+                        {savingPercent}%
                       </span>
                     </span>
                   </div>
@@ -857,7 +884,7 @@ export const QuantutyInput = ({
               <>
                 <div className="product-new-price text-[14px] light text-[#1D1D1D]">
                   {RoundPrice({
-                    num: product.price * product.quantity,
+                    num: currentUnitPrice * product.quantity,
                     rate: currency?.exchange_rate,
                     points: currency?.decimal_digits,
                     language: languageVariable,
@@ -879,29 +906,30 @@ export const CartItemLink = ({ normalHeight = "191px", product, children }) => {
   let lang = params.lang;
   const isRtl = language === "ar" || language === "ku";
 
+  const pickVariation = (item) => {
+    if (!item) return {};
+    if (Array.isArray(item?.variations)) return item.variations[0] ?? {};
+    return item?.variations ?? {};
+  };
+
   const getURLOfProduct = ({ product }) => {
     let productUrl;
-    const hasValidColor =
-      product?.variations[0]?.color_options &&
-      product?.variations[0]?.color_options !== "undefined";
-    const hasValidSize =
-      product?.variations[0]?.size_options &&
-      product?.variations[0]?.size_options !== "undefined";
+    const variation = pickVariation(product);
+    const colorParam = variation?.color_options || variation?.color;
+    const sizeParam = variation?.size_options || variation?.Size;
+    const hasValidColor = colorParam && colorParam !== "undefined";
+    const hasValidSize = sizeParam && sizeParam !== "undefined";
 
     if (hasValidColor && !hasValidSize)
-      productUrl = `/${lang}/products/${
-        product.slug
-      }${`?color=${product?.variations[0]?.color_options}`}`;
+      productUrl = `/${lang}/products/${product.slug}${`?color=${colorParam}`}`;
     else if (!hasValidColor && hasValidSize)
-      productUrl = `/${lang}/products/${
-        product.slug
-      }${`?size=${product?.variations[0]?.size_options}`}`;
+      productUrl = `/${lang}/products/${product.slug}${`?size=${sizeParam}`}`;
     else if (!hasValidColor && !hasValidSize)
       productUrl = `/${lang}/products/${product.slug}`;
     else if (hasValidColor && hasValidSize)
       productUrl = `/${lang}/products/${
         product.slug
-      }${`?size=${product?.variations[0]?.size_options}&color=${product?.variations[0]?.color_options}`}`;
+      }${`?size=${sizeParam}&color=${colorParam}`}`;
     return productUrl;
   };
   const getProductCartUrl = (product) => {
@@ -934,14 +962,14 @@ export const CartItemLink = ({ normalHeight = "191px", product, children }) => {
         }}
         onClick={(e) => {
           const newParams = new URLSearchParams();
-          if (
-            product?.variations[0]?.color &&
-            product.variations[0]?.color !== "undefined"
-          ) {
-            newParams.set("color", product.variations[0]?.color);
+          const variation = pickVariation(product);
+          const colorParam = variation?.color || variation?.color_options;
+          const sizeParam = variation?.Size || variation?.size_options;
+          if (colorParam && colorParam !== "undefined") {
+            newParams.set("color", colorParam);
           }
-          if (product.variations[0]?.Size) {
-            newParams.set("size", product.variations[0]?.Size);
+          if (sizeParam) {
+            newParams.set("size", sizeParam);
           }
           router.push(pathname + `?${newParams.toString()}`, {
             scroll: false,

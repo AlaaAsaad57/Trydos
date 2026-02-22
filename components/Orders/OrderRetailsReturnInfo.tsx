@@ -1,8 +1,6 @@
 import React, { useState } from "react";
-import { OrderDetail } from "types/orders";
-import { RoundPrice, translateFunction } from "utils/functions";
-import MiniReturnIcon from "public/svg/MiniReturnIcon";
-import ClockIcon from "public/svg/ClockIcon";
+
+import { translateFunction } from "utils/functions";
 import Timer from "components/Login/Timer";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
@@ -14,7 +12,7 @@ function OrderRetailsReturnInfo({
   callback,
   price,
 }: {
-  product: OrderDetail;
+  product: any;
   return_request_id: number;
   callback: () => void;
   price: number | string;
@@ -86,7 +84,10 @@ function OrderRetailsReturnInfo({
       <div className="w-full flex-col items-center h-auto mt-[12px]">
         <div className="flex-col w-full bg-[#FFFCF0] rounded-[10px] px-[10px] py-[8px]">
           <div className="flex-row items-start">
-            <MiniReturnIcon className="text-[#D32F2F] [&>path]:fill-[#D32F2F]" />
+            <img
+              src="/icons/MiniReturnIcon.svg"
+              className="text-[#D32F2F] [&>path]:fill-[#D32F2F]"
+            />
             <div className="flex-col ml-[6px] w-full">
               <div className="text-[#D32F2F] text-[14px] medium ">
                 {translateFunction(currentStatus.title)}
@@ -182,7 +183,10 @@ function OrderRetailsReturnInfo({
                       {
                         <div className="regular text-[10px] flex-row gap-[4px] flex items-center">
                           3 H
-                          <ClockIcon className="[&>g>path]:fill-[#C4C2C2]" />
+                          <img
+                            src="/icons/ClockIcon.svg"
+                            className="[&>g>path]:fill-[#C4C2C2]"
+                          />
                         </div>
                       }
                     </div>
@@ -218,7 +222,10 @@ function OrderRetailsReturnInfo({
                           ) : (
                             " 3 H"
                           )}
-                          <ClockIcon className="[&>g>path]:fill-[#1D1D1D]" />
+                          <img
+                            src="/icons/ClockIcon.svg"
+                            className="[&>g>path]:fill-[#1D1D1D]"
+                          />
                         </div>
                       }
                     </div>

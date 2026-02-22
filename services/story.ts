@@ -1,19 +1,12 @@
 "use client";
-import { _isStoreLastJson, getLang } from "utils/functions";
+import { _isStoreLastJson, LogError } from "utils/functions";
 import { LOG_IN_STORIES } from "utils/endpointConfig";
-import { GetStoriesApi } from "models/API/stories/GetStories";
-import { UploadStoryApi } from "models/API/stories/UploadStory";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
 
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-  setCookie,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 import { REQUESTS_DATA } from "utils/Requests";
 
@@ -36,7 +29,7 @@ class StoryService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      let repo: GetStoriesApi = response;
+      let repo: any = response;
       let data = repo.data.data;
       if (page == 1) {
         setStoryData(data);
@@ -45,14 +38,17 @@ class StoryService {
       }
       return { data, next_page_url: repo.data.next_page_url };
     } catch (error) {
-      console.error(error);
+      LogError({
+        error,
+        scenario: "Error in getStories in services/story",
+      });
       throw new Error("get stories error");
     }
     // @ts-ignore
   }
   async loginStories() {
-    const { loginSuccessStories } = useAppStore.getState();
-    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    const { loginSuccessStories, userProfile } = useAppStore.getState();
+    const user = userProfile;
     try {
       const response = await fetchData({
         url: LOG_IN_STORIES,
@@ -68,13 +64,24 @@ class StoryService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      setCookie(COOKIE_NAMES.USER_STORIES, response.data);
+      // Update HttpOnly cookie via server route
+      fetch("/api/auth/update-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          updates: [{ name: COOKIE_NAMES.USER_STORIES, value: response.data }],
+        }),
+        credentials: "include",
+      });
       loginSuccessStories({
         ...response.data,
       });
       await this.getStories();
     } catch (error) {
-      console.error(error);
+      LogError({
+        error,
+        scenario: "Error in loginStories in services/story",
+      });
     }
   }
   async WatchStory(pid: number | string, id: number | string) {
@@ -92,8 +99,11 @@ class StoryService {
           throw new Error(res?.message);
         }
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      LogError({
+        error,
+        scenario: "Error in WatchStory in services/story",
+      });
     }
   }
   async UploadToCloudinary(file: File) {
@@ -122,13 +132,11 @@ class StoryService {
     callback: Function,
     is_video: any,
     endUpload: Function,
-    link
+    link,
   ) {
-    const { language, country, userStories, setStoryData } =
-      useAppStore.getState();
     try {
       let response = await this.UploadToCloudinary(file);
-      const add_story_response: UploadStoryApi = await fetchData({
+      const add_story_response: any = await fetchData({
         url: `/api/v1/stories/add_story`,
         reqTitle: REQUESTS_DATA.UPLOAD_STORY,
         method: "POST",
@@ -145,24 +153,16 @@ class StoryService {
         // @ts-ignore
         throw new Error(add_story_response.message);
       }
-
-      await fetch("/api/revalidate");
-      let req = await fetch("/api/stories?page=1", {
-        headers: {
-          lang: language,
-          coountry: country,
-          auth: userStories?.access_token,
-        },
-        credentials: "omit",
-      });
-      let stories = await req.json();
-      setStoryData(stories.data);
       endUpload();
 
       if (add_story_response.data) {
         return add_story_response.data;
       } else throw new Error("Failed");
     } catch (error) {
+      LogError({
+        error,
+        scenario: "Error in upload in services/story",
+      });
       throw new Error(error?.message);
     }
   }
@@ -182,7 +182,10 @@ class StoryService {
       }
       return response.data;
     } catch (error) {
-      console.error(error);
+      LogError({
+        error,
+        scenario: "Error in deleteStory in services/story",
+      });
       return null;
     }
   }
@@ -201,12 +204,15 @@ class StoryService {
       }
       return response.data;
     } catch (error) {
-      console.error(error);
+      LogError({
+        error,
+        scenario: "Error in reportStory in services/story",
+      });
       return null;
     }
   }
   getUserStories() {
-    return getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+    return useAppStore.getState().userStories;
   }
   configureStory(story) {
     let returnedData = [];
@@ -214,7 +220,7 @@ class StoryService {
       if (storyItem.full_video_path) {
         let vid = storyItem.full_video_path.replace(
           "/upload",
-          "/upload/w_720,h_1280,c_limit/f_auto/q_auto:good/fl_lossy/so_0"
+          "/upload/w_720,h_1280,c_limit/f_auto/q_auto:good/fl_lossy/so_0",
         );
         returnedData.push({
           url: vid,
@@ -238,14 +244,14 @@ class StoryService {
       } else if (storyItem.photo_path) {
         let img = storyItem.photo_path.replace(
           "/upload",
-          "/upload/w_720,h_1280,c_pad/f_auto/q_auto:good/fl_progressive:steep/e_sharpen"
+          "/upload/w_720,h_1280,c_pad/f_auto/q_auto:good/fl_progressive:steep/e_sharpen",
         );
         returnedData.push({
           url: img,
           link: storyItem.link,
           placeholderUrl: storyItem.photo_path.replace(
             "/upload",
-            "/upload/w_50,h_90,c_limit/f_auto/q_auto:low/e_blur:2000"
+            "/upload/w_50,h_90,c_limit/f_auto/q_auto:low/e_blur:2000",
           ),
           FixedUrl: img,
           is_seen: storyItem.is_seen,
@@ -289,7 +295,10 @@ class StoryService {
         throw new Error(data.message);
       }
     } catch (error) {
-      console.log(error);
+      LogError({
+        error,
+        scenario: "Error in getStoriesForProducts in services/story",
+      });
       return [];
     }
   }

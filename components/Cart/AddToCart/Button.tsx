@@ -5,7 +5,7 @@ import auth from "services/auth";
 import cart from "services/cart";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
-import { getCart, translateFunction } from "utils/functions";
+import { getCart, LogError, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { DetectScreen } from "utils/tinyUtils";
@@ -24,13 +24,12 @@ function AddToCartButton({
   product,
   reachedMaxQty,
   initialLoading,
-  expireRedeem,
+  expireLuck,
 }) {
   const { localCart, currency } = useAppStore();
   const IsValid = () => {
     let color_valid = false,
       size_valid = false;
-    if (reachedMaxQty()) return false;
     if (!colors || colors?.length === 0) color_valid = true;
     else {
       color_valid = Boolean(selectedColor);
@@ -41,6 +40,8 @@ function AddToCartButton({
     }
     return color_valid && size_valid;
   };
+
+  const canAddMore = () => IsValid() && !reachedMaxQty();
 
   const Validate = () => {
     if (reachedMaxQty()) {
@@ -78,45 +79,31 @@ function AddToCartButton({
     return num;
   };
   const getLocalCartItem = () => {
-    if (colors?.length > 0 && sizes?.length > 0) {
+    const pvid = selectedVariant?.product_variation_id ?? selectedVariant?.id;
+    if (pvid) {
       return localCart.find(
         (s) =>
-          s.id === id &&
-          (s.color === selectedColor?.color_option ||
-            s.color ===
-              product?.colors?.find(
-                (cl) =>
-                  cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.selected_option
-              )?.color) &&
-          s.size === (selectedSize?.option ?? selectedSize)
-      );
-    }
-    if (colors?.length > 0) {
-      return localCart.find(
-        (s) =>
-          s.id === id &&
-          (s.color === selectedColor?.color_option ||
-            s.color ===
-              product?.colors?.find(
-                (cl) =>
-                  cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.selected_option
-              )?.color)
-      );
-    }
-    if (sizes?.length > 0) {
-      return localCart.find(
-        (s) => s.id === id && s.size === (selectedSize?.option ?? selectedSize)
+          s.product_variation_id === pvid ||
+          s.id === pvid ||
+          s.variation_id === pvid,
       );
     }
     return null;
   };
   const isVariantInCart = ({ exact }) => {
-    if (product?.variation?.length === 0)
-      return localCart?.find((s) => s.id === id);
-    let cartIem = getLocalCartItem();
-    if (cartIem) return cartIem;
+    if (!product?.variation?.length) return localCart?.find((s) => s.id === id);
+
+    const pvid = selectedVariant?.product_variation_id ?? selectedVariant?.id;
+    if (pvid) {
+      const cartItem = localCart.find(
+        (s) =>
+          s.product_variation_id === pvid ||
+          s.id === pvid ||
+          s.variation_id === pvid,
+      );
+      if (cartItem) return cartItem;
+    }
+
     if (exact) return localCart?.find((s) => s.id === id);
   };
 
@@ -129,7 +116,7 @@ function AddToCartButton({
   };
   const animateText = (text) => {
     let newText = document.querySelector<HTMLDivElement>(
-      "#text-request-response"
+      "#text-request-response",
     );
     let oldText = document.querySelector<HTMLDivElement>("#button-cart-text");
     newText.innerText = translateFunction(text);
@@ -144,7 +131,13 @@ function AddToCartButton({
     }, 1800);
   };
   const clickHandler = async ({ variant }) => {
-    let type = selectedVariant?.type;
+    const hasVariants = (product?.variation?.length ?? 0) > 0;
+    const productVariationId = hasVariants
+      ? (selectedVariant?.product_variation_id ??
+        selectedVariant?.id ??
+        selectedVariant?.variation_id ??
+        null)
+      : null;
 
     try {
       setLoading(true);
@@ -155,7 +148,7 @@ function AddToCartButton({
           cart_id: isVariantInCart({ exact: false })?.item_id,
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
           isFromAddWidget: true,
-          is_redeem: product?.is_redeem,
+          is_redeem: product?.is_luck,
         });
         if (response === false) {
           throw "error";
@@ -177,13 +170,10 @@ function AddToCartButton({
                   (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
                 brand: product?.brand?.name,
                 brand_id: product?.brand?.id,
-                category:
-                  product?.category?.name || product?.categories?.[0]?.name,
-                category_id:
-                  product?.category?.id || product?.categories?.[0]?.id,
+                category: product?.categories?.[0]?.name,
+                category_id: product?.categories?.[0]?.id,
                 count_likes: product?.count_of_likes,
-                // review_count: product?.views_count ?? product?.view_count,
-                item_variant: selectedVariant?.type,
+                item_variant: productVariationId,
               },
             ],
             interaction_type: "add_to_cart",
@@ -196,34 +186,38 @@ function AddToCartButton({
         animateText("Added To Your Bag");
         await updateQuantity(
           true,
-          isVariantInCart({ exact: false })?.type,
-          "add"
+          isVariantInCart({ exact: false })?.product_variation_id,
+          "add",
         );
       } else {
         animateButton();
         let val = await cart.AddToCart({
           product_id: id,
+          product_variation_id: productVariationId,
           color: product?.colors?.find(
             (s) =>
               s.option === selectedColor?.color_option ||
-              s.name === selectedColor?.color_option
+              s.name === selectedColor?.color_option ||
+              s.option === selectedColor?.color_name ||
+              s.name === selectedColor?.color_name ||
+              s.color_option === selectedColor?.color_option ||
+              s.color_option === selectedColor?.color_name,
           )?.color,
-          type: type,
+          type: productVariationId,
           choice_1: selectedSize?.option || selectedSize,
           qty: 1,
           image:
-            selectedColor?.images[0]?.file_path ||
-            selectedColor?.images[0] ||
-            product?.images[0]?.file_path ||
-            product?.images[0],
+            selectedColor?.images?.[0]?.file_path ||
+            selectedColor?.images?.[0] ||
+            product?.images?.[0]?.file_path ||
+            product?.images?.[0],
           isFromAddWidget: true,
-          is_redeem: product?.showRedeemPrice && product?.is_redeem,
-          offer_price:
-            product?.showRedeemPrice && product?.is_redeem
-              ? selectedVariant?.redeem_price
-              : selectedVariant.offer_price,
+          is_redeem: product?.is_luck,
+          offer_price: product?.is_luck
+            ? selectedVariant?.luck_price
+            : selectedVariant?.offer_price,
         });
-        expireRedeem();
+        expireLuck();
 
         if (val) {
           GAevent({
@@ -239,11 +233,10 @@ function AddToCartButton({
                   quantity: 1,
                   brand: product?.brand?.name,
                   brand_id: product?.brand?.id,
-                  category: product?.category?.name,
-                  category_id: product?.category?.id,
+                  category: product?.categories?.[0]?.name,
+                  category_id: product?.categories?.[0]?.id,
                   count_likes: product?.count_of_likes,
-                  // review_count: product?.views_count ?? product?.view_count,
-                  item_variant: selectedVariant?.type,
+                  item_variant: productVariationId,
                 },
               ],
               user_id_custom: auth.UserID(),
@@ -253,13 +246,7 @@ function AddToCartButton({
             },
           });
           animateText("Added To Your Bag");
-          await updateQuantity(
-            true,
-            [selectedColor?.color_option, selectedSize?.option || selectedSize]
-              .filter((e) => Boolean(e))
-              .join("-"),
-            "add"
-          );
+          await updateQuantity(true, productVariationId, "add");
           await getCart({
             callback: () => {},
           });
@@ -269,7 +256,13 @@ function AddToCartButton({
       }
       setLoading(false);
     } catch (error) {
-      console.log("add/update", error);
+      LogError({
+        error: error,
+        scenario: "click handler for add to cart buttons - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+        variant: isVariantInCart({ exact: false }),
+      });
       await updateQuantity(false);
       setLoading(false);
     }
@@ -295,8 +288,8 @@ function AddToCartButton({
         setLoading(false);
         await updateQuantity(
           true,
-          isVariantInCart({ exact: true })?.type,
-          "decrease"
+          isVariantInCart({ exact: true })?.product_variation_id,
+          "decrease",
         );
       } else if (isVariantInCart({ exact: true })?.quantity === 1) {
         setLoading(true);
@@ -312,7 +305,7 @@ function AddToCartButton({
               {
                 item_id: product.id,
                 item_name: product.name,
-                item_variant: variant?.type,
+                item_variant: variant?.product_variation_id ?? variant?.id,
                 quantity: 1,
                 price: variant?.offer_price,
               },
@@ -326,12 +319,18 @@ function AddToCartButton({
         setLoading(false);
         await updateQuantity(
           true,
-          isVariantInCart({ exact: true })?.type,
-          "decrease"
+          isVariantInCart({ exact: true })?.product_variation_id,
+          "decrease",
         );
       }
     } catch (error) {
-      console.log("decrease", error);
+      LogError({
+        error: error,
+        scenario: "decrase qty button - add to cart widget",
+        slug: product?.slug,
+        url: window.location.href,
+        variant,
+      });
       await updateQuantity(false);
       setLoading(false);
     }
@@ -348,13 +347,13 @@ function AddToCartButton({
           }
         }}
         className={`${
-          IsValid() ? "bg-[#513AAF]" : "bg-[#C4C2C2]"
+          canAddMore() ? "bg-[#513AAF]" : "bg-[#C4C2C2]"
         } w-full h-[70px]   text-[#FFFFFF] ${
           (loading || initialLoading) && "opacity-40 scale-95"
         } gap-[4px] text-[15px]  shadow-[inset_0px_3px_6px_rgb(255,255,255,0.16)] duration-300 transition-all  rounded-[20px] relative flex-col regular  items-center justify-center`}
         id={"add-to-cart-button-container"}
       >
-        <PlusIconHolder isValid={IsValid()} />
+        <PlusIconHolder isValid={canAddMore()} />
         {initialLoading ? (
           <Spinner />
         ) : (
@@ -370,7 +369,7 @@ function AddToCartButton({
             <div className="flex gap-[4px]">
               <Image
                 className="bagIcon"
-                src={"/svg/addtocart/CartButtonIcon.svg"}
+                src={"/icons/CartButtonIcon.svg"}
                 alt={"cart-icon"}
                 width={20}
                 height={20}
@@ -391,9 +390,11 @@ function AddToCartButton({
                 id="button-cart-text"
                 className="transition-all ease-in-out duration-700"
               >
-                {getTotalQuantity() > 0
-                  ? translateFunction("Add More to Your Bag")
-                  : translateFunction("Add To Bag")}
+                {reachedMaxQty()
+                  ? translateFunction("Max Allowed Quantity Reached")
+                  : getTotalQuantity() > 0
+                    ? translateFunction("Add More to Your Bag")
+                    : translateFunction("Add To Bag")}
               </span>
             </div>
           </>
@@ -408,7 +409,7 @@ export default AddToCartButton;
 const PlusIconHolder = ({ isValid }) => {
   return (
     <>
-      <div className="w-[55px] h-[55px] rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-[#fff] p-[5px] flex-row justify-start items-end absolute top-[-33px] right-[-33px]">
+      <div className="w-[55px] h-[55px] rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-white p-[5px] flex-row justify-start items-end absolute top-[-33px] right-[-33px]">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="15"
@@ -438,7 +439,7 @@ export const RemoveIconHolder = ({ qty, decreaseHandler }) => {
         style={{
           paddingBottom: qty > 1 ? "9px" : "7px",
         }}
-        className={`z-[99] w-[55px] minuse-qty-icon h-[55px] rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-[#fff] pr-[5px]  flex-row justify-end items-end absolute top-[-33px] left-[-33px]`}
+        className={`z-99 w-[55px] minuse-qty-icon h-[55px] rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-white pr-[5px]  flex-row justify-end items-end absolute top-[-33px] left-[-33px]`}
       >
         {qty > 1 ? (
           <svg

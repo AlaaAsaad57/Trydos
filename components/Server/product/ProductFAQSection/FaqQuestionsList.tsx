@@ -13,6 +13,7 @@ import FaqSectionModal from "./FaqSectionModal";
 import { AskInput } from "./FaqAskInput";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogError } from "utils/functions";
 
 function FaqQuestionsList({
   children,
@@ -41,13 +42,7 @@ function FaqQuestionsList({
   const GetNextComments = async () => {
     if (!offset || loading) return;
     setLoading(true);
-    console.log({
-      language: language,
-      productId: productId,
-      filter: null,
-      offset: offsetValue,
-      userId: auth.UserID(),
-    });
+
     let response = await GetProductFaqQuestions({
       language: language,
       productId: productId,
@@ -89,8 +84,8 @@ function FaqQuestionsList({
 
       setCommentsNodes(
         commentsNodes?.map((node) =>
-          node.key === BuyerCommentModalOption.id ? res.comment : node
-        )
+          node.key === BuyerCommentModalOption.id ? res.comment : node,
+        ),
       );
       setBuyerCommentModalOption(null);
       setLoading(false);
@@ -98,6 +93,10 @@ function FaqQuestionsList({
       setShouldUpdateComment({ id: comment.id });
       return { commentElement: res.comment, id: comment.id };
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In EditComment in FaqQuestionsList",
+      });
       setLoading(false);
     }
   };
@@ -111,7 +110,7 @@ function FaqQuestionsList({
         reqTitle: REQUESTS_DATA.DELETE_COMMENT,
       });
       setCommentsNodes(
-        commentsNodes.filter((node) => node.key !== BuyerCommentModalOption.id)
+        commentsNodes.filter((node) => node.key !== BuyerCommentModalOption.id),
       );
       setLoading(false);
       setBuyerCommentModalOption(null);
@@ -119,6 +118,10 @@ function FaqQuestionsList({
       setShouldUpdateComeentsCount(true);
       return id;
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Error In deleteComment in FaqQuestionsList",
+      });
       setLoading(false);
     }
   };

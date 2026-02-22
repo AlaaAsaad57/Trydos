@@ -17,18 +17,17 @@ import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct
 import { GetHomeMetaData } from "serverRequests/meta/home";
 
 export async function generateMetadata({ params, searchParams }) {
+  let [Params, query] = await Promise.all([params, searchParams]);
   try {
-    let [Params, query] = await Promise.all([params, searchParams]);
-    let [country, language] = Params.lang.split("-");
     let mainCategory = query?.mainCategory || null;
     const metadata = await GetHomeMetaData({
-      language,
-      country,
+      local: Params.lang,
       category: mainCategory,
     });
 
     return { ...metadata };
   } catch (error) {
+    LogServerError({ error, type: "meta" }, `/${Params.lang}`);
     return {
       title: "TryDos - Premium Shopping Experience",
       description:
@@ -52,9 +51,9 @@ async function HomePage({ params, searchParams }) {
         <div
           className={`${
             isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
-          }  bg-white w-full pl-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.1)] z-[999999995]`}
+          }  bg-white w-full pl-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.1)] z-999999995`}
         >
-          <SearchIcon />
+          <SearchIcon country={country} language={language} />
           <Suspense
             fallback={<MobileNavigationSkeleton />}
             key={`Navbar ${lang}`}

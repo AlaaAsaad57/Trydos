@@ -4,7 +4,6 @@ import React, { useCallback } from "react";
 import { useAppStore } from "store";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
-import ErrorIcon from "public/svg/cart/Error";
 import Image from "next/image";
 function CartItem({ product, index }) {
   const { language } = useAppStore();
@@ -17,7 +16,7 @@ function CartItem({ product, index }) {
           const settingsObj = JSON.parse(settingsStr);
           shippingDurationDays =
             parseInt(
-              settingsObj?.["starting-setting"]?.shipping_duration_days
+              settingsObj?.["starting-setting"]?.shipping_duration_days,
             ) || 0;
           return shippingDurationDays;
         } catch (e) {
@@ -28,6 +27,11 @@ function CartItem({ product, index }) {
     }
   }, []);
   const isRtl = language === "ar" || language === "ku";
+  const variation = Array.isArray(product?.variations)
+    ? (product.variations[0] ?? {})
+    : (product?.variations ?? {});
+  const colorValue = variation?.color ?? variation?.color_options;
+  const sizeValue = variation?.Size ?? variation?.size_options;
   return (
     <>
       <div
@@ -94,13 +98,13 @@ function CartItem({ product, index }) {
           className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex-wrap`}
           data-cy="color-div"
         >
-          {product.variations[0]?.color && (
+          {colorValue && (
             <div
               className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mx-2"
               data-cy="color-div2"
             >
               <Image
-                src={"/svg/cart/CartColorIcon.svg"}
+                src={"/icons/CartColorIcon.svg"}
                 alt="cart-color"
                 width={10}
                 height={10}
@@ -112,18 +116,18 @@ function CartItem({ product, index }) {
               >
                 {translateFunction("Color")}:{" "}
                 <span className="regular" data-cy="color-name">
-                  {product.variations[0].color}
+                  {colorValue}
                 </span>
               </span>
             </div>
           )}
-          {product.variations[0]?.Size && (
+          {sizeValue && (
             <div
               className="flex-row items-center text-[12px] light text-[#505050] mt-1"
               data-cy="size-container"
             >
               <Image
-                src={"/svg/cart/CartSizeIcon.svg"}
+                src={"/icons/CartSizeIcon.svg"}
                 alt="cart-color"
                 width={10}
                 height={10}
@@ -136,7 +140,7 @@ function CartItem({ product, index }) {
               >
                 {translateFunction("Size")}:
                 <span className="regular" data-cy="size-container-size">
-                  {product.variations[0].Size}
+                  {sizeValue}
                 </span>
               </span>
             </div>
@@ -149,7 +153,7 @@ function CartItem({ product, index }) {
           data-cy="countPieces-container"
         >
           <Image
-            src={"/svg/cart/PiecesIcon.svg"}
+            src={"/icons/PiecesIcon.svg"}
             alt="cart-color"
             width={10}
             height={10}
@@ -176,7 +180,7 @@ function CartItem({ product, index }) {
             data-cy="sshipping-container"
           >
             <Image
-              src={"/svg/cart/DeleiveryIcon.svg"}
+              src={"/icons/DeleiveryIcon.svg"}
               alt="cart-color"
               width={10}
               height={10}
@@ -206,7 +210,7 @@ function CartItem({ product, index }) {
           product.is_country_restricted === true ||
           product.is_active === false) && (
           <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
-            <ErrorIcon />
+            <img src="/icons/Error.svg" />
             <div className={`${language === "ar" && "dir-rtl"}`}>
               <span className="ml-1.5">
                 {translateFunction("Availabilty")}:
@@ -230,7 +234,7 @@ function CartItem({ product, index }) {
           min={1}
           disabled
           max={product.available_quantity}
-          className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
+          className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border border-solid outline-hidden bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
         />
       </div>
       {(product.have_hurry_up_notify_time_left ||
@@ -242,7 +246,7 @@ function CartItem({ product, index }) {
         >
           <span className="ml-1">
             <Image
-              src={"/svg/cart/HurryIcon.svg"}
+              src={"/icons/HurryIcon.svg"}
               alt="cart-color"
               width={10}
               height={10}

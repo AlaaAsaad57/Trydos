@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import SearchCamIcon from "public/svg/SearchCamIcon";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
@@ -78,7 +77,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
       formData.append("language", languageVariable);
       formData.append(
         "prompt",
-        "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl"
+        "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl",
       );
       const result = await fetch("/api/image-search", {
         method: "POST",
@@ -99,15 +98,19 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
         lang: lang,
       });
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "GemeniFunc in SearchImage",
+      });
       setLoading(false);
       showErrorNotification(
         translateFunction(
           error?.message ||
             error ||
-            translateFunction("failed to search with image")
-        )
+            translateFunction("failed to search with image"),
+        ),
       );
-      console.log(error);
+
       setLoading(false);
     }
   };
@@ -142,7 +145,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     } else {
       setLoading(false);
       alert(
-        "please select supported image format (jpeg, png, jpg, webp, svg, avif)"
+        "please select supported image format (jpeg, png, jpg, webp, svg, avif)",
       );
       // @ts-ignore
       event.target.value = null;
@@ -235,7 +238,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
           <Spinner />
         ) : (
           <>
-            <SearchCamIcon onClick={OpenMenu} />
+            <img src="/icons/SearchCamIcon.svg" onClick={OpenMenu} />
             {isDesktop && showMenu && (
               <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                 <div className="py-1">

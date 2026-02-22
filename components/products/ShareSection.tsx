@@ -2,17 +2,12 @@ import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import ShareOptions from "./ShareOptions";
 import { useParams } from "next/navigation";
-import { ShareSectionPropsType } from "models/componentType/ShareSectionPropsType";
 
 import chat from "services/chat";
 import Spinner from "components/global/Spinner";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { useAppStore } from "store";
 
-function ShareSection({ product }: ShareSectionPropsType) {
+function ShareSection({ product }: any) {
   var language = "en";
   let { lang } = useParams();
   const [contactsLoading, setContactsLoading] = useState(false);
@@ -22,7 +17,7 @@ function ShareSection({ product }: ShareSectionPropsType) {
     return translateFunction(key, languageVariable);
   };
   useEffect(() => {
-    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+    const userChat = useAppStore.getState().userChat;
     if (userChat) {
       getContactsData();
     }

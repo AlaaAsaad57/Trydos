@@ -1,4 +1,5 @@
 import Redis from "ioredis";
+import { LogServerError } from "utils/serverErrorReporter";
 
 declare global {
   // Ensure global redis persists between hot reloads in dev
@@ -40,7 +41,7 @@ export async function storeProduct(product, slug, lang, country) {
 
   // Force everything into safe strings
   const productKey = `product:${String(product.id)}:${String(lang)}:${String(
-    country
+    country,
   )}`;
   const slugKey = `slug:${String(slug)}:${String(lang)}:${String(country)}`;
 
@@ -72,7 +73,7 @@ export async function getProductFromCache(slug, lang, country) {
     }
 
     const productKey = `product:${String(productId)}:${String(lang)}:${String(
-      country
+      country,
     )}`;
 
     const cachedProduct = await redis.get(productKey);
@@ -100,7 +101,10 @@ export async function getCurrencyFromCache(country) {
       return null;
     }
     return cachedValue ? JSON.parse(cachedValue) : {};
-  } catch (error) {}
+  } catch (error) {
+    LogServerError({ error, type: "getting currency from redis" }, `/`);
+    throw error;
+  }
 }
 export async function StoreCurrency(country, value) {
   try {
@@ -108,9 +112,11 @@ export async function StoreCurrency(country, value) {
       `currency-${country}`,
       JSON.stringify(value),
       "EX",
-      Number(process.env.PRODUCT_REDIS_TTL_SECONDS)
+      Number(process.env.PRODUCT_REDIS_TTL_SECONDS),
     );
-  } catch (error) {}
+  } catch (error) {
+    LogServerError({ error, type: "storing currency in redis" }, `/`);
+  }
 }
 
 export async function RedisGet(key) {
@@ -127,7 +133,7 @@ export async function RedisSet(key, value, ttl = 86400) {
       key,
       JSON.stringify(value),
       "EX",
-      Number(process.env.PRODUCT_REDIS_TTL_SECONDS)
+      Number(process.env.PRODUCT_REDIS_TTL_SECONDS),
     );
   } catch (error) {}
 }
@@ -150,3 +156,42 @@ export async function GetFromRedis(key) {
   let result = await redis.get(key);
   return result;
 }
+
+export async function checkRateLimit(
+  key: string,
+  limit: number,
+  windowSec: number,
+) {
+  const now = Date.now();
+  const windowStart = now - windowSec * 1000;
+
+  // Remove old entries outside the window
+  await redis.zremrangebyscore(key, 0, windowStart);
+
+  // Count requests in window
+  const count = await redis.zcard(key);
+
+  if (count >= limit) {
+    return false; // Rate limit exceeded
+  }
+
+  // Add current request
+  await redis.zadd(key, now, now.toString());
+  await redis.expire(key, windowSec + 1);
+
+  return true; // Allowed
+}
+
+export async function trackSuspiciousBehavior(ip: string, path: string) {
+  const key = `behavior:${ip}`;
+  const hits = await redis.incr(key);
+  await redis.expire(key, 10); // 10s window
+
+  if (hits > 20) {
+    return `Suspicious behavior: ${hits} requests in 10s from IP ${ip} on ${path}`;
+  }
+
+  return null;
+}
+
+export const sendSecurityAlert = async (message: string) => {};

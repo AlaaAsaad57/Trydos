@@ -6,13 +6,9 @@ import AuthService from "services/auth";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import { useRouter } from "next/navigation";
+import { LogError } from "utils/functions";
 
 function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
@@ -20,7 +16,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const [inputValue, setInputValue] = useState("");
   const [MessageMethod, setMessageMethod] = useState("");
   const [pins, setPins] = useState("");
-  const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+  const userData = useAppStore.getState().userProfile;
   const [disabled, setDisabled] = useState(false);
   const [expired, setExpired] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -35,13 +31,17 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
       await AuthService.SendOtp(
         mobilePhone,
         is_via_whatsapp,
-        errorCallbackFunc
+        errorCallbackFunc,
       );
       successCallback();
     } catch (error) {
-      console.log(error);
+      LogError({
+        error,
+        scenario: "Send Otp widget",
+        mobilePhone,
+        is_via_whatsapp,
+      });
       errorCallback();
-      console.error("SendOtp failed:", error);
     }
   };
   const [rendere, setRender] = useState(true);
@@ -58,12 +58,15 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         code,
         verificationID,
         Username,
-        EditPhoneFunc
+        EditPhoneFunc,
       );
       await successCallback(exists, name);
     } catch (error) {
+      LogError({
+        error,
+        scenario: "VerifyOtp  widget",
+      });
       errorCallback(error);
-      console.error("VerifyOtp failed:", error);
     }
   };
   const FinaliseLogin = async () => {
@@ -106,6 +109,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         setLoadingPin(false);
       },
       successCallback: async (exists, name) => {
+        router.refresh();
         // Sendevent({
         //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
 

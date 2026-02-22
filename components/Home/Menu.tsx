@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import NotificationSkeleton from "components/skeleton/NotificationSkeleton";
 
@@ -11,24 +11,17 @@ const NotificationsPanel = dynamic(
   {
     ssr: false,
     loading: () => <NotificationSkeleton />,
-  }
+  },
 );
 import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
 import auth from "services/auth";
-import {
-  clearHashedUserId,
-  COOKIE_NAMES,
-  deleteCookie,
-  getCookie,
-  setCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
-import { getReferralSource } from "utils/tinyUtils";
+import { COOKIE_NAMES, deleteCookie } from "utils/cookies/cookie-manager";
+import { clearAllUserData } from "utils/tinyUtils";
 import dynamic from "next/dynamic";
-import { clearSimulatedUserSession } from "utils/sessionManager";
+
 import { useAppStore } from "store";
-import { showSuccessNotification } from "store/notifications/reducer";
+
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
@@ -73,6 +66,9 @@ const MenuItem = ({
   if (href && !pathname.includes(href)) {
     return (
       <NextLink
+        onClick={() => {
+          onClick();
+        }}
         data={data}
         ariaLabel={`Menu Item ${href}`}
         data-cy={dataCy}
@@ -100,58 +96,63 @@ const MenuItem = ({
 };
 
 const Menu = ({ user, setMenuOpen }) => {
-  const { setSettingLastPath, setLoggingOut } = useAppStore();
-  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-  const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+  const { setLoggingOut } = useAppStore();
+  const userChat = useAppStore.getState().userChat;
+  const userStories = useAppStore.getState().userStories;
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWishList, setShowWishList] = useState(false);
   const { lang } = useParams();
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
-    // Sendevent({
-    //   event: GA_EVENT_NAMES.CLICK,
-    //   value: GA_CLICK_EVENT_VALUES.LOGOUT_BUTTON,
-    // });
-    // localStorage.clear();
     if (loading) return;
     setLoggingOut(true);
+    setLoading(true);
 
-    const { messaging } = await import("utils/firebaseInitv1");
-    const { deleteToken } = await import("firebase/messaging");
-    const handleRemoveFCM = async () => {
+    // 1. Remove FCM token FIRST (while cookies still have valid tokens)
+    try {
       if (localStorage.getItem("FB-DEVICE-TOKEN")) {
         await fetchData({
           method: "POST",
           url: "/api/v1/firebase_tokens/remove-token",
           server: "chat",
           reqTitle: REQUESTS_DATA.REOMVE_FCM,
+          noMessage: true,
           body: JSON.stringify({
             token: localStorage.getItem("FB-DEVICE-TOKEN"),
           }),
         });
       }
-    };
-    setLoading(true);
-    try {
-      await Promise.all([deleteToken(messaging), handleRemoveFCM()]);
-      deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-      deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
-      deleteCookie(COOKIE_NAMES.USER_CHAT);
-      deleteCookie(COOKIE_NAMES.USER_STORIES);
-      deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
-      deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-      clearSimulatedUserSession();
-      clearHashedUserId();
+    } catch (e) {
+      /* swallow — we're logging out anyway */
+    }
 
-      sessionStorage.clear();
-      deleteCookie(COOKIE_NAMES.USER_DATA);
-      localStorage.clear();
-    } catch (error) {}
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    if (window.location.pathname.includes("/seller")) {
+    // 2. Delete firebase token locally
+    try {
+      const { getFirebaseMessaging } = await import("utils/firebaseInitv1");
+      const { deleteToken } = await import("firebase/messaging");
+      const messaging = await getFirebaseMessaging();
+      if (messaging) await deleteToken(messaging);
+    } catch (e) {
+      /* swallow */
+    }
+
+    // 3. NOW clear all data (cookies, storage, store)
+    await clearAllUserData();
+
+    // 4. Reset store auth state explicitly
+    const { cancelAuth } = useAppStore.getState();
+    cancelAuth(); // pass NO argument — full reset, not "expired"
+
+    // 5. Reload immediately — no need for 2s delay
+    if (
+      window.location.pathname.includes("/seller") ||
+      window.location.pathname.includes("/settings")
+    ) {
       window.location.href = `/${lang}`;
-    } else window.location.reload();
+    } else {
+      window.location.reload();
+    }
   };
   const shouldShowLogout = () => {
     if (loading) return true;
@@ -195,7 +196,10 @@ const Menu = ({ user, setMenuOpen }) => {
             data={{
               is_settings: true,
             }}
-            href={`/${lang}/setting?tab=main`}
+            onClick={() => {
+              setMenuOpen(false);
+            }}
+            href={`/${lang}/settings`}
             icon={
               <MenuIcon>
                 <circle cx="12" cy="12" r="3" />
@@ -240,17 +244,6 @@ const Menu = ({ user, setMenuOpen }) => {
           >
             {translateFunction("Notifications")}
           </MenuItem>
-          {/* <MenuItem
-            dataCy="Orders-Icon"
-            onClick={() => setShowOrders(!showOrders)}
-            icon={
-              <MenuIcon>
-                <path d="M21 8v13H3V8M1 3h22v5H1V3zM10 12h4" />
-              </MenuIcon>
-            }
-          >
-            {translateFunction("Orders")}
-          </MenuItem> */}
           <MenuItem
             dataCy="Compare-Icon"
             data={{
@@ -425,8 +418,20 @@ const Menu = ({ user, setMenuOpen }) => {
             dataCy="change-chat-token"
             icon={<></>}
             onClick={() => {
-              let user = { ...userChat, access_token: "skajdklajsd" };
-              setCookie(COOKIE_NAMES.USER_CHAT, user);
+              // Debug: invalidate chat token via server route
+              fetch("/api/auth/update-user", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  updates: [
+                    {
+                      name: COOKIE_NAMES.USER_CHAT,
+                      value: { ...userChat, access_token: "skajdklajsd" },
+                    },
+                  ],
+                }),
+                credentials: "include",
+              });
             }}
           >
             {translateFunction("Make Chat Token Expired")}
@@ -437,8 +442,20 @@ const Menu = ({ user, setMenuOpen }) => {
             dataCy="change-chat-token"
             icon={<></>}
             onClick={() => {
-              let user = { ...userStories, access_token: "skajdklajsd" };
-              setCookie(COOKIE_NAMES.USER_STORIES, user);
+              // Debug: invalidate stories token via server route
+              fetch("/api/auth/update-user", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  updates: [
+                    {
+                      name: COOKIE_NAMES.USER_STORIES,
+                      value: { ...userStories, access_token: "skajdklajsd" },
+                    },
+                  ],
+                }),
+                credentials: "include",
+              });
             }}
           >
             {translateFunction("Make Stories Token Expired")}

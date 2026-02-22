@@ -3,13 +3,7 @@ import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useState } from "react";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
-import CartIcon from "public/svg/CartIcon";
-import {
-  usePathname,
-  useSearchParams,
-  useRouter,
-  useParams,
-} from "next/navigation";
+import { useParams } from "next/navigation";
 import Menu from "./Menu";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
@@ -40,7 +34,7 @@ function UserNavTopSection({
             openLogin(true);
           }}
         >
-          <img src="/svg/login.svg" width={15} height={15} alt="login" />
+          <img src="/icons/login.svg" width={15} height={15} alt="login" />
           <span
             className={`regular`}
             style={{
@@ -175,12 +169,12 @@ function UserNavTopSection({
         {localCart?.length > 0 && (
           <div
             data-cy="cart-item-counts"
-            className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center "
+            className="bg-green-500 top-[-4px] left-[13px] text-[10px] font-bold text-white rounded-full   absolute px-[5px] justify-center flex items-center "
           >
             {localCart.length}
           </div>
         )}
-        <CartIcon data-cy="cartIcon_mainPage" />
+        <img src="/icons/CartIcon.svg" data-cy="cartIcon_mainPage" />
       </div>
 
       {(!userData || getUserType() === "NEW_USER") && (
@@ -197,7 +191,7 @@ function UserNavTopSection({
           </div>
           <div className="nav-question-item">
             <img
-              src="/svg/questionIcon.svg"
+              src="/icons/questionIcon.svg"
               width={15}
               height={15}
               alt="info icon"
@@ -214,7 +208,7 @@ function UserNavTopSection({
             >
               {translate(
                 `${loginOpen ? "Can We Know You ?" : "Why We Know You ?"}`,
-                language
+                language,
               )}
             </span>
           </div>
@@ -241,7 +235,7 @@ function UserNavTopSection({
                       height: 30,
                       q: 80,
                     })
-                  : "/svg/userIcon.svg"
+                  : "/icons/userIcon.svg"
               }
               quality={90}
               width={30}

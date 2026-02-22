@@ -1,14 +1,19 @@
 import { useState } from "react";
-import BackIcon from "public/svg/listing/backIcon";
-import { getCart, RoundPrice, translateFunction } from "utils/functions";
+
+import {
+  getCart,
+  LogError,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import { useParams } from "next/navigation";
 import ShippingAddressContainer from "./ShippingAddressContainer";
 import { SlideWidget } from "components/global/SlideNavigation";
-import AddAddressIcon from "public/svg/cart/AddAddress";
+
 import AddAddressForm from "./AddAddressForm";
 import SelectRegion from "./SelectRegion";
 import AddressListContainer from "./AddressListContainer";
-import TrashIcon from "public/svg/cart/TrashIcon";
+
 import order from "services/order";
 import PaymentMethod from "./PaymentMethod";
 import PlaceOrderWidget from "./PlaceOrderWidget";
@@ -18,11 +23,6 @@ import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import home from "services/home";
-import {
-  DeleteModalComponentPropsType,
-  OrderButtonsPropsType,
-} from "models/componentType/settingTypes/DeleteModalComponentPropsType";
-import { OrdersPagePropsType } from "models/componentType/OrdersPagePropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
 
 const DeleteIcon = () => {
@@ -106,7 +106,7 @@ const DeleteIcon = () => {
     </svg>
   );
 };
-function OrdersPage({ setStep, close }: OrdersPagePropsType) {
+function OrdersPage({ setStep, close }) {
   const {
     addressDetails,
     orderData,
@@ -137,56 +137,29 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
   const setOrderSuccess = async (e) => {
     try {
       if (orderData?.payment?.length === 1) {
+        const selectedPayment = orderData?.payment[0];
+
+        // Wallet checkout is handled entirely by WalletPaymentModal — skip PlaceOrder
+        if (selectedPayment?.id === 1) return;
+
         let payment_method =
-          orderData?.payment[0]?.id === 0
+          selectedPayment?.id === 0
             ? "cash_on_delivery"
-            : orderData?.payment[0]?.id === 1
-            ? "trydos_wallet"
-            : orderData?.payment[0]?.id === 2
-            ? "card"
-            : "crypto";
+            : selectedPayment?.id === 2
+              ? "card"
+              : "crypto";
         setLoading(true);
         await order.PlaceOrder({
           payment_method,
           pay_by_wallet: false,
         });
         setLoading(false);
-      } else {
-        if (
-          orderData.payment.length &&
-          orderData?.payment?.filter((one) => one.id === 2).length
-        ) {
-          setLoading(true);
-          await order.PlaceOrder({
-            payment_method: "card",
-            pay_by_wallet: true,
-          });
-          setLoading(false);
-        }
-        if (
-          orderData.payment.length &&
-          orderData?.payment?.filter((one) => one.id === 3).length
-        ) {
-          setLoading(true);
-          await order.PlaceOrder({
-            payment_method: "crypto",
-            pay_by_wallet: true,
-          });
-          setLoading(false);
-        }
-        if (
-          orderData.payment.length &&
-          orderData?.payment?.filter((one) => one.id === 0).length
-        ) {
-          setLoading(true);
-          await order.PlaceOrder({
-            payment_method: "cash_on_delivery",
-            pay_by_wallet: true,
-          });
-          setLoading(false);
-        }
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "create  order function - cart widget",
+      });
       getCart({
         callback: ([data, res]) => {
           initCart(data ?? { cart: [] });
@@ -205,7 +178,7 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
   return (
     <div
       className={`pb-[10px]
-     flex-col relative  top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+     flex-col relative  top-0 left-0 min-h-screen max-h-screen h-auto overflow-hidden w-full bg-[#ffffff] min-w-screen z-9999999999 pt-1`}
     >
       {deleteModal && (
         <DeleteModalComponent
@@ -226,7 +199,7 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
       <SlideWidget step={orderStep} duration={400}>
         <div
           data-cy="swiper-slide"
-          className={`min-w-[100vw] h-[100vh] relative cart-widget`}
+          className={`min-w-screen h-screen relative cart-widget`}
         >
           {AddressListsOpen && (
             <AddressListContainer
@@ -245,13 +218,14 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
           )}
           <div
             data-cy="header-delivery"
-            className="flex-col pl-2 pr-2 bg-[#fff] p-1 "
+            className="flex-col pl-2 pr-2 bg-white p-1 "
           >
             <div
               data-cy="header-delivery-container"
               className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center "
             >
-              <BackIcon
+              <img
+                src="/icons/backIcon.svg"
                 data-cy="swiperSlide-backIcon"
                 className="cursor-pointer z-50"
                 onClick={() => {
@@ -403,13 +377,14 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
             orderLoading={false}
           />
         </div>
-        <div className="min-w-[100vw] relative max-h-[100vh] h-[100vh] cart-widget overflow-hidden">
+        <div className="min-w-screen relative max-h-screen h-screen cart-widget overflow-hidden">
           {nextStep ? (
             <>
-              <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+              <div className="flex-col pl-2 pr-2 bg-white p-1">
                 {!orderData.success && (
                   <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
-                    <BackIcon
+                    <img
+                      src="/icons/backIcon.svg"
                       className="cursor-pointer z-50"
                       onClick={() => {
                         // Sendevent({
@@ -422,7 +397,7 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
                       }}
                     />
                     <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                      <AddAddressIcon />
+                      <img src="/icons/AddAddress.svg" />
                       <span className="regular ml-[8px]">
                         <>{translateFunction("Shipping & Payment")}</>
                       </span>
@@ -464,9 +439,10 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
             </>
           ) : (
             <>
-              <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+              <div className="flex-col pl-2 pr-2 bg-white p-1">
                 <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
-                  <BackIcon
+                  <img
+                    src="/icons/backIcon.svg"
                     className="cursor-pointer z-50"
                     data-cy="back-icon-addadresspage" // Added data-cy
                     onClick={() => {
@@ -479,7 +455,10 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
                     }}
                   />
                   <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                    <AddAddressIcon data-cy="add-address-icon" />
+                    <img
+                      src="/icons/AddAddress.svg"
+                      data-cy="add-address-icon"
+                    />
                     <span className="regular ml-[8px]" data-cy="address-text">
                       <>
                         {addressDetails.id
@@ -532,7 +511,7 @@ export const DeleteModalComponent = ({
   closeModal,
   deletedAddress,
   slidePrev,
-}: DeleteModalComponentPropsType) => {
+}) => {
   const { deleteAddress } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
@@ -571,7 +550,7 @@ export const DeleteModalComponent = ({
   return (
     <>
       <div
-        className="absolute top-0 left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-60 bg-[black]"
+        className="absolute top-0 left-0 min-w-screen z-999999998 min-h-screen opacity-60 bg-[black]"
         onClick={() => {
           // Sendevent({
           //   event: GA_EVENT_NAMES.CLICK,
@@ -581,15 +560,15 @@ export const DeleteModalComponent = ({
         }}
       />
       <div
-        className="flex-col w-full h-[90%] px-[24px] absolute z-[999999999]  justify-between"
+        className="flex-col w-full h-[90%] px-[24px] absolute z-999999999  justify-between"
         style={{
           backdropFilter: "blur(7px) brightness(1.3)",
         }}
       >
         <span />
         <div className="flex-col items-center">
-          <TrashIcon />
-          <span className="medium text-[16px] mt-[1px] text-[#fff]">
+          <img src="/icons/TrashIcon.svg" />
+          <span className="medium text-[16px] mt-px text-white">
             {translateFunction("Delete Below Address?")}
           </span>
           <div
@@ -754,7 +733,7 @@ export const DeleteModalComponent = ({
               // });
               closeModal();
             }}
-            className="w-full flex justify-center items-center cursor-pointer  rounded-[15px] h-[50px] bg-transparent regular text-[16px] text-[#fff]"
+            className="w-full flex justify-center items-center cursor-pointer  rounded-[15px] h-[50px] bg-transparent regular text-[16px] text-white"
           >
             {translateFunction("Cancel")}
           </div>
@@ -763,11 +742,7 @@ export const DeleteModalComponent = ({
     </>
   );
 };
-const OrderButtons = ({
-  orderLoading,
-  setNext,
-  setPrev,
-}: OrderButtonsPropsType) => {
+const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
   const {
     initCart,
     currency,
@@ -818,7 +793,7 @@ const OrderButtons = ({
     if (!isBalanceEnough()) {
       shake("payment-valid-border");
       showErrorNotification(
-        translateFunction("Your Balance Not meet purchase value")
+        translateFunction("Your Balance Not meet purchase value"),
       );
     }
     if (
@@ -855,7 +830,7 @@ const OrderButtons = ({
       setPrev();
       setLoading(false);
       showErrorNotification(
-        translateFunction("Please Verify Your Phone Number")
+        translateFunction("Please Verify Your Phone Number"),
       );
 
       return null;
@@ -868,13 +843,15 @@ const OrderButtons = ({
         (s) =>
           s?.check_availability === false ||
           s.is_country_restricted === true ||
-          s.is_active === false
+          s.is_active === false,
       ).length === 0
     ) {
       setNext();
     } else {
       showErrorNotification(
-        translateFunction("Please Review Your Cart Some Products Not Available")
+        translateFunction(
+          "Please Review Your Cart Some Products Not Available",
+        ),
       );
 
       setPrev();
@@ -887,7 +864,7 @@ const OrderButtons = ({
         style={{
           boxShadow: "0px -3px 20px #0000001a",
         }}
-        className={`   text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+        className={`   text-center  left-0 w-full h-[100px] bg-white px-[20px] pt-[12px]`}
       >
         <div
           onClick={() => {

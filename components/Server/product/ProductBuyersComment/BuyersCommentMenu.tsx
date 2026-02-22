@@ -1,10 +1,7 @@
 "use client";
 import Spinner from "components/global/Spinner";
-import DeleteCommentIcon from "public/svg/DeleteCommentIcon";
-import LanguageIcon from "public/svg/LanguageIcon";
-import PenIcon from "public/svg/PenIcon";
 import React, { useEffect, useRef, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 import { fetchData } from "utils/fetchData";
 import { useAppStore } from "store";
@@ -22,7 +19,7 @@ function BuyersCommentMenu({
   const [loading, setLoading] = useState(false);
   const { BuyerCommentModalOption, setBuyerCommentModalOption } = useAppStore();
   const [translatedComment, setTranslatedComment] = useState<string | null>(
-    null
+    null,
   );
   const [originalComment, setOriginalComment] = useState<string | null>(null);
   const [translateLoading, setTranslateLoading] = useState(false);
@@ -41,7 +38,7 @@ function BuyersCommentMenu({
       setTranslatedComment(null);
       setMenuOpen(false);
       document.querySelector<HTMLDivElement>(
-        `#comment-${comment.id}-text`
+        `#comment-${comment.id}-text`,
       ).innerText = comment?.comment ?? "";
       return;
     }
@@ -75,12 +72,15 @@ function BuyersCommentMenu({
         }
 
         document.querySelector<HTMLDivElement>(
-          `#comment-${comment.id}-text`
+          `#comment-${comment.id}-text`,
         ).innerText = response.translated_text;
       }
       setMenuOpen(false);
     } catch (error) {
-      console.error("Error translating comment:", error);
+      LogError({
+        error: error,
+        scenario: "Error In handleTranslateComment in BuyersCommentMenu",
+      });
     } finally {
       setTranslateLoading(false);
     }
@@ -105,15 +105,15 @@ function BuyersCommentMenu({
             right: isRtl ? "50px" : "initial",
           }}
           className={`${
-            isOwner ? "bottom-[0px]" : "bottom-[20px]"
-          }  absolute z-[80]   bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]`}
+            isOwner ? "bottom-0" : "bottom-[20px]"
+          }  absolute z-80   bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]`}
         >
           <button
             className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
             onClick={handleTranslateComment}
             disabled={translateLoading}
           >
-            <LanguageIcon className="w-4 h-4" />
+            <img src="/icons/LanguageIcon.svg" className="w-4 h-4" />
             {translateLoading ? (
               <Spinner />
             ) : isCommentTranslated ? (
@@ -137,7 +137,7 @@ function BuyersCommentMenu({
               }}
               disabled={loading}
             >
-              <PenIcon className="w-4 h-4" />
+              <img src="/icons/PenIcon.svg" className="w-4 h-4" />
               {loading ? "Updating..." : translateFunction("Edit")}
             </button>
           )}
@@ -155,7 +155,7 @@ function BuyersCommentMenu({
                 setMenuOpen(false);
               }}
             >
-              <DeleteCommentIcon className="w-4 h-4" />
+              <img src="/icons/DeleteCommentIcon.svg" className="w-4 h-4" />
               {translateFunction("Delete")}
             </button>
           )}

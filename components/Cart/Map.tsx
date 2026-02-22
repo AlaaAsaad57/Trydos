@@ -1,26 +1,19 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
-import { ConfirmLocationPropsType } from "models/componentType/ConfirmLocationPropsType";
-import { MapPropsType } from "models/componentType/MapPropsType";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 const MapElement = dynamic(
   () => import("./MapElement").then((mod) => mod.MapElement),
-  { ssr: false }
+  { ssr: false },
 );
 
-const Map = ({
-  setAddressDetails,
-  center,
-  expanded,
-  setExpanded,
-}: MapPropsType) => {
+const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
   const { lang } = useParams();
   const { addressDetails } = useAppStore();
   const [cordinates, setCordinates] = useState(null);
@@ -44,6 +37,11 @@ const Map = ({
       setCordinates(res.country.boundary.coordinates);
       setLoading(false);
     } catch (e) {
+      LogError({
+        error: e,
+        scenario: "getCountryBoundries  in Map widget",
+        country,
+      });
       setCordinates(null);
       setLoading(false);
     }
@@ -129,7 +127,7 @@ const Map = ({
                     className="medium whitespace-nowrap  text-[12px] mt-[10px] flex"
                   >
                     {translateFunction(
-                      "Location Is Accurate, Making It Easy To Receive Shipments"
+                      "Location Is Accurate, Making It Easy To Receive Shipments",
                     )}
                   </div>
                 )}
@@ -163,11 +161,7 @@ const Map = ({
 
 export default Map;
 
-const ConfirmLocation = ({
-  locationSelected,
-  selectLocation,
-  closeMap,
-}: ConfirmLocationPropsType) => {
+const ConfirmLocation = ({ locationSelected, selectLocation, closeMap }) => {
   return (
     <div
       data-cy="confirm-location"

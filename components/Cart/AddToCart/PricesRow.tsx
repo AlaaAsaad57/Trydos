@@ -8,27 +8,27 @@ function PricesRow({
   shipping_cost,
   offer_price,
   price,
-  redeem_price,
+  luck_price,
   id,
   currency,
   language,
   noBorder = false,
-  is_redeem,
+  is_luck,
 }) {
-  const shouldShowRedeem = () => {
+  const shouldShowLuck = () => {
     if (typeof window === "undefined") return false;
     const redeemed_ids = getCookie<any[]>("redemed_ids");
     return !redeemed_ids?.find((s) => s.id === id);
   };
   const isRtl = language === "ar" || language === "ku";
   const renderPrice = () => {
-    if (redeem_price && redeem_price > 0 && shouldShowRedeem()) {
+    if (luck_price && luck_price > 0 && shouldShowLuck()) {
       if (price === offer_price) {
         return (
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
-            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-white`}
           >
             <span className="relative text-[#C4C2C2]">
               <svg
@@ -56,7 +56,7 @@ function PricesRow({
             </span>
             <span className="relative bold text-[#FF6200]">
               {RoundPrice({
-                num: redeem_price,
+                num: luck_price,
                 rate: currency?.exchange_rate,
                 language: language,
               })}
@@ -67,7 +67,7 @@ function PricesRow({
       } else {
         return (
           <div
-            className={`flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+            className={`flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-white`}
           >
             <span className="relative text-[#C4C2C2]">
               <svg
@@ -119,7 +119,7 @@ function PricesRow({
             </span>
             <span className="relative bold text-[#FF6200]">
               {RoundPrice({
-                num: redeem_price,
+                num: luck_price,
                 rate: currency?.exchange_rate,
                 language: language,
               })}
@@ -134,7 +134,7 @@ function PricesRow({
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
-            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-white`}
           >
             <span className="relative text-[#1D1D1D] bold">
               {RoundPrice({
@@ -151,7 +151,7 @@ function PricesRow({
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
-            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-white`}
           >
             <span className="relative text-[#C4C2C2]">
               <svg
@@ -198,7 +198,7 @@ function PricesRow({
     >
       {renderPrice()}
 
-      <span className="text-[9px] translate-x-[-1px] text-[#C4C2C2] regular">
+      <span className="text-[9px] -translate-x-px text-[#C4C2C2] regular">
         {currency?.symbol}
       </span>
       <span className="flex ml-[3px] pb-[8px]">

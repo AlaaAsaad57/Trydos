@@ -1,29 +1,27 @@
-import React, { useState } from "react";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
-import { useAppStore } from "store";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
-function CategoryItem({ category, onClick, isActive }) {
-  const { searchFilters } = useAppStore();
-  const [expanded, setExpand] = useState(false);
+function CategoryItem({ category, onClick, isActive, applied_filter }) {
+  // A category is "effectively" active if it or any of its children are in the filters
+  const isChildActive = category.childes?.some((child) =>
+    applied_filter.categories.some((f) => f.slug === child.slug)
+  );
+
+  // Auto-expand if the parent is selected or if a child is selected
+  const isExpanded = isActive || isChildActive;
+
   return (
     <>
       <div
-        className="category-item brand-item whitespace-nowrap relative pr-4 z-10"
-        data-cy="category-result"
-        onClick={() => {
-          if (expanded) {
-            setExpand(false);
-          } else {
-            setExpand(true);
-          }
-          onClick(category);
-        }}
+        className={`category-item brand-item whitespace-nowrap relative pr-4 z-10 ${
+          isActive ? "active-border" : ""
+        }`}
+        onClick={() => onClick(category)}
       >
         {isActive && (
-          <ActiveCategoryIcon
-            style={{ top: "-6px", left: "-15px", scale: "0.6" }}
+          <img
+            src="/icons/ActiveCategoryIcon.svg"
+            style={{ top: "-6px", left: "-4px", scale: "0.6" }}
             className="absolute"
           />
         )}
@@ -33,47 +31,56 @@ function CategoryItem({ category, onClick, isActive }) {
           width={30}
           height={30}
           src={getConfiguredImage({
-            src: GetImageUrl(category?.flat_photo_path.file_path),
+            src: GetImageUrl(category?.flat_photo_path?.file_path),
             height: 40,
           })}
         />
-
         {category.name}
       </div>
+
       {category.childes?.length > 0 && (
         <div
-          className={`flex-row min-w-0 max-w-0 overflow-hidden  categories-sub-circles h-[30px] items-center z-0  ${
-            (expanded || isActive) &&
-            "no-transform w-auto min-w-max overflow-visible max-w-max  pl-3"
+          className={`flex-row min-w-0 max-w-0 overflow-hidden categories-sub-circles h-[30px] items-center z-0 transition-all duration-300 ${
+            isExpanded &&
+            "no-transform w-auto min-w-max overflow-visible max-w-max pl-3"
           }`}
         >
-          {category.childes.map((s, index) => (
-            <div
-              key={index}
-              className="category-item brand-item whitespace-nowrap relative pr-4 h-5 w-auto"
-              onClick={() => onClick(s)}
-            >
-              {isActive &&
-                searchFilters.categories.some((sub) => sub.slug === s.slug) && (
-                  <ActiveCategoryIcon
-                    style={{ top: "-6px", left: "-15px", scale: "0.6" }}
+          {category.childes.map((child, index) => {
+            const isThisSubActive = applied_filter.categories.some(
+              (f) => f.slug === child.slug
+            );
+
+            return (
+              <div
+                key={index}
+                className="category-item brand-item whitespace-nowrap relative pr-4 h-5 w-auto"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent parent click
+                  onClick(child);
+                }}
+              >
+                {isThisSubActive && (
+                  <img
+                    src="/icons/ActiveCategoryIcon.svg"
+                    style={{ top: "-6px", left: "-4px", scale: "0.6" }}
                     className="absolute"
                   />
                 )}
-              <Image
-                alt={category.name || "Image"}
-                width={30}
-                height={30}
-                src={getConfiguredImage({
-                  src:
-                    GetImageUrl(s.most_viewed_product_thumbnail) ??
-                    GetImageUrl(s.icon),
-                  height: 40,
-                })}
-              />
-              {s.name}
-            </div>
-          ))}
+                <Image
+                  alt={child.name || "Image"}
+                  width={30}
+                  height={30}
+                  src={getConfiguredImage({
+                    src: GetImageUrl(
+                      child.most_viewed_product_thumbnail || child.icon
+                    ),
+                    height: 40,
+                  })}
+                />
+                {child.name}
+              </div>
+            );
+          })}
         </div>
       )}
     </>

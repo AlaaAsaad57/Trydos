@@ -1,23 +1,18 @@
 import React from "react";
 import { useAppStore } from "store";
-import Qr from "public/svg/Userqr";
+
 import Skeleton from "react-loading-skeleton";
-import OrdersIcon from "public/svg/OrdersIcon";
+
 import { translateFunction } from "utils/functions";
-import TryDosWalletIcon from "public/svg/TryDosWalletIcon";
-import SettingsIcon from "public/svg/SettingsIcon";
-import TermsIcon from "public/svg/TermsIcon";
-import LegalInfoIcon from "public/svg/LegalInfoIcon";
-import AboutIcon from "public/svg/AboutIcon";
-import ShareAppIcon from "public/svg/ShareAppIcon";
+
 import { GetImageUrl } from "utils/tinyUtils";
 
 const options = [
-  { name: "Settings", Icon: <SettingsIcon /> },
-  { name: "Terms & Conditions", Icon: <TermsIcon /> },
-  { name: "Legal Information", Icon: <LegalInfoIcon /> },
-  { name: "About Us", Icon: <AboutIcon /> },
-  { name: "Share App", Icon: <ShareAppIcon /> },
+  { name: "Settings", Icon: <></> },
+  { name: "Terms & Conditions", Icon: <></> },
+  { name: "Legal Information", Icon: <></> },
+  { name: "About Us", Icon: <></> },
+  { name: "Share App", Icon: <></> },
 ];
 function SettingsLoader() {
   const { userProfile, totalOrders } = useAppStore();
@@ -34,7 +29,6 @@ function SettingsLoader() {
         <div className="flex-col w-full pt-[20px] px-[12px]">
           <div className="w-full h-[138px] rounded-[15px] bg-[#F8F8F8] p-[12px] flex-row justify-between cursor-pointer">
             <div className="flex-col">
-              <Qr />
               <div className="flex-row items-end">
                 <div className="flex-col mt-[5px]">
                   <span className="medium text-[#1D1D1D] text-[14px]">
@@ -141,7 +135,6 @@ function SettingsLoader() {
           </div>
           <div className="flex-row mt-[18px]">
             <div className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] cursor-pointer">
-              <OrdersIcon />
               <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
                 {translateFunction("Orders")}
               </span>
@@ -154,9 +147,8 @@ function SettingsLoader() {
               )}
             </div>
             <div className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] ml-[12px] cursor-pointer">
-              <TryDosWalletIcon />
               <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
-                {translateFunction("Trydos Wallet")}
+                {translateFunction("Ramaaz Digital Bank Wallet")}
               </span>
               <span className="text-[#8D8D8D] text-[12px] regular">
                 <Skeleton width={40} height={20} />

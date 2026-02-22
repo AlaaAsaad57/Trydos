@@ -1,5 +1,6 @@
-import { allCountries } from "country-telephone-data";
+import { getCountryNameByIso2 } from "utils/countryData";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
+import { CartApiInterface } from "utils/types/cart";
 
 const getCountry = () => {
   const countryParam =
@@ -7,7 +8,7 @@ const getCountry = () => {
     window.location.pathname.split("/")[1].split("-")[0];
   if (countryParam) {
     let country = {
-      name: allCountries.filter((s) => s.iso2 === countryParam)[0]?.name,
+      name: getCountryNameByIso2(countryParam),
       code: countryParam,
     };
     return country;
@@ -121,7 +122,6 @@ export const useCartStore = (set, get) => ({
   settingLastPath: null,
   LoggingOut: false,
   setLastPathname: (e) => {
-    console.log(e);
     set((state) => ({ lastPathname: e }));
   },
   setLoggingOut: (e) =>
@@ -172,13 +172,14 @@ export const useCartStore = (set, get) => ({
       credit: state.total_cash || 0,
     })),
 
-  setWalletUser: (wallet) =>
+  setWalletUser: (wallet) => {
     set({
       wallet: {
         ...wallet,
         wallet_balance: wallet?.wallet_balance || 0,
       },
-    }),
+    });
+  },
 
   setMapCenter: (center) => set({ center }),
 
@@ -312,10 +313,8 @@ export const useCartStore = (set, get) => ({
       const products = cart.oldCart ?? [];
       const oldCart = products.map((product) => ({
         ...product,
-        offer_price: product.discount
-          ? product.price_of_variant - product.discount
-          : 0,
-        price: product.price_of_variant,
+        offer_price: product?.offer_price,
+        price: product.unit_price,
       }));
       return { oldCart: { ...cart, oldCart } };
     }),
@@ -335,9 +334,9 @@ export const useCartStore = (set, get) => ({
       return { oldCart: { ...state.oldCart, oldCart } };
     }),
 
-  editQuantity: (type) =>
+  editQuantity: (variantId) =>
     set((state) => {
-      if (type === "") {
+      if (variantId === "") {
         return {
           SelectedProduct: {
             ...state.SelectedProduct,
@@ -350,7 +349,7 @@ export const useCartStore = (set, get) => ({
       } else {
         const arr = [];
         state.SelectedProduct.variation.map((s) => {
-          if (s.type === type)
+          if ((s.product_variation_id ?? s.id) === variantId)
             arr.push({ ...s, qty: s.qty === 0 ? 0 : s.qty - 1 });
           else arr.push(s);
         });
@@ -363,31 +362,29 @@ export const useCartStore = (set, get) => ({
       }
     }),
 
-  initCart: (data) =>
+  initCart: (data: CartApiInterface) =>
     set((state) => ({
       ...data,
+      cartShippingSuccess: null,
       localCart: [
         ...data.cart.map((s) => ({
           id: s.product_id,
           item_id: s.id,
           image: s.image,
           quantity: s.quantity,
-          is_redeem: s.is_redeem,
-          size: s.variations?.[0]?.size_options
-            ? s.variations?.[0]?.size_options
-            : undefined,
-          color: s?.variations?.[0]?.color_options ?? undefined,
+          is_luck: s.is_luck,
+          size: s.variations?.size_options ?? undefined,
+          color: s?.variations?.color_options ?? undefined,
           sku: `${s.product_id}${
-            s.variations?.length > 0 && s?.variations[0]?.color_options
-              ? `-${s.variations[0].color_options}`
+            s?.variations?.color && s?.variations?.color_options
+              ? `-${s.variations?.color_options}`
               : ""
           }${
-            s.variations?.[0]?.size_options
-              ? `-${s.variations?.[0]?.size_options}`
-              : ""
+            s.variations?.size_options ? `-${s.variations?.size_options}` : ""
           }`,
-          type: s?.variant,
+          type: s?.product_variation_id,
           offer_price: s.offer_price,
+          product_variation_id: s.product_variation_id,
         })),
       ],
     })),
@@ -397,6 +394,7 @@ export const useCartStore = (set, get) => ({
       ...data,
       cart: state.cart,
       localCart: state.localCart,
+      cartShippingSuccess: null,
     })),
 
   removeFromCart: (id) =>
@@ -452,13 +450,13 @@ export const useCartStore = (set, get) => ({
         if (temp_variant) {
           let size =
             temp_product.choice_options &&
-            temp_product.choice_options[0]?.options.filter((s) =>
-              temp_variant.type.endsWith(s.name)
+            temp_product.choice_options[0]?.options.filter(
+              (s) => s.name === temp_variant.size,
             )[0];
           let color =
             temp_product.sync_color_images &&
-            temp_product.sync_color_images?.filter((s) =>
-              temp_variant.type.startsWith(s.color_name)
+            temp_product.sync_color_images?.filter(
+              (s) => s.color_name === temp_variant.color?.name,
             )[0];
           temp = {
             AddToCartOption: {
@@ -487,22 +485,11 @@ export const useCartStore = (set, get) => ({
       SelectedProduct: { ...state.SelectedProduct, ...info },
     }));
   },
-  expireRedeem: () =>
+  expireLuck: () =>
     set((state) => ({
       ...state,
-      SelectedProduct: { ...state.SelectedProduct, is_redeem: false },
+      SelectedProduct: { ...state.SelectedProduct, is_luck: false },
     })),
-  storeVariants: (variants) =>
-    set((state) => ({
-      variants,
-      cart_loading: false,
-      loaded: true,
-      SelectedProduct: {
-        ...state.SelectedProduct,
-        slug_en_topic: variants.slug_en_topic,
-      },
-    })),
-
   enableAddToCartOption: (product) =>
     set((state) => {
       DisableScroll();
@@ -545,7 +532,7 @@ export const useCartStore = (set, get) => ({
       }
     }),
 
-  notifyProduct: (type) =>
+  notifyProduct: (variantId) =>
     set((state) => {
       let temp = { ...state.SelectedProduct };
       let newVal = {};
@@ -553,7 +540,8 @@ export const useCartStore = (set, get) => ({
         newVal = {
           ...temp,
           variation: temp.variation.map((s) => {
-            if (s.type === type) return { ...s, variant_notify_for_user: true };
+            if ((s.product_variation_id ?? s.id) === variantId)
+              return { ...s, variant_notify_for_user: true };
             else return s;
           }),
         };
@@ -585,11 +573,11 @@ export const useCartStore = (set, get) => ({
       let arr_of_selected = [];
       if (
         state.AddToCartOption.selectedOptions.filter(
-          (s) => s.UID === option.UID
+          (s) => s.UID === option.UID,
         ).length > 0
       ) {
         let variable = state.AddToCartOption.selectedOptions.filter(
-          (s) => s.UID === option.UID
+          (s) => s.UID === option.UID,
         )[0];
         arr_of_selected = state.AddToCartOption.selectedOptions.map((s) => {
           if (s.UID === option.UID)
@@ -618,17 +606,16 @@ export const useCartStore = (set, get) => ({
   addToCartSize: (size) =>
     set((state) => {
       if ((state.variants?.variation || state.variants || [])?.length > 0) {
-        let variant = (state.variants?.variation || state.variants || [])
-          .map((s) => {
-            if (s.type.includes("-")) return s;
-            else return { ...s, type: `-${s.type}` };
-          })
-          .filter(
-            (s) =>
-              s.type.includes(
-                state?.AddToCartOption?.selectedColor?.color_name || ""
-              ) && s.type.endsWith(`-${size?.name}` || "")
-          )[0];
+        let variant = (
+          state.variants?.variation ||
+          state.variants ||
+          []
+        ).filter(
+          (s) =>
+            (s.color?.name || "") ===
+              (state?.AddToCartOption?.selectedColor?.color_name || "") &&
+            s.size === size?.name,
+        )[0];
         return {
           AddToCartOption: {
             ...state.AddToCartOption,
@@ -655,8 +642,8 @@ export const useCartStore = (set, get) => ({
     set((state) => {
       let variant = (state.variants?.variation || state.variants || []).filter(
         (s) =>
-          s.type.includes(color?.color_name || "") &&
-          s.type.includes(state?.AddToCartOption?.selectedSize?.name || "")
+          (s.color?.name || "") === (color?.color_name || "") &&
+          (s.size || "") === (state?.AddToCartOption?.selectedSize?.name || ""),
       )[0];
 
       return {

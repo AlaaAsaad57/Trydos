@@ -3,7 +3,7 @@ import ProductImagesSlider from "components/products/ProductImageSlider";
 import VirtualTryOn from "components/products/VirtualTryOn";
 
 import Image from "next/image";
-import { cookies } from "next/headers";
+import { getCookieServer } from "utils/cookies/cookie-manager";
 
 import { getConfiguredImage, GetImageUrl } from "utils/server";
 import ProductRedeemCounter from "components/products/ProductRedeemCounter";
@@ -23,9 +23,7 @@ async function ProductPhotoSliderWrapper({
   const isRtl = language === "ar" || language === "ku";
   const isRedeemed = async () => {
     if (!qtyPromiseData?.is_redeem) return false;
-    const cookiesStore = await cookies();
-    let redeemed: any = cookiesStore.get("redeemd_ids")?.value;
-    redeemed = redeemed ? JSON.parse(redeemed) : null;
+    let redeemed: any = await getCookieServer<any[]>("redeemd_ids");
     if (
       redeemed &&
       redeemed.find((s) => String(s.id) === String(qtyPromiseData.id))
@@ -42,7 +40,7 @@ async function ProductPhotoSliderWrapper({
   const getImages = (productData, color): { images: any[] } => {
     if (color && color.length > 0 && productData?.sync_color_images) {
       const matchingColor = productData?.sync_color_images?.find(
-        (s) => s.color_option === color || s.color_name === color
+        (s) => s.color_option === color || s.color_name === color,
       );
       if (matchingColor) {
         return matchingColor;
@@ -71,10 +69,10 @@ async function ProductPhotoSliderWrapper({
       if (difference > 0) {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
         const hours = Math.floor(
-          (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+          (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
         );
         const minutes = Math.floor(
-          (difference % (1000 * 60 * 60)) / (1000 * 60)
+          (difference % (1000 * 60 * 60)) / (1000 * 60),
         );
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
@@ -199,7 +197,7 @@ async function ProductPhotoSliderWrapper({
             );
         }
         if (index === length - 1) {
-          if (isRtl)
+          if (!isRtl)
             return (
               <svg
                 className="absolute top-0 left-0 z-55"
@@ -287,16 +285,27 @@ async function ProductPhotoSliderWrapper({
   // utils end
 
   return (
-    <ProductImagesSlider language={language}>
+    <ProductImagesSlider
+      language={language}
+      productGA={{
+        item_id: globalDetails?.id,
+        item_name: globalDetails?.name,
+        brand: globalDetails?.brand?.name,
+        brand_id: globalDetails?.brand?.id,
+        category: globalDetails?.categories?.[0]?.name,
+        category_id: globalDetails?.categories?.[0]?.id,
+        price: qtyPromiseData?.offer_price,
+      }}
+    >
       {getImages(globalDetails, color)?.images?.map((img, i) => (
         <div
           key={i}
-          className={`${i === 0 ? "z-[99999999]" : "z-[88]"} relative flex`}
+          className={`${i === 0 ? "z-99999999" : "z-88"} relative flex`}
         >
           <div
             className={`${getRoundedClass(
               i,
-              getImages(globalDetails, color)?.images?.length
+              getImages(globalDetails, color)?.images?.length,
             )} embla__slide product-slider-images relative`}
             key={img?.file_path}
           >
@@ -304,7 +313,7 @@ async function ProductPhotoSliderWrapper({
             <Image
               className={`${getRoundedClass(
                 i,
-                getImages(globalDetails, color)?.images?.length
+                getImages(globalDetails, color)?.images?.length,
               )} w-[320px] h-[464px]`}
               width={320}
               height={464}

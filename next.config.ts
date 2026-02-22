@@ -1,13 +1,11 @@
 import { withSentryConfig } from "@sentry/nextjs";
+import withBundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 
 let nextConfig: NextConfig = {
   reactStrictMode: false,
   compress: true,
   bundlePagesRouterDependencies: false,
-  // React 19 Compiler Configuration
-  // Automatically optimizes React components (memoization, etc.)
-  // No additional packages needed - built into Next.js 16
   reactCompiler: true,
   async headers() {
     return [
@@ -30,7 +28,16 @@ let nextConfig: NextConfig = {
           },
           {
             key: "Cache-Control",
-            value: "s-maxage=86400, stale-while-revalidate=86400",
+            value: "private, no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/api/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-store, no-cache, must-revalidate",
           },
         ],
       },
@@ -90,46 +97,58 @@ let nextConfig: NextConfig = {
   },
 
   experimental: {
+    serverActions: {
+      bodySizeLimit: "5mb",
+    },
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
     optimizeCss: true, // Disabled due to critters module error
     optimizeServerReact: true,
     staleTimes: {
-      dynamic: 86400,
-      static: 86400,
+      dynamic: 30,
+      static: 180,
     },
   },
 
-  productionBrowserSourceMaps: true,
-  // your config for other plugins or the general next.js here...
+  productionBrowserSourceMaps: false,
 };
 
-if (process.env.NODE_ENV !== "production") {
-  // const withBundleAnalyzer = require("@next/bundle-analyzer")({
-  //   enabled: true,
-  // });
-  // const finalConfig = withBundleAnalyzer(nextConfig);
-  // module.exports = finalConfig;
-  module.exports = nextConfig;
-} else {
-  // const withBundleAnalyzer = require("@next/bundle-analyzer")({
-  //   enabled: true,
-  // });
-  // const finalConfig = withBundleAnalyzer(nextConfig);
-  // module.exports = finalConfig;
-  module.exports = nextConfig;
-}
+const analyze = withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" });
 
-export default withSentryConfig(undefined, {
+export default withSentryConfig(analyze(nextConfig), {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
-  org: "ramaaz-fm",
-  project: "javascript-nextjs",
+
+  org: "ramaaz-2x",
+
+  project: "trydos",
+
+  // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
+
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+
   // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: true,
-  disableLogger: true,
-  automaticVercelMonitors: true,
+
+  // Uncomment to route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
+  // This can increase your server load as well as your hosting bill.
+  // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
+  // side errors will fail.
+  // tunnelRoute: "/monitoring",
+
+  webpack: {
+    // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
+    // See the following for more information:
+    // https://docs.sentry.io/product/crons/
+    // https://vercel.com/docs/cron-jobs
+    automaticVercelMonitors: true,
+
+    // Tree-shaking options for reducing bundle size
+    treeshake: {
+      // Automatically tree-shake Sentry logger statements to reduce bundle size
+      removeDebugLogging: true,
+    },
+  },
 });

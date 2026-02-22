@@ -72,7 +72,7 @@ function ColorSelect({
       >
         <Image
           alt="colors-icon"
-          src={"/svg/product/colors.svg"}
+          src={"/icons/colors.svg"}
           width={14}
           height={14}
           className="max-h-[14px] object-contain"

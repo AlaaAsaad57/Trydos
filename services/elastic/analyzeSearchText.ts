@@ -1,106 +1,77 @@
 import { GetColorAndSizes } from "serverRequests/analyticsUtility";
-
+import { LogServerError } from "utils/serverErrorReporter";
+// import { HttpsProxyAgent } from "https-proxy-agent";
+// import fetch from "node-fetch";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GL_API_KEY}`;
 
 export default async function AnalyzeSearchText(query): Promise<any> {
+  let modifiedQuery = decodeURIComponent(query);
   let start = process.hrtime.bigint();
   let data = await GetColorAndSizes();
+
   const prompt = `
-استلم الاستفسار التالي بأي لغة كانت، وحلل معناه بدقة، ثم استخرج الحقول التالية فقط وفق القواعد الصارمة أدناه:
+Act as an expert semantic parser for an e-commerce store. 
+Analyze the user's query and extract specific attributes into a valid JSON object.
 
-- name: اسم المنتج كاملًا بدون اللون وبدون القياس (لا تحذف أي كلمات أخرى من الاسم).
-- color: مصفوفة JSON من الألوان بصيغة HEX فقط مثل "#FF0000".
-  ارجع فقط القيم الموجودة ضمن: ( ${data?.colors} )
-  إذا لم يوجد أي لون مطابق، أرجع مصفوفة فارغة [].
-- size: مصفوفة JSON من القياسات بصيغة موحدة فقط من: ( ${data?.sizes} ).
-  إذا كان القياس موجودًا بصيغة مختلفة (كلمات أو أرقام أو وصف)، حاول مطابقته مع القيم المسموح بها.
-  إذا لم يوجد أي قياس مطابق، أرجع مصفوفة فارغة [].
-- type: نوع المادة أو الصنف (مثل قطن، حرير، جلد، بوليستر).
+### DATA:
+- ALLOWED_COLORS (HEX): ${JSON.stringify(data?.colors)}
+- ALLOWED_SIZES: ${JSON.stringify(data?.sizes)}
 
-قواعد إلزامية:
-- لا تُرجع أي حقول إضافية.
-- لا تستخدم Markdown أو أي تنسيق.
-- يجب أن يكون الحقلان color و size دائمًا مصفوفات JSON حتى لو كانت فارغة.
-- إذا تعذر استخراج name أو type أرجع "Unknown".
+### EXTRACTION RULES:
+1. **name**: Product name only. Exclude colors, sizes, and materials mentioned in the query. Default: "Unknown".
+2. **color**: Array of HEX codes.
+   - Match the user's color description (in any language) to the most logical name in ALLOWED_COLORS.
+   - **TIE-BREAKER**: If multiple entries exist for the same color name (e.g., "Black"), prioritize the standard HEX (like #000000) over custom or "test" codes.
+   - If the user says "dark" or "light" versions, pick the closest visual match from the list.
+3. **size**: Array of strings from ALLOWED_SIZES.
+   - Map terms like "كبير جدا" or "extra large" to "XL" or "XXL" based strictly on what is available in ALLOWED_SIZES.
+   - Map "small" to "S", "medium" to "M", etc.
+   
+### CONSTRAINTS:
+- Return ONLY a valid JSON object.
+- NO markdown formatting.
+- NO prose or explanation.
 
-النص:
-"${query}"
-
-أرجع النتيجة بصيغة JSON صحيحة فقط.
+### INPUT QUERY:
+"${modifiedQuery}"
 `;
-
+  // const proxyUrl = "http://kedaprax:qi1yxs8k11ol@142.111.48.253:7030";
+  // const agent = new HttpsProxyAgent(proxyUrl);
   try {
     const response = await fetch(API_URL, {
       method: "POST",
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-      }),
+      // @ts-ignore
+      // agent: agent,
       headers: { "Content-Type": "application/json" },
-      credentials: "omit",
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json", // This ensures JSON output
+        },
+      }),
     });
 
-    if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
-    }
-    let data = await response.json();
+    if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
 
-    console.warn(
-      "Received response from Gemini API:",
-      JSON.stringify(data, null, 2)
-    );
+    const result: any = await response.json();
     const outputText =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-    const cleanedText = outputText.replace(/^```json|```$/gm, "").trim();
+      result?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "{}";
 
-    let parsed = cleanedText;
-    try {
-      parsed = JSON.parse(cleanedText);
-    } catch (e) {
-      return {
-        error: `Failed to parse JSON from Gemini response ${parsed}`,
-        message: `Failed to parse JSON from Gemini response ${parsed}`,
-        raw_output: outputText,
-        exception: e.toString(),
-      };
-    }
+    // Since we forced responseMimeType, we can usually parse directly
+    const parsed = JSON.parse(outputText);
 
-    const filtered: Record<string, any> = {};
-    for (const key in parsed) {
-      if (parsed[key] !== "Unknown") {
-        filtered[key] = parsed[key];
-      }
-    }
+    // Filter out "Unknown" values
+    const filtered = Object.fromEntries(
+      Object.entries(parsed).filter(([_, v]) => v !== "Unknown"),
+    );
 
-    // ✅ You can now send filtered to another service here if needed
     let end = process.hrtime.bigint();
-
     return { ...filtered, Geminitime: Number(end - start) / 1_000_000 };
-  } catch (error: any) {
-    return {
-      error: `API call to Gemini failed : ${
-        error?.message ?? JSON.stringify(error, null, 2)
-      }`,
-      details: error?.response?.data || error.message,
-    };
+  } catch (error) {
+    LogServerError({
+      scenario: "AnalyzeSearchText in services/analyzeSearchText",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return { error: `${error?.message}`, details: error.message };
   }
 }
-
-//example usage
-// const result = await fetch('http://localhost:3000/api/analyze', {
-//method: 'POST',
-//    headers: { 'Content-Type': 'application/json' },
-//body: JSON.stringify({ query: "قميص قطني أسود مقاس وسط" }),
-//})
-
-//const data = await result.json()
-
-// You can now use data (parsed Gemini result) with another service
-//console.log('Parsed:', data)

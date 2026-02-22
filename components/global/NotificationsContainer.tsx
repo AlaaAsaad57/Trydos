@@ -49,7 +49,7 @@ const NotificationsContainer = () => {
       const channel =
         chatData.find(
           (chat) =>
-            parseInt(chat.id) === parseInt(notification.chatData.channelId)
+            parseInt(chat.id) === parseInt(notification.chatData.channelId),
         ) || notification.chatData.channel;
 
       if (channel) {
@@ -93,7 +93,7 @@ const NotificationsContainer = () => {
       if (!timers[notification.id] && !dismissingIds.has(notification.id)) {
         timers[notification.id] = setTimeout(() => {
           handleDismiss(notification.id);
-        }, notification.duration || 10000);
+        }, notification.duration || 5000);
       }
     });
 
@@ -157,8 +157,8 @@ const NotificationsContainer = () => {
               notification.type === "success"
                 ? "bg-[#E2FFF1] border border-[#2CDD926f]"
                 : notification.type === "chat"
-                ? "bg-white border-2 border-[#402CDD2f] shadow-2xl"
-                : "bg-[#FFEDE2] border border-[#402CDD6f]"
+                  ? "bg-white border-2 border-[#402CDD2f] shadow-2xl"
+                  : "bg-[#FFEDE2] border border-[#402CDD6f]"
             }
             ${
               notification.href || isChatNotification
@@ -171,7 +171,7 @@ const NotificationsContainer = () => {
         const chatNotificationContent = notification.chatData ? (
           <div className="flex items-start gap-3 relative w-full">
             {/* Sender Photo */}
-            <div className="flex-shrink-0 relative">
+            <div className="shrink-0 relative">
               {notification.chatData.senderPhoto ? (
                 <div className="relative w-[30px] h-[30px] rounded-full overflow-hidden ">
                   <Image
@@ -217,7 +217,7 @@ const NotificationsContainer = () => {
                 e.stopPropagation();
                 handleDismiss(notification.id);
               }}
-              className="flex-shrink-0 p-1 absolute right-[-30px] top-[-23px] rounded-md transition-colors"
+              className="shrink-0 p-1 absolute right-[-30px] top-[-23px] rounded-md transition-colors"
               tabIndex={0}
               aria-label="Close notification"
             >
@@ -305,7 +305,7 @@ const NotificationsContainer = () => {
         const notificationContent = !isChatNotification ? (
           <div className="flex items-start gap-3 relative">
             {/* Icon */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {notification?.image ? (
                 <Image
                   className="object-cover object-center max-w-[40px] max-h-[40px] w-full h-full"
@@ -318,7 +318,7 @@ const NotificationsContainer = () => {
                 <Image
                   width={25}
                   height={25}
-                  src={"/svg/NotificationIcon.svg"}
+                  src={"/icons/NotificationIcon.svg"}
                   alt="notification-icon"
                 />
               )}
@@ -348,7 +348,7 @@ const NotificationsContainer = () => {
             <button
               onClick={() => handleDismiss(notification.id)}
               className={`
-                  flex-shrink-0 p-1 absolute right-[-30px] top-[-23px] rounded-md transition-colors
+                  shrink-0 p-1 absolute right-[-30px] top-[-23px] rounded-md transition-colors
                   
                 `}
               tabIndex={0}

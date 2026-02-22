@@ -1,13 +1,13 @@
 "use client";
 
 import StoryServiceClass from "services/story";
-import { FixedStory as StoryType } from "models/Genaral/Story";
+
 import { SelectStory } from "store/homepage/actions";
-import { StoryPropsType } from "models/componentType/StoryPropsType";
+
 import StoryCard from "./StoryCard";
 
-function Story({ media, Name, index, story }: StoryPropsType) {
-  const setSelectStory = (e: StoryType) => {
+function Story({ media, Name, index, story }) {
+  const setSelectStory = (e: any) => {
     SelectStory(e);
   };
   return (
@@ -17,6 +17,7 @@ function Story({ media, Name, index, story }: StoryPropsType) {
       data-cy="story-element"
     >
       <StoryCard
+        key={media?.full_video_path || media?.photo_path}
         Name={Name}
         media={media?.full_video_path || media?.photo_path}
         isVideo={media.full_video_path}

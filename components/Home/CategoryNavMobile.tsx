@@ -1,9 +1,8 @@
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import Image from "next/image";
 
 import NextLink from "components/global/NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
-import { CategoryNavMobileProps } from "models/componentType/HomePagePropsType";
+
 import { getConfiguredImage } from "utils/functions";
 
 function CategoryNavMobile({
@@ -15,7 +14,7 @@ function CategoryNavMobile({
   params,
   outline,
   mainCategory,
-}: CategoryNavMobileProps) {
+}) {
   // @ts-ignore
 
   return (
@@ -37,7 +36,8 @@ function CategoryNavMobile({
       data-id={slug}
     >
       {active && (
-        <ActiveCategoryIcon
+        <img
+          src="/icons/ActiveCategoryIcon.svg"
           className="absolute top-[-6px] left-[-6px]"
           data-cy="activeCategoryIcon"
         />

@@ -9,15 +9,17 @@ export function getSourceFields(): string[] {
     "videos",
     "thumbnail",
     "flash_deal_status",
-    "flash_deal_discount",
+    // "flash_deal_discount",
+    "flash_deal_price",
     "offered_price",
     "unit_price",
     "colors",
     "text_colors",
     "sync_color_images",
-    "discount",
-    "discount_type",
-    "redeem_discount_rate",
+    // "discount",
+    // "discount_type",
+    // "redeem_discount_rate",
+    "redeem_price",
     "current_stock",
     "boutique_id",
     // "available_size",
@@ -122,8 +124,32 @@ interface SearchFilters {
   featured?: boolean;
   flashdeal?: boolean;
 }
+
+interface FilterResult {
+  id: string | number;
+  name?: string;
+  slug?: string;
+  icon?: string;
+  banner?: any;
+  doc_count?: number;
+}
+
+interface CategoryFilter extends FilterResult {
+  category_id?: string | number;
+  bio?: string;
+  description?: string;
+  flat_photo_path?: string;
+  png_photo_path?: string;
+  fill_photo_path?: string;
+  banner_photo_path?: string;
+  num_available_product?: number;
+  parent_id?: string | number | null;
+  most_viewed_product_thumbnail?: string;
+  childes: CategoryFilter[];
+}
+
 export function normalizeCustomProducts(
-  productsWithFilters: ExtractFiltersResult
+  productsWithFilters: ExtractFiltersResult,
 ): ExtractFiltersResult {
   if (
     !productsWithFilters.custom_products ||
@@ -132,7 +158,7 @@ export function normalizeCustomProducts(
     return productsWithFilters;
   }
 
-  productsWithFilters.custom_products.forEach((product) => {
+  productsWithFilters.custom_products?.forEach((product) => {
     // Read the lists, whether they are arrays or objects
     const colorsList = Array.isArray(product.colors)
       ? product.colors
@@ -162,7 +188,7 @@ export function normalizeCustomProducts(
 
 function filterColorSyncObj(
   colors: ColorItem[],
-  syncColorImages: SyncColorImage[]
+  syncColorImages: SyncColorImage[],
 ): {
   colors: ColorItem[];
   sync_color_images: SyncColorImage[];
@@ -183,20 +209,21 @@ function filterColorSyncObj(
 export function extractFilters(
   products: any[],
   languageCode: string,
-  isFromBrowser: boolean
+  isFromBrowser: boolean,
 ): ExtractFiltersResult {
-  const customProducts: Record<string, CustomProduct> = {};
+  const customProducts: CustomProduct[] = [];
 
   products?.forEach((product) => {
-    // Process custom products
-    if (product.custom_products && Array.isArray(product.custom_products)) {
+    if (Array.isArray(product.custom_products)) {
       product.custom_products.forEach((customProduct: any) => {
         if (customProduct.language_code === languageCode) {
-          customProducts[customProduct.id] = processCustomProduct(
-            product,
-            customProduct,
-            languageCode,
-            isFromBrowser
+          customProducts.push(
+            processCustomProduct(
+              product,
+              customProduct,
+              languageCode,
+              isFromBrowser,
+            ),
           );
         }
       });
@@ -216,7 +243,7 @@ export function processCustomProduct(
   product: any,
   customProduct: any,
   languageCode: string,
-  isFromBrowser: boolean
+  isFromBrowser: boolean,
 ): CustomProduct {
   const result: CustomProduct = { ...customProduct };
 
@@ -226,7 +253,7 @@ export function processCustomProduct(
   const flashDealEndDate = product.end_date || null;
   const flashDealStartDate = product.start_date || null;
   const flashDealStatus = product.flash_deal_status || null;
-  const flashDealDiscount = product.flash_deal_discount || null;
+  const flash_deal_price = product.flash_deal_price || null;
 
   // Handle flash deal
   if (
@@ -237,12 +264,7 @@ export function processCustomProduct(
     result.flash_deal_start_date = flashDealStartDate;
     result.flash_deal_end_date = flashDealEndDate;
     result.flash_deal_status = flashDealStatus;
-    result.flash_deal_discount = flashDealDiscount;
-    result.flash_deal_price = calculateDiscountedPrice(
-      product.unit_price,
-      flashDealDiscount,
-      "percent"
-    );
+    result.flash_deal_price = flash_deal_price;
     result.is_flash_deal_active = false;
 
     try {
@@ -267,23 +289,17 @@ export function processCustomProduct(
   result.in_stock = parseFloat(product.current_stock || "0") > 0;
 
   // Handle redeem discount
-  const redeemDiscountRate = parseFloat(product.redeem_discount_rate || "0");
-  result.has_redeem_discount =
-    redeemDiscountRate > 0 && redeemDiscountRate < 100;
+  const redeem_price = product.redeem_price;
+
   result.seller_status = product?.seller_status || null;
   if (result.has_redeem_discount) {
-    result.redeem_discount_rate = redeemDiscountRate;
-    result.redeem_price = calculateDiscountedPrice(
-      product.unit_price,
-      redeemDiscountRate,
-      "percent"
-    );
+    result.redeem_price = redeem_price;
   }
 
   // Process categories and brands
   result.category = getCustomCategoryFromHighestPositionCategory(
     product,
-    languageCode
+    languageCode,
   );
   result.categories = getAllCustomCategories(product, languageCode);
   let categories_data = extractCategoryHierarchy(product, languageCode);
@@ -320,8 +336,8 @@ function categoryNamesString(tree) {
   const names = [];
 
   function walk(nodes) {
-    nodes.forEach((node) => {
-      names.push(node.name);
+    nodes?.forEach((node) => {
+      names?.push(node.name);
       if (node.children && node.children.length) {
         walk(node.children);
       }
@@ -347,7 +363,7 @@ function getAllCustomCategories(productData: any, lang: string): any[] {
     let matchingCategory: any = null;
     if (productData.categories && Array.isArray(productData.categories)) {
       matchingCategory = productData.categories.find(
-        (cat: any) => cat.id == currentCategoryId
+        (cat: any) => cat.id == currentCategoryId,
       );
     }
 
@@ -363,7 +379,7 @@ function getAllCustomCategories(productData: any, lang: string): any[] {
     ) {
       customCategory = productData.custom_categories.find(
         (cat: any) =>
-          cat.category_id == currentCategoryId && cat.language_code === lang
+          cat.category_id == currentCategoryId && cat.language_code === lang,
       );
     }
 
@@ -381,7 +397,7 @@ function getAllCustomCategories(productData: any, lang: string): any[] {
 export function calculateDiscountedPrice(
   originalPrice: number,
   discount: number,
-  discountType: string
+  discountType: string,
 ): number {
   if (discountType === "percent") {
     return originalPrice - (originalPrice * discount) / 100;
@@ -425,15 +441,15 @@ function extractCategoryHierarchy(productData: any, lang: string): any {
     ) {
       customCategory = productData.custom_categories.find(
         (cat: any) =>
-          cat.category_id == categoryId && cat.language_code === lang
+          cat.category_id == categoryId && cat.language_code === lang,
       );
       categories_data.push({
         ...productData.custom_categories.find(
           (cat: any) =>
-            cat.category_id == categoryId && cat.language_code === lang
+            cat.category_id == categoryId && cat.language_code === lang,
         ),
         parent_id: productData?.categories?.find(
-          (s) => parseInt(s.id) === parseInt(categoryId)
+          (s) => parseInt(s.id) === parseInt(categoryId),
         )?.parent_id,
       });
     }
@@ -493,7 +509,7 @@ function buildCategoryTree(categories) {
 
 function getCustomCategoryFromHighestPositionCategory(
   productData: any,
-  lang: string
+  lang: string,
 ): any {
   if (!productData.category_ids || !Array.isArray(productData.category_ids)) {
     return null;
@@ -517,7 +533,7 @@ function getCustomCategoryFromHighestPositionCategory(
   let matchingCategory: any = null;
   if (productData.categories && Array.isArray(productData.categories)) {
     matchingCategory = productData.categories.find(
-      (cat: any) => cat.id == highestCategoryId
+      (cat: any) => cat.id == highestCategoryId,
     );
   }
 
@@ -533,7 +549,7 @@ function getCustomCategoryFromHighestPositionCategory(
   ) {
     customCategory = productData.custom_categories.find(
       (cat: any) =>
-        cat.category_id == highestCategoryId && cat.language_code === lang
+        cat.category_id == highestCategoryId && cat.language_code === lang,
     );
   }
 
@@ -571,7 +587,7 @@ export function calculatePriceRange(products: any[]): {
 
   products?.forEach((product) => {
     const price = parseFloat(
-      product.offered_price || product.unit_price || "0"
+      product.offered_price || product.unit_price || "0",
     );
     if (price > 0) {
       minPrice = Math.min(minPrice, price);
@@ -622,7 +638,7 @@ function calculatePriceFilter(products: CustomProduct[]): FinalPrices | null {
     const rangeMax = boundaries[i + 1];
 
     const productsCount = discountedPrices.filter(
-      (price) => price >= rangeMin && price <= rangeMax
+      (price) => price >= rangeMin && price <= rangeMax,
     ).length;
 
     priceRanges.push({
@@ -750,8 +766,8 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
         filters.search_text,
         searchWords,
         wordCount,
-        fuzziness
-      )
+        fuzziness,
+      ),
     );
   }
 
@@ -852,7 +868,7 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
             },
           },
         },
-      }
+      },
     );
   }
 
@@ -878,7 +894,7 @@ function buildSearchTextConditions(
   searchText: string,
   searchWords: string[],
   wordCount: number,
-  fuzziness: string | number | null
+  fuzziness: string | number | null,
 ): any {
   const shouldClauses: any[] = [];
 
@@ -1089,7 +1105,7 @@ function buildSearchTextConditions(
 }
 function buildMultiWordSearch(
   searchWords: string[],
-  fuzziness: string | number | null
+  fuzziness: string | number | null,
 ): any {
   const mustClauses: any[] = [];
 
@@ -1230,7 +1246,7 @@ function buildMultiWordSearch(
 function buildAtLeastTwoClause(
   searchWords: string[],
   fuzziness: string | number | null,
-  boost: number = 1
+  boost: number = 1,
 ): any | null {
   if (searchWords.length < 2) {
     return null;
@@ -1383,4 +1399,527 @@ function calculateFuzziness(searchText?: string): string | number | null {
   const length = searchText.length;
   return 1;
   return length >= 7 && length <= 12 ? 1 : null;
+}
+
+export function buildAggregations(
+  mustConditions: any[],
+  mustNotConditions: any[],
+  languageCode: string,
+  filtersSize: number,
+): Record<string, any> {
+  const filterCondition = {
+    bool: {
+      must: mustConditions,
+      must_not: mustNotConditions,
+    },
+  };
+
+  return {
+    filtered_results: {
+      filter: filterCondition,
+      aggs: {
+        top_brands: {
+          nested: { path: "custom_brands" },
+          aggs: {
+            filtered_brands: {
+              filter: { term: { "custom_brands.language_code": languageCode } },
+              aggs: {
+                brands_by_id: {
+                  terms: { field: "custom_brands.id", size: filtersSize },
+                  aggs: {
+                    brand_details: {
+                      top_hits: {
+                        _source: {
+                          includes: [
+                            "custom_brands.name",
+                            "custom_brands.slug",
+                            "custom_brands.icon",
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        top_boutiques: {
+          nested: { path: "custom_boutiques" },
+          aggs: {
+            filtered_boutiques: {
+              filter: {
+                term: { "custom_boutiques.language_code": languageCode },
+              },
+              aggs: {
+                boutiques_by_id: {
+                  terms: { field: "custom_boutiques.id", size: filtersSize },
+                  aggs: {
+                    boutique_details: {
+                      top_hits: {
+                        _source: {
+                          includes: [
+                            "custom_boutiques.name",
+                            "custom_boutiques.slug",
+                            "custom_boutiques.banners",
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        top_categories: {
+          nested: { path: "custom_categories" },
+          aggs: {
+            filtered_categories: {
+              filter: {
+                bool: {
+                  must: [
+                    {
+                      term: { "custom_categories.language_code": languageCode },
+                    },
+                    { term: { "custom_categories.position": 0 } }, // or "0" if it's a string
+                  ],
+                },
+              },
+              aggs: {
+                categories_by_id: {
+                  terms: {
+                    field: "custom_categories.category_id",
+                    size: filtersSize,
+                  },
+                  aggs: {
+                    category_details: {
+                      top_hits: {
+                        size: 1,
+                        _source: {
+                          includes: [
+                            "custom_categories.id",
+                            "custom_categories.category_id",
+                            "custom_categories.name",
+                            "custom_categories.slug",
+                            "custom_categories.bio",
+                            "custom_categories.description",
+                            "custom_categories.flat_photo_path",
+                            "custom_categories.png_photo_path",
+                            "custom_categories.fill_photo_path",
+                            "custom_categories.banner_photo_path",
+                          ],
+                        },
+                      },
+                    },
+                    to_product: {
+                      reverse_nested: {},
+                      aggs: {
+                        product_thumbnail: {
+                          top_hits: {
+                            size: 1,
+                            _source: { includes: ["thumbnail"] },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        top_orig_categories: {
+          nested: { path: "categories" },
+          aggs: {
+            orig_categories_by_id: {
+              terms: { field: "categories.id", size: filtersSize },
+              aggs: {
+                orig_category_details: {
+                  top_hits: {
+                    size: 1,
+                    _source: {
+                      includes: [
+                        "categories.id",
+                        "categories.num_available_product",
+                        "categories.parent_id",
+                        "categories.most_viewed_product_thumbnail",
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        top_colors: {
+          nested: { path: "colors" },
+          aggs: {
+            colors_by_color: {
+              terms: { field: "colors.color.keyword", size: filtersSize },
+            },
+          },
+        },
+        top_sizes: {
+          nested: { path: "available_size_as_json" },
+          aggs: {
+            available_size_as_json_by_size: {
+              terms: {
+                field: "available_size_as_json.size.keyword",
+                size: filtersSize,
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+export async function getChildrenAndGrandchildren(
+  client,
+  index,
+  parentCategoryIds,
+  languageCode,
+  country,
+  filters,
+) {
+  const baseConditions = buildBaseConditions(filters, country);
+  const { must, must_not } = baseConditions;
+  const filterCondition = {
+    bool: {
+      must: must,
+      must_not: must_not,
+    },
+  };
+  // Step 1: get categories with position = 1 (children)
+  const childrenRes = await client.search({
+    index,
+    size: 0,
+    query: {
+      bool: {
+        must,
+        must_not,
+      },
+    },
+    aggs: {
+      filtered_results: {
+        filter: filterCondition,
+        aggs: {
+          top_categories: {
+            nested: { path: "custom_categories" },
+            aggs: {
+              filtered_categories: {
+                filter: {
+                  bool: {
+                    must: [
+                      {
+                        term: {
+                          "custom_categories.language_code": languageCode,
+                        },
+                      },
+                      // or "0" if it's a string
+                    ],
+                    must_not: [{ term: { "custom_categories.position": 0 } }],
+                  },
+                },
+                aggs: {
+                  categories_by_id: {
+                    terms: {
+                      field: "custom_categories.category_id",
+                      size: 1000,
+                    },
+                    aggs: {
+                      category_details: {
+                        top_hits: {
+                          size: 1,
+                          _source: {
+                            includes: [
+                              "custom_categories.id",
+                              "custom_categories.category_id",
+                              "custom_categories.name",
+                              "custom_categories.slug",
+                              "custom_categories.bio",
+                              "custom_categories.description",
+                              "custom_categories.flat_photo_path",
+                              "custom_categories.png_photo_path",
+                              "custom_categories.fill_photo_path",
+                              "custom_categories.banner_photo_path",
+                            ],
+                          },
+                        },
+                      },
+                      to_product: {
+                        reverse_nested: {},
+                        aggs: {
+                          product_thumbnail: {
+                            top_hits: {
+                              size: 1,
+                              _source: { includes: ["thumbnail"] },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          top_orig_categories: {
+            nested: { path: "categories" },
+            aggs: {
+              orig_categories_by_id: {
+                terms: { field: "categories.id", size: 1000 },
+                aggs: {
+                  orig_category_details: {
+                    top_hits: {
+                      size: 1,
+                      _source: {
+                        includes: [
+                          "categories.id",
+                          "categories.num_available_product",
+                          "categories.parent_id",
+                          "categories.most_viewed_product_thumbnail",
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  return childrenRes.aggregations.filtered_results;
+}
+
+export function processBrandsAggregation(
+  buckets: any[],
+  filtersOffset: number,
+): FilterResult[] {
+  const brandsFilter: FilterResult[] = [];
+
+  buckets.forEach((bucket) => {
+    const brandHit = bucket.brand_details?.hits?.hits?.[0]?._source;
+
+    if (brandHit) {
+      brandsFilter.push({
+        id: bucket.key,
+        name: brandHit.name || "",
+        slug: brandHit.slug || "",
+        icon: brandHit.icon || "",
+      });
+    } else {
+      brandsFilter.push({
+        id: bucket.key,
+        doc_count: bucket.doc_count,
+      });
+    }
+  });
+
+  return paginateFilters(brandsFilter, filtersOffset);
+}
+
+/**
+ * Process boutiques aggregation
+ */
+export function processBoutiquesAggregation(
+  buckets: any[],
+  filtersOffset: number,
+): FilterResult[] {
+  const boutiquesFilter: FilterResult[] = [];
+
+  buckets.forEach((bucket) => {
+    const hit = bucket.boutique_details?.hits?.hits?.[0]?._source;
+
+    if (hit) {
+      // Filter first non-deleted banner
+      let banner = null;
+      if (hit.banners && Array.isArray(hit.banners)) {
+        for (const b of hit.banners) {
+          if (!b.deleted_at) {
+            banner = { ...b };
+            delete banner.deleted_at;
+            break;
+          }
+        }
+      }
+
+      boutiquesFilter.push({
+        id: bucket.key,
+        name: hit.name || "",
+        slug: hit.slug || "",
+        banner: banner,
+      });
+    } else {
+      boutiquesFilter.push({
+        id: bucket.key,
+        doc_count: bucket.doc_count,
+      });
+    }
+  });
+
+  return paginateFilters(boutiquesFilter, filtersOffset);
+}
+
+/**
+ * Process categories aggregation
+ */
+export function processCategoriesAggregation(
+  transBuckets: any[],
+  origBuckets: any[],
+  filtersOffset: number,
+): CategoryFilter[] {
+  // Create original categories map
+  const origMap: Record<string | number, any> = {};
+  origBuckets.forEach((bucket) => {
+    const hit = bucket.orig_category_details?.hits?.hits?.[0]?._source || {};
+    if (hit.id) {
+      origMap[hit.id] = {
+        num_available_product: hit.num_available_product || 0,
+        parent_id: hit.parent_id || null,
+        most_viewed_product_thumbnail: hit?.most_viewed_product_thumbnail,
+      };
+    }
+  });
+
+  const categoriesFilter: CategoryFilter[] = [];
+
+  transBuckets.forEach((bucket) => {
+    const src = bucket.category_details?.hits?.hits?.[0]?._source || {};
+    const thumbHit =
+      bucket.to_product?.product_thumbnail?.hits?.hits?.[0]?._source || {};
+    const thumbnail = thumbHit.thumbnail || null;
+
+    const catId = bucket.key;
+    const orig = origMap[catId] || {
+      num_available_product: 0,
+      parent_id: null,
+    };
+
+    categoriesFilter.push({
+      id: src.id || catId,
+      category_id: src.category_id || catId,
+      name: src.name || "",
+      slug: src.slug || "",
+      bio: src.bio || "",
+      description: src.description || "",
+      flat_photo_path: src.flat_photo_path || "",
+      png_photo_path: src.png_photo_path || "",
+      fill_photo_path: src.fill_photo_path || "",
+      banner_photo_path: src.banner_photo_path || "",
+      num_available_product: orig.num_available_product,
+      parent_id: orig.parent_id,
+      most_viewed_product_thumbnail:
+        orig.most_viewed_product_thumbnail ?? thumbnail,
+      childes: [],
+    });
+  });
+
+  // Index categories by category_id
+  const indexed: Record<string | number, CategoryFilter> = {};
+  categoriesFilter.forEach((cat) => {
+    indexed[cat.category_id!] = cat;
+  });
+
+  // Link children to parents
+  Object.values(indexed).forEach((cat) => {
+    if (cat.parent_id && indexed[cat.parent_id]) {
+      indexed[cat.parent_id].childes.push(cat);
+    }
+  });
+
+  // Collect tree: only roots (parent_id = 0 or null)
+  const categoriesTree = Object.values(indexed).filter(
+    (cat) => !cat.parent_id || cat.parent_id === 0,
+  );
+
+  return paginateFilters(categoriesTree, filtersOffset);
+}
+export function paginateFilters<T>(
+  filters: T[],
+  filtersSize: number,
+  perPage: number = 10,
+): T[] {
+  const offset = Math.max(0, (filtersSize - 1) * perPage);
+  return filters.slice(offset, offset + perPage);
+}
+export function sortSyncColorImagesByFilteredColor(
+  products: CustomProduct[],
+  filters: SearchFilters,
+): CustomProduct[] | undefined {
+  if (!filters.colors || filters.colors.length === 0) {
+    return products;
+  }
+
+  // Convert filter colors to lowercase once for efficiency
+  const filteredColorCodes = filters.colors.map((c) => c.toLowerCase());
+
+  const productsArr = products?.map((product) => {
+    if (!product.colors || !product.sync_color_images) {
+      return product;
+    }
+
+    // Find all color names that match ANY of the filtered color codes
+    const matchingColorNames = product.colors
+      .filter(
+        (c) => c.color && filteredColorCodes.includes(c.color.toLowerCase()),
+      )
+      .map((c) => c.name);
+
+    if (matchingColorNames.length === 0) {
+      return product;
+    }
+
+    let arr = Array.isArray(product.sync_color_images)
+      ? [...product.sync_color_images] // Clone to avoid mutating original state
+      : JSON.parse(product.sync_color_images || "[]");
+
+    // Sort: If the image's color_name is in our "matching" list, move it to the front
+    arr.sort((a: any, b: any) => {
+      const aMatch = matchingColorNames.includes(a.color_name);
+      const bMatch = matchingColorNames.includes(b.color_name);
+
+      if (aMatch && !bMatch) return -1;
+      if (!aMatch && bMatch) return 1;
+      return 0;
+    });
+
+    return { ...product, sync_color_images: arr };
+  });
+
+  return productsArr;
+}
+
+/**
+ * Sort colors by filtered color
+ */
+export function sortColorsByFilteredColor(
+  products: CustomProduct[],
+  filters: SearchFilters,
+): void {
+  if (!filters.colors || filters.colors.length === 0) {
+    return;
+  }
+
+  const filteredColorCode = filters.colors[0];
+
+  products?.forEach((product) => {
+    if (!product.colors || !Array.isArray(product.colors)) {
+      return;
+    }
+
+    product.colors.sort((a: any, b: any) => {
+      const codeA = (a.color || "").toLowerCase();
+      const codeB = (b.color || "").toLowerCase();
+      const target = filteredColorCode?.toLowerCase();
+
+      if (codeA === target && codeB !== target) return -1;
+      if (codeB === target && codeA !== target) return 1;
+      return 0;
+    });
+  });
 }

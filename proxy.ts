@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ipAddress } from "@vercel/functions";
+import { checkRateLimit, sendSecurityAlert } from "serverRequests/radis";
+
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
 const DEFAULT_LANGUAGE = "en";
@@ -9,8 +11,8 @@ const DEFAULT_COUNTRY = "gb";
 const COOKIE_OPTIONS = {
   path: "/",
   httpOnly: false,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
+  secure: true,
+  sameSite: "lax" as const,
   maxAge: 360 * 7 * 24 * 60 * 60,
 };
 
@@ -55,14 +57,14 @@ function getCachedCountries(): string[] {
   return ["sy", "lb", "tr", "iq"];
 }
 
-function getAllSupportedCountries(): string[] {
-  return [...getCachedCountries(), "gb"];
+function getAllSupportedCountries(countries): string[] {
+  return [...countries.map((s) => s?.toLowerCase()), "gb"];
 }
 
 // Validation utilities
 function isValidCountry(
   country: string | undefined,
-  supportedCountries: string[]
+  supportedCountries: string[],
 ): boolean {
   if (!country) return false;
   const normalizedCountry = country.toLowerCase();
@@ -77,7 +79,7 @@ function isValidLanguage(language: string | undefined): boolean {
 function validateLocalePair(
   country: string | undefined,
   language: string | undefined,
-  supportedCountries: string[]
+  supportedCountries: string[],
 ): ValidationResult {
   const validCountry = isValidCountry(country, supportedCountries);
   const validLanguage = isValidLanguage(language);
@@ -92,12 +94,12 @@ function validateLocalePair(
 function validateCookieValues(
   countryFromCookies: string | undefined,
   langFromCookies: string | undefined,
-  supportedCountries: string[]
+  supportedCountries: string[],
 ): ValidationResult {
   return validateLocalePair(
     countryFromCookies,
     langFromCookies,
-    supportedCountries
+    supportedCountries,
   );
 }
 
@@ -154,7 +156,7 @@ function buildSupportedLocales(supportedCountries: string[]): Set<string> {
 function setLocaleCookies(
   response: NextResponse,
   country: string,
-  language: string
+  language: string,
 ): void {
   response.cookies.set("country", country.toLowerCase(), COOKIE_OPTIONS);
   response.cookies.set("lang", language.toLowerCase(), COOKIE_OPTIONS);
@@ -172,14 +174,49 @@ function createRedirectResponse(url: URL, redirectCount: number): NextResponse {
   const redirectResponse = NextResponse.redirect(url);
   redirectResponse.headers.set(
     "x-redirect-count",
-    (redirectCount + 1).toString()
+    (redirectCount + 1).toString(),
   );
   return redirectResponse;
 }
+let countriesCache: { data: any[]; expiry: number } | null = null;
+const COUNTRIES_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in-memory
 
+async function getCountriesForMiddleware({ language, country }) {
+  // Simple in-memory cache (lives per edge isolate)
+  if (countriesCache && Date.now() < countriesCache.expiry) {
+    return countriesCache.data;
+  }
+
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          lang: language,
+          country: country,
+        },
+      },
+    );
+
+    if (!res.ok) return getCachedCountries(); // fallback to hardcoded
+
+    const json = await res.json();
+    const countries = json?.data?.countries || [];
+
+    countriesCache = {
+      data: countries.map((s) => s.iso),
+      expiry: Date.now() + COUNTRIES_CACHE_TTL,
+    };
+    return countries?.map((s) => s.iso);
+  } catch {
+    return getCachedCountries(); // fallback to hardcoded
+  }
+}
 function getCleanPathname(
   pathname: string,
-  urlLocale: LocaleInfo | null
+  urlLocale: LocaleInfo | null,
 ): string {
   if (urlLocale) {
     return pathname.slice(urlLocale.locale.length + 1);
@@ -194,13 +231,29 @@ function getClientIp(req: NextRequest): string {
 // Main middleware function
 export async function proxy(request: NextRequest) {
   const ip = getClientIp(request);
+  // 1️⃣ Rate limiting
+  if (ip && ip !== "0.0.0.0") {
+    const allowed = await checkRateLimit(ip, 50, 60);
+    if (!allowed) {
+      await sendSecurityAlert(
+        `🚨 IP ${ip} exceeded rate limit. Path: ${request.nextUrl.pathname}`,
+      );
+      return new NextResponse("Too many requests", { status: 429 });
+    }
+  }
+
   const userIP = request.cookies.get("userIP")?.value;
 
   const isBotAgent = isBot(request.headers.get("user-agent"));
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
   const urlLocale = parseUrlLocale(pathname);
-  const allSupportedCountries = getAllSupportedCountries();
+  let coutries = await getCountriesForMiddleware({
+    language: "en",
+    country: getGeoCountry(request) ?? "sy",
+  });
+  const allSupportedCountries = getAllSupportedCountries(coutries);
+
   const supportedLocales = buildSupportedLocales(allSupportedCountries);
   const response = NextResponse.next();
   if (ip && ip !== userIP) {
@@ -253,13 +306,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/robots.txt", request.url));
   }
 
-  // Skip non-HTML requests
-  if (
-    request.method === "POST" ||
-    !request.headers.get("accept")?.includes("text/html")
-  ) {
-    return response;
-  }
   // Get and validate cookie values
   const countryFromCookies = request.cookies.get("country")?.value;
   const langFromCookies =
@@ -268,7 +314,7 @@ export async function proxy(request: NextRequest) {
   const cookieValidation = validateCookieValues(
     countryFromCookies,
     langFromCookies,
-    allSupportedCountries
+    allSupportedCountries,
   );
 
   // Handle bypass parameter - skip all checks and clean URL
@@ -291,7 +337,7 @@ export async function proxy(request: NextRequest) {
 
   // Redirect protection
   const redirectCount = parseInt(
-    request.headers.get("x-redirect-count") || "0"
+    request.headers.get("x-redirect-count") || "0",
   );
   if (redirectCount > 2) {
     // Even if we hit redirect limit, ensure we have a proper locale
@@ -300,8 +346,8 @@ export async function proxy(request: NextRequest) {
     const cleanPathname = urlLocale
       ? pathname.replace(urlLocale.locale, defaultLocale)
       : pathname.startsWith("/")
-      ? pathname
-      : `/${pathname}`;
+        ? pathname
+        : `/${pathname}`;
 
     url.pathname = `/${defaultLocale}${cleanPathname}`;
     url.searchParams.delete("cart");
@@ -315,7 +361,7 @@ export async function proxy(request: NextRequest) {
     const urlLocaleValidation = validateLocalePair(
       urlLocale.country,
       urlLocale.language,
-      allSupportedCountries
+      allSupportedCountries,
     );
 
     // If URL locale is not valid, treat as no valid URL locale
@@ -326,7 +372,21 @@ export async function proxy(request: NextRequest) {
       if (url.searchParams.get("_t")) {
         url.searchParams.delete("_t");
       }
+      if (cookieValidation.isValid) {
+        const { country: cKey, language: lKey } = cookieValidation;
 
+        // If URL is GB but cookie is something else (e.g., TR), REDIRECT
+        if (urlLocale.country === "gb" && cKey !== "gb") {
+          const targetLocale = buildLocale(cKey!, lKey!);
+          const cleanPath = getCleanPathname(pathname, urlLocale);
+          url.pathname = `/${targetLocale}${cleanPath === "/" ? "" : cleanPath}`;
+
+          const res = createRedirectResponse(url, redirectCount);
+          // IMPORTANT: You must attach cookies to the redirect response
+          setLocaleCookies(res, cKey!, lKey!);
+          return res;
+        }
+      }
       // CASE 1A: Handle no-country parameter
       if (url.searchParams.get("no-country")) {
         setLocaleCookies(response, urlLocale.country, urlLocale.language);
@@ -356,7 +416,7 @@ export async function proxy(request: NextRequest) {
           url.searchParams.delete("cart");
           url.searchParams.set(
             "changed-country",
-            `${urlLocale.country},${cookieCountry}`
+            `${urlLocale.country},${cookieCountry}`,
           );
           return createRedirectResponse(url, redirectCount);
         }
@@ -383,43 +443,56 @@ export async function proxy(request: NextRequest) {
   // SCENARIO 2: No valid URL locale - determine redirect
 
   // Try valid cookies first
-  if (cookieValidation.isValid) {
-    const locale = buildLocale(
-      cookieValidation.country!,
-      cookieValidation.language!
+  if (
+    cookieValidation.isValid &&
+    cookieValidation.country &&
+    cookieValidation.language
+  ) {
+    const targetLocale = buildLocale(
+      cookieValidation.country,
+      cookieValidation.language,
     );
-    const cleanPathname = getCleanPathname(pathname, urlLocale);
+    const cleanPath = getCleanPathname(pathname, urlLocale);
+    url.pathname = `/${targetLocale}${cleanPath === "/" ? "" : cleanPath}`;
 
-    url.pathname = `/${locale}${cleanPathname}`;
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+    // نقل الكوكيز الصالحة للـ Response الجديد لضمان عدم ضياعها
+    setLocaleCookies(
+      redirectResponse,
+      cookieValidation.country,
+      cookieValidation.language,
+    );
+    return redirectResponse;
   }
 
-  // Try Geo IP detection (first visit)
+  // 2. محاولة Geo IP
   const geoCountry = getGeoCountry(request);
   const preferredLanguage = getPreferredLanguage(request);
-
-  // Validate geo country and preferred language combination
   const geoValidation = validateLocalePair(
     geoCountry,
     preferredLanguage,
-    allSupportedCountries
+    allSupportedCountries,
   );
 
-  if (geoValidation.isValid) {
-    const locale = buildLocale(geoValidation.country!, geoValidation.language!);
-    url.pathname = `/${locale}${pathname}`;
+  if (
+    geoValidation.isValid &&
+    geoValidation.country &&
+    geoValidation.language
+  ) {
+    const locale = buildLocale(geoValidation.country, geoValidation.language);
+    url.pathname = `/${locale}${pathname.startsWith("/") ? pathname : "/" + pathname}`;
     return NextResponse.redirect(url);
   }
 
-  // Fallback to default locale - ALWAYS redirect to gb-en
+  // 3. Fallback الافتراضي (فقط هنا يظهر no-country)
   const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
   const cleanPathname = urlLocale
     ? pathname.replace(urlLocale.locale, defaultLocale)
     : pathname.startsWith("/")
-    ? pathname
-    : `/${pathname}`;
+      ? pathname
+      : `/${pathname}`;
 
-  url.pathname = `/${defaultLocale}${cleanPathname}`;
+  url.pathname = `/${defaultLocale}${cleanPathname === "/" ? "" : cleanPathname}`;
   url.searchParams.delete("cart");
   url.searchParams.set("no-country", "true");
   return NextResponse.redirect(url);
@@ -436,7 +509,7 @@ export const config = {
      */
     {
       source:
-        "/((?!api|noposter|sentry-test|requests-log|testBoutique|simulateUser|firebase-messaging-sw.js|google210329fcef4fbcff.html|robots.txt|robots.txt|robots|opengraph-image.png|default.mp3|wa.mp3|api-test|sitemap|manifest.json|error.png|assets|svg|fonts|translations|reports|images|styles|endCall|sitemap.xml|svg|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
+        "/((?!api|noposter|sentry-test|requests-log|testBoutique|simulateUser|firebase-messaging-sw.js|google210329fcef4fbcff.html|robots.txt|robots.txt|robots|opengraph-image.png|default.mp3|wa.mp3|api-test|sitemap|manifest.json|error.png|assets|icons|fonts|translations|reports|images|styles|endCall|sitemap.xml|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
       missing: [
         { type: "header", key: "purpose", value: "prefetch" },
         { type: "header", key: "next-router-prefetch" },

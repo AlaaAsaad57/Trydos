@@ -1,7 +1,5 @@
 import { RoundPrice, translateFunction } from "utils/functions";
-import WalletIcon from "assets/svg/cart/WalletIcon";
-// import CreditIcon from "assets/svg/cart/CreditIcon";
-import CryptoIcon from "assets/svg/cart/CryptoIcon";
+
 import { useAppStore } from "store";
 
 const OrderInvoiceCard = ({ amount, payments }) => {
@@ -141,11 +139,11 @@ const PaymentsIcon = ({
   const showPaymentIcon = (payment: { value: string; label: string }) => {
     switch (payment?.value) {
       case "cash_on_delivery":
-        return <WalletIcon />;
+        return <img src="/icons/WalletIcon.svg" />;
       case "trydos_wallet":
-        return <WalletIcon />;
+        return <img src="/icons/WalletIcon.svg" />;
       case "crypto":
-        return <CryptoIcon />;
+        return <img src="/icons/CryptoIcon.svg" />;
       default:
         return null;
     }

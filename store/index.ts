@@ -9,6 +9,12 @@ import { useChatStore } from "./chat/reducer";
 import useCartStore from "./Cart/reducer";
 import { devtools } from "zustand/middleware";
 
+// Only enable devtools in development
+const withDevtools =
+  process.env.NODE_ENV === "development"
+    ? (fn: any) => devtools(fn, { name: "MainAppStore" })
+    : (fn: any) => fn;
+
 // Create a type that combines all store states
 type AppState = ReturnType<typeof useAuthStore> &
   ReturnType<typeof useCartStore> &
@@ -26,7 +32,7 @@ type AppState = ReturnType<typeof useAuthStore> &
 
 // Create the combined store with hydration support
 export const useAppStore = create<AppState>()(
-  devtools(
+  withDevtools(
     (set, get) => ({
       ...useAuthStore(set, get),
       ...useChatStore(set, get),
@@ -61,8 +67,7 @@ export const useAppStore = create<AppState>()(
       _hasHydrated: false,
       setHasHydrated: (state: boolean) =>
         set({ _hasHydrated: state }, false, "setHasHydrated"),
-    }),
-    { name: "MainAppStore" } // This names the store in DevTools
+    })
   )
 );
 

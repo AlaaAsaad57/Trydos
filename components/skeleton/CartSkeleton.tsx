@@ -1,7 +1,4 @@
-import Skeleton from "node_modules/react-loading-skeleton/dist";
-import BackIcon from "public/svg/listing/backIcon";
-import ShareIcon from "public/svg/listing/shareIcon";
-
+import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { EnableScroll } from "utils/tinyUtils";
@@ -12,18 +9,19 @@ function CartSkeleton() {
     <div
       className={`flex-col ${
         cart.length > 0 ? "pb-[283px]" : "100px"
-      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-screen z-9999999999 pt-1`}
       data-cy="cartPage-container"
     >
       <div
-        className="flex-col pl-2 pr-2 bg-[#fff] p-1"
+        className="flex-col pl-2 pr-2 bg-white p-1"
         data-cy="cartPage-header-container"
       >
         <div
           className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center "
           data-cy="cartPage-headerComponents-container"
         >
-          <BackIcon
+          <img
+            src="/icons/backIcon.svg"
             className="cursor-pointer z-50"
             data-cy="CartBackIcon"
             onClick={() => {
@@ -172,7 +170,7 @@ function CartSkeleton() {
             </span>
           </span>
 
-          <ShareIcon data-cy="shareIcon-onHeader" />
+          <img src="/icons/shareIcon.svg" data-cy="shareIcon-onHeader" />
         </div>
       </div>
 

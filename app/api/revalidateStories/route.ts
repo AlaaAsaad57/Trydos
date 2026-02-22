@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
 
   try {
     revalidateTag("stories", "max");
-    console.log("***** revalidated successfully *****");
+
     return NextResponse.json(
       { revalidated: "true", error: null },
       {
@@ -23,10 +23,9 @@ export async function GET(request: NextRequest) {
           Expires: "0",
           "Surrogate-Control": "no-store",
         },
-      }
+      },
     );
   } catch (error) {
-    console.log("***** revalidated failed *****");
     return NextResponse.json(
       { revalidated: "false", error },
       {
@@ -42,7 +41,7 @@ export async function GET(request: NextRequest) {
           Expires: "0",
           "Surrogate-Control": "no-store",
         },
-      }
+      },
     );
   }
 }

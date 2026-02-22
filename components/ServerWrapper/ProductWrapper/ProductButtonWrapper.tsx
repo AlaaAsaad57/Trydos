@@ -19,8 +19,17 @@ function ProductButtonWrapper({
   slug,
   seconds = null,
   InitialProductData = {},
+  sizes_filters = null,
 }) {
   const [redeem_expired, setRedeemExpired] = useState(!is_redeem);
+  const timerHook = useLuckyDrawTimer({
+    id: id,
+    language: language,
+    seconds: seconds ?? 50,
+    onExpire: () => onExpire(), // defined below or wrap in useCallback
+    enabled: is_redeem && !redeem_expired, // Add an 'enabled' prop if you want to control it
+  });
+
   let isRtl = language === "ar" || language === "ku";
   let isFlash = false;
   let flash_price = offer_price ?? price;
@@ -63,16 +72,6 @@ function ProductButtonWrapper({
     }
   };
 
-  const TimerHook = is_redeem
-    ? useLuckyDrawTimer({
-        id: id,
-        language: language,
-        seconds: seconds ?? 50,
-        onExpire: () => {
-          onExpire();
-        },
-      })
-    : null;
   const onExpire = () => {
     configureRedeemedProducts();
     setRedeemExpired(true);
@@ -85,21 +84,17 @@ function ProductButtonWrapper({
     let is_redeem_product_card = document
       .querySelector(`#product_${slug}`)
       ?.classList.contains("product_redeem");
-    console.log(
-      "is_redeem-",
-      is_redeem_product_card,
-      is_redeem,
-      !redeem_expired
-    );
+
     setSelectedProductForCart({
       ...InitialProductData,
       shouldUpdate: 0,
       id: id,
       showRedeemPrice: is_redeem_product_card && is_redeem && !redeem_expired,
       is_from_listing: true,
+      sizes_filters: sizes_filters?.length > 0 ? sizes_filters : undefined,
       seconds:
         is_redeem_product_card && is_redeem && !redeem_expired
-          ? TimerHook.secondsLeft
+          ? timerHook.secondsLeft
           : 0,
     });
   };
@@ -111,7 +106,7 @@ function ProductButtonWrapper({
           right: isRtl ? "initial" : "0px",
           direction: isRtl ? "rtl" : "ltr",
         }}
-        className={`buy-button pb-[10px] px-[4px]   light-text flex-col align-start justify-end cursor-pointer absolute z-[50] bottom-0  pr-[10px] h-[40px] items-center`}
+        className={`buy-button pb-[10px] px-[4px]   light-text flex-col align-start justify-end cursor-pointer absolute z-50 bottom-0  pr-[10px] h-[40px] items-center`}
         data-cy="buy-button"
         onClick={(e) => {
           e.preventDefault();
@@ -119,7 +114,7 @@ function ProductButtonWrapper({
           // onExpire();
         }}
       >
-        {is_redeem && <TimerHook.MiniTimer />}
+        {is_redeem && <timerHook.MiniTimer />}
 
         <div className="flex flex-row items-center product_prices gap-[6px]">
           <div className="text-[10px] pt-[2px] flex align-start regular items-center gap-[2px] buy-card-text">
@@ -137,7 +132,7 @@ function ProductButtonWrapper({
             )}
           </div>
           <img
-            src={"/svg/BuyButton.svg"}
+            src={"/icons/BuyButton.svg"}
             width={15}
             height={15}
             alt="buy Button"
@@ -148,7 +143,7 @@ function ProductButtonWrapper({
           />
         </div>
       </div>
-      {is_redeem && <TimerHook.TopTimer />}
+      {is_redeem && <timerHook.TopTimer />}
     </>
   );
 }

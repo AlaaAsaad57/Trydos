@@ -10,6 +10,7 @@ import {
   deleteCookie,
 } from "utils/cookies/cookie-manager";
 import Spinner from "components/global/Spinner";
+import { clearAllUserData } from "utils/tinyUtils";
 
 function AccountNotFound({
   inputValue,
@@ -59,29 +60,15 @@ function AccountNotFound({
     clearSimulatedUserSession();
     clearHashedUserId();
     setLoading(true);
-    deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-    deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
-    deleteCookie(COOKIE_NAMES.USER_CHAT);
-    deleteCookie(COOKIE_NAMES.USER_STORIES);
-    deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
-    deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-    localStorage.clear();
-    deleteCookie(COOKIE_NAMES.USER_DATA);
-    const { messaging } = await import("utils/firebaseInitv1");
-    const { deleteToken } = await import("firebase/messaging");
+    await clearAllUserData();
     try {
-      await deleteToken(messaging);
-      deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-      deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
-      deleteCookie(COOKIE_NAMES.USER_CHAT);
-      deleteCookie(COOKIE_NAMES.USER_STORIES);
-      deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
-      deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-      localStorage.clear();
-
-      deleteCookie(COOKIE_NAMES.USER_DATA);
+      const { getFirebaseMessaging } = await import("utils/firebaseInitv1");
+      const { deleteToken } = await import("firebase/messaging");
+      const messaging = await getFirebaseMessaging();
+      if (messaging) await deleteToken(messaging);
     } catch (error) {}
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const { cancelAuth } = useAppStore.getState();
+    cancelAuth();
     window.location.reload();
   };
   if (active)
@@ -138,7 +125,7 @@ function AccountNotFound({
             <div className="text-login-item not-registered">
               {translate(
                 "Sorry, This Number Is Not Registered With Us !",
-                language
+                language,
               )}
             </div>
             <div className="icon-detail">
@@ -193,7 +180,7 @@ function AccountNotFound({
               >
                 {translate(
                   "Register & Create New Account With Us In A Few Simple Steps",
-                  language
+                  language,
                 )}
               </span>
             </div>

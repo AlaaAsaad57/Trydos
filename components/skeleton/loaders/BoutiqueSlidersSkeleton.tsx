@@ -1,7 +1,6 @@
 import { GetImageUrl } from "utils/server";
 import Skeleton from "react-loading-skeleton";
-import TopStarIcon from "public/svg/listing/TopStar";
-import VerificationIcon from "public/svg/listing/VerificationIcon";
+
 function BoutiqueSlidersSkeleton({ boutique }: any) {
   return (
     <>
@@ -20,8 +19,6 @@ function BoutiqueSlidersSkeleton({ boutique }: any) {
           ) : (
             <Skeleton width={70} height={20} borderRadius={"4px"} />
           )}
-          <VerificationIcon />
-          <TopStarIcon />
         </div>
         <div className="boutique-text">{boutique?.name}</div>
       </div>

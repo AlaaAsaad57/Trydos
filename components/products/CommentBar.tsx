@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
-import CommentPost from "public/svg/CommentPost";
 import auth from "services/auth";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
 import { getFirstLetterLang } from "utils/tinyUtils";
@@ -23,10 +21,10 @@ function CommentBar({ product_data, setCommentsData }) {
       setTimeout(() => {
         document.querySelector(".comments-extended").scrollTop = 0;
       }, 300);
-      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+      let userData: any = useAppStore.getState().userProfile;
       if (userData.need_auth) {
         showErrorNotification(
-          translateFunction("Please Verify Your Phone Number")
+          translateFunction("Please Verify Your Phone Number"),
         );
         return null;
       }
@@ -73,7 +71,10 @@ function CommentBar({ product_data, setCommentsData }) {
       setVal("");
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error In addComment in CommentBar",
+      });
       setLoading(false);
     }
   };
@@ -91,7 +92,7 @@ function CommentBar({ product_data, setCommentsData }) {
         data-cy="CommentField"
         tabIndex={0}
         aria-label={translateFunction("Comment input")}
-        className={`w-full resize-none outline-none p-2 rounded border border-gray-300 min-h-[56px] max-h-[120px] transition-all duration-200 `}
+        className={`w-full resize-none outline-hidden p-2 rounded-sm border border-gray-300 min-h-[56px] max-h-[120px] transition-all duration-200 `}
         style={{
           textAlign: getFirstLetterLang(val),
         }}
@@ -123,7 +124,7 @@ function CommentBar({ product_data, setCommentsData }) {
           className={`${
             getFirstLetterLang(val) === "left"
               ? "right-[30px]"
-              : "left-[30px] rotate-[180deg]"
+              : "left-[30px] rotate-180"
           } absolute h-full flex items-center top-0 ${
             loading ? "cursor-help" : "cursor-pointer"
           }`}
@@ -139,7 +140,7 @@ function CommentBar({ product_data, setCommentsData }) {
             // });
           }}
         >
-          {!loading ? <CommentPost /> : <Spinner />}
+          {!loading ? <img src="/icons/CommentPost.svg" /> : <Spinner />}
         </span>
       )}
     </div>

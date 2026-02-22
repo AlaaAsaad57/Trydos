@@ -6,42 +6,25 @@ import StoryElement from "./StoryElement";
 import { useAppStore } from "store";
 
 import { fetchData } from "utils/fetchData";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { UserData } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogError } from "utils/functions";
 
 interface StoriesPaginationWrapperProps {
   next_page_url: string | number;
 
-  initialStories: any[];
   userData: UserData | null;
 }
 
 function StoriesPaginationWrapper({
   next_page_url,
 
-  initialStories,
   userData,
 }: StoriesPaginationWrapperProps) {
   const { storiesData, setStoryData } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [next_page, setNextPage] = useState(next_page_url ? 2 : 1);
   const [additionalStories, setAdditionalStories] = useState<any[]>([]);
-
-  // Initialize store with server data if not already set
-  useEffect(() => {
-    if (initialStories.length > 0 && storiesData.length === 0) {
-      try {
-      } catch (error) {
-        console.error("Error fetching initial stories:", error);
-      }
-
-      setStoryData(initialStories);
-    }
-  }, [initialStories, storiesData, setStoryData]);
 
   if (!next_page_url) return <></>;
 
@@ -52,7 +35,7 @@ function StoriesPaginationWrapper({
       // Get user token from localStorage if available
       let userToken: string | undefined;
       if (typeof window !== "undefined") {
-        const userStoriesData = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+        const userStoriesData = useAppStore.getState().userStories;
         if (userStoriesData) {
           try {
             userToken = userStoriesData?.access_token;
@@ -62,9 +45,7 @@ function StoriesPaginationWrapper({
         }
       }
       const response = await fetchData({
-        url:
-          process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL +
-          `/api/v1/stories/users_stories?page=${next_page}`,
+        url: `/api/v1/stories/users_stories?page=${next_page}`,
         method: "GET",
         server: "nest-stories",
         reqTitle: REQUESTS_DATA.GET_USER_STORIES,
@@ -84,7 +65,10 @@ function StoriesPaginationWrapper({
         setNextPage(null);
       }
     } catch (error) {
-      console.error("Error fetching next stories:", error);
+      LogError({
+        error: error,
+        scenario: "Get Next Stories",
+      });
       setNextPage(null);
     } finally {
       setLoading(false);

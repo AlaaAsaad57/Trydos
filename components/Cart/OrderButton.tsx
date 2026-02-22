@@ -1,21 +1,19 @@
 import { useState } from "react";
-import { getCart, RoundPrice, translateFunction } from "utils/functions";
+import {
+  getCart,
+  LogError,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
 import OrderMarquee from "./OrderMarquee";
-import DiscoutIcon from "public/svg/cart/Disount";
-import ShippingIcon from "public/svg/cart/Shipping";
 import Spinner from "components/global/Spinner";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
-import GiftIcon from "public/svg/cart/Gift";
+
 import home from "services/home";
 import { showErrorNotification } from "@/store/notifications/reducer";
 function OrderButton({ close, toOrders }) {
@@ -41,7 +39,7 @@ function OrderButton({ close, toOrders }) {
   };
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
-  const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+  const userData = useAppStore.getState().userProfile;
   const [option, setOption] = useState(false);
   const getTotaPriceToShow = () => {
     if (orderData?.payment?.find((s) => s.id === 0)) {
@@ -159,7 +157,7 @@ function OrderButton({ close, toOrders }) {
   };
   const getDiscount = () => {
     var a = ((total_discount / sub_total) * 100).toString();
-    return a;
+    return Math.ceil(Number(a));
   };
 
   const GoToOrders = async (bool?) => {
@@ -183,7 +181,7 @@ function OrderButton({ close, toOrders }) {
           (s) =>
             s?.check_availability === false ||
             s.is_country_restricted === true ||
-            s.is_active === false
+            s.is_active === false,
         ).length === 0
       ) {
         setTimeout(() => {
@@ -201,11 +199,15 @@ function OrderButton({ close, toOrders }) {
         showErrorNotification(
           translateFunction(
             "Please Review Your Cart Some Products Not Available",
-            languageVariable
-          )
+            languageVariable,
+          ),
         );
       }
     } catch (error) {
+      LogError({
+        error: error,
+        scenario: "check availabilty for creating order - cart widget",
+      });
       setLoading(false);
       setOption(true);
       if (error?.message?.length > 0) {
@@ -230,7 +232,7 @@ function OrderButton({ close, toOrders }) {
     <>
       {expanded && (
         <div
-          className="fixed top-[50px] min-w-[100vw] min-h-screen opacity-40 bg-[black] z-[9999999999999999]"
+          className="fixed top-[50px] min-w-screen min-h-screen opacity-40 bg-[black] z-[9999999999999999]"
           onClick={() => {
             setExpanded(false);
           }}
@@ -382,7 +384,7 @@ function OrderButton({ close, toOrders }) {
                       data-cy="discount-svg-container"
                       className="flex-row translate-y-[3px]"
                     >
-                      <DiscoutIcon data-cy="discount-svg" />
+                      <img src="/icons/Disount.svg" data-cy="discount-svg" />
                     </span>{" "}
                     <div className="flex-col px-1 text-[#A28E5B]">
                       <span
@@ -400,12 +402,14 @@ function OrderButton({ close, toOrders }) {
                           {" " + getDiscount()} %
                         </span>
                       </span>
-                      <span
-                        data-cy="ShowDiscount"
-                        className="regular text-[11px] text-[#A28E5B]"
-                      >
-                        {translate("Click To Show All Discount")}
-                      </span>
+                      {!expanded && (
+                        <span
+                          data-cy="ShowDiscount"
+                          className="regular text-[11px] text-[#A28E5B]"
+                        >
+                          {translate("Click To Show All Discount")}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -427,7 +431,7 @@ function OrderButton({ close, toOrders }) {
                 <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
                   <div className="flex-row px-[12px]">
                     <span className="flex-row translate-y-[3px]">
-                      <GiftIcon />
+                      <img className="w-5 h-5" src="/icons/Gift.svg" />
                     </span>{" "}
                     <div className="flex-col px-1 text-[#5BA260]">
                       <span className="medium text-[13px] text-[#5BA260]">
@@ -455,7 +459,11 @@ function OrderButton({ close, toOrders }) {
                       data-cy="Shipping-svg-container2"
                       className="flex-row translate-y-[3px]"
                     >
-                      <ShippingIcon data-cy="Shipping-svg" />
+                      <img
+                        className="w-5 h-5"
+                        src="/icons/Shipping.svg"
+                        data-cy="Shipping-svg"
+                      />
                     </span>{" "}
                     {
                       <div className="flex-col px-1 text-[#5BA260]">
@@ -465,7 +473,7 @@ function OrderButton({ close, toOrders }) {
                         {total_shipping_cost === 0 && (
                           <span className="regular text-[11px] text-[#5BA260]">
                             {translate(
-                              "Shipping Is Completely Free Without Any Extras"
+                              "Shipping Is Completely Free Without Any Extras",
                             )}
                           </span>
                         )}
@@ -632,7 +640,7 @@ function OrderButton({ close, toOrders }) {
                         >
                           {translate(
                             "Back To HomePage",
-                            LocalizationServiceClass.GetAppLanguage()
+                            LocalizationServiceClass.GetAppLanguage(),
                           )}
                         </span>
                       </>
@@ -644,7 +652,7 @@ function OrderButton({ close, toOrders }) {
                         >
                           {translate(
                             "Confirm And Continue",
-                            LocalizationServiceClass.GetAppLanguage()
+                            LocalizationServiceClass.GetAppLanguage(),
                           )}
                         </span>
                         <span

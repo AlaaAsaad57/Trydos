@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import PrivacyConfirm from "./PrivacyConfirm";
@@ -25,6 +25,7 @@ import { GAevent } from "utils/gtag";
 
 import Image from "next/image";
 import SearchParamUpdater from "components/global/ParamsUpdater";
+import { fetchStoriesForUser } from "serverRequests";
 
 function NewLoginWidget() {
   let { lang } = useParams();
@@ -36,10 +37,11 @@ function NewLoginWidget() {
     wrongNumber,
     verficationID,
     Tempuser,
+    setStoryData,
   } = useAppStore();
 
   // @ts-ignore
-  let languageVariable = lang.split("-")[1];
+  let [country, languageVariable] = lang.split("-");
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
@@ -69,7 +71,7 @@ function NewLoginWidget() {
       await AuthService.SendOtp(
         mobilePhone,
         is_via_whatsapp,
-        errorCallbackFunc
+        errorCallbackFunc,
       );
       successCallback();
     } catch (error) {
@@ -81,7 +83,10 @@ function NewLoginWidget() {
           mission_name: operation === "login" ? operation : "signup",
         },
       });
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error in SendOtpHook in LoginWidget",
+      });
       errorCallback();
       console.error("SendOtp failed:", error);
     }
@@ -156,7 +161,7 @@ function NewLoginWidget() {
         code,
         verificationID,
         Username,
-        EditPhoneFunc
+        EditPhoneFunc,
       );
       successCallback(exists, name);
     } catch (error) {
@@ -170,7 +175,10 @@ function NewLoginWidget() {
         },
       });
       errorCallback(error);
-      console.error("VerifyOtp failed:", error);
+      LogError({
+        error: error,
+        scenario: "Error in VerifyOtp in LoginWidget",
+      });
     }
   };
   const [loadingPin, setLoadingPin] = useState(false);
@@ -226,6 +234,7 @@ function NewLoginWidget() {
         }
       },
       successCallback: (exists, name) => {
+        router.refresh();
         GAevent({
           action: GA_EVENT_NAMES.VERIFY_OTP,
           params: {
@@ -248,7 +257,6 @@ function NewLoginWidget() {
             success: true,
           },
         });
-        // router.refresh();
 
         setTimeout(() => {
           setLoadingPin(false);
@@ -286,6 +294,9 @@ function NewLoginWidget() {
         }, 2000);
       },
     });
+    let storiesData = await fetchStoriesForUser(language, country, 1);
+
+    setStoryData(storiesData.data);
   };
 
   const getPageColor = () => {
@@ -337,8 +348,8 @@ function NewLoginWidget() {
         return signStep === "alreadyExists"
           ? GA_AUTH_SCREEN.USER_ALREADY_EXISTS_SCREEN
           : signStep === "notFound"
-          ? GA_AUTH_SCREEN.USER_NOT_FOUND_SCREEN
-          : GA_AUTH_SCREEN.WELCOME_SCREEN;
+            ? GA_AUTH_SCREEN.USER_NOT_FOUND_SCREEN
+            : GA_AUTH_SCREEN.WELCOME_SCREEN;
       case 7:
         return GA_AUTH_SCREEN.USER_NAME_INPUT_SCREEN;
 
@@ -369,12 +380,12 @@ function NewLoginWidget() {
           // });
           setLoginOpenAction(false);
         }}
-        className="backdrop-login z-[9999999999]"
+        className="backdrop-login z-9999999999"
       />
       <div
         data-testid="login-widget-container"
         data-cy="login-widget-container"
-        className={`login-widget-container  z-[99999999999] login-w2-container lg2:right-5 lg2:top-[82px] pb-${stepIndicator} step${stepIndicator}`}
+        className={`login-widget-container  z-99999999999 login-w2-container  pb-${stepIndicator} step${stepIndicator}`}
         id="widget-auth"
         style={{
           backgroundColor: stepIndicator >= 6 && getPageColor(),
@@ -410,7 +421,7 @@ function NewLoginWidget() {
           </div>
         )}
         <Image
-          src={"/svg/LogoAuth.svg"}
+          src={"/icons/LogoAuth.svg"}
           className="logo-auth"
           width={210}
           height={94}
@@ -447,7 +458,7 @@ function NewLoginWidget() {
                 >
                   {translate(
                     "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time",
-                    language
+                    language,
                   )}
                 </div>
                 <div
@@ -693,7 +704,6 @@ function NewLoginWidget() {
               // });
             }}
           >
-            {" "}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16.411"

@@ -1,8 +1,4 @@
-import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import AddStory from "components/Home/AddStory";
-import StoriesPaginationWrapper from "components/Home/Stories/StoriesPaginationWrapper";
-import StoriesStoreInitializer from "components/Home/Stories/StoriesStoreInitializer";
-import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { fetchStoriesForGuest, fetchStoriesForUser } from "@/serverRequests";
 import {
@@ -27,7 +23,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
       COOKIE_NAMES.USER_STORIES
     );
     let storiesData, next_page_url;
-    let start = process.hrtime.bigint();
+
     // Fetch stories data
     if (STORIES_TOKEN?.access_token) {
       storiesData = await fetchStoriesForUser(
@@ -42,15 +38,14 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
     next_page_url = storiesData.next_page_url;
     storiesData = storiesData.data;
 
-    let end = process.hrtime.bigint();
     let userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
     return (
       <>
+        {/* Adding Widget */}
         <AddStoryWidget />
 
-        <StoriesStoreInitializer initialStories={storiesData} />
         <div
-          className={` stories-bar-container h-[183px] items-center flex w-full z-[99999999] max-w-[1365px] justify-start`}
+          className={` stories-bar-container h-[183px] items-center flex w-full z-99999999 max-w-[1365px] justify-start`}
         >
           <div
             id="stories-bar"
@@ -58,22 +53,15 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
               isRtl && "flex-row-reverse"
             }`}
           >
+            {/* open adding widget button */}
             <AddStory />
             {storiesData && storiesData ? (
               <StoriesWrapper
                 stories={storiesData}
+                userData={userData}
                 next_page_url={next_page_url}
                 isRtl={isRtl}
-              >
-                {storiesData.map((story, index) => (
-                  <StoryElement
-                    key={story.id || index}
-                    index={index}
-                    story={story}
-                    userData={userData}
-                  />
-                ))}
-              </StoriesWrapper>
+              ></StoriesWrapper>
             ) : (
               <StoriesSkeleton />
             )}

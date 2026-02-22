@@ -5,6 +5,7 @@ import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { HandleIsActive } from "utils/server";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GetFilters({
   language,
@@ -21,7 +22,7 @@ export async function GetFilters({
       limit: 10,
       noProducts: true,
     });
-    console.log(filters, response);
+
     let new_filters: any = {};
     if (response.categories.length) {
       new_filters.categories = response.categories;
@@ -36,10 +37,6 @@ export async function GetFilters({
       new_filters.sizes = response.attributes?.[0]?.options;
     }
 
-    //   if (response.boutiques.length) {
-    //     new_filters.boutiques = response.boutiques;
-    //   }
-    console.log(response.prices);
     return {
       categories: new_filters?.categories?.map((category) => (
         <ImageCircel
@@ -96,7 +93,12 @@ export async function GetFilters({
       total_size: response.total_size,
     };
   } catch (error) {
-    console.error(error);
+    LogServerError({
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetFilters in serverRequest/listing",
+    });
   }
 }
 
@@ -106,6 +108,9 @@ export async function GetProducts({
   offset,
   parsedFilters,
   currency,
+  userId = null,
+  recomended_offset = null,
+  sizes_filters = null,
 }) {
   let response = await getProductsAndFiltersFromElastic({
     country,
@@ -114,6 +119,8 @@ export async function GetProducts({
     limit: 10,
     noFilters: true,
     search_after: offset,
+    recommended_offset: recomended_offset,
+    userId: userId,
   });
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
   let productsData: any = response.products.map((product) => {
@@ -206,11 +213,13 @@ export async function GetProducts({
       language={language}
       offer_price={product.offer_price}
       price={product.price}
+      sizes_filters={sizes_filters?.length > 0 ? sizes_filters : null}
     />
   ));
   return {
     items: items,
     offset: newOffset,
+    recomended_offset: response?.recommended_offset,
     GA_PRODUCTS_LIST: response?.products?.map((s) => ({
       item_id: s?.product_id,
       item_name: s?.name,
@@ -235,6 +244,7 @@ export async function GetNextPageFilters({
     if (filters.isFlashDeals || filters?.flashdeal) return "/flashDeals";
     return "/filters";
   };
+  const isRtl = language === "ar" || language === "ku";
   try {
     let response = await getProductsAndFiltersFromElastic({
       country,
@@ -267,6 +277,7 @@ export async function GetNextPageFilters({
     return {
       categories: new_filters?.categories?.map((item) => (
         <FilterItem
+          isRtl={isRtl}
           baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
           params={params}
           filterParams={filters}
@@ -279,6 +290,7 @@ export async function GetNextPageFilters({
       )),
       brands: new_filters?.brands?.map((item) => (
         <FilterItem
+          isRtl={isRtl}
           baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
           params={params}
           filterParams={filters}
@@ -292,6 +304,7 @@ export async function GetNextPageFilters({
       colors: new_filters?.colors?.map((item) => {
         return (
           <FilterItem
+            isRtl={isRtl}
             baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
             params={params}
             filterParams={filters}
@@ -305,6 +318,7 @@ export async function GetNextPageFilters({
       }),
       sizes: new_filters?.sizes?.map((item) => (
         <FilterItem
+          isRtl={isRtl}
           baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
           params={params}
           filterParams={filters}
@@ -318,6 +332,7 @@ export async function GetNextPageFilters({
       prices: response?.prices?.priceRanges?.map((item) => {
         return (
           <FilterItem
+            isRtl={isRtl}
             baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
             params={params}
             filterParams={filters}
@@ -332,6 +347,11 @@ export async function GetNextPageFilters({
       total_size: response?.total_size,
     };
   } catch (error) {
-    console.error(error);
+    LogServerError({
+      language,
+      country,
+      error: error,
+      scenario: "Error In GetNextPageFilters in serverRequest/listing",
+    });
   }
 }

@@ -6,6 +6,7 @@ import {
   clearSimulatedUserSession,
 } from "utils/sessionManager";
 import { COOKIE_NAMES, deleteCookie } from "utils/cookies/cookie-manager";
+import { clearAllUserData } from "utils/tinyUtils";
 
 interface SessionTimerProps {
   className?: string;
@@ -37,13 +38,8 @@ const SessionTimer = ({ className = "" }: SessionTimerProps) => {
   }, []);
 
   const handleSessionExpired = () => {
-    deleteCookie(COOKIE_NAMES.USER_DATA);
-    deleteCookie(COOKIE_NAMES.USER_CHAT);
-    deleteCookie(COOKIE_NAMES.USER_STORIES);
-    deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-    deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
-    deleteCookie(COOKIE_NAMES.COUNTRY);
-    deleteCookie(COOKIE_NAMES.LANG);
+    clearAllUserData();
+
     setIsExpired(true);
 
     // Clear all session data
@@ -77,7 +73,7 @@ const SessionTimer = ({ className = "" }: SessionTimerProps) => {
 
   return (
     <div
-      className={`fixed top-4 right-4 z-[999999999999999] bg-gray-800 text-white px-3 py-2 rounded-lg shadow-lg transition-opacity duration-200 opacity-50 hover:opacity-100 ${className}`}
+      className={`fixed top-4 right-4 z-999999999999999 bg-gray-800 text-white px-3 py-2 rounded-lg shadow-lg transition-opacity duration-200 opacity-50 hover:opacity-100 ${className}`}
       title="Simulated User Session Timer"
     >
       <div className="flex items-center gap-2 text-sm">

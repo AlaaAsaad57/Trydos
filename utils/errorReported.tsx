@@ -1,64 +1,116 @@
 import * as Sentry from "@sentry/nextjs";
 
-type ReportExtras = Record<string, unknown> | undefined | null;
-
-const truncate = (val: unknown, max = 1000): unknown => {
-  if (typeof val === "string")
-    return val.length > max ? val.slice(0, max) : val;
+/**
+ * Report an enriched error object to Sentry.
+ *
+ * IMPORTANT: This is the single gateway to Sentry.captureException.
+ * It converts the payload into a real Error instance so Sentry groups
+ * issues by `scenario` (or `source` / `type`) instead of dumping
+ * "Non-Error exception captured with keys: …".
+ *
+ * Context fields (userData, last_paths, etc.) are attached as extras
+ * so they appear in the Sentry issue sidebar.
+ */
+export async function ReportError(error: any) {
+  // --- 1. Build a real Error for proper grouping ---
   try {
-    if (val && typeof val === "object") {
-      const json = JSON.stringify(val);
-      return json.length > max ? json.slice(0, max) : val;
+    const scenario =
+      error?.scenario ?? error?.source ?? error?.type ?? "unknown";
+    let message = error?.message ?? error?.error;
+    if (typeof message !== "string") {
+      if (message === undefined || message === null) {
+        message = "Unknown error";
+      } else {
+        try {
+          message = JSON.stringify(message);
+        } catch {
+          message = String(message);
+        }
+      }
     }
-  } catch (_) {}
-  return val;
-};
 
-const mergeExtras = (...extras: ReportExtras[]): Record<string, unknown> => {
-  const out: Record<string, unknown> = {};
-  for (const e of extras) {
-    if (!e || typeof e !== "object") continue;
-    for (const [k, v] of Object.entries(e)) {
-      if (v === undefined) continue;
-      out[k] = truncate(v);
+    const sentryError = new Error(`[${scenario}] ${message}`);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(sentryError, ReportError);
     }
+    if (error?.stack) sentryError.stack = error.stack;
+
+    // --- 2. Set user context (so you can search by user in Sentry) ---
+    const userId =
+      error?.userData?.id ?? error?.user_id ?? error?.userId ?? undefined;
+    if (userId) {
+      Sentry.setUser({
+        id: String(userId),
+        username: error?.userData?.name ?? undefined,
+        ip_address: error?.userIP ?? undefined,
+      });
+    }
+
+    // --- 3. Capture with structured scope ---
+    Sentry.withScope((scope) => {
+      // Tags: indexed, searchable in Sentry UI
+      scope.setTag("scenario", String(scenario));
+      if (error?.country) scope.setTag("country", String(error.country));
+      if (error?.language) scope.setTag("language", String(error.language));
+      if (error?.request_server)
+        scope.setTag("server", String(error.request_server));
+      if (error?.url || error?.current_url || error?.page)
+        scope.setTag(
+          "page_url",
+          String(error.url ?? error.current_url ?? error.page),
+        );
+
+      // Fingerprint: group errors by scenario so same scenario = same issue
+      scope.setFingerprint([
+        scenario,
+        typeof message === "string"
+          ? message.substring(0, 100)
+          : String(message),
+      ]);
+
+      // Extras: full context visible in the issue detail
+      const extras: Record<string, unknown> = {};
+      const extraKeys = [
+        "last_paths",
+        "last_request",
+        "request_url",
+        "request_method",
+        "request_body",
+        "request_server",
+        "lastJson",
+        "userChat",
+        "userData",
+        "userStories",
+        "country",
+        "language",
+        "userIP",
+        "url",
+        "current_url",
+        "page",
+        "user_agent",
+        "timestamp",
+        "sessionId",
+      ];
+      for (const key of extraKeys) {
+        if (error?.[key] !== undefined) extras[key] = error[key];
+      }
+      if (Object.keys(extras).length > 0) scope.setExtras(extras);
+
+      // Breadcrumb: add a custom breadcrumb with the scenario
+      scope.addBreadcrumb({
+        category: "error-report",
+        message: `${scenario}: ${typeof message === "string" ? message.substring(0, 200) : String(message)}`,
+        level: "error",
+        data: {
+          country: error?.country,
+          language: error?.language,
+          page: error?.url ?? error?.current_url ?? error?.page,
+        },
+      });
+
+      Sentry.captureException(sentryError);
+    });
+  } catch (error) {
+    console.error("Error in ReportError:", error);
   }
-  return out;
-};
-
-export async function ReportError(error: unknown, ...extras: ReportExtras[]) {
-  // Auto context (best-effort, safe in SSR)
-  const auto: Record<string, unknown> = {};
-  if (typeof window !== "undefined") {
-    auto.url = window.location?.href;
-    auto.userAgent = window.navigator?.userAgent;
-    auto.language = window.navigator?.language;
-  }
-
-  const merged = mergeExtras(auto, ...extras);
-
-  // Reserved optional fields
-  const tags = (merged.tags as Record<string, string>) || undefined;
-  const user = (merged.user as Record<string, unknown>) || undefined;
-  const level = (merged.level as Sentry.SeverityLevel) || undefined;
-
-  // Remove reserved keys from extras (so they don't duplicate under extras)
-  delete (merged as any).tags;
-  delete (merged as any).user;
-  delete (merged as any).level;
-
-  Sentry.withScope((scope) => {
-    if (tags && typeof tags === "object") scope.setTags(tags);
-    if (user && typeof user === "object") scope.setUser(user as any);
-    if (level) scope.setLevel(level);
-
-    if (Object.keys(merged).length > 0) scope.setExtras(merged);
-    if ((merged as any).source)
-      scope.setTag("source", String((merged as any).source));
-    if ((merged as any).page)
-      scope.setTag("page", String((merged as any).page));
-    if ((merged as any).url) scope.setTag("url", String((merged as any).url));
-
-    Sentry.captureException(error);
-  });
 }

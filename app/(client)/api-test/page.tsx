@@ -566,7 +566,7 @@ export default function ApiTestPage() {
     },
     {
       name: "Share Product on Apps",
-      url: "/api/v2/elastic/share_product_on_apps",
+      url: "/api/v1/elasticsearch/share_product_on_apps",
       method: "POST",
       server: "elastic",
     },
@@ -710,7 +710,7 @@ export default function ApiTestPage() {
         if (header.key === "lang") return { ...header, value: language };
         if (header.key === "country") return { ...header, value: country };
         return header;
-      })
+      }),
     );
   }, [language, country]);
 
@@ -722,7 +722,7 @@ export default function ApiTestPage() {
     // Prevent removal of default headers
     if (
       ["lang", "country", "accept"].includes(
-        headers.find((h) => h.id === id)?.key || ""
+        headers.find((h) => h.id === id)?.key || "",
       )
     ) {
       return;
@@ -732,7 +732,7 @@ export default function ApiTestPage() {
 
   const updateHeader = (id: string, field: "key" | "value", value: string) => {
     setHeaders(
-      headers.map((h) => (h.id === id ? { ...h, [field]: value } : h))
+      headers.map((h) => (h.id === id ? { ...h, [field]: value } : h)),
     );
   };
   const test = async () => {
@@ -895,7 +895,7 @@ export default function ApiTestPage() {
       setElasticResponse(result);
     } catch (error) {
       setElasticError(
-        error instanceof Error ? error.message : "An error occurred"
+        error instanceof Error ? error.message : "An error occurred",
       );
     } finally {
       setElasticLoading(false);
@@ -906,7 +906,7 @@ export default function ApiTestPage() {
   const updateElasticParams = (
     field: string,
     value: any,
-    isFilter: boolean = false
+    isFilter: boolean = false,
   ) => {
     setElasticTestParams((prev) => {
       if (isFilter) {
@@ -945,13 +945,13 @@ export default function ApiTestPage() {
   ];
 
   const [transformation, setTransformation] = useState(
-    cloudinaryTransformations[0].value
+    cloudinaryTransformations[0].value,
   );
   const [width, setWidth] = useState(200);
   const [height, setHeight] = useState(290);
   const [objectFit, setObjectFit] = useState(objectFitOptions[0].value);
   const [objectPosition, setObjectPosition] = useState(
-    objectPositionOptions[0].value
+    objectPositionOptions[0].value,
   );
   const [imageUrls, setImageUrls] = useState<string[]>([
     // Add your Cloudinary image URLs here
@@ -993,7 +993,7 @@ export default function ApiTestPage() {
                   setSelectedEndpoint("");
                   setUrl("");
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 {servers.map((s) => (
                   <option key={s.value} value={s.value}>
@@ -1010,7 +1010,7 @@ export default function ApiTestPage() {
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 {languages.map((lang) => (
                   <option key={lang.value} value={lang.value}>
@@ -1027,7 +1027,7 @@ export default function ApiTestPage() {
               <select
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 {countries.map((c) => (
                   <option key={c.value} value={c.value}>
@@ -1056,7 +1056,7 @@ export default function ApiTestPage() {
             <select
               value={selectedEndpoint}
               onChange={(e) => handleEndpointSelect(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select an endpoint...</option>
               {filteredEndpoints.map((endpoint, index) => (
@@ -1076,7 +1076,7 @@ export default function ApiTestPage() {
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               {methods.map((m) => (
                 <option key={m} value={m}>
@@ -1090,7 +1090,7 @@ export default function ApiTestPage() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="Enter request URL or select from endpoints above"
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
 
             <button
@@ -1133,7 +1133,7 @@ export default function ApiTestPage() {
             <div className="space-y-2">
               {headers.map((header) => {
                 const isDefaultHeader = ["lang", "country", "accept"].includes(
-                  header.key
+                  header.key,
                 );
                 return (
                   <div key={header.id} className="flex gap-2">
@@ -1145,7 +1145,7 @@ export default function ApiTestPage() {
                       }
                       placeholder="Header name"
                       disabled={isDefaultHeader}
-                      className={`flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 ${
                         isDefaultHeader ? "bg-gray-100" : ""
                       }`}
                     />
@@ -1156,7 +1156,7 @@ export default function ApiTestPage() {
                         updateHeader(header.id, "value", e.target.value)
                       }
                       placeholder="Header value"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                     />
                     <button
                       onClick={() => removeHeader(header.id)}
@@ -1187,7 +1187,7 @@ export default function ApiTestPage() {
               value={body}
               onChange={(e) => setBody(e.target.value)}
               placeholder="Request body (JSON)"
-              className="w-full h-64 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              className="w-full h-64 px-4 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
             />
           )}
         </div>
@@ -1364,7 +1364,7 @@ export default function ApiTestPage() {
                       parseInt(e.target.value),
                       elasticTestParams.filters.priceRange[1],
                     ],
-                    true
+                    true,
                   )
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1380,7 +1380,7 @@ export default function ApiTestPage() {
                       elasticTestParams.filters.priceRange[0],
                       parseInt(e.target.value),
                     ],
-                    true
+                    true,
                   )
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1403,7 +1403,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1425,7 +1425,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1447,7 +1447,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1469,7 +1469,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1490,7 +1490,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  false
+                  false,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1511,7 +1511,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1532,7 +1532,7 @@ export default function ApiTestPage() {
                     .split(",")
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  true
+                  true,
                 )
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -1547,7 +1547,7 @@ export default function ApiTestPage() {
                 onChange={(e) =>
                   updateElasticParams("featured", e.target.checked, true)
                 }
-                className="rounded border-gray-300"
+                className="rounded-sm border-gray-300"
               />
               Featured
             </label>
@@ -1559,7 +1559,7 @@ export default function ApiTestPage() {
                 onChange={(e) =>
                   updateElasticParams("flashdeal", e.target.checked, true)
                 }
-                className="rounded border-gray-300"
+                className="rounded-sm border-gray-300"
               />
               Flash Deal
             </label>

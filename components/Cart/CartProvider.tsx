@@ -160,16 +160,19 @@ const CartProvider = ({ language, country }) => {
     setIsLoading(false);
     // init();
   };
-
+  const Search_Params = useSearchParams();
   return (
     <>
       {enable ? <StepSlider enableCart={(e) => enableCartAction(e)} /> : <></>}
       {selected_product_for_add_to_cart && (
         <AddToCartComponent
-          enableCartAction={enableCartAction}
-          close={() => {
-            setSelectedProductForCart(null);
-          }}
+          color={
+            selected_product_for_add_to_cart?.active_color ??
+            Search_Params?.get("color") ??
+            selected_product_for_add_to_cart?.sync_color_images?.[0]
+              ?.color_option ??
+            selected_product_for_add_to_cart?.sync_color_images?.[0]?.color_name
+          }
           product={selected_product_for_add_to_cart}
           slug={selected_product_for_add_to_cart?.slug}
         />
@@ -178,8 +181,8 @@ const CartProvider = ({ language, country }) => {
         <div
           ref={modalIframeRef}
           className={` ${
-            openIframe?.isShow ? "z-[9999999999]" : "z-0"
-          } flex fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[12px] gap-[10px] p-[1px] text-[#5D5D5D] items-center justify-start rounded-[10px] h-[90vh] w-[90vw] bg-[#FCFCFC] border border-dashed border-[#006AFF5b]`}
+            openIframe?.isShow ? "z-9999999999" : "z-0"
+          } flex fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[12px] gap-[10px] p-px text-[#5D5D5D] items-center justify-start rounded-[10px] h-[90vh] w-[90vw] bg-[#FCFCFC] border border-dashed border-[#006AFF5b]`}
         >
           <ModalIframe
             _closeIframe={_closeIframe}
@@ -230,7 +233,7 @@ const StepSlider = ({ enableCart }) => {
   };
 
   return (
-    <div className="w-full h-[100vh] fixed z-[9999999999] cart-provider bg-[#fafafa]">
+    <div className="w-full h-screen fixed z-9999999999 cart-provider bg-[#fafafa]">
       <SearchParamUpdater searchKey="cart" searchValue={"true"} />
       <SlideWidget step={step} duration={400}>
         <div className="w-full h-full cart-widget">

@@ -1,5 +1,5 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import NewSizesIcon from "public/svg/NewSizesIcon";
+
 import React from "react";
 import { translateFunction } from "utils/server";
 import SizeItemWrapper from "./SizeItemWrapper";
@@ -11,7 +11,8 @@ async function ProductSizesWrapper({
   activeSize,
 }) {
   let productData = await qtyPricePromise;
-  let sizes = productData?.choice_options?.[0]?.options;
+  let sizes = productData?.sizes;
+
   if (!sizes || sizes?.length === 0) return <></>;
   let new_sizes_options = ["Standard", "EU", "IN", "US", "UK"];
   return (
@@ -25,7 +26,7 @@ async function ProductSizesWrapper({
           className={`${isRtl ? "flex-row-reverse" : "flex-row"}  gap-[20px]`}
         >
           <div className="flex-col text-[#1d1d1d] text-[9px] regular gap-[5px]">
-            <NewSizesIcon />
+            <img src="/icons/NewSizesIcon.svg" />
             <span>{translateFunction("Sizes", language)}</span>
           </div>
           <div
@@ -42,7 +43,7 @@ async function ProductSizesWrapper({
               IN
             </div>
             <div
-              className="uppercase cursor-pointer flex-col rounded-[6px] bg-[#fff] text-[#1d1d1d] text-[11px] w-auto h-[20px] items-center px-[6px]"
+              className="uppercase cursor-pointer flex-col rounded-[6px] bg-white text-[#1d1d1d] text-[11px] w-auto h-[20px] items-center px-[6px]"
               style={{
                 border: "1px solid #D3D3D37f",
               }}
@@ -60,7 +61,7 @@ async function ProductSizesWrapper({
             <div
               key={s}
               className={`uppercase cursor-pointer rounded-[6px] flex-col w-auto h-[20px] items-center px-[6px] ${
-                s === "Standard" ? "bg-[#F4F4F4]" : "bg-[#fff]"
+                s === "Standard" ? "bg-[#F4F4F4]" : "bg-white"
               } text-[#1d1d1d] text-[11px]`}
               style={{
                 border: "1px solid #D3D3D37f",
@@ -86,9 +87,9 @@ async function ProductSizesWrapper({
       >
         <SizeItemWrapper ActiveSize={activeSize}>
           {sizes?.map((s) => (
-            <React.Fragment key={s?.option}>
-              <span> {s?.name}</span>
-              <span> {s?.option}</span>
+            <React.Fragment key={s}>
+              <span> {s}</span>
+              <span> {s}</span>
             </React.Fragment>
           ))}
         </SizeItemWrapper>

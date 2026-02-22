@@ -1,76 +1,11 @@
 import { useAppStore } from "store";
-import { translateFunction } from "./functions";
-
-import { allCountries } from "country-telephone-data";
-
+import { LogError, translateFunction } from "./functions";
+import { getCountriesSync } from "./countryData";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
-import Image from "node_modules/next/image";
+import Image from "next/image";
 import { REQUESTS_DATA } from "./Requests";
 
-export const configureSearchParams = ({
-  searchParams,
-  noFilters,
-  noProducts,
-  lang,
-  offset,
-  boutiqueId,
-  filters_offset = null,
-}): URLSearchParams => {
-  let params = new URLSearchParams();
-  params.set("lang", lang);
-  params.set("limit", "10");
-  if (filters_offset && filters_offset !== "") {
-    params.set("filters_offset", filters_offset);
-  }
-  if (offset && offset !== "false") {
-    params.set("offset", `[${offset}]`);
-  }
-  if (noProducts && noProducts !== "false") {
-    params.set("with_products", "false");
-  }
-  if (noFilters && noFilters !== "false") {
-    params.set("with_filters", "false");
-  }
-  if (searchParams.search_text) {
-    params.set("search_text", searchParams.search_text);
-  }
-  if (searchParams.categories) {
-    params.set("category_slugs", decodeURIComponent(searchParams.categories));
-  }
-  if (searchParams.prices) {
-    params.set("price", decodeURIComponent(searchParams.prices));
-  }
-  if (searchParams.sizes) {
-    params.set(
-      "attributes",
-      JSON.stringify([
-        {
-          id: 1,
-          options: JSON.parse(decodeURIComponent(searchParams.sizes)),
-          name: "Size",
-        },
-      ])
-    );
-  }
-  if (searchParams.colors) {
-    params.set("colors", decodeURIComponent(searchParams.colors));
-  }
-  if (searchParams.brands) {
-    params.set("brand_slugs", decodeURI(searchParams.brands));
-  }
-  if (searchParams.boutiques && searchParams.boutiques !== "null") {
-    params.set("boutique_slugs", decodeURIComponent(searchParams.boutiques));
-  }
-  if (boutiqueId && boutiqueId !== "listing" && boutiqueId !== null) {
-    params.set("boutique_slugs", `["${decodeURIComponent(boutiqueId)}"]`);
-  }
-  if (searchParams.tags_names && searchParams.tags_names !== "null") {
-    params.set("tags_names", decodeURIComponent(searchParams.tags_names));
-  }
-
-  return params;
-};
 export const ChatConroller = (payload) => {
   try {
     const { openChat, setChatOpen } = useAppStore.getState();
@@ -79,6 +14,11 @@ export const ChatConroller = (payload) => {
     openChat(payload);
     setChatOpen(payload);
   } catch (error) {}
+};
+export const clearAllUserData = async () => {
+  await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+  sessionStorage.clear();
+  localStorage.clear();
 };
 export const getCurrency = async ({ callback }) => {
   try {
@@ -95,6 +35,10 @@ export const getCurrency = async ({ callback }) => {
     callback({ currency: response.data?.currency, res: {} });
     return response.data?.currency;
   } catch (err) {
+    LogError({
+      scenario: "getCurrency in ProductPageData",
+      error: err instanceof Error ? err.message : String(err),
+    });
     callback({ currency: null, res: {} });
     return null;
   }
@@ -103,7 +47,7 @@ export const FlagIcon = ({ iso }) => {
   if (iso.toLowerCase() === "sy")
     return (
       <Image
-        src="/svg/sy.svg"
+        src="/icons/flag/sy.svg"
         alt={translateFunction("sy") || "sy"}
         width={25}
         height={16}
@@ -112,7 +56,7 @@ export const FlagIcon = ({ iso }) => {
 
   return (
     <Image
-      src={`/svg/flag/${iso?.toLowerCase()}.svg`}
+      src={`/icons/flag/${iso?.toLowerCase()}.svg`}
       alt={translateFunction(iso) || "iso"}
       width={25}
       height={16}
@@ -174,7 +118,7 @@ export const formatTime = (timeString: string) => {
 };
 export const formatTimeForAddress = (
   timeString: string,
-  languageVar = null
+  languageVar = null,
 ) => {
   const { language } = useAppStore.getState();
   const MONTH_NAMES = [
@@ -216,7 +160,7 @@ export const formatTimeForAddress = (
   if (isSameYear && isNewerThanToday) {
     let translated_month = translateFunction(
       MONTH_NAMES[date.getMonth()],
-      languageVar || language
+      languageVar || language,
     );
     const day = date.getDate();
     const monthName = translated_month;
@@ -287,7 +231,7 @@ export const getVideoUrl = (
     end?: number | string;
     width?: number | string;
     height?: number | string;
-  }
+  },
 ): string => {
   // Build transformation string
   let transformations = [];
@@ -313,7 +257,7 @@ export const getVideoUrl = (
   if (input.startsWith("http") && input.includes("/video/upload/")) {
     return input.replace(
       /\/video\/upload\/(v\d+)?/,
-      `/video/upload/${transformStr}/$1`
+      `/video/upload/${transformStr}/$1`,
     );
   }
 
@@ -337,85 +281,29 @@ export const ShowNotificationSign = ({
   const { showNotificaionCircle } = useAppStore.getState();
   if (
     showNotificaionCircle?.find(
-      (e) => e.order_id === order_id || e.order_group_id === order_group_id
+      (e) => e.order_id === order_id || e.order_group_id === order_group_id,
     )
   ) {
     return true;
   }
   return false;
 };
-export const formatPhone = (phone) => {
-  let valid = false;
-  let country = getCountry(phone);
-  let data;
-  switch (country?.iso2?.toLowerCase()) {
-    case "sy":
-      data = phone.replace(/\D/g, "")?.slice(0, 12);
-      if (country && data.length === 12) {
-        valid = true;
-      } else {
-        valid = false;
-      }
-    case "lb":
-      data = phone.replace(/\D/g, "")?.slice(0, 12);
-      if (country && data.length > 9 && data.length <= 12) {
-        valid = true;
-      } else {
-        valid = false;
-      }
-    case "iq":
-      data = phone.replace(/\D/g, "")?.slice(0, 13);
 
-      if (country && data.length === 13) {
-        valid = true;
-      } else {
-        valid = false;
-      }
-    case "tr":
-      data = phone.replace(/\D/g, "")?.slice(0, 12);
-
-      if (country && data.length === 12) {
-        valid = true;
-      } else {
-        valid = false;
-      }
-    default:
-      data = phone.replace(/\D/g, "")?.slice(0, 13);
-
-      if (country && data.length > 9 && data.length <= 13) {
-        valid = true;
-      } else {
-        valid = false;
-      }
-  }
-
-  return { data, valid };
-};
 const getCountry = (text?: string) => {
+  const allCountries = getCountriesSync();
   return allCountries.filter((countryItem) =>
-    text?.startsWith(countryItem.dialCode)
+    text?.startsWith(countryItem.dialCode),
   ).length === 1
     ? allCountries?.filter((countryItem) =>
-        text?.startsWith(countryItem.dialCode)
+        text?.startsWith(countryItem.dialCode),
       )[0]
     : allCountries.filter((countryItem) =>
-        text?.startsWith(countryItem.dialCode)
+        text?.startsWith(countryItem.dialCode),
       )[0];
-};
-type parsedFilters = {
-  boutiques?: string[];
-  brands?: string[];
-  categories?: string[];
-  colors?: string[];
-  tags_names?: string[];
-  sizes?: string[];
-  search_text?: string[];
-  search?: string[];
-  prices?: any[];
 };
 
 export const buildParamsFromFilters = (
-  filters: Record<string, string[]>
+  filters: Record<string, string[]>,
 ): string[] => {
   const params: string[] = [];
   const filterOrder = [
@@ -443,7 +331,7 @@ export const buildParamsFromFilters = (
       } else if (filterType === "colors") {
         // Colors should be hex without #
         const colorValues = values.map((color) =>
-          color.startsWith("#") ? color.substring(1) : color
+          color.startsWith("#") ? color.substring(1) : color,
         );
         params.push(colorValues.join(","));
       } else {
@@ -454,28 +342,6 @@ export const buildParamsFromFilters = (
   });
 
   return params;
-};
-
-/**
- * Convert filters object to the format expected by configureSearchParams
- * @param filters - Parsed filters from URL params
- * @returns SearchParams object
- */
-export const filtersToSearchParams = (filters: Record<string, string[]>) => {
-  const searchParams: any = {};
-
-  Object.keys(filters).forEach((key) => {
-    const values = filters[key];
-    if (values && values.length > 0) {
-      if (key === "search_text") {
-        searchParams[key] = values[0];
-      } else {
-        searchParams[key] = JSON.stringify(values);
-      }
-    }
-  });
-
-  return searchParams;
 };
 
 export const DetectScreen = () => {
@@ -499,19 +365,6 @@ export const DetectScreen = () => {
     return GA_GLOBAL_SCREEN.HOME_SCREEN;
   }
 };
-
-export const totalAmount = (arr) => {
-  let total = 0;
-  arr?.map((s) => {
-    total += s.order_amount;
-  });
-  return total;
-};
-
-/**
- * Removes special characters and limits input to 90 characters.
- * Used for input sanitization (pollination).
- */
 export const pollinateInput = (value: string): string => {
   if (typeof value !== "string") return "";
   let input = value.replace(/[<>,#$%^&*()]/g, "");
@@ -548,7 +401,7 @@ export function findVariation(
   colors,
   sizes,
   selectedColor,
-  selectedSize
+  selectedSize,
 ) {
   // Normalize comparison for flexibility
   const normalize = (str) => (str ? str.toLowerCase().trim() : "");
@@ -559,7 +412,7 @@ export function findVariation(
     color = colors.find(
       (c) =>
         normalize(c?.color_name) === normalize(selectedColor) ||
-        normalize(c?.color_option) === normalize(selectedColor)
+        normalize(c?.color_option) === normalize(selectedColor),
     );
   }
 
@@ -568,19 +421,19 @@ export function findVariation(
   if (selectedSize) {
     size = sizes.find(
       (s) =>
-        normalize(s.name) === normalize(selectedSize) ||
-        normalize(s.option) === normalize(selectedSize)
+        normalize(s) === normalize(selectedSize) ||
+        normalize(s) === normalize(selectedSize),
     );
   }
 
   // Build variation type based on rules
   let variationType = null;
   if (color && size) {
-    variationType = `${color?.color_option}-${size.option}`;
+    variationType = `${color?.color_option}-${size}`;
   } else if (color) {
     variationType = color?.color_option;
   } else if (size) {
-    variationType = size?.option;
+    variationType = size;
   }
 
   if (!variationType) return null;
@@ -624,7 +477,7 @@ interface Country {
 
 export async function fetchCountries(
   country = "tr",
-  language = "en"
+  language = "en",
 ): Promise<CountriesResponse> {
   try {
     return {
@@ -664,7 +517,6 @@ export async function fetchCountries(
       ],
     };
   } catch (error) {
-    console.error("Error fetching countries:", error);
     return {
       countries: [
         {
@@ -716,24 +568,6 @@ export const ShowDayStr = (index, language) => {
   return days[index];
 };
 
-export function convertTextToXFormat(input) {
-  if (!input) return "";
-  // Split the input text into words
-  const words = input.split(" ");
-
-  // Transform each word
-  const transformedWords = words.map((word) => {
-    // If the word is empty, return it as is
-    if (word.length === 0) return word;
-
-    // Get the first letter and replace the rest with 'x'
-    return word.charAt(0) + "x".repeat(word.length - 1);
-  });
-
-  // Join the transformed words back into a string and return
-  return transformedWords.join(" ");
-}
-
 export function getFirstLetterLang(text: string): "right" | "left" {
   if (!text) return "left"; // default direction
   const firstChar = text.trim().charAt(0);
@@ -774,7 +608,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
     if (!g) return Promise.reject(new Error("getUserMedia unsupported"));
 
     return new Promise<MediaStream>((resolve, reject) =>
-      g.call(legacyNavigator, c, resolve, reject)
+      g.call(legacyNavigator, c, resolve, reject),
     );
   };
 
@@ -782,7 +616,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
     stream?.getTracks().forEach((t) => {
       try {
         t.stop();
-      } catch (_) {}
+      } catch (e) {}
     });
   };
 
@@ -794,7 +628,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
       if (camera) {
         try {
           queries.push(
-            navigator.permissions.query({ name: "camera" as PermissionName })
+            navigator.permissions.query({ name: "camera" as PermissionName }),
           );
         } catch {}
       }
@@ -803,7 +637,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
           queries.push(
             navigator.permissions.query({
               name: "microphone" as PermissionName,
-            })
+            }),
           );
         } catch {}
       }
@@ -813,7 +647,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
 
         if (
           results.some(
-            (r) => r.status === "fulfilled" && r.value.state === "denied"
+            (r) => r.status === "fulfilled" && r.value.state === "denied",
           )
         ) {
           return false;
@@ -821,7 +655,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
 
         if (
           results.every(
-            (r) => r.status === "fulfilled" && r.value.state === "granted"
+            (r) => r.status === "fulfilled" && r.value.state === "granted",
           )
         ) {
           return true;

@@ -8,7 +8,7 @@ import {
 } from "utils/server";
 import ProductPhotosWrapper from "./ProductPhotosWrapper";
 import NextLink from "components/global/NextLink";
-import VerifiedIcon from "public/svg/listing/VerifiedIcon";
+
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 import { OldPrice } from "./OldPrice";
 import { RenderPrice } from "./RenderPrice";
@@ -42,6 +42,8 @@ function ProductWrapper({
   country,
   Sliders = false,
   InitialProductData,
+  fromRecomended = null,
+  sizes_filters = null,
 }) {
   let isRtl = language === "ar" || language === "ku";
   let isFlash: any = null;
@@ -57,7 +59,7 @@ function ProductWrapper({
     if (difference > 0) {
       const days = Math.floor(difference / (1000 * 60 * 60 * 24));
       const hours = Math.floor(
-        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
       );
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
@@ -176,7 +178,14 @@ function ProductWrapper({
         //   }
         //   storeCookies();
         // }}
-
+        fromRecomended={
+          fromRecomended
+            ? {
+                select_item_recommended: id,
+                ...fromRecomended,
+              }
+            : null
+        }
         ariaLabel={`go to product ${name} ${language}`}
         href={getUrlofProduct(color, language, country, slug)}
         className="product-container  align-center flex-col relative pb-[12px]"
@@ -204,14 +213,13 @@ function ProductWrapper({
                   {videos.map((video, idx) => (
                     <div
                       key={idx}
-                      className="embla__slide flex-shrink-0"
+                      className="embla__slide shrink-0"
                       style={{
                         width: `${200}px`,
                         height: "100%",
                       }}
                     >
                       <div className="flex w-full h-[290px] relative" key={idx}>
-                        {/* <BorderImage isBig={true} /> */}
                         <div
                           className={
                             "inset-shadow-img w-[200px] h-[290px] rounded-15 absolute "
@@ -234,7 +242,7 @@ function ProductWrapper({
                           }}
                           className={`${
                             is_redeem && "product-media-redeem-show"
-                          } w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border-[1px] rounded-15 z-10`}
+                          } w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border rounded-15 z-10`}
                         />
                       </div>
                     </div>
@@ -245,14 +253,13 @@ function ProductWrapper({
                   {images?.map((image, idx) => (
                     <div
                       key={idx}
-                      className="embla__slide flex-shrink-0"
+                      className="embla__slide shrink-0"
                       style={{
                         width: `${200}px`,
                         height: "100%",
                       }}
                     >
                       <div className="flex w-full h-[290px] relative" key={idx}>
-                        {/* <BorderImage isBig={true} /> */}
                         <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
                         <Image
                           width={400}
@@ -272,7 +279,7 @@ function ProductWrapper({
                           }}
                           className={`${
                             is_redeem && "product-media-redeem-show"
-                          } w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border-[1px] rounded-15 z-10`}
+                          } w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border rounded-15 z-10`}
                           alt={name || "alt"}
                         />
                       </div>
@@ -284,7 +291,7 @@ function ProductWrapper({
           </div>
         ) : (
           <div
-            className="product-photos z-10 min-h-[290px]  max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
+            className="product-photos z-10 min-h-[290px]  max-h-[290px] overflow-visible w-full justify-start align-center flex-col"
             style={{
               position: "static",
               opacity: "1",
@@ -325,7 +332,7 @@ function ProductWrapper({
           style={{
             direction: isRtl ? "rtl" : "ltr",
           }}
-          className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px] w-100 flex-col align-start justify-start max-h-[60px] min-h-[30px]"
+          className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px] w-full flex-col align-start justify-start max-h-[60px] min-h-[30px]"
         >
           <div
             className="prouct-details max-w-full whitespace-normal inline-block  text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[28px]"
@@ -341,9 +348,11 @@ function ProductWrapper({
                   draggable="false"
                 />
               ) : (
-                <div className="h-[15px] w-[49.358px] bg-gray-200 rounded" />
+                <div className="h-[15px] w-[49.358px] bg-gray-200 rounded-sm" />
               )}
-              {brand?.is_verified === 1 && <VerifiedIcon />}
+              {brand?.is_verified === 1 && (
+                <img src="/icons/VerifiedIcon.svg" />
+              )}
             </span>
             <p
               className={`${isRtl && "dir-rtl"} truncate w-full max-w-full`}
@@ -367,7 +376,7 @@ function ProductWrapper({
           style={{
             direction: isRtl ? "rtl" : "ltr",
           }}
-          className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-100 flex-row align-center max-h-[30px]"
+          className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-full flex-row align-center max-h-[30px]"
         >
           <div className={`${isRtl && "dir-rtl"} price-label flex`}>
             {price !== offer_price && offer_price !== 0 && (
@@ -407,6 +416,7 @@ function ProductWrapper({
         offer_price={offer_price}
         price={price}
         redeem_price={redeem_price}
+        sizes_filters={sizes_filters}
       />
     </div>
   );

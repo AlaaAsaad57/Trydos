@@ -60,10 +60,15 @@ class SellerDashboardService {
       throw error;
     }
   }
-  async getSellerOrders(sellerId: string, page: number = 1) {
+  async getSellerOrders(sellerId: string, page: number = 1, status?: string) {
     try {
+      const params: string[] = [];
+      if (page > 1) params.push(`page=${page}`);
+      if (status) params.push(`status=${encodeURIComponent(status)}`);
+      const queryString = params.length ? `?${params.join("&")}` : "";
+
       let res = await fetchData({
-        url: `/shop/orders${page > 1 ? `?page=${page}` : ""}`,
+        url: `/shop/orders${queryString}`,
         method: "GET",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.GET_SELLER_ORDERS,
@@ -76,7 +81,7 @@ class SellerDashboardService {
   }
   async updateOrderStatus(
     sellerId: string,
-    data: { id: number | string; status: string }
+    data: { id: number | string; status: string },
   ) {
     try {
       let res = await fetchData({
@@ -92,10 +97,51 @@ class SellerDashboardService {
       throw error;
     }
   }
-  async getRoles(sellerId: string, page: number = 1) {
+  async updateOrderDetailStatus(
+    sellerId: string,
+    data: { order_detail_id: number; is_confirm: boolean; is_packed: boolean },
+  ) {
     try {
       let res = await fetchData({
-        url: `/shop/users/roles${page > 1 ? `?page=${page}` : ""}`,
+        url: `/shop/orders/details/status`,
+        method: "PUT",
+        server: "market-dashboard",
+        reqTitle: REQUESTS_DATA.UPDATE_SELLER_ORDER_DETAIL_STATUS,
+        body: JSON.stringify(data),
+        sellerId,
+      });
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async cancelOrderDetail(
+    sellerId: string,
+    data: { detail_id: number; order_id: number; qty: number },
+  ) {
+    try {
+      let res = await fetchData({
+        url: `/api/v1/shop/orders/details/cancel`,
+        method: "PUT",
+        server: "market-dashboard",
+        reqTitle: REQUESTS_DATA.CANCEL_SELLER_ORDER_DETAIL,
+        body: JSON.stringify(data),
+        sellerId,
+      });
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getRoles(sellerId: string, page: number = 1, search: string = "") {
+    try {
+      const params: string[] = [];
+      if (page > 1) params.push(`page=${page}`);
+      if (search) params.push(`search=${encodeURIComponent(search)}`);
+      const queryString = params.length ? `?${params.join("&")}` : "";
+
+      let res = await fetchData({
+        url: `/shop/users/roles${queryString}`,
         method: "GET",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.GET_SHOP_ROLES,
@@ -158,7 +204,10 @@ class SellerDashboardService {
     }
   }
 
-  async updateUserRole(data: { user_id: number; role_id: number }, sellerId: string) {
+  async updateUserRole(
+    data: { user_id: number; role_id: number },
+    sellerId: string,
+  ) {
     try {
       let res = await fetchData({
         url: `/shop/users/role/update`,

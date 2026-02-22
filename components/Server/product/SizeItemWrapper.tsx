@@ -23,7 +23,7 @@ function SizeItemWrapper({ children, ActiveSize }) {
             setActiveSize(child?.key);
           }}
           className={`uppercase justify-center cursor-pointer rounded-[6px] flex-col  w-auto h-[46px]  min-w-[50px] items-center px-[6px] ${
-            child?.key === activeSize ? "bg-[#F4F4F4]" : "bg-[#fff]"
+            child?.key === activeSize ? "bg-[#F4F4F4]" : "bg-white"
           } text-[#1d1d1d] text-[11px]`}
           style={{
             border: "1px solid #D3D3D37f",

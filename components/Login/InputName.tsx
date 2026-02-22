@@ -1,19 +1,12 @@
 import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
-import LeftArrowIcon from "public/svg/LeftArrowIcon";
+
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { GAevent } from "utils/gtag";
 import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
-import { resolve } from "path";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-  setCookie,
-} from "utils/cookies/cookie-manager";
 import { pollinateInput } from "utils/tinyUtils";
 
 function InputName({
@@ -55,9 +48,17 @@ function InputName({
       },
     });
     setLoading(true);
-    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    const user = useAppStore.getState().userProfile;
     let parsedUser = { ...user, name: value };
-    setCookie(COOKIE_NAMES.USER_DATA, parsedUser);
+    // Update server-side HttpOnly cookie
+    fetch("/api/auth/update-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        updates: [{ name: "User-Data", value: parsedUser }],
+      }),
+      credentials: "include",
+    });
     await new Promise((resolve) => setTimeout(resolve, 1000));
     await submit();
     setLoading(false);
@@ -201,7 +202,7 @@ function InputName({
             <span style={{ marginLeft: "10px" }}>
               {translate(
                 "Your Privacy Is Completely Safe, We Not Share Your Information With Anyone",
-                language
+                language,
               )}
             </span>
           </div>
@@ -289,7 +290,7 @@ function InputName({
                   updateName();
                 }}
               >
-                <LeftArrowIcon />
+                <img src="/icons/LeftArrowIcon.svg" />
               </span>
             )}
           </>

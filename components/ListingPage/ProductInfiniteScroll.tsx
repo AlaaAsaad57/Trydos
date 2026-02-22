@@ -4,7 +4,6 @@ import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { GAevent } from "utils/gtag";
@@ -21,14 +20,18 @@ function ProductsInfiniteScroll({
   parsedFilters,
   isFeatured,
   isFlashDeals,
+  recomended_offset = null,
+  sizes_filters = null,
 }: {
   offset: any;
-  currency: CurrencyApi["data"]["currency"];
+  currency: any;
   analyticsData: any;
   isFeatured?: boolean;
   isFlashDeals?: boolean;
   parsedFilters: any;
   boutiqueName;
+  recomended_offset?: any;
+  sizes_filters?: string[] | null;
 }) {
   const { resetBoutique } = useAppStore();
   const { lang }: { lang: string } = useParams();
@@ -73,6 +76,7 @@ function ProductsInfiniteScroll({
 
   const [products, setProducts] = useState<any[]>([]);
   const [offsetValue, setOffsetValue] = useState(offset);
+  const [recommendedOffset, setRecommendedOffset] = useState(recomended_offset);
   const [loading, setLoading] = useState(false);
   const [isReachEnd, setIsReachEnd] = useState(false);
   function areArraysEqual(oldArray: number[], newArray: number[]): boolean {
@@ -89,17 +93,21 @@ function ProductsInfiniteScroll({
   const getProductsReq = async () => {
     if (loading || isReachEnd) return;
     setLoading(true);
-
+    let user = useAppStore.getState().userProfile;
+    let userId = user?.id;
     const response = await GetProducts({
       country,
       language: languageVariable,
       currency,
       offset: offsetValue,
       parsedFilters: parsedFilters,
+      userId: userId,
+      recomended_offset: recommendedOffset,
+      sizes_filters: sizes_filters,
     });
     if (!response) {
       showErrorNotification(
-        translateFunction("Failed To Load Products Retring in 3 seconds")
+        translateFunction("Failed To Load Products Retring in 3 seconds"),
       );
       setTimeout(() => {
         getProductsReq();

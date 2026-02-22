@@ -9,16 +9,16 @@ import CartContentOfProduct from "./CartContentOfProduct";
 
 function ExtraInfoArea({
   isInCart,
-  isRedeem,
+  isLuck,
   isQtyEmpty,
   isValid = true,
   selected_color,
   selected_size,
-  redeem_price,
+  luck_price,
   flashDeal,
   isCollectAfterOrder,
   colors,
-  RedemEnd = () => {},
+  LuckEnd = () => {},
   id,
   product,
 }) {
@@ -183,7 +183,7 @@ function ExtraInfoArea({
   // never add to cart
   if (!isInCart) {
     // if reddem
-    if (isRedeem) {
+    if (isLuck) {
       return (
         <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full px-[20px]">
           <div className="flex items-center justify-center align-baseline rounded-[10px] bg-[#FFF3E8] text-[9px] text-[#FF6200] w-full h-[25px] relative gap-[3px]">
@@ -196,7 +196,7 @@ function ExtraInfoArea({
                 isForRedeem={true}
                 onFinish={() => {
                   configureRedeemedProducts();
-                  RedemEnd();
+                  LuckEnd();
                   hideRedeemPriceIfItsStillShown();
                 }}
                 minutes={0}
@@ -208,7 +208,7 @@ function ExtraInfoArea({
             <span>{translateFunction("Only")}</span>
             <span className="bold">
               {RoundPrice({
-                num: redeem_price,
+                num: luck_price,
                 rate: currency?.exchange_rate,
                 language: language,
               })}
@@ -254,7 +254,7 @@ function ExtraInfoArea({
       );
     }
   } else {
-    return <CartContentOfProduct />;
+    return <CartContentOfProduct product={product} />;
   }
 
   return <></>;

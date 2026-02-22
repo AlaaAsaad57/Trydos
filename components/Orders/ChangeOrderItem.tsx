@@ -1,34 +1,40 @@
 import React, { useEffect, useState } from "react";
 import {
   getConfiguredImage,
+  LogError,
   RoundPrice,
   translateFunction,
 } from "utils/functions";
 import Image from "next/image";
-import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon";
-import Spinner from "components/global/Spinner";
+
 import { ColorList, SizeList } from "./ModifyOrderItemModal";
 import { GetImageUrl, isSameColor, pollinateInput } from "utils/tinyUtils";
-import { ChangeColorWidgetPropsType } from "models/componentType/ChangeColorWidgetPropsType";
-import { ChangeOrderItemPropsType } from "models/componentType/ChangeOrderItemPropsType";
-import { ChangeSizeWidgetPropsType } from "models/componentType/ChangeSizeWidgetPropsType";
+
 import { fetchData } from "utils/fetchData";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
 import { REQUESTS_DATA } from "utils/Requests";
 import ChangeOrderItemSkeleton from "components/skeleton/loaders/ChangeOrderItemSkeleton";
+import { OrderInterface } from "utils/types/OrderInterface";
 
 function ChangeOrderItem({
   item,
+  order_id,
   backToMain,
   setShouldConfirmChange,
   shouldConfirmChange,
-}: ChangeOrderItemPropsType) {
+  isRtl,
+}: {
+  item: OrderInterface["details"][0];
+  order_id: number;
+  isRtl: boolean;
+  [key: string]: any;
+}) {
   const [loading, setLoading] = useState(false);
   const CancelQty = async () => {
     try {
       setShouldConfirmChange({
-        order_id: ActivePacks?.id,
+        order_id: order_id,
         item_id: item?.id,
         qty: item.qty - qty,
         type: "CancelQty",
@@ -37,22 +43,24 @@ function ChangeOrderItem({
       setLoading(false);
     }
   };
-  const { ActivePacks, language } = useAppStore();
+  const { language } = useAppStore();
   const [tabs, setTabs] = useState<string>(
     item?.variation?.[0]?.color
       ? "Change Color"
       : item?.variation?.[0]?.Size
-      ? "Change Size"
-      : "Change Qty"
+        ? "Change Size"
+        : "Change Qty",
   );
   let optinsTabs = [
     {
       name: "Change Color",
-      isExist: item?.variation?.[0]?.color,
+      isExist: item?.variation?.find((s) => s.id === item.product_variation_id)
+        ?.color,
     },
     {
       name: "Change Size",
-      isExist: item?.variation?.[0]?.Size,
+      isExist: item?.variation?.find((s) => s.id === item.product_variation_id)
+        ?.size,
     },
     {
       name: "Change Qty",
@@ -60,10 +68,13 @@ function ChangeOrderItem({
     },
   ];
   const [color, setColor] = useState<string>(
-    item?.variation?.[0]?.color_options
+    item?.variation?.find((s) => s.id === item.product_variation_id)?.color
+      ?.name,
   );
 
-  const [size, setSize] = useState<string>(item?.variation?.[0]?.size_options);
+  const [size, setSize] = useState<string>(
+    item?.variation?.find((s) => s.id === item.product_variation_id)?.size,
+  );
   const getVariant = () => {
     if (!productData?.variation || productData?.variation?.length === 0)
       return { ...productData };
@@ -73,7 +84,7 @@ function ChangeOrderItem({
 
     let variationText = variation.join("-");
     let selected_vartion = productData?.variation?.find(
-      (s) => s.type?.toLowerCase() === variationText?.toLowerCase()
+      (s) => s.type?.toLowerCase() === variationText?.toLowerCase(),
     );
 
     return selected_vartion;
@@ -116,7 +127,10 @@ function ChangeOrderItem({
       ]);
       setProductData({ ...data1.data, ...data2.data });
     } catch (err) {
-      console.error(err);
+      LogError({
+        error: err,
+        scenario: "Error in getProductDetails in ChangeOrderItem ",
+      });
     }
   };
 
@@ -137,14 +151,19 @@ function ChangeOrderItem({
         })
         ?.filter(
           (s) =>
-            item?.variation?.[0]?.color === s.color_name ||
-            item?.variation?.[0]?.color === s.color_option
+            item?.variation?.find((v) => v.id === item.product_variation_id)
+              ?.color?.name === s.color_name ||
+            item?.variation?.find((v) => v.id === item.product_variation_id)
+              ?.color?.name === s.color_option,
         )[0];
       if (!isSameColor(selectedColor, previousColor)) {
         return true;
       }
     }
-    if (size !== item?.variation?.[0]?.size_options) {
+    if (
+      size !==
+      item?.variation?.find((s) => s.id === item.product_variation_id)?.size
+    ) {
       return true;
     }
     if (qty !== item?.qty) {
@@ -162,6 +181,7 @@ function ChangeOrderItem({
     if (tabs === "Change Color")
       return (
         <ChangeColorWidget
+          isRtl={isRtl}
           item={item}
           productData={productData}
           color={color}
@@ -175,11 +195,13 @@ function ChangeOrderItem({
           productData={productData}
           size={size}
           setSize={setSize}
+          isRtl={isRtl}
         />
       );
     if (tabs === "Change Qty")
       return (
         <ChangeQtyWidget
+          isRtl={isRtl}
           item={item}
           productData={productData}
           qty={qty}
@@ -193,7 +215,7 @@ function ChangeOrderItem({
   return (
     <>
       <div className="flex-col w-full items-center  pb-[12px] px-[24px]">
-        <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px]">
+        <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px]">
           <span className="w-[40px] h-[4px] bg-[#C4C2C2] rounded-[2px]"></span>
           <div className="w-[104px] h-[144px] mt-[20px] relative">
             <span
@@ -215,13 +237,16 @@ function ChangeOrderItem({
               })}
               width={104}
               height={144}
-              alt={item.name || "Image"}
+              alt={item?.product_details?.name || "Image"}
             />
           </div>
           <div className="relative flex w-[30px] h-[30px] items-center justify-center mt-[12px]">
-            <ChangeOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
+            <img
+              src="/icons/ChangeOrderItemIcon.svg"
+              className="absolute top-0 left-0 right-0 mx-auto my-0"
+            />
             <Image
-              alt={item.name || "Image"}
+              alt={item?.product_details?.name || "Image"}
               width={20}
               height={20}
               className="rounded-full h-[20px] w-[20px] object-cover ddd"
@@ -238,7 +263,7 @@ function ChangeOrderItem({
           </span>
           <span className="regular text-[12px] mt-[11px] text-[#8D8D8D] text-center gap-[4px]">
             {translateFunction(
-              "You Can Change Size, Color, Qty Of  The Product Without Any Conditions According To The Change Policy"
+              "You Can Change Size, Color, Qty Of  The Product Without Any Conditions According To The Change Policy",
             )}
             {isChanged() && (
               <pre
@@ -271,7 +296,7 @@ function ChangeOrderItem({
                 onClick={() => {
                   if (canNavigateToNextTab()) {
                     showErrorNotification(
-                      translateFunction("Confirm the Changes First")
+                      translateFunction("Confirm the Changes First"),
                     );
                   } else {
                     setTabs(s.name);
@@ -288,7 +313,7 @@ function ChangeOrderItem({
       <div
         className={`w-full min-h-[53px] items-center justify-center  flex cursor-pointer ${
           !isChanged() ? "bg-[#D3D3D3] " : "bg-[#402CDD] "
-        } rounded-[20px] text-[16px] text-[#fff] medium`}
+        } rounded-[20px] text-[16px] text-white medium`}
         onClick={() => {
           if (isChangedQtyOnly()) {
             CancelQty();
@@ -297,23 +322,16 @@ function ChangeOrderItem({
           if (!isChanged()) {
             backToMain();
           } else {
-            // changeOrderItem({
-            //   id: item.id,
-            //   color: color,
-            //   size: size,
-            //   qty: qty,
-            //   image:
-            //     productData?.sync_color_images?.find(
-            //       (s) => s.color_name?.toLowerCase() === color?.toLowerCase()
-            //     )?.images?.[0] || productData?.images[0],
-            // });
-
             if (tabs === "Change Color") {
               setShouldConfirmChange({
                 ...shouldConfirmChange,
                 type: "Color",
-                currentColor: item?.variation?.[0]?.color,
-                currentSize: item?.variation?.[0]?.Size,
+                currentColor: item?.variation?.find(
+                  (s) => s.id === item.product_variation_id,
+                )?.color?.name,
+                currentSize: item?.variation?.find(
+                  (s) => s.id === item.product_variation_id,
+                )?.size,
                 newColor: color,
                 newSize: size,
                 productDetails: productData,
@@ -324,8 +342,12 @@ function ChangeOrderItem({
               setShouldConfirmChange({
                 ...shouldConfirmChange,
                 type: "Size",
-                currentColor: item?.variation?.[0]?.color,
-                currentSize: item?.variation?.[0]?.Size,
+                currentColor: item?.variation?.find(
+                  (s) => s.id === item.product_variation_id,
+                )?.color?.name,
+                currentSize: item?.variation?.find(
+                  (s) => s.id === item.product_variation_id,
+                )?.size,
                 newColor: color,
                 newSize: size,
                 productDetails: productData,
@@ -344,14 +366,9 @@ function ChangeOrderItem({
 }
 
 export default ChangeOrderItem;
-export const ChangeColorWidget = ({
-  color,
-  setColor,
-  item,
-  productData,
-}: ChangeColorWidgetPropsType) => {
+const ChangeColorWidget = ({ color, setColor, item, productData, isRtl }) => {
   return (
-    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
+    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
         <Image
           alt={item.name || "Image"}
@@ -373,39 +390,49 @@ export const ChangeColorWidget = ({
           }}
         />
       </div>
-      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b-[1px] pb-[12px] justify-center text-center">
+      <span
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center"
+      >
         {translateFunction("Change From")}
-        <span className="mx-[4px]">{item?.variation?.color}</span>
+        <span className="mx-[4px]">
+          {
+            item?.variation?.find((s) => s.id === item.product_variation_id)
+              ?.color?.name
+          }
+        </span>
       </span>
       <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full justify-center text-center">
         {translateFunction("To New Color?")}
       </span>
       <ColorList
         item={item}
-        variations={productData?.variation}
+        variations={productData?.variations}
         colors={productData?.sync_color_images?.filter((s) =>
           productData.colors?.find(
             (color) =>
-              color.option === s.color_option || color.name === s.color_name
-          )
+              color.option === s.color_option || color.name === s.color_name,
+          ),
         )}
         setColor={setColor}
         sizes={productData?.choice_options?.[0]?.options || []}
-        current_size={item?.variation?.[0]?.Size}
-        currentColor={item?.variation?.[0]?.color}
+        current_size={
+          item?.variation?.find((s) => s.id === item.product_variation_id)?.size
+        }
+        currentColor={
+          item?.variation?.find((s) => s.id === item.product_variation_id)
+            ?.color?.name
+        }
         newColor={color}
       />
     </div>
   );
 };
-export const ChangeSizeWidget = ({
-  size,
-  setSize,
-  item,
-  productData,
-}: ChangeSizeWidgetPropsType) => {
+const ChangeSizeWidget = ({ size, setSize, item, productData, isRtl }) => {
   return (
-    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
+    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
         <Image
           alt={item.name || "Image"}
@@ -427,27 +454,42 @@ export const ChangeSizeWidget = ({
           }}
         />
       </div>
-      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b-[1px] pb-[12px] justify-center text-center">
+      <span
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center"
+      >
         {translateFunction("Change From")}
-        <span className="mx-[4px]">{item?.variation?.[0]?.Size}</span>
+        <span className="mx-[4px]">
+          {
+            item?.variation?.find((s) => s.id === item.product_variation_id)
+              ?.size
+          }
+        </span>
       </span>
       <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full justify-center text-center">
         {translateFunction("To New Size?")}
       </span>
       <SizeList
         item={item}
-        variations={productData?.variation}
+        variations={productData?.variations}
         image={getConfiguredImage({
           src: item.image,
           width: 70,
           height: 70,
           q: 100,
         })}
-        currentColor={item?.variation?.[0]?.color}
+        currentColor={
+          item?.variation?.find((s) => s.id === item.product_variation_id)
+            ?.color?.name
+        }
         colors={productData?.sync_color_images}
-        sizes={productData?.choice_options?.[0]?.options}
+        sizes={productData?.sizes}
         setSize={setSize}
-        currentSize={item?.variation?.[0]?.Size}
+        currentSize={
+          item?.variation?.find((s) => s.id === item.product_variation_id)?.size
+        }
         newSize={size}
       />
     </div>
@@ -458,14 +500,16 @@ const ChangeQtyWidget = ({
   setQty,
   item,
   productData,
+  isRtl,
 }: {
   qty: number;
   setQty: (qty: number) => void;
   item: any;
   productData: any;
+  isRtl;
 }) => {
   return (
-    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
+    <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
         <Image
           alt={item.name || "Image"}
@@ -487,7 +531,12 @@ const ChangeQtyWidget = ({
           }}
         />
       </div>
-      <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b-[1px] pb-[12px] justify-center text-center">
+      <span
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b pb-[12px] justify-center text-center"
+      >
         {translateFunction("Change From")}
         <span className="mx-[4px]">{item?.qty}</span>
         <span className="medium">{translateFunction("Qty")}</span>
@@ -503,19 +552,27 @@ const ChangeQtyWidget = ({
           type="number"
           value={qty}
           onChange={(e) => {
-            if (parseInt(pollinateInput(e.target.value)) > qty) {
+            if (parseInt(pollinateInput(e.target.value)) > item.qty) {
               showErrorNotification(
                 translateFunction(
-                  "You Can't Change Qty To Higher Than The Current Qty"
-                )
+                  "You Can't Change Qty To Higher Than The Current Qty",
+                ),
               );
             } else {
               setQty(Math.max(0, parseInt(pollinateInput(e.target.value))));
             }
           }}
-          className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-none focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
+          className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-hidden focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
           min="1"
         />
+        {item.qty !== qty && (
+          <button
+            onClick={() => setQty(Math.min(item.qty, qty + 1))}
+            className="flex items-center justify-center w-[40px] h-[40px] rounded-r-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-l-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
+          >
+            <span className="text-[#1D1D1D] text-[18px] light">+</span>
+          </button>
+        )}
       </div>
       <span className="text-[#8D8D8D] text-[12px] regular mt-[8px] text-center">
         {translateFunction("Select quantity")}

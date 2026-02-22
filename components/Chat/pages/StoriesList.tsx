@@ -5,7 +5,7 @@ import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { fetchStoriesForUser } from "serverRequests";
-import { getUserStories } from "utils/functions";
+import { getUserStories, LogError } from "utils/functions";
 import Skeleton from "react-loading-skeleton";
 import StoryServiceClass from "services/story";
 function StoriesList() {
@@ -32,7 +32,7 @@ function StoriesList() {
         language,
         country,
         pageNumber,
-        getUserStories().access_token
+        getUserStories().access_token,
       );
 
       if (response.data) {
@@ -50,7 +50,10 @@ function StoriesList() {
         setHasMoreStories(!!response.next_page_url);
       }
     } catch (error) {
-      console.error("Error fetching stories:", error);
+      LogError({
+        error: error,
+        scenario: "getStoriesData in StoriesList - chat widget",
+      });
       setHasMoreStories(false);
     } finally {
       setLoading(false);

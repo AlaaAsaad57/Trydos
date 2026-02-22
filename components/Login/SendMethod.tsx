@@ -1,20 +1,12 @@
 import { useEffect, useState } from "react";
 
-import { translateFunction } from "utils/functions";
-import WAIcon from "public/svg/WAIcon";
-import MessageIcon from "public/svg/MessageIcon";
+import { LogError, translateFunction } from "utils/functions";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import {
-  GA_AUTH_SCREEN,
-  GA_BUTTONS_NAMES,
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-} from "utils/GAEvents";
+import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import PhoneNumberError from "./PhoneNumberError";
-import { SendMethodPropsType } from "models/componentType/settingTypes/SendMethodPropsType";
 
 function SendMethod({
   inputValue,
@@ -25,7 +17,7 @@ function SendMethod({
   setShowMobile,
   hideEdit,
   operation = "login",
-}: SendMethodPropsType) {
+}: any) {
   const { language, wrongNumber } = useAppStore();
 
   let { lang } = useParams();
@@ -49,15 +41,18 @@ function SendMethod({
       await AuthService.SendOtp(
         mobilePhone,
         is_via_whatsapp,
-        errorCallbackFunc
+        errorCallbackFunc,
       );
 
       successCallback();
     } catch (error) {
       setLoading(false);
-      // console.log(error);
+
       errorCallback();
-      console.error("SendOtp failed:", error);
+      LogError({
+        error: error,
+        scenario: "Error in SendOtpHook in SendMethod",
+      });
     }
   };
   const SendCodeRequest = (method: string) => {
@@ -76,14 +71,6 @@ function SendMethod({
   };
 
   const [active, setActive] = useState(false);
-  const mountAnim = ` 
-  0% {transform:translateX(800px)}
-  100% {transform:translateX(0px)}
-`;
-  const unmountAnim = `
-0% {transform:translateX(0px)}
-100% {transform:translateX(-800px)}
-`;
   useEffect(() => {
     if (stepIndicator === 4) {
       setTimeout(() => {
@@ -166,7 +153,7 @@ function SendMethod({
           >
             {translate(
               "We Will Send A Verification Code To The Number",
-              language
+              language,
             )}
           </div>
           <div
@@ -291,7 +278,7 @@ function SendMethod({
             <span data-cy="choose-text">
               {translate(
                 "Choose The Verification Method, Receive Code Via:",
-                language
+                language,
               )}
             </span>
           </div>
@@ -356,7 +343,11 @@ function SendMethod({
               </g>
             </svg>
           </div>
-          <WAIcon data-cy="way-icon" style={{ left: "34px", top: "17px" }} />
+          <img
+            src="/icons/WAIcon.svg"
+            data-cy="way-icon"
+            style={{ left: "34px", top: "17px" }}
+          />
           <div
             data-cy="whattsapp-text"
             className={`message-recieve-option-text regular `}
@@ -422,7 +413,8 @@ function SendMethod({
               </g>
             </svg>
           </div>
-          <MessageIcon
+          <img
+            src="/icons/MessageIcon.svg"
             data-cy="message-icon-svg"
             style={{ left: "48px", top: "17px" }}
           />

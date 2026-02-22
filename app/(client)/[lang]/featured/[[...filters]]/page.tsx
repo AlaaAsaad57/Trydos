@@ -1,9 +1,5 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-import BackIcon from "public/svg/listing/backIcon";
-import SortIcon from "public/svg/listing/sortIcon";
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import "styles/listing-components.css";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
@@ -11,20 +7,16 @@ import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageBu
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
-import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
-import {
-  generateMetadataForListing,
-  GetStructuredData,
-} from "serverRequests/meta/listing";
-import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
+import { generateMetadataForListing } from "serverRequests/meta/listing";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
 export const dynamicParams = true;
 export async function generateMetadata({ params }) {
+  let Params = await params;
   // Fetch your main product categories
   try {
     const metadata = await generateMetadataForListing({
@@ -33,7 +25,7 @@ export async function generateMetadata({ params }) {
 
     return metadata;
   } catch (error) {
-    console.log(error);
+    LogServerError(error, `/${Params.lang}/featured`);
     return [];
   }
 }
@@ -53,7 +45,12 @@ async function getCurrency(country, language) {
       StoreCurrency(country, currency);
       return { ...currency, redis: false };
     }
-  } catch (error) {}
+  } catch (error) {
+    LogServerError(
+      { error, type: "get currency error", country, language },
+      `/${country}-${language}/featured`,
+    );
+  }
 }
 export default async function Page({ params }) {
   let Params = await params;
@@ -67,7 +64,7 @@ export default async function Page({ params }) {
       parsedFilters = {
         ...parsedFilters,
         prices: parsedFilters.prices?.map((s) =>
-          s.split("-").map((d) => Number(d))
+          s.split("-").map((d) => Number(d)),
         )?.[0],
       };
     }
@@ -92,16 +89,6 @@ export default async function Page({ params }) {
 
     return (
       <>
-        <Suspense fallback={<></>}>
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <GetStructuredData
-            is_fearured={false}
-            responsePromise={filtersData}
-            is_flashDeals={false}
-            params={Params}
-          />
-        </Suspense>
-
         {/*@ts-expect-error Async Server Component is valid in Next  */}
         <FilterWidgetServer
           isFeatured={true}
@@ -114,7 +101,7 @@ export default async function Page({ params }) {
         />
         <div
           data-cy="filter_listing_bar"
-          className={`filter-listing-bar z-[99999999] relative ${
+          className={`filter-listing-bar z-99999999 relative ${
             isRtl ? "flex-row-reverse flex" : "flex-row flex"
           } align-center w-full h-[50px] pl-[15px] pr-[20px] justify-between bg-white z-10`}
         >
@@ -128,7 +115,8 @@ export default async function Page({ params }) {
             ariaLabel={`TryDos Home ${Params.lang}`}
             className="back-icon"
           >
-            <BackIcon
+            <img
+              src="/icons/backIcon.svg"
               data-cy="back_icon_boutique_page"
               className={`${isRtl && "rotate-180"}`}
             />
@@ -153,7 +141,7 @@ export default async function Page({ params }) {
               data-cy="filter_option_loseSearchInput"
               className="filter-option"
             >
-              <SortIcon data-cy="closeSearchInput" />
+              <img src="/icons/sortIcon.svg" data-cy="closeSearchInput" />
             </div>
             <FilterBoutiquePageButton key={"filter-button"} />
             <ShareBoutiquePageButton />
@@ -181,15 +169,15 @@ export default async function Page({ params }) {
           currencyPromise={currency}
           filtersDataPromise={filtersData}
           parsedFilters={parsedFilters}
+          language={language}
         />
       </>
     );
   } catch (error) {
-    const filtersPath =
-      Array.isArray(Params.filters) && Params.filters.length > 0
-        ? `/${Params.filters.join("/")}`
-        : "";
-    LogServerError(error, `/${Params.lang}/filters/${filtersPath}`);
+    LogServerError(
+      { error, filters: Params.filters },
+      `/${Params.lang}/featured`,
+    );
     throw error instanceof Error ? error : new Error(String(error));
   }
 }

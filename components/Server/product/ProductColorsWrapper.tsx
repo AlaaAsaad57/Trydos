@@ -1,12 +1,12 @@
 import ProductColors from "components/products/ProductColors";
 import Image from "next/image";
-import TrendColorIcon from "public/svg/product/TrendColorIcon";
+
 import {
   getConfiguredImage,
   GetImageUrl,
   translateFunction,
 } from "utils/server";
-import ColorsIcon from "public/svg/product/colors";
+
 import "styles/listing.css";
 import NextLink from "components/global/NextLink";
 async function ProductColorsWrapper({
@@ -34,7 +34,7 @@ async function ProductColorsWrapper({
           isRtl && "items-end"
         } colors-label flex-col align-start py-[8px] justify-center gap-[4px]`}
       >
-        <ColorsIcon data-cy="ColorsIcon" />
+        <img src="/icons/colors.svg" data-cy="ColorsIcon" />
         <span
           data-cy="Color-Length"
           className="regular text-[9px] text-[#1d1d1d] "
@@ -60,7 +60,7 @@ async function ProductColorsWrapper({
             >
               {color?.color_trend && (
                 <span className="absolute top-[-6px] left-[-2px] z-50">
-                  <TrendColorIcon />
+                  <img src="/icons/TrendColorIcon.svg" />
                 </span>
               )}
               {getBorder(color?.color_name, activeColor)}
@@ -78,13 +78,14 @@ async function ProductColorsWrapper({
             </div>
           ) : (
             <NextLink
+              disableScroll={false}
               href={`/${country}-${language}/products/${slug}?color=${color?.color_option}`}
               key={color?.color_name || color?.color_option}
               className="min-w-[50px] w-[50px] h-[73px] relative select-none cursor-pointer"
             >
               {color?.color_trend && (
                 <span className="absolute top-[-6px] left-[-2px] z-50">
-                  <TrendColorIcon />
+                  <img src="/icons/TrendColorIcon.svg" />
                 </span>
               )}
               {getBorder(color?.color_name, activeColor)}
@@ -100,7 +101,7 @@ async function ProductColorsWrapper({
                 alt={color.color_name}
               />
             </NextLink>
-          )
+          ),
         )}
       </ProductColors>
     </div>

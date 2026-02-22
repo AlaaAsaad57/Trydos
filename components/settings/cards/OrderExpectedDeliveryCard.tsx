@@ -1,10 +1,8 @@
-import { OrderDateCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
-import React from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
-function OrderExpectedDeliveryCard({ time }: OrderDateCardProps) {
-  const { ActivePacks, language } = useAppStore();
+function OrderExpectedDeliveryCard({ time, status }: any) {
+  const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
   return (
@@ -13,7 +11,7 @@ function OrderExpectedDeliveryCard({ time }: OrderDateCardProps) {
         direction: isRtl ? "rtl" : "ltr",
       }}
       className={`${
-        ActivePacks.order_status.value === "canceled" && "opacity-55"
+        status === "canceled" && "opacity-55"
       } bg-[#F4F4F4] relative w-1/2 min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col`}
     >
       <svg
@@ -156,7 +154,7 @@ function OrderExpectedDeliveryCard({ time }: OrderDateCardProps) {
         </g>
       </svg>
 
-      {ActivePacks.order_status.value !== "canceled" && (
+      {status !== "canceled" && (
         <>
           <span className="text-[#8D8D8D] regular text-[10px] mt-[5px]">
             {translateFunction("Expected Delivery Date")}
@@ -168,7 +166,7 @@ function OrderExpectedDeliveryCard({ time }: OrderDateCardProps) {
             className="text-[#1D1D1D] flex flex-row text-[12px] regular mt-[3px] gap-[3px]"
           >
             <span>Monday</span>
-            <span className="bold text-[#1D1D1D] text-[12px]  mx-[1px]">
+            <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
               2.Jun
             </span>
             <span> | 3 {translateFunction("Work Days")}</span>

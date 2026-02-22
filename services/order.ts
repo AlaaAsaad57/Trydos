@@ -1,17 +1,23 @@
 import { useAppStore } from "store";
-import { PlaceOrderApi } from "models/API/market/PlaceOrder";
-import { GetAddressListApi } from "models/API/market/GetAddresses";
-import { GetWalletApi } from "models/API/market/GetWallet";
-import { GetCartOreview, translateFunction } from "utils/functions";
+
+import { GetCartOreview } from "utils/functions";
 import { getCurrency } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 import auth from "./auth";
 import { REQUESTS_DATA } from "utils/Requests";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
-import { showErrorNotification } from "store/notifications/reducer";
+import { returnDetails } from "utils/types/OrderInterface";
+import { LogServerError } from "utils/serverErrorReporter";
+import { GetWalletBalanceForCountryCurrency } from "./wallet";
 
 class OrderService {
-  async PlaceOrder({ payment_method, pay_by_wallet }) {
+  async PlaceOrder({
+    payment_method,
+    pay_by_wallet,
+  }: {
+    payment_method?: string;
+    pay_by_wallet: boolean;
+  }) {
     const {
       addressLists,
       setOrderLoading,
@@ -22,8 +28,11 @@ class OrderService {
     let addressId = addressLists.filter((s) => s.is_default === 1)[0]?.id;
     try {
       setOrderLoading(true);
-      let response: { data: PlaceOrderApi } = await fetchData({
-        url: `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}&pay_by_wallet=${
+      const checkoutPath = payment_method
+        ? `/customer/order/checkout/${payment_method}`
+        : `/customer/order/checkout`;
+      let response: any = await fetchData({
+        url: `${checkoutPath}?order_note=order note&address_id=${addressId}&pay_by_wallet=${
           pay_by_wallet ? 1 : 0
         }`,
         reqTitle: REQUESTS_DATA.PAY_ORDER,
@@ -45,6 +54,10 @@ class OrderService {
 
       setOrderLoading(false);
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In PlaceOrder in services/order",
+      });
       setOrderLoading(false);
     }
   }
@@ -58,31 +71,54 @@ class OrderService {
           setCurrency(data.currency);
         },
       });
-      let response: { data: GetWalletApi } = await fetchData({
-        url: "/customer/wallet/list?limit=10&offset=1",
-        reqTitle: REQUESTS_DATA.GET_WALLET,
-        method: "GET",
-        server: "market",
-      });
+      // let response: any = await fetchData({
+      //   url: "/customer/wallet/list?limit=10&offset=1",
+      //   reqTitle: REQUESTS_DATA.GET_WALLET,
+      //   method: "GET",
+      //   server: "market",
+      // });
+      let country = getCookie(COOKIE_NAMES.COUNTRY);
+      let response = await this.GetWalletBalanceToShow({ country });
+
       // @ts-ignore
       if (!response.success) {
         // @ts-ignore
         throw new Error(response.message);
       }
+
       setWalletUser({
-        ...response.data,
-        wallet_balance: response.data.wallet_balance || 0,
+        ...response,
+        wallet_balance: response?.totalAvailable,
       });
       setOrderLoading(false);
       return response.data;
     } catch (error) {
       setOrderLoading(false);
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In GetWallet in services/order",
+      });
     }
+  }
+  async GetWalletBalanceToShow({ country }) {
+    const { setShouldAuthinticated } = useAppStore.getState();
+    let walletBalance = null;
+    try {
+      walletBalance = await GetWalletBalanceForCountryCurrency({
+        country,
+      });
+    } catch (error) {}
+
+    if (walletBalance && "status" in walletBalance) {
+      if (walletBalance.status === 401) {
+        setShouldAuthinticated(true);
+      }
+    }
+    return { ...walletBalance, success: walletBalance ? true : false };
   }
   async GetWalletTransactions(limit: number = 10, offset: number = 1) {
     try {
-      let response: { data: GetWalletApi } = await fetchData({
+      let response: any = await fetchData({
         url: `/customer/wallet/list?limit=${limit}&offset=${offset}`,
         reqTitle: REQUESTS_DATA.GET_WALLET,
         method: "GET",
@@ -95,7 +131,10 @@ class OrderService {
       }
       return response.data;
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In GetWalletTransactions in services/order",
+      });
       throw error;
     }
   }
@@ -104,7 +143,7 @@ class OrderService {
     this.GetProvinces();
     try {
       setOrderLoading(true);
-      let response: { data: GetAddressListApi } = await fetchData({
+      let response: any = await fetchData({
         url: "/customer/address/list",
         reqTitle: REQUESTS_DATA.GET_ADDRESS_LIST,
         method: "GET",
@@ -119,7 +158,10 @@ class OrderService {
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In GetAddressList in services/order",
+      });
     }
   }
   async SetDefault({ id }) {
@@ -144,6 +186,10 @@ class OrderService {
       await GetCartOreview();
       setOrderLoading(false);
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In SetDefault Address in services/order",
+      });
       setOrderLoading(false);
     }
   }
@@ -188,7 +234,10 @@ class OrderService {
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In AddAddressList in services/order",
+      });
     }
   }
   async UpdateAddressList({ address, callback }) {
@@ -229,7 +278,10 @@ class OrderService {
       }
       setOrderLoading(false);
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In UpdateAddressList in services/order",
+      });
       setOrderLoading(false);
     }
   }
@@ -251,7 +303,10 @@ class OrderService {
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In DeleteAddressList in services/order",
+      });
     }
   }
   async GetProvinces() {
@@ -270,7 +325,10 @@ class OrderService {
       setProvinces(response.data);
       setOrderLoading(false);
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In GetProvinces in services/order",
+      });
       setOrderLoading(false);
     }
   }
@@ -289,7 +347,10 @@ class OrderService {
       }
       return response.data;
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In getOrderDetails in services/order",
+      });
       return null;
     }
   }
@@ -308,7 +369,10 @@ class OrderService {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In CancelOrder in services/order",
+      });
     }
   }
   async CancelOrderItem({ order_id, qty, item_id }) {
@@ -326,7 +390,10 @@ class OrderService {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In CancelOrderItem in services/order",
+      });
     }
   }
   async changeOrderAddress({ order_id, address_id }) {
@@ -347,10 +414,19 @@ class OrderService {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In changeOrderAddress in services/order",
+      });
     }
   }
-  async changeOrderItemVariant({ color, choice_1, order_detail_id, image }) {
+  async changeOrderItemVariant({
+    color,
+    choice_1,
+    order_detail_id,
+    image,
+    product_variant_id,
+  }) {
     try {
       let response = await fetchData({
         url: `/customer/order/change-item-variant`,
@@ -358,19 +434,24 @@ class OrderService {
         method: "POST",
         server: "market",
         body: JSON.stringify({
+          // product_variation_id: product_variant_id,
           color,
-          choice_1: choice_1 ?? "",
+          size: choice_1 ?? "",
           order_detail_id,
           image,
         }),
       });
+
       if (response.success || response.isSuccessful) {
         return response;
       } else {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In changeOrderItemVariant in services/order",
+      });
     }
   }
   async RateOrderWithhComment({
@@ -386,7 +467,7 @@ class OrderService {
     images = [],
   }) {
     try {
-      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+      let userData: any = useAppStore.getState().userProfile;
       // if (userData.need_auth) {
       //   showErrorNotification(
       //     translateFunction("Please Verify Your Phone Number")
@@ -436,13 +517,15 @@ class OrderService {
         throw new Error(res?.message);
       }
     } catch (e) {
-      console.log(e);
+      LogServerError({
+        error: e,
+        scenario: "Error In RateOrderWithhComment in services/order",
+      });
       throw new Error(e?.message);
     }
   }
   async getReturnReasons() {
     try {
-      console.log(REQUESTS_DATA.RETURN_REASONS);
       let response = await fetchData({
         url: `/customer/order/return_requests/reasons`,
         reqTitle: REQUESTS_DATA.RETURN_REASONS,
@@ -455,7 +538,10 @@ class OrderService {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In getReturnReasons in services/order",
+      });
     }
   }
   async CreateReturnRequest({ order_id }) {
@@ -467,7 +553,12 @@ class OrderService {
         server: "market",
       });
       return resp?.data?.return_request_id;
-    } catch (error) {}
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In CreateReturnRequest in services/order",
+      });
+    }
   }
   async UploadImageForOrderReturn({ image }) {
     let formData = new FormData();
@@ -488,7 +579,10 @@ class OrderService {
       }
       return response?.data;
     } catch (err) {
-      console.error(err);
+      LogServerError({
+        error: err,
+        scenario: "Error In UploadImageForOrderReturn in services/order",
+      });
       return null;
     }
   }
@@ -511,7 +605,10 @@ class OrderService {
       }
       return response?.data;
     } catch (err) {
-      console.error(err);
+      LogServerError({
+        error: err,
+        scenario: "Error In UploadImageForRating in services/order",
+      });
       return null;
     }
   }
@@ -534,7 +631,12 @@ class OrderService {
       } else {
         throw new Error(response.message);
       }
-    } catch (error) {}
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In UpdateReturnedProduct in services/order",
+      });
+    }
   }
   async ReturnProduct({
     product_id,
@@ -572,7 +674,12 @@ class OrderService {
       } else {
         throw new Error(response.message);
       }
-    } catch (error) {}
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In ReturnProduct in services/order",
+      });
+    }
   }
   async CancelReturn({ return_request_product_id }) {
     try {
@@ -587,7 +694,12 @@ class OrderService {
       } else {
         throw new Error(response.message);
       }
-    } catch (error) {}
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In CancelReturn in services/order",
+      });
+    }
   }
   async getReturnRequestDetails({ order_id = null, return_request_id = null }) {
     try {
@@ -606,6 +718,10 @@ class OrderService {
       if (response?.success) return response.data;
       else throw new Error();
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In getReturnRequestDetails in services/order",
+      });
       throw error;
     }
   }
@@ -623,6 +739,10 @@ class OrderService {
       if (response?.success) return response.data;
       else throw new Error();
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In ConfirmReturnRequest in services/order",
+      });
       throw error;
     }
   }
@@ -637,6 +757,10 @@ class OrderService {
       if (response?.success) return response.data;
       else throw new Error();
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In ViewReturnRequest in services/order",
+      });
       throw error;
     }
   }
@@ -654,6 +778,10 @@ class OrderService {
       if (response?.success) return response.data;
       else throw new Error();
     } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In CancelReturnRequest in services/order",
+      });
       throw error;
     }
   }
@@ -668,7 +796,9 @@ class OrderService {
       throw new Error(res?.message);
     }
   }
-  async GetReturnDetailsForOrderGroup({ order_group_id }) {
+  async GetReturnDetailsForOrderGroup({
+    order_group_id,
+  }): Promise<returnDetails> {
     let resp = await fetchData({
       url: `/customer/order/return_requests/order_details_by_group?order_group_id=${order_group_id}`,
       server: "market",
@@ -676,12 +806,8 @@ class OrderService {
       reqTitle: REQUESTS_DATA.DETAILS_RETURN_PRODUCT,
       noMessage: true,
     });
-    let arr = resp.data.return_requests_data?.map((s) => ({
-      details: s,
-      id: s.return_request_id,
-      status: s?.status?.value,
-    }));
-    return arr;
+
+    return resp.data;
   }
 }
 export default new OrderService();

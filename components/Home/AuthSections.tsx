@@ -1,8 +1,7 @@
 import dynamic from "next/dynamic";
 import LandingPage from "./LandingPage";
 import { useAppStore } from "store";
-import CallComponent from "components/Chat/components/CallComponent";
-import { ChatConroller } from "utils/tinyUtils";
+
 const CallContainer = dynamic(
   () => import("components/Chat/pages/CallContainer"),
   {

@@ -1,20 +1,17 @@
+"use client";
 import React, { useRef, useState } from "react";
-import SettingTopBar from "./TopBar";
 import AvatarEditor from "react-avatar-editor";
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
 
 import auth from "services/auth";
-import { translateFunction } from "utils/functions";
-import { useAppStore } from "store";
+import { LogError, translateFunction } from "utils/functions";
+
 import { GetImageUrl } from "utils/tinyUtils";
-import { UploadProfilePhotoPropsType } from "models/componentType/settingTypes/UploadProfilePhotoPropsType";
+import BackBar from "components/setting/BackBar";
+import { useRouter } from "next/navigation";
 
-function UploadProfilePhoto({
-  swipeToScreen,
-  goBack,
-}: UploadProfilePhotoPropsType) {
-  const { editUserInfo, userProfile } = useAppStore();
-
+function UploadProfilePhoto({ local, isRtl, userProfile }) {
+  const [, language] = local.split("-");
   const [file, setFile] = useState(GetImageUrl(userProfile?.image));
   const [isDragged, setIsDragged] = useState(false);
   const [isUploading, setIsUploading] = useState(null);
@@ -120,7 +117,7 @@ function UploadProfilePhoto({
       return canvasScaled.toDataURL("image/jpeg", 0.9);
     }
   };
-
+  const router = useRouter();
   const UploadFile = async () => {
     setIsUploading(true);
     try {
@@ -142,48 +139,56 @@ function UploadProfilePhoto({
         {
           image: file ? res.sub_path : null,
         },
-        userProfile
+        userProfile,
       );
       // setFile(res.data.image);
 
-      editUserInfo({
-        image: file
-          ? process.env.NEXT_PUBLIC_CLOUDINARY_URL + res.sub_path
-          : null,
-      });
       setIsDragged(false);
       setIsUploading(false);
-      goBack();
+      window.location.href = `/${local}/settings/profile`;
       // Cleanup object URL when component unmounts
       return () => URL.revokeObjectURL(file);
     } catch (err) {
       setIsDragged(false);
-      console.error("Error uploading file:", err);
+      LogError({
+        error: err,
+        scenario: "Error In UploadFile in UploadProfilePhoto",
+      });
     } finally {
       setIsUploading(false);
     }
   };
   const editorRef = useRef<typeof AvatarEditor>(null);
+
   return (
-    <div className="flex-col">
-      <SettingTopBar
+    <div
+      className="flex-col w-full flex setting-screen "
+      key="profile-photo-setting-page"
+    >
+      <BackBar
+        preivous_page={`/${local}/settings/profile`}
         DataCy="save-image"
-        goBack={() => {
-          goBack();
-          setFile(userProfile?.image);
-          setIsDragged(false);
-          setIsUploading(false);
+        isRtl={isRtl}
+        local={local}
+        validateFunction={() => {
+          return (
+            (!file?.includes(userProfile?.image) &&
+              userProfile?.image !== file) ||
+            isDragged
+          );
         }}
-        screenName="Profile"
+        name={translateFunction("Profile", language)}
         Save={
-          userProfile?.image !== file || isDragged
+          (!file?.includes(userProfile?.image) &&
+            userProfile?.image !== file) ||
+          isDragged
             ? () => {
                 UploadFile();
               }
             : null
         }
       />
-      <div className="flex-row justify-center mt-[12px] px-[12px]">
+      <div className="flex-row justify-center mt-[12px] px-[12px] w-full">
         <div className="flex flex-col w-full">
           <input
             onChange={(e) => {

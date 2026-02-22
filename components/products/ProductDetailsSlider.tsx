@@ -6,15 +6,10 @@ import { getConfiguredImage, RoundPrice } from "utils/functions";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 import { useAppStore } from "store";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
-import { ProductDetailsSliderPropsType } from "models/componentType/productTypes/ProductDetailsSliderPropsType";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
-function ProductDetailsSlider({
-  images,
-  productGA,
-  resetLoader = true,
-}: ProductDetailsSliderPropsType) {
+function ProductDetailsSlider({ images, productGA, resetLoader = true }: any) {
   const { setIsNavigating } = useAppStore();
   const [imageShow, showImage] = useState(-1);
   const [emblaRef1, emblaApi] = useEmblaCarousel({
@@ -89,6 +84,14 @@ function ProductDetailsSlider({
     }
   }, [emblaApi, imageShow]);
   useEffect(() => {
+    GAevent({
+      action: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
+      params: {
+        user_id_custom: auth.UserID(),
+
+        ...productGA,
+      },
+    });
     const handleTwentySecondAction = () => {
       // Add your 20-second action here
 
@@ -121,7 +124,7 @@ function ProductDetailsSlider({
   return (
     <>
       {imageShow >= 0 && (
-        <div className="fixed cursor-pointer bg-[#0000004d] flex justify-center items-center h-[100vh] w-[100vw] top-0 left-0 p-4 z-[9999999999]">
+        <div className="fixed cursor-pointer bg-[#0000004d] flex justify-center items-center h-screen w-screen top-0 left-0 p-4 z-9999999999">
           <span className="absolute right-3 top-4 z-50">
             {" "}
             <CloseIcon

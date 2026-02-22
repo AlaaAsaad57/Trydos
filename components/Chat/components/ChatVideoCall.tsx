@@ -1,10 +1,9 @@
 // webview video call component
 import { useState, useEffect, useRef, useMemo } from "react";
-import EndCallIcon from "../svg/endCall";
-import MicIcon from "../svg/micIcon";
-import VideoIcon from "../svg/vidIcon";
-import CallingIcon from "../svg/calling";
-import LeftArrowIcon from "../svg/leftArrow";
+
+import MicIcon from "public/icons/chat/micIcon.svg";
+import VideoIcon from "public/icons/chat/vidIcon.svg";
+
 import AgoraRTC, {
   AgoraVideoPlayer,
   createClient,
@@ -12,7 +11,7 @@ import AgoraRTC, {
 } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
 import { useAppStore } from "store";
-import { getUserChat } from "utils/functions";
+import { getUserChat, LogError } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getTwoLetters } from "../chatsFunctions";
 import { fetchData } from "utils/fetchData";
@@ -54,7 +53,7 @@ function ChatVideoCall({ token }) {
             await client.leave();
           }
         } catch (agoraError) {
-          console.warn("Agora cleanup error:", agoraError);
+          // console.warn("Agora cleanup error:", agoraError);
         }
       }
 
@@ -75,7 +74,11 @@ function ChatVideoCall({ token }) {
           body: JSON.stringify({ user_id: getUserChat()?.id }),
         });
       } catch (apiError) {
-        console.error("End call API error:", apiError);
+        LogError({
+          error: apiError,
+          scenario: "end call api in web video call - chat widget",
+          userId: getUserChat()?.id,
+        });
       }
 
       // Handle RefuseCall if we have the necessary data
@@ -87,7 +90,11 @@ function ChatVideoCall({ token }) {
       storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
     } catch (error) {
-      console.error("Error ending call:", error);
+      LogError({
+        error: error,
+        scenario: "end call function in web video call - chat widget",
+        userId: getUserChat()?.id,
+      });
       // Still try to unmount
       storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
@@ -151,7 +158,14 @@ function ChatVideoCall({ token }) {
           if (mediaType === "audio") {
             try {
               user?.audioTrack?.play();
-            } catch (e) {}
+            } catch (e) {
+              LogError({
+                error: e,
+                scenario:
+                  "failed to play call audio  web video call - chat widget",
+                userId: getUserChat()?.id,
+              });
+            }
           }
         });
 
@@ -193,7 +207,11 @@ function ChatVideoCall({ token }) {
           setIsPublished(true);
         }
       } catch (error) {
-        console.error(error);
+        LogError({
+          error: error,
+          scenario: "error in init function web video call - chat widget",
+          userId: getUserChat()?.id,
+        });
       }
     };
 
@@ -240,9 +258,7 @@ function ChatVideoCall({ token }) {
   const cleanUp = async () => {
     try {
       await clientRef?.current?.unpublish(tracks);
-    } catch (error) {
-      console.error("Error during cleanup:", error);
-    }
+    } catch (error) {}
     try {
       await clientRef?.current?.leave();
     } catch (error) {}
@@ -272,7 +288,7 @@ function ChatVideoCall({ token }) {
   const otherUser = useMemo(() => {
     return (
       activeChat?.channel_members?.find(
-        (member) => String(member.user_id) !== String(userData?.id)
+        (member) => String(member.user_id) !== String(userData?.id),
       )?.user || null
     );
   }, [activeChat?.channel_members, userData?.id]);
@@ -291,7 +307,7 @@ function ChatVideoCall({ token }) {
                   className="hgg"
                   style={{
                     backgroundImage: `url(${GetImageUrl(
-                      otherUser?.photo_path
+                      otherUser?.photo_path,
                     )})`,
                     left: 0,
                     right: 0,
@@ -329,7 +345,7 @@ function ChatVideoCall({ token }) {
             </div>
           )} */}
           <span className="caller-name">
-            {otherUser?.name || otherUser?.phone}
+            {otherUser?.name || otherUser?.mobile_phone}
           </span>
 
           {users.length > 0 &&
@@ -368,7 +384,7 @@ function ChatVideoCall({ token }) {
               }
             }}
           >
-            <LeftArrowIcon></LeftArrowIcon>
+            <img src="/icons/chat/leftArrow.svg" />
           </div>
           <div
             style={{ cursor: "pointer", position: "fixed" }}
@@ -391,7 +407,7 @@ function ChatVideoCall({ token }) {
             style={{
               bottom: "60px",
             }}
-            className="fixed  left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]"
+            className="fixed  left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-9999999999"
           >
             {isPublished ? (
               <div
@@ -400,7 +416,55 @@ function ChatVideoCall({ token }) {
                 }
                 onClick={() => mute("audio")}
               >
-                <MicIcon></MicIcon>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlnsXlink="http://www.w3.org/1999/xlink"
+                  width="25"
+                  height="25"
+                  viewBox="0 0 25 25"
+                >
+                  <g
+                    id="Group_10695"
+                    data-name="Group 10695"
+                    transform="translate(-80 -825)"
+                  >
+                    <g
+                      id="_25x25_Back"
+                      data-name="25x25 Back"
+                      transform="translate(80 825)"
+                    >
+                      <g id="Mask_Group_295" data-name="Mask Group 295">
+                        <g id="microphone-black-shape">
+                          <g id="Group_10694" data-name="Group 10694">
+                            <path
+                              id="Path_21396"
+                              data-name="Path 21396"
+                              d="M12.5,17.307A4.821,4.821,0,0,0,17.307,12.5V4.808a4.629,4.629,0,0,0-1.412-3.4A4.63,4.63,0,0,0,12.5,0,4.63,4.63,0,0,0,9.1,1.412a4.629,4.629,0,0,0-1.412,3.4V12.5A4.821,4.821,0,0,0,12.5,17.307Z"
+                              fill="#d3d3d3"
+                            />
+                            <path
+                              id="Path_21397"
+                              data-name="Path 21397"
+                              d="M20.868,9.9a.961.961,0,0,0-1.637.676V12.5a6.482,6.482,0,0,1-1.976,4.755A6.481,6.481,0,0,1,12.5,19.231a6.482,6.482,0,0,1-4.755-1.976A6.481,6.481,0,0,1,5.769,12.5V10.577A.956.956,0,0,0,4.132,9.9a.924.924,0,0,0-.286.676V12.5a8.345,8.345,0,0,0,2.216,5.777,8.39,8.39,0,0,0,5.476,2.817v1.983H7.692a.962.962,0,0,0,0,1.923h9.615a.962.962,0,0,0,0-1.923H13.462V21.093a8.391,8.391,0,0,0,5.476-2.817A8.344,8.344,0,0,0,21.154,12.5V10.577A.924.924,0,0,0,20.868,9.9Z"
+                              fill="#d3d3d3"
+                            />
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                    <line
+                      id="Line_903"
+                      data-name="Line 903"
+                      x2="20"
+                      y2="20"
+                      transform="translate(82.5 827.5)"
+                      fill="none"
+                      stroke="#ff5f61"
+                      strokeLinecap="round"
+                      strokeWidth="3"
+                    />
+                  </g>
+                </svg>
               </div>
             ) : (
               <span />
@@ -415,7 +479,7 @@ function ChatVideoCall({ token }) {
                 userEndCall();
               }}
             >
-              <EndCallIcon></EndCallIcon>
+              <img src="/icons/chat/endCall.svg" />
               <span>End Call</span>
             </div>
 
@@ -426,7 +490,49 @@ function ChatVideoCall({ token }) {
                 }
                 onClick={() => mute("video")}
               >
-                <VideoIcon></VideoIcon>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="34.871"
+                  height="26.743"
+                  viewBox="0 0 34.871 26.743"
+                >
+                  <g
+                    id="Group_10701"
+                    data-name="Group 10701"
+                    transform="translate(-354.129 -824.129)"
+                  >
+                    <path
+                      id="Path_21351"
+                      data-name="Path 21351"
+                      d="M32.451,13.663a2.843,2.843,0,0,0-.9.117c-.27.072-.594.181-.971.306l-.028.009-.112.037a7.134,7.134,0,0,0-1.6.665,4,4,0,0,0-1.715,2.379A7.13,7.13,0,0,0,27,18.907v2.187a7.13,7.13,0,0,0,.124,1.731A4,4,0,0,0,28.838,25.2a7.134,7.134,0,0,0,1.6.664l.112.037.028.009c.377.126.7.234.971.306a2.843,2.843,0,0,0,.9.117,2.7,2.7,0,0,0,2.359-1.7,2.845,2.845,0,0,0,.173-.889c.017-.279.017-.621.017-1.018V17.27c0-.4,0-.739-.017-1.018a2.844,2.844,0,0,0-.173-.889,2.7,2.7,0,0,0-2.359-1.7Z"
+                      transform="translate(354 817.5)"
+                      fill="#388cff"
+                    />
+                    <g id="Group_10700" data-name="Group 10700">
+                      <g id="Group_10699" data-name="Group 10699">
+                        <path
+                          id="Path_21352"
+                          data-name="Path 21352"
+                          d="M22.939,12.574C21.85,12.5,21.75,12.5,20.046,12.5H18.7c-1.709,0-3.054,0-4.142.074a9.059,9.059,0,0,0-2.91.591A8.75,8.75,0,0,0,6.916,17.9a9.056,9.056,0,0,0-.591,2.91c-.075,1.09-.075,2.44-.075,4.144v.093c0,1.709,0,3.054.074,4.142a9.056,9.056,0,0,0,.591,2.91,8.75,8.75,0,0,0,4.735,4.735,9.059,9.059,0,0,0,2.91.591c1.09.075,2.44.075,4.144.075h1.343c1.709,0,1.8,0,2.892-.074a9.059,9.059,0,0,0,2.91-.591A8.75,8.75,0,0,0,30.584,32.1a9.059,9.059,0,0,0,.591-2.91c.075-1.09.075-2.44.075-4.144v-.093c0-1.709,0-3.054-.074-4.142a9.059,9.059,0,0,0-.591-2.91,8.75,8.75,0,0,0-4.735-4.735,9.059,9.059,0,0,0-2.91-.591Z"
+                          transform="translate(348.75 812.5)"
+                          fill="none"
+                          stroke="#388cff"
+                          strokeWidth="1"
+                        />
+                      </g>
+                      <path
+                        className="line-path"
+                        data-name="Path 21399"
+                        d="M0,0,22.5,22.5"
+                        transform="translate(356.25 826.25)"
+                        fill="none"
+                        stroke="#ff5f61"
+                        strokeLinecap="round"
+                        strokeWidth="3"
+                      />
+                    </g>
+                  </g>
+                </svg>
               </div>
             ) : (
               <span />
@@ -437,7 +543,7 @@ function ChatVideoCall({ token }) {
             <div className="call-status">
               {users.length > 0 ? (
                 <>
-                  <CallingIcon></CallingIcon>
+                  <img src="/icons/chat/calling.svg" />
                   <span>
                     {minutes > 9 ? minutes : "0" + minutes}:
                     {seconds > 9 ? seconds : "0" + seconds}

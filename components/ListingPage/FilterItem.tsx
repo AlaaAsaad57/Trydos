@@ -1,6 +1,6 @@
 import NextLink from "components/global/NextLink";
 import React from "react";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
+
 import Image from "next/image";
 import {
   getConfiguredImage,
@@ -12,7 +12,7 @@ import {
   FilterState,
 } from "utils/server";
 
-export const FilterItem = ({
+const FilterItem = ({
   term,
   item,
   filterParams,
@@ -20,12 +20,13 @@ export const FilterItem = ({
   currency,
   params,
   baseUrlOfFiltersPage,
+  isRtl = false,
 }: FilterItemProps) => {
   // Helper function to get filter state with proper typing
   const getFilterState = (
     itemValue: string,
     filterKey: string,
-    parentValue?: string[]
+    parentValue?: string[],
   ): FilterState => {
     if (isUsingParsedFilters) {
       return getFilterStateForItem(
@@ -34,7 +35,7 @@ export const FilterItem = ({
         filterKey,
         parentValue,
         params.lang,
-        baseUrlOfFiltersPage
+        baseUrlOfFiltersPage,
       );
     } else {
       // For backward compatibility with searchParams
@@ -42,7 +43,7 @@ export const FilterItem = ({
         filterParams,
         itemValue,
         filterKey,
-        parentValue
+        parentValue,
       );
     }
   };
@@ -51,7 +52,7 @@ export const FilterItem = ({
     let { href, isFiltered } = getFilterState(
       slug,
       "categories",
-      grand_slug ? [item.slug, grand_slug] : [item.slug]
+      grand_slug ? [item.slug, grand_slug] : [item.slug],
     );
     return { href, isFiltered };
   };
@@ -93,7 +94,10 @@ export const FilterItem = ({
         >
           <div className="relative w-[70px] h-[70px] z-10">
             {isFiltered && (
-              <ActiveCategoryIcon className="active-category-icon" />
+              <img
+                src="/icons/ActiveCategoryIcon.svg"
+                className="active-category-icon w-[30px] h-[30px] z-50"
+              />
             )}
             <svg
               className="absolute z-10 top-0 left-0"
@@ -146,7 +150,17 @@ export const FilterItem = ({
               minWidth: shouldShowSubCategories()
                 ? "max-content"
                 : `${(item?.childes?.length * 10) / 2}px`,
-              right: shouldShowSubCategories() ? "0px" : "40px",
+              right: isRtl
+                ? "initial"
+                : shouldShowSubCategories()
+                  ? "0px"
+                  : "40px",
+
+              left: isRtl
+                ? shouldShowSubCategories()
+                  ? "0px"
+                  : "40px"
+                : "initial",
             }}
           >
             {item.childes.map((s, index) => {
@@ -173,8 +187,9 @@ export const FilterItem = ({
                     }}
                   >
                     {getSubCategoryUrl(s.slug)?.isFiltered && (
-                      <ActiveCategoryIcon
-                        className="active-category-icon"
+                      <img
+                        src="/icons/ActiveCategoryIcon.svg"
+                        className="active-category-icon w-[30px] h-[30px] z-50"
                         style={{ top: "-5px", left: "-5px" }}
                       />
                     )}
@@ -261,8 +276,9 @@ export const FilterItem = ({
                             >
                               {getSubCategoryUrl(sub_s.slug, s.slug)
                                 ?.isFiltered && (
-                                <ActiveCategoryIcon
-                                  className="active-category-icon"
+                                <img
+                                  src="/icons/ActiveCategoryIcon.svg"
+                                  className="active-category-icon w-[30px] h-[30px] z-50"
                                   style={{ top: "-5px", left: "-5px" }}
                                 />
                               )}
@@ -313,11 +329,11 @@ export const FilterItem = ({
                                   src:
                                     (sub_s.most_viewed_product_thumbnail &&
                                       GetImageUrl(
-                                        sub_s.most_viewed_product_thumbnail
+                                        sub_s.most_viewed_product_thumbnail,
                                       )) ??
                                     (sub_s.flat_photo_path?.file_path &&
                                       GetImageUrl(
-                                        sub_s.flat_photo_path?.file_path
+                                        sub_s.flat_photo_path?.file_path,
                                       )) ??
                                     (sub_s?.icon?.file_path &&
                                       GetImageUrl(item?.icon?.file_path)),
@@ -363,7 +379,10 @@ export const FilterItem = ({
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
-            <ActiveCategoryIcon className="active-category-icon" />
+            <img
+              src="/icons/ActiveCategoryIcon.svg"
+              className="active-category-icon w-[30px] h-[30px] z-50"
+            />
           )}
           <svg
             className="absolute z-10 top-0 left-0"
@@ -423,7 +442,10 @@ export const FilterItem = ({
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
-            <ActiveCategoryIcon className="active-category-icon" />
+            <img
+              src="/icons/ActiveCategoryIcon.svg"
+              className="active-category-icon w-[30px] h-[30px] z-50"
+            />
           )}
 
           <svg
@@ -476,7 +498,10 @@ export const FilterItem = ({
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
-            <ActiveCategoryIcon className="active-category-icon" />
+            <img
+              src="/icons/ActiveCategoryIcon.svg"
+              className="active-category-icon w-[30px] h-[30px] z-50"
+            />
           )}
 
           <svg
@@ -525,7 +550,7 @@ export const FilterItem = ({
   if (term === "prices") {
     const { href, isFiltered } = getFilterState(
       `${item.min_price}-${item.max_price}`,
-      term
+      term,
     );
     return (
       <NextLink
@@ -540,7 +565,10 @@ export const FilterItem = ({
       >
         <div className="relative w-[140px] h-[70px]">
           {isFiltered && (
-            <ActiveCategoryIcon className="active-category-icon" />
+            <img
+              src="/icons/ActiveCategoryIcon.svg"
+              className="active-category-icon w-[30px] h-[30px] z-50"
+            />
           )}
 
           <div
@@ -548,8 +576,8 @@ export const FilterItem = ({
               isFiltered && "bold-size"
             } whitespace-pre-wrap text-center uppercase rounded-xl ${
               isFiltered
-                ? "border-[#FF5F61] border-[1px] border-dashed"
-                : " border-[#6b6b6b] border-[1px] border-dashed"
+                ? "border-[#FF5F61] border border-dashed"
+                : " border-[#6b6b6b] border border-dashed"
             }`}
             style={{
               backgroundColor: "#fff",
@@ -584,7 +612,7 @@ function getFilterStateForItem(
   filterKey: string,
   parentValue?: string[],
   lang?: string,
-  baseUrlOfFiltersPage?: string
+  baseUrlOfFiltersPage?: string,
 ): FilterState {
   let currentValues: any[] = [];
 
@@ -633,7 +661,7 @@ function getFilterStateForItem(
     if (isFiltered) {
       // Remove both possible formats
       newFilters[filterKey] = newFilters[filterKey].filter(
-        (val) => val !== colorValue && val !== itemValue
+        (val) => val !== colorValue && val !== itemValue,
       );
       if (newFilters[filterKey].length === 0) {
         delete newFilters[filterKey];
@@ -649,7 +677,7 @@ function getFilterStateForItem(
 
     if (isFiltered) {
       newFilters[filterKey] = newFilters[filterKey].filter(
-        (val) => val !== itemValue
+        (val) => val !== itemValue,
       );
       if (newFilters[filterKey].length === 0) {
         delete newFilters[filterKey];
@@ -658,7 +686,7 @@ function getFilterStateForItem(
       // Remove parent values if specified
       if (parentValue) {
         newFilters[filterKey] = newFilters[filterKey].filter(
-          (val) => !parentValue.includes(val)
+          (val) => !parentValue.includes(val),
         );
       }
       newFilters[filterKey] = [...(newFilters[filterKey] || []), itemValue];
@@ -683,7 +711,7 @@ function getFilterStateForItemLegacy(
   itemValue: string,
   filterKey: string,
   parentValue?: string[],
-  lang?: string
+  lang?: string,
 ): FilterState {
   // Convert to URLSearchParams if it's an object
   const params =
@@ -715,7 +743,7 @@ function getFilterStateForItemLegacy(
 
   // For legacy mode, return search params format
   const newParams = new URLSearchParams(
-    params.toString ? params.toString() : ""
+    params.toString ? params.toString() : "",
   );
 
   // Handle filter updates the old way

@@ -1,5 +1,4 @@
 "use client";
-import { RatingStarsPropsType } from "models/componentType/settingTypes/RatingStarsPropsType";
 import React, { useState } from "react";
 
 const StarIcon = ({ fill = () => "#402CDD", isHalf = false, color, size }) => {
@@ -31,7 +30,7 @@ function RatingStars({
   readOnly = false,
   color = "#402CDD",
   size = 11.326,
-}: RatingStarsPropsType) {
+}: any) {
   const [rating, setRating] = useState(initialRating);
 
   const handleClick = (index: number, isHalf: boolean) => {

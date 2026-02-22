@@ -3,7 +3,6 @@ export const preferredRegion = "bom1";
 export const dynamic = "force-dynamic";
 import "styles/productDetails.css";
 import "styles/product-body.css";
-
 import { RedisSet } from "serverRequests/radis";
 import {
   GetGlobalProduct,
@@ -21,7 +20,6 @@ import ProductDescriptorsWrapper from "components/Server/product/ProductDescript
 import ProductColorsWrapper from "components/Server/product/ProductColorsWrapper";
 import ProductExpectedDeleiveryWrapper from "components/Server/product/ProductExpectedDeleiveryWrapper";
 import FreeShippingOption from "components/products/FreeShippingOption";
-import FreeReturnIcon from "public/svg/product/FreeReturnIcon";
 import { translateFunction } from "utils/server";
 import ReturnDaysDetails from "components/products/ReturnDays.Details";
 import { getCurrency, GetStarttingSetting } from "serverRequests";
@@ -38,7 +36,8 @@ import { Suspense } from "react";
 import ProductPhotosSkeleton from "components/skeleton/product/ProductPhotosSkeleton";
 import ProductNameAndBrandSkeleton from "components/skeleton/product/ProductNameAndBrandSkeleton";
 import Skeleton from "react-loading-skeleton";
-import { redirect } from "node_modules/next/navigation";
+import { redirect } from "next/navigation";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
@@ -54,12 +53,22 @@ export async function generateMetadata({ params, searchParams }) {
     // @ts-ignore
     if (metaData?.error || !metaData) {
       // @ts-ignore
-      throw new Error(metaData?.error);
+      throw new Error(metaData?.error ?? metaData);
     }
     RedisSet(`${Params.productId}-${Params.lang}`, JSON.stringify(metaData));
 
     return metaData;
   } catch (error) {
+    LogServerError(
+      {
+        error,
+        type: "get product meta error",
+        country,
+        language,
+        product_slug: Params.productId,
+      },
+      `/${country}-${language}/featured`,
+    );
     redirect(`/${country}-${language}?message=product_not_found`);
   }
 }
@@ -112,7 +121,7 @@ async function Page({ params, searchParams }) {
             key={color}
             color={color}
             globalPromise={GlobalData}
-            language={language}
+            qtyPricePromise={QtyPricesData}
           />
         </Suspense>
         <div className="product-details-body bg-[#ffffff] flex-row relative mt-[3px] pb-[50px]">
@@ -227,7 +236,10 @@ async function Page({ params, searchParams }) {
                   } colors-label w-full flex-col`}
                   data-cy="FreeReturn"
                 >
-                  <FreeReturnIcon />
+                  <img
+                    src="/icons/FreeReturnIcon.svg"
+                    className="w-[30px] h-[30px]"
+                  />
                   <div
                     className={`${
                       isRtl && "dir-rtl"
@@ -237,7 +249,7 @@ async function Page({ params, searchParams }) {
                     <span className="label-description text-[#1d1d1d] regular text-[9px]">
                       {translateFunction(
                         "Return Is Completely Free Without Any Extras",
-                        language
+                        language,
                       )}
                     </span>
                     <div
@@ -365,7 +377,7 @@ async function Page({ params, searchParams }) {
             {/* footer */}
           </div>
         </div>
-        <div className="product-details-footer alternate-product-details-footer z-[999999999]">
+        <div className="product-details-footer alternate-product-details-footer z-999999999">
           <Suspense fallback={<></>}>
             {/*@ts-expect-error Async Server Component is valid in Next  */}
             <ProductVideosWrapper
@@ -389,11 +401,13 @@ async function Page({ params, searchParams }) {
           <Suspense fallback={<></>}>
             {/*@ts-expect-error Async Server Component is valid in Next  */}
             <ProductFooterWrapper
+              local={Params.lang}
               QtyPricePromise={QtyPricesData}
               globalPromise={GlobalData}
               isRtl={isRtl}
               color={color}
               size={Size}
+              currencyPromise={currency}
             />
           </Suspense>
         </div>

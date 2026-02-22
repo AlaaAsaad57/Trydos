@@ -1,21 +1,21 @@
 import BuyersCommentTopBar from "./BuyersCommentTopBar";
 import { translateFunction } from "utils/server";
-import BuyersCommentsIcon from "public/svg/product/BuyersCommentsIcon";
+
 import ProductBuyersCommentList from "./ProductBuyersCommentList";
 
 import {
   GetProductBuyersComment,
   GetRecommendationCountForProduct,
 } from "serverRequests/product";
-import { cookies } from "next/headers";
+import { getCookieServer, COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
   let product = await globalPromise;
   let productId = product?.id;
 
-  let cookiesStore = await cookies();
-  let user = cookiesStore.get("User-Data")?.value;
-  let parsedUser = user ? JSON.parse(user) : null;
+  let parsedUser = await getCookieServer<{ id: string }>(
+    COOKIE_NAMES.USER_DATA,
+  );
   let [buyersComments, recommendation_stats] = await Promise.all([
     GetProductBuyersComment({
       productId: productId,
@@ -28,9 +28,12 @@ async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
   if (buyersComments.comments.length === 0) return <></>;
   return (
     <>
-      <div className={`w-full flex-col`}>
+      <div className={`w-full flex-col mt-[12px]`}>
         <BuyersCommentTopBar isRtl={isRtl}>
-          <BuyersCommentsIcon />
+          <img
+            src="/icons/BuyersCommentsIcon.svg"
+            className="w-[30px] h-[30px]"
+          />
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"

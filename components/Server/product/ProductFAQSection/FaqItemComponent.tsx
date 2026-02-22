@@ -19,7 +19,7 @@ function FaqItemComponent({
   return (
     <div
       className={`flex-col ${
-        width === 100 ? "min-w-full" : "min-w-[85vw]"
+        width === 100 ? "min-w-full" : "min-w-[80vw]"
       } ${"max-w-full w-full"}`}
     >
       <div
@@ -77,7 +77,7 @@ function FaqItemComponent({
             id={`comment-${comment.id}-text`}
             className={`${
               !isRtl ? "pr-[27px]" : "pl-[27px]"
-            } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-[0px]`}
+            } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0`}
           >
             {comment.comment}
           </div>
@@ -95,7 +95,7 @@ function FaqItemComponent({
       {comment.has_reply ? (
         <>
           <div className="px-[10px] w-full bg-[#F8F8F8]">
-            <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
+            <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
           </div>
           <div
             className="comment-item flex-col rounded-t-none mt-0 rounded-b-[15px] justify-between max-w-full w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]"
@@ -138,7 +138,7 @@ function FaqItemComponent({
               >
                 {formatTime(comment?.reply_created_at, language)}
               </div>
-              <div className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-[0px]">
+              <div className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0">
                 {comment?.seller_reply}
               </div>
             </div>
@@ -156,7 +156,7 @@ function FaqItemComponent({
       ) : (
         <>
           <div className="px-[10px] w-full bg-[#F8F8F8]">
-            <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
+            <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
           </div>
           <div
             className="comment-item text-[#1d1d1d] regular items-start flex-col rounded-t-none mt-0 rounded-b-[15px] justify-start max-w-full w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]"

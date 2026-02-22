@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import BackIcon from "public/svg/listing/backIcon";
+
 import ProductCartHeader from "./ProductCartHeader";
 import { useAppStore } from "store";
 
@@ -24,7 +24,7 @@ function ProductBackButton({ lang }) {
   const handleBack = () => {
     // Keywords that trigger the boutique navigation state
     const boutiqueKeywords = ["boutiques", "filters", "featured", "flashdeals"];
-    console.log(lastPathname);
+
     // Check if lastPathname exists and matches any keyword
     const isBoutiquePath =
       lastPathname &&
@@ -38,7 +38,7 @@ function ProductBackButton({ lang }) {
 
     // Navigation logic
     if (lastPathname) {
-      router.back();
+      router.push(lastPathname);
     } else {
       // Fallback for direct entry or page refresh (where lastPathname is null)
       router.push(`/${lang}`);
@@ -60,7 +60,10 @@ function ProductBackButton({ lang }) {
         onClick={handleBack}
         className="back-icon flex cursor-pointer"
       >
-        <BackIcon className={`${isRtl ? "rotate-180" : ""}`} />
+        <img
+          src="/icons/backIcon.svg"
+          className={`${isRtl ? "rotate-180" : ""}`}
+        />
       </div>
       <ProductCartHeader language={language} />
     </div>

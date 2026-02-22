@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import Illustration from "public/images/notifications.png";
 import Image from "next/image";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import home from "services/home";
@@ -42,9 +42,6 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
 
     if (typeof Notification === "undefined") return;
     if (Notification.permission === "granted") return;
-
-    try {
-    } catch {}
   }, [isClient]);
 
   const handleClose = useCallback(() => {
@@ -75,8 +72,8 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
         showErrorNotification(
           translateFunction(
             "Notification is Blocked in This Browser Please Enable Notification premission and refresh",
-            language
-          )
+            language,
+          ),
         );
         onDismiss();
         handleClose();
@@ -94,7 +91,10 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
             : await permissionResult;
       } catch (error) {
         // Edge browser might throw an error if permission was already requested
-        console.error("Error requesting notification permission:", error);
+        LogError({
+          error: error,
+          scenario: "handleAllowClick in block 1 Notification Modal",
+        });
         result = Notification.permission;
       }
 
@@ -104,8 +104,8 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
         showErrorNotification(
           translateFunction(
             "Notification is Blocked in This Browser Please Enable Notification premission and refresh",
-            language
-          )
+            language,
+          ),
         );
         onDismiss();
       } else {
@@ -113,13 +113,16 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
         onDismiss();
       }
     } catch (error) {
-      console.error("Error in handleAllowClick:", error);
+      LogError({
+        error: error,
+        scenario: "handleAllowClick in block 2 Notification Modal",
+      });
 
       showErrorNotification(
         translateFunction(
           "Notification is Blocked in This Browser Please Enable Notification premission and refresh",
-          language
-        )
+          language,
+        ),
       );
       onDismiss();
     } finally {
@@ -136,7 +139,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.key === "Escape") handleDismissClick();
     },
-    [handleDismissClick]
+    [handleDismissClick],
   );
 
   if (!isClient) return null;
@@ -145,8 +148,8 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
     position === "bottom-right"
       ? "right-4 sm:right-6"
       : position === "bottom-left"
-      ? "left-4 sm:left-6"
-      : "left-1/2 -translate-x-1/2";
+        ? "left-4 sm:left-6"
+        : "left-1/2 -translate-x-1/2";
 
   return (
     <div
@@ -156,13 +159,13 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
       tabIndex={0}
       onKeyDown={handleKeyDown}
       className={[
-        "fixed flex justify-center items-center top-0 z-[9999999999] w-full backdrop-brightness-75 left-0 right-0 mx-auto h-[100dvh]",
+        "fixed flex justify-center items-center top-0 z-9999999999 w-full backdrop-brightness-75 left-0 right-0 mx-auto h-dvh",
         "pointer-events-auto",
       ].join(" ")}
     >
       <div
         className={[
-          "group w-[min(92vw,28rem)] sm:w-[28rem] regular",
+          "group w-[min(92vw,28rem)] sm:w-md regular",
           "rounded-2xl bg-white",
           "shadow-xl ring-1 ring-black/5",
           "border border-zinc-100",
@@ -187,7 +190,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
             <p className="mt-1 text-sm text-zinc-700">
               {translateFunction(
                 "Enable notifications for a more effortless shopping experience:",
-                language
+                language,
               )}
             </p>
             <ul className="mt-2 text-sm text-zinc-700 list-disc pl-5 space-y-1">
@@ -199,21 +202,21 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
               <li>
                 {translateFunction(
                   "Back-in-stock and quantity alerts",
-                  language
+                  language,
                 )}
               </li>
             </ul>
             <div className="mt-4 flex items-center gap-2">
               <button
                 onClick={handleAllowClick}
-                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-[#1d1d1d] bg-[#ff6464] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
+                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-[#1d1d1d] bg-[#ff6464] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
                 aria-label="Allow notifications"
               >
                 {translateFunction("Allow", language)}
               </button>
               <button
                 onClick={handleDismissClick}
-                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
+                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 shadow-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
                 aria-label="Not now"
               >
                 {translateFunction("Not now", language)}

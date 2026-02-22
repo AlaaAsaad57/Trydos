@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import SearchHistoryIcon from "public/svg/SearchHistoryIcon";
-import CloseIconOption from "public/svg/CloseIconOption";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";
@@ -63,7 +61,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
         className="flex-row align-center cursor-pointer"
         onClick={() => setOpen(!openMenu)}
       >
-        <SearchHistoryIcon data-cy="SearchHistoryIcon" />
+        <img src="/icons/SearchHistoryIcon.svg" data-cy="SearchHistoryIcon" />
         {openMenu && (
           <span
             className="filter-label-search"
@@ -105,7 +103,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                         deleteOption(s);
                       }}
                     >
-                      <CloseIconOption />
+                      <img src="/icons/CloseIconOption.svg" />
                     </div>
                   }
                 </div>
@@ -160,7 +158,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                     setOpen(true);
                   }}
                 >
-                  <CloseIconOption />
+                  <img src="/icons/CloseIconOption.svg" />
                 </div>
               }
             </div>

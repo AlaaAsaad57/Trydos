@@ -1,15 +1,13 @@
 import React, { useEffect } from "react";
-import DownArrow from "public/svg/arrow-down";
-import UpArrow from "public/svg/arrow-up";
-import XIcon from "public/svg/Xicon";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 
 import { getMessagesBetweenMessage } from "store/chat/actions";
-import { GetMessageSearchApi } from "models/API/chat/GetMessagesForSearch";
+
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogError } from "utils/functions";
 
 function ChatSearch({ close }) {
   const {
@@ -31,7 +29,7 @@ function ChatSearch({ close }) {
   const getMessagesForSearch = async (value) => {
     if (value?.length > 0) {
       try {
-        let response: GetMessageSearchApi = await fetchData({
+        let response = await fetchData({
           url: "/api/v2/elastic/channelSearch",
           server: "chat",
           method: "POST",
@@ -56,7 +54,7 @@ function ChatSearch({ close }) {
             newOffset,
           });
           setQouted(
-            response.data.messages_ids[response.data.messages_ids.length - 1]
+            response.data.messages_ids[response.data.messages_ids.length - 1],
           );
           if (
             activeChat.messages.filter(
@@ -64,7 +62,7 @@ function ChatSearch({ close }) {
                 parseInt(s.id) ===
                 response.data.messages_ids[
                   response.data.messages_ids.length - 1
-                ]
+                ],
             ).length > 0
           ) {
           } else
@@ -72,12 +70,12 @@ function ChatSearch({ close }) {
               first: activeChat?.id,
               second:
                 parseInt(
-                  activeChat.messages[activeChat.messages.length - 1]?.id
+                  activeChat.messages[activeChat.messages.length - 1]?.id,
                 ) -
                 parseInt(
                   response.data?.messages_ids?.[
                     response?.data?.messages_ids?.length - 1
-                  ]?.toString()
+                  ]?.toString(),
                 ),
             });
           var numb = response.data.messages_ids[
@@ -90,7 +88,7 @@ function ChatSearch({ close }) {
           let el = document.querySelector(
             `#main-container-${
               response.data.messages_ids[response.data.messages_ids.length - 1]
-            }`
+            }`,
           );
 
           if (el) {
@@ -107,7 +105,10 @@ function ChatSearch({ close }) {
           setChatSearchLoading(false);
         }
       } catch (err) {
-        console.error(err);
+        LogError({
+          error: err,
+          scenario: "getMessagesForSearch in chat search - chat widget",
+        });
         setChatSearchLoading(false);
       }
     }
@@ -201,7 +202,7 @@ function ChatSearch({ close }) {
         .querySelector(`#main-container-${searchChat.activeMessage}`)
         ?.scrollIntoView({ block: "center", inline: "center" });
       let el = document.querySelector(
-        `#main-container-${searchChat.activeMessage}`
+        `#main-container-${searchChat.activeMessage}`,
       );
       if (el) {
         el.scrollIntoView({ block: "center" });
@@ -217,7 +218,7 @@ function ChatSearch({ close }) {
     }
   }, [searchChat.activeMessage]);
   return (
-    <div className=" z-[99] absolute h-[50px] top-[48px] items-center left-0 w-full bg-[#fafafa] py-2 px-3 flex-row justify-between">
+    <div className=" z-99 absolute h-[50px] top-[48px] items-center left-0 w-full bg-[#fafafa] py-2 px-3 flex-row justify-between">
       <div className="flex relative w-full">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -278,10 +279,10 @@ function ChatSearch({ close }) {
           </g>
         </svg>
         {searchChat.loading && (
-          <Spinner className=" absolute right-2 top-3 z-[99] " />
+          <Spinner className=" absolute right-2 top-3 z-99 " />
         )}
         <DebounceInput
-          className="w-full text-[#1d1d1d] h-full border-none outline-none absolute top-0 left-0 pl-11 z-10 light rounded-[15px] bg-[#fafafa]"
+          className="w-full text-[#1d1d1d] h-full border-none outline-hidden absolute top-0 left-0 pl-11 z-10 light rounded-[15px] bg-[#fafafa]"
           minLength={1}
           placeholder="Search"
           value={searchChat.searchValue}
@@ -308,7 +309,10 @@ function ChatSearch({ close }) {
               NextSearch();
           }}
         >
-          <DownArrow style={{ transform: "scale(0.8)" }} />
+          <img
+            src="/icons/arrow-down.svg"
+            style={{ transform: "scale(0.8)" }}
+          />
         </div>
         <div
           className={`flex ml-1 cursor-pointer  ${
@@ -324,7 +328,7 @@ function ChatSearch({ close }) {
               PreviousSearch();
           }}
         >
-          <UpArrow style={{ transform: "scale(0.8)" }} />
+          <img src="/icons/arrow-up.svg" style={{ transform: "scale(0.8)" }} />
         </div>
         <div
           className="flex ml-1 cursor-pointer"
@@ -332,7 +336,10 @@ function ChatSearch({ close }) {
             close();
           }}
         >
-          <XIcon style={{ transform: "scale(0.8)" }} />
+          <img
+            src="/icons/settings/Xicon.svg"
+            style={{ transform: "scale(0.8)" }}
+          />
         </div>
       </div>
     </div>

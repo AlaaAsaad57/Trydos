@@ -1,19 +1,12 @@
 "use client";
-import TryDosWalletIcon from "public/svg/TryDosWalletIcon";
 import { useAppStore } from "store";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
-import BackIcon from "public/svg/listing/backIcon";
 import { useEffect, useState } from "react";
 import order from "services/order";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { useParams, useRouter } from "next/navigation";
-
-interface WalletTransactionsProps {
-  goBack: () => void;
-  swipeToOrderDetails: () => void;
-}
+import { useRouter } from "next/navigation";
 
 interface Transaction {
   id: string;
@@ -23,14 +16,9 @@ interface Transaction {
   amount: number;
 }
 
-function WalletTransactions({
-  goBack,
-  swipeToOrderDetails,
-}: WalletTransactionsProps) {
-  const { wallet, currency, language, setActivePacks, setOrderDetails } =
-    useAppStore();
-  const isRtl = language === "ar" || language === "ku";
-  const { lang } = useParams();
+function WalletTransactions({ isRtl, local }) {
+  const { currency, setOrderDetails } = useAppStore();
+
   const [loading, setLoading] = useState(false);
   const [loadingNavigation, setLoadingNavigation] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -41,7 +29,7 @@ function WalletTransactions({
   const router = useRouter();
   const [walletBalance, setWalletBalance] = useState(0);
   const [currencySymbol, setCurrencySymbol] = useState<string | undefined>(
-    currency?.symbol
+    currency?.symbol,
   );
   const PAGE_SIZE = 10;
   const GoToOrders = async (order_id) => {
@@ -56,28 +44,17 @@ function WalletTransactions({
       });
 
       if (respons) {
-        let params = new URLSearchParams(window.location.search);
-        params.set("id", respons.data.order_group_id.toString());
-        params.set("tab", "Orders");
-        // @ts-ignore
-        router.replace(`/${lang}/setting?${params.toString()}`, {
-          scroll: false,
-          // @ts-ignore
-          shallow: true,
-        });
-        setActivePacks({ id: order_id });
-        setOrderDetails({
-          order_group_id: respons.data.order_group_id,
-          id: respons.data.order_group_id,
-          is_from_wallet: true,
-        });
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        swipeToOrderDetails();
-        setLoadingNavigation(false);
+        router.push(
+          `/${local}/settings/orders/${respons.data.order_group_id}?order_id=${order_id}&is_from_wallet=true`,
+        );
       }
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error In GoToOrders in WalletTransactions",
+      });
       setLoadingNavigation(false);
+      // setLoadingNavigation(false);
     }
   };
   const getWallet = async () => {
@@ -90,7 +67,10 @@ function WalletTransactions({
       }
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      LogError({
+        error: error,
+        scenario: "Error In getWallet in WalletTransations",
+      });
       setLoading(false);
     }
   };
@@ -110,7 +90,7 @@ function WalletTransactions({
       const hours = String(date.getHours()).padStart(2, "0");
       const minutes = String(date.getMinutes()).padStart(2, "0");
       return `${year}-${month}-${day} ${hours}:${minutes}`;
-    } catch {
+    } catch (e) {
       return dateString;
     }
   };
@@ -122,7 +102,7 @@ function WalletTransactions({
       const currentOffset = offset;
       const response = await order.GetWalletTransactions(
         PAGE_SIZE,
-        currentOffset
+        currentOffset,
       );
       if (response) {
         const newTransactions: Transaction[] =
@@ -151,7 +131,10 @@ function WalletTransactions({
         setOffset(currentOffset + 1);
       }
     } catch (error) {
-      console.error("Error loading transactions:", error);
+      LogError({
+        error: error,
+        scenario: "Error In loadMore in walletTransations",
+      });
       setHasMore(false);
     } finally {
       setIsFetching(false);
@@ -164,20 +147,6 @@ function WalletTransactions({
         loadingNavigation && "opacity-65 scale-95"
       } w-full h-full flex-col`}
     >
-      <div className="bg-[#fff] flex items-center justify-between top-0 left-0 w-full h-[50px] sticky z-10">
-        <span
-          className="p-2 cursor-pointer"
-          onClick={goBack}
-          aria-label={translateFunction("Back")}
-        >
-          <BackIcon />
-        </span>
-        <h2 className="text-[#1D1D1D] text-[16px] medium">
-          {translateFunction("Wallet Transactions")}
-        </h2>
-        <span />
-      </div>
-
       <div className="w-full px-[12px] pt-[8px] pb-[24px]">
         <div
           className={`${
@@ -187,10 +156,10 @@ function WalletTransactions({
           aria-label={translateFunction("Wallet")}
         >
           <div className="flex items-center gap-[12px]">
-            <TryDosWalletIcon />
+            <img src="/icons/WalletIcon.svg" />
             <div className="flex-col">
               <span className="text-[#1D1D1D] text-[14px] regular">
-                {translateFunction("Trydos Wallet")}
+                {translateFunction("Ramaaz Digital Bank Wallet")}
               </span>
               <span
                 className="text-[#8D8D8D] text-[12px] regular"

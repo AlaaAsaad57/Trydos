@@ -7,7 +7,6 @@ import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { LogInPinsPropsType } from "models/componentType/settingTypes/LogInPinsPropsType";
 
 function LogInPins({
   setPin,
@@ -30,7 +29,7 @@ function LogInPins({
   loadingPin,
   forChanging,
   operation = "login",
-}: LogInPinsPropsType) {
+}: any) {
   const { language, Tempuser, user } = useAppStore();
 
   let { lang } = useParams();
@@ -689,7 +688,7 @@ const PinInputContainer: React.FC<PinInputProps> = ({
         <input
           autoFocus={i === 0}
           key={i}
-          className="pin-input outline-none text-[#707070] text-[20px]  flex items-center justify-center light "
+          className="pin-input outline-hidden text-[#707070] text-[20px]  flex items-center justify-center light "
           ref={(el) => (inputsRef.current[i] = el)}
           type="text"
           inputMode="numeric"

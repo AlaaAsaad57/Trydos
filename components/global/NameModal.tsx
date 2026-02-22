@@ -2,9 +2,9 @@ import React, { useState } from "react";
 
 import AuthService from "services/auth";
 import { translateFunction } from "utils/functions";
-import ManIcon from "public/svg/manIcon";
+
 import Border from "./Border";
-import LeftArrowIcon from "public/svg/LeftArrowIcon";
+
 import "styles/Modal.css";
 import { useAppStore } from "store";
 import { pollinateInput } from "@/utils/tinyUtils";
@@ -20,7 +20,7 @@ function NameModal() {
   return (
     <>
       <div
-        className={`fixed inset-0 w-screen h-screen bg-black/30 z-[9999999999998] ${
+        className={`fixed inset-0 w-screen h-screen bg-black/30 z-9999999999998 ${
           Open && "open"
         }`}
         onClick={(e) => {
@@ -55,7 +55,10 @@ function NameModal() {
           style={{ height: "50px", padding: "12px" }}
         >
           <Border color={"#707070"} height={50} width={250} />
-          <ManIcon style={{ width: "20px", position: "absolute" }} />
+          <img
+            src="/icons/manIcon.svg"
+            style={{ width: "20px", position: "absolute" }}
+          />
           <label htmlFor="phone" className="hidden">
             Name
           </label>
@@ -74,7 +77,8 @@ function NameModal() {
             }}
           />
           {value.length > 1 && (
-            <LeftArrowIcon
+            <img
+              src="/icons/LeftArrowIcon.svg"
               style={{
                 position: "absolute",
                 right: "20px",

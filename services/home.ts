@@ -3,35 +3,26 @@ import { useAppStore } from "store";
 import {
   _isStoreLastJson,
   getCart,
-  getUserChat,
   LogError,
   translateFunction,
   WaitForCondition,
 } from "utils/functions";
-import Smartlook from "smartlook-client";
+import { smartlookIdentify } from "utils/smartlook";
 
 import {
   CUSTOMER_INFO_URL,
   FIREBASE_SETTINGS_URL,
-  REGISTER_DEVICE_URL,
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
-
-import { RegisterGuestApi } from "models/API/market/RegisterGuest";
-import { CustomerInfoResponse } from "models/API/market/CustomerInfo";
 import auth from "./auth";
 import LocalizationServiceClass from "./localization";
 import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  setCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, setCookie } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogServerError } from "utils/serverErrorReporter";
 class HomeService {
   async getClientData() {
     const { setSettings, initCart, language } = useAppStore.getState();
@@ -65,11 +56,14 @@ class HomeService {
       // await getOldCart();
 
       setTimeout(() => {
-        const chatUser = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-        if (chatUser) chat.getChats(false);
+        const { userChat } = useAppStore.getState();
+        if (userChat) chat.getChats(false);
       }, 5000);
     } catch (e) {
-      console.error(e);
+      LogServerError({
+        error: e,
+        scenario: "Error In getClientData in services/home",
+      });
     }
   }
   async GetFireBaseSettings() {
@@ -87,6 +81,10 @@ class HomeService {
       const { getFirebaseSettings } = useAppStore.getState();
       getFirebaseSettings(response.data?.firebase_settings);
     } catch (err) {
+      LogServerError({
+        error: err,
+        scenario: "Error In GetFireBaseSettings in services/home",
+      });
       // Handle error as needed, e.g., set state or log
       const { getFirebaseSettings } = useAppStore.getState();
       getFirebaseSettings(null);
@@ -96,102 +94,108 @@ class HomeService {
     const { updateUserInfo } = useAppStore.getState();
     await WaitForCondition();
     try {
-      let response_customer_Info: { data: CustomerInfoResponse } =
-        await fetchData({
-          url: CUSTOMER_INFO_URL,
-          reqTitle: REQUESTS_DATA.GET_CUSTOMER_INFO,
-          method: "GET",
-          server: "market",
-        });
+      let response_customer_Info: any = await fetchData({
+        url: CUSTOMER_INFO_URL,
+        reqTitle: REQUESTS_DATA.GET_CUSTOMER_INFO,
+        method: "GET",
+        server: "market",
+      });
       // @ts-ignore
       if (!response_customer_Info.success) {
         // @ts-ignore
         throw new Error(response_customer_Info.message);
       }
-      setCookie(COOKIE_NAMES.USER_DATA, {
-        ...response_customer_Info.data.customer_info,
+      // Update server-side HttpOnly cookie
+      fetch("/api/auth/update-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          updates: [
+            {
+              name: COOKIE_NAMES.USER_DATA,
+              value: response_customer_Info.data.customer_info,
+            },
+          ],
+        }),
+        credentials: "include",
       });
       if (response_customer_Info.data.customer_info) {
         if (response_customer_Info.data.customer_info) {
           updateUserInfo(response_customer_Info.data.customer_info);
 
-          if (
-            response_customer_Info.data.customer_info?.is_phone_verified !== 1
-          ) {
-            await auth.ExpiredUser(true);
-          }
+          // if (
+          //   response_customer_Info.data.customer_info &&
+          //   response_customer_Info.data.customer_info?.is_phone_verified !== 1
+          // ) {
+          //   await auth.ExpiredUser(true);
+          // }
         }
         return response_customer_Info.data.customer_info;
       } else {
         throw new Error("Customer Info Error");
       }
     } catch (error) {
-      showErrorNotification("Customer Info Error");
+      LogServerError({
+        error: error,
+        scenario: "Error In getCustomerInfo in services/home",
+      });
+      // showErrorNotification("Customer Info Error");
     }
   }
 
   async registerForExpire(id?: number) {
-    const { isRegisteringReady, setIsRegisteringReady } =
-      useAppStore.getState();
+    const {
+      isRegisteringReady,
+      setIsRegisteringReady,
+      LoggingOut,
+      loginSuccess,
+    } = useAppStore.getState();
 
-    if (isRegisteringReady) {
-      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-      let requestBody = id
-        ? { old_guest_user_id: id }
-        : user?.id
-        ? {
-            old_guest_user_id: user.id,
-          }
-        : { old_guest_user_id: null };
+    if (LoggingOut) return;
+    if (!isRegisteringReady) return;
 
-      try {
-        let response = await fetchData({
-          url: REGISTER_DEVICE_URL,
-          body: JSON.stringify(requestBody),
-          reqTitle: REQUESTS_DATA.REGISTER_DEVICE_FOR_EXPIRED_USER,
-          method: "POST",
-          server: "market",
-        });
+    setIsRegisteringReady(false);
+    const userId = id || auth.UserID();
 
-        let repo: RegisterGuestApi = response;
-        // @ts-ignore
-        if (!repo.success) {
-          throw new Error(repo.message);
-        }
-        if (repo.message === "The user does not exist.") {
-          response = await fetchData({
-            url: REGISTER_DEVICE_URL,
-            body: JSON.stringify({ old_guest_user_id: null }),
-            reqTitle: REQUESTS_DATA["REGISTER_DEVICE_FOR_EXPIRED_USER_-_RETRY"],
-            method: "POST",
-            server: "market",
-          });
-          repo = response;
-          // @ts-ignore
-          if (!repo.success) {
-            throw new Error(repo.message);
-          }
-        }
+    try {
+      const [country, lang] = (
+        window.location.pathname.split("/")[1] || ""
+      ).split("-");
+      const response = await fetch("/api/auth/register-device", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-country": country || "sy",
+          "x-language": lang || "en",
+        },
+        body: JSON.stringify({ old_guest_user_id: userId || null }),
+        credentials: "include",
+      });
 
-        setCookie(COOKIE_NAMES.DEVICE_TOKEN, repo.data.token);
+      const repo = await response.json();
+      if (!response.ok) {
+        throw new Error(repo.message);
+      }
+      if (useAppStore.getState().LoggingOut) return;
 
-        setCookie(COOKIE_NAMES.USER_DATA, {
+      if (repo.data?.user) {
+        loginSuccess({
           ...repo.data.user,
           expired_at: repo.data.expires_at,
         });
-        if (repo.data.user) {
-          if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-            Smartlook.identify(repo.data.user.id, {
-              name: repo.data.user.name,
-              phone: "guest",
-              // other custom properties
-            });
-        }
-        setIsRegisteringReady(true);
-      } catch (error) {
-        console.error(error);
-        setIsRegisteringReady(true);
+        if (process.env.NODE_ENV === "production")
+          smartlookIdentify(repo.data.user.id, {
+            name: repo.data.user.name,
+            phone: "guest",
+          });
       }
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In registerForExpire in services/home",
+      });
+    } finally {
+      setIsRegisteringReady(true);
     }
   }
 
@@ -215,17 +219,23 @@ class HomeService {
             .then((payload) => {})
             .catch((err) => {
               LogError(err);
-              console.log(err);
+              LogServerError({
+                error: err,
+                scenario: "Error In onMessageListener in services/home",
+              });
             });
         }
       }
     } catch (error) {
       LogError(error);
-      console.error(error);
+      LogServerError({
+        error: error,
+        scenario: "Error In AllowNotifications in services/home",
+      });
       throw new Error(
         translateFunction(
-          "Notification Is Not Enabled! please Allow Notification Access"
-        )
+          "Notification Is Not Enabled! please Allow Notification Access",
+        ),
       );
     }
   }
@@ -260,29 +270,47 @@ class HomeService {
   }
 
   async CheckLogin() {
-    const marketToken = getCookie(COOKIE_NAMES.MARKET_TOKEN);
-    const deviceToken = getCookie(COOKIE_NAMES.DEVICE_TOKEN);
-    const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-    const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
     const {
       loginSuccess,
       loginSuccessChat,
       loginSuccessStories,
       editUserInfo,
     } = useAppStore.getState();
+
+    // Fetch user data from HttpOnly cookies via server route
+    let userData: any = null;
+    let userChat: any = null;
+    let userStories: any = null;
+    let hasDeviceToken = false;
+    let hasMarketToken = false;
+
+    try {
+      const meResponse = await fetch("/api/auth/me", {
+        credentials: "include",
+        method: "POST",
+      });
+      if (meResponse.ok) {
+        const meData = await meResponse.json();
+        userData = meData.user;
+        userChat = meData.chatUser;
+        userStories = meData.storiesUser;
+        hasDeviceToken = meData.hasDeviceToken;
+        hasMarketToken = meData.hasMarketToken;
+      }
+    } catch (_) {}
+
     if (userData) {
       editUserInfo(userData);
       SetGAUser(userData, false);
     }
-    if (!deviceToken) await this.RegisterDevice();
-    if (userData && userData?.is_phone_verified === 1 && marketToken) {
-      setCookie(COOKIE_NAMES.MARKET_TOKEN, marketToken);
-      if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-        Smartlook.identify(userData.id, {
+
+    if (!hasDeviceToken) await this.RegisterDevice();
+
+    if (userData && userData?.is_phone_verified === 1 && hasMarketToken) {
+      if (process.env.NODE_ENV === "production")
+        smartlookIdentify(userData.id, {
           name: userData.name,
           phone: userData.mobilePhone,
-          // other custom properties
         });
       loginSuccess({
         ...userData,
@@ -290,23 +318,14 @@ class HomeService {
         name: userData.name,
         image: userData.image,
       });
-      if (userChat) {
-        loginSuccessChat({
-          ...userChat,
-        });
-      }
-      if (userStories) {
-        loginSuccessStories({
-          ...userStories,
-        });
-      }
+      if (userChat) loginSuccessChat({ ...userChat });
+      if (userStories) loginSuccessStories({ ...userStories });
     } else {
       if (userData) {
-        if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-          Smartlook.identify(userData.id, {
+        if (process.env.NODE_ENV === "production")
+          smartlookIdentify(userData.id, {
             name: userData.name,
             phone: userData.mobilePhone,
-            // other custom properties
           });
         loginSuccess({
           ...userData,
@@ -322,74 +341,56 @@ class HomeService {
   }
 
   async RegisterDevice() {
-    const deviceToken = getCookie(COOKIE_NAMES.DEVICE_TOKEN);
-    const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-
-    const { isRegisteringReady, setIsRegisteringReady } =
+    const { isRegisteringReady, setIsRegisteringReady, loginSuccess } =
       useAppStore.getState();
 
-    if (isRegisteringReady) {
-      let isNewUser = !userData;
-      let requestBody = userData?.id
-        ? {
-            old_guest_user_id: userData?.id,
-          }
-        : { old_guest_user_id: null };
+    if (!isRegisteringReady) return;
 
-      if (!deviceToken) {
-        try {
-          let response = await fetchData({
-            url: REGISTER_DEVICE_URL,
-            body: JSON.stringify(requestBody),
-            reqTitle: REQUESTS_DATA.REGISTER_DEVICE,
-            method: "POST",
-            server: "market",
-          });
-          // @ts-ignore
-          if (!response.success) {
-            throw new Error(response.message);
-          }
-          let repo: RegisterGuestApi = response;
-          if (repo.message === "The user does not exist.") {
-            response = await fetchData({
-              url: REGISTER_DEVICE_URL,
-              body: JSON.stringify({ old_guest_user_id: null }),
-              reqTitle:
-                REQUESTS_DATA["REGISTER_DEVICE_FOR_EXPIRED_USER_-_RETRY"],
-              method: "POST",
-              server: "market",
-            });
-            // @ts-ignore
-            if (!response.success) {
-              throw new Error(response.message);
-            }
-            repo = response;
-          }
-          setCookie(COOKIE_NAMES.DEVICE_TOKEN, repo.data.token);
+    setIsRegisteringReady(false);
+    const userId = auth.UserID();
+    const isNewUser = !userId;
 
-          if (repo?.data?.user) {
-            setCookie(COOKIE_NAMES.USER_DATA, {
-              ...repo.data.user,
-              expired_at: repo.data.expires_at,
-            });
-          }
-          SetGAUser(repo.data.user, isNewUser);
-          setIsRegisteringReady(true);
-          if (repo.data.user) {
-            if (
-              process.env.NODE_ENV === "production" &&
-              Smartlook.initialized()
-            )
-              Smartlook.identify(repo.data.user.id, {
-                name: repo.data.user.name,
-                phone: "guest",
-                // other custom properties
-              });
-          }
-        } catch (err) {
-          console.error(err);
-        }
+    try {
+      const [country, lang] = (
+        window.location.pathname.split("/")[1] || ""
+      ).split("-");
+      const response = await fetch("/api/auth/register-device", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-country": country || "sy",
+          "x-language": lang || "en",
+        },
+        body: JSON.stringify({ old_guest_user_id: userId || null }),
+        credentials: "include",
+      });
+
+      const repo = await response.json();
+      if (!response.ok) {
+        throw new Error(repo.message);
       }
+
+      if (repo.data?.user) {
+        loginSuccess({
+          ...repo.data.user,
+          expired_at: repo.data.expires_at,
+        });
+      }
+      SetGAUser(repo.data?.user, isNewUser);
+      if (repo.data?.user) {
+        if (process.env.NODE_ENV === "production")
+          smartlookIdentify(repo.data.user.id, {
+            name: repo.data.user.name,
+            phone: "guest",
+          });
+      }
+    } catch (err) {
+      LogServerError({
+        error: err,
+        scenario: "Error In RegisterDevice in services/home",
+      });
+    } finally {
+      setIsRegisteringReady(true);
     }
   }
 
@@ -400,50 +401,56 @@ class HomeService {
     topic: string;
     variant?: string;
   }) {
-    const { getFirebaseSettings } = useAppStore.getState();
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
     if (token) {
       try {
-        let response = await fetchData({
-          url: "/firebase_device_tokens/subscribe_topic",
+        const response = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
+            token,
             topic,
             variant,
           }),
-          reqTitle: REQUESTS_DATA.STORE_FIREBASE_SUBSCRIBE_TOPIC,
-          method: "POST",
-          server: "market",
         });
-        // @ts-ignore
-        if (!response.success) {
-          throw new Error(response.message);
+
+        const result = await response.json();
+        if (!response.ok || !result?.success) {
+          throw new Error(result?.message || "Subscribe to topic failed");
         }
-        getFirebaseSettings(response.data.firebase_settings);
       } catch (err) {
-        console.error(err);
+        LogServerError({
+          error: err,
+          scenario: "Error In subscribeToTopic in services/home",
+        });
       }
     }
   }
   async UnsubscripeFromTopic({ topic }) {
-    const { getFirebaseSettings } = useAppStore.getState();
+    let token = localStorage.getItem("FB-DEVICE-TOKEN");
+    if (!token) return;
+
     try {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/unsubscribe_topic",
-        body: JSON.stringify({
-          topic,
-        }),
-        reqTitle: REQUESTS_DATA.STORE_FIREBASE_UNSUBSCRIBE_TOPIC,
+      const response = await fetch("/api/unsubscribe", {
         method: "POST",
-        server: "market",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token, topic }),
       });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
+
+      const result = await response.json();
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || "Unsubscribe from topic failed");
       }
-      getFirebaseSettings(response.data.firebase_settings);
     } catch (err) {
-      console.error(err);
+      LogServerError({
+        error: err,
+        scenario: "Error In UnsubscripeFromTopic in services/home",
+      });
     }
   }
   async handleTopicsOnPageRefresh(token: string) {
@@ -456,6 +463,7 @@ class HomeService {
       throw new Error("Invalid URL format for country-language pair");
     }
     const { getFirebaseSettings } = useAppStore.getState();
+    setCookie(COOKIE_NAMES.LOCAL, `${countryCode}-${languageCode}`);
 
     if (!token) return;
 
@@ -478,7 +486,10 @@ class HomeService {
         getFirebaseSettings(response?.data?.firebase_settings);
         localStorage.setItem("lastPair", countryCode + languageCode);
       } catch (err) {
-        console.error(err);
+        LogServerError({
+          error: err,
+          scenario: "Error In handleTopicsOnPageRefresh in services/home",
+        });
       }
     }
   }
@@ -497,7 +508,10 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (e) {
-      console.error(e);
+      LogServerError({
+        error: e,
+        scenario: "Error In hideOldCart in services/home",
+      });
     }
   }
 
@@ -711,7 +725,12 @@ class HomeService {
       if (!response.success) {
         throw new Error(response.message);
       }
-    } catch (error) {}
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In EditNotificationSettings in services/home",
+      });
+    }
   }
   async LikeComment({ comment_id, target_type, product_id }) {
     let resp = await fetchData({

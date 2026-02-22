@@ -11,6 +11,8 @@ interface User {
   [key: string]: any;
 }
 
+type ReAuthResult = "pending" | "success" | "cancelled" | null;
+
 interface AuthState {
   user: User | null;
   Tempuser: User | null;
@@ -18,6 +20,7 @@ interface AuthState {
   attempts: number;
   wrongNumber: string;
   shouldAuthinticated: boolean | "open Story" | "open chat";
+  reAuthResult: ReAuthResult;
   verficationID: string | null;
   firebaseSettings: FirebaseSettings;
   userProfile: any | null;
@@ -39,6 +42,7 @@ interface AuthState {
   enableNotification: (topic: string) => void;
   setTempUser: (user: User) => void;
   updateName: (name: string) => void;
+  setReAuthResult: (result: ReAuthResult) => void;
 }
 
 export const useAuthStore = (set, get) => ({
@@ -49,6 +53,7 @@ export const useAuthStore = (set, get) => ({
   Tempuser: null,
   failedLogin: false,
   shouldAuthinticated: null,
+  reAuthResult: null,
   attempts: 4,
   wrongNumber: "",
 
@@ -68,6 +73,7 @@ export const useAuthStore = (set, get) => ({
   // Actions
   setIsActiveAddress: (isActive) => set({ isActiveAddress: isActive }),
   setShouldAuthinticated: (shouldAuthinticated) => set({ shouldAuthinticated }),
+  setReAuthResult: (reAuthResult) => set({ reAuthResult }),
   updateUserIsVerified: (user_obj) =>
     set((state) => ({
       userProfile: { ...(state.userProfile ?? {}), ...user_obj },
@@ -92,7 +98,7 @@ export const useAuthStore = (set, get) => ({
             is_phone_verified: 0,
             is_verified: 0,
           }
-        : state.userProfile,
+        : null,
       userChat: null,
       userStories: null,
       failedLogin: false,
@@ -113,6 +119,7 @@ export const useAuthStore = (set, get) => ({
     set((state) => ({
       user: state.user ? { ...state.user, ...userData } : userData,
       Tempuser: state.user ? { ...state.user, ...userData } : userData,
+      userProfile: { ...(state.userProfile ?? {}), ...userData },
       failedLogin: false,
     })),
 
@@ -139,7 +146,7 @@ export const useAuthStore = (set, get) => ({
       firebaseSettings: {
         ...state.firebaseSettings,
         subscribed_topics: state.firebaseSettings.subscribed_topics.filter(
-          (s) => s.topic !== topic
+          (s) => s.topic !== topic,
         ),
       },
     })),
