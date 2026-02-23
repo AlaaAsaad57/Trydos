@@ -19,6 +19,7 @@ export const clearAllUserData = async () => {
   await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
   sessionStorage.clear();
   localStorage.clear();
+  document.cookie = "";
 };
 export const getCurrency = async ({ callback }) => {
   try {
