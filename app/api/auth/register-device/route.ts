@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
     // Set device token as HttpOnly cookie
     const cookieStore = await cookies();
     if (data.data?.token) {
+      console.log("Setting device token cookie for user:", data.data?.token);
       cookieStore.set({
         name: COOKIE_NAMES.DEVICE_TOKEN,
         value: data.data.token,

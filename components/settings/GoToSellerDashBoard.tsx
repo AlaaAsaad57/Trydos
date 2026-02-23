@@ -18,6 +18,7 @@ function GoToSellerDashBoard({ language }: { language: string }) {
     setLoading(true);
     try {
       let res = await SellerDashboardService.getShopes(true);
+      console.log(res);
       if (res.data && res.data.length > 0) {
         setShouldShow(true);
       } else {
@@ -55,7 +56,7 @@ function GoToSellerDashBoard({ language }: { language: string }) {
   const isRtl = language === "ar" || language === "ku";
   return (
     <>
-      <button
+      {/* <button
         onClick={() => setOpenSellerModal(true)}
         className="h-[50px] cursor-pointer w-full rounded-[15px]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px] text-[#1d1d1d]"
       >
@@ -63,7 +64,7 @@ function GoToSellerDashBoard({ language }: { language: string }) {
       </button>
       {openSellerModal && (
         <BecomeSellerModal onClose={() => setOpenSellerModal(false)} />
-      )}
+      )} */}
 
       <div
         onClick={() => {

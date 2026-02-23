@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -5,13 +6,16 @@ import {
   deleteSecureCookie,
   getSecureCookie,
   setSecureCookieJSON,
+  SECURE_COOKIE_OPTIONS,
 } from "utils/server/tokenManager";
+
+const REGISTER_GUEST_URL = "/auth/register-guest";
 
 /**
  * Handles market token expiration:
- * 1. Re-registers as a guest via /api/auth/register-device (internal redirect)
- * 2. Clears stale tokens (MARKET_TOKEN, CHAT_TOKEN, STORIES_TOKEN)
- * 3. Marks chat/stories users as needing re-auth
+ * 1. Clears stale tokens (MARKET_TOKEN, CHAT_TOKEN, STORIES_TOKEN)
+ * 2. Marks chat/stories users as needing re-auth
+ * 3. Re-registers as guest via backend, sets DEVICE_TOKEN cookie in this response
  */
 export async function POST(request: NextRequest) {
   try {
@@ -54,34 +58,78 @@ export async function POST(request: NextRequest) {
         : Promise.resolve(),
     ]);
 
-    // 3. Re-register as guest
+    // 3. Re-register as guest — call backend directly so we can set cookies
+    // in this response (internal fetch to register-device loses Set-Cookie)
     const country = request.headers.get("x-country")?.trim() || "sy";
     const language = request.headers.get("x-language")?.trim() || "en";
+    const oldGuestUserId = oldUserId || userData?.id || null;
 
-    const registerRes = await fetch(
-      new URL("/api/auth/register-device", request.url),
+    let response = await fetch(
+      process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_GUEST_URL,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-country": country,
-          "x-language": language,
-          cookie: request.headers.get("cookie") || "",
+          Accept: "application/json",
+          country,
+          language,
         },
-        body: JSON.stringify({
-          old_guest_user_id: oldUserId || userData?.id || null,
-        }),
+        body: JSON.stringify({ old_guest_user_id: oldGuestUserId }),
+        credentials: "omit",
       },
     );
 
-    const registerData = await registerRes.json();
+    let data = await response.json();
+
+    if (data.message === "The user does not exist." && oldGuestUserId) {
+      response = await fetch(
+        process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_GUEST_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            country,
+            language,
+          },
+          body: JSON.stringify({ old_guest_user_id: null }),
+          credentials: "omit",
+        },
+      );
+      data = await response.json();
+    }
+
+    if (!response.ok) {
+      LogServerError({ error: data, type: "auth/expire route error" });
+      return NextResponse.json(
+        { ...data, expired: true },
+        { status: response.status },
+      );
+    }
+
+    // 4. Set DEVICE_TOKEN and USER_DATA in this response — client receives them
+    const cookieStore = await cookies();
+    if (data.data?.token) {
+      cookieStore.set({
+        name: COOKIE_NAMES.DEVICE_TOKEN,
+        value: data.data.token,
+        ...SECURE_COOKIE_OPTIONS,
+      });
+    }
+    if (data.data?.user) {
+      await setSecureCookieJSON(COOKIE_NAMES.USER_DATA, {
+        ...data.data.user,
+        expired_at: data.data.expires_at,
+      });
+    }
 
     return NextResponse.json(
       {
-        ...registerData,
+        ...data,
+        data: { ...data.data, token: undefined },
         expired: true,
       },
-      { status: registerRes.status },
+      { status: 200 },
     );
   } catch (error) {
     LogServerError({ error, type: "auth/expire route error" });
