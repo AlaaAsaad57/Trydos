@@ -10,9 +10,15 @@ import {
 import { fetchData } from "./fetchData";
 import { InCall } from "store/chat/callActions";
 import { getUserChat, LogError, translateFunction } from "./functions";
+import { getUserChat, LogError, translateFunction } from "./functions";
 import chat from "services/chat";
 import { watchChannel as watchChannelAction } from "store/chat/actions";
+import { watchChannel as watchChannelAction } from "store/chat/actions";
 import { REQUESTS_DATA } from "./Requests";
+import auth from "services/auth";
+
+// --- Interfaces ---
+
 import auth from "services/auth";
 
 // --- Interfaces ---
@@ -60,12 +66,42 @@ const getMessageNotificationPreview = (messageType: string) => {
   }
 };
 
+// --- Helper Functions ---
+
+const safeParse = (data: any) => {
+  if (typeof data === "string") {
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      return {};
+    }
+  }
+  return data || {};
+};
+
+const getMessageNotificationPreview = (messageType: string) => {
+  switch (messageType) {
+    case "ImageMessage":
+      return translateFunction("image");
+    case "VideoMessage":
+      return translateFunction("video");
+    case "VoiceMessage":
+      return translateFunction("voice message");
+    case "FileMessage":
+      return translateFunction("file");
+    default:
+      return translateFunction("message");
+  }
+};
+
 class ForegroundNotificationHandler {
   private isListening: boolean = false;
 
   constructor() {
     this.initializeListener();
   }
+
+  // --- Initialization ---
 
   // --- Initialization ---
 
@@ -90,6 +126,9 @@ class ForegroundNotificationHandler {
   public onNotification(type: string, handler: (data: any) => void): void {
     handler(null);
   }
+
+  // --- Main Entry Point ---
+
 
   // --- Main Entry Point ---
 
@@ -199,6 +238,14 @@ class ForegroundNotificationHandler {
         data.image || null,
       );
     };
+
+ if (
+      type === "seller order status changed" ||
+      type === "seller order detail status changed to confirmed" ||
+      type === "seller order detail status changed to packed"
+    ) {
+      state.setShouldUpdateOrders(state.shouldUpdateOrders + 1);
+    }
 
     if (type.startsWith("order status changed")) {
       state.setShouldUpdateOrders(state.shouldUpdateOrders + 1);
@@ -382,6 +429,225 @@ class ForegroundNotificationHandler {
       isPrivate: true,
     };
 
+    // If not the current user and not currently in an active call (or in limbo)
+    if (
+      data.user_id !== currentUser?.id &&
+      (!state.callInProgress || state.callInProgress === 2)
+    ) {
+      const callData = {
+        ...payloadData,
+        channelId: data.message.channel.id,
+        callerChannel: channel,
+        caller: caller,
+        message_id: data.message.id,
+      };
+
+      if (isVideo) {
+        state.setIncomingCall(callData);
+      } else {
+        state.setIncomingVoiceCall(callData);
+      }
+    }
+
+    // Update UI/State
+    state.setLastNotificationDate(new Date().toLocaleString());
+    state.receiveChannelEvent(parseInt(data.message.channel.id));
+
+    // Watch channel if active
+    if (
+      parseInt(state.activeChat?.id) === parseInt(data.message?.channel?.id)
+    ) {
+      state.watchChannel(parseInt(data.message?.channel?.id));
+    }
+
+    // Send phantom message to update UI list
+    state.sendMessage({
+      act: data.message.channel,
+      message: {
+        ...data.message,
+        channel: null,
+        message_type: { name: msgType },
+        message_status: [],
+      },
+      isPrivate: isPrivateCall,
+    });
+
+    resolve(payload);
+  }
+
+  /**
+   * Handles Standard Messages and Product Shares
+   */
+  private handleChatMessage(
+    eventType: string,
+    data: any,
+    state: any,
+    resolve: any,
+    payload: any,
+  ) {
+    const { activeChat, chatVar, country, language } = state;
+    const currentUser = getUserChat();
+    const messageData = data.message;
+    const senderUser = messageData?.sender_user;
+    const channel = messageData?.channel;
+
+    // Determine content for notification
+    let messagePreview = "";
+    let messageImage = null;
+    const senderName = senderUser?.name || senderUser?.mobile_phone;
+    const senderPhoto = senderUser?.photo_path;
+
+    const messageFiles = messageData?.message_files || [];
+    const messageType = messageData?.message_type?.name;
+
+    if (messageFiles.length > 0) {
+      messageImage = messageFiles[0]?.file_path || messageFiles[0]?.url;
+      messagePreview = getMessageNotificationPreview(messageType);
+    } else if (messageData?.message_content?.content) {
+      if (messageType?.includes("ShareProduct")) {
+        messagePreview = translateFunction("Shared a product");
+      } else {
+        messagePreview = messageData.message_content.content;
+      }
+      if (messagePreview.length > 100) {
+        messagePreview = messagePreview.substring(0, 100) + "...";
+      }
+    } else if (messageType) {
+      messagePreview = translateFunction(`Sent a ${messageType}`);
+    } else {
+      messagePreview = translateFunction("New message");
+    }
+
+    // Override for ShareProduct event type specific logic
+    if (eventType === "ShareProductEvent") {
+      messagePreview = translateFunction("Shared a product");
+    }
+
+    // --- Private/Delivery Logic ---
+    const isPrivate = data?.is_private === true || data?.is_private === 1;
+
+    if (isPrivate) {
+      // If not in the active chat, show notification
+      if (parseInt(activeChat?.id) !== parseInt(messageData?.channel_id)) {
+        const orderGroupId = data.order_group_id;
+        const orderId = data?.parent_order_id ?? data?.order_id;
+        const chatId = data?.order_id;
+
+        const deepLink = `/${country}-${language}/settings/orders/${orderGroupId}?order_id=${orderId}&chat_id=${chatId}&mid=${messageData?.id}`;
+
+        showChatNotification(
+          "Deleivery Worker",
+          messagePreview,
+          channel?.id || messageData?.channel_id,
+          channel,
+          null,
+          messageImage,
+          messageType,
+          5000,
+          deepLink,
+        );
+
+        // Add red circle indicator
+        const newItem = {
+          order_id: orderId,
+          chat_id: chatId,
+          order_group_id: orderGroupId,
+        };
+        const existingItems = state.showNotificaionCircle.filter(
+          (item: any) =>
+            !(
+              item.order_id === newItem.order_id &&
+              item.chat_id === newItem.chat_id &&
+              item.order_group_id === newItem.order_group_id
+            ),
+        );
+        state.showNotificationIndicator([...existingItems, newItem]);
+        return; // Exit for private msg not in view
+      } else {
+        // User is looking at the chat
+        watchChannelAction(parseInt(messageData?.channel?.id));
+        state.sendMessage({
+          act: messageData?.channel,
+          message: { ...messageData, channel: null },
+          isPrivate: true,
+        });
+        return; // Exit for private msg in view
+      }
+    }
+
+    // --- Standard Chat Logic ---
+
+    // Update "Last Notification" date if the message connects to previous history
+    const chatExists = state.data?.find(
+      (c: any) => parseInt(c.id) === parseInt(messageData.channel.id),
+    );
+    const isLinkedMessage = chatExists?.messages.some(
+      (m: any) => parseInt(m.id) === parseInt(data.prev_message_id),
+    );
+
+    if (isLinkedMessage || chatExists) {
+      state.setLastNotificationDate(new Date().toLocaleString());
+      state.receiveChannelEvent(parseInt(messageData.channel.id));
+
+      // If active chat is the one receiving message
+      if (parseInt(activeChat?.id) === parseInt(messageData?.channel?.id)) {
+        state.watchChannel(parseInt(messageData?.channel?.id));
+
+        // Should we show notification even if active? (Only if sender is not me and chatVar logic applies)
+        if (String(currentUser?.id) !== String(senderUser?.id) && !chatVar) {
+          // Logic from original: seemed to allow notif even if active in some cases?
+          // Preserving original flow inside the if block for activeChat
+          // Actually, original code shows notification inside active check if !active?.id which contradicts.
+          // The cleanest interpretation of the original spaghetti:
+          // If active, just update list.
+        }
+      } else {
+        // Chat is not active
+        if (String(currentUser?.id) !== String(senderUser?.id) && !chatVar) {
+          showChatNotification(
+            senderName,
+            messagePreview,
+            channel?.id || messageData?.channel_id,
+            channel,
+            senderPhoto,
+            messageImage,
+            messageType,
+            5000,
+          );
+        }
+      }
+
+      state.sendMessage({
+        act: messageData?.channel,
+        message: { ...messageData, channel: null },
+      });
+
+      // Fallback for "activeChat" check inside the list update
+      // The original code had redundant checks. Simplify:
+      // If not active, we already showed notification above.
+      resolve(payload);
+    } else {
+      // Chat doesn't exist in store or not linked -> Refresh list
+      // Logic for Notification when completely new or out of sync
+      if (parseInt(activeChat?.id) !== parseInt(messageData?.channel?.id)) {
+        if (
+          !activeChat?.id &&
+          String(currentUser?.id) !== String(senderUser?.id) &&
+          !chatVar
+        ) {
+          showChatNotification(
+            senderName,
+            messagePreview,
+            channel?.id || messageData?.channel_id,
+            channel,
+            senderPhoto,
+            messageImage,
+            messageType,
+            5000,
+          );
+        }
+      }
+      chat.getChats(true);
     // If not the current user and not currently in an active call (or in limbo)
     if (
       data.user_id !== currentUser?.id &&

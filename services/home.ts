@@ -401,26 +401,26 @@ class HomeService {
     topic: string;
     variant?: string;
   }) {
-    const { getFirebaseSettings } = useAppStore.getState();
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
     if (token) {
       try {
-        let response = await fetchData({
-          url: "/firebase_device_tokens/subscribe_topic",
+        const response = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
+            token,
             topic,
             variant,
           }),
-          reqTitle: REQUESTS_DATA.STORE_FIREBASE_SUBSCRIBE_TOPIC,
-          method: "POST",
-          server: "market",
         });
-        // @ts-ignore
-        if (!response.success) {
-          throw new Error(response.message);
+
+        const result = await response.json();
+        if (!response.ok || !result?.success) {
+          throw new Error(result?.message || "Subscribe to topic failed");
         }
-        getFirebaseSettings(response.data.firebase_settings);
       } catch (err) {
         LogServerError({
           error: err,
@@ -430,22 +430,22 @@ class HomeService {
     }
   }
   async UnsubscripeFromTopic({ topic }) {
-    const { getFirebaseSettings } = useAppStore.getState();
+    let token = localStorage.getItem("FB-DEVICE-TOKEN");
+    if (!token) return;
+
     try {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/unsubscribe_topic",
-        body: JSON.stringify({
-          topic,
-        }),
-        reqTitle: REQUESTS_DATA.STORE_FIREBASE_UNSUBSCRIBE_TOPIC,
+      const response = await fetch("/api/unsubscribe", {
         method: "POST",
-        server: "market",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token, topic }),
       });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
+
+      const result = await response.json();
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || "Unsubscribe from topic failed");
       }
-      getFirebaseSettings(response.data.firebase_settings);
     } catch (err) {
       LogServerError({
         error: err,

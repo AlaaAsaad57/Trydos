@@ -214,6 +214,14 @@ export const REQUESTS_DATA = {
     reqTitle: "UPDATE_SELLER_ORDER_STATUS",
     code: 151,
   },
+  UPDATE_SELLER_ORDER_DETAIL_STATUS: {
+    reqTitle: "UPDATE_SELLER_ORDER_DETAIL_STATUS",
+    code: 157,
+  },
+  CANCEL_SELLER_ORDER_DETAIL: {
+    reqTitle: "CANCEL_SELLER_ORDER_DETAIL",
+    code: 158,
+  },
   REOMVE_FCM: { reqTitle: "REOMVE_FCM", code: 151 },
   GET_SHOP_USERS: { reqTitle: "GET_SHOP_USERS", code: 152 },
   DELETE_SHOP_USER: { reqTitle: "DELETE_SHOP_USER", code: 153 },

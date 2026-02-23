@@ -7,6 +7,7 @@ import SellerDashboardService from "services/sellerDashboard";
 import auth from "services/auth";
 import { translateFunction, getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
+import RenderOrders from "components/SellerDashboard/orders";
 
 type TabType =
   | "products"
@@ -159,7 +160,7 @@ function SellerDashBoard() {
   // Separate dataset for the per-user change-role control
   const [rolesForChange, setRolesForChange] = useState<any[]>([]);
   const [rolesForChangeMeta, setRolesForChangeMeta] = useState<any | null>(
-    null
+    null,
   );
   const [rolesForChangePage, setRolesForChangePage] = useState<number>(1);
   const [rolesForChangeLoadingMore, setRolesForChangeLoadingMore] =
@@ -172,6 +173,7 @@ function SellerDashBoard() {
   >(null);
 
   const [rolesDropdownOpen, setRolesDropdownOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   // Users state
   const [users, setUsers] = useState<any[]>([]);
   const [usersMeta, setUsersMeta] = useState<any | null>(null);
@@ -187,18 +189,14 @@ function SellerDashBoard() {
   const [addUserLoading, setAddUserLoading] = useState(false);
   const [addUserSuccess, setAddUserSuccess] = useState(false);
   const [sellerOrders, setSellerOrders] = useState<any[]>([]);
-  const [ordersMeta, setOrdersMeta] = useState<any>(null);
-  const [ordersPage, setOrdersPage] = useState(1);
-  const [ordersLoading, setOrdersLoading] = useState(false);
-  const [ordersError, setOrdersError] = useState<string | null>(null);
-  const [orderStatusOptions, setOrderStatusOptions] = useState<string[]>([]);
   const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<
     Record<string, string>
   >({});
   const [orderActionLoading, setOrderActionLoading] = useState<string | null>(
-    null
+    null,
   );
   const rolesForChangeRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const currentShop = useMemo(() => {
     return shopes.find((shop) => shop.seller_id.toString() === sellerId);
   }, [shopes, sellerId]);
@@ -210,10 +208,10 @@ function SellerDashBoard() {
     );
   };
   const canViewProducts = PERMISSION_GROUPS.PRODUCTS.some((p: string) =>
-    hasPermission(p)
+    hasPermission(p),
   );
   const canViewBoutiques = PERMISSION_GROUPS.BOUTIQUES.some((p: string) =>
-    hasPermission(p)
+    hasPermission(p),
   );
   const canViewPermissions = [
     ...PERMISSION_GROUPS.ADMIN,
@@ -226,7 +224,7 @@ function SellerDashBoard() {
     PERMISSION_GROUPS.EMPLOYEES.some((p: string) => hasPermission(p)) ||
     canManageUsers;
   const canViewOrders = PERMISSION_GROUPS.ORDERS.some((p: string) =>
-    hasPermission(p)
+    hasPermission(p),
   );
 
   const currentUserId = auth.UserID ? auth.UserID() : null;
@@ -237,7 +235,7 @@ function SellerDashBoard() {
       setError(null);
       const res = await SellerDashboardService.getSellerProducts(
         sellerId,
-        page
+        page,
       );
       // API returns { data: { products: [...], meta: {...} } }
       const products = res.data?.products || res.data || [];
@@ -345,7 +343,7 @@ function SellerDashBoard() {
       const res = await SellerDashboardService.getUsers(
         sellerId,
         page,
-        langSegment
+        langSegment,
       );
       const usersData = res.data?.users || res.data || [];
       if (page > 1) {
@@ -361,7 +359,7 @@ function SellerDashBoard() {
     } catch (error: any) {
       console.error("Error fetching users:", error);
       setUsersError(
-        error?.message || translateFunction("Failed to load users")
+        error?.message || translateFunction("Failed to load users"),
       );
     } finally {
       if (page === 1) setUsersLoading(false);
@@ -377,20 +375,20 @@ function SellerDashBoard() {
     } catch (error: any) {
       console.error("Error deleting user:", error);
       setUsersError(
-        error?.message || translateFunction("Failed to delete user")
+        error?.message || translateFunction("Failed to delete user"),
       );
     }
   };
 
   const handleUpdateUserRole = async (
     userId: number | string,
-    roleId: number
+    roleId: number,
   ) => {
     try {
       setUsersError(null);
       await SellerDashboardService.updateUserRole(
         { user_id: Number(userId), role_id: Number(roleId) },
-        sellerId
+        sellerId,
       );
       // Update local users array with new role info (name from roles list)
       const roleObj = roles.find((r) => Number(r.id) === Number(roleId));
@@ -403,13 +401,13 @@ function SellerDashBoard() {
                 role: roleObj ? { id: roleObj.id, name: roleObj.name } : u.role,
                 role_name: roleObj?.name || u.role?.name || u.role_name,
               }
-            : u
-        )
+            : u,
+        ),
       );
     } catch (error: any) {
       console.error("Error updating user role:", error);
       setUsersError(
-        error?.message || translateFunction("Failed to update user role")
+        error?.message || translateFunction("Failed to update user role"),
       );
     }
   };
@@ -420,53 +418,6 @@ function SellerDashBoard() {
       // client-side behavior after leaving shop is not defined here; trigger a refresh or redirect if needed
     } catch (error: any) {
       console.error("Error leaving shop:", error);
-    }
-  };
-  const getSellerOrders = async (page: number = 1) => {
-    try {
-      setOrdersLoading(true);
-      setOrdersError(null);
-      const res = await SellerDashboardService.getSellerOrders(sellerId, page);
-      const orders = res.data?.orders || res.data || [];
-      setSellerOrders(Array.isArray(orders) ? orders : []);
-      setOrdersMeta(res.data?.meta || null);
-      setOrderStatusOptions(
-        res.data?.user_abilities?.change_order_status || []
-      );
-      setOrdersPage(page);
-    } catch (error: any) {
-      console.error("Error fetching orders:", error);
-      setOrdersError(
-        error?.message || translateFunction("Failed to load orders")
-      );
-    } finally {
-      setOrdersLoading(false);
-    }
-  };
-  const handleChangeOrderStatus = async (orderId: number | string) => {
-    const status = selectedOrderStatuses[String(orderId)];
-    if (!status) return;
-    try {
-      setOrderActionLoading(String(orderId));
-      setOrdersError(null);
-      await SellerDashboardService.updateOrderStatus(sellerId, {
-        id: Number(orderId),
-        status,
-      });
-      setSellerOrders((prev) =>
-        prev.map((order) =>
-          order.id === orderId
-            ? { ...order, order_status: status, order_group_status: status }
-            : order
-        )
-      );
-    } catch (error: any) {
-      console.error("Error updating order status:", error);
-      setOrdersError(
-        error?.message || translateFunction("Failed to update order status")
-      );
-    } finally {
-      setOrderActionLoading(null);
     }
   };
 
@@ -502,7 +453,7 @@ function SellerDashBoard() {
     } catch (error: any) {
       console.error("Error adding user:", error);
       setError(
-        error?.message || translateFunction("Failed to add user to shop")
+        error?.message || translateFunction("Failed to add user to shop"),
       );
     } finally {
       setAddUserLoading(false);
@@ -533,7 +484,7 @@ function SellerDashBoard() {
     } catch (error: any) {
       console.error("Error fetching permissions:", error);
       setError(
-        error?.message || translateFunction("Failed to load permissions")
+        error?.message || translateFunction("Failed to load permissions"),
       );
       // Fallback to currentShop permissions if available
       if (currentShop?.permissions) {
@@ -563,9 +514,6 @@ function SellerDashBoard() {
         getSellerPermissions();
       }
     }
-    setSellerOrders([]);
-    setOrdersMeta(null);
-    setOrdersPage(1);
   }, [sellerId]);
 
   useEffect(() => {
@@ -619,11 +567,28 @@ function SellerDashBoard() {
     };
   }, [rolesForChangeOpenUserId]);
 
+  // Close menu on outside click or Escape
   useEffect(() => {
-    if (activeTab === "orders" && canViewOrders && sellerOrders.length === 0) {
-      getSellerOrders();
-    }
-  }, [activeTab, canViewOrders, sellerId]);
+    if (!menuOpen) return;
+    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+      if (!menuRef.current) return;
+      const target = e.target as Node;
+      if (!menuRef.current.contains(target)) {
+        setMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
     if (
@@ -743,7 +708,7 @@ function SellerDashBoard() {
                       src: GetImageUrl(
                         typeof product.images[0] === "string"
                           ? product.images[0]
-                          : product.images[0]?.file_path || product.images[0]
+                          : product.images[0]?.file_path || product.images[0],
                       ),
                       width: 200,
                       height: 200,
@@ -933,259 +898,6 @@ function SellerDashBoard() {
     );
   };
 
-  const renderOrders = () => {
-    if (!canViewOrders) {
-      return (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <p className="text-[16px] font-medium text-[#1d1d1d] mb-2">
-              {translateFunction("Access Denied")}
-            </p>
-            <p className="text-[14px] text-[#8D8D8D]">
-              {translateFunction(
-                "You need order viewing permissions to see this section"
-              )}
-            </p>
-          </div>
-        </div>
-      );
-    }
-
-    if (ordersLoading && sellerOrders.length === 0) {
-      return (
-        <div className="flex items-center justify-center py-12">
-          <Spinner />
-          <span className="ml-3 text-[#3c3c3c]">
-            {translateFunction("Loading orders...")}
-          </span>
-        </div>
-      );
-    }
-
-    if (ordersError && sellerOrders.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center py-12">
-          <p className="text-red-500 mb-4">{ordersError}</p>
-          <button
-            onClick={() => getSellerOrders(1)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            {translateFunction("Retry")}
-          </button>
-        </div>
-      );
-    }
-
-    if (sellerOrders.length === 0) {
-      return (
-        <div className="flex items-center justify-center py-12">
-          <p className="text-[#8D8D8D]">
-            {translateFunction("No orders found")}
-          </p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-6">
-        {sellerOrders.map((order: any) => {
-          const items = Array.isArray(order.details)
-            ? order.details.flatMap((group: any) =>
-                Array.isArray(group) ? group : []
-              )
-            : [];
-
-          return (
-            <div
-              key={order.id || order.order_group_id}
-              className="border border-gray-200 rounded-[15px] bg-white p-5 shadow-xs"
-            >
-              <div className="flex flex-col gap-4 border-b border-gray-100 pb-4 mb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="space-y-1">
-                    <p className="text-[12px] text-[#8D8D8D]">
-                      Order ID: {order.id}
-                    </p>
-                    <p className="text-[12px] text-[#8D8D8D]">
-                      Group: {order.order_group_id}
-                    </p>
-                    <p className="text-[12px] text-[#8D8D8D]">
-                      Cart Group: {order.cart_group_id}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                      {order.order_status}
-                    </span>
-                    <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-100">
-                      {order.order_group_status}
-                    </span>
-                    <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-green-50 text-green-700 border border-green-100">
-                      {order.payment_method}
-                    </span>
-                    <span
-                      className={`px-3 py-1 rounded-full text-[11px] font-medium border ${
-                        order.payment_status === "paid"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                          : "bg-yellow-50 text-yellow-700 border-yellow-100"
-                      }`}
-                    >
-                      {order.payment_status}
-                    </span>
-                  </div>
-                </div>
-
-                {orderStatusOptions.length > 0 && (
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gray-50 border border-gray-100 rounded-[12px] p-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-semibold text-[#1d1d1d]">
-                        {translateFunction("Change status:")}
-                      </span>
-                      <select
-                        value={selectedOrderStatuses[String(order.id)] || ""}
-                        onChange={(e) =>
-                          setSelectedOrderStatuses((prev) => ({
-                            ...prev,
-                            [String(order.id)]: e.target.value,
-                          }))
-                        }
-                        className="px-3 py-2 border border-gray-300 rounded-lg text-[13px] bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">{translateFunction("Select")}</option>
-                        {orderStatusOptions.map((statusOption) => (
-                          <option key={statusOption} value={statusOption}>
-                            {formatPermissionName(statusOption)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <button
-                      onClick={() => handleChangeOrderStatus(order.id)}
-                      disabled={
-                        orderActionLoading === String(order.id) ||
-                        !selectedOrderStatuses[String(order.id)]
-                      }
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg text-[13px] font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {orderActionLoading === String(order.id)
-                        ? translateFunction("Updating...")
-                        : translateFunction("Update")}
-                    </button>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-[12px] p-4">
-                  <div className="space-y-1">
-                    <p className="text-[13px] text-[#1d1d1d] font-semibold">
-                      Amount: {order.order_amount}
-                    </p>
-                    <p className="text-[12px] text-[#8D8D8D]">
-                      Shipping: {order.shipping_cost}
-                    </p>
-                    <p className="text-[12px] text-[#8D8D8D]">
-                      Discount: {order.discount_amount}
-                    </p>
-                    <p className="text-[12px] text-[#8D8D8D]">
-                      Delivery: {order.delivery_type || "N/A"}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[12px] text-[#8D8D8D]">
-                      Shipping Type: {order.shipping_type || "N/A"}
-                    </p>
-                    <p className="text-[12px] text-[#8D8D8D]">
-                      Transaction: {order.transaction_ref}
-                    </p>
-                    <p className="text-[12px] text-[#8D8D8D]">
-                      Return Allowed: {order.can_return_order ? "Yes" : "No"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 rounded-[12px] border border-gray-100 p-4">
-                <h4 className="text-[14px] font-semibold text-[#1d1d1d] mb-3 flex items-center justify-between">
-                  <span>{translateFunction("Items")}</span>
-                  <span className="text-[12px] text-[#8D8D8D] bg-white px-2 py-1 rounded-full border border-gray-200">
-                    {items.length}
-                  </span>
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {items.map((item: any) => {
-                    const productDetails =
-                      typeof item.product_details === "string"
-                        ? (() => {
-                            try {
-                              return JSON.parse(item.product_details);
-                            } catch (_err) {
-                              return null;
-                            }
-                          })()
-                        : item.product_details || null;
-                    const productName =
-                      productDetails?.name || `Product #${item.product_id}`;
-
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-gray-200 bg-white p-3"
-                      >
-                        <div className="space-y-1">
-                          <p className="text-[14px] font-semibold text-[#1d1d1d]">
-                            {productName}
-                          </p>
-                          <p className="text-[12px] text-[#8D8D8D]">
-                            Variant: {item.variant || "N/A"}
-                          </p>
-                          <p className="text-[12px] text-[#8D8D8D]">
-                            Delivery: {item.delivery_status}
-                          </p>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <p className="text-[13px] font-semibold text-[#1d1d1d]">
-                            Qty: {item.qty}
-                          </p>
-                          <p className="text-[12px] text-[#8D8D8D]">
-                            Price: {item.price}
-                          </p>
-                          <p className="text-[12px] text-[#8D8D8D]">
-                            Payment: {item.payment_status}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-        {ordersMeta && ordersMeta.last_page > 1 && (
-          <div className="flex items-center justify-center gap-2">
-            <button
-              onClick={() => getSellerOrders(ordersPage - 1)}
-              disabled={ordersPage === 1 || ordersLoading}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Previous
-            </button>
-            <span className="text-[14px] text-[#8D8D8D]">
-              Page {ordersMeta.current_page} of {ordersMeta.last_page}
-            </span>
-            <button
-              onClick={() => getSellerOrders(ordersPage + 1)}
-              disabled={ordersPage >= ordersMeta.last_page || ordersLoading}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Next
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   const renderPermissions = () => {
     if (!canViewPermissions) {
       return (
@@ -1196,7 +908,7 @@ function SellerDashBoard() {
             </p>
             <p className="text-[14px] text-[#8D8D8D]">
               {translateFunction(
-                "You don't have permission to view permissions"
+                "You don't have permission to view permissions",
               )}
             </p>
           </div>
@@ -1268,12 +980,12 @@ function SellerDashBoard() {
                 const permissionType = permission.includes("READ")
                   ? "read"
                   : permission.includes("CREATE")
-                  ? "create"
-                  : permission.includes("UPDATE")
-                  ? "update"
-                  : permission.includes("DELETE")
-                  ? "delete"
-                  : "other";
+                    ? "create"
+                    : permission.includes("UPDATE")
+                      ? "update"
+                      : permission.includes("DELETE")
+                        ? "delete"
+                        : "other";
 
                 const typeColors = {
                   read: "bg-blue-100 text-blue-700 border-blue-200",
@@ -1362,7 +1074,7 @@ function SellerDashBoard() {
               />
               <p className="text-[12px] text-[#8D8D8D] mt-1">
                 {translateFunction(
-                  "Format: +(country_code)XXX (e.g., +9611234567)"
+                  "Format: +(country_code)XXX (e.g., +9611234567)",
                 )}
               </p>
             </div>
@@ -1623,12 +1335,12 @@ function SellerDashBoard() {
                                       if (rolesForChange.length === 0)
                                         getRolesForChange(
                                           1,
-                                          rolesForChangeQuery
+                                          rolesForChangeQuery,
                                         );
                                     }}
                                     className="w-full px-3 py-2 border-b border-gray-200"
                                     placeholder={translateFunction(
-                                      "Search roles..."
+                                      "Search roles...",
                                     )}
                                   />
 
@@ -1638,7 +1350,7 @@ function SellerDashBoard() {
                                       <Spinner />
                                       <span className="text-[14px] text-[#8D8D8D]">
                                         {translateFunction(
-                                          "Searching roles..."
+                                          "Searching roles...",
                                         )}
                                       </span>
                                     </div>
@@ -1661,7 +1373,7 @@ function SellerDashBoard() {
                                           onMouseDown={() => {
                                             handleUpdateUserRole(
                                               user.id,
-                                              Number(r.id)
+                                              Number(r.id),
                                             );
                                             setRolesForChangeOpenUserId(null);
                                           }}
@@ -1677,7 +1389,7 @@ function SellerDashBoard() {
                                             onMouseDown={() =>
                                               getRolesForChange(
                                                 rolesForChangePage + 1,
-                                                rolesForChangeQuery
+                                                rolesForChangeQuery,
                                               )
                                             }
                                             className="px-3 py-1 bg-white border rounded-sm"
@@ -1752,78 +1464,169 @@ function SellerDashBoard() {
     <div className="w-full max-w-[1366px] mx-auto">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h1 className="text-[24px] font-bold text-[#1d1d1d] mb-2">
+        {/* Navigation Menu */}
+        <div className="relative" ref={menuRef}>
+          {/* Hamburger Menu Button */}
+
+          {/* Overlay */}
+          {menuOpen && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity duration-300"
+              onClick={() => setMenuOpen(false)}
+            />
+          )}
+
+          {/* Sliding Menu */}
+          <div
+            className={`fixed left-0 top-0 h-screen w-64 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto bg-white ${
+              menuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            {/* Menu Header */}
+            <div className="p-6 border-b border-blue-500">
+              <h2 className="text-white text-[20px] font-bold">
+                {translateFunction("Dashboard Menu")}
+              </h2>
+            </div>
+
+            {/* Menu Items */}
+            <div className="py-4">
+              {canViewProducts && (
+                <button
+                  onClick={() => {
+                    setActiveTab("products");
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
+                    activeTab === "products"
+                      ? "border-white bg-blue-500 text-white font-semibold"
+                      : "border-transparent text-blue-100 hover:bg-blue-600 hover:text-white"
+                  }`}
+                >
+                  <span className="text-[20px]">📦</span>
+                  <span>{translateFunction("Products")}</span>
+                  {activeTab === "products" && (
+                    <span className="ml-auto text-white">✓</span>
+                  )}
+                </button>
+              )}
+              {canViewBoutiques && (
+                <button
+                  onClick={() => {
+                    setActiveTab("boutiques");
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
+                    activeTab === "boutiques"
+                      ? "border-white bg-blue-500 text-white font-semibold"
+                      : "border-transparent text-blue-100 hover:bg-blue-600 hover:text-white"
+                  }`}
+                >
+                  <span className="text-[20px]">🏪</span>
+                  <span>{translateFunction("Boutiques")}</span>
+                  {activeTab === "boutiques" && (
+                    <span className="ml-auto text-white">✓</span>
+                  )}
+                </button>
+              )}
+              {canViewPermissions && (
+                <button
+                  onClick={() => {
+                    setActiveTab("permissions");
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
+                    activeTab === "permissions"
+                      ? "border-white bg-blue-500 text-white font-semibold"
+                      : "border-transparent text-blue-100 hover:bg-blue-600 hover:text-white"
+                  }`}
+                >
+                  <span className="text-[20px]">🔐</span>
+                  <span>{translateFunction("Permissions")}</span>
+                  {activeTab === "permissions" && (
+                    <span className="ml-auto text-white">✓</span>
+                  )}
+                </button>
+              )}
+              {canViewUsers && (
+                <button
+                  onClick={() => {
+                    setActiveTab("users");
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
+                    activeTab === "users"
+                      ? "border-white bg-blue-500 text-white font-semibold"
+                      : "border-transparent text-blue-100 hover:bg-blue-600 hover:text-white"
+                  }`}
+                >
+                  <span className="text-[20px]">👥</span>
+                  <span>{translateFunction("Users")}</span>
+                  {activeTab === "users" && (
+                    <span className="ml-auto text-white">✓</span>
+                  )}
+                </button>
+              )}
+              {canViewOrders && (
+                <button
+                  onClick={() => {
+                    setActiveTab("orders");
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
+                    activeTab === "orders"
+                      ? "border-white bg-blue-500 text-white font-semibold"
+                      : "border-transparent text-blue-100 hover:bg-blue-600 hover:text-white"
+                  }`}
+                >
+                  <span className="text-[20px]">📊</span>
+                  <span>{translateFunction("Orders")}</span>
+                  {activeTab === "orders" && (
+                    <span className="ml-auto text-white">✓</span>
+                  )}
+                </button>
+              )}
+            </div>
+
+            {/* Menu Footer */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-blue-500 bg-blue-800">
+              <div className="text-blue-100 text-[12px] text-center">
+                <p>{translateFunction("Seller ID")}</p>
+                <p className="font-semibold text-white mt-1">{sellerId}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <h1 className="text-[24px] font-bold text-[#1d1d1d] mb-2 flex items-center gap-4">
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className={`flex flex-col gap-1.5 p-2 rounded-lg transition-all duration-300 ${
+              menuOpen
+                ? "bg-blue-600 text-white shadow-lg"
+                : "bg-white text-[#1d1d1d] hover:bg-gray-50 shadow-md"
+            }`}
+          >
+            <span
+              className={`w-6 h-0.5 bg-current transition-all duration-300 ${
+                menuOpen ? "rotate-45 translate-y-2" : ""
+              }`}
+            ></span>
+            <span
+              className={`w-6 h-0.5 bg-current transition-all duration-300 ${
+                menuOpen ? "opacity-0" : ""
+              }`}
+            ></span>
+            <span
+              className={`w-6 h-0.5 bg-current transition-all duration-300 ${
+                menuOpen ? "-rotate-45 -translate-y-2" : ""
+              }`}
+            ></span>
+          </button>{" "}
           {currentShop?.shop_name || translateFunction("Seller Dashboard")}
         </h1>
         <p className="text-[14px] text-[#8D8D8D]">
           {translateFunction("Seller ID:")} {sellerId}
         </p>
-      </div>
-
-      {/* Tabs */}
-      <div className="bg-white rounded-lg shadow-md mb-6">
-        <div className="flex flex-row border-b border-[#f0f0f0] overflow-auto">
-          {canViewProducts && (
-            <button
-              onClick={() => setActiveTab("products")}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
-                activeTab === "products"
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-[#8D8D8D] hover:text-[#1d1d1d]"
-              }`}
-            >
-              {translateFunction("Products")}
-            </button>
-          )}
-          {canViewBoutiques && (
-            <button
-              onClick={() => setActiveTab("boutiques")}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
-                activeTab === "boutiques"
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-[#8D8D8D] hover:text-[#1d1d1d]"
-              }`}
-            >
-              {translateFunction("Boutiques")}
-            </button>
-          )}
-          {canViewPermissions && (
-            <button
-              onClick={() => setActiveTab("permissions")}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
-                activeTab === "permissions"
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-[#8D8D8D] hover:text-[#1d1d1d]"
-              }`}
-            >
-              {translateFunction("Permissions")}
-            </button>
-          )}
-          {canViewUsers && (
-            <button
-              onClick={() => setActiveTab("users")}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
-                activeTab === "users"
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-[#8D8D8D] hover:text-[#1d1d1d]"
-              }`}
-            >
-              {translateFunction("Users")}
-            </button>
-          )}
-          {canViewOrders && (
-            <button
-              onClick={() => setActiveTab("orders")}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
-                activeTab === "orders"
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-[#8D8D8D] hover:text-[#1d1d1d]"
-              }`}
-            >
-              {translateFunction("Orders")}
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Content */}
@@ -1832,7 +1635,13 @@ function SellerDashBoard() {
         {activeTab === "boutiques" && renderBoutiques()}
         {activeTab === "permissions" && renderPermissions()}
         {activeTab === "users" && renderUsers()}
-        {activeTab === "orders" && renderOrders()}
+        {activeTab === "orders" && (
+          <RenderOrders
+            canViewOrders={canViewOrders}
+            sellerId={sellerId}
+            activeTab={activeTab}
+          />
+        )}
       </div>
     </div>
   );
