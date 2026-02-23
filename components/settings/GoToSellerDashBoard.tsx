@@ -5,7 +5,7 @@ import React from "react";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction } from "utils/functions";
 import BecomeSellerModal from "./BecomeSellerModal";
-import GoToSellerDashBoardIcon from "public/svg/goToSeller";
+import GoToSellerDashBoardIcon from "public/icons/goToSeller";
 function GoToSellerDashBoard({ language }: { language: string }) {
   const { lang } = useParams();
   const [shouldShow, setShouldShow] = React.useState(true);

@@ -120,11 +120,6 @@ class SellerDashboardService {
     data: { detail_id: number; order_id: number; qty: number },
   ) {
     try {
-      const params: string[] = [];
-      if (page > 1) params.push(`page=${page}`);
-      if (search) params.push(`search=${encodeURIComponent(search)}`);
-      const queryString = params.length ? `?${params.join("&")}` : "";
-
       let res = await fetchData({
         url: `/api/v1/shop/orders/details/cancel`,
         method: "PUT",
