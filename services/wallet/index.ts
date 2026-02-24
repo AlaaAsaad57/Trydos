@@ -123,9 +123,9 @@ function processResponse<T>(
       LogServerError({
         error: response.error,
         response: response,
-        scenario: logContext.scenario,
-        user_id: logContext.userId,
-        ...logContext,
+        scenario: logContext?.scenario,
+        user_id: logContext?.userId,
+        ...(logContext ?? {}),
       });
     }
     throw new Error(response.error);
