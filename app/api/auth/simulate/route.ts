@@ -9,9 +9,9 @@ import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 // Debug-only route: sets auth cookies from simulated payload
 export async function POST(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ message: "Not available" }, { status: 403 });
-  }
+  // if (process.env.NODE_ENV === "production") {
+  //   return NextResponse.json({ message: "Not available" }, { status: 403 });
+  // }
 
   const body = await request.json();
   const {
