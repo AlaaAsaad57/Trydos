@@ -26,7 +26,7 @@ function OptionsMenu(props) {
   if (DeleteModal)
     return (
       <div
-        className="fixed inset-0 z-999999999 flex items-center justify-center bg-black bg-opacity-50"
+        className="fixed inset-0 z-999999999 flex items-center justify-center bg-[#0000006a]"
         onClick={handleBackdropClick}
       >
         <div
@@ -86,7 +86,7 @@ function OptionsMenu(props) {
     return (
       <>
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-9999999999"
+          className="fixed inset-0 bg-[#0000006a] z-9999999999"
           onClick={() => {
             setEdit(false);
           }}

@@ -50,7 +50,7 @@ export const FaqItemOptions = ({
   }
   if (is_update) {
     const handleInputKeyDown = (
-      e: React.KeyboardEvent<HTMLTextAreaElement>
+      e: React.KeyboardEvent<HTMLTextAreaElement>,
     ) => {
       if (e.key === "Enter" && comment_str.trim()) {
         updateAction({
@@ -78,7 +78,7 @@ export const FaqItemOptions = ({
     return (
       <>
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-9999999999"
+          className="fixed inset-0 bg-[#0000006a] z-9999999999"
           onClick={handleCloseModal}
         />
         <div

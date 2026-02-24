@@ -242,7 +242,7 @@ const SettingsModal = ({ onClose, lang }) => {
     <div
       className={`${
         loading && "opacity-30 cursor-wait"
-      } bg-opacity-50 flex justify-center items-start px-[20px] w-full pb-[200px]`}
+      } bg-[#0000006a] flex justify-center items-start px-[20px] w-full pb-[200px]`}
       onClick={handleOutsideClick}
     >
       <div

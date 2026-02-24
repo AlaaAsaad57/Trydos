@@ -29,7 +29,7 @@ export const RatingCommentOptions = ({
   const [comment_str, setComment] = useState(comment.comment);
   const inputRef = useRef(null);
   const [images, setImages] = useState<string[]>(
-    comment?.comments_images_customer || []
+    comment?.comments_images_customer || [],
   );
   const [loadingImage, setLoadingImage] = useState(false);
   useEffect(() => {
@@ -56,7 +56,7 @@ export const RatingCommentOptions = ({
   }
   if (is_update) {
     const handleInputKeyDown = (
-      e: React.KeyboardEvent<HTMLTextAreaElement>
+      e: React.KeyboardEvent<HTMLTextAreaElement>,
     ) => {
       if (e.key === "Enter" && comment_str.trim() && rating > 0) {
         updateAction({
@@ -96,7 +96,7 @@ export const RatingCommentOptions = ({
     return (
       <>
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-9999999999"
+          className="fixed inset-0 bg-[#0000006a] z-9999999999"
           onClick={handleCloseModal}
         />
         <div

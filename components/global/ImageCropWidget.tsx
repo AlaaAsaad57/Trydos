@@ -63,7 +63,7 @@ export function ImageCropWidget({
       0,
       0,
       crop.width ?? imageRef.current.width,
-      crop.height ?? imageRef.current.height
+      crop.height ?? imageRef.current.height,
     );
 
     canvas.toBlob((blob) => {
@@ -77,7 +77,7 @@ export function ImageCropWidget({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-99999999">
+    <div className="fixed inset-0 bg-[#0000006a] flex items-center justify-center z-99999999">
       <div className="bg-white p-6 rounded-lg w-[90%] max-w-2xl">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Crop Image</h2>
