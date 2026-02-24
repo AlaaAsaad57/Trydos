@@ -497,58 +497,62 @@ export async function CheckoutOrder({
   storeKey?: "trydos";
   handleUnauthenticated?: () => void;
 }) {
-  let user = await getCookieServer<any>(COOKIE_NAMES.USER_DATA);
-  let userId = user?.id as string;
-  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
+  try {
+    let user = await getCookieServer<any>(COOKIE_NAMES.USER_DATA);
+    let userId = user?.id as string;
+    let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
 
-  // Prepare checkout payload
-  const checkoutPayload = {
-    currencyId: currencyId,
-    store_user_id: String(userId),
-    amount: amount,
-    cart_groub_ids: [cartId],
-    idempotencyKey: idempotencyKey,
-  };
+    // Prepare checkout payload
+    const checkoutPayload = {
+      currencyId: currencyId,
+      store_user_id: String(userId),
+      amount: amount,
+      cart_groub_ids: [cartId],
+      idempotencyKey: idempotencyKey,
+    };
 
-  // Sign payload and add headers
-  const crypto = require("crypto");
-  const timestamp = Date.now().toString();
-  const payloadToSign = JSON.stringify({
-    ...checkoutPayload,
-    timestamp,
-  });
-  const signature = crypto
-    .createHmac("sha256", process.env.WALLET_SECRET_KEY)
-    .update(payloadToSign)
-    .digest("hex");
+    // Sign payload and add headers
+    const crypto = require("crypto");
+    const timestamp = Date.now().toString();
+    const payloadToSign = JSON.stringify({
+      ...checkoutPayload,
+      timestamp,
+    });
+    const signature = crypto
+      .createHmac("sha256", process.env.WALLET_SECRET_KEY)
+      .update(payloadToSign)
+      .digest("hex");
 
-  let response: FetchResponse<CheckoutOrderApi> = await fetchServerData({
-    method: "POST",
-    local: local,
-    body: JSON.stringify(checkoutPayload),
-    url:
-      process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
-      `/wallets/${storeKey}/checkout`,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "X-Merchant-Api-Key": process.env.WALLET_PUBLIC_API_KEY,
-      "X-Signature": signature,
-      "X-Timestamp": timestamp,
-    },
-  });
+    let response: FetchResponse<CheckoutOrderApi> = await fetchServerData({
+      method: "POST",
+      local: local,
+      body: JSON.stringify(checkoutPayload),
+      url:
+        process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
+        `/wallets/${storeKey}/checkout`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Merchant-Api-Key": process.env.WALLET_PUBLIC_API_KEY,
+        "X-Signature": signature,
+        "X-Timestamp": timestamp,
+      },
+    });
 
-  return processResponse<CheckoutOrderApi>(response, handleUnauthenticated, {
-    scenario: "CheckoutOrder in wallet system",
-    userId: String(userId),
-    url:
-      process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
-      `/wallets/${storeKey}/checkout`,
-    currencyId: currencyId,
-    store_user_id: String(userId),
-    amount: amount,
-    cart_groub_ids: [cartId],
-    idempotencyKey: idempotencyKey,
-  });
+    return processResponse<CheckoutOrderApi>(response, handleUnauthenticated, {
+      scenario: "CheckoutOrder in wallet system",
+      userId: String(userId),
+      url:
+        process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
+        `/wallets/${storeKey}/checkout`,
+      currencyId: currencyId,
+      store_user_id: String(userId),
+      amount: amount,
+      cart_groub_ids: [cartId],
+      idempotencyKey: idempotencyKey,
+    });
+  } catch (e) {
+    console.log(e);
+  }
 }
 
 export async function GetWalletBalanceForCountryCurrency({ country }) {

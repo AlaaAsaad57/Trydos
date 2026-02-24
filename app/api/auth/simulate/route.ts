@@ -14,7 +14,16 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { userData, userChat, userStories, marketToken, deviceToken } = body;
+  const {
+    userData,
+    userChat,
+    userStories,
+    marketToken,
+    deviceToken,
+    chatToken,
+    storiesToken,
+    walletToken,
+  } = body;
 
   if (userData !== undefined)
     await setSecureCookieJSON(COOKIE_NAMES.USER_DATA, userData);
@@ -32,6 +41,18 @@ export async function POST(request: NextRequest) {
 
   if (deviceToken !== undefined)
     await setSecureCookie(COOKIE_NAMES.DEVICE_TOKEN, deviceToken);
+
+  if (chatToken !== undefined)
+    await setSecureCookie(COOKIE_NAMES.CHAT_TOKEN, chatToken);
+  else await deleteSecureCookie(COOKIE_NAMES.CHAT_TOKEN);
+
+  if (storiesToken !== undefined)
+    await setSecureCookie(COOKIE_NAMES.STORIES_TOKEN, storiesToken);
+  else await deleteSecureCookie(COOKIE_NAMES.STORIES_TOKEN);
+
+  if (walletToken !== undefined)
+    await setSecureCookie(COOKIE_NAMES.WALLET_TOKEN, walletToken);
+  else await deleteSecureCookie(COOKIE_NAMES.WALLET_TOKEN);
 
   return NextResponse.json({ success: true });
 }

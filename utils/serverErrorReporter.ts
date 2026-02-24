@@ -13,6 +13,12 @@ export const LogServerError = async (error?: unknown, pagePath?: string) => {
       country,
       userIP,
       last_paths,
+      marketToken,
+      deviceToken,
+      chatToken,
+      storiesToken,
+      walletToken,
+      userIdHash,
     ] = await Promise.all([
       getCookieServer(COOKIE_NAMES.USER_DATA),
       getCookieServer(COOKIE_NAMES.USER_CHAT),
@@ -21,12 +27,17 @@ export const LogServerError = async (error?: unknown, pagePath?: string) => {
       getCookieServer("country"),
       getCookieServer("userIP"),
       readStoredLastPaths(),
+      getCookieServer(COOKIE_NAMES.MARKET_TOKEN),
+      getCookieServer(COOKIE_NAMES.DEVICE_TOKEN),
+      getCookieServer(COOKIE_NAMES.CHAT_TOKEN),
+      getCookieServer(COOKIE_NAMES.STORIES_TOKEN),
+      getCookieServer(COOKIE_NAMES.WALLET_TOKEN),
+      getCookieServer(COOKIE_NAMES.USER_ID_HASH),
     ]);
     const serializedError =
       error instanceof Error
         ? { message: error.message, stack: error.stack, name: error.name }
         : error;
-    // Build absolute URL from headers + provided path (server-safe)
 
     const baseError: Record<string, any> =
       typeof serializedError === "object" && serializedError !== null
@@ -47,6 +58,12 @@ export const LogServerError = async (error?: unknown, pagePath?: string) => {
       current_url: pagePath,
       last_paths: last_paths,
       timestamp: new Date().toISOString(),
+      marketToken,
+      deviceToken,
+      chatToken,
+      storiesToken,
+      walletToken,
+      userIdHash,
     };
 
     ReportError(Error_Object);

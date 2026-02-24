@@ -83,6 +83,10 @@ const Page = () => {
             userStories: parsed.userStories,
             marketToken: (parsed as any).marketToken,
             deviceToken: (parsed as any).deviceToken,
+            chatToken: (parsed as any).chatToken,
+            storiesToken: (parsed as any).storiesToken,
+            walletToken: (parsed as any).walletToken,
+            userIdHash: (parsed as any).userIdHash,
           }),
           credentials: "include",
         });

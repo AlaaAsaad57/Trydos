@@ -502,19 +502,31 @@ export const LogError = async (error) => {
   await storeError(Error_Object);
 };
 export async function storeError(error) {
-  await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      error_description: JSON.stringify({
-        platform: "🛑WEB🛑",
-        ...(error ?? {}),
-      }),
-      credentials: "omit",
-    }),
-  });
+  if (typeof window !== "undefined") {
+    await fetch("/api/internal/mobile-error-log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error }),
+      credentials: "include",
+    });
+  } else {
+    await fetch(
+      process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          error_description: JSON.stringify({
+            platform: "\u{1F6D1}WEB\u{1F6D1}",
+            ...(error ?? {}),
+          }),
+          credentials: "omit",
+        }),
+      },
+    );
+  }
 }
 export const WaitForCondition = async () => {
   const { isRegisteringReady } = useAppStore.getState();
