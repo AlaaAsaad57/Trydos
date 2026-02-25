@@ -70,27 +70,45 @@ const OrderCartItem = () => {
       >
         {getProductsOfOrder()?.map((s, i) => {
           return (
-            <div className="flex relative h-[125px]" key={i}>
-              <span
-                className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
-                data-cy="order-item-quantity-label"
-              >
-                {s?.quantity ?? s?.qty}
-              </span>
-              <span
-                className="absolute w-[91px] h-full z-10 rounded-[15px]"
-                style={{
-                  boxShadow: "#ffffff80 0px 3px 6px inset",
-                }}
-              />
-              <img
-                className="w-[91px] h-[125px] rounded-[15px]"
-                src={getConfiguredImage({
-                  src: GetImageUrl(s.image),
-                  width: 91,
-                  height: 150,
-                })}
-              />
+            <div className="flex flex-col items-center">
+              <div className="flex relative h-[125px]" key={i}>
+                <span
+                  className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
+                  data-cy="order-item-quantity-label"
+                >
+                  {s?.quantity ?? s?.qty}
+                </span>
+                <span
+                  className="absolute w-[91px] h-full z-10 rounded-[15px]"
+                  style={{
+                    boxShadow: "#ffffff80 0px 3px 6px inset",
+                  }}
+                />
+                <img
+                  className="w-[91px] h-[125px] rounded-[15px]"
+                  src={getConfiguredImage({
+                    src: GetImageUrl(s.image),
+                    width: 91,
+                    height: 150,
+                  })}
+                />
+              </div>
+              <div className="flex text-[12px] text-[#1d1d1d] flex-col items-center mt-1">
+                {s.variations?.Size || s?.variation?.size_options ? (
+                  <span>
+                    {s.variations?.Size ?? s?.variations?.size_options}
+                  </span>
+                ) : (
+                  <span className="h-[18px]" />
+                )}
+                {s.variations?.color || s?.variations?.color_options ? (
+                  <span>
+                    {s.variations?.color ?? s?.variations?.color_options}
+                  </span>
+                ) : (
+                  <span className="h-[18px]" />
+                )}
+              </div>
             </div>
           );
         })}
