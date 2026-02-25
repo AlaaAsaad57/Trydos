@@ -59,7 +59,7 @@
   width: 60px;
   justify-content: space-between;
   cursor: pointer;
-  z-index: 5;
+  z-index: 999999999;
 }
 .search-colse-icon {
   height: 100%;

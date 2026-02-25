@@ -267,7 +267,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
                         d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-                    {translateFunction("Camera")}
+                    {translateFunction("From Camera")}
                   </button>
                   <button
                     onClick={() => handleMenuOptionClick("file")}
