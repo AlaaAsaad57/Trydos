@@ -84,11 +84,7 @@ function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
       document.querySelector<HTMLInputElement>("#filter-search")?.blur();
     }
   }, []);
-  useEffect(() => {
-    if (isAnalyzed) {
-      showSuccessNotification(JSON.stringify(isAnalyzed));
-    }
-  }, [isAnalyzed]);
+
   return (
     <div
       data-cy="searchIcon_boutiquePage"

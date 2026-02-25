@@ -217,7 +217,7 @@ async function Page({ params, searchParams }) {
                   StarttingSettingPromise={StarttingSettingPromise}
                   country={country}
                   language={language}
-                  globalPromise={GlobalData}
+                  globalPromise={QtyPricesData}
                 />
                 {/*@ts-expect-error Async Server Component is valid in Next  */}
 

@@ -106,7 +106,11 @@ function CartContentOfProduct({ product }) {
             }
           </span>
           <span>{translateFunction("Item")} </span>
-          <span>
+          <span
+            style={{
+              direction: isRtl ? "rtl" : "ltr",
+            }}
+          >
             {getPriceOfProductInCart()} {currency.symbol}
           </span>
 

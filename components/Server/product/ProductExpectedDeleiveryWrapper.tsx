@@ -2,6 +2,7 @@ import { translateFunction } from "utils/server";
 import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
 import Skeleton from "react-loading-skeleton";
 import ExpectedDeleiveryBanner from "components/products/ExpectedDeleiveryBanner";
+import { GetCountries } from "serverRequests/product";
 
 async function ProductExpectedDeleiveryWrapper({
   language,
@@ -9,44 +10,16 @@ async function ProductExpectedDeleiveryWrapper({
   country,
   StarttingSettingPromise,
 }) {
-  let [productData, starttingSetting] = await Promise.all([
+  let [productData, starttingSetting, countries] = await Promise.all([
     globalPromise,
     StarttingSettingPromise,
+    GetCountries({ country, language }),
   ]);
-  let countries = [
-    {
-      id: 103,
-      phonecode: 964,
-      iso: "IQ",
-      name: "Iraq",
-      longitude: "43.6848",
-      latitude: "33.2209",
-    },
-    {
-      id: 119,
-      phonecode: 961,
-      iso: "LB",
-      name: "Lebanon",
-      longitude: "35.4954",
-      latitude: "33.8886",
-    },
-    {
-      id: 208,
-      phonecode: 963,
-      iso: "SY",
-      name: "Syria",
-      longitude: "36.2783",
-      latitude: "33.5104",
-    },
-    {
-      id: 219,
-      phonecode: 90,
-      iso: "TR",
-      name: "Turkey",
-      longitude: "35.6667",
-      latitude: "39.1667",
-    },
-  ];
+  console.log(
+    countries,
+    starttingSetting?.shipping_duration_days,
+    productData?.shipping_days,
+  );
   const isRtl = language === "ar" || language === "ku";
   return (
     <ExpectedDeleiveryBanner country={country} language={language}>
@@ -97,14 +70,14 @@ async function ProductExpectedDeleiveryWrapper({
               new Date().getTime() +
                 Number(
                   (starttingSetting?.shipping_duration_days || 0) +
-                    productData?.shipping_days
+                    productData?.shipping_days,
                 ) *
                   24 *
                   60 *
                   60 *
-                  1000
+                  1000,
             )?.getDay(),
-            language
+            language,
           )}
         </span>
         <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
@@ -113,14 +86,14 @@ async function ProductExpectedDeleiveryWrapper({
               new Date().getTime() +
                 Number(
                   (starttingSetting?.shipping_duration_days || 0) +
-                    productData?.shipping_days
+                    productData?.shipping_days,
                 ) *
                   24 *
                   60 *
                   60 *
-                  1000
+                  1000,
             ).toString(),
-            language
+            language,
           )}
         </span>{" "}
         |{" "}
@@ -130,7 +103,10 @@ async function ProductExpectedDeleiveryWrapper({
         {translateFunction("At Your Address In", language)}
         <span className="capitalize px-[3px]">
           {countries?.length ? (
-            countries?.find((s) => s.iso?.toLowerCase() === country)?.name
+            translateFunction(
+              countries?.find((s) => s.iso?.toLowerCase() === country)?.name,
+              language,
+            )
           ) : (
             <Skeleton width="100%" height="100%" borderRadius={16} />
           )}

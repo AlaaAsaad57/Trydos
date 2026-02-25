@@ -133,7 +133,7 @@ export async function GetCountries({ language, country }) {
     local: `${country}-${language}`,
     method: "GET",
   });
-  console.log("countries response", response);
+
   if (response?.data?.data?.countries) {
     await RedisSet(cacheKey, response.data.data.countries);
     return response.data.data.countries;
