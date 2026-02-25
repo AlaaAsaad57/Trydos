@@ -63,7 +63,7 @@ let nextConfig: NextConfig = {
           },
           {
             key: "Cache-Control",
-            value: "public, max-age=86400, stale-while-revalidate=86400",
+            value: "public, no-cache, no-store, must-revalidate",
           },
         ],
       },
