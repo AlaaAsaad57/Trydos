@@ -118,7 +118,14 @@ class ForegroundNotificationHandler {
       // This is the inner 'data' object used in most events
       console.log(data, body);
       // 1. Handle Market/E-commerce Notifications
-      if (rawData.title === "market") {
+      const eventTypeFromBody = body?.type;
+      const isOrderMarketEvent =
+        typeof eventTypeFromBody === "string" &&
+        (eventTypeFromBody.startsWith("seller order") ||
+          eventTypeFromBody.startsWith("order status changed") ||
+          eventTypeFromBody === "order placed");
+
+      if (rawData.title === "market" || isOrderMarketEvent) {
         await this.handleMarketEvent(body, state);
         return;
       }
@@ -196,6 +203,18 @@ class ForegroundNotificationHandler {
     const lang = `${country?.toLowerCase()}-${language?.toLowerCase()}`;
     const type = data?.type || "";
 
+    const shouldRefreshOrders =
+      type === "seller order added" ||
+      type === "seller order status changed" ||
+      type === "seller order detail status changed to confirmed" ||
+      type === "seller order detail status changed to packed" ||
+      type.startsWith("order status changed");
+
+    if (shouldRefreshOrders) {
+      const { shouldUpdateOrders, setShouldUpdateOrders } = useAppStore.getState();
+      setShouldUpdateOrders(shouldUpdateOrders + 1);
+    }
+
     // Helper for common market notifications
     const notify = (url?: string, extra?: any) => {
       showSuccessNotification(
@@ -207,16 +226,7 @@ class ForegroundNotificationHandler {
       );
     };
 
-    if (
-      type === "seller order status changed" ||
-      type === "seller order detail status changed to confirmed" ||
-      type === "seller order detail status changed to packed"
-    ) {
-      state.setShouldUpdateOrders(state.shouldUpdateOrders + 1);
-    }
-
     if (type.startsWith("order status changed")) {
-      state.setShouldUpdateOrders(state.shouldUpdateOrders + 1);
       if (type !== "order status changed") {
         const url = `/${lang}/settings/orders/${data?.order_group_id}`;
         notify(url, {
