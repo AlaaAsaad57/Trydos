@@ -250,6 +250,7 @@ function OldCartContainer() {
                       <Image
                         src={"/icons/CartColorIcon.svg"}
                         alt="cart-color"
+                        className="max-h-[10px] object-contain"
                         width={10}
                         height={10}
                         data-cy="color-icon"
@@ -270,6 +271,7 @@ function OldCartContainer() {
                       <Image
                         src={"/icons/CartSizeIcon.svg"}
                         alt="cart-color"
+                        className="max-h-[10px] object-contain"
                         width={10}
                         height={10}
                         data-cy="color-icon"
@@ -290,6 +292,7 @@ function OldCartContainer() {
                   <Image
                     src={"/icons/PiecesIcon.svg"}
                     alt="cart-color"
+                    className="max-h-[10px] object-contain"
                     width={10}
                     height={10}
                     data-cy="color-icon"
@@ -311,6 +314,7 @@ function OldCartContainer() {
                     <Image
                       src={"/icons/DeleiveryIcon.svg"}
                       alt="cart-color"
+                      className="max-h-[10px] object-contain"
                       width={10}
                       height={10}
                       data-cy="color-icon"

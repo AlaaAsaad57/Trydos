@@ -107,6 +107,7 @@ function CartItem({ product, index }) {
                 src={"/icons/CartColorIcon.svg"}
                 alt="cart-color"
                 width={10}
+                className="max-h-[10px] object-contain"
                 height={10}
                 data-cy="color-icon"
               />
@@ -129,6 +130,7 @@ function CartItem({ product, index }) {
               <Image
                 src={"/icons/CartSizeIcon.svg"}
                 alt="cart-color"
+                className="max-h-[10px] object-contain"
                 width={10}
                 height={10}
                 data-cy="color-icon"
@@ -155,6 +157,7 @@ function CartItem({ product, index }) {
           <Image
             src={"/icons/PiecesIcon.svg"}
             alt="cart-color"
+            className="max-h-[10px] object-contain"
             width={10}
             height={10}
             data-cy="color-icon"
@@ -182,6 +185,7 @@ function CartItem({ product, index }) {
             <Image
               src={"/icons/DeleiveryIcon.svg"}
               alt="cart-color"
+              className="max-h-[10px] object-contain"
               width={10}
               height={10}
               data-cy="color-icon"
@@ -249,6 +253,7 @@ function CartItem({ product, index }) {
               src={"/icons/HurryIcon.svg"}
               alt="cart-color"
               width={10}
+              className="max-h-[10px] object-contain"
               height={10}
               data-cy="color-icon"
             />
