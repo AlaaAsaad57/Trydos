@@ -235,7 +235,7 @@ export async function generateMetadataForListing({ params }) {
   // بناء رابط صورة الـ OpenGraph (يفضل استخدام رابط الـ CDN الكامل)
   const ogImage = banner
     ? getConfiguredImage({ src: GetImageUrl(banner), width: 1200, height: 630 })
-    : `${General_Site_Data.url}/default-og-image.jpg`;
+    : `${General_Site_Data.url}/opengraph-image.png`;
 
   const currentUrl = `${General_Site_Data.url}/${lang}/filters/${
     filterParams?.join("/") || ""

@@ -10,6 +10,7 @@ import { getCurrency } from "serverRequests";
 import MainCategoriesNavbar from "components/Server/MainCategories";
 import { LogServerError } from "utils/serverErrorReporter";
 import SearchIcon from "components/Home/Search/SearchIcon";
+import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 
 import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrapper";
 import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
@@ -28,10 +29,37 @@ export async function generateMetadata({ params, searchParams }) {
     return { ...metadata };
   } catch (error) {
     LogServerError({ error, type: "meta" }, `/${Params.lang}`);
+    const baseUrl = General_Site_Data.url;
+    const path = mainCategory ? `?mainCategory=${mainCategory}` : "";
+    const fullUrl = `${baseUrl}/${Params.lang}${path}`;
+    const ogImageUrl = baseUrl + General_Site_Data.og;
+
     return {
       title: "TryDos - Premium Shopping Experience",
       description:
         "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+      openGraph: {
+        title: "TryDos - Premium Shopping Experience",
+        description:
+          "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+        url: fullUrl,
+        siteName: "Trydos",
+        type: "website",
+        images: [
+          {
+            url: ogImageUrl,
+            width: 1200,
+            height: 630,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: "TryDos - Premium Shopping Experience",
+        description:
+          "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+        images: [ogImageUrl],
+      },
     };
   }
 }

@@ -19,6 +19,7 @@ import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
+import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 export const dynamicParams = true;
 export async function generateMetadata({ params }) {
   // Fetch your main product categories
@@ -35,7 +36,38 @@ export async function generateMetadata({ params }) {
       `/${Params.lang}/filters`,
     );
 
-    return [];
+    const baseUrl = General_Site_Data.url;
+    const filtersPath =
+      Array.isArray(Params.filters) && Params.filters.length > 0
+        ? `/${Params.filters.join("/")}`
+        : "";
+    const fullUrl = `${baseUrl}/${Params.lang}/filters${filtersPath}`;
+    const ogImageUrl = `${baseUrl}/opengraph-image.png`;
+
+    return {
+      title: "TryDos - Boutique & Product Listing",
+      description:
+        "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.",
+      alternates: {
+        canonical: fullUrl,
+      },
+      openGraph: {
+        title: "TryDos - Boutique & Product Listing",
+        description:
+          "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.",
+        url: fullUrl,
+        siteName: "Trydos",
+        type: "website",
+        images: [{ url: ogImageUrl }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: "TryDos - Boutique & Product Listing",
+        description:
+          "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.",
+        images: [ogImageUrl],
+      },
+    };
   }
 }
 async function GetBoutique(boutique, country, language) {
