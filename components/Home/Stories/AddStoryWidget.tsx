@@ -173,6 +173,7 @@ export default function AddStoryWidget() {
     setAddStory,
     addStoryEnable,
     setStoryData,
+    setStoriesRefreshing,
   } = useAppStore();
   const [uploaded, setUpload] = useState(-1);
   const [isSelected, setIsSelected] = useState(null);
@@ -180,10 +181,24 @@ export default function AddStoryWidget() {
   const { lang }: { lang: string } = useParams();
   const [country, language] = lang.split("-");
   const [loading, setLoading] = useState(false);
+  const MAX_FILE_SIZE_MB = 10;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
   const handleChange = async (e, link) => {
+    const file = e.target.files[0];
+    if (file && file.size > MAX_FILE_SIZE_BYTES) {
+      showErrorNotification(
+        translateFunction(
+          `File size should not exceed ${MAX_FILE_SIZE_MB} MB`,
+          language,
+        ),
+      );
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
-      if (e.target.files[0]?.type.includes("video")) {
+      if (file?.type.includes("video")) {
         await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.readAsDataURL(e.target.files[0]);
@@ -247,6 +262,7 @@ export default function AddStoryWidget() {
           };
         });
         let storiesData = await fetchStoriesForUser(language, country, 1);
+        setStoriesRefreshing(true);
         router.refresh();
 
         setStoryData(storiesData.data);
@@ -257,7 +273,7 @@ export default function AddStoryWidget() {
         setLoading(false);
         setLink("");
         onClose();
-      } else if (e.target.files[0]?.type.includes("image")) {
+      } else if (file?.type.includes("image")) {
         await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.readAsDataURL(e.target.files[0]);
@@ -290,6 +306,7 @@ export default function AddStoryWidget() {
           };
         });
         let storiesData = await fetchStoriesForUser(language, country, 1);
+        setStoriesRefreshing(true);
         router.refresh();
         setStoryData(storiesData.data);
         showSuccessNotification("Story Uploaded");
@@ -322,6 +339,17 @@ export default function AddStoryWidget() {
       return;
     }
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      showErrorNotification(
+        translateFunction(
+          `File size should not exceed ${MAX_FILE_SIZE_MB} MB`,
+          language,
+        ),
+      );
+      e.target.value = "";
+      return;
+    }
 
     if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
       setSelectedFile(file);

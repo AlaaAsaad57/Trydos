@@ -24,6 +24,7 @@ interface HomeState {
   OpenCamera: boolean;
   addStoryEnable: boolean;
   storiesData: Story[] | null;
+  storiesRefreshing: boolean;
   categories: any[];
   settings: Settings | null;
   loginOpen: boolean;
@@ -50,6 +51,7 @@ const initialState: HomeState = {
   renderStories: false,
   OpenCamera: false,
   storiesData: [],
+  storiesRefreshing: false,
   categories: [],
   settings: null,
   loginOpen: false,
@@ -68,6 +70,8 @@ export const useHomeStore = (set, get) => ({
   ...initialState,
   setAddStory: (v) => set({ addStoryEnable: v }),
   setOpenCamera: (open: boolean) => set({ OpenCamera: open }),
+  setStoriesRefreshing: (refreshing: boolean) =>
+    set({ storiesRefreshing: refreshing }),
 
   setIsRegisteringReady: (ready: boolean) => set({ isRegisteringReady: ready }),
 
@@ -130,13 +134,13 @@ export const useHomeStore = (set, get) => ({
     set((state) => {
       if (!state.storiesData) return state;
       const index = state.storiesData?.findIndex(
-        (story) => story.id === currentId
+        (story) => story.id === currentId,
       );
       if (index < state.storiesData.length - 1) {
         return {
           ...state,
           selectedStory: StoryServiceClass.configureStory(
-            state.storiesData.filter((_, i) => i === index + 1)[0]
+            state.storiesData.filter((_, i) => i === index + 1)[0],
           ),
           renderStories: !state.renderStories,
         };
@@ -148,13 +152,13 @@ export const useHomeStore = (set, get) => ({
     set((state) => {
       if (!state.storiesData) return state;
       const index = state.storiesData?.findIndex(
-        (story) => story.id === currentId
+        (story) => story.id === currentId,
       );
       if (index > 0) {
         return {
           ...state,
           selectedStory: StoryServiceClass.configureStory(
-            state.storiesData.filter((_, i) => i === index - 1)[0]
+            state.storiesData.filter((_, i) => i === index - 1)[0],
           ),
           renderStories: !state.renderStories,
         };
@@ -176,7 +180,7 @@ export const useHomeStore = (set, get) => ({
         !state.storiesData.some(
           (user) =>
             parseInt(user.id.toString()) ===
-            parseInt(payload.user_id.toString())
+            parseInt(payload.user_id.toString()),
         )
       ) {
         arr.push({

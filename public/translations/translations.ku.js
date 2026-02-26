@@ -1095,6 +1095,8 @@ const translations = {
   "View More": "بینینی زیاتر",
   "Only This Piece": "تەنها ئەم پارچەیە",
   "SVG Images Not Allowed": "وێنەی SVG ڕێگە پێنەدراوە",
+  "File size should not exceed 10 MB":
+    "قەبارەی فایل نابێت زیاتر بێت لە 10 مەگابایت",
   "Best Price": "باشترین نرخ",
   "Last 3 Days!": "٣ ڕۆژی دوا!",
   Trend: "ترێند",

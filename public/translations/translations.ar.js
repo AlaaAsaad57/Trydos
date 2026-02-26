@@ -1059,6 +1059,7 @@ const translations = {
   "View More": "عرض المزيد",
   "Only This Piece": "فقط هذه القطعة",
   "SVG Images Not Allowed": "الصور بصيغة SVG غير مسموح بها",
+  "File size should not exceed 10 MB": "يجب ألا يتجاوز حجم الملف 10 ميغابايت",
   "Best Price": "أفضل سعر",
   "Last 3 Days!": "آخر 3 أيام!",
   Trend: "رائج",

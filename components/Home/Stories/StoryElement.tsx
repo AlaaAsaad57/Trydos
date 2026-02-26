@@ -25,14 +25,8 @@ function StoryElement({ index, story, userData }) {
         />
         <Story
           index={1}
-          key={
-            story.stories.filter((s) => s.is_seen === false)?.[0] ??
-            story.stories[story.stories?.length - 1]
-          }
-          media={
-            story.stories.filter((s) => s.is_seen === false)?.[0] ??
-            story.stories[story.stories?.length - 1]
-          }
+          key={story.stories[story.stories?.length - 1]}
+          media={story.stories[story.stories?.length - 1]}
           Name={story.name ?? story.mobile_phone ?? "Unknown"}
           story={story}
         />
