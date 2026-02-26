@@ -226,6 +226,9 @@ class AuthService {
       }
       localStorage.setItem("ID-TOKEN", response.data.id_token);
       updateUserIsVerified({ is_phone_verified: 1 });
+      updateSecureUserData([
+        { name: COOKIE_NAMES.USER_DATA, value: { is_phone_verified: 1 } },
+      ]);
       return response.data.id_token;
     } catch (error) {
       setWrongNumber(error.message);

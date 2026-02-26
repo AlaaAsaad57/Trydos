@@ -482,7 +482,6 @@ export async function GetTransactions({
 }
 
 export async function CheckoutOrder({
-  storeKey = "trydos",
   cartId,
   amount,
   idempotencyKey,

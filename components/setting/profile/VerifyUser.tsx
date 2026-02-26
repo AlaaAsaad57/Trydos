@@ -5,12 +5,16 @@ import { createPortal } from "react-dom";
 import { ConfirmationModal } from "components/settings/PersonalInfo";
 import { useAppStore } from "store";
 
-function VerifyUser({ is_phone_verified, phone }) {
-  const { setLoginOpen } = useAppStore();
+function VerifyUser({ is_phone_verified: serverVerified, phone: serverPhone }) {
+  const { setLoginOpen, userProfile, user } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // نستخدم useEffect لضمان أننا في جهة العميل (Client-side) قبل استخدام Portal
+  // Prefer live client state from store, fall back to server-rendered prop
+  const is_phone_verified =
+    userProfile?.is_phone_verified ?? user?.is_phone_verified ?? serverVerified;
+  const phone = userProfile?.phone ?? user?.phone ?? serverPhone;
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -67,7 +71,7 @@ function VerifyUser({ is_phone_verified, phone }) {
               />
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );
