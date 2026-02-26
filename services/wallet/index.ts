@@ -423,6 +423,7 @@ export async function GetWalletBalance({
     {
       scenario: "GetWalletBalance from wallet system",
       userId: "server",
+      params: params.toString(),
     },
   );
 }
