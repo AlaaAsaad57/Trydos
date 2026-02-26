@@ -14,7 +14,7 @@ class CartService {
     qty,
     image,
     isFromAddWidget = false,
-    is_redeem = false,
+    is_luck = false,
     type,
     offer_price,
   }) {
@@ -25,7 +25,8 @@ class CartService {
       image: imageVar,
       quantity: qty,
       product_variation_id: product_variation_id ?? null,
-      is_redeem,
+      is_luck,
+      is_redeem: is_luck,
     };
     let formBody = [];
     for (var property in details) {
@@ -80,12 +81,7 @@ class CartService {
       return false;
     }
   }
-  async UpdateCart({
-    cart_id,
-    qty,
-    isFromAddWidget = false,
-    is_redeem = false,
-  }) {
+  async UpdateCart({ cart_id, qty, isFromAddWidget = false, is_luck = false }) {
     const { updateProductQuantityInCart } = useAppStore.getState();
 
     let dataBody: any = [];

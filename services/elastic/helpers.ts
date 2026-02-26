@@ -289,11 +289,12 @@ export function processCustomProduct(
   result.in_stock = parseFloat(product.current_stock || "0") > 0;
 
   // Handle redeem discount
-  const redeem_price = product.redeem_price;
+  const luck_price = product.redeem_price;
 
   result.seller_status = product?.seller_status || null;
-  if (result.has_redeem_discount) {
-    result.redeem_price = redeem_price;
+  if (luck_price > 0) {
+    result.redeem_price = luck_price;
+    result.luck_price = luck_price;
   }
 
   // Process categories and brands

@@ -9,7 +9,7 @@ import { RoundPrice, translateFunction } from "utils/functions";
 function BuyButton({
   buy,
   shouldShowRedeem,
-  redeem_price,
+  luck_price,
   currency,
   id,
   seconds,
@@ -58,7 +58,7 @@ function BuyButton({
                   data-cy="product-redeem-price"
                 >
                   {RoundPrice({
-                    num: redeem_price,
+                    num: luck_price,
                     rate: currency?.exchange_rate,
                     language: languageVariable,
                     points: currency?.decimal_digits,

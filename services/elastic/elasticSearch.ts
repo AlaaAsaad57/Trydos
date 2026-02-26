@@ -284,7 +284,8 @@ export async function getProductsAndFiltersFromElastic(
     const catalogProducts =
       normalizedProducts.custom_products?.map((s) => ({
         ...s,
-        is_redeem: s.has_redeem_discount,
+        is_luck: s.redeem_price > 0,
+        luck_price: s.redeem_price,
         seller_status: s?.seller_status,
       })) ?? [];
 
@@ -481,7 +482,8 @@ async function fetchProductDetailsBatch(ids: string[], country: string) {
   });
   return response.hits.hits.map((hit) => ({
     ...(hit._source as any),
-    is_redeem: (hit._source as any)?.has_redeem_discount,
+    is_luck: (hit._source as any)?.redeem_price > 0,
+    luck_price: (hit._source as any)?.redeem_price,
   }));
 }
 export async function GetRecomendationsForUser({
@@ -570,7 +572,8 @@ export async function GetRecomendationsForUser({
     return {
       products: sortedFetchedProducts.map((s) => ({
         ...s,
-        is_redeem: s.has_redeem_discount,
+        is_luck: s.redeem_price > 0,
+        luck_price: s.redeem_price,
       })),
       limit,
       total_size: totalCandidates,

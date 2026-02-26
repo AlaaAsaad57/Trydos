@@ -73,7 +73,7 @@ function ProductColorsCards({
                     height: 580,
                   })}
                   className={`${
-                    InitialProductData?.is_redeem && "product-media-redeem-show"
+                    InitialProductData?.is_luck && "product-media-redeem-show"
                   } w-[200px] h-[290px] object-cover object-[top_center]`}
                   alt={InitialProductData?.name}
                 />
@@ -145,7 +145,7 @@ function ProductColorsCards({
                 <RenderPrice
                   currency={currency}
                   flash_price={InitialProductData?.flash_deal_price}
-                  is_redeem={InitialProductData?.is_redeem}
+                  is_luck={InitialProductData?.is_luck}
                   offer_price={InitialProductData?.offer_price}
                   price={InitialProductData?.price}
                 />
@@ -172,11 +172,11 @@ function ProductColorsCards({
             flash_deal_price={InitialProductData?.flash_deal_price}
             is_flashDeal={InitialProductData?.endDate}
             id={InitialProductData?.id}
-            is_redeem={InitialProductData?.is_redeem}
+            is_luck={InitialProductData?.is_luck}
             language={language}
             offer_price={InitialProductData?.offer_price}
             price={InitialProductData?.price}
-            redeem_price={InitialProductData?.redeem_price}
+            luck_price={InitialProductData?.luck_price}
           />
         </div>
       ))}

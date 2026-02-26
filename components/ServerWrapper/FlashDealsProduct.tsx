@@ -24,7 +24,7 @@ export async function FlashProductWrapper({
   ]);
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
   let productsData = response.data.products.map((product) => {
-    if (product?.is_redeem) {
+    if (product?.is_luck) {
       return {
         name: product?.name,
         slug: product?.slug,
@@ -39,7 +39,7 @@ export async function FlashProductWrapper({
           : {}),
         price: product.price,
         offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
+        luck_price: product.luck_price,
         categories: product?.categories?.map((s) => ({
           name: s.name,
           id: s.id,
@@ -52,7 +52,7 @@ export async function FlashProductWrapper({
         flash_deal_end_date: product.flash_deal_end_date,
         flash_deal_price: product.flash_deal_price,
         product_id: product.product_id,
-        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+        is_luck: !redeemed_ids.find((s) => s.id === product.product_id),
       };
     } else
       return {
@@ -69,7 +69,7 @@ export async function FlashProductWrapper({
           : {}),
         price: product.price,
         offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
+        luck_price: product.luck_price,
         categories: product?.categories?.map((s) => ({
           name: s.name,
           id: s.id,

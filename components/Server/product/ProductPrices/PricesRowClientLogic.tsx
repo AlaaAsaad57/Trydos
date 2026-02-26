@@ -4,7 +4,7 @@ import { getCookie } from "utils/cookies/cookie-manager";
 
 export default function PricesRowClientLogic({
   id,
-  is_redeem_active,
+  is_luck_active,
   isRtl,
   currencySymbol,
   prices,
@@ -12,7 +12,7 @@ export default function PricesRowClientLogic({
   const [hasBeenRedeemed, setHasBeenRedeemed] = useState(false);
 
   useEffect(() => {
-    if (!is_redeem_active) return;
+    if (!is_luck_active) return;
 
     const checkCookie = () => {
       const redeemed_ids = getCookie<any>("redemed_ids") || [];
@@ -25,9 +25,9 @@ export default function PricesRowClientLogic({
     checkCookie(); // Initial check
     const interval = setInterval(checkCookie, 1000); // Check every second
     return () => clearInterval(interval);
-  }, [id, is_redeem_active, hasBeenRedeemed]);
+  }, [id, is_luck_active, hasBeenRedeemed]);
 
-  const showRedeemUI = is_redeem_active && !hasBeenRedeemed;
+  const showRedeemUI = is_luck_active && !hasBeenRedeemed;
 
   if (showRedeemUI) {
     return (

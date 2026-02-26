@@ -17,7 +17,7 @@ function AddToCartButton({ product }: { product: any }) {
   };
   const shoulShowRedeem = () => {
     const redeemed_ids = getCookie<any[]>("redemed_ids") ?? [];
-    if (product?.is_redeem) {
+    if (product?.is_luck) {
       return !redeemed_ids.find((s) => s.id === product.product_id);
     }
     return false;

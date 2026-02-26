@@ -32,10 +32,10 @@ function ProductWrapper({
   labels,
   brand,
   currency,
-  is_redeem,
+  is_luck,
   endDate,
   is_flashDeal,
-  redeem_price,
+  luck_price,
   price,
   offer_price,
   flash_deal_price,
@@ -79,7 +79,7 @@ function ProductWrapper({
   }
 
   const shouldShowOrangeBorder = () => {
-    if (isFlash || is_redeem) {
+    if (isFlash || is_luck) {
       return true;
     }
     return false;
@@ -110,7 +110,7 @@ function ProductWrapper({
   return (
     <div
       id={`product_${slug}`}
-      className={`${is_redeem && `product_redeem`}  relative flex`}
+      className={`${is_luck && `product_redeem`}  relative flex`}
     >
       {Sliders && (
         <ProductColorsBottomSheet id={id}>
@@ -198,7 +198,7 @@ function ProductWrapper({
               InitialProductData?.images?.[0],
           ],
           price: InitialProductData.price,
-          is_redeem: is_redeem,
+          is_luck: is_luck,
           offer_price: InitialProductData.offer_price,
           is_product: true,
         }}
@@ -241,7 +241,7 @@ function ProductWrapper({
                               : "1px solid #d3d3d3",
                           }}
                           className={`${
-                            is_redeem && "product-media-redeem-show"
+                            is_luck && "product-media-redeem-show"
                           } w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border rounded-15 z-10`}
                         />
                       </div>
@@ -278,7 +278,7 @@ function ProductWrapper({
                               : "1px solid #d3d3d3",
                           }}
                           className={`${
-                            is_redeem && "product-media-redeem-show"
+                            is_luck && "product-media-redeem-show"
                           } w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border rounded-15 z-10`}
                           alt={name || "alt"}
                         />
@@ -321,7 +321,7 @@ function ProductWrapper({
                   height: 580,
                 })}
                 className={`${
-                  is_redeem && "product-media-redeem-show"
+                  is_luck && "product-media-redeem-show"
                 } w-[200px] h-[290px] object-cover object-[top_center]`}
                 alt={name || "alt"}
               />
@@ -392,7 +392,7 @@ function ProductWrapper({
             <RenderPrice
               currency={currency}
               flash_price={flash_price}
-              is_redeem={is_redeem}
+              is_luck={is_luck}
               offer_price={offer_price}
               price={price}
             />
@@ -411,11 +411,11 @@ function ProductWrapper({
         flash_deal_price={flash_deal_price}
         is_flashDeal={is_flashDeal}
         id={id}
-        is_redeem={is_redeem}
+        is_luck={is_luck}
         language={language}
         offer_price={offer_price}
         price={price}
-        redeem_price={redeem_price}
+        luck_price={luck_price}
         sizes_filters={sizes_filters}
       />
     </div>

@@ -47,13 +47,13 @@ function ProductListServer({
                 icon: product.brand.icon?.file_path ?? product?.brand,
                 is_verified: product.brand.is_verified,
               }}
-              redeem_price={product.redeem_price}
+              luck_price={product.luck_price}
               currency={currency}
               endDate={product.flash_deal_end_date}
               flash_deal_price={product.flash_deal_price}
               id={product?.product_id ?? product?.id}
               is_flashDeal={product.flash_deal_end_date}
-              is_redeem={product.is_redeem}
+              is_luck={product.is_luck}
               language={language}
               offer_price={product.offer_price}
               price={product.price}

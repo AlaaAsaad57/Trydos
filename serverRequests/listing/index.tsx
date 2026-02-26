@@ -124,7 +124,7 @@ export async function GetProducts({
   });
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
   let productsData: any = response.products.map((product) => {
-    if (product?.is_redeem) {
+    if (product?.is_luck) {
       return {
         name: product?.name,
         slug: product?.slug,
@@ -139,7 +139,7 @@ export async function GetProducts({
           : {}),
         price: product.price,
         offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
+        luck_price: product.luck_price,
         categories: product?.categories?.map((s) => ({
           name: s.name,
           id: s.id,
@@ -152,7 +152,7 @@ export async function GetProducts({
         flash_deal_end_date: product.flash_deal_end_date,
         flash_deal_price: product.flash_deal_price,
         product_id: product.product_id,
-        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+        is_luck: !redeemed_ids.find((s) => s.id === product.product_id),
       };
     } else
       return {
@@ -169,7 +169,7 @@ export async function GetProducts({
           : {}),
         price: product.price,
         offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
+        luck_price: product.luck_price,
         categories: product?.categories?.map((s) => ({
           name: s.name,
           id: s.id,
@@ -203,13 +203,13 @@ export async function GetProducts({
         icon: product.brand.icon?.file_path ?? product?.brand,
         is_verified: product.brand.is_verified,
       }}
-      redeem_price={product.redeem_price}
+      luck_price={product.luck_price}
       currency={currency}
       endDate={product.flash_deal_end_date}
       flash_deal_price={product.flash_deal_price}
       id={product?.product_id ?? product?.id}
       is_flashDeal={product.flash_deal_end_date}
-      is_redeem={product.is_redeem}
+      is_luck={product.is_luck}
       language={language}
       offer_price={product.offer_price}
       price={product.price}

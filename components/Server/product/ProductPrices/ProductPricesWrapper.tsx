@@ -18,12 +18,12 @@ async function ProductPricesWrapper({
   const baseData = {
     price: product?.price,
     offer_price: product?.offer_price,
-    redeem_price: product?.redeem_price,
+    luck_price: product?.luck_price,
     id: product?.id,
     currencySymbol: currency?.sumbol,
     exchangeRate: currency?.exchange_rate,
     points: currency?.decimal_digits,
-    is_redeem: product?.is_redeem,
+    is_luck: product?.is_luck,
   };
 
   // Pre-render the price strings on server to avoid layout shift
@@ -40,7 +40,7 @@ async function ProductPricesWrapper({
     points: baseData.points,
   });
   const formattedRedeem = RoundPrice({
-    num: baseData.redeem_price,
+    num: baseData.luck_price,
     rate: baseData.exchangeRate,
     language,
     points: baseData.points,
@@ -55,7 +55,7 @@ async function ProductPricesWrapper({
       {/* 10% Client Logic: Only this component interacts with cookies */}
       <PricesRowClientLogic
         id={baseData.id}
-        is_redeem_active={baseData.is_redeem}
+        is_luck_active={baseData.is_luck}
         isRtl={isRtl}
         currencySymbol={baseData.currencySymbol}
         prices={{

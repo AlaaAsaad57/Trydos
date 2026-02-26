@@ -131,7 +131,8 @@ async function fetchValidProductsBatch(
 
   return normalised.custom_products.map((p) => ({
     ...p,
-    is_redeem: p.has_redeem_discount,
+    is_luck: p.luck_price > 0,
+    luck_price: p.luck_price,
     seller_status: p?.seller_status,
   }));
 }

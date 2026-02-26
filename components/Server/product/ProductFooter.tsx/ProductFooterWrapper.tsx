@@ -30,7 +30,7 @@ async function ProductFooterWrapper({
     userId: parsedUser?.id,
   });
   const isRedeemed = async () => {
-    if (!qtyData?.is_redeem) return false;
+    if (!qtyData?.is_luck) return false;
     let redeemed: any = await getCookieServer<any[]>("redeemd_ids");
     if (redeemed && redeemed.find((s) => String(s.id) === String(qtyData.id))) {
       return false;
@@ -39,7 +39,7 @@ async function ProductFooterWrapper({
     }
   };
   const redeemed_status = await isRedeemed();
-  qtyData = { ...qtyData, is_redeem: redeemed_status };
+  qtyData = { ...qtyData, is_luck: redeemed_status };
   return (
     <>
       <ProductStructuredData
@@ -71,8 +71,8 @@ async function ProductFooterWrapper({
           total_shares: socialData?.total_shares,
           owner_id: product?.owner_id,
           owner_type: product?.owner_type,
-          is_redeem: qtyData?.is_redeem,
-          redeem_price: qtyData?.redeem_price,
+          is_luck: qtyData?.is_luck,
+          luck_price: qtyData?.luck_price,
           boutique_id: product?.boutique_id,
         }}
       />

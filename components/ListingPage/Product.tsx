@@ -57,19 +57,19 @@ export const BuyButtonProduct = ({
         activeColor: product.sync_color_images[0]?.color_option,
         shouldUpdate: 0,
         id: product.product_id || product.id,
-        showRedeemPrice: product.is_redeem && shouldShowRedeem,
+        showRedeemPrice: product.is_luck && shouldShowRedeem,
         singleColor: true,
         is_from_listing: true,
-        seconds: product.is_redeem && shouldShowRedeem ? seconds : 0,
+        seconds: product.is_luck && shouldShowRedeem ? seconds : 0,
       });
     } else
       setSelectedProductForCart({
         ...product,
         shouldUpdate: 0,
         id: product.product_id || product.id,
-        showRedeemPrice: product.is_redeem && shouldShowRedeem,
+        showRedeemPrice: product.is_luck && shouldShowRedeem,
         is_from_listing: true,
-        seconds: product.is_redeem && shouldShowRedeem ? seconds : 0,
+        seconds: product.is_luck && shouldShowRedeem ? seconds : 0,
       });
   };
 
@@ -122,7 +122,7 @@ export const BuyButtonProduct = ({
         </>
       );
     }
-    if (product.is_redeem && shouldShowRedeem && seconds > 0) {
+    if (product.is_luck && shouldShowRedeem && seconds > 0) {
       if (product.offer_price >= 0 && product.offer_price !== product.price) {
         return (
           <>
@@ -323,9 +323,9 @@ export const BuyButtonProduct = ({
             setShouldShowRedeem(false);
           }}
           id={product.product_id}
-          redeem_price={product.redeem_price}
+          luck_price={product.luck_price}
           currency={currency}
-          shouldShowRedeem={shouldShowRedeem && product?.is_redeem}
+          shouldShowRedeem={shouldShowRedeem && product?.is_luck}
           buy={(e) => {
             // @ts-ignore
             addToCart();
@@ -356,7 +356,7 @@ export const BuyButtonProduct = ({
           </span>
         </div>
       </div>
-      {product.is_redeem && shouldShowRedeem && seconds > 0 && (
+      {product.is_luck && shouldShowRedeem && seconds > 0 && (
         <>
           <RedeemButton seconds={seconds} language={language} />
         </>
@@ -366,10 +366,10 @@ export const BuyButtonProduct = ({
           setShouldShowRedeem(false);
         }}
         id={product.product_id}
-        redeem_price={product.redeem_price}
+        luck_price={product.luck_price}
         seconds={seconds}
         currency={currency}
-        shouldShowRedeem={shouldShowRedeem && product?.is_redeem}
+        shouldShowRedeem={shouldShowRedeem && product?.is_luck}
         buy={(e) => {
           // @ts-ignore
           addToCart();

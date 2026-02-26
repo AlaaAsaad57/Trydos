@@ -148,7 +148,7 @@ function AddToCartButton({
           cart_id: isVariantInCart({ exact: false })?.item_id,
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
           isFromAddWidget: true,
-          is_redeem: product?.is_luck,
+          is_luck: product?.is_luck,
         });
         if (response === false) {
           throw "error";
@@ -212,7 +212,7 @@ function AddToCartButton({
             product?.images?.[0]?.file_path ||
             product?.images?.[0],
           isFromAddWidget: true,
-          is_redeem: product?.is_luck,
+          is_luck: product?.is_luck,
           offer_price: product?.is_luck
             ? selectedVariant?.luck_price
             : selectedVariant?.offer_price,

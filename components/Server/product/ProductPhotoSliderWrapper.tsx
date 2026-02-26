@@ -22,7 +22,7 @@ async function ProductPhotoSliderWrapper({
 
   const isRtl = language === "ar" || language === "ku";
   const isRedeemed = async () => {
-    if (!qtyPromiseData?.is_redeem) return false;
+    if (!qtyPromiseData?.is_luck) return false;
     let redeemed: any = await getCookieServer<any[]>("redeemd_ids");
     if (
       redeemed &&
@@ -34,7 +34,7 @@ async function ProductPhotoSliderWrapper({
     }
   };
   const redeemed_status = await isRedeemed();
-  qtyPromiseData = { ...qtyPromiseData, is_redeem: redeemed_status };
+  qtyPromiseData = { ...qtyPromiseData, is_luck: redeemed_status };
 
   //   utils
   const getImages = (productData, color): { images: any[] } => {
@@ -348,7 +348,7 @@ async function ProductPhotoSliderWrapper({
                   end_data={globalDetails.flash_deal_end_date}
                 />
               )}
-              {qtyPromiseData?.is_redeem && (
+              {qtyPromiseData?.is_luck && (
                 <ProductRedeemCounter
                   language={language}
                   product_id={qtyPromiseData.id}

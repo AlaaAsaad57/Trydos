@@ -8,11 +8,11 @@ import { RoundPrice, translateFunction } from "utils/functions";
 function ProductButtonWrapper({
   language,
   currency,
-  is_redeem,
+  is_luck,
   endDate,
   id,
   is_flashDeal,
-  redeem_price,
+  luck_price,
   price,
   offer_price,
   flash_deal_price,
@@ -21,13 +21,13 @@ function ProductButtonWrapper({
   InitialProductData = {},
   sizes_filters = null,
 }) {
-  const [redeem_expired, setRedeemExpired] = useState(!is_redeem);
+  const [redeem_expired, setRedeemExpired] = useState(!is_luck);
   const timerHook = useLuckyDrawTimer({
     id: id,
     language: language,
     seconds: seconds ?? 50,
     onExpire: () => onExpire(), // defined below or wrap in useCallback
-    enabled: is_redeem && !redeem_expired, // Add an 'enabled' prop if you want to control it
+    enabled: is_luck && !redeem_expired, // Add an 'enabled' prop if you want to control it
   });
 
   let isRtl = language === "ar" || language === "ku";
@@ -81,7 +81,7 @@ function ProductButtonWrapper({
   };
   const AddToCart = () => {
     const { setSelectedProductForCart } = useAppStore.getState();
-    let is_redeem_product_card = document
+    let is_luck_product_card = document
       .querySelector(`#product_${slug}`)
       ?.classList.contains("product_redeem");
 
@@ -89,11 +89,11 @@ function ProductButtonWrapper({
       ...InitialProductData,
       shouldUpdate: 0,
       id: id,
-      showRedeemPrice: is_redeem_product_card && is_redeem && !redeem_expired,
+      showRedeemPrice: is_luck_product_card && is_luck && !redeem_expired,
       is_from_listing: true,
       sizes_filters: sizes_filters?.length > 0 ? sizes_filters : undefined,
       seconds:
-        is_redeem_product_card && is_redeem && !redeem_expired
+        is_luck_product_card && is_luck && !redeem_expired
           ? timerHook.secondsLeft
           : 0,
     });
@@ -114,15 +114,15 @@ function ProductButtonWrapper({
           // onExpire();
         }}
       >
-        {is_redeem && <timerHook.MiniTimer />}
+        {is_luck && <timerHook.MiniTimer />}
 
         <div className="flex flex-row items-center product_prices gap-[6px]">
           <div className="text-[10px] pt-[2px] flex align-start regular items-center gap-[2px] buy-card-text">
             <span>{translateFunction("Buy", language)}</span>
-            {is_redeem && (
+            {is_luck && (
               <RedeemPrice
                 price={RoundPrice({
-                  num: redeem_price,
+                  num: luck_price,
                   rate: currency?.exchange_rate,
                   language: language,
                   points: currency?.decimal_digits,
@@ -143,7 +143,7 @@ function ProductButtonWrapper({
           />
         </div>
       </div>
-      {is_redeem && <timerHook.TopTimer />}
+      {is_luck && <timerHook.TopTimer />}
     </>
   );
 }
@@ -152,7 +152,10 @@ export default ProductButtonWrapper;
 
 const RedeemPrice = ({ price, symbol }) => {
   return (
-    <div className="flex-row flex gap-[2px] items-center redeem_show">
+    <div
+      className="gap-[2px] items-center redeem_show"
+      style={{ display: "flex" }}
+    >
       <span
         className="text-[10px] pt-[2px] flex align-start bold relative text-[#FF5724]"
         data-cy="product-redeem-price"

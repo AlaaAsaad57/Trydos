@@ -22,7 +22,7 @@ async function ProductListConainer({
   ]);
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
   let productsData = filtersData.products.map((product) => {
-    if (product?.is_redeem) {
+    if (product?.is_luck) {
       return {
         name: product?.name,
         slug: product?.slug,
@@ -38,7 +38,7 @@ async function ProductListConainer({
           : {}),
         price: product.price,
         offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
+        luck_price: product.luck_price,
         categories: product?.categories?.map((s) => ({
           name: s.name,
           id: s.id,
@@ -50,8 +50,8 @@ async function ProductListConainer({
         },
         flash_deal_end_date: product.flash_deal_end_date,
         product_id: product.product_id,
-        is_redeem:
-          product.redeem_price &&
+        is_luck:
+          product.luck_price &&
           !redeemed_ids.find((s) => s.id === product.product_id),
       };
     } else
@@ -70,7 +70,7 @@ async function ProductListConainer({
           : {}),
         price: product.price,
         offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
+        luck_price: product.luck_price,
         categories: product?.categories?.map((s) => ({
           name: s.name,
           id: s.id,
