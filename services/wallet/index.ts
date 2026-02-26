@@ -528,9 +528,7 @@ export async function CheckoutOrder({
       method: "POST",
       local: local,
       body: JSON.stringify(checkoutPayload),
-      url:
-        process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
-        `/wallets/${storeKey}/checkout`,
+      url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/merchant/checkout`,
       headers: {
         Authorization: `Bearer ${token}`,
         "X-Merchant-Api-Key": process.env.WALLET_PUBLIC_API_KEY,
@@ -538,17 +536,31 @@ export async function CheckoutOrder({
         "X-Timestamp": timestamp,
       },
     });
-
+    console.log({
+      url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/merchant/checkout`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Merchant-Api-Key": process.env.WALLET_PUBLIC_API_KEY,
+        "X-Signature": signature,
+        "X-Timestamp": timestamp,
+      },
+      signedPayload: {
+        ...checkoutPayload,
+        timestamp,
+      },
+      body: checkoutPayload,
+      timestamp: timestamp,
+      signature: signature,
+      response: response,
+    });
     return processResponse<CheckoutOrderApi>(response, handleUnauthenticated, {
       scenario: "CheckoutOrder in wallet system",
       userId: String(userId),
-      url:
-        process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
-        `/wallets/${storeKey}/checkout`,
+      url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/merchant/checkout`,
       currencyId: currencyId,
-      store_user_id: String(userId),
       amount: amount,
       cart_groub_ids: [cartId],
+      store_user_id: userId,
       idempotencyKey: idempotencyKey,
     });
   } catch (e) {
