@@ -62,8 +62,8 @@ export default function WalletPaymentModal({
         method: "GET",
         server: "market",
         reqTitle: REQUESTS_DATA.GETORDERSBYCARTGROUPID,
+        noMessage: true,
       });
-
       if (!response.success) {
         return false;
       }
