@@ -505,24 +505,23 @@ export async function CheckoutOrder({
     // Prepare checkout payload
     const checkoutPayload = {
       currencyId: currencyId,
-      store_user_id: String(userId),
+      store_user_id: Number(userId),
       amount: amount,
-      cart_groub_ids: [cartId],
+      cart_group_ids: [cartId],
       idempotencyKey: idempotencyKey,
     };
 
     // Sign payload and add headers
     const crypto = require("crypto");
     const timestamp = Date.now().toString();
-    const payloadToSign = JSON.stringify({
-      ...checkoutPayload,
-      timestamp,
-    });
-    const signature = crypto
-      .createHmac("sha256", process.env.WALLET_SECRET_KEY)
-      .update(payloadToSign)
-      .digest("hex");
+    const bodyObject = JSON.stringify(checkoutPayload);
 
+    const message = `${timestamp}.${bodyObject}`;
+    const digest = crypto
+      .createHmac("sha256", process.env.WALLET_SECRET_KEY)
+      .update(message, "utf8")
+      .digest("hex");
+    const signature = `sha256=${digest}`;
     let response: FetchResponse<CheckoutOrderApi> = await fetchServerData({
       method: "POST",
       local: local,
@@ -543,15 +542,30 @@ export async function CheckoutOrder({
         "X-Signature": signature,
         "X-Timestamp": timestamp,
       },
-      signedPayload: {
-        ...checkoutPayload,
-        timestamp,
-      },
+      message: message,
+      digest: digest,
       body: checkoutPayload,
       timestamp: timestamp,
       signature: signature,
       response: response,
     });
+    if (!response.success) {
+      return {
+        url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/merchant/checkout`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-Merchant-Api-Key": process.env.WALLET_PUBLIC_API_KEY,
+          "X-Signature": signature,
+          "X-Timestamp": timestamp,
+        },
+        message: message,
+        digest: digest,
+        body: checkoutPayload,
+        timestamp: timestamp,
+        signature: signature,
+        response: response,
+      };
+    }
     return processResponse<CheckoutOrderApi>(response, handleUnauthenticated, {
       scenario: "CheckoutOrder in wallet system",
       userId: String(userId),

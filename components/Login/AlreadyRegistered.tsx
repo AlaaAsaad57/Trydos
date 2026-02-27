@@ -73,7 +73,7 @@ function AlreadyRegistered({
   };
   if (active)
     return (
-      <div className="flex-col items-center w-full pb-[40px]">
+      <div className="flex-col items-center w-full ">
         <div
           className="phone-input-desc already-registered"
           data-cy="already-registered-phone"

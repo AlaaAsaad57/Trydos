@@ -1,19 +1,19 @@
 "use client";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction } from "utils/functions";
 import BecomeSellerModal from "./BecomeSellerModal";
 import GoToSellerDashBoardIcon from "public/icons/goToSeller";
+import { useAppStore } from "store";
 function GoToSellerDashBoard({ language }: { language: string }) {
   const { lang } = useParams();
   const [shouldShow, setShouldShow] = React.useState(true);
   const [openSellerModal, setOpenSellerModal] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
-  React.useEffect(() => {
-    getPermission();
-  }, []);
+  const { userProfile } = useAppStore();
+
   const getPermission = async () => {
     setLoading(true);
     try {
@@ -31,6 +31,12 @@ function GoToSellerDashBoard({ language }: { language: string }) {
       setShouldShow(false);
     }
   };
+
+  useEffect(() => {
+    if (userProfile && userProfile?.phone?.length > 3) {
+      getPermission();
+    }
+  }, [userProfile]);
   if (!shouldShow) {
     return (
       <>

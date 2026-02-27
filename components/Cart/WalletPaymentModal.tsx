@@ -245,10 +245,15 @@ export default function WalletPaymentModal({
         local,
         handleUnauthenticated,
       });
-
-      if (result) {
+      // @ts-ignore
+      if (result && !result.url) {
         await startOrderConversionPolling(cart[0].cart_group_id);
       } else {
+        // @ts-ignore
+        if (result && result.url) {
+          console.log(result);
+          alert(JSON.stringify(result, null, 2));
+        }
         showErrorNotification(
           translateFunction("Wallet payment failed. Please try again"),
         );

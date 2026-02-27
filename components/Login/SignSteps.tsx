@@ -27,8 +27,16 @@ function SignSteps({
   user: any;
   setStepSign: Function;
 }) {
+  const shouldBeTotalHeight = () => {
+    if (stepIndicator === 6 && signStep === "welcomeLogin") {
+      return true;
+    }
+    return false;
+  };
   return (
-    <div className="flex-col items-center w-full pb-[40px]">
+    <div
+      className={`${shouldBeTotalHeight() && "h-full"} flex-col items-center w-full`}
+    >
       {stepIndicator !== 7 && (
         <>
           <WelcomingWidget

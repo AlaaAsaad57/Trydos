@@ -11,7 +11,7 @@ import { getCountryNameByIso2 } from "utils/countryData";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 import RouterRefresh from "components/global/RouterRefresh";
 import { getCurrency } from "serverRequests";
-import { getWallet } from "serverRequests/settings";
+import { GetOrders, getWallet } from "serverRequests/settings";
 import {
   COOKIE_NAMES,
   getCookieServer,
@@ -79,9 +79,13 @@ async function page({ params }) {
     if (iso === "tr") return "Turkish";
     if (iso === "ku") return "کوردی";
   };
-  let [currency, wallet] = await Promise.all([
+  let [currency, wallet, totalOrders] = await Promise.all([
     getCurrency(country, language),
     getWallet({ language, country, limit: 1, offset: 1 }),
+    GetOrders({
+      page: 1,
+      pageSize: 1,
+    }),
   ]);
   return (
     <div
@@ -118,19 +122,14 @@ async function page({ params }) {
           isRtl ? "flex-row-reverse" : "flex-row"
         }  mt-[18px] gap-[12px]`}
       >
-        <Suspense
-          fallback={
-            <Skeleton className="flex-col w-full h-[94px] bg-[#F8F8F8] relative rounded-[12px] p-[12px] cursor-pointer" />
-          }
-        >
-          {/* @ts-ignore */}
-          <OrdersLinkCard
-            isRtl={isRtl}
-            language={language}
-            local={Params?.lang}
-            user={SafeUserProfile}
-          />
-        </Suspense>
+        {/* @ts-ignore */}
+        <OrdersLinkCard
+          totalOrders={totalOrders}
+          isRtl={isRtl}
+          language={language}
+          local={Params?.lang}
+          user={SafeUserProfile}
+        />
 
         {/* @ts-ignore */}
         <WalletLinkCard

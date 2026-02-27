@@ -673,7 +673,7 @@ function NewLoginWidget() {
         </div>
         {(stepIndicator === 0 || stepIndicator === 1) && (
           <div
-            className="take-look-text"
+            className="take-look-text pb-5"
             data-testid="take-look-text"
             onClick={() => {
               laterTakeAlook(false);

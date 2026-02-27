@@ -13,10 +13,7 @@ body {
   align-items: center;
   margin-top: auto !important;
 }
-.phone-input-desc.already-registered {
-  /* REMEMBER ABDO */
-  margin-bottom: min(calc(32vh - 50px), 306px);
-}
+
 .login-w2-container.login-widget-container {
   background-color: white;
   border-radius: 15px;

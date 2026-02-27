@@ -45,7 +45,7 @@ function WelcomingWidget({
   }, [stepIndicator, signStep]);
   if (active)
     return (
-      <div className="flex-col items-center w-full pb-[40px]">
+      <div className="flex-col items-center w-full justify-center h-full ">
         <div className="welcoming-container">
           <div className="welcoming-label">{translate("Hello,", language)}</div>
           <div className="welcoming-user">{Name}</div>
@@ -53,7 +53,7 @@ function WelcomingWidget({
         <div
           className="welcoming-enjoy"
           data-cy="Wellcome-Enjoy"
-          style={{ marginBottom: "171px", justifyContent: "center" }}
+          style={{ marginBottom: "20px", justifyContent: "center" }}
         >
           {translate("Enjoy With Our Services", language)}
         </div>

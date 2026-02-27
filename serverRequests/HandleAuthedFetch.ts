@@ -82,19 +82,26 @@ export const HandleAuthedFetch = async <T = any>(
       }
 
       if (repo?.data?.token) {
-        // 3. Update cookies with the new user data
-        const cookieStoreInner = await cookies();
-        cookieStoreInner.set({
-          name: COOKIE_NAMES.DEVICE_TOKEN,
-          value: repo.data.token,
-          ...SECURE_COOKIE_OPTIONS,
-        });
-
-        if (repo.data?.user) {
-          await setSecureCookieJSON(COOKIE_NAMES.USER_DATA, {
-            ...repo.data.user,
-            expired_at: repo.data.expires_at,
+        // 3. Try to update cookies - this only works in Server Actions or Route Handlers
+        // During Server Component render, cookie modification is not allowed
+        try {
+          const cookieStoreInner = await cookies();
+          cookieStoreInner.set({
+            name: COOKIE_NAMES.DEVICE_TOKEN,
+            value: repo.data.token,
+            ...SECURE_COOKIE_OPTIONS,
           });
+
+          if (repo.data?.user) {
+            await setSecureCookieJSON(COOKIE_NAMES.USER_DATA, {
+              ...repo.data.user,
+              expired_at: repo.data.expires_at,
+            });
+          }
+        } catch (cookieError) {
+          // Cookie modification not allowed in this context (Server Component render)
+          // The request will still succeed with the new token, but cookies won't be persisted
+          console.warn("Cookie update skipped (not in Server Action context)");
         }
 
         // 4. Retry the original request with the new token

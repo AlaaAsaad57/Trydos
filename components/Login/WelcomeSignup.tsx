@@ -49,14 +49,14 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
   }, [stepIndicator, signStep]);
   if (active)
     return (
-      <div className="flex-col items-center w-full pb-[40px]">
+      <div className="flex-col items-center w-full ">
         <div className="welcoming-container">
           <div className="welcoming-label">{translate("Hello,", language)}</div>
           <div className="welcoming-user">{Name}</div>
         </div>
         <div
           className="welcoming-enjoy"
-          style={{ marginBottom: "10vh" }}
+          style={{ marginBottom: "20px" }}
           data-cy="Wellcome-Enjoy"
         >
           {translate("Enjoy With Our Services", language)}
