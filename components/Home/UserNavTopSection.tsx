@@ -17,6 +17,12 @@ function UserNavTopSection({
     userData: UserData | null;
     userChat: UserData | null;
     userStories: UserData | null;
+    userWallet: {
+      firstName: string;
+      lastName: string;
+      phone: string;
+      email: string;
+    } | null;
   };
 }) {
   // State to track if component is mounted (client-side)
