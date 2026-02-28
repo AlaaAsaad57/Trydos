@@ -341,7 +341,7 @@ class HomeService {
         this.RegisterDevice();
       }
     }
-    auth.CheckUserName();
+    // auth.CheckUserName();
   }
 
   async RegisterDevice() {

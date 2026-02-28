@@ -147,7 +147,8 @@ export async function GET(request: NextRequest) {
         },
       ),
     ]);
-    console.log(walletRes, {
+    console.log({
+      walletRes,
       url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + LOG_IN_WALLET_ENDPOINT,
       body: {
         otp_id_token: idToken,

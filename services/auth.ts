@@ -56,15 +56,7 @@ class AuthService {
         server: "market",
         reqTitle: REQUESTS_DATA.SEND_OTP,
       });
-      console.log(response, {
-        url: SEND_OTP,
-        method: "POST",
-        body: {
-          phone: `+${normalizePhone(mobilePhone)}`,
-          is_via_whatsapp: is_via_whatsapp,
-        },
-        server: "market",
-      });
+
       msg = response.message;
       if (!response.success) {
         throw new Error(response.message);
@@ -210,7 +202,7 @@ class AuthService {
         if (window.location.pathname.includes("/seller")) {
           window.location.reload();
         }
-        await this.CheckUserName();
+        // await this.CheckUserName();
       } catch (error) {}
       return [response.data.already_exists, user.name];
     } catch (e) {
