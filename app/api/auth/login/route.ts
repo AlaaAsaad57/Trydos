@@ -94,6 +94,8 @@ export async function GET(request: NextRequest) {
         country,
         language,
       },
+      method: "POST",
+      body: JSON.stringify({ verificationId, otp, name }), // Send data in body for better security and consistency
     });
 
     const otp_response = await otpRes.json();
@@ -139,10 +141,22 @@ export async function GET(request: NextRequest) {
         {
           otp_id_token: idToken,
           mobile_phone: InventoryUser.phone,
+          firstName: String(name || InventoryUser.name)?.split(" ")?.[0] ?? "",
+          lastName: String(name || InventoryUser.name)?.split(" ")?.[1] ?? "",
+          email: String(InventoryUser.email) ?? "",
         },
       ),
     ]);
-
+    console.log(walletRes, {
+      url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + LOG_IN_WALLET_ENDPOINT,
+      body: {
+        otp_id_token: idToken,
+        mobile_phone: InventoryUser.phone,
+        firstName: String(name || InventoryUser.name)?.split(" ")?.[0] ?? "",
+        lastName: String(name || InventoryUser.name)?.split(" ")?.[1] ?? "",
+        email: String(InventoryUser.email) ?? "",
+      },
+    });
     // 4. Collect Failures and Extract Tokens
     const failures = [];
     if (!chatRes.success)

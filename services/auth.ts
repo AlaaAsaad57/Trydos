@@ -14,6 +14,7 @@ import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 import { checkWallet } from "./wallet";
+import { normalize } from "path";
 
 // Helper to update user metadata in HttpOnly cookies via server route
 async function updateSecureUserData(
@@ -32,7 +33,9 @@ async function updateSecureUserData(
 }
 
 let _expirePromise: Promise<void> | null = null;
-
+let normalizePhone = (phone: string) => {
+  return phone.replaceAll("+", "");
+};
 class AuthService {
   async SendOtp(
     mobilePhone: string,
@@ -44,14 +47,24 @@ class AuthService {
     const { setVerificationId, setWrongNumber } = useAppStore.getState();
     try {
       let response = await fetchData({
-        url:
-          SEND_OTP +
-          `?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`,
-        method: "GET",
+        url: SEND_OTP,
+        method: "POST",
+        body: {
+          phone: `+${normalizePhone(mobilePhone)}`,
+          is_via_whatsapp: is_via_whatsapp,
+        },
         server: "market",
         reqTitle: REQUESTS_DATA.SEND_OTP,
       });
-
+      console.log(response, {
+        url: SEND_OTP,
+        method: "POST",
+        body: {
+          phone: `+${normalizePhone(mobilePhone)}`,
+          is_via_whatsapp: is_via_whatsapp,
+        },
+        server: "market",
+      });
       msg = response.message;
       if (!response.success) {
         throw new Error(response.message);
@@ -848,12 +861,10 @@ class AuthService {
           await this.UpdateProfile(
             {
               name: marketName,
-              phone: userProfile?.phone,
               image: userProfile?.image,
             },
             {
               name: marketName,
-              phone: userProfile?.phone,
               image: userProfile?.image,
             },
           );
