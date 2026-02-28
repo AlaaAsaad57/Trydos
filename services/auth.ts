@@ -570,7 +570,27 @@ class AuthService {
         error: error,
         scenario: "Error In UpdateProfile in services/auth",
       });
-
+      if (market_done) {
+        let res = await fetchData({
+          url: "/customer/update-profile",
+          body: userProfile,
+          reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
+          method: "POST",
+          server: "market",
+        });
+        if (!res.success) {
+          throw new Error(res.message);
+        }
+        const revertMarket = {
+          name: userObj?.name ?? userProfile?.name,
+          phone: userObj?.phone ?? userProfile?.phone,
+          image: this.getImageForCookie(userProfile?.image),
+        };
+        editUserInfo(revertMarket);
+        updateSecureUserData([
+          { name: COOKIE_NAMES.USER_DATA, value: revertMarket },
+        ]);
+      }
       // Rollback wallet update
       if (wallet_done) {
         const prevNameParts =
@@ -625,27 +645,6 @@ class AuthService {
         }
       }
 
-      if (market_done) {
-        let res = await fetchData({
-          url: "/customer/update-profile",
-          body: userProfile,
-          reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
-          method: "POST",
-          server: "market",
-        });
-        if (!res.success) {
-          throw new Error(res.message);
-        }
-        const revertMarket = {
-          name: userObj?.name ?? userProfile?.name,
-          phone: userObj?.phone ?? userProfile?.phone,
-          image: this.getImageForCookie(userProfile?.image),
-        };
-        editUserInfo(revertMarket);
-        updateSecureUserData([
-          { name: COOKIE_NAMES.USER_DATA, value: revertMarket },
-        ]);
-      }
       if (stories_done) {
         let res = await fetchData({
           url: "/api/v1/users/update",
@@ -733,146 +732,146 @@ class AuthService {
       return null;
     }
   }
-  async CheckUserName() {
-    const { userChat, userStories, userProfile, userWallet, language } =
-      useAppStore.getState();
+  // async CheckUserName() {
+  //   const { userChat, userStories, userProfile, userWallet, language } =
+  //     useAppStore.getState();
 
-    // Skip for guest users
-    if (userProfile?.name === "verified_guest") return null;
+  //   // Skip for guest users
+  //   if (userProfile?.name === "verified_guest") return null;
 
-    // Helper to normalize phone (remove +, keep only digits)
-    const normalizePhone = (phone: string | undefined) => {
-      if (!phone) return "";
-      return phone.replace(/^\+/, "").replace(/\D/g, "");
-    };
+  //   // Helper to normalize phone (remove +, keep only digits)
+  //   const normalizePhone = (phone: string | undefined) => {
+  //     if (!phone) return "";
+  //     return phone.replace(/^\+/, "").replace(/\D/g, "");
+  //   };
 
-    try {
-      // Get market data (source of truth)
-      const marketName = userProfile?.name || "";
-      const marketPhone = normalizePhone(userProfile?.phone);
+  //   try {
+  //     // Get market data (source of truth)
+  //     const marketName = userProfile?.name || "";
+  //     const marketPhone = normalizePhone(userProfile?.phone);
 
-      let needsUpdate = false;
-      const updates: {
-        wallet?: boolean;
-        chat?: boolean;
-        stories?: boolean;
-      } = {};
+  //     let needsUpdate = false;
+  //     const updates: {
+  //       wallet?: boolean;
+  //       chat?: boolean;
+  //       stories?: boolean;
+  //     } = {};
 
-      // Check wallet
-      if (userWallet) {
-        const walletName =
-          `${userWallet.firstName || ""} ${userWallet.lastName || ""}`.trim();
-        const walletPhone = normalizePhone(userWallet.phoneNumber);
+  //     // Check wallet
+  //     if (userWallet) {
+  //       const walletName =
+  //         `${userWallet.firstName || ""} ${userWallet.lastName || ""}`.trim();
+  //       const walletPhone = normalizePhone(userWallet.phoneNumber);
 
-        if (walletName !== marketName || walletPhone !== marketPhone) {
-          needsUpdate = true;
-          updates.wallet = true;
-        }
-      }
+  //       if (walletName !== marketName) {
+  //         needsUpdate = true;
+  //         updates.wallet = true;
+  //       }
+  //     }
 
-      // Check chat
-      if (userChat?.id) {
-        const chatName = userChat?.name || "";
-        const chatPhone = normalizePhone(userChat?.mobile_phone);
+  //     // Check chat
+  //     if (userChat?.id) {
+  //       const chatName = userChat?.name || "";
+  //       const chatPhone = normalizePhone(userChat?.mobile_phone);
 
-        if (chatName !== marketName || chatPhone !== marketPhone) {
-          needsUpdate = true;
-          updates.chat = true;
-        }
-      }
+  //       if (chatName !== marketName || chatPhone !== marketPhone) {
+  //         needsUpdate = true;
+  //         updates.chat = true;
+  //       }
+  //     }
 
-      // Check stories
-      if (userStories?.id) {
-        const storiesName = userStories?.name || "";
-        const storiesPhone = normalizePhone(userStories?.mobile_phone);
+  //     // Check stories
+  //     if (userStories?.id) {
+  //       const storiesName = userStories?.name || "";
+  //       const storiesPhone = normalizePhone(userStories?.mobile_phone);
 
-        if (storiesName !== marketName || storiesPhone !== marketPhone) {
-          needsUpdate = true;
-          updates.stories = true;
-        }
-      }
+  //       if (storiesName !== marketName || storiesPhone !== marketPhone) {
+  //         needsUpdate = true;
+  //         updates.stories = true;
+  //       }
+  //     }
 
-      // Update if needed
-      if (needsUpdate) {
-        const { loginSuccessChat, loginSuccessStories, loginSuccessWallet } =
-          useAppStore.getState();
+  //     // Update if needed
+  //     if (needsUpdate) {
+  //       const { loginSuccessChat, loginSuccessStories, loginSuccessWallet } =
+  //         useAppStore.getState();
 
-        // Update local state first for instant UI feedback
-        if (updates.chat) {
-          loginSuccessChat({
-            name: marketName,
-            mobile_phone: userProfile?.phone,
-          });
-        }
-        if (updates.stories) {
-          loginSuccessStories({
-            name: marketName,
-            mobile_phone: userProfile?.phone,
-          });
-        }
-        if (updates.wallet) {
-          const nameParts = marketName?.split(" ") || [];
-          loginSuccessWallet({
-            firstName: nameParts[0] || "",
-            lastName: nameParts.slice(1).join(" ") || "",
-            phoneNumber: userProfile?.phone,
-          });
-        }
+  //       // Update local state first for instant UI feedback
+  //       if (updates.chat) {
+  //         loginSuccessChat({
+  //           name: marketName,
+  //           mobile_phone: userProfile?.phone,
+  //         });
+  //       }
+  //       if (updates.stories) {
+  //         loginSuccessStories({
+  //           name: marketName,
+  //           mobile_phone: userProfile?.phone,
+  //         });
+  //       }
+  //       if (updates.wallet) {
+  //         const nameParts = marketName?.split(" ") || [];
+  //         loginSuccessWallet({
+  //           firstName: nameParts[0] || "",
+  //           lastName: nameParts.slice(1).join(" ") || "",
+  //           phoneNumber: userProfile?.phone,
+  //         });
+  //       }
 
-        // Update server-side cookies
-        const cookieUpdates: Array<{ name: string; value: any }> = [];
-        if (updates.chat) {
-          cookieUpdates.push({
-            name: COOKIE_NAMES.USER_CHAT,
-            value: { name: marketName, mobile_phone: userProfile?.phone },
-          });
-        }
-        if (updates.stories) {
-          cookieUpdates.push({
-            name: COOKIE_NAMES.USER_STORIES,
-            value: { name: marketName, mobile_phone: userProfile?.phone },
-          });
-        }
-        if (updates.wallet) {
-          const nameParts = marketName?.split(" ") || [];
-          cookieUpdates.push({
-            name: COOKIE_NAMES.WALLET_USER,
-            value: {
-              firstName: nameParts[0] || "",
-              lastName: nameParts.slice(1).join(" ") || "",
-              phoneNumber: userProfile?.phone,
-            },
-          });
-        }
-        if (cookieUpdates.length > 0) {
-          updateSecureUserData(cookieUpdates);
-        }
+  //       // Update server-side cookies
+  //       const cookieUpdates: Array<{ name: string; value: any }> = [];
+  //       if (updates.chat) {
+  //         cookieUpdates.push({
+  //           name: COOKIE_NAMES.USER_CHAT,
+  //           value: { name: marketName, mobile_phone: userProfile?.phone },
+  //         });
+  //       }
+  //       if (updates.stories) {
+  //         cookieUpdates.push({
+  //           name: COOKIE_NAMES.USER_STORIES,
+  //           value: { name: marketName, mobile_phone: userProfile?.phone },
+  //         });
+  //       }
+  //       if (updates.wallet) {
+  //         const nameParts = marketName?.split(" ") || [];
+  //         cookieUpdates.push({
+  //           name: COOKIE_NAMES.WALLET_USER,
+  //           value: {
+  //             firstName: nameParts[0] || "",
+  //             lastName: nameParts.slice(1).join(" ") || "",
+  //             phoneNumber: userProfile?.phone,
+  //           },
+  //         });
+  //       }
+  //       if (cookieUpdates.length > 0) {
+  //         updateSecureUserData(cookieUpdates);
+  //       }
 
-        // Update all services via UpdateProfile
-        try {
-          await this.UpdateProfile(
-            {
-              name: marketName,
-              image: userProfile?.image,
-            },
-            {
-              name: marketName,
-              image: userProfile?.image,
-            },
-          );
-        } catch (error) {
-          LogServerError({
-            error: error,
-            scenario: "Error In CheckUserName UpdateProfile",
-          });
-        }
-      }
-    } catch (error) {
-      LogServerError({
-        error: error,
-        scenario: "Error In CheckUserName in services/auth",
-      });
-    }
-  }
+  //       // Update all services via UpdateProfile
+  //       try {
+  //         await this.UpdateProfile(
+  //           {
+  //             name: marketName,
+  //             image: userProfile?.image,
+  //           },
+  //           {
+  //             name: marketName,
+  //             image: userProfile?.image,
+  //           },
+  //         );
+  //       } catch (error) {
+  //         LogServerError({
+  //           error: error,
+  //           scenario: "Error In CheckUserName UpdateProfile",
+  //         });
+  //       }
+  //     }
+  //   } catch (error) {
+  //     LogServerError({
+  //       error: error,
+  //       scenario: "Error In CheckUserName in services/auth",
+  //     });
+  //   }
+  // }
 }
 export default new AuthService();
