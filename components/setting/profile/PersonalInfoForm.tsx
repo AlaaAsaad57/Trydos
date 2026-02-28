@@ -7,13 +7,43 @@ import auth from "services/auth";
 import { pollinateInput } from "utils/tinyUtils";
 import BackBar from "../BackBar";
 import ConfirmMobileChange from "components/settings/ConfirmMobileChange";
+import { usePhoneInput } from "utils/usePhoneInput";
+import { getCountriesSync } from "utils/countryData";
+import { createPortal } from "react-dom";
+
+// Validation helpers
+const isValidEmail = (email: string): boolean => {
+  if (!email) return true; // Email is optional if user starts typing we validate
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim());
+};
+
+const getCountry = (val: string) => {
+  const allCountries = getCountriesSync();
+  const matches = allCountries.filter((countryItem) =>
+    val?.startsWith(countryItem.dialCode),
+  );
+  return matches.length > 0 ? matches[0] : allCountries[0];
+};
+
 function PersonalInfoForm({ initialData, isRtl, language, local }) {
+  const phoneInput = usePhoneInput({
+    initial: initialData?.phone === "0" ? "" : initialData?.phone || "",
+    getCountry: getCountry,
+  });
+
+  const alternativePhoneInput = usePhoneInput({
+    initial:
+      initialData?.alternative_phone === 0
+        ? ""
+        : initialData?.alternative_phone || "",
+    getCountry: getCountry,
+  });
+
   const [userProfileData, setUserProfileData] = useState({
     name: initialData?.name,
-    phone: initialData?.phone === "0" ? "" : initialData?.phone,
     email: initialData?.email?.includes("@guest.com") ? "" : initialData?.email,
     gender: initialData?.gender?.value || initialData?.gender,
-    alternative_phone: initialData?.alternative_phone,
     image: initialData?.image,
   });
   const [validationErrors, setValidationErrors] = useState({
@@ -29,7 +59,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
     try {
       setLoading(true);
       let obj: any = { image: initialData?.image };
-      if (initialData?.phone !== payload.phone)
+      if (initialData?.phone !== payload.phone && isPhoneEdited())
         obj = { ...obj, phone: payload.phone };
       if (initialData?.name !== payload.name)
         obj = { ...obj, name: payload.name };
@@ -53,22 +83,42 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         scenario: "Error In updateUserProfile in PersonalInfoForm",
       });
       setLoading(false);
+      // Reset to initial values on error
+      phoneInput.setValue(
+        initialData?.phone === "0" ? "" : initialData?.phone || "",
+      );
+      alternativePhoneInput.setValue(
+        initialData?.alternative_phone === 0
+          ? ""
+          : initialData?.alternative_phone || "",
+      );
       setUserProfileData({
         name: initialData?.name,
-        phone: initialData?.phone === "0" ? "" : initialData?.phone,
         email: initialData?.email?.includes("@guest.com")
           ? ""
           : initialData?.email,
         gender: initialData?.gender?.value || initialData?.gender,
-        alternative_phone: initialData?.alternative_phone,
         image: initialData?.image,
       });
     }
   };
+
   const isPhoneEdited = () => {
-    return userProfileData.phone !== initialData?.phone;
+    const normalizePhone = (phone: string) => phone?.replace(/^\+/, "") || "";
+    return (
+      normalizePhone(phoneInput.modifiedValue) !==
+      normalizePhone(initialData?.phone === "0" ? "" : initialData?.phone)
+    );
   };
+
   const [isPhoneShouldChange, setIsPhoneShouldChange] = useState(false);
+
+  const updateField = (field: string, value: any) => {
+    setUserProfileData({ ...userProfileData, [field]: value });
+    if (showValidation && validationErrors[field]) {
+      setValidationErrors({ ...validationErrors, [field]: "" });
+    }
+  };
 
   const validateFunction = () => {
     const errors = {
@@ -81,20 +131,25 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
     if (!userProfileData.name?.trim()) {
       errors.name = translateFunction("Full name is required", language);
     }
-    if (!userProfileData.phone?.trim()) {
+
+    if (!phoneInput.value?.trim()) {
       errors.phone = translateFunction("Phone number is required", language);
+    } else if (!phoneInput.valid) {
+      errors.phone = translateFunction(
+        "Please enter a valid phone number",
+        language,
+      );
     }
-    if (
-      userProfileData.email &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userProfileData.email)
-    ) {
+
+    if (userProfileData.email && !isValidEmail(userProfileData.email)) {
       errors.email = translateFunction(
         "Please enter a valid email address",
         language,
       );
     }
+
     if (!userProfileData.gender) {
-      errors.gender = translateFunction("Please select your gender");
+      errors.gender = translateFunction("Please select your gender", language);
     }
 
     setValidationErrors(errors);
@@ -106,10 +161,16 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
   const handleSave = () => {
     if (!validateFunction()) return;
 
+    const payload = {
+      ...userProfileData,
+      phone: phoneInput.modifiedValue,
+      alternative_phone: alternativePhoneInput.modifiedValue || "",
+    };
+
     if (isPhoneEdited()) {
       setIsPhoneShouldChange(true);
     } else {
-      updateUserProfile(userProfileData);
+      updateUserProfile(payload);
     }
   };
 
@@ -129,13 +190,14 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
           closeWindow={() => {
             setIsPhoneShouldChange(false);
           }}
-          value={userProfileData.phone}
+          value={phoneInput.value}
           successCallback={(idToken) => {
             updateUserProfile({
               ...userProfileData,
-              phone: userProfileData.phone?.includes("+")
-                ? userProfileData.phone
-                : `+${userProfileData.phone}`,
+              phone: phoneInput.modifiedValue?.includes("+")
+                ? phoneInput.modifiedValue
+                : `+${phoneInput.modifiedValue}`,
+              alternative_phone: alternativePhoneInput.modifiedValue || "",
               id_token: idToken,
             });
 
@@ -294,19 +356,9 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
             >
               <input
                 value={userProfileData?.name}
-                onChange={(e) => {
-                  setUserProfileData({
-                    ...userProfileData,
-                    name: pollinateInput(e.target.value),
-                  });
-                  // Clear validation error when user starts typing
-                  if (showValidation && validationErrors.name) {
-                    setValidationErrors({
-                      ...validationErrors,
-                      name: "",
-                    });
-                  }
-                }}
+                onChange={(e) =>
+                  updateField("name", pollinateInput(e.target.value))
+                }
                 data-cy="personal-info-recipient-name-input"
                 placeholder={translateFunction("Enter Full Name", language)}
                 className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
@@ -343,30 +395,16 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
             >
               <input
                 data-cy="personal-info-phone-number-input"
-                aria-autocomplete="both"
-                aria-haspopup="false"
-                value={userProfileData?.phone}
+                type="tel"
+                value={phoneInput.value}
                 onChange={(e) => {
-                  setUserProfileData({
-                    ...userProfileData,
-                    phone: pollinateInput(e.target.value),
-                  });
-                  // Clear validation error when user starts typing
+                  phoneInput.setValue(e.target.value);
                   if (showValidation && validationErrors.phone) {
-                    setValidationErrors({
-                      ...validationErrors,
-                      phone: "",
-                    });
+                    setValidationErrors({ ...validationErrors, phone: "" });
                   }
                 }}
-                spellCheck="false"
-                autoCapitalize="off"
-                autoComplete="off"
-                autoCorrect="off"
-                inputMode="numeric"
-                disabled={false}
-                autoFocus={false}
-                tabIndex={-1}
+                inputMode="tel"
+                autoComplete="tel"
                 placeholder={translateFunction("Enter Phone", language)}
                 className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
               />
@@ -402,25 +440,11 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
                 data-cy="personal-info-alternative-phone-number-input"
-                aria-autocomplete="both"
-                aria-haspopup="false"
-                spellCheck="false"
-                value={
-                  userProfileData?.alternative_phone === 0
-                    ? ""
-                    : userProfileData.alternative_phone
-                }
-                onChange={(e) => {
-                  setUserProfileData({
-                    ...userProfileData,
-                    alternative_phone: pollinateInput(e.target.value),
-                  });
-                }}
-                autoCapitalize="off"
-                pattern="[0-9]*"
-                autoComplete="off"
-                autoCorrect="off"
-                inputMode="numeric"
+                type="tel"
+                value={alternativePhoneInput.value}
+                onChange={(e) => alternativePhoneInput.setValue(e.target.value)}
+                inputMode="tel"
+                autoComplete="tel"
                 placeholder={translateFunction(
                   "Enter Alternative Phone",
                   language,
@@ -453,29 +477,14 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
             >
               <input
                 data-cy="personal-info-Contact-email-input"
-                aria-autocomplete="both"
-                aria-haspopup="false"
                 type="email"
-                spellCheck="false"
                 value={userProfileData?.email}
-                onChange={(e) => {
-                  setUserProfileData({
-                    ...userProfileData,
-                    email: pollinateInput(e.target.value),
-                  });
-                  // Clear validation error when user starts typing
-                  if (showValidation && validationErrors.email) {
-                    setValidationErrors({
-                      ...validationErrors,
-                      email: "",
-                    });
-                  }
-                }}
+                onChange={(e) =>
+                  updateField("email", pollinateInput(e.target.value))
+                }
+                inputMode="email"
+                autoComplete="email"
                 autoCapitalize="off"
-                autoComplete="off"
-                pattern="[0-9]*"
-                autoCorrect="off"
-                inputMode="numeric"
                 placeholder={translateFunction("Enter Email", language)}
                 className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
               />
@@ -505,16 +514,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full h-[50px]">
               <div
-                onClick={() => {
-                  setUserProfileData({ ...userProfileData, gender: 1 });
-                  // Clear validation error when user selects gender
-                  if (showValidation && validationErrors.gender) {
-                    setValidationErrors({
-                      ...validationErrors,
-                      gender: "",
-                    });
-                  }
-                }}
+                onClick={() => updateField("gender", 1)}
                 className={`flex ${
                   userProfileData.gender === 1 ? "text-[#1D1D1D]" : ""
                 } flex-row h-[50px] justify-center items-center rounded-[15px] w-1/3`}
@@ -530,16 +530,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
                 {translateFunction("Man", language)}
               </div>
               <div
-                onClick={() => {
-                  setUserProfileData({ ...userProfileData, gender: 2 });
-                  // Clear validation error when user selects gender
-                  if (showValidation && validationErrors.gender) {
-                    setValidationErrors({
-                      ...validationErrors,
-                      gender: "",
-                    });
-                  }
-                }}
+                onClick={() => updateField("gender", 2)}
                 className={`flex ml-[11px] ${
                   userProfileData.gender === 2 ? "text-[#1D1D1D]" : ""
                 } flex-row h-[50px] justify-center items-center rounded-[15px] w-1/3`}
@@ -555,16 +546,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
                 {translateFunction("Woman", language)}
               </div>
               <div
-                onClick={() => {
-                  setUserProfileData({ ...userProfileData, gender: 3 });
-                  // Clear validation error when user selects gender
-                  if (showValidation && validationErrors.gender) {
-                    setValidationErrors({
-                      ...validationErrors,
-                      gender: "",
-                    });
-                  }
-                }}
+                onClick={() => updateField("gender", 3)}
                 className={`flex ml-[11px] ${
                   userProfileData.gender === 3 ? "text-[#1D1D1D]" : ""
                 } flex-row h-[50px] justify-center items-center rounded-[15px] w-1/3`}
@@ -604,21 +586,25 @@ const ConfirmationModal = ({
       <img
         onClick={closeWindow}
         src="/icons/settings/Xicon.svg"
-        className="w-[20px] absolute z-30 top-[calc(50%-170px)]  right-[30px]  h-[20px] cursor-pointer"
+        className="w-[20px] absolute z-[999999999] top-[calc(50%-170px)]  right-[30px]  h-[20px] cursor-pointer"
       />
 
-      <div className="fixed z-20 top-0 left-0  w-full h-full bg-black opacity-50" />
-
-      <div className="p-5 flex  w-auto justify-center z-30 h-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[15px]">
-        <ConfirmMobileChange
-          forVerify={forVerify}
-          closeWindow={closeWindow}
-          value={value}
-          successCallbackFunction={(idToken) => {
-            successCallback(idToken);
-          }}
-        />
-      </div>
+      {createPortal(
+        <>
+          <div className="fixed z-[999999998] top-0 left-0  w-full h-full bg-black opacity-50" />
+          <div className="p-5 flex  w-auto justify-center z-[999999999] h-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[15px]">
+            <ConfirmMobileChange
+              forVerify={forVerify}
+              closeWindow={closeWindow}
+              value={value}
+              successCallbackFunction={(idToken) => {
+                successCallback(idToken);
+              }}
+            />
+          </div>
+        </>,
+        document.body,
+      )}
     </>
   );
 };
