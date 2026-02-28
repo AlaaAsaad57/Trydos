@@ -89,6 +89,7 @@ class AuthService {
       loginSuccess,
       loginSuccessChat,
       loginSuccessStories,
+      loginSuccessWallet,
       setReAuthResult,
       setShouldAuthinticated,
     } = useAppStore.getState();
@@ -153,6 +154,7 @@ class AuthService {
 
       let userChat = { ...response.ChatUser, need_auth: false };
       let userStories = { ...response.StoriesUser, need_auth: false };
+      let userWallet = { ...response.WalletUser, need_auth: false };
 
       localStorage.setItem("LAST-VERIFY", new Date().toISOString());
       loginSuccess({
@@ -171,6 +173,11 @@ class AuthService {
       });
       loginSuccessStories({
         ...userStories,
+        is_verified: 1,
+        is_phone_verified: 1,
+      });
+      loginSuccessWallet({
+        ...userWallet,
         is_verified: 1,
         is_phone_verified: 1,
       });
@@ -412,15 +419,67 @@ class AuthService {
       userProfile,
       userChat,
       userStories,
+      userWallet,
       editUserInfo,
       loginSuccessChat,
       loginSuccessStories,
+      loginSuccessWallet,
+      language,
     } = useAppStore.getState();
     let market_done = false,
       chat_done = false,
-      stories_done = false;
+      stories_done = false,
+      wallet_done = false;
 
     try {
+      // Update wallet user info
+      const nameParts = (userObj?.name ?? userProfile?.name)?.split(" ") || [];
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      const phoneNumber = userObj?.phone ?? userProfile?.phone;
+      const formattedPhone = phoneNumber?.startsWith("+")
+        ? phoneNumber
+        : `+${phoneNumber}`;
+
+      const imagePath = this.getImageForCookie(
+        userObj?.image ?? userProfile?.image,
+      );
+      const profilePictureURL = imagePath
+        ? `${process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL}${imagePath}`
+        : null;
+
+      let wallet_update = await fetchData({
+        url: "/users/me",
+        reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
+        method: "PATCH",
+        server: "wallet",
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          phoneNumber: formattedPhone,
+          profilePictureURL,
+          language: language || "en",
+        }),
+      });
+
+      if (!wallet_update?.success) {
+        throw new Error(wallet_update?.message || "Wallet update failed");
+      }
+      wallet_done = true;
+
+      const walletUpdate = {
+        firstName,
+        lastName,
+        phoneNumber: formattedPhone,
+        profilePictureURL,
+        language: language || "en",
+      };
+      loginSuccessWallet(walletUpdate);
+      updateSecureUserData([
+        { name: COOKIE_NAMES.WALLET_USER, value: walletUpdate },
+      ]);
+
       if (userStories?.id) {
         let res = await fetchData({
           url: "/api/v1/users/update",
@@ -506,6 +565,61 @@ class AuthService {
         error: error,
         scenario: "Error In UpdateProfile in services/auth",
       });
+
+      // Rollback wallet update
+      if (wallet_done) {
+        const prevNameParts =
+          (previousUserObj?.name ?? userProfile?.name)?.split(" ") || [];
+        const prevFirstName = prevNameParts[0] || "";
+        const prevLastName = prevNameParts.slice(1).join(" ") || "";
+
+        const prevPhone = previousUserObj?.phone ?? userProfile?.phone;
+        const prevFormattedPhone = prevPhone?.startsWith("+")
+          ? prevPhone
+          : `+${prevPhone}`;
+
+        const prevImagePath = this.getImageForCookie(
+          previousUserObj?.image ?? userProfile?.image,
+        );
+        const prevProfilePictureURL = prevImagePath
+          ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${prevImagePath}`
+          : null;
+
+        try {
+          await fetchData({
+            url: "/users/me",
+            reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
+            method: "PATCH",
+            server: "wallet",
+            body: JSON.stringify({
+              firstName: prevFirstName,
+              lastName: prevLastName,
+              phoneNumber: prevFormattedPhone,
+              profilePictureURL: prevProfilePictureURL,
+              language: useAppStore.getState().language || "en",
+            }),
+          });
+
+          // Revert wallet state and cookies
+          const revertWallet = {
+            firstName: prevFirstName,
+            lastName: prevLastName,
+            phoneNumber: prevFormattedPhone,
+            profilePictureURL: prevProfilePictureURL,
+            language: useAppStore.getState().language || "en",
+          };
+          loginSuccessWallet(revertWallet);
+          updateSecureUserData([
+            { name: COOKIE_NAMES.WALLET_USER, value: revertWallet },
+          ]);
+        } catch (walletRollbackError) {
+          LogServerError({
+            error: walletRollbackError,
+            scenario: "Error rolling back wallet update in UpdateProfile",
+          });
+        }
+      }
+
       if (market_done) {
         let res = await fetchData({
           url: "/customer/update-profile",
@@ -615,37 +729,147 @@ class AuthService {
     }
   }
   async CheckUserName() {
-    const { userChat, userStories, userProfile } = useAppStore.getState();
-    let username_stories = userStories?.name;
-    let username_chat = userChat?.name;
-    let username_market = userProfile?.name;
+    const { userChat, userStories, userProfile, userWallet, language } =
+      useAppStore.getState();
+
+    // Skip for guest users
     if (userProfile?.name === "verified_guest") return null;
-    if (Boolean(userChat) && Boolean(userStories))
-      if (
-        username_chat !== username_market ||
-        username_stories !== username_market
-      ) {
-        // Update store and server-side cookies
-        const { loginSuccessChat, loginSuccessStories } =
+
+    // Helper to normalize phone (remove +, keep only digits)
+    const normalizePhone = (phone: string | undefined) => {
+      if (!phone) return "";
+      return phone.replace(/^\+/, "").replace(/\D/g, "");
+    };
+
+    try {
+      // Get market data (source of truth)
+      const marketName = userProfile?.name || "";
+      const marketPhone = normalizePhone(userProfile?.phone);
+
+      let needsUpdate = false;
+      const updates: {
+        wallet?: boolean;
+        chat?: boolean;
+        stories?: boolean;
+      } = {};
+
+      // Check wallet
+      if (userWallet) {
+        const walletName =
+          `${userWallet.firstName || ""} ${userWallet.lastName || ""}`.trim();
+        const walletPhone = normalizePhone(userWallet.phoneNumber);
+
+        if (walletName !== marketName || walletPhone !== marketPhone) {
+          needsUpdate = true;
+          updates.wallet = true;
+        }
+      }
+
+      // Check chat
+      if (userChat?.id) {
+        const chatName = userChat?.name || "";
+        const chatPhone = normalizePhone(userChat?.mobile_phone);
+
+        if (chatName !== marketName || chatPhone !== marketPhone) {
+          needsUpdate = true;
+          updates.chat = true;
+        }
+      }
+
+      // Check stories
+      if (userStories?.id) {
+        const storiesName = userStories?.name || "";
+        const storiesPhone = normalizePhone(userStories?.mobile_phone);
+
+        if (storiesName !== marketName || storiesPhone !== marketPhone) {
+          needsUpdate = true;
+          updates.stories = true;
+        }
+      }
+
+      // Update if needed
+      if (needsUpdate) {
+        const { loginSuccessChat, loginSuccessStories, loginSuccessWallet } =
           useAppStore.getState();
-        loginSuccessChat({ name: username_market });
-        loginSuccessStories({ name: username_market });
-        updateSecureUserData([
-          { name: COOKIE_NAMES.USER_CHAT, value: { name: username_market } },
-          { name: COOKIE_NAMES.USER_STORIES, value: { name: username_market } },
-        ]);
+
+        // Update local state first for instant UI feedback
+        if (updates.chat) {
+          loginSuccessChat({
+            name: marketName,
+            mobile_phone: userProfile?.phone,
+          });
+        }
+        if (updates.stories) {
+          loginSuccessStories({
+            name: marketName,
+            mobile_phone: userProfile?.phone,
+          });
+        }
+        if (updates.wallet) {
+          const nameParts = marketName?.split(" ") || [];
+          loginSuccessWallet({
+            firstName: nameParts[0] || "",
+            lastName: nameParts.slice(1).join(" ") || "",
+            phoneNumber: userProfile?.phone,
+          });
+        }
+
+        // Update server-side cookies
+        const cookieUpdates: Array<{ name: string; value: any }> = [];
+        if (updates.chat) {
+          cookieUpdates.push({
+            name: COOKIE_NAMES.USER_CHAT,
+            value: { name: marketName, mobile_phone: userProfile?.phone },
+          });
+        }
+        if (updates.stories) {
+          cookieUpdates.push({
+            name: COOKIE_NAMES.USER_STORIES,
+            value: { name: marketName, mobile_phone: userProfile?.phone },
+          });
+        }
+        if (updates.wallet) {
+          const nameParts = marketName?.split(" ") || [];
+          cookieUpdates.push({
+            name: COOKIE_NAMES.WALLET_USER,
+            value: {
+              firstName: nameParts[0] || "",
+              lastName: nameParts.slice(1).join(" ") || "",
+              phoneNumber: userProfile?.phone,
+            },
+          });
+        }
+        if (cookieUpdates.length > 0) {
+          updateSecureUserData(cookieUpdates);
+        }
+
+        // Update all services via UpdateProfile
         try {
           await this.UpdateProfile(
-            { name: username_market },
-            { name: username_market },
+            {
+              name: marketName,
+              phone: userProfile?.phone,
+              image: userProfile?.image,
+            },
+            {
+              name: marketName,
+              phone: userProfile?.phone,
+              image: userProfile?.image,
+            },
           );
         } catch (error) {
           LogServerError({
             error: error,
-            scenario: "Error In CheckUserName in services/auth",
+            scenario: "Error In CheckUserName UpdateProfile",
           });
         }
       }
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In CheckUserName in services/auth",
+      });
+    }
   }
 }
 export default new AuthService();

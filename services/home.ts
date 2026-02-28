@@ -274,6 +274,7 @@ class HomeService {
       loginSuccess,
       loginSuccessChat,
       loginSuccessStories,
+      loginSuccessWallet,
       editUserInfo,
     } = useAppStore.getState();
 
@@ -281,6 +282,7 @@ class HomeService {
     let userData: any = null;
     let userChat: any = null;
     let userStories: any = null;
+    let userWallet: any = null;
     let hasDeviceToken = false;
     let hasMarketToken = false;
 
@@ -294,6 +296,7 @@ class HomeService {
         userData = meData.user;
         userChat = meData.chatUser;
         userStories = meData.storiesUser;
+        userWallet = meData.walletUser;
         hasDeviceToken = meData.hasDeviceToken;
         hasMarketToken = meData.hasMarketToken;
       }
@@ -320,6 +323,7 @@ class HomeService {
       });
       if (userChat) loginSuccessChat({ ...userChat });
       if (userStories) loginSuccessStories({ ...userStories });
+      if (userWallet) loginSuccessWallet({ ...userWallet });
     } else {
       if (userData) {
         if (process.env.NODE_ENV === "production")

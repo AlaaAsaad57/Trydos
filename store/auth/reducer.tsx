@@ -50,6 +50,7 @@ export const useAuthStore = (set, get) => ({
   user: null,
   userChat: null,
   userStories: null,
+  userWallet: null,
   Tempuser: null,
   failedLogin: false,
   shouldAuthinticated: null,
@@ -101,6 +102,7 @@ export const useAuthStore = (set, get) => ({
         : null,
       userChat: null,
       userStories: null,
+      userWallet: null,
       failedLogin: false,
       attempts: 4,
       wrongNumber: "",
@@ -113,6 +115,12 @@ export const useAuthStore = (set, get) => ({
     set((state) => ({
       userStories: state.userStories
         ? { ...state.userStories, ...userData }
+        : userData,
+    })),
+  loginSuccessWallet: (userData) =>
+    set((state) => ({
+      userWallet: state.userWallet
+        ? { ...state.userWallet, ...userData }
         : userData,
     })),
   loginSuccess: (userData) =>
