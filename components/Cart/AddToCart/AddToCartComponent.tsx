@@ -438,18 +438,20 @@ function AddToCartComponent({ product, slug, color }) {
   const findVariantForSelection = (color, size) => {
     if (!ProductData?.variation?.length) return null;
     const colorName = color?.color_name || color?.color_option;
-    const sizeVal = size?.option ?? size;
+    const sizeVal = normalizeSize(size?.option ?? size);
 
     if (colorName && sizeVal) {
       return ProductData.variation.find(
-        (v) => v.color?.name === colorName && v.size === sizeVal,
+        (v) => v.color?.name === colorName && normalizeSize(v.size) === sizeVal,
       );
     }
     if (colorName) {
       return ProductData.variation.find((v) => v.color?.name === colorName);
     }
     if (sizeVal) {
-      return ProductData.variation.find((v) => v.size === sizeVal);
+      return ProductData.variation.find(
+        (v) => normalizeSize(v.size) === sizeVal,
+      );
     }
     return ProductData.variation[0] ?? null;
   };

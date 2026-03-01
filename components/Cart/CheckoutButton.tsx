@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAppStore } from "store";
 import {
   CheckoutOrder,
-  GetWalletBalance,
+  GetWalletBalanceInCurrency,
   getCurrencies,
 } from "services/wallet";
 import { CurrenciesApi, GetWalletBalancesApi } from "services/wallet/types";
@@ -82,8 +82,8 @@ export default function CheckoutButton({ local = "gb-en" }) {
           setSelectedCurrency(matchingCurrency);
 
           // Load wallet balance for the selected currency
-          const balRes = await GetWalletBalance({
-            currencySymbol: matchingCurrency.symbol,
+          const balRes = await GetWalletBalanceInCurrency({
+            currencyId: matchingCurrency.id,
             local,
             handleUnauthenticated,
           });
@@ -104,14 +104,7 @@ export default function CheckoutButton({ local = "gb-en" }) {
   const availableBalance = useMemo(() => {
     if (!walletData || !selectedCurrency) return 0;
 
-    const wallet = walletData.wallets?.[0];
-    const balanceEntry = wallet?.balances?.find(
-      (b) =>
-        b.assetSymbol === selectedCurrency.symbol ||
-        b.assetId === selectedCurrency.id,
-    );
-
-    return balanceEntry?.available || 0;
+    return walletData.available;
   }, [walletData, selectedCurrency]);
 
   // Calculate checkout amount in selected currency
@@ -127,6 +120,19 @@ export default function CheckoutButton({ local = "gb-en" }) {
       }),
     );
   }, [total, currency]);
+
+  const visibleCurrencies = useMemo(() => {
+    if (!currencies.length) return null;
+
+    const matchingCurrency = currencies.find(
+      (item) =>
+        item.id === currency?.id ||
+        item.symbol === currency?.symbol ||
+        item.symbol === currency?.code,
+    );
+
+    return matchingCurrency;
+  }, [currencies, currency]);
 
   const handleCheckout = async () => {
     if (!cart[0]?.cart_group_id || !selectedCurrency || checkoutAmount <= 0) {
@@ -171,8 +177,8 @@ export default function CheckoutButton({ local = "gb-en" }) {
     setIsLoadingData(true);
 
     try {
-      const balRes = await GetWalletBalance({
-        currencySymbol: newCurrency.symbol,
+      const balRes = await GetWalletBalanceInCurrency({
+        currencyId: newCurrency.id,
         local,
         handleUnauthenticated,
       });
@@ -281,66 +287,52 @@ export default function CheckoutButton({ local = "gb-en" }) {
                       Select Payment Currency
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {currencies.map((curr) => {
-                        const isSelected = selectedCurrency?.id === curr.id;
-                        const balance =
-                          walletData?.wallets?.[0]?.balances?.find(
-                            (b) => b.assetId === curr.id,
-                          )?.available || 0;
-
-                        return (
-                          <button
-                            key={curr.id}
-                            onClick={() => handleCurrencyChange(curr)}
-                            className={`p-4 rounded-xl border-2 text-left transition-all ${
-                              isSelected
-                                ? "bg-purple-50 border-purple-500 ring-2 ring-purple-200"
-                                : "bg-white border-gray-200 hover:border-purple-300"
-                            }`}
-                          >
-                            <div className="flex justify-between items-start mb-2">
-                              <span
-                                className={`text-xs font-bold px-2 py-1 rounded ${
-                                  isSelected
-                                    ? "bg-purple-200 text-purple-700"
-                                    : "bg-gray-100 text-gray-600"
-                                }`}
+                      {visibleCurrencies && (
+                        <button
+                          key={visibleCurrencies?.id}
+                          onClick={() =>
+                            handleCurrencyChange(visibleCurrencies)
+                          }
+                          className={`p-4 rounded-xl border-2 text-left transition-all ${"bg-purple-50 border-purple-500 ring-2 ring-purple-200"}`}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <span
+                              className={`text-xs font-bold px-2 py-1 rounded ${"bg-purple-200 text-purple-700"}`}
+                            >
+                              {visibleCurrencies?.symbol}
+                            </span>
+                            {
+                              <svg
+                                className="w-5 h-5 text-purple-600"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
                               >
-                                {curr.symbol}
+                                <path
+                                  fillRule="evenodd"
+                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            }
+                          </div>
+                          <p className="text-xs text-gray-500 mb-1">
+                            Available
+                          </p>
+                          <p className="text-lg font-bold text-gray-800">
+                            {isLoadingData ? (
+                              <span className="text-sm animate-pulse">
+                                Loading...
                               </span>
-                              {isSelected && (
-                                <svg
-                                  className="w-5 h-5 text-purple-600"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              )}
-                            </div>
-                            <p className="text-xs text-gray-500 mb-1">
-                              Available
-                            </p>
-                            <p className="text-lg font-bold text-gray-800">
-                              {isSelected && isLoadingData ? (
-                                <span className="text-sm animate-pulse">
-                                  Loading...
-                                </span>
-                              ) : (
-                                RoundPrice({
-                                  num: balance,
-                                  rate: 1,
-                                  points: currency?.decimal_digits ?? 2,
-                                })
-                              )}
-                            </p>
-                          </button>
-                        );
-                      })}
+                            ) : (
+                              RoundPrice({
+                                num: walletData.available,
+                                rate: 1,
+                                points: currency?.decimal_digits ?? 2,
+                              })
+                            )}
+                          </p>
+                        </button>
+                      )}
                     </div>
                   </div>
 
