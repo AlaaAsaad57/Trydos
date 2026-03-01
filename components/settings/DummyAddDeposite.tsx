@@ -46,6 +46,19 @@ function DummyAddDeposite() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  const isBankSupportedForCurrency = (
+    bank: BanksApi["items"][number],
+    currencyId: string,
+  ) => {
+    if (!bank.isActive || !bank.depositAvailable) return false;
+    return bank.currencies.some(
+      (item) =>
+        item.currencyId === currencyId &&
+        item.depositEnabled &&
+        item.currency?.isActive,
+    );
+  };
+
   const handleUnauthenticated = () => {
     setShouldAuthinticated(true);
     setIsOpen(false);
@@ -113,6 +126,25 @@ function DummyAddDeposite() {
     return history.filter((item) => item.currency?.id === activeCurrency.id);
   }, [activeCurrency, history]);
 
+  const availableBanks = useMemo(() => {
+    if (!activeCurrency) return [];
+    return banks.filter((bank) =>
+      isBankSupportedForCurrency(bank, activeCurrency.id),
+    );
+  }, [activeCurrency, banks]);
+
+  useEffect(() => {
+    if (!selectedBankId || !activeCurrency) return;
+    const selectedBank = banks.find((bank) => bank.id === selectedBankId);
+    if (
+      !selectedBank ||
+      !isBankSupportedForCurrency(selectedBank, activeCurrency.id)
+    ) {
+      setSelectedBankId("");
+      setFeeDetails(null);
+    }
+  }, [activeCurrency, banks, selectedBankId]);
+
   const resetForm = () => {
     setSelectedBankId("");
     setAmount(0);
@@ -137,8 +169,23 @@ function DummyAddDeposite() {
   };
 
   const handleBankChange = async (bankId: string) => {
+    if (!bankId) {
+      setSelectedBankId("");
+      setFeeDetails(null);
+      return;
+    }
+
+    if (!activeCurrency) return;
+
+    const bank = banks.find((item) => item.id === bankId);
+    if (!bank || !isBankSupportedForCurrency(bank, activeCurrency.id)) {
+      setSelectedBankId("");
+      setFeeDetails(null);
+      return;
+    }
+
     setSelectedBankId(bankId);
-    if (amount > 0 && bankId && activeCurrency) {
+    if (amount > 0) {
       const res = await CalculateFees({
         amount,
         bankId,
@@ -443,12 +490,19 @@ function DummyAddDeposite() {
                             <option value="">
                               {translateFunction("Select a bank")}
                             </option>
-                            {banks.map((bank) => (
+                            {availableBanks.map((bank) => (
                               <option key={bank.id} value={bank.id}>
                                 {bank.name}
                               </option>
                             ))}
                           </select>
+                          {activeCurrency && availableBanks.length === 0 && (
+                            <p className="text-[11px] text-[#B26A00] mt-[6px]">
+                              {translateFunction(
+                                "No banks support this currency for deposit",
+                              )}
+                            </p>
+                          )}
                         </div>
 
                         <div>

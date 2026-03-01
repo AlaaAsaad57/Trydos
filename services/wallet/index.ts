@@ -1,7 +1,6 @@
 "use server";
 
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
-import { LogError } from "utils/functions";
 
 import {
   BanksApi,
@@ -389,20 +388,18 @@ export async function GetBankDepostits({
   });
 }
 
-export async function GetWalletBalance({
-  currencySymbol,
+export async function GetWalletBalanceInCurrency({
+  currencyId,
   local = "gb-en",
   handleUnauthenticated = () => {},
 }: {
   local?: string;
-  currencySymbol: string;
+  currencyId: string;
   handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let params = new URLSearchParams();
-  if (currencySymbol?.length > 0) {
-    params.append("currencySymbol", currencySymbol);
-  }
+
   params.append("assetType", "CURRENCY");
   params.append("accountSubtype", "MAIN");
 
@@ -411,7 +408,7 @@ export async function GetWalletBalance({
     local: local,
     url:
       process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
-      `/wallets/myAcounts?${params.toString()}`,
+      `/wallets/my/balances/${currencyId}?${params.toString()}`,
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -582,21 +579,24 @@ export async function CheckoutOrder({
 }
 
 export async function GetWalletBalanceForCountryCurrency({ country }) {
-  let currency = await getCurrency(country, "en");
+  let [currency, currencies] = await Promise.all([
+    getCurrency(country, "en"),
+    getCurrencies({ local: `${country}-en` }),
+  ]);
   if (!currency) {
     throw new Error("Currency not found for country: " + country);
   }
-  let balances = await GetWalletBalance({
-    currencySymbol: currency.code,
+  let selected_currency = currencies.items.find(
+    (c) => c.symbol === currency.code,
+  );
+  let balances = await GetWalletBalanceInCurrency({
+    currencyId: selected_currency.id,
     local: "gb-en",
     handleUnauthenticated: () => {},
   });
 
   return {
-    totalAvailable:
-      balances.wallets?.[0]?.balances?.find(
-        (s) => s.assetSymbol === currency.code,
-      )?.available || 0,
+    totalAvailable: balances.available,
     symbol: currency.symbol,
     decimal_digits: currency.decimal_digits,
   };

@@ -170,33 +170,20 @@ export interface CalculateFeesApi {
 }
 
 export interface GetWalletBalancesApi {
-  currencySymbol: string;
-  totalAvailable: number;
-  totalLocked: number;
-  totalValue: number;
-  wallets: Array<
-    Timestamps & {
-      id: string;
-      type: string;
-      userId: string;
-      subtype: string;
-      status: string;
-      name: string;
-      balances: Array<{
-        id: string;
-        accountId: string;
-        assetType: string;
-        assetId: string;
-        assetSymbol: string;
-        available: number;
-        locked: number;
-        reserved: number;
-        createdAt: string;
-        updatedAt: string;
-        asset: BaseAsset;
-      }>;
-    }
-  >;
+  id: "69a404e821c8a037f8b710ae";
+  accountId: "69a2a948f2086d4e2d7de778";
+  assetType: "CURRENCY";
+  assetId: "69a2dc811d48445e622551ad";
+  assetSymbol: "TRY";
+  available: 0;
+  locked: 0;
+  reserved: 0;
+  asset: {
+    id: "69a2dc811d48445e622551ad";
+    symbol: "TRY";
+    name: "Turkish lira";
+  };
+  accountSubtype: "MAIN";
 }
 
 export interface GetJournalEntriesApi extends CursorPagination {

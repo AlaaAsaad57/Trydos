@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "store";
 import {
   CheckoutOrder,
-  GetWalletBalance,
+  GetWalletBalanceInCurrency,
   getCurrencies,
 } from "services/wallet";
 import { CurrenciesApi, GetWalletBalancesApi } from "services/wallet/types";
@@ -159,8 +159,8 @@ export default function WalletPaymentModal({
 
         setSelectedCurrency(matchingCurrency);
 
-        const balRes = await GetWalletBalance({
-          currencySymbol: matchingCurrency.symbol,
+        const balRes = await GetWalletBalanceInCurrency({
+          currencyId: matchingCurrency.id,
           local,
           handleUnauthenticated,
         });
@@ -179,13 +179,7 @@ export default function WalletPaymentModal({
 
   const availableBalance = useMemo(() => {
     if (!walletData || !selectedCurrency) return 0;
-    const wallet = walletData.wallets?.[0];
-    const balanceEntry = wallet?.balances?.find(
-      (b) =>
-        b.assetSymbol === selectedCurrency.symbol ||
-        b.assetId === selectedCurrency.id,
-    );
-    return balanceEntry?.available || 0;
+    return walletData.available;
   }, [walletData, selectedCurrency]);
 
   const checkoutAmount = useMemo(() => {
@@ -208,8 +202,8 @@ export default function WalletPaymentModal({
     setSelectedCurrency(newCurrency);
     setIsLoadingData(true);
     try {
-      const balRes = await GetWalletBalance({
-        currencySymbol: newCurrency.symbol,
+      const balRes = await GetWalletBalanceInCurrency({
+        currencyId: newCurrency.id,
         local,
         handleUnauthenticated,
       });
