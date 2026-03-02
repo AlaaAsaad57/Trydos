@@ -18,7 +18,7 @@ Analyze the user's query and extract specific attributes into a valid JSON objec
 - ALLOWED_SIZES: ${JSON.stringify(data?.sizes)}
 
 ### EXTRACTION RULES:
-1. **name**: Product name only. Exclude colors, sizes, and materials mentioned in the query. Default: "Unknown".
+1. **name**: Product name only. Exclude colors, sizes, and materials mentioned in the query. Default: "Unknown", products can be anything(fruits,clouthes,technolgy,vegetables...) even if the product name may seem like a color like  باذنجان ابيض it seems like Maroon here we should be carful to pick the color ابيض and the باذنجان be the product name .
 2. **color**: Array of HEX codes.
    - Match the user's color description (in any language) to the most logical name in ALLOWED_COLORS.
    - **TIE-BREAKER**: If multiple entries exist for the same color name (e.g., "Black"), prioritize the standard HEX (like #000000) over custom or "test" codes.
