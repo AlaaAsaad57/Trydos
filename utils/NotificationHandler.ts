@@ -17,6 +17,7 @@ import { watchChannel as watchChannelAction } from "store/chat/actions";
 import { REQUESTS_DATA } from "./Requests";
 
 import auth from "services/auth";
+import { MARKET_NOTIFICATION_RECEIVED_EVENT } from "./notificationEvents";
 
 // --- Interfaces ---
 
@@ -199,6 +200,10 @@ class ForegroundNotificationHandler {
    * Handles e-commerce related notifications (Orders, Products, Boutiques)
    */
   private async handleMarketEvent(data: any, state: any) {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event(MARKET_NOTIFICATION_RECEIVED_EVENT));
+    }
+
     const { country, language } = state;
     const lang = `${country?.toLowerCase()}-${language?.toLowerCase()}`;
     const type = data?.type || "";
@@ -211,7 +216,8 @@ class ForegroundNotificationHandler {
       type.startsWith("order status changed");
 
     if (shouldRefreshOrders) {
-      const { shouldUpdateOrders, setShouldUpdateOrders } = useAppStore.getState();
+      const { shouldUpdateOrders, setShouldUpdateOrders } =
+        useAppStore.getState();
       setShouldUpdateOrders(shouldUpdateOrders + 1);
     }
 

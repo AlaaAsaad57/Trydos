@@ -80,8 +80,8 @@ importers:
         specifier: ^8.4.38
         version: 8.5.6
       rdb:
-        specifier: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git
-        version: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#80ac88dbc22ee78b456f2e9e9c70523092b6dc55(@types/react-dom@16.9.25(@types/react@16.14.68))(@types/react@16.14.68)(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#dev
+        version: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#617062f9ca66c099bbc8d008d885a1f1104ad37e(@types/react-dom@16.9.25(@types/react@16.14.68))(@types/react@16.14.68)(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react:
         specifier: 19.2.0
         version: 19.2.0
@@ -1873,6 +1873,9 @@ packages:
 
   '@types/node@24.10.4':
     resolution: {integrity: sha512-vnDVpYPMzs4wunl27jHrfmwojOGKya0xyM3sH+UE5iv5uPS6vX7UIoh6m+vQc5LGBq52HBKPIn/zcSZVzeDEZg==}
+
+  '@types/offscreencanvas@2019.7.3':
+    resolution: {integrity: sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A==}
 
   '@types/pg-pool@2.0.6':
     resolution: {integrity: sha512-TaAUE5rq2VQYxab5Ts7WZhKNmuN78Q6PiFonTDdpbx8a1H0M1vhy3rhiMjl+e2iHmogyMw7jZF4FrE6eJUy5HQ==}
@@ -3804,6 +3807,9 @@ packages:
 
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
+  qr-scanner@1.4.2:
+    resolution: {integrity: sha512-kV1yQUe2FENvn59tMZW6mOVfpq9mGxGf8l6+EGaXUOd4RBOLg7tRC83OrirM5AtDvZRpdjdlXURsHreAOSPOUw==}
+
   qrcode@1.5.4:
     resolution: {integrity: sha512-1ca71Zgiu6ORjHqFBDpnSMTR2ReToX4l1Au1VFLyVeBTFavzQnv5JxMFr3ukHVKpSrSA2MCk0lNJSykjUfz7Zg==}
     engines: {node: '>=10.13.0'}
@@ -3822,8 +3828,8 @@ packages:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
 
-  rdb@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#80ac88dbc22ee78b456f2e9e9c70523092b6dc55:
-    resolution: {commit: 80ac88dbc22ee78b456f2e9e9c70523092b6dc55, repo: https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git, type: git}
+  rdb@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#617062f9ca66c099bbc8d008d885a1f1104ad37e:
+    resolution: {commit: 617062f9ca66c099bbc8d008d885a1f1104ad37e, repo: https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git, type: git}
     version: 1.0.0
     peerDependencies:
       next: '>=14'
@@ -6629,6 +6635,8 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
+  '@types/offscreencanvas@2019.7.3': {}
+
   '@types/pg-pool@2.0.6':
     dependencies:
       '@types/pg': 8.15.6
@@ -8759,6 +8767,10 @@ snapshots:
 
   q@1.5.1: {}
 
+  qr-scanner@1.4.2:
+    dependencies:
+      '@types/offscreencanvas': 2019.7.3
+
   qrcode@1.5.4:
     dependencies:
       dijkstrajs: 1.0.3
@@ -8777,7 +8789,7 @@ snapshots:
 
   range-parser@1.2.1: {}
 
-  rdb@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#80ac88dbc22ee78b456f2e9e9c70523092b6dc55(@types/react-dom@16.9.25(@types/react@16.14.68))(@types/react@16.14.68)(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  rdb@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#617062f9ca66c099bbc8d008d885a1f1104ad37e(@types/react-dom@16.9.25(@types/react@16.14.68))(@types/react@16.14.68)(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
     dependencies:
       '@radix-ui/react-separator': 1.1.8(@types/react-dom@16.9.25(@types/react@16.14.68))(@types/react@16.14.68)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@tailwindcss/postcss': 4.1.18
@@ -8789,6 +8801,7 @@ snapshots:
       js-cookies: 1.0.4
       lucide-react: 0.563.0(react@19.2.0)
       next: 16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0)
+      qr-scanner: 1.4.2
       qrcode: 1.5.4
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)

@@ -27,7 +27,7 @@ function UserAvatar({ avatar, onClick, showIndicator }: UserAvatarProps) {
             {showIndicator && (
               <span className="absolute test w-[10px] h-[10px] bg-[#f64f64] rounded-full top-[-2px] right-[-2px] animate-pulse z-20 left-[initial]"></span>
             )}
-            <div className="inset-shadow-sm w-[30px] h-[30px] top-0 left-0"></div>
+            <div className="absolute inset-shadow-sm w-[30px] h-[30px] top-0 left-0"></div>
             <Image
               alt="user-img"
               width={30}

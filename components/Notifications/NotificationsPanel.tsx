@@ -12,6 +12,7 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { MARKET_NOTIFICATION_RECEIVED_EVENT } from "utils/notificationEvents";
 
 interface NotificationsPanelProps {
   onClose: () => void;
@@ -90,9 +91,52 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
     }
   };
 
+  const reloadNotifications = async () => {
+    setLoading(true);
+    setNotifications([]);
+    try {
+      const response = await fetchNotifications(1);
+      // @ts-ignore
+      if (response.isSuccessful && response.hasContent && response.success) {
+        setNotifications(response.data.data);
+        setHasMore(!!response.data.next_page_url);
+        setPage(2);
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      LogError({
+        error,
+        scenario: "Error in reloadNotifications in Notifications Panel",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Initial load
   useEffect(() => {
     loadMoreNotifications();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleMarketNotification = () => {
+      reloadNotifications();
+    };
+
+    window.addEventListener(
+      MARKET_NOTIFICATION_RECEIVED_EVENT,
+      handleMarketNotification,
+    );
+
+    return () => {
+      window.removeEventListener(
+        MARKET_NOTIFICATION_RECEIVED_EVENT,
+        handleMarketNotification,
+      );
+    };
   }, []);
 
   // Scroll handler
@@ -112,7 +156,6 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
     scrollContainer.addEventListener("scroll", handleScroll);
     return () => scrollContainer.removeEventListener("scroll", handleScroll);
   }, [notifications.length, loading, hasMore]);
-  console.log(notifications);
   return (
     <div
       data-cy="notification-container"

@@ -434,7 +434,6 @@ class OrderService {
         method: "POST",
         server: "market",
         body: JSON.stringify({
-          // product_variation_id: product_variant_id,
           color,
           size: choice_1 ?? "",
           order_detail_id,
