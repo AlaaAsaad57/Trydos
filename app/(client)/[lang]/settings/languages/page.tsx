@@ -21,14 +21,9 @@ async function LanguagesPage({ params }) {
       className="flex-col w-full pt-[20px] px-[12px] flex setting-screen"
       key="languages-setting-page"
     >
-      <BackBar
-        isRtl={isRtl}
-        DataCy="language-setting"
-        local={Params.lang}
-        preivous_page={`/${Params.lang}/settings`}
-      />
       <LanguageSetting
         languages={languages}
+        isRtl={isRtl}
         local={Params.lang}
         languageVar={language}
       />
