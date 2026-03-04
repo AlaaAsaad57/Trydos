@@ -1,6 +1,5 @@
 import { useAppStore } from "store";
 import { LogError, translateFunction } from "./functions";
-import { allCountries } from "country-telephone-data";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
 import Image from "next/image";
