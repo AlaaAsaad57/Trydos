@@ -8,7 +8,7 @@ import { pollinateInput } from "utils/tinyUtils";
 import BackBar from "../BackBar";
 import ConfirmMobileChange from "components/settings/ConfirmMobileChange";
 import { usePhoneInput } from "utils/usePhoneInput";
-import { getCountriesSync } from "utils/countryData";
+import { allCountries } from "country-telephone-data";
 import { createPortal } from "react-dom";
 
 // Validation helpers
@@ -19,7 +19,6 @@ const isValidEmail = (email: string): boolean => {
 };
 
 const getCountry = (val: string) => {
-  const allCountries = getCountriesSync();
   const matches = allCountries.filter((countryItem) =>
     val?.startsWith(countryItem.dialCode),
   );

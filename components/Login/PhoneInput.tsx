@@ -1,6 +1,6 @@
 import Border from "components/global/Border";
 import { useEffect, useRef, useState } from "react";
-import { getCountriesSync } from "utils/countryData";
+import { allCountries } from "country-telephone-data";
 
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translateFunction } from "utils/functions";
@@ -61,7 +61,6 @@ function PhoneInput({
   const ref = useRef();
 
   const getCountry = (val) => {
-    const allCountries = getCountriesSync();
     return allCountries.filter((countryItem) =>
       val?.startsWith(countryItem.dialCode),
     ).length === 1

@@ -1,6 +1,6 @@
 import { useAppStore } from "store";
 import { LogError, translateFunction } from "./functions";
-import { getCountriesSync } from "./countryData";
+import { allCountries } from "country-telephone-data";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
 import Image from "next/image";
@@ -288,19 +288,6 @@ export const ShowNotificationSign = ({
     return true;
   }
   return false;
-};
-
-const getCountry = (text?: string) => {
-  const allCountries = getCountriesSync();
-  return allCountries.filter((countryItem) =>
-    text?.startsWith(countryItem.dialCode),
-  ).length === 1
-    ? allCountries?.filter((countryItem) =>
-        text?.startsWith(countryItem.dialCode),
-      )[0]
-    : allCountries.filter((countryItem) =>
-        text?.startsWith(countryItem.dialCode),
-      )[0];
 };
 
 export const buildParamsFromFilters = (

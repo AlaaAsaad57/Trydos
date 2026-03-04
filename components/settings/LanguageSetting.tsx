@@ -4,8 +4,15 @@ import { translateFunction } from "utils/functions";
 import { FlagIcon } from "utils/tinyUtils";
 import { setLocaizationCookies } from "utils/cookies/cookie-manager";
 
-function LanguageSetting({ local, languageVar }) {
-  const languages = ["ar", "en", "tr", "ku"];
+function LanguageSetting({
+  local,
+  languageVar,
+  languages,
+}: {
+  local: string | null;
+  languageVar: string;
+  languages: string[];
+}) {
   const [selectedLanguage, setSelectedLanguage] = useState(languageVar);
   const [isSettingLanguage, setIsSettingLanguage] = useState(false);
   const changeLanguage = async (language: any) => {

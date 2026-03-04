@@ -71,6 +71,7 @@ async function page({ params }) {
     name: getCountryNameByIso2(country),
     iso: country,
   };
+  console.log(countryData);
   const getLanguage = () => {
     // @ts-ignore
     let iso = language;
