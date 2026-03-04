@@ -1254,6 +1254,16 @@ const translations = {
   "Super Admin": "مشرف عام",
   "You have full access to all features": "لديك حق الوصول الكامل لجميع الميزات",
   "Recommended Products": "المنتجات الموصى بها",
+  "Settings - TryDos": "الإعدادات - تريدوس",
+  "Manage your account settings and preferences.":
+    "قم بإدارة إعدادات حسابك وتفضيلاتك",
+  "Compare products side by side on TryDos - Make informed purchasing decisions.":
+    "قارن المنتجات جنبًا إلى جنب على ترايدوس - اتخذ قرارات شراء مدروسة.",
+  "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.":
+    "اكتشف المنتجات المميزة في ترايدوس - وجهتك الأمثل للتسوق مع المنتجات المميزة والعروض السريعة ومجموعات البوتيك.",
+  "TryDos - Boutique & Product Listing": "ترايدوس - قائمة البوتيكات والمنتجات",
+  "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.":
+    "تصفح بوتيكات ومنتجات ترايدوس مع فلاتر قوية حسب الماركة والفئة واللون والقياس والمزيد.",
 };
 
 export default translations;

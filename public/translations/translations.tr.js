@@ -1261,6 +1261,16 @@ const translations = {
   "Super Admin": "Süper Yönetici",
   "You have full access to all features": "Tüm özelliklere tam erişiminiz var",
   "Recommended Products": ' "Önerilen Ürünler",',
+  "Settings - TryDos": "Ayarlar - TryDos",
+  "Manage your account settings and preferences.":
+    "Hesap ayarlarınızı ve tercihlerinizi yönetin.",
+  "Compare products side by side on TryDos - Make informed purchasing decisions.":
+    "TryDos'ta ürünleri yan yana karşılaştırın - Bilinçli satın alma kararları verin.",
+  "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.":
+    "TryDos'ta premium ürünleri keşfedin - Öne çıkan ürünler, hızlı fırsatlar ve butik koleksiyonlarla nihai alışveriş hedefiniz.",
+  "TryDos - Boutique & Product Listing": "TryDos - Butik ve Ürün Listesi",
+  "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.":
+    "TryDos butiklerini ve ürünlerini marka, kategori, renk, beden ve daha fazlası için güçlü filtrelerle göz atın.",
 };
 
 export default translations;

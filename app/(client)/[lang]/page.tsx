@@ -16,6 +16,7 @@ import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrap
 import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
 import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
 import { GetHomeMetaData } from "serverRequests/meta/home";
+import { translateFunction } from "utils/server";
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, query] = await Promise.all([params, searchParams]);
@@ -29,19 +30,26 @@ export async function generateMetadata({ params, searchParams }) {
     return { ...metadata };
   } catch (error) {
     LogServerError({ error, type: "meta" }, `/${Params.lang}`);
+    const [country, language] = Params.lang.split("-");
     const baseUrl = General_Site_Data.url;
     const path = mainCategory ? `?mainCategory=${mainCategory}` : "";
     const fullUrl = `${baseUrl}/${Params.lang}${path}`;
     const ogImageUrl = baseUrl + General_Site_Data.og;
+    const title = translateFunction(
+      "TryDos - Premium Shopping Experience",
+      language,
+    );
+    const description = translateFunction(
+      "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+      language,
+    );
 
     return {
-      title: "TryDos - Premium Shopping Experience",
-      description:
-        "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+      title,
+      description,
       openGraph: {
-        title: "TryDos - Premium Shopping Experience",
-        description:
-          "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+        title,
+        description,
         url: fullUrl,
         siteName: "Trydos",
         type: "website",
@@ -55,9 +63,8 @@ export async function generateMetadata({ params, searchParams }) {
       },
       twitter: {
         card: "summary_large_image",
-        title: "TryDos - Premium Shopping Experience",
-        description:
-          "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+        title,
+        description,
         images: [ogImageUrl],
       },
     };

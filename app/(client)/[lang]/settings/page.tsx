@@ -21,9 +21,13 @@ import DummyAddDeposite from "components/settings/DummyAddDeposite";
 
 export async function generateMetadata({ params }) {
   let Params = await params;
+  const [country, language] = Params?.lang?.split("-");
   const metadata = {
-    title: "Settings - TryDos",
-    description: "Manage your TryDos account settings and preferences.",
+    title: translateFunction("Settings - TryDos", language),
+    description: translateFunction(
+      "Manage your account settings and preferences.",
+      language,
+    ),
     alternates: {
       canonical: `${General_Site_Data.url}/${Params.lang}/setting`,
     },

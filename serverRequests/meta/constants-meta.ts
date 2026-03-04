@@ -32,9 +32,9 @@ export const trydosTranslations = {
     listingDesc: (title) =>
       `اكتشف أفضل منتجات ${title} على ترايدوس. تصفح حسب الماركة، اللون، والقياس مع خدمة شحن سريع.`,
     home: {
-      title: "TryDos - Premium Shopping Experience",
+      title: "ترايدوس - تجربة تسوق مميزة",
       description:
-        "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+        "اكتشف المنتجات المميزة في ترايدوس - وجهتك الأمثل للتسوق مع المنتجات المميزة والعروض السريعة ومجموعات البوتيك.",
       categoryTitle: (category) => `${category} - ترايدوس`,
       getBoutiqueCategories: (boutique) => `${boutique} اصناف`,
     },
@@ -48,11 +48,11 @@ export const trydosTranslations = {
     listingDesc: (title) =>
       `Trydos'taki en iyi ${title} ürünlerini keşfedin. Marka, renk ve bedene göre filtreleyin, hızlı kargo ile sahip olun.`,
     home: {
-      title: "TryDos - Premium Shopping Experience",
+      title: "TryDos - Premium Alışveriş Deneyimi",
       description:
-        "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+        "TryDos'ta premium ürünleri keşfedin - Öne çıkan ürünler, hızlı fırsatlar ve butik koleksiyonlarla nihai alışveriş hedefiniz.",
       categoryTitle: (category) => `${category} - Trydos`,
-      getBoutiqueCategories: (boutique) => `${boutique} Categories`,
+      getBoutiqueCategories: (boutique) => `${boutique} Kategorileri`,
     },
   },
   ku: {
@@ -64,11 +64,11 @@ export const trydosTranslations = {
     listingDesc: (title) =>
       `باشترین کاڵاکانی ${title} لە ترايدوس ببینە. بەپێی مارکە، ڕەنگ و قەبارە بپشکنە لەگەڵ گەیاندنی خێرا.`,
     home: {
-      title: "TryDos - Premium Shopping Experience",
+      title: "TryDos - تجربەی کڕینی پێشکەوتوو",
       description:
-        "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+        "لە TryDos بەرهەمە تایبەتییەکان بدۆزەوە — شوێنی باشترین بۆ کڕین بە بەرهەمە تایبەتیەکان، دیلە فلاش و کۆمەڵە بوتیک.",
       categoryTitle: (category) => `${category} - Trydos`,
-      getBoutiqueCategories: (boutique) => `${boutique} Categories`,
+      getBoutiqueCategories: (boutique) => `${boutique} هاوپۆلەکان`,
     },
   },
 };

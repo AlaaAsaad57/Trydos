@@ -1283,6 +1283,16 @@ const translations = {
   "You have full access to all features":
     "Hûn têgihiştina tevahî yên hemû taybetmendiyan hene",
   "Recommended Products": "بەرهەمە پێشنیارکراوەکان",
+  "Settings - TryDos": "ڕێکخستنەکان - TryDos",
+  "Manage your account settings and preferences.":
+    "ڕێکخستنەکان و هەڵبژاردنەکانت بەڕێوەببە.",
+  "Compare products side by side on TryDos - Make informed purchasing decisions.":
+    "لە TryDos بەرهەمەکان تەنیشت یەکتر بەراورد بکە - بڕیاری کڕینی ئاگادارانە بدە.",
+  "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.":
+    "لە TryDos بەرهەمە تایبەتییەکان بدۆزەوە - شوێنی باشترین بۆ کڕین بە بەرهەمە تایبەتیەکان، دیلە فلاش و کۆمەڵە بوتیک.",
+  "TryDos - Boutique & Product Listing": "TryDos - لیستی بوتیک و بەرهەمەکان",
+  "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.":
+    "بوتیک و بەرهەمەکانی TryDos بگەڕێ بە فلتەرە بەهێزەکان بۆ نیشانەی بازرگانی، هاوپۆل، ڕەنگ، قەبارە و زیاتر.",
 };
 
 export default translations;

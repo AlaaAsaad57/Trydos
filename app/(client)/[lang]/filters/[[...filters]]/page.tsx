@@ -11,7 +11,7 @@ import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
-import { parseFiltersFromParams } from "utils/server";
+import { parseFiltersFromParams, translateFunction } from "utils/server";
 import { generateMetadataForListing } from "serverRequests/meta/listing";
 import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
@@ -36,6 +36,7 @@ export async function generateMetadata({ params }) {
       `/${Params.lang}/filters`,
     );
 
+    const [country, language] = Params?.lang?.split("-");
     const baseUrl = General_Site_Data.url;
     const filtersPath =
       Array.isArray(Params.filters) && Params.filters.length > 0
@@ -43,18 +44,24 @@ export async function generateMetadata({ params }) {
         : "";
     const fullUrl = `${baseUrl}/${Params.lang}/filters${filtersPath}`;
     const ogImageUrl = `${baseUrl}/opengraph-image.png`;
+    const title = translateFunction(
+      "TryDos - Boutique & Product Listing",
+      language,
+    );
+    const description = translateFunction(
+      "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.",
+      language,
+    );
 
     return {
-      title: "TryDos - Boutique & Product Listing",
-      description:
-        "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.",
+      title,
+      description,
       alternates: {
         canonical: fullUrl,
       },
       openGraph: {
-        title: "TryDos - Boutique & Product Listing",
-        description:
-          "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.",
+        title,
+        description,
         url: fullUrl,
         siteName: "Trydos",
         type: "website",
@@ -62,9 +69,8 @@ export async function generateMetadata({ params }) {
       },
       twitter: {
         card: "summary_large_image",
-        title: "TryDos - Boutique & Product Listing",
-        description:
-          "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.",
+        title,
+        description,
         images: [ogImageUrl],
       },
     };
