@@ -38,13 +38,33 @@ function CallMessage({
   const showTextAvatar = React.useMemo(() => {
     if (!activeChat) return false;
     const member = activeChat.channel_members.find(
-      (a) => parseInt(a.user_id.toString()) === parseInt(user?.id)
+      (a) => parseInt(a.user_id.toString()) === parseInt(user?.id),
     );
     return (
       (!member?.user?.photo_path || member?.user?.photo_path?.includes("eu")) &&
       !!member?.user?.name
     );
   }, [activeChat, user]);
+
+  const getCallText = () => {
+    let isSender = parseInt(sender_user_id.toString()) === parseInt(user?.id);
+    const isVoiceCall = message_type.name === "VoiceCall";
+    if (duration_in_seconds <= 0) {
+      return isVoiceCall
+        ? translateFunction("Missed Voice Call At")
+        : translateFunction("Missed Video Call At");
+    } else {
+      if (isVoiceCall) {
+        return isSender
+          ? translateFunction("Outgoing Voice Call")
+          : translateFunction("Incoming Voice Call");
+      } else {
+        return isSender
+          ? translateFunction("Outgoing Video Call")
+          : translateFunction("Incoming Video Call");
+      }
+    }
+  };
   return (
     <div
       className={`${openMenu && "ac"} flex flex-col gap-[10px] message-hold`}
@@ -82,8 +102,8 @@ function CallMessage({
               ? translateFunction("Missed Video Call At")
               : translateFunction("Missed Voice Call At")
             : message_type.name === "VideoCall"
-            ? translateFunction("Outgoing Video Call")
-            : translateFunction("Outgoing Voice Call")}{" "}
+              ? translateFunction("Outgoing Video Call")
+              : translateFunction("Outgoing Voice Call")}{" "}
           {calculate(duration_in_seconds)} {getMessageTime(created_at, true)}
         </div>
       </div>
