@@ -97,14 +97,8 @@ function CallMessage({
           />
         </div>
         <div className="missed-body">
-          {duration_in_seconds <= 0
-            ? message_type.name === "VideoCall"
-              ? translateFunction("Missed Video Call At")
-              : translateFunction("Missed Voice Call At")
-            : message_type.name === "VideoCall"
-              ? translateFunction("Outgoing Video Call")
-              : translateFunction("Outgoing Voice Call")}{" "}
-          {calculate(duration_in_seconds)} {getMessageTime(created_at, true)}
+          {getCallText()} {calculate(duration_in_seconds)}{" "}
+          {getMessageTime(created_at, true)}
         </div>
       </div>
       <OptionsMenu

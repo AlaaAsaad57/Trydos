@@ -1178,6 +1178,8 @@ const translations = {
   "last Seen ": "Son görülme",
   "Outgoing Voice Call": "Giden sesli arama",
   "Outgoing Video Call": "Giden görüntülü arama",
+  "Incoming Voice Call": "Gelen sesli arama",
+  "Incoming Video Call": "Gelen görüntülü arama",
   "Missed Voice Call At": "Cevapsız sesli arama saat",
   "Missed Video Call At": "Cevapsız görüntülü arama saat",
   "Loading products...": "Berhem tên barkirin...",

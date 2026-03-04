@@ -1187,6 +1187,8 @@ const translations = {
   "last Seen ": "آخر ظهور",
   "Outgoing Voice Call": "مكالمة صوتية صادرة",
   "Outgoing Video Call": "مكالمة فيديو صادرة",
+  "Incoming Voice Call": "مكالمة صوتية واردة",
+  "Incoming Video Call": "مكالمة فيديو واردة",
   "Missed Voice Call At": "مكالمة صوتية فائتة عند",
   "Missed Video Call At": "مكالمة فيديو فائتة عند",
   "Loading products...": "جاري تحميل المنتجات...",

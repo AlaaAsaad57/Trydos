@@ -15,7 +15,7 @@ async function LanguagesPage({ params }) {
   });
   const languageVar = await res.json();
   const languages = languageVar?.data?.map((item: any) => item.code);
-  console.log("languageVar", languageVar);
+
   return (
     <div
       className="flex-col w-full pt-[20px] px-[12px] flex setting-screen"
