@@ -1634,7 +1634,7 @@ const OrderDetailScreen = ({
             const image = getItemImage(item, productDetails);
             const variantColor = item.color || "";
             const variantSize = item.size || "";
-            const unitPrice = Number(item.price || 0);
+            const unitPrice = Number(item.unit_price || 0);
             const qty = Number(item.qty || 0);
             const totalPrice = unitPrice * qty;
             const isConfirmed = Boolean(item?.is_confirm);
@@ -1796,7 +1796,7 @@ export const RenderOrders = ({
   const [selectedOrderFilterTab, setSelectedOrderFilterTab] =
     useState<OrderFilterTabLabel>("All");
   const shouldUpdateOrders = useAppStore((state) => state.shouldUpdateOrders);
-    
+
   const getSellerOrders = async (page: number = 1) => {
     try {
       setOrdersLoading(true);
