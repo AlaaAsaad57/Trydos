@@ -386,7 +386,7 @@ const UploadImageComponent = ({
           }}
           className={`${
             images.length === 0 ? "justify-center" : "justify-between pr-[12px]"
-          } flex-row w-full items-center justify-center bg-[#F8F8F8] rounded-[12px] h-[80px] cursor-pointer relative`}
+          } flex-row w-full items-center  bg-[#F8F8F8] rounded-[12px] h-[80px] cursor-pointer relative`}
         >
           {!loading && images.length > 0 && (
             <div className="flex-row gap-[3px]">
