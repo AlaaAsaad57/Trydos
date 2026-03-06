@@ -405,16 +405,14 @@ const ComparePage = ({ showInstantLoading = true }) => {
       label: translateFunction("Sizes"),
       render: (product: any) => (
         <div className="flex gap-2">
-          {product.choice_options
-            ?.find((opt) => opt.title === "Size")
-            ?.options?.map((size) => (
-              <span
-                key={size.name}
-                className="px-2 py-1 bg-gray-100 rounded-sm regular"
-              >
-                {size.name}
-              </span>
-            )) || "-"}
+          {product.sizes?.map((size) => (
+            <span
+              key={size.name}
+              className="px-2 py-1 bg-gray-100 rounded-sm regular"
+            >
+              {size.name}
+            </span>
+          )) || "-"}
         </div>
       ),
     },

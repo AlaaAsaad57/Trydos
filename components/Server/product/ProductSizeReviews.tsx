@@ -4,7 +4,7 @@ import { translateFunction } from "utils/server";
 
 async function ProductSizeReviews({ qtyPricePromise, language, isRtl }) {
   let productData = await qtyPricePromise;
-  let sizes = productData?.choice_options?.[0]?.options;
+  let sizes = productData?.sizes;
 
   if (!sizes || sizes?.length === 0) return <></>;
 
