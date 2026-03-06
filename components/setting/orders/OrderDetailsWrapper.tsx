@@ -619,14 +619,7 @@ const OrderExpandedDetails = ({
     let arr = [];
     returnDetails.return_requests_data.map((s) => {
       s.order_details.map((d) => {
-        if (d.already_return && d.return_request_id) {
-          arr.push(d.return_request_id);
-        }
-      });
-    });
-    returnDetails.return_requests_data.map((s) => {
-      s.order_details.map((d) => {
-        if (d.already_return && d.return_request_id) {
+        if (d.return_request_id) {
           arr.push(d.return_request_id);
         }
       });
