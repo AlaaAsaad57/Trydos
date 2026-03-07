@@ -1264,6 +1264,22 @@ const translations = {
   "TryDos - Boutique & Product Listing": "ترايدوس - قائمة البوتيكات والمنتجات",
   "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.":
     "تصفح بوتيكات ومنتجات ترايدوس مع فلاتر قوية حسب الماركة والفئة واللون والقياس والمزيد.",
+  "Wallet Deposits": "إيداعات المحفظة",
+  "View / Create": "عرض / إنشاء",
+  "RDB Wallet": "محفظة RDB",
+  "Retry fetching wallet balance": "إعادة المحاولة في تحميل رصيد المحفظة",
+  "Submit Deposit": "إرسال الإيداع",
+  "Processing...": "جاري المعالجة...",
+  "Click to upload": "انقر لتحميل",
+  "Proof of Transfer": "اثبات التحويل",
+  Tax: "الضريبة",
+  "You Receive": "تحصل على",
+  Fee: "الرسوم",
+  "No banks support this currency for deposit": "",
+  "Select a bank": "اختر بنك",
+  "No deposits found": "لا توجد إيداعات",
+  "Create Deposit": "إنشاء إيداع",
+  Deposits: "إيداعات",
 };
 
 export default translations;

@@ -1,4 +1,6 @@
 const translations = {
+  "Wallet Deposits": "Cüzdan Yatırımları",
+  "View / Create": "Görüntüle / Oluştur",
   "Product Not Found": "Ürün Bulunamadı",
   "Buyer Rate": "Alıcı Puanı",
   "Shipping Company": "Kargo Şirketi",
@@ -1271,6 +1273,21 @@ const translations = {
   "TryDos - Boutique & Product Listing": "TryDos - Butik ve Ürün Listesi",
   "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.":
     "TryDos butiklerini ve ürünlerini marka, kategori, renk, beden ve daha fazlası için güçlü filtrelerle göz atın.",
+  "RDB Wallet": "RDB Cüzdanı",
+  "Retry fetching wallet balance": "Cüzdan bakiyesi yükleniyor...",
+  "Submit Deposit": "Yatırımı Gönder",
+  "Processing...": "İşleniyor...",
+  "Click to upload": "Yüklemek için tıklayın",
+  "Proof of Transfer": "Transfer Onayı",
+  Tax: "Vergi",
+  "You Receive": "Alırsınız",
+  Fee: "Ücret",
+  "No banks support this currency for deposit":
+    "Bu para birimi için yatırım yapan banka yok",
+  "Select a bank": "Banka Seçin",
+  "No deposits found": "Yatırım bulunamadı",
+  "Create Deposit": "Yatırım Oluştur",
+  Deposits: "Yatırımlar",
 };
 
 export default translations;

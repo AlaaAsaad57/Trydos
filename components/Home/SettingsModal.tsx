@@ -135,6 +135,7 @@ const SettingsModal = ({ onClose, lang }) => {
             reqTitle: REQUESTS_DATA.STORE_FIREBASE_UNSUBSCRIBE_TOPIC,
             method: "POST",
             server: "market",
+            noMessage: true,
           });
           if (!res.success) {
             throw new Error(res.message);
@@ -175,6 +176,7 @@ const SettingsModal = ({ onClose, lang }) => {
             reqTitle: REQUESTS_DATA.STORE_FIREBASE_SUBSCRIBE_TOPIC,
             method: "POST",
             server: "market",
+            noMessage: true,
           });
           // @ts-ignore
           if (!res.success) {

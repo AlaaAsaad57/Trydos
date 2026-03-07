@@ -1293,6 +1293,23 @@ const translations = {
   "TryDos - Boutique & Product Listing": "TryDos - لیستی بوتیک و بەرهەمەکان",
   "Browse TryDos boutiques and products with powerful filters for brand, category, color, size, and more.":
     "بوتیک و بەرهەمەکانی TryDos بگەڕێ بە فلتەرە بەهێزەکان بۆ نیشانەی بازرگانی، هاوپۆل، ڕەنگ، قەبارە و زیاتر.",
+  "Wallet Deposits": "ئێدازەکانی جزدان",
+  "View / Create": "بینین / زیادکردن",
+  "RDB Wallet": "جزدانی RDB",
+  "Retry fetching wallet balance": "دووبارە هەوڵ بدە بۆ گەڕاندنی باڵانسی جزدان",
+  "Submit Deposit": "ئێداز بنێرە",
+  "Processing...": "پرۆسەکردن...",
+  "Click to upload": "لەسەر بکە بۆ پەڕگەکردن",
+  "Proof of Transfer": "اثباتی تەواوکردن",
+  Tax: "ئاسودە",
+  "You Receive": "تەواوکراویت",
+  Fee: "پارە",
+  "No banks support this currency for deposit":
+    "هیچ بانک هیچ پارەی ئێدازەکەت نییە",
+  "Select a bank": "بانک هەڵبژێرە",
+  "No deposits found": "ئێدازەکان پێشتر نەدۆزراوە",
+  "Create Deposit": "ئێداز بنێرە",
+  Deposits: "ئێدازەکان",
 };
 
 export default translations;

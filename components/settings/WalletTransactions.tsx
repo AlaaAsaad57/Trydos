@@ -159,7 +159,7 @@ function WalletTransactions({ isRtl, local }) {
             <img src="/icons/WalletIcon.svg" />
             <div className="flex-col">
               <span className="text-[#1D1D1D] text-[14px] regular">
-                {translateFunction("Ramaaz Digital Bank Wallet")}
+                {translateFunction("RDB Wallet")}
               </span>
               <span
                 className="text-[#8D8D8D] text-[12px] regular"

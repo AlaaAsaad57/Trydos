@@ -534,7 +534,7 @@ function DummyAddDeposite() {
                               </span>
                             </div>
                             <div className="flex-row justify-between text-[#8D8D8D]">
-                              <span>{translateFunction("Fee")}</span>
+                              <span>{translateFunction("Tax")}</span>
                               <span>
                                 {feeDetails.taxAmount} {activeCurrency?.symbol}
                               </span>

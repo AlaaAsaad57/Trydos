@@ -670,7 +670,7 @@ const TryDosWalletInput = ({ total }) => {
       <div className="flex-row items-center">
         <img src="/icons/WalletIcon.svg" />
         <span className={`ml-[8px]  ${"text-[#1D1D1D]"} regular text-[12px]`}>
-          {translateFunction("Ramaaz Digital Bank Wallet")}
+          {translateFunction("RDB Wallet")}
         </span>
       </div>
       <div className="flex-row items-center">
