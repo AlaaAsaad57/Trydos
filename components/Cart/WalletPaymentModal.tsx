@@ -245,7 +245,6 @@ export default function WalletPaymentModal({
       } else {
         // @ts-ignore
         if (result && result.url) {
-          console.log(result);
           alert(JSON.stringify(result, null, 2));
         }
         showErrorNotification(

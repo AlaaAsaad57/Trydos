@@ -128,7 +128,6 @@ export const useHomeStore = (set, get) => ({
     })),
 
   setStoryData: (data: Story[]) => {
-    console.log(data);
     set({ storiesData: data, loadingStories: false });
   },
 

@@ -211,7 +211,7 @@ function DummyAddDeposite() {
         local,
         handleUnauthenticated,
       });
-      console.log(res);
+
       if (res?.url) setImageUrl(res.url);
     } catch (error) {
       console.error("Upload failed", error);
