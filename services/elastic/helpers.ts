@@ -13,6 +13,8 @@ export function getSourceFields(): string[] {
     "flash_deal_price",
     "offered_price",
     "unit_price",
+    "country_offer_prices",
+    "extra_price_for_country",
     "colors",
     "text_colors",
     "sync_color_images",
@@ -34,6 +36,8 @@ export function getSourceFields(): string[] {
     "categories.position",
     "categories.id",
     "categories.parent_id",
+    "categories.gender",
+    "categories.group_age",
     "custom_brands.id",
     "custom_brands.name",
     "custom_brands.slug",
@@ -145,6 +149,8 @@ interface CategoryFilter extends FilterResult {
   num_available_product?: number;
   parent_id?: string | number | null;
   most_viewed_product_thumbnail?: string;
+  gender?: number | null;
+  group_age?: number | null;
   childes: CategoryFilter[];
 }
 
@@ -210,6 +216,7 @@ export function extractFilters(
   products: any[],
   languageCode: string,
   isFromBrowser: boolean,
+  country: string = "",
 ): ExtractFiltersResult {
   const customProducts: CustomProduct[] = [];
 
@@ -223,6 +230,7 @@ export function extractFilters(
               customProduct,
               languageCode,
               isFromBrowser,
+              country,
             ),
           );
         }
@@ -231,7 +239,7 @@ export function extractFilters(
   });
 
   // Calculate price range
-  const prices = calculatePriceRange(products);
+  const prices = calculatePriceRange(products, country);
 
   return {
     custom_products: Object.values(customProducts),
@@ -244,6 +252,7 @@ export function processCustomProduct(
   customProduct: any,
   languageCode: string,
   isFromBrowser: boolean,
+  country: string = "",
 ): CustomProduct {
   const result: CustomProduct = { ...customProduct };
 
@@ -283,8 +292,8 @@ export function processCustomProduct(
   result.images = parseJsonField(product.images);
   result.colors = product.colors;
   result.sync_color_images = product.sync_color_images || [];
-  result.price = product.unit_price;
-  result.offer_price = product.offered_price;
+  result.price = resolveUnitPriceForCountry(product, country);
+  result.offer_price = resolveOfferPriceForCountry(product, country);
   result.boutique_id = product.boutique_id;
   result.in_stock = parseFloat(product.current_stock || "0") > 0;
 
@@ -406,6 +415,225 @@ export function calculateDiscountedPrice(
   // For flat discount
   return Math.max(0, originalPrice - discount);
 }
+
+function normalizeCountryOfferPrices(
+  value: any,
+): Array<{ country_iso: string; offer_price: number; extra_price: number }> {
+  if (value === null || value === undefined || value === "") return [];
+
+  let parsed = value;
+  if (typeof value === "string") {
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      return [];
+    }
+  }
+
+  if (!Array.isArray(parsed)) return [];
+
+  const normalized: Record<
+    string,
+    { country_iso: string; offer_price: number; extra_price: number }
+  > = {};
+  for (const item of parsed) {
+    if (!item || typeof item !== "object") continue;
+    const countryIso = String(item.country_iso || "")
+      .trim()
+      .toUpperCase();
+    if (!countryIso) continue;
+
+    const offerPrice =
+      item.offer_price != null && !isNaN(Number(item.offer_price))
+        ? Number(item.offer_price)
+        : null;
+    if (offerPrice === null) continue;
+
+    normalized[countryIso] = {
+      country_iso: countryIso,
+      offer_price: offerPrice,
+      extra_price:
+        item.extra_price != null && !isNaN(Number(item.extra_price))
+          ? Number(item.extra_price)
+          : 0,
+    };
+  }
+
+  return Object.values(normalized);
+}
+
+function normalizeExtraPriceForCountry(value: any): any[] | null {
+  if (value === null || value === undefined || value === "") return null;
+
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+
+  return Array.isArray(value) ? value : null;
+}
+
+export function resolveUnitPriceForCountry(
+  product: any,
+  countryIso: string,
+): number {
+  const baseUnitPrice = Number(product.unit_price || 0);
+  const baseOfferPrice = Number(product.offered_price ?? baseUnitPrice);
+  countryIso = String(countryIso || "")
+    .trim()
+    .toUpperCase();
+
+  if (!countryIso) return baseUnitPrice;
+
+  const countryOfferPrices = normalizeCountryOfferPrices(
+    product.country_offer_prices,
+  );
+  for (const cop of countryOfferPrices) {
+    if (cop.country_iso !== countryIso) continue;
+    if (cop.extra_price != null && !isNaN(cop.extra_price)) {
+      return Math.max(0, baseUnitPrice + cop.extra_price);
+    }
+    if (cop.offer_price != null && !isNaN(cop.offer_price)) {
+      const derivedExtra = cop.offer_price - baseOfferPrice;
+      return Math.max(0, baseUnitPrice + derivedExtra);
+    }
+  }
+
+  const extraPrices =
+    normalizeExtraPriceForCountry(product.extra_price_for_country) ?? [];
+  for (const item of extraPrices) {
+    if (!item || typeof item !== "object") continue;
+    const itemIso = String(item.country_iso || "")
+      .trim()
+      .toUpperCase();
+    if (itemIso !== countryIso) continue;
+    const extra =
+      item.extra_price != null && !isNaN(Number(item.extra_price))
+        ? Number(item.extra_price)
+        : 0;
+    return Math.max(0, baseUnitPrice + extra);
+  }
+
+  return baseUnitPrice;
+}
+
+export function resolveOfferPriceForCountry(
+  product: any,
+  countryIso: string,
+): number {
+  const baseOfferPrice = Number(
+    product.offered_price ?? product.unit_price ?? 0,
+  );
+  countryIso = String(countryIso || "")
+    .trim()
+    .toUpperCase();
+
+  if (!countryIso) return baseOfferPrice;
+
+  const countryOfferPrices = normalizeCountryOfferPrices(
+    product.country_offer_prices,
+  );
+  for (const cop of countryOfferPrices) {
+    if (cop.country_iso === countryIso) {
+      return Number(cop.offer_price ?? baseOfferPrice);
+    }
+  }
+
+  const extraPrices =
+    normalizeExtraPriceForCountry(product.extra_price_for_country) ?? [];
+  for (const item of extraPrices) {
+    if (!item || typeof item !== "object") continue;
+    const itemIso = String(item.country_iso || "")
+      .trim()
+      .toUpperCase();
+    if (itemIso !== countryIso) continue;
+    const extra =
+      item.extra_price != null && !isNaN(Number(item.extra_price))
+        ? Number(item.extra_price)
+        : 0;
+    return Math.max(0, baseOfferPrice + extra);
+  }
+
+  return baseOfferPrice;
+}
+
+export function buildCountryAwarePriceRangeCondition(
+  priceRange: number[],
+  countryIso: string,
+): any {
+  const minPrice = Number(priceRange[0] || 0);
+  const maxPrice = Number(priceRange[1] || minPrice);
+
+  const baseRangeCondition = {
+    range: { offered_price: { gte: minPrice, lte: maxPrice } },
+  };
+
+  countryIso = String(countryIso || "")
+    .trim()
+    .toUpperCase();
+  if (!countryIso) return baseRangeCondition;
+
+  return {
+    bool: {
+      should: [
+        {
+          nested: {
+            path: "country_offer_prices",
+            ignore_unmapped: true,
+            query: {
+              bool: {
+                must: [
+                  {
+                    term: {
+                      "country_offer_prices.country_iso": countryIso,
+                    },
+                  },
+                  {
+                    range: {
+                      "country_offer_prices.offer_price": {
+                        gte: minPrice,
+                        lte: maxPrice,
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        {
+          bool: {
+            must: [
+              {
+                bool: {
+                  must_not: [
+                    {
+                      nested: {
+                        path: "country_offer_prices",
+                        ignore_unmapped: true,
+                        query: {
+                          term: {
+                            "country_offer_prices.country_iso": countryIso,
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              baseRangeCondition,
+            ],
+          },
+        },
+      ],
+      minimum_should_match: 1,
+    },
+  };
+}
+
 function parseJsonField(jsonData: any): any[] {
   if (!jsonData) return [];
 
@@ -578,7 +806,10 @@ function removeCategoryExtraFields(category: any): void {
     }
   });
 }
-export function calculatePriceRange(products: any[]): {
+export function calculatePriceRange(
+  products: any[],
+  country: string = "",
+): {
   min_price: number;
   max_price: number;
   priceRanges: any[];
@@ -587,39 +818,31 @@ export function calculatePriceRange(products: any[]): {
   let maxPrice = -Infinity;
 
   products?.forEach((product) => {
-    const price = parseFloat(
-      product.offered_price || product.unit_price || "0",
-    );
+    const price = resolveOfferPriceForCountry(product, country);
     if (price > 0) {
       minPrice = Math.min(minPrice, price);
       maxPrice = Math.max(maxPrice, price);
     }
   });
-  let priceRanges = calculatePriceFilter(products);
+  let priceRanges = calculatePriceFilter(products, country);
   return {
     min_price: minPrice === Infinity ? 0 : minPrice,
     max_price: maxPrice === -Infinity ? 0 : maxPrice,
     priceRanges: priceRanges?.priceRanges ?? [],
   };
 }
-function calculatePriceFilter(products: CustomProduct[]): FinalPrices | null {
+function calculatePriceFilter(
+  products: any[],
+  country: string = "",
+): FinalPrices | null {
   if (products.length === 0) return null;
 
-  const getDiscountedPrice = (product: CustomProduct): number => {
-    const { unit_price, discount, discount_type } = product;
-    if (discount_type === "percent") {
-      return unit_price - (discount / 100) * unit_price;
-    } else if (discount_type === "flat") {
-      return unit_price - discount;
-    } else {
-      return unit_price;
-    }
-  };
+  const productPrices = products.map((product) =>
+    resolveOfferPriceForCountry(product, country),
+  );
 
-  const discountedPrices = products.map(getDiscountedPrice);
-
-  const minOfferPrice = Math.min(...discountedPrices);
-  const maxOfferPrice = Math.max(...discountedPrices);
+  const minOfferPrice = Math.min(...productPrices);
+  const maxOfferPrice = Math.max(...productPrices);
 
   if (minOfferPrice >= maxOfferPrice) return null;
 
@@ -638,7 +861,7 @@ function calculatePriceFilter(products: CustomProduct[]): FinalPrices | null {
     const rangeMin = boundaries[i];
     const rangeMax = boundaries[i + 1];
 
-    const productsCount = discountedPrices.filter(
+    const productsCount = productPrices.filter(
       (price) => price >= rangeMin && price <= rangeMax,
     ).length;
 
@@ -748,16 +971,14 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
     });
   }
 
-  // Add price range filter
-  if (filters.priceRange) {
-    mustConditions.push({
-      range: {
-        offered_price: {
-          gte: filters.priceRange[0],
-          lte: filters.priceRange[1],
-        },
-      },
-    });
+  // Add price range filter (country-aware)
+  if (
+    filters.priceRange &&
+    filters.priceRange?.filter((s) => !isNaN(s) && typeof s === "number").length
+  ) {
+    mustConditions.push(
+      buildCountryAwarePriceRangeCondition(filters.priceRange, country),
+    );
   }
 
   // Add search text conditions
@@ -1545,6 +1766,8 @@ export function buildAggregations(
                         "categories.num_available_product",
                         "categories.parent_id",
                         "categories.most_viewed_product_thumbnail",
+                        "categories.gender",
+                        "categories.group_age",
                       ],
                     },
                   },
@@ -1568,6 +1791,81 @@ export function buildAggregations(
               terms: {
                 field: "available_size_as_json.size.keyword",
                 size: filtersSize,
+              },
+            },
+          },
+        },
+        related_categories: {
+          nested: { path: "categories" },
+          aggs: {
+            categories_with_gender_age: {
+              terms: { field: "categories.id", size: filtersSize },
+              aggs: {
+                category_details: {
+                  top_hits: {
+                    size: 1,
+                    _source: {
+                      includes: [
+                        "categories.id",
+                        "categories.num_available_product",
+                        "categories.parent_id",
+                        "categories.gender",
+                        "categories.group_age",
+                        "categories.most_viewed_product_thumbnail",
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        related_custom_categories: {
+          nested: { path: "custom_categories" },
+          aggs: {
+            filtered_categories: {
+              filter: {
+                term: { "custom_categories.language_code": languageCode },
+              },
+              aggs: {
+                categories_by_id: {
+                  terms: {
+                    field: "custom_categories.category_id",
+                    size: filtersSize,
+                  },
+                  aggs: {
+                    category_details: {
+                      top_hits: {
+                        size: 1,
+                        _source: {
+                          includes: [
+                            "custom_categories.id",
+                            "custom_categories.category_id",
+                            "custom_categories.name",
+                            "custom_categories.slug",
+                            "custom_categories.bio",
+                            "custom_categories.description",
+                            "custom_categories.flat_photo_path",
+                            "custom_categories.png_photo_path",
+                            "custom_categories.fill_photo_path",
+                            "custom_categories.banner_photo_path",
+                          ],
+                        },
+                      },
+                    },
+                    to_product: {
+                      reverse_nested: {},
+                      aggs: {
+                        product_thumbnail: {
+                          top_hits: {
+                            size: 1,
+                            _source: { includes: ["thumbnail"] },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -1682,6 +1980,8 @@ export async function getChildrenAndGrandchildren(
                           "categories.num_available_product",
                           "categories.parent_id",
                           "categories.most_viewed_product_thumbnail",
+                          "categories.gender",
+                          "categories.group_age",
                         ],
                       },
                     },
@@ -1769,13 +2069,21 @@ export function processBoutiquesAggregation(
 /**
  * Process categories aggregation
  */
+export interface CategoriesAggregationResult {
+  categories: CategoryFilter[];
+  genderAgePairs: Record<string, { gender: number; group_age: number }>;
+}
+
 export function processCategoriesAggregation(
   transBuckets: any[],
   origBuckets: any[],
   filtersOffset: number,
-): CategoryFilter[] {
+): CategoriesAggregationResult {
   // Create original categories map
   const origMap: Record<string | number, any> = {};
+  const genderAgePairs: Record<string, { gender: number; group_age: number }> =
+    {};
+
   origBuckets.forEach((bucket) => {
     const hit = bucket.orig_category_details?.hits?.hits?.[0]?._source || {};
     if (hit.id) {
@@ -1783,7 +2091,17 @@ export function processCategoriesAggregation(
         num_available_product: hit.num_available_product || 0,
         parent_id: hit.parent_id || null,
         most_viewed_product_thumbnail: hit?.most_viewed_product_thumbnail,
+        gender: hit.gender ?? null,
+        group_age: hit.group_age ?? null,
       };
+
+      if (hit.gender != null && hit.group_age != null) {
+        const pairKey = `${hit.gender}_${hit.group_age}`;
+        genderAgePairs[pairKey] = {
+          gender: hit.gender,
+          group_age: hit.group_age,
+        };
+      }
     }
   });
 
@@ -1838,8 +2156,104 @@ export function processCategoriesAggregation(
     (cat) => !cat.parent_id || cat.parent_id === 0,
   );
 
-  return paginateFilters(categoriesTree, filtersOffset);
+  return {
+    categories: paginateFilters(categoriesTree, filtersOffset),
+    genderAgePairs,
+  };
 }
+
+export function processRelatedCategories(
+  aggregations: any,
+  genderAgePairs: Record<string, { gender: number; group_age: number }>,
+  filtersOffset: number,
+): CategoryFilter[] {
+  if (Object.keys(genderAgePairs).length === 0) return [];
+
+  const relatedOrigBuckets =
+    aggregations.related_categories?.categories_with_gender_age?.buckets || [];
+
+  const relatedOrigMap: Record<string | number, any> = {};
+  for (const bucket of relatedOrigBuckets) {
+    const hit = bucket.category_details?.hits?.hits?.[0]?._source || {};
+    const catId = hit.id ?? null;
+    if (catId) {
+      relatedOrigMap[catId] = {
+        num_available_product: hit.num_available_product || 0,
+        parent_id: hit.parent_id || null,
+        gender: hit.gender ?? null,
+        group_age: hit.group_age ?? null,
+        most_viewed_product_thumbnail:
+          hit.most_viewed_product_thumbnail ?? null,
+      };
+    }
+  }
+
+  const relatedCustomBuckets =
+    aggregations.related_custom_categories?.filtered_categories
+      ?.categories_by_id?.buckets || [];
+
+  const relatedCategoriesFilter: CategoryFilter[] = [];
+
+  for (const bucket of relatedCustomBuckets) {
+    const customCat = bucket.category_details?.hits?.hits?.[0]?._source || {};
+    const catId = bucket.key;
+
+    if (!relatedOrigMap[catId]) continue;
+
+    const relatedOrig = relatedOrigMap[catId];
+    const relatedGender = relatedOrig.gender;
+    const relatedGroupAge = relatedOrig.group_age;
+
+    if (relatedGender != null && relatedGroupAge != null) {
+      const pairKey = `${relatedGender}_${relatedGroupAge}`;
+
+      if (genderAgePairs[pairKey]) {
+        const thumbHit =
+          bucket.to_product?.product_thumbnail?.hits?.hits?.[0]?._source || {};
+        const thumbnail = thumbHit.thumbnail ?? null;
+
+        relatedCategoriesFilter.push({
+          id: customCat.id || catId,
+          category_id: customCat.category_id || catId,
+          name: customCat.name || "",
+          slug: customCat.slug || "",
+          bio: customCat.bio || "",
+          description: customCat.description || "",
+          flat_photo_path: customCat.flat_photo_path || "",
+          png_photo_path: customCat.png_photo_path || "",
+          fill_photo_path: customCat.fill_photo_path || "",
+          banner_photo_path: customCat.banner_photo_path || "",
+          num_available_product: relatedOrig.num_available_product,
+          parent_id: relatedOrig.parent_id,
+          most_viewed_product_thumbnail:
+            relatedOrig.most_viewed_product_thumbnail ?? thumbnail,
+          gender: relatedGender,
+          group_age: relatedGroupAge,
+          childes: [],
+        });
+      }
+    }
+  }
+
+  // Build category hierarchy for related categories
+  const indexedRelated: Record<string | number, CategoryFilter> = {};
+  for (const cat of relatedCategoriesFilter) {
+    indexedRelated[cat.category_id!] = cat;
+  }
+
+  for (const cat of Object.values(indexedRelated)) {
+    if (cat.parent_id && indexedRelated[cat.parent_id]) {
+      indexedRelated[cat.parent_id].childes.push(cat);
+    }
+  }
+
+  const relatedTree = Object.values(indexedRelated).filter(
+    (cat) => !cat.parent_id,
+  );
+
+  return paginateFilters(relatedTree, filtersOffset);
+}
+
 export function paginateFilters<T>(
   filters: T[],
   filtersSize: number,

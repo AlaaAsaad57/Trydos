@@ -14,6 +14,7 @@ import {
   processBrandsAggregation,
   processCategoriesAggregation,
   processCustomProduct,
+  processRelatedCategories,
   sortColorsByFilteredColor,
   sortSyncColorImagesByFilteredColor,
 } from "./helpers";
@@ -60,6 +61,8 @@ interface CategoryFilter extends FilterResult {
   num_available_product?: number;
   parent_id?: string | number | null;
   most_viewed_product_thumbnail?: string;
+  gender?: number | null;
+  group_age?: number | null;
   childes: CategoryFilter[];
 }
 
@@ -71,6 +74,7 @@ interface SearchResult {
   brands?: FilterResult[];
   boutiques?: FilterResult[];
   categories?: CategoryFilter[];
+  related_categories?: CategoryFilter[];
   attributes?: Array<{
     id: number;
     name: string;
@@ -248,6 +252,7 @@ export async function getProductsAndFiltersFromElastic(
       customProducts,
       language_code,
       is_from_browser,
+      country,
     );
     prices = productsWithFilters.prices;
     if (filters.colors?.length) {
@@ -340,10 +345,16 @@ export async function getProductsAndFiltersFromElastic(
       categories_childs.top_orig_categories?.orig_categories_by_id?.buckets ||
         [],
     );
-
-    categoriesFilter = processCategoriesAggregation(
+    const categoriesResult = processCategoriesAggregation(
       categiresCombo,
       by_id_categories_comb,
+      filters_offset,
+    );
+    categoriesFilter = categoriesResult.categories;
+
+    const relatedCategoriesFilter = processRelatedCategories(
+      aggregations,
+      categoriesResult.genderAgePairs,
       filters_offset,
     );
 
@@ -377,6 +388,7 @@ export async function getProductsAndFiltersFromElastic(
       brands: brandsFilter,
       boutiques: boutiquesFilter,
       categories: categoriesFilter,
+      related_categories: relatedCategoriesFilter,
       attributes:
         sizesFilter.length > 0
           ? [
@@ -535,6 +547,7 @@ export async function GetRecomendationsForUser({
         fetchedProductsRaw,
         language,
         true,
+        country,
       );
       const fetchedProducts =
         normalizeCustomProducts(productsWithFilters).custom_products;
@@ -615,6 +628,7 @@ function extractFilters(
   products: any[],
   languageCode: string,
   isFromBrowser: boolean,
+  country: string = "",
 ): ExtractFiltersResult {
   const customProducts: CustomProduct[] = [];
 
@@ -627,6 +641,7 @@ function extractFilters(
             customProduct,
             languageCode,
             isFromBrowser,
+            country,
           );
           customProducts.push(processed);
         }
@@ -634,7 +649,8 @@ function extractFilters(
     }
   });
 
-  let prices = products.length > 0 ? calculatePriceRange(products) : null;
+  let prices =
+    products.length > 0 ? calculatePriceRange(products, country) : null;
   // Calculate price range
 
   return {
