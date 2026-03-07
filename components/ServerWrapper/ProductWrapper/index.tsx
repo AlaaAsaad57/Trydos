@@ -2,6 +2,7 @@ import Image from "next/image";
 import {
   getConfiguredImage,
   GetImageUrl,
+  getBrandIconImageUrl,
   RoundPrice,
   getVideoUrl,
   getUrlofProduct,
@@ -341,9 +342,12 @@ function ProductWrapper({
             <span className="flex-row align-center justify-start gap-[4px]">
               {brand?.icon ? (
                 <img
-                  src={GetImageUrl(brand.icon)}
+                  src={getBrandIconImageUrl(brand.icon, {
+                    width: 60,
+                    height: 30,
+                  })}
                   alt={brand.name || "Brand"}
-                  className="h-[15px]  object-cover w-[30px] inline-block ml-[7px]"
+                  className="h-[15px] w-[30px] object-contain inline-block ml-[7px]"
                   loading="eager"
                   draggable="false"
                 />

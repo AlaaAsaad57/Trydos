@@ -46,6 +46,30 @@ export const configureImageForBoutique = (src) => {
   );
 };
 
+/**
+ * Returns a Cloudinary URL optimized for brand/icon images so they display
+ * clearly with no clipping and no stretching. Uses c_limit so the image
+ * fits inside the given dimensions, preserves aspect ratio, and never
+ * upscales (small images stay sharp).
+ * @param url - Image source: string (path or full URL) or { file_path: string }
+ * @param options - Optional width/height in pixels (defaults: 60×30 for 2x display of 30×15)
+ * @returns Optimized Cloudinary URL, or original URL if not Cloudinary
+ */
+export const getBrandIconImageUrl = (
+  url: string | { file_path?: string } | null | undefined,
+  options?: { width?: number; height?: number }
+): string => {
+  const baseUrl = GetImageUrl(url);
+  if (!baseUrl || typeof baseUrl !== "string") return baseUrl ?? "";
+  if (!baseUrl.includes("cloudinary") || !baseUrl.includes("/upload")) {
+    return baseUrl;
+  }
+  const width = options?.width ?? 60;
+  const height = options?.height ?? 30;
+  const transform = `w_${width},h_${height},c_limit,f_auto,q_auto:good`;
+  return baseUrl.replace("/upload/", `/upload/${transform}/`);
+};
+
 export function translateFunction(key: string, language: string) {
   return translations[language]?.[key] || key;
 }
