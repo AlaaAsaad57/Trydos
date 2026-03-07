@@ -507,6 +507,9 @@ class ForegroundNotificationHandler {
       messagePreview = translateFunction("Shared a product");
     }
 
+    // When re-auth is required, hide message preview and show only sender name
+    const displayPreview = state.shouldAuthinticated ? "" : messagePreview;
+
     // --- Private/Delivery Logic ---
     const isPrivate = data?.is_private === true || data?.is_private === 1;
 
@@ -521,7 +524,7 @@ class ForegroundNotificationHandler {
 
         showChatNotification(
           "Deleivery Worker",
-          messagePreview,
+          displayPreview,
           channel?.id || messageData?.channel_id,
           channel,
           null,
@@ -590,7 +593,7 @@ class ForegroundNotificationHandler {
         if (String(currentUser?.id) !== String(senderUser?.id) && !chatVar) {
           showChatNotification(
             senderName,
-            messagePreview,
+            displayPreview,
             channel?.id || messageData?.channel_id,
             channel,
             senderPhoto,
@@ -621,7 +624,7 @@ class ForegroundNotificationHandler {
         ) {
           showChatNotification(
             senderName,
-            messagePreview,
+            displayPreview,
             channel?.id || messageData?.channel_id,
             channel,
             senderPhoto,
