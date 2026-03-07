@@ -19,8 +19,6 @@ function StoriesWrapper({ next_page_url, isRtl, stories, userData }) {
     if (storiesRefreshing) setStoriesRefreshing(false);
   }, [stories]);
 
-  const displayStories = storiesData?.length ? storiesData : stories;
-
   return (
     <HortiznalScrollBar
       id="stories-bar-container"
@@ -28,7 +26,7 @@ function StoriesWrapper({ next_page_url, isRtl, stories, userData }) {
         isRtl && "flex-row-reverse"
       } flex h-full pl-[10px] gap-[15px] items-center`}
     >
-      {displayStories.map((story, index) => (
+      {stories.map((story, index) => (
         <StoryElement
           key={story.id || index}
           index={index}

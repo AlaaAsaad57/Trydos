@@ -4,6 +4,7 @@ import ProductRating from "./ProductRating";
 import { translateFunction } from "utils/server";
 import ProductViews from "components/products/ProductViews";
 import { GetProductGeneralData } from "serverRequests/product";
+import { FlagIcon } from "utils/tinyUtils";
 
 async function ProductGeneralPropertiesWrapper({ globalData, language }) {
   let productGlobalData = await globalData;
@@ -28,15 +29,21 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
         sizeFitData={product?.size_analysis}
       >
         <ProductRating rating={product.final_rating} />
-        <div className="flex-row items-center px-[4px]">
-          <span className="bold px-[4px]"> {TotalBuyers()}</span>
-          {translateFunction("Buyer Rate", language)}
-        </div>
-        <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
+        {TotalBuyers() > 0 && (
+          <div className="flex-row items-center px-[4px]">
+            <span className="bold px-[4px]"> {TotalBuyers()}</span>
+            {translateFunction("Buyer Rate", language)}
+          </div>
+        )}
 
-        <ProductViews views={product.total_views} />
+        {product.total_views > 0 && (
+          <>
+            <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
+            <ProductViews views={product.total_views} />
+          </>
+        )}
 
-        {product?.good_quality_product && (
+        {product?.good_quality_product && TotalBuyers() > 0 && (
           <>
             <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
             <div className="flex-row items-center product-property-row">
@@ -45,21 +52,29 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
             </div>
           </>
         )}
+        {product?.recommendation_stats?.[0]?.count > 0 && (
+          <>
+            <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
+            <div className="flex-row items-center product-property-row">
+              <img src="/icons/RecomendedIcon.svg" />
+              <span>
+                {translateFunction("Recommend It By", language)}
+                <span className="m-0 px-[3px]">
+                  {product?.recommendation_stats?.[0]?.count}
+                </span>
+                <span className="m-0">
+                  {translateFunction("Buyer", language)}
+                </span>
+              </span>
+            </div>
+          </>
+        )}
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
         <div className="flex-row items-center product-property-row">
-          <img src="/icons/RecomendedIcon.svg" />
-          <span>
-            {translateFunction("Recommend It By", language)}
-            <span className="m-0 px-[3px]">
-              {product?.recommendation_stats?.[0]?.count}
-            </span>
-            <span className="m-0">{translateFunction("Buyer", language)}</span>
+          <FlagIcon iso={"tr"} />
+          <span className="mx-1">
+            {translateFunction("Made In Turkey", language)}
           </span>
-        </div>
-        <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-        <div className="flex-row items-center product-property-row">
-          {/* <Flag /> */}
-          <span>{translateFunction("Made In Turkey", language)}</span>
         </div>
       </ProductGeneralProperties>
     </Suspense>

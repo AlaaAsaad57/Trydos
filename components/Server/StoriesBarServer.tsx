@@ -20,7 +20,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
   try {
     // Get user token from cookies if available
     const STORIES_TOKEN = await getCookieServer<UserData>(
-      COOKIE_NAMES.USER_STORIES
+      COOKIE_NAMES.USER_STORIES,
     );
     let storiesData, next_page_url;
 
@@ -30,7 +30,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
         language,
         country,
         1,
-        STORIES_TOKEN?.access_token
+        STORIES_TOKEN?.access_token,
       );
     } else {
       storiesData = await fetchStoriesForGuest(language, country, 1);
@@ -55,7 +55,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
           >
             {/* open adding widget button */}
             <AddStory />
-            {storiesData && storiesData ? (
+            {storiesData ? (
               <StoriesWrapper
                 stories={storiesData}
                 userData={userData}

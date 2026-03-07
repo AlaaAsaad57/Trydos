@@ -15,7 +15,7 @@ export default function StoryCard({ Name, media, isVideo }) {
         style={{ display: "flex" }}
       >
         <Image
-          className="thumb-img object-cover object-center flex w-[100px] h-[150px] rounded-[20px] z-2"
+          className="thumb-img object-contain object-center flex w-[100px] h-[150px] rounded-[20px] z-2"
           alt="story"
           width={100}
           height={160}

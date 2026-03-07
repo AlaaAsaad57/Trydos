@@ -127,8 +127,10 @@ export const useHomeStore = (set, get) => ({
       renderStories: !state.renderStories,
     })),
 
-  setStoryData: (data: Story[]) =>
-    set({ storiesData: data, loadingStories: false }),
+  setStoryData: (data: Story[]) => {
+    console.log(data);
+    set({ storiesData: data, loadingStories: false });
+  },
 
   nextStory: (currentId: string | number) =>
     set((state) => {
