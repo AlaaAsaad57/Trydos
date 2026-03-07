@@ -357,13 +357,7 @@ export default function WalletPaymentModal({
                       {translateFunction("Amount to Pay")}
                     </span>
                     <span className="semibold text-[14px] text-[#1D1D1D]">
-                      {RoundPrice({
-                        num: checkoutAmount,
-                        rate: 1,
-                        points: currency?.decimal_digits ?? 2,
-                        returnNumber: false,
-                      })}{" "}
-                      {selectedCurrency?.symbol}
+                      {checkoutAmount} {selectedCurrency?.symbol}
                     </span>
                   </div>
 
@@ -382,12 +376,7 @@ export default function WalletPaymentModal({
                           : "text-[#F85555]"
                       }`}
                     >
-                      {RoundPrice({
-                        num: availableBalance,
-                        rate: 1,
-                        points: currency?.decimal_digits ?? 2,
-                        returnNumber: false,
-                      })}{" "}
+                      {availableBalance} {selectedCurrency?.symbol}
                       {selectedCurrency?.symbol}
                     </span>
                   </div>
