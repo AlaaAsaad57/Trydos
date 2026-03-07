@@ -6,7 +6,6 @@ import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import {
   buildBaseConditions,
   extractFilters,
-  getSourceFields,
   normalizeCustomProducts,
   buildAggregations,
   getChildrenAndGrandchildren,
@@ -107,6 +106,8 @@ export async function GetSearchData({
         "flash_deal_discount",
         "offered_price",
         "unit_price",
+        "country_offer_prices",
+        "extra_price_for_country",
         "colors",
         "text_colors",
         "sync_color_images",
@@ -127,6 +128,8 @@ export async function GetSearchData({
         "categories.position",
         "categories.id",
         "categories.parent_id",
+        "categories.gender",
+        "categories.group_age",
         "custom_brands.id",
         "custom_brands.name",
         "custom_brands.slug",
@@ -194,6 +197,7 @@ export async function GetSearchData({
       customProducts,
       language,
       false,
+      country,
     );
 
     if (filters.colors?.length) {
@@ -233,11 +237,12 @@ export async function GetSearchData({
         [],
     );
 
-    categoriesFilter = processCategoriesAggregation(
+    const categoriesResult = processCategoriesAggregation(
       categiresCombo,
       by_id_categories_comb,
       filters_offset,
     );
+    categoriesFilter = categoriesResult.categories;
 
     brandsFilter = processBrandsAggregation(
       (aggregations as any).top_brands?.filtered_brands?.brands_by_id
