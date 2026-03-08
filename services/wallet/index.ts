@@ -207,12 +207,15 @@ export async function getCurrencies({
   local?: string;
   handleUnauthenticated?: () => void;
 }) {
+  const [country, language] = local?.split("-");
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   try {
     let response = await fetchServerData({
       method: "GET",
       local: local,
-      url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/currencies",
+      url:
+        process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
+        `/currencies?countryCode=${country?.toUpperCase()}`,
       headers: {
         Authorization: `Bearer ${token}`,
       },
