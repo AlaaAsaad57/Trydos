@@ -12,6 +12,16 @@ import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import Map from "components/Cart/Map"; // Ensure this path matches where you save the Map component below
 
+const VENDOR_DOCUMENT_TYPES = [
+  { value: "identity", label: "Identity" },
+  { value: "passport", label: "Passport" },
+  { value: "commercial_license", label: "Commercial License" },
+  { value: "tax_certificate", label: "Tax Certificate" },
+  { value: "bank_statement", label: "Bank Statement" },
+  { value: "address_proof", label: "Address Proof" },
+  { value: "authorization_letter", label: "Authorization Letter" },
+];
+
 // Reusable Input Component
 const FormInput = ({
   label,
@@ -98,37 +108,74 @@ export default function BecomeSellerModal({ onClose }) {
   };
 
   const uploadDocument = async () => {
+    if (!newDocType) {
+      showErrorNotification(t("Please select a document type"));
+      return;
+    }
+
     if (!newDocFile) {
       showErrorNotification(t("Please select a file"));
       return;
     }
-    setUploadingDoc(true);
-    try {
-      const formData = new FormData();
-      // server expects 'image' key in other uploads; keep same
-      formData.append("image", newDocFile);
-      formData.append("path", "vendor_documents/");
 
-      const res = await fetchData({
-        url: "/storage/storage-upload",
+    setUploadingDoc(true);
+
+    try {
+      const presignedRes = await fetchData({
+        url: "/shop/uploads/presigned-url",
         method: "POST",
-        body: formData,
+        body: JSON.stringify({
+          mime_type: newDocFile.type || "application/octet-stream",
+        }),
         reqTitle: REQUESTS_DATA.UPLOAD_CLOUDINARY,
         server: "market",
       });
 
-      if (!res || !res.success) {
-        showErrorNotification(res?.message || t("Something went wrong"));
-      } else {
-        const sub = res.data?.sub_path || res.data?.path || res.data;
-        const doc = {
-          type: newDocType || newDocFile.name,
-          path: sub,
-        };
-        setForm((prev) => ({ ...prev, documents: [...prev.documents, doc] }));
-        setNewDocType("");
-        setNewDocFile(null);
+      if (!presignedRes || !presignedRes.success) {
+        showErrorNotification(presignedRes?.message || t("Something went wrong"));
+        return;
       }
+
+      const uploadUrl =
+        presignedRes?.data?.upload_url ||
+        presignedRes?.upload_url ||
+        presignedRes?.data?.url;
+
+      if (!uploadUrl) {
+        showErrorNotification(t("Upload URL not found"));
+        return;
+      }
+
+      const putResponse = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": newDocFile.type || "application/octet-stream",
+        },
+        body: newDocFile,
+      });
+
+      if (!putResponse.ok) {
+        showErrorNotification(t("Failed to upload document"));
+        return;
+      }
+
+      const uploadedPath =
+        presignedRes?.data?.path ||
+        presignedRes?.data?.file_path ||
+        presignedRes?.data?.key ||
+        presignedRes?.path ||
+        presignedRes?.file_path ||
+        presignedRes?.key ||
+        uploadUrl.split("?")[0];
+
+      const doc = {
+        type: newDocType,
+        path: uploadedPath,
+      };
+
+      setForm((prev) => ({ ...prev, documents: [...prev.documents, doc] }));
+      setNewDocType("");
+      setNewDocFile(null);
     } catch (err) {
       showErrorNotification(t("Something went wrong"));
     } finally {
@@ -423,12 +470,18 @@ export default function BecomeSellerModal({ onClose }) {
                     <label className="text-[13px] text-gray-700 font-medium">
                       {t("Document Type")}
                     </label>
-                    <input
+                    <select
                       value={newDocType}
                       onChange={(e) => setNewDocType(e.target.value)}
                       className="w-full h-[40px] px-3 rounded-sm border border-gray-300 text-[13px]"
-                      placeholder={t("e.g., Trade License")}
-                    />
+                    >
+                      <option value="">{t("Select document type")}</option>
+                      {VENDOR_DOCUMENT_TYPES.map((docType) => (
+                        <option key={docType.value} value={docType.value}>
+                          {t(docType.label)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="col-span-1">
