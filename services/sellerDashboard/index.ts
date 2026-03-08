@@ -97,13 +97,31 @@ class SellerDashboardService {
       throw error;
     }
   }
-  async updateOrderDetailStatus(
+  async confirmOrderDetailStatus(
     sellerId: string,
-    data: { order_detail_id: number; is_confirm: boolean; is_packed: boolean },
+    data: { order_detail_id: number },
   ) {
     try {
       let res = await fetchData({
-        url: `/shop/orders/details/status`,
+        url: `/shop/orders/details/status/confirmed`,
+        method: "PUT",
+        server: "market-dashboard",
+        reqTitle: REQUESTS_DATA.UPDATE_SELLER_ORDER_DETAIL_STATUS,
+        body: JSON.stringify(data),
+        sellerId,
+      });
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async packOrderDetailStatus(
+    sellerId: string,
+    data: { order_detail_id: number },
+  ) {
+    try {
+      let res = await fetchData({
+        url: `/shop/orders/details/status/packed`,
         method: "PUT",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.UPDATE_SELLER_ORDER_DETAIL_STATUS,
