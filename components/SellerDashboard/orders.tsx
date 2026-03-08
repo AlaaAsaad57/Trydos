@@ -870,37 +870,37 @@ const Icons = {
             id="Path_23351"
             data-name="Path 23351"
             d="M5.415,10.371,3.656,9.285l.182-.5-.021.008A1.267,1.267,0,0,1,2.089,7.757L1.837,5.5c0-.038,0-.075,0-.112L.786,8.276A1.918,1.918,0,0,0,.866,9.487c.022.078.739,2.07.739,2.07L.174,13.493A.887.887,0,1,0,1.6,14.547l1.718-2.325a.887.887,0,0,0,.117-.84l-.073-.195.654.4L3.8,13.94a.887.887,0,0,0,.8.963c.027,0,.054,0,.081,0A.887.887,0,0,0,5.57,14.1l.263-2.895A.887.887,0,0,0,5.415,10.371Z"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23352"
             data-name="Path 23352"
             d="M4.355,5.223l.067.6L4.977,5.6A1.514,1.514,0,0,0,2.2,4.48a1.26,1.26,0,0,1,2.159.743Z"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23353"
             data-name="Path 23353"
             d="M4.363,3.229A1.568,1.568,0,1,0,2.8,1.661,1.568,1.568,0,0,0,4.363,3.229Z"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23354"
             data-name="Path 23354"
             d="M14.335,9.278H9.647a.665.665,0,0,0-.665.665v1.869a.665.665,0,0,0,.665.665h4.688A.665.665,0,0,0,15,11.812V9.943A.665.665,0,0,0,14.335,9.278Z"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23355"
             data-name="Path 23355"
             d="M9.108,8.359h2.613a.665.665,0,0,0,.665-.665V6.029a.665.665,0,0,0-.665-.665H9.108a.665.665,0,0,0-.665.665V7.694A.665.665,0,0,0,9.108,8.359Z"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23356"
             data-name="Path 23356"
             d="M13.733,13.174H7.9v-5.8A.507.507,0,0,0,7.4,6.87H6.635a.759.759,0,0,0-.985-.989l-1.658.66L3.851,5.28a.76.76,0,1,0-1.511.169L2.593,7.7a.76.76,0,0,0,1.036.622l1.652-.658a.5.5,0,0,0,.406.219h1.2v5.8a.507.507,0,0,0,.507.507h.619a.839.839,0,0,0,1.645,0h1.9a.839.839,0,0,0,1.645,0h.524a.507.507,0,0,0,0-1.014Z"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
         </g>
       </g>
@@ -937,56 +937,56 @@ const Icons = {
             data-name="Path 23331"
             d="M4.739,10.128v5.131H7.132V12.182h4.288v3.077h.312V12.182H15.4V10.128Z"
             transform="translate(-0.79 -1.192)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23332"
             data-name="Path 23332"
             d="M12.173,8.75h2.919v.877H12.173Z"
             transform="translate(-2.029 -0.962)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23333"
             data-name="Path 23333"
             d="M12.416,7.484h2.919v.878H12.416Z"
             transform="translate(-2.069 -0.751)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23334"
             data-name="Path 23334"
             d="M6.376,4.568l.3.2.294-.114a.5.5,0,0,1,.182-.034.5.5,0,0,1,.444.745l.139.09H9.283l.02-.03L6.854,3.832Z"
             transform="translate(-1.063 -0.143)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23335"
             data-name="Path 23335"
             d="M11.714,12.868H10.243V14.4l-.167-.114-.151.114-.141-.114-.161.114-.158-.114-.108.114v-1.53H7.886v3.183h3.829Z"
             transform="translate(-1.314 -1.649)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23336"
             data-name="Path 23336"
             d="M13.406,16.051h3.829V12.868H15.763V14.4l-.167-.114-.151.114-.141-.114-.161.114-.158-.114-.108.114v-1.53H13.406Z"
             transform="translate(-2.234 -1.649)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23337"
             data-name="Path 23337"
             d="M1.91,13.695a.574.574,0,0,0,.523.621l.05,0a.574.574,0,0,0,.571-.525l.289-3.358h0a.571.571,0,0,0,0-.068s0-.008,0-.013,0-.036-.006-.055c0,0,0-.006,0-.009L2.919,7.826a6.407,6.407,0,0,1,.135-2.172L2.062,4.6a.505.505,0,0,1,.368-.851.507.507,0,0,1,.368.159l.936.994.179.143a.373.373,0,0,0,.428.027l.95-.583,0,0,.622-.957.648.421,0-.008a.373.373,0,0,0-.16-.5L6.139,3.3a.373.373,0,0,0-.367.013l-1.6.981L2.912,3.29A.372.372,0,0,0,2.8,3.23.929.929,0,0,0,1.438,3.9c-.225.757.537,1.127-.367,3.1a1.276,1.276,0,0,0-.122.438.57.57,0,0,0,.037.351l1.2,2.7Z"
             transform="translate(-0.156 -0.023)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23338"
             data-name="Path 23338"
             d="M1.742,1.227a1.372,1.372,0,0,1,.042-.2C1.344,1.073.827,1.3.742,2.278.66,3.237.32,3.354.063,3.314s.32.523.992-.04c.517-.433.312-1.529.678-1.8A1.367,1.367,0,0,1,1.742,1.227Z"
             transform="translate(0 0.325)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <circle
             id="Ellipse_547"
@@ -995,21 +995,21 @@ const Icons = {
             cy="1.234"
             r="1.234"
             transform="translate(1.366 1.503) rotate(-37.523)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23339"
             data-name="Path 23339"
             d="M7.146,5.983l-1.023.395L5.707,8.384l.223.046.28-1.35V9.166h3.829V7.08l.28,1.35.223-.046-.5-2.4h-2.9Z"
             transform="translate(-0.951 -0.501)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_23340"
             data-name="Path 23340"
             d="M6.607,5.5a.373.373,0,1,0-.269-.7L4.288,5.6,2.925,4.152a.373.373,0,1,0-.543.512l1.535,1.63a.373.373,0,0,0,.406.092Z"
             transform="translate(-0.38 -0.176)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
         </g>
       </g>
@@ -1048,28 +1048,28 @@ const Icons = {
             data-name="Path 22820"
             d="M16.147,2.492H5.97A1.608,1.608,0,0,0,4.362,4.1V15.884A1.608,1.608,0,0,0,5.97,17.492H16.147a1.608,1.608,0,0,0,1.608-1.608V4.1a1.608,1.608,0,0,0-1.608-1.608Zm1.07,13.392a1.07,1.07,0,0,1-1.07,1.07H5.97a1.07,1.07,0,0,1-1.07-1.07V4.1a1.07,1.07,0,0,1,1.07-1.07H8.648V7.12a.807.807,0,0,0,1.163.721l1.124-.565a.27.27,0,0,1,.233,0l1.131.561a.8.8,0,0,0,1.163-.717V3.025h2.685a1.07,1.07,0,0,1,1.07,1.07Z"
             transform="translate(-4.362 -2.492)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_22821"
             data-name="Path 22821"
             d="M13.364,24.3H10.151a.805.805,0,0,0-.8.8v2.5a.805.805,0,0,0,.8.8h3.213a.805.805,0,0,0,.8-.8v-2.5a.805.805,0,0,0-.8-.805ZM10.419,26.9a.268.268,0,0,1,.268-.268h2.143a.268.268,0,1,1,0,.535H10.686a.268.268,0,0,1-.268-.268Zm2.41-.8H10.686a.268.268,0,0,1,0-.535h2.143a.268.268,0,1,1,0,.535Z"
             transform="translate(-7.206 -14.933)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_22822"
             data-name="Path 22822"
             d="M25.612,32.627H22.636a.268.268,0,0,0,0,.535H25.61a.268.268,0,0,0,0-.535Z"
             transform="translate(-14.632 -19.677)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
           <path
             id="Path_22823"
             data-name="Path 22823"
             d="M26.715,29.711H24.572a.268.268,0,1,0,0,.535h2.143a.268.268,0,1,0,0-.535Z"
             transform="translate(-15.735 -18.015)"
-            fill="#c4c2c2"
+            fill="currentColor"
           />
         </g>
       </g>
@@ -1187,6 +1187,14 @@ const formatCreatedAt = (createdAt: any) => {
     return `${createdAt.date} ${createdAt.time}`;
   }
   return createdAt?.date || createdAt?.time || "";
+};
+
+const formatRemainingDuration = (minutes: number) => {
+  const totalMinutes = Math.max(0, Number(minutes || 0));
+  if (totalMinutes < 60) return `${totalMinutes}m`;
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
 };
 
 const formatItemStatus = (item: any) => {
@@ -1463,8 +1471,24 @@ const OrderDetailScreen = ({
   const itemCount = getItemCount(items);
   const createdAt = order?.created_at || order?.updated_at || "";
   const orderTotal = order?.order_amount ?? 0;
-  const confirmedCount = items.filter((item) => item?.is_confirm).length;
-  const packedCount = items.filter((item) => item?.is_packed).length;
+  const confirmedCount = items.reduce(
+    (total, item) =>
+      total + (item?.is_confirm ? Number(item?.qty || 0) || 1 : 0),
+    0,
+  );
+  const packedCount = items.reduce(
+    (total, item) =>
+      total + (item?.is_packed ? Number(item?.qty || 0) || 1 : 0),
+    0,
+  );
+  const collectedCount = items.reduce(
+    (total, item) =>
+      total + (item?.is_collected ? Number(item?.qty || 0) || 1 : 0),
+    0,
+  );
+  const allConfirmed = itemCount > 0 && confirmedCount >= itemCount;
+  const allPacked = itemCount > 0 && packedCount >= itemCount;
+  const allCollected = itemCount > 0 && collectedCount >= itemCount;
   const remainingMinutes = Number(order?.remaining_in_minutes || 0);
 
   return (
@@ -1528,10 +1552,22 @@ const OrderDetailScreen = ({
                 Collect
               </div>
               <div className="flex flex-row gap-x-[8px]">
-                <Icons.CheckCircle className="w-[15px] h-[15px]" />
-                <Icons.PackImage className="w-[15px] h-[15px]" />
-                <Icons.CollectImage className="w-[15px] h-[15px]" />
-                <Icons.CollectedImage className="w-[15px] h-[15px]" />
+                <Icons.CheckCircle className="w-[15px] h-[15px] text-[#000000]" />
+                <Icons.PackImage
+                  className={`w-[15px] h-[15px] ${
+                    allConfirmed ? "text-[#000000]" : "text-[#C4C2C2]"
+                  }`}
+                />
+                <Icons.CollectImage
+                  className={`w-[15px] h-[15px] ${
+                    allPacked ? "text-[#000000]" : "text-[#C4C2C2]"
+                  }`}
+                />
+                <Icons.CollectedImage
+                  className={`w-[15px] h-[15px] ${
+                    allCollected ? "text-[#000000]" : "text-[#C4C2C2]"
+                  }`}
+                />
               </div>
             </div>
           </div>
@@ -1545,7 +1581,7 @@ const OrderDetailScreen = ({
             </span>
             <div className="text-[12px] text-[#388CFF]">
               {remainingMinutes > 0
-                ? `${translateFunction("Remaining")} ${remainingMinutes}m`
+                ? `${translateFunction("Remaining")} ${formatRemainingDuration(remainingMinutes)}`
                 : translateFunction("No remaining time")}
             </div>
           </div>
@@ -1616,7 +1652,7 @@ const OrderDetailScreen = ({
                 {translateFunction("Packed")} {packedCount}/{itemCount}
               </span>
               <span className="text-[12px] text-[#1D1D1D]">
-                {translateFunction("Collected")} 0/{itemCount}
+                {translateFunction("Collected")} {collectedCount}/{itemCount}
               </span>
             </div>
           </div>
@@ -1636,7 +1672,7 @@ const OrderDetailScreen = ({
             const variantSize = item.size || "";
             const unitPrice = Number(item.unit_price || 0);
             const qty = Number(item.qty || 0);
-            const totalPrice = unitPrice * qty;
+            const itemTotalPrice = unitPrice * qty;
             const isConfirmed = Boolean(item?.is_confirm);
             const isPacked = Boolean(item?.is_packed);
             const isWaiting = !isConfirmed;
@@ -1707,9 +1743,7 @@ const OrderDetailScreen = ({
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-[#1D1D1D] text-[12px]">
-                          {qty > 1
-                            ? `${unitPrice} / ${totalPrice}`
-                            : `${unitPrice}`}{" "}
+                          {`${itemTotalPrice} / ${orderTotal}`}{" "}
                         </span>
                         <span className="text-[12px] text-[#1D1D1D]">USD</span>
                       </div>
@@ -1894,10 +1928,8 @@ export const RenderOrders = ({
     try {
       setOrderDetailActionLoading(String(detailId));
       setOrdersError(null);
-      await SellerDashboardService.updateOrderDetailStatus(sellerId, {
+      await SellerDashboardService.confirmOrderDetailStatus(sellerId, {
         order_detail_id: Number(detailId),
-        is_confirm: true,
-        is_packed: false,
       });
       syncOrderDetailUpdate(orderId, detailId, (current) => ({
         ...current,
@@ -1919,10 +1951,8 @@ export const RenderOrders = ({
     try {
       setOrderDetailActionLoading(String(detailId));
       setOrdersError(null);
-      await SellerDashboardService.updateOrderDetailStatus(sellerId, {
+      await SellerDashboardService.packOrderDetailStatus(sellerId, {
         order_detail_id: Number(detailId),
-        is_confirm: true,
-        is_packed: true,
       });
       syncOrderDetailUpdate(orderId, detailId, (current) => ({
         ...current,
