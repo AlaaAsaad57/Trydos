@@ -1,7 +1,8 @@
 import FiltersWindow from "components/ListingPage/filterComponents/FiltersWindow";
 import ImageCircel from "components/ListingPage/filterComponents/FiltersWindow/ImageCircel";
+import FilterItem from "components/ListingPage/FilterItem";
 import React from "react";
-import { HandleIsActive } from "utils/server";
+import { HandleIsActive, combineCategoriesWithRelated } from "utils/server";
 
 async function FilterWidgetServer({
   currencyPromise,
@@ -14,6 +15,14 @@ async function FilterWidgetServer({
 }) {
   let currency = await currencyPromise;
   let filtersData = await filtersPromise;
+  const combinedCategories = combineCategoriesWithRelated(
+    filtersData?.categories || [],
+    filtersData?.related_categories || [],
+  );
+  const isRtl = language === "ar" || language === "ku";
+  const params = { lang: `${country}-${language}` };
+  const baseUrlOfFiltersPage =
+    isFeatured ? "/featured" : isFlashDeal ? "/flashDeals" : "/filters";
   return (
     <div>
       <FiltersWindow
@@ -24,18 +33,17 @@ async function FilterWidgetServer({
         country={country}
         initialFilters={parsedFilters}
         children={{
-          categories: filtersData.categories.map((category) => (
-            <ImageCircel
-              key={category.slug}
-              isActive={HandleIsActive({
-                values: parsedFilters.categories,
-                item: category.slug,
-              })}
-              name={category.name}
-              term={"Category"}
-              value={category.slug}
-              image={category.most_viewed_product_thumbnail}
-              size={70}
+          categories: combinedCategories.map((item) => (
+            <FilterItem
+              isRtl={isRtl}
+              baseUrlOfFiltersPage={baseUrlOfFiltersPage}
+              params={params}
+              filterParams={parsedFilters}
+              isUsingParsedFilters={true}
+              key={item.id ?? item?.slug ?? item}
+              currency={currency}
+              term={"categories"}
+              item={item}
             />
           )),
           brands: filtersData.brands.map((brand) => (

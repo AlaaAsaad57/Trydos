@@ -150,13 +150,13 @@ const ActiveFiltersBar = ({
   }
 
   const getItemData = ({ value, arr, key, isCategory = false }) => {
-    let selected_filters_array = arr;
+    let selected_filters_array = Array.isArray(arr) ? [...arr] : [];
     if (isCategory) {
-      selected_filters_array?.map((category) => {
+      selected_filters_array.forEach((category) => {
         category?.childes?.map((child_category) => {
-          selected_filters_array?.push(child_category);
+          selected_filters_array.push(child_category);
           child_category?.childes?.map((child_child) => {
-            selected_filters_array?.push(child_child);
+            selected_filters_array.push(child_child);
           });
         });
       });
@@ -168,6 +168,175 @@ const ActiveFiltersBar = ({
     } catch (error) {
       return null;
     }
+  };
+
+  const renderCategoryFilters = (values, sourceCategories = []) => {
+    if (!values?.length) return null;
+
+    return (
+      <>
+        <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
+
+        {values.map((category) => (
+          <React.Fragment key={category}>
+            {getItemData({
+              value: category,
+              arr: sourceCategories,
+              key: "slug",
+              isCategory: true,
+            }) && (
+              <>
+                <div
+                  className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
+                  key={category}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="15"
+                    height="15"
+                    viewBox="0 0 15 15"
+                    style={{ zIndex: "1" }}
+                  >
+                    <g
+                      id="Ellipse_283"
+                      data-name="Ellipse 283"
+                      fill="none"
+                      stroke="#ff5f61"
+                      strokeWidth="0.5"
+                    >
+                      <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
+                      <circle cx="7.5" cy="7.5" r="7.25" fill="none" />
+                    </g>
+                  </svg>
+
+                  <Image
+                    alt={category?.name || "Image"}
+                    width={20}
+                    height={20}
+                    src={getConfiguredImage({
+                      src:
+                        (getItemData({
+                          value: category,
+                          arr: sourceCategories,
+                          key: "slug",
+                          isCategory: true,
+                        })?.icon?.file_path &&
+                          GetImageUrl(
+                            getItemData({
+                              value: category,
+                              arr: sourceCategories,
+                              key: "slug",
+                              isCategory: true,
+                            })?.icon?.file_path,
+                          )) ??
+                        (getItemData({
+                          value: category,
+                          arr: sourceCategories,
+                          key: "slug",
+                          isCategory: true,
+                        }).most_viewed_product_thumbnail &&
+                          GetImageUrl(
+                            getItemData({
+                              value: category,
+                              arr: sourceCategories,
+                              key: "slug",
+                              isCategory: true,
+                            }).most_viewed_product_thumbnail,
+                          )) ??
+                        GetImageUrl(
+                          getItemData({
+                            value: category,
+                            arr: sourceCategories,
+                            key: "slug",
+                            isCategory: true,
+                          }).flat_photo_path?.file_path,
+                        ),
+                      height: 100,
+                    })}
+                  />
+                </div>
+                <div
+                  className="category-title filter-bar-main-title"
+                  data-cy="mainFilter"
+                >
+                  {
+                    getItemData({
+                      value: category,
+                      arr: sourceCategories,
+                      key: "slug",
+                      isCategory: true,
+                    }).name
+                  }
+                </div>
+                {getItemData({
+                  value: category,
+                  arr: sourceCategories,
+                  key: "slug",
+                  isCategory: true,
+                })?.childes?.map((s) => (
+                  <>
+                    {getItemData({
+                      value: s,
+                      arr: sourceCategories,
+                      key: "slug",
+                      isCategory: true,
+                    }) && (
+                      <>
+                        <div
+                          className="sub-category-icon flex-row min-h-[10px] min-w-[10px]"
+                          key={s}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="10"
+                            height="10"
+                            viewBox="0 0 10 10"
+                            style={{ zIndex: "1" }}
+                          >
+                            <g
+                              id="Ellipse_283"
+                              data-name="Ellipse 283"
+                              fill="none"
+                              stroke="#ff5f61"
+                              strokeWidth="0.5"
+                            >
+                              <circle cx="5" cy="5" r="5" stroke="none" />
+                              <circle cx="5" cy="5" r="4.75" fill="none" />
+                            </g>
+                          </svg>
+                          <Image
+                            alt={s?.name || "Image"}
+                            src={getConfiguredImage({
+                              src:
+                                (s.icon?.file_path &&
+                                  GetImageUrl(s.icon?.file_path)) ||
+                                (sourceCategories.filter(
+                                  (sub) => sub.slug === s.slug,
+                                )[0]?.icon?.file_path &&
+                                  GetImageUrl(
+                                    sourceCategories.filter(
+                                      (sub) => sub.slug === s.slug,
+                                    )[0]?.icon?.file_path,
+                                  )),
+                              height: 100,
+                            })}
+                            width={10}
+                            height={10}
+                          />
+                        </div>
+                        <div className="category-title filter-bar-main-title">
+                          {s.name}
+                        </div>
+                      </>
+                    )}
+                  </>
+                ))}
+              </>
+            )}
+          </React.Fragment>
+        ))}
+      </>
+    );
   };
 
   if (activeFilters && Object.keys?.(activeFilters)?.length === 0) return <></>;
@@ -227,170 +396,7 @@ const ActiveFiltersBar = ({
           className="mr-2 ml-2"
         />
       </NextLink>
-      {activeFilters?.categories?.length > 0 && (
-        <>
-          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
-
-          {activeFilters?.categories.map((category) => (
-            <React.Fragment key={category}>
-              {getItemData({
-                value: category,
-                arr: filters.categories,
-                key: "slug",
-                isCategory: true,
-              }) && (
-                <>
-                  <div
-                    className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
-                    key={category}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="15"
-                      height="15"
-                      viewBox="0 0 15 15"
-                      style={{ zIndex: "1" }}
-                    >
-                      <g
-                        id="Ellipse_283"
-                        data-name="Ellipse 283"
-                        fill="none"
-                        stroke="#ff5f61"
-                        strokeWidth="0.5"
-                      >
-                        <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
-                        <circle cx="7.5" cy="7.5" r="7.25" fill="none" />
-                      </g>
-                    </svg>
-
-                    <Image
-                      alt={category?.name || "Image"}
-                      width={20}
-                      height={20}
-                      src={getConfiguredImage({
-                        src:
-                          (getItemData({
-                            value: category,
-                            arr: filters.categories,
-                            key: "slug",
-                            isCategory: true,
-                          })?.icon?.file_path &&
-                            GetImageUrl(
-                              getItemData({
-                                value: category,
-                                arr: filters.categories,
-                                key: "slug",
-                                isCategory: true,
-                              })?.icon?.file_path,
-                            )) ??
-                          (getItemData({
-                            value: category,
-                            arr: filters.categories,
-                            key: "slug",
-                            isCategory: true,
-                          }).most_viewed_product_thumbnail &&
-                            GetImageUrl(
-                              getItemData({
-                                value: category,
-                                arr: filters.categories,
-                                key: "slug",
-                                isCategory: true,
-                              }).most_viewed_product_thumbnail,
-                            )) ??
-                          GetImageUrl(
-                            getItemData({
-                              value: category,
-                              arr: filters.categories,
-                              key: "slug",
-                              isCategory: true,
-                            }).flat_photo_path?.file_path,
-                          ),
-                        height: 100,
-                      })}
-                    />
-                  </div>
-                  <div
-                    className="category-title filter-bar-main-title"
-                    data-cy="mainFilter"
-                  >
-                    {
-                      getItemData({
-                        value: category,
-                        arr: filters.categories,
-                        key: "slug",
-                        isCategory: true,
-                      }).name
-                    }
-                  </div>
-                  {getItemData({
-                    value: category,
-                    arr: filters.categories,
-                    key: "slug",
-                    isCategory: true,
-                  })?.childes?.map((s) => (
-                    <>
-                      {getItemData({
-                        value: s,
-                        arr: filters.categories,
-                        key: "slug",
-                        isCategory: true,
-                      }) && (
-                        <>
-                          <div
-                            className="sub-category-icon flex-row min-h-[10px] min-w-[10px]"
-                            key={s}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="10"
-                              height="10"
-                              viewBox="0 0 10 10"
-                              style={{ zIndex: "1" }}
-                            >
-                              <g
-                                id="Ellipse_283"
-                                data-name="Ellipse 283"
-                                fill="none"
-                                stroke="#ff5f61"
-                                strokeWidth="0.5"
-                              >
-                                <circle cx="5" cy="5" r="5" stroke="none" />
-                                <circle cx="5" cy="5" r="4.75" fill="none" />
-                              </g>
-                            </svg>
-                            <Image
-                              alt={s?.name || "Image"}
-                              src={getConfiguredImage({
-                                src:
-                                  (s.icon?.file_path &&
-                                    GetImageUrl(s.icon?.file_path)) ||
-                                  (filters.categories.filter(
-                                    (sub) => sub.slug === s.slug,
-                                  )[0]?.icon?.file_path &&
-                                    GetImageUrl(
-                                      filters.categories.filter(
-                                        (sub) => sub.slug === s.slug,
-                                      )[0]?.icon?.file_path,
-                                    )),
-                                height: 100,
-                              })}
-                              width={10}
-                              height={10}
-                            />
-                          </div>
-                          <div className="category-title filter-bar-main-title">
-                            {s.name}
-                          </div>
-                        </>
-                      )}
-                    </>
-                  ))}
-                </>
-              )}
-            </React.Fragment>
-          ))}
-        </>
-      )}
+      {renderCategoryFilters(activeFilters?.categories, filters.categories)}
       {activeFilters?.boutiques?.length > 0 && !shouldHideBoutiques && (
         <>
           <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
@@ -667,6 +673,7 @@ const FilterItemsRow = ({
   const [country, language] = params.lang.split("-");
   const getDataCy = () => {
     if (term === "categories") return "categoryBox";
+    if (term === "related_categories") return "relatedCategoryBox";
     if (term === "brands") return "BrandBox";
     if (term === "colors") return "ColorBox";
     if (term === "sizes") return "SizesBox";
@@ -682,7 +689,10 @@ const FilterItemsRow = ({
   return (
     <div
       className={`${
-        term !== "categories" && term !== "brands" && "pt-[10px]"
+        term !== "categories" &&
+        term !== "related_categories" &&
+        term !== "brands" &&
+        "pt-[10px]"
       } scrollable-area-${index} boutique-category-filter flex-row`}
     >
       <div

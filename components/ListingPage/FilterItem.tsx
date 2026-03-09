@@ -49,28 +49,32 @@ const FilterItem = ({
   };
 
   const getSubCategoryUrl = (slug: string, grand_slug?: string) => {
+    const categoryFilterKey = "categories";
     let { href, isFiltered } = getFilterState(
       slug,
-      "categories",
+      categoryFilterKey,
       grand_slug ? [item.slug, grand_slug] : [item.slug],
     );
     return { href, isFiltered };
   };
 
-  if (term === "categories") {
-    const { href, isFiltered } = getFilterState(item.slug, term);
+  if (term === "categories" || term === "related_categories") {
+    const categoryFilterKey = "categories";
+    const { href, isFiltered } = getFilterState(item.slug, categoryFilterKey);
+    const isRelatedCategoryItem =
+      term === "related_categories" || Boolean(item?.is_related_category);
 
     const shouldShowSubCategories = () => {
       let sub_index = 0;
-      if (getFilterState(item.slug, "categories")?.isFiltered) {
+      if (getFilterState(item.slug, categoryFilterKey)?.isFiltered) {
         sub_index++;
       }
       item?.childes?.map((sub: any) => {
-        if (getFilterState(sub.slug, "categories")?.isFiltered) {
+        if (getFilterState(sub.slug, categoryFilterKey)?.isFiltered) {
           sub_index++;
         }
         sub?.childes?.map((sub_sub: any) => {
-          if (getFilterState(sub_sub.slug, "categories")?.isFiltered) {
+          if (getFilterState(sub_sub.slug, categoryFilterKey)?.isFiltered) {
             sub_index++;
           }
         });
@@ -93,6 +97,23 @@ const FilterItem = ({
           data-cy="category_filter_item"
         >
           <div className="relative w-[70px] h-[70px] z-10">
+            {isRelatedCategoryItem && (
+              <svg
+                className="absolute top-0 right-0 left-[initial] m-0 z-40"
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 22 22"
+                aria-label="related category"
+              >
+                <title>Related category</title>
+                <circle cx="11" cy="11" r="10" fill="#FF5F61" />
+                <path
+                  d="M11 5.3l1.6 3.2 3.6.5-2.6 2.5.6 3.6L11 13.5 7.8 15.1l.6-3.6L5.8 9l3.6-.5L11 5.3z"
+                  fill="#fff"
+                />
+              </svg>
+            )}
             {isFiltered && (
               <img
                 src="/icons/ActiveCategoryIcon.svg"

@@ -4,7 +4,7 @@ import FilterItem from "components/ListingPage/FilterItem";
 import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCookieServer } from "utils/cookies/cookie-manager";
-import { HandleIsActive } from "utils/server";
+import { HandleIsActive, combineCategoriesWithRelated } from "utils/server";
 import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GetFilters({
@@ -24,8 +24,12 @@ export async function GetFilters({
     });
 
     let new_filters: any = {};
-    if (response.categories.length) {
-      new_filters.categories = response.categories;
+    const combinedCategories = combineCategoriesWithRelated(
+      response.categories || [],
+      response.related_categories || [],
+    );
+    if (combinedCategories.length) {
+      new_filters.categories = combinedCategories;
     }
     if (response.brands?.length) {
       new_filters.brands = response.brands;
@@ -37,18 +41,23 @@ export async function GetFilters({
       new_filters.sizes = response.attributes?.[0]?.options;
     }
 
+    const isRtl = language === "ar" || language === "ku";
+    const params = { lang: `${country}-${language}` };
+    const baseUrlOfFiltersPage =
+      filters?.featured ? "/featured" : filters?.flashdeal ? "/flashDeals" : "/filters";
+
     return {
-      categories: new_filters?.categories?.map((category) => (
-        <ImageCircel
-          key={category.slug}
-          isActive={HandleIsActive({
-            values: filters.categories,
-            item: category.slug,
-          })}
-          name={category.name}
-          term={"Category"}
-          value={category.slug}
-          image={category.most_viewed_product_thumbnail}
+      categories: new_filters?.categories?.map((item) => (
+        <FilterItem
+          isRtl={isRtl}
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage}
+          params={params}
+          filterParams={filters}
+          isUsingParsedFilters={true}
+          key={item.id ?? item?.slug ?? item}
+          currency={null}
+          term={"categories"}
+          item={item}
         />
       )),
       brands: new_filters?.brands?.map((brand) => (
@@ -255,8 +264,12 @@ export async function GetNextPageFilters({
       noProducts: true,
     });
     let new_filters: any = {};
-    if (response.categories.length) {
-      new_filters.categories = response.categories;
+    const combinedCategories = combineCategoriesWithRelated(
+      response.categories || [],
+      response.related_categories || [],
+    );
+    if (combinedCategories.length) {
+      new_filters.categories = combinedCategories;
     }
     if (response.brands?.length) {
       new_filters.brands = response.brands;

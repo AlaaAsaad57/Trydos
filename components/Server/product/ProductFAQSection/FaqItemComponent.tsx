@@ -8,6 +8,7 @@ import {
 import profilePng from "public/images/profileNo.png";
 import { LikeButton } from "../LikeButtton";
 import BuyersCommentMenu from "../ProductBuyersComment/BuyersCommentMenu";
+import BuyersReplyMenu from "../ProductBuyersComment/BuyersReplyMenu";
 function FaqItemComponent({
   id,
   comment,
@@ -138,17 +139,26 @@ function FaqItemComponent({
               >
                 {formatTime(comment?.reply_created_at, language)}
               </div>
-              <div className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0">
+              <div
+                id={`comment-${comment.id}-reply-text`}
+                className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0"
+              >
                 {comment?.seller_reply}
               </div>
             </div>
-            <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
+            <div className="flex-row pl-[10px] pr-[3px] gap-2 w-full items-center">
               <LikeButton
                 comment_id={comment.id + `-seller_reply`}
                 is_liked={comment.reply_is_liked}
                 productId={comment.product_id}
                 target_type={"seller_reply"}
                 total_likes={comment.reply_total_likes}
+              />
+              <BuyersReplyMenu
+                id={comment.id}
+                isRtl={isRtl}
+                language={language}
+                sellerReply={comment?.seller_reply}
               />
             </div>
           </div>

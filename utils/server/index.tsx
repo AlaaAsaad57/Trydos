@@ -13,7 +13,7 @@ export const getConfiguredImage = ({
       "/upload",
       `/upload/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`
+      }/f_auto/q_auto:good/fl_lossy/so_0`,
     );
   }
   if (src?.file_path?.includes("cloudinary")) {
@@ -21,7 +21,7 @@ export const getConfiguredImage = ({
       "/upload/v1",
       `/upload/v1/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`
+      }/f_auto/q_auto:good/fl_lossy/so_0`,
     );
   } else return src?.file_path || src || "";
 };
@@ -42,7 +42,7 @@ export const GetImageUrl = (url) => {
 export const configureImageForBoutique = (src) => {
   return src.replace(
     "/upload",
-    `/upload/w_1356,c_pad,b_auto/f_auto/q_auto:best/fl_lossy/so_0`
+    `/upload/w_1356,c_pad,b_auto/f_auto/q_auto:best/fl_lossy/so_0`,
   );
 };
 
@@ -57,7 +57,7 @@ export const configureImageForBoutique = (src) => {
  */
 export const getBrandIconImageUrl = (
   url: string | { file_path?: string } | null | undefined,
-  options?: { width?: number; height?: number }
+  options?: { width?: number; height?: number },
 ): string => {
   const baseUrl = GetImageUrl(url);
   if (!baseUrl || typeof baseUrl !== "string") return baseUrl ?? "";
@@ -151,7 +151,7 @@ export const getVideoUrl = (
     end?: number | string;
     width?: number | string;
     height?: number | string;
-  }
+  },
 ): string => {
   // Build transformation string
   let transformations = [];
@@ -177,7 +177,7 @@ export const getVideoUrl = (
   if (input.startsWith("http") && input.includes("/video/upload/")) {
     return input.replace(
       /\/video\/upload\/(v\d+)?/,
-      `/video/upload/${transformStr}/$1`
+      `/video/upload/${transformStr}/$1`,
     );
   }
 
@@ -199,11 +199,11 @@ export const getUrlofProduct = (
   color_name?: string,
   language?: string,
   country?: string,
-  slug?: string
+  slug?: string,
 ) => {
   if (color_name)
     return `/${country}-${language}/products/${slug}?color=${encodeURIComponent(
-      color_name
+      color_name,
     )}`;
   if (!color_name) {
     return `/${country}-${language}/products/${slug}`;
@@ -213,6 +213,7 @@ type parsedFilters = {
   boutiques?: string[];
   brands?: string[];
   categories?: string[];
+  related_categories?: string[];
   colors?: string[];
   tags_names?: string[];
   sizes?: string[];
@@ -221,7 +222,7 @@ type parsedFilters = {
   prices?: any[];
 };
 export const parseFiltersFromParams = (
-  params: string[] = []
+  params: string[] = [],
 ): parsedFilters => {
   const filters: Record<string, string[]> = {};
 
@@ -242,6 +243,7 @@ export const parseFiltersFromParams = (
   const filterOrder = [
     "boutiques",
     "categories",
+    "related_categories",
     "brands",
     "colors",
     "sizes",
@@ -301,6 +303,13 @@ export const parseFiltersFromParams = (
     } else {
       currentIndex++;
     }
+  }
+
+  if (filters.related_categories?.length) {
+    filters.categories = Array.from(
+      new Set([...(filters.categories || []), ...filters.related_categories]),
+    );
+    delete filters.related_categories;
   }
 
   return filters;
@@ -363,6 +372,14 @@ export function NormalizeSearchParamsForSearchRequest({
   let filters: any = {};
   if (searchParams.category_slugs) {
     filters.categories = parseArrayParam(searchParams.category_slugs);
+  }
+  if (searchParams.related_category_slugs) {
+    filters.categories = Array.from(
+      new Set([
+        ...(filters.categories || []),
+        ...parseArrayParam(searchParams.related_category_slugs),
+      ]),
+    );
   }
   if (searchParams.boutique_slugs) {
     filters.boutiques = parseArrayParam(searchParams.boutique_slugs);
@@ -457,6 +474,7 @@ export const HandleIsActive = ({ values, item }) => {
 export interface FilterParams {
   boutiques?: string[];
   categories?: string[];
+  related_categories?: string[];
   brands?: string[];
   colors?: string[];
   sizes?: string[];
@@ -473,7 +491,7 @@ export const pollinateInput = (value: string): string => {
   return input;
 };
 export const buildParamsFromFilters = (
-  filters: Record<string, string[]>
+  filters: Record<string, string[]>,
 ): string[] => {
   const params: string[] = [];
   const filterOrder = [
@@ -501,7 +519,7 @@ export const buildParamsFromFilters = (
       } else if (filterType === "colors") {
         // Colors should be hex without #
         const colorValues = values.map((color) =>
-          color.startsWith("#") ? color.substring(1) : color
+          color.startsWith("#") ? color.substring(1) : color,
         );
         params.push(colorValues.join(","));
       } else {
@@ -524,6 +542,78 @@ export interface FilterItemProps {
   isRtl?: boolean;
   baseUrlOfFiltersPage: string;
 }
+
+const collectCategorySlugs = (
+  categories: Array<{ slug?: string; childes?: any[] }> = [],
+  slugs: Set<string> = new Set(),
+): Set<string> => {
+  categories.forEach((category) => {
+    if (category?.slug) {
+      slugs.add(category.slug);
+    }
+    if (Array.isArray(category?.childes) && category.childes.length > 0) {
+      collectCategorySlugs(category.childes, slugs);
+    }
+  });
+
+  return slugs;
+};
+
+const removeDuplicatedCategoryTree = (
+  categories: Array<{ slug?: string; childes?: any[] }> = [],
+  duplicatedSlugs: Set<string>,
+) => {
+  return categories
+    .filter((category) => category?.slug && !duplicatedSlugs.has(category.slug))
+    .map((category) => {
+      if (!Array.isArray(category?.childes) || category.childes.length === 0) {
+        return category;
+      }
+
+      return {
+        ...category,
+        childes: removeDuplicatedCategoryTree(
+          category.childes,
+          duplicatedSlugs,
+        ),
+      };
+    });
+};
+
+const markRelatedCategoriesTree = (categories: Array<any> = []): Array<any> => {
+  return categories.map((category) => ({
+    ...category,
+    is_related_category: true,
+    childes: markRelatedCategoriesTree(category?.childes || []),
+  }));
+};
+
+export const combineCategoriesWithRelated = (
+  categories: Array<{ slug?: string; childes?: any[] }> = [],
+  relatedCategories: Array<any> = [],
+) => {
+  if (!relatedCategories?.length) {
+    return categories;
+  }
+
+  const relatedCategorySlugs = collectCategorySlugs(relatedCategories);
+
+  // Keep duplicates for now. Set to false later to re-enable deduplication.
+  const allowDuplicatedCategories = true;
+
+  // Disable dedupe for now.
+  // const baseCategories = removeDuplicatedCategoryTree(
+  //   categories,
+  //   relatedCategorySlugs,
+  // );
+  const baseCategories = allowDuplicatedCategories
+    ? categories
+    : removeDuplicatedCategoryTree(categories, relatedCategorySlugs);
+  const relatedCategoriesWithFlag =
+    markRelatedCategoriesTree(relatedCategories);
+
+  return [...baseCategories, ...relatedCategoriesWithFlag];
+};
 
 export interface FilterState {
   isFiltered: boolean;

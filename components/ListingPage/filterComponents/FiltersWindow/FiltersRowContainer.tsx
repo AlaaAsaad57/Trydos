@@ -18,7 +18,7 @@ function FiltersRowContainer({ children, values, setValues, term, loading }) {
     <div className="flex flex-col items-start gap-[10px]">
       <FilterRowTop loading={loading} term={`Filter By ${term}`} />
       <HortiznalScrollBar
-        className={`flex ${loading && "opacity-65"} max-w-[calc(100vw-60px)]`}
+        className={`flex ${loading && "opacity-65"} max-w-[calc(100vw-60px)] gap-1`}
         id={`${term}-filter-row`}
         onClick={(e) => {
           HandleClick(e);
