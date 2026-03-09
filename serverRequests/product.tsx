@@ -610,8 +610,14 @@ export async function GetFQACommentsForProductWithReactions({
   user_id,
   commentsResult,
 }) {
-  const commentIds = commentsResult.map((s) => s.id);
-  if (commentIds.length === 0) return commentsResult;
+  let commentIds = [];
+  let temp = commentsResult.map((s) => s.id);
+
+  if (temp.length === 0) return commentsResult;
+  temp.map((s) => {
+    commentIds.push(s);
+    commentIds.push(`${s}-seller_reply`);
+  });
 
   const reactionsQuery: any = {
     index: comments_interactions_index,
@@ -658,7 +664,6 @@ export async function GetFQACommentsForProductWithReactions({
   };
 
   const reactionsRes = await client.search(reactionsQuery);
-
   const commentLikesMap: Record<
     string,
     { total_likes: number; is_liked: boolean }
@@ -692,11 +697,11 @@ export async function GetFQACommentsForProductWithReactions({
     is_liked: commentLikesMap[comment.id]?.is_liked || false,
     reply_total_likes:
       comment.has_reply && comment.seller_reply
-        ? replyLikesMap[comment.id]?.total_likes || 0
+        ? replyLikesMap[`${comment.id}-seller_reply`]?.total_likes || 0
         : 0,
     reply_is_liked:
       comment.has_reply && comment.seller_reply
-        ? replyLikesMap[comment.id]?.is_liked || false
+        ? replyLikesMap[`${comment.id}-seller_reply`]?.is_liked || false
         : false,
   }));
 }
@@ -894,6 +899,7 @@ export async function GetProductFaqQuestions({
   pageSize = 5,
   userId,
   width = 90,
+  isFromComments = false,
 }) {
   let query: any = {
     index: comments_index,
@@ -993,6 +999,7 @@ export async function GetProductFaqQuestions({
   return {
     comments: comments.fqa_comments.map((com) => (
       <FaqItemComponent
+        isFromComments={isFromComments}
         key={com.id}
         comment={com}
         id={com.id}

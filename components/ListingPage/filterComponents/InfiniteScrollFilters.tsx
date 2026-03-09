@@ -38,9 +38,9 @@ function InfiniteScrollFilters({
         case "categories":
           filter_response = response.categories;
           break;
-        case "related_categories":
-          filter_response = response.related_categories;
-          break;
+        // case "related_categories":
+        // filter_response = response.related_categories;
+        // break;
         case "brands":
           filter_response = response.brands;
           break;
