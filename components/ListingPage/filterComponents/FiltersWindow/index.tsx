@@ -52,7 +52,12 @@ const FiltersWindowUI = ({
   const [FiltersNodes, setFiltersNodes] = useState(children);
   const [showChart, setShowChart] = useState(false);
   let InitialFiltersObject = {
-    categories: initialFilters?.categories ?? [],
+    categories: [
+      ...new Set([
+        ...(initialFilters?.categories ?? []),
+        ...(initialFilters?.related_categories ?? []),
+      ]),
+    ],
     brands: initialFilters?.brands ?? [],
     sizes: initialFilters?.sizes ?? [],
     prices: initialFilters?.prices ?? [],
@@ -80,6 +85,12 @@ const FiltersWindowUI = ({
   const [loading, setLoading] = useState(false);
 
   const isFirstMount = useRef(true);
+
+  useEffect(() => {
+    if (!filterEnabled) return;
+    setFilter(InitialFiltersObject);
+    setFiltersNodes(children);
+  }, [filterEnabled, initialFilters, children]);
 
   const UpdateFilters = useCallback(async () => {
     if (loading) return;

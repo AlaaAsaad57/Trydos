@@ -97,6 +97,7 @@ interface ElasticsearchHit {
 }
 interface SearchFilters {
   categories?: string[];
+  related_categories?: string[];
   brands?: string[];
   boutiques?: string[];
   colors?: string[];

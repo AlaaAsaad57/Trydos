@@ -118,6 +118,7 @@ interface FinalPrices {
 }
 interface SearchFilters {
   categories?: string[];
+  related_categories?: string[];
   brands?: string[];
   boutiques?: string[];
   colors?: string[];
@@ -879,6 +880,11 @@ function calculatePriceFilter(
   };
 }
 export function buildBaseConditions(filters: SearchFilters, country: string) {
+  const categoriesFilterSlugs = [
+    ...(filters.categories || []),
+    ...(filters.related_categories || []),
+  ];
+  const uniqueCategorySlugs = Array.from(new Set(categoriesFilterSlugs));
   const fuzziness = calculateFuzziness(filters.search_text);
   const searchWords = filters.search_text
     ? filters.search_text
@@ -895,7 +901,7 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
   ];
 
   // Add category filter
-  if (filters.categories?.length) {
+  if (uniqueCategorySlugs.length) {
     mustConditions.push({
       bool: {
         must: [
@@ -909,7 +915,9 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
             nested: {
               path: "custom_categories",
               query: {
-                terms: { "custom_categories.slug.keyword": filters.categories },
+                terms: {
+                  "custom_categories.slug.keyword": uniqueCategorySlugs,
+                },
               },
             },
           },

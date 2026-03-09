@@ -1,6 +1,7 @@
 import ListingSkeleton from "components/skeleton/listing";
 import { Suspense } from "react";
 import FilterList from "./FilterList";
+import { combineCategoriesWithRelated } from "utils/server";
 
 async function FilterListContainer({
   filtersPromis,
@@ -18,7 +19,7 @@ async function FilterListContainer({
         [
           ...(parsedFilters?.colors || []),
           ...(filtersData?.applied?.colors || []),
-        ].map((s) => s)
+        ].map((s) => s),
       ),
     ];
   }
@@ -28,7 +29,7 @@ async function FilterListContainer({
         [
           ...(parsedFilters?.sizes || []),
           ...(filtersData?.applied?.sizes || []),
-        ].map((s) => s)
+        ].map((s) => s),
       ),
     ];
   }
@@ -39,8 +40,21 @@ async function FilterListContainer({
       ]) ??
       (parsedFilters?.search_text && [parsedFilters?.search_text]) ??
       null;
+  if (parsedFilters?.related_categories?.length) {
+    parsedFilters.categories = Array.from(
+      new Set([
+        ...(parsedFilters.categories || []),
+        ...parsedFilters.related_categories,
+      ]),
+    );
+    delete parsedFilters.related_categories;
+  }
+  const combinedCategories = combineCategoriesWithRelated(
+    filtersData?.categories || [],
+    filtersData?.related_categories || [],
+  );
   let filters = {
-    categories: filtersData?.categories || [],
+    categories: combinedCategories || [],
     brands: filtersData?.brands || [],
     colors: filtersData?.colors || [],
     prices: filtersData?.prices?.priceRanges || [],
