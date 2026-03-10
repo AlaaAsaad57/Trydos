@@ -40,27 +40,16 @@ async function FilterListContainer({
       ]) ??
       (parsedFilters?.search_text && [parsedFilters?.search_text]) ??
       null;
-  if (parsedFilters?.related_categories?.length) {
-    parsedFilters.categories = Array.from(
-      new Set([
-        ...(parsedFilters.categories || []),
-        ...parsedFilters.related_categories,
-      ]),
-    );
-    delete parsedFilters.related_categories;
-  }
-  const combinedCategories = combineCategoriesWithRelated(
-    filtersData?.categories || [],
-    filtersData?.related_categories || [],
-  );
+  // Do not merge related_categories into categories
   let filters = {
-    categories: combinedCategories || [],
+    categories: filtersData?.categories || [],
     brands: filtersData?.brands || [],
     colors: filtersData?.colors || [],
     prices: filtersData?.prices?.priceRanges || [],
     sizes: filtersData?.attributes?.[0]?.options || [],
     boutiques: filtersData?.boutiques || [],
     search_text: parsedFilters?.search_text?.[0] || null,
+    related_categories: filtersData?.related_categories || [],
   };
 
   return (

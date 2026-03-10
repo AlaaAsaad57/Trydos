@@ -2346,3 +2346,35 @@ export function sortColorsByFilteredColor(
     });
   });
 }
+
+export const GroupAgeEnum = {
+  0: { label: "All Ages", shortLabel: "All Ages", ageRange: "All" },
+  1: { label: "Infant (0-2 years)", shortLabel: "Infant", ageRange: "0-2" },
+  2: { label: "Toddler (3-5 years)", shortLabel: "Toddler", ageRange: "3-5" },
+  3: { label: "Child (6-12 years)", shortLabel: "Child", ageRange: "6-12" },
+  4: { label: "Teen (13-17 years)", shortLabel: "Teen", ageRange: "13-17" },
+  5: {
+    label: "Young Adult (18-25 years)",
+    shortLabel: "Young Adult",
+    ageRange: "18-25",
+  },
+  6: { label: "Adult (26-40 years)", shortLabel: "Adult", ageRange: "26-40" },
+  7: {
+    label: "Middle Age (41-60 years)",
+    shortLabel: "Middle Age",
+    ageRange: "41-60",
+  },
+  8: { label: "Senior (61+ years)", shortLabel: "Senior", ageRange: "61+" },
+  9: { label: "+3 years", shortLabel: "+3", ageRange: "+3" },
+  10: { label: "-3 years", shortLabel: "-3", ageRange: "-3" },
+  11: { label: "+5 years", shortLabel: "+5", ageRange: "+5" },
+  12: { label: "-5 years", shortLabel: "-5", ageRange: "-5" },
+  13: { label: "+18 years", shortLabel: "+18", ageRange: "+18" },
+};
+
+export const GenderEnum = {
+  1: { label: "Male", shortLabel: "Male" },
+  2: { label: "Female", shortLabel: "Female" },
+  3: { label: "Other", shortLabel: "Other" },
+  4: { label: "All Genders (Unisex)", shortLabel: "All" },
+};

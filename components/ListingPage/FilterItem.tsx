@@ -117,7 +117,7 @@ const FilterItem = ({
             {isFiltered && (
               <img
                 src="/icons/ActiveCategoryIcon.svg"
-                className="active-category-icon w-[30px] h-[30px] z-50"
+                className="active-category-icon min-w-[30px] w-[30px] h-[30px] z-50"
               />
             )}
             <svg
@@ -210,7 +210,7 @@ const FilterItem = ({
                     {getSubCategoryUrl(s.slug)?.isFiltered && (
                       <img
                         src="/icons/ActiveCategoryIcon.svg"
-                        className="active-category-icon w-[30px] h-[30px] z-50"
+                        className="active-category-icon min-w-[30px] w-[30px] h-[30px] z-50"
                         style={{ top: "-5px", left: "-5px" }}
                       />
                     )}
@@ -299,7 +299,7 @@ const FilterItem = ({
                                 ?.isFiltered && (
                                 <img
                                   src="/icons/ActiveCategoryIcon.svg"
-                                  className="active-category-icon w-[30px] h-[30px] z-50"
+                                  className="active-category-icon min-w-[30px] w-[30px] h-[30px] z-50"
                                   style={{ top: "-5px", left: "-5px" }}
                                 />
                               )}
@@ -402,7 +402,7 @@ const FilterItem = ({
           {isFiltered && (
             <img
               src="/icons/ActiveCategoryIcon.svg"
-              className="active-category-icon w-[30px] h-[30px] z-50"
+              className="active-category-icon min-w-[30px] w-[30px] h-[30px] z-50"
             />
           )}
           <svg
@@ -465,7 +465,7 @@ const FilterItem = ({
           {isFiltered && (
             <img
               src="/icons/ActiveCategoryIcon.svg"
-              className="active-category-icon w-[30px] h-[30px] z-50"
+              className="active-category-icon min-w-[30px] w-[30px] h-[30px] z-50"
             />
           )}
 
@@ -521,7 +521,7 @@ const FilterItem = ({
           {isFiltered && (
             <img
               src="/icons/ActiveCategoryIcon.svg"
-              className="active-category-icon w-[30px] h-[30px] z-50"
+              className="active-category-icon min-w-[30px] w-[30px] h-[30px] z-50"
             />
           )}
 
@@ -588,7 +588,7 @@ const FilterItem = ({
           {isFiltered && (
             <img
               src="/icons/ActiveCategoryIcon.svg"
-              className="active-category-icon w-[30px] h-[30px] z-50"
+              className="active-category-icon min-w-[30px] w-[30px] h-[30px] z-50"
             />
           )}
 
