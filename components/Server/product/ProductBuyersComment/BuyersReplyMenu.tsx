@@ -96,7 +96,6 @@ const BuyersReplyMenu = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  console.log("sellerReply", sellerReply);
   return (
     <div className="relative">
       {menuOpen && (

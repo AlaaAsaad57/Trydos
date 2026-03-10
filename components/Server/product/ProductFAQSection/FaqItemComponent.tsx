@@ -16,6 +16,7 @@ function FaqItemComponent({
   width = 90,
   isRtl,
   seller_name,
+  isFromComments = false,
 }) {
   return (
     <div
@@ -25,13 +26,14 @@ function FaqItemComponent({
     >
       <div
         id={`comment-${comment.id}`}
-        className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-full w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
+        className={`${isFromComments && "comment-item-text"} comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-full w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
         style={{
           position: "relative",
           direction: isRtl ? "rtl" : "ltr",
         }}
       >
         <BuyersCommentMenu
+          fromComments={isFromComments}
           comment_type="faq"
           comment={comment}
           isRtl={isRtl}

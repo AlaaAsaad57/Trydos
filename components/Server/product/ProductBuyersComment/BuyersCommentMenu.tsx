@@ -15,6 +15,7 @@ function BuyersCommentMenu({
   isOwner,
   comment,
   comment_type,
+  fromComments = false,
 }) {
   const [loading, setLoading] = useState(false);
   const { BuyerCommentModalOption, setBuyerCommentModalOption } = useAppStore();
@@ -37,9 +38,16 @@ function BuyersCommentMenu({
       setIsCommentTranslated(false);
       setTranslatedComment(null);
       setMenuOpen(false);
-      document.querySelector<HTMLDivElement>(
-        `#comment-${comment.id}-text`,
-      ).innerText = comment?.comment ?? "";
+      if (fromComments) {
+        document.querySelector<HTMLDivElement>(
+          `.extended-section #comment-${comment.id}-text`,
+        ).innerText = comment?.comment;
+      } else {
+        document.querySelector<HTMLDivElement>(
+          `#comment-${comment.id}-text`,
+        ).innerText = comment?.comment ?? "";
+      }
+
       return;
     }
 
@@ -70,10 +78,15 @@ function BuyersCommentMenu({
           setTranslatedComment(response.translated_text);
           setIsCommentTranslated(true);
         }
-
-        document.querySelector<HTMLDivElement>(
-          `#comment-${comment.id}-text`,
-        ).innerText = response.translated_text;
+        if (fromComments) {
+          document.querySelector<HTMLDivElement>(
+            `.extended-section #comment-${comment.id}-text`,
+          ).innerText = response.translated_text;
+        } else {
+          document.querySelector<HTMLDivElement>(
+            `#comment-${comment.id}-text`,
+          ).innerText = response.translated_text;
+        }
       }
       setMenuOpen(false);
     } catch (error) {

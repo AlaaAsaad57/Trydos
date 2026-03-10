@@ -43,7 +43,7 @@ interface FetchDataParams {
 // ---------- Internal State ----------
 const requestCache = new Map<string, any>();
 const inflightRequests = new Map<string, Promise<any>>();
-const retryableStatusCodes = [502, 504, 429];
+const retryableStatusCodes = [502, 504, 429, 503];
 const ignoredMessages = [
   "Data Got!",
   "Data Got",

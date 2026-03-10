@@ -50,6 +50,7 @@ function CommentSection({ product_data }) {
         productId: product_data?.id,
         userId: auth.UserID(),
         offset: OffsetRef.current,
+        isFromComments: true,
       });
       if (reset) setCommentsData(res.comments);
       else setCommentsData([...commentsData, ...res.comments]);
