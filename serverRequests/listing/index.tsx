@@ -1,4 +1,5 @@
 "use server";
+import CategoryImageCircel from "components/ListingPage/filterComponents/FiltersWindow/CategoryImageCircel";
 import ImageCircel from "components/ListingPage/filterComponents/FiltersWindow/ImageCircel";
 import FilterItem from "components/ListingPage/FilterItem";
 import ProductWrapper from "components/ServerWrapper/ProductWrapper";
@@ -28,8 +29,8 @@ export async function GetFilters({
       response.categories || [],
       response.related_categories || [],
     );
-    if (combinedCategories.length) {
-      new_filters.categories = combinedCategories;
+    if (response.categories.length) {
+      new_filters.categories = response.categories;
     }
     if (response.brands?.length) {
       new_filters.brands = response.brands;
@@ -43,21 +44,27 @@ export async function GetFilters({
 
     const isRtl = language === "ar" || language === "ku";
     const params = { lang: `${country}-${language}` };
-    const baseUrlOfFiltersPage =
-      filters?.featured ? "/featured" : filters?.flashdeal ? "/flashDeals" : "/filters";
+    const baseUrlOfFiltersPage = filters?.featured
+      ? "/featured"
+      : filters?.flashdeal
+        ? "/flashDeals"
+        : "/filters";
 
     return {
       categories: new_filters?.categories?.map((item) => (
-        <FilterItem
+        <CategoryImageCircel
+          key={item.slug}
+          isActive={HandleIsActive({
+            values: filters.categories,
+            item: item.slug,
+          })}
+          name={item.name}
+          term={"Category"}
+          value={item.slug}
+          image={item.most_viewed_product_thumbnail}
+          childes={item.childes}
+          values={filters.categories}
           isRtl={isRtl}
-          baseUrlOfFiltersPage={baseUrlOfFiltersPage}
-          params={params}
-          filterParams={filters}
-          isUsingParsedFilters={true}
-          key={item.id ?? item?.slug ?? item}
-          currency={null}
-          term={"categories"}
-          item={item}
         />
       )),
       brands: new_filters?.brands?.map((brand) => (

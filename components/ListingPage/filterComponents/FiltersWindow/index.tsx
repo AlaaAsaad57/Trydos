@@ -281,7 +281,7 @@ const FiltersWindowUI = ({
           </FiltersRowContainer>
         )}
 
-        {FiltersNodes.prices && (
+        {FiltersNodes.prices && FiltersNodes.total_size>1&&(
           <>
             <div
               className={`flex-col justify-start ${

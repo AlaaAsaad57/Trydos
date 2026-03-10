@@ -1,4 +1,5 @@
 import FiltersWindow from "components/ListingPage/filterComponents/FiltersWindow";
+import CategoryImageCircel from "components/ListingPage/filterComponents/FiltersWindow/CategoryImageCircel";
 import ImageCircel from "components/ListingPage/filterComponents/FiltersWindow/ImageCircel";
 import FilterItem from "components/ListingPage/FilterItem";
 import React from "react";
@@ -15,14 +16,14 @@ async function FilterWidgetServer({
 }) {
   let currency = await currencyPromise;
   let filtersData = await filtersPromise;
-  const combinedCategories = combineCategoriesWithRelated(
-    filtersData?.categories || [],
-    filtersData?.related_categories || [],
-  );
+
   const isRtl = language === "ar" || language === "ku";
   const params = { lang: `${country}-${language}` };
-  const baseUrlOfFiltersPage =
-    isFeatured ? "/featured" : isFlashDeal ? "/flashDeals" : "/filters";
+  const baseUrlOfFiltersPage = isFeatured
+    ? "/featured"
+    : isFlashDeal
+      ? "/flashDeals"
+      : "/filters";
   return (
     <div>
       <FiltersWindow
@@ -33,17 +34,20 @@ async function FilterWidgetServer({
         country={country}
         initialFilters={parsedFilters}
         children={{
-          categories: combinedCategories.map((item) => (
-            <FilterItem
+          categories: filtersData.categories.map((item) => (
+            <CategoryImageCircel
               isRtl={isRtl}
-              baseUrlOfFiltersPage={baseUrlOfFiltersPage}
-              params={params}
-              filterParams={parsedFilters}
-              isUsingParsedFilters={true}
               key={item.id ?? item?.slug ?? item}
-              currency={currency}
               term={"categories"}
-              item={item}
+              name={item.name}
+              value={item.slug}
+              image={item.most_viewed_product_thumbnail.file_path}
+              childes={item.childes}
+              values={parsedFilters.categories}
+              isActive={HandleIsActive({
+                values: parsedFilters.categories,
+                item: item.slug,
+              })}
             />
           )),
           brands: filtersData.brands.map((brand) => (

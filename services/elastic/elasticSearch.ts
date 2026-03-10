@@ -6,8 +6,10 @@ import {
   buildBaseConditions,
   calculatePriceRange,
   CustomProduct,
+  GenderEnum,
   getChildrenAndGrandchildren,
   getSourceFields,
+  GroupAgeEnum,
   normalizeCustomProducts,
   paginateFilters,
   processBoutiquesAggregation,
@@ -389,7 +391,11 @@ export async function getProductsAndFiltersFromElastic(
       brands: brandsFilter,
       boutiques: boutiquesFilter,
       categories: categoriesFilter,
-      related_categories: relatedCategoriesFilter,
+      related_categories: relatedCategoriesFilter.map((s) => ({
+        ...s,
+        group_age: GroupAgeEnum[s.group_age].label,
+        gender: GenderEnum[s.gender].label,
+      })),
       attributes:
         sizesFilter.length > 0
           ? [
