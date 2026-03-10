@@ -54,7 +54,7 @@ function FilterList({
                   alt={related.name}
                   width={70}
                   height={70}
-                  className="rounded-full mr-2"
+                  className="rounded-full mr-2 w-[70px] h-[70px] object-cover"
                 />
               )}
               <div className="flex flex-col">
