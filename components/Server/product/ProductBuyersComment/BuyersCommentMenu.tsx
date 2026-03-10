@@ -38,9 +38,16 @@ function BuyersCommentMenu({
       setIsCommentTranslated(false);
       setTranslatedComment(null);
       setMenuOpen(false);
-      document.querySelector<HTMLDivElement>(
-        `#comment-${comment.id}-text`,
-      ).innerText = comment?.comment ?? "";
+      if (fromComments) {
+        document.querySelector<HTMLDivElement>(
+          `.extended-section #comment-${comment.id}-text`,
+        ).innerText = comment?.comment;
+      } else {
+        document.querySelector<HTMLDivElement>(
+          `#comment-${comment.id}-text`,
+        ).innerText = comment?.comment ?? "";
+      }
+
       return;
     }
 
@@ -73,7 +80,7 @@ function BuyersCommentMenu({
         }
         if (fromComments) {
           document.querySelector<HTMLDivElement>(
-            `#comment-${comment.id}-text.comment-item-text`,
+            `.extended-section #comment-${comment.id}-text`,
           ).innerText = response.translated_text;
         } else {
           document.querySelector<HTMLDivElement>(

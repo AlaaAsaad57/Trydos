@@ -147,7 +147,7 @@ function SearchIcon({ language, country }) {
           // Assuming server action accepts query text
         });
         if (value?.length > 0 && res.isAnalyzed) {
-          // showSuccessNotification(JSON.stringify(res.isAnalyzed));
+          showSuccessNotification(JSON.stringify(res.isAnalyzed));
         }
         // RACE CONDITION CHECK: Only update if this is the latest request
         if (requestId === latestRequestRef.current) {

@@ -33,6 +33,7 @@ function FaqItemComponent({
         }}
       >
         <BuyersCommentMenu
+          fromComments={isFromComments}
           comment_type="faq"
           comment={comment}
           isRtl={isRtl}
