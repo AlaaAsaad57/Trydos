@@ -33,43 +33,25 @@ function FilterList({
       return { ...filterParams, Search: parsedFilters?.search };
     return filterParams;
   };
+  console.log(filters.related_categories, parsedFilters);
 
+  const showRelatedCategories = () => {
+    if (!parsedFilters.categories?.length) return [];
+
+    const selected_categories_slugs = parsedFilters.categories;
+
+    const result = filters.related_categories.filter((related_category) => {
+      return related_category.realted?.some((slug) =>
+        selected_categories_slugs.includes(slug),
+      );
+    });
+
+    return result;
+  };
   return (
     <>
       {/* Related Categories Section */}
-      {filters.related_categories && filters.related_categories.length > 0 && (
-        <div className="w-full flex flex-row items-center mb-4 pl-3.75">
-          <span className="font-semibold mr-2 text-gray-800">View also:</span>
-          {filters.related_categories.map((related) => (
-            <NextLink
-              key={related.id || related.slug}
-              href={`/filters/categories/${related.slug || related.id}`}
-              className="flex bg-[#80808029] items-center mr-4 px-2 py-1 rounded hover:bg-gray-100"
-            >
-              {related.most_viewed_product_thumbnail && (
-                <Image
-                  src={GetImageUrl(
-                    related.most_viewed_product_thumbnail.file_path,
-                  )}
-                  alt={related.name}
-                  width={70}
-                  height={70}
-                  className="rounded-full mr-2 w-[70px] h-[70px] object-cover"
-                />
-              )}
-              <div className="flex flex-col">
-                <span className="font-medium text-sm text-gray-800">
-                  {related.name}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {related.group_age ? `Age: ${related.group_age}` : ""}
-                  {related.gender ? ` | Gender: ${related.gender}` : ""}
-                </span>
-              </div>
-            </NextLink>
-          ))}
-        </div>
-      )}
+
       {/* ...existing code... */}
       {itemsLength > 1 && (
         <div
@@ -130,6 +112,41 @@ function FilterList({
           </HortiznalScrollBar>
         </div>
       )}
+      {filters.related_categories &&
+        filters.related_categories.length > 0 &&
+        showRelatedCategories().length > 0 && (
+          <div className="w-full flex flex-row items-center mb-4 pl-3.75 mt-[10px]">
+            <span className="font-semibold mr-2 text-gray-800">View also:</span>
+            {showRelatedCategories().map((related) => (
+              <NextLink
+                key={related.id || related.slug}
+                href={`/filters/categories/${related.slug || related.id}`}
+                className="flex bg-[#80808029] items-center mr-4 px-2 py-1 rounded hover:bg-gray-100"
+              >
+                {related.most_viewed_product_thumbnail && (
+                  <Image
+                    src={GetImageUrl(
+                      related.most_viewed_product_thumbnail.file_path,
+                    )}
+                    alt={related.name}
+                    width={30}
+                    height={30}
+                    className="rounded-full mr-2 w-[30px] h-[30px] object-cover"
+                  />
+                )}
+                <div className="flex flex-col">
+                  <span className="font-medium text-sm text-gray-800">
+                    {related.name}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {related.group_age ? `Age: ${related.group_age}` : ""}
+                    {related.gender ? ` | Gender: ${related.gender}` : ""}
+                  </span>
+                </div>
+              </NextLink>
+            ))}
+          </div>
+        )}
       <ActiveFiltersBar
         params={params}
         currency={currency}

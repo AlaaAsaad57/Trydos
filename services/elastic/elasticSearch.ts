@@ -271,23 +271,23 @@ export async function getProductsAndFiltersFromElastic(
     let recommendedProducts: any[] = [];
     let newRecommendedOffset = recommended_offset;
 
-    try {
-      const enrichResult = await enrichWithRecommended({
-        userId: userId ? String(userId) : null,
-        filters,
-        offset: recommended_offset,
-        limit,
-        language_code,
-        country,
-      });
+    // try {
+    //   const enrichResult = await enrichWithRecommended({
+    //     userId: userId ? String(userId) : null,
+    //     filters,
+    //     offset: recommended_offset,
+    //     limit,
+    //     language_code,
+    //     country,
+    //   });
 
-      if (enrichResult?.products?.length) {
-        recommendedProducts = enrichResult.products;
-        newRecommendedOffset = enrichResult.recommended_offset;
-      }
-    } catch {
-      // Silently continue — recommendations are non-critical
-    }
+    //   if (enrichResult?.products?.length) {
+    //     recommendedProducts = enrichResult.products;
+    //     newRecommendedOffset = enrichResult.recommended_offset;
+    //   }
+    // } catch {
+    //   // Silently continue — recommendations are non-critical
+    // }
 
     const catalogProducts =
       normalizedProducts.custom_products?.map((s) => ({
@@ -395,6 +395,13 @@ export async function getProductsAndFiltersFromElastic(
         ...s,
         group_age: GroupAgeEnum[s.group_age].label,
         gender: GenderEnum[s.gender].label,
+        realted: categoriesFilter
+          .filter(
+            (category) =>
+              category.group_age === s.group_age &&
+              category.gender === s.gender,
+          )
+          .map((s) => s.slug),
       })),
       attributes:
         sizesFilter.length > 0
