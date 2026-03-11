@@ -87,7 +87,7 @@ const performVersionUpdate = async (): Promise<void> => {
 
     // Clear all storage
     clearAllStorage();
-    clearAllUserData();
+    await clearAllUserData();
     // Set new version cookie
     setVersionCookie(currentVersion);
     try {
