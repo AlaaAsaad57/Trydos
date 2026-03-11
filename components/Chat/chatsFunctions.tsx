@@ -82,7 +82,8 @@ export const isNew = (ch) => {
       String(mes.sender_user_id) !== String(getUserChat()?.id) &&
       mes.message_status.filter(
         (st) => String(st.user_id) === String(getUserChat()?.id),
-      )[0]?.is_watched === false,
+      )[0]?.is_watched === false &&
+      mes.auth_message_status.delete_for_all === false,
   ).length;
   return a;
 };

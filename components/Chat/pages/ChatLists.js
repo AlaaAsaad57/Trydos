@@ -25,7 +25,7 @@ function ChatLists(props) {
   const handleClick = (e) => {
     if (true) {
       let friendId = e.channel_members.filter(
-        (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
+        (member) => parseInt(member.user_id) !== parseInt(getUserChat().id),
       )[0]?.user_id;
       GetLastSeen(e.id, friendId);
     }
@@ -61,7 +61,7 @@ function ChatLists(props) {
         const newestA =
           a.messages.length > 0
             ? Math.max(
-                ...a.messages.map((m) => new Date(m.created_at).getTime())
+                ...a.messages.map((m) => new Date(m.created_at).getTime()),
               )
             : 0;
 
@@ -69,7 +69,7 @@ function ChatLists(props) {
         const newestB =
           b.messages.length > 0
             ? Math.max(
-                ...b.messages.map((m) => new Date(m.created_at).getTime())
+                ...b.messages.map((m) => new Date(m.created_at).getTime()),
               )
             : 0;
 
@@ -77,6 +77,7 @@ function ChatLists(props) {
         return newestB - newestA;
       });
   };
+
   return (
     <div className="chat-list-items chat-lists-class ">
       {!loading && (
@@ -87,8 +88,8 @@ function ChatLists(props) {
                 ?.filter(
                   (s) =>
                     s.channel_members.filter(
-                      (mem) => mem.user_id === getUserChat()?.id
-                    )[0]?.pin === 1
+                      (mem) => mem.user_id === getUserChat()?.id,
+                    )[0]?.pin === 1,
                 )
                 .map((chat, key) => {
                   return (
@@ -104,18 +105,18 @@ function ChatLists(props) {
                       muted={
                         parseInt(
                           chat.channel_members.filter(
-                            (s) => s.user_id === getUserChat()?.id
-                          )[0]?.mute
+                            (s) => s.user_id === getUserChat()?.id,
+                          )[0]?.mute,
                         ) === 1
                       }
                       SenderName={
                         chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id
+                          (member) => member?.user_id !== getUserChat()?.id,
                         )[0]?.user?.name
                       }
                       photo={
                         chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id
+                          (member) => member?.user_id !== getUserChat()?.id,
                         )[0]?.user?.photo_path
                       }
                       lastMessage={chat.messages[chat.messages.length - 1]}
@@ -129,9 +130,9 @@ function ChatLists(props) {
                 ?.filter(
                   (s) =>
                     s.channel_members.filter(
-                      (mem) => mem.user_id === getUserChat()?.id
+                      (mem) => mem.user_id === getUserChat()?.id,
                     )[0]?.pin === 0 &&
-                    pinned.filter((p) => p.id === s.id).length === 0
+                    pinned.filter((p) => p.id === s.id).length === 0,
                 )
                 .map((chat, key) => {
                   return (
@@ -146,25 +147,25 @@ function ChatLists(props) {
                       pinned={
                         parseInt(
                           chat.channel_members.filter(
-                            (s) => s.user_id === getUserChat()?.id
-                          )[0]?.pin
+                            (s) => s.user_id === getUserChat()?.id,
+                          )[0]?.pin,
                         ) === 1
                       }
                       muted={
                         parseInt(
                           chat.channel_members.filter(
-                            (s) => s.user_id === getUserChat()?.id
-                          )[0]?.mute
+                            (s) => s.user_id === getUserChat()?.id,
+                          )[0]?.mute,
                         ) === 1
                       }
                       SenderName={
                         chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id
+                          (member) => member?.user_id !== getUserChat()?.id,
                         )[0]?.user?.name
                       }
                       photo={
                         chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id
+                          (member) => member?.user_id !== getUserChat()?.id,
                         )[0]?.user?.photo_path
                       }
                       lastMessage={chat.messages[chat.messages.length - 1]}
@@ -182,7 +183,7 @@ function ChatLists(props) {
             <>
               {chats
                 .filter(
-                  (s) => !s.isPrivate || s.channel_name !== "Deleivery Worker"
+                  (s) => !s.isPrivate || s.channel_name !== "Deleivery Worker",
                 )
                 .filter(
                   (chat) =>
@@ -191,8 +192,8 @@ function ChatLists(props) {
                         mem.user_id !== getUserChat()?.id &&
                         mem.user?.name
                           ?.toLowerCase()
-                          ?.includes(props.search.toLowerCase())
-                    ).length > 0
+                          ?.includes(props.search.toLowerCase()),
+                    ).length > 0,
                 )
                 .map((chat, key) => {
                   return (
@@ -207,25 +208,25 @@ function ChatLists(props) {
                       pinned={
                         parseInt(
                           chat.channel_members.filter(
-                            (s) => s.user_id === getUserChat()?.id
-                          )[0]?.pin
+                            (s) => s.user_id === getUserChat()?.id,
+                          )[0]?.pin,
                         ) === 1
                       }
                       muted={
                         parseInt(
                           chat.channel_members.filter(
-                            (s) => s.user_id === getUserChat()?.id
-                          )[0]?.mute
+                            (s) => s.user_id === getUserChat()?.id,
+                          )[0]?.mute,
                         ) === 1
                       }
                       SenderName={
                         chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id
+                          (member) => member?.user_id !== getUserChat()?.id,
                         )[0]?.user?.name
                       }
                       photo={
                         chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id
+                          (member) => member?.user_id !== getUserChat()?.id,
                         )[0]?.user?.photo_path
                       }
                       lastMessage={chat.messages[chat.messages.length - 1]}
@@ -238,21 +239,21 @@ function ChatLists(props) {
 
               {searchResults
                 .filter((mem) =>
-                  mem.name.toLowerCase().includes(props.search.toLowerCase())
+                  mem.name.toLowerCase().includes(props.search.toLowerCase()),
                 )
                 .map((item, key) => {
                   if (
                     chats.filter(
                       (chat) =>
                         chat.channel_members.filter(
-                          (mem) => mem.user_id === item.id
-                        ).length > 0
+                          (mem) => mem.user_id === item.id,
+                        ).length > 0,
                     ).length > 0 ||
                     chats.filter(
                       (chat) =>
                         chat.channel_members.filter(
-                          (mem) => mem.user_id === item.id
-                        ).length > 0
+                          (mem) => mem.user_id === item.id,
+                        ).length > 0,
                     ).length > 0
                   ) {
                     return <></>;
