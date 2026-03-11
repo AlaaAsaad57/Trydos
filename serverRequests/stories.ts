@@ -49,7 +49,7 @@ export async function fetchStoriesForUser(
   };
   try {
     const response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
+      url: `${process.env.NEXT_PUBLIC_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
       method: "GET",
       revalidate: 0,
       local: `${country}-${language}`,
@@ -98,7 +98,7 @@ export async function fetchStoriesForGuest(
   };
   try {
     const response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
+      url: `${process.env.NEXT_PUBLIC_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
       method: "GET",
       tags: ["stories", "home"],
       // revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),

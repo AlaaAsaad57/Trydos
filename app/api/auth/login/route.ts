@@ -147,17 +147,7 @@ export async function GET(request: NextRequest) {
         },
       ),
     ]);
-    console.log({
-      walletRes,
-      url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + LOG_IN_WALLET_ENDPOINT,
-      body: {
-        otp_id_token: idToken,
-        mobile_phone: InventoryUser.phone,
-        firstName: String(name || InventoryUser.name)?.split(" ")?.[0] ?? "",
-        lastName: String(name || InventoryUser.name)?.split(" ")?.[1] ?? "",
-        email: String(InventoryUser.email) ?? "",
-      },
-    });
+
     // 4. Collect Failures and Extract Tokens
     const failures = [];
     if (!chatRes.success)
@@ -167,6 +157,17 @@ export async function GET(request: NextRequest) {
         user_id: String(InventoryUser?.id),
         phone: String(InventoryUser.phone),
       });
+    console.log("Stories Login Response:", {
+      request: {
+        url:
+          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
+        body: {
+          otp_id_token: idToken,
+          mobile_phone: InventoryUser.phone,
+        },
+        response: JSON.stringify(storiesRes, null, 2),
+      },
+    });
     if (!storiesRes.success)
       failures.push({
         endpoint: "STORIES",

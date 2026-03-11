@@ -1,5 +1,5 @@
 // Force update - increment this version when you want to force update
-const CACHE_VERSION = "v2.0.0";
+const CACHE_VERSION = "v1.0.5";
 const BASE_CLOUDINARY_URL =
   "https://res.cloudinary.com/dtcmozf4d/image/upload/v1";
 // Get image url function
@@ -119,13 +119,6 @@ messaging.onBackgroundMessage(async function (payload) {
     // Check if any tabs are open
     const sentToForeground = await sendToForeground(payload);
 
-    // If we successfully delivered the notification data to at least
-    // one foreground client, do NOT also show a background notification.
-    // This reduces duplicate notifications and helps avoid being flagged as spammy.
-    if (sentToForeground) {
-      return;
-    }
-
     // If no tabs are open, proceed with background notifications
 
     if (payload.data.title === "market") {
@@ -144,11 +137,7 @@ messaging.onBackgroundMessage(async function (payload) {
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ?? "New Boutique",
-          {
-            ...notificationOptions,
-            tag: "market",
-            renotify: true,
-          },
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "category created") {
@@ -166,11 +155,7 @@ messaging.onBackgroundMessage(async function (payload) {
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ?? "New Category",
-          {
-            ...notificationOptions,
-            tag: "market",
-            renotify: true,
-          },
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "product cart expiration") {
@@ -183,11 +168,7 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             "product cart expiration",
-          {
-            ...notificationOptions,
-            tag: "market",
-            renotify: true,
-          },
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "product availability") {
@@ -202,11 +183,7 @@ messaging.onBackgroundMessage(async function (payload) {
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type,
-          {
-            ...notificationOptions,
-            tag: "market",
-            renotify: true,
-          },
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type?.includes("product hurry up")) {
@@ -219,11 +196,7 @@ messaging.onBackgroundMessage(async function (payload) {
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type,
-          {
-            ...notificationOptions,
-            tag: "market",
-            renotify: true,
-          },
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "product discount") {
@@ -239,11 +212,7 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          {
-            ...notificationOptions,
-            tag: "market",
-            renotify: true,
-          },
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "product comment") {
@@ -259,11 +228,7 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          {
-            ...notificationOptions,
-            tag: "market",
-            renotify: true,
-          },
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "product before stock out") {
@@ -279,11 +244,7 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          {
-            ...notificationOptions,
-            tag: "market",
-            renotify: true,
-          },
+          notificationOptions,
         );
       }
       if (
@@ -301,11 +262,7 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          {
-            ...notificationOptions,
-            tag: "market",
-            renotify: true,
-          },
+          notificationOptions,
         );
       }
       if (JSON.parse(payload.data.body).type === "order placed") {
@@ -319,11 +276,7 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          {
-            ...notificationOptions,
-            tag: "market-order",
-            renotify: true,
-          },
+          notificationOptions,
         );
       }
       if (
@@ -343,11 +296,7 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          {
-            ...notificationOptions,
-            tag: "market-order",
-            renotify: true,
-          },
+          notificationOptions,
         );
       }
     } else if (
@@ -373,7 +322,6 @@ messaging.onBackgroundMessage(async function (payload) {
           { action: "reply", title: "Reply" },
           { action: "reject", title: "Reject" },
         ],
-        tag: `call-${callInfo.channelId || callInfo.user_id || "generic"}`,
         data: {
           call_id: callInfo.channelId,
           receiverId: callInfo.user_id,
@@ -386,28 +334,33 @@ messaging.onBackgroundMessage(async function (payload) {
         notificationOptions,
       );
     } else if (payload.data.type === "message") {
-      const parsedData = JSON.parse(payload.data.data);
-      let notificationTitle = parsedData.message.sender_user.name;
+      let notificationTitle = JSON.parse(payload.data.data).message.sender_user
+        .name;
       let notificationOptions = {};
-      // Derive a stable tag for this conversation if possible to collapse
-      // multiple notifications into a single thread instead of spamming.
-      const conversationId =
-        parsedData.chat_id ||
-        parsedData.conversation_id ||
-        parsedData.thread_id ||
-        parsedData.message?.chat_id ||
-        parsedData.message?.conversation_id ||
-        parsedData.message?.thread_id ||
-        parsedData.message?.id;
-      const senderId =
-        parsedData.message?.sender_user?.id ||
-        parsedData.message?.sender_user_id ||
-        "generic";
-      const messageTag =
-        conversationId != null
-          ? `chat-${conversationId}`
-          : `chat-from-${senderId}`;
-
+      // Derive a stable tag per chat/conversation so that notifications
+      // for the same chat are updated instead of stacking as separate cards.
+      let messageTag = null;
+      try {
+        const parsed = JSON.parse(payload.data.data);
+        const message = parsed?.message || {};
+        const senderUser = message.sender_user || {};
+        const chatId =
+          parsed.chat_id ||
+          message.chat_id ||
+          message.chat?.id ||
+          message.channelId ||
+          message.channel_id ||
+          message.channel.id;
+        const senderId = senderUser.id || message.sender_user_id;
+        if (chatId) {
+          messageTag = `chat-${chatId}`;
+        } else if (senderId) {
+          messageTag = `chat-from-${senderId}`;
+        }
+      } catch (e) {
+        // If parsing fails, we simply skip tagging and fall back to
+        // the original behavior (no grouping).
+      }
       if (JSON.parse(payload.data.data)?.is_private) {
         notificationTitle = "Deleivery Worker";
         notificationOptions = {
@@ -509,15 +462,35 @@ messaging.onBackgroundMessage(async function (payload) {
           },
         };
       }
-      if (notificationOptions.body)
-        self.registration.showNotification(
-          notificationTitle,
-          {
-            ...notificationOptions,
-            tag: messageTag,
-            renotify: true,
-          },
-        );
+      if (notificationOptions.body) {
+        if (messageTag) {
+          const existingNotifications =
+            await self.registration.getNotifications({ tag: messageTag });
+          if (existingNotifications.length > 0) {
+            const existingBody = existingNotifications[0].body || "";
+            const countMatch = existingBody.match(/^(\d+) new messages?$/);
+            const currentCount = countMatch ? parseInt(countMatch[1], 10) : 1;
+            const newCount = currentCount + 1;
+            self.registration.showNotification(notificationTitle, {
+              ...notificationOptions,
+              body: `${newCount} new messages`,
+              tag: messageTag,
+              renotify: true,
+            });
+          } else {
+            self.registration.showNotification(notificationTitle, {
+              ...notificationOptions,
+              tag: messageTag,
+              renotify: true,
+            });
+          }
+        } else {
+          self.registration.showNotification(
+            notificationTitle,
+            notificationOptions,
+          );
+        }
+      }
     }
   } catch (error) {
     console.error(error);
@@ -527,14 +500,16 @@ messaging.onBackgroundMessage(async function (payload) {
 // Notification click handler - works for background notifications only
 self.addEventListener("notificationclick", function (event) {
   const baseUrl = self.location.origin;
+  const notificationData = event.notification.data || {};
+  const targetUrl = notificationData.url || baseUrl;
   event.notification.close();
   // Only open the link by default if this is NOT a call notification
-  if (!event.notification.data || !event.notification.data.callType) {
-    clients.openWindow(event.notification.data.url); // Android needs explicit close.
+  if (!notificationData.callType) {
+    clients.openWindow(targetUrl); // Android needs explicit close.
   }
   switch (event.action) {
     case "open_url":
-      clients.openWindow(event.notification.data.url); // Which we got from above
+      clients.openWindow(targetUrl); // Which we got from above
       break;
     case "any_other_action":
       event.waitUntil(
@@ -560,7 +535,6 @@ self.addEventListener("notificationclick", function (event) {
         clients
           .matchAll({ type: "window", includeUncontrolled: true })
           .then((windowClients) => {
-            const targetUrl = event.notification.data.url;
             for (let i = 0; i < windowClients.length; i++) {
               const client = windowClients[i];
               // Use startsWith to match the base URL and query params
