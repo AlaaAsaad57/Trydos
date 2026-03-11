@@ -4,6 +4,7 @@ import ProductListServer from "./ProductList";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { getTitleAndTargetofListing } from "serverRequests/meta/StructuredData/utils";
 import ListingBreadcrumbList from "serverRequests/meta/StructuredData/ListingBreadcrumbList";
+import ClientLogger from "components/global/ClientLogger";
 
 async function ProductListConainer({
   currencyPromise,
@@ -100,6 +101,13 @@ async function ProductListConainer({
       key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
       fallback={<ListingSkeleton forProducts={true} />}
     >
+      <ClientLogger
+        value={{
+          elasticMainQueryTime: filtersData.time,
+          currencyTime: { time: currency.time, redis: currency.redis },
+          source: "ProductListContainer",
+        }}
+      />
       <ListingBreadcrumbList
         currency={currency}
         local={Params.lang}

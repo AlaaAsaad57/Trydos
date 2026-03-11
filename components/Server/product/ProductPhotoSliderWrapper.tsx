@@ -8,6 +8,7 @@ import { getCookieServer } from "utils/cookies/cookie-manager";
 import { getConfiguredImage, GetImageUrl } from "utils/server";
 import ProductRedeemCounter from "components/products/ProductRedeemCounter";
 import FlashDealBanner from "components/products/FlashDealBanner";
+import ClientLogger from "components/global/ClientLogger";
 
 async function ProductPhotoSliderWrapper({
   language,
@@ -285,80 +286,97 @@ async function ProductPhotoSliderWrapper({
   // utils end
 
   return (
-    <ProductImagesSlider
-      language={language}
-      productGA={{
-        item_id: globalDetails?.id,
-        item_name: globalDetails?.name,
-        brand: globalDetails?.brand?.name,
-        brand_id: globalDetails?.brand?.id,
-        category: globalDetails?.categories?.[0]?.name,
-        category_id: globalDetails?.categories?.[0]?.id,
-        price: qtyPromiseData?.offer_price,
-      }}
-    >
-      {getImages(globalDetails, color)?.images?.map((img, i) => (
-        <div
-          key={i}
-          className={`${i === 0 ? "z-99999999" : "z-88"} relative flex`}
-        >
+    <>
+      <ClientLogger
+        value={{
+          globalDataTime: {
+            time: globalDetails.globalDataTime,
+            redis: globalDetails.globalFromRedis,
+          },
+          qtyPricesDataTime: {
+            time: qtyPromiseData.qtyPricesDataTime,
+            redis: qtyPromiseData.qtyPricesDataFromRedis,
+          },
+        }}
+      />
+      <ProductImagesSlider
+        language={language}
+        productGA={{
+          item_id: globalDetails?.id,
+          item_name: globalDetails?.name,
+          brand: globalDetails?.brand?.name,
+          brand_id: globalDetails?.brand?.id,
+          category: globalDetails?.categories?.[0]?.name,
+          category_id: globalDetails?.categories?.[0]?.id,
+          price: qtyPromiseData?.offer_price,
+        }}
+      >
+        {getImages(globalDetails, color)?.images?.map((img, i) => (
           <div
-            className={`${getRoundedClass(
-              i,
-              getImages(globalDetails, color)?.images?.length,
-            )} embla__slide product-slider-images relative`}
-            key={img?.file_path}
+            key={i}
+            className={`${i === 0 ? "z-99999999" : "z-88"} relative flex`}
           >
-            {getImageBorder(i, getImages(globalDetails, color)?.images?.length)}
-            <Image
+            <div
               className={`${getRoundedClass(
                 i,
                 getImages(globalDetails, color)?.images?.length,
-              )} w-[320px] h-[464px]`}
-              width={320}
-              height={464}
-              priority={i === 0}
-              loading={"eager"}
-              alt={globalDetails.name}
-              src={getConfiguredImage({
-                src: GetImageUrl(img),
-                width: 500,
-                height: 700,
-              })}
-            />
-            <ProductImageIndicator language={language} />
-          </div>
-          {i === 0 && (
-            <>
-              {globalDetails?.categories?.[0]?.icon && (
-                <VirtualTryOn
-                  language={language}
-                  product={{
-                    id: globalDetails?.id,
-                    slug: globalDetails?.slug,
-                    images: getImages(globalDetails, color)?.images,
-                  }}
-                />
+              )} embla__slide product-slider-images relative`}
+              key={img?.file_path}
+            >
+              {getImageBorder(
+                i,
+                getImages(globalDetails, color)?.images?.length,
               )}
+              <Image
+                className={`${getRoundedClass(
+                  i,
+                  getImages(globalDetails, color)?.images?.length,
+                )} w-[320px] h-[464px]`}
+                width={320}
+                height={464}
+                priority={i === 0}
+                loading={"eager"}
+                alt={globalDetails.name}
+                src={getConfiguredImage({
+                  src: GetImageUrl(img),
+                  width: 500,
+                  height: 700,
+                })}
+              />
+              <ProductImageIndicator language={language} />
+            </div>
+            {i === 0 && (
+              <>
+                {globalDetails?.categories?.[0]?.icon && (
+                  <VirtualTryOn
+                    language={language}
+                    product={{
+                      id: globalDetails?.id,
+                      slug: globalDetails?.slug,
+                      images: getImages(globalDetails, color)?.images,
+                    }}
+                  />
+                )}
 
-              {qtyPromiseData?.isFlash && (
-                <FlashDealBanner
-                  initial={qtyPromiseData?.isFlash}
-                  language={language}
-                  end_data={globalDetails.flash_deal_end_date}
-                />
-              )}
-              {qtyPromiseData?.is_luck && (
-                <ProductRedeemCounter
-                  language={language}
-                  product_id={qtyPromiseData.id}
-                />
-              )}
-            </>
-          )}
-        </div>
-      ))}
-    </ProductImagesSlider>
+                {qtyPromiseData?.isFlash && (
+                  <FlashDealBanner
+                    initial={qtyPromiseData?.isFlash}
+                    language={language}
+                    end_data={globalDetails.flash_deal_end_date}
+                  />
+                )}
+                {qtyPromiseData?.is_luck && (
+                  <ProductRedeemCounter
+                    language={language}
+                    product_id={qtyPromiseData.id}
+                  />
+                )}
+              </>
+            )}
+          </div>
+        ))}
+      </ProductImagesSlider>
+    </>
   );
 }
 

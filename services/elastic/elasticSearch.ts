@@ -27,6 +27,7 @@ import {
   recommendation_index,
 } from "./INDEXES";
 import { enrichWithRecommended } from "./recommendationService";
+import { time } from "node_modules/framer-motion/dist/types";
 
 // Types and Interfaces
 interface SearchParams {
@@ -91,6 +92,7 @@ interface SearchResult {
   isAnalyzed?: any;
   applied?: any;
   recommended_offset?: number;
+  time: number;
 }
 
 interface ElasticsearchHit {
@@ -150,6 +152,7 @@ export async function getProductsAndFiltersFromElastic(
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
   }
+  let start = process.hrtime.bigint();
   let isAnalyzed: any = false;
   try {
     if (filters.search_text && filters.search_text?.split(" ")?.length > 1) {
@@ -308,6 +311,7 @@ export async function getProductsAndFiltersFromElastic(
     const mergedProducts = [...recommendedProducts, ...deduplicatedCatalog];
 
     if (noFilters) {
+      let end = process.hrtime.bigint();
       return {
         colors: colorsFilter,
         offset: lastSortValue,
@@ -317,6 +321,7 @@ export async function getProductsAndFiltersFromElastic(
         total_size: total_size,
         products: mergedProducts,
         limit: limit,
+        time: Number(end - start) / 1_000_000,
         recommended_offset: newRecommendedOffset,
       };
     }
@@ -382,6 +387,7 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset,
     );
+    let end = process.hrtime.bigint();
 
     return {
       offset: lastSortValue,
@@ -418,6 +424,7 @@ export async function getProductsAndFiltersFromElastic(
       isAnalyzed: isAnalyzed,
       applied: filters,
       recommended_offset: newRecommendedOffset,
+      time: Number(end - start) / 1_000_000,
     };
   } catch (error) {
     LogServerError({

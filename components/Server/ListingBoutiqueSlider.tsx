@@ -4,6 +4,7 @@ import BoutiquePhotoSliderWrapper from "components/clientWrapper/filtersPage/Bou
 import BorderImage from "components/ListingPage/BorderImage";
 import { getConfiguredImage, GetImageUrl } from "utils/server";
 import BoutiqueSlidersSkeleton from "components/skeleton/loaders/BoutiqueSlidersSkeleton";
+import ClientLogger from "components/global/ClientLogger";
 
 async function ListingBoutiqueSlider({ boutiquePromise }) {
   let boutique = await boutiquePromise;
@@ -19,6 +20,11 @@ export default ListingBoutiqueSlider;
 function BoutiqueHeader({ boutique }) {
   return (
     <>
+      <ClientLogger
+        value={{
+          fetchBoutiqueTime: boutique?.time,
+        }}
+      />
       {boutique?.banners && (
         <div
           data-cy="boutique_top_icons"

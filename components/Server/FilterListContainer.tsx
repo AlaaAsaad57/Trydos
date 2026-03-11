@@ -2,6 +2,7 @@ import ListingSkeleton from "components/skeleton/listing";
 import { Suspense } from "react";
 import FilterList from "./FilterList";
 import { combineCategoriesWithRelated } from "utils/server";
+import ClientLogger from "components/global/ClientLogger";
 
 async function FilterListContainer({
   filtersPromis,
@@ -54,6 +55,13 @@ async function FilterListContainer({
 
   return (
     <Suspense fallback={<ListingSkeleton justFilters={true} />}>
+      <ClientLogger
+        value={{
+          elasticMainQueryTime: filtersData.time,
+          currencyTime: { time: currency.time, redis: currency.redis },
+          source: "FilterList",
+        }}
+      />
       {
         <FilterList
           filters={filters}
