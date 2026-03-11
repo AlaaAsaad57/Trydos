@@ -47,7 +47,7 @@ function StoriesPaginationWrapper({
       const response = await fetchData({
         url: `/api/v1/stories/users_stories?page=${next_page}`,
         method: "GET",
-        server: "nest-stories",
+        server: "stories",
         reqTitle: REQUESTS_DATA.GET_USER_STORIES,
       });
       // @ts-ignore

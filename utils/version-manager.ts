@@ -81,7 +81,7 @@ const checkVersionUpdate = (): boolean => {
   return !storedVersion || storedVersion !== currentVersion;
 };
 
-const performVersionUpdate = (): void => {
+const performVersionUpdate = async (): Promise<void> => {
   try {
     const currentVersion = getCurrentVersion();
 
@@ -90,7 +90,14 @@ const performVersionUpdate = (): void => {
     clearAllUserData();
     // Set new version cookie
     setVersionCookie(currentVersion);
-
+    try {
+      const { getFirebaseMessaging } = await import("utils/firebaseInitv1");
+      const { deleteToken } = await import("firebase/messaging");
+      const messaging = await getFirebaseMessaging();
+      if (messaging) await deleteToken(messaging);
+    } catch (e) {
+      /* swallow */
+    }
     // Reload the page
     if (typeof window !== "undefined") {
       window.location.reload();
@@ -99,7 +106,7 @@ const performVersionUpdate = (): void => {
 };
 
 // Main version check function
-export const checkAndUpdateVersion = (): void => {
+export const checkAndUpdateVersion = async (): Promise<void> => {
   // Only run on client side
   if (typeof window === "undefined") {
     return;
@@ -107,7 +114,7 @@ export const checkAndUpdateVersion = (): void => {
 
   try {
     if (checkVersionUpdate()) {
-      performVersionUpdate();
+      await performVersionUpdate();
     } else {
     }
   } catch (error) {

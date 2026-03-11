@@ -119,6 +119,13 @@ messaging.onBackgroundMessage(async function (payload) {
     // Check if any tabs are open
     const sentToForeground = await sendToForeground(payload);
 
+    // If we successfully delivered the notification data to at least
+    // one foreground client, do NOT also show a background notification.
+    // This reduces duplicate notifications and helps avoid being flagged as spammy.
+    if (sentToForeground) {
+      return;
+    }
+
     // If no tabs are open, proceed with background notifications
 
     if (payload.data.title === "market") {
@@ -137,7 +144,11 @@ messaging.onBackgroundMessage(async function (payload) {
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ?? "New Boutique",
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: "market",
+            renotify: true,
+          },
         );
       }
       if (JSON.parse(payload.data.body).type === "category created") {
@@ -155,7 +166,11 @@ messaging.onBackgroundMessage(async function (payload) {
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ?? "New Category",
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: "market",
+            renotify: true,
+          },
         );
       }
       if (JSON.parse(payload.data.body).type === "product cart expiration") {
@@ -168,7 +183,11 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             "product cart expiration",
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: "market",
+            renotify: true,
+          },
         );
       }
       if (JSON.parse(payload.data.body).type === "product availability") {
@@ -183,7 +202,11 @@ messaging.onBackgroundMessage(async function (payload) {
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type,
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: "market",
+            renotify: true,
+          },
         );
       }
       if (JSON.parse(payload.data.body).type?.includes("product hurry up")) {
@@ -196,7 +219,11 @@ messaging.onBackgroundMessage(async function (payload) {
         };
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type,
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: "market",
+            renotify: true,
+          },
         );
       }
       if (JSON.parse(payload.data.body).type === "product discount") {
@@ -212,7 +239,11 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: "market",
+            renotify: true,
+          },
         );
       }
       if (JSON.parse(payload.data.body).type === "product comment") {
@@ -228,7 +259,11 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: "market",
+            renotify: true,
+          },
         );
       }
       if (JSON.parse(payload.data.body).type === "product before stock out") {
@@ -244,7 +279,11 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: "market",
+            renotify: true,
+          },
         );
       }
       if (
@@ -262,7 +301,11 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: "market",
+            renotify: true,
+          },
         );
       }
       if (JSON.parse(payload.data.body).type === "order placed") {
@@ -276,7 +319,11 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: "market-order",
+            renotify: true,
+          },
         );
       }
       if (
@@ -296,7 +343,11 @@ messaging.onBackgroundMessage(async function (payload) {
         self.registration.showNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: "market-order",
+            renotify: true,
+          },
         );
       }
     } else if (
@@ -322,6 +373,7 @@ messaging.onBackgroundMessage(async function (payload) {
           { action: "reply", title: "Reply" },
           { action: "reject", title: "Reject" },
         ],
+        tag: `call-${callInfo.channelId || callInfo.user_id || "generic"}`,
         data: {
           call_id: callInfo.channelId,
           receiverId: callInfo.user_id,
@@ -334,9 +386,28 @@ messaging.onBackgroundMessage(async function (payload) {
         notificationOptions,
       );
     } else if (payload.data.type === "message") {
-      let notificationTitle = JSON.parse(payload.data.data).message.sender_user
-        .name;
+      const parsedData = JSON.parse(payload.data.data);
+      let notificationTitle = parsedData.message.sender_user.name;
       let notificationOptions = {};
+      // Derive a stable tag for this conversation if possible to collapse
+      // multiple notifications into a single thread instead of spamming.
+      const conversationId =
+        parsedData.chat_id ||
+        parsedData.conversation_id ||
+        parsedData.thread_id ||
+        parsedData.message?.chat_id ||
+        parsedData.message?.conversation_id ||
+        parsedData.message?.thread_id ||
+        parsedData.message?.id;
+      const senderId =
+        parsedData.message?.sender_user?.id ||
+        parsedData.message?.sender_user_id ||
+        "generic";
+      const messageTag =
+        conversationId != null
+          ? `chat-${conversationId}`
+          : `chat-from-${senderId}`;
+
       if (JSON.parse(payload.data.data)?.is_private) {
         notificationTitle = "Deleivery Worker";
         notificationOptions = {
@@ -441,7 +512,11 @@ messaging.onBackgroundMessage(async function (payload) {
       if (notificationOptions.body)
         self.registration.showNotification(
           notificationTitle,
-          notificationOptions,
+          {
+            ...notificationOptions,
+            tag: messageTag,
+            renotify: true,
+          },
         );
     }
   } catch (error) {

@@ -8,20 +8,37 @@ interface CurrencyResponse {
 }
 
 export async function getCurrency(country, language) {
+  let start = process.hrtime.bigint();
+
   try {
     let cachedCurrency = await getCurrencyFromCache(country);
 
     if (typeof cachedCurrency === "string") {
-      return { ...JSON.parse(cachedCurrency), redis: true };
+      let end = process.hrtime.bigint();
+
+      return {
+        ...JSON.parse(cachedCurrency),
+        redis: true,
+        time: Number(end - start) / 1_000_000,
+      };
     }
     if (cachedCurrency?.exchange_rate) {
-      return { ...cachedCurrency, redis: true };
+      let end = process.hrtime.bigint();
+      return {
+        ...cachedCurrency,
+        redis: true,
+        time: Number(end - start) / 1_000_000,
+      };
     } else {
       let currencyData = await fetchCurrency(language, country);
       let currency = { ...currencyData.data.currency };
-
+      let end = process.hrtime.bigint();
       StoreCurrency(country, currency);
-      return { ...currency, redis: false };
+      return {
+        ...currency,
+        redis: false,
+        time: Number(end - start) / 1_000_000,
+      };
     }
   } catch (error) {
     LogServerError(

@@ -150,15 +150,17 @@ export async function GetGlobalProduct({
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
       country,
     )}`;
-
+    let start = process.hrtime.bigint();
     let productId = await GetFromRedis(slugKey);
     let cacheKey = `product-id-${productId}-${country}-${language}`;
     if (productId) {
       let cachedProductData = await RedisGet(`${cacheKey}-global`);
       if (cachedProductData) {
+        let end = process.hrtime.bigint();
         return {
           ...cachedProductData,
           globalFromRedis: true,
+          globalDataTime: Number(end - start) / 1_000_000,
         };
       }
     }
@@ -179,7 +181,12 @@ export async function GetGlobalProduct({
         freshGlobalData.data.data,
       );
     }
-    return { ...freshGlobalData.data?.data, globalFromRedis: false };
+    let end = process.hrtime.bigint();
+    return {
+      ...freshGlobalData.data?.data,
+      globalFromRedis: false,
+      globalDataTime: Number(end - start) / 1_000_000,
+    };
   } catch (error) {
     LogServerError({
       slug,
@@ -201,6 +208,7 @@ export async function GetProductPriceQtyDetails({
   noCache = false,
 }): Promise<QtyProductData> {
   try {
+    let start = process.hrtime.bigint();
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
       country,
     )}`;
@@ -210,9 +218,11 @@ export async function GetProductPriceQtyDetails({
       if (productId) {
         let cachedProductData = await RedisGet(`${cacheKey}-qtyPrices`);
         if (cachedProductData) {
+          let end = process.hrtime.bigint();
           return {
             ...cachedProductData,
             qtyPricesDataFromRedis: true,
+            qtyPricesDataTime: Number(end - start) / 1_000_000,
           };
         }
       }
@@ -233,7 +243,12 @@ export async function GetProductPriceQtyDetails({
         freshQtyPricesData.data.data,
       );
     }
-    return { ...freshQtyPricesData.data?.data, qtyPricesDataFromRedis: false };
+    let end = process.hrtime.bigint();
+    return {
+      ...freshQtyPricesData.data?.data,
+      qtyPricesDataFromRedis: false,
+      qtyPricesDataTime: Number(end - start) / 1_000_000,
+    };
   } catch (error) {
     LogServerError({
       slug,

@@ -19,7 +19,7 @@ class StoryService {
     try {
       const response = await fetchData({
         url: `/api/v1/stories/users_stories?page=${page}`,
-        server: "nest-stories",
+        server: "stories",
         reqTitle: REQUESTS_DATA.GET_USER_STORIES,
         method: "GET",
       });
@@ -136,14 +136,14 @@ class StoryService {
       let response = await this.UploadToCloudinary(file);
       const add_story_response: any = await fetchData({
         url: `/api/v1/stories/add_story`,
-        reqTitle: REQUESTS_DATA.UPLOAD_STORY,
-        method: "POST",
-        server: "stories",
         body: JSON.stringify({
           file_path: response,
           is_video: is_video,
           link: link,
         }),
+        method: "POST",
+        reqTitle: REQUESTS_DATA.UPLOAD_STORY,
+        server: "stories",
       });
 
       // @ts-ignore
