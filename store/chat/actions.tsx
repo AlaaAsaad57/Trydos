@@ -262,7 +262,7 @@ export async function SearchContact(payload) {
   try {
     if (payload?.length > 0) {
       let response = await fetchData({
-        url: SEARCH_CONTACTS_URL + payload,
+        url: SEARCH_CONTACTS_URL + encodeURIComponent(payload),
         reqTitle: REQUESTS_DATA.SEARCH_MESSAGE,
         method: "GET",
         server: "chat",

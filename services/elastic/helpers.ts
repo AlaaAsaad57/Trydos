@@ -2094,6 +2094,7 @@ export function processCategoriesAggregation(
 
   origBuckets.forEach((bucket) => {
     const hit = bucket.orig_category_details?.hits?.hits?.[0]?._source || {};
+
     if (hit.id) {
       origMap[hit.id] = {
         num_available_product: hit.num_available_product || 0,
@@ -2132,6 +2133,8 @@ export function processCategoriesAggregation(
       category_id: src.category_id || catId,
       name: src.name || "",
       slug: src.slug || "",
+      gender: orig.gender,
+      group_age: orig.group_age,
       bio: src.bio || "",
       description: src.description || "",
       flat_photo_path: src.flat_photo_path || "",

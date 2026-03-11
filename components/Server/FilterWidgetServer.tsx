@@ -24,6 +24,7 @@ async function FilterWidgetServer({
     : isFlashDeal
       ? "/flashDeals"
       : "/filters";
+
   return (
     <div>
       <FiltersWindow
@@ -41,7 +42,7 @@ async function FilterWidgetServer({
               term={"categories"}
               name={item.name}
               value={item.slug}
-              image={item.most_viewed_product_thumbnail.file_path}
+              image={item?.most_viewed_product_thumbnail?.file_path}
               childes={item.childes}
               values={parsedFilters.categories}
               isActive={HandleIsActive({
