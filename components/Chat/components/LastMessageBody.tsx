@@ -89,10 +89,26 @@ function LastMessageBody({ message, status }) {
       );
     }
     if (message.message_type.name === "VoiceCall") {
-      return <>{translate("Voice Call", language)}</>;
+      return (
+        <>
+          <img
+            src="/icons/chat/voicecallIcon.svg"
+            className="message-type-icon w-[10px] h-[10px]"
+          />
+          {translate("Voice Call", language)}
+        </>
+      );
     }
     if (message.message_type.name === "VideoCall") {
-      return <>{translate("Video Call", language)}</>;
+      return (
+        <>
+          <img
+            src="/icons/chat/videocallIcon.svg"
+            className="message-type-icon w-[10px] h-[10px]"
+          />
+          {translate("Video Call", language)}
+        </>
+      );
     }
   };
   return (

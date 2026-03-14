@@ -58,7 +58,7 @@ function ProductBackButton({ lang }) {
 
   return (
     <div
-      className={`back-bar flex items-center w-full h-[50px] justify-between px-[10px] shadow-[0px_0px_6px_rgba(0,0,0,0.1)] ${
+      className={`back-bar flex items-center w-full h-[50px] min-h-[50px] justify-between px-[10px] shadow-[0px_0px_6px_rgba(0,0,0,0.1)] ${
         isRtl ? "flex-row-reverse" : "flex-row"
       }`}
     >
