@@ -63,79 +63,9 @@ export async function generateMetadata({ params }) {
     };
   }
 }
-async function GetBoutique(boutique, country, language) {
-  let start = process.hrtime.bigint();
 
-  try {
-    if (boutique) {
-      let reader = new ElasticsearchReader();
-      let boutiqueData = await reader.getBoutiqueInfo({
-        country,
-        language: language,
-        slug: boutique,
-      });
-      if (!boutiqueData?.banners) {
-        redirect(`/${country}-${language}?message=boutique_not_found`);
-      }
-      let end = process.hrtime.bigint();
-
-      return { ...boutiqueData, time: Number(end - start) / 1_000_000 };
-    } else {
-      return {
-        banners: null,
-        name: "Search",
-        time: 0,
-      };
-    }
-  } catch (error) {
-    LogServerError(
-      {
-        error,
-        type: "get boutique details error",
-        country,
-        language,
-        boutique,
-      },
-      `/${country}-${language}/featured`,
-    );
-    return {
-      banners: null,
-      name: "Search",
-    };
-  }
-}
-async function getCurrency(country, language) {
-  let start = process.hrtime.bigint();
-  try {
-    let cachedCurrency = await getCurrencyFromCache(country);
-    let end = process.hrtime.bigint();
-    if (typeof cachedCurrency === "string") {
-      return {
-        ...JSON.parse(cachedCurrency),
-        redis: true,
-        time: Number(end - start) / 1_000_000,
-      };
-    }
-    if (cachedCurrency?.exchange_rate) {
-      return {
-        ...cachedCurrency,
-        redis: true,
-        time: Number(end - start) / 1_000_000,
-      };
-    } else {
-      let end = process.hrtime.bigint();
-      let currencyData = await fetchCurrency(language, country);
-      let currency = { ...currencyData.data.currency };
-      StoreCurrency(country, currency);
-      return {
-        ...currency,
-        redis: false,
-        time: Number(end - start) / 1_000_000,
-      };
-    }
-  } catch (error) {}
-}
 export default async function Page({ params }) {
   const Params = await params;
+  // @ts-ignore
   return <FiltersPageContent params={Params} />;
 }

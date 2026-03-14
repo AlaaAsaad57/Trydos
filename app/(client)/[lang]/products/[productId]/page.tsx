@@ -43,9 +43,7 @@ export async function generateMetadata({ params, searchParams }) {
 export default async function Page({ params, searchParams }) {
   const [Params, SearchParams] = await Promise.all([params, searchParams]);
   return (
-    <ProductPageContent
-      params={Params}
-      searchParams={SearchParams || {}}
-    />
+    // @ts-ignore
+    <ProductPageContent params={Params} searchParams={SearchParams || {}} />
   );
 }
