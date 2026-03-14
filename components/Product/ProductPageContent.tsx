@@ -23,14 +23,13 @@ import ProductBuyersCommentsWrapper from "components/Server/product/ProductBuyer
 import ProductSizesWrapper from "components/Server/product/ProductSizesWrapper";
 import ProductSizeReviews from "components/Server/product/ProductSizeReviews";
 import ProductFaqSectionWrapper from "components/Server/product/ProductFAQSection/ProductFaqSectionWrapper";
-import ProductVideosWrapper from "components/Server/product/ProductVideosWrapper";
-import ProductPricesWrapper from "components/Server/product/ProductPrices/ProductPricesWrapper";
-import VirtualTryOnWrapper from "components/products/VirtualTryOnWrapper";
-import ProductFooterWrapper from "components/Server/product/ProductFooter.tsx/ProductFooterWrapper";
+
 import { Suspense } from "react";
 import ProductPhotosSkeleton from "components/skeleton/product/ProductPhotosSkeleton";
 import ProductNameAndBrandSkeleton from "components/skeleton/product/ProductNameAndBrandSkeleton";
 import Skeleton from "react-loading-skeleton";
+import { createPortal } from "react-dom";
+import ProductFooter from "./ProductFooter";
 
 interface ProductPageContentProps {
   params: { lang: string; productId: string };
@@ -341,39 +340,19 @@ export default async function ProductPageContent({
             </div>
           </div>
         </div>
-        <div className="product-details-footer alternate-product-details-footer z-999999999">
-          <Suspense fallback={<></>}>
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductVideosWrapper
-              globalPromise={GlobalData}
-              language={language}
-            />
-          </Suspense>
-          <div className="product-info-container p-0 h-[40px] overflow-hidden">
-            <Suspense fallback={<></>}>
-              {/*@ts-expect-error Async Server Component is valid in Next  */}
-              <ProductPricesWrapper
-                isRtl={isRtl}
-                language={language}
-                qtyPricePromise={QtyPricesData}
-                currencyPromise={currency}
-              />
-            </Suspense>
-            <VirtualTryOnWrapper language={language} />
-          </div>
-          <Suspense fallback={<></>}>
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductFooterWrapper
-              local={Params.lang}
-              QtyPricePromise={QtyPricesData}
-              globalPromise={GlobalData}
-              isRtl={isRtl}
-              color={color}
-              size={Size}
-              currencyPromise={currency}
-            />
-          </Suspense>
-        </div>
+        <Suspense fallback={<></>}>
+          {/* @ts-expect-error Async Server Component is valid in Next  */}
+          <ProductFooter
+            GlobalData={GlobalData}
+            Params={Params}
+            QtyPricesData={QtyPricesData}
+            Size={Size}
+            language={language}
+            currency={currency}
+            isRtl={isRtl}
+            color={color}
+          />
+        </Suspense>
       </div>
     </>
   );
