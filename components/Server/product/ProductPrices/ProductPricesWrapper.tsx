@@ -1,29 +1,25 @@
 import React from "react";
-import { RoundPrice } from "utils/server";
+
 import PricesRowClientLogic from "./PricesRowClientLogic"; // We'll create this
 import PropertiesMarquee from "components/Cart/AddToCart/PropertiesMarquee";
+import { RoundPrice } from "utils/functions";
 
-async function ProductPricesWrapper({
+function ProductPricesWrapper({
   qtyPricePromise,
   currencyPromise,
   language,
   isRtl,
 }) {
-  const [product, currency] = await Promise.all([
-    qtyPricePromise,
-    currencyPromise,
-  ]);
-
   // Static Data Preparation
   const baseData = {
-    price: product?.price,
-    offer_price: product?.offer_price,
-    luck_price: product?.luck_price,
-    id: product?.id,
-    currencySymbol: currency?.sumbol,
-    exchangeRate: currency?.exchange_rate,
-    points: currency?.decimal_digits,
-    is_luck: product?.is_luck,
+    price: qtyPricePromise?.price,
+    offer_price: qtyPricePromise?.offer_price,
+    luck_price: qtyPricePromise?.luck_price,
+    id: qtyPricePromise?.id,
+    currencySymbol: currencyPromise?.sumbol,
+    exchangeRate: currencyPromise?.exchange_rate,
+    points: currencyPromise?.decimal_digits,
+    is_luck: qtyPricePromise?.is_luck,
   };
 
   // Pre-render the price strings on server to avoid layout shift
@@ -104,7 +100,7 @@ async function ProductPricesWrapper({
 
       <PropertiesMarquee
         languageVariable={language}
-        shipping_cost={product?.shipping_cost}
+        shipping_cost={qtyPricePromise?.shipping_cost}
       />
 
       {/* Static Border */}

@@ -1,10 +1,7 @@
-import { GetImageUrl } from "utils/server";
+import { GetImageUrl } from "utils/tinyUtils";
 import ProductFooter from "./ProductFooter";
-import { GetSocialInfoForProduct } from "serverRequests/product";
-import { getCookieServer, COOKIE_NAMES } from "utils/cookies/cookie-manager";
-import ProductStructuredData from "serverRequests/meta/StructuredData/ProductStructuredData";
 
-async function ProductFooterWrapper({
+function ProductFooterWrapper({
   isRtl,
   globalPromise,
   QtyPricePromise,
@@ -12,43 +9,17 @@ async function ProductFooterWrapper({
   size,
   currencyPromise,
   local,
+  redeemed_status,
+  socialData,
 }) {
-  let [globalData, qtyData, currencyData] = await Promise.all([
-    globalPromise,
-    QtyPricePromise,
-    currencyPromise,
-  ]);
   let product = {
-    ...globalData,
-    ...qtyData,
+    ...globalPromise,
+    ...QtyPricePromise,
   };
-  let parsedUser = await getCookieServer<{ id: string }>(
-    COOKIE_NAMES.USER_DATA,
-  );
-  let socialData = await GetSocialInfoForProduct({
-    productId: product?.id,
-    userId: parsedUser?.id,
-  });
-  const isRedeemed = async () => {
-    if (!qtyData?.is_luck) return false;
-    let redeemed: any = await getCookieServer<any[]>("redeemd_ids");
-    if (redeemed && redeemed.find((s) => String(s.id) === String(qtyData.id))) {
-      return false;
-    } else {
-      return true;
-    }
-  };
-  const redeemed_status = await isRedeemed();
-  qtyData = { ...qtyData, is_luck: redeemed_status };
+
+  QtyPricePromise = { ...QtyPricePromise, is_luck: redeemed_status };
   return (
     <>
-      <ProductStructuredData
-        color={color}
-        currency={currencyData}
-        local={local}
-        product={product}
-        size={size}
-      />
       <ProductFooter
         isRtl={isRtl}
         productLightData={{
@@ -71,8 +42,8 @@ async function ProductFooterWrapper({
           total_shares: socialData?.total_shares,
           owner_id: product?.owner_id,
           owner_type: product?.owner_type,
-          is_luck: qtyData?.is_luck,
-          luck_price: qtyData?.luck_price,
+          is_luck: QtyPricePromise?.is_luck,
+          luck_price: QtyPricePromise?.luck_price,
           boutique_id: product?.boutique_id,
         }}
       />

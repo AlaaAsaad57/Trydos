@@ -18,6 +18,7 @@ import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants"
 // Non-critical layout components — loaded after hydration
 import PathTracker from "components/PathTracker";
 import SessionChecker from "components/SessionChecker";
+import ModalSlot from "components/ModalRoute/ModalSlot";
 import VersionChecker from "components/global/VersionChecker";
 import SessionTimer from "components/Login/SessionTimer";
 import NotificationsContainer from "components/global/NotificationsContainer";
@@ -71,7 +72,7 @@ const quicksand_semibold = localFont({
   fallback: ["system-ui", "arial"],
 });
 
-export default async function RootLayout({ params, children }) {
+export default async function RootLayout({ params, children, modal }) {
   const { lang } = await params;
   const [country, language] = lang.split("-");
   return (
@@ -137,6 +138,7 @@ export default async function RootLayout({ params, children }) {
           </div>
 
           {children}
+          <ModalSlot>{modal}</ModalSlot>
         </div>
         <Init />
 

@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 
 import ProductCartHeader from "./ProductCartHeader";
 import { useAppStore } from "store";
+import { useIsModalRoute } from "components/ModalRoute/ModalRouteContext";
 
 function ProductBackButton({ lang }) {
   const router = useRouter();
   const { setIsNavigating, lastPathname } = useAppStore();
+  const isModal = useIsModalRoute();
 
   const [mounted, setMounted] = useState(false);
 
@@ -22,6 +24,11 @@ function ProductBackButton({ lang }) {
   const isRtl = language === "ar" || language === "ku";
 
   const handleBack = () => {
+    if (isModal) {
+      router.back();
+      return;
+    }
+
     // Keywords that trigger the boutique navigation state
     const boutiqueKeywords = ["boutiques", "filters", "featured", "flashdeals"];
 

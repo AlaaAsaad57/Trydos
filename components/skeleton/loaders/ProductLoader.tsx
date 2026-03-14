@@ -25,9 +25,7 @@ function ProductLoader({ product }) {
   // @ts-ignore
   const [country, languageVariable] = lang?.split("-");
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
-  useEffect(() => {
-    DisableScroll();
-  }, []);
+
   return (
     <div
       style={{
