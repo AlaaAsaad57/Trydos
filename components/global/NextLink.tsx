@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { DisableScroll } from "utils/tinyUtils";
 
 export interface INextLinkProps {
   href: string;
@@ -60,7 +59,7 @@ export default function NextLink({
             }
           }
           setColorBottomSheet(null);
-          if (disableScroll) DisableScroll();
+
           setLastPathname(pathname);
         }}
         onClick={() => {
@@ -81,7 +80,7 @@ export default function NextLink({
           if (onClick) {
             onClick();
           }
-          if (disableScroll) DisableScroll();
+
           setColorBottomSheet(null);
           setLastPathname(pathname);
           setIsNavigating(data);
@@ -128,7 +127,7 @@ export default function NextLink({
             return;
           }
         }
-        if (disableScroll) DisableScroll();
+
         setColorBottomSheet(null);
 
         setLastPathname(pathname);
@@ -151,7 +150,7 @@ export default function NextLink({
         if (onClick) {
           onClick();
         }
-        if (disableScroll) DisableScroll();
+
         setColorBottomSheet(null);
 
         setLastPathname(pathname);
