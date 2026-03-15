@@ -102,7 +102,7 @@ interface ProductData {
   descriptors: Array<any>;
   is_country_restricted: boolean;
   is_active: boolean;
-  collected_after_ordering: number;
+  packed_after_ordering: number;
   available_quantity: number;
   variation: Array<{
     variant_notify_for_user: boolean;

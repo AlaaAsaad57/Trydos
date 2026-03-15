@@ -1257,6 +1257,7 @@ const translations = {
   "Settings - TryDos": "الإعدادات - تريدوس",
   "Manage your account settings and preferences.":
     "قم بإدارة إعدادات حسابك وتفضيلاتك",
+  "To New Size?": "الى قياس جديد",
   "Compare products side by side on TryDos - Make informed purchasing decisions.":
     "قارن المنتجات جنبًا إلى جنب على ترايدوس - اتخذ قرارات شراء مدروسة.",
   "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.":

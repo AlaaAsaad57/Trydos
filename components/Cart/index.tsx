@@ -340,7 +340,7 @@ function CartContainer({ close, toOrders }) {
                         product={product}
                         maxAllowed={product.max_allowed_qty}
                         isCollectedAfterOrdering={Boolean(
-                          product.collected_after_ordering,
+                          product.packed_after_ordering,
                         )}
                         isHurry={true || product.have_hurry_up_notify}
                         disabled={false}

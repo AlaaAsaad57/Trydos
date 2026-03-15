@@ -117,7 +117,7 @@ interface QtyProductData {
   descriptors: Array<any>;
   is_country_restricted: boolean;
   is_active: boolean;
-  collected_after_ordering: number;
+  packed_after_ordering: number;
   available_quantity: number;
 }
 export async function GetCountries({ language, country }) {

@@ -899,6 +899,7 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
     { nested: { path: "boutique", query: { term: { "boutique.status": 1 } } } },
     { nested: { path: "brand", query: { term: { "brand.status": 1 } } } },
   ];
+  const mustNotConditions: any[] = [{ exists: { field: "deleted_at" } }];
 
   // Add category filter
   if (uniqueCategorySlugs.length) {
@@ -1029,7 +1030,16 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
   }
 
   // Add flash deal filter
-  if (filters.flashdeal === true) {
+  if (filters.featured) {
+    mustConditions.push({
+      term: {
+        featured: 1,
+      },
+    });
+    mustNotConditions.push({
+      exists: { field: "flash_deal" },
+    });
+  } else if (filters.flashdeal === true) {
     const currentDate = new Date().toLocaleDateString("en-US", {
       month: "2-digit",
       day: "2-digit",
@@ -1048,8 +1058,6 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
       },
     });
   }
-
-  const mustNotConditions: any[] = [{ exists: { field: "deleted_at" } }];
 
   // Add country restrictions
   if (country) {

@@ -1286,6 +1286,8 @@ const translations = {
   "Settings - TryDos": "ڕێکخستنەکان - TryDos",
   "Manage your account settings and preferences.":
     "ڕێکخستنەکان و هەڵبژاردنەکانت بەڕێوەببە.",
+  "To New Size?": "بۆ قەبارەی نوێ؟",
+
   "Compare products side by side on TryDos - Make informed purchasing decisions.":
     "لە TryDos بەرهەمەکان تەنیشت یەکتر بەراورد بکە - بڕیاری کڕینی ئاگادارانە بدە.",
   "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.":
