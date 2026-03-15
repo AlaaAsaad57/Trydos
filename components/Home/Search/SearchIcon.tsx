@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 
 import "styles/search.css";
 import {
+  getConfiguredImage,
   LogError,
   normalizeView,
   onClickSearchHistory,
@@ -13,6 +14,7 @@ import {
   buildParamsFromFilters,
   DisableScroll,
   EnableScroll,
+  GetImageUrl,
 } from "utils/tinyUtils";
 import { GetSearchData } from "serverRequests/Search";
 import SearchHistory from "./SearchHistory";
@@ -30,6 +32,7 @@ import NextLink from "components/global/NextLink";
 import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "store";
 import { showSuccessNotification } from "store/notifications/reducer";
+import Image from "next/image";
 
 function SearchIcon({ language, country }) {
   const { setIsNavigating } = useAppStore();
@@ -52,6 +55,7 @@ function SearchIcon({ language, country }) {
     boutiques: [],
     products: [],
     total_size: 0,
+    related_categories: [],
   });
 
   // Pagination & Filter States
@@ -157,6 +161,7 @@ function SearchIcon({ language, country }) {
             categories: res.categories || [],
             products: isInitial ? [] : res.products || [],
             total_size: res.total_size,
+            related_categories: res.related_categories || [],
           });
 
           // Update HasMore flags based on initial limit (10)
@@ -205,6 +210,7 @@ function SearchIcon({ language, country }) {
           boutiques: [],
           products: [],
           total_size: 0,
+          related_categories: [],
         });
         // This ensures we show the "initial" state (Trending/History)
         performSearch({ isInitial: true });
@@ -275,6 +281,7 @@ function SearchIcon({ language, country }) {
       boutiques: [],
       products: [],
       total_size: 0,
+      related_categories: [],
     });
   };
   const { lang } = useParams();
@@ -394,6 +401,7 @@ function SearchIcon({ language, country }) {
           brands={results.brands}
           categories={results.categories}
           boutiques={results.boutiques}
+          related_categories={results.related_categories}
           trending={trending}
           searchHistoryItems={searchHistory}
           setSearchHistory={setSearchHistory}
@@ -430,6 +438,7 @@ const SearchContainer = ({
   brands,
   categories,
   boutiques,
+  related_categories,
   trending,
   searchHistoryItems,
   setSearchHistory,
@@ -640,7 +649,40 @@ const SearchContainer = ({
                   isActive={applied_filter?.categories.some(
                     (s) => s.slug === category.slug,
                   )}
+                  relatedCategories={
+                    related_categories?.filter((relatedCategory) =>
+                      relatedCategory?.realted?.includes?.(category?.slug),
+                    ) || []
+                  }
                 />
+              ))}
+              {related_categories.map((related, index) => (
+                <div
+                  key={related.slug || index}
+                  className="category-item brand-item whitespace-nowrap relative pr-4  w-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFilter("categories", related.slug);
+                  }}
+                >
+                  <img
+                    src="/icons/TopStar.svg"
+                    style={{ top: "-8px", right: "-4px", scale: "0.8" }}
+                    className="absolute w-[15px] h-[15px]"
+                  />
+                  <Image
+                    alt={related.name || "Image"}
+                    width={30}
+                    height={30}
+                    src={getConfiguredImage({
+                      src: GetImageUrl(
+                        related?.flat_photo_path?.file_path || related.icon,
+                      ),
+                      height: 40,
+                    })}
+                  />
+                  {related.name}
+                </div>
               ))}
               {hasMore.categories && categories.length >= 10 && (
                 <LoadMoreComponent
