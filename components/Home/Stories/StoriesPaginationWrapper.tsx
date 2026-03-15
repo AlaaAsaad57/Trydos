@@ -77,14 +77,14 @@ function StoriesPaginationWrapper({
 
   return (
     <>
-      {additionalStories.map((story, index) => (
+      {/* {additionalStories.map((story, index) => (
         <StoryElement
           key={story.id || `additional-${index}`}
           index={storiesData.length - additionalStories.length + index}
           story={story}
           userData={userData}
         />
-      ))}
+      ))} */}
       {loading && (
         <div className="flex justify-center items-center h-full w-[100px]">
           <Spinner />

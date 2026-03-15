@@ -20,7 +20,8 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 import { ConfirmModal } from "components/global/ConfirmModal";
 function StoryHolder({ story, active, isPaused }) {
-  const { language, country, setStoryData } = useAppStore();
+  const { language, country, setStoryData, shouldAuthinticated } =
+    useAppStore();
   const userStories = useAppStore.getState().userStories;
   const [currentStoryId, setCurrentStoryId] = useState(
     userStories?.id !== story.id ? 0 : story?.stories?.length - 1,
@@ -184,7 +185,9 @@ function StoryHolder({ story, active, isPaused }) {
         activeId={String(story.id)}
         id={String(story.id)}
         key={`${story.id}-${currentStoryId}`}
-        isPaused={showDeleteModal || !active || showReportModal}
+        isPaused={
+          showDeleteModal || !active || showReportModal || shouldAuthinticated
+        }
         onStoryStart={(e) => {
           if (active && story?.stories?.[e]) {
             const s: any = story.stories[e];
