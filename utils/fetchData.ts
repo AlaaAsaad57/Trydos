@@ -19,7 +19,6 @@ type ServerType =
   | "stories"
   | "elastic"
   | "upload story"
-  | "nest-stories"
   | "local"
   | "comments"
   | "wallet"

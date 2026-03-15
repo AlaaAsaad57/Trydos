@@ -11,8 +11,7 @@ type ProxiedServer =
   | "elastic"
   | "comments"
   | "wallet"
-  | "market-dashboard"
-  | "nest-stories";
+  | "market-dashboard";
 
 // ---------- Constants ----------
 
@@ -32,7 +31,6 @@ const ALLOWED_SERVERS: ProxiedServer[] = [
   "comments",
   "wallet",
   "market-dashboard",
-  "nest-stories",
 ];
 
 // All cookie names that hold sensitive tokens — must be HttpOnly
@@ -61,7 +59,6 @@ function getServerBaseUrl(server: ProxiedServer): string {
     case "chat":
       return process.env.NEXT_PUBLIC_CHAT_BACKEND_URL || "";
     case "stories":
-    case "nest-stories":
       return process.env.NEXT_PUBLIC_STORIES_BACKEND_URL || "";
     case "comments":
       return process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL || "";
@@ -99,8 +96,7 @@ async function getTokenForServer(server: ProxiedServer): Promise<string> {
         cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ||
         ""
       );
-    case "stories":
-    case "nest-stories": {
+    case "stories": {
       // Prefer access_token from USER_STORIES (updated by loginStories re-auth)
       // Fall back to standalone STORIES_TOKEN (set at initial login)
       const storiesUser = await getSecureCookie<any>(COOKIE_NAMES.USER_STORIES);
