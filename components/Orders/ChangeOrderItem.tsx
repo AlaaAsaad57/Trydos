@@ -185,7 +185,16 @@ function ChangeOrderItem({
           item={item}
           productData={productData}
           color={color}
-          setColor={setColor}
+          setColor={(e) => {
+            if (e !== color) {
+              setColor(e);
+            } else {
+              setColor(
+                item?.variation?.find((s) => s.id === item.product_variation_id)
+                  ?.color?.name,
+              );
+            }
+          }}
         />
       );
     if (tabs === "Change Size")
@@ -194,7 +203,16 @@ function ChangeOrderItem({
           item={item}
           productData={productData}
           size={size}
-          setSize={setSize}
+          setSize={(e) => {
+            if (e !== size) {
+              setSize(e);
+            } else {
+              setSize(
+                item?.variation?.find((s) => s.id === item.product_variation_id)
+                  ?.size,
+              );
+            }
+          }}
           isRtl={isRtl}
         />
       );
@@ -320,7 +338,7 @@ function ChangeOrderItem({
             return;
           }
           if (!isChanged()) {
-            backToMain();
+            // backToMain();
           } else {
             if (tabs === "Change Color") {
               setShouldConfirmChange({
@@ -357,9 +375,7 @@ function ChangeOrderItem({
           }
         }}
       >
-        {!isChanged()
-          ? translateFunction("Close")
-          : translateFunction("Change Request")}
+        {translateFunction("Change Request")}
       </div>
     </>
   );
@@ -367,6 +383,18 @@ function ChangeOrderItem({
 
 export default ChangeOrderItem;
 const ChangeColorWidget = ({ color, setColor, item, productData, isRtl }) => {
+  const normalizedColors = () => {
+    return productData.sync_color_images.filter(
+      (s) =>
+        s.color_name !==
+          item?.variation?.find((s) => s.id === item.product_variation_id)
+            ?.color?.name &&
+        s.color_option !==
+          item?.variation?.find((s) => s.id === item.product_variation_id)
+            ?.color?.name,
+    );
+  };
+
   return (
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
@@ -410,14 +438,9 @@ const ChangeColorWidget = ({ color, setColor, item, productData, isRtl }) => {
       <ColorList
         item={item}
         variations={productData?.variations}
-        colors={productData?.sync_color_images?.filter((s) =>
-          productData.colors?.find(
-            (color) =>
-              color.option === s.color_option || color.name === s.color_name,
-          ),
-        )}
+        colors={normalizedColors()}
         setColor={setColor}
-        sizes={productData?.choice_options?.[0]?.options || []}
+        sizes={productData?.sizes || []}
         current_size={
           item?.variation?.find((s) => s.id === item.product_variation_id)?.size
         }
@@ -431,6 +454,13 @@ const ChangeColorWidget = ({ color, setColor, item, productData, isRtl }) => {
   );
 };
 const ChangeSizeWidget = ({ size, setSize, item, productData, isRtl }) => {
+  const normalizedSizes = () => {
+    return productData.sizes.filter(
+      (s) =>
+        s !==
+        item?.variation?.find((s) => s.id === item.product_variation_id)?.size,
+    );
+  };
   return (
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
@@ -485,7 +515,7 @@ const ChangeSizeWidget = ({ size, setSize, item, productData, isRtl }) => {
             ?.color?.name
         }
         colors={productData?.sync_color_images}
-        sizes={productData?.sizes}
+        sizes={normalizedSizes()}
         setSize={setSize}
         currentSize={
           item?.variation?.find((s) => s.id === item.product_variation_id)?.size

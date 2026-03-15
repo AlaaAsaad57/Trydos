@@ -1263,6 +1263,8 @@ const translations = {
   "Super Admin": "Süper Yönetici",
   "You have full access to all features": "Tüm özelliklere tam erişiminiz var",
   "Recommended Products": ' "Önerilen Ürünler",',
+  "To New Size?": "Bo qebarey nû?",
+
   "Settings - TryDos": "Ayarlar - TryDos",
   "Manage your account settings and preferences.":
     "Hesap ayarlarınızı ve tercihlerinizi yönetin.",
