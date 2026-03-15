@@ -68,7 +68,7 @@ const resolveDefaultSelection = ({
   const hasColors = colors.length > 0;
   const hasSizes = sizeOpts.length > 0;
   const hasVariations = variations.length > 0;
-  const isCollect = productData?.collected_after_ordering === 1;
+  const isCollect = productData?.packed_after_ordering === 1;
 
   const findColorObj = (str) => {
     if (!str) return null;
@@ -599,7 +599,7 @@ function AddToCartComponent({ product, slug, color }) {
     //restricted,status,collect_after_ordering,quantity,allVarIsEmpty
     if (ProductData?.is_active === false || ProductData.is_country_restricted)
       return true;
-    if (ProductData.collected_after_ordering === 1) return false;
+    if (ProductData.packed_after_ordering === 1) return false;
     if (getSelectedVariantQty()?.qty === 0) return true;
     return bool;
   };
@@ -689,7 +689,7 @@ function AddToCartComponent({ product, slug, color }) {
   };
   const isQtyIsLast = (colorVariant) => {
     if (!colorVariant) return false;
-    if (ProductData.collected_after_ordering === 1) return false;
+    if (ProductData.packed_after_ordering === 1) return false;
     if (!ProductData?.variation?.length) {
       return {
         qty: ProductData?.available_quantity,
@@ -793,7 +793,7 @@ function AddToCartComponent({ product, slug, color }) {
         )}
         {hasSizeVariants ? (
           <SizeSelect
-            isCollectAfterOrder={ProductData.collected_after_ordering === 1}
+            isCollectAfterOrder={ProductData.packed_after_ordering === 1}
             isSizeNotified={(e) =>
               getVariantSizeQty(e)?.variant_notify_for_user
             }
@@ -826,7 +826,7 @@ function AddToCartComponent({ product, slug, color }) {
         ) : (
           <div className="my-[20px] w-full justify-center items-center flex flex-row">
             {getSelectedVariantQty()?.qty >= 0 &&
-            ProductData.collected_after_ordering === 0 &&
+            ProductData.packed_after_ordering === 0 &&
             getSelectedVariantQty()?.qty <= 10 ? (
               <span
                 className={`${
@@ -867,7 +867,7 @@ function AddToCartComponent({ product, slug, color }) {
         />
         <ExtraInfoArea
           colors={ProductData?.sync_color_images}
-          isCollectAfterOrder={ProductData.collected_after_ordering === 1}
+          isCollectAfterOrder={ProductData.packed_after_ordering === 1}
           luck_price={getSelectedVariantQty()?.luck_price}
           selected_color={selectedColor}
           selected_size={selectedSize}
@@ -920,7 +920,7 @@ function AddToCartComponent({ product, slug, color }) {
             selected_variant={getSelectedVariantQty()}
             initialLoading={loading}
             updateQuantity={async (isLocal, variantId = null, operation) => {
-              if (ProductData.collected_after_ordering === 0)
+              if (ProductData.packed_after_ordering === 0)
                 await updateQuantity({ isLocal, variantId, operation });
             }}
           />
@@ -937,7 +937,7 @@ function AddToCartComponent({ product, slug, color }) {
             initialLoading={loading}
             id={ProductData?.id}
             updateQuantity={async (isLocal, variantId = null, operation) => {
-              if (ProductData.collected_after_ordering === 0)
+              if (ProductData.packed_after_ordering === 0)
                 await updateQuantity({ isLocal, variantId, operation });
             }}
             expireLuck={() => {

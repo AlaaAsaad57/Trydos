@@ -78,6 +78,6 @@ export interface CartItemInterface {
   created_at: string;
   is_country_restricted: boolean;
   is_active: boolean;
-  collected_after_ordering: any;
+  packed_after_ordering: any;
   available_quantity: number;
 }
