@@ -52,12 +52,7 @@ const FiltersWindowUI = ({
   const [FiltersNodes, setFiltersNodes] = useState(children);
   const [showChart, setShowChart] = useState(false);
   let InitialFiltersObject = {
-    categories: [
-      ...new Set([
-        ...(initialFilters?.categories ?? []),
-        ...(initialFilters?.related_categories ?? []),
-      ]),
-    ],
+    categories: [...new Set([...(initialFilters?.categories ?? [])])],
     brands: initialFilters?.brands ?? [],
     sizes: initialFilters?.sizes ?? [],
     prices: initialFilters?.prices ?? [],
@@ -281,7 +276,7 @@ const FiltersWindowUI = ({
           </FiltersRowContainer>
         )}
 
-        {FiltersNodes.prices && FiltersNodes.total_size>1&&(
+        {FiltersNodes.prices && FiltersNodes.total_size > 1 && (
           <>
             <div
               className={`flex-col justify-start ${

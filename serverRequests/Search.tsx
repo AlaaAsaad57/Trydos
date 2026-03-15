@@ -14,6 +14,9 @@ import {
   processCategoriesAggregation,
   sortColorsByFilteredColor,
   sortSyncColorImagesByFilteredColor,
+  processRelatedCategories,
+  GroupAgeEnum,
+  GenderEnum,
 } from "services/elastic/helpers";
 import { catalog_index } from "services/elastic/INDEXES";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -103,7 +106,7 @@ export async function GetSearchData({
         "videos",
         "thumbnail",
         "flash_deal_status",
-        "flash_deal_discount",
+        // "flash_deal_discount",
         "offered_price",
         "unit_price",
         "country_offer_prices",
@@ -243,6 +246,11 @@ export async function GetSearchData({
       filters_offset,
     );
     categoriesFilter = categoriesResult.categories;
+    const relatedCategoriesFilter = processRelatedCategories(
+      aggregations,
+      categoriesResult.genderAgePairs,
+      filters_offset,
+    );
 
     brandsFilter = processBrandsAggregation(
       (aggregations as any).top_brands?.filtered_brands?.brands_by_id
@@ -266,6 +274,18 @@ export async function GetSearchData({
         price: s.price,
         offer_price: s.offer_price,
         brand: s.brand,
+      })),
+      related_categories: relatedCategoriesFilter.map((s) => ({
+        ...s,
+        group_age: GroupAgeEnum[s.group_age].label,
+        gender: GenderEnum[s.gender].label,
+        realted: categoriesFilter
+          .filter(
+            (category) =>
+              category.group_age === s.group_age &&
+              category.gender === s.gender,
+          )
+          .map((s) => s.slug),
       })),
       brands: brandsFilter,
       boutiques: boutiquesFilter,

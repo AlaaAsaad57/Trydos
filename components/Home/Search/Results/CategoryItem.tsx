@@ -1,14 +1,26 @@
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
-function CategoryItem({ category, onClick, isActive, applied_filter }) {
+
+function CategoryItem({
+  category,
+  onClick,
+  isActive,
+  applied_filter,
+  relatedCategories = [],
+}) {
   // A category is "effectively" active if it or any of its children are in the filters
   const isChildActive = category.childes?.some((child) =>
-    applied_filter.categories.some((f) => f.slug === child.slug)
+    applied_filter.categories.some((f) => f.slug === child.slug),
   );
 
   // Auto-expand if the parent is selected or if a child is selected
   const isExpanded = isActive || isChildActive;
+
+  const shouldShowRelated =
+    isActive &&
+    Array.isArray(relatedCategories) &&
+    relatedCategories.length > 0;
 
   return (
     <>
@@ -47,7 +59,7 @@ function CategoryItem({ category, onClick, isActive, applied_filter }) {
         >
           {category.childes.map((child, index) => {
             const isThisSubActive = applied_filter.categories.some(
-              (f) => f.slug === child.slug
+              (f) => f.slug === child.slug,
             );
 
             return (
@@ -55,7 +67,7 @@ function CategoryItem({ category, onClick, isActive, applied_filter }) {
                 key={index}
                 className="category-item brand-item whitespace-nowrap relative pr-4 h-5 w-auto"
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent parent click
+                  e.stopPropagation();
                   onClick(child);
                 }}
               >
@@ -72,7 +84,7 @@ function CategoryItem({ category, onClick, isActive, applied_filter }) {
                   height={30}
                   src={getConfiguredImage({
                     src: GetImageUrl(
-                      child.most_viewed_product_thumbnail || child.icon
+                      child.most_viewed_product_thumbnail || child.icon,
                     ),
                     height: 40,
                   })}
@@ -83,6 +95,39 @@ function CategoryItem({ category, onClick, isActive, applied_filter }) {
           })}
         </div>
       )}
+
+      {/* {shouldShowRelated && (
+        <>
+          {relatedCategories.map((related, index) => (
+            <div
+              key={related.slug || index}
+              className="category-item brand-item whitespace-nowrap relative pr-4  w-auto"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick(related);
+              }}
+            >
+              <img
+                src="/icons/TopStar.svg"
+                style={{ top: "-8px", right: "-4px", scale: "0.6" }}
+                className="absolute"
+              />
+              <Image
+                alt={related.name || "Image"}
+                width={30}
+                height={30}
+                src={getConfiguredImage({
+                  src: GetImageUrl(
+                    related.most_viewed_product_thumbnail || related.icon,
+                  ),
+                  height: 40,
+                })}
+              />
+              {related.name}
+            </div>
+          ))}
+        </>
+      )} */}
     </>
   );
 }
