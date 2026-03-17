@@ -31,6 +31,7 @@ function FaqQuestionsList({
   const {
     BuyerCommentModalOption,
     setBuyerCommentModalOption,
+    shouldUpdateComment,
     setShouldUpdateComment,
     ColorBottomSheet,
     setShouldUpdateComeentsCount,
@@ -39,6 +40,7 @@ function FaqQuestionsList({
   const [offsetValue, setOffsetValue] = useState(offset);
   const [hasEnd, setHasEnd] = useState(commentsNodes?.length < 5);
   const [loading, setLoading] = useState(false);
+
   const GetNextComments = async () => {
     if (!offset || loading) return;
     setLoading(true);
@@ -59,6 +61,7 @@ function FaqQuestionsList({
     setLoading(false);
     setModalKey(new Date().getDate());
   };
+
   const EditComment = async (comment) => {
     try {
       setLoading(true);
@@ -100,6 +103,7 @@ function FaqQuestionsList({
       setLoading(false);
     }
   };
+
   const deleteComment = async (id) => {
     try {
       setLoading(true);
@@ -125,9 +129,41 @@ function FaqQuestionsList({
       setLoading(false);
     }
   };
+
   useEffect(() => {
     setCommentsNodes(children);
   }, [children]);
+
+  useEffect(() => {
+    const refreshFaqComments = async () => {
+      try {
+        setLoading(true);
+        const response = await GetProductFaqQuestions({
+          language,
+          productId,
+          filter: null,
+          offset: null,
+          userId: auth.UserID(),
+        });
+        setCommentsNodes(response.comments);
+        setOffsetValue(response.offset);
+        setHasEnd(response.comments?.length < 5);
+      } catch (error) {
+        LogError({
+          error,
+          scenario: "Error In refreshFaqComments in FaqQuestionsList",
+        });
+      } finally {
+        setLoading(false);
+        setShouldUpdateComment(null);
+      }
+    };
+
+    if (shouldUpdateComment) {
+      refreshFaqComments();
+    }
+  }, [shouldUpdateComment, language, productId, setShouldUpdateComment]);
+
   return (
     <>
       <FaqSectionModal
@@ -180,6 +216,7 @@ function FaqQuestionsList({
             comment={BuyerCommentModalOption}
             deleteAction={async (id) => {
               await deleteComment(id);
+              setShouldUpdateComment({ fromComments: true });
             }}
             updateAction={async (comment) => {
               await EditComment(comment);

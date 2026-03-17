@@ -310,7 +310,7 @@ function SearchIcon({ language, country }) {
         onClick={() => {
           if (!searchEnabled) {
             DisableScroll();
-            normalizeView();
+            // normalizeView();
             setSearchEnabled(true);
           }
         }}

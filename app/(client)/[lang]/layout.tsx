@@ -136,8 +136,12 @@ export default async function RootLayout({ params, children, modal }) {
             {/*@ts-expect-error Async Server Component is valid in Next  */}
             <AuthNavContainer />
           </div>
-
-          {children}
+          <div
+            className="w-full flex-col main-content max-w-[1365px]"
+            style={{ display: "flex" }}
+          >
+            {children}
+          </div>
           <ModalSlot>{modal}</ModalSlot>
         </div>
         <Init />

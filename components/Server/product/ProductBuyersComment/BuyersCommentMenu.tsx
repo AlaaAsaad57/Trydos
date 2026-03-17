@@ -190,6 +190,9 @@ function BuyersCommentMenu({
           tabIndex={0}
           role="button"
           aria-label="Comment options menu"
+          data-cy={
+            !fromComments ? "success-comment-options" : "comment-options"
+          }
         >
           <svg
             style={{
