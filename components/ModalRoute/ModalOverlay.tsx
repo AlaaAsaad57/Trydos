@@ -14,16 +14,24 @@ interface ModalOverlayProps {
  */
 export default function ModalOverlay({ children }: ModalOverlayProps) {
   useEffect(() => {
-    document.documentElement.style.overflow = "hidden";
+    // document.documentElement.style.overflow = "hidden";
+    const mainContent = document.querySelector<HTMLDivElement>(".main-content");
+    if (!mainContent) {
+      return;
+    }
+    mainContent.style.display = "none";
+    // setTimeout(() => {
+    //   document.documentElement.style.overflow = "hidden";
+    // }, 1000);
+
     return () => {
+      mainContent.style.display = "flex";
       document.documentElement.style.overflow = "initial";
     };
   }, []);
   return (
     <ModalRouteContext.Provider value={true}>
-      <div className="fixed h-screen max-w-[1365px] z-[999999998] top-[100px] w-full min-h-dvh overflow-y-auto bg-white">
-        {children}
-      </div>
+      <div className="w-full max-w-full">{children}</div>
     </ModalRouteContext.Provider>
   );
 }
