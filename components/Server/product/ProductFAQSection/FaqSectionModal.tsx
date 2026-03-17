@@ -22,6 +22,7 @@ function FaqSectionModal({
     language,
     BuyerCommentModalOption,
     setBuyerCommentModalOption,
+    setShouldUpdateComment,
   } = useAppStore();
 
   const activeTabRef = useRef<any>(null);
@@ -192,6 +193,7 @@ function FaqSectionModal({
                 commentsData.filter((node) => node.key !== comment_id),
               );
               setActionLoading(false);
+              setShouldUpdateComment({ fromComments: true });
             }}
             updateAction={async (comment) => {
               setActionLoading(true);

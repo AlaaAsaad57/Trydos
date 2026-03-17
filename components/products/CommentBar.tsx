@@ -67,6 +67,7 @@ function CommentBar({ product_data, setCommentsData }) {
       if (response.comment) {
         setCommentsData(response.comment);
       }
+      setShouldUpdateComment({ id });
       setShouldUpdateComeentsCount(true);
       setVal("");
       setLoading(false);

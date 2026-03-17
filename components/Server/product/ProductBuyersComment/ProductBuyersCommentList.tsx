@@ -30,6 +30,8 @@ function ProductBuyersCommentList({
     BuyerCommentModalOption,
     setBuyerCommentModalOption,
     ColorBottomSheet,
+    shouldUpdateComment,
+    setShouldUpdateComment,
   } = useAppStore();
   const [commentsNodes, setCommentsNodes] = useState(children);
   const [offsetValue, setOffsetValue] = useState(offset);
@@ -83,6 +85,7 @@ function ProductBuyersCommentList({
       setBuyerCommentModalOption(null);
       setLoading(false);
       setModalKey(new Date().getDate());
+      setShouldUpdateComment({ id: comment.id });
       return { commentElement: res.comment, id: comment.id };
     } catch (error) {
       LogError({
@@ -107,6 +110,7 @@ function ProductBuyersCommentList({
       );
       setLoading(false);
       setBuyerCommentModalOption(null);
+      setShouldUpdateComment({ id: id });
       return id;
     } catch (error) {
       LogError({
@@ -116,9 +120,40 @@ function ProductBuyersCommentList({
       setLoading(false);
     }
   };
+
   useEffect(() => {
     setCommentsNodes(children);
   }, [children]);
+
+  useEffect(() => {
+    const refreshComments = async () => {
+      try {
+        setLoading(true);
+        const response = await GetProductBuyersComment({
+          language,
+          productId,
+          filter: null,
+          offset: null,
+          userId: auth.UserID(),
+        });
+        setCommentsNodes(response.comments);
+        setOffsetValue(response.offset);
+        setHasEnd(response.comments?.length < 5);
+      } catch (error) {
+        LogError({
+          error,
+          scenario: "Error In refreshComments in ProductBuyersCommentList",
+        });
+      } finally {
+        setLoading(false);
+        setShouldUpdateComment(null);
+      }
+    };
+
+    if (shouldUpdateComment) {
+      refreshComments();
+    }
+  }, [shouldUpdateComment, language, productId, setShouldUpdateComment]);
   return (
     <>
       <BuyersCommentModal

@@ -52,12 +52,17 @@ function CommentSection({ product_data }) {
         offset: OffsetRef.current,
         isFromComments: true,
       });
-      if (reset) setCommentsData(res.comments);
-      else setCommentsData([...commentsData, ...res.comments]);
+      if (reset) {
+        setCommentsData(res.comments);
+      } else {
+        setCommentsData([...commentsData, ...res.comments]);
+      }
       OffsetRef.current = res.offset;
       TotalRef.current = res.total;
       setLoading(false);
       setIsLoading(false);
+      // Ensure other widgets (like FAQ section on product page) refresh
+      // setShouldUpdateComment({ fromComments: true });
     } catch (error) {
       LogError({
         error: error,
