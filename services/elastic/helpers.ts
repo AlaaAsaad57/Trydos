@@ -1644,6 +1644,8 @@ export function buildAggregations(
   mustNotConditions: any[],
   languageCode: string,
   filtersSize: number,
+  relatedMustConditions: any[] = mustConditions,
+  relatedMustNotConditions: any[] = mustNotConditions,
 ): Record<string, any> {
   const filterCondition = {
     bool: {
@@ -1811,71 +1813,86 @@ export function buildAggregations(
             },
           },
         },
-        related_categories: {
-          nested: { path: "categories" },
-          aggs: {
-            categories_with_gender_age: {
-              terms: { field: "categories.id", size: filtersSize },
-              aggs: {
-                category_details: {
-                  top_hits: {
-                    size: 1,
-                    _source: {
-                      includes: [
-                        "categories.id",
-                        "categories.num_available_product",
-                        "categories.parent_id",
-                        "categories.gender",
-                        "categories.group_age",
-                        "categories.most_viewed_product_thumbnail",
-                      ],
-                    },
-                  },
-                },
-              },
+      },
+    },
+    global_related_scope: {
+      global: {},
+      aggs: {
+        related_filtered_results: {
+          filter: {
+            bool: {
+              must: relatedMustConditions,
+              must_not: relatedMustNotConditions,
             },
           },
-        },
-        related_custom_categories: {
-          nested: { path: "custom_categories" },
           aggs: {
-            filtered_categories: {
-              filter: {
-                term: { "custom_categories.language_code": languageCode },
-              },
+            related_categories: {
+              nested: { path: "categories" },
               aggs: {
-                categories_by_id: {
-                  terms: {
-                    field: "custom_categories.category_id",
-                    size: filtersSize,
-                  },
+                categories_with_gender_age: {
+                  terms: { field: "categories.id", size: filtersSize },
                   aggs: {
                     category_details: {
                       top_hits: {
                         size: 1,
                         _source: {
                           includes: [
-                            "custom_categories.id",
-                            "custom_categories.category_id",
-                            "custom_categories.name",
-                            "custom_categories.slug",
-                            "custom_categories.bio",
-                            "custom_categories.description",
-                            "custom_categories.flat_photo_path",
-                            "custom_categories.png_photo_path",
-                            "custom_categories.fill_photo_path",
-                            "custom_categories.banner_photo_path",
+                            "categories.id",
+                            "categories.num_available_product",
+                            "categories.parent_id",
+                            "categories.gender",
+                            "categories.group_age",
+                            "categories.most_viewed_product_thumbnail",
                           ],
                         },
                       },
                     },
-                    to_product: {
-                      reverse_nested: {},
+                  },
+                },
+              },
+            },
+            related_custom_categories: {
+              nested: { path: "custom_categories" },
+              aggs: {
+                filtered_categories: {
+                  filter: {
+                    term: { "custom_categories.language_code": languageCode },
+                  },
+                  aggs: {
+                    categories_by_id: {
+                      terms: {
+                        field: "custom_categories.category_id",
+                        size: filtersSize,
+                      },
                       aggs: {
-                        product_thumbnail: {
+                        category_details: {
                           top_hits: {
                             size: 1,
-                            _source: { includes: ["thumbnail"] },
+                            _source: {
+                              includes: [
+                                "custom_categories.id",
+                                "custom_categories.category_id",
+                                "custom_categories.name",
+                                "custom_categories.slug",
+                                "custom_categories.bio",
+                                "custom_categories.description",
+                                "custom_categories.flat_photo_path",
+                                "custom_categories.png_photo_path",
+                                "custom_categories.fill_photo_path",
+                                "custom_categories.banner_photo_path",
+                              ],
+                            },
+                          },
+                        },
+                        to_product: {
+                          reverse_nested: {},
+                          aggs: {
+                            product_thumbnail: {
+                              top_hits: {
+                                size: 1,
+                                _source: { includes: ["thumbnail"] },
+                              },
+                            },
                           },
                         },
                       },
