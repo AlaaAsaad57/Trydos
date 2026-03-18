@@ -1312,6 +1312,7 @@ const translations = {
   "No deposits found": "ئێدازەکان پێشتر نەدۆزراوە",
   "Create Deposit": "ئێداز بنێرە",
   Deposits: "ئێدازەکان",
+  "Related Categories": ' "جۆرە پەیوەندیدارەکان",',
 };
 
 export default translations;
