@@ -26,7 +26,6 @@ class CartService {
       quantity: qty,
       product_variation_id: product_variation_id ?? null,
       is_luck,
-      is_redeem: is_luck,
     };
     let formBody = [];
     for (var property in details) {
