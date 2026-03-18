@@ -92,6 +92,11 @@ export async function GetSearchData({
     const { must: mustConditions, must_not: mustNotConditions } =
       baseConditions;
 
+    const relatedBaseConditions = buildBaseConditions(
+      { ...filters, categories: [], related_categories: [] },
+      country,
+    );
+
     // Build the main search query
 
     const searchQuery = {
@@ -179,6 +184,8 @@ export async function GetSearchData({
         mustNotConditions,
         language,
         filtersSize,
+        relatedBaseConditions.must,
+        relatedBaseConditions.must_not,
       ),
     };
 
@@ -212,7 +219,10 @@ export async function GetSearchData({
     }
     // Normalize products
     const normalizedProducts = normalizeCustomProducts(productsWithFilters);
-    const aggregations = response.aggregations?.filtered_results || {}; // Process filters
+    const aggregations = response.aggregations?.filtered_results || {};
+    const relatedAggregations =
+      response.aggregations?.global_related_scope?.related_filtered_results ||
+      {}; // Process filters
     let CategoriesIds = (
       aggregations as any
     ).top_categories?.filtered_categories?.categories_by_id?.buckets.map(
@@ -247,10 +257,56 @@ export async function GetSearchData({
     );
     categoriesFilter = categoriesResult.categories;
     const relatedCategoriesFilter = processRelatedCategories(
-      aggregations,
+      relatedAggregations,
       categoriesResult.genderAgePairs,
       filters_offset,
     );
+
+    const existingCategoryKeys = new Set<string>();
+    const collectCategoryKeys = (categories: any[] = []) => {
+      for (const category of categories) {
+        const categoryId = category?.category_id ?? category?.id;
+        if (categoryId != null) {
+          existingCategoryKeys.add(`id:${String(categoryId)}`);
+        }
+        if (category?.slug) {
+          existingCategoryKeys.add(`slug:${String(category.slug)}`);
+        }
+        if (Array.isArray(category?.childes) && category.childes.length > 0) {
+          collectCategoryKeys(category.childes);
+        }
+      }
+    };
+
+    const dedupeRelatedTree = (categories: any[] = []): any[] => {
+      const deduped: any[] = [];
+
+      for (const category of categories) {
+        const categoryId = category?.category_id ?? category?.id;
+        const idKey = categoryId != null ? `id:${String(categoryId)}` : null;
+        const slugKey = category?.slug ? `slug:${String(category.slug)}` : null;
+
+        const shouldSkip =
+          (idKey && existingCategoryKeys.has(idKey)) ||
+          (slugKey && existingCategoryKeys.has(slugKey));
+
+        const dedupedChildren = dedupeRelatedTree(category?.childes || []);
+
+        if (shouldSkip) {
+          continue;
+        }
+
+        deduped.push({
+          ...category,
+          childes: dedupedChildren,
+        });
+      }
+
+      return deduped;
+    };
+
+    collectCategoryKeys(categoriesFilter);
+    const uniqueRelatedCategories = dedupeRelatedTree(relatedCategoriesFilter);
 
     brandsFilter = processBrandsAggregation(
       (aggregations as any).top_brands?.filtered_brands?.brands_by_id
@@ -275,7 +331,7 @@ export async function GetSearchData({
         offer_price: s.offer_price,
         brand: s.brand,
       })),
-      related_categories: relatedCategoriesFilter.map((s) => ({
+      related_categories: uniqueRelatedCategories.map((s) => ({
         ...s,
         group_age: GroupAgeEnum[s.group_age].label,
         gender: GenderEnum[s.gender].label,
