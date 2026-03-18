@@ -1290,6 +1290,7 @@ const translations = {
   "No deposits found": "Yatırım bulunamadı",
   "Create Deposit": "Yatırım Oluştur",
   Deposits: "Yatırımlar",
+  "Related Categories": "İlgili Kategoriler",
 };
 
 export default translations;

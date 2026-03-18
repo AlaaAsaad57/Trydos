@@ -649,40 +649,8 @@ const SearchContainer = ({
                   isActive={applied_filter?.categories.some(
                     (s) => s.slug === category.slug,
                   )}
-                  relatedCategories={
-                    related_categories?.filter((relatedCategory) =>
-                      relatedCategory?.realted?.includes?.(category?.slug),
-                    ) || []
-                  }
+                  relatedCategories={[]}
                 />
-              ))}
-              {related_categories.map((related, index) => (
-                <div
-                  key={related.slug || index}
-                  className="category-item brand-item whitespace-nowrap relative pr-4  w-auto"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFilter("categories", related.slug);
-                  }}
-                >
-                  <img
-                    src="/icons/TopStar.svg"
-                    style={{ top: "-8px", right: "-4px", scale: "0.8" }}
-                    className="absolute w-[15px] h-[15px]"
-                  />
-                  <Image
-                    alt={related.name || "Image"}
-                    width={30}
-                    height={30}
-                    src={getConfiguredImage({
-                      src: GetImageUrl(
-                        related?.flat_photo_path?.file_path || related.icon,
-                      ),
-                      height: 40,
-                    })}
-                  />
-                  {related.name}
-                </div>
               ))}
               {hasMore.categories && categories.length >= 10 && (
                 <LoadMoreComponent
@@ -693,6 +661,67 @@ const SearchContainer = ({
             </HortiznalScrollBar>
           </div>
         )}
+
+        {/* Related Categories - shown when a category is actively filtered */}
+        {(() => {
+          if (!applied_filter?.categories.length || !related_categories?.length)
+            return null;
+
+          const relevantRelated = related_categories.filter((relatedCategory) =>
+            applied_filter.categories.some((appliedCat) =>
+              relatedCategory?.realted?.includes?.(appliedCat.slug),
+            ),
+          );
+
+          if (relevantRelated.length === 0) return null;
+
+          return (
+            <div
+              className="products-results shrink-0 brand-results"
+              data-cy="ContainerOfRelatedCategories"
+            >
+              <div
+                className={`result-label flex-row ${
+                  isRtl ? "flex-row-reverse pr-2" : ""
+                }`}
+              >
+                {translateFunction("Related Categories", language)}
+              </div>
+              <HortiznalScrollBar
+                id="search-related-categories-wrapper"
+                className={`brands-results-row m-0 pt-[10px] flex-row overflow-auto ${
+                  isRtl ? "flex-row-reverse" : ""
+                }`}
+              >
+                {relevantRelated.map((related, index) => (
+                  <div
+                    key={related.slug || index}
+                    className="category-item brand-item whitespace-nowrap relative pr-4 w-auto"
+                    onClick={() => toggleFilter("categories", related)}
+                  >
+                    <img
+                      src="/icons/TopStar.svg"
+                      style={{ top: "-8px", right: "-4px", scale: "0.8" }}
+                      className="absolute w-[15px] h-[15px]"
+                    />
+                    <Image
+                      alt={related.name || "Image"}
+                      width={30}
+                      height={30}
+                      src={getConfiguredImage({
+                        src: GetImageUrl(
+                          related?.flat_photo_path?.file_path || related.icon,
+                        ),
+                        height: 40,
+                      })}
+                    />
+                    {related.name}
+                  </div>
+                ))}
+              </HortiznalScrollBar>
+            </div>
+          );
+        })()}
 
         {/* Boutiques */}
         {(boutiques?.length > 0 || loading) && (

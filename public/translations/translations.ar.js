@@ -1281,6 +1281,7 @@ const translations = {
   "No deposits found": "لا توجد إيداعات",
   "Create Deposit": "إنشاء إيداع",
   Deposits: "إيداعات",
+  "Related Categories": "الفئات ذات الصلة",
 };
 
 export default translations;
