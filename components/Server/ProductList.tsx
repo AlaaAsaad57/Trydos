@@ -24,7 +24,7 @@ function ProductListServer({
       <div
         className={`${
           isRtl ? "flex-row-reverse flex" : "flex flex-row"
-        } listing-container  bg-[#f4f4f4] gap-x-[10px] gap-y-[18px] justify-center  min-w-full min-h-[48vh] relative  pb-[350px] max-w-[1310px] flex-wrap`}
+        } listing-container mt-2  bg-[#f4f4f4] gap-x-[10px] gap-y-[18px] justify-center  min-w-full min-h-[48vh] relative  pb-[390px] max-w-[1310px] flex-wrap`}
       >
         {products.map((product, key) => {
           return (
