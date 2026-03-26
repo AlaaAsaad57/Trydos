@@ -120,6 +120,12 @@ export const useCartStore = (set, get) => ({
   orderReturnObject: null,
   lastPathname: null,
   settingLastPath: null,
+
+  // Seller dashboard orders sync for notifications
+  sellerOrders: [],
+  setSellerOrders: (orders) =>
+    set({ sellerOrders: Array.isArray(orders) ? orders : [] }),
+
   LoggingOut: false,
   setLastPathname: (e) => {
     set((state) => ({ lastPathname: e }));

@@ -1139,9 +1139,7 @@ const formatStatusLabel = (status?: string | null): string => {
 
 const parseOrderItems = (order: any) => {
   if (!order || !Array.isArray(order.details)) return [];
-  return order.details.flatMap((group: any) =>
-    Array.isArray(group) ? group : [],
-  );
+  return order.details;
 };
 
 const parseProductDetails = (item: any) => {
@@ -1209,12 +1207,21 @@ const updateOrderDetailItem = (
   updateFn: (item: any) => any,
 ) => {
   if (!order || !Array.isArray(order.details)) return order;
+
   const updatedDetails = order.details.map((group: any) => {
-    if (!Array.isArray(group)) return group;
-    return group.map((item: any) =>
-      item?.id === detailId ? updateFn(item) : item,
-    );
+    if (Array.isArray(group)) {
+      return group.map((item: any) =>
+        item?.id === detailId ? updateFn(item) : item,
+      );
+    }
+
+    if (group?.id === detailId) {
+      return updateFn(group);
+    }
+
+    return group;
   });
+
   return { ...order, details: updatedDetails };
 };
 
@@ -1224,17 +1231,30 @@ const applyCancelToOrderDetail = (
   qtyToCancel: number,
 ) => {
   if (!order || !Array.isArray(order.details)) return order;
-  const updatedDetails = order.details.map((group: any) => {
-    if (!Array.isArray(group)) return group;
-    return group
-      .map((item: any) => {
-        if (item?.id !== detailId) return item;
-        const currentQty = Number(item?.qty || 0);
+
+  const updatedDetails = order.details
+    .map((group: any) => {
+      if (Array.isArray(group)) {
+        return group
+          .map((item: any) => {
+            if (item?.id !== detailId) return item;
+            const currentQty = Number(item?.qty || 0);
+            const nextQty = Math.max(0, currentQty - qtyToCancel);
+            return { ...item, qty: nextQty };
+          })
+          .filter((item: any) => Number(item?.qty || 0) > 0);
+      }
+
+      if (group?.id === detailId) {
+        const currentQty = Number(group?.qty || 0);
         const nextQty = Math.max(0, currentQty - qtyToCancel);
-        return { ...item, qty: nextQty };
-      })
-      .filter((item: any) => Number(item?.qty || 0) > 0);
-  });
+        return nextQty > 0 ? { ...group, qty: nextQty } : null;
+      }
+
+      return group;
+    })
+    .filter((group: any) => group !== null);
+
   return { ...order, details: updatedDetails };
 };
 
@@ -1822,13 +1842,17 @@ export const RenderOrders = ({
   const [orderDetailActionLoading, setOrderDetailActionLoading] = useState<
     string | null
   >(null);
-  const [sellerOrders, setSellerOrders] = useState<any[]>([]);
+
   const [ordersMeta, setOrdersMeta] = useState<any>(null);
   const [ordersPage, setOrdersPage] = useState(1);
   const [screen, setScreen] = useState<"list" | "detail">("list");
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [selectedOrderFilterTab, setSelectedOrderFilterTab] =
     useState<OrderFilterTabLabel>("All");
+
+  const sellerOrders = useAppStore((state) => state.sellerOrders);
+  const setSellerOrders = useAppStore((state) => state.setSellerOrders);
+
   const shouldUpdateOrders = useAppStore((state) => state.shouldUpdateOrders);
 
   const getSellerOrders = async (page: number = 1) => {
@@ -1842,14 +1866,15 @@ export const RenderOrders = ({
         status,
       );
       const orders = res.data?.orders || res.data || [];
-      setSellerOrders(Array.isArray(orders) ? orders : []);
+      const normalizedOrders = Array.isArray(orders) ? orders : [];
+      setSellerOrders(normalizedOrders);
       setOrdersMeta(res.data?.meta || null);
       setOrderStatusOptions(
         res.data?.user_abilities?.change_order_status || [],
       );
       setOrdersPage(page);
     } catch (error: any) {
-      console.error("Error fetching orders:", error);
+      // console.error("Error fetching orders:", error);
       setOrdersError(
         error?.message || translateFunction("Failed to load orders"),
       );
@@ -1875,7 +1900,7 @@ export const RenderOrders = ({
         ),
       );
     } catch (error: any) {
-      console.error("Error updating order status:", error);
+      // console.error("Error updating order status:", error);
       setOrdersError(
         error?.message || translateFunction("Failed to update order status"),
       );
@@ -1889,18 +1914,17 @@ export const RenderOrders = ({
     detailId: number | string,
     updateFn: (item: any) => any,
   ) => {
-    setSellerOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId
-          ? updateOrderDetailItem(order, detailId, updateFn)
-          : order,
-      ),
+    let updated = sellerOrders.map((order) =>
+      order.id === orderId
+        ? updateOrderDetailItem(order, detailId, updateFn)
+        : order,
     );
-    setSelectedOrder((prev) =>
-      prev && prev.id === orderId
-        ? updateOrderDetailItem(prev, detailId, updateFn)
-        : prev,
-    );
+    if (selectedOrder?.id === orderId) {
+      setSelectedOrder((current) =>
+        current ? updateOrderDetailItem(current, detailId, updateFn) : current,
+      );
+    }
+    setSellerOrders(updated);
   };
 
   const syncOrderDetailCancel = (
@@ -1908,18 +1932,19 @@ export const RenderOrders = ({
     detailId: number | string,
     qty: number,
   ) => {
-    setSellerOrders((prev) =>
-      prev.map((order) =>
+    setSellerOrders((prev) => {
+      const next = prev.map((order) =>
         order.id === orderId
           ? applyCancelToOrderDetail(order, detailId, qty)
           : order,
-      ),
-    );
-    setSelectedOrder((prev) =>
-      prev && prev.id === orderId
-        ? applyCancelToOrderDetail(prev, detailId, qty)
-        : prev,
-    );
+      );
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder((current) =>
+          current ? applyCancelToOrderDetail(current, detailId, qty) : current,
+        );
+      }
+      return next;
+    });
   };
 
   const handleConfirmItem = async (orderId: number | string, item: any) => {
@@ -1936,7 +1961,7 @@ export const RenderOrders = ({
         is_confirm: true,
       }));
     } catch (error: any) {
-      console.error("Error confirming order detail:", error);
+      // console.error("Error confirming order detail:", error);
       setOrdersError(
         error?.message || translateFunction("Failed to confirm order item"),
       );
@@ -1960,7 +1985,7 @@ export const RenderOrders = ({
         is_packed: true,
       }));
     } catch (error: any) {
-      console.error("Error packing order detail:", error);
+      // console.error("Error packing order detail:", error);
       setOrdersError(
         error?.message || translateFunction("Failed to pack order item"),
       );
@@ -1984,7 +2009,7 @@ export const RenderOrders = ({
       });
       syncOrderDetailCancel(orderId, detailId, qty);
     } catch (error: any) {
-      console.error("Error cancelling order detail:", error);
+      // console.error("Error cancelling order detail:", error);
       setOrdersError(
         error?.message || translateFunction("Failed to cancel order item"),
       );
@@ -2000,8 +2025,6 @@ export const RenderOrders = ({
   }, [activeTab, canViewOrders, sellerId, selectedOrderFilterTab]);
 
   useEffect(() => {
-    if (activeTab !== "orders" || !canViewOrders || !sellerId) return;
-
     const orderTopic = `shop_${sellerId}_order`;
     const orderDetailTopic = `shop_${sellerId}_order_detail`;
 
@@ -2012,7 +2035,7 @@ export const RenderOrders = ({
       void home.UnsubscripeFromTopic({ topic: orderTopic });
       void home.UnsubscripeFromTopic({ topic: orderDetailTopic });
     };
-  }, [activeTab, canViewOrders, sellerId]);
+  }, [activeTab, canViewOrders, sellerId, sellerOrders]);
 
   useEffect(() => {
     if (
