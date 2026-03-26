@@ -28,6 +28,8 @@ type AppState = ReturnType<typeof useAuthStore> &
     cameraPermissions: any;
     setCameraPermissions: (value: any) => void;
     checkCameraPermissions: () => Promise<void>;
+    sellerOrders: any[];
+    setSellerOrders: (orders: any[]) => void;
   };
 
 // Create the combined store with hydration support

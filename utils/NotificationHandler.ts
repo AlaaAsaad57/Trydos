@@ -117,13 +117,15 @@ class ForegroundNotificationHandler {
         auth.validateFCMToken();
       }
       // This is the inner 'data' object used in most events
-      console.log(data, body);
+      // console.log(data, body);
       // 1. Handle Market/E-commerce Notifications
       const eventTypeFromBody = body?.type;
       const isOrderMarketEvent =
         typeof eventTypeFromBody === "string" &&
         (eventTypeFromBody.startsWith("seller order") ||
           eventTypeFromBody.startsWith("order status changed") ||
+          eventTypeFromBody.startsWith("seller order added") ||
+          eventTypeFromBody.startsWith("seller order with detail realtime") ||
           eventTypeFromBody === "order placed");
 
       if (rawData.title === "market" || isOrderMarketEvent) {
@@ -203,23 +205,10 @@ class ForegroundNotificationHandler {
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event(MARKET_NOTIFICATION_RECEIVED_EVENT));
     }
-
-    const { country, language } = state;
+    // console.log("Handling market notification with data:", data);
+    const { country, language, sellerOrders = [], setSellerOrders } = state;
     const lang = `${country?.toLowerCase()}-${language?.toLowerCase()}`;
     const type = data?.type || "";
-
-    const shouldRefreshOrders =
-      type === "seller order added" ||
-      type === "seller order status changed" ||
-      type === "seller order detail status changed to confirmed" ||
-      type === "seller order detail status changed to packed" ||
-      type.startsWith("order status changed");
-
-    if (shouldRefreshOrders) {
-      const { shouldUpdateOrders, setShouldUpdateOrders } =
-        useAppStore.getState();
-      setShouldUpdateOrders(shouldUpdateOrders + 1);
-    }
 
     // Helper for common market notifications
     const notify = (url?: string, extra?: any) => {
@@ -232,6 +221,44 @@ class ForegroundNotificationHandler {
       );
     };
 
+    if (type === "seller order added") {
+      // Add the order directly from notification data (no API call)
+      if (typeof setSellerOrders === "function") {
+        // Avoid duplicates: check if order already exists
+        const exists = sellerOrders.some(
+          (o: any) => String(o.id) === String(data?.data?.id),
+        );
+        if (!exists) {
+          setSellerOrders([data?.data, ...sellerOrders]);
+        }
+      }
+      notify();
+      return;
+    }
+
+    // For other types, update status if order exists
+    if (type === "seller order with detail realtime" && data?.data?.id) {
+      // console.log(
+      //   "Updating order status from notification for order ID:",
+      //   data?.data?.id,
+      // );
+      const idx = sellerOrders.findIndex(
+        (o: any) => String(o.id) === String(data?.data?.id),
+      );
+      if (idx !== -1) {
+        // Update only the status fields (shallow merge)
+        const updated = sellerOrders.map((order: any, i: number) =>
+          i === idx ? { ...order, ...data?.data } : order,
+        );
+        // console.log("Updated seller orders after status change:", updated);
+        setSellerOrders(updated);
+      } else {
+        // If order not found, add it (handles cases where order is created and status changes before user sees notification)
+        setSellerOrders([data?.data, ...sellerOrders]);
+      }
+    }
+
+    // --- Existing notification logic for other types ---
     if (type.startsWith("order status changed")) {
       if (type !== "order status changed") {
         const url = `/${lang}/settings/orders/${data?.order_group_id}`;
