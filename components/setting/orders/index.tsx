@@ -44,7 +44,7 @@ function OrdersLinkCard({ isRtl, user, local, language, totalOrders }) {
           {translateFunction("Orders", language)}
         </span>
         <span className="text-[#8D8D8D] text-[12px] regular">
-          {totalOrders?.data?.total ?? 0}{" "}
+          {totalOrders?.data?.total_order_group ?? 0}{" "}
           {translateFunction("Action", language)}
         </span>
       </NextLink>

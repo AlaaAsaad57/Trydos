@@ -103,6 +103,7 @@ const StoryViewer = ({
   const isImage = currentStory?.type !== "video"; // default to image
   const link = currentStory?.link;
   const product_slug = currentStory?.product_slug;
+
   /* --------------------------- Helper functions -------------------------- */
   const clearTimers = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -399,7 +400,7 @@ const StoryViewer = ({
       )}
 
       {/* Story Link absolutely positioned at the bottom */}
-      {link && (
+      {(link || product_slug) && (
         <div className="absolute bottom-0 left-0 w-full flex justify-center z-50 pb-4 pointer-events-none">
           {link && (
             <a href={link}>
@@ -433,7 +434,7 @@ const StoryViewer = ({
               }}
             >
               <NextLink
-                className="py-2 px-4 text-center flex justify-center light text-[12px] text-[#1d1d1d] bg-slate-50 rounded-md"
+                className="pointer-events-auto gap-[5px] items-end flex-row  regular p-3 rounded-[8px] text-[#1d1d1d] bg-[#F8F8F8]  break-all text-center text-base   no-underline backdrop-blur-xs"
                 data={{
                   is_product: true,
                 }}
