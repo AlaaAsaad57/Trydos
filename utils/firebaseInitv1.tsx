@@ -77,7 +77,11 @@ export const requestFirebaseNotificationPermission = async () => {
 
     await deleteToken(messaging); // Delete old token
   }
-  let fcm_token = await getToken(messaging)
+  let fcm_token = await getToken(messaging, {
+    serviceWorkerRegistration: await navigator.serviceWorker.register(
+      "/firebase-messaging-sw.js",
+    ),
+  })
     .then((currentToken) => {
       if (currentToken) {
         setNotificationPermission(true);
