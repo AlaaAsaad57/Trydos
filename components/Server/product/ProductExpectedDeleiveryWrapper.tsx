@@ -15,11 +15,7 @@ async function ProductExpectedDeleiveryWrapper({
     StarttingSettingPromise,
     GetCountries({ country, language }),
   ]);
-  console.log(
-    countries,
-    starttingSetting?.shipping_duration_days,
-    productData?.shipping_days,
-  );
+
   const isRtl = language === "ar" || language === "ku";
   return (
     <ExpectedDeleiveryBanner country={country} language={language}>

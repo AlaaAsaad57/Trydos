@@ -100,6 +100,7 @@ export interface OrderInterface {
     delivery_status: string;
     payment_status: string;
     shipping_method_id: any;
+    shipping_days?: number | string;
     variant: string;
     collect_product_after_ordering: boolean;
     variation: Array<any>;
