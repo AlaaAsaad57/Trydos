@@ -135,12 +135,7 @@ async function page({ params }) {
         />
 
         {/* @ts-ignore */}
-        <WalletLinkCard
-          country={country}
-          local={Params.lang}
-          isRtl={isRtl}
-          language={language}
-        />
+        <WalletLinkCard country={country} isRtl={isRtl} language={language} />
       </div>
       <div className="flex-col mt-[8px] flex w-full">
         {options.map((option) => (

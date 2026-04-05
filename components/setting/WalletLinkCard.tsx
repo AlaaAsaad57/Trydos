@@ -9,9 +9,9 @@ import { RDB } from "rdb";
 import { serverActions } from "services/RDB";
 import Spinner from "components/global/Spinner";
 import order from "services/order";
-import "rdb/styles";
+// import "rdb/styles";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
-function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
+function WalletLinkCard({ isRtl, language, country }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [walletBalance, setWallet] = useState(null);
