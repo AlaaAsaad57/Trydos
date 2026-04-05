@@ -256,6 +256,7 @@ function AddToCartButton({
       }
       setLoading(false);
     } catch (error) {
+      console.log(error);
       LogError({
         error: error,
         scenario: "click handler for add to cart buttons - add to cart widget",
