@@ -84,9 +84,7 @@ async function page({ params }) {
     if (iso === "tr") return "Turkish";
     if (iso === "ku") return "کوردی";
   };
-  let [currency, wallet, totalOrders] = await Promise.all([
-    getCurrency(country, language),
-    getWallet({ language, country, limit: 1, offset: 1 }),
+  let [totalOrders] = await Promise.all([
     GetOrders({
       page: 1,
       pageSize: 1,

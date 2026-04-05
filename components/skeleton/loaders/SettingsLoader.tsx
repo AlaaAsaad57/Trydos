@@ -15,7 +15,7 @@ const options = [
   { name: "Share App", Icon: <></> },
 ];
 function SettingsLoader() {
-  const { userProfile, totalOrders } = useAppStore();
+  const { userProfile } = useAppStore();
   return (
     <div
       style={{
@@ -138,13 +138,7 @@ function SettingsLoader() {
               <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
                 {translateFunction("Orders")}
               </span>
-              {totalOrders === -1 ? (
-                <Skeleton width={40} height={20} />
-              ) : (
-                <span className="text-[#8D8D8D] text-[12px] regular">
-                  {totalOrders} {translateFunction("Action")}
-                </span>
-              )}
+              {<Skeleton width={40} height={20} />}
             </div>
             <div className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] ml-[12px] cursor-pointer">
               <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
