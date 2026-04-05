@@ -493,7 +493,7 @@ function OrderDetailsWrapper({
                     status={ActivePack.order_status.value}
                     time={ActivePack.created_at}
                     productsShippingDays={ActivePack?.details?.map(
-                      (item) => item?.shipping_days,
+                      (item) => item?.product_details?.shipping_days,
                     )}
                   />
                   <OrderStatusCard
@@ -584,7 +584,7 @@ const OrderExpandedDetails = ({
 
   const orderMaxShippingDays = (order?.details || []).reduce(
     (maxDays, detail) =>
-      Math.max(maxDays, getSafeNumber(detail?.shipping_days)),
+      Math.max(maxDays, getSafeNumber(detail?.product_details?.shipping_days)),
     0,
   );
 

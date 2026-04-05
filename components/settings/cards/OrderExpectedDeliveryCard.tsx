@@ -2,8 +2,8 @@ import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
 type OrderExpectedDeliveryCardProps = {
-  time?: string;
   status?: string;
+  time?: string;
   productsShippingDays?: Array<number | string | null | undefined>;
 };
 
@@ -13,8 +13,8 @@ const getSafeNumber = (value: unknown) => {
 };
 
 function OrderExpectedDeliveryCard({
-  time,
   status,
+  time,
   productsShippingDays = [],
 }: OrderExpectedDeliveryCardProps) {
   const { language, settings } = useAppStore();
@@ -22,19 +22,17 @@ function OrderExpectedDeliveryCard({
   const locale = language || "en-US";
 
   const maxProductShippingDays = productsShippingDays.reduce(
-    (maxDays, currentDay) => Math.max(maxDays, getSafeNumber(currentDay)),
+    (maxDays, currentDay) =>
+      Math.max(Number(maxDays), getSafeNumber(currentDay)),
     0,
   );
 
   const shippingDurationFromSettings = getSafeNumber(
-    settings?.["starting-setting"]?.shipping_duration_days ??
-      settings?.shipping_duration_days ??
-      settings?.data?.["starting-setting"]?.shipping_duration_days ??
-      settings?.data?.shipping_duration_days,
+    settings?.["starting-setting"]?.shipping_duration_days,
   );
 
   const expectedWorkDays =
-    maxProductShippingDays + shippingDurationFromSettings;
+    Number(maxProductShippingDays) + shippingDurationFromSettings;
 
   const baseDate = time ? new Date(time) : new Date();
   const safeBaseDate = Number.isNaN(baseDate.getTime()) ? new Date() : baseDate;
