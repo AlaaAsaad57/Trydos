@@ -1,4 +1,8 @@
 import * as Sentry from "@sentry/nextjs";
+import {
+  extractPrimaryErrorMessage,
+  serializeUnknownForErrorLog,
+} from "./errorSerialization";
 
 /**
  * Report an enriched error object to Sentry.
@@ -11,29 +15,29 @@ import * as Sentry from "@sentry/nextjs";
  * Context fields (userData, last_paths, etc.) are attached as extras
  * so they appear in the Sentry issue sidebar.
  */
-export async function ReportError(error: any) {
+export async function ReportError(rawError: any) {
   // --- 1. Build a real Error for proper grouping ---
   try {
+    const error = serializeUnknownForErrorLog(rawError) as Record<string, any>;
     const scenario =
       error?.scenario ?? error?.source ?? error?.type ?? "unknown";
-    let message = error?.message ?? error?.error;
-    if (typeof message !== "string") {
-      if (message === undefined || message === null) {
-        message = "Unknown error";
-      } else {
-        try {
-          message = JSON.stringify(message);
-        } catch {
-          message = String(message);
-        }
-      }
-    }
+    const message = extractPrimaryErrorMessage(error);
 
     const sentryError = new Error(`[${scenario}] ${message}`);
     if (Error.captureStackTrace) {
       Error.captureStackTrace(sentryError, ReportError);
     }
-    if (error?.stack) sentryError.stack = error.stack;
+    const stackFromPayload =
+      typeof error?.stack === "string"
+        ? error.stack
+        : typeof error?.error === "object" &&
+            error.error !== null &&
+            typeof (error.error as { stack?: unknown }).stack === "string"
+          ? (error.error as { stack: string }).stack
+          : undefined;
+    if (stackFromPayload) {
+      sentryError.stack = stackFromPayload;
+    }
 
     // --- 2. Set user context (so you can search by user in Sentry) ---
     const userId =
@@ -90,6 +94,8 @@ export async function ReportError(error: any) {
         "user_agent",
         "timestamp",
         "sessionId",
+        "error",
+        "err",
       ];
       for (const key of extraKeys) {
         if (error?.[key] !== undefined) extras[key] = error[key];

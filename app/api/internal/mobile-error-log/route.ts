@@ -1,11 +1,13 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { serializeUnknownForErrorLog } from "utils/errorSerialization";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const errorPayload = body?.error ?? {};
+    const rawPayload = body?.error ?? {};
+    const errorPayload = serializeUnknownForErrorLog(rawPayload);
 
     const cookieStore = await cookies();
 
@@ -28,7 +30,9 @@ export async function POST(request: NextRequest) {
 
     const enrichedError = {
       platform: "\u{1F6D1}WEB\u{1F6D1}",
-      ...(typeof errorPayload === "object" && errorPayload !== null
+      ...(typeof errorPayload === "object" &&
+      errorPayload !== null &&
+      !Array.isArray(errorPayload)
         ? errorPayload
         : { message: String(errorPayload) }),
       marketToken,

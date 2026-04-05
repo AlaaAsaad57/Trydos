@@ -8,6 +8,10 @@ import { REQUESTS_DATA } from "./Requests";
 import { readStoredLastPaths } from "./history";
 import { getLastRequest } from "./requestLoggerClient";
 import { ReportError } from "./errorReported";
+import {
+  extractPrimaryErrorMessage,
+  serializeUnknownForErrorLog,
+} from "./errorSerialization";
 import { CartApiInterface } from "./types/cart";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
@@ -463,19 +467,11 @@ export const LogError = async (error) => {
       name: error.name,
     };
   }
-  // Always ensure message is a non-empty string
-  let message = serializedError?.message ?? serializedError?.error;
-  if (typeof message !== "string") {
-    if (message === undefined || message === null) {
-      message = "Unknown error";
-    } else {
-      try {
-        message = JSON.stringify(message);
-      } catch {
-        message = String(message);
-      }
-    }
-  }
+  const message = extractPrimaryErrorMessage(
+    typeof serializedError === "object" && serializedError !== null
+      ? serializedError
+      : { message: String(serializedError ?? "") },
+  );
   const baseError: Record<string, any> =
     typeof serializedError === "object" && serializedError !== null
       ? (serializedError as Record<string, any>)
@@ -502,11 +498,12 @@ export const LogError = async (error) => {
   await storeError(Error_Object);
 };
 export async function storeError(error) {
+  const safeError = serializeUnknownForErrorLog(error ?? {});
   if (typeof window !== "undefined") {
     await fetch("/api/internal/mobile-error-log", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error }),
+      body: JSON.stringify({ error: safeError }),
       credentials: "include",
     });
   } else {
@@ -520,7 +517,11 @@ export async function storeError(error) {
         body: new URLSearchParams({
           error_description: JSON.stringify({
             platform: "\u{1F6D1}WEB\u{1F6D1}",
-            ...(error ?? {}),
+            ...(typeof safeError === "object" &&
+            safeError !== null &&
+            !Array.isArray(safeError)
+              ? (safeError as Record<string, unknown>)
+              : { payload: safeError }),
           }),
           credentials: "omit",
         }),
