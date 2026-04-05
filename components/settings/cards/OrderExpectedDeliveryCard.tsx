@@ -1,9 +1,52 @@
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
-function OrderExpectedDeliveryCard({ time, status }: any) {
-  const { language } = useAppStore();
+type OrderExpectedDeliveryCardProps = {
+  status?: string;
+  time?: string;
+  productsShippingDays?: Array<number | string | null | undefined>;
+};
+
+const getSafeNumber = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+};
+
+function OrderExpectedDeliveryCard({
+  status,
+  time,
+  productsShippingDays = [],
+}: OrderExpectedDeliveryCardProps) {
+  const { language, settings } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
+  const locale = language || "en-US";
+
+  const maxProductShippingDays = productsShippingDays.reduce(
+    (maxDays, currentDay) =>
+      Math.max(Number(maxDays), getSafeNumber(currentDay)),
+    0,
+  );
+
+  const shippingDurationFromSettings = getSafeNumber(
+    settings?.["starting-setting"]?.shipping_duration_days,
+  );
+
+  const expectedWorkDays =
+    Number(maxProductShippingDays) + shippingDurationFromSettings;
+
+  const baseDate = time ? new Date(time) : new Date();
+  const safeBaseDate = Number.isNaN(baseDate.getTime()) ? new Date() : baseDate;
+  const expectedDate = new Date(
+    safeBaseDate.getTime() + expectedWorkDays * 24 * 60 * 60 * 1000,
+  );
+
+  const expectedWeekDay = expectedDate.toLocaleDateString(locale, {
+    weekday: "long",
+  });
+  const expectedDayMonth = expectedDate.toLocaleDateString(locale, {
+    day: "numeric",
+    month: "short",
+  });
 
   return (
     <div
@@ -165,11 +208,13 @@ function OrderExpectedDeliveryCard({ time, status }: any) {
             }}
             className="text-[#1D1D1D] flex flex-row text-[12px] regular mt-[3px] gap-[3px]"
           >
-            <span>Monday</span>
+            <span>{expectedWeekDay}</span>
             <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
-              2.Jun
+              {expectedDayMonth}
             </span>
-            <span> | 3 {translateFunction("Work Days")}</span>
+            <span>
+              | {expectedWorkDays} {translateFunction("Work Days")}
+            </span>
           </span>
         </>
       )}

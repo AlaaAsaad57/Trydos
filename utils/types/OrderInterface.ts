@@ -77,6 +77,7 @@ export interface OrderInterface {
       id: number;
       name: string;
       slug: string;
+
       share_link: string;
       details: string;
       count_of_pieces: number;
@@ -85,6 +86,7 @@ export interface OrderInterface {
       price: number;
       offer_price: number;
       is_favourite: boolean;
+      shipping_days?: number | string;
       rating: {
         overall_rating: number;
         total_rating: number;
@@ -100,6 +102,7 @@ export interface OrderInterface {
     delivery_status: string;
     payment_status: string;
     shipping_method_id: any;
+    shipping_days?: number | string;
     variant: string;
     collect_product_after_ordering: boolean;
     variation: Array<any>;

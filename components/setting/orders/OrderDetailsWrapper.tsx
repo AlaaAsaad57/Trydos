@@ -492,6 +492,9 @@ function OrderDetailsWrapper({
                   <OrderExpectedDeliveryCard
                     status={ActivePack.order_status.value}
                     time={ActivePack.created_at}
+                    productsShippingDays={ActivePack?.details?.map(
+                      (item) => item?.product_details?.shipping_days,
+                    )}
                   />
                   <OrderStatusCard
                     fullWidth={false}
@@ -572,7 +575,30 @@ const OrderExpandedDetails = ({
   getProductUrl: any;
   setSelectedOrderItem: any;
 }) => {
-  const { currency, user } = useAppStore();
+  const { currency, user, settings } = useAppStore();
+
+  const getSafeNumber = (value: unknown) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  };
+
+  const orderMaxShippingDays = (order?.details || []).reduce(
+    (maxDays, detail) =>
+      Math.max(maxDays, getSafeNumber(detail?.product_details?.shipping_days)),
+    0,
+  );
+
+  const shippingDurationFromSettings = getSafeNumber(
+    settings?.["starting-setting"]?.shipping_duration_days,
+  );
+
+  const expectedWorkDays = orderMaxShippingDays + shippingDurationFromSettings;
+
+  const baseDate = order?.created_at ? new Date(order.created_at) : new Date();
+  const safeBaseDate = Number.isNaN(baseDate.getTime()) ? new Date() : baseDate;
+  const expectedDate = new Date(
+    safeBaseDate.getTime() + expectedWorkDays * 24 * 60 * 60 * 1000,
+  );
 
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {
@@ -778,11 +804,20 @@ const OrderExpandedDetails = ({
             }}
             className="text-[#1D1D1D] flex flex-row text-[12px] regular mt-[3px] gap-[3px]"
           >
-            <span>Monday</span>
-            <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
-              2.Jun
+            <span>
+              {expectedDate.toLocaleDateString(language || "en-US", {
+                weekday: "long",
+              })}
             </span>
-            <span> | 3 {translateFunction("Work Days")}</span>
+            <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
+              {expectedDate.toLocaleDateString(language || "en-US", {
+                day: "numeric",
+                month: "short",
+              })}
+            </span>
+            <span>
+              | {expectedWorkDays} {translateFunction("Work Days")}
+            </span>
           </span>
         </div>
         <div className="w-auto min-h-[60px] h-auto  px-[12px] flex-col">
