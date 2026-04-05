@@ -5,13 +5,13 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
-import { RDB } from "rdb";
-import { serverActions } from "services/RDB";
+// import { RDB } from "rdb";
+// import { serverActions } from "services/RDB";
 import Spinner from "components/global/Spinner";
 import order from "services/order";
-import "rdb/styles";
+// import "rdb/styles";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
-function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
+function WalletLinkCard({ isRtl, language, country }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [walletBalance, setWallet] = useState(null);
@@ -88,8 +88,11 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
             noScroll={true}
             height={80}
           >
+            <div className="text-[#1D1D1D] text-[14px] regular p-[12px] text-center flex items-center justify-center h-full">
+              Under Development
+            </div>
             {/* // @ts-ignore */}
-            <RDB
+            {/* <RDB
               onClose={() => {
                 setOpen(false);
               }}
@@ -103,7 +106,7 @@ function WalletLinkCard({ isRtl, language, wallet, currency, country, local }) {
                 authToken: COOKIE_NAMES.WALLET_TOKEN,
                 local: COOKIE_NAMES.LOCAL,
               }}
-            />
+            /> */}
             {/* <TestNewWalletIntegrations
               handleUnauthenticatedFromParent={() => {}}
               local="gb-en"

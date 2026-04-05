@@ -39,7 +39,7 @@
     "jsonwebtoken": "^9.0.2",
     "next": "16.0.10",
     "postcss": "^8.4.38",
-    "rdb": "git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#dev",
+    "rdb": "git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#staging",
     "react": "19.2.0",
     "react-avatar-editor": "^13.0.2",
     "react-cube-navigation": "^2.1.2",
