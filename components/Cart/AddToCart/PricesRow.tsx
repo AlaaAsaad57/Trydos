@@ -4,8 +4,10 @@ import { RoundPrice } from "utils/functions";
 import PropertiesMarquee from "./PropertiesMarquee";
 
 import { getCookie } from "utils/cookies/cookie-manager";
+
 function PricesRow({
   shipping_cost,
+  shipping_days,
   offer_price,
   price,
   luck_price,
@@ -238,6 +240,7 @@ function PricesRow({
       <PropertiesMarquee
         languageVariable={language}
         shipping_cost={shipping_cost}
+        shippingDays={shipping_days}
       />
       {!noBorder && (
         <svg

@@ -864,6 +864,7 @@ function AddToCartComponent({ product, slug, color }) {
             getSelectedVariantQty()?.luck_price
           }
           shipping_cost={product?.shipping_cost}
+          shipping_days={ProductData?.shipping_days ?? product?.shipping_days}
         />
         <ExtraInfoArea
           colors={ProductData?.sync_color_images}

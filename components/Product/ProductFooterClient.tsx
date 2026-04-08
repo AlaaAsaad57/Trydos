@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import VirtualTryOnWrapper from "components/products/VirtualTryOnWrapper";
 import ProductFooterWrapper from "components/Server/product/ProductFooter.tsx/ProductFooterWrapper";
 import ProductPricesWrapper from "components/Server/product/ProductPrices/ProductPricesWrapper";
@@ -30,10 +30,7 @@ const ProductFooterClient = ({
 
   return createPortal(
     <div className="product-details-footer alternate-product-details-footer z-999999999">
-      <ProductVideosWrapper
-        globalPromise={GlobalData}
-        language={language}
-      />
+      <ProductVideosWrapper globalPromise={GlobalData} language={language} />
 
       <div className="product-info-container p-0 h-[40px] overflow-hidden">
         <ProductPricesWrapper
