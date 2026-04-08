@@ -149,7 +149,7 @@ export default async function FiltersPageContent({
           data-cy="filter_listing_bar"
           className={`filter-listing-bar z-99999999 relative ${
             isRtl ? "flex-row-reverse flex" : "flex-row flex"
-          } align-center w-full h-[50px] pl-[15px] max-w-[1365px] pr-[20px] justify-between bg-white z-10`}
+          } align-center left-0 right-0 mx-auto w-full h-[50px] pl-[15px] max-w-[1365px] pr-[20px] justify-between bg-white z-10`}
         >
           <FilterListingBackButton lang={Params.lang} isRtl={isRtl} />
           <div
