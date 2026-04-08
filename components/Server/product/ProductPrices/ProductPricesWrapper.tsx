@@ -101,6 +101,7 @@ function ProductPricesWrapper({
       <PropertiesMarquee
         languageVariable={language}
         shipping_cost={qtyPricePromise?.shipping_cost}
+        shippingDays={qtyPricePromise?.shipping_days}
       />
 
       {/* Static Border */}

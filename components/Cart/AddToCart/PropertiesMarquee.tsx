@@ -1,10 +1,24 @@
 "use client";
 import Image from "next/image";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
+import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
+import { formatTimeForAddress } from "utils/tinyUtils";
 
-function PropertiesMarquee({ shipping_cost, languageVariable }) {
+function PropertiesMarquee({ shipping_cost, languageVariable, shippingDays }) {
+  const { settings } = useAppStore();
   const marqueeRef = useRef(null);
+
+  const shippingDate = useMemo(() => {
+    const countryDays =
+      Number(settings?.["starting-setting"]?.shipping_duration_days) || 0;
+    const totalDays = Number(shippingDays || 0) + countryDays;
+    if (totalDays <= 0) return null;
+    return formatTimeForAddress(
+      new Date(Date.now() + totalDays * 24 * 60 * 60 * 1000).toString(),
+      languageVariable,
+    );
+  }, [shippingDays, settings, languageVariable]);
   const requestRef = useRef(null);
   const directionRef = useRef(-1); // start moving left
   const positionRef = useRef(0);
@@ -23,7 +37,7 @@ function PropertiesMarquee({ shipping_cost, languageVariable }) {
       // Only move if content is wider than container
       const maxScroll = Math.max(
         contentWidth - containerWidth + rightPadding,
-        0
+        0,
       );
 
       if (maxScroll === 0) {
@@ -74,7 +88,7 @@ function PropertiesMarquee({ shipping_cost, languageVariable }) {
         <div className="product-prop-item m-0 flex-none">
           {translateFunction(
             "All Inclusive Without Additions",
-            languageVariable
+            languageVariable,
           )}
         </div>
         {shipping_cost === 0 && (
@@ -106,7 +120,7 @@ function PropertiesMarquee({ shipping_cost, languageVariable }) {
           />
           <span>
             {translateFunction("Ship To You Accepted", languageVariable)}{" "}
-            {translateFunction("2 June", languageVariable)}
+            {shippingDate ?? translateFunction("Soon", languageVariable)}
           </span>
         </div>
       </div>

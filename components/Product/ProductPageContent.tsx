@@ -344,6 +344,7 @@ export default async function ProductPageContent({
           {/* @ts-expect-error Async Server Component is valid in Next  */}
           <ProductFooter
             GlobalData={GlobalData}
+          
             Params={Params}
             QtyPricesData={QtyPricesData}
             Size={Size}
