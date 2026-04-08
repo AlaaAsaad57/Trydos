@@ -800,7 +800,7 @@ export const QuantutyInput = ({
       </div>
 
       <div className="flex-col">
-        <div className={`pl-[30px]`} data-cy="oldNew-price-container">
+        <div className={``} data-cy="oldNew-price-container">
           <div className="product-info-price" data-cy="oldNew-price-container2">
             {hasDiscount ? (
               <>
