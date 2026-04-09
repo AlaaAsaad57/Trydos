@@ -182,8 +182,8 @@ export const getVideoUrl = (
   }
 
   // Otherwise, treat input as public ID and build the correct format
-  const cloudinaryBase = "https://res.cloudinary.com/dtcmozf4d/video/upload/";
-  const version = "v1";
+  const cloudinaryBase = process.env.NEXT_PUBLIC_BASE_VIDEO_CLOUDINARY_URL;
+  // const version = "v1";
   const folder = "product/videos";
 
   // Remove any leading slash and ensure .mp4 extension
@@ -192,7 +192,8 @@ export const getVideoUrl = (
     filename = `${filename}.mp4`;
   }
 
-  return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
+  // return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
+  return `${cloudinaryBase}${transformStr}/${folder}/${filename}`;
 };
 
 export const getUrlofProduct = (
