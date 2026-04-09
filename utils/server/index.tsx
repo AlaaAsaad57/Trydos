@@ -193,7 +193,7 @@ export const getVideoUrl = (
   }
 
   // return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
-  return `${cloudinaryBase}${transformStr}/${folder}/${filename}`;
+  return `${cloudinaryBase}/${folder}/${filename}?${options.end ? "target=preview" : ""}`;
 };
 
 export const getUrlofProduct = (

@@ -94,7 +94,7 @@ function ProductVideo({ videos = [], language }) {
                     src={getVideoUrl(vid, {
                       width: 700,
                       height: 900,
-                      end: expanded ? -1 : undefined,
+                      end: expanded ? null : 10,
                     })}
                     // We handle play/pause via useEffect, but keep these for initial load
                     loop

@@ -230,6 +230,7 @@ function ProductWrapper({
                           src={getVideoUrl(videos[idx], {
                             width: 400,
                             height: 580,
+                            end: 10,
                           })}
                           autoPlay
                           loop
