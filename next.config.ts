@@ -28,7 +28,7 @@ let nextConfig: NextConfig = {
           },
           {
             key: "Cache-Control",
-            value: "private, no-cache, no-store, must-revalidate",
+            value: "public, s-maxage=60, stale-while-revalidate=300",
           },
         ],
       },

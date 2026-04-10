@@ -7,29 +7,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: "*",
-        disallow: [
-          "/api/",
-          "/settings",
-          "/dashboard/",
-          "/_next/",
-          "/static/",
-          "/private/",
-          "/temp/",
-          "/test/",
-          "/staging/",
-          "/dev/",
-          "/revalidate/",
-          "/callInProg/",
-          "/endCall/",
-          "/call_direct/",
-          "/selectCountry/",
-          "/api-test/",
-        ],
+        disallow: "/",
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
   };
   // return {
   //   rules: [
