@@ -230,6 +230,22 @@ function getClientIp(req: NextRequest): string {
 }
 // Main middleware function
 export async function proxy(request: NextRequest) {
+  const META_CRAWLERS = [
+    "facebookexternalhit",
+    "FacebookBot",
+    "meta-externalagent",
+    "Facebot",
+    "InstagramBot",
+    "meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)",
+  ];
+
+  const ua = request.headers.get("user-agent") ?? "";
+  const isMetaCrawler = META_CRAWLERS.some((bot) =>
+    ua.toLowerCase().includes(bot.toLowerCase()),
+  );
+  if (isMetaCrawler) {
+    return new NextResponse(null, { status: 403 });
+  }
   const ip = getClientIp(request);
   // 1️⃣ Rate limiting
   if (ip && ip !== "0.0.0.0") {
