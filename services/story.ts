@@ -10,6 +10,10 @@ import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 import { REQUESTS_DATA } from "utils/Requests";
 
+const MEDIA_SERVER_BASE_URL =
+  process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
+const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
+
 class StoryService {
   /* get stories */
 
@@ -104,26 +108,42 @@ class StoryService {
       });
     }
   }
-  async UploadToCloudinary(file: File) {
-    const url = "https://api.cloudinary.com/v1_1/djooohujg/upload";
-
-    const formData = new FormData();
-
-    // Fill in your own unsigned upload preset
-    formData.append("file", file);
-    formData.append("upload_preset", "v4h8xqns");
-
-    let response = await fetchData({
-      url: url,
-      method: "POST",
-      body: formData,
-      reqTitle: REQUESTS_DATA.UPLOAD_CLOUDINARY,
-      server: "upload story",
-    });
-    if (!response.success) {
-      throw new Error("");
+  async uploadToMediaServer(file: File) {
+    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+      throw new Error("Media server upload is not configured");
     }
-    return response.url;
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", "stories");
+
+    const uploadUrl = file.type.startsWith("video/")
+      ? `${MEDIA_SERVER_BASE_URL}/upload?story=true`
+      : `${MEDIA_SERVER_BASE_URL}/upload`;
+
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      headers: {
+        "x-api-key": MEDIA_API_KEY,
+      },
+      body: form,
+    });
+
+    let data: any = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+    if (!response.ok || !data?.url) {
+      throw new Error("Media server upload failed");
+    }
+
+    return {
+      url: data.url as string,
+      durationSeconds: data.durationSeconds as number | undefined,
+    };
   }
   async upload(
     file: File,
@@ -133,11 +153,12 @@ class StoryService {
     link,
   ) {
     try {
-      let response = await this.UploadToCloudinary(file);
+      const response = await this.uploadToMediaServer(file);
       const add_story_response: any = await fetchData({
         url: `/api/v1/stories/add_story`,
         body: JSON.stringify({
-          file_path: response,
+          file_path: response.url,
+          duration: response.durationSeconds,
           is_video: is_video,
           link: link,
         }),
@@ -213,13 +234,19 @@ class StoryService {
     return useAppStore.getState().userStories;
   }
   configureStory(story) {
+    const withMediaBase = (url?: string) => {
+      if (!url) return "";
+      if (url.startsWith("http://") || url.startsWith("https://")) {
+        return url;
+      }
+      const normalizedPath = url.startsWith("/") ? url : `/${url}`;
+      return `${MEDIA_SERVER_BASE_URL}${normalizedPath}`;
+    };
+
     let returnedData = [];
     story?.stories?.map((storyItem) => {
       if (storyItem.full_video_path) {
-        let vid = storyItem.full_video_path.replace(
-          "/upload",
-          "/upload/w_720,h_1280,c_limit/f_auto/q_auto:good/fl_lossy/so_0",
-        );
+        const vid = withMediaBase(storyItem.full_video_path);
         returnedData.push({
           url: vid,
           link: storyItem.link,
@@ -240,14 +267,15 @@ class StoryService {
           type: "video",
         });
       } else if (storyItem.photo_path) {
-        let img = storyItem.photo_path.replace(
+        const sourceImage = withMediaBase(storyItem.photo_path);
+        let img = sourceImage.replace(
           "/upload",
           "/upload/w_720,h_1280,c_pad/f_auto/q_auto:good/fl_progressive:steep/e_sharpen",
         );
         returnedData.push({
           url: img,
           link: storyItem.link,
-          placeholderUrl: storyItem.photo_path.replace(
+          placeholderUrl: sourceImage.replace(
             "/upload",
             "/upload/w_50,h_90,c_limit/f_auto/q_auto:low/e_blur:2000",
           ),

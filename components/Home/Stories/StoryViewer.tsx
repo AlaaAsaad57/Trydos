@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import type Hls from "hls.js";
 import Spinner from "components/global/Spinner";
 import profilePlaceholder from "public/images/profileNo.png";
 import VideoPreloader from "./VideoPreloader";
@@ -18,6 +19,19 @@ type StoryMedia = {
   duration?: number; // duration in milliseconds (images) or seconds (videos)
   [key: string]: any;
 };
+
+/** Derive HLS manifest and MP4 fallback URLs for new media server videos. */
+function getStoryVideoUrls(story: StoryMedia) {
+  const base = story.url ?? "";
+  // Old Cloudinary URLs (cloudinary.com host) don't support HLS — play directly.
+  if (!base || base.includes("cloudinary.com")) {
+    return { hls: null, fallback: null };
+  }
+  return {
+    hls: `${base}?target=story`,
+    fallback: `${base}?target=story-fallback`,
+  };
+}
 
 const DEFAULT_DURATION = 5000; // 5s for images if duration not provided
 
@@ -76,6 +90,7 @@ const StoryViewer = ({
   const startTimestampRef = useRef<number>(0);
   const currentDurationRef = useRef<number>(DEFAULT_DURATION);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<InstanceType<typeof Hls> | null>(null);
   const pausedProgressRef = useRef<number>(0);
   const storyViewStartTimeRef = useRef<number | null>(null);
   const pausedTimeRef = useRef<number>(0);
@@ -254,6 +269,66 @@ const StoryViewer = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resourceLoaded, isPaused]);
 
+  // HLS setup — runs when story changes or viewer becomes active (unpaused)
+  useEffect(() => {
+    if (isImage || !videoRef.current) return;
+
+    let cancelled = false;
+    const video = videoRef.current;
+    const { hls: hlsUrl, fallback: fallbackUrl } = getStoryVideoUrls(
+      currentStory ?? {},
+    );
+
+    // Tear down previous HLS instance before setting up a new one
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    if (!hlsUrl) {
+      // Non-media-server video (e.g. legacy Cloudinary): keep existing src behaviour
+      video.src = currentStory?.url ?? "";
+      return;
+    }
+
+    // Native HLS: Safari / iOS
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = hlsUrl;
+      return;
+    }
+
+    // hls.js path for all other browsers
+    import("hls.js").then(({ default: HlsClass }) => {
+      if (cancelled) return;
+      if (!HlsClass.isSupported()) {
+        video.src = fallbackUrl ?? currentStory?.url ?? "";
+        return;
+      }
+
+      const instance = new HlsClass({ enableWorker: true });
+      hlsRef.current = instance;
+      instance.loadSource(hlsUrl);
+      instance.attachMedia(video);
+
+      instance.on(HlsClass.Events.ERROR, (_, data) => {
+        if (data.fatal) {
+          instance.destroy();
+          hlsRef.current = null;
+          video.src = fallbackUrl ?? currentStory?.url ?? "";
+        }
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, isPaused, isImage]);
+
   // Pause / resume
   useEffect(() => {
     if (isPaused) {
@@ -373,7 +448,6 @@ const StoryViewer = ({
           ) : (
             <video
               ref={videoRef}
-              src={currentStory?.url}
               className=" max-w-full object-contain  max-h-full p-[65px]"
               playsInline
               muted={activeId !== id}
