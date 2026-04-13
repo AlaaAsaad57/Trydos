@@ -9,10 +9,7 @@ import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
-import NextLink from "components/global/NextLink";
-
 import { showErrorNotification } from "@/store/notifications/reducer";
-import { isSamePage } from "utils/navigationsUtils";
 import WalletPaymentModal from "./WalletPaymentModal";
 
 function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
@@ -27,6 +24,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
     setCouponDiscount,
     userProfile,
     language,
+    setIsNavigating,
   } = useAppStore();
 
   const { lang } = useParams();
@@ -280,12 +278,11 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
               return;
             }}
           >
-            <NextLink
-              sameHref={window.location.pathname === `/${lang}`}
-              href={`/${lang}`}
+            <a
+              href={window.location.pathname === `/${lang}` ? `` : `/${lang}`}
               data-cy="back-to-home-page"
-              data={{
-                is_full_home: true,
+              onClick={() => {
+                setIsNavigating({ is_full_home: true });
               }}
               className={`w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px]
              bg-[#1D1D1D] text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
@@ -299,7 +296,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
               >
                 {translateFunction("Back To HomePage")}
               </span>
-            </NextLink>
+            </a>
           </div>
         )}
       </div>
