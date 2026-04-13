@@ -7,13 +7,14 @@ export const getConfiguredImage = ({
   width = null,
   height,
   c_pad = false,
+  q = "auto:good",
 }) => {
   if (typeof src === "string") {
     return src.replace(
       "/upload",
       `/upload/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`,
+      }/f_auto/q_${q}/fl_lossy/so_0`,
     );
   }
   if (src?.file_path?.includes("cloudinary")) {
@@ -21,7 +22,7 @@ export const getConfiguredImage = ({
       "/upload/v1",
       `/upload/v1/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`,
+      }/f_auto/q_${q}/fl_lossy/so_0`,
     );
   } else return src?.file_path || src || "";
 };

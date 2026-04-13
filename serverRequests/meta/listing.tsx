@@ -8,6 +8,7 @@ import { trydosTranslations } from "./constants-meta";
 import { General_Site_Data } from "./StructuredData/Constants";
 import { LogServerError } from "utils/serverErrorReporter";
 import { catalog_index } from "services/elastic/INDEXES";
+import { RedisGet, RedisSet } from "serverRequests/radis";
 
 const getMetadataLabels = async ({ parsedFilters, language }) => {
   const shouldQueries = [];
@@ -195,7 +196,10 @@ export async function generateMetadataForListing({ params }) {
   const { lang, filters: filterParams } = await params;
   const [country, language] = lang.split("-");
 
-  // جلب الترجمات الثابتة (مثل اسم الموقع)
+  const cacheKey = `meta-listing-${lang}-${filterParams?.join("-") || "none"}`;
+  const cached = await RedisGet(cacheKey);
+  if (cached) return cached;
+
   const t = trydosTranslations[language] || trydosTranslations.en;
 
   // تحويل المصفوفة إلى Object (يحتوي على الـ slugs والأسعار الخام)
@@ -234,14 +238,19 @@ export async function generateMetadataForListing({ params }) {
 
   // بناء رابط صورة الـ OpenGraph (يفضل استخدام رابط الـ CDN الكامل)
   const ogImage = banner
-    ? getConfiguredImage({ src: GetImageUrl(banner), width: 1200, height: 630 })
+    ? getConfiguredImage({
+        src: GetImageUrl(banner),
+        width: 1200,
+        height: 630,
+        q: "60",
+      })
     : `${General_Site_Data.url}/opengraph-image.png`;
 
   const currentUrl = `${General_Site_Data.url}/${lang}/filters/${
     filterParams?.join("/") || ""
   }`;
 
-  return {
+  const result = {
     title: finalTitle,
     description: cleanDescription,
     alternates: {
@@ -262,4 +271,7 @@ export async function generateMetadataForListing({ params }) {
       images: [ogImage],
     },
   };
+
+  await RedisSet(cacheKey, result, 300);
+  return result;
 }
