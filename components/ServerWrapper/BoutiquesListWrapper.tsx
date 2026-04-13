@@ -70,6 +70,7 @@ async function RecomendedProductWrapper({
   let productsData = response.items;
 
   const isRtl = language === "ar" || language === "ku";
+  if (productsData.length === 0) return <></>;
   return (
     <div
       className="flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]"
