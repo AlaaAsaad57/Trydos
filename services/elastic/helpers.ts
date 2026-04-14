@@ -1647,6 +1647,7 @@ export function buildAggregations(
   relatedMustConditions: any[] = mustConditions,
   relatedMustNotConditions: any[] = mustNotConditions,
 ): Record<string, any> {
+  const relatedBucketsSize = Math.max(1000, filtersSize);
   const filterCondition = {
     bool: {
       must: mustConditions,
@@ -1830,7 +1831,7 @@ export function buildAggregations(
               nested: { path: "categories" },
               aggs: {
                 categories_with_gender_age: {
-                  terms: { field: "categories.id", size: filtersSize },
+                  terms: { field: "categories.id", size: relatedBucketsSize },
                   aggs: {
                     category_details: {
                       top_hits: {
@@ -1862,7 +1863,7 @@ export function buildAggregations(
                     categories_by_id: {
                       terms: {
                         field: "custom_categories.category_id",
-                        size: filtersSize,
+                        size: relatedBucketsSize,
                       },
                       aggs: {
                         category_details: {

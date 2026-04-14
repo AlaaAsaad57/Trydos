@@ -686,6 +686,7 @@ const SearchContainer = ({
                 }`}
               >
                 {translateFunction("Related Categories", language)}
+                {loading && <Spinner className="mx-[12px]" no />}
               </div>
               <HortiznalScrollBar
                 id="search-related-categories-wrapper"
