@@ -1,4 +1,5 @@
 const translations = {
+  "Store Selection": "اختيار المتجر",
   "Product Price When Returned": "سعر المنتج عند الإرجاع",
   Full: "كامل",
   "Please enable notification permissions to use camera features":

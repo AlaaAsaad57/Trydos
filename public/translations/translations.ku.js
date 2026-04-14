@@ -1,4 +1,5 @@
 const translations = {
+  "Store Selection": "هەڵبژاردنی فرۆشگا",
   "Product Not Found": "بەرهەم نەدۆزرایەوە",
   "Buyer Rate": "هەڵسەنگاندنی کریار",
   "Confirm Returning Items": "دڵنیابوونەوە لە گەڕاندنەوەی شتانەکان",
