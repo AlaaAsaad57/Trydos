@@ -1,4 +1,5 @@
 const translations = {
+  "Store Selection": "Mağaza Seçimi",
   "Wallet Deposits": "Cüzdan Yatırımları",
   "View / Create": "Görüntüle / Oluştur",
   "Product Not Found": "Ürün Bulunamadı",
