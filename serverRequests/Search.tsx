@@ -17,6 +17,7 @@ import {
   sortSyncColorImagesByFilteredColor,
   GroupAgeEnum,
   GenderEnum,
+  PopulateCategories,
 } from "services/elastic/helpers";
 import { catalog_index } from "services/elastic/INDEXES";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -301,13 +302,6 @@ export async function GetSearchData({
           ? GroupAgeEnum[s.group_age].label
           : s.group_age,
         gender: GenderEnum[s.gender] ? GenderEnum[s.gender].label : s.gender,
-        realted: categoriesFilter
-          .filter(
-            (category: any) =>
-              category.group_age === s.group_age &&
-              category.gender === s.gender,
-          )
-          .map((category: any) => category.slug),
       })),
       brands: brandsFilter,
       boutiques: boutiquesFilter,

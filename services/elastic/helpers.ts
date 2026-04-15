@@ -2288,7 +2288,25 @@ export function processRelatedCategories(
     (cat) => !cat.parent_id,
   );
 
-  return paginateFilters(relatedTree, filtersOffset);
+  return Object.values(indexedRelated);
+}
+
+export function PopulateCategories({
+  categories,
+}: {
+  categories: CategoryFilter[];
+}) {
+  let arr = [];
+  categories.map((cat) => {
+    if (cat.childes && cat.childes.length > 0) {
+      cat.childes.map((child) => {
+        arr.push(child);
+      });
+
+      arr.push(cat);
+    }
+  });
+  return arr;
 }
 
 export function paginateFilters<T>(
