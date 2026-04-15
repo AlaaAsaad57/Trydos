@@ -158,10 +158,8 @@ class StoryService {
         url: `/api/v1/stories/add_story`,
         body: JSON.stringify({
           file_path:
-            process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL +
-            response.url +
-            (is_video === 1 ? "?target=story" : ""),
-          video_duration_in_second: response.durationSeconds,
+            process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL + response.url,
+          video_duration_in_second: parseInt(response.durationSeconds as any),
           is_video: is_video,
           link: link,
         }),
@@ -306,7 +304,7 @@ class StoryService {
   getThumb(url, isVideo) {
     if (url) {
       if (isVideo) {
-        return url.replace("/upload", "/upload/h_194/f_webp/q_100");
+        return url + "?target=snapshot";
       } else return url.replace("/upload", "/upload/h_194/f_webp/q_100");
     }
   }
