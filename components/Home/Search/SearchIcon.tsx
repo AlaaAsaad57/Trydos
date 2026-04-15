@@ -667,6 +667,14 @@ const SearchContainer = ({
           if (!applied_filter?.categories.length || !related_categories?.length)
             return null;
 
+          const relevantRelated = related_categories.filter((relatedCategory) =>
+            applied_filter.categories.some((appliedCat) =>
+              relatedCategory?.realted?.includes?.(appliedCat.slug),
+            ),
+          );
+
+          if (relevantRelated.length === 0) return null;
+
           return (
             <div
               className="products-results shrink-0 brand-results"
@@ -686,7 +694,7 @@ const SearchContainer = ({
                   isRtl ? "flex-row-reverse" : ""
                 }`}
               >
-                {related_categories
+                {relevantRelated
                   .filter((s) => !applied_filter.categories.includes(s.slug))
                   .map((related, index) => (
                     <div

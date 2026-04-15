@@ -302,6 +302,13 @@ export async function GetSearchData({
           ? GroupAgeEnum[s.group_age].label
           : s.group_age,
         gender: GenderEnum[s.gender] ? GenderEnum[s.gender].label : s.gender,
+        realted: PopulateCategories({ categories: categoriesFilter })
+          .filter(
+            (category: any) =>
+              category.group_age === s.group_age &&
+              category.gender === s.gender,
+          )
+          .map((category: any) => category.slug),
       })),
       brands: brandsFilter,
       boutiques: boutiquesFilter,

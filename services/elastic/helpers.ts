@@ -2302,9 +2302,8 @@ export function PopulateCategories({
       cat.childes.map((child) => {
         arr.push(child);
       });
-
-      arr.push(cat);
     }
+    arr.push(cat);
   });
   return arr;
 }
