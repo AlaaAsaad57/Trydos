@@ -432,7 +432,7 @@ const StoryViewer = ({
           }}
         >
           {isImage ? (
-            <Image
+            <img
               width={600}
               height={1200}
               src={currentStory?.url}

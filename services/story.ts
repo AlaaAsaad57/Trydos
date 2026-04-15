@@ -157,8 +157,11 @@ class StoryService {
       const add_story_response: any = await fetchData({
         url: `/api/v1/stories/add_story`,
         body: JSON.stringify({
-          file_path: response.url,
-          duration: response.durationSeconds,
+          file_path:
+            process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL +
+            response.url +
+            (is_video === 1 ? "?target=story" : ""),
+          video_duration_in_second: response.durationSeconds,
           is_video: is_video,
           link: link,
         }),
@@ -270,14 +273,14 @@ class StoryService {
         const sourceImage = withMediaBase(storyItem.photo_path);
         let img = sourceImage.replace(
           "/upload",
-          "/upload/w_720,h_1280,c_pad/f_auto/q_auto:good/fl_progressive:steep/e_sharpen",
+          "/upload/w_720,h_1280,c_pad/f_auto/q_auto:good",
         );
         returnedData.push({
           url: img,
           link: storyItem.link,
           placeholderUrl: sourceImage.replace(
             "/upload",
-            "/upload/w_50,h_90,c_limit/f_auto/q_auto:low/e_blur:2000",
+            "/upload/w_50,h_90,c_limit/f_auto/q_auto:low",
           ),
           FixedUrl: img,
           is_seen: storyItem.is_seen,
