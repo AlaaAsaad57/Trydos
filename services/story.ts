@@ -271,7 +271,7 @@ class StoryService {
         const sourceImage = withMediaBase(storyItem.photo_path);
         let img = sourceImage.replace(
           "/upload",
-          "/upload/w_720,h_1280,c_pad/f_auto/q_auto:good",
+          "/upload/w_720,c_pad/f_auto/q_auto:good",
         );
         returnedData.push({
           url: img,
