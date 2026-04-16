@@ -376,7 +376,6 @@ export default function WalletPaymentModal({
                       }`}
                     >
                       {availableBalance} {selectedCurrency?.symbol}
-                      {selectedCurrency?.symbol}
                     </span>
                   </div>
 
