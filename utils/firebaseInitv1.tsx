@@ -54,6 +54,56 @@ export const getFirebaseMessaging = async () => {
 // Falls back to null until getDb() is called
 export { _db as db };
 
+const waitForServiceWorkerActivation = (
+  registration: ServiceWorkerRegistration,
+  timeoutMs = 8000,
+) => {
+  return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
+    if (registration.active) {
+      resolve(registration);
+      return;
+    }
+
+    const worker = registration.installing || registration.waiting;
+    if (!worker) {
+      reject(new Error("Service worker registration has no worker instance"));
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      worker.removeEventListener("statechange", onStateChange);
+      reject(new Error("Timed out waiting for service worker activation"));
+    }, timeoutMs);
+
+    const onStateChange = () => {
+      if (worker.state === "activated" && registration.active) {
+        clearTimeout(timeout);
+        worker.removeEventListener("statechange", onStateChange);
+        resolve(registration);
+      }
+    };
+
+    worker.addEventListener("statechange", onStateChange);
+  });
+};
+
+const getActiveServiceWorkerRegistration = async () => {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+    throw new Error("Service worker is not supported in this environment");
+  }
+
+  const registration = await navigator.serviceWorker.register(
+    "/firebase-messaging-sw.js",
+  );
+
+  if (registration.active) return registration;
+
+  const readyRegistration = await navigator.serviceWorker.ready;
+  if (readyRegistration.active) return readyRegistration;
+
+  return waitForServiceWorkerActivation(registration);
+};
+
 export const requestFirebaseNotificationPermission = async () => {
   const { isSupported } = await import("firebase/messaging");
   if (!(await isSupported())) {
@@ -77,10 +127,10 @@ export const requestFirebaseNotificationPermission = async () => {
 
     await deleteToken(messaging); // Delete old token
   }
+  const serviceWorkerRegistration = await getActiveServiceWorkerRegistration();
+
   let fcm_token = await getToken(messaging, {
-    serviceWorkerRegistration: await navigator.serviceWorker.register(
-      "/firebase-messaging-sw.js",
-    ),
+    serviceWorkerRegistration,
   })
     .then((currentToken) => {
       if (currentToken) {
