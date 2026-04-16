@@ -686,6 +686,7 @@ const SearchContainer = ({
                 }`}
               >
                 {translateFunction("Related Categories", language)}
+                {loading && <Spinner className="mx-[12px]" no />}
               </div>
               <HortiznalScrollBar
                 id="search-related-categories-wrapper"
@@ -693,31 +694,33 @@ const SearchContainer = ({
                   isRtl ? "flex-row-reverse" : ""
                 }`}
               >
-                {relevantRelated.map((related, index) => (
-                  <div
-                    key={related.slug || index}
-                    className="category-item brand-item whitespace-nowrap relative pr-4 w-auto"
-                    onClick={() => toggleFilter("categories", related)}
-                  >
-                    <img
-                      src="/icons/TopStar.svg"
-                      style={{ top: "-8px", right: "-4px", scale: "0.8" }}
-                      className="absolute w-[15px] h-[15px]"
-                    />
-                    <Image
-                      alt={related.name || "Image"}
-                      width={30}
-                      height={30}
-                      src={getConfiguredImage({
-                        src: GetImageUrl(
-                          related?.flat_photo_path?.file_path || related.icon,
-                        ),
-                        height: 40,
-                      })}
-                    />
-                    {related.name}
-                  </div>
-                ))}
+                {relevantRelated
+                  .filter((s) => !applied_filter.categories.includes(s.slug))
+                  .map((related, index) => (
+                    <div
+                      key={related.slug || index}
+                      className="category-item brand-item whitespace-nowrap relative pr-4 w-auto"
+                      onClick={() => toggleFilter("categories", related)}
+                    >
+                      <img
+                        src="/icons/TopStar.svg"
+                        style={{ top: "-8px", right: "-4px", scale: "0.8" }}
+                        className="absolute w-[15px] h-[15px]"
+                      />
+                      <Image
+                        alt={related.name || "Image"}
+                        width={30}
+                        height={30}
+                        src={getConfiguredImage({
+                          src: GetImageUrl(
+                            related?.flat_photo_path?.file_path || related.icon,
+                          ),
+                          height: 40,
+                        })}
+                      />
+                      {related.name}
+                    </div>
+                  ))}
               </HortiznalScrollBar>
             </div>
           );
