@@ -8,6 +8,10 @@ import AgoraRTC, {
 import { useStopwatch } from "react-timer-hook";
 import { getTwoLetters } from "components/Chat/chatsFunctions";
 import { GetImageUrl } from "utils/tinyUtils";
+import {
+  CALL_END_DURATION_MINUTES,
+  CALL_WARNING_MESSAGE_MINUTES,
+} from "components/callDurationConstants";
 
 const config: any = {
   mode: "rtc",
@@ -164,14 +168,16 @@ function WebViewVoiceCall(props) {
       props.onDecline(-1);
       userEndCall();
     }
-    if (minutes === 30) userEndCall();
+    if (minutes === CALL_END_DURATION_MINUTES) userEndCall();
   }, [minutes, seconds]);
 
   return (
     <>
       <div className="video-call">
-        {minutes >= 25 && (
-          <div className="call-warn">Call End in {30 - minutes}</div>
+        {minutes >= CALL_WARNING_MESSAGE_MINUTES && (
+          <div className="call-warn">
+            Call End in {CALL_END_DURATION_MINUTES - minutes}
+          </div>
         )}
         {
           <>

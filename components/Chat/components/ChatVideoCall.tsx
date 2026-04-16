@@ -18,6 +18,10 @@ import { fetchData } from "utils/fetchData";
 import UPDATED_API_DATA from "migration.staging";
 import { REQUESTS_DATA } from "utils/Requests";
 import { RefuseCall } from "store/chat/callActions";
+import {
+  CALL_END_DURATION_MINUTES,
+  CALL_WARNING_MESSAGE_MINUTES,
+} from "components/callDurationConstants";
 
 const useClient = createClient({
   mode: "rtc",
@@ -276,7 +280,7 @@ function ChatVideoCall({ token }) {
     if (seconds === 60 && users.length === 0) {
       userEndCall(true);
     }
-    if (minutes === 30) {
+    if (minutes === CALL_END_DURATION_MINUTES) {
       userEndCall();
     }
   }, [minutes, seconds]);
@@ -297,8 +301,10 @@ function ChatVideoCall({ token }) {
     <>
       {
         <div className="video-call">
-          {minutes >= 25 && (
-            <div className="call-warn">Call End in {30 - minutes}</div>
+          {minutes >= CALL_WARNING_MESSAGE_MINUTES && (
+            <div className="call-warn">
+              Call End in {CALL_END_DURATION_MINUTES - minutes}
+            </div>
           )}
           {
             <>
