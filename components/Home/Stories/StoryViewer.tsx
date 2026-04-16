@@ -360,7 +360,7 @@ const StoryViewer = ({
             <img
               width={600}
               height={1200}
-              src={currentStory?.url}
+              src={currentStory?.url + "?target=story"}
               alt="story"
               loading="eager"
               decoding="async"
