@@ -142,7 +142,7 @@ class StoryService {
 
     return {
       url: data.url as string,
-      durationSeconds: data.durationSeconds as number | undefined,
+      durationSeconds: data?.durationSeconds as number | undefined,
     };
   }
   async upload(
