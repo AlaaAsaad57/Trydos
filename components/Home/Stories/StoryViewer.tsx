@@ -360,7 +360,7 @@ const StoryViewer = ({
             <img
               width={600}
               height={1200}
-              src={currentStory?.url + "?target=story"}
+              src={currentStory?.url}
               alt="story"
               loading="eager"
               decoding="async"
@@ -373,7 +373,7 @@ const StoryViewer = ({
           ) : (
             <video
               ref={videoRef}
-              src={currentStory?.url ?? ""}
+              src={currentStory?.url + "?target=story"}
               className=" max-w-full object-contain  max-h-full p-[65px]"
               playsInline
               muted={activeId !== id}
