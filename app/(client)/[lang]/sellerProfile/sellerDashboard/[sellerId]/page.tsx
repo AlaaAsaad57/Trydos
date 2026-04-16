@@ -8,6 +8,7 @@ import auth from "services/auth";
 import { translateFunction, getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import RenderOrders from "components/SellerDashboard/orders";
+import BackBar from "components/setting/BackBar";
 
 type TabType =
   | "products"
@@ -133,6 +134,9 @@ const formatPermissionName = (permission: string): string => {
 function SellerDashBoard() {
   const params = useParams();
   const sellerId = params.sellerId as string;
+  const local = params.lang?.toString() || "";
+  const [, language] = local.split("-");
+  const isRtl = language === "ar" || language === "ku";
   const {
     loading,
     setLoading,
@@ -1461,7 +1465,16 @@ function SellerDashBoard() {
   };
 
   return (
-    <div className="w-full max-w-[1366px] mx-auto">
+    <div className="w-full max-w-[1366px] mx-auto setting-screen">
+      <div className="mb-3 bg-white">
+        <BackBar
+          isRtl={isRtl}
+          local={local}
+          name={translateFunction("Seller Dashboard", language)}
+          preivous_page={`/${local}/sellerProfile`}
+          DataCy="seller-dashboard-screen"
+        />
+      </div>
       {/* Header */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         {/* Navigation Menu */}

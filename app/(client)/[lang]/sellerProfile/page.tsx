@@ -7,6 +7,7 @@ import {
 } from "./SellerProfileContext"; // Import the context
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction } from "utils/functions";
+import BackBar from "components/setting/BackBar";
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -15,6 +16,7 @@ function Page() {
   const [activeTab, setActiveTab] = useState(null);
   const { lang } = useParams();
   let [country, language] = lang?.toString()?.split("-");
+  const isRtl = language === "ar" || language === "ku";
   const { sellerData, setLoading, loading, shopes, setShopes } =
     useSellerProfile(); // Use the context
 
@@ -45,14 +47,14 @@ function Page() {
       // remove from local list
       setShopes((prev: any[]) =>
         prev.filter(
-          (s: any) => String(s.seller_id) !== String(leaveConfirmShopId)
-        )
+          (s: any) => String(s.seller_id) !== String(leaveConfirmShopId),
+        ),
       );
       setLeaveConfirmShopId(null);
     } catch (error: any) {
       console.error("Error leaving shop:", error);
       setLeaveError(
-        error?.message || translateFunction("Failed to leave shop", language)
+        error?.message || translateFunction("Failed to leave shop", language),
       );
     } finally {
       setLeaveProcessing(false);
@@ -64,7 +66,16 @@ function Page() {
   }, []);
 
   return (
-    <div className="w-full max-w-2xl flex flex-col items-start bg-white p-6 rounded-lg shadow-md">
+    <div className="w-full max-w-[1365px] flex flex-col items-start bg-white p-6 rounded-lg shadow-md setting-screen">
+      <div className="w-full mb-3">
+        <BackBar
+          isRtl={isRtl}
+          local={lang?.toString()}
+          name={translateFunction("Store Selection", language)}
+          preivous_page={`/${lang}`}
+          DataCy="seller-profile-screen"
+        />
+      </div>
       <span>{translateFunction("please Select a shop", language)}</span>
       <div className="p-3">
         {loading && (
@@ -141,7 +152,7 @@ function Page() {
               <p className="text-[14px] text-[#333]">
                 {translateFunction(
                   "Are you sure you want to leave this shop? This will remove your access to the shop dashboard.",
-                  language
+                  language,
                 )}
               </p>
               {leaveError && <p className="text-red-500 mt-3">{leaveError}</p>}
