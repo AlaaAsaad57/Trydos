@@ -13,7 +13,7 @@ export const ConfirmModal = ({
 }) => {
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30"
+      className="fixed inset-0 flex items-center justify-center bg-[#00000067]"
       style={{ zIndex: 999999999999999 }}
     >
       <div

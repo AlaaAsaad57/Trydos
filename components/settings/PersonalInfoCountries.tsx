@@ -352,7 +352,7 @@ function PersonalInfoCountries({
       </div>
       {showConfirmationModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000067]"
           role="dialog"
           aria-modal="true"
           tabIndex={-1}

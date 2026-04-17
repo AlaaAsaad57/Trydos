@@ -132,7 +132,9 @@ export default function BecomeSellerModal({ onClose }) {
       });
 
       if (!presignedRes || !presignedRes.success) {
-        showErrorNotification(presignedRes?.message || t("Something went wrong"));
+        showErrorNotification(
+          presignedRes?.message || t("Something went wrong"),
+        );
         return;
       }
 
@@ -273,7 +275,7 @@ export default function BecomeSellerModal({ onClose }) {
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 "
+      className="fixed inset-0 flex items-center justify-center bg-[#00000067]"
       style={{ zIndex: 999999999 }}
     >
       <div
@@ -432,7 +434,7 @@ export default function BecomeSellerModal({ onClose }) {
                     form.documents.map((d, i) => (
                       <div
                         key={i}
-                        className="flex-row items-center justify-between bg-[#F8F8F8] rounded-[8px] p-2"
+                        className="flex-row w-full items-center justify-between bg-[#F8F8F8] rounded-[8px] p-2"
                       >
                         <div className="text-[13px] text-gray-800">
                           <strong>{d.type}</strong>
@@ -473,7 +475,7 @@ export default function BecomeSellerModal({ onClose }) {
                     <select
                       value={newDocType}
                       onChange={(e) => setNewDocType(e.target.value)}
-                      className="w-full h-[40px] px-3 rounded-sm border border-gray-300 text-[13px]"
+                      className="w-full text-black h-[40px] px-3 rounded-sm border border-gray-300 text-[13px]"
                     >
                       <option value="">{t("Select document type")}</option>
                       {VENDOR_DOCUMENT_TYPES.map((docType) => (
@@ -485,21 +487,31 @@ export default function BecomeSellerModal({ onClose }) {
                   </div>
 
                   <div className="col-span-1">
-                    <label className="text-[13px] text-gray-700 font-medium">
+                    <button
+                      className="w-full px-3 py-2 rounded-sm bg-[#346BFF] text-white hover:bg-blue-600"
+                      onClick={() => {
+                        let Element =
+                          document.querySelector<HTMLInputElement>(
+                            "#doc-upload",
+                          );
+                        Element?.click();
+                      }}
+                    >
                       {t("Choose File")}
-                    </label>
+                    </button>
                     <input
                       type="file"
+                      id="doc-upload"
                       onChange={handleDocFileChange}
-                      className="w-full"
+                      className="w-full absolute opacity-0"
                     />
                   </div>
 
                   <div className="col-span-1">
                     <button
-                      className="w-full px-3 py-2 rounded-sm bg-[#346BFF] text-white hover:bg-blue-600"
+                      className="w-full disabled:opacity-65 px-3 py-2 rounded-sm bg-[#346BFF] text-white hover:bg-blue-600"
                       onClick={uploadDocument}
-                      disabled={uploadingDoc}
+                      disabled={uploadingDoc || !newDocFile}
                     >
                       {uploadingDoc ? t("Uploading") : t("Upload Document")}
                     </button>

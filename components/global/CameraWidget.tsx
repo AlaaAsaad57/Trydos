@@ -130,7 +130,7 @@ export const CameraWidget = ({ onCapture, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-99999999">
+    <div className="fixed inset-0 bg-[#00000067] flex items-center justify-center z-99999999">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200">

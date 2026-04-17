@@ -15,7 +15,7 @@ const DetailsModal = ({
 }) => {
   if (!open || !log) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000067]">
       <div className="bg-white max-w-lg w-full max-h-[90vh] rounded-lg shadow-lg p-6 overflow-y-auto relative">
         <button
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-hidden"
@@ -113,8 +113,8 @@ const RequestsLogPage = () => {
                       log.status !== 200
                         ? "bg-red-50 text-red-700"
                         : idx % 2 === 0
-                        ? "bg-white"
-                        : "bg-gray-50"
+                          ? "bg-white"
+                          : "bg-gray-50"
                     }
                   >
                     <td className="p-2 break-all max-w-xs">{log.title}</td>
