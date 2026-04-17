@@ -26,8 +26,6 @@ import {
   recommendation_cold_index,
   recommendation_index,
 } from "./INDEXES";
-import { enrichWithRecommended } from "./recommendationService";
-import { time } from "node_modules/framer-motion/dist/types";
 
 // Types and Interfaces
 interface SearchParams {
@@ -399,8 +397,12 @@ export async function getProductsAndFiltersFromElastic(
         const categoryId = category?.category_id ?? category?.id;
         const idKey = categoryId != null ? `id:${String(categoryId)}` : null;
         const slugKey = category?.slug ? `slug:${String(category.slug)}` : null;
+        const isSelectedSlug =
+          !!category?.slug &&
+          (filters?.categories || []).includes(String(category.slug));
 
         const shouldSkip =
+          isSelectedSlug ||
           (idKey && existingCategoryKeys.has(idKey)) ||
           (slugKey && existingCategoryKeys.has(slugKey));
 

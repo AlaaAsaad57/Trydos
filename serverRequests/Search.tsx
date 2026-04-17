@@ -12,15 +12,17 @@ import {
   processBoutiquesAggregation,
   processBrandsAggregation,
   processCategoriesAggregation,
+  processRelatedCategories,
   sortColorsByFilteredColor,
   sortSyncColorImagesByFilteredColor,
-  processRelatedCategories,
   GroupAgeEnum,
   GenderEnum,
+  PopulateCategories,
 } from "services/elastic/helpers";
 import { catalog_index } from "services/elastic/INDEXES";
 import { LogServerError } from "utils/serverErrorReporter";
 let client = elasticSearchClient;
+
 export async function GetSearchData({
   language,
   country,
@@ -222,7 +224,8 @@ export async function GetSearchData({
     const aggregations = response.aggregations?.filtered_results || {};
     const relatedAggregations =
       response.aggregations?.global_related_scope?.related_filtered_results ||
-      {}; // Process filters
+      {};
+    // Process filters
     let CategoriesIds = (
       aggregations as any
     ).top_categories?.filtered_categories?.categories_by_id?.buckets.map(
@@ -262,51 +265,13 @@ export async function GetSearchData({
       filters_offset,
     );
 
-    const existingCategoryKeys = new Set<string>();
-    const collectCategoryKeys = (categories: any[] = []) => {
-      for (const category of categories) {
-        const categoryId = category?.category_id ?? category?.id;
-        if (categoryId != null) {
-          existingCategoryKeys.add(`id:${String(categoryId)}`);
-        }
-        if (category?.slug) {
-          existingCategoryKeys.add(`slug:${String(category.slug)}`);
-        }
-        if (Array.isArray(category?.childes) && category.childes.length > 0) {
-          collectCategoryKeys(category.childes);
-        }
-      }
-    };
-
-    const dedupeRelatedTree = (categories: any[] = []): any[] => {
-      const deduped: any[] = [];
-
-      for (const category of categories) {
-        const categoryId = category?.category_id ?? category?.id;
-        const idKey = categoryId != null ? `id:${String(categoryId)}` : null;
-        const slugKey = category?.slug ? `slug:${String(category.slug)}` : null;
-
-        const shouldSkip =
-          (idKey && existingCategoryKeys.has(idKey)) ||
-          (slugKey && existingCategoryKeys.has(slugKey));
-
-        const dedupedChildren = dedupeRelatedTree(category?.childes || []);
-
-        if (shouldSkip) {
-          continue;
-        }
-
-        deduped.push({
-          ...category,
-          childes: dedupedChildren,
-        });
-      }
-
-      return deduped;
-    };
-
-    collectCategoryKeys(categoriesFilter);
-    const uniqueRelatedCategories = dedupeRelatedTree(relatedCategoriesFilter);
+    const selectedCategorySlugs = new Set(
+      (filters?.categories || []).map((slug: any) => String(slug)),
+    );
+    const filteredRelatedCategories = relatedCategoriesFilter.filter(
+      (category: any) =>
+        category?.slug && !selectedCategorySlugs.has(category.slug),
+    );
 
     brandsFilter = processBrandsAggregation(
       (aggregations as any).top_brands?.filtered_brands?.brands_by_id
@@ -331,17 +296,19 @@ export async function GetSearchData({
         offer_price: s.offer_price,
         brand: s.brand,
       })),
-      related_categories: uniqueRelatedCategories.map((s) => ({
+      related_categories: filteredRelatedCategories.map((s: any) => ({
         ...s,
-        group_age: GroupAgeEnum[s.group_age].label,
-        gender: GenderEnum[s.gender].label,
-        realted: categoriesFilter
+        group_age: GroupAgeEnum[s.group_age]
+          ? GroupAgeEnum[s.group_age].label
+          : s.group_age,
+        gender: GenderEnum[s.gender] ? GenderEnum[s.gender].label : s.gender,
+        realted: PopulateCategories({ categories: categoriesFilter })
           .filter(
-            (category) =>
+            (category: any) =>
               category.group_age === s.group_age &&
               category.gender === s.gender,
           )
-          .map((s) => s.slug),
+          .map((category: any) => category.slug),
       })),
       brands: brandsFilter,
       boutiques: boutiquesFilter,
