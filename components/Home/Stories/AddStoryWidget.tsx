@@ -597,7 +597,8 @@ export default function AddStoryWidget() {
         <input
           id="stories-input-holder"
           type="file"
-          accept="image/*,video/*"
+          accept=".jpg,.jpeg,.png,.gif,.mp4,.mov,.3gp,.avi"
+          capture="environment"
           onChange={(e) => {
             handleFileSelect(e);
           }}
