@@ -18,6 +18,61 @@ import UPDATED_API_DATA from "migration.staging";
 import { LogServerError } from "utils/serverErrorReporter";
 
 class ChatService {
+  private hasNewIncomingMessage(
+    messages: any[] = [],
+    myUserId: number | string,
+  ) {
+    return messages.some((message) => {
+      const isIncoming = String(message?.sender_user_id) !== String(myUserId);
+      const isCallMessage = message?.message_type?.name?.includes("Call");
+      const myStatus = message?.message_status?.find(
+        (status) => String(status?.user_id) === String(myUserId),
+      );
+      const isDeletedForAll = message?.auth_message_status?.delete_for_all;
+
+      return (
+        isIncoming &&
+        !isCallMessage &&
+        myStatus?.is_watched === false &&
+        isDeletedForAll === false
+      );
+    });
+  }
+
+  private async sendReceivedForChannelsWithNewMessages(channels: any[] = []) {
+    const userChat = await getUserChat();
+    if (!userChat?.id) return;
+
+    const channelsToReceive = channels.filter((channel) => {
+      if (!channel?.id || channel?.id?.toString()?.includes("ch")) return false;
+      return this.hasNewIncomingMessage(channel?.messages, userChat.id);
+    });
+
+    if (channelsToReceive.length === 0) return;
+
+    const responses = await Promise.allSettled(
+      channelsToReceive.map((channel) =>
+        fetchData({
+          url: `/api/v1/channels/${channel.id}/received`,
+          reqTitle: REQUESTS_DATA.RECIEIVE_CHANNEL,
+          method: "GET",
+          server: "chat",
+        }),
+      ),
+    );
+
+    responses.forEach((result, index) => {
+      if (result.status === "fulfilled" && result.value?.success) return;
+      LogServerError({
+        error:
+          result.status === "rejected"
+            ? result.reason
+            : new Error(result.value?.message || "Failed to mark as received"),
+        scenario: `Error In sendReceivedForChannelsWithNewMessages in services/chat for channel ${channelsToReceive[index]?.id}`,
+      });
+    });
+  }
+
   async loginChat() {
     try {
       const { loginSuccessChat, userProfile } = useAppStore.getState();
@@ -157,11 +212,15 @@ class ChatService {
       if (!response.success) {
         throw new Error(response.message);
       }
-
+      const allChannels = [
+        ...response.data.channels,
+        ...response.data.pinned_channels,
+      ];
+      await this.sendReceivedForChannelsWithNewMessages(allChannels);
       setChats(response.data.channels, response.data.pinned_channels);
       const { getDb } = await import("../utils/firebaseInitv1");
       const db = await getDb();
-      let chats = [...response.data.channels, ...response.data.pinned_channels];
+      let chats = allChannels;
       const userChat = await getUserChat();
       chats.map((chat) => {
         let friendID = chat.channel_members.filter(

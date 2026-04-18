@@ -173,7 +173,7 @@ const updateDataAndActiveChat = (
   ) {
     newActiveChat = updateFn(state.activeChat);
   }
-
+  console.log({ data: newData, activeChat: newActiveChat });
   return { data: newData, activeChat: newActiveChat };
 };
 
@@ -196,6 +196,7 @@ const processMessageStatuses = (
   type: "watch" | "receive",
   watchForSender: boolean,
 ): any[] => {
+  console.log("Processing message statuses for type:", type, messages);
   let currentUserId = getUserChat()?.id;
   return messages.map((mes) => {
     if (mes.sender_user_id && !mes.message_type?.name?.includes("Call")) {
@@ -702,7 +703,7 @@ export const useChatStore = (set: any, get: any) => ({
     if (!payload) return;
     const state = get();
     const userId = getUserChat()?.id;
-
+    console.log("Receive Channel Event for ID:", payload);
     if (
       (typeof payload === "string" && !payload.includes("ch")) ||
       typeof payload === "number"
@@ -713,7 +714,7 @@ export const useChatStore = (set: any, get: any) => ({
     set(
       updateDataAndActiveChat(state, payload, (ch) => ({
         ...ch,
-        messages: processMessageStatuses(ch.messages, "receive", true),
+        messages: processMessageStatuses(ch.messages, "receive", false),
       })),
     );
   },
