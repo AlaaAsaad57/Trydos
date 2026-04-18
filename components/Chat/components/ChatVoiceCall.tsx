@@ -6,7 +6,7 @@ import AgoraRTC, {
 } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
 import { useAppStore } from "store";
-import { getUserChat, LogError } from "utils/functions";
+import { getUserChat, LogError, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getTwoLetters } from "../chatsFunctions";
 import { fetchData } from "utils/fetchData";
@@ -259,7 +259,9 @@ function ChatVoiceCall({ token }) {
         <div className="video-call">
           {minutes >= CALL_WARNING_MESSAGE_MINUTES && (
             <div className="call-warn">
-              Call End in {CALL_END_DURATION_MINUTES - minutes}
+              {translateFunction("Call End in")}{" "}
+              {CALL_END_DURATION_MINUTES - minutes}{" "}
+              {translateFunction("minute")}
             </div>
           )}
           {

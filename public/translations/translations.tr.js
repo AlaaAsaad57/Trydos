@@ -1292,6 +1292,8 @@ const translations = {
   "Create Deposit": "Yatırım Oluştur",
   Deposits: "Yatırımlar",
   "Related Categories": "İlgili Kategoriler",
+  minute: "dakika",
+  "Call End in": "Arama Sonu",
 };
 
 export default translations;

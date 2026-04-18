@@ -1314,6 +1314,8 @@ const translations = {
   "Create Deposit": "ئێداز بنێرە",
   Deposits: "ئێدازەکان",
   "Related Categories": ' "جۆرە پەیوەندیدارەکان",',
+  minute: "خولەک",
+  "Call End in": "پەیوەندی لە کاتژمێر دا کۆتایی دەبێت",
 };
 
 export default translations;

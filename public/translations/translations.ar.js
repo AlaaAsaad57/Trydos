@@ -1283,6 +1283,8 @@ const translations = {
   "Create Deposit": "إنشاء إيداع",
   Deposits: "إيداعات",
   "Related Categories": "الفئات ذات الصلة",
+  minute: "دقيقة",
+  "Call End in": "انتهاء المكالمة في",
 };
 
 export default translations;

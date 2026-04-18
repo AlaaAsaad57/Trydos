@@ -1,243 +1,219 @@
-# Seller Dashboard — Tester Guide
+# Title
 
-## Overview
+Seller Dashboard Manual Tester Guide - Full Scenario Coverage
 
-The Seller Dashboard is a role-protected internal tool that lets seller team members manage their shop's products, boutiques, users, and orders. Access is strictly gated by permissions assigned to each user on a per-shop basis.
+## Purpose
 
----
+Provide complete manual QA coverage for Seller Dashboard related flows, including access entry, store selection, permission-based tab visibility, and all operational tabs (Products, Boutiques, Permissions, Users, Orders).
 
-## How to Access It
+## Scope
 
-1. Log in as a user who has been added to at least one shop.
-2. Go to **Settings** (bottom nav or profile menu).
-3. A button **"Go to Seller Dashboard"** appears — tap it.
-   - If the user has no shop access, the button shows **"Become A Seller At Trydos"** instead. Tapping it opens the "become a seller" modal.
-4. The **Store Selection** screen loads. It shows a table of all shops the current user belongs to.
+- Seller entry point from Settings.
+- Store Selection page: `/{lang}/sellerProfile`.
+- Seller Dashboard page: `/{lang}/sellerProfile/sellerDashboard/{sellerId}`.
+- Permission-driven visibility and authorization behavior.
+- Products, Boutiques, Permissions, Users, and Orders flows.
+- Error handling, retry behavior, empty/loading states, and critical edge paths.
 
----
+## Out Of Scope
 
-## Page 1: Store Selection (`/[lang]/sellerProfile`)
+- Customer storefront buying flow.
+- Payment gateway correctness.
+- Backend data migration or DB integrity validation beyond API response checks.
+- SEO, sitemap, and crawler behavior.
 
-### What to test
+## Assumptions
 
-| Scenario                      | Expected result                                                                        |
-| ----------------------------- | -------------------------------------------------------------------------------------- |
-| User has shops assigned       | Table shows Shop Name, Seller ID, and action buttons                                   |
-| User has no shops             | Message: "No shops available"                                                          |
-| Loading state                 | Spinner + "Loading..." text next to it                                                 |
-| Tap **Enter** on a shop       | Navigate to that shop's dashboard (`/[lang]/sellerProfile/sellerDashboard/[sellerId]`) |
-| Tap **Leave** on a shop       | Confirmation modal appears                                                             |
-| Confirm leave in the modal    | Shop is removed from the list (no page reload needed)                                  |
-| Cancel leave in the modal     | Modal closes, shop stays in the list                                                   |
-| Leave API fails               | Red error message shown inside the modal                                               |
-| Click outside the leave modal | Modal closes                                                                           |
+- Environment has active seller shops, products, boutiques, users, roles, and orders.
+- QA can log in with multiple accounts: no-access user, limited-permission user, super admin.
+- API endpoints are reachable and test data can be reset.
+- Push/update channel for order updates is available in test env.
 
----
+## Preconditions
 
-## Page 2: Seller Dashboard (`/[lang]/sellerProfile/sellerDashboard/[sellerId]`)
+1. Build is deployed and reachable.
+2. Tester has valid credentials for these roles:
+    - user with no shop
+    - user with shop and limited permissions
+    - `SUPER_ADMIN` user
+3. At least one seller has pagination-worthy data in products/users/orders.
+4. Browser devtools network panel is available for API validation.
 
-### Layout
+## Environment And Build
 
-- A **Back bar** at the top links back to the Store Selection page.
-- The **shop name** and **Seller ID** are displayed in the header.
-- A **hamburger menu** (☰) in the header opens a sliding side drawer with all available tabs.
-- The drawer only shows tabs the current user has permission to access.
-- The dashboard footer inside the drawer shows the current Seller ID.
+- App environment: staging (or specified QA environment).
+- Browser coverage: latest Chrome, Safari, and Firefox.
+- Device coverage:
+   - desktop: 1366x768 and 1920x1080
+   - mobile: 390x844 and 412x915
+- Locale coverage: one LTR and one RTL locale, for example `sy-en` and `lb-ar`.
 
-### Permissions loaded on entry
+## Test Data
 
-When entering this page, permissions for the current shop are loaded either from the cached shop list or from the API. All tab visibility is derived from these permissions:
+- Seller A:
+   - products: active, inactive, no-image, and enough items for pagination
+   - boutiques: with and without image, long description
+   - users: mixed role assignments
+   - orders: mixed statuses and remaining-time variants
+- Seller B:
+   - empty datasets for products/boutiques/users/orders
+- Role data:
+   - `SUPER_ADMIN`
+   - read-only product role
+   - order-only role
+   - employee management role
 
-| Permission group required                                                                            | Tab shown   |
-| ---------------------------------------------------------------------------------------------------- | ----------- |
-| Any of `READ_PRODUCTS`, `CREATE_PRODUCT`, `UPDATE_PRODUCT`, `CHANGE_PRODUCT_STATUS`                  | Products    |
-| Any of `READ_BUTIKS`, `CREATE_BUTIKS`, `UPDATE_BUTIKS`, `DELETE_BUTIKS`, `CHANGE_BOUTIQUE_STATUS`    | Boutiques   |
-| Any of `SUPER_ADMIN`, `USER_MANAGEMENT_ACCESS`, `READ_ROLES`, `READ_EMPLOYEES`, `CREATE_ROLES`, etc. | Permissions |
-| Any from Employees group OR `USER_MANAGEMENT_ACCESS` OR `SUPER_ADMIN`                                | Users       |
-| Any of `READ_ORDERS`, `UPDATE_ORDER_INFO`, `CHANGE_ORDER_STATUS`, etc.                               | Orders      |
+## Execution Steps
 
-> If a user opens a tab they lack full access to, the content area shows an **"Access Denied"** message.
+1. Validate access-entry and store selection scenarios.
+2. Enter Seller Dashboard for each role profile.
+3. Validate tab visibility against permissions.
+4. Execute tab-specific scenarios in this order: Products, Boutiques, Permissions, Users, Orders.
+5. Execute negative, security, and resilience scenarios.
+6. Capture evidence and defects using the logging section below.
 
----
+## Test Scenarios
 
-## Tab: Products 📦
+| ID | Scenario | Precondition | Steps | Expected Result | Severity If Failed |
+|---|---|---|---|---|---|
+| SD-001 | Settings shows seller entry button for eligible user | User belongs to one or more shops | Open Settings | `Go to Seller Dashboard` is visible | Major |
+| SD-002 | Settings shows become-seller CTA for ineligible user | User has no shops | Open Settings and tap CTA | `Become A Seller At Trydos` shown and modal opens | Major |
+| SD-003 | Store Selection loads assigned shops | Eligible user logged in | Open `/{lang}/sellerProfile` | Table shows Shop Name, Seller ID, actions | Major |
+| SD-004 | Store Selection empty state | User with no assigned shops | Open Store Selection | `No shops available` message shown | Minor |
+| SD-005 | Store Selection loading state | Slow network simulation | Open page | Spinner and loading text shown before data appears | Minor |
+| SD-006 | Enter shop routes to dashboard | Store exists in list | Click `Enter` | Navigate to `/{lang}/sellerProfile/sellerDashboard/{sellerId}` | Critical |
+| SD-007 | Leave shop modal appears | Store exists in list | Click `Leave` | Confirmation modal appears | Major |
+| SD-008 | Confirm leave removes shop | Leave modal open | Confirm leave | Shop removed from list without full reload | Major |
+| SD-009 | Cancel leave keeps shop | Leave modal open | Cancel leave | Modal closes and shop remains | Minor |
+| SD-010 | Leave API failure handling | Force leave API error | Confirm leave | Error message visible in modal; no unintended removal | Major |
+| SD-011 | Dashboard header and navigation elements | Entered dashboard | Observe header and drawer | Back bar, shop name, seller ID, drawer toggle shown | Minor |
+| SD-012 | Drawer tab visibility follows permissions | Test each role profile | Open drawer | Only permitted tabs are visible | Critical |
+| SD-013 | Unauthorized direct tab access blocked | User lacks module permission | Open restricted tab route/action | Access denied state appears; no protected data leakage | Critical |
+| SD-014 | Products tab basic load | User has product permission | Open Products tab | Grid loads with product cards | Major |
+| SD-015 | Products card content and badge correctness | Products available | Validate multiple cards | Image/name/category/price/stock/status shown correctly | Major |
+| SD-016 | Products missing image fallback | Product without image exists | Open Products tab | `No Image` placeholder appears | Minor |
+| SD-017 | Products empty state | Seller with no products | Open Products tab | `No products found` message shown | Minor |
+| SD-018 | Products API failure and retry | Force API error once | Open tab then click `Retry` | Error shown, retry re-fetches successfully | Major |
+| SD-019 | Products pagination controls | Multiple product pages exist | Move next and previous | Correct page index updates; disabled at boundaries | Major |
+| SD-020 | Boutiques tab basic load | User has boutique permission | Open Boutiques tab | Boutique cards load | Major |
+| SD-021 | Boutiques card formatting | Boutiques with long desc | Validate card text | Description truncates around 100 chars with ellipsis | Minor |
+| SD-022 | Boutiques missing image fallback | Boutique without image exists | Open tab | `No Image` placeholder shown | Minor |
+| SD-023 | Boutiques empty and error states | Seller with none / forced API error | Open tab and retry flow | Empty message and recoverable retry behavior work | Major |
+| SD-024 | Permissions tab super admin banner | `SUPER_ADMIN` user | Open Permissions tab | Full-access banner appears | Minor |
+| SD-025 | Permissions grouped and color-coded | User with mixed permissions | Open Permissions tab | Groups render and action colors map correctly | Minor |
+| SD-026 | Permissions empty state and retry | No permission payload / forced error | Open tab and retry | Empty state or error+retry handled correctly | Major |
+| SD-027 | Users tab visibility gating | Compare role profiles | Open drawer | Users tab only for eligible permissions | Critical |
+| SD-028 | Add User form validation | Users tab open | Try submit with missing fields | Add button disabled until required fields valid | Major |
+| SD-029 | Role search debounce behavior | Add user form open | Type role query quickly | Debounced API search (~400ms), dropdown results update | Minor |
+| SD-030 | Add user success flow | Valid phone and role selected | Submit form | Success message shown and form reset | Major |
+| SD-031 | Add user API failure | Force create-user error | Submit form | Error visible; user not added | Major |
+| SD-032 | Users table load and empty state | Mixed seller datasets | Open Users tab | Correct rows or `No users found` message | Minor |
+| SD-033 | Super admin change role flow | Login as `SUPER_ADMIN` | Change role from row action | Role updated and reflected immediately | Critical |
+| SD-034 | Change role dropdown close behavior | Role dropdown opened | Click outside and press Escape | Dropdown closes correctly | Minor |
+| SD-035 | Super admin delete user flow | Non-self target user exists | Click delete and confirm action path | User removed and list refreshes correctly | Critical |
+| SD-036 | Self leave-shop action in users list | Current user row visible | Click `Leave Shop` on self row | Leave action succeeds and access updates | Major |
+| SD-037 | Users load-more pagination | Many users exist | Click `Load more` | Next set of users appended without duplicates | Major |
+| SD-038 | Orders list initial load | User has order permission | Open Orders tab | Orders load with filters visible | Major |
+| SD-039 | Orders filter behavior | Orders with mixed statuses exist | Switch each filter tab | Correct filtered list shown and selected tab highlighted | Major |
+| SD-040 | Orders list card fields correctness | Orders exist | Validate card fields | Timestamp, remaining time, status, item count, amount, images shown correctly | Major |
+| SD-041 | Orders list empty/error/retry | Empty dataset / forced error | Open tab and retry | Proper empty state and recoverable retry flow | Major |
+| SD-042 | Open order detail page | At least one order in list | Click order card | Navigates to detail with correct header and stats | Critical |
+| SD-043 | Order detail progress cards | Detail page open | Validate pipeline and summary values | Confirm/pack/collect progression and counts are accurate | Major |
+| SD-044 | Confirm item action | Pending item exists | Click `Confirm & Start Backing` | Item moves to confirmed state with loading feedback | Critical |
+| SD-045 | Cancel item action | Pending item exists | Click `Cancel` | Item removed or canceled per backend behavior | Critical |
+| SD-046 | Pack item action | Confirmed item exists | Click `Packed` | Item moves to packed state with loading feedback | Critical |
+| SD-047 | Ready-to-collect read-only state | Packed item exists | Validate action controls | `Ready To Collect` shown as non-editable state | Major |
+| SD-048 | Real-time order creation update | Push/update channel active | Create new order externally | New order appears near top without manual refresh | Major |
+| SD-049 | Real-time order modification update | Existing order changed externally | Trigger update event | List/detail reflects latest state | Major |
+| SD-050 | Direct URL unauthorized access | Invalid session or unauthorized sellerId | Open dashboard URL directly | Redirect or protected error state without data leak | Critical |
+| SD-051 | Permission fallback behavior | Simulate permission load failure with cache | Enter dashboard | Cached permissions used when available | Major |
+| SD-052 | Rapid tab switching stability | Multiple tabs permitted | Switch tabs quickly | No crash, stale-data corruption, or duplicate loaders | Major |
 
-Requires any product-related permission.
+## Expected Results
 
-### What to test
+- All permitted modules are visible and functional per assigned permissions.
+- Restricted modules remain hidden or blocked with safe messaging.
+- CRUD-like user and order actions provide deterministic visual feedback.
+- Loading, empty, and failure states are recoverable and understandable.
+- No protected data appears for unauthorized users or invalid seller IDs.
 
-| Scenario                  | Expected result                                                                       |
-| ------------------------- | ------------------------------------------------------------------------------------- |
-| Products load on tab open | Grid of product cards loads (spinner shown while loading)                             |
-| Product card content      | Shows product image, name, category, unit price, current stock, Active/Inactive badge |
-| Product has no image      | Placeholder "No Image" shown in the card                                              |
-| Product is inactive       | Badge shows grey "Inactive"                                                           |
-| Product is active         | Badge shows green "Active"                                                            |
-| Empty products list       | Message: "No products found"                                                          |
-| API error                 | Red error message + "Retry" button                                                    |
-| Retry works               | Tapping "Retry" re-fetches products                                                   |
-| Multiple pages exist      | Pagination controls appear: Previous / "Page X of Y" / Next                           |
-| Previous on page 1        | Button is disabled                                                                    |
-| Next on last page         | Button is disabled                                                                    |
-| Navigate to next page     | Products update to next page; page counter updates                                    |
+## Negative And Edge Cases
 
----
+- Invalid `sellerId` in URL.
+- Expired session during in-tab action.
+- Retry after transient network failure.
+- Repeated rapid clicks on action buttons (confirm/pack/delete).
+- Concurrent updates from two sessions on same seller/order.
+- Zero inventory or no-content states across all tabs.
+- Long strings and unusual characters in names/descriptions.
 
-## Tab: Boutiques 🏪
+## API/Network Validation
 
-Requires any boutique-related permission.
+- Validate status codes for success, validation failures, unauthorized, forbidden, and server error cases.
+- Confirm request payload integrity for:
+   - leave shop
+   - add user
+   - change role
+   - delete user
+   - order item state actions
+- Confirm UI messaging aligns with API outcome.
+- Validate retry does not duplicate writes.
+- Confirm pagination requests increment correctly and do not duplicate rows.
 
-### What to test
+## UI/Responsive Validation
 
-| Scenario                          | Expected result                                                                           |
-| --------------------------------- | ----------------------------------------------------------------------------------------- |
-| Boutiques load on tab open        | Grid of boutique cards loads                                                              |
-| Boutique card content             | Shows icon/image, name, Active/Inactive badge, description (truncated at 100 chars), slug |
-| Boutique has no image             | Placeholder "No Image" shown                                                              |
-| Description longer than 100 chars | Truncated with "..."                                                                      |
-| Empty boutiques list              | Message: "No boutiques found"                                                             |
-| API error                         | Red error message + "Retry" button                                                        |
+- Validate drawer open/close and touch targets on mobile resolutions.
+- Validate table/card readability at desktop and mobile widths.
+- Validate RTL and LTR layout consistency for labels, numeric values, and action buttons.
+- Ensure loading and error states are readable without overlap or clipping.
 
----
+## Security/Permission Validation
 
-## Tab: Permissions 🔐
+- Confirm tab rendering is permission-based, not only UI-toggle based.
+- Attempt restricted actions via direct URL/navigation and verify denial behavior.
+- Confirm non-super-admin users cannot add/delete/change roles if restricted.
+- Verify no sensitive identifiers or unauthorized records are exposed in blocked states.
 
-Requires any Admin, Roles, or Employees permission (or `SUPER_ADMIN`).
+## Performance/Latency Checks
 
-### What to test
+- Under 3G/slow network, verify skeleton/spinner appears quickly and app remains interactive.
+- Tab switching should not trigger unnecessary repeated fetches for already loaded data (where caching is expected).
+- Large lists should paginate without UI freeze or duplicate render artifacts.
 
-| Scenario                  | Expected result                                                                 |
-| ------------------------- | ------------------------------------------------------------------------------- |
-| Tab opens for Super Admin | Blue-purple banner at top: "Super Admin — You have full access to all features" |
-| Normal permission user    | No Super Admin banner; permissions grouped by category                          |
-| Permission groups shown   | E.g. PRODUCTS, BOUTIQUES, ORDERS, EMPLOYEES, ROLES, etc. as separate cards      |
-| Permission color coding   | READ = blue, CREATE = green, UPDATE = yellow, DELETE = red, other = grey        |
-| No permissions assigned   | Message: "No permissions assigned"                                              |
-| API error                 | Red error message + "Retry" button                                              |
+## Logging And Evidence To Capture
 
----
+- For each failed scenario capture:
+   - scenario ID
+   - environment and build version
+   - user role and seller ID
+   - exact URL
+   - request/response snapshot from network panel
+   - screenshot or screen recording
+   - reproduction steps and frequency
 
-## Tab: Users 👥
+## Severity/Priority Guidance
 
-Only visible if user has `USER_MANAGEMENT_ACCESS`, `SUPER_ADMIN`, or any Employee permission. However, **adding, deleting, and changing roles** requires `SUPER_ADMIN`.
+- Critical:
+   - unauthorized access/data exposure
+   - wrong order state transition
+   - destructive user actions affecting wrong account
+   - dashboard inaccessible for valid seller users
+- Major:
+   - broken permission mapping
+   - failed create/update/delete core operations
+   - broken pagination/filtering
+- Minor:
+   - styling, truncation, low-impact message/content defects
 
-### Sub-section: Add User Form
+## Exit Criteria
 
-| Scenario                       | Expected result                                                                |
-| ------------------------------ | ------------------------------------------------------------------------------ |
-| Phone field empty              | "Add User" button is disabled                                                  |
-| Role not selected              | "Add User" button is disabled                                                  |
-| Valid phone format             | e.g. `+9611234567` (format hint shown under field)                             |
-| Search roles                   | Typing in the Role field filters roles via API (400ms debounce)                |
-| Role dropdown appears on focus | Roles list dropdown opens                                                      |
-| Select a role from dropdown    | Role name fills the input; role_id stored internally                           |
-| Roles paginated                | "Load more roles" button appears if more exist                                 |
-| No roles found                 | Message "No roles found" in dropdown                                           |
-| Submit with valid data         | Request sent; on success: green "User added successfully!" banner, form resets |
-| Submit fails                   | Red error message shown in form                                                |
-| Seller ID field                | Pre-filled, read-only, cannot be changed                                       |
+- All Critical scenarios pass.
+- No open Major defects in core flows (access, permissions, users, orders).
+- Minor defects are documented and accepted.
+- Regression sanity completed for all tabs after fixes.
 
-### Sub-section: Users List
+## Risks And Notes
 
-| Scenario                           | Expected result                                                           |
-| ---------------------------------- | ------------------------------------------------------------------------- |
-| Users load                         | Table shows Name/Phone and Role columns                                   |
-| No users found                     | Message: "No users found"                                                 |
-| Super Admin — Change role button   | Appears next to each user's role name                                     |
-| Tap "Change role"                  | Dropdown opens with searchable role list                                  |
-| Search in change-role dropdown     | Filters roles via API (400ms debounce)                                    |
-| Select new role                    | API call to update role; user row updates with new role name immediately  |
-| Click outside change-role dropdown | Dropdown closes                                                           |
-| Escape key on dropdown             | Dropdown closes                                                           |
-| Super Admin — Delete button        | Red "Delete" button shown per user                                        |
-| Confirm delete                     | User removed from list immediately (no confirm modal — fires immediately) |
-| Current logged-in user row         | Shows "Leave Shop" button (yellow) for that user only                     |
-| Tap "Leave Shop"                   | API call to leave shop                                                    |
-| More users available               | "Load more" button at bottom of table                                     |
-
----
-
-## Tab: Orders 📊
-
-Requires any order-related permission (e.g. `READ_ORDERS`).
-
-### Order List Screen
-
-| Scenario               | Expected result                                                                                                      |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Tab opens              | Orders list loads with spinner                                                                                       |
-| Filter tabs visible    | All · In Progress · Collected · Returned · Cancelled                                                                 |
-| Default filter         | "All" tab selected                                                                                                   |
-| Tap a filter tab       | Orders re-fetch with that status filter; tab highlights                                                              |
-| Loading state          | Spinner + "Loading orders..."                                                                                        |
-| Empty orders list      | Message: "No orders found"                                                                                           |
-| API error              | Red error message + "Retry" button                                                                                   |
-| Each order card shows  | Timestamp, remaining time (if > 0), Order ID, status label, item count, total amount (USD), product images (up to 4) |
-| Remaining time display | Shows e.g. "30m" or "2h 15m" in blue next to timestamp                                                               |
-| No remaining time      | Blue remaining time label not shown                                                                                  |
-| Product images in card | Up to 4 product thumbnails shown horizontally                                                                        |
-| No images              | Placeholder "No items" shown                                                                                         |
-| Tap an order card      | Navigates to Order Detail Screen                                                                                     |
-
-### Real-time order updates
-
-| Scenario                                | Expected result                                                                |
-| --------------------------------------- | ------------------------------------------------------------------------------ |
-| A new order is placed by a customer     | New order appears at the top of the list automatically (via push notification) |
-| An existing order is updated externally | Order card refreshes in list and detail screens automatically                  |
-| `shouldUpdateOrders` triggers           | Full order list re-fetches from API                                            |
-
-### Order Detail Screen
-
-Tap any order card in the list to enter Order Detail.
-
-| Scenario             | Expected result                                                                                                |
-| -------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Header               | Back button (←), "Order Details" title with bag icon                                                           |
-| Stats grid (top row) | Order Number, Order Date, Order Invoice (total in USD)                                                         |
-| Action status card   | Shows Collect Type + pipeline icons (Confirm → Pack → Collect → Collected) with active steps highlighted black |
-| Duration card        | "Remaining Xh Ym" in blue, or "No remaining time" if expired                                                   |
-| Orders summary card  | Item count, Confirmed X/Y, Packed X/Y, Collected X/Y                                                           |
-| Back button          | Returns to Order List                                                                                          |
-
-### Per-item actions
-
-Each item in the detail screen goes through a 3-step lifecycle: **Pending → Confirmed → Packed → Ready to Collect**
-
-| Item state               | Buttons shown                                                     | Expected action                                                           |
-| ------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Pending (not confirmed)  | "Confirm & Start Backing" (blue outline) + "Cancel" (red outline) | Confirm → item marked `is_confirm: true`; Cancel → item removed from list |
-| Confirmed but not packed | "Packed" (purple)                                                 | Pack → item marked `is_packed: true`                                      |
-| Packed                   | "Ready To Collect" (blue, read-only)                              | No action; display only                                                   |
-
-| Scenario                        | Expected result                                                                                     |
-| ------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Tap "Confirm & Start Backing"   | Button shows "Updating...", item switches to Confirmed state                                        |
-| Tap "Cancel" on item            | Item is removed from the detail screen (quantity decremented to 0)                                  |
-| Tap "Packed"                    | Button shows "Updating...", item switches to Packed state                                           |
-| Action while another is loading | Buttons show loading / disabled state                                                               |
-| Item has no image               | Placeholder "No image" shown                                                                        |
-| Item shows                      | Brand name, product name, Color, Size, Product ID, Quantity, unit price / order total, Status label |
-
----
-
-## Error & Edge Cases
-
-| Case                                                                                           | Expected result                                                                  |
-| ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Network request fails on any tab                                                               | Red error message shown within the relevant section                              |
-| Permissions load fails                                                                         | Fallback to cached shop permissions if available; error message otherwise        |
-| User navigates directly to `/sellerProfile/sellerDashboard/[sellerId]` without a valid session | Should redirect or show appropriate error                                        |
-| `sellerId` in URL does not match any shop the user belongs to                                  | "Access Denied" or empty state across all tabs                                   |
-| Rapid tab switching                                                                            | Each tab only fetches data once (already-loaded tabs don't re-fetch on re-visit) |
-
----
-
-## URL Structure
-
-| Screen           | URL                                                |
-| ---------------- | -------------------------------------------------- |
-| Store Selection  | `/{lang}/sellerProfile`                            |
-| Seller Dashboard | `/{lang}/sellerProfile/sellerDashboard/{sellerId}` |
-
-`{lang}` format: `{country}-{language}` e.g. `sy-en`, `lb-ar`
+- Real-time order updates can be environment-sensitive; verify channel health before raising defects.
+- Role and permission seed data quality directly impacts test reliability.
+- If backend behavior intentionally differs from this guide, update this document and retest impacted scenarios.
