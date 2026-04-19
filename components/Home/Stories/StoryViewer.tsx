@@ -78,7 +78,7 @@ const StoryViewer = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const pausedProgressRef = useRef<number>(0);
   const storyViewStartTimeRef = useRef<number | null>(null);
-  const pausedTimeRef = useRef<number>(0);
+
   const totalPausedTimeRef = useRef<number>(0);
   const pauseStartTimeRef = useRef<number | null>(null);
   const previousStoryIndexRef = useRef<number>(-1);
