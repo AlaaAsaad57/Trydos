@@ -317,7 +317,11 @@ export default function AddStoryWidget() {
         setLink("");
         onClose();
       }
+      setTimeout(() => {
+        setStoriesRefreshing(false);
+      }, 6000);
     } catch (error) {
+      setStoriesRefreshing(false);
       LogError({
         error: error,
         scenario: "Upload Image Story",

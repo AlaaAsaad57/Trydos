@@ -298,7 +298,7 @@ class StoryService {
         });
       }
     });
-    console.log(returnedData);
+
     return { ...story, stories: returnedData };
   }
   getThumb(url, isVideo) {
