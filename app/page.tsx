@@ -1,5 +1,7 @@
 import Image from "next/image";
 import "styles/globals.css";
+export const dynamic = "force-static";
+export const revalidate = 600;
 export default function LandingPage() {
   return (
     <html lang="en">
