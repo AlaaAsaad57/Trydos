@@ -230,6 +230,9 @@ function getClientIp(req: NextRequest): string {
 }
 // Main middleware function
 export async function proxy(request: NextRequest) {
+  if (request.url !== request.nextUrl.origin + "/")
+    return NextResponse.redirect(new URL("/", request.url));
+  else return NextResponse.next();
   const META_CRAWLERS = [
     "facebookexternalhit",
     "FacebookBot",
