@@ -7,6 +7,10 @@ export default function LandingPage() {
     <html lang="en">
       <head>
         <title>Trydos</title>
+        <meta
+          name="google-site-verification"
+          content="iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE"
+        />
       </head>
       <body>
         <main className="flex min-h-screen items-center justify-center bg-white">
