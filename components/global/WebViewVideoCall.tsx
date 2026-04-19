@@ -223,7 +223,7 @@ function WebViewVideoCall(props) {
         <div className="video-call webview">
           {minutes >= CALL_WARNING_MESSAGE_MINUTES && (
             <div className="call-warn">
-              Call End in {CALL_END_DURATION_MINUTES - minutes}
+              Call End in {CALL_END_DURATION_MINUTES - minutes} minutes
             </div>
           )}
           {
