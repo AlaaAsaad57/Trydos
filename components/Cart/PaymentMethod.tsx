@@ -1,0 +1,624 @@
+import { useParams } from "next/navigation";
+import { LogError, RoundPrice, translateFunction } from "utils/functions";
+
+import Spinner from "components/global/Spinner";
+import CouponElement from "./couponElement";
+import { useAppStore } from "store";
+import { useEffect, useState } from "react";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES, GA_PAYMENTS } from "utils/GAEvents";
+import { showErrorNotification } from "@/store/notifications/reducer";
+import order from "services/order";
+function PaymentMethod() {
+  const {
+    setWalletBalance,
+    setCodUser,
+    setCryptoUser,
+    setCreditUser,
+    orderLoading,
+    orderData,
+    available_payment_method,
+    setOrderData,
+    wallet,
+    total,
+    total_cash,
+    currency,
+    cart,
+    cod_cost,
+  } = useAppStore();
+  const { lang } = useParams();
+  // @ts-ignore
+  const language = lang.split("-")[1];
+  const getWalletInUSD = () => {
+    if (wallet?.wallet_balance > 0)
+      return wallet?.wallet_balance / currency?.exchange_rate;
+    else return 0;
+  };
+
+  const walletCoversTotal = getWalletInUSD() >= total;
+  const walletInsufficient = !walletCoversTotal;
+
+  useEffect(() => {
+    if (walletCoversTotal) {
+      setWalletBalance();
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_PAYMENT,
+        params: {
+          payment_type: GA_PAYMENTS.WALLET,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            quantity: item.quantity,
+          })),
+        },
+      });
+      setOrderData({
+        payment: [
+          {
+            id: 1,
+            balance: total,
+          },
+        ],
+      });
+    } else {
+      setOrderData({
+        payment: orderData.payment?.filter((s) => s.id !== 1),
+      });
+    }
+  }, [available_payment_method, wallet]);
+  const handleCODPayment = () => {
+    if (walletCoversTotal) return;
+    if (orderData?.payment?.find((s) => s.id === 0)) {
+      setOrderData({ payment: [] });
+    } else {
+      setCodUser();
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_PAYMENT,
+        params: {
+          payment_type: GA_PAYMENTS.COD,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            quantity: item.quantity,
+          })),
+        },
+      });
+      setOrderData({
+        payment: [
+          {
+            id: 0,
+            balance: total_cash,
+          },
+        ],
+      });
+    }
+  };
+  const handleWalletPayment = () => {
+    // Wallet is auto-managed: auto-selected when sufficient, disabled when not
+  };
+  const handleCryptoPayment = () => {
+    if (walletCoversTotal) return;
+    if (orderData?.payment?.find((s) => s.id === 3)) {
+      setOrderData({ payment: [] });
+    } else {
+      setCryptoUser();
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_PAYMENT,
+        params: {
+          payment_type: GA_PAYMENTS.CRYPTO,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            quantity: item.quantity,
+          })),
+        },
+      });
+      setOrderData({
+        payment: [
+          {
+            id: 3,
+            balance: total,
+          },
+        ],
+      });
+    }
+  };
+  const handleCardPayment = () => {
+    if (walletCoversTotal) return;
+    if (orderData?.payment?.find((s) => s.id === 2)) {
+      setOrderData({ payment: [] });
+    } else {
+      setCreditUser();
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_PAYMENT,
+        params: {
+          payment_type: GA_PAYMENTS.CREDIT,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            quantity: item.quantity,
+          })),
+        },
+      });
+      setOrderData({
+        payment: [
+          {
+            id: 2,
+            balance: total,
+          },
+        ],
+      });
+    }
+  };
+  const showCodValue = () => total_cash;
+  const [walletLoading, setWalletLoading] = useState(false);
+  const refreshWallet = async () => {
+    if (walletLoading) return;
+    try {
+      setWalletLoading(true);
+      await order.GetWallet();
+      setWalletLoading(false);
+    } catch (error) {
+      LogError({
+        error: error,
+        scenario: "refresh wallet - cart widget",
+      });
+      setWalletLoading(false);
+    }
+  };
+  const isRtl = language === "ar" || language === "ku";
+
+  return (
+    <>
+      <div data-cy="payment-viewer" className="px-[12px] flex-col">
+        <div
+          data-cy="payment-viewer-container"
+          style={{
+            border: "1px solid rgb(196 194 194 / 51%)",
+            borderRadius: "15px",
+          }}
+          className={`flex-col payment-valid-border ${"mt-[30px] min-h-[203px]"} pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full  `}
+        >
+          <div
+            data-cy="first-bay-way"
+            className={`flex-row ${
+              language === "ar" || language === "ku" ? "flex-row-reverse" : ""
+            }`}
+          >
+            <svg
+              data-cy="payment-viewer-svg"
+              id="_15x15_photo_back"
+              data-name="15x15 photo back"
+              xmlns="http://www.w3.org/2000/svg"
+              xmlnsXlink="http://www.w3.org/1999/xlink"
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+            >
+              <defs>
+                <clipPath id="13256">
+                  <rect
+                    id="Rectangle_4561"
+                    data-name="Rectangle 4561"
+                    width="18"
+                    height="18"
+                    fill="none"
+                  />
+                </clipPath>
+              </defs>
+              <g
+                id="Mask_Group_658"
+                data-name="Mask Group 658"
+                clipPath="url(#13256)"
+              >
+                <g id="money-9">
+                  <g id="Group_13431" data-name="Group 13431">
+                    <g id="Group_13430" data-name="Group 13430">
+                      <path
+                        id="Path_22865"
+                        data-name="Path 22865"
+                        d="M.245,9.023a.375.375,0,0,0-.223.48l.236.648L2.051,8.358Z"
+                        fill="#1d1d1d"
+                      />
+                    </g>
+                  </g>
+                  <g id="Group_13433" data-name="Group 13433">
+                    <g id="Group_13432" data-name="Group 13432">
+                      <path
+                        id="Path_22866"
+                        data-name="Path 22866"
+                        d="M1.943,14.783l1.08,2.97a.372.372,0,0,0,.194.211A.377.377,0,0,0,3.375,18a.367.367,0,0,0,.13-.023L4.7,17.537Z"
+                        fill="#1d1d1d"
+                      />
+                    </g>
+                  </g>
+                  <g id="Group_13435" data-name="Group 13435">
+                    <g id="Group_13434" data-name="Group 13434">
+                      <path
+                        id="Path_22867"
+                        data-name="Path 22867"
+                        d="M17.977,12.247l-1.236-3.4-2.966,2.966,1.47-.541a.375.375,0,0,1,.259.7l-1.867.688a.375.375,0,0,1-.481-.222s0,0,0-.007L10.012,15.58l7.743-2.853A.374.374,0,0,0,17.977,12.247Z"
+                        fill="#1d1d1d"
+                      />
+                    </g>
+                  </g>
+                  <g id="Group_13437" data-name="Group 13437">
+                    <g id="Group_13436" data-name="Group 13436">
+                      <path
+                        id="Path_22868"
+                        data-name="Path 22868"
+                        d="M17.89,6.11l-6-6a.375.375,0,0,0-.53,0L.11,11.36a.375.375,0,0,0,0,.53l6,6a.371.371,0,0,0,.265.11.377.377,0,0,0,.265-.11L17.89,6.641A.376.376,0,0,0,17.89,6.11ZM4.39,10.391l-1.5,1.5a.375.375,0,0,1-.531-.53l1.5-1.5a.375.375,0,0,1,.531.53Zm6.476.476a1.416,1.416,0,0,1-1.027.393,3.1,3.1,0,0,1-2.086-1,3.436,3.436,0,0,1-.937-1.6A1.567,1.567,0,0,1,7.15,7.151a1.562,1.562,0,0,1,1.517-.334,3.429,3.429,0,0,1,1.6.937C11.305,8.795,11.571,10.163,10.866,10.867ZM15.64,6.641l-1.5,1.5a.375.375,0,0,1-.531-.53l1.5-1.5a.375.375,0,0,1,.531.53Z"
+                        fill="#1d1d1d"
+                      />
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+
+            <div
+              data-cy="payment-viewer-text"
+              className={`regular text-[#1D1D1D] text-[14px] ml-2 ${
+                language === "ar" || language === "ku" ? "text-right pr-2" : ""
+              }`}
+            >
+              {translateFunction("Payment Method", language)}
+            </div>
+          </div>
+          <div
+            data-cy="payment-viewer-text2"
+            className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${
+              language === "ar" || language === "ku" ? "text-right" : ""
+            }`}
+          >
+            {translateFunction(
+              "Please Choose Your Payment Method About Your Bag",
+              language,
+            )}
+          </div>
+          {available_payment_method &&
+            available_payment_method.length &&
+            available_payment_method.map((item, key) => {
+              if (item?.toLowerCase() === "cash_on_delivery".toLowerCase()) {
+                return (
+                  <CODInput
+                    key={key}
+                    active={
+                      orderData?.payment?.filter((s) => s.id === 0).length > 0
+                    }
+                    disabled={walletCoversTotal}
+                    setActive={() => {
+                      if (!orderLoading) {
+                        handleCODPayment();
+                      }
+                    }}
+                    total={showCodValue()}
+                  />
+                );
+              }
+              if (item?.toLowerCase() === "trydos_wallet".toLowerCase()) {
+                return (
+                  <div
+                    className={`flex-row items-end gap-[8px] ${
+                      isRtl ? "flex-row-reverse" : "flex-row"
+                    }`}
+                  >
+                    <TryDosWalletInput
+                      key={key}
+                      balance={wallet?.wallet_balance?.toFixed(
+                        currency?.decimal_digits,
+                      )}
+                      active={
+                        orderData?.payment?.filter((s) => s.id === 1).length > 0
+                      }
+                      disabled={walletInsufficient}
+                      setActive={() => {
+                        if (!orderLoading) {
+                          handleWalletPayment();
+                        }
+                      }}
+                    />
+                    <div
+                      className={`rounded-[10px]  justify-center items-center flex h-[40px] min-w-[45px] bg-[#f8f8f8] cursor-pointer`}
+                      data-cy="refresh-wallet"
+                      onClick={() => {
+                        refreshWallet();
+                      }}
+                    >
+                      <img
+                        src="/icons/RefreshIcon.svg"
+                        className={`${walletLoading && "animate-spin"}`}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+              if (item?.toLowerCase() === "crypto".toLowerCase()) {
+                return (
+                  <CryptoInput
+                    key={key}
+                    active={
+                      orderData?.payment?.filter((s) => s.id === 3).length > 0
+                    }
+                    disabled={walletCoversTotal}
+                    setActive={() => {
+                      if (!orderLoading) {
+                        handleCryptoPayment();
+                      }
+                    }}
+                  />
+                );
+              }
+              if (item?.toLowerCase() === "card".toLowerCase()) {
+                return (
+                  <CreditInput
+                    key={key}
+                    active={
+                      orderData?.payment?.filter((s) => s.id === 2).length > 0
+                    }
+                    disabled={walletCoversTotal}
+                    setActive={() => {
+                      handleCardPayment();
+                    }}
+                  />
+                );
+              }
+              return <span key={key}></span>;
+            })}
+        </div>
+        {
+          <CouponElement
+            active={orderData.coupon}
+            setActive={() => {
+              setOrderData({ coupon: true });
+            }}
+            close={() => {
+              setOrderData({ coupon: false });
+            }}
+            language={language}
+          />
+        }
+      </div>
+    </>
+  );
+}
+
+export default PaymentMethod;
+const CODInput = ({ active, setActive, total, disabled = false }) => {
+  const { language, cod_cost, currency } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
+  return (
+    <div
+      data-cy="Cash-on-delivery"
+      onClick={() => {
+        if (!disabled) setActive();
+      }}
+      className={`${disabled ? "opacity-45 pointer-events-none" : ""} ${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } w-full cursor-pointer mt-[10px] items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
+      style={{
+        border: active && !disabled && "1px solid rgb(56 144 255 / 51%)",
+      }}
+    >
+      <div data-cy="WalletIcon-container" className="flex-row items-center">
+        <img
+          src="/icons/WalletIcon.svg"
+          className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
+          data-cy="WalletIcon-container-svg"
+        />
+        <span
+          data-cy="Cash-texts"
+          className={`ml-[8px]  ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
+        >
+          {translateFunction("Cash On Delivery")}
+        </span>
+      </div>
+      <div data-cy="total-container" className="flex-row items-center">
+        <span
+          data-cy="total-container-span"
+          className="text-[#D3D3D3] regular text-[12px]"
+        >
+          {translateFunction("Shipping Cost")}
+        </span>
+        {currency && (
+          <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
+            {RoundPrice({ num: cod_cost, returnNumber: true })}{" "}
+            {currency?.symbol}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+const TryDosWalletInput = ({
+  active,
+  setActive,
+  balance,
+  disabled = false,
+}) => {
+  const { orderLoading, wallet, currency, settings, language } = useAppStore();
+  const points = settings["starting-setting"]?.decimal_point_settings || 0;
+  const isRtl = language === "ar" || language === "ku";
+
+  return (
+    <div
+      data-cy="second-bay-way"
+      onClick={() => {
+        if (!disabled) setActive();
+      }}
+      className={`${(disabled || wallet?.wallet_balance <= 0) && "opacity-45"} ${disabled ? "pointer-events-none" : ""} ${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } w-full cursor-pointer mt-[10px] items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
+      style={{
+        border: active && !disabled && "1px solid rgb(56 144 255 / 51%)",
+      }}
+    >
+      <div data-cy="second-bay-way-con" className="flex-row items-center">
+        <img
+          src="/icons/WalletIcon.svg"
+          data-cy="second-bay-way-svg"
+          className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
+        />
+        <span
+          data-cy="second-bay-way-con-text"
+          className={`ml-[8px]  ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
+        >
+          {translateFunction("RDB Wallet")}
+        </span>
+        {orderLoading && (
+          <span
+            data-cy="second-bay-way-con-text-load"
+            className="bold ml-[11px]"
+          >
+            <Spinner />
+          </span>
+        )}
+      </div>
+      <div data-cy="third-bay-way" className="flex-row items-center">
+        <span
+          data-cy="third-bay-way-text"
+          className="text-[#D3D3D3] regular text-[12px]"
+        >
+          {translateFunction("Your Balance")}
+        </span>
+        <span
+          className="text-[#1D1D1D] semibold text-[12px] ml-1"
+          data-cy="wallet-balance"
+        >
+          {!orderLoading && balance} {currency?.symbol}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+const CreditInput = ({ active, setActive, disabled = false }) => {
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
+  return (
+    <div
+      data-cy="dredit-way"
+      onClick={() => {
+        if (!disabled) setActive();
+      }}
+      style={{
+        border: active && !disabled && "1px solid rgb(56 144 255 / 51%)",
+      }}
+      className={`${disabled ? "opacity-45 pointer-events-none" : ""} ${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } mt-[6px] cursor-pointer w-full items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
+    >
+      <div data-cy="dredit-way-con" className="flex-row items-center">
+        <img
+          src="/icons/CreditIcon.svg"
+          data-cy="dredit-way-svg"
+          className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
+        />
+        <span
+          data-cy="dredit-way-text"
+          className={`ml-[8px] ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
+        >
+          {translateFunction("Credit Cards")}
+        </span>
+      </div>
+      <div data-cy="container-icons" className="flex-row items-center">
+        <img src="/icons/Visa.svg" data-cy="Visa-Icon" />
+        <img
+          src="/icons/Master.svg"
+          data-cy="Master-Icon"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/Maestro.svg"
+          data-cy="Maestro-Icon"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/AmericanExpress.svg"
+          data-cy="AmericanExpress-Icon"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/ApplePay.svg"
+          data-cy="ApplePay-Icon"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/GooglePay.svg"
+          data-cy="GooglePay-Icon"
+          className="ml-[5px]"
+        />
+      </div>
+    </div>
+  );
+};
+const CryptoInput = ({ active, setActive, disabled = false }) => {
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
+  return (
+    <div
+      data-cy="crypto-bay-way"
+      onClick={(e) => {
+        // @ts-ignore
+        if (!disabled) setActive();
+      }}
+      style={{
+        border: active && !disabled && "1px solid rgb(56 144 255 / 51%)",
+      }}
+      className={`${disabled ? "opacity-45 pointer-events-none" : ""} ${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } mt-[6px] cursor-pointer w-full items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
+    >
+      <div data-cy="crypto-bay-way-container" className="flex-row items-center">
+        <img
+          src="/icons/CryptoIcon.svg"
+          data-cy="crypto-bay-way-svg"
+          className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
+        />
+        <span
+          data-cy="crypto-bay-way-text"
+          className={`ml-[8px] ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
+        >
+          {translateFunction("Crypto")}
+        </span>
+      </div>
+      <div data-cy="containers-icons" className="flex-row items-center">
+        <img src="/icons/DimondPay.svg" data-cy="PaymentIconOne-icons" />
+        <img
+          src="/icons/DimondPay1.svg"
+          data-cy="PaymentIconTwo-icons"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/DimondPay2.svg"
+          data-cy="PaymentIconThree-icons"
+          className="ml-[5px]"
+        />
+        <img
+          src="/icons/DimondPay3.svg"
+          data-cy="PaymentIconFour-icons"
+          className="ml-[5px]"
+        />
+      </div>
+    </div>
+  );
+};

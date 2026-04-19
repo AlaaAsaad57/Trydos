@@ -1,0 +1,18 @@
+.product-category-icon img {
+  min-width: 15px;
+  min-height: 15px;
+  max-width: 15px;
+  max-height: 15px;
+  border-radius: 0px !important;
+}
+
+.product-body svg {
+  width: auto;
+  height: 16px;
+}
+.product-body img {
+  height: 7px;
+  width: auto;
+  display: inline;
+  margin-right: 5px;
+}

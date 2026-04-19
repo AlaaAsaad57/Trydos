@@ -1,0 +1,34 @@
+.Cube__Pane {
+  padding: 0px !important;
+}
+
+.active-story {
+  transform: translateX(0px) rotateY(0deg);
+}
+.prev-story {
+  transform: translateX(-100%);
+  min-width: 100vw;
+  transform-origin: left;
+}
+.next-story {
+  transform-origin: right;
+  transform: translateX(100%);
+}
+.story-holder img,
+.story-holder video {
+  width: 100%;
+  height: auto;
+  max-height: 90%;
+  object-fit: contain;
+}
+.fixed-layout div:nth-child(2) > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.fixed-layout div:nth-child(2) > div:nth-child(2) img {
+  object-fit: cover;
+  object-position: center top;
+}

@@ -1,0 +1,82 @@
+.price-label {
+  align-items: baseline;
+}
+.old-price svg {
+  right: -1px;
+  bottom: 7px;
+}
+.new-price {
+  margin-left: 3px;
+}
+.currency-label {
+  margin-left: 2px;
+}
+.quantity {
+  color: #5d5d5d;
+}
+
+.inset-shadow-img {
+  top: 0px;
+  left: 0px;
+  z-index: 6;
+
+  box-shadow: inset 0px 3px 6px hsla(0, 0%, 100%, 0.5);
+}
+.shadow-inset-avatar {
+  top: 0px;
+  z-index: 5;
+  left: 0px;
+
+  box-shadow: inset 0px 4px 6px hsla(0, 0%, 100%, 0.5);
+}
+svg {
+  overflow: visible;
+}
+
+.top-slider {
+  user-select: none;
+  z-index: 20;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
+  margin-top: 4px;
+  min-height: 40px;
+}
+.top-slider.active-sl ~ .product-photos {
+  min-height: 256px !important;
+  margin-top: 5px;
+}
+.top-slider * {
+  user-select: none;
+}
+.top-slider::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+.top-slider.active {
+  cursor: grabbing;
+  cursor: -webkit-grabbing;
+  transform: scale(1);
+}
+
+.active-slider {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+.sl-active {
+  opacity: 1;
+  z-index: 5;
+}
+.sl-deactive {
+  opacity: 0;
+  z-index: 3;
+}
+g#PNORSSM823IY-BE29_view2 rect {
+  width: calc(100% - 0.5px);
+  height: calc(100% - 0.5px);
+}
+.get-next-product {
+  font-size: 17px;
+  padding: 15px;
+}

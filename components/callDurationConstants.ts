@@ -1,0 +1,2 @@
+export const CALL_END_DURATION_MINUTES = 10;
+export const CALL_WARNING_MESSAGE_MINUTES = 5;

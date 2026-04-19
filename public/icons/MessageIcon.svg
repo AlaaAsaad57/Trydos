@@ -1,0 +1,14 @@
+<svg id="_15x15_photo_back" data-name="15x15 photo back" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="15" height="15" viewBox="0 0 15 15">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rectangle_4561" data-name="Rectangle 4561" width="15" height="15" fill="none"/>
+    </clipPath>
+  </defs>
+  <g id="Mask_Group_306" data-name="Mask Group 306" clip-path="url(#clip-path)">
+    <g id="Group_10750" data-name="Group 10750" transform="translate(0 0.003)">
+      <g id="Group_10749" data-name="Group 10749">
+        <path id="Path_21414" data-name="Path 21414" d="M11.229.006H3.759A3.767,3.767,0,0,0,0,3.765V11.25A3.764,3.764,0,0,0,3.759,15h7.482A3.767,3.767,0,0,0,15,11.235V3.765A3.785,3.785,0,0,0,11.229.006ZM7.575,11.937a4.55,4.55,0,0,1-2.225-.571l-2.543.808L3.64,9.736a4.6,4.6,0,1,1,3.938,2.2Z" transform="translate(0 -0.006)" fill="#3c3c3c"/>
+      </g>
+    </g>
+  </g>
+</svg>

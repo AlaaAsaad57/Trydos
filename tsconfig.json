@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "*": ["./*"],
+      "@/*": ["./*"],
+      "assets/*": ["./public/*"],
+      "styles/*": ["./public/styles/*"],
+      "services/*": ["./services/*"],
+      "components/*": ["./components/*"]
+    },
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "types": ["node"],
+    "skipLibCheck": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "incremental": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx", // React 19 uses automatic JSX runtime
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "target": "ES2017", // Consider updating to ES2020+ for better React 19 support
+    "strictNullChecks": false
+  },
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}

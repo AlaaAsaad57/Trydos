@@ -1,0 +1,33 @@
+import { NextRequest, NextResponse } from "next/server";
+import { generateLocaleSitemapIndexXML } from "services/elastic/sitemap.service";
+import { LogServerError } from "utils/serverErrorReporter";
+
+export async function GET(request: NextRequest) {
+  try {
+    const xml = await generateLocaleSitemapIndexXML();
+
+    return new NextResponse(xml, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/xml",
+        "Cache-Control": "public, max-age=3600, s-maxage=3600",
+        "Content-Encoding": "identity", // Cache for 1 hour
+      },
+    });
+  } catch (error) {
+    console.error("Error generating locale sitemap index:", error);
+    LogServerError({
+      error,
+      type: "get sitemap  index api route",
+      source: "get sitemap  index",
+      url: request.url,
+      method: "get",
+    });
+    return new NextResponse("Error generating sitemap", {
+      status: 500,
+      headers: {
+        "Content-Type": "text/plain",
+      },
+    });
+  }
+}
