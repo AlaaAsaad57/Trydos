@@ -106,7 +106,7 @@ function RatingOrderItem({
     return false;
   };
   const isSubmitDisabled =
-    !comment.trim() || rating === 0 || loading || isChanged();
+    !comment.trim() || !(rating > 0) || loading || isChanged();
   const isRtl = language === "ar" || language === "ku";
 
   return (

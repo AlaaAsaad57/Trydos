@@ -196,12 +196,9 @@ const processMessageStatuses = (
   type: "watch" | "receive",
   watchForSender: boolean,
 ): any[] => {
-  console.log("Processing message statuses for type:", type, messages);
   let currentUserId = getUserChat()?.id;
   return messages.map((mes) => {
     if (mes.sender_user_id && !mes.message_type?.name?.includes("Call")) {
-      const isSender = mes.sender_user_id === currentUserId;
-
       // If we are watching/receiving events and we are the sender, we don't update our own status
       // strictly based on the loop logic in original code, unless specific conditions met.
       // However, the original code logic was slightly convoluted.
@@ -702,8 +699,7 @@ export const useChatStore = (set: any, get: any) => ({
   receiveChannelEvent: (payload: number | string) => {
     if (!payload) return;
     const state = get();
-    const userId = getUserChat()?.id;
-    console.log("Receive Channel Event for ID:", payload);
+
     if (
       (typeof payload === "string" && !payload.includes("ch")) ||
       typeof payload === "number"
