@@ -263,7 +263,7 @@ class StoryService {
           },
           product_id: storyItem.product_id,
           product_slug: storyItem.product_slug,
-          duration: storyItem.duration,
+          duration: storyItem.video_duration_in_second,
           preloadResource: true,
           type: "video",
         });
