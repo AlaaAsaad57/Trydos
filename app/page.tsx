@@ -1,10 +1,10 @@
 import Image from "next/image";
-
+import "styles/globals.css";
 export default function LandingPage() {
   return (
     <html lang="en">
       <head>
-        <title>Trydos - The Ultimate AI-Powered Task Management App</title>
+        <title>Trydos</title>
       </head>
       <body>
         <main className="flex min-h-screen items-center justify-center bg-white">
