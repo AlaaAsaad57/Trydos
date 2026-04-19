@@ -152,10 +152,8 @@ function ChatHeader({
       <div
         onClick={() => openDetails()}
         className={`${
-          isRtl
-            ? "flex-row-reverse ml-0 mr-[11px]"
-            : "mr-0 ml-[11px] flex-row"
-        } user-top-chat`}
+          isRtl ? "flex-row-reverse ml-0 mr-[11px]" : "mr-0 ml-[11px] flex-row"
+        } user-top-chat cursor-pointer`}
       >
         {activeChat && activeChat.channel_members && (
           <div className="img-uer">
