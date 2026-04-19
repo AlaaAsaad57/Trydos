@@ -9,7 +9,7 @@ export default function LandingPage() {
         <title>Trydos</title>
         <meta
           name="google-site-verification"
-          content="iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE"
+          content="XZ0AXyUrQnxKY1ZWh79BveP9tLhDxMNxL-cCubzwe5k"
         />
       </head>
       <body>
