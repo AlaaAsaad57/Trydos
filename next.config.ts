@@ -1,5 +1,5 @@
 import { withSentryConfig } from "@sentry/nextjs";
-import withBundleAnalyzer from "@next/bundle-analyzer";
+// import withBundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 
 let nextConfig: NextConfig = {
@@ -113,9 +113,9 @@ let nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
 };
 
-const analyze = withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" });
+// const analyze = withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" });
 
-export default withSentryConfig(analyze(nextConfig), {
+export default withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
