@@ -20,7 +20,6 @@ import ChatSearch from "../components/ChatSearch";
 import { dataURLtoFile, upload, getUser } from "../chatsFunctions";
 import {
   GetChatDetails,
-  getMessagesBetweenMessage,
   getMessagesBetweenTwoMessages,
   getPage,
   SendMessage,
