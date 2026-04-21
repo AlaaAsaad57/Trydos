@@ -173,7 +173,7 @@ const updateDataAndActiveChat = (
   ) {
     newActiveChat = updateFn(state.activeChat);
   }
-  console.log({ data: newData, activeChat: newActiveChat });
+
   return { data: newData, activeChat: newActiveChat };
 };
 

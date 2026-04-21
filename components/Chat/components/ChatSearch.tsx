@@ -30,7 +30,7 @@ function ChatSearch({ close }) {
     if (value?.length > 0) {
       try {
         let response = await fetchData({
-          url: "/api/v2/elastic/channelSearch",
+          url: "/api/v1/channels/channelSearch",
           server: "chat",
           method: "POST",
           body: JSON.stringify({
