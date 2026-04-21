@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, userAgent, type NextRequest } from "next/server";
 import { ipAddress } from "@vercel/functions";
 import { checkRateLimit, sendSecurityAlert } from "serverRequests/radis";
 
@@ -225,6 +225,7 @@ function getCleanPathname(
 }
 function getClientIp(req: NextRequest): string {
   const ip = ipAddress(req);
+
   if (ip) return ip;
   return "0.0.0.0"; // fallback, should not happen on Vercel
 }

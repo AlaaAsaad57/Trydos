@@ -4,6 +4,7 @@ import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { LogError } from "utils/functions";
+import { logSearchTerm } from "./elastic/helpers";
 
 class SearchService {
   private searchAbortController: AbortController | null = null;
@@ -127,6 +128,7 @@ class SearchService {
       );
       setSearchPartialLoading(false);
       setSearchLoading(false);
+
       return { data: filtersResponse };
     } catch (error) {
       // Check if error is due to abort

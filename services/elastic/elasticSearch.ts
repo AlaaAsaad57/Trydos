@@ -10,6 +10,7 @@ import {
   getChildrenAndGrandchildren,
   getSourceFields,
   GroupAgeEnum,
+  logSearchTerm,
   normalizeCustomProducts,
   paginateFilters,
   processBoutiquesAggregation,
@@ -150,6 +151,7 @@ export async function getProductsAndFiltersFromElastic(
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
   }
+
   let start = process.hrtime.bigint();
   let isAnalyzed: any = false;
   try {
@@ -446,7 +448,16 @@ export async function getProductsAndFiltersFromElastic(
       filters_offset,
     );
     let end = process.hrtime.bigint();
-
+    if (filters?.search_text && filters.search_text.trim().length === 0) {
+      logSearchTerm({
+        searchText: filters.search_text,
+        userData: {
+          id: userId,
+        },
+        productsCount: total_size,
+        client,
+      });
+    }
     return {
       offset: lastSortValue,
       limit: limit,

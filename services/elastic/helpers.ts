@@ -1,3 +1,5 @@
+import { search_log_index } from "./INDEXES";
+
 export function getSourceFields(): string[] {
   return [
     "id",
@@ -2424,3 +2426,68 @@ export const GenderEnum = {
   3: { label: "Other", shortLabel: "Other" },
   4: { label: "All Genders (Unisex)", shortLabel: "All" },
 };
+
+export async function logSearchTerm({
+  searchText,
+  userData,
+  productsCount,
+  client,
+}) {
+  // 1. Basic Cleaning & Validation
+  const cleanText = searchText.trim().toLowerCase();
+
+  // Mimicking the PHP logic: > 2 chars and not empty
+  if (!cleanText || cleanText.length <= 2) return;
+
+  // 2. Blacklist Check (Placeholder for your logic)
+  const isBlacklisted = false; // Replace with your Blacklist service call
+  if (isBlacklisted) return;
+
+  try {
+    // 3. Build the "Should" query for Deduplication
+    const should = [];
+    if (userData.userId) {
+      should.push({ term: { user_id: userData.userId } });
+    }
+    // if (userData.ip) {
+    //   should.push({ term: { ip: userData.ip } });
+    // }
+
+    const query: any = {
+      bool: {
+        must: [{ match: { "search_term.keyword": cleanText } }],
+        minimum_should_match: 1,
+      },
+    };
+
+    if (should.length > 0) {
+      query.bool.should = should;
+    }
+
+    // 4. Check if this search was already logged
+    const response = await client.search({
+      index: search_log_index,
+      body: { query },
+    });
+
+    // 5. If no hits found, index the new log
+    if (response.hits.hits.length === 0) {
+      await client.index({
+        index: search_log_index,
+        body: {
+          search_term: cleanText,
+          user_id: userData.userId,
+          // ip: userData.ip,
+          products_count: productsCount,
+          created_at: new Date().toISOString(),
+          language: "en", // Example
+          country: "US", // Example
+        },
+      });
+      console.log("Search log saved.");
+    }
+  } catch (error) {
+    console.error("Failed to log search:", error.message);
+    throw error;
+  }
+}
