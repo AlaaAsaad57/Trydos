@@ -33,6 +33,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "store";
 import { showSuccessNotification } from "store/notifications/reducer";
 import Image from "next/image";
+import auth from "services/auth";
 
 function SearchIcon({ language, country }) {
   const { setIsNavigating } = useAppStore();
@@ -148,6 +149,7 @@ function SearchIcon({ language, country }) {
           filters: { ...normalizeFilters(appliedFilters), search_text: value },
           noProducts: isInitial, // We usually want products on search
           filters_offset: 1,
+          userId: auth.UserID(),
           // Assuming server action accepts query text
         });
         if (value?.length > 0 && res.isAnalyzed) {
@@ -238,6 +240,7 @@ function SearchIcon({ language, country }) {
         filters: { ...appliedFilters, search_text: value },
         noProducts: true,
         filters_offset: nextOffset,
+        userId: auth.UserID(),
         // type: type, // Optimization: Tell server we only want this specific type if supported
       });
 

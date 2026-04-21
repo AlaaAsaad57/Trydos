@@ -87,6 +87,7 @@ let nextConfig: NextConfig = {
       "cdn.example.com",
       "res.cloudinary.com",
       "example.com",
+      "media_server.ramaaz.dev",
       "placehold.co",
       "eu.ui-avatars.com",
       "trydos.s3.ap-south-1.amazonaws.com",

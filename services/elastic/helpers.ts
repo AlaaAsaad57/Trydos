@@ -2435,9 +2435,14 @@ export async function logSearchTerm({
 }) {
   // 1. Basic Cleaning & Validation
   const cleanText = searchText.trim().toLowerCase();
-
+  console.log(
+    "Logging search term:",
+    cleanText,
+    "Products count:",
+    productsCount,
+  );
   // Mimicking the PHP logic: > 2 chars and not empty
-  if (!cleanText || cleanText.length <= 2) return;
+  if (!cleanText || cleanText.length <= 2 || productsCount === 0) return;
 
   // 2. Blacklist Check (Placeholder for your logic)
   const isBlacklisted = false; // Replace with your Blacklist service call
@@ -2476,12 +2481,10 @@ export async function logSearchTerm({
         index: search_log_index,
         body: {
           search_term: cleanText,
-          user_id: userData.userId,
+          user_id: userData.id,
           // ip: userData.ip,
           products_count: productsCount,
-          created_at: new Date().toISOString(),
-          language: "en", // Example
-          country: "US", // Example
+          timestamp: new Date().toISOString(),
         },
       });
       console.log("Search log saved.");

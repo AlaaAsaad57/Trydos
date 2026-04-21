@@ -18,6 +18,7 @@ import {
   GroupAgeEnum,
   GenderEnum,
   PopulateCategories,
+  logSearchTerm,
 } from "services/elastic/helpers";
 import { catalog_index } from "services/elastic/INDEXES";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -29,6 +30,7 @@ export async function GetSearchData({
   filters,
   noProducts,
   filters_offset,
+  userId,
 }) {
   let isAnalyzed: any = false;
   try {
@@ -283,7 +285,27 @@ export async function GetSearchData({
         ?.buckets || [],
       filters_offset,
     );
-
+    console.log(
+      filters.search_text,
+      "search term",
+      total_size,
+      "products count",
+    );
+    if (
+      filters?.search_text &&
+      filters.search_text.trim().length > 0 &&
+      total_size !== undefined &&
+      total_size > 0
+    ) {
+      logSearchTerm({
+        searchText: filters.search_text,
+        userData: {
+          id: userId,
+        },
+        productsCount: total_size,
+        client,
+      });
+    }
     return {
       total_size: total_size,
       products: normalizedProducts?.custom_products?.map((s) => ({

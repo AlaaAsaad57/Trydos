@@ -448,7 +448,21 @@ export async function getProductsAndFiltersFromElastic(
       filters_offset,
     );
     let end = process.hrtime.bigint();
-    if (filters?.search_text && filters.search_text.trim().length === 0) {
+    console.log(
+      filters.search_text,
+      "search term",
+      total_size,
+      "products count",
+      "Time taken:",
+      Number(end - start) / 1_000_000,
+      "ms",
+    );
+    if (
+      filters?.search_text &&
+      filters.search_text.trim().length > 0 &&
+      total_size !== undefined &&
+      total_size > 0
+    ) {
       logSearchTerm({
         searchText: filters.search_text,
         userData: {
