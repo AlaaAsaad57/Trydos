@@ -2477,6 +2477,10 @@ export async function logSearchTerm({
 
     // 5. If no hits found, index the new log
     if (response.hits.hits.length === 0) {
+      const formattedDate = new Date()
+        .toISOString()
+        .replace("T", " ") // Replace T with a space
+        .split(".")[0];
       await client.index({
         index: search_log_index,
         body: {
@@ -2484,7 +2488,7 @@ export async function logSearchTerm({
           user_id: userData.id,
           // ip: userData.ip,
           products_count: productsCount,
-          // timestamp: new Date().toISOString(),
+          timestamp: formattedDate,
         },
       });
       console.log("Search log saved.");
