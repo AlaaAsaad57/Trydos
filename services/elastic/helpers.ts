@@ -2484,7 +2484,7 @@ export async function logSearchTerm({
           user_id: userData.id,
           // ip: userData.ip,
           products_count: productsCount,
-          timestamp: new Date().toISOString(),
+          // timestamp: new Date().toISOString(),
         },
       });
       console.log("Search log saved.");
