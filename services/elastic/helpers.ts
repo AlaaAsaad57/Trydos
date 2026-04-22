@@ -1,5 +1,16 @@
 import { search_log_index } from "./INDEXES";
 import { headers } from "next/headers";
+import { elasticSearchClient } from "./elasticsearch.config";
+
+interface PopularSearchBucket {
+  key: string;
+  doc_count: number;
+}
+
+export interface PopularSearchTerm {
+  term: string;
+  count: number;
+}
 
 export function getSourceFields(): string[] {
   return [
@@ -2518,5 +2529,56 @@ export async function logSearchTerm({
   } catch (error) {
     console.error("Failed to log search:", error.message);
     throw error;
+  }
+}
+
+export async function getPopularSearchTerms(
+  limit: number = 10,
+): Promise<PopularSearchTerm[]> {
+  try {
+    const response = await elasticSearchClient.search({
+      index: search_log_index,
+      size: 0,
+      query: {
+        bool: {
+          must: [{ exists: { field: "search_term.keyword" } }],
+          must_not: [{ term: { "search_term.keyword": "" } }],
+        },
+      },
+      aggs: {
+        top_search_terms: {
+          terms: {
+            field: "search_term.keyword",
+            size: limit,
+            order: { _count: "desc" },
+          },
+        },
+      },
+    });
+
+    const buckets =
+      ((response.aggregations as any)?.top_search_terms?.buckets as
+        | PopularSearchBucket[]
+        | undefined) || [];
+
+    return buckets
+      .map((bucket) => {
+        const term =
+          typeof bucket.key === "string"
+            ? bucket.key.trim()
+            : String(bucket.key);
+        if (!term) {
+          return null;
+        }
+
+        return {
+          term,
+          count: bucket.doc_count,
+        };
+      })
+      .filter((term): term is PopularSearchTerm => Boolean(term));
+  } catch (error) {
+    console.error("Failed to fetch popular search terms:", error);
+    return [];
   }
 }

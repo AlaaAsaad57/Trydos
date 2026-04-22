@@ -14,7 +14,7 @@ class SearchService {
         url: "/api/products/popular-search",
         reqTitle: REQUESTS_DATA.GET_TRENDING_SEARCH,
         method: "GET",
-        server: "elastic",
+        server: "local",
       });
       // @ts-ignore
       if (!response.success) {
