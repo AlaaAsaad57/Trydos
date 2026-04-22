@@ -3,7 +3,12 @@ import { useAppStore } from "store";
 import LocalizationServiceClass from "services/localization";
 
 import { fetchData } from "./fetchData";
-import { getCookie, setCookie, deleteCookie } from "./cookies/cookie-manager";
+import {
+  getCookie,
+  setCookie,
+  deleteCookie,
+  COOKIE_NAMES,
+} from "./cookies/cookie-manager";
 import { REQUESTS_DATA } from "./Requests";
 import { readStoredLastPaths } from "./history";
 import { getLastRequest } from "./requestLoggerClient";
@@ -68,7 +73,12 @@ export const getUserChat = (): any => {
   else return {};
 };
 export const getUserStories = (): any => {
-  return useAppStore.getState().userStories;
+  if (useAppStore.getState().userStories)
+    return useAppStore.getState().userStories;
+  else {
+    let userCookie = getCookie<any>(COOKIE_NAMES.USER_DATA);
+    return { id: userCookie?.story_user_id };
+  }
 };
 
 export const _isStoreLastJson = () => {

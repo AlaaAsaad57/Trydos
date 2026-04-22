@@ -231,6 +231,7 @@ export async function GET(request: NextRequest) {
         is_verified: true,
         is_phone_verified: 1,
         expires_at: otp_response.data.expires_at,
+        story_user_id: storiesUserData?.id,
       }),
       chatUserData
         ? setSecureCookieJSON(COOKIE_NAMES.USER_CHAT, {

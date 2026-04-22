@@ -1,4 +1,5 @@
 import { search_log_index } from "./INDEXES";
+import { headers } from "next/headers";
 
 export function getSourceFields(): string[] {
   return [
@@ -2449,24 +2450,44 @@ export async function logSearchTerm({
   if (isBlacklisted) return;
 
   try {
+    let requestIp = "";
+    let requestUserAgent = "";
+    try {
+      const requestHeaders = await headers();
+      const forwardedFor = requestHeaders.get("x-forwarded-for");
+      requestIp =
+        forwardedFor?.split(",")?.[0]?.trim() ||
+        requestHeaders.get("x-real-ip") ||
+        requestHeaders.get("cf-connecting-ip") ||
+        "";
+      requestUserAgent = requestHeaders.get("user-agent") || "";
+    } catch {}
+
+    const userId = userData?.id ?? userData?.userId;
+    const ip = requestIp || userData?.ip || "";
+    const userAgent = requestUserAgent || userData?.userAgent || "";
+
     // 3. Build the "Should" query for Deduplication
     const should = [];
-    if (userData.userId) {
-      should.push({ term: { user_id: userData.userId } });
+    if (userId) {
+      should.push({ term: { user_id: userId } });
     }
-    // if (userData.ip) {
-    //   should.push({ term: { ip: userData.ip } });
-    // }
+    if (ip) {
+      should.push({ term: { ip } });
+    }
+    if (userAgent) {
+      should.push({ term: { user_agent: userAgent } });
+    }
 
     const query: any = {
       bool: {
         must: [{ match: { "search_term.keyword": cleanText } }],
-        minimum_should_match: 1,
       },
     };
 
-    if (should.length > 0) {
+    if (should.length) {
       query.bool.should = should;
+      query.bool.minimum_should_match = 1;
     }
 
     // 4. Check if this search was already logged
@@ -2485,8 +2506,9 @@ export async function logSearchTerm({
         index: search_log_index,
         body: {
           search_term: cleanText,
-          user_id: userData.id,
-          // ip: userData.ip,
+          user_id: userId,
+          ip,
+          user_agent: userAgent,
           products_count: productsCount,
           timestamp: formattedDate,
         },

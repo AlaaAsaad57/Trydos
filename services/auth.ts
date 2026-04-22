@@ -14,7 +14,6 @@ import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 import { checkWallet } from "./wallet";
-import { normalize } from "path";
 
 // Helper to update user metadata in HttpOnly cookies via server route
 async function updateSecureUserData(
