@@ -10,9 +10,17 @@ const popularSearchHandler = async (
     const limit = 10;
     const popularSearchTerms = await getPopularSearchTerms(limit);
 
-    return NextResponse.json({
-      popular_search_terms: popularSearchTerms,
-    });
+    return NextResponse.json(
+      {
+        popular_search_terms: popularSearchTerms,
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
+    );
   } catch (error) {
     LogServerError({
       error,
