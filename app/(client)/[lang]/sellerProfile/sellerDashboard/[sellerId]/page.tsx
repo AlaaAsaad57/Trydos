@@ -56,6 +56,8 @@ const PERMISSION_GROUPS = {
     "CANCEL_ORDER",
     "ASSIGN_SHIPPING",
     "UPDATE_TRACKING",
+    "CHANGE_ORDER_STATUS_PACKAGED",
+    "CHANGE_ORDER_STATUS_CANCELED",
   ],
   EMPLOYEES: [
     "READ_EMPLOYEES",
@@ -903,22 +905,22 @@ function SellerDashBoard() {
   };
 
   const renderPermissions = () => {
-    if (!canViewPermissions) {
-      return (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <p className="text-[16px] font-medium text-[#1d1d1d] mb-2">
-              {translateFunction("Access Denied")}
-            </p>
-            <p className="text-[14px] text-[#8D8D8D]">
-              {translateFunction(
-                "You don't have permission to view permissions",
-              )}
-            </p>
-          </div>
-        </div>
-      );
-    }
+    // if (!canViewPermissions) {
+    //   return (
+    //     <div className="flex items-center justify-center py-12">
+    //       <div className="text-center">
+    //         <p className="text-[16px] font-medium text-[#1d1d1d] mb-2">
+    //           {translateFunction("Access Denied")}
+    //         </p>
+    //         <p className="text-[14px] text-[#8D8D8D]">
+    //           {translateFunction(
+    //             "You don't have permission to view permissions",
+    //           )}
+    //         </p>
+    //       </div>
+    //     </div>
+    //   );
+    // }
     if (loading && sellerPermissions.length === 0) {
       return (
         <div className="flex items-center justify-center py-12">
@@ -985,7 +987,8 @@ function SellerDashBoard() {
                   ? "read"
                   : permission.includes("CREATE")
                     ? "create"
-                    : permission.includes("UPDATE")
+                    : permission.includes("UPDATE") ||
+                        permission.includes("CHANGE")
                       ? "update"
                       : permission.includes("DELETE")
                         ? "delete"
@@ -1513,7 +1516,7 @@ function SellerDashBoard() {
                   className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
                     activeTab === "products"
                       ? "border-white bg-blue-500 text-white font-semibold"
-                      : "border-transparent text-blue-100 hover:bg-blue-600 hover:text-white"
+                      : "border-transparent text-black hover:bg-blue-600 hover:text-white"
                   }`}
                 >
                   <span className="text-[20px]">📦</span>
@@ -1532,7 +1535,7 @@ function SellerDashBoard() {
                   className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
                     activeTab === "boutiques"
                       ? "border-white bg-blue-500 text-white font-semibold"
-                      : "border-transparent text-blue-100 hover:bg-blue-600 hover:text-white"
+                      : "border-transparent text-black hover:bg-blue-600 hover:text-white"
                   }`}
                 >
                   <span className="text-[20px]">🏪</span>
@@ -1542,7 +1545,7 @@ function SellerDashBoard() {
                   )}
                 </button>
               )}
-              {canViewPermissions && (
+              {
                 <button
                   onClick={() => {
                     setActiveTab("permissions");
@@ -1551,7 +1554,7 @@ function SellerDashBoard() {
                   className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
                     activeTab === "permissions"
                       ? "border-white bg-blue-500 text-white font-semibold"
-                      : "border-transparent text-blue-100 hover:bg-blue-600 hover:text-white"
+                      : "border-transparent text-black hover:bg-blue-600 hover:text-white"
                   }`}
                 >
                   <span className="text-[20px]">🔐</span>
@@ -1560,7 +1563,7 @@ function SellerDashBoard() {
                     <span className="ml-auto text-white">✓</span>
                   )}
                 </button>
-              )}
+              }
               {canViewUsers && (
                 <button
                   onClick={() => {
@@ -1570,7 +1573,7 @@ function SellerDashBoard() {
                   className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
                     activeTab === "users"
                       ? "border-white bg-blue-500 text-white font-semibold"
-                      : "border-transparent text-blue-100 hover:bg-blue-600 hover:text-white"
+                      : "border-transparent text-black hover:bg-blue-600 hover:text-white"
                   }`}
                 >
                   <span className="text-[20px]">👥</span>
@@ -1589,7 +1592,7 @@ function SellerDashBoard() {
                   className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
                     activeTab === "orders"
                       ? "border-white bg-blue-500 text-white font-semibold"
-                      : "border-transparent text-blue-100 hover:bg-blue-600 hover:text-white"
+                      : "border-transparent text-black hover:bg-blue-600 hover:text-white"
                   }`}
                 >
                   <span className="text-[20px]">📊</span>
