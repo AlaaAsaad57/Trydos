@@ -1,5 +1,12 @@
 "use client";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { translateFunction } from "utils/functions";
 import SellerDashboardService from "services/sellerDashboard";
 import home from "services/home";
@@ -1327,14 +1334,7 @@ const OrderListScreen = ({
       {/* List Content */}
       <div className="p-2 flex-1 overflow-y-auto w-full">
         <div className="space-y-3">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Spinner />
-              <span className="ml-3 text-[#3c3c3c]">
-                {translateFunction("Loading orders...")}
-              </span>
-            </div>
-          ) : orders.length === 0 ? (
+          {orders.length === 0 ? (
             <div className="flex items-center justify-center py-12">
               <p className="text-[#8D8D8D]">
                 {translateFunction("No orders found")}
@@ -1434,6 +1434,14 @@ const OrderListScreen = ({
                 </div>
               );
             })
+          )}
+          {isLoading && (
+            <div className="flex items-center justify-center py-12">
+              <Spinner />
+              <span className="ml-3 text-[#3c3c3c]">
+                {translateFunction("Loading orders...")}
+              </span>
+            </div>
           )}
         </div>
       </div>
@@ -1854,7 +1862,7 @@ export const RenderOrders = ({
   const setSellerOrders = useAppStore((state) => state.setSellerOrders);
 
   const shouldUpdateOrders = useAppStore((state) => state.shouldUpdateOrders);
-
+  const [hasMore, setHasMore] = useState<boolean>(false);
   const getSellerOrders = async (page: number = 1) => {
     try {
       setOrdersLoading(true);
@@ -1869,6 +1877,7 @@ export const RenderOrders = ({
       const normalizedOrders = Array.isArray(orders) ? orders : [];
       setSellerOrders(normalizedOrders);
       setOrdersMeta(res.data?.meta || null);
+      setHasMore(res.data?.meta?.has_more_pages || false);
       setOrderStatusOptions(
         res.data?.user_abilities?.change_order_status || [],
       );
@@ -2078,223 +2087,79 @@ export const RenderOrders = ({
       </div>
     );
   }
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const lastElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (ordersLoading) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          loadMoreOrders(ordersPage + 1);
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [ordersLoading, hasMore, ordersPage],
+  );
+  const loadMoreOrders = async (page) => {
+    if (!ordersLoading && hasMore) {
+      try {
+        setOrdersLoading(true);
+        setOrdersError(null);
+        const status = getOrderStatusFromTab(selectedOrderFilterTab);
+        const res = await SellerDashboardService.getSellerOrders(
+          sellerId,
+          page,
+          status,
+        );
+        const orders = res.data?.orders || res.data || [];
+        const normalizedOrders = Array.isArray(orders) ? orders : [];
+        setSellerOrders([...sellerOrders, ...normalizedOrders]);
+        setOrdersMeta(res.data?.meta || null);
+        setHasMore(res.data?.meta?.has_more_pages || false);
+        setOrderStatusOptions(
+          res.data?.user_abilities?.change_order_status || [],
+        );
+        setOrdersPage(page);
+      } catch (error: any) {
+        // console.error("Error fetching orders:", error);
+        setOrdersError(
+          error?.message || translateFunction("Failed to load orders"),
+        );
+      } finally {
+        setOrdersLoading(false);
+      }
+    }
+  };
   return (
-    // <div className="space-y-6">
-    //   {sellerOrders.map((order: any) => {
-    //     const items = Array.isArray(order.details)
-    //       ? order.details.flatMap((group: any) =>
-    //           Array.isArray(group) ? group : [],
-    //         )
-    //       : [];
-
-    //     return (
-    //       <div
-    //         key={order.id || order.order_group_id}
-    //         className="border border-gray-200 rounded-[15px] bg-white p-5"
-    //       >
-    //         <div className="flex flex-col gap-4 border-b border-gray-100 pb-4 mb-4">
-    //           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-    //             <div className="space-y-1">
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Order ID: {order.id}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Group: {order.order_group_id}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Cart Group: {order.cart_group_id}
-    //               </p>
-    //             </div>
-    //             <div className="flex flex-wrap gap-2">
-    //               <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
-    //                 {order.order_status}
-    //               </span>
-    //               <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-100">
-    //                 {order.order_group_status}
-    //               </span>
-    //               <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-green-50 text-green-700 border border-green-100">
-    //                 {order.payment_method}
-    //               </span>
-    //               <span
-    //                 className={`px-3 py-1 rounded-full text-[11px] font-medium border ${
-    //                   order.payment_status === "paid"
-    //                     ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-    //                     : "bg-yellow-50 text-yellow-700 border-yellow-100"
-    //                 }`}
-    //               >
-    //                 {order.payment_status}
-    //               </span>
-    //             </div>
-    //           </div>
-
-    //           {orderStatusOptions.length > 0 && (
-    //             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gray-50 border border-gray-100 rounded-[12px] p-3">
-    //               <div className="flex items-center gap-2">
-    //                 <span className="text-[13px] font-semibold text-[#1d1d1d]">
-    //                   {translateFunction("Change status:")}
-    //                 </span>
-    //                 <select
-    //                   value={selectedOrderStatuses[String(order.id)] || ""}
-    //                   onChange={(e) =>
-    //                     setSelectedOrderStatuses((prev) => ({
-    //                       ...prev,
-    //                       [String(order.id)]: e.target.value,
-    //                     }))
-    //                   }
-    //                   className="px-3 py-2 border border-gray-300 rounded-lg text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-    //                 >
-    //                   <option value="">{translateFunction("Select")}</option>
-    //                   {orderStatusOptions.map((statusOption) => (
-    //                     <option key={statusOption} value={statusOption}>
-    //                       {formatPermissionName(statusOption)}
-    //                     </option>
-    //                   ))}
-    //                 </select>
-    //               </div>
-    //               <button
-    //                 onClick={() => handleChangeOrderStatus(order.id)}
-    //                 disabled={
-    //                   orderActionLoading === String(order.id) ||
-    //                   !selectedOrderStatuses[String(order.id)]
-    //                 }
-    //                 className="px-4 py-2 bg-blue-500 text-white rounded-lg text-[13px] font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-    //               >
-    //                 {orderActionLoading === String(order.id)
-    //                   ? translateFunction("Updating...")
-    //                   : translateFunction("Update")}
-    //               </button>
-    //             </div>
-    //           )}
-
-    //           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-[12px] p-4">
-    //             <div className="space-y-1">
-    //               <p className="text-[13px] text-[#1d1d1d] font-semibold">
-    //                 Amount: {order.order_amount}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Shipping: {order.shipping_cost}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Discount: {order.discount_amount}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Delivery: {order.delivery_type || "N/A"}
-    //               </p>
-    //             </div>
-    //             <div className="space-y-1">
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Shipping Type: {order.shipping_type || "N/A"}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Transaction: {order.transaction_ref}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Return Allowed: {order.can_return_order ? "Yes" : "No"}
-    //               </p>
-    //             </div>
-    //           </div>
-    //         </div>
-
-    //         <div className="bg-gray-50 rounded-[12px] border border-gray-100 p-4">
-    //           <h4 className="text-[14px] font-semibold text-[#1d1d1d] mb-3 flex items-center justify-between">
-    //             <span>{translateFunction("Items")}</span>
-    //             <span className="text-[12px] text-[#8D8D8D] bg-white px-2 py-1 rounded-full border border-gray-200">
-    //               {items.length}
-    //             </span>
-    //           </h4>
-    //           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-    //             {items.map((item: any) => {
-    //               const productDetails =
-    //                 typeof item.product_details === "string"
-    //                   ? (() => {
-    //                       try {
-    //                         return JSON.parse(item.product_details);
-    //                       } catch (_err) {
-    //                         return null;
-    //                       }
-    //                     })()
-    //                   : item.product_details || null;
-    //               const productName =
-    //                 productDetails?.name || `Product #${item.product_id}`;
-
-    //               return (
-    //                 <div
-    //                   key={item.id}
-    //                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-gray-200 bg-white p-3"
-    //                 >
-    //                   <div className="space-y-1">
-    //                     <p className="text-[14px] font-semibold text-[#1d1d1d]">
-    //                       {productName}
-    //                     </p>
-    //                     <p className="text-[12px] text-[#8D8D8D]">
-    //                       Variant: {item.variant || "N/A"}
-    //                     </p>
-    //                     <p className="text-[12px] text-[#8D8D8D]">
-    //                       Delivery: {item.delivery_status}
-    //                     </p>
-    //                   </div>
-    //                   <div className="text-right space-y-1">
-    //                     <p className="text-[13px] font-semibold text-[#1d1d1d]">
-    //                       Qty: {item.qty}
-    //                     </p>
-    //                     <p className="text-[12px] text-[#8D8D8D]">
-    //                       Price: {item.price}
-    //                     </p>
-    //                     <p className="text-[12px] text-[#8D8D8D]">
-    //                       Payment: {item.payment_status}
-    //                     </p>
-    //                   </div>
-    //                 </div>
-    //               );
-    //             })}
-    //           </div>
-    //         </div>
-    //       </div>
-    //     );
-    //   })}
-
-    //   {ordersMeta && ordersMeta.last_page > 1 && (
-    //     <div className="flex items-center justify-center gap-2">
-    //       <button
-    //         onClick={() => getSellerOrders(ordersPage - 1)}
-    //         disabled={ordersPage === 1 || ordersLoading}
-    //         className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-    //       >
-    //         Previous
-    //       </button>
-    //       <span className="text-[14px] text-[#8D8D8D]">
-    //         Page {ordersMeta.current_page} of {ordersMeta.last_page}
-    //       </span>
-    //       <button
-    //         onClick={() => getSellerOrders(ordersPage + 1)}
-    //         disabled={ordersPage >= ordersMeta.last_page || ordersLoading}
-    //         className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-    //       >
-    //         Next
-    //       </button>
-    //     </div>
-    //   )}
-    // </div>
     <div className="min-h-screen bg-white flex items-center justify-center">
       {/* Mobile Frame */}
       <div className="min-h-screen w-full bg-white rounded-[3rem] relative flex flex-col">
         {/* Screen Content */}
         <div className="flex-1relative bg-white w-full">
           {screen === "list" ? (
-            <OrderListScreen
-              orders={sellerOrders}
-              selectedTab={selectedOrderFilterTab}
-              isLoading={ordersLoading}
-              onSelectTab={(tab) => {
-                setSelectedOrderFilterTab(tab);
-                setScreen("list");
-                setSelectedOrder(null);
-              }}
-              onSelectOrder={(order) => {
-                setSelectedOrder(order);
-                setScreen("detail");
-              }}
-            />
+            <>
+              <OrderListScreen
+                orders={sellerOrders}
+                selectedTab={selectedOrderFilterTab}
+                isLoading={ordersLoading}
+                onSelectTab={(tab) => {
+                  setSelectedOrderFilterTab(tab);
+                  setScreen("list");
+                  setSelectedOrder(null);
+                }}
+                onSelectOrder={(order) => {
+                  setSelectedOrder(order);
+                  setScreen("detail");
+                }}
+              />
+
+              {sellerId.length > 0 && !ordersLoading && (
+                <div ref={lastElementRef} className="h-4" />
+              )}
+            </>
           ) : (
             <OrderDetailScreen
               order={selectedOrder}
