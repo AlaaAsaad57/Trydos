@@ -1472,6 +1472,7 @@ function SellerDashBoard() {
       <div className="mb-3 bg-white">
         <BackBar
           isRtl={isRtl}
+          
           local={local}
           name={translateFunction("Seller Dashboard", language)}
           preivous_page={`/${local}/sellerProfile`}

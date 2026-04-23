@@ -10,9 +10,11 @@ import {
 import { translateFunction } from "utils/functions";
 import SellerDashboardService from "services/sellerDashboard";
 import home from "services/home";
+import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
+import BackBar from "components/setting/BackBar";
 
 // --- 1. Icons (Inline SVGs) ---
 const Icons = {
@@ -1295,20 +1297,21 @@ const OrderListScreen = ({
   onSelectTab: (tab: OrderFilterTabLabel) => void;
   isLoading: boolean;
 }) => {
+  const { language } = useAppStore();
+  const { lang: local } = useParams();
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div className="flex flex-col h-full bg-white font-sans w-full">
       {/* Header */}
       <div className="bg-white sticky top-0 z-10 w-full">
-        <div className="flex items-center justify-between mb-4">
-          <button className="p-2">
-            <Icons.ChevronLeft />
-          </button>
-          <div className="text-[14px] font-medium text-[#1D1D1D] flex items-center gap-2">
-            <Icons.Bag className="text-red-500 fill-red-500 w-[23px] h-[18px]" />{" "}
-            {translateFunction("Orders")}
-          </div>
-          <div className="w-8" /> {/* Spacer */}
-        </div>
+        <BackBar
+          isRtl={isRtl}
+          Icon={"/icons/OrderDetailsIcon.svg"}
+          local={local}
+          name={translateFunction("Orders", language)}
+          preivous_page={`/${local}/sellerProfile`}
+          DataCy="seller-dashboard-screen-top"
+        />
 
         {/* Filters */}
         <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
