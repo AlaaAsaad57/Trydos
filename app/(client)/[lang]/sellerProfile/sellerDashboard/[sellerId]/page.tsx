@@ -236,6 +236,7 @@ function SellerDashBoard() {
   const currentUserId = auth.UserID ? auth.UserID() : null;
 
   const getSellerProducts = async (page: number = 1) => {
+    if (!canViewProducts) return;
     try {
       setLoading(true);
       setError(null);
@@ -257,6 +258,7 @@ function SellerDashBoard() {
   };
 
   const getSellerBoutiques = async () => {
+    if (!canViewBoutiques) return;
     try {
       setLoading(true);
       setError(null);
