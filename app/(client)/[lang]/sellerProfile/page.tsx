@@ -71,12 +71,14 @@ function Page() {
         <BackBar
           isRtl={isRtl}
           local={lang?.toString()}
-          name={translateFunction("Store Selection", language)}
+          name={translateFunction("Select Shop", language)}
           preivous_page={`/${lang}`}
           DataCy="seller-profile-screen"
         />
       </div>
-      <span>{translateFunction("please Select a shop", language)}</span>
+      <span>
+        {translateFunction("please Select a shop to continue", language)}
+      </span>
       <div className="p-3">
         {loading && (
           <div className="flex-row flex gap-2">

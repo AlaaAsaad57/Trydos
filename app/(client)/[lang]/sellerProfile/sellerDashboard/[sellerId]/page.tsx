@@ -1472,7 +1472,6 @@ function SellerDashBoard() {
       <div className="mb-3 bg-white">
         <BackBar
           isRtl={isRtl}
-          
           local={local}
           name={translateFunction("Seller Dashboard", language)}
           preivous_page={`/${local}/sellerProfile`}
@@ -1546,6 +1545,26 @@ function SellerDashBoard() {
                   )}
                 </button>
               )}
+
+              {canViewOrders && (
+                <button
+                  onClick={() => {
+                    setActiveTab("orders");
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
+                    activeTab === "orders"
+                      ? "border-white bg-blue-500 text-white font-semibold"
+                      : "border-transparent text-black hover:bg-blue-600 hover:text-white"
+                  }`}
+                >
+                  <span className="text-[20px]">📊</span>
+                  <span>{translateFunction("Orders")}</span>
+                  {activeTab === "orders" && (
+                    <span className="ml-auto text-white">✓</span>
+                  )}
+                </button>
+              )}
               {
                 <button
                   onClick={() => {
@@ -1580,25 +1599,6 @@ function SellerDashBoard() {
                   <span className="text-[20px]">👥</span>
                   <span>{translateFunction("Users")}</span>
                   {activeTab === "users" && (
-                    <span className="ml-auto text-white">✓</span>
-                  )}
-                </button>
-              )}
-              {canViewOrders && (
-                <button
-                  onClick={() => {
-                    setActiveTab("orders");
-                    setMenuOpen(false);
-                  }}
-                  className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
-                    activeTab === "orders"
-                      ? "border-white bg-blue-500 text-white font-semibold"
-                      : "border-transparent text-black hover:bg-blue-600 hover:text-white"
-                  }`}
-                >
-                  <span className="text-[20px]">📊</span>
-                  <span>{translateFunction("Orders")}</span>
-                  {activeTab === "orders" && (
                     <span className="ml-auto text-white">✓</span>
                   )}
                 </button>

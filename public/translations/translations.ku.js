@@ -1,5 +1,5 @@
 const translations = {
-  "Store Selection": "هەڵبژاردنی فرۆشگا",
+  "Select Shop": "هەڵبژاردنی فرۆشگا",
   "Product Not Found": "بەرهەم نەدۆزرایەوە",
   "Buyer Rate": "هەڵسەنگاندنی کریار",
   "Confirm Returning Items": "دڵنیابوونەوە لە گەڕاندنەوەی شتانەکان",
@@ -1263,7 +1263,7 @@ const translations = {
   Boutiques: "Butikler",
   "No products found": "Ürün bulunamadı",
   "No boutiques found": "Butik bulunamadı",
-  "please Select a shop": "Ji kerema xwe dikanekê hilbijêre",
+  "please Select a shop to continue": "Ji kerema xwe dikanekê hilbijêre",
   "Loading...": "Tê barkirin...",
   "No shops available": "Tu dikan tune ye",
   "Shop Name": "Navê dikanê",
@@ -1278,7 +1278,7 @@ const translations = {
   "Leaving...": "Derketin tê kirin...",
   "Failed to leave shop": "Derketina ji dikanê bi ser neket",
   "Seller ID:": "ID ya firoşkar:",
-  "please Select a shop": "Ji kerema xwe dikanek hilbijêrin",
+  "please Select a shop to continue": "Ji kerema xwe dikanek hilbijêrin",
   "No shops available": "Dikan tune ne",
   "Super Admin": "Super Admin",
   "You have full access to all features":

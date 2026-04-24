@@ -1,5 +1,5 @@
 const translations = {
-  "Store Selection": "اختيار المتجر",
+  "Select Shop": "اختيار المتجر",
   "Product Price When Returned": "سعر المنتج عند الإرجاع",
   Full: "كامل",
   "Please enable notification permissions to use camera features":
@@ -1222,7 +1222,7 @@ const translations = {
   Boutiques: "المتاجر",
   "No products found": "لا توجد منتجات",
   "No boutiques found": "لا توجد متاجر",
-  "please Select a shop": "الرجاء اختيار متجر",
+  "please Select a shop to continue": "الرجاء اختيار متجر",
   "Loading...": "جاري التحميل...",
   "No shops available": "لا توجد متاجر متاحة",
   "Shop Name": "اسم المتجر",
@@ -1250,7 +1250,7 @@ const translations = {
     "الصيغة: +(رمز الدولة)XXX (مثال: +9611234567)",
   "Seller Dashboard": "لوحة تحكم البائع",
   "Seller ID:": "رقم البائع:",
-  "please Select a shop": "يرجى اختيار متجر",
+  "please Select a shop to continue": "يرجى اختيار متجر",
   "No shops available": "لا توجد متاجر متاحة",
   "Super Admin": "مشرف عام",
   "You have full access to all features": "لديك حق الوصول الكامل لجميع الميزات",
