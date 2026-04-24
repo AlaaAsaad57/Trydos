@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const oldGuestUserId = body.old_guest_user_id ?? null;
     const country = request.headers.get("x-country")?.trim() || "sy";
     const language = request.headers.get("x-language")?.trim() || "en";
-
+    const userDataCookie = await getSecureCookie<any>(COOKIE_NAMES.USER_DATA);
     const token = await getTokenForServer("market");
 
     const requestBody = { old_guest_user_id: oldGuestUserId };
@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
     if (data.data?.user) {
       await setSecureCookieJSON(COOKIE_NAMES.USER_DATA, {
         ...data.data.user,
+        story_user_id: userDataCookie?.story_user_id,
         expired_at: data.data.expires_at,
       });
     }
