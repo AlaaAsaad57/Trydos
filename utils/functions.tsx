@@ -73,10 +73,11 @@ export const getUserChat = (): any => {
   else return {};
 };
 export const getUserStories = (): any => {
+  let userCookie = getCookie<any>(COOKIE_NAMES.USER_DATA);
+  console.log(useAppStore.getState().userStories, userCookie);
   if (useAppStore.getState().userStories)
     return useAppStore.getState().userStories;
   else {
-    let userCookie = getCookie<any>(COOKIE_NAMES.USER_DATA);
     return { id: userCookie?.story_user_id };
   }
 };

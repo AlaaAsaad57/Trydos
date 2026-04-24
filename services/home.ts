@@ -326,6 +326,7 @@ class HomeService {
       if (userWallet) loginSuccessWallet({ ...userWallet });
     } else {
       if (userData) {
+        if (userStories) loginSuccessStories({ ...userStories });
         if (process.env.NODE_ENV === "production")
           smartlookIdentify(userData.id, {
             name: userData.name,

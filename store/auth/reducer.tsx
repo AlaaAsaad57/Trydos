@@ -100,9 +100,30 @@ export const useAuthStore = (set, get) => ({
             is_verified: 0,
           }
         : null,
-      userChat: null,
-      userStories: null,
-      userWallet: null,
+      userChat: isForzexpired
+        ? state.userChat && {
+            ...state.userChat,
+            is_phone_verified: 0,
+            is_verified: 0,
+            need_auth: true,
+          }
+        : null,
+      userStories: isForzexpired
+        ? state.userStories && {
+            ...state.userStories,
+            is_phone_verified: 0,
+            is_verified: 0,
+            need_auth: true,
+          }
+        : null,
+      userWallet: isForzexpired
+        ? state.userWallet && {
+            ...state.userWallet,
+            is_phone_verified: 0,
+            is_verified: 0,
+            need_auth: true,
+          }
+        : null,
       failedLogin: false,
       attempts: 4,
       wrongNumber: "",

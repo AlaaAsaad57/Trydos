@@ -33,7 +33,7 @@ function StoryHolder({ story, active, isPaused }) {
   const user = getUserStories();
   // check if the user is the owner of the story
   const isOwner = user?.id === story?.id;
-
+  console.log(getUserStories(), "story holder user");
   const handleDeleteStory = async () => {
     setLoading(true);
     try {
