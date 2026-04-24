@@ -1521,6 +1521,9 @@ function SellerDashBoard() {
                 >
                   <span className="text-[20px]">📦</span>
                   <span>{translateFunction("Products")}</span>
+                  <span className="rounded-4xl p-2 m-2 bg-blue-200 text-blue-600">
+                    {sellerProducts.length}
+                  </span>
                   {activeTab === "products" && (
                     <span className="ml-auto text-white">✓</span>
                   )}
@@ -1540,6 +1543,9 @@ function SellerDashBoard() {
                 >
                   <span className="text-[20px]">🏪</span>
                   <span>{translateFunction("Boutiques")}</span>
+                  <span className="rounded-4xl p-2 m-2 bg-blue-200 text-blue-600">
+                    {sellerBoutiques.length}
+                  </span>
                   {activeTab === "boutiques" && (
                     <span className="ml-auto text-white">✓</span>
                   )}
