@@ -625,7 +625,15 @@ function SellerDashBoard() {
       getSellerPermissions();
     }
   }, [activeTab, canViewPermissions, sellerId]);
-
+  const [loadingSideBar, setLoadingSideBar] = useState(false);
+  const initializeData = async () => {
+    setLoadingSideBar(true);
+    await Promise.all([getSellerProducts(), getSellerBoutiques()]);
+    setLoadingSideBar(false);
+  };
+  useEffect(() => {
+    initializeData();
+  }, []);
   const groupedPermissions = useMemo(() => {
     const groups: Record<string, string[]> = {};
     sellerPermissions.forEach((permission) => {
@@ -1521,8 +1529,8 @@ function SellerDashBoard() {
                 >
                   <span className="text-[20px]">📦</span>
                   <span>{translateFunction("Products")}</span>
-                  <span className="rounded-4xl p-2 m-2 bg-blue-200 text-blue-600">
-                    {sellerProducts?.length}
+                  <span className="rounded-4xl w-[25px] h-[25px] flex items-center justify-center m-2 bg-blue-200 text-blue-600">
+                    {loadingSideBar ? <Spinner /> : sellerProducts?.length}
                   </span>
                   {activeTab === "products" && (
                     <span className="ml-auto text-white">✓</span>
@@ -1543,8 +1551,8 @@ function SellerDashBoard() {
                 >
                   <span className="text-[20px]">🏪</span>
                   <span>{translateFunction("Boutiques")}</span>
-                  <span className="rounded-4xl p-2 m-2 bg-blue-200 text-blue-600">
-                    {sellerBoutiques?.length}
+                  <span className="rounded-4xl w-[25px] h-[25px] flex items-center justify-center m-2 bg-blue-200 text-blue-600">
+                    {loadingSideBar ? <Spinner /> : sellerBoutiques?.length}
                   </span>
                   {activeTab === "boutiques" && (
                     <span className="ml-auto text-white">✓</span>
