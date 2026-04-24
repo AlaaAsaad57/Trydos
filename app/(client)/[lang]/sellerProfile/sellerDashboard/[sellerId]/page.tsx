@@ -634,8 +634,8 @@ function SellerDashBoard() {
     setLoadingSideBar(false);
   };
   useEffect(() => {
-    initializeData();
-  }, []);
+    if (menuOpen) initializeData();
+  }, [menuOpen]);
   const groupedPermissions = useMemo(() => {
     const groups: Record<string, string[]> = {};
     sellerPermissions.forEach((permission) => {
