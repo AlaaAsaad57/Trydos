@@ -371,6 +371,7 @@ export default function AddStoryWidget() {
     setSelectedFile(null);
     setPreview(null);
     setAddStory(null);
+    setStoriesRefreshing(false);
   };
   const handleCameraClick = async () => {
     if (cameraPermissions === "revoked") {
@@ -598,7 +599,6 @@ export default function AddStoryWidget() {
           id="stories-input-holder"
           type="file"
           accept=".jpg,.jpeg,.png,.gif,.mp4,.mov,.3gp,.avi"
-          
           onChange={(e) => {
             handleFileSelect(e);
           }}
