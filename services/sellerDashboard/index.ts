@@ -162,6 +162,7 @@ class SellerDashboardService {
         url: `/shop/users/roles${queryString}`,
         method: "GET",
         server: "market-dashboard",
+
         reqTitle: REQUESTS_DATA.GET_SHOP_ROLES,
         sellerId,
       });

@@ -127,10 +127,12 @@ const getPermissionGroup = (permission: string): string => {
 };
 
 const formatPermissionName = (permission: string): string => {
-  return permission
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (l) => l.toUpperCase());
+  return translateFunction(
+    permission
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (l) => l.toUpperCase()),
+  );
 };
 
 function SellerDashBoard() {
@@ -454,6 +456,7 @@ function SellerDashBoard() {
           role_id: "",
           seller_id: parseInt(sellerId) || 0,
         });
+        getUsers();
         setTimeout(() => setAddUserSuccess(false), 3000);
       } else {
         throw new Error(res.message || translateFunction("Failed to add user"));
@@ -989,7 +992,7 @@ function SellerDashBoard() {
         {Object.entries(groupedPermissions).map(([group, permissions]) => (
           <div key={group} className="bg-white rounded-[15px] shadow-md p-6">
             <h3 className="text-[16px] font-semibold text-[#1d1d1d] mb-4 pb-2 border-b border-[#f0f0f0]">
-              {group.replace(/_/g, " ")}
+              {translateFunction(group.replace(/_/g, " "))}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {permissions.map((permission) => {
@@ -1006,10 +1009,10 @@ function SellerDashBoard() {
 
                 const typeColors = {
                   read: "bg-blue-100 text-blue-700 border-blue-200",
-                  create: "bg-green-100 text-green-700 border-green-200",
-                  update: "bg-yellow-100 text-yellow-700 border-yellow-200",
-                  delete: "bg-red-100 text-red-700 border-red-200",
-                  other: "bg-gray-100 text-gray-700 border-gray-200",
+                  create: "bg-blue-100 text-blue-700 border-blue-200",
+                  update: "bg-blue-100 text-blue-700 border-blue-200",
+                  delete: "bg-blue-100 text-blue-700 border-blue-200",
+                  other: "bg-blue-100 text-blue-700 border-blue-200",
                 };
 
                 return (
@@ -1333,7 +1336,7 @@ function SellerDashBoard() {
                                 }}
                                 className="px-2 py-1 border rounded-sm"
                               >
-                                Change role
+                                {translateFunction("Change Role")}
                               </button>
 
                               {rolesForChangeOpenUserId === String(user.id) && (
