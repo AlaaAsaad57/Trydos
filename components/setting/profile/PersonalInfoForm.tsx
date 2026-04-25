@@ -130,6 +130,12 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
     if (!userProfileData.name?.trim()) {
       errors.name = translateFunction("Full name is required", language);
     }
+    if (userProfileData.name?.trim()?.length < 8) {
+      errors.name = translateFunction(
+        "Name Should be atleast 8 characters",
+        language,
+      );
+    }
 
     if (!phoneInput.value?.trim()) {
       errors.phone = translateFunction("Phone number is required", language);
