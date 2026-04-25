@@ -403,27 +403,27 @@ const StoryViewer = ({
       {(link || product_slug) && (
         <div className="absolute bottom-0 left-0 w-full flex justify-center z-50 pb-4 pointer-events-none">
           {link && (
-            <a href={link}>
-              <a
-                className="pointer-events-auto gap-[5px] items-end flex-row  regular p-3 rounded-[8px] text-[#1d1d1d] bg-[#F8F8F8]  break-all text-center text-base   no-underline backdrop-blur-xs"
-                tabIndex={0}
-                aria-label="Story link"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  zIndex: 99999999999999,
-                  boxShadow: "0px 3px 10px #0000001f",
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <span>
-                  <img
-                    src="/icons/copyIcon.svg"
-                    className="w-[20px] h-[20px]"
-                  />
-                </span>
-                {translateFunction("View More")}
-              </a>
+            <a
+              href={
+                link.startsWith("http://") || link.startsWith("https://")
+                  ? link
+                  : `https://${link}`
+              }
+              className="pointer-events-auto gap-[5px] items-end flex-row  regular p-3 rounded-[8px] text-[#1d1d1d] bg-[#F8F8F8]  break-all text-center text-base   no-underline backdrop-blur-xs"
+              tabIndex={0}
+              aria-label="Story link"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                zIndex: 99999999999999,
+                boxShadow: "0px 3px 10px #0000001f",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span>
+                <img src="/icons/copyIcon.svg" className="w-[20px] h-[20px]" />
+              </span>
+              {translateFunction("View More")}
             </a>
           )}
           {product_slug && (
