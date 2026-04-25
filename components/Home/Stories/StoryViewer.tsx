@@ -403,7 +403,13 @@ const StoryViewer = ({
       {(link || product_slug) && (
         <div className="absolute bottom-0 left-0 w-full flex justify-center z-50 pb-4 pointer-events-none">
           {link && (
-            <a href={link}>
+            <a
+              href={
+                link.startsWith("http://") || link.startsWith("https://")
+                  ? link
+                  : `https://${link}`
+              }
+            >
               <a
                 className="pointer-events-auto gap-[5px] items-end flex-row  regular p-3 rounded-[8px] text-[#1d1d1d] bg-[#F8F8F8]  break-all text-center text-base   no-underline backdrop-blur-xs"
                 tabIndex={0}
