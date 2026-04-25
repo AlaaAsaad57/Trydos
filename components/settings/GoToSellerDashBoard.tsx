@@ -41,6 +41,7 @@ function GoToSellerDashBoard({ language }: { language: string }) {
     return (
       <>
         <button
+          data-cy="become-seller-btn"
           onClick={() => setOpenSellerModal(true)}
           className="h-[50px] cursor-pointer w-full rounded-[15px] text-[#1d1d1d]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]"
         >
@@ -73,6 +74,7 @@ function GoToSellerDashBoard({ language }: { language: string }) {
       )} */}
 
       <div
+        data-cy="seller-sales"
         onClick={() => {
           window.location.href = `/${lang}/sellerProfile`;
         }}
