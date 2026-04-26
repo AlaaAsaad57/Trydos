@@ -231,9 +231,10 @@ function SellerDashBoard() {
   const canViewUsers =
     PERMISSION_GROUPS.EMPLOYEES.some((p: string) => hasPermission(p)) ||
     canManageUsers;
-  const canSeeUsers =
+  const canViewUsersList =
     sellerPermissions.includes("READ_EMPLOYEES") ||
-    sellerPermissions.includes("SUPER_ADMIN");
+    sellerPermissions.includes("SUPER_ADMIN") ||
+    sellerPermissions.includes("USER_MANAGEMENT_ACCESS");
   const canViewOrders = PERMISSION_GROUPS.ORDERS.some((p: string) =>
     hasPermission(p),
   );
@@ -346,7 +347,7 @@ function SellerDashBoard() {
 
   const getUsers = async (page: number = 1) => {
     try {
-      if (!canSeeUsers) return;
+      if (!canViewUsersList) return;
       if (page === 1) setUsersLoading(true);
       else setUsersLoadingMore(true);
       setUsersError(null);
@@ -1280,7 +1281,7 @@ function SellerDashBoard() {
           )}
         </div> */}
         {/* Users list */}
-        {canSeeUsers && (
+        {canViewUsersList && (
           <div className="mt-6 bg-white rounded-[15px] shadow-md">
             <h2 className="text-[20px] font-bold text-[#1d1d1d] mb-4 p-6">
               {translateFunction("Users")}
