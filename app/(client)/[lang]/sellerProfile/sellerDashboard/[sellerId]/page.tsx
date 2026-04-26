@@ -231,6 +231,9 @@ function SellerDashBoard() {
   const canViewUsers =
     PERMISSION_GROUPS.EMPLOYEES.some((p: string) => hasPermission(p)) ||
     canManageUsers;
+  const canSeeUsers =
+    sellerPermissions.includes("READ_EMPLOYEES") ||
+    sellerPermissions.includes("SUPER_ADMIN");
   const canViewOrders = PERMISSION_GROUPS.ORDERS.some((p: string) =>
     hasPermission(p),
   );
@@ -343,6 +346,7 @@ function SellerDashBoard() {
 
   const getUsers = async (page: number = 1) => {
     try {
+      if (!canSeeUsers) return;
       if (page === 1) setUsersLoading(true);
       else setUsersLoadingMore(true);
       setUsersError(null);
@@ -1276,206 +1280,218 @@ function SellerDashBoard() {
           )}
         </div> */}
         {/* Users list */}
-        <div className="mt-6 bg-white rounded-[15px] shadow-md">
-          <h2 className="text-[20px] font-bold text-[#1d1d1d] mb-4 p-6">
-            {translateFunction("Users")}
-          </h2>
+        {canSeeUsers && (
+          <div className="mt-6 bg-white rounded-[15px] shadow-md">
+            <h2 className="text-[20px] font-bold text-[#1d1d1d] mb-4 p-6">
+              {translateFunction("Users")}
+            </h2>
 
-          {usersLoading && users.length === 0 ? (
-            <div className="flex items-center justify-center py-8">
-              <Spinner />
-              <span className="ml-3 text-[#3c3c3c]">
-                {translateFunction("Loading users...")}
-              </span>
-            </div>
-          ) : users.length === 0 ? (
-            <div className="flex items-center justify-center py-8">
-              <p className="text-[#8D8D8D]">
-                {translateFunction("No users found")}
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-auto mb-[100px]">
-              <table className="w-full text-left mb-[300px]">
-                <thead>
-                  <tr>
-                    <th className="py-2 px-3">
-                      {translateFunction("Name / Phone")}
-                    </th>
-                    <th className="py-2 px-3">{translateFunction("Role")}</th>
-                    <th className="py-2 px-3">
-                      {translateFunction("Actions")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="p-2">
-                  {users.map((user: any) => (
-                    <tr key={user.id} className="border-t">
-                      <td className="py-3 px-3">{user.name || user.phone}</td>
-                      <td className="py-3 px-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[13px] text-[#8D8D8D]">
-                            {user.role?.name ||
-                              user.role_name ||
-                              (typeof user.role === "string" ? user.role : "-")}
-                          </span>
-                          {hasPermission("SUPER_ADMIN") && (
-                            <div className="relative ml-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const uid = String(user.id);
-                                  if (rolesForChangeOpenUserId === uid) {
-                                    setRolesForChangeOpenUserId(null);
-                                    return;
-                                  }
-                                  setRolesForChangeOpenUserId(uid);
-                                  setRolesForChangeQuery("");
-                                  if (rolesForChange.length === 0)
-                                    getRolesForChange();
-                                }}
-                                className="px-2 py-1 border rounded-sm"
-                              >
-                                {translateFunction("Change Role")}
-                              </button>
-
-                              {rolesForChangeOpenUserId === String(user.id) && (
-                                <div
-                                  ref={rolesForChangeRef}
-                                  className="absolute z-50 right-0 mt-1 w-56 bg-white border border-gray-200 rounded-sm max-h-48 overflow-auto"
-                                >
-                                  <input
-                                    type="text"
-                                    value={rolesForChangeQuery}
-                                    onChange={(e) => {
-                                      setRolesForChangeQuery(e.target.value);
-                                      setRolesForChangePage(1);
-                                    }}
-                                    onFocus={() => {
-                                      if (rolesForChange.length === 0)
-                                        getRolesForChange(
-                                          1,
-                                          rolesForChangeQuery,
-                                        );
-                                    }}
-                                    className="w-full px-3 py-2 border-b border-gray-200"
-                                    placeholder={translateFunction(
-                                      "Search roles...",
-                                    )}
-                                  />
-
-                                  {rolesForChangeSearching &&
-                                  rolesForChange.length === 0 ? (
-                                    <div className="flex items-center gap-2 p-3">
-                                      <Spinner />
-                                      <span className="text-[14px] text-[#8D8D8D]">
-                                        {translateFunction(
-                                          "Searching roles...",
-                                        )}
-                                      </span>
-                                    </div>
-                                  ) : loading && rolesForChange.length === 0 ? (
-                                    <div className="flex items-center gap-2 p-3">
-                                      <Spinner />
-                                      <span className="text-[14px] text-[#8D8D8D]">
-                                        {translateFunction("Loading roles...")}
-                                      </span>
-                                    </div>
-                                  ) : rolesForChange.length === 0 ? (
-                                    <div className="p-3 text-[14px] text-[#8D8D8D]">
-                                      {translateFunction("No roles found")}
-                                    </div>
-                                  ) : (
-                                    <>
-                                      {rolesForChange.map((r: any) => (
-                                        <div
-                                          key={r.id}
-                                          onMouseDown={() => {
-                                            handleUpdateUserRole(
-                                              user.id,
-                                              Number(r.id),
-                                            );
-                                            setRolesForChangeOpenUserId(null);
-                                          }}
-                                          className="px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                                        >
-                                          {r.name} : {r.description}
-                                        </div>
-                                      ))}
-
-                                      {rolesForChangeMeta?.has_more_pages && (
-                                        <div className="flex justify-end p-2 border-t">
-                                          <button
-                                            onMouseDown={() =>
-                                              getRolesForChange(
-                                                rolesForChangePage + 1,
-                                                rolesForChangeQuery,
-                                              )
-                                            }
-                                            className="px-3 py-1 bg-white border rounded-sm"
-                                            disabled={rolesForChangeLoadingMore}
-                                          >
-                                            {rolesForChangeLoadingMore ? (
-                                              <Spinner />
-                                            ) : (
-                                              "Load more"
-                                            )}
-                                          </button>
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-3">
-                        <div className="flex items-center gap-2">
-                          {hasPermission("SUPER_ADMIN") && (
-                            <button
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-sm disabled:opacity-50"
-                            >
-                              {translateFunction("Delete")}
-                            </button>
-                          )}
-                          {String(user.id) === String(currentUserId) && (
-                            <button
-                              onClick={handleLeaveShop}
-                              className="px-3 py-1 bg-yellow-50 text-yellow-700 border border-yellow-100 rounded-sm"
-                            >
-                              {translateFunction("Leave Shop")}
-                            </button>
-                          )}
-                        </div>
-                      </td>
+            {usersLoading && users.length === 0 ? (
+              <div className="flex items-center justify-center py-8">
+                <Spinner />
+                <span className="ml-3 text-[#3c3c3c]">
+                  {translateFunction("Loading users...")}
+                </span>
+              </div>
+            ) : users.length === 0 ? (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-[#8D8D8D]">
+                  {translateFunction("No users found")}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-auto mb-[100px]">
+                <table className="w-full text-left mb-[300px]">
+                  <thead>
+                    <tr>
+                      <th className="py-2 px-3">
+                        {translateFunction("Name / Phone")}
+                      </th>
+                      <th className="py-2 px-3">{translateFunction("Role")}</th>
+                      <th className="py-2 px-3">
+                        {translateFunction("Actions")}
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="p-2">
+                    {users.map((user: any) => (
+                      <tr key={user.id} className="border-t">
+                        <td className="py-3 px-3">{user.name || user.phone}</td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[13px] text-[#8D8D8D]">
+                              {user.role?.name ||
+                                user.role_name ||
+                                (typeof user.role === "string"
+                                  ? user.role
+                                  : "-")}
+                            </span>
+                            {hasPermission("SUPER_ADMIN") && (
+                              <div className="relative ml-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const uid = String(user.id);
+                                    if (rolesForChangeOpenUserId === uid) {
+                                      setRolesForChangeOpenUserId(null);
+                                      return;
+                                    }
+                                    setRolesForChangeOpenUserId(uid);
+                                    setRolesForChangeQuery("");
+                                    if (rolesForChange.length === 0)
+                                      getRolesForChange();
+                                  }}
+                                  className="px-2 py-1 border rounded-sm"
+                                >
+                                  {translateFunction("Change Role")}
+                                </button>
 
-              {usersMeta?.has_more_pages && (
-                <div className="flex justify-center mt-4">
-                  <button
-                    onClick={() => getUsers(usersPage + 1)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                    disabled={usersLoadingMore}
-                  >
-                    {usersLoadingMore ? (
-                      <Spinner />
-                    ) : (
-                      translateFunction("Load more")
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+                                {rolesForChangeOpenUserId ===
+                                  String(user.id) && (
+                                  <div
+                                    ref={rolesForChangeRef}
+                                    className="absolute z-50 right-0 mt-1 w-56 bg-white border border-gray-200 rounded-sm max-h-48 overflow-auto"
+                                  >
+                                    <input
+                                      type="text"
+                                      value={rolesForChangeQuery}
+                                      onChange={(e) => {
+                                        setRolesForChangeQuery(e.target.value);
+                                        setRolesForChangePage(1);
+                                      }}
+                                      onFocus={() => {
+                                        if (rolesForChange.length === 0)
+                                          getRolesForChange(
+                                            1,
+                                            rolesForChangeQuery,
+                                          );
+                                      }}
+                                      className="w-full px-3 py-2 border-b border-gray-200"
+                                      placeholder={translateFunction(
+                                        "Search roles...",
+                                      )}
+                                    />
 
-          {usersError && <div className="mt-3 text-red-500">{usersError}</div>}
-        </div>
+                                    {rolesForChangeSearching &&
+                                    rolesForChange.length === 0 ? (
+                                      <div className="flex items-center gap-2 p-3">
+                                        <Spinner />
+                                        <span className="text-[14px] text-[#8D8D8D]">
+                                          {translateFunction(
+                                            "Searching roles...",
+                                          )}
+                                        </span>
+                                      </div>
+                                    ) : loading &&
+                                      rolesForChange.length === 0 ? (
+                                      <div className="flex items-center gap-2 p-3">
+                                        <Spinner />
+                                        <span className="text-[14px] text-[#8D8D8D]">
+                                          {translateFunction(
+                                            "Loading roles...",
+                                          )}
+                                        </span>
+                                      </div>
+                                    ) : rolesForChange.length === 0 ? (
+                                      <div className="p-3 text-[14px] text-[#8D8D8D]">
+                                        {translateFunction("No roles found")}
+                                      </div>
+                                    ) : (
+                                      <>
+                                        {rolesForChange.map((r: any) => (
+                                          <div
+                                            key={r.id}
+                                            onMouseDown={() => {
+                                              handleUpdateUserRole(
+                                                user.id,
+                                                Number(r.id),
+                                              );
+                                              setRolesForChangeOpenUserId(null);
+                                            }}
+                                            className="px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                                          >
+                                            {r.name} : {r.description}
+                                          </div>
+                                        ))}
+
+                                        {rolesForChangeMeta?.has_more_pages && (
+                                          <div className="flex justify-end p-2 border-t">
+                                            <button
+                                              onMouseDown={() =>
+                                                getRolesForChange(
+                                                  rolesForChangePage + 1,
+                                                  rolesForChangeQuery,
+                                                )
+                                              }
+                                              className="px-3 py-1 bg-white border rounded-sm"
+                                              disabled={
+                                                rolesForChangeLoadingMore
+                                              }
+                                            >
+                                              {rolesForChangeLoadingMore ? (
+                                                <Spinner />
+                                              ) : (
+                                                "Load more"
+                                              )}
+                                            </button>
+                                          </div>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2">
+                            {hasPermission("SUPER_ADMIN") && (
+                              <button
+                                onClick={() => handleDeleteUser(user.id)}
+                                className="px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-sm disabled:opacity-50"
+                              >
+                                {translateFunction("Delete")}
+                              </button>
+                            )}
+                            {String(user.id) === String(currentUserId) && (
+                              <button
+                                onClick={handleLeaveShop}
+                                className="px-3 py-1 bg-yellow-50 text-yellow-700 border border-yellow-100 rounded-sm"
+                              >
+                                {translateFunction("Leave Shop")}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {usersMeta?.has_more_pages && (
+                  <div className="flex justify-center mt-4">
+                    <button
+                      onClick={() => getUsers(usersPage + 1)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                      disabled={usersLoadingMore}
+                    >
+                      {usersLoadingMore ? (
+                        <Spinner />
+                      ) : (
+                        translateFunction("Load more")
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {usersError && (
+              <div className="mt-3 text-red-500">{usersError}</div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
