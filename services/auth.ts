@@ -447,43 +447,43 @@ class AuthService {
         ? phoneNumber
         : `+${phoneNumber}`;
 
-      const imagePath = this.getImageForCookie(
-        userObj?.image ?? userProfile?.image,
-      );
-      const profilePictureURL = imagePath
-        ? `${process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL}${imagePath}`
-        : null;
+      // const imagePath = this.getImageForCookie(
+      //   userObj?.image ?? userProfile?.image,
+      // );
+      // const profilePictureURL = imagePath
+      //   ? `${process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL}${imagePath}`
+      //   : null;
 
-      let wallet_update = await fetchData({
-        url: "/users/me",
-        reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
-        method: "PATCH",
-        server: "wallet",
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          phoneNumber: formattedPhone,
-          profilePictureURL,
-          language: language || "en",
-        }),
-      });
+      // let wallet_update = await fetchData({
+      //   url: "/users/me",
+      //   reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
+      //   method: "PATCH",
+      //   server: "wallet",
+      //   body: JSON.stringify({
+      //     firstName,
+      //     lastName,
+      //     phoneNumber: formattedPhone,
+      //     profilePictureURL,
+      //     language: language || "en",
+      //   }),
+      // });
 
-      if (!wallet_update?.success) {
-        throw new Error(wallet_update?.message || "Wallet update failed");
-      }
+      // if (!wallet_update?.success) {
+      //   throw new Error(wallet_update?.message || "Wallet update failed");
+      // }
       wallet_done = true;
 
-      const walletUpdate = {
-        firstName,
-        lastName,
-        phoneNumber: formattedPhone,
-        profilePictureURL,
-        language: language || "en",
-      };
-      loginSuccessWallet(walletUpdate);
-      updateSecureUserData([
-        { name: COOKIE_NAMES.WALLET_USER, value: walletUpdate },
-      ]);
+      // const walletUpdate = {
+      //   firstName,
+      //   lastName,
+      //   phoneNumber: formattedPhone,
+      //   profilePictureURL,
+      //   language: language || "en",
+      // };
+      // loginSuccessWallet(walletUpdate);
+      // updateSecureUserData([
+      //   { name: COOKIE_NAMES.WALLET_USER, value: walletUpdate },
+      // ]);
 
       if (userStories?.id) {
         let res = await fetchData({
@@ -706,24 +706,60 @@ class AuthService {
       return image;
     }
   }
+
+  async uploadToMediaServer(file: File) {
+    const MEDIA_SERVER_BASE_URL =
+      process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
+    const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
+    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+      throw new Error("Media server upload is not configured");
+    }
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", "stories");
+
+    const uploadUrl = `${MEDIA_SERVER_BASE_URL}/upload`;
+
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      headers: {
+        "x-api-key": MEDIA_API_KEY,
+      },
+      body: form,
+    });
+
+    let data: any = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+    if (!response.ok || !data?.url) {
+      return { error: data.error, data: null };
+    }
+
+    return {
+      url: data.url as string,
+      durationSeconds: data?.durationSeconds as number | undefined,
+    };
+  }
   async UpdateProfileImage(image) {
     let formData = new FormData();
     formData.append("image", image);
-    formData.append("path", "customers/profile");
+    formData.append("folder", "customers/profile");
 
     try {
-      let response = await fetchData({
-        url: "/storage/storage-upload",
-        body: formData,
-        reqTitle: REQUESTS_DATA.UPDATE_PROFILE_IMAGE,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
+      let response = await this.uploadToMediaServer(image);
+      if (!response.url) {
+        throw new Error("Image upload failed");
       }
-      return response.data;
+      // @ts-ignores
+      if (!response.success && response.error) {
+        throw new Error(response.error);
+      }
+      return {image:response.url};
     } catch (err) {
       LogServerError({
         error: err,
