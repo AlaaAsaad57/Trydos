@@ -38,6 +38,8 @@ function StoryHolder({ story, active, isPaused }) {
     setLoading(true);
     try {
       const storyId = story.stories[currentStoryId]?.id;
+      const deletedIndex = currentStoryId;
+
       const response = await StoryServiceClass.deleteStory(storyId);
 
       const userToken = user?.access_token;
@@ -47,11 +49,20 @@ function StoryHolder({ story, active, isPaused }) {
         1,
         userToken,
       );
+      let lastStoryData = story.stories;
       setStoryData(storiesResult.data);
       setShowDeleteModal(false);
       setLoading(false);
-      setCurrentStoryId(0);
-      setNextStory(story.id);
+      if (lastStoryData.length === 1) {
+        setCurrentStoryId(0);
+        setNextStory(story.id);
+      } else {
+        const nextStoriesLength = lastStoryData.length - 1;
+        const nextIndex = Math.min(deletedIndex, nextStoriesLength - 1);
+        setCurrentStoryId(Math.max(0, nextIndex));
+      }
+      // here we should navigate to next user story if there is one, if not navigate to next user story, if there is no previous user story close the story viewer
+
       showSuccessNotification(
         translateFunction(`${response?.message}`) ||
           translateFunction("Story deleted successfully."),
