@@ -717,7 +717,7 @@ class AuthService {
 
     const form = new FormData();
     form.append("file", file);
-    form.append("folder", "stories");
+    form.append("folder", "customers/profile");
 
     const uploadUrl = `${MEDIA_SERVER_BASE_URL}/upload`;
 
@@ -735,7 +735,7 @@ class AuthService {
     } catch {
       data = null;
     }
-
+    console.log(data);
     if (!response.ok || !data?.url) {
       return { error: data.error, data: null };
     }
@@ -746,10 +746,6 @@ class AuthService {
     };
   }
   async UpdateProfileImage(image) {
-    let formData = new FormData();
-    formData.append("image", image);
-    formData.append("folder", "customers/profile");
-
     try {
       let response = await this.uploadToMediaServer(image);
       if (!response.url) {
@@ -759,7 +755,7 @@ class AuthService {
       if (!response.success && response.error) {
         throw new Error(response.error);
       }
-      return {image:response.url};
+      return { sub_path: response.url?.replace("/image/upload", "") };
     } catch (err) {
       LogServerError({
         error: err,
