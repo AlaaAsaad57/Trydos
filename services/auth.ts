@@ -447,43 +447,43 @@ class AuthService {
         ? phoneNumber
         : `+${phoneNumber}`;
 
-      // const imagePath = this.getImageForCookie(
-      //   userObj?.image ?? userProfile?.image,
-      // );
-      // const profilePictureURL = imagePath
-      //   ? `${process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL}${imagePath}`
-      //   : null;
+      const imagePath = this.getImageForCookie(
+        userObj?.image ?? userProfile?.image,
+      );
+      const profilePictureURL = imagePath
+        ? `${process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL}${imagePath}`
+        : null;
 
-      // let wallet_update = await fetchData({
-      //   url: "/users/me",
-      //   reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
-      //   method: "PATCH",
-      //   server: "wallet",
-      //   body: JSON.stringify({
-      //     firstName,
-      //     lastName,
-      //     phoneNumber: formattedPhone,
-      //     profilePictureURL,
-      //     language: language || "en",
-      //   }),
-      // });
+      let wallet_update = await fetchData({
+        url: "/users/me",
+        reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
+        method: "PATCH",
+        server: "wallet",
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          phoneNumber: formattedPhone,
+          profilePictureURL,
+          language: language || "en",
+        }),
+      });
 
-      // if (!wallet_update?.success) {
-      //   throw new Error(wallet_update?.message || "Wallet update failed");
-      // }
+      if (!wallet_update?.success) {
+        throw new Error(wallet_update?.message || "Wallet update failed");
+      }
       wallet_done = true;
 
-      // const walletUpdate = {
-      //   firstName,
-      //   lastName,
-      //   phoneNumber: formattedPhone,
-      //   profilePictureURL,
-      //   language: language || "en",
-      // };
-      // loginSuccessWallet(walletUpdate);
-      // updateSecureUserData([
-      //   { name: COOKIE_NAMES.WALLET_USER, value: walletUpdate },
-      // ]);
+      const walletUpdate = {
+        firstName,
+        lastName,
+        phoneNumber: formattedPhone,
+        profilePictureURL,
+        language: language || "en",
+      };
+      loginSuccessWallet(walletUpdate);
+      updateSecureUserData([
+        { name: COOKIE_NAMES.WALLET_USER, value: walletUpdate },
+      ]);
 
       if (userStories?.id) {
         let res = await fetchData({
@@ -755,7 +755,7 @@ class AuthService {
       if (!response.success && response.error) {
         throw new Error(response.error);
       }
-      return { sub_path: response.url?.replace("/image/upload", "") };
+      return { sub_path: response.url };
     } catch (err) {
       LogServerError({
         error: err,
