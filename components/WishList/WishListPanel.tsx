@@ -74,7 +74,7 @@ const WishListPanel = ({ onClose }) => {
       setWishlistItems((prev) => prev.filter((item) => item.id !== productId));
       showSuccessNotification(translateFunction("Removed from checklist"));
     } catch (error) {
-      console.error("Error removing from wishlist:", error);
+      console.error("Error removing from CheckList:", error);
     }
   };
   return (
@@ -215,7 +215,7 @@ const WishListPanel = ({ onClose }) => {
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
             <p className="text-sm" data-cy="empty-statement">
-              {translateFunction("Your wishlist is empty")}
+              {translateFunction("Your CheckList is empty")}
             </p>
           </div>
         )}

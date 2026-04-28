@@ -224,7 +224,7 @@ const Menu = ({ user, setMenuOpen }) => {
               </MenuIcon>
             }
           >
-            {translateFunction("Wishlist")}
+            {translateFunction("CheckList")}
           </MenuItem>
           <MenuItem
             dataCy="Notifications-Icon"
