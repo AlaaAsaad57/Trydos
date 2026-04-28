@@ -129,7 +129,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
 
   useEffect(() => {
     if (hasMobile) {
-      let phone = userData.phone;
+      let phone = userData?.phone;
       setInputValue(phone);
       setStepIndicator(4);
     }

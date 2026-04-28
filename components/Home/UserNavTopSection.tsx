@@ -57,73 +57,74 @@ function UserNavTopSection({
         </div>
       );
     } else if (getUserType() === "Verified User") {
-      return (
-        <div
-          data-testid="login-text"
-          data-cy="login-icon"
-          className="nav-question-item"
-          onClick={() => {
-            setShouldAuthinticated(true);
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16.413"
-            height="16.412"
-            viewBox="0 0 16.413 16.412"
-          >
-            <g
-              id="Group_3290"
-              data-name="Group 3290"
-              transform="translate(-37.223 -62.334)"
-            >
-              <g
-                id="Group_3166"
-                data-name="Group 3166"
-                transform="translate(42.657 68.141)"
-              >
-                <g
-                  id="Group_3165"
-                  data-name="Group 3165"
-                  transform="translate(0 0)"
-                >
-                  <path
-                    id="Path_15412"
-                    data-name="Path 15412"
-                    d="M34.744,30.414a.684.684,0,0,0-.968,0l-2.939,2.939-1.228-1.228a.685.685,0,1,0-.968.968l1.71,1.712a.684.684,0,0,0,.968,0l3.425-3.423a.684.684,0,0,0,0-.968Z"
-                    transform="translate(-28.418 -30.213)"
-                    fill="#707070"
-                    stroke="#3c3c3c"
-                    strokeWidth="0.111"
-                  />
-                </g>
-              </g>
-              <path
-                id="Path_15413"
-                data-name="Path 15413"
-                d="M15.332,7.332A.667.667,0,0,0,14.665,8a6.668,6.668,0,1,1-1.936-4.7.667.667,0,1,0,.945-.94A8,8,0,1,0,16,8a.667.667,0,0,0-.667-.667Z"
-                transform="translate(37.438 62.538)"
-                fill={"none"}
-                stroke="#707070"
-                strokeWidth="0.4"
-              />
-            </g>
-          </svg>
-          <span
-            className={`regular`}
-            style={{
-              display: "flex",
-              color: "#707070",
-              fontSize: "14px",
-              marginLeft: "5px",
-              cursor: "pointer",
-              left: "-8px",
+      if (userData?.phone)
+        return (
+          <div
+            data-testid="login-text"
+            data-cy="login-icon"
+            className="nav-question-item"
+            onClick={() => {
+              setShouldAuthinticated(true);
             }}
           >
-            {translate("Verify", language)}
-          </span>
-        </div>
-      );
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16.413"
+              height="16.412"
+              viewBox="0 0 16.413 16.412"
+            >
+              <g
+                id="Group_3290"
+                data-name="Group 3290"
+                transform="translate(-37.223 -62.334)"
+              >
+                <g
+                  id="Group_3166"
+                  data-name="Group 3166"
+                  transform="translate(42.657 68.141)"
+                >
+                  <g
+                    id="Group_3165"
+                    data-name="Group 3165"
+                    transform="translate(0 0)"
+                  >
+                    <path
+                      id="Path_15412"
+                      data-name="Path 15412"
+                      d="M34.744,30.414a.684.684,0,0,0-.968,0l-2.939,2.939-1.228-1.228a.685.685,0,1,0-.968.968l1.71,1.712a.684.684,0,0,0,.968,0l3.425-3.423a.684.684,0,0,0,0-.968Z"
+                      transform="translate(-28.418 -30.213)"
+                      fill="#707070"
+                      stroke="#3c3c3c"
+                      strokeWidth="0.111"
+                    />
+                  </g>
+                </g>
+                <path
+                  id="Path_15413"
+                  data-name="Path 15413"
+                  d="M15.332,7.332A.667.667,0,0,0,14.665,8a6.668,6.668,0,1,1-1.936-4.7.667.667,0,1,0,.945-.94A8,8,0,1,0,16,8a.667.667,0,0,0-.667-.667Z"
+                  transform="translate(37.438 62.538)"
+                  fill={"none"}
+                  stroke="#707070"
+                  strokeWidth="0.4"
+                />
+              </g>
+            </svg>
+            <span
+              className={`regular`}
+              style={{
+                display: "flex",
+                color: "#707070",
+                fontSize: "14px",
+                marginLeft: "5px",
+                cursor: "pointer",
+                left: "-8px",
+              }}
+            >
+              {translate("Verify", language)}
+            </span>
+          </div>
+        );
     } else {
       return <></>;
     }

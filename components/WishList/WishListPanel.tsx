@@ -15,6 +15,13 @@ import { showSuccessNotification } from "@/store/notifications/reducer";
 const WishListPanel = ({ onClose }) => {
   const wishListRef = useRef<HTMLDivElement>(null);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [pageinationData, setPaginationData] = useState({
+    page: 1,
+    has_next: false,
+    has_previous: false,
+    limit: 10,
+    total: 0,
+  });
   const [loading, setLoading] = useState(true);
   // Handle document scroll lock
   useEffect(() => {
@@ -56,7 +63,13 @@ const WishListPanel = ({ onClose }) => {
       try {
         setLoading(true);
         const items = await wishlistService.getWishlist();
-        setWishlistItems(items);
+
+        setPaginationData({
+          ...pageinationData,
+          has_next: items.has_next,
+          total: items.total_items,
+        });
+        setWishlistItems(items.data);
       } catch (error) {
         console.error("Error loading wishlist:", error);
       } finally {

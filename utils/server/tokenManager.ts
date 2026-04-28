@@ -51,15 +51,17 @@ const GO_APIS = [
   "/auth/register-guest",
   "/home/currency",
   "/web/home/startingSettings",
+  "/checklist",
 ];
 // ---------- Server URL Resolution ----------
-
+const isFromGoApi = (url: string) =>
+  GO_APIS.some((endpoint) => url.startsWith(endpoint));
 function getServerBaseUrl(server: ProxiedServer, url: string): string {
+  console.log(url, isFromGoApi(url));
   switch (server) {
     case "market":
     case "market-dashboard": {
-      if (GO_APIS.includes(url))
-        return process.env.NEXT_PUBLIC_GO_BACKEND_URL || "";
+      if (isFromGoApi(url)) return process.env.NEXT_PUBLIC_GO_BACKEND_URL || "";
       return process.env.NEXT_PUBLIC_BACKEND_URL || "";
     }
     case "elastic":
