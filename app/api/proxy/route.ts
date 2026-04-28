@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Build the full URL and headers (token injected from HttpOnly cookie)
-    const fullUrl = getServerBaseUrl(server) + targetUrl;
+    const fullUrl = getServerBaseUrl(server, targetUrl) + targetUrl;
     const headers = await buildProxyHeaders(
       server,
       country,

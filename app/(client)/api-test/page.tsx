@@ -120,7 +120,7 @@ export default function ApiTestPage() {
     },
     {
       name: "Currency",
-      url: "/mobile/home/currency",
+      url: "/home/currency",
       method: "GET",
       server: "market",
     },

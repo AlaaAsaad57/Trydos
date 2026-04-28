@@ -23,7 +23,7 @@ export const clearAllUserData = async () => {
 export const getCurrency = async ({ callback }) => {
   try {
     let response = await fetchData({
-      url: "/mobile/home/currency",
+      url: "/home/currency",
       reqTitle: REQUESTS_DATA.CURRENCY_REQUEST,
       method: "GET",
       server: "market",
