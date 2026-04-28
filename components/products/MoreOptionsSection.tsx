@@ -289,19 +289,7 @@ function MoreOptionsSection({ product }) {
                   translate("Removed from checklist", language),
                 );
               } else {
-                await wishlistService.addToWishlist({
-                  id: productId,
-                  name: product?.name,
-                  brand: product?.brand,
-                  slug: product?.slug,
-                  thumbnail: product?.image,
-                  price: product?.price,
-                  offer_price: product?.offer_price,
-                  colors: [],
-                  sizes: [],
-                  product_link: `/${lang}/products/${product?.slug}`,
-                  images: [product?.image],
-                });
+                await wishlistService.addToWishlist(Number(productId));
                 setIsInWishlist(true);
                 showSuccessNotification(
                   translate("Added to checklist", language),

@@ -31,7 +31,7 @@ export async function getCurrency(country, language) {
       };
     } else {
       let currencyData = await fetchCurrency(language, country);
-      let currency = { ...currencyData.data.currency };
+      let currency = { ...currencyData.data };
       let end = process.hrtime.bigint();
       StoreCurrency(country, currency);
       return {

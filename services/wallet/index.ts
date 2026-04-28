@@ -411,7 +411,7 @@ export async function GetWalletBalanceInCurrency({
     local: local,
     url:
       process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
-      `/wallets/my/balances/${currencyId}?${params.toString()}`,
+      `/wallets/my/balances/${currencyId}?${params?.toString()}`,
     headers: {
       Authorization: `Bearer ${token}`,
     },

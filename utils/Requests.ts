@@ -232,4 +232,7 @@ export const REQUESTS_DATA = {
   CHECK_USER_WALLET: { reqTitle: "CHECK_USER_WALLET", code: 158 },
   GET_CURRENCIES: { reqTitle: "GET_CURRENCIES", code: 159 },
   VALIDATE_FCM_TOKEN: { reqTitle: "VALIDATE_FCM_TOKEN", code: 160 },
+  GET_CHECKLIST: { reqTitle: "GET_CHECKLIST", code: 161 },
+  DEL_CHECKLIST: { reqTitle: "DEL_CHECKLIST", code: 162 },
+  ADD_CHECKLIST: { reqTitle: "ADD_CHECKLIST", code: 163 },
 };
