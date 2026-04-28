@@ -87,8 +87,8 @@ const CurrencyTestCard = () => {
 
       const data = await response.json();
 
-      if (data?.data?.currency) {
-        setCurrency(data.data.currency);
+      if (data?.data) {
+        setCurrency(data.data);
       } else {
         throw new Error("Invalid currency data received");
       }

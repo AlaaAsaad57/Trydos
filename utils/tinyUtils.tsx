@@ -32,8 +32,8 @@ export const getCurrency = async ({ callback }) => {
     if (!response.success) {
       throw new Error(response.message);
     }
-    callback({ currency: response.data?.currency, res: {} });
-    return response.data?.currency;
+    callback({ currency: response.data, res: {} });
+    return response.data;
   } catch (err) {
     LogError({
       scenario: "getCurrency in ProductPageData",

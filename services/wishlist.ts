@@ -2,7 +2,18 @@ import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
 interface WishlistItem {
-  [key: string]: any;
+  id: number;
+  name: string;
+  slug: string;
+  image: string;
+}
+
+interface WishlistResponse {
+  data: WishlistItem[];
+  total_items: number;
+  page: number;
+  page_size: number;
+  has_next: boolean;
 }
 
 class WishlistService {
@@ -27,7 +38,7 @@ class WishlistService {
     });
   }
 
-  async getWishlist(): Promise<any> {
+  async getWishlist(): Promise<WishlistResponse> {
     let data = await fetchData({
       url: "/checklist?page=1&page_size=10&limit=10",
       method: "GET",
