@@ -70,7 +70,7 @@ const CurrencyTestCard = () => {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/home/currency?lang=en&country=${country}`,
+        `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/home/currency`,
         {
           method: "GET",
           headers: {

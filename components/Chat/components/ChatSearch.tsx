@@ -220,10 +220,12 @@ function ChatSearch({ close }) {
       }
       setQouted(null);
     }
+  }, [searchChat.activeMessage]);
+  useEffect(() => {
     return () => {
       setChatSearchValue("");
     };
-  }, [searchChat.activeMessage]);
+  }, []);
   return (
     <div className=" z-999999 absolute h-[50px] top-[48px] items-center left-0 w-full bg-[#fafafa] py-2 px-3 flex-row justify-between">
       <div className="flex relative w-full">
@@ -305,7 +307,8 @@ function ChatSearch({ close }) {
             searchChat.loading && "opacity-0"
           } ${
             searchChat.activeMessage ===
-              searchChat.messages[searchChat.messages.length - 1] && "opacity-5"
+              searchChat.messages[searchChat.messages.length - 1] &&
+            "opacity-50"
           }`}
           onClick={() => {
             if (
@@ -325,7 +328,7 @@ function ChatSearch({ close }) {
           className={`flex ml-1 cursor-pointer  ${
             searchChat.loading && "opacity-0"
           } ${
-            searchChat.activeMessage === searchChat.messages[0] && "opacity-5"
+            searchChat.activeMessage === searchChat.messages[0] && "opacity-50"
           }`}
           onClick={() => {
             if (
