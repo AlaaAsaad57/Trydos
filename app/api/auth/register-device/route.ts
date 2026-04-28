@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const requestBody = { old_guest_user_id: oldGuestUserId };
 
     let response = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
+      process.env.NEXT_PUBLIC_GO_BACKEND_URL + REGISTER_DEVICE_URL,
       {
         method: "POST",
         headers: {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Retry without old_guest_user_id if user not found
     if (data.message === "The user does not exist." && oldGuestUserId) {
       response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
+        process.env.NEXT_PUBLIC_GO_BACKEND_URL + REGISTER_DEVICE_URL,
         {
           method: "POST",
           headers: {

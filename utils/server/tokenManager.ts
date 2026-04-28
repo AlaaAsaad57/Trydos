@@ -47,13 +47,21 @@ const SECURE_COOKIE_NAMES = [
   COOKIE_NAMES.WALLET_USER,
 ] as const;
 
+const GO_APIS = [
+  "/auth/register-guest",
+  "/home/currency",
+  "/web/home/startingSettings",
+];
 // ---------- Server URL Resolution ----------
 
-function getServerBaseUrl(server: ProxiedServer): string {
+function getServerBaseUrl(server: ProxiedServer, url: string): string {
   switch (server) {
     case "market":
-    case "market-dashboard":
+    case "market-dashboard": {
+      if (GO_APIS.includes(url))
+        return process.env.NEXT_PUBLIC_GO_BACKEND_URL || "";
       return process.env.NEXT_PUBLIC_BACKEND_URL || "";
+    }
     case "elastic":
       return process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL || "";
     case "chat":

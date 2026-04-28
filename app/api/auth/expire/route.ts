@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     const oldGuestUserId = oldUserId || userData?.id || null;
 
     let response = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_GUEST_URL,
+      process.env.NEXT_PUBLIC_GO_BACKEND_URL + REGISTER_GUEST_URL,
       {
         method: "POST",
         headers: {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     if (data.message === "The user does not exist." && oldGuestUserId) {
       response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_GUEST_URL,
+        process.env.NEXT_PUBLIC_GO_BACKEND_URL + REGISTER_GUEST_URL,
         {
           method: "POST",
           headers: {
