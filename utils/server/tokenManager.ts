@@ -204,6 +204,8 @@ async function buildProxyHeaders(
     "Accept-Language": language,
     "x-lang": language,
     country: country,
+    Country: country,
+    Lang: language,
     countryCode: country?.toUpperCase(),
     current_role_id: userChat?.role_id || "-1",
   };
