@@ -41,6 +41,20 @@ let nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/:file(sitemap.*\\.xml)",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/xml",
+          },
+          {
+            key: "Cache-Control",
+            value:
+              "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
+          },
+        ],
+      },
+      {
         source: "/sitemap.xml",
         headers: [
           {
@@ -49,7 +63,8 @@ let nextConfig: NextConfig = {
           },
           {
             key: "Cache-Control",
-            value: "public, max-age=36000, stale-while-revalidate=7200",
+            value:
+              "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
           },
         ],
       },

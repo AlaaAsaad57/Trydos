@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateLocaleSitemapIndexXML } from "services/elastic/sitemap.service";
 import { LogServerError } from "utils/serverErrorReporter";
 
+export const revalidate = 3600; // regenerate at most once per hour
+
 export async function GET(request: NextRequest) {
   try {
     const xml = await generateLocaleSitemapIndexXML();
@@ -10,8 +12,8 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/xml",
-        "Cache-Control": "public, max-age=3600, s-maxage=3600",
-        "Content-Encoding": "identity", // Cache for 1 hour
+        "Cache-Control":
+          "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
       },
     });
   } catch (error) {

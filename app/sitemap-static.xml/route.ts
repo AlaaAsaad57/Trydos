@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateStaticPagesSitemapXML } from "services/elastic/sitemap.service";
 import { LogServerError } from "utils/serverErrorReporter";
 
+export const revalidate = 43200; // static pages change rarely, regenerate every 12h
+
 export async function GET(request: NextRequest) {
   try {
     const xml = await generateStaticPagesSitemapXML();
@@ -10,8 +12,8 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/xml",
-        "Cache-Control": "public, max-age=3600, s-maxage=3600", // Cache for 1 hour
-        "Content-Encoding": "identity", // Cache for 1 hour
+        "Cache-Control":
+          "public, max-age=43200, s-maxage=43200, stale-while-revalidate=86400",
       },
     });
   } catch (error) {
