@@ -505,8 +505,10 @@ class AuthService {
         { name: COOKIE_NAMES.WALLET_USER, value: walletUpdate },
       ]);
 
-      const { chatUser: chatUserFromCookies, storiesUser: storiesUserFromCookies } =
-        await this.getServiceUsersFromCookies();
+      const {
+        chatUser: chatUserFromCookies,
+        storiesUser: storiesUserFromCookies,
+      } = await this.getServiceUsersFromCookies();
       const effectiveUserStories = userStories ?? storiesUserFromCookies;
       const effectiveUserChat = userChat ?? chatUserFromCookies;
 
