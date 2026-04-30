@@ -1169,7 +1169,27 @@ export async function generateLocaleSpecificSitemapUrls(
     console.error(`Error fetching products for ${country}-${language}:`, error);
   }
 
-  // 4. Search terms for this locale
+  // 4. Boutiques for this locale
+  try {
+    const boutiques = await getBoutiquesForSitemap();
+    const currentDate = new Date().toISOString().split("T")[0];
+
+    for (const { slug } of boutiques) {
+      sitemapUrls.push({
+        loc: `${baseUrl}/${country}-${language}/filters/boutiques/${slug}`,
+        lastmod: currentDate,
+        changefreq: "weekly",
+        priority: 0.7,
+      });
+    }
+  } catch (error) {
+    console.error(
+      `Error fetching boutiques for ${country}-${language}:`,
+      error,
+    );
+  }
+
+  // 5. Search terms for this locale
   try {
     const searchTerms = await getTopSearchTerms(100);
 
