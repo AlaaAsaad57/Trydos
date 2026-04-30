@@ -5,8 +5,13 @@ import { LogServerError } from "utils/serverErrorReporter";
 export const revalidate = 3600; // regenerate at most once per hour
 
 export async function GET(request: NextRequest) {
+  const page = Math.max(
+    0,
+    parseInt(request.nextUrl.searchParams.get("page") ?? "0", 10) || 0,
+  );
+
   try {
-    const xml = await generateBoutiqueSitemapXML();
+    const xml = await generateBoutiqueSitemapXML(page);
 
     return new NextResponse(xml, {
       status: 200,
@@ -17,7 +22,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error generating boutiques sitemap:", error);
+    console.error(`Error generating boutiques sitemap (page ${page}):`, error);
     LogServerError({
       error,
       type: "get sitemap for boutiques api route",

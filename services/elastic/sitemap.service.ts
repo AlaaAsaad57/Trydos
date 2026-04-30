@@ -38,6 +38,9 @@ interface SearchTerm {
   count?: number;
 }
 
+/** Maximum URLs per sitemap file (sitemap protocol hard limit) */
+const SITEMAP_PAGE_SIZE = 50_000;
+
 /**
  * Get all active countries and languages from Elasticsearch for sitemap generation
  */
@@ -706,8 +709,10 @@ export async function generateSearchTermsSitemapXML(): Promise<string> {
 /**
  * Generate XML sitemap string for products
  */
-export async function generateProductSitemapXML(): Promise<string> {
-  const urls = await generateProductSitemapUrls();
+export async function generateProductSitemapXML(page = 0): Promise<string> {
+  const allUrls = await generateProductSitemapUrls();
+  const start = page * SITEMAP_PAGE_SIZE;
+  const urls = allUrls.slice(start, start + SITEMAP_PAGE_SIZE);
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
@@ -722,7 +727,6 @@ export async function generateProductSitemapXML(): Promise<string> {
   }
 
   xml += "</urlset>";
-
   return xml;
 }
 
@@ -1328,10 +1332,67 @@ export async function generateBoutiqueSitemapUrls(): Promise<SitemapUrl[]> {
 }
 
 /**
- * Generate XML sitemap string for boutiques
+ * Returns the number of paginated product sitemap files needed.
+ * Uses a cardinality aggregation (fast, no full fetch).
  */
-export async function generateBoutiqueSitemapXML(): Promise<string> {
-  const urls = await generateBoutiqueSitemapUrls();
+export async function getProductSitemapPageCount(): Promise<number> {
+  const [slugResult, locales] = await Promise.all([
+    elasticSearchClient.search({
+      index: catalog_index,
+      size: 0,
+      query: buildProductBaseQuery(),
+      aggs: {
+        unique_slugs: {
+          nested: { path: "custom_products" },
+          aggs: {
+            count: { cardinality: { field: "custom_products.slug.keyword" } },
+          },
+        },
+      },
+    }),
+    getHomeSitemapLocales(),
+  ]);
+
+  const slugCount =
+    (slugResult.aggregations as any)?.unique_slugs?.count?.value ?? 0;
+  const localeCount = locales.countries.length * locales.languages.length;
+  return Math.max(1, Math.ceil((slugCount * localeCount) / SITEMAP_PAGE_SIZE));
+}
+
+/**
+ * Returns the number of paginated boutique sitemap files needed.
+ * Uses a cardinality aggregation (fast, no full fetch).
+ */
+export async function getBoutiqueSitemapPageCount(): Promise<number> {
+  const { must, must_not } = buildSitemapBaseConditions();
+  const [boutiqueResult, locales] = await Promise.all([
+    elasticSearchClient.search({
+      index: catalog_index,
+      size: 0,
+      query: { bool: { must, must_not } },
+      aggs: {
+        unique_boutiques: { cardinality: { field: "boutique_id" } },
+      },
+    }),
+    getHomeSitemapLocales(),
+  ]);
+
+  const boutiqueCount =
+    (boutiqueResult.aggregations as any)?.unique_boutiques?.value ?? 0;
+  const localeCount = locales.countries.length * locales.languages.length;
+  return Math.max(
+    1,
+    Math.ceil((boutiqueCount * localeCount) / SITEMAP_PAGE_SIZE),
+  );
+}
+
+/**
+ * Generate XML sitemap string for boutiques (paginated).
+ */
+export async function generateBoutiqueSitemapXML(page = 0): Promise<string> {
+  const allUrls = await generateBoutiqueSitemapUrls();
+  const start = page * SITEMAP_PAGE_SIZE;
+  const urls = allUrls.slice(start, start + SITEMAP_PAGE_SIZE);
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
@@ -1374,16 +1435,38 @@ export async function generateLocaleSpecificSitemapXML(
 export async function generateLocaleSitemapIndexXML(): Promise<string> {
   const baseUrl = General_Site_Data.url;
   const now = new Date().toISOString();
-  const combinations = await getAllCountryLanguageCombinations();
-  console.log("combinations :", combinations);
+
+  const [combinations, productPageCount, boutiquePageCount] = await Promise.all(
+    [
+      getAllCountryLanguageCombinations(),
+      getProductSitemapPageCount(),
+      getBoutiqueSitemapPageCount(),
+    ],
+  );
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
+  // Locale-specific sitemaps (/{country}-{language}/sitemap.xml)
   for (const { country, language } of combinations) {
-    const sitemapUrl = `${baseUrl}/${country}-${language}/sitemap.xml`;
     xml += "  <sitemap>\n";
-    xml += `    <loc>${sitemapUrl}</loc>\n`;
+    xml += `    <loc>${baseUrl}/${country}-${language}/sitemap.xml</loc>\n`;
+    xml += `    <lastmod>${now}</lastmod>\n`;
+    xml += "  </sitemap>\n";
+  }
+
+  // Paginated product sitemaps
+  for (let i = 0; i < productPageCount; i++) {
+    xml += "  <sitemap>\n";
+    xml += `    <loc>${baseUrl}/sitemap-products.xml?page=${i}</loc>\n`;
+    xml += `    <lastmod>${now}</lastmod>\n`;
+    xml += "  </sitemap>\n";
+  }
+
+  // Paginated boutique sitemaps
+  for (let i = 0; i < boutiquePageCount; i++) {
+    xml += "  <sitemap>\n";
+    xml += `    <loc>${baseUrl}/sitemap-boutiques.xml?page=${i}</loc>\n`;
     xml += `    <lastmod>${now}</lastmod>\n`;
     xml += "  </sitemap>\n";
   }
