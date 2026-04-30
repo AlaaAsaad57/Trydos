@@ -1390,6 +1390,7 @@ const translations = {
   SHIPPING: "الشحن",
   COUNTRIES: "الدول",
   ADMIN: "الإدارة",
+  "Failed to update checklist": "فشل تحديث قائمة الرغبات",
 };
 
 export default translations;

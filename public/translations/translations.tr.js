@@ -1398,6 +1398,7 @@ const translations = {
   SHIPPING: "Kargo",
   COUNTRIES: "Ülkeler",
   ADMIN: "Yönetim",
+  "Failed to update checklist": "Kontrol listesini güncelleme başarısız oldu",
 };
 
 export default translations;

@@ -1420,6 +1420,7 @@ const translations = {
   SHIPPING: "گواستنەوە",
   COUNTRIES: "وڵاتەکان",
   ADMIN: "بەڕێوەبردن",
+  "Failed to update checklist": "شکستی نوێکردنەوەی لیستی چیک",
 };
 
 export default translations;

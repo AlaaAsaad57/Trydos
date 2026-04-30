@@ -19,13 +19,12 @@ interface WishlistResponse {
 }
 
 interface WishlistExistenceResponse {
-  data?: boolean | { exists?: boolean };
-  exists?: boolean;
+  data?: { is_exist: boolean };
 }
 
 class WishlistService {
   async addToWishlist(productId: number): Promise<void> {
-    await fetchData({
+    let res = await fetchData({
       url: "/checklist",
       method: "POST",
       server: "market",
@@ -34,15 +33,23 @@ class WishlistService {
       }),
       reqTitle: REQUESTS_DATA.ADD_CHECKLIST,
     });
+
+    if (!res.success) {
+      throw new Error(res.message || "Failed to add product to wishlist");
+    }
   }
 
   async removeFromWishlist(productId: string): Promise<void> {
-    await fetchData({
+    let res = await fetchData({
       url: `/checklist/${productId}`,
       method: "DELETE",
       server: "market",
       reqTitle: REQUESTS_DATA.DEL_CHECKLIST,
     });
+
+    if (!res.success) {
+      throw new Error(res.message || "Failed to add product to wishlist");
+    }
   }
 
   async getWishlist(page = 1): Promise<WishlistResponse> {
@@ -64,18 +71,9 @@ class WishlistService {
       noMessage: true,
     });
 
-    if (typeof data?.data === "boolean") {
-      return data.data;
+    if (data.data.is_exist) {
+      return true;
     }
-
-    if (typeof data?.data?.exists === "boolean") {
-      return data.data.exists;
-    }
-
-    if (typeof data?.exists === "boolean") {
-      return data.exists;
-    }
-
     return false;
   }
 }
