@@ -16,10 +16,11 @@ function AddStory() {
   } = useAppStore();
 
   const handleClick = () => {
+    console.log(storiesRefreshing);
     if (storiesRefreshing) return;
-    if (userStories || !userStories?.need_auth) {
+    if (userStories && !userStories?.need_auth) {
       const user = useAppStore.getState().userProfile;
-      if (user?.name?.length > 0) {
+      if (user?.name?.length > 0 && user?.phone !== "0") {
         setAddStory(true);
       } else {
         setNameModal(true);
