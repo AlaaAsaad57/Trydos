@@ -61,9 +61,9 @@ const WishListPanel = ({ onClose }) => {
       try {
         setLoading(true);
         const result = await wishlistService.getWishlist(1);
-        setWishlistItems(result.data);
-        setHasNext(result.has_next);
-        setTotalPages(result.total_pages);
+        setWishlistItems(result?.data ?? []);
+        setHasNext(result?.has_next);
+        setTotalPages(result?.total_pages);
         setPage(1);
       } catch (error) {
         console.error("Error loading wishlist:", error);
