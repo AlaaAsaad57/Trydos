@@ -1198,6 +1198,137 @@ export async function generateLocaleSpecificSitemapUrls(
   return sitemapUrls;
 }
 
+/**
+ * Fetch all unique boutique slugs from Elasticsearch using the same composite
+ * aggregation pattern as getBoutiques (only slug is needed for sitemap).
+ */
+async function getBoutiquesForSitemap(): Promise<{ slug: string }[]> {
+  const { must, must_not } = buildSitemapBaseConditions();
+  const seenSlugs = new Set<string>();
+  const boutiques: { slug: string }[] = [];
+  const pageSize = 1000;
+  let afterKey: Record<string, any> | null = null;
+
+  try {
+    do {
+      const compositeAgg: any = {
+        size: pageSize,
+        sources: [
+          {
+            boutique_position: {
+              terms: { field: "boutique_position", order: "desc" },
+            },
+          },
+          { boutique_id: { terms: { field: "boutique_id", order: "asc" } } },
+        ],
+      };
+
+      if (afterKey) {
+        compositeAgg.after = afterKey;
+      }
+
+      const response = await elasticSearchClient.search({
+        index: catalog_index,
+        size: 0,
+        query: { bool: { must, must_not } },
+        aggs: {
+          boutiques_composite: {
+            composite: compositeAgg,
+            aggs: {
+              boutique_data: {
+                top_hits: {
+                  size: 1,
+                  _source: { includes: ["custom_boutiques.slug"] },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const buckets =
+        (response.aggregations as any)?.boutiques_composite?.buckets ?? [];
+
+      for (const bucket of buckets) {
+        const source = bucket.boutique_data?.hits?.hits?.[0]?._source;
+        const customBoutiques = source?.custom_boutiques;
+        if (!customBoutiques) continue;
+
+        const entries = Array.isArray(customBoutiques)
+          ? customBoutiques
+          : [customBoutiques];
+
+        for (const cb of entries) {
+          if (cb?.slug && !seenSlugs.has(cb.slug)) {
+            seenSlugs.add(cb.slug);
+            boutiques.push({ slug: cb.slug });
+          }
+        }
+      }
+
+      afterKey =
+        (response.aggregations as any)?.boutiques_composite?.after_key ?? null;
+    } while (afterKey);
+
+    return boutiques;
+  } catch (error) {
+    console.error("Error fetching boutiques for sitemap:", error);
+    throw error;
+  }
+}
+
+/**
+ * Generate boutique sitemap URLs for all country-language combinations.
+ * URL pattern: {baseUrl}/{country}-{language}/filters/boutiques/{slug}
+ */
+export async function generateBoutiqueSitemapUrls(): Promise<SitemapUrl[]> {
+  const baseUrl = General_Site_Data.url;
+  const [boutiques, locales] = await Promise.all([
+    getBoutiquesForSitemap(),
+    getHomeSitemapLocales(),
+  ]);
+
+  const currentDate = new Date().toISOString().split("T")[0];
+  const sitemapUrls: SitemapUrl[] = [];
+
+  for (const { slug } of boutiques) {
+    for (const country of locales.countries) {
+      for (const language of locales.languages) {
+        sitemapUrls.push({
+          loc: `${baseUrl}/${country}-${language}/filters/boutiques/${slug}`,
+          lastmod: currentDate,
+          changefreq: "weekly",
+          priority: 0.7,
+        });
+      }
+    }
+  }
+
+  return sitemapUrls;
+}
+
+/**
+ * Generate XML sitemap string for boutiques
+ */
+export async function generateBoutiqueSitemapXML(): Promise<string> {
+  const urls = await generateBoutiqueSitemapUrls();
+
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+  for (const url of urls) {
+    xml += "  <url>\n";
+    xml += `    <loc>${url.loc}</loc>\n`;
+    xml += `    <lastmod>${url.lastmod}</lastmod>\n`;
+    xml += `    <changefreq>${url.changefreq}</changefreq>\n`;
+    xml += `    <priority>${url.priority}</priority>\n`;
+    xml += "  </url>\n";
+  }
+
+  xml += "</urlset>";
+  return xml;
+}
+
 export async function generateLocaleSpecificSitemapXML(
   country: string,
   language: string,
