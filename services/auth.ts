@@ -36,6 +36,27 @@ let normalizePhone = (phone: string) => {
   return phone.replaceAll("+", "");
 };
 class AuthService {
+  private async getServiceUsersFromCookies() {
+    try {
+      const response = await fetch("/api/auth/me", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        return { chatUser: null, storiesUser: null };
+      }
+
+      const data = await response.json();
+      return {
+        chatUser: data?.chatUser ?? null,
+        storiesUser: data?.storiesUser ?? null,
+      };
+    } catch (error) {
+      return { chatUser: null, storiesUser: null };
+    }
+  }
+
   async SendOtp(
     mobilePhone: string,
     is_via_whatsapp: number | string,
@@ -484,7 +505,12 @@ class AuthService {
         { name: COOKIE_NAMES.WALLET_USER, value: walletUpdate },
       ]);
 
-      if (userStories?.id) {
+      const { chatUser: chatUserFromCookies, storiesUser: storiesUserFromCookies } =
+        await this.getServiceUsersFromCookies();
+      const effectiveUserStories = userStories ?? storiesUserFromCookies;
+      const effectiveUserChat = userChat ?? chatUserFromCookies;
+
+      if (effectiveUserStories) {
         let res = await fetchData({
           url: "/api/v1/users/update",
           reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_STORIES,
@@ -510,7 +536,8 @@ class AuthService {
           { name: COOKIE_NAMES.USER_STORIES, value: storiesUpdate },
         ]);
       }
-      if (userChat?.id) {
+
+      if (effectiveUserChat) {
         let chat_update = await fetchData({
           url: `/api/v1/users/${this.UserID()}`,
           reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_CHAT,
