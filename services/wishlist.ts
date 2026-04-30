@@ -10,15 +10,22 @@ interface WishlistItem {
 
 interface WishlistResponse {
   data: WishlistItem[];
-  total_items: number;
-  page: number;
+  current_page: number;
   page_size: number;
+  total_items: number;
+  total_pages: number;
   has_next: boolean;
+  has_prev: boolean;
+}
+
+interface WishlistExistenceResponse {
+  data?: boolean | { exists?: boolean };
+  exists?: boolean;
 }
 
 class WishlistService {
   async addToWishlist(productId: number): Promise<void> {
-    let data = await fetchData({
+    await fetchData({
       url: "/checklist",
       method: "POST",
       server: "market",
@@ -30,27 +37,45 @@ class WishlistService {
   }
 
   async removeFromWishlist(productId: string): Promise<void> {
-    let data = await fetchData({
-      url: "/checklist?product_id=" + productId,
+    await fetchData({
+      url: `/checklist/${productId}`,
       method: "DELETE",
       server: "market",
       reqTitle: REQUESTS_DATA.DEL_CHECKLIST,
     });
   }
 
-  async getWishlist(): Promise<WishlistResponse> {
-    let data = await fetchData({
-      url: "/checklist?page=1&page_size=10&limit=10",
+  async getWishlist(page = 1): Promise<WishlistResponse> {
+    const data = await fetchData({
+      url: `/checklist?page=${page}&page_size=10`,
       method: "GET",
       server: "market",
       reqTitle: REQUESTS_DATA.GET_CHECKLIST,
     });
-    console.log("Wishlist data:", data);
     return data?.data;
   }
 
   async isInWishlist(productId: string): Promise<boolean> {
-    // isInCheckList()
+    const data = await fetchData<WishlistExistenceResponse>({
+      url: `/checklist/product/${productId}/exist`,
+      method: "GET",
+      server: "market",
+      reqTitle: REQUESTS_DATA.GET_CHECKLIST,
+      noMessage: true,
+    });
+
+    if (typeof data?.data === "boolean") {
+      return data.data;
+    }
+
+    if (typeof data?.data?.exists === "boolean") {
+      return data.data.exists;
+    }
+
+    if (typeof data?.exists === "boolean") {
+      return data.exists;
+    }
+
     return false;
   }
 }

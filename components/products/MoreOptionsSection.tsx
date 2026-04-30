@@ -22,6 +22,7 @@ import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
 import { wishlistService } from "services/wishlist";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
+
 function MoreOptionsSection({ product }) {
   const {
     disableNotification,
@@ -123,6 +124,45 @@ function MoreOptionsSection({ product }) {
     };
     checkWishlistStatus();
   }, [product?.id]);
+
+  const toggleWishlist = async () => {
+    if (wishlistLoading || !product?.id) return;
+
+    setWishlistLoading(true);
+
+    try {
+      const productId = String(product.id);
+      const currentlyInWishlist = await wishlistService.isInWishlist(productId);
+
+      if (currentlyInWishlist) {
+        await wishlistService.removeFromWishlist(productId);
+        setIsInWishlist(false);
+        showSuccessNotification(translate("Removed from checklist", language));
+      } else {
+        await wishlistService.addToWishlist(Number(productId));
+        setIsInWishlist(true);
+        showSuccessNotification(translate("Added to checklist", language));
+      }
+
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_TO_FAV,
+        params: {
+          user_id_custom: auth.UserID(),
+          item_id: product?.id,
+          item_name: product?.name,
+          brand: product?.brand?.name,
+          brand_id: product?.brand?.id,
+          category: product?.category?.name,
+          category_id: product?.category?.id,
+          price: product?.price,
+        },
+      });
+    } catch (error) {
+      showErrorNotification(translate("Failed to update checklist", language));
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   useEffect(() => {
     const checkCompareStatus = () => {
@@ -276,46 +316,7 @@ function MoreOptionsSection({ product }) {
             isInWishlist ? "bg-green-300" : ""
           }`}
           data-cy="add-checkList"
-          onClick={async () => {
-            if (wishlistLoading) return;
-            setWishlistLoading(true);
-            try {
-              const productId = String(product?.id);
-
-              if (isInWishlist) {
-                await wishlistService.removeFromWishlist(productId);
-                setIsInWishlist(false);
-                showSuccessNotification(
-                  translate("Removed from checklist", language),
-                );
-              } else {
-                await wishlistService.addToWishlist(Number(productId));
-                setIsInWishlist(true);
-                showSuccessNotification(
-                  translate("Added to checklist", language),
-                );
-              }
-              GAevent({
-                action: GA_EVENT_NAMES.ADD_TO_FAV,
-                params: {
-                  user_id_custom: auth.UserID(),
-                  item_id: product?.id,
-                  item_name: product?.name,
-                  brand: product?.brand?.name,
-                  brand_id: product?.brand?.id,
-                  category: product?.category?.name,
-                  category_id: product?.category?.id,
-                  price: product?.price,
-                },
-              });
-            } catch (error) {
-              showErrorNotification(
-                translate("Failed to update checklist", language),
-              );
-            } finally {
-              setWishlistLoading(false);
-            }
-          }}
+          onClick={toggleWishlist}
         >
           <svg
             data-cy="add-checkList-svg"
