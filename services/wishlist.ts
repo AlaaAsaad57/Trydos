@@ -10,10 +10,12 @@ interface WishlistItem {
 
 interface WishlistResponse {
   data: WishlistItem[];
-  total_items: number;
-  page: number;
+  current_page: number;
   page_size: number;
+  total_items: number;
+  total_pages: number;
   has_next: boolean;
+  has_prev: boolean;
 }
 
 class WishlistService {
@@ -38,14 +40,13 @@ class WishlistService {
     });
   }
 
-  async getWishlist(): Promise<WishlistResponse> {
-    let data = await fetchData({
-      url: "/checklist?page=1&page_size=10&limit=10",
+  async getWishlist(page = 1): Promise<WishlistResponse> {
+    const data = await fetchData({
+      url: `/checklist?page=${page}&page_size=10`,
       method: "GET",
       server: "market",
       reqTitle: REQUESTS_DATA.GET_CHECKLIST,
     });
-    console.log("Wishlist data:", data);
     return data?.data;
   }
 

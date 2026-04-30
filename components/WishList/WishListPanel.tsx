@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import {
   getConfiguredImage,
   RoundPrice,
@@ -15,14 +15,12 @@ import { showSuccessNotification } from "@/store/notifications/reducer";
 const WishListPanel = ({ onClose }) => {
   const wishListRef = useRef<HTMLDivElement>(null);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [pageinationData, setPaginationData] = useState({
-    page: 1,
-    has_next: false,
-    has_previous: false,
-    limit: 10,
-    total: 0,
-  });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   // Handle document scroll lock
   useEffect(() => {
     const originalStyle = window.getComputedStyle(document.body).overflow;
@@ -62,14 +60,11 @@ const WishListPanel = ({ onClose }) => {
     const loadWishlist = async () => {
       try {
         setLoading(true);
-        const items = await wishlistService.getWishlist();
-
-        setPaginationData({
-          ...pageinationData,
-          has_next: items.has_next,
-          total: items.total_items,
-        });
-        setWishlistItems(items.data);
+        const result = await wishlistService.getWishlist(1);
+        setWishlistItems(result.data);
+        setHasNext(result.has_next);
+        setTotalPages(result.total_pages);
+        setPage(1);
       } catch (error) {
         console.error("Error loading wishlist:", error);
       } finally {
@@ -78,6 +73,23 @@ const WishListPanel = ({ onClose }) => {
     };
     loadWishlist();
   }, []);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasNext) return;
+    const nextPage = page + 1;
+    try {
+      setLoadingMore(true);
+      const result = await wishlistService.getWishlist(nextPage);
+      setWishlistItems((prev) => [...prev, ...result.data]);
+      setHasNext(result.has_next);
+      setTotalPages(result.total_pages);
+      setPage(nextPage);
+    } catch (error) {
+      console.error("Error loading more wishlist items:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasNext, page]);
 
   const handleDeleteItem = async (e: React.MouseEvent, productId: string) => {
     e.preventDefault();
@@ -92,6 +104,7 @@ const WishListPanel = ({ onClose }) => {
       console.error("Error removing from CheckList:", error);
     }
   };
+
   return (
     <div
       data-cy="wishList-card"
@@ -199,13 +212,30 @@ const WishListPanel = ({ onClose }) => {
             <p className="text-sm">{translateFunction("Loading...")}</p>
           </div>
         ) : wishlistItems.length > 0 ? (
-          wishlistItems.map((item) => (
-            <WishListItem
-              item={item}
-              handleDeleteItem={handleDeleteItem}
-              close={onClose}
-            />
-          ))
+          <>
+            {wishlistItems.map((item) => (
+              <WishListItem
+                key={item.id}
+                item={item}
+                handleDeleteItem={handleDeleteItem}
+                close={onClose}
+              />
+            ))}
+            {hasNext && (
+              <div className="flex justify-center py-4">
+                <button
+                  data-cy="load-more-button"
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loadingMore
+                    ? translateFunction("Loading...")
+                    : translateFunction("Load more")}
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div
             data-cy="empty-container"
