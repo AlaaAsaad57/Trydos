@@ -10,7 +10,7 @@ async function ProductNameAndBrand({ globalPromise, isRtl, color }) {
     });
     if (color) {
       const matchingColor = product?.sync_color_images?.find(
-        (s) => s.color_option === color || s.color_name === color
+        (s) => s.color_option === color || s.color_name === color,
       );
       if (matchingColor) {
         text_info.push(matchingColor?.color_name);
@@ -33,9 +33,11 @@ async function ProductNameAndBrand({ globalPromise, isRtl, color }) {
             alt={product.brand.name}
           />
         )}
-        <span>
-          <img src="/icons/VerifiedIcon.svg" />
-        </span>
+        {product?.brand?.is_verified && (
+          <span>
+            <img src="/icons/VerifiedIcon.svg" />
+          </span>
+        )}
       </div>
       <div
         className={`${
