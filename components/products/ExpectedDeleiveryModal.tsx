@@ -8,12 +8,12 @@ import { useParams } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
 import ThinSepartor from "components/global/ThinSepartor";
 import { GetCountries } from "serverRequests/product";
-function ExpectedDeleiveryModal() {
+function ExpectedDeleiveryModal({ shipping_days }: { shipping_days: number }) {
   const [countriesData, setCountries] = useState([]);
   const { lang } = useParams();
   const [country, language] = (lang as string)?.split("-");
-  const { ColorBottomSheet, setColorBottomSheet, settings, SelectedProduct } =
-    useAppStore();
+  const { ColorBottomSheet, setColorBottomSheet, settings } = useAppStore();
+
   const getCountries = async () => {
     try {
       if (sessionStorage.getItem(`countries-${country}-${language}`)) {
@@ -79,8 +79,7 @@ function ExpectedDeleiveryModal() {
                       new Date().getTime() +
                         Number(
                           (settings?.["starting-setting"]
-                            ?.shipping_duration_days || 0) +
-                            SelectedProduct?.shipping_days,
+                            ?.shipping_duration_days || 0) + shipping_days,
                         ) *
                           24 *
                           60 *
@@ -96,8 +95,7 @@ function ExpectedDeleiveryModal() {
                       new Date().getTime() +
                         Number(
                           (settings?.["starting-setting"]
-                            ?.shipping_duration_days || 0) +
-                            SelectedProduct?.shipping_days,
+                            ?.shipping_duration_days || 0) + shipping_days,
                         ) *
                           24 *
                           60 *
@@ -109,7 +107,7 @@ function ExpectedDeleiveryModal() {
                 |
                 <span className="bold px-[3px]">
                   {(settings?.["starting-setting"]?.shipping_duration_days ||
-                    0) + SelectedProduct?.shipping_days}{" "}
+                    0) + shipping_days}{" "}
                   {translateFunction("Work Days")}{" "}
                 </span>
                 {translateFunction("At Your Address In", language)}
@@ -137,7 +135,7 @@ function ExpectedDeleiveryModal() {
                 )}
                 <span className="bold px-[3px]">
                   {(settings?.["starting-setting"]?.shipping_duration_days ||
-                    0) + SelectedProduct?.shipping_days}
+                    0) + shipping_days}
                   <span className="px-[3px]">{translateFunction("Days")}</span>
                 </span>
               </div>
@@ -149,13 +147,19 @@ function ExpectedDeleiveryModal() {
             </div>
             <ThinSepartor className="py-[11px]   w-full" />
             <div className="flex-col gap-[8px]">
-              <img src="/icons/DelevieryGurantee.svg" />
+              <img
+                src="/icons/DelevieryGurantee.svg"
+                className="w-[30px] h-[30px]"
+              />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Delivery Guarantee", language)}
                 </span>
                 <span className="flex gap-[4px] mt-[5px]">
-                  <img src="/icons/RefundIcon.svg" />
+                  <img
+                    src="/icons/RefundIcon.svg"
+                    className="w-[30px] h-[30px]"
+                  />
                   <p>
                     <span>{translateFunction("Get a")}</span>
                     <span className="text-[#388CFF] medium px-[4px]">25%</span>
@@ -172,8 +176,7 @@ function ExpectedDeleiveryModal() {
                         new Date().getTime() +
                           Number(
                             (settings?.["starting-setting"]
-                              ?.shipping_duration_days || 0) +
-                              SelectedProduct?.shipping_days,
+                              ?.shipping_duration_days || 0) + shipping_days,
                           ) *
                             24 *
                             60 *
@@ -188,8 +191,7 @@ function ExpectedDeleiveryModal() {
                         new Date().getTime() +
                           Number(
                             (settings?.["starting-setting"]
-                              ?.shipping_duration_days || 0) +
-                              SelectedProduct?.shipping_days,
+                              ?.shipping_duration_days || 0) + shipping_days,
                           ) *
                             24 *
                             60 *
@@ -205,7 +207,10 @@ function ExpectedDeleiveryModal() {
               </div>
             </div>
             <div className="flex-col gap-[8px] mt-[10px]">
-              <img src="/icons/GreenBigTruck.svg" />
+              <img
+                src="/icons/GreenBigTruck.svg"
+                className="w-[30px] h-[30px]"
+              />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Free Shipping", language)}
@@ -219,7 +224,10 @@ function ExpectedDeleiveryModal() {
               </div>
             </div>
             <div className="flex-col gap-[8px] mt-[10px]">
-              <img src="/icons/ReturnGurantee.svg" />
+              <img
+                src="/icons/ReturnGurantee.svg"
+                className="w-[30px] h-[30px]"
+              />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Delivery Guarantee", language)}
@@ -228,7 +236,7 @@ function ExpectedDeleiveryModal() {
                   {translateFunction("within", language)}
                   <span className="px-[3px] bold">
                     {(settings?.["starting-setting"]?.shipping_duration_days ||
-                      0) + SelectedProduct?.shipping_days}
+                      0) + shipping_days}
                   </span>
                   <span>
                     {translateFunction(
@@ -238,7 +246,10 @@ function ExpectedDeleiveryModal() {
                   </span>
                 </span>
                 <span className="flex gap-[4px] mt-[5px]">
-                  <img src="/icons/RefundIcon.svg" />
+                  <img
+                    src="/icons/RefundIcon.svg"
+                    className="w-[30px] h-[30px]"
+                  />
                   <p>
                     <span>{translateFunction("Get a")}</span>
                     <span className="text-[#388CFF] medium px-[4px]">
@@ -250,7 +261,7 @@ function ExpectedDeleiveryModal() {
               </div>
             </div>
             <div className="flex-col gap-[8px] mt-[10px]">
-              <img src="/icons/RedBigTruck.svg" />
+              <img src="/icons/RedBigTruck.svg" className="w-[30px] h-[30px]" />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Free Return", language)}
