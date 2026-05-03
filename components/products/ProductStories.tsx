@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SelectStory } from "store/homepage/actions";
 
 import StoryServiceClass from "services/story";
@@ -11,7 +11,7 @@ import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { GetProductStories } from "serverRequests/product";
 function ProductStories({ id, children, InitialStoriesData }) {
-  const { selectedStory } = useAppStore();
+  const { selectedStory, isProductPage, setStoryData } = useAppStore();
   let { lang } = useParams();
   const [stories, setStories] = useState(children);
   const [storiesData, setStoriesData] = useState(InitialStoriesData);
@@ -21,7 +21,9 @@ function ProductStories({ id, children, InitialStoriesData }) {
   const [hasEnd, setHasEnd] = useState(InitialStoriesData.length < 10);
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
-
+  useEffect(() => {
+    setStoryData(InitialStoriesData);
+  }, []);
   const setSelectStory = (e) => {
     SelectStory(e);
   };
@@ -70,7 +72,7 @@ function ProductStories({ id, children, InitialStoriesData }) {
   };
   return (
     <>
-      {selectedStory && selectedStory?.id && (
+      {selectedStory && selectedStory?.id && isProductPage && (
         <StoriesContainer stories={storiesData} selectedStory={selectedStory} />
       )}
       <div className={`stories-row flex-row w-full`} onClick={() => {}}>

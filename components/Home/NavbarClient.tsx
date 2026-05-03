@@ -8,7 +8,8 @@ import ConfirmMobilePhoneWidget from "components/Login/ConfirmMobilePhoneWidget"
 import StoriesContainer from "./Stories/NewStories";
 
 function NavbarClient() {
-  const { shouldAuthinticated, selectedStory, LoggingOut } = useAppStore();
+  const { shouldAuthinticated, selectedStory, LoggingOut, isProductPage } =
+    useAppStore();
   const { lang } = useParams();
 
   return (
@@ -17,7 +18,9 @@ function NavbarClient() {
 
       <AuthSections />
       {shouldAuthinticated && !LoggingOut && <ConfirmMobilePhoneWidget />}
-      {selectedStory?.id && <StoriesContainer selectedStory={selectedStory} />}
+      {selectedStory?.id && !isProductPage && (
+        <StoriesContainer selectedStory={selectedStory} />
+      )}
     </>
   );
 }
