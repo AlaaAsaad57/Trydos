@@ -38,6 +38,7 @@ interface HomeState {
   countries: any[];
   isRegisteringReady: boolean;
   isNavigating: any;
+  isProductPage: boolean;
 }
 
 const initialState: HomeState = {
@@ -64,11 +65,13 @@ const initialState: HomeState = {
   countries: [],
   isRegisteringReady: true,
   isNavigating: false,
+  isProductPage: false,
 };
 
 export const useHomeStore = (set, get) => ({
   ...initialState,
   setAddStory: (v) => set({ addStoryEnable: v }),
+  setIsProductPage: (v) => set({ isProductPage: v }),
   setOpenCamera: (open: boolean) => set({ OpenCamera: open }),
   setStoriesRefreshing: (refreshing: boolean) =>
     set({ storiesRefreshing: refreshing }),

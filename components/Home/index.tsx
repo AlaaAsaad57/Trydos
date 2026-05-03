@@ -18,8 +18,9 @@ export default function Home() {
   const { nameModal } = useAppStore();
   useEffect(() => {
     deleteCookie("last-page");
-    const { setIsNavigating } = useAppStore.getState();
+    const { setIsNavigating, setIsProductPage } = useAppStore.getState();
     setIsNavigating(null);
+    setIsProductPage(false);
     EnableScroll();
     initStoryToken();
     if (searchParams?.get("message")?.length > 0) {
