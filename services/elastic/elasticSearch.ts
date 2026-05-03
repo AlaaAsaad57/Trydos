@@ -752,7 +752,23 @@ function extractFilters(
       });
     }
   });
-
+  // products?.forEach((product) => {
+  //     if (product.custom_products && Array.isArray(product.custom_products)) {
+  //       const matchingCustomProduct = product.custom_products.find(
+  //         (cp: any) => cp.language_code === languageCode,
+  //       );
+  //       if (matchingCustomProduct) {
+  //         const processed = processCustomProduct(
+  //           product,
+  //           matchingCustomProduct,
+  //           languageCode,
+  //           isFromBrowser,
+  //           country,
+  //         );
+  //         customProducts.push(processed);
+  //       }
+  //     }
+  //   });
   let prices =
     products.length > 0 ? calculatePriceRange(products, country) : null;
   // Calculate price range

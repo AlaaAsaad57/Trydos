@@ -1,12 +1,11 @@
 "use client";
-import { getConfiguredImage, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { useState } from "react";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
 import { useParams } from "next/navigation";
 import Menu from "./Menu";
 import { useAppStore } from "store";
-import { GetImageUrl } from "utils/tinyUtils";
 import { UserData } from "utils/cookies/cookie-manager";
 import { useUserData } from "hooks/useUserData";
 
@@ -154,13 +153,13 @@ function UserNavTopSection({
     enableCart(s);
   };
 
-  // Show loading/skeleton until mounted to prevent hydration mismatch
+  // Guest  = no id, or phone is explicitly "0" (anonymous account)
+  // authed  = phone verified + chat account exists
+  // Verified User = logged in but still needs to complete phone verification
   const getUserType = () => {
-    if (!userData || userData?.phone === "0" || !userData?.phone)
-      return "NEW_USER";
-    if (userData?.is_phone_verified === 1 && userChat?.id && userStories?.id)
-      return "authed-user";
-    else return "Verified User";
+    if (!userData?.id || userData.phone === "0") return "NEW_USER";
+    if (userData?.is_phone_verified === 1 && userChat?.id) return "authed-user";
+    return "Verified User";
   };
   return (
     <div
@@ -226,7 +225,7 @@ function UserNavTopSection({
         className="flex flex-row"
         style={{ marginLeft: "10px", cursor: "pointer" }}
       >
-        {userData?.id ? (
+        {getUserType() !== "NEW_USER" ? (
           <AuthNavSection
             userData={userData}
             onClick={() => setMenuOpen(!menuOpen)}
@@ -234,16 +233,7 @@ function UserNavTopSection({
         ) : (
           <div className="nav-question-item">
             <Image
-              src={
-                userData?.image || userData?.image
-                  ? getConfiguredImage({
-                      src: GetImageUrl(userData?.image || userData?.image),
-                      width: 30,
-                      height: 30,
-                      q: 80,
-                    })
-                  : "/icons/userIcon.svg"
-              }
+              src="/icons/userIcon.svg"
               quality={90}
               width={30}
               data-cy="avatar-options"
