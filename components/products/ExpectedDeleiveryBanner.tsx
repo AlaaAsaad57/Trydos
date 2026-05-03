@@ -1,13 +1,18 @@
 "use client";
 import { useAppStore } from "store";
 import ExpectedDeleiveryModal from "./ExpectedDeleiveryModal";
-function ExpectedDeleiveryBanner({ children, language, country }) {
+function ExpectedDeleiveryBanner({
+  children,
+  language,
+  country,
+  shipping_days,
+}) {
   const { setColorBottomSheet } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
   return (
     <>
-      <ExpectedDeleiveryModal />
+      <ExpectedDeleiveryModal shipping_days={shipping_days} />
       <div
         className={`${
           isRtl && "items-end"
