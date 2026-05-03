@@ -735,24 +735,56 @@ class AuthService {
       return image;
     }
   }
-  async UpdateProfileImage(image) {
-    let formData = new FormData();
-    formData.append("image", image);
-    formData.append("path", "customers/profile");
 
+  async uploadToMediaServer(file: File) {
+    const MEDIA_SERVER_BASE_URL =
+      process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
+    const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
+    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+      throw new Error("Media server upload is not configured");
+    }
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", "customers/profile");
+
+    const uploadUrl = `${MEDIA_SERVER_BASE_URL}/upload`;
+
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      headers: {
+        "x-api-key": MEDIA_API_KEY,
+      },
+      body: form,
+    });
+
+    let data: any = null;
     try {
-      let response = await fetchData({
-        url: "/storage/storage-upload",
-        body: formData,
-        reqTitle: REQUESTS_DATA.UPDATE_PROFILE_IMAGE,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+    console.log(data);
+    if (!response.ok || !data?.url) {
+      return { error: data.error, data: null };
+    }
+
+    return {
+      url: data.url as string,
+      durationSeconds: data?.durationSeconds as number | undefined,
+    };
+  }
+  async UpdateProfileImage(image) {
+    try {
+      let response = await this.uploadToMediaServer(image);
+      if (!response.url) {
+        throw new Error("Image upload failed");
       }
-      return response.data;
+      // @ts-ignores
+      if (!response.success && response.error) {
+        throw new Error(response.error);
+      }
+      return { sub_path: response.url };
     } catch (err) {
       LogServerError({
         error: err,

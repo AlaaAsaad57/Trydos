@@ -23,11 +23,13 @@ let nextConfig: NextConfig = {
         headers: [
           {
             key: "X-Robots-Tag",
+
+            // "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
             value: "noindex, nofollow",
           },
           {
             key: "Cache-Control",
-            value: "private, no-cache, no-store, must-revalidate",
+            value: "public, s-maxage=60, stale-while-revalidate=300",
           },
         ],
       },
@@ -101,6 +103,7 @@ let nextConfig: NextConfig = {
     domains: [
       "cdn.example.com",
       "res.cloudinary.com",
+      "media_server.ramaaz.dev",
       "example.com",
       "media_server.ramaaz.dev",
       "placehold.co",

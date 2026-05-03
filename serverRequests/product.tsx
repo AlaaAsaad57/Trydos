@@ -1,6 +1,12 @@
 "use server";
 
-import { generateCloudinaryUrl, getThumb, stripHtml } from "utils/server";
+import {
+  generateCloudinaryUrl,
+  getThumb,
+  stripHtml,
+  getConfiguredImage,
+  GetImageUrl,
+} from "utils/server";
 import { GetFromRedis, RedisGet, RedisSet } from "./radis";
 import { fetchServerData } from "./ServerFetch";
 import { Metadata } from "next";
@@ -290,11 +296,13 @@ export async function GetProductMeta({
     if (searchParams.size) {
       title += ` |  ${searchParams.size}`;
     }
-    let image = product?.images
-      ? generateCloudinaryUrl({
-          publicIds: product?.images.map((s) => `${s.images}`),
+    const firstImagePath = product?.images?.[0]?.images;
+    const image = firstImagePath
+      ? getConfiguredImage({
+          src: GetImageUrl(firstImagePath),
           width: 1200,
           height: 630,
+          q: "60",
         })
       : null;
     let data: Metadata = {

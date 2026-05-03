@@ -63,7 +63,14 @@ importers:
         version: 13.6.1
       framer-motion:
         specifier: 12.25.0
+<<<<<<< HEAD
         version: 12.25.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+=======
+        version: 12.25.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      hls.js:
+        specifier: ^1.6.15
+        version: 1.6.15
+>>>>>>> media-serving-integration
       ioredis:
         specifier: ^5.6.1
         version: 5.8.2
@@ -81,7 +88,11 @@ importers:
         version: 8.5.6
       rdb:
         specifier: git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#staging
+<<<<<<< HEAD
         version: ramaaz-digital-banking@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#a2fa3f327ae32d14fb181ff1998b04248b4c9e52(next@16.2.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(sass@1.97.0))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+=======
+        version: ramaaz-digital-banking@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#a2fa3f327ae32d14fb181ff1998b04248b4c9e52(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+>>>>>>> media-serving-integration
       react:
         specifier: 19.2.5
         version: 19.2.5
@@ -2825,6 +2836,9 @@ packages:
 
   hermes-parser@0.32.0:
     resolution: {integrity: sha512-g4nBOWFpuiTqjR3LZdRxKUkij9iyveWeuks7INEsMX741f3r9xxrOe8TeQfUxtda0eXmiIFiMQzoeSQEno33Hw==}
+
+  hls.js@1.6.15:
+    resolution: {integrity: sha512-E3a5VwgXimGHwpRGV+WxRTKeSp2DW5DI5MWv34ulL3t5UNmyJWCQ1KmLEHbYzcfThfXG8amBL+fCYPneGHC4VA==}
 
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
@@ -5845,7 +5859,11 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
+<<<<<<< HEAD
   '@react-google-maps/api@2.20.8(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
+=======
+  '@react-google-maps/api@2.20.8(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+>>>>>>> media-serving-integration
     dependencies:
       '@googlemaps/js-api-loader': 1.16.8
       '@googlemaps/markerclusterer': 2.5.3
@@ -7569,6 +7587,8 @@ snapshots:
     dependencies:
       hermes-estree: 0.32.0
 
+  hls.js@1.6.15: {}
+
   hoist-non-react-statics@3.3.2:
     dependencies:
       react-is: 16.13.1
@@ -8592,6 +8612,7 @@ snapshots:
     dependencies:
       inherits: 2.0.4
 
+<<<<<<< HEAD
   ramaaz-digital-banking@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#a2fa3f327ae32d14fb181ff1998b04248b4c9e52(next@16.2.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(sass@1.97.0))(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
     dependencies:
       axios: 1.13.5
@@ -8600,6 +8621,16 @@ snapshots:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
       react-router-dom: 7.13.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+=======
+  ramaaz-digital-banking@git+https://AlaaAsaadDev:glpat-5gs8JT-fZF3kw1_HWuAUU286MQp1Omp3N2k4Cw.01.120us742l@gitlab.com/new-trydos/ramaaz-digital-banking.git#a2fa3f327ae32d14fb181ff1998b04248b4c9e52(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+    dependencies:
+      axios: 1.13.5
+      framer-motion: 12.34.3(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      next: 16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.97.0)
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
+      react-router-dom: 7.13.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+>>>>>>> media-serving-integration
     transitivePeerDependencies:
       - '@emotion/is-prop-valid'
       - debug
@@ -8610,7 +8641,11 @@ snapshots:
 
   range-parser@1.2.1: {}
 
+<<<<<<< HEAD
   react-avatar-editor@13.0.2(@babel/core@7.28.5)(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
+=======
+  react-avatar-editor@13.0.2(@babel/core@7.28.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+>>>>>>> media-serving-integration
     dependencies:
       '@babel/plugin-transform-runtime': 7.28.5(@babel/core@7.28.5)
       '@babel/runtime': 7.28.4

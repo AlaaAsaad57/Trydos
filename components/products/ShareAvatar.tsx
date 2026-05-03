@@ -4,7 +4,7 @@ import profilePng from "public/images/profileNo.png";
 
 function ShareAvatar({ active, setActive, contact, disable }: any) {
   const normializePhoto = (path) => {
-    if (path?.includes("res.cloudinary")) {
+    if (path?.includes(process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL)) {
       return path;
     }
     return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + path;

@@ -1,5 +1,5 @@
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 import { RedisSet } from "serverRequests/radis";
 import { GetProductMeta } from "serverRequests/product";
 import { redirect } from "next/navigation";

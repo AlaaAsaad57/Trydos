@@ -127,14 +127,11 @@ export async function RedisGet(key) {
     return null;
   }
 }
-export async function RedisSet(key, value, ttl = 86400) {
+export async function RedisSet(key, value, ttl?: number) {
   try {
-    await redis.set(
-      key,
-      JSON.stringify(value),
-      "EX",
-      Number(process.env.PRODUCT_REDIS_TTL_SECONDS),
-    );
+    const effectiveTtl =
+      ttl ?? Number(process.env.PRODUCT_REDIS_TTL_SECONDS) ?? 86400;
+    await redis.set(key, JSON.stringify(value), "EX", effectiveTtl);
   } catch (error) {}
 }
 export async function removeRedis(key) {

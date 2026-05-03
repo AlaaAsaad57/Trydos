@@ -78,7 +78,7 @@ const StoryViewer = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const pausedProgressRef = useRef<number>(0);
   const storyViewStartTimeRef = useRef<number | null>(null);
-  const pausedTimeRef = useRef<number>(0);
+
   const totalPausedTimeRef = useRef<number>(0);
   const pauseStartTimeRef = useRef<number | null>(null);
   const previousStoryIndexRef = useRef<number>(-1);
@@ -357,7 +357,7 @@ const StoryViewer = ({
           }}
         >
           {isImage ? (
-            <Image
+            <img
               width={600}
               height={1200}
               src={currentStory?.url}
@@ -365,7 +365,7 @@ const StoryViewer = ({
               loading="eager"
               decoding="async"
               fetchPriority="high"
-              className="max-h-full p-[65px] h-full w-auto"
+              className="max-h-full p-[65px] h-full w-auto object-contain"
               onLoad={() => {
                 setResourceLoaded(true);
               }}
@@ -373,7 +373,7 @@ const StoryViewer = ({
           ) : (
             <video
               ref={videoRef}
-              src={currentStory?.url}
+              src={currentStory?.url + "?target=story"}
               className=" max-w-full object-contain  max-h-full p-[65px]"
               playsInline
               muted={activeId !== id}

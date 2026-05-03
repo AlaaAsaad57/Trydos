@@ -7,13 +7,14 @@ export const getConfiguredImage = ({
   width = null,
   height,
   c_pad = false,
+  q = "auto:good",
 }) => {
   if (typeof src === "string") {
     return src.replace(
       "/upload",
       `/upload/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`,
+      }/f_auto/q_${q}/fl_lossy/so_0`,
     );
   }
   if (src?.file_path?.includes("cloudinary")) {
@@ -21,7 +22,7 @@ export const getConfiguredImage = ({
       "/upload/v1",
       `/upload/v1/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`,
+      }/f_auto/q_${q}/fl_lossy/so_0`,
     );
   } else return src?.file_path || src || "";
 };
@@ -182,8 +183,8 @@ export const getVideoUrl = (
   }
 
   // Otherwise, treat input as public ID and build the correct format
-  const cloudinaryBase = "https://res.cloudinary.com/dtcmozf4d/video/upload/";
-  const version = "v1";
+  const cloudinaryBase = process.env.NEXT_PUBLIC_BASE_VIDEO_CLOUDINARY_URL;
+  // const version = "v1";
   const folder = "product/videos";
 
   // Remove any leading slash and ensure .mp4 extension
@@ -192,7 +193,8 @@ export const getVideoUrl = (
     filename = `${filename}.mp4`;
   }
 
-  return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
+  // return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
+  return `${cloudinaryBase}/${folder}/${filename}?${options.end ? "target=preview" : ""}`;
 };
 
 export const getUrlofProduct = (

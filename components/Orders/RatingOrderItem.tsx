@@ -252,8 +252,8 @@ const RatingUploadImages = ({
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         setLoading(true);
-        const url = await storyService.UploadToCloudinary(file);
-        setImages([...images, url]);
+        const url = await storyService.uploadToMediaServer(file);
+        setImages([...images, url.url]);
         setLoading(false);
       }
     } catch (error) {
