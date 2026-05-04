@@ -10,7 +10,47 @@ import { returnDetails } from "utils/types/OrderInterface";
 import { LogServerError } from "utils/serverErrorReporter";
 import { GetWalletBalanceForCountryCurrency } from "./wallet";
 
+const MEDIA_SERVER_BASE_URL =
+  process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
+const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
+
 class OrderService {
+  async uploadToMediaServer(file: File, folder: string) {
+    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+      throw new Error("Media server upload is not configured");
+    }
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", folder);
+
+    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload`, {
+      method: "POST",
+      headers: {
+        "x-api-key": MEDIA_API_KEY,
+      },
+      body: form,
+    });
+
+    let data: any = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+    if (!response.ok || !data?.url) {
+      throw new Error("Media server upload failed");
+    }
+
+    return data.url as string;
+  }
+
+  getUploadSubPath(url: string) {
+    const cleanUrl = url.split("?")[0];
+    return cleanUrl.split("/").filter(Boolean).pop() ?? "";
+  }
+
   async PlaceOrder({
     payment_method,
     pay_by_wallet,
@@ -560,23 +600,18 @@ class OrderService {
     }
   }
   async UploadImageForOrderReturn({ image }) {
-    let formData = new FormData();
-    formData.append("image", image);
-    formData.append("path", "return_request_products/");
-
     try {
-      let response = await fetchData({
-        url: "/storage/storage-upload",
-        body: formData,
-        reqTitle: REQUESTS_DATA.UPDATE_PROFILE_IMAGE,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
+      const uploadedUrl = await this.uploadToMediaServer(
+        image,
+        "return_request_products",
+      );
+      const subPath = this.getUploadSubPath(uploadedUrl);
+
+      if (!subPath) {
+        throw new Error("Invalid upload response");
       }
-      return response?.data;
+
+      return { sub_path: subPath };
     } catch (err) {
       LogServerError({
         error: err,
@@ -586,23 +621,18 @@ class OrderService {
     }
   }
   async UploadImageForRating({ image }) {
-    let formData = new FormData();
-    formData.append("image", image);
-    formData.append("path", "rating_orders/");
-
     try {
-      let response = await fetchData({
-        url: "/storage/storage-upload",
-        body: formData,
-        reqTitle: REQUESTS_DATA.UPDATE_PROFILE_IMAGE,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
+      const uploadedUrl = await this.uploadToMediaServer(
+        image,
+        "rating_orders",
+      );
+      const subPath = this.getUploadSubPath(uploadedUrl);
+
+      if (!subPath) {
+        throw new Error("Invalid upload response");
       }
-      return response?.data;
+
+      return { sub_path: subPath };
     } catch (err) {
       LogServerError({
         error: err,

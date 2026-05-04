@@ -18,7 +18,11 @@ async function ProductExpectedDeleiveryWrapper({
 
   const isRtl = language === "ar" || language === "ku";
   return (
-    <ExpectedDeleiveryBanner country={country} language={language}>
+    <ExpectedDeleiveryBanner
+      country={country}
+      language={language}
+      shipping_days={productData?.shipping_days}
+    >
       <img src="/icons/expectedDelevery.svg" className="w-[30px] h-[30px]" />
       <span className="flex-row gap-[12px] items-center">
         {translateFunction("Expected Delivery Date", language)}
