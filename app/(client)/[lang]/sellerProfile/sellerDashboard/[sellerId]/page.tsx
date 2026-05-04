@@ -206,7 +206,7 @@ function SellerDashBoard() {
   const rolesForChangeRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const currentShop = useMemo(() => {
-    return shopes.find((shop) => shop.seller_id.toString() === sellerId);
+    return shopes.find((shop) => shop.seller_id?.toString() === sellerId);
   }, [shopes, sellerId]);
 
   const hasPermission = (permission: string): boolean => {
