@@ -377,7 +377,7 @@ export async function GetProductGeneralData({ id }) {
       LogServerError({
         error: error,
         id: id,
-        scenario: "Error In getProductGeneralQuery in serverRequest/product",
+        scenario: `Error In getProductGeneralQuery in serverRequest/product id=${id}`,
       });
       return {
         _source: {
@@ -402,6 +402,17 @@ export async function GetProductGeneralData({ id }) {
       return 0;
     }
   };
+  if (!id)
+    return {
+      product_id: id,
+      final_rating: null,
+      total_views: 0,
+      ratingDetails: [],
+      size_analysis: null,
+      good_quality_product: false,
+      recommendation_stats: { stats: [] },
+      total_buyers: 0,
+    };
   try {
     let [source, recommendation_stats, views] = await Promise.all([
       getProductGeneralQuery(),
