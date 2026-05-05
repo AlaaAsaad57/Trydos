@@ -217,6 +217,7 @@ const Menu = ({ user, setMenuOpen }) => {
               //   value: GA_CLICK_EVENT_VALUES.WISHLIST_BUTTON,
               // });
               setShowWishList(!showWishList);
+              setMenuOpen(false);
             }}
             icon={
               <MenuIcon>

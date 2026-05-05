@@ -290,7 +290,7 @@ function MoreOptionsSection({ product }) {
               NotificationsType?.map((type) => (
                 <div
                   key={type.topic}
-                  className={`button-option ${
+                  className={`button-option  ${
                     checkIfTopicEnabled(`${type.topic}_${product?.id}`) &&
                     "bg-green-300"
                   }`}

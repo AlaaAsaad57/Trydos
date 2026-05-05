@@ -154,7 +154,7 @@ const WishListPanel = ({ onClose }) => {
             style={{ fontWeight: 600, fontSize: "16px", color: "#333" }}
             data-cy="wishList-statement"
           >
-            {translateFunction("Wishlist")}
+            {translateFunction("CheckList")}
           </span>
         </div>
         <button
