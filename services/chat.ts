@@ -213,8 +213,8 @@ class ChatService {
         throw new Error(response.message);
       }
       const allChannels = [
-        ...response.data.channels,
-        ...response.data.pinned_channels,
+        ...(response?.data?.channels ?? []),
+        ...(response?.data?.pinned_channels ?? []),
       ];
       await this.sendReceivedForChannelsWithNewMessages(allChannels);
       setChats(response.data.channels, response.data.pinned_channels);
