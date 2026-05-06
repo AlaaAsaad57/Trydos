@@ -14,7 +14,7 @@ const CartContainer = dynamic(() => import("."), {
 });
 const OrdersPage = dynamic(() => import("./OrdersPage"), {
   ssr: false,
-  loading: () => <></>,
+  loading: () => <OrdersPageSkeleton />,
 });
 import { useAppStore } from "store";
 import {
@@ -31,6 +31,7 @@ import auth from "services/auth";
 import { getCookie } from "utils/cookies/cookie-manager";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import CartSkeleton from "components/skeleton/CartSkeleton";
+import OrdersPageSkeleton from "components/skeleton/OrdersPageSkeleton";
 
 const CartProvider = ({ language, country }) => {
   const {
