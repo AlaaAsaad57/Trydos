@@ -1702,7 +1702,7 @@ const OrderDetailScreen = ({
             const variantColor = item.color || "";
             const variantSize = item.size || "";
             const unitPrice = Number(item.unit_price || 0);
-            const offerPrice = Number(item.offer_price || 0);
+            const offerPrice = Number(item.offer_price || 0) ?? unitPrice;
             const qty = Number(item.qty || 0);
             const itemTotalPrice = offerPrice * qty;
             const isConfirmed = Boolean(item?.is_confirm);
@@ -1775,7 +1775,9 @@ const OrderDetailScreen = ({
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-[#1D1D1D] text-[12px]">
-                          {`${itemTotalPrice} / ${orderTotal}`}{" "}
+                          {qty > 1
+                            ? `${offerPrice} / ${itemTotalPrice}`
+                            : `${itemTotalPrice}`}{" "}
                         </span>
                         <span className="text-[12px] text-[#1D1D1D]">USD</span>
                       </div>
