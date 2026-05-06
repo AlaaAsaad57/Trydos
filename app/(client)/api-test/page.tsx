@@ -799,7 +799,7 @@ export default function ApiTestPage() {
       // Prepare request options
       const options: RequestInit = {
         method,
-        headers: requestHeaders,
+        headers: { ...requestHeaders, "User-Agent": "whatsapp" },
         credentials: "omit",
       };
 

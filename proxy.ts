@@ -52,6 +52,25 @@ function isBot(userAgent: string | null): boolean {
   return bots.some((bot) => userAgent.includes(bot));
 }
 
+// Social preview bots that need OG pages
+function isSocialBot(ua: string | null): boolean {
+  if (!ua) return false;
+  const socialBots = [
+    "facebookexternalhit",
+    "facebot",
+    "facebookbot",
+    "meta-externalagent",
+    "instagrambot",
+    "twitterbot",
+    "whatsapp",
+    "linkedinbot",
+    "discordbot",
+    "slackbot",
+  ];
+  const lower = ua.toLowerCase();
+  return socialBots.some((bot) => lower.includes(bot));
+}
+
 // Helper functions
 function getCachedCountries(): string[] {
   return ["sy", "lb", "tr", "iq"];
@@ -231,22 +250,7 @@ function getClientIp(req: NextRequest): string {
 }
 // Main middleware function
 export async function proxy(request: NextRequest) {
-  const META_CRAWLERS = [
-    "facebookexternalhit",
-    "FacebookBot",
-    "meta-externalagent",
-    "Facebot",
-    "InstagramBot",
-    "meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)",
-  ];
-
   const ua = request.headers.get("user-agent") ?? "";
-  const isMetaCrawler = META_CRAWLERS.some((bot) =>
-    ua.toLowerCase().includes(bot.toLowerCase()),
-  );
-  if (isMetaCrawler) {
-    return new NextResponse(null, { status: 403 });
-  }
   const ip = getClientIp(request);
   // 1️⃣ Rate limiting
   if (ip && ip !== "0.0.0.0") {
@@ -265,6 +269,37 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
   const urlLocale = parseUrlLocale(pathname);
+
+  // ── OG routing ──────────────────────────────────────────────────────────────
+  // Human on /OG/... → redirect to customer URL
+  if (pathname.startsWith("/OG/")) {
+    if (!isSocialBot(ua)) {
+      url.pathname = pathname.slice(3); // strip '/OG' prefix
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next(); // social bot → serve OG page
+  }
+
+  // Social bot on a customer OG-target page → rewrite to /OG/... route
+  if (isSocialBot(ua)) {
+    if (urlLocale) {
+      const cleanPath = getCleanPathname(pathname, urlLocale) || "/";
+      const isOgTarget =
+        cleanPath === "/" ||
+        cleanPath.startsWith("/products/") ||
+        cleanPath.startsWith("/filters/") ||
+        cleanPath.startsWith("/featured/") ||
+        cleanPath.startsWith("/flashDeals/");
+
+      if (isOgTarget) {
+        url.pathname = `/OG${pathname}`;
+        return NextResponse.rewrite(url);
+      }
+    }
+    return new NextResponse(null, { status: 403 });
+  }
+  // ────────────────────────────────────────────────────────────────────────────
+
   let coutries = await getCountriesForMiddleware({
     language: "en",
     country: getGeoCountry(request) ?? "sy",
