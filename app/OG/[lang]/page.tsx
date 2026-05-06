@@ -1,4 +1,5 @@
-export const revalidate = 36000;
+export const runtime = "nodejs";
+export const revalidate = 3600;
 
 import { GetHomeMetaData } from "serverRequests/meta/home";
 import { LogServerError } from "utils/serverErrorReporter";
