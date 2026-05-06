@@ -1694,7 +1694,7 @@ const OrderDetailScreen = ({
           {items.map((item: any, idx: number) => {
             const productDetails = parseProductDetails(item);
             const productName =
-              productDetails?.name ||
+              productDetails?.product_name ||
               (item?.product_id
                 ? `Product #${item.product_id}`
                 : `Item #${item.id ?? idx + 1}`);
@@ -1702,8 +1702,9 @@ const OrderDetailScreen = ({
             const variantColor = item.color || "";
             const variantSize = item.size || "";
             const unitPrice = Number(item.unit_price || 0);
+            const offerPrice = Number(item.offer_price || 0);
             const qty = Number(item.qty || 0);
-            const itemTotalPrice = unitPrice * qty;
+            const itemTotalPrice = offerPrice * qty;
             const isConfirmed = Boolean(item?.is_confirm);
             const isPacked = Boolean(item?.is_packed);
             const isWaiting = !isConfirmed;
