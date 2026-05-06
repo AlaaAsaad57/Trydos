@@ -296,7 +296,7 @@ export async function GetProductMeta({
     if (searchParams.size) {
       title += ` |  ${searchParams.size}`;
     }
-    const firstImagePath = product?.images?.[0]?.images;
+    const firstImagePath = product?.images?.[0]?.images ?? product?.images?.[0];
     const image = firstImagePath
       ? getConfiguredImage({
           src: GetImageUrl(firstImagePath),
