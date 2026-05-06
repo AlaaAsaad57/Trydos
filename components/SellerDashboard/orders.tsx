@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { translateFunction } from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import SellerDashboardService from "services/sellerDashboard";
 import home from "services/home";
 import { useParams } from "next/navigation";
@@ -1694,10 +1694,18 @@ const OrderDetailScreen = ({
           {items.map((item: any, idx: number) => {
             const productDetails = parseProductDetails(item);
             const productName =
+              item.product_name ||
               productDetails?.product_name ||
               (item?.product_id
                 ? `Product #${item.product_id}`
                 : `Item #${item.id ?? idx + 1}`);
+            const brandImage = GetImageUrl(
+              getConfiguredImage({
+                src: item.brand_icon,
+                width: 100,
+                height: 100,
+              }),
+            );
             const image = getItemImage(item, productDetails);
             const variantColor = item.color || "";
             const variantSize = item.size || "";
@@ -1736,10 +1744,11 @@ const OrderDetailScreen = ({
                   )}
                   <div className="flex-1 pt-1">
                     <h3 className="font-bold text-gray-900 uppercase tracking-wide text-xs mb-[5px]">
-                      {productDetails?.brand?.name ||
-                        (productDetails?.brand_id
-                          ? `Brand #${productDetails.brand_id}`
-                          : translateFunction("Product"))}
+                      <img
+                        src={brandImage}
+                        alt="brand"
+                        className="w-auto h-[30px]"
+                      />
                     </h3>
                     <p className="text-sm text-gray-600 mb-[5px]">
                       {productName}
