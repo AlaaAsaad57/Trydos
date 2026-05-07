@@ -185,10 +185,15 @@ export async function trackSuspiciousBehavior(ip: string, path: string) {
   await redis.expire(key, 10); // 10s window
 
   if (hits > 20) {
+    console.warn(
+      `Suspicious behavior: ${hits} requests in 10s from IP ${ip} on ${path}`,
+    );
     return `Suspicious behavior: ${hits} requests in 10s from IP ${ip} on ${path}`;
   }
 
   return null;
 }
 
-export const sendSecurityAlert = async (message: string) => {};
+export const sendSecurityAlert = async (message: string) => {
+  console.warn("Security Alert:", message);
+};

@@ -255,7 +255,10 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
   const urlLocale = parseUrlLocale(pathname);
-
+  const ip = getClientIp(request);
+  console.log(
+    `Incoming request: ${pathname} from IP: ${ip}, User-Agent: ${ua}`,
+  );
   // ── OG routing (before rate limiting — social bots are legitimate crawlers) ──
   // Human on /OG/... → redirect to the real customer URL
   if (pathname.startsWith("/OG/")) {
@@ -284,7 +287,6 @@ export async function proxy(request: NextRequest) {
   }
   // ────────────────────────────────────────────────────────────────────────────
 
-  const ip = getClientIp(request);
   // 1️⃣ Rate limiting
   if (ip && ip !== "0.0.0.0") {
     const allowed = await checkRateLimit(ip, 50, 60);

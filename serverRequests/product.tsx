@@ -320,7 +320,7 @@ export async function GetProductMeta({
         title: title,
         description: stripHtml(product?.details),
         url: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
-        siteName: "Trydos",
+        sitename: "Trydos",
         images: [
           {
             url: image,
@@ -329,7 +329,8 @@ export async function GetProductMeta({
             alt: "",
           },
         ],
-        type: "website",
+        // @ts-ignore
+        type: "product",
       },
       twitter: {
         card: "summary_large_image",

@@ -42,6 +42,9 @@ export async function generateMetadata({ params, searchParams }) {
         openGraph: {
           ...(metaData as any).openGraph,
           images: [{ url: jpgUrl, width: 1200, height: 630 }],
+          type: "product",
+          sitename: "dev.trydos.com",
+          url: `${General_Site_Data.url}/products/${Params.productId}`,
         },
         twitter: {
           ...(metaData as any).twitter,
