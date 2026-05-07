@@ -115,7 +115,7 @@ export const RoundPrice = ({
   let price_num = Number(num);
 
   // Currency conversion at the start
-  let rateVariable = rate;
+  let rateVariable = rate ?? 1;
   let deciaml_points = points;
   price_num = Number(toFixedUp(deciaml_points, price_num));
   let number = preciseMultiply(price_num, rateVariable);

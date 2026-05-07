@@ -67,7 +67,7 @@ function OrderRetailsReturnInfo({
   const currentStatus = status.find(
     (s) =>
       s.label === product?.return_status?.value ||
-      s.label?.toLowerCase() === product?.return_status?.value?.toLowerCase()
+      s.label?.toLowerCase() === product?.return_status?.value?.toLowerCase(),
   );
 
   const isActive = (i: number) => {
@@ -193,7 +193,7 @@ function OrderRetailsReturnInfo({
                   </div>
 
                   {/* Only active status shows waiting for the next step */}
-                  {s.desc && (
+                  {s.desc && s.label !== "returned_to_location" && (
                     <div className="flex-row justify-between items-center text-[#1D1D1D] text-[10px] regular w-full">
                       <div
                         className={`${
