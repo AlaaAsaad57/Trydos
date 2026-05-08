@@ -84,7 +84,7 @@ export async function GetHomeMetaData({ local, category = null }) {
       siteName: "Trydos",
       locale: mapLocaleToBCP47(local),
       type: "website",
-      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+      images: [ogImageUrl],
     },
     twitter: {
       card: "summary_large_image",

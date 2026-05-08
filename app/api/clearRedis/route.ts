@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   }
   try {
     // Find all keys that start with "product:"
-    const keys = await getKeys("product:*");
+    const keys = await getKeys("product*");
 
     if (!keys || keys?.length === 0) {
       return NextResponse.json({ message: "No matching keys found" });

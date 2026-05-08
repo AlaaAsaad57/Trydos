@@ -322,12 +322,7 @@ export async function GetProductMeta({
         url: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
         siteName: "Trydos",
         images: [
-          {
-            url: image,
-            width: 1200,
-            height: 630,
-            alt: "",
-          },
+          image
         ],
 
        
