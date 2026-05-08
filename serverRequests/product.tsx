@@ -302,8 +302,8 @@ export async function GetProductMeta({
           src: GetImageUrl(firstImagePath),
           width: 1200,
           height: 630,
-          q: "60",
-        })
+          q: "90",
+        })?.replace('f_auto','f_jpg')
       : null;
     let data: Metadata = {
       title: title,

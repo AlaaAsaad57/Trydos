@@ -242,8 +242,8 @@ export async function generateMetadataForListing({ params }) {
         src: GetImageUrl(banner),
         width: 1200,
         height: 630,
-        q: "60",
-      })
+        q: "90",
+      }).replace('f_auto','f_jpg')
     : `${General_Site_Data.url}/opengraph-image.png`;
 
   const currentUrl = `${General_Site_Data.url}/${lang}/filters/${
