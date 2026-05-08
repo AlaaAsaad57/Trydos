@@ -321,17 +321,13 @@ export async function GetProductMeta({
         description: stripHtml(product?.details),
         url: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
         siteName: "Trydos",
-        images: [
-          image
-        ],
-
-       
+        images: image ? [{ url: image, width: 1200, height: 630 }] : [],
       },
       twitter: {
         card: "summary_large_image",
         title: title,
         description: stripHtml(product?.details),
-        images: [image],
+        images: image ? [image] : [],
       },
       keywords: [
         product?.name,

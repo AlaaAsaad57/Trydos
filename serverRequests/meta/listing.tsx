@@ -261,7 +261,7 @@ export async function generateMetadataForListing({ params }) {
       description: cleanDescription,
       url: currentUrl,
       siteName: t.siteName,
-      images: [ogImage],
+      images: [{ url: ogImage, width: 1200, height: 630 }],
       type: "website",
     },
     twitter: {

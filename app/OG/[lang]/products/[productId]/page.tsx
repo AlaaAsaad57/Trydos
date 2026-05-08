@@ -34,7 +34,9 @@ export async function generateMetadata({ params, searchParams }) {
 
     // Fix image format for maximum bot compatibility
     const ogImages = (metaData as any)?.openGraph?.images;
-    const rawUrl = Array.isArray(ogImages) ? (ogImages[0] as any)?.url : null;
+    // ogImages[0] can be a string URL or a { url } object depending on the source
+    const firstImage = Array.isArray(ogImages) ? ogImages[0] : null;
+    const rawUrl = typeof firstImage === "string" ? firstImage : (firstImage as any)?.url;
     const jpgUrl = toJpgOgUrl(rawUrl);
     if (jpgUrl) {
       return {

@@ -15,9 +15,13 @@ export async function GetHomeMetaData({ local, category = null }) {
     ? `meta-obj-${category}-${lang}-${country}`
     : `meta-obj-home-${lang}-${country}`;
 
+  const baseUrl = General_Site_Data.url;
+
   // 1. Redis Cache Check
   const cachedMeta = await RedisGet(cacheKey);
-  if (cachedMeta) return cachedMeta;
+  // Reconstruct metadataBase as a URL instance — plain objects survive JSON round-trips but
+  // Next.js requires a real URL instance to resolve relative paths correctly.
+  if (cachedMeta) return { ...cachedMeta, metadataBase: new URL(baseUrl) };
 
   // 2. Parallel Data Fetch
   const categoriesMeta = await GetCatgoriesMetaData({
@@ -31,7 +35,6 @@ export async function GetHomeMetaData({ local, category = null }) {
   // 3. Build Content Strings
   let pageTitle = "";
   let pageDesc = "";
-  const baseUrl = General_Site_Data.url; // Ensure this is "https://trydos.com"
   const path = category ? `?mainCategory=${category}` : "";
   const fullUrl = `${baseUrl}/${country}-${lang}${path}`;
   const ogImageUrl = General_Site_Data.url + General_Site_Data.og; // Relative path like "/opengraph-image.png"
@@ -84,7 +87,7 @@ export async function GetHomeMetaData({ local, category = null }) {
       siteName: "Trydos",
       locale: mapLocaleToBCP47(local),
       type: "website",
-      images: [ogImageUrl],
+      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
@@ -102,8 +105,8 @@ export async function GetHomeMetaData({ local, category = null }) {
     },
   };
 
-  // 5. Cache the final result
-  await RedisSet(cacheKey, JSON.stringify(metadataObject));
+  // 5. Cache the final result (RedisSet already JSON.stringifies internally — do NOT pre-stringify)
+  await RedisSet(cacheKey, metadataObject);
 
   return metadataObject;
 }
