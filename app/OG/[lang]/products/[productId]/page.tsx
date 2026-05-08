@@ -6,23 +6,42 @@ import { RedisSet } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 
-// Force JPEG for OG images — bot servers may not send Accept headers that
-// trigger Cloudinary's f_auto format negotiation, so webp/avif won't be served.
-function toJpgOgUrl(url: unknown): string | null {
-  if (typeof url !== "string" || !url) return null;
-  return url.includes("/f_auto/") ? url.replace("/f_auto/", "/f_jpg/") : url;
-}
+// This page is dynamically rendered (searchParams access) so every request
+// hits this function. A 3-second ceiling ensures WhatsApp's bot always gets
+// a response within its unfurl timeout — the fallback uses the static OG image
+// so at least title + image are shown on the first cold visit.
+const METADATA_TIMEOUT_MS = 3000;
 
 export async function generateMetadata({ params, searchParams }) {
   const [Params, SearchParams] = await Promise.all([params, searchParams]);
   const [country, language] = Params.lang.split("-");
+  const fallbackImageUrl = General_Site_Data.url + General_Site_Data.og;
+
+  const buildFallback = (title = "TryDos", description = "") => ({
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      siteName: "Trydos",
+      type: "website" as const,
+      images: [{ url: fallbackImageUrl, width: 1200, height: 630, type: "image/png" }],
+    },
+    twitter: {
+      card: "summary_large_image" as const,
+      title,
+      description,
+      images: [fallbackImageUrl],
+    },
+  });
+
   try {
-    const metaData = await GetProductMeta({
-      country,
-      language,
-      slug: Params.productId,
-      searchParams: SearchParams,
-    });
+    const metaData = await Promise.race([
+      GetProductMeta({ country, language, slug: Params.productId, searchParams: SearchParams }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("metadata_timeout")), METADATA_TIMEOUT_MS),
+      ),
+    ]);
 
     // @ts-ignore
     if (metaData?.error || !metaData) {
@@ -31,53 +50,22 @@ export async function generateMetadata({ params, searchParams }) {
     }
 
     RedisSet(`${Params.productId}-${Params.lang}`, JSON.stringify(metaData));
-
-    // Fix image format for maximum bot compatibility
-    const ogImages = (metaData as any)?.openGraph?.images;
-    // ogImages[0] can be a string URL or a { url } object depending on the source
-    const firstImage = Array.isArray(ogImages) ? ogImages[0] : null;
-    const rawUrl = typeof firstImage === "string" ? firstImage : (firstImage as any)?.url;
-    const jpgUrl = toJpgOgUrl(rawUrl);
-    if (jpgUrl) {
-      return {
-        ...metaData,
-        openGraph: {
-          ...(metaData as any).openGraph,
-          images: [{ url: jpgUrl, width: 1200, height: 630 }],
-        },
-        twitter: {
-          ...(metaData as any).twitter,
-          images: [jpgUrl],
-        },
-      };
-    }
-
+    // buildOgImageUrl inside GetProductMeta already guarantees f_jpg — return as-is.
     return metaData;
   } catch (error) {
-    LogServerError(
-      {
-        error,
-        type: "og product meta",
-        country,
-        language,
-        product_slug: Params.productId,
-      },
-      `/OG/${Params.lang}/products/${Params.productId}`,
-    );
-    // Return minimal fallback so bots at least get a title
-    const fallbackImageUrl = General_Site_Data.url + General_Site_Data.og;
-    return {
-      title: "TryDos",
-      openGraph: {
-        siteName: "Trydos",
-        type: "website",
-        images: [{ url: fallbackImageUrl, width: 1200, height: 630 }],
-      },
-      twitter: {
-        card: "summary_large_image",
-        images: [fallbackImageUrl],
-      },
-    };
+    if ((error as Error)?.message !== "metadata_timeout") {
+      LogServerError(
+        {
+          error,
+          type: "og product meta",
+          country,
+          language,
+          product_slug: Params.productId,
+        },
+        `/OG/${Params.lang}/products/${Params.productId}`,
+      );
+    }
+    return buildFallback();
   }
 }
 

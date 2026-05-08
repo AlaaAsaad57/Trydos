@@ -4,7 +4,7 @@ import {
   generateCloudinaryUrl,
   getThumb,
   stripHtml,
-  getConfiguredImage,
+  buildOgImageUrl,
   GetImageUrl,
 } from "utils/server";
 import { GetFromRedis, RedisGet, RedisSet } from "./radis";
@@ -297,17 +297,15 @@ export async function GetProductMeta({
       title += ` |  ${searchParams.size}`;
     }
     const firstImagePath = product?.images?.[0]?.images ?? product?.images?.[0];
-    const image = firstImagePath
-      ? getConfiguredImage({
-          src: GetImageUrl(firstImagePath),
-          width: 1200,
-          height: 630,
-          q: "90",
-        })?.replace('f_auto','f_jpg')
-      : null;
+    const image = firstImagePath ? buildOgImageUrl(GetImageUrl(firstImagePath)) : null;
+    const fallbackImageUrl = `${General_Site_Data.url}/opengraph-image.png`;
+    const ogImages = image
+      ? [{ url: image, width: 1200, height: 630, type: "image/jpeg" }]
+      : [{ url: fallbackImageUrl, width: 1200, height: 630, type: "image/png" }];
+    const description = stripHtml(product?.details);
     let data: Metadata = {
       title: title,
-      description: stripHtml(product?.details),
+      description,
       alternates: {
         canonical: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
         languages: {
@@ -318,16 +316,16 @@ export async function GetProductMeta({
       },
       openGraph: {
         title: title,
-        description: stripHtml(product?.details),
+        description,
         url: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
         siteName: "Trydos",
-        images: image ? [{ url: image, width: 1200, height: 630 }] : [],
+        images: ogImages,
       },
       twitter: {
         card: "summary_large_image",
         title: title,
-        description: stripHtml(product?.details),
-        images: image ? [image] : [],
+        description,
+        images: [image ?? fallbackImageUrl],
       },
       keywords: [
         product?.name,

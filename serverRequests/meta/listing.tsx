@@ -1,6 +1,6 @@
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import {
-  getConfiguredImage,
+  buildOgImageUrl,
   GetImageUrl,
   parseFiltersFromParams,
 } from "utils/server";
@@ -236,15 +236,13 @@ export async function generateMetadataForListing({ params }) {
     ? labels.description.replace(/<[^>]*>/g, "").substring(0, 160)
     : t.listingDesc(finalTitle.split("|")[0].trim());
 
-  // بناء رابط صورة الـ OpenGraph (يفضل استخدام رابط الـ CDN الكامل)
-  const ogImage = banner
-    ? getConfiguredImage({
-        src: GetImageUrl(banner),
-        width: 1200,
-        height: 630,
-        q: "90",
-      }).replace('f_auto','f_jpg')
+  const rawBannerUrl = banner ? GetImageUrl(banner) : null;
+  const ogImageUrl = rawBannerUrl
+    ? buildOgImageUrl(rawBannerUrl)
     : `${General_Site_Data.url}/opengraph-image.png`;
+  const ogImageMeta = rawBannerUrl
+    ? { url: ogImageUrl, width: 1200, height: 630, type: "image/jpeg" }
+    : { url: ogImageUrl, width: 1200, height: 630, type: "image/png" };
 
   const currentUrl = `${General_Site_Data.url}/${lang}/filters/${
     filterParams?.join("/") || ""
@@ -261,14 +259,14 @@ export async function generateMetadataForListing({ params }) {
       description: cleanDescription,
       url: currentUrl,
       siteName: t.siteName,
-      images: [{ url: ogImage, width: 1200, height: 630 }],
+      images: [ogImageMeta],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: finalTitle,
       description: cleanDescription,
-      images: [ogImage],
+      images: [ogImageUrl],
     },
   };
 

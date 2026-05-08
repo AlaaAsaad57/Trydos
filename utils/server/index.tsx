@@ -48,6 +48,17 @@ export const configureImageForBoutique = (src) => {
 };
 
 /**
+ * Generates a Cloudinary URL optimised for Open Graph images (1200×630 JPEG).
+ * Avoids `b_auto` (expensive background analysis) and `so_0` (video-only),
+ * and forces `f_jpg` directly so bots always receive a compatible format.
+ */
+export const buildOgImageUrl = (rawUrl: string | null | undefined): string | null => {
+  if (!rawUrl || typeof rawUrl !== "string") return null;
+  if (!rawUrl.includes("/upload/")) return rawUrl;
+  return rawUrl.replace("/upload/", "/upload/w_1200,h_630,c_fill,g_auto/f_jpg/q_90/fl_lossy/");
+};
+
+/**
  * Returns a Cloudinary URL optimized for brand/icon images so they display
  * clearly with no clipping and no stretching. Uses c_limit so the image
  * fits inside the given dimensions, preserves aspect ratio, and never
