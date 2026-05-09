@@ -1,4 +1,3 @@
-import Script from "next/script";
 import { General_Site_Data } from "./Constants";
 import { mapLocaleToBCP47 } from "./utils";
 

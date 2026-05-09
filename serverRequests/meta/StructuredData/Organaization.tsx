@@ -1,5 +1,4 @@
 import { General_Site_Data } from "./Constants";
-import Script from "next/script";
 
 function Organaization({ local }) {
   let payload = {

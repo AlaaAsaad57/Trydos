@@ -27,6 +27,17 @@ export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
   metadataBase: new URL(General_Site_Data.url),
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+  },
+  verification: {
+    google: "iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE",
+  },
+  other: {
+    google: "notranslate",
+  },
 };
 export const viewport = {
   width: "device-width",
@@ -87,19 +98,9 @@ export default async function RootLayout({ params, children, modal }) {
       ].join(" ")}
       lang={lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
     >
-      <head>
+      <body className={lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <Organaization local={lang} />
         <Website local={lang} />
-        <meta
-          name="google-site-verification"
-          content="iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE"
-        />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <meta name="google" content="notranslate" />
-      </head>
-
-      <body className={lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <Script
           strategy="lazyOnload"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
