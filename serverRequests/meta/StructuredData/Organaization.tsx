@@ -37,7 +37,7 @@ function Organaization({ local }) {
     ],
   };
   return (
-    <Script
+    <script
       id="organization-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(payload) }}

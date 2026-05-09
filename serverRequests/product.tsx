@@ -297,8 +297,8 @@ export async function GetProductMeta({
       title += ` |  ${searchParams.size}`;
     }
     const firstImagePath = product?.images?.[0]?.images ?? product?.images?.[0];
-    const image = firstImagePath ? buildOgImageUrl("https://res.cloudinary.com/dtcmozf4d/image/upload"+firstImagePath) : null;
-    // const image = firstImagePath ? buildOgImageUrl(GetImageUrl(firstImagePath)) : null;
+    // const image = firstImagePath ? buildOgImageUrl("https://res.cloudinary.com/dtcmozf4d/image/upload"+firstImagePath) : null;
+    const image = firstImagePath ? buildOgImageUrl(GetImageUrl(firstImagePath)) : null;
     const fallbackImageUrl = `${General_Site_Data.url}/opengraph-image.png`;
     const ogImages = image
       ? [{ url: image, width: 1200, height: 630, type: "image/jpeg" }]

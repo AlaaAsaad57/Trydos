@@ -90,6 +90,16 @@ export default async function RootLayout({ params, children, modal }) {
       <head>
         <Organaization local={lang} />
         <Website local={lang} />
+        <meta
+          name="google-site-verification"
+          content="iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE"
+        />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <meta name="google" content="notranslate" />
+      </head>
+
+      <body className={lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <Script
           strategy="lazyOnload"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
@@ -108,16 +118,6 @@ export default async function RootLayout({ params, children, modal }) {
             `,
           }}
         />
-        <meta
-          name="google-site-verification"
-          content="iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE"
-        />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <meta name="google" content="notranslate" />
-      </head>
-
-      <body className={lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <SpeedInsights />
         <div className="site-container items-center">
           <div className="home-navbar z-999999996 duration-1000 max-w-[1365px] min-h-[98px]  px-[20px] pt-[52px] bg-white flex-row items-start w-full justify-start">

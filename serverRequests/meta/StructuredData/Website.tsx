@@ -15,7 +15,7 @@ function Website({ local }) {
     },
   };
   return (
-    <Script
+    <script
       id="website-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(payload) }}
