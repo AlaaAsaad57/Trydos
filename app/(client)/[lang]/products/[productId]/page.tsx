@@ -40,15 +40,31 @@ export async function generateMetadata({ params, searchParams }) {
     redirect(`/${country}-${language}?message=product_not_found`);
   }
 }
-export const metadata:Metadata={
-title:"TRYDOS-TEST",
-description:"TRYDOS-TEST",
-openGraph:{
-  type:"website",
-  url:"https://dev.trydos.com",
-  images:{url:"https://media_server.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png",width:'1200',height:'630',alt:"TRYDOS-TEST"}
-}
-}
+export const metadata: Metadata = {
+  title: "TRYDOS-TEST",
+  description: "TRYDOS-TEST",
+  openGraph: {
+    title: "TRYDOS-TEST", // Explicitly repeat title for OG
+    description: "TRYDOS-TEST", // Explicitly repeat description for OG
+    type: "website",
+    url: "https://dev.trydos.com",
+    images: [
+      {
+        url: "https://media_server.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png",
+        width: 1200, // Use numbers, not strings
+        height: 630,
+        alt: "TRYDOS-TEST",
+      },
+    ],
+  },
+  // Add Twitter for broader compatibility (WhatsApp often uses these as fallback)
+  twitter: {
+    card: "summary_large_image",
+    title: "TRYDOS-TEST",
+    description: "TRYDOS-TEST",
+    images: ["https://media_server.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png"],
+  },
+};
 export default async function Page({ params, searchParams }) {
   const [Params, SearchParams] = await Promise.all([params, searchParams]);
   return (
