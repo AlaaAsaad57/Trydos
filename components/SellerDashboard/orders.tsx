@@ -1716,6 +1716,7 @@ const OrderDetailScreen = ({
             const itemTotalPrice = offerPrice * qty;
             const isConfirmed = Boolean(item?.is_confirm);
             const isPacked = Boolean(item?.is_packed);
+            const isCanceled=order.order_status === "canceled"||item.qty===0;
             const isWaiting = !isConfirmed;
             const isActionLoading =
               orderDetailActionLoading === String(item?.id);
@@ -1803,16 +1804,16 @@ const OrderDetailScreen = ({
                   <div className="flex gap-3">
                     <button
                       onClick={() => onConfirmItem(order.id, item)}
-                      disabled={isActionLoading}
+                      disabled={isActionLoading||isCanceled}
                       className="flex-1 py-2.5 rounded-[10px] border border-[#388CFF] text-[#388CFF] bg-white font-medium text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isActionLoading
                         ? translateFunction("Updating...")
-                        : translateFunction("Confirm & Start Backing")}
+                        : translateFunction("Confirm & Start Packing")}
                     </button>
                     <button
                       onClick={() => onCancelItem(order.id, item)}
-                      disabled={isActionLoading}
+                     disabled={isActionLoading||isCanceled}
                       className="px-6 py-2.5 rounded-[10px] border border-[#FF9FA5] text-[#FF6B6B] bg-white font-medium text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {translateFunction("Cancel")}
@@ -1822,7 +1823,7 @@ const OrderDetailScreen = ({
                   <div className="flex gap-3">
                     <button
                       onClick={() => onPackItem(order.id, item)}
-                      disabled={isActionLoading}
+                      disabled={isActionLoading||isCanceled}
                       className="flex-1 py-2.5 rounded-[10px] border border-[#402CDD] text-[#402CDD] bg-[#EFEDFD] font-medium text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isActionLoading
