@@ -25,7 +25,8 @@ let nextConfig: NextConfig = {
             key: "X-Robots-Tag",
 
             // "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
-            value: "noindex, nofollow",
+            value: "index, follow",
+            // value: "noindex, nofollow",
           },
           {
             key: "Cache-Control",

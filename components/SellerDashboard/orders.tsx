@@ -1357,6 +1357,7 @@ const OrderListScreen = ({
                 <div
                   key={order.id || order.order_group_id}
                   onClick={() => onSelectOrder(order)}
+                  data-cy="order-shop-card"
                   className="bg-[#F8F8F8] rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform w-full"
                 >
                   {/* Card Header */}
@@ -1382,7 +1383,7 @@ const OrderListScreen = ({
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-1">
                       <Icons.Bell />
-                      <span className="font-medium text-[#1D1D1D] text-[12px]">
+                      <span className="font-medium text-[#1D1D1D] text-[12px]" data-cy="order-shop-status">
                         {formatStatusLabel(order.order_status)}
                       </span>
                       <div className="bg-gray-100 p-1 rounded-full">

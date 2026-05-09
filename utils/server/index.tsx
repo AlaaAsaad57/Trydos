@@ -55,7 +55,7 @@ export const configureImageForBoutique = (src) => {
 export const buildOgImageUrl = (rawUrl: string | null | undefined): string | null => {
   if (!rawUrl || typeof rawUrl !== "string") return null;
   if (!rawUrl.includes("/upload/")) return rawUrl;
-  return rawUrl.replace("/upload/", "/upload/w_1200,h_630,c_fill,g_auto/f_jpg/q_90/fl_lossy/");
+  return rawUrl.replace("/upload/", "/upload/w_1200,h_630,c_pad/f_jpg/q_90/");
 };
 
 /**
