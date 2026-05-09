@@ -7,7 +7,7 @@ import { LogServerError } from "utils/serverErrorReporter";
 import ProductPageContent from "components/Product/ProductPageContent";
 import { Metadata } from "next";
 
-export async function generateMetadata({ params, searchParams }) {
+export async function generateMetadata({ params, searchParams }): Promise<Metadata>{
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
   let [country, language] = Params.lang.split("-");
   try {
@@ -37,6 +37,7 @@ export async function generateMetadata({ params, searchParams }) {
     images: [
       {
         url: "https://media_server.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png",
+        secureUrl: "https://media_server.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png",
         width: 1200, // Use numbers, not strings
         height: 630,
         type:"image/jpeg",
