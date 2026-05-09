@@ -36,8 +36,8 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
     url: `https://dev.trydos.com/${country}-${language}/products/${Params.productId}`,
     images: [
       {
-        url: "https://media_server.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png",
-        secureUrl: "https://media_server.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png",
+        url: "https://images.unsplash.com/photo-1634287847376-06de6b0132bc?q=80&w=1200&h=630&auto=format",
+        secureUrl: "https://images.unsplash.com/photo-1634287847376-06de6b0132bc?q=80&w=1200&h=630&auto=format",
         width: 1200, // Use numbers, not strings
         height: 630,
         type:"image/jpeg",
@@ -50,7 +50,7 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
     card: "summary_large_image",
     title: "TRYDOS-TEST",
     description: "TRYDOS-TEST",
-    images: ["https://media_server.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png"],
+    images: ["https://images.unsplash.com/photo-1634287847376-06de6b0132bc?q=80&w=1200&h=630&auto=format"],
   },
 }
   } catch (error) {
