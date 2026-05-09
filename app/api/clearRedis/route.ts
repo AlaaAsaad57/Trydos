@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     "Cache-Control": "no-store",
   };
 
-  return NextResponse.json({ message: "unauth-401" });
+  // return NextResponse.json({ message: "unauth-401" });
   if (req.method === "OPTIONS") {
     return new NextResponse(null, { status: 204, headers });
   }
