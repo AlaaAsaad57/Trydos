@@ -5,6 +5,7 @@ import { GetProductMeta } from "serverRequests/product";
 import { redirect } from "next/navigation";
 import { LogServerError } from "utils/serverErrorReporter";
 import ProductPageContent from "components/Product/ProductPageContent";
+import { Metadata } from "next";
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
@@ -39,7 +40,15 @@ export async function generateMetadata({ params, searchParams }) {
     redirect(`/${country}-${language}?message=product_not_found`);
   }
 }
-
+export const metadata:Metadata={
+title:"TRYDOS-TEST",
+description:"TRYDOS-TEST",
+openGraph:{
+  type:"website",
+  url:"https://dev.trydos.com",
+  images:{url:"https://media_server.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png",width:'1200',height:'630',alt:"TRYDOS-TEST"}
+}
+}
 export default async function Page({ params, searchParams }) {
   const [Params, SearchParams] = await Promise.all([params, searchParams]);
   return (

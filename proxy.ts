@@ -52,26 +52,6 @@ function isBot(userAgent: string | null): boolean {
   return bots.some((bot) => userAgent.includes(bot));
 }
 
-// Social preview bots that need OG pages
-function isSocialBot(ua: string | null): boolean {
-  if (!ua) return false;
-  const socialBots = [
-    "facebookexternalhit",
-    "facebot",
-    "facebookbot",
-    "meta-externalagent",
-    "instagrambot",
-    "twitterbot",
-    "whatsapp",
-    "linkedinbot",
-    "discordbot",
-    "slackbot",
-    "telegrambot",
-  ];
-  const lower = ua.toLowerCase();
-  return socialBots.some((bot) => lower.includes(bot));
-}
-
 // Helper functions
 function getCachedCountries(): string[] {
   return ["sy", "lb", "tr", "iq"];
@@ -259,34 +239,6 @@ export async function proxy(request: NextRequest) {
   console.log(
     `Incoming request: ${pathname} from IP: ${ip}, User-Agent: ${ua}`,
   );
-  // ── OG routing (before rate limiting — social bots are legitimate crawlers) ──
-  // Human on /OG/... → redirect to the real customer URL
-  if (pathname.startsWith("/OG/")) {
-    if (!isSocialBot(ua)) {
-      url.pathname = pathname.slice(3); // "/OG/gb-en/..." → "/gb-en/..."
-      return NextResponse.redirect(url);
-    }
-    return NextResponse.next(); // social bot → serve OG page as-is
-  }
-
-  // Social bot on a customer page → rewrite internally to the lightweight OG page
-  if (isSocialBot(ua)) {
-    const cleanPath = getCleanPathname(pathname, urlLocale) || "/";
-    const isOgTarget =
-      cleanPath === "/" ||
-      cleanPath.startsWith("/products/") ||
-      cleanPath.startsWith("/filters/") ||
-      cleanPath.startsWith("/featured/") ||
-      cleanPath.startsWith("/flashDeals/");
-
-    if (urlLocale && isOgTarget) {
-      url.pathname = `/OG${pathname}`;
-      return NextResponse.rewrite(url);
-    }
-    return new NextResponse(null, { status: 403 });
-  }
-  // ────────────────────────────────────────────────────────────────────────────
-
   // 1️⃣ Rate limiting
   if (ip && ip !== "0.0.0.0") {
     const allowed = await checkRateLimit(ip, 50, 60);
