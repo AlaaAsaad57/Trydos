@@ -640,7 +640,11 @@ function SellerDashBoard() {
   const initializeData = async () => {
     setLoadingSideBar(true);
    let [productsRes,BoutiqueRes,ShopesRes]= await Promise.all([getSellerProducts(), getSellerBoutiques(),SellerDashboardService.getShopes(true)]);
-   setCurrentRole(ShopesRes.data?.find((s: any) => s.seller_id?.toString() === sellerId)?.shop_role);
+     const isSuperAdmin = sellerPermissions.includes("SUPER_ADMIN");
+   if(isSuperAdmin){
+      setCurrentRole("Super Admin");
+   }else {
+   setCurrentRole(ShopesRes.data?.find((s: any) => s.seller_id?.toString() === sellerId)?.shop_role);}
   setLoadingSideBar(false);
   };
   useEffect(() => {
@@ -923,14 +927,14 @@ function SellerDashBoard() {
       </div>
     );
   };
-  const [loadingRole,setLoadingRole]=useState(false);
+  
   const [currentRole,setCurrentRole]=useState(shopes.find((s)=>s.seller_id?.toString()===sellerId)?.shop_role);
 
   const showRoleInfo=()=>{
      const isSuperAdmin = sellerPermissions.includes("SUPER_ADMIN");
      
     if(isSuperAdmin){
-      setCurrentRole("Super Admin");
+    
       return(
            <div className="bg-linear-to-r from-blue-500 to-purple-500 text-white p-4 rounded-[15px] mb-6">
           <div className="flex items-center gap-2">
