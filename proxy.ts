@@ -235,10 +235,7 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
   const urlLocale = parseUrlLocale(pathname);
-  const ip = getClientIp(request);
-  console.log(
-    `Incoming request: ${pathname} from IP: ${ip}, User-Agent: ${ua}`,
-  );
+
   // 1️⃣ Rate limiting
   // if (ip && ip !== "0.0.0.0") {
   //   const allowed = await checkRateLimit(ip, 50, 60);
@@ -262,6 +259,25 @@ export async function proxy(request: NextRequest) {
 
   const supportedLocales = buildSupportedLocales(allSupportedCountries);
   const response = NextResponse.next();
+  if (isBotAgent) {
+    if (urlLocale && supportedLocales.has(urlLocale.locale)) {
+      return response;
+    }
+
+    const preferredLanguage = getPreferredLanguage(request);
+    const defaultLocale = urlLocale
+      ? buildLocale(urlLocale.country, urlLocale.language)
+      : buildLocale(DEFAULT_COUNTRY, preferredLanguage);
+
+    // Preserve full path, prefix with locale
+    const cleanPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
+    url.pathname = `/${defaultLocale}${cleanPathname}`;
+    return NextResponse.redirect(url, 308);
+  }
+  const ip = getClientIp(request);
+  console.log(
+    `Incoming request: ${pathname} from IP: ${ip}, User-Agent: ${ua}`,
+  );
   if (!isBotAgent) {
     if (ip && ip !== userIP) {
       response.cookies.set("userIP", ip, {
@@ -293,21 +309,6 @@ export async function proxy(request: NextRequest) {
     }
   }
   // Bot handling
-  if (isBotAgent) {
-    if (urlLocale && supportedLocales.has(urlLocale.locale)) {
-      return response;
-    }
-
-    const preferredLanguage = getPreferredLanguage(request);
-    const defaultLocale = urlLocale
-      ? buildLocale(urlLocale.country, urlLocale.language)
-      : buildLocale(DEFAULT_COUNTRY, preferredLanguage);
-
-    // Preserve full path, prefix with locale
-    const cleanPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
-    url.pathname = `/${defaultLocale}${cleanPathname}`;
-    return NextResponse.redirect(url, 308);
-  }
 
   // Handle robots.txt requests
   if (pathname?.includes("/robots.txt") || pathname?.includes("/robots")) {
