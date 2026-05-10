@@ -11,50 +11,50 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
   let [country, language] = Params.lang.split("-");
   try {
-    // const metaData = await GetProductMeta({
-    //   country: country,
-    //   language: language,
-    //   slug: Params.productId,
-    //   searchParams: SearchParams,
-    // });
+    const metaData = await GetProductMeta({
+      country: country,
+      language: language,
+      slug: Params.productId,
+      searchParams: SearchParams,
+    });
 
-    // // @ts-ignore
-    // if (metaData?.error || !metaData) {
-    //   // @ts-ignore
-    //   throw new Error(metaData?.error ?? metaData);
-    // }
-    // RedisSet(`${Params.productId}-${Params.lang}`, JSON.stringify(metaData));
+    // @ts-ignore
+    if (metaData?.error || !metaData) {
+      // @ts-ignore
+      throw new Error(metaData?.error ?? metaData);
+    }
+    RedisSet(`${Params.productId}-${Params.lang}`, JSON.stringify(metaData));
 
-    // return metaData;
+    return metaData;
 
-  let image="https://media.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png";
-  return  {
-  title: "TRYDOS-TEST",
-  description: "TRYDOS-TEST",
-  openGraph: {
-    title: "TRYDOS-TEST", // Explicitly repeat title for OG
-    description: "TRYDOS-TEST", // Explicitly repeat description for OG
-    type: "website",
-    url: `https://dev.trydos.com/${country}-${language}/products/${Params.productId}`,
-    images: [
-      {
-        url: image,
-        secureUrl: image,
-        width: 1200, // Use numbers, not strings
-        height: 630,
-        type:"image/jpeg",
-        alt: "TRYDOS-TEST",
-      },
-    ],
-  },
-  // Add Twitter for broader compatibility (WhatsApp often uses these as fallback)
-  twitter: {
-    card: "summary_large_image",
-    title: "TRYDOS-TEST",
-    description: "TRYDOS-TEST",
-    images: [image],
-  },
-}
+//   let image="https://media.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png";
+//   return  {
+//   title: "TRYDOS-TEST",
+//   description: "TRYDOS-TEST",
+//   openGraph: {
+//     title: "TRYDOS-TEST", // Explicitly repeat title for OG
+//     description: "TRYDOS-TEST", // Explicitly repeat description for OG
+//     type: "website",
+//     url: `https://dev.trydos.com/${country}-${language}/products/${Params.productId}`,
+//     images: [
+//       {
+//         url: image,
+//         secureUrl: image,
+//         width: 1200, // Use numbers, not strings
+//         height: 630,
+//         type:"image/jpeg",
+//         alt: "TRYDOS-TEST",
+//       },
+//     ],
+//   },
+//   // Add Twitter for broader compatibility (WhatsApp often uses these as fallback)
+//   twitter: {
+//     card: "summary_large_image",
+//     title: "TRYDOS-TEST",
+//     description: "TRYDOS-TEST",
+//     images: [image],
+//   },
+// }
   } catch (error) {
     LogServerError(
       {

@@ -240,15 +240,15 @@ export async function proxy(request: NextRequest) {
     `Incoming request: ${pathname} from IP: ${ip}, User-Agent: ${ua}`,
   );
   // 1️⃣ Rate limiting
-  if (ip && ip !== "0.0.0.0") {
-    const allowed = await checkRateLimit(ip, 50, 60);
-    if (!allowed) {
-      await sendSecurityAlert(
-        `🚨 IP ${ip} exceeded rate limit. Path: ${request.nextUrl.pathname}`,
-      );
-      return new NextResponse("Too many requests", { status: 429 });
-    }
-  }
+  // if (ip && ip !== "0.0.0.0") {
+  //   const allowed = await checkRateLimit(ip, 50, 60);
+  //   if (!allowed) {
+  //     await sendSecurityAlert(
+  //       `🚨 IP ${ip} exceeded rate limit. Path: ${request.nextUrl.pathname}`,
+  //     );
+  //     return new NextResponse("Too many requests", { status: 429 });
+  //   }
+  // }
 
   const userIP = request.cookies.get("userIP")?.value;
 
@@ -262,17 +262,19 @@ export async function proxy(request: NextRequest) {
 
   const supportedLocales = buildSupportedLocales(allSupportedCountries);
   const response = NextResponse.next();
-  if (ip && ip !== userIP) {
-    response.cookies.set("userIP", ip, {
-      ...COOKIE_OPTIONS,
-      httpOnly: false,
-    });
+  if (!isBotAgent) {
+    if (ip && ip !== userIP) {
+      response.cookies.set("userIP", ip, {
+        ...COOKIE_OPTIONS,
+        httpOnly: false,
+      });
+    }
   }
   // Handle referer and UTM tracking
   const referer = request.headers.get("referer");
   const utm_source = url.searchParams.get("utm_source");
 
-  if (referer || utm_source) {
+  if (!isBotAgent && (referer || utm_source)) {
     if (utm_source) {
       response.cookies.set("referer", referer, {
         ...COOKIE_OPTIONS,
