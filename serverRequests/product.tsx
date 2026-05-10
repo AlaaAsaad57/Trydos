@@ -274,7 +274,7 @@ export async function GetProductMeta({
   searchParams,
 }) {
   try {
-    let cacheKey = `product-meta-${slug}-${language}-${country}`;
+    let cacheKey = `product-meta-v2-${slug}-${language}-${country}`;
     let cachedMeta = await RedisGet(cacheKey);
     if (cachedMeta) {
       return { ...cachedMeta, metaFromRedis: true };

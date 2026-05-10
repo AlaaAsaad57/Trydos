@@ -28,7 +28,7 @@ export const getConfiguredImage = ({
 };
 
 export const GetImageUrl = (url) => {
-  if(url.includes('_server')) return url.replace('_server','');
+  if(url?.includes('_server')) return url.replace('_server','');
   if (url?.file_path) {
     if (url?.file_path?.includes("cloudinary")) {
       return url?.file_path;
@@ -55,8 +55,12 @@ export const configureImageForBoutique = (src) => {
  */
 export const buildOgImageUrl = (rawUrl: string | null | undefined): string | null => {
   if (!rawUrl || typeof rawUrl !== "string") return null;
-  if (!rawUrl.includes("/upload/")) return rawUrl;
-  return rawUrl.replace("/upload/", "/upload/w_1200,h_630,c_pad/f_jpg/q_90/");
+  const normalizedUrl = rawUrl?.replace("media_server.ramaaz.dev", "media.ramaaz.dev");
+  if (!normalizedUrl?.includes("/upload/")) return normalizedUrl;
+  return normalizedUrl.replace(
+    "/upload/",
+    "/upload/w_1200,h_630,c_pad/f_jpg/q_90/",
+  );
 };
 
 /**
@@ -74,7 +78,7 @@ export const getBrandIconImageUrl = (
 ): string => {
   const baseUrl = GetImageUrl(url);
   if (!baseUrl || typeof baseUrl !== "string") return baseUrl ?? "";
-  if (!baseUrl.includes("cloudinary") || !baseUrl.includes("/upload")) {
+  if (!baseUrl?.includes("cloudinary") || !baseUrl?.includes("/upload")) {
     return baseUrl;
   }
   const width = options?.width ?? 60;
@@ -88,8 +92,8 @@ export function translateFunction(key: string, language: string) {
 }
 
 function preciseMultiply(a, b) {
-  const aStr = a.toString();
-  const bStr = b.toString();
+  const aStr = a?.toString();
+  const bStr = b?.toString();
 
   // عدد الأرقام بعد الفاصلة في كل رقم
   const aDecimals = (aStr.split(".")[1] || "").length;
@@ -187,7 +191,7 @@ export const getVideoUrl = (
   const transformStr = transformations.join(",");
 
   // If input is a full Cloudinary URL, insert the transformation after '/upload/' and before '/v1/'
-  if (input.startsWith("http") && input.includes("/video/upload/")) {
+  if (input.startsWith("http") && input?.includes("/video/upload/")) {
     return input.replace(
       /\/video\/upload\/(v\d+)?/,
       `/video/upload/${transformStr}/$1`,
@@ -269,7 +273,7 @@ export const parseFiltersFromParams = (
   while (currentIndex < cleanParams.length) {
     const filterType = cleanParams[currentIndex];
 
-    if (!filterOrder.includes(filterType)) {
+    if (!filterOrder?.includes(filterType)) {
       currentIndex++;
       continue;
     }
