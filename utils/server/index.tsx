@@ -9,6 +9,7 @@ export const getConfiguredImage = ({
   c_pad = false,
   q = "auto:good",
 }) => {
+  if(!src) return "";
   if (typeof src === "string") {
     return src.replace(
       "/upload",
@@ -17,7 +18,7 @@ export const getConfiguredImage = ({
       }/f_auto/q_${q}/fl_lossy/so_0`,
     );
   }
-  if (src?.file_path?.includes("cloudinary")) {
+  if (src?.file_path.includes("cloudinary")) {
     return src.file_path.replace(
       "/upload/v1",
       `/upload/v1/h_${height}${width ? `,w_${width}` : ""},${
@@ -28,6 +29,7 @@ export const getConfiguredImage = ({
 };
 
 export const GetImageUrl = (url) => {
+  if(!url) return url;
   if(url?.includes('_server')) return url.replace('_server','');
   if (url?.file_path) {
     if (url?.file_path?.includes("cloudinary")) {
@@ -42,6 +44,8 @@ export const GetImageUrl = (url) => {
 };
 
 export const configureImageForBoutique = (src) => {
+  if(!src) return "";
+  
   return src.replace(
     "/upload",
     `/upload/w_1356,c_pad,b_auto/f_auto/q_auto:best/fl_lossy/so_0`,
@@ -170,6 +174,7 @@ export const getVideoUrl = (
     height?: number | string;
   },
 ): string => {
+  if(!input) return "";
   // Build transformation string
   let transformations = [];
   if (options?.height) {
