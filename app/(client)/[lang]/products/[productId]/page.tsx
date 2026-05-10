@@ -27,7 +27,7 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
 
     // return metaData;
 
-    let image="https://media_server.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png";
+  let image="https://media.ramaaz.dev/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/product/yz2p0gvbrmr8fnzd2w27.png";
   return  {
   title: "TRYDOS-TEST",
   description: "TRYDOS-TEST",
