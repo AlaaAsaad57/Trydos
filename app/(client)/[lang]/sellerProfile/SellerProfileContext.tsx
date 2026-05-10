@@ -9,6 +9,7 @@ interface SellerProfileContextType {
   shopes: Array<{
     seller_id: number;
     shop_name: string;
+    shop_role: string;
     permissions: Array<string>;
   }>;
   setShopes: React.Dispatch<

@@ -585,6 +585,7 @@ function SellerDashBoard() {
 
   // Close menu on outside click or Escape
   useEffect(() => {
+
     if (!menuOpen) return;
     const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
       if (!menuRef.current) return;
@@ -638,8 +639,9 @@ function SellerDashBoard() {
   const [loadingSideBar, setLoadingSideBar] = useState(false);
   const initializeData = async () => {
     setLoadingSideBar(true);
-    await Promise.all([getSellerProducts(), getSellerBoutiques()]);
-    setLoadingSideBar(false);
+   let [productsRes,BoutiqueRes,ShopesRes]= await Promise.all([getSellerProducts(), getSellerBoutiques(),SellerDashboardService.getShopes(true)]);
+   setCurrentRole(ShopesRes.data?.find((s: any) => s.seller_id?.toString() === sellerId)?.shop_role);
+  setLoadingSideBar(false);
   };
   useEffect(() => {
     if (menuOpen) initializeData();
@@ -921,24 +923,47 @@ function SellerDashBoard() {
       </div>
     );
   };
+  const [loadingRole,setLoadingRole]=useState(false);
+  const [currentRole,setCurrentRole]=useState(shopes.find((s)=>s.seller_id?.toString()===sellerId)?.shop_role);
 
+  const showRoleInfo=()=>{
+     const isSuperAdmin = sellerPermissions.includes("SUPER_ADMIN");
+     
+    if(isSuperAdmin){
+      setCurrentRole("Super Admin");
+      return(
+           <div className="bg-linear-to-r from-blue-500 to-purple-500 text-white p-4 rounded-[15px] mb-6">
+          <div className="flex items-center gap-2">
+          <span className="text-[20px]">⭐</span>
+          <div>
+          <h3 className="text-[18px] font-bold">
+          {translateFunction("Super Admin")}
+          </h3>
+          <p className="text-[12px] opacity-90">
+          {translateFunction("You have full access to all features")}
+          </p>
+          </div>
+          </div>
+          </div>
+      )
+    }
+    return (<div className="bg-white border border-[#e0e0e0] p-4 rounded-[15px] mb-6 shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-[20px]">🔖</span>
+              <div>
+                <h3 className="text-[18px] font-bold text-[#1d1d1d]">
+                  {currentRole}
+                </h3>
+                <p className="text-[12px] text-[#8D8D8D]">
+                  
+                </p>
+              </div>
+            </div>
+          </div>)
+
+  }
   const renderPermissions = () => {
-    // if (!canViewPermissions) {
-    //   return (
-    //     <div className="flex items-center justify-center py-12">
-    //       <div className="text-center">
-    //         <p className="text-[16px] font-medium text-[#1d1d1d] mb-2">
-    //           {translateFunction("Access Denied")}
-    //         </p>
-    //         <p className="text-[14px] text-[#8D8D8D]">
-    //           {translateFunction(
-    //             "You don't have permission to view permissions",
-    //           )}
-    //         </p>
-    //       </div>
-    //     </div>
-    //   );
-    // }
+
     if (loading && sellerPermissions.length === 0) {
       return (
         <div className="flex items-center justify-center py-12">
@@ -975,25 +1000,16 @@ function SellerDashBoard() {
     }
 
     const isSuperAdmin = sellerPermissions.includes("SUPER_ADMIN");
-
+    const shopRoleName =
+      typeof currentShop?.shop_role === "string"
+        ? currentShop.shop_role
+        : ""
     return (
       <div className="space-y-6">
-        {isSuperAdmin && (
-          <div className="bg-linear-to-r from-blue-500 to-purple-500 text-white p-4 rounded-[15px] mb-6">
-            <div className="flex items-center gap-2">
-              <span className="text-[20px]">⭐</span>
-              <div>
-                <h3 className="text-[18px] font-bold">
-                  {translateFunction("Super Admin")}
-                </h3>
-                <p className="text-[12px] opacity-90">
-                  {translateFunction("You have full access to all features")}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
+        {!currentRole?
+        <div className="flex flex-1 items-center justify-center"><Spinner/></div>:
+        showRoleInfo()}
+        
         {Object.entries(groupedPermissions).map(([group, permissions]) => (
           <div key={group} className="bg-white rounded-[15px] shadow-md p-6">
             <h3 className="text-[16px] font-semibold text-[#1d1d1d] mb-4 pb-2 border-b border-[#f0f0f0]">
