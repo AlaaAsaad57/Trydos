@@ -28,6 +28,7 @@ export const getConfiguredImage = ({
 };
 
 export const GetImageUrl = (url) => {
+  if(url.includes('_server')) return url.replace('_server','');
   if (url?.file_path) {
     if (url?.file_path?.includes("cloudinary")) {
       return url?.file_path;
