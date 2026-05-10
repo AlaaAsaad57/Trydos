@@ -193,6 +193,9 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         <ConfirmationModal
           forVerify={false}
           closeWindow={() => {
+          //   phoneInput.setValue(
+          //   initialData?.phone === "0" ? "" : initialData?.phone || "",
+          // );
             setIsPhoneShouldChange(false);
           }}
           value={phoneInput.value}
@@ -591,12 +594,14 @@ const ConfirmationModal = ({
       <img
         onClick={closeWindow}
         src="/icons/settings/Xicon.svg"
-        className="w-[20px] absolute z-[999999999] top-[calc(50%-170px)]  right-[30px]  h-[20px] cursor-pointer"
+        className="w-[20px] absolute z-[9999999999] top-[calc(50%-170px)]  right-[30px]  h-[20px] cursor-pointer"
       />
 
       {createPortal(
         <>
-          <div className="fixed z-[999999998] top-0 left-0  w-full h-full bg-black opacity-50" />
+          <div className="fixed z-[999999998] top-0 left-0  w-full h-full bg-black opacity-50" onClick={()=>{
+            closeWindow();
+          }}/>
           <div className="p-5 flex  w-auto justify-center z-[999999999] h-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[15px]">
             <ConfirmMobileChange
               forVerify={forVerify}
