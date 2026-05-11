@@ -593,7 +593,7 @@ const ConfirmationModal = ({
     <>
       <img
         onClick={closeWindow}
-        src="/icons/settings/Xicon.svg"
+        src="/icons/settings/WhiteXicon.svg"
         className="w-[20px] absolute z-[9999999999] top-[calc(50%-170px)]  right-[30px]  h-[20px] cursor-pointer"
       />
 
