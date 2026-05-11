@@ -30,7 +30,7 @@ export const getConfiguredImage = ({
 
 export const GetImageUrl = (url) => {
   if(!url) return url;
-  if(url?.includes('_server')) return url.replace('_server','');
+ 
   if (url?.file_path) {
     if (url?.file_path?.includes("cloudinary")) {
       return url?.file_path;
@@ -665,9 +665,10 @@ export const formatTime = (timeString: string, language) => {
     translateFunction("November", language),
     translateFunction("December", language),
   ];
-  let date = !timeString?.includes("Z")
-    ? new Date(timeString + "Z")
-    : new Date(timeString);
+  const timeStr = typeof timeString === "string" ? timeString : String(timeString ?? "");
+  let date = !timeStr.includes("Z")
+    ? new Date(timeStr + "Z")
+    : new Date(timeStr);
   if (isNaN(date?.getTime())) {
     date = new Date(timeString + "Z");
   }
