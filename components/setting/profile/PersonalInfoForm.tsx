@@ -600,7 +600,7 @@ const ConfirmationModal = ({
       {createPortal(
         <>
           <div className="fixed z-[999999998] top-0 left-0  w-full h-full bg-black opacity-50" onClick={()=>{
-            closeWindow();
+            // closeWindow();
           }}/>
           <div className="p-5 flex  w-auto justify-center z-[999999999] h-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[15px]">
             <ConfirmMobileChange
