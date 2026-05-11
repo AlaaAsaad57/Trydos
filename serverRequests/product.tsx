@@ -301,7 +301,7 @@ export async function GetProductMeta({
     const image = firstImagePath ? buildOgImageUrl(GetImageUrl(firstImagePath)) : null;
     const fallbackImageUrl = `${General_Site_Data.url}/opengraph-image.png`;
     const ogImages = image
-      ? [{ url: image, width: 1200, height: 630, type: "image/jpeg" }]
+      ? [{ url: image?.includes('_server') ? image.replace('_server','') : image, width: 1200, height: 630, type: "image/jpeg" }]
       : [{ url: fallbackImageUrl, width: 1200, height: 630, type: "image/png" }];
     const description = stripHtml(product?.details);
     let data: Metadata = {
@@ -326,7 +326,7 @@ export async function GetProductMeta({
         card: "summary_large_image",
         title: title,
         description,
-        images: [image ?? fallbackImageUrl],
+        images: [image?.includes('_server') ? image.replace('_server','') : image ?? fallbackImageUrl],
       },
       keywords: [
         product?.name,
