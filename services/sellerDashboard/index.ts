@@ -26,7 +26,7 @@ class SellerDashboardService {
         reqTitle: REQUESTS_DATA.GET_SELLER_PRODUCTS,
         sellerId,
       });
-      console.log("Seller Products Response:", res);
+      
       return res;
     } catch (error) {
       throw error;

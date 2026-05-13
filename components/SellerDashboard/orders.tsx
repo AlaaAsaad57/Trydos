@@ -13,6 +13,8 @@ import home from "services/home";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import BackBar from "components/setting/BackBar";
 
@@ -1283,6 +1285,28 @@ const getOrderStatusFromTab = (tab: OrderFilterTabLabel) => {
 
 // --- 3. Components ---
 
+// A1. Skeleton for a single order card
+const SellerOrderCardSkeleton = () => (
+  <div className="bg-[#F8F8F8] rounded-2xl p-4 w-full">
+    {/* Header row */}
+    <div className="flex justify-between items-center mb-4">
+      <Skeleton width={110} height={14} borderRadius={8} />
+      <Skeleton width={60} height={14} borderRadius={8} />
+    </div>
+    {/* Stats row */}
+    <div className="flex justify-between items-center mb-4">
+      <Skeleton width={90} height={14} borderRadius={8} />
+      <Skeleton width={120} height={14} borderRadius={8} />
+    </div>
+    {/* Image gallery */}
+    <div className="flex gap-2">
+      {[0, 1, 2].map((i) => (
+        <Skeleton key={i} width={91} height={125} borderRadius={15} />
+      ))}
+    </div>
+  </div>
+);
+
 // A. Order List Screen
 const OrderListScreen = ({
   orders,
@@ -1321,12 +1345,13 @@ const OrderListScreen = ({
           {ORDER_FILTER_TABS.map((tabItem) => (
             <button
               key={tabItem.label}
-              onClick={() => onSelectTab(tabItem.label)}
-              className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap ${
+              onClick={() => !isLoading && onSelectTab(tabItem.label)}
+              disabled={isLoading}
+              className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-opacity ${
                 selectedTab === tabItem.label
                   ? "bg-gray-800 text-white"
                   : "bg-[#F8F8F8] text-[#8D8D8D]"
-              }`}
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {tabItem.label}
             </button>
@@ -1337,7 +1362,9 @@ const OrderListScreen = ({
       {/* List Content */}
       <div className="p-2 flex-1 overflow-y-auto w-full">
         <div className="space-y-3">
-          {orders.length === 0 ? (
+          {isLoading ? (
+            [0, 1, 2, 3].map((i) => <SellerOrderCardSkeleton key={i} />)
+          ) : orders.length === 0 ? (
             <div className="flex items-center justify-center py-12">
               <p className="text-[#8D8D8D]">
                 {translateFunction("No orders found")}
@@ -1439,14 +1466,7 @@ const OrderListScreen = ({
               );
             })
           )}
-          {isLoading && (
-            <div className="flex items-center justify-center py-12">
-              <Spinner />
-              <span className="ml-3 text-[#3c3c3c]">
-                {translateFunction("Loading orders...")}
-              </span>
-            </div>
-          )}
+
         </div>
       </div>
     </div>
@@ -1871,12 +1891,17 @@ export const RenderOrders = ({
   const [ordersMeta, setOrdersMeta] = useState<any>(null);
   const [ordersPage, setOrdersPage] = useState(1);
   const [screen, setScreen] = useState<"list" | "detail">("list");
-  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<
+    number | string | null
+  >(null);
   const [selectedOrderFilterTab, setSelectedOrderFilterTab] =
     useState<OrderFilterTabLabel>("All");
 
   const sellerOrders = useAppStore((state) => state.sellerOrders);
   const setSellerOrders = useAppStore((state) => state.setSellerOrders);
+
+  const selectedOrder =
+    sellerOrders.find((o) => String(o.id) === String(selectedOrderId)) ?? null;
 
   const shouldUpdateOrders = useAppStore((state) => state.shouldUpdateOrders);
   const [hasMore, setHasMore] = useState<boolean>(false);
@@ -1940,17 +1965,11 @@ export const RenderOrders = ({
     detailId: number | string,
     updateFn: (item: any) => any,
   ) => {
-    let updated = sellerOrders.map((order) =>
+    setSellerOrders(sellerOrders.map((order) =>
       order.id === orderId
         ? updateOrderDetailItem(order, detailId, updateFn)
         : order,
-    );
-    if (selectedOrder?.id === orderId) {
-      setSelectedOrder((current) =>
-        current ? updateOrderDetailItem(current, detailId, updateFn) : current,
-      );
-    }
-    setSellerOrders(updated);
+    ));
   };
 
   const syncOrderDetailCancel = (
@@ -1958,19 +1977,13 @@ export const RenderOrders = ({
     detailId: number | string,
     qty: number,
   ) => {
-    setSellerOrders((prev) => {
-      const next = prev.map((order) =>
+    setSellerOrders((prev) =>
+      prev.map((order) =>
         order.id === orderId
           ? applyCancelToOrderDetail(order, detailId, qty)
           : order,
-      );
-      if (selectedOrder?.id === orderId) {
-        setSelectedOrder((current) =>
-          current ? applyCancelToOrderDetail(current, detailId, qty) : current,
-        );
-      }
-      return next;
-    });
+      ),
+    );
   };
 
   const handleConfirmItem = async (orderId: number | string, item: any) => {
@@ -2043,15 +2056,6 @@ export const RenderOrders = ({
       setOrderDetailActionLoading(null);
     }
   };
-
-  useEffect(() => {
-    if (selectedOrder && screen === "detail") {
-      const updated = sellerOrders.find(
-        (o) => String(o.id) === String(selectedOrder.id),
-      );
-      if (updated) setSelectedOrder(updated);
-    }
-  }, [sellerOrders]);
 
   useEffect(() => {
     if (activeTab === "orders" && canViewOrders) {
@@ -2174,10 +2178,10 @@ export const RenderOrders = ({
                 onSelectTab={(tab) => {
                   setSelectedOrderFilterTab(tab);
                   setScreen("list");
-                  setSelectedOrder(null);
+                  setSelectedOrderId(null);
                 }}
                 onSelectOrder={(order) => {
-                  setSelectedOrder(order);
+                  setSelectedOrderId(order?.id ?? null);
                   setScreen("detail");
                 }}
               />
@@ -2189,7 +2193,7 @@ export const RenderOrders = ({
           ) : (
             <OrderDetailScreen
               order={selectedOrder}
-              onBack={() => setScreen("list")}
+              onBack={() => { setScreen("list"); setSelectedOrderId(null); }}
               orderStatusOptions={orderStatusOptions}
               selectedOrderStatuses={selectedOrderStatuses}
               setSelectedOrderStatuses={setSelectedOrderStatuses}
