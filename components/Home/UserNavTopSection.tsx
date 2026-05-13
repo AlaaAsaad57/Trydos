@@ -158,7 +158,7 @@ function UserNavTopSection({
   // Verified User = logged in but still needs to complete phone verification
   const getUserType = () => {
     if (!userData?.id || userData.phone === "0") return "NEW_USER";
-    if (userData?.is_phone_verified === 1 && userChat?.id) return "authed-user";
+    if (userStories?.id && userChat?.id) return "authed-user";
     return "Verified User";
   };
   return (
