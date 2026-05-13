@@ -123,8 +123,13 @@ export const useCartStore = (set, get) => ({
 
   // Seller dashboard orders sync for notifications
   sellerOrders: [],
-  setSellerOrders: (orders) =>
-    set({ sellerOrders: Array.isArray(orders) ? orders : [] }),
+  setSellerOrders: (orders) => {
+    if (typeof orders === "function") {
+      set((state) => ({ sellerOrders: orders(state.sellerOrders) }));
+    } else {
+      set({ sellerOrders: Array.isArray(orders) ? orders : [] });
+    }
+  },
 
   LoggingOut: false,
   setLastPathname: (e) => {

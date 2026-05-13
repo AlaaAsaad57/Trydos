@@ -41,6 +41,9 @@ class SellerDashboardService {
         reqTitle: REQUESTS_DATA.GET_SELLER_BOUTIQUES,
         sellerId,
       });
+      if(!res.success){
+        throw new Error(res.message || "Failed to fetch seller boutiques");
+      }
       return res;
     } catch (error) {
       throw error;
@@ -55,6 +58,9 @@ class SellerDashboardService {
         reqTitle: REQUESTS_DATA.GET_SELLER_PERMISSIONS,
         sellerId,
       });
+      if(!res.success){
+        throw new Error(res.message || "Failed to fetch seller permissions");
+      }
       return res;
     } catch (error) {
       throw error;
@@ -110,6 +116,9 @@ class SellerDashboardService {
         body: JSON.stringify(data),
         sellerId,
       });
+      if(!res.success){
+        throw new Error(res.message || "Failed to confirm order detail status");
+      }
       return res;
     } catch (error) {
       throw error;
@@ -128,6 +137,9 @@ class SellerDashboardService {
         body: JSON.stringify(data),
         sellerId,
       });
+            if(!res.success){
+        throw new Error(res.message || "Failed to confirm order detail status");
+      }
       return res;
     } catch (error) {
       throw error;
@@ -146,6 +158,9 @@ class SellerDashboardService {
         body: JSON.stringify(data),
         sellerId,
       });
+            if(!res.success){
+        throw new Error(res.message || "Failed to confirm order detail status");
+      }
       return res;
     } catch (error) {
       throw error;
@@ -166,6 +181,9 @@ class SellerDashboardService {
         reqTitle: REQUESTS_DATA.GET_SHOP_ROLES,
         sellerId,
       });
+            if(!res.success){
+        throw new Error(res.message || "Failed to confirm order detail status");
+      }
       return res;
     } catch (error) {
       throw error;
@@ -185,6 +203,9 @@ class SellerDashboardService {
         body: JSON.stringify(data),
         sellerId: data.seller_id,
       });
+            if(!res.success){
+        throw new Error(res.message || "Failed to confirm order detail status");
+      }
       return res;
     } catch (error) {
       throw error;
@@ -217,6 +238,9 @@ class SellerDashboardService {
         reqTitle: REQUESTS_DATA.DELETE_SHOP_USER,
         sellerId,
       });
+            if(!res.success){
+        throw new Error(res.message || "Failed to confirm order detail status");
+      }
       return res;
     } catch (error) {
       throw error;
@@ -236,6 +260,9 @@ class SellerDashboardService {
         body: JSON.stringify(data),
         sellerId,
       });
+      if(!res.success){
+        throw new Error(res.message || "Failed to confirm order detail status");
+      }
       return res;
     } catch (error) {
       throw error;
@@ -251,6 +278,9 @@ class SellerDashboardService {
         reqTitle: REQUESTS_DATA.LEAVE_SHOP,
         sellerId,
       });
+      if(!res.success){
+        throw new Error(res.message || "Failed to confirm order detail status");
+      }
       return res;
     } catch (error) {
       throw error;

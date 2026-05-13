@@ -2045,6 +2045,15 @@ export const RenderOrders = ({
   };
 
   useEffect(() => {
+    if (selectedOrder && screen === "detail") {
+      const updated = sellerOrders.find(
+        (o) => String(o.id) === String(selectedOrder.id),
+      );
+      if (updated) setSelectedOrder(updated);
+    }
+  }, [sellerOrders]);
+
+  useEffect(() => {
     if (activeTab === "orders" && canViewOrders) {
       getSellerOrders(1);
     }
