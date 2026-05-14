@@ -23,6 +23,10 @@ import { fetchData } from "utils/fetchData";
 import { COOKIE_NAMES, setCookie } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
+import {
+  trackSubscribedTopic,
+  untrackSubscribedTopic,
+} from "utils/fcmTopicTracker";
 class HomeService {
   async getClientData() {
     const { setSettings, initCart, language } = useAppStore.getState();
@@ -202,8 +206,16 @@ class HomeService {
   // new unified action
   async AllowNotifications() {
     try {
-      const { requestFirebaseNotificationPermission, onMessageListener } =
-        await import("utils/firebaseInitv1");
+      const {
+        requestFirebaseNotificationPermission,
+        onMessageListener,
+        setupNetworkRecoveryHandler,
+      } = await import("utils/firebaseInitv1");
+
+      // Activate resilience handler before anything else so it is in place
+      // even if the token fetch below fails and we retry later.
+      setupNetworkRecoveryHandler();
+
       const fbtoken = await requestFirebaseNotificationPermission();
 
       if (fbtoken) {
@@ -426,6 +438,9 @@ class HomeService {
         if (!response.ok || !result?.success) {
           throw new Error(result?.message || "Subscribe to topic failed");
         }
+
+        // Track so the network-recovery handler can re-subscribe if the token rotates
+        trackSubscribedTopic(topic);
       } catch (err) {
         LogServerError({
           error: err,
@@ -451,6 +466,9 @@ class HomeService {
       if (!response.ok || !result?.success) {
         throw new Error(result?.message || "Unsubscribe from topic failed");
       }
+
+      // Remove from tracker so network recovery won't re-subscribe it
+      untrackSubscribedTopic(topic);
     } catch (err) {
       LogServerError({
         error: err,

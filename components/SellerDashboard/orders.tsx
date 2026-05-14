@@ -2071,8 +2071,8 @@ export const RenderOrders = ({
     void home.subscribeToTopic({ topic: orderDetailTopic });
 
     return () => {
-      void home.UnsubscripeFromTopic({ topic: orderTopic });
-      void home.UnsubscripeFromTopic({ topic: orderDetailTopic });
+      // void home.UnsubscripeFromTopic({ topic: orderTopic });
+      // void home.UnsubscripeFromTopic({ topic: orderDetailTopic });
     };
   }, [activeTab, canViewOrders, sellerId, sellerOrders]);
 

@@ -6,6 +6,7 @@ import auth from "services/auth";
 import { REQUESTS_DATA } from "./Requests";
 import { fetchData } from "./fetchData";
 import ChatService from "services/chat";
+import { getSubscribedTopics } from "./fcmTopicTracker";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC3YInmCP8IqflkPjnpB9X4QCOQTa2bD64",
@@ -22,6 +23,9 @@ const firebaseConfig = {
 let _firebaseApp: any = null;
 let _db: any = null;
 let _messaging: any = null;
+
+// Guard: network recovery listener is registered at most once per page load
+let _networkHandlerSetup = false;
 
 export const getFirebaseApp = async () => {
   if (!_firebaseApp) {
@@ -149,7 +153,7 @@ export const requestFirebaseNotificationPermission = async () => {
       });
       setNotificationPermission(false);
       LogError(err);
-      localStorage.setItem("FCMError", null);
+      localStorage.removeItem("FCMError");
       throw err;
     });
   if (fcm_token) {
@@ -194,6 +198,83 @@ const registerFcmToken = async (fcmToken: string) => {
       token: fcmToken,
     });
   }
+};
+
+// Re-subscribes all tracked topics with an explicit token.
+// Called when the FCM token rotates after network recovery.
+const resubscribeAllTopics = async (token: string): Promise<void> => {
+  const topics = Array.from(getSubscribedTopics());
+  if (topics.length === 0) return;
+
+  await Promise.allSettled(
+    topics.map((topic) =>
+      fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, topic }),
+      }).catch(() => {}),
+    ),
+  );
+};
+
+/**
+ * Registers a one-time `online` event listener that forces an FCM token
+ * refresh whenever the browser regains network connectivity.
+ *
+ * If the token has rotated while offline (e.g. WiFi → 4G switch), the new
+ * token is immediately registered with the backend and all tracked topics are
+ * re-subscribed so seller shop notifications keep working.
+ *
+ * Safe to call multiple times — only one listener is ever registered.
+ */
+export const setupNetworkRecoveryHandler = (): void => {
+  if (_networkHandlerSetup || typeof window === "undefined") return;
+  _networkHandlerSetup = true;
+
+  window.addEventListener("online", async () => {
+    if (
+      typeof Notification === "undefined" ||
+      Notification.permission !== "granted"
+    )
+      return;
+
+    try {
+      const { isSupported, getToken } = await import("firebase/messaging");
+      if (!(await isSupported())) return;
+
+      const messaging = await getFirebaseMessaging();
+      if (!messaging) return;
+
+      const serviceWorkerRegistration =
+        await getActiveServiceWorkerRegistration();
+
+      const newToken = await getToken(messaging, {
+        serviceWorkerRegistration,
+      });
+      if (!newToken) return;
+
+      const oldToken = localStorage.getItem("FB-DEVICE-TOKEN");
+      const tokenChanged = oldToken !== newToken;
+
+      localStorage.setItem("FB-DEVICE-TOKEN", newToken);
+      localStorage.setItem("FBTokenExpiry", new Date().toISOString());
+      useAppStore.getState().setNotificationPermission(true);
+
+      // Always re-register: backend may have expired or cleaned the record
+      await registerFcmToken(newToken);
+
+      // When the token rotated, FCM topic subscriptions on the old token are
+      // gone — re-subscribe all topics the user was actively listening to.
+      if (tokenChanged) {
+        await resubscribeAllTopics(newToken);
+      }
+    } catch (err) {
+      LogError({
+        scenario: "Error in network recovery FCM refresh",
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  });
 };
 
 export const onMessageListener = async () => {
