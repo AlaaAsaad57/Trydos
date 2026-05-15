@@ -349,6 +349,26 @@ function OrderDetailsWrapper({
       });
     }
   };
+  
+
+const IsThereADescriptionMessage = () => {
+  let descriptions = [];
+  if(!returnData) return descriptions;
+  returnData?.return_requests_data?.forEach((item) => {
+    if (!item || typeof item !== "object") return;
+
+    Object.entries(item).forEach(([key, value]) => {
+      if (
+        key.toLowerCase().includes("description") &&
+        typeof value === "string"
+      ) {
+        descriptions.push(value);
+      }
+    });
+  });
+
+  return descriptions;
+};
   return (
     <>
       {shouldShowConfirmReturn &&
@@ -536,6 +556,29 @@ function OrderDetailsWrapper({
                   isExpanded={isExpanded}
                   items={ActivePack?.details || []}
                 />
+               {IsThereADescriptionMessage()?.length>0? 
+               <div className="p-2 flex flex-col items-center gap-3">
+              {IsThereADescriptionMessage().map((message, index) => (
+                <div
+                  key={index}
+                  className="w-full max-w-md rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 text-amber-500">
+                      ⚠️
+                    </div>
+                    <div>
+
+                      <p className="text-sm text-amber-700">
+                       <div dangerouslySetInnerHTML={{__html:message}}>
+
+                       </div>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>:<></>}
                 {isExpanded && (
                   <OrderExpandedDetails
                     orderData={orderData}
@@ -677,6 +720,7 @@ const OrderExpandedDetails = ({
   // @ts-ignore
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
       className="bg-white mt-[20px] rounded-[10px] w-full h-auto p-[12px] flex-col flex items-start"
