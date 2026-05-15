@@ -556,7 +556,7 @@ const IsThereADescriptionMessage = () => {
                   isExpanded={isExpanded}
                   items={ActivePack?.details || []}
                 />
-               {IsThereADescriptionMessage()?.length>0? 
+               {isExpanded&&IsThereADescriptionMessage()?.length>0? 
                <div className="p-2 flex flex-col items-center gap-3">
               {IsThereADescriptionMessage().map((message, index) => (
                 <div
