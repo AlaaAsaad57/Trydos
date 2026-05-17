@@ -232,6 +232,7 @@ export const setupNetworkRecoveryHandler = (): void => {
   _networkHandlerSetup = true;
 
   window.addEventListener("online", async () => {
+    console.log("Network connectivity restored — checking FCM token");
     if (
       typeof Notification === "undefined" ||
       Notification.permission !== "granted"
