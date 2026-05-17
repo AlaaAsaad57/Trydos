@@ -91,7 +91,7 @@ const CategoriesSlider = ({ categories, boutique, lang }) => {
           className="w-[90px] min-w-[90px] h-[90px] rounded-[15px] bg-white relative"
         >
           {category?.most_views && (
-            <span className="absolute top-0 -right-1.5 z-[9999999999]">
+            <span className="absolute top-0 -right-1.5 z-[99]">
               <img src="/icons/TrendingViews.svg" className="w-[20px] " />
             </span>
           )}

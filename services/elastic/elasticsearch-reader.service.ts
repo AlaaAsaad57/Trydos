@@ -214,7 +214,7 @@ export class ElasticsearchReader {
                     boutique_position: {
                       terms: {
                         field: "boutique_position",
-                        order: "desc",
+                        order: "asc",
                       },
                     },
                   },
