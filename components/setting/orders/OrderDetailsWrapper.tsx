@@ -369,6 +369,15 @@ const IsThereADescriptionMessage = () => {
 
   return descriptions;
 };
+const isNotDraft=()=>{
+
+  let ActiveOrder=returnData?.return_requests_data?.find((s)=>s.order_id===ActivePack.id);
+  if(!ActiveOrder)
+  return false;
+    let bool=  ActiveOrder?.status?.name?.includes("draft");
+    return !bool;
+  
+}
   return (
     <>
       {shouldShowConfirmReturn &&
@@ -556,7 +565,7 @@ const IsThereADescriptionMessage = () => {
                   isExpanded={isExpanded}
                   items={ActivePack?.details || []}
                 />
-               {isExpanded&&IsThereADescriptionMessage()?.length>0? 
+               {isNotDraft()&& isExpanded&&IsThereADescriptionMessage()?.length>0? 
                <div className="p-2 flex flex-col items-center gap-3">
               {IsThereADescriptionMessage().map((message, index) => (
                 <div
