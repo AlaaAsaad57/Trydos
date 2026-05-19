@@ -235,4 +235,7 @@ export const REQUESTS_DATA = {
   GET_CHECKLIST: { reqTitle: "GET_CHECKLIST", code: 161 },
   DEL_CHECKLIST: { reqTitle: "DEL_CHECKLIST", code: 162 },
   ADD_CHECKLIST: { reqTitle: "ADD_CHECKLIST", code: 163 },
+  GET_UPLOADED_IMAGES: { reqTitle: "GET_UPLOADED_IMAGES", code: 164 },
+  DELETE_UPLOADED_IMAGE: { reqTitle: "DELETE_UPLOADED_IMAGE", code: 165 },
+  BULK_UPLOAD_IMAGES: { reqTitle: "BULK_UPLOAD_IMAGES", code: 166 },
 };

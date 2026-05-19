@@ -1,6 +1,10 @@
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
+const MEDIA_SERVER_BASE_URL =
+  process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
+const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
+
 class SellerDashboardService {
   async getShopes(noMessage = false) {
     try {
@@ -285,6 +289,66 @@ class SellerDashboardService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async getUploadedImages(
+    page: number = 1,
+    perPage: number = 60,
+    date: string = "",
+    search: string = "",
+    sellerId: string,
+  ) {
+    const params = new URLSearchParams({
+      page: String(page),
+      per_page: String(perPage),
+      date,
+      search,
+    });
+    return fetchData({
+      url: `/seller/product/get-uploaded-images?${params.toString()}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_UPLOADED_IMAGES,
+         sellerId,
+    });
+  }
+
+  async deleteImage(imageId: number | string, sellerId: string) {
+    return fetchData({
+      url: `/seller/product/delete-image/${imageId}`,
+      method: "DELETE",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.DELETE_UPLOADED_IMAGE,
+        sellerId,
+
+    });
+  }
+
+  async bulkUploadImages(files: File[]) {
+    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+      throw new Error("Media server is not configured");
+    }
+    const form = new FormData();
+    form.append("folder", "product");
+    files.forEach((file) => form.append("files", file));
+
+    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/api/upload/bulk`, {
+      method: "POST",
+      headers: { "x-api-key": MEDIA_API_KEY },
+      body: form,
+    });
+
+    let data: any = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+    if (!response.ok) {
+      throw new Error(data?.message || "Bulk upload failed");
+    }
+    return data;
   }
 }
 export default new SellerDashboardService();

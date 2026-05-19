@@ -33,11 +33,11 @@ async function ProductNameAndBrand({ globalPromise, isRtl, color }) {
             alt={product.brand.name}
           />
         )}
-        {product?.brand?.is_verified && (
+        {product?.brand?.is_verified ? (
           <span>
             <img src="/icons/VerifiedIcon.svg" />
           </span>
-        )}
+        ):<></>}
       </div>
       <div
         className={`${
