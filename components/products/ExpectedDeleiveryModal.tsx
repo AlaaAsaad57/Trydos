@@ -78,7 +78,7 @@ function ExpectedDeleiveryModal({ shipping_days }: { shipping_days: number }) {
                     new Date(
                       new Date().getTime() +
                         Number(
-                          (settings?.["starting-setting"]
+                          (settings?.["starting_setting"]
                             ?.shipping_duration_days || 0) + shipping_days,
                         ) *
                           24 *
@@ -94,7 +94,7 @@ function ExpectedDeleiveryModal({ shipping_days }: { shipping_days: number }) {
                     new Date(
                       new Date().getTime() +
                         Number(
-                          (settings?.["starting-setting"]
+                          (settings?.["starting_setting"]
                             ?.shipping_duration_days || 0) + shipping_days,
                         ) *
                           24 *
@@ -106,7 +106,7 @@ function ExpectedDeleiveryModal({ shipping_days }: { shipping_days: number }) {
                 </span>{" "}
                 |
                 <span className="bold px-[3px]">
-                  {(settings?.["starting-setting"]?.shipping_duration_days ||
+                  {(settings?.["starting_setting"]?.shipping_duration_days ||
                     0) + shipping_days}{" "}
                   {translateFunction("Work Days")}{" "}
                 </span>
@@ -134,7 +134,7 @@ function ExpectedDeleiveryModal({ shipping_days }: { shipping_days: number }) {
                   "Based On The Previous Delivery Statistics Below To Your Area, We Conclude That The Expected Delivery Time For Your Product Is",
                 )}
                 <span className="bold px-[3px]">
-                  {(settings?.["starting-setting"]?.shipping_duration_days ||
+                  {(settings?.["starting_setting"]?.shipping_duration_days ||
                     0) + shipping_days}
                   <span className="px-[3px]">{translateFunction("Days")}</span>
                 </span>
@@ -175,7 +175,7 @@ function ExpectedDeleiveryModal({ shipping_days }: { shipping_days: number }) {
                       new Date(
                         new Date().getTime() +
                           Number(
-                            (settings?.["starting-setting"]
+                            (settings?.["starting_setting"]
                               ?.shipping_duration_days || 0) + shipping_days,
                           ) *
                             24 *
@@ -190,7 +190,7 @@ function ExpectedDeleiveryModal({ shipping_days }: { shipping_days: number }) {
                       new Date(
                         new Date().getTime() +
                           Number(
-                            (settings?.["starting-setting"]
+                            (settings?.["starting_setting"]
                               ?.shipping_duration_days || 0) + shipping_days,
                           ) *
                             24 *
@@ -235,7 +235,7 @@ function ExpectedDeleiveryModal({ shipping_days }: { shipping_days: number }) {
                 <span>
                   {translateFunction("within", language)}
                   <span className="px-[3px] bold">
-                    {(settings?.["starting-setting"]?.shipping_duration_days ||
+                    {(settings?.["starting_setting"]?.shipping_duration_days ||
                       0) + shipping_days}
                   </span>
                   <span>

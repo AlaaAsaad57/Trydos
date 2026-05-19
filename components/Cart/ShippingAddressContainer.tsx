@@ -591,7 +591,7 @@ const DefaultAddress = ({
       }
     });
     shippingDay +=
-      Number(settings?.["starting-setting"]?.shipping_duration_days) || 0;
+      Number(settings?.["starting_setting"]?.shipping_duration_days) || 0;
     return formatTimeForAddress(
       new Date(
         new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000,

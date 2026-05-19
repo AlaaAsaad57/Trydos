@@ -28,7 +28,7 @@ function OldCartContainer() {
       try {
         const settingsObj = JSON.parse(settingsStr);
         shippingDurationDays =
-          parseInt(settingsObj?.["starting-setting"]?.shipping_duration_days) ||
+          parseInt(settingsObj?.["starting_setting"]?.shipping_duration_days) ||
           0;
       } catch (e) {
         shippingDurationDays = 0;

@@ -28,7 +28,7 @@ function OrderExpectedDeliveryCard({
   );
 
   const shippingDurationFromSettings = getSafeNumber(
-    settings?.["starting-setting"]?.shipping_duration_days,
+    settings?.["starting_setting"]?.shipping_duration_days,
   );
 
   const expectedWorkDays =

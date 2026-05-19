@@ -11,7 +11,7 @@ function PropertiesMarquee({ shipping_cost, languageVariable, shippingDays }) {
 
   const shippingDate = useMemo(() => {
     const countryDays =
-      Number(settings?.["starting-setting"]?.shipping_duration_days) || 0;
+      Number(settings?.["starting_setting"]?.shipping_duration_days) || 0;
     const totalDays = Number(shippingDays || 0) + countryDays;
     if (totalDays <= 0) return null;
     return formatTimeForAddress(
