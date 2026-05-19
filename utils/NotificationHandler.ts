@@ -260,6 +260,7 @@ class ForegroundNotificationHandler {
 
     // --- Existing notification logic for other types ---
     if (type.startsWith("order status changed")) {
+      state.setShouldUpdateOrders(state.shouldUpdateOrders + 1);
       if (type !== "order status changed") {
         const url = `/${lang}/settings/orders/${data?.order_group_id}`;
         notify(url, {
