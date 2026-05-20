@@ -21,6 +21,7 @@ import { DisableScroll, EnableScroll, pollinateInput } from "@/utils/tinyUtils";
 import Spinner from "components/global/Spinner";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import { fetchStoriesForUser } from "serverRequests";
+import { ImageCropWidget } from "components/global/ImageCropWidget";
 
 // Icons
 const CameraIcon = () => (
@@ -163,6 +164,8 @@ export default function AddStoryWidget() {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [imageToEdit, setImageToEdit] = useState<File | null>(null);
+  const [showImageEditor, setShowImageEditor] = useState(false);
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const {
@@ -356,6 +359,12 @@ export default function AddStoryWidget() {
     }
 
     if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+      if (file.type.startsWith("image/")) {
+        setImageToEdit(file);
+        setShowImageEditor(true);
+        return;
+      }
+
       setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -364,6 +373,29 @@ export default function AddStoryWidget() {
       reader.readAsDataURL(file);
     }
   };
+
+  const handleEditedImageSave = (editedImage: File) => {
+    setSelectedFile(editedImage);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+      setShowImageEditor(false);
+      setImageToEdit(null);
+    };
+    reader.readAsDataURL(editedImage);
+  };
+
+  const closeImageEditor = () => {
+    setShowImageEditor(false);
+    setImageToEdit(null);
+    const fileInput = document.querySelector<HTMLInputElement>(
+      "#stories-input-holder",
+    );
+    if (fileInput) {
+      fileInput.value = "";
+    }
+  };
+
   const onClose = () => {
     setLoading(false);
     setIsSelected(null);
@@ -372,6 +404,8 @@ export default function AddStoryWidget() {
     setLink("");
     setLinkError(null);
     setOpenCamera(false);
+    setShowImageEditor(false);
+    setImageToEdit(null);
     setSelectedFile(null);
     setPreview(null);
     setAddStory(null);
@@ -461,6 +495,13 @@ export default function AddStoryWidget() {
   if (!addStoryEnable) return <></>;
   return (
     <>
+      {showImageEditor && imageToEdit && (
+        <ImageCropWidget
+          image={imageToEdit}
+          onSave={handleEditedImageSave}
+          onClose={closeImageEditor}
+        />
+      )}
       <SearchParamUpdater searchKey="StoryModal" searchValue="true" />
       {OpenCamera && (
         <NewStoryModal
