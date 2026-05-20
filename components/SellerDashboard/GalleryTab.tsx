@@ -328,7 +328,15 @@ export default function GalleryTab({sellerId}: {sellerId: string}) {
             </p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 overflow-y-auto flex-1 mb-4">
               {selectedFiles.map((file, i) => (
-                <div key={i} className="rounded-lg overflow-hidden bg-[#f8f8f8]">
+                <div key={i} className="rounded-lg overflow-hidden bg-[#f8f8f8] relative">
+                  <span className="absolute bg-red-500 text-[12px] font-black w-[25px] h-[25px] flex items-center justify-center top-0 right-1 cursor-pointer text-white rounded-full hover:bg-red-600" onClick={() => {
+                    const newFiles = [...selectedFiles];
+                    newFiles.splice(i, 1);
+                    setSelectedFiles(newFiles);
+                    if (newFiles.length === 0) setShowConfirm(false);
+                  }}>
+                    x
+                    </span>
                   <img
                     src={previewUrls[i]}
                     alt={file.name}

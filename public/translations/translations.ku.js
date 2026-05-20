@@ -1421,6 +1421,18 @@ const translations = {
   COUNTRIES: "وڵاتەکان",
   ADMIN: "بەڕێوەبردن",
   "Failed to update checklist": "شکستی نوێکردنەوەی لیستی چیک",
+  Stories: "چیرۆکەکان",
+  "No stories yet": "هێشتا چیرۆکێک نییە",
+  "Upload your first story to get started": "چیرۆکی یەکەمت بار بکە بۆ دەستپێکردن",
+  "Delete Story": "سڕینەوەی چیرۆک",
+  "Are you sure you want to delete this story? This action cannot be undone.": "دڵنیای دەتەوێت ئەم چیرۆکە بسڕیتەوە؟ ئەم کارە ناگەڕێتەوە.",
+  "Select Product": "بەرهەم هەڵبژێرە",
+  "Link to Product": "بەستنەوە بە بەرهەم",
+  "Story uploaded successfully": "چیرۆکەکە بە سەرکەوتوویی بار کرا",
+  "Failed to load stories": "شکستی بارکردن چیرۆکەکان",
+  "Failed to delete story": "شکستی سڕینەوەی چیرۆک",
+  "Linked to product": "بەستراوەتەوە بە بەرهەم",
+  viewers: "بینەر",
 };
 
 export default translations;
