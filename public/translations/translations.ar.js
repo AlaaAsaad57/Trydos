@@ -1391,6 +1391,18 @@ const translations = {
   COUNTRIES: "الدول",
   ADMIN: "الإدارة",
   "Failed to update checklist": "فشل تحديث قائمة الرغبات",
+  Stories: "القصص",
+  "No stories yet": "لا توجد قصص بعد",
+  "Upload your first story to get started": "ارفع قصتك الأولى للبدء",
+  "Delete Story": "حذف القصة",
+  "Are you sure you want to delete this story? This action cannot be undone.": "هل أنت متأكد أنك تريد حذف هذه القصة؟ لا يمكن التراجع عن هذا الإجراء.",
+  "Select Product": "اختر منتجاً",
+  "Link to Product": "ربط بمنتج",
+  "Story uploaded successfully": "تم رفع القصة بنجاح",
+  "Failed to load stories": "فشل تحميل القصص",
+  "Failed to delete story": "فشل حذف القصة",
+  "Linked to product": "مرتبط بمنتج",
+  viewers: "مشاهدة",
 };
 
 export default translations;

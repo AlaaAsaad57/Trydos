@@ -1399,6 +1399,18 @@ const translations = {
   COUNTRIES: "Ülkeler",
   ADMIN: "Yönetim",
   "Failed to update checklist": "Kontrol listesini güncelleme başarısız oldu",
+  Stories: "Hikayeler",
+  "No stories yet": "Henüz hikaye yok",
+  "Upload your first story to get started": "Başlamak için ilk hikayeni yükle",
+  "Delete Story": "Hikayeyi Sil",
+  "Are you sure you want to delete this story? This action cannot be undone.": "Bu hikayeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+  "Select Product": "Ürün Seç",
+  "Link to Product": "Ürüne Bağla",
+  "Story uploaded successfully": "Hikaye başarıyla yüklendi",
+  "Failed to load stories": "Hikayeler yüklenemedi",
+  "Failed to delete story": "Hikaye silinemedi",
+  "Linked to product": "Ürüne bağlı",
+  viewers: "görüntülenme",
 };
 
 export default translations;

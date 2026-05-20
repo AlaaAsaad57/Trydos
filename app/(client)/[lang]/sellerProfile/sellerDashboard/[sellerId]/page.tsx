@@ -9,6 +9,7 @@ import { translateFunction, getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import RenderOrders from "components/SellerDashboard/orders";
 import GalleryTab from "components/SellerDashboard/GalleryTab";
+import StoriesTab from "components/SellerDashboard/StoriesTab";
 import BackBar from "components/setting/BackBar";
 
 type TabType =
@@ -18,6 +19,7 @@ type TabType =
   | "users"
   | "orders"
   | "gallery"
+  | "stories"
   | "none";
 
 const PERMISSION_GROUPS = {
@@ -241,6 +243,7 @@ function SellerDashBoard() {
     hasPermission(p),
   );
   const canViewGallery = hasPermission("SUPER_ADMIN");
+  const canViewStories = hasPermission("SUPER_ADMIN");
 
   const currentUserId = auth.UserID ? auth.UserID() : null;
 
@@ -1681,6 +1684,25 @@ function SellerDashBoard() {
                   )}
                 </button>
               )}
+              {canViewStories && (
+                <button
+                  onClick={() => {
+                    setActiveTab("stories");
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
+                    activeTab === "stories"
+                      ? "border-white bg-blue-500 text-white font-semibold"
+                      : "border-transparent text-black hover:bg-blue-600 hover:text-white"
+                  }`}
+                >
+                  <span className="text-[20px]">📖</span>
+                  <span>{translateFunction("Stories")}</span>
+                  {activeTab === "stories" && (
+                    <span className="ml-auto text-white">✓</span>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Menu Footer */}
@@ -1738,6 +1760,7 @@ function SellerDashBoard() {
           />
         )}
         {activeTab === "gallery" && canViewGallery && <GalleryTab  sellerId={sellerId}/>}
+        {activeTab === "stories" && canViewStories && <StoriesTab sellerId={sellerId} />}
       </div>
     </div>
   );
