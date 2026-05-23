@@ -2472,12 +2472,14 @@ export async function logSearchTerm({
         requestHeaders.get("cf-connecting-ip") ||
         "";
       requestUserAgent = requestHeaders.get("user-agent") || "";
-    } catch {}
+    } catch {
+      console.error("Error in Logging Search Term")
+    }
 
     const userId = userData?.id ?? userData?.userId;
     const ip = requestIp || userData?.ip || "";
     const userAgent = requestUserAgent || userData?.userAgent || "";
-
+    console.log(userId,ip,userAgent)
     // 3. Build the "Should" query for Deduplication
     const should = [];
     if (userId) {
@@ -2506,7 +2508,7 @@ export async function logSearchTerm({
       index: search_log_index,
       body: { query },
     });
-
+    console.log(JSON.stringify(response.hits.hits,null,2));
     // 5. If no hits found, index the new log
     if (response.hits.hits.length === 0) {
       const formattedDate = new Date()
