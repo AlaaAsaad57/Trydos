@@ -2452,6 +2452,7 @@ export async function logSearchTerm({
     cleanText,
     "Products count:",
     productsCount,
+    userData
   );
   // Mimicking the PHP logic: > 2 chars and not empty
   if (!cleanText || cleanText.length <= 2 || productsCount === 0) return;
