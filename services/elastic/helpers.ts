@@ -2501,7 +2501,7 @@ export async function logSearchTerm({
 
     if (should.length) {
       query.bool.should = should;
-      query.bool.minimum_should_match = 1;
+      query.bool.minimum_should_match = 2;
     }
 
     // 4. Check if this search was already logged
