@@ -324,6 +324,77 @@ class SellerDashboardService {
     });
   }
 
+  async uploadStoryToMediaServer(
+    file: File,
+  ): Promise<{ url: string; durationSeconds?: number }> {
+    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+      throw new Error("Media server upload is not configured");
+    }
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", "stories");
+    const uploadUrl = file.type.startsWith("video/")
+      ? `${MEDIA_SERVER_BASE_URL}/upload?story=true`
+      : `${MEDIA_SERVER_BASE_URL}/upload`;
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      headers: { "x-api-key": MEDIA_API_KEY },
+      body: form,
+    });
+    let data: any = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+    if (!response.ok || !data?.url) {
+      throw new Error("Media server upload failed");
+    }
+    return { url: data.url as string, durationSeconds: data?.durationSeconds as number | undefined };
+  }
+
+  // TODO: replace stub URLs with real endpoints once the API is ready
+  async getSellerStories(sellerId: string, page: number = 1) {
+    return fetchData({
+      url: `/shop/stories?page=${page}`, // TODO: update endpoint
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_STORIES,
+      sellerId,
+    });
+  }
+
+  async saveSellerStory(
+    sellerId: string,
+    data: {
+      file_path: string;
+      is_video: 0 | 1;
+      is_photo: 0 | 1;
+      link: string | null;
+      product_id: number | null;
+      video_duration_in_second: number | null;
+    },
+  ) {
+    return fetchData({
+      url: `/shop/stories/add`, // TODO: update endpoint
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.SAVE_SELLER_STORY,
+      sellerId,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteSellerStory(storyId: string | number, sellerId: string) {
+    return fetchData({
+      url: `/shop/stories/${storyId}/delete`, // TODO: update endpoint
+      method: "DELETE",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.DELETE_SELLER_STORY,
+      sellerId,
+    });
+  }
+
   async bulkUploadImages(files: File[]) {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server is not configured");
@@ -332,7 +403,7 @@ class SellerDashboardService {
     form.append("folder", "product");
     files.forEach((file) => form.append("files", file));
 
-    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/api/upload/bulk`, {
+    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload/bulk`, {
       method: "POST",
       headers: { "x-api-key": MEDIA_API_KEY },
       body: form,
