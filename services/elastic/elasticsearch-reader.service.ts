@@ -521,6 +521,9 @@ export class ElasticsearchReader {
       // === Merge into boutiques (same as PHP) ===
       for (const boutique of customProducts) {
         const bid = boutique.boutique_id;
+        const position=boutique?.boutique_position;
+        if(position>=0)
+        boutique.boutique_position=position;
         boutique.mainCategoriesForProductIds = grouped[bid]?.main || [];
         boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
       }
@@ -581,6 +584,7 @@ export class ElasticsearchReader {
           boutique_id: boutique.boutique_id,
           id: cb.id,
           name: cb.name ?? null,
+          position:boutique.boutique_position,
           slug: cb.slug ?? null,
           description: cb.description ?? null,
           icon: cb.icon ?? null,
