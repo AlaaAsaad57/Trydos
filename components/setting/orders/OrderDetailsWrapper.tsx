@@ -565,7 +565,7 @@ const isNotDraft=()=>{
                   isExpanded={isExpanded}
                   items={ActivePack?.details || []}
                 />
-               {isNotDraft()&& isExpanded&&IsThereADescriptionMessage()?.length>0? 
+               {/* {isNotDraft()&& isExpanded&&IsThereADescriptionMessage()?.length>0? 
                <div className="p-2 flex flex-col items-center gap-3">
               {IsThereADescriptionMessage().map((message, index) => (
                 <div
@@ -587,7 +587,7 @@ const isNotDraft=()=>{
                   </div>
                 </div>
               ))}
-            </div>:<></>}
+            </div>:<></>} */}
                 {isExpanded && (
                   <OrderExpandedDetails
                     orderData={orderData}
