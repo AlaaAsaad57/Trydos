@@ -27,6 +27,7 @@ const translations = {
   "Confirm Returning Items": "دڵنیابوونەوە لە گەڕاندنەوەی شتانەکان",
   "Update Return Request For This Product":
     "داوای گەڕاندنەوە بۆ ئەم بەرهەمه نوێ بکەوە",
+     "Shop Info":"زانیاریی فرۆشگا",
   "Cancel All Return Requests": "هەموو داواکارییەکانی گەڕاندنەوە هەڵبوەشێنەوە",
   "Buyers Product Recommend To Buy": "پێشنیازی کریاران بۆ خریدنی بەرهەم",
   "All Recommendations Are Genuine From Customers Who Purchased And Actually Received The Product Through":
@@ -1455,6 +1456,24 @@ const translations = {
   "Failed to delete story": "شکستی سڕینەوەی چیرۆک",
   "Linked to product": "بەستراوەتەوە بە بەرهەم",
   viewers: "بینەر",
+  "Edit Shop Info": "دەستکاری زانیاری فرۆشگا",
+    "Shop Name *": "ناوی فرۆشگا *",
+    "Contact": "پەیوەندی",
+    "* Country Code Must Like for AE 971": "* کۆدی وڵات دەبێت وەک AE 971 بێت",
+    "Address *": "ناونیشان *",
+    "Upload Image": "وێنە باربکە",
+    "Choose File": "پەڕگە هەڵبژێرە",
+    "Browse": "گەڕان",
+    "Upload Banner": "بەنەر باربکە",
+    "Ratio .( 6:1 )": "ڕێژەی .( 6:1 )",
+    "Cancel": "پاشگەزبوونەوە",
+    "Update": "نوێکردنەوە",
+    "Shop Name is required": "ناوی فرۆشگا پێویستە",
+    "Contact is required": "ژمارەی پەیوەندی پێویستە",
+    "Contact must contain only numbers": "دەبێت ژمارەی پەیوەندی تەنها ژمارە بێت",
+    "Address is required": "ناونیشان پێویستە",
+    "Shop Info Updated Successfully!": "زانیاری فرۆشگا بە سەرکەوتوویی نوێکرایەوە!",
+    "Failed to update": "نوێکردنەوە سەرکەوتوو نەبوو"
 };
 
 export default translations;

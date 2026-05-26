@@ -27,6 +27,7 @@ const translations = {
   "Product Not Found": "Ürün Bulunamadı",
   "Buyer Rate": "Alıcı Puanı",
   "Shipping Company": "Kargo Şirketi",
+  "Shop Info":"Mağaza Bilgisi",
   Recommendation: "Tavsiye",
   "Confirm Returning Items": "Öğeleri iade etmeyi onayla",
   "Cancel All Return Requests": "Tüm iade taleplerini iptal et",
@@ -1433,6 +1434,24 @@ const translations = {
   "Failed to delete story": "Hikaye silinemedi",
   "Linked to product": "Ürüne bağlı",
   viewers: "görüntülenme",
+  "Edit Shop Info": "Mağaza Bilgilerini Düzenle",
+    "Shop Name *": "Mağaza Adı *",
+    "Contact": "İletişim",
+    "* Country Code Must Like for AE 971": "* Ülke Kodu AE 971 gibi olmalıdır",
+    "Address *": "Adres *",
+    "Upload Image": "Resim Yükle",
+    "Choose File": "Dosya Seç",
+    "Browse": "Gözat",
+    "Upload Banner": "Afiş Yükle",
+    "Ratio .( 6:1 )": "Oran .( 6:1 )",
+    "Cancel": "İptal",
+    "Update": "Güncelle",
+    "Shop Name is required": "Mağaza adı gereklidir",
+    "Contact is required": "İletişim numarası gereklidir",
+    "Contact must contain only numbers": "İletişim numarası sadece rakamlardan oluşmalıdır",
+    "Address is required": "Adres gereklidir",
+    "Shop Info Updated Successfully!": "Mağaza Bilgileri Başarıyla Güncellendi!",
+    "Failed to update": "Güncelleme başarısız oldu"
 };
 
 export default translations;

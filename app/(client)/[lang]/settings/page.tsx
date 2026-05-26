@@ -10,7 +10,7 @@ import { translateFunction } from "utils/server";
 import { getCountryNameByIso2 } from "utils/countryData";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 import RouterRefresh from "components/global/RouterRefresh";
-import { getCurrency } from "serverRequests";
+
 import { GetOrders, getWallet } from "serverRequests/settings";
 import {
   COOKIE_NAMES,

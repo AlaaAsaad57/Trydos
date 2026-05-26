@@ -730,6 +730,7 @@ const translations = {
   "We Recommend That You Complete Your Profile To Make The Most Of The App's Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
     "ننصح باكمال معلومات الحساب للاستفادة من ميزات التطبيق كـ التسوق ,الدردشة ,القصص, الاهتمامات,الاستفادة من العروض وغيرها الكثير",
   "Complete My Profile": "اكمال ادخال معلومات الحساب",
+  "Shop Info":"معلومات المتجر",
   "Enjoy With Our Services": "استمتع بخدماتنا",
   "Skip For Now": "تخطي",
   "Choose The Verification Method, Receive Code Via:":
@@ -1425,6 +1426,24 @@ const translations = {
   "Failed to delete story": "فشل حذف القصة",
   "Linked to product": "مرتبط بمنتج",
   viewers: "مشاهدة",
+  "Edit Shop Info": "تعديل معلومات المتجر",
+  "Shop Name *": "* اسم المتجر",
+  "Contact": "رقم التواصل",
+  "* Country Code Must Like for AE 971": "* يجب أن يتضمن رمز الدولة مثل AE 971",
+  "Address *": "* العنوان",
+  "Upload Image": "رفع صورة",
+  "Choose File": "اختر ملف",
+  "Browse": "تصفح",
+  "Upload Banner": "رفع غلاف",
+  "Ratio .( 6:1 )": "بنسبة .( 6:1 )",
+  "Cancel": "إلغاء",
+  "Update": "تحديث",
+  "Shop Name is required": "اسم المتجر مطلوب",
+  "Contact is required": "رقم التواصل مطلوب",
+  "Contact must contain only numbers": "يجب أن يحتوي رقم التواصل على أرقام فقط",
+  "Address is required": "العنوان مطلوب",
+  "Shop Info Updated Successfully!": "تم تحديث معلومات المتجر بنجاح!",
+  "Failed to update": "فشل التحديث"
 };
 
 export default translations;

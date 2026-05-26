@@ -13,6 +13,7 @@ import StoriesTab from "components/SellerDashboard/StoriesTab";
 import CommentsTab from "components/SellerDashboard/CommentsTab";
 import ExcelUploadTab from "components/SellerDashboard/ExcelUploadTab";
 import BackBar from "components/setting/BackBar";
+import ShopInfo from "components/SellerDashboard/ShopInfo";
 
 type TabType =
   | "products"
@@ -24,6 +25,7 @@ type TabType =
   | "stories"
   | "comments"
   | "excel"
+  | "shopInfo"
   | "none";
 
 const PERMISSION_GROUPS = {
@@ -1746,6 +1748,25 @@ function SellerDashBoard() {
                   )}
                 </button>
               )}
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setActiveTab("shopInfo");
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-6 py-4 flex items-center gap-3 transition-all duration-200 border-l-4 ${
+                    activeTab === "shopInfo"
+                      ? "border-white bg-blue-500 text-white font-semibold"
+                      : "border-transparent text-black hover:bg-blue-600 hover:text-white"
+                  }`}
+                >
+                  <span className="text-[20px]">🏠</span>
+                  <span>{translateFunction("Shop Info")}</span>
+                  {activeTab === "shopInfo" && (
+                    <span className="ml-auto text-white">✓</span>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Menu Footer */}
@@ -1809,6 +1830,9 @@ function SellerDashBoard() {
         )}
         {activeTab === "excel" && isAdmin && (
           <ExcelUploadTab sellerId={sellerId} language={language} />
+        )}
+        {activeTab === "shopInfo" && isAdmin && (
+          <ShopInfo sellerId={sellerId} language={language} />
         )}
       </div>
     </div>
