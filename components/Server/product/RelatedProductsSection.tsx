@@ -46,26 +46,24 @@ async function RelatedProductsSection({
         </span>
       </div>
 
-      <div
-        className={`${
-          isRtl ? "flex-row-reverse flex" : "flex flex-row"
-        } listing-container mt-2 bg-[#f4f4f4] gap-x-[10px] gap-y-[18px] justify-center min-w-full relative pb-[120px] max-w-[1310px] flex-wrap`}
-      >
+
         <HortiznalScrollBar
         className="featured-products-container py-[10px] gap-[8px] w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-auto pb-[8px] "
         id="related-products-container"
         dataCy="related-products-container"
         >
     {response.items}
-        </HortiznalScrollBar>
-       
-        <RelatedProductsInfiniteScroll
+
+    <RelatedProductsInfiniteScroll
           productId={product.id}
           currency={resolvedCurrency}
           offset={response.offset}
           initialProductIds={(response as any).productIds || []}
         />
-      </div>
+        </HortiznalScrollBar>
+       
+        
+  
     </div>
   );
 }
