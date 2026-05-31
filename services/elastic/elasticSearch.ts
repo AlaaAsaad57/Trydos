@@ -778,3 +778,175 @@ function extractFilters(
     prices: prices,
   };
 }
+
+export interface RelatedProductsParams {
+  productId: number;
+  limit?: number;
+  search_after?: any[];
+  language_code?: string;
+  country?: string;
+}
+
+export async function getRelatedProducts(
+  params: RelatedProductsParams
+): Promise<SearchResult> {
+  const {
+    productId,
+    limit = 10,
+    search_after = [],
+    language_code = "en",
+    country = "",
+  } = params;
+
+  let start = process.hrtime.bigint();
+  try {
+    // 1. Fetch the current product from ES by id to get its categories.gender and categories.group_age
+    const productResponse = await client.search({
+      index: catalog_index,
+      size: 1,
+      query: {
+        term: { id: productId }
+      }
+    });
+
+    const hit = productResponse.hits.hits[0];
+    if (!hit) {
+      return {
+        offset: [],
+        limit,
+        total_size: 0,
+        products: [],
+        time: 0,
+      };
+    }
+
+    const currentProduct = hit._source as any;
+    const categories = currentProduct.categories || [];
+    
+    // Extract distinct gender + group_age pairs
+    const pairs: { gender: number; group_age: number }[] = [];
+    const seenPairs = new Set<string>();
+    for (const cat of categories) {
+      if (
+        cat.gender !== undefined &&
+        cat.gender !== null &&
+        cat.group_age !== undefined &&
+        cat.group_age !== null
+      ) {
+        const key = `${cat.gender}_${cat.group_age}`;
+        if (!seenPairs.has(key)) {
+          seenPairs.add(key);
+          pairs.push({ gender: cat.gender, group_age: cat.group_age });
+        }
+      }
+    }
+
+    // If the product doesn't have any categories with gender + group_age, return empty list
+    if (pairs.length === 0) {
+      return {
+        offset: [],
+        limit,
+        total_size: 0,
+        products: [],
+        time: 0,
+      };
+    }
+
+    // 2. Build the query to find related products
+    const baseConditions = buildBaseConditions({}, country);
+    const { must: mustConditions, must_not: mustNotConditions } = baseConditions;
+
+    // Filter by same gender + group_age pairs
+    const shouldQueries = pairs.map((pair) => ({
+      bool: {
+        must: [
+          { term: { "categories.gender": pair.gender } },
+          { term: { "categories.group_age": pair.group_age } }
+        ]
+      }
+    }));
+
+    mustConditions.push({
+      nested: {
+        path: "categories",
+        query: {
+          bool: {
+            should: shouldQueries,
+            minimum_should_match: 1
+          }
+        }
+      }
+    });
+
+    // Exclude the current product
+    mustNotConditions.push({ term: { id: productId } });
+
+    const searchQuery: any = {
+      index: catalog_index,
+      _source: getSourceFields(),
+      track_scores: true,
+      track_total_hits: true,
+      size: limit,
+      query: {
+        bool: {
+          must: mustConditions,
+          must_not: mustNotConditions,
+        },
+      },
+      sort: [{ _score: { order: "desc" } }, { id: { order: "asc" } }],
+    };
+
+    if (search_after?.length > 0) {
+      searchQuery.search_after = search_after;
+    }
+
+    // Execute the search
+    const response = await client.search(searchQuery);
+    const hits = response.hits.hits as ElasticsearchHit[];
+    const total_size = typeof response.hits?.total === "number" ? response.hits.total : (response.hits?.total as any)?.value;
+
+    const customProducts: any[] = [];
+    hits.forEach((hit: ElasticsearchHit) => {
+      customProducts.push(hit._source);
+    });
+    const lastSortValue = hits.length > 0 ? hits[hits.length - 1].sort : [];
+
+    // Extract & normalize results
+    const productsWithFilters = extractFilters(
+      customProducts,
+      language_code,
+      true, // is_from_browser
+      country,
+    );
+
+    const normalizedProducts = normalizeCustomProducts(productsWithFilters);
+
+    const catalogProducts =
+      normalizedProducts.custom_products?.map((s) => ({
+        ...s,
+        is_luck: s.redeem_price > 0,
+        luck_price: s.redeem_price,
+        seller_status: s?.seller_status,
+      })) ?? [];
+
+    let end = process.hrtime.bigint();
+
+    return {
+      offset: lastSortValue,
+      limit: limit,
+      total_size: total_size,
+      products: catalogProducts,
+      time: Number(end - start) / 1_000_000,
+    };
+  } catch (error) {
+    LogServerError({
+      scenario: "getRelatedProducts in elasticSearch",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error(
+      `Related products search failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+    );
+  }
+}

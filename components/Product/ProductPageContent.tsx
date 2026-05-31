@@ -30,6 +30,7 @@ import ProductNameAndBrandSkeleton from "components/skeleton/product/ProductName
 import Skeleton from "react-loading-skeleton";
 import { createPortal } from "react-dom";
 import ProductFooter from "./ProductFooter";
+import RelatedProductsSection from "components/Server/product/RelatedProductsSection";
 
 interface ProductPageContentProps {
   params: { lang: string; productId: string };
@@ -340,6 +341,15 @@ export default async function ProductPageContent({
             </div>
           </div>
         </div>
+        <Suspense fallback={<></>}>
+          {/* @ts-expect-error Async Server Component is valid in Next  */}
+          <RelatedProductsSection
+            globalPromise={GlobalData}
+            language={language}
+            country={country}
+            currency={currency}
+          />
+        </Suspense>
         <Suspense fallback={<></>}>
           {/* @ts-expect-error Async Server Component is valid in Next  */}
           <ProductFooter
