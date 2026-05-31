@@ -215,8 +215,9 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps)
             </div>
           ) : (
             <Webcam
+              key={`${activeTab}-${useAudio}`}
               audio={useAudio}
-              muted={useAudio}
+              muted={true}
               ref={webcamRef}
               screenshotFormat="image/webp"
               videoConstraints={webcamConstraints}

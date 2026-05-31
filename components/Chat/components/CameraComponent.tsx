@@ -225,8 +225,9 @@ const WebcamCapture = ({ imageFile, close, send }: WebcamCaptureProps) => {
             </div>
           ) : (
             <Webcam
+              key={`${activeTab}-${useAudio}`}
               audio={useAudio}
-              muted={useAudio}
+              muted={true}
               ref={webcamRef}
               screenshotFormat="image/webp"
               videoConstraints={webcamConstraints}
