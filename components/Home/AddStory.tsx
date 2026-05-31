@@ -13,6 +13,7 @@ function AddStory() {
     setShouldAuthinticated,
     setLoginOpen,
     user,
+    userProfile: userData,
     storiesRefreshing,
   } = useAppStore();
 
@@ -29,7 +30,6 @@ function AddStory() {
       currentUser.phone !== undefined &&
       String(currentUser.phone).trim() !== "" &&
       String(currentUser.phone).length >= 3;
-    console.log(currentUser.phone, hasValidPhone);
     if (!hasValidPhone) {
       setLoginOpen(true);
       return;
@@ -45,22 +45,31 @@ function AddStory() {
       setShouldAuthinticated("open Story");
     }
   };
+  const isAllowedToUploadStories = () => {
+    const isAllowedToUploadStories = userData?.is_allowed_to_upload_story;
+    if (isAllowedToUploadStories === null || isAllowedToUploadStories === undefined) return false
+    if (isAllowedToUploadStories === 0) return false
+    if (isAllowedToUploadStories && isAllowedToUploadStories === 1 || parseInt(isAllowedToUploadStories) === 1) return true;
+  }
 
-  return (
-    <div
-      data-cy="Add-Story-Button"
-      className="relative w-[100px] min-w-[100px] add-story-container flex items-center justify-center h-[150px] ml-[20px] rounded-[20px] bg-[#f0f0f0] overflow-hidden"
-      onClick={handleClick}
-    >
-      {storiesRefreshing ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[2px] animate-fade-in">
-          <Spinner />
-        </div>
-      ) : (
-        <img src="/icons/chatplus.svg" />
-      )}
-    </div>
-  );
+
+  if (isAllowedToUploadStories()) {
+    return (
+      <div
+        data-cy="Add-Story-Button"
+        className="relative w-[100px] min-w-[100px] add-story-container flex items-center justify-center h-[150px] ml-[20px] rounded-[20px] bg-[#f0f0f0] overflow-hidden"
+        onClick={handleClick}
+      >
+        {storiesRefreshing ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[2px] animate-fade-in">
+            <Spinner />
+          </div>
+        ) : (
+          <img src="/icons/chatplus.svg" />
+        )}
+      </div>
+    );
+  } else return <></>
 }
 
 export default AddStory;
