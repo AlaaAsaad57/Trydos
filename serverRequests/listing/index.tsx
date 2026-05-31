@@ -469,7 +469,7 @@ export async function GetRelatedProducts({
         videos={product?.videos}
         name={product.name}
         slug={product.slug}
-        Sliders={true}
+        Sliders={false}
         brand={{
           name: product?.brand?.name,
           icon: product.brand.icon?.file_path ?? product?.brand,
