@@ -142,7 +142,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
       ) : (
         <>
           <Webcam
-            className="cameraInput"
+            className="cameraInput "
             audio={false}
             style={{
               height: "100%",

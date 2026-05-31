@@ -76,6 +76,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
       recordedChunks,
       setVideo,
       stop,
+      seconds,minutes
     ]);
     const handleDownload = useCallback(() => {
       if (recordedChunks.length || vidUrl) {
@@ -96,17 +97,19 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
       }
     }, [recordedChunks, setVideo]);
     useEffect(() => {
-      if (seconds > 59 && capturing) {
+      if (seconds > 0 &&minutes>0 && capturing) {
         handleStopCaptureClick();
       }
-    }, [seconds]);
+    }, [seconds,minutes]);
     return (
       <>
         {vidUrl ? (
-          <UploadVideo vidUrl={vidUrl}></UploadVideo>
+          <div className="w-auto h-[75vh] z-[99999999]">
+            <UploadVideo vidUrl={vidUrl}></UploadVideo>
+          </div>
         ) : (
           <Webcam
-            className="cameraInput"
+            className="cameraInput camera-video"
             audio={true}
             muted
             ref={webcamRef}
@@ -354,7 +357,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
         ) : (
           <>
             <Webcam
-              className="cameraInput h-full w-full inset-0 max-h-dvh text-transparent object-fill static z-99999999"
+              className="cameraInput camera-video h-full w-full inset-0 max-h-dvh text-transparent object-fill static z-99999999"
               audio={false}
               height={800}
               ref={webcamRef}

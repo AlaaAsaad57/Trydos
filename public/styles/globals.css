@@ -1061,3 +1061,12 @@ svg {
 .setting-screen > button {
   flex-shrink: 0;
 }
+
+.camera-video{
+   z-index: 999999999;
+    width: auto;
+    height: 76vh;
+    justify-self: center;
+    align-self: center;
+    margin-top: 60px;
+}
