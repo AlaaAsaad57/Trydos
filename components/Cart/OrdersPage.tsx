@@ -24,6 +24,7 @@ import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import home from "services/home";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import { isGuestName } from "utils/tinyUtils";
 
 const DeleteIcon = () => {
   return (
@@ -490,7 +491,7 @@ function OrdersPage({ setStep, close }) {
                 setOpenSelect={() => {
                   setOpenSelect(true);
                 }}
-                userName={user?.name === "verified_guest" ? "" : null}
+                userName={isGuestName(user?.name) ? "" : null}
                 slidePrev={(value) => {
                   setOrderStep(0);
                 }}

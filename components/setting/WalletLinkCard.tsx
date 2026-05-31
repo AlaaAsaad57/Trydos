@@ -20,8 +20,16 @@ function WalletLinkCard({ isRtl, language, country }) {
   const [walletErrorMessage, setWalletErrorMessage] = useState<string | null>(
     null,
   );
-  const { setShouldAuthinticated, shouldAuthinticated, user, setLoginOpen } =
+  const { setShouldAuthinticated, shouldAuthinticated, userProfile, user, setLoginOpen } =
     useAppStore();
+  const currentUser = userProfile || user;
+  const isNotLoggedIn = !currentUser || 
+    currentUser.phone === "0" || 
+    currentUser.phone === 0 || 
+    currentUser.phone === null || 
+    currentUser.phone === undefined || 
+    String(currentUser.phone).trim() === "" ||
+    String(currentUser.phone).length < 3;
   const GetWalletForUser = async () => {
     setLoading(true);
     setWalletError(false);
@@ -69,10 +77,10 @@ function WalletLinkCard({ isRtl, language, country }) {
   return (
     <div
       onClick={() => {
-        if (user && user?.phone?.length > 3) setOpen(true);
+        if (!isNotLoggedIn) setOpen(true);
         else setLoginOpen(true);
       }}
-      className={`${(!user || user?.phone === "0") && "opacity-65"} ${
+      className={`${isNotLoggedIn && "opacity-65"} ${
         isRtl && "items-end"
       } flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px]  cursor-pointer`}
       aria-label={translateFunction("Wallet Transactions", language)}

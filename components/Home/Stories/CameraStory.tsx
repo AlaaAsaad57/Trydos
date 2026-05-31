@@ -1,477 +1,298 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-
 import Webcam from "react-webcam";
 import Image from "next/image";
 import UploadVideo from "../UploadVideo";
 import { blobToDataURL } from "components/Chat/chatsFunctions";
 import { useStopwatch } from "react-timer-hook";
+import { translateFunction } from "utils/functions";
 
-function NewStoryModal({ close, send, HandleUploadedVideo }) {
-  const [imageFile, setImageFile] = useState(null);
-  const [vidUrl, setVideo] = useState(null);
-  const [SwitchCamera, setSwitch] = useState(null);
-  const capture = () => {
-    setImageFile(webcamRef.current?.getScreenshot());
-  };
-  const hasTwoCameras = async () => {
-    const devices = await navigator?.mediaDevices?.enumerateDevices();
-    setSwitch(devices?.filter((dev) => dev?.kind === "videoinput").length <= 1);
-    return null;
-  };
-  const [webcamTypeRef, setRef] = useState({
-    width: 430,
-    height: 400,
-    facingMode: { exact: "user" },
+interface NewStoryModalProps {
+  close: () => void;
+  send: (imageFile: string) => void;
+  HandleUploadedVideo: (videoFile: File) => void;
+}
+
+function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps) {
+  const [imageFile, setImageFile] = useState<string | null>(null);
+  const [vidUrl, setVidUrl] = useState<string | null>(null);
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  const [capturing, setCapturing] = useState(false);
+  const [activeTab, setActiveTab] = useState<"photo" | "video">("photo");
+  const [switchCameraDisabled, setSwitchCameraDisabled] = useState(false);
+
+  const webcamRef = useRef<Webcam>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+  const [webcamConstraints, setWebcamConstraints] = useState({
+    width: 1280,
+    height: 720,
+    facingMode: "user" as string | { exact: string },
   });
-  const webcamRef = useRef(null);
-  const [active, setActive] = useState(true);
+
+  const { seconds, minutes, start, pause, reset } = useStopwatch({ autoStart: false });
+
+  // Check if device has multiple cameras
+  const checkCameraDevices = async () => {
+    try {
+      const devices = await navigator?.mediaDevices?.enumerateDevices();
+      const videoDevices = devices?.filter((dev) => dev?.kind === "videoinput");
+      setSwitchCameraDisabled(videoDevices ? videoDevices.length <= 1 : true);
+    } catch (err) {
+      setSwitchCameraDisabled(true);
+    }
+  };
+
   useEffect(() => {
-    hasTwoCameras();
+    checkCameraDevices();
   }, []);
-  const WebcamStreamCapture = () => {
-    const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
-      useStopwatch({ autoStart: false });
-    const webcamRef = useRef(null);
-    const mediaRecorderRef = useRef(null);
-    const [capturing, setCapturing] = useState(false);
-    const [recordedChunks, setRecordedChunks] = useState([]);
 
-    const handleStartCaptureClick = useCallback(() => {
-      start();
-      setCapturing(true);
-      mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
-        mimeType: "video/webm",
-      });
-      mediaRecorderRef.current.addEventListener(
-        "dataavailable",
-        handleDataAvailable
-      );
-      mediaRecorderRef.current.start();
-    }, [webcamRef, setCapturing, mediaRecorderRef, start]);
+  // Handle Photo Capture
+  const capturePhoto = () => {
+    const screenshot = webcamRef.current?.getScreenshot();
+    if (screenshot) {
+      setImageFile(screenshot);
+    }
+  };
 
-    const handleDataAvailable = useCallback(
-      ({ data }) => {
-        if (data.size > 0) {
-          setRecordedChunks([data]);
-          const blob = new Blob([data], {
-            type: "video/webm",
-          });
-          const url = URL.createObjectURL(blob);
-          blobToDataURL(blob, function (e) {
-            setVideo(e);
-          });
-        }
-      },
-      [setRecordedChunks]
-    );
+  // Start Video Recording
+  const handleStartCapture = useCallback(() => {
+    if (!webcamRef.current?.stream) return;
 
-    const handleStopCaptureClick = useCallback(() => {
+    reset();
+    start();
+    setCapturing(true);
+    setRecordedChunks([]);
+
+    const stream = webcamRef.current.stream;
+    const options = { mimeType: "video/webm" };
+
+    const recorder = new MediaRecorder(stream, options);
+    mediaRecorderRef.current = recorder;
+
+    recorder.addEventListener("dataavailable", ({ data }) => {
+      if (data.size > 0) {
+        setRecordedChunks((prev) => [...prev, data]);
+        const blob = new Blob([data], { type: "video/webm" });
+        const localUrl = URL.createObjectURL(blob);
+        setVidUrl(localUrl);
+      }
+    });
+
+    recorder.start();
+  }, [webcamRef, start, reset]);
+
+  // Stop Video Recording
+  const handleStopCapture = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
-      stop();
-      setCapturing(false);
-    }, [
-      mediaRecorderRef,
-      webcamRef,
-      setCapturing,
-      recordedChunks,
-      setVideo,
-      stop,
-      seconds,minutes
-    ]);
-    const handleDownload = useCallback(() => {
-      if (recordedChunks.length || vidUrl) {
-        const blob = new Blob(recordedChunks, {
-          type: "video/webm",
-        });
-        const url = URL.createObjectURL(blob);
-        const a: HTMLAnchorElement = document.createElement("a");
-        document.body.appendChild(a);
-        a.style.display = "none";
-        a.href = url;
-        setVideo(url);
-        a.download = "react-webcam-stream-capture.webm";
-        HandleUploadedVideo(vidUrl);
-        close();
-        window.URL.revokeObjectURL(url);
-        setRecordedChunks([]);
-      }
-    }, [recordedChunks, setVideo]);
-    useEffect(() => {
-      if (seconds > 0 &&minutes>0 && capturing) {
-        handleStopCaptureClick();
-      }
-    }, [seconds,minutes]);
-    return (
-      <>
-        {vidUrl ? (
-          <div className="w-auto h-[75vh] z-[99999999]">
-            <UploadVideo vidUrl={vidUrl}></UploadVideo>
-          </div>
-        ) : (
-          <Webcam
-            className="cameraInput camera-video"
-            audio={true}
-            muted
-            ref={webcamRef}
-            videoConstraints={webcamTypeRef}
-          />
-        )}
-        <div
-          className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-99999999999"
-          style={{ position: "static" }}
-        >
-          {!capturing && !vidUrl && !vidUrl && (
+    }
+    stop();
+    setCapturing(false);
+  }, [stop]);
+
+  // Max video length of 1 minute (60 seconds)
+  useEffect(() => {
+    if (capturing && (minutes > 0 || seconds >= 59)) {
+      handleStopCapture();
+    }
+  }, [seconds, minutes, capturing, handleStopCapture]);
+
+  // Share/Upload Video
+  const handleShareVideo = useCallback(() => {
+    if (recordedChunks.length) {
+      const blob = new Blob(recordedChunks, { type: "video/webm" });
+      const videoFile = new File([blob], `video-story-${Date.now()}.webm`, {
+        type: "video/webm",
+      });
+
+      HandleUploadedVideo(videoFile);
+      close();
+    }
+  }, [recordedChunks, HandleUploadedVideo, close]);
+
+  // Toggle Front/Back Camera
+  const toggleCamera = () => {
+    setWebcamConstraints((prev) => ({
+      ...prev,
+      facingMode: prev.facingMode === "user" ? "environment" : "user",
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 w-screen h-screen bg-neutral-950 flex flex-col justify-between items-center z-[9999999999]">
+      {/* Background Dimmer/Blur Overlay */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm -z-10" />
+
+      {/* Modern Header / Tab Controller */}
+      <div className="w-full max-w-full px-6 pt-6 z-10 block  gap-4">
+        <div className="cursor-pointer flex flex-grow justify-between items-center text-white">
+          <button
+            onClick={() => {
+              if (imageFile) setImageFile(null);
+              else if (vidUrl) {
+                setVidUrl(null);
+                setRecordedChunks([]);
+              } else {
+                close();
+              }
+            }}
+            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-all active:scale-95 flex items-center justify-center backdrop-blur-md border border-white/10"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <span className="font-semibold text-lg tracking-wide text-white/90">
+            {imageFile ? "Preview Photo" : vidUrl ? "Preview Video" : "Create Story"}
+          </span>
+
+          <div className="w-10 h-10" /> {/* Spacer */}
+        </div>
+
+        {!imageFile && !vidUrl && (
+          <div className="cursor-pointer flex mt-[5px] bg-neutral-900/80 p-1 rounded-full border border-white/5 backdrop-blur-md">
             <button
-              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-              disabled={SwitchCamera}
-              onClick={() => {
-                setRef({
-                  width: 430,
-                  height: 400,
-                  facingMode: {
-                    exact:
-                      webcamTypeRef.facingMode.exact === "user"
-                        ? "environment"
-                        : "user",
-                  },
-                });
-              }}
+              onClick={() => setActiveTab("photo")}
+              className={`cursor-pointer flex-1 text-center py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === "photo"
+                ? "bg-white text-black shadow-md"
+                : "text-white/60 hover:text-white"
+                }`}
             >
-              <svg
-                version="1.1"
-                id="Layer_1"
-                xmlns="http://www.w3.org/2000/svg"
-                xmlnsXlink="http://www.w3.org/1999/xlink"
-                x="0px"
-                y="0px"
-                width="122.879px"
-                height="93.242px"
-                viewBox="0 0 122.879 93.242"
-                enableBackground="new 0 0 122.879 93.242"
-                xmlSpace="preserve"
-                style={{ cursor: "pointer", width: "100%" }}
-              >
-                <g>
-                  <path
-                    fillRule="evenodd"
-                    fill="#555"
-                    clipRule="evenodd"
-                    d="M51.933,0.036h31.521l7.185,12.79h14.794c0.786,0,1.428,0.662,1.428,1.429v35.003 c5.257,1.931,9.185,4.161,11.755,6.539c2.808,2.599,4.234,5.514,4.264,8.602c0.03,3.092-1.35,6.024-4.156,8.649 c-4.786,4.479-14.429,8.444-28.976,10.897c-1.671,0.277-3.223-1.036-3.467-2.935s0.911-3.662,2.582-3.94 c13.403-2.26,22.011-5.655,25.986-9.375c1.301-1.216,1.942-2.312,1.934-3.242c-0.009-0.936-0.684-2.043-2.017-3.276 c-1.765-1.633-4.401-3.2-7.905-4.633v7.618c0,0.766-0.66,1.428-1.428,1.428H19.506c-0.767,0-1.429-0.643-1.429-1.428v-8.5 c-5.576,1.91-9.059,4.052-10.86,6.261c-1.003,1.23-1.261,2.413-0.937,3.497c0.472,1.573,1.877,3.242,3.958,4.875 c7.076,5.552,20.555,9.51,33.239,8.611l-2.744-2.146c-1.311-1.023-1.544-2.917-0.52-4.228c1.024-1.312,2.917-1.544,4.229-0.521 l8.878,6.942c1.311,1.024,1.544,2.917,0.52,4.229c-0.132,0.17-0.279,0.32-0.438,0.454l-9.882,8.837 c-1.239,1.109-3.143,1.003-4.252-0.236c-1.108-1.238-1.003-3.143,0.236-4.251l2.28-2.039C28.4,86.376,14.414,81.996,6.771,76 c-3.146-2.468-5.364-5.305-6.277-8.353c-1.06-3.537-0.466-7.092,2.251-10.425c2.599-3.188,7.505-6.194,15.332-8.696V14.255 c0-0.786,0.642-1.429,1.429-1.429h6.652v-4.59h8.22v4.59h8.928c1.858-3.667,3.715-7.335,5.574-11 C50.01-0.411,49.389,0.036,51.933,0.036L51.933,0.036z M97.607,19.144c2.353,0,4.261,1.909,4.261,4.262s-1.908,4.262-4.261,4.262 s-4.262-1.909-4.262-4.262S95.255,19.144,97.607,19.144L97.607,19.144L97.607,19.144z M66.229,24.113 c7.134,0,12.919,5.785,12.919,12.918s-5.785,12.917-12.919,12.917c-7.135,0-12.92-5.785-12.92-12.917 C53.31,29.898,59.094,24.113,66.229,24.113L66.229,24.113z M66.229,15.696c11.782,0,21.336,9.555,21.336,21.335 s-9.554,21.336-21.336,21.336c-11.781,0-21.335-9.556-21.335-21.336S54.448,15.696,66.229,15.696L66.229,15.696z"
-                  />
-                </g>
+              {translateFunction("Photo")}
+            </button>
+            <button
+              onClick={() => setActiveTab("video")}
+              className={` cursor-pointer flex-1 text-center py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === "video"
+                ? "bg-white text-black shadow-md"
+                : "text-white/60 hover:text-white"
+                }`}
+            >
+              {translateFunction('Video')}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Main Viewfinder / Media Container */}
+      <div className="flex-1 w-full max-w-full relative flex items-center justify-center overflow-hidden my-4 px-4">
+        <div className="w-full h-full rounded-[2rem] overflow-hidden border border-white/10 bg-neutral-900 shadow-2xl relative flex items-center justify-center">
+          {imageFile ? (
+            <Image
+              src={imageFile}
+              alt="Story Preview"
+              fill
+              className="object-cover"
+              loading="eager"
+            />
+          ) : vidUrl ? (
+            <div className="w-full h-full flex items-center justify-center bg-black">
+              <UploadVideo vidUrl={vidUrl} />
+            </div>
+          ) : (
+            <Webcam
+              audio={activeTab === "video"}
+              muted={activeTab === "video"}
+              ref={webcamRef}
+              screenshotFormat="image/webp"
+              videoConstraints={webcamConstraints}
+              className="w-full h-full object-cover"
+            />
+          )}
+
+          {/* Video Recording Timer Overlay */}
+          {capturing && (
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-red-600/90 text-white font-mono px-4 py-1.5 rounded-full text-sm font-semibold tracking-wider flex items-center gap-2 shadow-lg animate-pulse">
+              <span className="w-2.5 h-2.5 rounded-full bg-white block" />
+              {`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Premium Controls Panel */}
+      <div className="w-full max-w-full px-6 pb-8 z-10 flex flex-col items-center">
+        <div className="w-full flex justify-around items-center bg-neutral-900/60 backdrop-blur-xl border border-white/10 py-5 px-6 rounded-3xl shadow-xl">
+          {/* Left Action: Toggle/Flip Camera (Only if camera mode is active) */}
+          {!imageFile && !vidUrl ? (
+            <button
+              onClick={toggleCamera}
+              disabled={switchCameraDisabled}
+              className={`cursor-pointer p-3 rounded-full transition-all duration-200 ${switchCameraDisabled
+                ? "opacity-30 cursor-not-allowed"
+                : "bg-white/10 hover:bg-white/20 active:scale-95"
+                }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2z" />
               </svg>
             </button>
+          ) : (
+            <div className="w-12 h-12" /> // spacer
           )}
-          {!vidUrl &&
-            !vidUrl &&
-            (capturing ? (
-              <button
-                className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-                onClick={handleStopCaptureClick}
-                style={{ position: "relative" }}
-              >
-                <span
-                  style={{ position: "absolute", color: "red", top: "-25px" }}
-                >{`00:${seconds > 9 ? seconds : "0" + seconds}`}</span>
-                <span className="w-[20px] h-[20px] rounded-[1px] bg-[rgb(141,6,6)]" />
-              </button>
-            ) : (
-              <button
-                className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-                onClick={handleStartCaptureClick}
-              >
-                <span className="w-[20px] h-[20px] rounded-full bg-[rgb(141,6,6)]" />
-              </button>
-            ))}
-          {vidUrl && (
+
+          {/* Center Action: Capture / Record / Share */}
+          {imageFile ? (
             <button
-              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-              onClick={handleDownload}
+              onClick={() => {
+                send(imageFile);
+                setImageFile(null);
+                close();
+              }}
+              className="cursor-pointer w-16 h-16 rounded-full bg-blue-500 hover:bg-blue-600 active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-blue-500/30"
             >
-              <img src="/icons/chat/sharechat.svg" />
+              <img src="/icons/chat/sharechat.svg" className="w-8 h-8  brightness-200 filter" alt="Share" />
+            </button>
+          ) : vidUrl ? (
+            <button
+              onClick={handleShareVideo}
+              className="cursor-pointer w-16 h-16 rounded-full bg-blue-500 hover:bg-blue-600 active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-blue-500/30"
+            >
+              <img src="/icons/chat/sharechat.svg" className="w-8 h-8  brightness-200 filter" alt="Share" />
+            </button>
+          ) : activeTab === "photo" ? (
+            <button
+              onClick={capturePhoto}
+              className="cursor-pointer w-20 h-20 rounded-full border-4 border-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
+            >
+              <div className="w-16 h-16 rounded-full bg-white" />
+            </button>
+          ) : (
+            // Video Record Button (Capturing vs Idle)
+            <button
+              onClick={capturing ? handleStopCapture : handleStartCapture}
+              className="cursor-pointer w-20 h-20 rounded-full border-4 border-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
+            >
+              {capturing ? (
+                <div className="w-8 h-8 rounded bg-red-600 transition-all duration-200" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-red-600 transition-all duration-200" />
+              )}
             </button>
           )}
+
+          {/* Right Action: Close/Discard */}
           <button
-            className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-            onClick={() => (!vidUrl && !vidUrl ? close() : setVideo(null))}
+            onClick={() => {
+              if (imageFile) setImageFile(null);
+              else if (vidUrl) {
+                setVidUrl(null);
+                setRecordedChunks([]);
+              } else {
+                close();
+              }
+            }}
+            className="cursor-pointer p-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="17.828"
-              height="17.829"
-              viewBox="0 0 17.828 17.829"
-            >
-              <g
-                id="Group_10676"
-                data-name="Group 10676"
-                transform="translate(-67.032 -2460.283)"
-              >
-                <line
-                  id="Line_879"
-                  data-name="Line 879"
-                  y2="21.213"
-                  transform="translate(83.447 2461.697) rotate(45)"
-                  fill="none"
-                  stroke="#555"
-                  strokeLinecap="round"
-                  strokeWidth="2"
-                />
-                <line
-                  id="Line_880"
-                  data-name="Line 880"
-                  y2="21.213"
-                  transform="translate(83.447 2476.697) rotate(135)"
-                  fill="none"
-                  stroke="#555"
-                  strokeLinecap="round"
-                  strokeWidth="2"
-                />
-              </g>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-      </>
-    );
-  };
-  return (
-    <div
-      className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-9999999999"
-      style={{
-        top: "-180px",
-        justifyContent: "flex-end",
-        paddingBottom: "60px",
-      }}
-    >
-      <div className="w-full h-[50px] flex z-999999999 rounded-md bg-[#fafafa] absolute top-[25px] left-0">
-        <div
-          className={`text-[#1d1d1d] w-1/2 h-[50px] flex text-center items-center justify-center  ${
-            active ? "bg-[#a0a0a0]" : "bg-[#fafafa]"
-          }`}
-          onClick={() => setActive(true)}
-        >
-          Photo
-        </div>
-        <div
-          className={`text-[#1d1d1d] w-1/2 h-[50px] flex text-center items-center justify-center  ${
-            !active ? "bg-[#a0a0a0]" : "bg-[#fafafa]"
-          }`}
-          onClick={() => setActive(false)}
-        >
-          Video
-        </div>
       </div>
-      <div className="absolute top-0 left-0 w-screen h-screen bg-[#585751] opacity-60 z-9999"></div>
-      {active ? (
-        imageFile && imageFile !== "null" ? (
-          <>
-            <div
-              className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-99999999999"
-              style={{ position: "static" }}
-            >
-              <button
-                className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-                style={{ opacity: "0" }}
-              >
-                <svg
-                  version="1.1"
-                  id="Layer_1"
-                  xmlns="http://www.w3.org/2000/svg"
-                  xmlnsXlink="http://www.w3.org/1999/xlink"
-                  x="0px"
-                  y="0px"
-                  width="122.879px"
-                  height="93.242px"
-                  viewBox="0 0 122.879 93.242"
-                  enableBackground="new 0 0 122.879 93.242"
-                  xmlSpace="preserve"
-                >
-                  <g>
-                    <path
-                      fillRule="evenodd"
-                      fill="#555"
-                      clipRule="evenodd"
-                      d="M51.933,0.036h31.521l7.185,12.79h14.794c0.786,0,1.428,0.662,1.428,1.429v35.003 c5.257,1.931,9.185,4.161,11.755,6.539c2.808,2.599,4.234,5.514,4.264,8.602c0.03,3.092-1.35,6.024-4.156,8.649 c-4.786,4.479-14.429,8.444-28.976,10.897c-1.671,0.277-3.223-1.036-3.467-2.935s0.911-3.662,2.582-3.94 c13.403-2.26,22.011-5.655,25.986-9.375c1.301-1.216,1.942-2.312,1.934-3.242c-0.009-0.936-0.684-2.043-2.017-3.276 c-1.765-1.633-4.401-3.2-7.905-4.633v7.618c0,0.766-0.66,1.428-1.428,1.428H19.506c-0.767,0-1.429-0.643-1.429-1.428v-8.5 c-5.576,1.91-9.059,4.052-10.86,6.261c-1.003,1.23-1.261,2.413-0.937,3.497c0.472,1.573,1.877,3.242,3.958,4.875 c7.076,5.552,20.555,9.51,33.239,8.611l-2.744-2.146c-1.311-1.023-1.544-2.917-0.52-4.228c1.024-1.312,2.917-1.544,4.229-0.521 l8.878,6.942c1.311,1.024,1.544,2.917,0.52,4.229c-0.132,0.17-0.279,0.32-0.438,0.454l-9.882,8.837 c-1.239,1.109-3.143,1.003-4.252-0.236c-1.108-1.238-1.003-3.143,0.236-4.251l2.28-2.039C28.4,86.376,14.414,81.996,6.771,76 c-3.146-2.468-5.364-5.305-6.277-8.353c-1.06-3.537-0.466-7.092,2.251-10.425c2.599-3.188,7.505-6.194,15.332-8.696V14.255 c0-0.786,0.642-1.429,1.429-1.429h6.652v-4.59h8.22v4.59h8.928c1.858-3.667,3.715-7.335,5.574-11 C50.01-0.411,49.389,0.036,51.933,0.036L51.933,0.036z M97.607,19.144c2.353,0,4.261,1.909,4.261,4.262s-1.908,4.262-4.261,4.262 s-4.262-1.909-4.262-4.262S95.255,19.144,97.607,19.144L97.607,19.144L97.607,19.144z M66.229,24.113 c7.134,0,12.919,5.785,12.919,12.918s-5.785,12.917-12.919,12.917c-7.135,0-12.92-5.785-12.92-12.917 C53.31,29.898,59.094,24.113,66.229,24.113L66.229,24.113z M66.229,15.696c11.782,0,21.336,9.555,21.336,21.335 s-9.554,21.336-21.336,21.336c-11.781,0-21.335-9.556-21.335-21.336S54.448,15.696,66.229,15.696L66.229,15.696z"
-                    />
-                  </g>
-                </svg>
-              </button>
-
-              <button
-                className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-                onClick={() => {
-                  send(imageFile);
-                  setImageFile(null);
-                  close();
-                }}
-              >
-                <img src="/icons/chat/sharechat.svg" />
-              </button>
-              <button
-                className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-                onClick={() => setImageFile(null)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="17.828"
-                  height="17.829"
-                  viewBox="0 0 17.828 17.829"
-                >
-                  <g
-                    id="Group_10676"
-                    data-name="Group 10676"
-                    transform="translate(-67.032 -2460.283)"
-                  >
-                    <line
-                      id="Line_879"
-                      data-name="Line 879"
-                      y2="21.213"
-                      transform="translate(83.447 2461.697) rotate(45)"
-                      fill="none"
-                      stroke="#555"
-                      strokeLinecap="round"
-                      strokeWidth="2"
-                    />
-                    <line
-                      id="Line_880"
-                      data-name="Line 880"
-                      y2="21.213"
-                      transform="translate(83.447 2476.697) rotate(135)"
-                      fill="none"
-                      stroke="#555"
-                      strokeLinecap="round"
-                      strokeWidth="2"
-                    />
-                  </g>
-                </svg>
-              </button>
-            </div>
-            <Image
-              className="h-full absolute w-full inset-0 max-h-dvh text-transparent object-fill  z-99999999"
-              loading="eager"
-              fill
-              sizes="100vw"
-              alt="imgs"
-              src={imageFile}
-            />
-          </>
-        ) : (
-          <>
-            <Webcam
-              className="cameraInput camera-video h-full w-full inset-0 max-h-dvh text-transparent object-fill static z-99999999"
-              audio={false}
-              height={800}
-              ref={webcamRef}
-              screenshotFormat="image/webp"
-              width={430}
-              videoConstraints={webcamTypeRef}
-            />
-            {!imageFile && (
-              <div
-                className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-99999999999"
-                style={{ position: "static" }}
-              >
-                <button
-                  disabled={SwitchCamera}
-                  className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-                  onClick={() => {
-                    setRef({
-                      width: 430,
-                      height: 400,
-                      facingMode: {
-                        exact:
-                          webcamTypeRef.facingMode.exact === "user"
-                            ? "environment"
-                            : "user",
-                      },
-                    });
-                  }}
-                >
-                  <svg
-                    version="1.1"
-                    id="Layer_1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    xmlnsXlink="http://www.w3.org/1999/xlink"
-                    x="0px"
-                    y="0px"
-                    width="122.879px"
-                    height="93.242px"
-                    viewBox="0 0 122.879 93.242"
-                    enableBackground="new 0 0 122.879 93.242"
-                    xmlSpace="preserve"
-                    style={{ cursor: "pointer", width: "100%" }}
-                    fill={SwitchCamera ? "#8e8d92" : "#555"}
-                  >
-                    <g>
-                      <path
-                        fillRule="evenodd"
-                        fill="#555"
-                        clipRule="evenodd"
-                        d="M51.933,0.036h31.521l7.185,12.79h14.794c0.786,0,1.428,0.662,1.428,1.429v35.003 c5.257,1.931,9.185,4.161,11.755,6.539c2.808,2.599,4.234,5.514,4.264,8.602c0.03,3.092-1.35,6.024-4.156,8.649 c-4.786,4.479-14.429,8.444-28.976,10.897c-1.671,0.277-3.223-1.036-3.467-2.935s0.911-3.662,2.582-3.94 c13.403-2.26,22.011-5.655,25.986-9.375c1.301-1.216,1.942-2.312,1.934-3.242c-0.009-0.936-0.684-2.043-2.017-3.276 c-1.765-1.633-4.401-3.2-7.905-4.633v7.618c0,0.766-0.66,1.428-1.428,1.428H19.506c-0.767,0-1.429-0.643-1.429-1.428v-8.5 c-5.576,1.91-9.059,4.052-10.86,6.261c-1.003,1.23-1.261,2.413-0.937,3.497c0.472,1.573,1.877,3.242,3.958,4.875 c7.076,5.552,20.555,9.51,33.239,8.611l-2.744-2.146c-1.311-1.023-1.544-2.917-0.52-4.228c1.024-1.312,2.917-1.544,4.229-0.521 l8.878,6.942c1.311,1.024,1.544,2.917,0.52,4.229c-0.132,0.17-0.279,0.32-0.438,0.454l-9.882,8.837 c-1.239,1.109-3.143,1.003-4.252-0.236c-1.108-1.238-1.003-3.143,0.236-4.251l2.28-2.039C28.4,86.376,14.414,81.996,6.771,76 c-3.146-2.468-5.364-5.305-6.277-8.353c-1.06-3.537-0.466-7.092,2.251-10.425c2.599-3.188,7.505-6.194,15.332-8.696V14.255 c0-0.786,0.642-1.429,1.429-1.429h6.652v-4.59h8.22v4.59h8.928c1.858-3.667,3.715-7.335,5.574-11 C50.01-0.411,49.389,0.036,51.933,0.036L51.933,0.036z M97.607,19.144c2.353,0,4.261,1.909,4.261,4.262s-1.908,4.262-4.261,4.262 s-4.262-1.909-4.262-4.262S95.255,19.144,97.607,19.144L97.607,19.144L97.607,19.144z M66.229,24.113 c7.134,0,12.919,5.785,12.919,12.918s-5.785,12.917-12.919,12.917c-7.135,0-12.92-5.785-12.92-12.917 C53.31,29.898,59.094,24.113,66.229,24.113L66.229,24.113z M66.229,15.696c11.782,0,21.336,9.555,21.336,21.335 s-9.554,21.336-21.336,21.336c-11.781,0-21.335-9.556-21.335-21.336S54.448,15.696,66.229,15.696L66.229,15.696z"
-                      />
-                    </g>
-                  </svg>
-                </button>
-                <button
-                  className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-                  onClick={() => {
-                    capture();
-                  }}
-                >
-                  <img
-                    src="/icons/image.svg"
-                    style={{ transform: "scale(1.5)" }}
-                  />
-                </button>
-                <button
-                  className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-                  onClick={() => {
-                    setImageFile(null);
-                    close();
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="17.828"
-                    height="17.829"
-                    viewBox="0 0 17.828 17.829"
-                  >
-                    <g
-                      id="Group_10676"
-                      data-name="Group 10676"
-                      transform="translate(-67.032 -2460.283)"
-                    >
-                      <line
-                        id="Line_879"
-                        data-name="Line 879"
-                        y2="21.213"
-                        transform="translate(83.447 2461.697) rotate(45)"
-                        fill="none"
-                        stroke="#555"
-                        strokeLinecap="round"
-                        strokeWidth="2"
-                      />
-                      <line
-                        id="Line_880"
-                        data-name="Line 880"
-                        y2="21.213"
-                        transform="translate(83.447 2476.697) rotate(135)"
-                        fill="none"
-                        stroke="#555"
-                        strokeLinecap="round"
-                        strokeWidth="2"
-                      />
-                    </g>
-                  </svg>
-                </button>
-              </div>
-            )}
-          </>
-        )
-      ) : (
-        <WebcamStreamCapture />
-      )}
     </div>
   );
 }
 
 export default NewStoryModal;
+

@@ -2,6 +2,7 @@
 
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import { isGuestName } from "utils/tinyUtils";
 
 function AddStory() {
   const {
@@ -16,18 +17,32 @@ function AddStory() {
   } = useAppStore();
 
   const handleClick = () => {
-    console.log(storiesRefreshing);
     if (storiesRefreshing) return;
+
+    const userProfile = useAppStore.getState().userProfile;
+    const currentUser = userProfile || user;
+
+    const hasValidPhone = currentUser &&
+      currentUser.phone !== "0" &&
+      currentUser.phone !== 0 &&
+      currentUser.phone !== null &&
+      currentUser.phone !== undefined &&
+      String(currentUser.phone).trim() !== "" &&
+      String(currentUser.phone).length >= 3;
+    console.log(currentUser.phone, hasValidPhone);
+    if (!hasValidPhone) {
+      setLoginOpen(true);
+      return;
+    }
+
     if (userStories && !userStories?.need_auth) {
-      const user = useAppStore.getState().userProfile;
-      if (user?.name?.length > 0 && user?.phone !== "0") {
+      if (currentUser?.name?.length > 0 && !isGuestName(currentUser?.name)) {
         setAddStory(true);
       } else {
         setNameModal(true);
       }
     } else {
-      if (user && user?.phone !== "0") setShouldAuthinticated("open Story");
-      else setLoginOpen(true);
+      setShouldAuthinticated("open Story");
     }
   };
 

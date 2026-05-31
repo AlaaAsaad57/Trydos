@@ -699,3 +699,10 @@ export const sanitizePhone = (value: string) => {
   // Re-add a single + if the input originally started with one
   return hasPlus ? "+" + cleaned : cleaned;
 };
+
+export const isGuestName = (name?: string): boolean => {
+  if (!name) return false;
+  const lower = name.toLowerCase().trim();
+  return lower === "guest" || lower === "verified_guest" || lower === "verfied_guest";
+};
+

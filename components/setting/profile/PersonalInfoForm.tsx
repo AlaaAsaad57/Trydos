@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
+import { isGuestName } from "utils/tinyUtils";
+import { useAppStore } from "store";
 
 import auth from "services/auth";
 
@@ -26,25 +28,37 @@ const getCountry = (val: string) => {
 };
 
 function PersonalInfoForm({ initialData, isRtl, language, local }) {
+  const { userProfile: clientUser, setLoginOpen } = useAppStore();
+  const user = clientUser || initialData;
+
+  const isNotLoggedIn = !user || 
+    user.phone === "0" || 
+    user.phone === 0 || 
+    user.phone === null || 
+    user.phone === undefined || 
+    String(user.phone).trim() === "" ||
+    String(user.phone).length < 3;
+
   const phoneInput = usePhoneInput({
-    initial: initialData?.phone === "0" ? "" : initialData?.phone || "",
+    initial: user?.phone === "0" ? "" : user?.phone || "",
     getCountry: getCountry,
   });
 
   const alternativePhoneInput = usePhoneInput({
     initial:
-      initialData?.alternative_phone === 0
+      user?.alternative_phone === 0
         ? ""
-        : initialData?.alternative_phone || "",
+        : user?.alternative_phone || "",
     getCountry: getCountry,
   });
 
   const [userProfileData, setUserProfileData] = useState({
-    name: initialData?.name,
-    email: initialData?.email?.includes("@guest.com") ? "" : initialData?.email,
-    gender: initialData?.gender?.value || initialData?.gender,
-    image: initialData?.image,
+    name: isGuestName(user?.name) ? "" : (user?.name || ""),
+    email: user?.email?.includes("@guest.com") ? "" : user?.email,
+    gender: user?.gender?.value || user?.gender,
+    image: user?.image,
   });
+
   const [validationErrors, setValidationErrors] = useState({
     name: "",
     phone: "",
@@ -164,6 +178,10 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
   };
 
   const handleSave = () => {
+    if (isNotLoggedIn) {
+      setLoginOpen(true);
+      return;
+    }
     if (!validateFunction()) return;
 
     const payload = {
@@ -179,14 +197,23 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
     }
   };
 
+  const handleFormClick = (e: React.MouseEvent) => {
+    if (isNotLoggedIn) {
+      e.preventDefault();
+      e.stopPropagation();
+      setLoginOpen(true);
+    }
+  };
+
   return (
     <div
       style={{
         direction: isRtl ? "rtl" : "ltr",
       }}
+      onClickCapture={handleFormClick}
       className={`flex-col setting-screen relative flex w-full ${
         loading ? "opacity-50 scale-95" : ""
-      }`}
+      } ${isNotLoggedIn ? "opacity-65" : ""}`}
       key="personal-info-setting-page"
     >
       {isPhoneShouldChange && (

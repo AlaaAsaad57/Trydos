@@ -514,8 +514,9 @@ export default function AddStoryWidget() {
             // @ts-ignore
             handleFileSelect({ target: { files: [a] } });
           }}
-          HandleUploadedVideo={(e) => {
-            //   HandleUploadedVideo({ target: { files: [a] } });
+          HandleUploadedVideo={(videoFile) => {
+            // Convert to a pseudo ChangeEvent target structure expected by handleFileSelect
+            handleFileSelect({ target: { files: [videoFile] } } as any);
           }}
           close={() => {
             setOpenCamera(false);

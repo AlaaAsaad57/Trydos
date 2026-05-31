@@ -47,6 +47,9 @@ function VideoMessage({
   }, [activeChat, user]);
   return (
     <div
+      onClick={() => {
+        setVid(message_files[0]?.file_path);
+      }}
       onMouseLeave={() => {
         setOpen(false);
         setDelete(false);
@@ -179,7 +182,7 @@ function VideoMessage({
         DeleteModal={DeleteModal}
         setDelete={(e) => setDelete(e)}
         deleteMessage={(e) => DeleteMessage(channel_id, id, e)}
-        copy={() => {}}
+        copy={() => { }}
         forward={() =>
           setForwardMessage({
             type,
