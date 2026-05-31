@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
@@ -121,18 +120,16 @@ function RelatedProductsInfiniteScroll({
         {!isReachEnd ? (
           <>
             {!loading ? (
-              <InView
-                threshold={0.5}
-                className="spinner-container"
-                as="div"
-                onChange={(inView) => {
-                  if (inView && !loading) {
-                    getProductsReq();
-                  }
-                }}
-              ></InView>
+              <div
+                className="product-container items-center justify-center min-w-[150px] max-h-[377px] bg-[#0002] align-center flex-col relative cursor-pointer"
+                onClick={getProductsReq}
+              >
+                <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-white">
+                  {translateFunction("Show More", languageVariable)}
+                </div>
+              </div>
             ) : (
-              <h2>{loading && <Spinner no={false} className="" />}</h2>
+              <h2><Spinner no={false} className="" /></h2>
             )}
           </>
         ) : (

@@ -3,6 +3,7 @@ import "styles/globals.css";
 import { GetRelatedProducts } from "serverRequests/listing";
 import RelatedProductsInfiniteScroll from "components/Product/RelatedProductsInfiniteScroll";
 import { translateFunction } from "utils/server";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
 interface RelatedProductsSectionProps {
   globalPromise: Promise<any>;
@@ -50,7 +51,14 @@ async function RelatedProductsSection({
           isRtl ? "flex-row-reverse flex" : "flex flex-row"
         } listing-container mt-2 bg-[#f4f4f4] gap-x-[10px] gap-y-[18px] justify-center min-w-full relative pb-[120px] max-w-[1310px] flex-wrap`}
       >
-        {response.items}
+        <HortiznalScrollBar
+        className="featured-products-container py-[10px] gap-[8px] w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-auto pb-[8px] "
+        id="related-products-container"
+        dataCy="related-products-container"
+        >
+    {response.items}
+        </HortiznalScrollBar>
+       
         <RelatedProductsInfiniteScroll
           productId={product.id}
           currency={resolvedCurrency}

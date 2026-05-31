@@ -339,17 +339,19 @@ export default async function ProductPageContent({
                 />
               </Suspense>
             </div>
-          </div>
-        </div>
+
         <Suspense fallback={<></>}>
-          {/* @ts-expect-error Async Server Component is valid in Next  */}
-          <RelatedProductsSection
+            {/* @ts-expect-error Async Server Component is valid in Next  */}
+            <RelatedProductsSection
             globalPromise={GlobalData}
             language={language}
             country={country}
             currency={currency}
-          />
+            />
         </Suspense>
+          </div>
+        </div>
+
         <Suspense fallback={<></>}>
           {/* @ts-expect-error Async Server Component is valid in Next  */}
           <ProductFooter
