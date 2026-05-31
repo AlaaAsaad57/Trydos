@@ -1451,7 +1451,13 @@ const translations = {
     "Contact must contain only numbers": "İletişim numarası sadece rakamlardan oluşmalıdır",
     "Address is required": "Adres gereklidir",
     "Shop Info Updated Successfully!": "Mağaza Bilgileri Başarıyla Güncellendi!",
-    "Failed to update": "Güncelleme başarısız oldu"
+    "Failed to update": "Güncelleme başarısız oldu",
+    "Preview Photo": "Fotoğraf Önizleme",
+    "Preview Video": "Video Önizleme",
+    "Create Story": "Hikaye Oluştur",
+    "Microphone not detected or permission denied": "Mikrofon algılanmadı veya izin reddedildi",
+    "Photo": "Fotoğraf",
+    "Video": "Video"
 };
 
 export default translations;

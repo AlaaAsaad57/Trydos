@@ -1473,7 +1473,13 @@ const translations = {
     "Contact must contain only numbers": "دەبێت ژمارەی پەیوەندی تەنها ژمارە بێت",
     "Address is required": "ناونیشان پێویستە",
     "Shop Info Updated Successfully!": "زانیاری فرۆشگا بە سەرکەوتوویی نوێکرایەوە!",
-    "Failed to update": "نوێکردنەوە سەرکەوتوو نەبوو"
+    "Failed to update": "نوێکردنەوە سەرکەوتوو نەبوو",
+    "Preview Photo": "پێشبینینی وێنە",
+    "Preview Video": "پێشبینینی ڤیدیۆ",
+    "Create Story": "دروستکردنی چیرۆک",
+    "Microphone not detected or permission denied": "مایکڕۆفۆن نەدۆزرایەوە یان مۆڵەتەکە ڕەتکرایەوە",
+    "Photo": "وێنە",
+    "Video": "ڤیدیۆ"
 };
 
 export default translations;

@@ -19,6 +19,8 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps)
   const [capturing, setCapturing] = useState(false);
   const [activeTab, setActiveTab] = useState<"photo" | "video">("photo");
   const [switchCameraDisabled, setSwitchCameraDisabled] = useState(false);
+  const [micError, setMicError] = useState(false);
+  const [useAudio, setUseAudio] = useState(false);
 
   const webcamRef = useRef<Webcam>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -30,6 +32,28 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps)
   });
 
   const { seconds, minutes, start, pause, reset } = useStopwatch({ autoStart: false });
+
+  // Test microphone permission/availability
+  const checkMicrophone = async () => {
+    try {
+      const testStream = await navigator?.mediaDevices?.getUserMedia({ audio: true });
+      testStream?.getTracks().forEach((track) => track.stop());
+      setMicError(false);
+      setUseAudio(true);
+    } catch (err) {
+      setMicError(true);
+      setUseAudio(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "video") {
+      checkMicrophone();
+    } else {
+      setUseAudio(false);
+      setMicError(false);
+    }
+  }, [activeTab]);
 
   // Check if device has multiple cameras
   const checkCameraDevices = async () => {
@@ -191,8 +215,8 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps)
             </div>
           ) : (
             <Webcam
-              audio={activeTab === "video"}
-              muted={activeTab === "video"}
+              audio={useAudio}
+              muted={useAudio}
               ref={webcamRef}
               screenshotFormat="image/webp"
               videoConstraints={webcamConstraints}
@@ -200,9 +224,19 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps)
             />
           )}
 
+          {/* Microphone Warning Flag */}
+          {activeTab === "video" && micError && (
+            <div className="absolute top-6 left-6 right-6 bg-red-600/90 text-white rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-2 shadow-lg backdrop-blur-md border border-red-500/25 z-[999999]">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>{translateFunction("Microphone not detected or permission denied")}</span>
+            </div>
+          )}
+
           {/* Video Recording Timer Overlay */}
           {capturing && (
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-red-600/90 text-white font-mono px-4 py-1.5 rounded-full text-sm font-semibold tracking-wider flex items-center gap-2 shadow-lg animate-pulse">
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-red-600/90 text-white font-mono px-4 py-1.5 rounded-full text-sm font-semibold tracking-wider flex items-center gap-2 shadow-lg animate-pulse z-[999999]">
               <span className="w-2.5 h-2.5 rounded-full bg-white block" />
               {`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`}
             </div>

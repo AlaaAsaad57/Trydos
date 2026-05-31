@@ -869,8 +869,17 @@ function ConversationContainer({
               imgs,
               close: () => enableCamera(false),
               save: setImgs,
-              send: (d: string) => {
-                sendCameraImg(d);
+              send: (d: string | File) => {
+                if (typeof d === "string") {
+                  sendCameraImg(d);
+                } else if (d instanceof File) {
+                  if (d.type.includes("video")) {
+                    const midLocal = "m" + Math.random().toString().replace(".", "");
+                    handleMediaMessage(d, "VideoMessage", midLocal);
+                  } else {
+                    setPendingImageFile(d);
+                  }
+                }
                 enableCamera(false);
               },
             } as any;

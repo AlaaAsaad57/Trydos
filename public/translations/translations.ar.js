@@ -1443,7 +1443,13 @@ const translations = {
   "Contact must contain only numbers": "يجب أن يحتوي رقم التواصل على أرقام فقط",
   "Address is required": "العنوان مطلوب",
   "Shop Info Updated Successfully!": "تم تحديث معلومات المتجر بنجاح!",
-  "Failed to update": "فشل التحديث"
+  "Failed to update": "فشل التحديث",
+  "Preview Photo": "معاينة الصورة",
+  "Preview Video": "معاينة الفيديو",
+  "Create Story": "إنشاء قصة",
+  "Microphone not detected or permission denied": "لم يتم اكتشاف الميكروفون أو تم رفض الإذن",
+  "Photo": "صورة",
+  "Video": "فيديو"
 };
 
 export default translations;
