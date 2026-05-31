@@ -54,7 +54,7 @@ function RelatedProductsInfiniteScroll({
   }
 
   const getProductsReq = async () => {
-    if (isFetchingRef.current || isReachEndRef.current) return;
+    if (isFetchingRef.current || isReachEndRef.current||loading) return;
     isFetchingRef.current = true;
     setLoading(true);
 
@@ -114,23 +114,21 @@ function RelatedProductsInfiniteScroll({
       {products}
 
       <div
-        className="get-next-product regular-text color-dark-gray absolute flex justify-center items-end bottom-[40px]"
+        className="get-next-product regular-text color-dark-gray  flex justify-center items-end bottom-[40px]"
         data-cy="RelatedReachEnd"
       >
         {!isReachEnd ? (
           <>
-            {!loading ? (
+            {
               <div
                 className="product-container items-center justify-center min-w-[150px] max-h-[377px] bg-[#0002] align-center flex-col relative cursor-pointer"
                 onClick={getProductsReq}
               >
                 <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-white">
-                  {translateFunction("Show More", languageVariable)}
+                  {loading?<Spinner no={false} className="" />:translateFunction("Show More", languageVariable)}
                 </div>
               </div>
-            ) : (
-              <h2><Spinner no={false} className="" /></h2>
-            )}
+            }
           </>
         ) : (
           <>{translate("Reach End")}</>
