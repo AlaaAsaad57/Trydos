@@ -295,13 +295,15 @@ export const fetchData = async <T = any>(
           signal,
         });
       } else {
+        const safeProxyUrl = encodeURI(url);
         // ── EXTERNAL: route through /api/proxy (token injected server-side) ──
         const proxyHeaders: Record<string, string> = {
           "x-proxy-server": server,
-          "x-proxy-url": url,
+          "x-proxy-url": safeProxyUrl,
           "x-proxy-method": method,
           "x-country": country,
           "x-language": language,
+          "x-need-decode":"true"
         };
 
         if (sellerId) {

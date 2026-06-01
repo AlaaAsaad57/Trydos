@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
   try {
     // 1. Read proxy metadata from headers
     const server = request.headers.get("x-proxy-server") || "";
-    const targetUrl = request.headers.get("x-proxy-url") || "";
+    let targetUrl = request.headers.get("x-proxy-url") || "";
+    let need_decode = request.headers.get("x-need-decode") || "";
     const method = request.headers.get("x-proxy-method") || "GET";
     const country = request.headers.get("x-country") || "sy";
     const language = request.headers.get("x-language") || "en";
@@ -34,7 +35,11 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Build the full URL and headers (token injected from HttpOnly cookie)
-    const fullUrl = getServerBaseUrl(server, targetUrl) + targetUrl;
+
+    if(need_decode==="true"){
+      targetUrl = decodeURI(targetUrl);
+    }
+    let fullUrl = getServerBaseUrl(server, targetUrl) + targetUrl;
     const headers = await buildProxyHeaders(
       server,
       country,

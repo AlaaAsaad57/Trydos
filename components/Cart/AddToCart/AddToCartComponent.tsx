@@ -607,7 +607,7 @@ function AddToCartComponent({ product, slug, color }) {
     let response = await fetchData({
       method: "GET",
       server: "market",
-      url: `/web/product/qtyPriceDetails/${slug}`,
+      url: `/web/product/qtyPriceDetails/${slug}?need_decode=true`,
 
       reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS,
       signal: abortControllerRef.current?.signal,

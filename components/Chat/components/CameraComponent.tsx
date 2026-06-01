@@ -176,7 +176,7 @@ const WebcamCapture = ({ imageFile, close, send }: WebcamCaptureProps) => {
           </button>
           
           <span className="font-semibold text-lg tracking-wide text-white/90">
-            {photoPreview ? translateFunction("Preview Photo") : vidUrl ? translateFunction("Preview Video") : translateFunction("Create Story")}
+            {photoPreview ? translateFunction("Preview Photo") : vidUrl ? translateFunction("Preview Video") :""}
           </span>
 
           <div className="w-10 h-10" /> {/* Spacer */}
