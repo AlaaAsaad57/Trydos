@@ -385,7 +385,22 @@ export const getOldCart = async () => {
       throw new Error(response.message);
     }
     const { storeOldCart } = useAppStore.getState();
-    storeOldCart(response.data?.original?.data);
+
+  const originalData = response?.data?.original?.data;
+  const oldCart = originalData?.oldCart || []; // 1. Fallback to an empty array
+
+  // 2. Create a shallow copy using [...] before sorting
+  const sortedCart = [...oldCart].sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
+  // 3. Update the store safely
+  if (originalData) {
+    storeOldCart({
+      ...originalData,
+      oldCart: sortedCart
+    });
+  }
   } catch (error) {
     LogError({
       scenario: "Error in getOldCart in  functions",
