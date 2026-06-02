@@ -17,6 +17,7 @@ const ProductFooterClient = ({
   Size,
   socialData,
   redeemed_status,
+  shippingDays
 }) => {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -36,7 +37,7 @@ const ProductFooterClient = ({
         <ProductPricesWrapper
           isRtl={isRtl}
           language={language}
-          qtyPricePromise={QtyPricesData}
+          qtyPricePromise={{ ...QtyPricesData, shipping_days: QtyPricesData?.shipping_days + shippingDays }}
           currencyPromise={currency}
         />
 

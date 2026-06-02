@@ -12,9 +12,10 @@ async function ProductFooter({
   Params,
   color,
   Size,
+  StarttingSettingPromise
 }) {
-  let [GlobalDataPromise, qtyPricePromise, currencyPromise] = await Promise.all(
-    [GlobalData, QtyPricesData, currency],
+  let [GlobalDataPromise, qtyPricePromise, currencyPromise, settingResponse] = await Promise.all(
+    [GlobalData, QtyPricesData, currency, StarttingSettingPromise],
   );
   let parsedUser = await getCookieServer<{ id: string }>(
     COOKIE_NAMES.USER_DATA,
@@ -50,6 +51,7 @@ async function ProductFooter({
         size={Size}
       />
       <ProductFooterClient
+        shippingDays={settingResponse?.shipping_duration_days || 0}
         redeemed_status={redeemed_status}
         socialData={socialData}
         GlobalData={GlobalDataPromise}

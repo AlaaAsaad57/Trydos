@@ -94,9 +94,8 @@ export default async function ProductPageContent({
         </Suspense>
         <div className="product-details-body bg-[#ffffff] flex-row relative mt-[3px] pb-[50px]">
           <div
-            className={`${
-              isRtl ? "pr-[10px]" : "pl-[10px]"
-            } product-info-section bg-[#ffffff] flex-col align-start`}
+            className={`${isRtl ? "pr-[10px]" : "pl-[10px]"
+              } product-info-section bg-[#ffffff] flex-col align-start`}
           >
             <div className="flex-col px-[10px] max-w-full w-full">
               <Suspense
@@ -196,9 +195,8 @@ export default async function ProductPageContent({
 
               <div className="product-shipping h-auto rounded-none p-0 py-[8px] justify-start product-colors flex-col align-start relative">
                 <div
-                  className={`${
-                    isRtl && "items-end"
-                  } colors-label w-full flex-col`}
+                  className={`${isRtl && "items-end"
+                    } colors-label w-full flex-col`}
                   data-cy="FreeReturn"
                 >
                   <img
@@ -207,9 +205,8 @@ export default async function ProductPageContent({
                     alt=""
                   />
                   <div
-                    className={`${
-                      isRtl && "dir-rtl"
-                    } flex-col text-[#1d1d1d] medium text-[11px]`}
+                    className={`${isRtl && "dir-rtl"
+                      } flex-col text-[#1d1d1d] medium text-[11px]`}
                   >
                     <span>{translateFunction("Free Return", language)}</span>
                     <span className="label-description text-[#1d1d1d] regular text-[9px]">
@@ -219,9 +216,8 @@ export default async function ProductPageContent({
                       )}
                     </span>
                     <div
-                      className={`${
-                        isRtl && "dir-rtl"
-                      } flex-row gap-[4px] items-start justify-start mt-[8px]`}
+                      className={`${isRtl && "dir-rtl"
+                        } flex-row gap-[4px] items-start justify-start mt-[8px]`}
                     >
                       <span>
                         <svg
@@ -340,15 +336,15 @@ export default async function ProductPageContent({
               </Suspense>
             </div>
 
-        <Suspense fallback={<></>}>
-            {/* @ts-expect-error Async Server Component is valid in Next  */}
-            <RelatedProductsSection
-            globalPromise={GlobalData}
-            language={language}
-            country={country}
-            currency={currency}
-            />
-        </Suspense>
+            <Suspense fallback={<></>}>
+              {/* @ts-expect-error Async Server Component is valid in Next  */}
+              <RelatedProductsSection
+                globalPromise={GlobalData}
+                language={language}
+                country={country}
+                currency={currency}
+              />
+            </Suspense>
           </div>
         </div>
 
@@ -356,7 +352,7 @@ export default async function ProductPageContent({
           {/* @ts-expect-error Async Server Component is valid in Next  */}
           <ProductFooter
             GlobalData={GlobalData}
-          
+            StarttingSettingPromise={StarttingSettingPromise}
             Params={Params}
             QtyPricesData={QtyPricesData}
             Size={Size}
