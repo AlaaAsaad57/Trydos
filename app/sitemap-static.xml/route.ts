@@ -6,6 +6,10 @@ export const revalidate = 43200; // static pages change rarely, regenerate every
 
 export async function GET(request: NextRequest) {
   try {
+    return new NextResponse("Temporary stopped by developer", {
+      status: 200,
+
+    });
     const xml = await generateStaticPagesSitemapXML();
 
     return new NextResponse(xml, {
