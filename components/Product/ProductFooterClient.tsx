@@ -37,7 +37,7 @@ const ProductFooterClient = ({
         <ProductPricesWrapper
           isRtl={isRtl}
           language={language}
-          qtyPricePromise={{ ...QtyPricesData, shipping_days: QtyPricesData?.shipping_days + shippingDays }}
+          qtyPricePromise={{ ...QtyPricesData, country_shipping_days: shippingDays }}
           currencyPromise={currency}
         />
 

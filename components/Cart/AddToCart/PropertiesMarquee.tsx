@@ -5,20 +5,20 @@ import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { formatTimeForAddress } from "utils/tinyUtils";
 
-function PropertiesMarquee({ shipping_cost, languageVariable, shippingDays }) {
+function PropertiesMarquee({ shipping_cost, languageVariable, shippingDays, country_shipping_days = 0 }) {
   const { settings } = useAppStore();
   const marqueeRef = useRef(null);
 
   const shippingDate = useMemo(() => {
     const countryDays =
-      Number(settings?.["starting_setting"]?.shipping_duration_days) || 0;
+      Number(settings?.["starting_setting"]?.shipping_duration_days) || country_shipping_days || 0;
     const totalDays = Number(shippingDays || 0) + countryDays;
     if (totalDays <= 0) return null;
     return formatTimeForAddress(
       new Date(Date.now() + totalDays * 24 * 60 * 60 * 1000).toString(),
       languageVariable,
     );
-  }, [shippingDays, settings, languageVariable]);
+  }, [shippingDays, settings, languageVariable, country_shipping_days]);
   const requestRef = useRef(null);
   const directionRef = useRef(-1); // start moving left
   const positionRef = useRef(0);
