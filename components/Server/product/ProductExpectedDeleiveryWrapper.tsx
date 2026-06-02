@@ -60,22 +60,21 @@ async function ProductExpectedDeleiveryWrapper({
         </svg>
       </span>
       <span
-        className={`${
-          isRtl && "dir-rtl"
-        } w-max text-[#1D1D1D] text-[12px] regular mt-[3px] items-center flex  `}
+        className={`${isRtl && "dir-rtl"
+          } w-max text-[#1D1D1D] text-[12px] regular mt-[3px] items-center flex  `}
       >
         <span className="pr-[4px]">
           {ShowDayStr(
             new Date(
-              new Date().getTime() +
-                Number(
-                  (starttingSetting?.shipping_duration_days || 0) +
-                    productData?.shipping_days,
-                ) *
-                  24 *
-                  60 *
-                  60 *
-                  1000,
+              Date.now() +
+              Number(
+                (starttingSetting?.shipping_duration_days || 0) +
+                productData?.shipping_days,
+              ) *
+              24 *
+              60 *
+              60 *
+              1000,
             )?.getDay(),
             language,
           )}
@@ -83,15 +82,15 @@ async function ProductExpectedDeleiveryWrapper({
         <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
           {formatTimeForAddress(
             new Date(
-              new Date().getTime() +
-                Number(
-                  (starttingSetting?.shipping_duration_days || 0) +
-                    productData?.shipping_days,
-                ) *
-                  24 *
-                  60 *
-                  60 *
-                  1000,
+              Date.now() +
+              Number(
+                (starttingSetting?.shipping_duration_days || 0) +
+                productData?.shipping_days,
+              ) *
+              24 *
+              60 *
+              60 *
+              1000,
             ).toString(),
             language,
           )}
