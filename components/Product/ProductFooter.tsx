@@ -23,12 +23,15 @@ async function ProductFooter({
   let parsedUser = await getCookieServer<{ id: string }>(
     COOKIE_NAMES.USER_DATA,
   );
-  let socialData = await GetSocialInfoForProduct({
-    productId: GlobalDataPromise?.id,
-    userId: parsedUser?.id,
-  });
-  // Real rating data for Product JSON-LD (truthful aggregateRating, omitted when no reviews).
-  let ratingData = await GetProductGeneralData({ id: GlobalDataPromise?.id });
+  // Both depend only on the product id and are independent of each other, so fetch in parallel.
+  // ratingData feeds the Product JSON-LD (truthful aggregateRating, omitted when no reviews).
+  let [socialData, ratingData] = await Promise.all([
+    GetSocialInfoForProduct({
+      productId: GlobalDataPromise?.id,
+      userId: parsedUser?.id,
+    }),
+    GetProductGeneralData({ id: GlobalDataPromise?.id }),
+  ]);
   const isRedeemed = async () => {
     if (!qtyPricePromise?.is_luck) return false;
     let redeemed: any = await getCookieServer<any[]>("redeemd_ids");
