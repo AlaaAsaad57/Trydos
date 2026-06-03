@@ -279,7 +279,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
             }}
           >
             <a
-              href={window.location.pathname === `/${lang}` ? `` : `/${lang}`}
+              href={`/${lang}`}
               data-cy="back-to-home-page"
               onClick={() => {
                 setIsNavigating({ is_full_home: true });
