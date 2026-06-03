@@ -451,7 +451,15 @@ const isNotDraft=()=>{
           name={translateFunction("Orders Details", language)}
           Icon={"/icons/OrderDetailsIcon.svg"}
           options={() => {
+
             if (ActivePack) setShowOrderOption(ActivePack);
+          }}
+          onBackIntercept={() => {
+            if (isExpanded) {
+              setIsExpanded(false);
+              return true;
+            }
+            return false;
           }}
           preivous_page={`/${local}/settings/orders`}
         />
