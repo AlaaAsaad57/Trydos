@@ -529,7 +529,7 @@ function OrderButton({ close, toOrders }) {
                   </span>
                   <span
                     data-cy="Inclusive-text"
-                    className="medium text-[11px] text-[#8D8D8D]"
+                    className="medium text-[10px] text-[#8D8D8D] overflow-hidden text-ellipsis whitespace-nowrap"
                   >
                     {translate("All Inclusive Without Additions")}
                   </span>
