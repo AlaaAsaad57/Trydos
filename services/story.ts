@@ -206,7 +206,9 @@ class StoryService {
         error,
         scenario: "Error in deleteStory in services/story",
       });
-      return null;
+      // Propagate the failure so callers don't mistake a failed delete for a
+      // success (otherwise the UI shows "deleted" while the story remains).
+      throw error;
     }
   }
   async reportStory(storyId: string | number) {

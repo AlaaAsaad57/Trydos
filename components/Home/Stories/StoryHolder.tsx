@@ -14,14 +14,12 @@ import {
   showErrorNotification,
 } from "store/notifications/reducer";
 import { getUserStories, LogError, translateFunction } from "utils/functions";
-import { fetchStoriesForUser } from "serverRequests";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 import { ConfirmModal } from "components/global/ConfirmModal";
 function StoryHolder({ story, active, isPaused }) {
-  const { language, country, setStoryData, shouldAuthinticated } =
-    useAppStore();
+  const { shouldAuthinticated, removeStory } = useAppStore();
   const userStories = useAppStore.getState().userStories;
   const [currentStoryId, setCurrentStoryId] = useState(
     userStories?.id !== story.id ? 0 : story?.stories?.length - 1,
@@ -39,33 +37,34 @@ function StoryHolder({ story, active, isPaused }) {
     try {
       const storyId = story.stories[currentStoryId]?.id;
       const deletedIndex = currentStoryId;
+      const totalStories = story.stories.length;
 
-      const response = await StoryServiceClass.deleteStory(storyId);
+      // Throws if the delete fails, so a failed request is no longer mistaken
+      // for a success (which previously left the story visible after a
+      // "deleted successfully" message).
+      await StoryServiceClass.deleteStory(storyId);
 
-      const userToken = user?.access_token;
-      const storiesResult = await fetchStoriesForUser(
-        language,
-        country,
-        1,
-        userToken,
-      );
-      let lastStoryData = story.stories;
-      setStoryData(storiesResult.data);
-      setShowDeleteModal(false);
-      setLoading(false);
-      if (lastStoryData.length === 1) {
+      // Decide navigation BEFORE mutating the store. When this was the user's
+      // only story, move to the next user (still present in the store here);
+      // otherwise clamp to a valid index within the remaining stories.
+      if (totalStories <= 1) {
         setCurrentStoryId(0);
         setNextStory(story.id);
       } else {
-        const nextStoriesLength = lastStoryData.length - 1;
-        const nextIndex = Math.min(deletedIndex, nextStoriesLength - 1);
+        const nextIndex = Math.min(deletedIndex, totalStories - 2);
         setCurrentStoryId(Math.max(0, nextIndex));
       }
-      // here we should navigate to next user story if there is one, if not navigate to next user story, if there is no previous user story close the story viewer
+
+      // Optimistically remove the deleted story from the store so the viewer
+      // and the stories bar update immediately and reliably — without
+      // depending on a potentially stale server refetch.
+      removeStory(story.id, storyId);
+
+      setShowDeleteModal(false);
+      setLoading(false);
 
       showSuccessNotification(
-        translateFunction(`${response?.message}`) ||
-          translateFunction("Story deleted successfully."),
+        translateFunction("Story deleted successfully."),
       );
     } catch (err: any) {
       LogError({

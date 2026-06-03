@@ -170,6 +170,27 @@ export const useHomeStore = (set, get) => ({
       return { ...state, selectedStory: state.selectedStory };
     }),
 
+  // Optimistically drop a single story item from a user's story group.
+  // Removes the user entirely once they have no stories left, so both the
+  // viewer and the stories bar reflect the deletion immediately without
+  // depending on a (possibly stale) server refetch.
+  removeStory: (userId: string | number, storyItemId: string | number) =>
+    set((state) => {
+      if (!state.storiesData) return state;
+      const updated = state.storiesData
+        .map((storyUser) => {
+          if (String(storyUser.id) !== String(userId)) return storyUser;
+          return {
+            ...storyUser,
+            stories: (storyUser.stories ?? []).filter(
+              (item) => String(item.id) !== String(storyItemId),
+            ),
+          };
+        })
+        .filter((storyUser) => (storyUser.stories?.length ?? 0) > 0);
+      return { ...state, storiesData: updated };
+    }),
+
   addStory: (payload: any) =>
     set((state) => {
       if (!state.storiesData) return state;
