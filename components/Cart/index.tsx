@@ -489,10 +489,18 @@ export const QuantutyInput = ({
         )
       : 0;
   const [inputValue, setInputValue] = useState(parseInt(value));
+  const [isNarrowScreen, setIsNarrowScreen] = useState(false);
   useEffect(() => {
     if (parseInt(value) === inputValue) return;
     setInputValue(parseInt(value));
   }, [value]);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 399px)");
+    const update = () => setIsNarrowScreen(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const updateQuantity = async (quantity, bool) => {
     try {
@@ -532,6 +540,33 @@ export const QuantutyInput = ({
     return translateFunction(key, languageVariable);
   };
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
+  const oldPriceLabel = String(
+    RoundPrice({
+      num: product.price * product.quantity,
+      rate: currency?.exchange_rate,
+      points: currency?.decimal_digits,
+      language: languageVariable,
+    }),
+  );
+  const newPriceLabel = String(
+    RoundPrice({
+      num: currentUnitPrice * product.quantity,
+      rate: currency?.exchange_rate,
+      points: currency?.decimal_digits,
+      language: languageVariable,
+    }),
+  );
+  const currencyLabel = currency?.symbol ?? "";
+  // Shrink the price only when it's both on a very small screen AND the
+  // displayed price (old + new + currency) is long enough to crowd the row.
+  const priceStringLength = (
+    hasDiscount
+      ? `${oldPriceLabel}${newPriceLabel}${currencyLabel}`
+      : `${newPriceLabel}${currencyLabel}`
+  ).length;
+  const compactPrice = isNarrowScreen && priceStringLength > 10;
+  const priceFontClass = compactPrice ? "text-[13px]" : "text-[18px]";
+  const singlePriceFontClass = compactPrice ? "text-[12px]" : "text-[14px]";
   const decreaseQuantity = async (i) => {
     if (!loading) {
       // Sendevent({
@@ -625,9 +660,9 @@ export const QuantutyInput = ({
       data-cy="card-footer"
       className={`${
         isRtl ? "right-[137px] flex-row-reverse" : "left-[137px] flex-row"
-      } absolute flex-wrap ${"top-[125px]"}  items-center justify-between max-w-[calc(100%-152px)] w-full`}
+      } absolute flex-nowrap ${"top-[125px]"}  items-center justify-between gap-x-2 max-w-[calc(100%-152px)] w-full`}
     >
-      <div className="flex-col px-[10px]">
+      <div className="flex-col px-[4px] shrink-0">
         <div
           className={`${
             loading && "opacity-40"
@@ -799,7 +834,7 @@ export const QuantutyInput = ({
         )}
       </div>
 
-      <div className="flex-col">
+      <div className="flex-col min-w-0">
         <div className={``} data-cy="oldNew-price-container">
           <div className="product-info-price" data-cy="oldNew-price-container2">
             {hasDiscount ? (
@@ -813,15 +848,10 @@ export const QuantutyInput = ({
                     data-cy="newOld-price"
                   >
                     <div
-                      className="product-old-price text-[18px] text-[#C4C2C2] regular"
+                      className={`product-old-price ${priceFontClass} text-[#C4C2C2] regular`}
                       data-cy="oldPrice-container"
                     >
-                      {RoundPrice({
-                        num: product.price * product.quantity,
-                        rate: currency?.exchange_rate,
-                        points: currency?.decimal_digits,
-                        language: languageVariable,
-                      })}
+                      {oldPriceLabel}
                       <svg
                         data-cy="oldPrice-svg"
                         className="bottom-3"
@@ -843,15 +873,10 @@ export const QuantutyInput = ({
                     <div
                       className={`${
                         (product as any)?.is_luck && "text-[#FF6200]"
-                      } product-new-price text-[18px] bold m-0`}
+                      } product-new-price ${priceFontClass} bold m-0`}
                       data-cy="new-price"
                     >
-                      {RoundPrice({
-                        num: currentUnitPrice * product.quantity,
-                        rate: currency?.exchange_rate,
-                        points: currency?.decimal_digits,
-                        language: languageVariable,
-                      })}
+                      {newPriceLabel}
                     </div>
                     <div
                       className="product-currency text-[8px] light text-[#1D1D1D] m-0"
@@ -882,13 +907,10 @@ export const QuantutyInput = ({
               </>
             ) : (
               <>
-                <div className="product-new-price text-[14px] light text-[#1D1D1D]">
-                  {RoundPrice({
-                    num: currentUnitPrice * product.quantity,
-                    rate: currency?.exchange_rate,
-                    points: currency?.decimal_digits,
-                    language: languageVariable,
-                  })}
+                <div
+                  className={`product-new-price ${singlePriceFontClass} light text-[#1D1D1D]`}
+                >
+                  {newPriceLabel}
                 </div>
               </>
             )}
