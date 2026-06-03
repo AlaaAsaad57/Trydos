@@ -1,8 +1,19 @@
 import { MetadataRoute } from "next";
-import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
+import { isIndexingAllowed } from "utils/server";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = General_Site_Data.url;
+  // Only the production domain (NEXT_PUBLIC_ALLOW_INDEXING=true) is crawlable.
+  // Everywhere else, disallow the whole site so dev/preview builds stay out of search.
+  if (!isIndexingAllowed()) {
+    return {
+      rules: [
+        {
+          userAgent: "*",
+          disallow: "/",
+        },
+      ],
+    };
+  }
   return {
     rules: [
       {

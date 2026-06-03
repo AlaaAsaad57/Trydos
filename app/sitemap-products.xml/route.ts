@@ -5,10 +5,10 @@ import { LogServerError } from "utils/serverErrorReporter";
 export const revalidate = 3600; // regenerate at most once per hour
 
 export async function GET(request: NextRequest) {
-  return new NextResponse("Temporary stopped by developer", {
-    status: 200,
+  // return new NextResponse("Temporary stopped by developer", {
+  //   status: 200,
 
-  });
+  // });
   const page = Math.max(
     0,
     parseInt(request.nextUrl.searchParams.get("page") ?? "0", 10) || 0,

@@ -21,6 +21,7 @@ export async function generateMetadata({ params }) {
   try {
     const metadata = await generateMetadataForListing({
       params,
+      routeBase: "featured",
     });
 
     return metadata;

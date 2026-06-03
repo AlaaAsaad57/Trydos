@@ -1,4 +1,7 @@
-import { GetSocialInfoForProduct } from "serverRequests/product";
+import {
+  GetSocialInfoForProduct,
+  GetProductGeneralData,
+} from "serverRequests/product";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import ProductFooterClient from "./ProductFooterClient";
 import ProductStructuredData from "serverRequests/meta/StructuredData/ProductStructuredData";
@@ -24,6 +27,8 @@ async function ProductFooter({
     productId: GlobalDataPromise?.id,
     userId: parsedUser?.id,
   });
+  // Real rating data for Product JSON-LD (truthful aggregateRating, omitted when no reviews).
+  let ratingData = await GetProductGeneralData({ id: GlobalDataPromise?.id });
   const isRedeemed = async () => {
     if (!qtyPricePromise?.is_luck) return false;
     let redeemed: any = await getCookieServer<any[]>("redeemd_ids");
@@ -48,6 +53,8 @@ async function ProductFooter({
           ...GlobalDataPromise,
           ...qtyPricePromise,
         }}
+        rating={ratingData?.final_rating}
+        reviewCount={ratingData?.total_buyers}
         size={Size}
       />
       <ProductFooterClient

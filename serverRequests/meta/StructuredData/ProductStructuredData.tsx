@@ -3,27 +3,53 @@ import { General_Site_Data } from "./Constants";
 import { GetImageUrl } from "utils/tinyUtils";
 import { mapCurrencyToSymbol } from "./utils";
 import { RoundPrice } from "utils/functions";
+import { stripHtml } from "utils/server";
 
-function ProductStructuredData({ product, local, currency, color, size }) {
+function ProductStructuredData({
+  product,
+  local,
+  currency,
+  color,
+  size,
+  rating,
+  reviewCount,
+}) {
   const [country, language] = local.split("-");
+
+  // Real product description (HTML stripped). Fall back to category names only when
+  // the product has no description text.
+  const description =
+    stripHtml(product?.details ?? product?.description ?? "") ||
+    `${product?.categories?.map((s) => s.name).join("-") ?? ""}`;
+
+  const sku =
+    product?.variations?.find((v) => v?.sku)?.sku ?? product?.sku ?? undefined;
+  const inStock = (product?.available_quantity ?? 0) > 0;
+
   let payload: any = {
     // "@type": "ProductGroup",
     "@type": "Product",
     name: product?.name,
     // variesBy: ["https://schema.org/size"],
-    description: `${product?.categories?.map((s) => s.name).join("-")}`,
+    description,
     url: `${General_Site_Data.url}/${local}/products/${product?.slug}`,
     brand: {
       "@type": "Brand",
       name: product?.brand?.name,
     },
     image: product?.images?.map((im) => GetImageUrl(im?.file_path ?? im)),
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.94",
-      reviewCount: "500",
-    },
   };
+
+  if (sku) payload.sku = sku;
+
+  // Only emit aggregateRating with REAL data — never fabricate ratings (Google policy).
+  if (Number(reviewCount) > 0 && Number(rating) > 0) {
+    payload.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: String(rating),
+      reviewCount: String(reviewCount),
+    };
+  }
   if (color && product?.colors?.find((s) => s.option === color)?.name) {
     payload = {
       ...payload,
@@ -44,7 +70,9 @@ function ProductStructuredData({ product, local, currency, color, size }) {
         rate: currency.exchange_rate,
       }),
       itemCondition: "https://schema.org/NewCondition",
-      availability: "https://schema.org/InStock",
+      availability: inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
     },
   };
   let jsonLd: any = {
@@ -63,7 +91,7 @@ function ProductStructuredData({ product, local, currency, color, size }) {
             "@type": "ListItem",
             position: 2,
             name: product.name,
-            item: `${General_Site_Data.url}/${local}/${product.slug}`,
+            item: `${General_Site_Data.url}/${local}/products/${product.slug}`,
           },
         ],
       },

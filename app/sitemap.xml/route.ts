@@ -6,10 +6,10 @@ export const revalidate = 3600; // regenerate at most once per hour
 
 export async function GET(request: NextRequest) {
   try {
-    return new NextResponse("Temporary stopped by developer", {
-      status: 200,
+    // return new NextResponse("Temporary stopped by developer", {
+    //   status: 200,
 
-    });
+    // });
     const xml = await generateLocaleSitemapIndexXML();
 
     return new NextResponse(xml, {

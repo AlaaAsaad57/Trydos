@@ -437,8 +437,14 @@ export function NormalizeSearchParamsForSearchRequest({
   return filters;
 }
 
+// Indexing is opt-in via NEXT_PUBLIC_ALLOW_INDEXING so only the real production
+// domain is crawlable. dev/preview deployments are themselves production Next
+// builds (NODE_ENV === "production"), so checking NODE_ENV alone would index them.
+export const isIndexingAllowed = () =>
+  process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
+
 export function getRobotsConfig(productionRobots) {
-  if (process.env.NODE_ENV !== "production") {
+  if (!isIndexingAllowed()) {
     return {
       index: false,
       follow: false,
