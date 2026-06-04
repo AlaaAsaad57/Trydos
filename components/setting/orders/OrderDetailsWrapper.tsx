@@ -1170,11 +1170,15 @@ const ProductCard = ({
               <span className="text-[#1D1D1D] light text-[10px] ">
                 {currency?.symbol}
               </span>
-              {product.qty === 0 /*|| product.is_returned*/ && (
-                <div className="text-[#388CFF] text-[10px] regular mx-[7px]">
-                  {translateFunction("Back to your wallet")}
-                </div>
-              )}
+              {product.qty === 0 /*|| product.is_returned*/ &&
+                // COD orders are never paid up-front, so a cancellation has
+                // nothing to refund to the wallet — hide the badge for them.
+                order?.payment_method?.value?.toLowerCase() !==
+                  "cash_on_delivery" && (
+                  <div className="text-[#388CFF] text-[10px] regular mx-[7px]">
+                    {translateFunction("Back to your wallet")}
+                  </div>
+                )}
             </div>
           </div>
         </NextLink>
