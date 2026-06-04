@@ -14,14 +14,11 @@ import PageLoadingIndicator from "hooks/PageLoadingIndicator";
 import Organaization from "serverRequests/meta/StructuredData/Organaization";
 import Website from "serverRequests/meta/StructuredData/Website";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
-// remove dynamic and use direct import
-// Non-critical layout components — loaded after hydration
 import PathTracker from "components/PathTracker";
-import SessionChecker from "components/SessionChecker";
 import ModalSlot from "components/ModalRoute/ModalSlot";
-import VersionChecker from "components/global/VersionChecker";
-import SessionTimer from "components/Login/SessionTimer";
-import NotificationsContainer from "components/global/NotificationsContainer";
+// Non-critical, render-null / post-hydration client components — code-split and
+// loaded after hydration (ssr:false) to trim main-thread hydration cost.
+import DeferredLayoutClients from "components/global/DeferredLayoutClients";
 
 export const metadata = {
   title: "TryDos",
@@ -150,14 +147,11 @@ export default async function RootLayout({ params, children, modal }) {
         </div>
         <Init />
 
-        <VersionChecker />
         <NavbarClient />
         <CartProvider language={language} country={country} />
-        <NotificationsContainer />
         <PathTracker />
-        <SessionChecker />
-        <SessionTimer />
         <PageLoadingIndicator />
+        <DeferredLayoutClients />
         <svg className="opacity-0 absolute" width={0} height={0}>
           <defs>
             <linearGradient

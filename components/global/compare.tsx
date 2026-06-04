@@ -155,32 +155,30 @@ const ComparePage = ({ showInstantLoading = true }) => {
     try {
       let DETAILS_URL = "/web/product/globalDetails";
       let QTY_URL = "/web/product/qtyPriceDetails";
-      let res = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + DETAILS_URL + `/${slug}?lang=en`,
-        {
-          method: "GET",
-          headers: {
-            country: lang.toString().split("-")[0],
-            lang: lang.toString().split("-")[1],
-          },
-          credentials: "omit",
-        },
-      );
+      // globalDetails and qtyPriceDetails are independent (both keyed by slug) —
+      // fetch them in parallel instead of one after the other.
+      const headers = {
+        country: lang.toString().split("-")[0],
+        lang: lang.toString().split("-")[1],
+      };
+      const [res, res1] = await Promise.all([
+        fetch(
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+            DETAILS_URL +
+            `/${slug}?lang=en`,
+          { method: "GET", headers, credentials: "omit" },
+        ),
+        fetch(
+          process.env.NEXT_PUBLIC_BACKEND_URL + QTY_URL + `/${slug}?lang=en`,
+          { method: "GET", headers, credentials: "omit" },
+        ),
+      ]);
       if (!res.ok) throw new Error("Product not found");
-      const globalDetails = await res.json();
-      let res1 = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + QTY_URL + `/${slug}?lang=en`,
-        {
-          method: "GET",
-          headers: {
-            country: lang.toString().split("-")[0],
-            lang: lang.toString().split("-")[1],
-          },
-          credentials: "omit",
-        },
-      );
       if (!res1.ok) throw new Error("Product not found");
-      const QtyDetails = await res1.json();
+      const [globalDetails, QtyDetails] = await Promise.all([
+        res.json(),
+        res1.json(),
+      ]);
       return { ...globalDetails.data, ...QtyDetails.data };
     } catch (error) {
       LogError({

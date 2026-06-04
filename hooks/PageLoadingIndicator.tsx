@@ -9,7 +9,10 @@ import ProductLoader from "components/skeleton/loaders/ProductLoader";
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 import { useAppStore } from "store";
 export default function PageLoadingIndicator() {
-  const { isNavigating } = useAppStore();
+  // Selector subscription: this app-wide component must only re-render when
+  // isNavigating changes, not on every unrelated store update. Loader output
+  // (which/when it shows) is unchanged.
+  const isNavigating = useAppStore((s) => s.isNavigating);
 
   if (!isNavigating) return <></>;
   else {

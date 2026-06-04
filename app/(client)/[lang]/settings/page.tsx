@@ -40,9 +40,19 @@ async function page({ params }) {
   let Params = await params;
   let [country, language] = Params?.lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
-  let SafeUserProfile = (await getCookieServer<UserData>(
-    COOKIE_NAMES.USER_DATA,
-  )) || { name: "", phone: "", is_phone_verified: 0 };
+  // Cookie read and the orders fetch are independent — run them together.
+  const [SafeUserProfileRaw, totalOrders] = await Promise.all([
+    getCookieServer<UserData>(COOKIE_NAMES.USER_DATA),
+    GetOrders({
+      page: 1,
+      pageSize: 1,
+    }),
+  ]);
+  let SafeUserProfile = SafeUserProfileRaw || {
+    name: "",
+    phone: "",
+    is_phone_verified: 0,
+  };
   const options = [
     {
       name: "Settings",
@@ -84,12 +94,6 @@ async function page({ params }) {
     if (iso === "tr") return "Turkish";
     if (iso === "ku") return "کوردی";
   };
-  let [totalOrders] = await Promise.all([
-    GetOrders({
-      page: 1,
-      pageSize: 1,
-    }),
-  ]);
   return (
     <div
       className="flex-col w-full pt-[20px] px-[12px] flex setting-screen"

@@ -109,6 +109,11 @@ export default async function FiltersPageContent({
       };
     }
 
+    // Kick off the two fetches that don't depend on userId before awaiting the
+    // cookie, so they overlap the cookie read instead of waiting behind it.
+    const currencyPromise = getCurrencyForListing(country, language);
+    const boutiquePromise = getBoutique(boutiqueItem, country, language);
+
     const userData = await getCookieServer<{ id: string }>(
       COOKIE_NAMES.USER_DATA,
     );
@@ -127,8 +132,8 @@ export default async function FiltersPageContent({
         limit: 10,
         userId: parsedUserId,
       }),
-      getCurrencyForListing(country, language),
-      getBoutique(boutiqueItem, country, language),
+      currencyPromise,
+      boutiquePromise,
     ]);
 
     const isRtl = language === "ar" || language === "ku";

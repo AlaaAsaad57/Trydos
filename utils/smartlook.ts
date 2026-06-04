@@ -23,6 +23,7 @@ export const smartlookIdentify = async (
 };
 
 export const smartlookInit = async (key: string) => {
+  if (process.env.NODE_ENV !== "production") return;
   try {
     const Smartlook = await getSmartlook();
     Smartlook?.init(key);

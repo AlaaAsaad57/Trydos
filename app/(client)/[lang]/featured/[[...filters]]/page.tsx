@@ -1,6 +1,8 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
+import ListingSkeleton from "components/skeleton/listing";
 import "styles/listing-components.css";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
@@ -90,16 +92,22 @@ export default async function Page({ params }) {
 
     return (
       <>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <FilterWidgetServer
-          isFeatured={true}
-          isFlashDeal={false}
-          currencyPromise={currency}
-          language={language}
-          country={country}
-          parsedFilters={{ ...parsedFilters, featured: true, flashdeal: false }}
-          filtersPromise={filtersData}
-        />
+        <Suspense fallback={<></>} key={`FilterWidget ${Params.lang}`}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <FilterWidgetServer
+            isFeatured={true}
+            isFlashDeal={false}
+            currencyPromise={currency}
+            language={language}
+            country={country}
+            parsedFilters={{
+              ...parsedFilters,
+              featured: true,
+              flashdeal: false,
+            }}
+            filtersPromise={filtersData}
+          />
+        </Suspense>
         <div
           data-cy="filter_listing_bar"
           className={`filter-listing-bar z-99999999 relative ${
@@ -131,13 +139,15 @@ export default async function Page({ params }) {
               parsedFilters?.search_text?.length > 0 && "w-full"
             }`}
           >
-            {/* @ts-expect-error Async Server Component is valid in Next*/}
-            <ListingSearchContainer
-              country={country}
-              language={language}
-              filtersPromise={filtersData}
-              parsedFilters={parsedFilters}
-            />
+            <Suspense fallback={<></>}>
+              {/* @ts-expect-error Async Server Component is valid in Next*/}
+              <ListingSearchContainer
+                country={country}
+                language={language}
+                filtersPromise={filtersData}
+                parsedFilters={parsedFilters}
+              />
+            </Suspense>
             <div
               data-cy="filter_option_loseSearchInput"
               className="filter-option"
@@ -153,25 +163,35 @@ export default async function Page({ params }) {
           data-cy="boutique_header"
           className={`boutique-header ${"flex-col"} align-center`}
         >
-          {/* @ts-expect-error Async Server Component is valid in Next  */}
-          <FilterListContainer
-            filtersPromis={filtersData}
-            currencyPromise={currency}
-            Params={Params}
-            parsedFilters={parsedFilters}
-          />
+          <Suspense
+            fallback={<ListingSkeleton justFilters />}
+            key={`FilterList ${Params.lang}`}
+          >
+            {/* @ts-expect-error Async Server Component is valid in Next  */}
+            <FilterListContainer
+              filtersPromis={filtersData}
+              currencyPromise={currency}
+              Params={Params}
+              parsedFilters={parsedFilters}
+            />
+          </Suspense>
         </div>
-        {/* @ts-expect-error Async Server Component is valid in Next  */}
-        <ProductListConainer
-          isFlashDeals={false}
-          isFeatured={true}
-          Params={Params}
-          boutiquePromise={() => {}}
-          currencyPromise={currency}
-          filtersDataPromise={filtersData}
-          parsedFilters={parsedFilters}
-          language={language}
-        />
+        <Suspense
+          fallback={<ListingSkeleton forProducts={true} />}
+          key={`ProductList ${Params.lang}`}
+        >
+          {/* @ts-expect-error Async Server Component is valid in Next  */}
+          <ProductListConainer
+            isFlashDeals={false}
+            isFeatured={true}
+            Params={Params}
+            boutiquePromise={() => {}}
+            currencyPromise={currency}
+            filtersDataPromise={filtersData}
+            parsedFilters={parsedFilters}
+            language={language}
+          />
+        </Suspense>
       </>
     );
   } catch (error) {

@@ -13,7 +13,7 @@ export async function FlashProductWrapper({
   if (mainCategory) {
     category = JSON.stringify([mainCategory]);
   }
-  let [response, currency] = await Promise.all([
+  let [response, currency, redeemedIds] = await Promise.all([
     GetFlashDealProducts({
       language,
       country,
@@ -21,8 +21,9 @@ export async function FlashProductWrapper({
       limit: 10,
     }),
     currencyData,
+    getCookieServer<any[]>("redemed_ids"),
   ]);
-  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+  const redeemed_ids = redeemedIds ?? [];
   let productsData = response.data.products.map((product) => {
     if (product?.is_luck) {
       return {
