@@ -5,7 +5,7 @@ import Skeleton from "react-loading-skeleton";
 
 import { translateFunction } from "utils/functions";
 
-import { GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, isGuestName } from "utils/tinyUtils";
 
 const options = [
   { name: "Settings", Icon: <></> },
@@ -32,7 +32,7 @@ function SettingsLoader() {
               <div className="flex-row items-end">
                 <div className="flex-col mt-[5px]">
                   <span className="medium text-[#1D1D1D] text-[14px]">
-                    {userProfile?.name}
+                    {isGuestName(userProfile?.name) ? "" : userProfile?.name}
                   </span>
                   <span className="regular text-[#8D8D8D] text-[12px] mt-[2px]">
                     + {userProfile?.phone}
