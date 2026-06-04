@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { isIndexingAllowed } from "utils/server";
+import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 
 export default function robots(): MetadataRoute.Robots {
   // Only the production domain (NEXT_PUBLIC_ALLOW_INDEXING=true) is crawlable.
@@ -21,5 +22,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
       },
     ],
+    sitemap: `${General_Site_Data.url}/sitemap.xml`,
   };
 }
