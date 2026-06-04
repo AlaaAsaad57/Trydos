@@ -227,7 +227,7 @@ Smart code is calm code.
 | Auth | JWT in HttpOnly cookies (`MARKET-TOKEN`, `DEVICE-TOKEN`, `User-Data`) |
 | Server fetch | `HandleAuthedFetch` (auto 401 refresh) → `fetchServerData` |
 | Client fetch | `fetchData` utility in `utils/fetchData.ts` |
-| API protection | `withApiProtection` (rate limit + suspicious IP tracking via Redis) |
+| API protection | Vercel Firewall (rate limiting + abuse/DDoS) at the edge |
 | Error reporting | `LogError` / `LogServerError` → Sentry |
 | Analytics | Google Analytics (`gtag`), Smartlook |
 | Media | Cloudinary, Agora RTC |
@@ -281,7 +281,7 @@ Never duplicate token injection logic — always go through the established util
 
 ## API Route Conventions
 
-- Wrap every public-facing route handler with `withApiProtection` from `serverRequests/apiMiddlware.ts`.
+- Rate limiting / abuse protection is handled at the platform edge by **Vercel Firewall** (dashboard rules), not in code — do not add per-route limiter wrappers. For endpoints needing business-specific limits (auth, OTP), use an edge-compatible limiter (e.g. Upstash `@upstash/ratelimit`), never `ioredis` in middleware.
 - Return `NextResponse.json({ ... })` with appropriate HTTP status codes.
 - Validate all incoming request bodies before use — never trust client-supplied data.
 - Do not expose internal error messages or stack traces to the client.
@@ -324,7 +324,6 @@ Review every change against these concerns:
 - [ ] `/api/auth/*` routes validate input and return minimal error details.
 
 ### API Routes
-- [ ] Route is wrapped with `withApiProtection` (rate limiting + behavior tracking).
 - [ ] Input is validated and sanitized before use.
 - [ ] No SQL / NoSQL injection vectors (parameterized queries, no string concatenation with user input).
 - [ ] No SSRF: dynamic URLs are validated against an allowlist (see `images.domains` in `next.config.ts`).
@@ -378,7 +377,6 @@ Keep review feedback **precise and actionable** — reference the exact line or 
 - Do not optimize without evidence.
 - Do not trade clarity for cleverness.
 - Do not assume intent.
-- Do not bypass `withApiProtection` "just for this route".
 - Do not store auth tokens outside HttpOnly cookies.
 
 ---

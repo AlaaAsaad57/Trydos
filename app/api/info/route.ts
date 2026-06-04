@@ -1,6 +1,5 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { withApiProtection } from "serverRequests/apiMiddlware";
 import { getFirebaseAdminApp } from "utils/firebaseAdmin";
 import { LogServerError } from "utils/serverErrorReporter";
 
@@ -54,6 +53,5 @@ const tokenInfoHandler = async (request: NextRequest): Promise<NextResponse> => 
 };
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const protectedHandler = await withApiProtection(tokenInfoHandler);
-  return protectedHandler(request);
+  return tokenInfoHandler(request);
 }

@@ -29,13 +29,13 @@ There is **no test suite** — the project relies on clean code and type-checkin
 ### Request entry: `proxy.ts` (the middleware)
 Next.js 16 renames `middleware.ts` → **`proxy.ts`**. This single file runs on every request and handles:
 - **i18n locale routing** — supported languages `en`/`ar`/`tr`/`ku`, default `en`; country detection (default `gb`). Rewrites/redirects URLs under `app/(client)/[lang]/`.
-- **Bot detection** (googlebot, facebookexternalhit, etc.) and **rate limiting** via Redis (`serverRequests/radis`).
+- **Bot detection** (googlebot, facebookexternalhit, etc.). Rate limiting / abuse protection is handled at the platform edge by **Vercel Firewall**, not in this file.
 - Locale is persisted in non-HttpOnly cookies for the client.
 
 ### Routing layout (`app/`)
 - `app/(client)/[lang]/` — the main user-facing app; every page is locale-scoped. `@modal/` is a parallel route slot for intercepted modal routes.
 - `app/(special)/` — special-case routes (redirects, etc.).
-- `app/api/` — route handlers grouped by domain (`auth`, `home`, `products`, `stories`, `fcm`, `revalidate`, `proxy`, …). Wrap public routes with `withApiProtection` (see below).
+- `app/api/` — route handlers grouped by domain (`auth`, `home`, `products`, `stories`, `fcm`, `revalidate`, `proxy`, …).
 - Sitemaps are generated dynamically (`app/sitemap-*.xml`, `robots.ts`).
 
 ### Data fetching — three distinct paths (do not mix)
@@ -51,8 +51,8 @@ All slices (`auth`, `Cart`, `chat`, `Details`, `homepage`, `listing`, `search`, 
 ### Services (`services/`)
 Domain modules (`auth.ts`, `cart.ts`, `chat.ts`, `search.ts`, `order(s).ts`, plus `cloudinary/`, `elastic/`, `RDB/`, `sellerDashboard/`, `wallet/`) hold client-side business logic. They call `fetchData`, then dispatch into the store via `useAppStore.getState()`. Functional, not class-based.
 
-### API protection (`serverRequests/apiMiddlware.ts`)
-`withApiProtection(handler)` enforces per-IP rate limiting (100 req / 60s) and suspicious-behavior tracking via Redis (`serverRequests/radis`), sending security alerts. Wrap every public-facing route handler with it.
+### API protection — Vercel Firewall
+Rate limiting and abuse/DDoS protection run at the platform edge via **Vercel Firewall** (rules configured in the Vercel dashboard), before functions are invoked. There is no in-code rate-limiter wrapper. If a specific endpoint needs business-logic limits (auth, OTP, checkout), use an edge-compatible limiter such as Upstash `@upstash/ratelimit` — never `ioredis` in middleware (it can't run on the Edge runtime).
 
 ### Auth & tokens
 JWTs live **only** in HttpOnly cookies — `MARKET-TOKEN` (logged-in), `DEVICE-TOKEN` (guest), `User-Data` (profile JSON). Read server-side via `utils/cookies/cookie-manager` / `next/headers`. Never put tokens in localStorage or expose them to client components.

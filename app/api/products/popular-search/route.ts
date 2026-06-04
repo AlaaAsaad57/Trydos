@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withApiProtection } from "serverRequests/apiMiddlware";
 import { getPopularSearchTerms } from "services/elastic/helpers";
 import { LogServerError } from "utils/serverErrorReporter";
 
@@ -40,6 +39,5 @@ const popularSearchHandler = async (
 };
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const protectedHandler = await withApiProtection(popularSearchHandler);
-  return protectedHandler(req);
+  return popularSearchHandler(req);
 }
