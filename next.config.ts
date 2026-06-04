@@ -122,8 +122,17 @@ let nextConfig: NextConfig = {
     },
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
-    optimizeCss: true, // Disabled due to critters module error
+    optimizeCss: true,
     optimizeServerReact: true,
+    optimizePackageImports: [
+      "framer-motion",
+      "react-spring",
+      "embla-carousel-react",
+      "embla-carousel-autoplay",
+      "react-intersection-observer",
+      "react-share",
+      "firebase",
+    ],
     staleTimes: {
       dynamic: 30,
       static: 180,

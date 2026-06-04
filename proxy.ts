@@ -180,12 +180,14 @@ function createRedirectResponse(url: URL, redirectCount: number): NextResponse {
 }
 let countriesCache: { data: any[]; expiry: number } | null = null;
 const COUNTRIES_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in-memory
+let countriesInflight = false;
 
-async function getCountriesForMiddleware({ language, country }) {
-  // Simple in-memory cache (lives per edge isolate)
-  if (countriesCache && Date.now() < countriesCache.expiry) {
-    return countriesCache.data;
-  }
+// Fire-and-forget refresh of the in-memory countries cache. Never awaited on the
+// request path, so it cannot block a navigation. A killed post-response promise
+// just retries on the next request (self-healing); intentionally no waitUntil.
+async function refreshCountries({ language, country }) {
+  if (countriesInflight) return;
+  countriesInflight = true;
 
   try {
     const res = await fetch(
@@ -200,19 +202,32 @@ async function getCountriesForMiddleware({ language, country }) {
       },
     );
 
-    if (!res.ok) return getCachedCountries(); // fallback to hardcoded
+    if (!res.ok) return; // keep existing cache / hardcoded fallback
 
     const json = await res.json();
     const countries = json?.data?.countries || [];
 
-    countriesCache = {
-      data: countries.map((s) => s.iso),
-      expiry: Date.now() + COUNTRIES_CACHE_TTL,
-    };
-    return countries?.map((s) => s.iso);
+    if (countries.length) {
+      countriesCache = {
+        data: countries.map((s) => s.iso),
+        expiry: Date.now() + COUNTRIES_CACHE_TTL,
+      };
+    }
   } catch {
-    return getCachedCountries(); // fallback to hardcoded
+    // swallow — fallback stays in effect, refresh retries next request
+  } finally {
+    countriesInflight = false;
   }
+}
+
+// Synchronous: serves cached-or-hardcoded countries instantly and triggers a
+// background refresh when the cache is stale/empty. Never blocks the request.
+function getCountriesForMiddleware({ language, country }): string[] {
+  const isFresh = countriesCache && Date.now() < countriesCache.expiry;
+  if (!isFresh) {
+    void refreshCountries({ language, country });
+  }
+  return countriesCache?.data ?? getCachedCountries();
 }
 function getCleanPathname(
   pathname: string,
@@ -236,6 +251,15 @@ export async function proxy(request: NextRequest) {
   const pathname = url.pathname;
   const urlLocale = parseUrlLocale(pathname);
 
+  // Sitemaps bypass ALL locale/country logic. The matcher only excludes these
+  // when they're the first path segment, so locale-prefixed routes like
+  // /lb-en/sitemap.xml still hit the proxy and get a changed-country redirect —
+  // crawlers must receive the raw XML, never a popup redirect.
+  // (robots.txt is handled separately below.)
+  if (/\/sitemap[\w-]*\.xml$/i.test(pathname)) {
+    return NextResponse.next();
+  }
+
   // 1️⃣ Rate limiting
   // if (ip && ip !== "0.0.0.0") {
   //   const allowed = await checkRateLimit(ip, 50, 60);
@@ -251,7 +275,7 @@ export async function proxy(request: NextRequest) {
 
   const isBotAgent = isBot(request.headers.get("user-agent"));
 
-  let coutries = await getCountriesForMiddleware({
+  let coutries = getCountriesForMiddleware({
     language: "en",
     country: getGeoCountry(request) ?? "sy",
   });

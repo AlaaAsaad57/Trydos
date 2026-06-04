@@ -1,5 +1,5 @@
 export const runtime = "nodejs";
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 import { LogServerError } from "utils/serverErrorReporter";
 import { translateFunction } from "utils/server";

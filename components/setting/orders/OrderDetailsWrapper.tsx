@@ -83,24 +83,33 @@ function OrderDetailsWrapper({
     setLoading(true);
     try {
       let data: OrderInterface[] = await Order.getOrderDetails(order_group_id);
+
+      // Ratings and return-details both depend only on `data`, not on each other —
+      // fire them together. Each is guarded by its own condition (null when not
+      // needed) so we never issue a fetch that isn't required.
       let shouldGetRatingValues = data.find(
         (order) => order?.order_status?.value === "delivered",
       );
-      if (shouldGetRatingValues) {
-        let order_ids = data.flatMap((order) => order.details.map((d) => d.id));
-        let order_ratings: any = await fetchData({
-          url: "/api/products/comments/order_rating",
-          method: "POST",
-          body: JSON.stringify({
-            order_detail_ids: order_ids,
-            user_id: auth.UserID(),
-          }),
-          server: "local",
-          reqTitle: REQUESTS_DATA.GET_ORDER_RATING,
-        });
-        let order_rating_data = order_ratings.data?.comments ?? [];
-        setRatingDetails(order_rating_data);
-      }
+      const ratingsPromise = shouldGetRatingValues
+        ? fetchData({
+            url: "/api/products/comments/order_rating",
+            method: "POST",
+            body: JSON.stringify({
+              order_detail_ids: data.flatMap((order) =>
+                order.details.map((d) => d.id),
+              ),
+              user_id: auth.UserID(),
+            }),
+            server: "local",
+            reqTitle: REQUESTS_DATA.GET_ORDER_RATING,
+          })
+        : null;
+      const returnPromise = data.filter((s) => s.return_request_id)?.length
+        ? Order.GetReturnDetailsForOrderGroup({
+            order_group_id: order_group_id,
+          })
+        : null;
+
       let order_item = data?.find(
         (order) =>
           String(order.id) === String(order_chat_id) ||
@@ -114,12 +123,17 @@ function OrderDetailsWrapper({
 
       setActivePack(active_order);
 
-      let returnRequests;
+      const [order_ratings, returnRequests]: [any, any] = await Promise.all([
+        ratingsPromise,
+        returnPromise,
+      ]);
 
-      if (data.filter((s) => s.return_request_id)?.length) {
-        returnRequests = await Order.GetReturnDetailsForOrderGroup({
-          order_group_id: order_group_id,
-        });
+      if (order_ratings) {
+        let order_rating_data = order_ratings.data?.comments ?? [];
+        setRatingDetails(order_rating_data);
+      }
+
+      if (returnRequests) {
         setReturnData(returnRequests);
       }
 
