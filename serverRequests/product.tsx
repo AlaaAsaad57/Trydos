@@ -296,6 +296,15 @@ export async function GetProductMeta({
     if (searchParams.size) {
       title += ` |  ${searchParams.size}`;
     }
+    // Some backend product names are a single word ("milk"), which makes a bare
+    // SERP title that Google pads with the site name. Append brand/category for
+    // context when they exist.
+    const titleContext = [product?.brand, product?.category]
+      .filter(Boolean)
+      .join(" | ");
+    if (titleContext) {
+      title += ` | ${titleContext}`;
+    }
     const firstImagePath = product?.images?.[0]?.images ?? product?.images?.[0];
     // const image = firstImagePath ? buildOgImageUrl("https://res.cloudinary.com/dtcmozf4d/image/upload"+firstImagePath) : null;
     const image = firstImagePath ? buildOgImageUrl(GetImageUrl(firstImagePath)) : null;
@@ -303,7 +312,18 @@ export async function GetProductMeta({
     const ogImages = image
       ? [{ url: image, width: 1200, height: 630, type: "image/jpeg" }]
       : [{ url: fallbackImageUrl, width: 1200, height: 630, type: "image/png" }];
-    const description = stripHtml(product?.details);
+    // Several products store only the name in `details`, yielding a one-word meta
+    // description. Google ignores those and scrapes on-page boilerplate (e.g. the
+    // returns badge) instead. Fall back to a product-context sentence so the
+    // snippet is always meaningful. Real descriptions (>= 60 chars) win.
+    const rawDescription = stripHtml(product?.details);
+    const description =
+      rawDescription.length >= 60
+        ? rawDescription
+        : `Shop ${product?.name}` +
+          `${product?.brand ? ` by ${product.brand}` : ""}` +
+          `${product?.category ? ` in ${product.category}` : ""}` +
+          ` on Trydos — secure checkout, fast delivery and easy returns.`;
     let data: Metadata = {
       title: title,
       description,
