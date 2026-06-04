@@ -1,4 +1,3 @@
-import Script from "next/script";
 import { General_Site_Data } from "./Constants";
 import { GetImageUrl } from "utils/tinyUtils";
 import { mapCurrencyToSymbol } from "./utils";
@@ -99,8 +98,11 @@ function ProductStructuredData({
     ],
   };
 
+  // Plain <script> so the JSON-LD is server-rendered into the initial HTML.
+  // next/script's <Script> uses the afterInteractive strategy and injects
+  // client-side, leaving the schema out of the SSR markup that crawlers read.
   return (
-    <Script
+    <script
       id={`product-${product.slug}-schema`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

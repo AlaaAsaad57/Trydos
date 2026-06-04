@@ -20,6 +20,8 @@ req.json
 /public/reports/*
 .env.development
 .env.production
+# secrets
+vercel-secrets.json
 # next.js
 /.next/
 /out/
