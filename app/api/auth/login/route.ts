@@ -9,6 +9,7 @@ import {
 } from "utils/fetch/Endpoints";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
+import { isGuestName } from "utils/tinyUtils";
 import {
   SECURE_COOKIE_OPTIONS,
   setSecureCookieJSON,
@@ -109,6 +110,12 @@ export async function GET(request: NextRequest) {
       id_token: idToken,
       user: InventoryUser,
     } = otp_response.data;
+
+    // Treat backend guest placeholder names ("guest"/"verified_guest") as "no name"
+    // so the UI prompts the user to enter a real name. Don't surface them as-is.
+    if (InventoryUser && isGuestName(InventoryUser.name)) {
+      InventoryUser.name = "";
+    }
 
     // 3. Sub-service Logins (Resilient Path)
     const [chatRes, storiesRes, commentRes, walletRes] = await Promise.all([

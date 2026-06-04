@@ -20,6 +20,7 @@ import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { isGuestName } from "utils/tinyUtils";
 import { COOKIE_NAMES, setCookie } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -109,6 +110,14 @@ class HomeService {
       if (!response_customer_Info.success) {
         // @ts-ignore
         throw new Error(response_customer_Info.message);
+      }
+      // Treat backend guest placeholder names ("guest"/"verified_guest") as
+      // "no name" so the UI prompts for a real name. Don't surface them as-is.
+      if (
+        response_customer_Info.data.customer_info &&
+        isGuestName(response_customer_Info.data.customer_info.name)
+      ) {
+        response_customer_Info.data.customer_info.name = "";
       }
       // Update server-side HttpOnly cookie
       fetch("/api/auth/update-user", {
