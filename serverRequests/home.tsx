@@ -1,6 +1,6 @@
 "use server";
 
-import { getCookieServer } from "utils/cookies/cookie-manager";
+import { getRedeemedIds } from "utils/cookies/getRedeemedIds";
 import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 import { getCurrency } from "./currency";
 import BoutiqueWrapper from "components/ServerWrapper/BoutiqueWrapper";
@@ -28,7 +28,7 @@ export async function GetNextRecommendations({
     userId: userId,
     search_after: parseNumberArray(offset),
   });
-  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+  const redeemed_ids = await getRedeemedIds();
   let productsData = response.products.map((product) => {
     if (product?.is_luck) {
       return {
@@ -247,7 +247,7 @@ export async function GetRecommedndedProducts({
     userId: userId,
     search_after: parseNumberArray(offset),
   });
-  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+  const redeemed_ids = await getRedeemedIds();
   let productsData = response.products.map((product) => {
     if (product?.is_luck) {
       return {

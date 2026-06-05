@@ -1,6 +1,6 @@
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
 import { GetFlashDealProducts } from "serverRequests/home";
-import { getCookieServer } from "utils/cookies/cookie-manager";
+import { getRedeemedIds } from "utils/cookies/getRedeemedIds";
 
 export async function FlashProductWrapper({
   lang,
@@ -21,7 +21,7 @@ export async function FlashProductWrapper({
       limit: 10,
     }),
     currencyData,
-    getCookieServer<any[]>("redemed_ids"),
+    getRedeemedIds(),
   ]);
   const redeemed_ids = redeemedIds ?? [];
   let productsData = response.data.products.map((product) => {

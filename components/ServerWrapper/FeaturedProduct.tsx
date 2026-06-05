@@ -1,7 +1,7 @@
 import FeatureProducts from "components/Server/FeatureProducts";
 
 import { GetFeaturedProducts } from "serverRequests/home";
-import { getCookieServer } from "utils/cookies/cookie-manager";
+import { getRedeemedIds } from "utils/cookies/getRedeemedIds";
 
 export async function FeaturedProductWrapper({
   lang,
@@ -22,7 +22,7 @@ export async function FeaturedProductWrapper({
       limit: 10,
     }),
     currencyData,
-    getCookieServer<any[]>("redemed_ids"),
+    getRedeemedIds(),
   ]);
 
   const redeemed_ids = redeemedIds ?? [];
