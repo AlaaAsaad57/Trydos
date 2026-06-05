@@ -10,6 +10,8 @@ interface FetchOptions {
   local?: string;
   headers?: Record<string, string>;
   body?: any;
+  /** Per-request timeout in ms (defaults to DEFAULT_REQUEST_TIMEOUT_MS). */
+  requestTimeout?: number;
 }
 
 export interface FetchResponse<T = any> {
@@ -20,18 +22,30 @@ export interface FetchResponse<T = any> {
   url?: string;
 }
 
+// Hard ceiling on any single backend request so a hung upstream can never
+// stall a server render indefinitely. Tunable per-call via `requestTimeout`.
+const DEFAULT_REQUEST_TIMEOUT_MS = 15000;
+// Cap for the retry backoff. The old linear `retryDelay * attempt` could add
+// up to 6s (1s+2s+3s) to a blocking render; a capped exponential keeps the
+// worst case to ~0.7s while still backing off.
+const MAX_BACKOFF_MS = 1000;
+
 const createServerFetch = async <T = any,>({
   url,
   revalidate,
   tags = [],
   retryAttempts = 3,
-  retryDelay = 1000,
+  retryDelay = 100,
   method = "GET",
   local = "gb-en",
   headers = {},
   body,
+  requestTimeout = DEFAULT_REQUEST_TIMEOUT_MS,
 }: FetchOptions): Promise<FetchResponse<T>> => {
   const retryableStatusCodes = [502, 503, 504, 429];
+
+  const backoffFor = (attempt: number) =>
+    Math.min(retryDelay * 2 ** (attempt - 1), MAX_BACKOFF_MS);
 
   const [country, lang] = local.split("-");
   const handleRetry = async (attempt: number): Promise<FetchResponse<T>> => {
@@ -52,8 +66,13 @@ const createServerFetch = async <T = any,>({
 
       const response = await fetch(url, {
         ...fetchOptions,
+        signal: AbortSignal.timeout(requestTimeout),
         next: {
-          revalidate: 0,
+          // Respect the caller's revalidate preference (and any cache tags)
+          // instead of forcing `0`, which previously disabled Next's
+          // request-level fetch memoization on every call.
+          revalidate: revalidate ?? 0,
+          ...(tags.length ? { tags } : {}),
         },
       });
 
@@ -76,9 +95,7 @@ const createServerFetch = async <T = any,>({
         console.warn(
           `Attempt ${attempt} failed with status ${response.status}, retrying...`,
         );
-        await new Promise((resolve) =>
-          setTimeout(resolve, retryDelay * attempt),
-        );
+        await new Promise((resolve) => setTimeout(resolve, backoffFor(attempt)));
         return handleRetry(attempt + 1);
       }
 
@@ -103,9 +120,7 @@ const createServerFetch = async <T = any,>({
         console.warn(
           `Attempt ${attempt} failed due to network error, retrying...`,
         );
-        await new Promise((resolve) =>
-          setTimeout(resolve, retryDelay * attempt),
-        );
+        await new Promise((resolve) => setTimeout(resolve, backoffFor(attempt)));
         return handleRetry(attempt + 1);
       }
       LogServerError({
@@ -134,11 +149,12 @@ const fetchServerData = async <T = any,>({
   revalidate,
   tags = [],
   retryAttempts = 3,
-  retryDelay = 1000,
+  retryDelay = 100,
   method = "GET",
   local = "gb-en",
   headers = {},
   body,
+  requestTimeout,
 }: FetchOptions) => {
   return createServerFetch<T>({
     url,
@@ -150,6 +166,7 @@ const fetchServerData = async <T = any,>({
     local,
     headers,
     body,
+    requestTimeout,
   });
 };
 
