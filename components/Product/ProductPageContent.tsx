@@ -73,7 +73,6 @@ export default async function ProductPageContent({
             fallback={<ProductPhotosSkeleton isRtl={isRtl} />}
             key={color}
           >
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
             <ProductPhotoSliderWrapper
               color={color}
               qtyPromise={QtyPricesData}
@@ -84,7 +83,6 @@ export default async function ProductPageContent({
         </div>
 
         <Suspense fallback={<></>}>
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
           <ProductExtendedSliderWrapper
             key={color}
             color={color}
@@ -101,7 +99,6 @@ export default async function ProductPageContent({
               <Suspense
                 fallback={<ProductNameAndBrandSkeleton isRtl={isRtl} />}
               >
-                {/*@ts-expect-error Async Server Component is valid in Next  */}
                 <ProductNameAndBrand
                   color={color}
                   globalPromise={GlobalData}
@@ -119,7 +116,6 @@ export default async function ProductPageContent({
                   </div>
                 }
               >
-                {/*@ts-expect-error Async Server Component is valid in Next  */}
                 <ProductDetailsTextWrapper
                   globalPromise={GlobalData}
                   isRtl={isRtl}
@@ -136,12 +132,10 @@ export default async function ProductPageContent({
                   </div>
                 }
               >
-                {/*@ts-expect-error Async Server Component is valid in Next  */}
                 <ProductGeneralPropertiesWrapper
                   globalData={GlobalData}
                   language={language}
                 />
-                {/*@ts-expect-error Async Server Component is valid in Next  */}
                 <ProductFeaturesWrapper
                   isRtl={isRtl}
                   globalPromise={GlobalData}
@@ -159,14 +153,12 @@ export default async function ProductPageContent({
                 </div>
               }
             >
-              {/*@ts-expect-error Async Server Component is valid in Next  */}
               <ProductDescriptorsWrapper
                 isRtl={isRtl}
                 priceQtyPromise={QtyPricesData}
               />
             </Suspense>
             <Suspense fallback={<></>}>
-              {/*@ts-expect-error Async Server Component is valid in Next  */}
               <ProductColorsWrapper
                 country={country}
                 slug={slug}
@@ -179,14 +171,12 @@ export default async function ProductPageContent({
 
             <div className="flex-col w-full h-auto rounded-[15px] bg-[#FCFCFC] mt-[12px] px-[10px]">
               <Suspense fallback={<></>}>
-                {/*@ts-expect-error Async Server Component is valid in Next  */}
                 <ProductExpectedDeleiveryWrapper
                   StarttingSettingPromise={StarttingSettingPromise}
                   country={country}
                   language={language}
                   globalPromise={QtyPricesData}
                 />
-                {/*@ts-expect-error Async Server Component is valid in Next  */}
                 <FreeShippingOption
                   qtyPricePromise={QtyPricesData}
                   lang={Params.lang}
@@ -275,7 +265,6 @@ export default async function ProductPageContent({
                           {translateFunction("Return Guarantee", language)}
                         </span>
                         <Suspense fallback={<></>}>
-                          {/*@ts-expect-error Async Server Component is valid in Next  */}
                           <ReturnDaysDetails
                             StarttingSettingPromise={StarttingSettingPromise}
                             globalPromise={GlobalData}
@@ -288,7 +277,6 @@ export default async function ProductPageContent({
                 </div>
               </div>
               <Suspense fallback={<></>}>
-                {/*@ts-expect-error Async Server Component is valid in Next  */}
                 <ProductStoriesWrapper
                   globalPromise={GlobalData}
                   language={language}
@@ -308,26 +296,22 @@ export default async function ProductPageContent({
                   </div>
                 }
               >
-                {/*@ts-expect-error Async Server Component is valid in Next  */}
                 <ProductBuyersCommentsWrapper
                   globalPromise={GlobalData}
                   language={language}
                 />
-                {/*@ts-expect-error Async Server Component is valid in Next  */}
                 <ProductFaqSectionWrapper
                   color={color}
                   size={Size}
                   qtyPricePromise={QtyPricesData}
                   language={language}
                 />
-                {/*@ts-expect-error Async Server Component is valid in Next  */}
                 <ProductSizesWrapper
                   activeSize={Size}
                   language={language}
                   qtyPricePromise={QtyPricesData}
                   isRtl={isRtl}
                 />
-                {/*@ts-expect-error Async Server Component is valid in Next  */}
                 <ProductSizeReviews
                   qtyPricePromise={QtyPricesData}
                   isRtl={isRtl}
@@ -337,7 +321,6 @@ export default async function ProductPageContent({
             </div>
 
             <Suspense fallback={<></>}>
-              {/* @ts-expect-error Async Server Component is valid in Next  */}
               <RelatedProductsSection
                 globalPromise={GlobalData}
                 language={language}
@@ -349,7 +332,6 @@ export default async function ProductPageContent({
         </div>
 
         <Suspense fallback={<></>}>
-          {/* @ts-expect-error Async Server Component is valid in Next  */}
           <ProductFooter
             GlobalData={GlobalData}
             StarttingSettingPromise={StarttingSettingPromise}
