@@ -47,9 +47,6 @@ function VideoMessage({
   }, [activeChat, user]);
   return (
     <div
-      onClick={() => {
-        setVid(message_files[0]?.file_path);
-      }}
       onMouseLeave={() => {
         setOpen(false);
         setDelete(false);
@@ -104,7 +101,8 @@ function VideoMessage({
         )}
         <img
           src="/icons/chat/play.svg"
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             setVid(message_files[0]?.file_path);
           }}
           className="play-vid-icon"
