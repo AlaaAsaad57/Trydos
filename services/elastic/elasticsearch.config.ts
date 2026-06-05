@@ -15,6 +15,14 @@ const createElasticsearchClient = (): Client => {
     tls: {
       rejectUnauthorized: false,
     },
+    // Hard ceiling so a slow/hung ES query can't stall a blocking server
+    // render. Generous for the navbar/listing queries we run.
+    requestTimeout: 8000,
+    // Cap client-side retries; the render path also has its own fallbacks.
+    maxRetries: 2,
+    // Reuse TCP connections across requests instead of paying TLS setup each
+    // time (default is on in v8, set explicitly to be safe).
+    agent: { keepAlive: true },
   });
 };
 

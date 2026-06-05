@@ -49,6 +49,67 @@ export class ElasticsearchReader {
     }
   }
 
+  /**
+   * Fetches the distinct main categories via a nested aggregation instead of
+   * scanning up to 4000 product docs and de-duplicating in JS. Returns a
+   * doc-scan-compatible shape (`hits.hits[]` where each `_source.custom_categories`
+   * holds the language variants of one category) so the caller's existing
+   * extraction logic works unchanged.
+   */
+  async getMainCategories({ country, size = 1000 }: { country: string; size?: number }) {
+    const { mustConditions, mustNotConditions } = this.getRules(country);
+    const sourceFields = [
+      "custom_categories.id",
+      "custom_categories.category_id",
+      "custom_categories.name",
+      "custom_categories.slug",
+      "custom_categories.position",
+      "custom_categories.language_code",
+      "custom_categories.flat_photo_path",
+      "custom_categories.outline_photo_path",
+      "custom_categories.fill_photo_path",
+    ];
+
+    const query: any = {
+      index: catalog_index,
+      size: 0,
+      query: {
+        bool: { must: mustConditions, must_not: mustNotConditions },
+      },
+      aggs: {
+        categories: {
+          nested: { path: "custom_categories" },
+          aggs: {
+            ids: {
+              terms: { field: "custom_categories.id", size },
+              aggs: {
+                // Up to 8 covers every language variant (en/ar/tr/ku) of a category.
+                doc: { top_hits: { size: 8, _source: sourceFields } },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const result: any = await this.client.search(query);
+    const buckets: any[] =
+      result?.aggregations?.categories?.ids?.buckets ?? [];
+
+    // Reshape into the doc-scan layout the caller already knows how to read.
+    return {
+      hits: {
+        hits: buckets.map((bucket) => ({
+          _source: {
+            custom_categories: (bucket?.doc?.hits?.hits ?? []).map(
+              (h: any) => h._source,
+            ),
+          },
+        })),
+      },
+    };
+  }
+
   getRules(country) {
     const mustConditions: estypes.QueryDslQueryContainer[] = [
       { term: { status: 1 } },
