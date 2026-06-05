@@ -99,7 +99,6 @@ export default async function Page({ params }) {
     return (
       <>
         <Suspense fallback={<></>} key={`FilterWidget ${Params.lang}`}>
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
           <FilterWidgetServer
             currencyPromise={currency}
             language={language}
@@ -146,7 +145,6 @@ export default async function Page({ params }) {
             }`}
           >
             <Suspense fallback={<></>}>
-              {/* @ts-expect-error Async Server Component is valid in Next*/}
               <ListingSearchContainer
                 country={country}
                 language={language}
@@ -173,7 +171,6 @@ export default async function Page({ params }) {
             fallback={<ListingSkeleton justFilters />}
             key={`FilterList ${Params.lang}`}
           >
-            {/* @ts-expect-error Async Server Component is valid in Next  */}
             <FilterListContainer
               filtersPromis={filtersData}
               currencyPromise={currency}
@@ -186,7 +183,6 @@ export default async function Page({ params }) {
           fallback={<ListingSkeleton forProducts={true} />}
           key={`ProductList ${Params.lang}`}
         >
-          {/* @ts-expect-error Async Server Component is valid in Next  */}
           <ProductListConainer
             isFlashDeals={true}
             isFeatured={false}

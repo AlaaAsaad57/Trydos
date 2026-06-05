@@ -23,7 +23,7 @@ function ChatInfo({
   enableSearch,
 }) {
   const { deleteChat, language, updateChannelBlockStatus } = useAppStore();
-  const ref = useRef<any>();
+  const ref = useRef<any>(null);
   const otherUserId = activeChat?.channel_members?.filter(
     (user) => String(user.user_id) !== String(getUser()?.id),
   )?.[0]?.user?.id;

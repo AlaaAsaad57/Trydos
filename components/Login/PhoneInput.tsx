@@ -58,7 +58,7 @@ function PhoneInput({
       }, 50);
     }
   }, [stepIndicator]);
-  const ref = useRef();
+  const ref = useRef<any>(null);
 
   const getCountry = (val) => {
     return allCountries.filter((countryItem) =>

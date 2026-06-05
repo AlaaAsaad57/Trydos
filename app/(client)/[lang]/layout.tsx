@@ -134,7 +134,6 @@ export default async function RootLayout({ params, children, modal }) {
                 />
               </div>
             </a>
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
             <AuthNavContainer />
           </div>
           <div

@@ -89,7 +89,9 @@ function ProductVideo({ videos = [], language }) {
                   className="embla__slide flex-[0_0_100%] min-w-0 relative h-full"
                 >
                   <video
-                    ref={(el) => (videoRefs.current[index] = el)}
+                    ref={(el) => {
+                      videoRefs.current[index] = el;
+                    }}
                     onClick={() => !expanded && setExpanded(true)}
                     src={getVideoUrl(vid, {
                       width: 700,

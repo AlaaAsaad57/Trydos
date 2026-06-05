@@ -140,7 +140,6 @@ export default async function FiltersPageContent({
 
     return (
       <>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
         <FilterWidgetServer
           isFeatured={false}
           isFlashDeal={false}
@@ -165,7 +164,6 @@ export default async function FiltersPageContent({
               parsedFilters?.search_text?.length > 0 ? "w-full" : ""
             }`}
           >
-            {/* @ts-expect-error Async Server Component is valid in Next*/}
             <ListingSearchContainer
               country={country}
               language={language}
@@ -192,14 +190,12 @@ export default async function FiltersPageContent({
           className="boutique-header flex-col align-center"
         >
           {parsedFilters?.boutiques?.[0] && (
-            /* @ts-expect-error Async Server Component is valid in Next */
             <ListingBoutiqueSlider
               boutiquePromise={boutique}
               key={boutiqueItem || "noFilters"}
             />
           )}
 
-          {/* @ts-expect-error Async Server Component is valid in Next  */}
           <FilterListContainer
             filtersPromis={filtersData}
             currencyPromise={currency}
@@ -207,7 +203,6 @@ export default async function FiltersPageContent({
             parsedFilters={parsedFilters}
           />
         </div>
-        {/* @ts-expect-error Async Server Component is valid in Next  */}
         <ProductListConainer
           isFlashDeals={false}
           isFeatured={false}

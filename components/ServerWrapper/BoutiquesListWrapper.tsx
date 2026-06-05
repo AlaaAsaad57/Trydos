@@ -37,7 +37,6 @@ export async function BoutiquesListWrapper({
       >
         {!mainCategory ? (
           <Suspense fallback={<FeaturedProductsSkeleton />}>
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
             <RecomendedProductWrapper
               lang={params.lang}
               currency={currencyData}
@@ -54,7 +53,7 @@ export async function BoutiquesListWrapper({
 async function RecomendedProductWrapper({
   lang,
   currency: currencyData,
-}): Promise<JSX.Element> {
+}) {
   const [country, language] = lang.split("-");
   const userId = ((await getCookieServer(COOKIE_NAMES.USER_DATA)) as any)?.id;
   let [response, currency] = await Promise.all([

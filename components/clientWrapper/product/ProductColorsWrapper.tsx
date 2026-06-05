@@ -110,10 +110,10 @@ export const StaticStackedSlider = ({
                otherwise just render the child.
             */}
             {React.isValidElement(child)
-              ? React.cloneElement(child, {
+              ? React.cloneElement(child as React.ReactElement<any>, {
                   isActive: index === activeIndex,
                   style: {
-                    ...child.props.style,
+                    ...(child.props as any).style,
                     width: "100%",
                     height: "100%",
                   },
