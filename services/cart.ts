@@ -21,7 +21,7 @@ class CartService {
     const { addProductToCart } = useAppStore.getState();
     const imageVar = image?.split("/")[image?.split("/").length - 1];
     let details = {
-      id: product_id,
+      product_id: product_id,
       image: imageVar,
       quantity: qty,
       product_variation_id: product_variation_id ?? null,
