@@ -45,8 +45,9 @@ export function mapCurrencyToSymbol(countryIso: string): string {
   // Convert input to lowercase to ensure the lookup is case-insensitive
   const code = countryIso.toLowerCase();
 
-  // Return the symbol if found, otherwise return the original code or an empty string
-  return currencyMap[code] || "$";
+  // schema.org priceCurrency requires an ISO 4217 code, never a symbol.
+  // Fall back to USD (same as the gb default) for unmapped countries.
+  return currencyMap[code] || "USD";
 }
 
 export const getTitleAndTargetofListing = ({

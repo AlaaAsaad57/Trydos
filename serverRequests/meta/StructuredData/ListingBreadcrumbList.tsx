@@ -1,4 +1,3 @@
-import Script from "next/script";
 import { General_Site_Data } from "./Constants";
 import { GetImageUrl, RoundPrice } from "utils/server";
 import { mapCurrencyToSymbol } from "./utils";
@@ -43,11 +42,15 @@ function ListingBreadcrumbList({ local, target, title, products, currency }) {
             ),
             offers: {
               "@type": "Offer",
+              // schema.org price must be a plain number (no K/M abbreviation,
+              // grouping, or currency symbols) — returnNumber bypasses RoundPrice's
+              // display formatting. See Google "Invalid price format" SDTT error.
               price: RoundPrice({
                 num: product?.offer_price ?? product?.price,
                 language: language,
                 points: currency?.decimal_digits,
                 rate: currency?.exchange_rate,
+                returnNumber: true,
               }),
               priceCurrency: mapCurrencyToSymbol(country),
             },
@@ -58,7 +61,7 @@ function ListingBreadcrumbList({ local, target, title, products, currency }) {
   };
 
   return (
-    <Script
+    <script
       id="items-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(payload) }}

@@ -62,11 +62,15 @@ function ProductStructuredData({
       "@type": "Offer",
       priceCurrency: mapCurrencyToSymbol(country),
       url: `${General_Site_Data.url}/${local}/products/${product?.slug}`,
+      // schema.org price must be a plain number (no K/M abbreviation, grouping,
+      // or currency symbols) — returnNumber bypasses RoundPrice's display
+      // formatting. See Google "Invalid price format" SDTT error.
       price: RoundPrice({
         num: product?.offer_price ?? product?.price,
         language: language,
         points: currency.decimal_digits,
         rate: currency.exchange_rate,
+        returnNumber: true,
       }),
       itemCondition: "https://schema.org/NewCondition",
       availability: inStock
