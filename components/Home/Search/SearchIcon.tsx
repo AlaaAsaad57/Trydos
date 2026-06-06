@@ -16,7 +16,7 @@ import {
   EnableScroll,
   GetImageUrl,
 } from "utils/tinyUtils";
-import { GetSearchData } from "serverRequests/Search";
+import { GetSearchData, GetSearchSuggestion } from "serverRequests/Search";
 import SearchHistory from "./SearchHistory";
 import SearchTrending from "./SearchTrending";
 import ProductItem from "./Results/ProductItem";
@@ -44,6 +44,9 @@ function SearchIcon({ language, country }) {
   const [loading, setLoading] = useState(false);
   const [focus, setFocus] = useState(false);
   const [value, setValue] = useState("");
+
+  // Inline completion (ghost text) suggestion — full suggested product name
+  const [suggestion, setSuggestion] = useState("");
 
   // Data States
   const [trending, setTrending] = useState([]);
@@ -82,6 +85,11 @@ function SearchIcon({ language, country }) {
   // Refs for handling Race Conditions and Debouncing
   const latestRequestRef = useRef(0);
   const debounceTimeoutRef = useRef(null);
+
+  // Separate race-condition + debounce refs for the suggestion query so it
+  // can't clobber a stale ghost over newer input.
+  const latestSuggestionRef = useRef(0);
+  const suggestionTimeoutRef = useRef(null);
 
   // --- Initial Data Load (Trending & History) ---
   useEffect(() => {
@@ -222,6 +230,63 @@ function SearchIcon({ language, country }) {
     return () => clearTimeout(debounceTimeoutRef.current);
   }, [value, appliedFilters, searchEnabled, performSearch]);
 
+  // --- Inline completion (ghost text) — same conditions as the main query ---
+  const fetchSuggestion = useCallback(async () => {
+    const requestId = ++latestSuggestionRef.current;
+    try {
+      const res = await GetSearchSuggestion({
+        language,
+        country,
+        search_text: value,
+      });
+      // Race condition: only apply the latest request's result
+      if (requestId === latestSuggestionRef.current) {
+        setSuggestion(res?.suggestion || "");
+      }
+    } catch (error) {
+      if (requestId === latestSuggestionRef.current) {
+        setSuggestion("");
+        LogError({ error, scenario: "fetchSuggestion in SearchIcon" });
+      }
+    }
+  }, [language, country, value]);
+
+  useEffect(() => {
+    if (!searchEnabled) return;
+
+    if (suggestionTimeoutRef.current)
+      clearTimeout(suggestionTimeoutRef.current);
+
+    // Mirror the main query's gate: only fire when the user has typed text.
+    if (value.length === 0) {
+      setSuggestion("");
+      return;
+    }
+
+    // Same 1500ms debounce as the main search query.
+    suggestionTimeoutRef.current = setTimeout(() => {
+      fetchSuggestion();
+    }, 1500);
+
+    return () => clearTimeout(suggestionTimeoutRef.current);
+  }, [value, searchEnabled, fetchSuggestion]);
+
+  // Visible ghost remainder: only when the suggestion truly extends the typed
+  // text (case-insensitive starts-with), otherwise nothing is shown.
+  const ghostSuffix =
+    value.length > 0 &&
+    suggestion.toLowerCase().startsWith(value.toLowerCase()) &&
+    suggestion.length > value.length
+      ? suggestion.slice(value.length)
+      : "";
+
+  const acceptSuggestion = () => {
+    if (!ghostSuffix) return false;
+    setValue(value + ghostSuffix);
+    setSuggestion("");
+    return true;
+  };
+
   // --- Pagination Logic (Load More) ---
   const handleLoadMore = async (type) => {
     // type: 'brands' | 'categories' | 'boutiques'
@@ -277,6 +342,7 @@ function SearchIcon({ language, country }) {
     setSearchEnabled(false);
     EnableScroll();
     setValue("");
+    setSuggestion("");
     setFocus(false);
     setResults({
       categories: [],
@@ -290,6 +356,17 @@ function SearchIcon({ language, country }) {
   const { lang } = useParams();
   const router = useRouter();
   const handleKeyDown = (e) => {
+    // Accept inline completion with Tab, or ArrowRight when caret is at the end
+    if (ghostSuffix) {
+      const atEnd =
+        e.target.selectionStart === value.length &&
+        e.target.selectionEnd === value.length;
+      if (e.key === "Tab" || (e.key === "ArrowRight" && atEnd)) {
+        e.preventDefault();
+        acceptSuggestion();
+        return;
+      }
+    }
     if (e.key === "Enter") {
       let pathParams = buildParamsFromFilters({
         categories: appliedFilters?.categories?.map((s) => s.slug),
@@ -327,6 +404,21 @@ function SearchIcon({ language, country }) {
         />
         <div className="search-component-container flex-row">
           <div className={`search-input-parent ${focus && "focuse"}`}>
+            {/* Inline completion (ghost text) overlay — sits behind the
+                transparent input; typed portion is invisible (occupies width),
+                the remainder renders as gray ghost text. */}
+            {ghostSuffix && (
+              <div
+                className="absolute inset-0 z-[4] flex items-center overflow-hidden whitespace-pre pl-[43px] pr-[70px] text-[18px] [font-family:var(--Quicksand-Light)] pointer-events-none"
+                aria-hidden="true"
+                dir={isRtl ? "rtl" : "ltr"}
+              >
+                <span className="whitespace-pre text-transparent">{value}</span>
+                <span className="whitespace-pre text-[#c4c2c2]">
+                  {ghostSuffix}
+                </span>
+              </div>
+            )}
             <input
               maxLength={90}
               data-cy="inputField"

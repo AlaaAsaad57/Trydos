@@ -160,15 +160,7 @@ export async function GetMainCategories({ country, language }) {
   // category instead of transferring thousands of product docs. If it yields
   // nothing (e.g. an index-mapping difference), fall back to the original
   // doc-scan so the navbar never renders empty.
-  let a: any;
-  try {
-    a = await Reader.getMainCategories({ country });
-    if (!a?.hits?.hits?.length) {
-      a = await Reader.getCategories({ country: country, size: 4000 });
-    }
-  } catch {
-    a = await Reader.getCategories({ country: country, size: 4000 });
-  }
+  let a = await Reader.getCategories({ country: country, size: 4000 });
   // @ts-ignore
 
   let mainCategories = a.hits.hits.map((s) => {
