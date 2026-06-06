@@ -1449,7 +1449,51 @@ const translations = {
   "Create Story": "إنشاء قصة",
   "Microphone not detected or permission denied": "لم يتم اكتشاف الميكروفون أو تم رفض الإذن",
   "Photo": "صورة",
-  "Video": "فيديو"
+  "Video": "فيديو",
+  "Privacy Policy": "سياسة الخصوصية",
+  "Contact Us": "اتصل بنا",
+  "Compare": "المقارنة",
+  "About TryDos": "عن ترايدوس",
+  "TryDos is a multilingual live-shopping marketplace connecting boutiques and shoppers across the region with curated fashion, beauty and lifestyle products.":
+    "ترايدوس سوق تسوّق مباشر متعدد اللغات يربط المتاجر والمتسوّقين في المنطقة بمنتجات منتقاة من الأزياء والجمال ونمط الحياة.",
+  "TryDos is a multilingual live-shopping marketplace connecting boutiques and shoppers across the region. We bring curated fashion, beauty and lifestyle products from trusted sellers straight to your screen.":
+    "ترايدوس سوق تسوّق مباشر متعدد اللغات يربط المتاجر والمتسوّقين في أنحاء المنطقة. نقدّم لك منتجات منتقاة من الأزياء والجمال ونمط الحياة من بائعين موثوقين مباشرةً إلى شاشتك.",
+  "Our Mission": "مهمتنا",
+  "We make discovering and buying from independent boutiques effortless — with live video shopping, secure checkout and fast delivery, all in your local language and currency.":
+    "نجعل اكتشاف المتاجر المستقلة والشراء منها أمراً سهلاً — مع التسوّق المباشر بالفيديو والدفع الآمن والتوصيل السريع، وكل ذلك بلغتك وعملتك المحلية.",
+  "Why Shop With TryDos": "لماذا تتسوّق مع ترايدوس",
+  "Thousands of products from verified boutiques, real-time live sales, easy returns and dedicated support in Arabic, English, Turkish and Kurdish.":
+    "آلاف المنتجات من متاجر موثوقة، وعروض بيع مباشرة، وإرجاع سهل، ودعم مخصّص بالعربية والإنجليزية والتركية والكردية.",
+  "Read the TryDos Privacy Policy: what information we collect, how we use it, and the choices you have over your data.":
+    "اقرأ سياسة الخصوصية في ترايدوس: ما المعلومات التي نجمعها، وكيف نستخدمها، والخيارات المتاحة لك بشأن بياناتك.",
+  "Your privacy matters to us. This policy explains what information TryDos collects, how we use it, and the choices you have.":
+    "خصوصيتك تهمّنا. توضّح هذه السياسة المعلومات التي يجمعها ترايدوس وكيفية استخدامها والخيارات المتاحة لك.",
+  "Information We Collect": "المعلومات التي نجمعها",
+  "We collect the details you provide when you create an account or place an order, along with basic device and usage data needed to operate and secure the service.":
+    "نجمع التفاصيل التي تقدّمها عند إنشاء حساب أو تقديم طلب، إضافةً إلى بيانات الجهاز والاستخدام الأساسية اللازمة لتشغيل الخدمة وتأمينها.",
+  "How We Use Your Data": "كيف نستخدم بياناتك",
+  "Your data is used to process orders, personalise your experience, prevent fraud and improve TryDos. We never sell your personal information.":
+    "تُستخدم بياناتك لمعالجة الطلبات وتخصيص تجربتك ومنع الاحتيال وتحسين ترايدوس. نحن لا نبيع معلوماتك الشخصية أبداً.",
+  "The TryDos Terms & Conditions covering how to use the platform, orders, payments and your responsibilities as a shopper or seller.":
+    "شروط وأحكام ترايدوس التي تغطي كيفية استخدام المنصّة والطلبات والمدفوعات ومسؤولياتك كمتسوّق أو بائع.",
+  "By using TryDos you agree to these terms. Please read them carefully before shopping or selling on our platform.":
+    "باستخدامك ترايدوس فإنك توافق على هذه الشروط. يُرجى قراءتها بعناية قبل التسوّق أو البيع على منصّتنا.",
+  "Using TryDos": "استخدام ترايدوس",
+  "You agree to use TryDos lawfully, to provide accurate account information, and to respect the rights of boutiques, sellers and other shoppers.":
+    "أنت توافق على استخدام ترايدوس بشكل قانوني، وتقديم معلومات حساب دقيقة، واحترام حقوق المتاجر والبائعين وبقية المتسوّقين.",
+  "Orders & Payments": "الطلبات والمدفوعات",
+  "All orders are subject to availability and confirmation. Prices, fees and delivery times are shown at checkout and may vary by country.":
+    "جميع الطلبات خاضعة للتوفّر والتأكيد. تظهر الأسعار والرسوم وأوقات التوصيل عند الدفع وقد تختلف حسب الدولة.",
+  "Contact the TryDos team for help with your order, account, or to learn about selling on the platform as a boutique.":
+    "تواصل مع فريق ترايدوس للحصول على مساعدة بشأن طلبك أو حسابك، أو لمعرفة المزيد عن البيع على المنصّة كمتجر.",
+  "We're here to help. Reach the TryDos team with any question about your order, account or selling on the platform.":
+    "نحن هنا لمساعدتك. تواصل مع فريق ترايدوس بأي سؤال عن طلبك أو حسابك أو البيع على المنصّة.",
+  "Customer Support": "دعم العملاء",
+  "For help with orders, returns or your account, contact our support team through the app or by email at support@trydos.com.":
+    "للمساعدة بشأن الطلبات أو الإرجاع أو حسابك، تواصل مع فريق الدعم عبر التطبيق أو بالبريد الإلكتروني support@trydos.com.",
+  "Business & Boutiques": "الأعمال والمتاجر",
+  "Interested in selling on TryDos? Get in touch and our team will guide you through joining as a boutique.":
+    "هل ترغب في البيع على ترايدوس؟ تواصل معنا وسيرشدك فريقنا خلال الانضمام كمتجر."
 };
 
 export default translations;

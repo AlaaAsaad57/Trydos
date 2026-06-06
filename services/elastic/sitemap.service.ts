@@ -340,12 +340,6 @@ function getStaticPages(): StaticPage[] {
       change_frequency: "monthly",
       last_modified: 60,
     },
-    {
-      path: "/help",
-      priority: 0.4,
-      change_frequency: "weekly",
-      last_modified: 7,
-    },
   ];
 
   const pages: StaticPage[] = [];

@@ -12,6 +12,17 @@ function Website({ local }) {
     publisher: {
       "@id": `${General_Site_Data.url}/#organization`,
     },
+    // Google Sitelinks Search Box — deep-links into our existing, server-rendered
+    // search results route (/{locale}/filters/search/{term}). {search_term_string}
+    // must remain a literal placeholder; it survives JSON.stringify untouched.
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${General_Site_Data.url}/${local}/filters/search/{search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
   };
   return (
     <script

@@ -1457,7 +1457,51 @@ const translations = {
     "Create Story": "Hikaye Oluştur",
     "Microphone not detected or permission denied": "Mikrofon algılanmadı veya izin reddedildi",
     "Photo": "Fotoğraf",
-    "Video": "Video"
+    "Video": "Video",
+    "Privacy Policy": "Gizlilik Politikası",
+    "Contact Us": "Bize Ulaşın",
+    "Compare": "Karşılaştır",
+    "About TryDos": "TryDos Hakkında",
+    "TryDos is a multilingual live-shopping marketplace connecting boutiques and shoppers across the region with curated fashion, beauty and lifestyle products.":
+      "TryDos, bölgedeki butikleri ve alışverişçileri seçkin moda, güzellik ve yaşam tarzı ürünleriyle buluşturan çok dilli bir canlı alışveriş pazar yeridir.",
+    "TryDos is a multilingual live-shopping marketplace connecting boutiques and shoppers across the region. We bring curated fashion, beauty and lifestyle products from trusted sellers straight to your screen.":
+      "TryDos, bölge genelinde butikleri ve alışverişçileri buluşturan çok dilli bir canlı alışveriş pazar yeridir. Güvenilir satıcılardan seçkin moda, güzellik ve yaşam tarzı ürünlerini doğrudan ekranınıza getiriyoruz.",
+    "Our Mission": "Misyonumuz",
+    "We make discovering and buying from independent boutiques effortless — with live video shopping, secure checkout and fast delivery, all in your local language and currency.":
+      "Bağımsız butikleri keşfetmeyi ve onlardan alışveriş yapmayı zahmetsiz hale getiriyoruz — canlı video alışverişi, güvenli ödeme ve hızlı teslimatla, hepsi kendi dilinizde ve para biriminizde.",
+    "Why Shop With TryDos": "Neden TryDos'tan Alışveriş Yapmalısınız",
+    "Thousands of products from verified boutiques, real-time live sales, easy returns and dedicated support in Arabic, English, Turkish and Kurdish.":
+      "Doğrulanmış butiklerden binlerce ürün, gerçek zamanlı canlı satışlar, kolay iade ve Arapça, İngilizce, Türkçe ve Kürtçe özel destek.",
+    "Read the TryDos Privacy Policy: what information we collect, how we use it, and the choices you have over your data.":
+      "TryDos Gizlilik Politikasını okuyun: hangi bilgileri topladığımız, bunları nasıl kullandığımız ve verileriniz üzerindeki seçenekleriniz.",
+    "Your privacy matters to us. This policy explains what information TryDos collects, how we use it, and the choices you have.":
+      "Gizliliğiniz bizim için önemlidir. Bu politika, TryDos'un hangi bilgileri topladığını, bunları nasıl kullandığını ve sahip olduğunuz seçenekleri açıklar.",
+    "Information We Collect": "Topladığımız Bilgiler",
+    "We collect the details you provide when you create an account or place an order, along with basic device and usage data needed to operate and secure the service.":
+      "Bir hesap oluşturduğunuzda veya sipariş verdiğinizde sağladığınız bilgileri, ayrıca hizmeti çalıştırmak ve güvende tutmak için gereken temel cihaz ve kullanım verilerini toplarız.",
+    "How We Use Your Data": "Verilerinizi Nasıl Kullanırız",
+    "Your data is used to process orders, personalise your experience, prevent fraud and improve TryDos. We never sell your personal information.":
+      "Verileriniz; siparişleri işlemek, deneyiminizi kişiselleştirmek, dolandırıcılığı önlemek ve TryDos'u geliştirmek için kullanılır. Kişisel bilgilerinizi asla satmayız.",
+    "The TryDos Terms & Conditions covering how to use the platform, orders, payments and your responsibilities as a shopper or seller.":
+      "Platformun nasıl kullanılacağını, siparişleri, ödemeleri ve bir alışverişçi veya satıcı olarak sorumluluklarınızı kapsayan TryDos Şartlar ve Koşulları.",
+    "By using TryDos you agree to these terms. Please read them carefully before shopping or selling on our platform.":
+      "TryDos'u kullanarak bu şartları kabul etmiş olursunuz. Platformumuzda alışveriş yapmadan veya satış yapmadan önce lütfen bunları dikkatlice okuyun.",
+    "Using TryDos": "TryDos'u Kullanmak",
+    "You agree to use TryDos lawfully, to provide accurate account information, and to respect the rights of boutiques, sellers and other shoppers.":
+      "TryDos'u yasalara uygun kullanmayı, doğru hesap bilgileri sağlamayı ve butiklerin, satıcıların ve diğer alışverişçilerin haklarına saygı göstermeyi kabul edersiniz.",
+    "Orders & Payments": "Siparişler ve Ödemeler",
+    "All orders are subject to availability and confirmation. Prices, fees and delivery times are shown at checkout and may vary by country.":
+      "Tüm siparişler, stok durumuna ve onaya tabidir. Fiyatlar, ücretler ve teslimat süreleri ödeme sırasında gösterilir ve ülkeye göre değişebilir.",
+    "Contact the TryDos team for help with your order, account, or to learn about selling on the platform as a boutique.":
+      "Siparişiniz, hesabınız konusunda yardım almak veya bir butik olarak platformda satış yapmayı öğrenmek için TryDos ekibiyle iletişime geçin.",
+    "We're here to help. Reach the TryDos team with any question about your order, account or selling on the platform.":
+      "Yardım için buradayız. Siparişiniz, hesabınız veya platformda satış yapma konusundaki her soru için TryDos ekibine ulaşın.",
+    "Customer Support": "Müşteri Desteği",
+    "For help with orders, returns or your account, contact our support team through the app or by email at support@trydos.com.":
+      "Siparişler, iadeler veya hesabınız konusunda yardım için uygulama üzerinden veya support@trydos.com e-posta adresinden destek ekibimizle iletişime geçin.",
+    "Business & Boutiques": "İş Ortaklığı ve Butikler",
+    "Interested in selling on TryDos? Get in touch and our team will guide you through joining as a boutique.":
+      "TryDos'ta satış yapmak ister misiniz? Bize ulaşın, ekibimiz butik olarak katılım sürecinde size rehberlik etsin."
 };
 
 export default translations;

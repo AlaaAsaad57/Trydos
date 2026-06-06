@@ -6,6 +6,7 @@ import {
 } from "utils/server";
 import { trydosTranslations } from "./constants-meta";
 import { General_Site_Data } from "./StructuredData/Constants";
+import { buildAlternates } from "./buildAlternates";
 import { LogServerError } from "utils/serverErrorReporter";
 import { catalog_index } from "services/elastic/INDEXES";
 import { RedisGet, RedisSet } from "serverRequests/radis";
@@ -271,9 +272,10 @@ export async function generateMetadataForListing({ params, routeBase = "filters"
   const result = {
     title: finalTitle,
     description: cleanDescription,
-    alternates: {
-      canonical: currentUrl,
-    },
+    alternates: buildAlternates(
+      lang,
+      `/${routeBase}/${filterParams?.join("/") || ""}`,
+    ),
     openGraph: {
       title: finalTitle,
       description: cleanDescription,

@@ -100,6 +100,33 @@ const waitUntilRegisteringComplete = async (): Promise<void> => {
   } catch (err) {}
 };
 
+// When a user-facing re-auth (the "verify your number" widget) is already in
+// progress, wait for it to resolve instead of starting a parallel recovery.
+// Mirrors the poll used by the chat/stories 401 path: resolves `true` once the
+// user verifies (reAuthResult === "success"), `false` if the prompt is
+// cancelled/dismissed or after the same 5-minute safety timeout.
+const waitForReAuthSuccess = (): Promise<boolean> =>
+  new Promise((resolve) => {
+    const interval = setInterval(() => {
+      const state = useAppStore.getState();
+      if (state.reAuthResult === "success") {
+        clearInterval(interval);
+        resolve(true);
+      } else if (
+        !state.shouldAuthinticated ||
+        state.reAuthResult === "cancelled"
+      ) {
+        clearInterval(interval);
+        resolve(false);
+      }
+    }, 500);
+
+    setTimeout(() => {
+      clearInterval(interval);
+      resolve(false);
+    }, 300000); // 5 minutes timeout
+  });
+
 const handleUnauthorized = async (
   server: ServerType,
   options,
@@ -121,9 +148,26 @@ const handleUnauthorized = async (
           server === "market"
         ) {
           const { useAppStore } = await import("../store");
+          const { isRegisteringReady, shouldAuthinticated, reAuthResult } =
+            useAppStore.getState();
+
+          // A user-facing verification (the "verify your number" widget) is
+          // already in progress — typically triggered by a concurrent
+          // chat/stories/need_auth request on the same (expired) page load.
+          // Wait for it to finish and retry with the freshly issued token,
+          // instead of starting a parallel guest re-register (ExpiredUser),
+          // which would delete the just-verified MARKET token and force a
+          // second prompt at checkout. Scoped to market(-dashboard) so the
+          // /api/auth/login retry path (server === "local") is untouched.
+          if (
+            (server === "market" || server === "market-dashboard") &&
+            (shouldAuthinticated || reAuthResult === "pending")
+          ) {
+            return await waitForReAuthSuccess();
+          }
+
           // If a registration/expire is already in progress, wait for it
           // instead of starting another one
-          const { isRegisteringReady } = useAppStore.getState();
           if (!isRegisteringReady) {
             await waitUntilRegisteringComplete();
             return true;

@@ -1479,7 +1479,51 @@ const translations = {
     "Create Story": "دروستکردنی چیرۆک",
     "Microphone not detected or permission denied": "مایکڕۆفۆن نەدۆزرایەوە یان مۆڵەتەکە ڕەتکرایەوە",
     "Photo": "وێنە",
-    "Video": "ڤیدیۆ"
+    "Video": "ڤیدیۆ",
+    "Privacy Policy": "سیاسەتی تایبەتمەندی",
+    "Contact Us": "پەیوەندیمان پێوە بکە",
+    "Compare": "بەراورد",
+    "About TryDos": "دەربارەی ترایدۆس",
+    "TryDos is a multilingual live-shopping marketplace connecting boutiques and shoppers across the region with curated fashion, beauty and lifestyle products.":
+      "ترایدۆس بازاڕێکی کڕینی ڕاستەوخۆی فرە زمانە کە بووتیک و کڕیارەکان لە ناوچەکەدا بە بەرهەمە هەڵبژێردراوەکانی مۆدا و جوانی و شێوازی ژیان دەبەستێتەوە.",
+    "TryDos is a multilingual live-shopping marketplace connecting boutiques and shoppers across the region. We bring curated fashion, beauty and lifestyle products from trusted sellers straight to your screen.":
+      "ترایدۆس بازاڕێکی کڕینی ڕاستەوخۆی فرە زمانە کە بووتیک و کڕیارەکان لە سەرانسەری ناوچەکەدا دەبەستێتەوە. بەرهەمە هەڵبژێردراوەکانی مۆدا و جوانی و شێوازی ژیان لە فرۆشیارە متمانەپێکراوەکانەوە ڕاستەوخۆ بۆ شاشەکەت دەهێنین.",
+    "Our Mission": "ئەرکی ئێمە",
+    "We make discovering and buying from independent boutiques effortless — with live video shopping, secure checkout and fast delivery, all in your local language and currency.":
+      "ئێمە دۆزینەوە و کڕین لە بووتیکە سەربەخۆکان ئاسان دەکەین — بە کڕینی ڕاستەوخۆی ڤیدیۆیی و پارەدانی پارێزراو و گەیاندنی خێرا، هەمووی بە زمان و دراوی ناوخۆیی خۆت.",
+    "Why Shop With TryDos": "بۆچی لەگەڵ ترایدۆس کڕین بکەیت",
+    "Thousands of products from verified boutiques, real-time live sales, easy returns and dedicated support in Arabic, English, Turkish and Kurdish.":
+      "هەزاران بەرهەم لە بووتیکە پشتڕاستکراوەکان، فرۆشتنی ڕاستەوخۆ، گەڕاندنەوەی ئاسان، و پشتگیری تایبەت بە عەرەبی و ئینگلیزی و تورکی و کوردی.",
+    "Read the TryDos Privacy Policy: what information we collect, how we use it, and the choices you have over your data.":
+      "سیاسەتی تایبەتمەندی ترایدۆس بخوێنەوە: چ زانیاریەک کۆدەکەینەوە، چۆن بەکاریدەهێنین، و چ هەڵبژاردنێکت هەیە دەربارەی داتاکانت.",
+    "Your privacy matters to us. This policy explains what information TryDos collects, how we use it, and the choices you have.":
+      "تایبەتمەندیت گرنگە بۆ ئێمە. ئەم سیاسەتە ڕوونی دەکاتەوە کە ترایدۆس چ زانیاریەک کۆدەکاتەوە و چۆن بەکاریدەهێنێت و چ هەڵبژاردنێکت هەیە.",
+    "Information We Collect": "ئەو زانیاریانەی کۆیاندەکەینەوە",
+    "We collect the details you provide when you create an account or place an order, along with basic device and usage data needed to operate and secure the service.":
+      "ئەو وردەکاریانە کۆدەکەینەوە کە دەیدەیت کاتێک هەژمارێک دروست دەکەیت یان داواکاریەک تۆمار دەکەیت، لەگەڵ داتای بنەڕەتی ئامێر و بەکارهێنان کە پێویستن بۆ کارپێکردن و پاراستنی خزمەتگوزاریەکە.",
+    "How We Use Your Data": "چۆن داتاکانت بەکاردەهێنین",
+    "Your data is used to process orders, personalise your experience, prevent fraud and improve TryDos. We never sell your personal information.":
+      "داتاکانت بۆ پرۆسێسکردنی داواکاریەکان و کەسایەتیکردنی ئەزموونەکەت و ڕێگریکردن لە ساختەکاری و باشترکردنی ترایدۆس بەکاردەهێنرێن. ئێمە هەرگیز زانیاریە کەسیەکانت نافرۆشین.",
+    "The TryDos Terms & Conditions covering how to use the platform, orders, payments and your responsibilities as a shopper or seller.":
+      "مەرج و ڕێساکانی ترایدۆس کە چۆنیەتی بەکارهێنانی پلاتفۆرمەکە و داواکاریەکان و پارەدانەکان و بەرپرسیاریەتیەکانت وەک کڕیار یان فرۆشیار دەگرێتەوە.",
+    "By using TryDos you agree to these terms. Please read them carefully before shopping or selling on our platform.":
+      "بە بەکارهێنانی ترایدۆس تۆ ڕازی دەبیت بەم مەرجانە. تکایە بە وردی بیانخوێنەوە پێش کڕین یان فرۆشتن لەسەر پلاتفۆرمەکەمان.",
+    "Using TryDos": "بەکارهێنانی ترایدۆس",
+    "You agree to use TryDos lawfully, to provide accurate account information, and to respect the rights of boutiques, sellers and other shoppers.":
+      "تۆ ڕازی دەبیت بە بەکارهێنانی یاسایی ترایدۆس، و دابینکردنی زانیاری دروستی هەژمار، و ڕێزگرتن لە مافی بووتیک و فرۆشیار و کڕیارەکانی تر.",
+    "Orders & Payments": "داواکاری و پارەدان",
+    "All orders are subject to availability and confirmation. Prices, fees and delivery times are shown at checkout and may vary by country.":
+      "هەموو داواکاریەکان بەستراون بە بەردەستبوون و پشتڕاستکردنەوە. نرخ و کرێ و کاتەکانی گەیاندن لە کاتی پارەدان پیشان دەدرێن و لەوانەیە بەپێی وڵات جیاواز بن.",
+    "Contact the TryDos team for help with your order, account, or to learn about selling on the platform as a boutique.":
+      "پەیوەندی بە تیمی ترایدۆسەوە بکە بۆ یارمەتی دەربارەی داواکاری یان هەژمارەکەت، یان بۆ زانینی زیاتر دەربارەی فرۆشتن لەسەر پلاتفۆرمەکە وەک بووتیک.",
+    "We're here to help. Reach the TryDos team with any question about your order, account or selling on the platform.":
+      "ئێمە لێرەین بۆ یارمەتیدانت. پەیوەندی بە تیمی ترایدۆسەوە بکە بۆ هەر پرسیارێک دەربارەی داواکاری یان هەژمار یان فرۆشتن لەسەر پلاتفۆرمەکە.",
+    "Customer Support": "پشتگیری کڕیار",
+    "For help with orders, returns or your account, contact our support team through the app or by email at support@trydos.com.":
+      "بۆ یارمەتی دەربارەی داواکاری یان گەڕاندنەوە یان هەژمارەکەت، پەیوەندی بە تیمی پشتگیریمانەوە بکە لە ڕێگەی ئەپەکە یان بە ئیمەیڵ support@trydos.com.",
+    "Business & Boutiques": "بازرگانی و بووتیکەکان",
+    "Interested in selling on TryDos? Get in touch and our team will guide you through joining as a boutique.":
+      "ئارەزووی فرۆشتنت لەسەر ترایدۆس هەیە؟ پەیوەندیمان پێوە بکە و تیمەکەمان ڕێنماییت دەکات بۆ بەشداریکردن وەک بووتیک."
 };
 
 export default translations;

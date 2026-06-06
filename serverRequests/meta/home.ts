@@ -4,6 +4,7 @@ import { trydosTranslations } from "./constants-meta";
 import { getRobotsConfig } from "utils/server";
 import { mapLocaleToBCP47 } from "./StructuredData/utils";
 import { General_Site_Data } from "./StructuredData/Constants";
+import { buildAlternates } from "./buildAlternates";
 import { LogServerError } from "utils/serverErrorReporter";
 import { catalog_index } from "services/elastic/INDEXES";
 let client = elasticSearchComment;
@@ -59,16 +60,7 @@ export async function GetHomeMetaData({ local, category = null }) {
       shortcut: "/favicon.ico",
       apple: "/favicon.ico",
     },
-    alternates: {
-      canonical: fullUrl,
-      languages: {
-        en: `${baseUrl}/${country}-en${path}`,
-        ar: `${baseUrl}/${country}-ar${path}`,
-        tr: `${baseUrl}/${country}-tr${path}`,
-        ku: `${baseUrl}/${country}-ku${path}`,
-        "x-default": `${baseUrl}/${country}-en${path}`,
-      },
-    },
+    alternates: buildAlternates(`${country}-${lang}`, path),
     robots: getRobotsConfig({
       index: true,
       follow: true,

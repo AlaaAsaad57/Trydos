@@ -8,7 +8,7 @@ import { Suspense } from "react";
 import Skeleton from "react-loading-skeleton";
 import { translateFunction } from "utils/server";
 import { getCountryNameByIso2 } from "utils/countryData";
-import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
+import { buildAlternates } from "serverRequests/meta/buildAlternates";
 import RouterRefresh from "components/global/RouterRefresh";
 
 import { GetOrders, getWallet } from "serverRequests/settings";
@@ -28,9 +28,7 @@ export async function generateMetadata({ params }) {
       "Manage your account settings and preferences.",
       language,
     ),
-    alternates: {
-      canonical: `${General_Site_Data.url}/${Params.lang}/setting`,
-    },
+    alternates: buildAlternates(Params.lang, "/settings"),
   };
   return metadata;
 }
@@ -60,19 +58,29 @@ async function page({ params }) {
       href: `/${Params?.lang}/settings/prefferences`,
     },
     {
-      name: "Terms & Conditions",
-      Icon: `/icons/TermsIcon.svg`,
-      href: `/${Params?.lang}/settings/terms`,
-    },
-    {
-      name: "Legal Information",
-      Icon: `/icons/LegalInfoIcon.svg`,
-      href: `/${Params?.lang}/settings/legalInfo`,
-    },
-    {
       name: "About Us",
       Icon: `/icons/AboutIcon.svg`,
-      href: `/${Params?.lang}/settings/about`,
+      href: `/${Params?.lang}/about`,
+    },
+    {
+      name: "Privacy Policy",
+      Icon: `/icons/privacyicon.svg`,
+      href: `/${Params?.lang}/privacy-policy`,
+    },
+    {
+      name: "Terms & Conditions",
+      Icon: `/icons/TermsIcon.svg`,
+      href: `/${Params?.lang}/terms-of-service`,
+    },
+    {
+      name: "Contact Us",
+      Icon: `/icons/ContactInfoIcon.svg`,
+      href: `/${Params?.lang}/contact`,
+    },
+    {
+      name: "Compare",
+      Icon: `/icons/FilterInfoIcon.svg`,
+      href: `/${Params?.lang}/compare`,
     },
     {
       name: "Share App",

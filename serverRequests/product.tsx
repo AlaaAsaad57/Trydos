@@ -21,6 +21,7 @@ import {
 import FaqItemComponent from "components/Server/product/ProductFAQSection/FaqItemComponent";
 import { LogServerError } from "utils/serverErrorReporter";
 import { General_Site_Data } from "./meta/StructuredData/Constants";
+import { buildAlternates } from "./meta/buildAlternates";
 import {
   comments_index,
   comments_interactions_index,
@@ -94,6 +95,7 @@ interface QtyProductData {
   shipping_cost_multiply_with_quantity: boolean;
   shipping_cost: number;
   shipping_days: number;
+  allow_return_in_days: number;
   price: number;
   is_luck: boolean;
   luck_price: number;
@@ -327,14 +329,10 @@ export async function GetProductMeta({
     let data: Metadata = {
       title: title,
       description,
-      alternates: {
-        canonical: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
-        languages: {
-          en: `${General_Site_Data.url}/${country}-en/products/${slug}`,
-          tr: `${General_Site_Data.url}/${country}-tr/products/${slug}`,
-          ar: `${General_Site_Data.url}/${country}-ar/products/${slug}`,
-        },
-      },
+      alternates: buildAlternates(
+        `${country}-${language}`,
+        `/products/${slug}`,
+      ),
       openGraph: {
         title: title,
         description,

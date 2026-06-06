@@ -20,6 +20,13 @@ const localeMap: Record<string, string> = {
   "lb-en": "en-LB",
   "lb-tr": "tr-LB",
   "lb-ku": "ku-LB",
+
+  // gb is the default country (see proxy.ts) — map it so the fallback locale resolves
+  // to a real BCP47 tag instead of warning and defaulting to en-US.
+  "gb-ar": "ar-GB",
+  "gb-en": "en-GB",
+  "gb-tr": "tr-GB",
+  "gb-ku": "ku-GB",
 };
 
 export function mapLocaleToBCP47(locale: string): string {

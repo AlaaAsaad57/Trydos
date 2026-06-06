@@ -14,6 +14,7 @@ import PageLoadingIndicator from "hooks/PageLoadingIndicator";
 import Organaization from "serverRequests/meta/StructuredData/Organaization";
 import Website from "serverRequests/meta/StructuredData/Website";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
+import { mapLocaleToBCP47 } from "serverRequests/meta/StructuredData/utils";
 import PathTracker from "components/PathTracker";
 import ModalSlot from "components/ModalRoute/ModalSlot";
 // Non-critical, render-null / post-hydration client components — code-split and
@@ -96,9 +97,12 @@ export default async function RootLayout({ params, children, modal }) {
         quicksand_semibold.variable,
         "overflow-x-hidden",
       ].join(" ")}
-      lang={lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
+      lang={mapLocaleToBCP47(lang)}
+      dir={language === "ar" || language === "ku" ? "rtl" : "ltr"}
     >
-      <body className={lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
+      <body
+        className={language === "ar" || language === "ku" ? "text-rtl" : ""}
+      >
         <Organaization local={lang} />
         <Website local={lang} />
         <Script
