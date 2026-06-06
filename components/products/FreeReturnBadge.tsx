@@ -88,7 +88,9 @@ async function FreeReturnBadge({ qtyPricePromise, language, isRtl }) {
               <span>{translateFunction("Return Guarantee", language)}</span>
               <span className="text-[#1d1d1d] regular text-[9px]">
                 {translateFunction("within", language)}
-                {allowReturnInDays}
+               <span className="medium m-1">
+                 {allowReturnInDays}
+               </span>
                 {translateFunction(
                   "Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And",
                   language,
