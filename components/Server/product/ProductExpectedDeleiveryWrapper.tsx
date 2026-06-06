@@ -22,6 +22,7 @@ async function ProductExpectedDeleiveryWrapper({
       country={country}
       language={language}
       shipping_days={productData?.shipping_days}
+      allow_return_in_days={productData?.allow_return_in_days}
     >
       <img src="/icons/expectedDelevery.svg" className="w-[30px] h-[30px]" />
       <span className="flex-row gap-[12px] items-center">

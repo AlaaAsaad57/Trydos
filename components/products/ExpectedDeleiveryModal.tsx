@@ -8,7 +8,15 @@ import { useParams } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
 import ThinSepartor from "components/global/ThinSepartor";
 import { GetCountries } from "serverRequests/product";
-function ExpectedDeleiveryModal({ shipping_days }: { shipping_days: number }) {
+function ExpectedDeleiveryModal({
+  shipping_days,
+  allow_return_in_days = 0,
+}: {
+  shipping_days: number;
+  allow_return_in_days?: number;
+}) {
+  // Backend signals "no returns" with 0 — hide the return sections entirely.
+  const canReturn = Number(allow_return_in_days) > 0;
   const [countriesData, setCountries] = useState([]);
   const { lang } = useParams();
   const [country, language] = (lang as string)?.split("-");
@@ -223,57 +231,63 @@ function ExpectedDeleiveryModal({ shipping_days }: { shipping_days: number }) {
                 </span>
               </div>
             </div>
-            <div className="flex-col gap-[8px] mt-[10px]">
-              <img
-                src="/icons/ReturnGurantee.svg"
-                className="w-[30px] h-[30px]"
-              />
-              <div className="flex-col">
-                <span className="bold">
-                  {translateFunction("Delivery Guarantee", language)}
-                </span>
-                <span>
-                  {translateFunction("within", language)}
-                  <span className="px-[3px] bold">
-                    {(settings?.["starting_setting"]?.shipping_duration_days ||
-                      0) + shipping_days}
-                  </span>
-                  <span>
-                    {translateFunction(
-                      "Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back",
-                      language,
-                    )}
-                  </span>
-                </span>
-                <span className="flex gap-[4px] mt-[5px]">
+            {canReturn && (
+              <>
+                <div className="flex-col gap-[8px] mt-[10px]">
                   <img
-                    src="/icons/RefundIcon.svg"
+                    src="/icons/ReturnGurantee.svg"
                     className="w-[30px] h-[30px]"
                   />
-                  <p>
-                    <span>{translateFunction("Get a")}</span>
-                    <span className="text-[#388CFF] medium px-[4px]">
-                      {translateFunction("Full", language)}
+                  <div className="flex-col">
+                    <span className="bold">
+                      {translateFunction("Return Guarantee", language)}
                     </span>
-                    {translateFunction("Product Price When Returned")}
-                  </p>
-                </span>
-              </div>
-            </div>
-            <div className="flex-col gap-[8px] mt-[10px]">
-              <img src="/icons/RedBigTruck.svg" className="w-[30px] h-[30px]" />
-              <div className="flex-col">
-                <span className="bold">
-                  {translateFunction("Free Return", language)}
-                </span>
-                <span>
-                  {translateFunction(
-                    "Return Is Completely Free Without Any Extras",
-                    language,
-                  )}
-                </span>
-              </div>
-            </div>
+                    <span>
+                      {translateFunction("within", language)}
+                      <span className="px-[3px] bold">
+                        {Number(allow_return_in_days)}
+                      </span>
+                      <span>
+                        {translateFunction(
+                          "Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back",
+                          language,
+                        )}
+                      </span>
+                    </span>
+                    <span className="flex gap-[4px] mt-[5px]">
+                      <img
+                        src="/icons/RefundIcon.svg"
+                        className="w-[30px] h-[30px]"
+                      />
+                      <p>
+                        <span>{translateFunction("Get a")}</span>
+                        <span className="text-[#388CFF] medium px-[4px]">
+                          {translateFunction("Full", language)}
+                        </span>
+                        {translateFunction("Product Price When Returned")}
+                      </p>
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-col gap-[8px] mt-[10px]">
+                  <img
+                    src="/icons/RedBigTruck.svg"
+                    className="w-[30px] h-[30px]"
+                  />
+                  <div className="flex-col">
+                    <span className="bold">
+                      {translateFunction("Free Return", language)}
+                    </span>
+                    <span>
+                      {translateFunction(
+                        "Return Is Completely Free Without Any Extras",
+                        language,
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </BottomSheet>
       )}

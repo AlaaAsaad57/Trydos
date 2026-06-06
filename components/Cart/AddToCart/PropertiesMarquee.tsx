@@ -5,7 +5,9 @@ import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { formatTimeForAddress } from "utils/tinyUtils";
 
-function PropertiesMarquee({ shipping_cost, languageVariable, shippingDays, country_shipping_days = 0 }) {
+function PropertiesMarquee({ shipping_cost, languageVariable, shippingDays, country_shipping_days = 0, allowReturnInDays = 0 }) {
+  // Backend signals "no returns" with 0 — hide the return badge entirely.
+  const canReturn = Number(allowReturnInDays) > 0;
   const { settings } = useAppStore();
   const marqueeRef = useRef(null);
 
@@ -102,15 +104,21 @@ function PropertiesMarquee({ shipping_cost, languageVariable, shippingDays, coun
             <span>{translateFunction("Free Shipping", languageVariable)}</span>
           </div>
         )}
-        <div className="product-prop-item m-0 flex-none">
-          <img
-            width={15}
-            height={15}
-            alt={translateFunction("truck", languageVariable)}
-            src="/icons/redtruck.svg"
-          />
-          <span>{translateFunction("Free Return", languageVariable)}</span>
-        </div>
+        {canReturn && (
+          <div className="product-prop-item m-0 flex-none">
+            <img
+              width={15}
+              height={15}
+              alt={translateFunction("truck", languageVariable)}
+              src="/icons/redtruck.svg"
+            />
+            <span>
+              {translateFunction("Free Return", languageVariable)}{" "}
+              <span className="medium">{Number(allowReturnInDays)}</span>{" "}
+              {translateFunction("Days", languageVariable)}
+            </span>
+          </div>
+        )}
         <div className="product-prop-item m-0 flex-none">
           <Image
             src={"/icons/DeleiverIcon.svg"}

@@ -604,6 +604,8 @@ const translations = {
   "Delivery Guarantee": "ضمان التسليم",
   Delivery: "توصيل",
   "Return Guarantee": "ضمان الاسترجاع",
+  within: "خلال",
+  Days: "أيام",
   "Secure Privacy": "الخصوصية الآمنة",
   "Safe & Easy Payment": "دفع آمن وسهل",
   "Purshase Protection": "حماية المشتريات",

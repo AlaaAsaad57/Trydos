@@ -594,6 +594,8 @@ const translations = {
   "Delivery Guarantee": "گەرەنتی گەیاندن",
   Delivery: "گەیاندن",
   "Return Guarantee": "گەرەنتی گەڕاندنەوە",
+  within: "لە ماوەی",
+  Days: "ڕۆژ",
   "Secure Privacy": "پاراستنی نهێنی",
   "Safe & Easy Payment": "پارەدانی ئاسان و سەلامەت",
   "Purshase Protection": "پاراستنی کڕینەکان",

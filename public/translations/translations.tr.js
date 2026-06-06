@@ -535,6 +535,8 @@ const translations = {
   "Quantity Running Out.": "Miktar Bitiyor.",
   "Hurry Up! Quantity Running Out.": "Hızlıca Alın! Miktar Bitiyor.",
   "Return Guarantee": "İade Garantisi",
+  within: "içinde",
+  Days: "Gün",
   "Delivery Guarantee": "Teslimat Garantisi",
   "Secure Privacy": "Güvenli Gizlilik",
   "Safe Payment": "Güvenli Ödeme",

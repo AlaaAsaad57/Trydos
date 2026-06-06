@@ -16,6 +16,7 @@ function PricesRow({
   language,
   noBorder = false,
   is_luck,
+  allow_return_in_days = 0,
 }) {
   const shouldShowLuck = () => {
     if (typeof window === "undefined") return false;
@@ -241,6 +242,7 @@ function PricesRow({
         languageVariable={language}
         shipping_cost={shipping_cost}
         shippingDays={shipping_days}
+        allowReturnInDays={allow_return_in_days}
       />
       {!noBorder && (
         <svg

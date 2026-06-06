@@ -6,13 +6,17 @@ function ExpectedDeleiveryBanner({
   language,
   country,
   shipping_days,
+  allow_return_in_days = 0,
 }) {
   const { setColorBottomSheet } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
   return (
     <>
-      <ExpectedDeleiveryModal shipping_days={shipping_days} />
+      <ExpectedDeleiveryModal
+        shipping_days={shipping_days}
+        allow_return_in_days={allow_return_in_days}
+      />
       <div
         className={`${
           isRtl && "items-end"

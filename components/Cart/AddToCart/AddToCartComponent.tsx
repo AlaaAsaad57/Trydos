@@ -865,6 +865,9 @@ function AddToCartComponent({ product, slug, color }) {
           }
           shipping_cost={product?.shipping_cost}
           shipping_days={ProductData?.shipping_days ?? product?.shipping_days}
+          allow_return_in_days={
+            ProductData?.allow_return_in_days ?? product?.allow_return_in_days
+          }
         />
         <ExtraInfoArea
           colors={ProductData?.sync_color_images}
