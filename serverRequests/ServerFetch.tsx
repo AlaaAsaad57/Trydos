@@ -101,9 +101,20 @@ const createServerFetch = async <T = any,>({
 
       // If we've exhausted retries or it's not a retryable error, return error
       const errorText = await response.text();
+      const message = `HTTP ${response.status} ${url}: ${(errorText || "").substring(0, 500)}`;
+      // A non-OK backend response is a real failure — record it (network-only
+      // logging in the catch below previously left these untracked).
+      LogServerError({
+        scenario: "fetchServerData non-OK HTTP",
+        message,
+        url,
+        status: response.status,
+        request_server: "market",
+        local,
+      });
       return {
         data: null,
-        error: `HTTP ${response.status}: ${errorText}`,
+        error: message,
         status: response.status,
         isError: true,
         url: url,

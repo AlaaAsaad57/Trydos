@@ -408,6 +408,14 @@ export async function GetProductGeneralData({ id }) {
       });
       return (res._source as any)?.view_count ?? 0;
     } catch (error) {
+      // A 404 just means this product has no view-count doc yet — not an error.
+      const statusCode = (error as any)?.statusCode ?? (error as any)?.meta?.statusCode;
+      if (statusCode !== 404) {
+        LogServerError(
+          { error, type: "getProductViewsQuery (elastic) failed", productId },
+          "/",
+        );
+      }
       return 0;
     }
   };

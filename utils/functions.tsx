@@ -468,6 +468,10 @@ export const GetCartOreview = async () => {
   }
 };
 export const LogError = async (error) => {
+  // LogError is frequently called un-awaited (fire-and-forget). Guard the whole
+  // body so a failure inside enrichment/reporting can never surface as an
+  // unhandled rejection (which the global listeners would then try to log).
+  try {
   if (typeof window !== "undefined") {
     let { LoggingOut } = useAppStore.getState();
     if (LoggingOut) return;
@@ -522,37 +526,47 @@ export const LogError = async (error) => {
   };
   ReportError(Error_Object);
   await storeError(Error_Object);
+  } catch {
+    // ignore — error logging is best-effort and must never throw
+  }
 };
 export async function storeError(error) {
-  const safeError = serializeUnknownForErrorLog(error ?? {});
-  if (typeof window !== "undefined") {
-    await fetch("/api/internal/mobile-error-log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: safeError }),
-      credentials: "include",
-    });
-  } else {
-    await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store",
-      {
+  // The logging path must never throw or reject. A failed log POST that bubbled
+  // up would become an unhandled rejection — which the global error listeners
+  // would then try to log, risking a loop. Swallow every failure here.
+  try {
+    const safeError = serializeUnknownForErrorLog(error ?? {});
+    if (typeof window !== "undefined") {
+      await fetch("/api/internal/mobile-error-log", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          error_description: JSON.stringify({
-            platform: "\u{1F6D1}WEB\u{1F6D1}",
-            ...(typeof safeError === "object" &&
-            safeError !== null &&
-            !Array.isArray(safeError)
-              ? (safeError as Record<string, unknown>)
-              : { payload: safeError }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: safeError }),
+        credentials: "include",
+      }).catch(() => {});
+    } else {
+      await fetch(
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            error_description: JSON.stringify({
+              platform: "\u{1F6D1}WEB\u{1F6D1}",
+              ...(typeof safeError === "object" &&
+              safeError !== null &&
+              !Array.isArray(safeError)
+                ? (safeError as Record<string, unknown>)
+                : { payload: safeError }),
+            }),
+            credentials: "omit",
           }),
-          credentials: "omit",
-        }),
-      },
-    );
+        },
+      ).catch(() => {});
+    }
+  } catch {
+    // ignore — logging must be best-effort
   }
 }
 export const WaitForCondition = async () => {

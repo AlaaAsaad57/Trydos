@@ -6,6 +6,7 @@ import PopupCountry from "utils/PopupCountry";
 import home from "services/home";
 
 import { LogError, translateFunction } from "utils/functions";
+import { installGlobalErrorListeners } from "utils/globalErrorListeners";
 import { smartlookInit, smartlookIdentify } from "utils/smartlook";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import NotificationWidget from "components/global/NotificationWidget";
@@ -25,6 +26,12 @@ function Init() {
   // Initialize login check once
   useEffect(() => {
     HomeService.CheckLogin();
+  }, []);
+
+  // Capture uncaught client errors / promise rejections so they reach both
+  // Sentry and the backend mobile_error_log (and become simulatable). Idempotent.
+  useEffect(() => {
+    installGlobalErrorListeners();
   }, []);
 
   const getCountries = async () => {

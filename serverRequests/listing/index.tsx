@@ -128,6 +128,7 @@ export async function GetProducts({
   recomended_offset = null,
   sizes_filters = null,
 }) {
+  try {
   let response = await getProductsAndFiltersFromElastic({
     country,
     language_code: language,
@@ -245,6 +246,18 @@ export async function GetProducts({
       brand_id: s?.brand?.id,
     })),
   };
+  } catch (error) {
+    LogServerError(
+      { error, scenario: "GetProducts (elastic) failed", country, language },
+      "/",
+    );
+    return {
+      items: [],
+      offset: undefined,
+      recomended_offset: undefined,
+      GA_PRODUCTS_LIST: [],
+    };
+  }
 }
 
 export async function GetNextPageFilters({

@@ -195,6 +195,21 @@ export async function GET(request: NextRequest) {
         ...walletRes,
       });
     }
+    // Record any sub-service login failure so it reaches Sentry + mobile_error_log
+    // (previously these were only surfaced via console.log / the response body).
+    if (failures.length > 0) {
+      await LogServerError(
+        {
+          scenario: "login sub-service failure",
+          message: `Login sub-service(s) failed: ${failures
+            .map((f) => f.endpoint)
+            .join(", ")}`,
+          failures,
+          user_id: String(InventoryUser?.id),
+        },
+        "/api/auth/login",
+      );
+    }
     // 5. Set token cookies as HttpOnly (tokens NEVER reach client JS)
     const tokensToSet = [
       { name: COOKIE_NAMES.MARKET_TOKEN, value: MainToken },

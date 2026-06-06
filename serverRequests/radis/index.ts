@@ -53,6 +53,10 @@ export async function storeProduct(product, slug, lang, country) {
     return { success: true, timeMs: Number(end - start) / 1_000_000 };
   } catch (err) {
     console.error("Redis SET failed", { productKey, slugKey, err });
+    LogServerError(
+      { error: err, type: "redis storeProduct failed", productKey, slugKey },
+      "/",
+    );
   }
 }
 
@@ -87,6 +91,7 @@ export async function getProductFromCache(slug, lang, country) {
     };
   } catch (err) {
     console.error("Redis GET failed", { slugKey, err });
+    LogServerError({ error: err, type: "redis getProductFromCache failed", slugKey }, "/");
     throw err;
   }
 }
@@ -124,6 +129,7 @@ export async function RedisGet(key) {
     const cachedProduct = await redis.get(key);
     return cachedProduct ? JSON.parse(cachedProduct) : null;
   } catch (e) {
+    LogServerError({ error: e, type: "redis RedisGet failed", key }, "/");
     return null;
   }
 }
@@ -132,13 +138,16 @@ export async function RedisSet(key, value, ttl?: number) {
     const effectiveTtl =
       ttl ?? Number(process.env.PRODUCT_REDIS_TTL_SECONDS) ?? 86400;
     await redis.set(key, JSON.stringify(value), "EX", effectiveTtl);
-  } catch (error) {}
+  } catch (error) {
+    LogServerError({ error, type: "redis RedisSet failed", key }, "/");
+  }
 }
 export async function removeRedis(key) {
   try {
     await redis.del(key);
   } catch (error) {
     console.error(error);
+    LogServerError({ error, type: "redis removeRedis failed", key }, "/");
     return;
   }
 }
@@ -146,10 +155,17 @@ export async function getKeys(keyword) {
   try {
     let keys = await redis.keys(keyword);
     return keys;
-  } catch (error) {}
+  } catch (error) {
+    LogServerError({ error, type: "redis getKeys failed", keyword }, "/");
+  }
 }
 
 export async function GetFromRedis(key) {
-  let result = await redis.get(key);
-  return result;
+  try {
+    let result = await redis.get(key);
+    return result;
+  } catch (error) {
+    LogServerError({ error, type: "redis GetFromRedis failed", key }, "/");
+    throw error;
+  }
 }
