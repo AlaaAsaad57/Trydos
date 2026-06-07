@@ -119,6 +119,16 @@ let nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: "5mb",
+      // Server Actions (e.g. the OTP send action) are same-origin enforced by
+      // Next.js: the Origin header must match an allowed host or the action is
+      // rejected with 403. Same-origin is always allowed; these entries cover
+      // trusted forwarded hosts behind the platform proxy. Wildcards supported.
+      allowedOrigins: [
+        "trydos.tech",
+        "*.trydos.tech",
+        "*.ramaaz.dev",
+        "localhost:3000",
+      ],
     },
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],

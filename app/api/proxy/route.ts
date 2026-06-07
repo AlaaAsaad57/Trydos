@@ -6,10 +6,30 @@ import {
   logSecureRequest,
   getTokenForServer,
 } from "utils/server/tokenManager";
+import { isSameOrigin, verifyGuardToken } from "utils/server/requestGuard";
 import { LogServerError } from "utils/serverErrorReporter";
 
 export async function POST(request: NextRequest) {
   try {
+    // 0. Gate: only our own site may use the proxy.
+    //    (a) Same-origin — Origin/Referer host must be one of ours. Browsers
+    //        cannot forge Origin, so this blocks cross-site/CSRF replay.
+    //    (b) HMAC guard — the x-guard token (from /api/guard) must verify.
+    //        Defeats Origin-spoofing scripts. Fails open only if the secret is
+    //        unset. A 419 tells the client to refresh its token and retry once.
+    if (!isSameOrigin(request)) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    if (!verifyGuardToken(request.headers.get("x-guard"))) {
+      return NextResponse.json(
+        { error: "Invalid or expired guard token" },
+        { status: 419, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
     // 1. Read proxy metadata from headers
     const server = request.headers.get("x-proxy-server") || "";
     let targetUrl = request.headers.get("x-proxy-url") || "";

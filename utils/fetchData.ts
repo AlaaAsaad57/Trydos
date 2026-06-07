@@ -11,6 +11,7 @@ import auth from "../services/auth";
 import { COOKIE_NAMES, getCookie } from "./cookies/cookie-manager";
 import { logRequest } from "./requestLoggerClient";
 import { useAppStore } from "../store";
+import { getGuardToken, clearGuardToken } from "./guardClient";
 
 // ---------- Types ----------
 type ServerType =
@@ -350,6 +351,12 @@ export const fetchData = async <T = any>(
           "x-need-decode":"true"
         };
 
+        // Same-origin guard token — proves the call comes from our own site.
+        const guardToken = await getGuardToken();
+        if (guardToken) {
+          proxyHeaders["x-guard"] = guardToken;
+        }
+
         if (sellerId) {
           proxyHeaders["x-seller-id"] = sellerId;
         }
@@ -376,6 +383,14 @@ export const fetchData = async <T = any>(
       }
 
       status = res.status;
+
+      // Guard token missing/expired at the proxy — refresh it once and retry.
+      if (status === 419 && !isRetryAfterUnauthorized) {
+        clearGuardToken();
+        await getGuardToken(true);
+        return fetchData<T>(params, true);
+      }
+
       try {
         responseData = await res.json();
       } catch (e) {}

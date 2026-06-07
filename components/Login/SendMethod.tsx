@@ -7,6 +7,8 @@ import { useAppStore } from "store";
 import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import PhoneNumberError from "./PhoneNumberError";
+import Timer from "./Timer";
+import { getNumberLockRemaining, isSessionCapReached } from "utils/otpLocks";
 
 function SendMethod({
   inputValue,
@@ -28,6 +30,23 @@ function SendMethod({
   };
 
   const [loading, setLoading] = useState(false);
+
+  // Persisted OTP lock (survives back/forward navigation, mirrors the server).
+  // `lockRemaining` > 0 → number is in cooldown; `capReached` → 2-number/hour
+  // session cap hit for a new number. Either one disables the send buttons.
+  const [lockRemaining, setLockRemaining] = useState(0);
+  const [capReached, setCapReached] = useState(false);
+  useEffect(() => {
+    const sync = () => {
+      setLockRemaining(getNumberLockRemaining(inputValue));
+      setCapReached(isSessionCapReached(inputValue));
+    };
+    sync();
+    const id = setInterval(sync, 1000);
+    return () => clearInterval(id);
+  }, [inputValue, stepIndicator]);
+  const blocked = lockRemaining > 0 || capReached;
+
   const SendOtpHook = async ({
     errorCallback,
     mobilePhone,
@@ -288,9 +307,9 @@ function SendMethod({
         <div
           data-cy="whatssapp-way"
           data-testid={`message-whatsapp-option`}
-          className={`${loading && "opacity-55"} message-recieve-option`}
+          className={`${(loading || blocked) && "opacity-55"} message-recieve-option`}
           onClick={() => {
-            if (!loading) {
+            if (!loading && !blocked) {
               setLoading(true);
               setMessageMethod("WA");
               SendCodeRequest("1");
@@ -358,9 +377,9 @@ function SendMethod({
         <div
           data-cy="message-way"
           data-testid="message-sms-option"
-          className={`${loading && "opacity-55"} message-recieve-option`}
+          className={`${(loading || blocked) && "opacity-55"} message-recieve-option`}
           onClick={() => {
-            if (!loading) {
+            if (!loading && !blocked) {
               setLoading(true);
               setMessageMethod("SMS");
 
@@ -442,6 +461,35 @@ function SendMethod({
             setLoading(false);
           }}
         />
+      )}
+      {!wrongNumber && lockRemaining > 0 && (
+        <div
+          data-cy="otp-cooldown"
+          className="blue-text"
+          style={{ color: "#ff5f61", fontSize: "12px", marginTop: "10px" }}
+        >
+          <span className="mx-[4px]">{translate("Wait", language)}</span>
+          <Timer
+            minutes={0}
+            seconds={lockRemaining}
+            onFinish={() => setLockRemaining(0)}
+          />
+          <span className="mx-[4px]">
+            {translate("before trying again", language)}
+          </span>
+        </div>
+      )}
+      {!wrongNumber && lockRemaining === 0 && capReached && (
+        <div
+          data-cy="otp-cap-reached"
+          className="blue-text"
+          style={{ color: "#ff5f61", fontSize: "12px", marginTop: "10px" }}
+        >
+          {translate(
+            "Too many verification requests, please try again later",
+            language,
+          )}
+        </div>
       )}
     </div>
   );

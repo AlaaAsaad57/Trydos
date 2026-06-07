@@ -1,7 +1,8 @@
 import { useAppStore } from "store";
 import { smartlookIdentify } from "utils/smartlook";
 import { _isStoreLastJson, LogError, translateFunction } from "utils/functions";
-import { SEND_OTP } from "utils/endpointConfig";
+import { sendOtpAction } from "serverActions/sendOtp";
+import { lockNumber, recordSessionNumber } from "utils/otpLocks";
 
 import StoryService from "services/story";
 import home from "./home";
@@ -66,28 +67,31 @@ class AuthService {
     let msg = "";
     const { setVerificationId, setWrongNumber } = useAppStore.getState();
     try {
-      let response = await fetchData({
-        url: SEND_OTP,
-        method: "POST",
-        body: {
-          phone: `+${normalizePhone(mobilePhone)}`,
-          is_via_whatsapp: is_via_whatsapp,
-        },
-        server: "market",
-        reqTitle: REQUESTS_DATA.SEND_OTP,
+      // Routed through a Server Action (serverActions/sendOtp): the OTP endpoint
+      // never appears in the Network tab, and the Redis rate limit + same-origin
+      // checks run server-side before the backend is ever called.
+      const response = await sendOtpAction({
+        phone: mobilePhone,
+        isWhatsapp: is_via_whatsapp,
       });
 
       msg = response.message;
-      if (!response.success) {
-        throw new Error(response.message);
+
+      if (response.success && response.verificationId) {
+        setVerificationId(response.verificationId);
+        // Mirror the server lock client-side so the button stays disabled and
+        // the cooldown survives back/forward navigation.
+        lockNumber(mobilePhone, response.lockSeconds || 120);
+        recordSessionNumber(mobilePhone);
+        return response.verificationId;
       }
-      if (response.data?.verificationId) {
-        setVerificationId(response.data.verificationId);
-        return response.data.verificationId;
-      } else {
-        setWrongNumber(msg);
-        throw new Error(msg);
+
+      // Blocked by our limiter or rejected by the backend.
+      if (response.lockSeconds) {
+        lockNumber(mobilePhone, response.lockSeconds);
       }
+      setWrongNumber(msg || "Failed to send verification code");
+      throw new Error(msg || "Failed to send verification code");
     } catch (e) {
       LogServerError({
         error: e,

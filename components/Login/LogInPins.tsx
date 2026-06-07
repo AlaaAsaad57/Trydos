@@ -7,6 +7,7 @@ import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { getNumberLockRemaining } from "utils/otpLocks";
 
 function LogInPins({
   setPin,
@@ -138,6 +139,9 @@ function LogInPins({
   const [attempts, setAttempts] = useState(1);
   const ResendFunction = async () => {
     if (loading) return;
+    // Still within the per-number cooldown (e.g. user navigated back and
+    // returned) — keep the resend locked; the server would reject it anyway.
+    if (getNumberLockRemaining(inputValue) > 0) return;
 
     setAttempts(attempts + 1);
     setLoading(true);
