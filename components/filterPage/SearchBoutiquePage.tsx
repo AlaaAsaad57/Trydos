@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { DebounceInput } from "react-debounce-input/src";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { buildParamsFromFilters, pollinateInput } from "utils/tinyUtils";
 import { useAppStore } from "store";
 import { showSuccessNotification } from "store/notifications/reducer";
@@ -19,6 +19,7 @@ function SearchBoutiquePage({
   flashdeal = false,
 }) {
   const router = useRouter();
+  const pathname = usePathname();
 
   // Parse current filters from URL path
 
@@ -85,6 +86,15 @@ function SearchBoutiquePage({
         pathParams.length > 0
           ? `/${lang}/filters/${pathParams.join("/")}`
           : `/${lang}/filters`;
+
+      // Same-destination navigation is a no-op router.push: the intercepted
+      // listing never re-renders, ProductInfiniteScroll never remounts, and the
+      // is_filter_search loader (cleared only on that remount) would hang forever.
+      const currentPath = decodeURIComponent(pathname || "");
+      if (currentPath === newPath || currentPath === `${newPath}/`) {
+        return;
+      }
+
       const { setIsNavigating } = useAppStore.getState();
       setIsNavigating({
         is_filter_search: true,

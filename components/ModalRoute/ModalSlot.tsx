@@ -27,7 +27,8 @@ export default function ModalSlot({ children }: ModalSlotProps) {
   }, [pathname]);
 
   const isInterceptedRoute =
-    pathname?.includes("/filters/") || pathname?.includes("/products/");
+    !!pathname &&
+    (/\/filters(\/|$)/.test(pathname) || /\/products(\/|$)/.test(pathname));
   const shouldShowOverlay =
     children != null &&
     isInterceptedRoute &&

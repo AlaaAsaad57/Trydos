@@ -736,39 +736,28 @@ function extractFilters(
 ): ExtractFiltersResult {
   const customProducts: CustomProduct[] = [];
 
+  // One product document must yield exactly one card. A document's
+  // `custom_products` is its per-language localization set; pick the single row
+  // matching the requested language. Using `.find` (not `.forEach`) guards
+  // against duplicate localized rows for the same language in the index, which
+  // would otherwise render the same product multiple times.
   products?.forEach((product) => {
     if (product.custom_products && Array.isArray(product.custom_products)) {
-      product.custom_products.forEach((customProduct: any) => {
-        if (customProduct.language_code === languageCode) {
-          const processed = processCustomProduct(
-            product,
-            customProduct,
-            languageCode,
-            isFromBrowser,
-            country,
-          );
-          customProducts.push(processed);
-        }
-      });
+      const matchingCustomProduct = product.custom_products.find(
+        (cp: any) => cp.language_code === languageCode,
+      );
+      if (matchingCustomProduct) {
+        const processed = processCustomProduct(
+          product,
+          matchingCustomProduct,
+          languageCode,
+          isFromBrowser,
+          country,
+        );
+        customProducts.push(processed);
+      }
     }
   });
-  // products?.forEach((product) => {
-  //     if (product.custom_products && Array.isArray(product.custom_products)) {
-  //       const matchingCustomProduct = product.custom_products.find(
-  //         (cp: any) => cp.language_code === languageCode,
-  //       );
-  //       if (matchingCustomProduct) {
-  //         const processed = processCustomProduct(
-  //           product,
-  //           matchingCustomProduct,
-  //           languageCode,
-  //           isFromBrowser,
-  //           country,
-  //         );
-  //         customProducts.push(processed);
-  //       }
-  //     }
-  //   });
   let prices =
     products.length > 0 ? calculatePriceRange(products, country) : null;
   // Calculate price range
