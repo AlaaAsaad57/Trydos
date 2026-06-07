@@ -148,6 +148,7 @@ export default async function Page({ params }) {
               <ListingSearchContainer
                 country={country}
                 language={language}
+                flashdeal={true}
                 filtersPromise={filtersData}
                 parsedFilters={parsedFilters}
               />

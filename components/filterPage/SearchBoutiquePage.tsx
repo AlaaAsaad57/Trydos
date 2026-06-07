@@ -1,12 +1,23 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { DebounceInput } from "react-debounce-input/src";
 import { useRouter } from "next/navigation";
 import { buildParamsFromFilters, pollinateInput } from "utils/tinyUtils";
 import { useAppStore } from "store";
 import { showSuccessNotification } from "store/notifications/reducer";
 import { LogError } from "utils/functions";
-function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
+import { GetSearchSuggestion } from "serverRequests/Search";
+
+function SearchBoutiquePage({
+  search_text,
+  parsedFilters,
+  lang,
+  isAnalyzed,
+  country,
+  language,
+  featured = false,
+  flashdeal = false,
+}) {
   const router = useRouter();
 
   // Parse current filters from URL path
@@ -20,6 +31,19 @@ function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
       parsedFilters?.search_text?.length ??
       false,
   );
+
+  // --- Inline completion (ghost text) state -----------------------------
+  // DebounceInput debounces its onChange, so we track keystrokes directly to
+  // keep the ghost overlay in sync with what is actually visible while typing.
+  const [typedValue, setTypedValue] = useState(search_text ?? "");
+  const [suggestion, setSuggestion] = useState("");
+
+  const inputElRef = useRef<HTMLInputElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const latestSuggestionRef = useRef(0);
+  const suggestionTimeoutRef = useRef<any>(null);
+
   const onChange = (e) => {
     setSearch(e.target.value);
   };
@@ -76,6 +100,119 @@ function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
       });
     }
   };
+
+  // --- Inline completion (ghost text) — scoped to the applied filters -----
+  // Fetch the best "starts-with" completion, scoped to the active filters
+  // (category / brand / boutique / color / size / price) AND the page mode
+  // (flash deal / featured), so the suggestion matches the listing query.
+  const fetchSuggestion = useCallback(async () => {
+    const requestId = ++latestSuggestionRef.current;
+    try {
+      const res = await GetSearchSuggestion({
+        language,
+        country,
+        search_text: typedValue,
+        filters: {
+          categories: parsedFilters?.categories,
+          related_categories: parsedFilters?.related_categories,
+          brands: parsedFilters?.brands,
+          boutiques: parsedFilters?.boutiques,
+          colors: parsedFilters?.colors,
+          sizes: parsedFilters?.sizes,
+          tags_names: parsedFilters?.tags_names,
+          priceRange: parsedFilters?.prices,
+          featured: featured || undefined,
+          flashdeal: flashdeal || undefined,
+        },
+      });
+      // Race condition: only apply the latest request's result.
+      if (requestId === latestSuggestionRef.current) {
+        setSuggestion(res?.suggestion || "");
+      }
+    } catch (error) {
+      if (requestId === latestSuggestionRef.current) {
+        setSuggestion("");
+        LogError({ error, scenario: "fetchSuggestion in SearchBoutiquePage" });
+      }
+    }
+  }, [language, country, typedValue, parsedFilters, featured, flashdeal]);
+
+  // Debounce the suggestion fetch on each keystroke (best-effort, never blocks).
+  useEffect(() => {
+    if (suggestionTimeoutRef.current)
+      clearTimeout(suggestionTimeoutRef.current);
+
+    if (!typedValue || typedValue.length === 0) {
+      setSuggestion("");
+      return;
+    }
+
+    suggestionTimeoutRef.current = setTimeout(fetchSuggestion, 600);
+
+    return () => clearTimeout(suggestionTimeoutRef.current);
+  }, [typedValue, fetchSuggestion]);
+
+  // Visible ghost remainder: only when the suggestion truly extends the typed
+  // text (case-insensitive starts-with), otherwise nothing is shown.
+  const ghostSuffix =
+    typedValue.length > 0 &&
+    suggestion.toLowerCase().startsWith(typedValue.toLowerCase()) &&
+    suggestion.length > typedValue.length
+      ? suggestion.slice(typedValue.length)
+      : "";
+
+  // Glue the ghost overlay to the input box (position, size, font, padding,
+  // direction). Copying the input's computed direction keeps the remainder
+  // aligned in both LTR and RTL, so the gray text starts exactly where typing
+  // ends regardless of the input's dynamic padding/width.
+  useEffect(() => {
+    const input = inputElRef.current;
+    const overlay = overlayRef.current;
+    const container = containerRef.current;
+    if (!input || !overlay || !container) return;
+    const ir = input.getBoundingClientRect();
+    const cr = container.getBoundingClientRect();
+    const cs = getComputedStyle(input);
+    overlay.style.left = `${ir.left - cr.left}px`;
+    overlay.style.top = `${ir.top - cr.top}px`;
+    overlay.style.width = `${ir.width}px`;
+    overlay.style.height = `${ir.height}px`;
+    overlay.style.lineHeight = `${ir.height}px`;
+    overlay.style.paddingLeft = cs.paddingLeft;
+    overlay.style.paddingRight = cs.paddingRight;
+    overlay.style.fontFamily = cs.fontFamily;
+    overlay.style.fontSize = cs.fontSize;
+    overlay.style.fontWeight = cs.fontWeight;
+    overlay.style.fontStyle = cs.fontStyle;
+    overlay.style.letterSpacing = cs.letterSpacing;
+    overlay.style.direction = cs.direction;
+    overlay.style.textAlign = cs.textAlign;
+  });
+
+  const acceptSuggestion = () => {
+    if (!ghostSuffix) return false;
+    const full = typedValue + ghostSuffix;
+    const input = inputElRef.current;
+    if (input) {
+      // Drive the value through the native input-event path so DebounceInput
+      // updates its own internal display value (it doesn't read our state).
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(input, full);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      requestAnimationFrame(() => {
+        try {
+          input.setSelectionRange(full.length, full.length);
+        } catch {}
+      });
+    }
+    setTypedValue(full);
+    setSuggestion("");
+    return true;
+  };
+
   useEffect(() => {
     if (search_text?.length > 0) {
       document.querySelector<HTMLInputElement>("#searchIconBoutique")?.click();
@@ -87,6 +224,7 @@ function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
 
   return (
     <div
+      ref={containerRef}
       data-cy="searchIcon_boutiquePage"
       id="searchIconBoutique"
       className={`filter-option transition-all filter-search-option relative ${
@@ -103,9 +241,28 @@ function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
           ).style.display = "none";
       }}
     >
+      {/* Inline completion (ghost text) overlay — sits above the input; the
+          typed portion is transparent (so the real input text shows through)
+          and only the remainder renders as gray ghost text. */}
+      <div
+        ref={overlayRef}
+        aria-hidden="true"
+        className="absolute z-[5] overflow-hidden whitespace-pre pointer-events-none"
+        style={{ boxSizing: "border-box" }}
+      >
+        {focuse && ghostSuffix ? (
+          <>
+            <span className="text-transparent">{typedValue}</span>
+            <span className="text-[#c4c2c2]">{ghostSuffix}</span>
+          </>
+        ) : null}
+      </div>
       <DebounceInput
         data-cy="inputFiled"
         id="filter-search"
+        inputRef={(ref: HTMLInputElement) => {
+          inputElRef.current = ref;
+        }}
         debounceTimeout={600}
         onFocus={() => {
           document
@@ -133,12 +290,25 @@ function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
           }
         }}
         onChange={(e) => {
+          setTypedValue(e.target.value);
           if (e.target.value.length === 0) {
             onKeyDown(e);
           }
           onChange(e);
         }}
+        onKeyUp={(e: any) => setTypedValue(e.target.value)}
         onKeyDown={(e: any) => {
+          // Accept the inline completion with Tab, or ArrowRight at line end.
+          if (ghostSuffix) {
+            const atEnd =
+              e.target.selectionStart === e.target.value.length &&
+              e.target.selectionEnd === e.target.value.length;
+            if (e.key === "Tab" || (e.key === "ArrowRight" && atEnd)) {
+              e.preventDefault();
+              acceptSuggestion();
+              return;
+            }
+          }
           //@ts-ignore
           if (e.keyCode == 13) {
             onKeyDown(e);
