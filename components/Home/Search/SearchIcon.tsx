@@ -622,7 +622,7 @@ const SearchContainer = ({
   };
   return (
     <div
-      className="search-container pt-[12px] max-h-full"
+      className="search-container pt-[12px] max-h-full mx-auto left-0 right-0"
       data-cy="searchContainer"
     >
       {/* 1. Empty State: History & Trending */}
