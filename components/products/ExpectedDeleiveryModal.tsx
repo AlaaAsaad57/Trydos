@@ -63,23 +63,20 @@ function ExpectedDeleiveryModal({
       .finally(() => setLoadingTimes(false));
   }, [isOpen, product_id]);
 
-  // Build a continuous per-day distribution. The API only returns days that
-  // have orders, so we fill 1..maxDay and treat missing days as zero. Each
-  // bar's `value` is that day's share of all delivered orders (percent).
+  // Build a fixed 1..10 day distribution. We always show 10 rows: day 0 is
+  // bucketed into day 1, and anything beyond 10 days collapses into day 10.
+  // Each bar's `value` is that bucket's share of all delivered orders (percent).
   const totalOrders = deliveredOrders.reduce(
     (sum, o) => sum + (Number(o?.orders_count) || 0),
     0,
   );
-  const maxDay = deliveredOrders.reduce(
-    (max, o) => Math.max(max, Number(o?.days_count) || 0),
-    0,
-  );
-  const ordersByDay = new Map<number, number>(
-    deliveredOrders.map(
-      (o) => [Number(o?.days_count), Number(o?.orders_count) || 0] as const,
-    ),
-  );
-  const rating_arr = Array.from({ length: maxDay }, (_, i) => {
+  const ordersByDay = new Map<number, number>();
+  deliveredOrders.forEach((o) => {
+    // Clamp the raw day count into the 1..10 range before bucketing.
+    const day = Math.min(10, Math.max(1, Number(o?.days_count) || 0));
+    ordersByDay.set(day, (ordersByDay.get(day) || 0) + (Number(o?.orders_count) || 0));
+  });
+  const rating_arr = Array.from({ length: 10 }, (_, i) => {
     const day = i + 1;
     const orders = ordersByDay.get(day) || 0;
     return {
