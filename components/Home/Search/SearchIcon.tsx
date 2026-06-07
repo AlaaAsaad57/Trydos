@@ -398,7 +398,7 @@ function SearchIcon({ language, country }) {
         <img
           src="/icons/Search.svg"
           id="search-icon"
-          className={`absolute duration-[0.4s] ml-[10px] z-50 ${
+          className={`absolute duration-[0.4s] mx-[10px] z-50 ${
             focus && "black-fill"
           }`}
         />
@@ -439,7 +439,7 @@ function SearchIcon({ language, country }) {
           {searchEnabled && (
             <>
               {focus || value.length > 0 ? (
-                <div className="input-icons flex-row close-search-icon">
+                <div className={`input-icons ${isRtl?"left-[38px]":"right-[38px]"} flex-row close-search-icon`}>
                   <img
                     src="/icons/SearchCloseIcon.svg"
                     data-cy="SearchInputCloseIcon"
@@ -453,7 +453,7 @@ function SearchIcon({ language, country }) {
                   />
                 </div>
               ) : (
-                <div className="input-icons flex-row h-full">
+                <div className={`input-icons ${isRtl?"left-[38px]":"right-[38px]"} flex-row h-full`}>
                   <SearchImage
                     setSearchValue={(e) => {
                       if (e) setValue(e);
