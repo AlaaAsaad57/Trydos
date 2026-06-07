@@ -21,6 +21,7 @@ async function ProductExpectedDeleiveryWrapper({
     <ExpectedDeleiveryBanner
       country={country}
       language={language}
+      product_id={productData?.id}
       shipping_days={productData?.shipping_days}
       allow_return_in_days={productData?.allow_return_in_days}
     >

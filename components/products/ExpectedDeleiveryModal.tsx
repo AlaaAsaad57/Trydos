@@ -1,5 +1,5 @@
 import BottomSheet from "components/global/BottomSheet";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
@@ -8,10 +8,16 @@ import { useParams } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
 import ThinSepartor from "components/global/ThinSepartor";
 import { GetCountries } from "serverRequests/product";
+import {
+  DeliveredOrder,
+  GetProductDeliveryTimes,
+} from "services/products";
 function ExpectedDeleiveryModal({
+  product_id,
   shipping_days,
   allow_return_in_days = 0,
 }: {
+  product_id?: number | string;
   shipping_days: number;
   allow_return_in_days?: number;
 }) {
@@ -41,18 +47,47 @@ function ExpectedDeleiveryModal({
     getCountries();
   }, []);
 
-  const rating_arr = [
-    { value: 1, days: 1 },
-    { value: 3, days: 2 },
-    { value: 70, days: 3 },
-    { value: 18, days: 4 },
-    { value: 1, days: 5 },
-    { value: 1, days: 6 },
-    { value: 1, days: 7 },
-    { value: 1, days: 8 },
-    { value: 1, days: 9 },
-    { value: 1, days: 10 },
-  ];
+  const isOpen = ColorBottomSheet && ColorBottomSheet?.is_for_deleviery;
+  const [deliveredOrders, setDeliveredOrders] = useState<DeliveredOrder[]>([]);
+  const [loadingTimes, setLoadingTimes] = useState(false);
+  const fetchedRef = useRef(false);
+
+  // Fetch the delivery distribution lazily — only once, when the sheet first
+  // opens and we have a product id.
+  useEffect(() => {
+    if (!isOpen || !product_id || fetchedRef.current) return;
+    fetchedRef.current = true;
+    setLoadingTimes(true);
+    GetProductDeliveryTimes({ productId: product_id })
+      .then((data) => setDeliveredOrders(data || []))
+      .finally(() => setLoadingTimes(false));
+  }, [isOpen, product_id]);
+
+  // Build a continuous per-day distribution. The API only returns days that
+  // have orders, so we fill 1..maxDay and treat missing days as zero. Each
+  // bar's `value` is that day's share of all delivered orders (percent).
+  const totalOrders = deliveredOrders.reduce(
+    (sum, o) => sum + (Number(o?.orders_count) || 0),
+    0,
+  );
+  const maxDay = deliveredOrders.reduce(
+    (max, o) => Math.max(max, Number(o?.days_count) || 0),
+    0,
+  );
+  const ordersByDay = new Map<number, number>(
+    deliveredOrders.map(
+      (o) => [Number(o?.days_count), Number(o?.orders_count) || 0] as const,
+    ),
+  );
+  const rating_arr = Array.from({ length: maxDay }, (_, i) => {
+    const day = i + 1;
+    const orders = ordersByDay.get(day) || 0;
+    return {
+      days: day,
+      value: totalOrders > 0 ? Math.round((orders / totalOrders) * 100) : 0,
+    };
+  });
+
   const isRtl = language === "ar" || language === "ku";
   return (
     <>
@@ -148,9 +183,18 @@ function ExpectedDeleiveryModal({
                 </span>
               </div>
               <div className="flex-col w-full gap-[6px]">
-                {rating_arr.map((s, i) => (
-                  <ReviewProgress key={i} title={s.days} value={s.value} />
-                ))}
+                {loadingTimes
+                  ? Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton
+                        key={i}
+                        width="100%"
+                        height={14}
+                        borderRadius={5}
+                      />
+                    ))
+                  : rating_arr.map((s, i) => (
+                      <ReviewProgress key={i} title={s.days} value={s.value} />
+                    ))}
               </div>
             </div>
             <ThinSepartor className="py-[11px]   w-full" />

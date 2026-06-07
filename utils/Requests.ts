@@ -241,4 +241,5 @@ export const REQUESTS_DATA = {
   GET_SELLER_STORIES: { reqTitle: "GET_SELLER_STORIES", code: 167 },
   SAVE_SELLER_STORY: { reqTitle: "SAVE_SELLER_STORY", code: 168 },
   DELETE_SELLER_STORY: { reqTitle: "DELETE_SELLER_STORY", code: 169 },
+  GET_DELIVERY_TIMES: { reqTitle: "Get Delivery Times", code: 170 },
 };

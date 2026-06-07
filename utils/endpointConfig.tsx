@@ -10,6 +10,8 @@ export const SEND_OTP = "/auth/phone/send_otp";
 
 export const STARTER_SETTINGS = "/web/home/startingSettings";
 
+export const PRODUCT_DELIVERY_TIMES = "/api/v1/web/product/delivery_times";
+
 export const LOG_IN_CHAT = "/api/v1/users/login";
 
 export const GET_CONTATCS_URL = "/api/v1/users/my_contacts";

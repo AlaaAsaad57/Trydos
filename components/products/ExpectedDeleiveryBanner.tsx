@@ -5,6 +5,7 @@ function ExpectedDeleiveryBanner({
   children,
   language,
   country,
+  product_id,
   shipping_days,
   allow_return_in_days = 0,
 }) {
@@ -14,6 +15,7 @@ function ExpectedDeleiveryBanner({
   return (
     <>
       <ExpectedDeleiveryModal
+        product_id={product_id}
         shipping_days={shipping_days}
         allow_return_in_days={allow_return_in_days}
       />
