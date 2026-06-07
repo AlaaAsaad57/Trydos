@@ -31,14 +31,28 @@ let client = elasticSearchClient;
 // exact same conditions as the main search query, then layers a
 // name prefix match to find the best "starts-with" completion.
 // ------------------------------------------------------------------
-export async function GetSearchSuggestion({ language, country, search_text }) {
+export async function GetSearchSuggestion({
+  language,
+  country,
+  search_text,
+  filters,
+}: {
+  language: string;
+  country: string;
+  search_text: string;
+  filters?: any;
+}) {
   try {
     const text = (search_text || "").trim();
     if (!text) return { suggestion: "" };
 
-    // Same base conditions as every other search query (no fuzzy
-    // search_text here — we want a clean prefix completion, not fuzzy noise).
-    const { must, must_not } = buildBaseConditions({}, country);
+    // Respect the applied filters (category / brand / boutique / color / size /
+    // price) so the completion is scoped to what the user is actually browsing.
+    // Strip search_text out of the filter scope: buildBaseConditions would add
+    // a fuzzy text match for it, but we want a clean prefix completion instead
+    // (the match_phrase_prefix below), not fuzzy noise.
+    const { search_text: _omitSearchText, ...filterScope } = filters || {};
+    const { must, must_not } = buildBaseConditions(filterScope, country);
 
     // "Starts-with" completion on the product name (case-insensitive via
     // the standard/arabic analyzers used by GetSearchData).

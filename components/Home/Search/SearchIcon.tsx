@@ -238,6 +238,8 @@ function SearchIcon({ language, country }) {
         language,
         country,
         search_text: value,
+        // Scope the completion to the active filters, same as the main search.
+        filters: normalizeFilters(appliedFilters),
       });
       // Race condition: only apply the latest request's result
       if (requestId === latestSuggestionRef.current) {
@@ -249,7 +251,7 @@ function SearchIcon({ language, country }) {
         LogError({ error, scenario: "fetchSuggestion in SearchIcon" });
       }
     }
-  }, [language, country, value]);
+  }, [language, country, value, appliedFilters]);
 
   useEffect(() => {
     if (!searchEnabled) return;

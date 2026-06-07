@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import { GetSearchSuggestion } from "serverRequests/Search";
 import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(req: NextRequest) {
@@ -76,10 +77,23 @@ export async function GET(req: NextRequest) {
       user_id: userId,
       recommended_offset: Number(searchParams.get("recommended_offset") || 0),
     };
-    const result = await getProductsAndFiltersFromElastic(params);
+    // Inline autocomplete (ghost text) for the mobile app — runs in parallel
+    // with the main search so it adds no latency, and respects the same applied
+    // filters. Best-effort: a failed suggestion never fails the search.
+    const [result, suggestionRes] = await Promise.all([
+      getProductsAndFiltersFromElastic(params),
+      filters.search_text
+        ? GetSearchSuggestion({
+            language,
+            country,
+            search_text: filters.search_text,
+            filters,
+          }).catch(() => ({ suggestion: "" }))
+        : Promise.resolve({ suggestion: "" }),
+    ]);
 
     return NextResponse.json(
-      { data: result, appliedFilters: filters },
+      { data: result, appliedFilters: filters, suggestion: suggestionRes.suggestion },
       { headers },
     );
   } catch (error: any) {
