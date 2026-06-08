@@ -186,9 +186,9 @@ function OtpStatsModal({ onClose }: { onClose: () => void }) {
             <div style={box}>
               <div style={label}>Limits (effective)</div>
               <Row k="Per session" v={`${data.limits.sessionMax} numbers`} />
-              <Row k="Per IP" v={`${data.limits.ipMax} numbers`} />
+              <Row k="Per IP" v={`${data.limits.ipMax} sends`} />
               <Row k="Window" v={`${data.limits.windowSeconds}s`} />
-              <Row k="Cooldown" v={`${data.limits.cooldownSeconds}s`} />
+              <Row k="Cooldown" v={`${data.limits.cooldownSeconds}s / IP`} />
             </div>
 
             <div
@@ -223,26 +223,18 @@ function OtpStatsModal({ onClose }: { onClose: () => void }) {
               }}
             >
               <div style={label}>
-                IP set — {data.ip.count}/{data.limits.ipMax} (expires{" "}
+                IP sends — {data.ip.count}/{data.limits.ipMax} (expires{" "}
                 {fmtTtl(data.ip.ttl)})
               </div>
-              {data.ip.numbers.length ? (
-                data.ip.numbers.map((n) => (
-                  <div key={n} style={mono}>
-                    {n}
-                  </div>
-                ))
-              ) : (
-                <div style={{ fontSize: 12, color: "#999" }}>empty</div>
-              )}
+              <div style={{ fontSize: 12, color: "#999" }}>
+                total OTPs sent from this IP this window (new + resends)
+              </div>
             </div>
 
             <div style={box}>
-              <div style={label}>Active cooldowns</div>
-              {data.cooldowns.length ? (
-                data.cooldowns.map((c) => (
-                  <Row key={c.phone} k={c.phone} v={`${c.ttl}s`} />
-                ))
+              <div style={label}>Active cooldown (per IP)</div>
+              {data.cooldown.ttl > 0 ? (
+                <Row k="next OTP in" v={`${data.cooldown.ttl}s`} />
               ) : (
                 <div style={{ fontSize: 12, color: "#999" }}>none</div>
               )}
