@@ -1069,12 +1069,11 @@ const translations = {
   Trydos: "تریدۆس",
   Bar: "بار",
   Boutiques: "بوتیکەکان",
-  "Featured Products": "بەرهەمە تایبەتیەکان",
+
   "Online Shopping": "کڕینی ئۆنلاین",
   TryDos: "تریدۆس",
   "online shopping": "کڕینی ئۆنلاین",
   "premium products": "بەرهەمە پڕێمیوم",
-  "featured products": "بەرهەمە تایبەتیەکان",
   "flash deals": "فرۆشە خێراکان",
   "best deals": "باشترین فرۆشەکان",
   "shopping mall": "بازاڕ",

@@ -1034,12 +1034,12 @@ const translations = {
 
   Bar: "بار",
   Boutiques: "بوتيكات",
-  "Featured Products": "منتجات مميزة",
+
   "Online Shopping": "تسوق عبر الإنترنت",
   TryDos: "تريدوس",
   "online shopping": "تسوق عبر الإنترنت",
   "premium products": "منتجات مميزة",
-  "featured products": "منتجات مميزة",
+
   "flash deals": "عروض سريعة",
   "best deals": "أفضل العروض",
   "shopping mall": "مركز تسوق",
