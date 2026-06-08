@@ -6,30 +6,11 @@ import {
   logSecureRequest,
   getTokenForServer,
 } from "utils/server/tokenManager";
-import { isSameOrigin, verifyGuardToken } from "utils/server/requestGuard";
+import { SEND_OTP } from "utils/endpointConfig";
 import { LogServerError } from "utils/serverErrorReporter";
 
 export async function POST(request: NextRequest) {
   try {
-    // 0. Gate: only our own site may use the proxy.
-    //    (a) Same-origin — Origin/Referer host must be one of ours. Browsers
-    //        cannot forge Origin, so this blocks cross-site/CSRF replay.
-    //    (b) HMAC guard — the x-guard token (from /api/guard) must verify.
-    //        Defeats Origin-spoofing scripts. Fails open only if the secret is
-    //        unset. A 419 tells the client to refresh its token and retry once.
-    if (!isSameOrigin(request)) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403, headers: { "Cache-Control": "no-store" } },
-      );
-    }
-    if (!verifyGuardToken(request.headers.get("x-guard"))) {
-      return NextResponse.json(
-        { error: "Invalid or expired guard token" },
-        { status: 419, headers: { "Cache-Control": "no-store" } },
-      );
-    }
-
     // 1. Read proxy metadata from headers
     const server = request.headers.get("x-proxy-server") || "";
     let targetUrl = request.headers.get("x-proxy-url") || "";
@@ -59,6 +40,19 @@ export async function POST(request: NextRequest) {
     if(need_decode==="true"){
       targetUrl = decodeURI(targetUrl);
     }
+
+    // OTP send must NEVER go through the generic proxy. It runs exclusively via
+    // the sendOtpAction Server Action, which enforces the Redis rate limit
+    // (per-session / per-IP / per-number cooldown) before the backend is ever
+    // called. Blocking it here stops anyone using the proxy as an open relay to
+    // reach the OTP endpoint directly and bypass that limiter.
+    if (targetUrl.includes(SEND_OTP)) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
     let fullUrl = getServerBaseUrl(server, targetUrl) + targetUrl;
     const headers = await buildProxyHeaders(
       server,
