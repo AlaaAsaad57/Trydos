@@ -101,6 +101,8 @@ const translations = {
   Translate: "وەرگێران",
   "Show Original": "پیشاندانی ڕەسەن",
   "Waiting…": "چاوەڕێکردن…",
+  Wait: "چاوەڕێ بکە",
+  "before trying again": "پێش هەوڵدانەوە",
   "Product Return Request Approve": "پەسەندکردنی داوای گەڕاندنەوە",
   "Product Return Needs Confirm":
     "داوای گەڕاندنەوە پێویستی بە پشتڕاستکردنەوە هەیە",
