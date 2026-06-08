@@ -224,7 +224,7 @@ export async function otpRateLimit(params: {
 }): Promise<OtpRateLimitResult> {
   const { sid, ip, phone } = params;
   const cooldown = Number(
-    params.cooldownSeconds ?? process.env.OTP_COOLDOWN_SECONDS ?? 120,
+    params.cooldownSeconds ?? process.env.OTP_COOLDOWN_SECONDS ?? 60,
   );
   try {
     // Fail OPEN if Redis is unavailable: the Go backend keeps its own
@@ -263,5 +263,42 @@ export async function otpRateLimit(params: {
   } catch (error) {
     LogServerError({ error, type: "redis otpRateLimit failed" }, "/");
     return { allowed: true, reason: "error", lockSeconds: 0 };
+  }
+}
+
+
+export async function flushOtpLimitsAction() {
+
+  try {
+    if (!redis) {
+      return { success: false, message: "" };
+    }
+
+    let cursor = "0";
+    let deletedCount = 0;
+
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, "MATCH", "otp:*", "COUNT", 100);
+      cursor = nextCursor;
+
+      if (keys.length > 0) {
+        // حذف المفاتيح التي تم العثور عليها في هذه الدورة
+        await redis.del(...keys);
+        deletedCount += keys.length;
+      }
+    } while (cursor !== "0");
+
+
+    if (deletedCount === 0) {
+      return { success: true, message: "" };
+    }
+
+    return { 
+      success: true, 
+    };
+
+  } catch (error) {
+    console.error("Failed to clear OTP keys:", error);
+    return { success: false,};
   }
 }
