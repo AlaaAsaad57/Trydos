@@ -255,6 +255,22 @@ export async function otpRateLimit(params: {
     const status = Array.isArray(res) ? Number(res[0]) : 0;
     const ttl = Array.isArray(res) ? Number(res[1]) : 0;
 
+    // TEMP DEBUG: log how full the session/IP sets are after each decision so
+    // we can confirm the per-IP cap is accumulating on staging. Remove later.
+    try {
+      const [sidCount, ipCount] = await Promise.all([
+        redis.scard(`otp:sid:${sid}`),
+        redis.scard(`otp:ip:${ip}`),
+      ]);
+      console.log(
+        `[OTP][limit] status=${status} (0=ok,1=cd,2=session,3=ip) ` +
+          `sid=${sidCount}/${sessionMax} ip=${ipCount}/${ipMax} lock=${ttl}s ` +
+          `ipKey=otp:ip:${ip}`,
+      );
+    } catch {
+      /* logging only */
+    }
+
     if (status === 0) return { allowed: true, reason: "ok", lockSeconds: ttl };
 
     const reason =
@@ -293,12 +309,86 @@ export async function flushOtpLimitsAction() {
       return { success: true, message: "" };
     }
 
-    return { 
-      success: true, 
+    return {
+      success: true,
     };
 
   } catch (error) {
     console.error("Failed to clear OTP keys:", error);
     return { success: false,};
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DEBUG: read-only snapshot of the OTP rate-limit state for a given
+// session/IP identity. Used by the "Show OTP Statics" debug modal so a tester
+// can SEE the live Redis counters. Read-only — never mutates anything.
+// ---------------------------------------------------------------------------
+export type OtpStats = {
+  redis: boolean;
+  limits: {
+    sessionMax: number;
+    ipMax: number;
+    windowSeconds: number;
+    cooldownSeconds: number;
+  };
+  session: { key: string; count: number; ttl: number; numbers: string[] };
+  ip: { key: string; count: number; ttl: number; numbers: string[] };
+  cooldowns: { phone: string; ttl: number }[];
+};
+
+export async function getOtpStats(sid: string, ip: string): Promise<OtpStats> {
+  const limits = {
+    sessionMax: Number(process.env.OTP_SESSION_MAX ?? 2),
+    ipMax: Number(process.env.OTP_IP_MAX ?? 4),
+    windowSeconds: Number(process.env.OTP_WINDOW_SECONDS ?? 3600),
+    cooldownSeconds: Number(process.env.OTP_COOLDOWN_SECONDS ?? 60),
+  };
+
+  const empty: OtpStats = {
+    redis: false,
+    limits,
+    session: { key: `otp:sid:${sid}`, count: 0, ttl: -2, numbers: [] },
+    ip: { key: `otp:ip:${ip}`, count: 0, ttl: -2, numbers: [] },
+    cooldowns: [],
+  };
+
+  if (!redis) return empty;
+
+  try {
+    const sidKey = `otp:sid:${sid}`;
+    const ipKey = `otp:ip:${ip}`;
+
+    const [sidNumbers, sidTtl, ipNumbers, ipTtl] = await Promise.all([
+      redis.smembers(sidKey),
+      redis.ttl(sidKey),
+      redis.smembers(ipKey),
+      redis.ttl(ipKey),
+    ]);
+
+    // Per-number cooldowns for every number seen in either set.
+    const allNumbers = Array.from(new Set([...sidNumbers, ...ipNumbers]));
+    const cooldownTtls = await Promise.all(
+      allNumbers.map((phone) => redis!.ttl(`otp:cd:${phone}`)),
+    );
+    const cooldowns = allNumbers
+      .map((phone, i) => ({ phone, ttl: cooldownTtls[i] }))
+      .filter((c) => c.ttl > 0);
+
+    return {
+      redis: true,
+      limits,
+      session: {
+        key: sidKey,
+        count: sidNumbers.length,
+        ttl: sidTtl,
+        numbers: sidNumbers,
+      },
+      ip: { key: ipKey, count: ipNumbers.length, ttl: ipTtl, numbers: ipNumbers },
+      cooldowns,
+    };
+  } catch (error) {
+    LogServerError({ error, type: "redis getOtpStats failed" }, "/");
+    return empty;
   }
 }

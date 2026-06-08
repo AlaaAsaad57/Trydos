@@ -1,11 +1,11 @@
 "use server";
 
-import crypto from "crypto";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { HandleAuthedFetch } from "serverRequests/HandleAuthedFetch";
 import { otpRateLimit } from "serverRequests/radis";
 import { SEND_OTP } from "utils/endpointConfig";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { resolveOtpIdentity } from "utils/server/otpIdentity";
 import { LogServerError } from "utils/serverErrorReporter";
 
 // ---------------------------------------------------------------------------
@@ -40,9 +40,6 @@ interface SendOtpResult {
 
 const digitsOnly = (phone: string) => (phone || "").replace(/[^0-9]/g, "");
 
-const hashKey = (value: string) =>
-  crypto.createHash("sha256").update(value || "anon").digest("hex").slice(0, 32);
-
 // fetchServerData encodes non-2xx bodies as "HTTP <status> <url>: <body>".
 // Pull the backend message back out so wait/throttle text reaches the UI.
 function extractMessage(raw: string | null | undefined): string {
@@ -68,21 +65,16 @@ export async function sendOtpAction(input: {
     }
     const phone = `+${digits}`;
 
-    const [cookieStore, hdrs] = await Promise.all([cookies(), headers()]);
+    // Session + IP identity (shared with the debug stats action so the keys
+    // match exactly). IPv6 is normalized to its /64 prefix here.
+    const identity = await resolveOtpIdentity();
+    const { sid, ip } = identity;
 
-    // Session identity: the guest/market token uniquely identifies this device
-    // session. Hashed so we never write a raw token into a Redis key.
-    const sidSource =
-      cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ??
-      cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ??
-      "anon";
-    const sid = hashKey(sidSource);
-
-    const ipRaw =
-      hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      hdrs.get("x-real-ip") ||
-      "0.0.0.0";
-    const ip = hashKey(ipRaw);
+    // TEMP DEBUG: confirm the resolved IP identity is stable across sessions.
+    // Remove once the per-IP cap is verified on staging.
+    console.log(
+      `[OTP][send] rawIp=${identity.rawIp} normalizedIp=${identity.normalizedIp} ipKey=${ip} sidKey=${sid} phone=${phone}`,
+    );
 
     // ── Rate limit BEFORE touching the backend ──
     const limit = await otpRateLimit({ sid, ip, phone });
@@ -103,6 +95,7 @@ export async function sendOtpAction(input: {
       };
     }
 
+    const cookieStore = await cookies();
     const local = cookieStore.get(COOKIE_NAMES.LOCAL)?.value || "gb-en";
 
     const res = await HandleAuthedFetch({
