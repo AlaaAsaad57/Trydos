@@ -230,7 +230,7 @@ const translations = {
   "For All": "للكل",
   "You are about to leave our site": "أنت على وشك مغادرة موقعنا",
   "External Link Warning": "تحذير رابط خارجي",
-  "For Me": "لي",
+  "For Me": "حذف لدي",
   Imagee: "صورة",
   Video: "فيديو",
   Audio: "تسجيل صوت",
