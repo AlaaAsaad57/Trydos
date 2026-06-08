@@ -122,7 +122,7 @@ export async function sendOtpAction(input: {
         success: true,
         verificationId,
         message,
-        lockSeconds: Number(process.env.OTP_COOLDOWN_SECONDS ?? 120),
+        lockSeconds: Number(process.env.OTP_COOLDOWN_SECONDS ?? 60),
       };
     }
 
@@ -131,7 +131,7 @@ export async function sendOtpAction(input: {
     return {
       success: false,
       message: message || "Failed to send verification code",
-      lockSeconds: Number(process.env.OTP_COOLDOWN_SECONDS ?? 120),
+      lockSeconds: Number(process.env.OTP_COOLDOWN_SECONDS ?? 60),
     };
   } catch (error) {
     LogServerError({ error, scenario: "sendOtpAction" });

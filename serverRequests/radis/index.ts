@@ -234,7 +234,7 @@ export async function otpRateLimit(params: {
     const sessionMax = Number(
       params.sessionMax ?? process.env.OTP_SESSION_MAX ?? 2,
     );
-    const ipMax = Number(params.ipMax ?? process.env.OTP_IP_MAX ?? 5);
+    const ipMax = Number(params.ipMax ?? process.env.OTP_IP_MAX ?? 4);
     const windowSeconds = Number(
       params.windowSeconds ?? process.env.OTP_WINDOW_SECONDS ?? 3600,
     );
