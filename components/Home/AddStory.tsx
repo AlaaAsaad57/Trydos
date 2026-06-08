@@ -49,7 +49,7 @@ function AddStory() {
     const isAllowedToUploadStories = userData?.is_allowed_to_upload_story;
     if (isAllowedToUploadStories === null || isAllowedToUploadStories === undefined) return false
     if (isAllowedToUploadStories === 0) return false
-    if (isAllowedToUploadStories && isAllowedToUploadStories === 1 || parseInt(isAllowedToUploadStories) === 1) return true;
+    if (isAllowedToUploadStories && isAllowedToUploadStories === 1 || parseInt(isAllowedToUploadStories) === 1||isAllowedToUploadStories===true) return true;
   }
 
 
