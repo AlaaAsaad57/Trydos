@@ -133,6 +133,7 @@ export async function GET(request: NextRequest) {
         {
           otp_id_token: idToken,
           mobile_phone: InventoryUser.phone,
+          original_user_id: String(InventoryUser.id)
         },
       ),
       safeServiceLogin(
