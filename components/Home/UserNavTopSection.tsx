@@ -142,6 +142,8 @@ function UserNavTopSection({
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
+
+  const isRtl=languageVariable==="ar"||languageVariable==="ku";
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
@@ -245,7 +247,7 @@ function UserNavTopSection({
           </div>
         )}
       </div>
-      {menuOpen && <Menu user={userData} setMenuOpen={setMenuOpen} />}
+      {menuOpen && <Menu isRtl={isRtl} user={userData} setMenuOpen={setMenuOpen} />}
     </div>
   );
 }

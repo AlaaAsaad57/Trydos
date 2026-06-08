@@ -197,7 +197,6 @@ const translations = {
     "دەتوانیت ئەم بەرهەمە بە هیچ مەرجێک ڕەت بکەیت پەیوەندیدار بە سیاسەتی ڕەتکردن و پارەکانت تەواوەتی بگرێنیتەوە",
   "Premium Shopping": "کڕینی پێشکەوتوو",
   Experience: "تجربە",
-  "Featured Products": "بەرهەمە دیاری کراوەکان",
   "Flash Deals": "دیلە فلاش",
   "Flash Deal": "دیلە فلاش",
   "Show More": "زیاتر نیشان بده",
@@ -1068,7 +1067,6 @@ const translations = {
   "Trydos — Flash Deals, Boutique Finds & Featured Products":
     "تریدۆس — فرۆشە خێراکان، دۆزینەوەی بوتیک و بەرهەمە تایبەتیەکان",
   Trydos: "تریدۆس",
-  "Flash Deals": "فرۆشە خێراکان",
   Bar: "بار",
   Boutiques: "بوتیکەکان",
   "Featured Products": "بەرهەمە تایبەتیەکان",

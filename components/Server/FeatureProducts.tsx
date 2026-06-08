@@ -32,7 +32,7 @@ function FeatureProducts({ lang, fetauredProductsData, currencyData }) {
           </svg>
         </span>
         <span className={`ml-[12px] ${isRtl ? " text-right pr-2" : " "}`}>
-          {translateFunction("Featured Products", lang.split("-")[1])}
+          {translateFunction("Featured Products", language)}
         </span>
       </NextLink>
       <HortiznalScrollBar

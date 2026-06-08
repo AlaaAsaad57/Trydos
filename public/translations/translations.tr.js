@@ -203,7 +203,6 @@ const translations = {
   "Share Story": "Hikayeyi Paylaş",
   "You Have New Messages From Deleivery Worker..click for more":
     "Teslimat Elemanından Yeni Mesajlarınız Var..daha fazlası için tıklayın",
-  "Flash Deals": "Hızlı Fırsatlar",
   "Flash Deal": "Hızlı Fırsatlar",
   "Premium Brands": "Premium Markalar",
   "Show More": "Daha Fazla Göster",
@@ -308,7 +307,6 @@ const translations = {
   Uploading: "Yükleniyor",
   "Please select a file": "Lütfen bir dosya seçin",
   "Please upload at least one document": "Lütfen en az bir belge yükleyin",
-  "Featured Products": "Öne Çıkan Ürünler",
   "000 CM": "000 CM",
   "Failed to recognize your voice": "Sesinizi tanımlamada sorun oluştu",
   "Discount Coupon": "İndirim Kuponu",

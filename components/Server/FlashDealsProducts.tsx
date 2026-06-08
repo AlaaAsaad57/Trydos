@@ -39,7 +39,7 @@ function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
           </svg>
         </span>
         <span className={`ml-[12px] ${isRtl ? "pr-2" : " "}`}>
-          {translateFunction("Flash Deals", lang.split("-")[1])}
+          {translateFunction("Flash Deals",language)}
         </span>
       </NextLink>
       <HortiznalScrollBar

@@ -401,7 +401,6 @@ const translations = {
   Submit: "إرسال",
   "Failed to recognize your voice": "فشل التعرف على الصوت",
   "Full Name": "الاسم الكامل",
-  "Featured Products": "المنتجات المميزة",
   "Wallet Already Selected": "المحفظة محددة بالفعل",
   Verified: "تم التحقق",
   "Discount Coupon": "قسيمة خصم",
@@ -1032,7 +1031,7 @@ const translations = {
   "Trydos — Flash Deals, Boutique Finds & Featured Products":
     "تريدوس — عروض سريعة، اكتشافات البوتيك والمنتجات المميزة",
   Trydos: "تريدوس",
-  "Flash Deals": "عروض سريعة",
+
   Bar: "بار",
   Boutiques: "بوتيكات",
   "Featured Products": "منتجات مميزة",
