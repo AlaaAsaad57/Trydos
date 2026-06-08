@@ -9,7 +9,7 @@ import {
 } from "store/notifications/reducer";
 import { fetchData } from "./fetchData";
 import { InCall } from "store/chat/callActions";
-import { getUserChat, LogError, translateFunction } from "./functions";
+import { getCart, getUserChat, LogError, translateFunction } from "./functions";
 
 import chat from "services/chat";
 import { watchChannel as watchChannelAction } from "store/chat/actions";
@@ -327,6 +327,11 @@ class ForegroundNotificationHandler {
    * Special logic for Order Placed which requires data fetching
    */
   private async handleOrderPlaced(data: any, lang: string, state: any) {
+    // The cart may have been purchased from another account/device, so refresh
+    // the cart from the server (cart_shipping) to clear the stale cart-item
+    // indicator.
+    getCart({ callback: null }).catch(() => {});
+
     try {
       const response = await fetchData({
         url: `/customer/order/getOrdersByOrderGroupID?order_group_id=${data.order_group_id}`,
