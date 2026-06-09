@@ -634,7 +634,7 @@ function NewLoginWidget() {
                 user={Tempuser}
                 FinaliseLogin={() => FinaliseLogin()}
                 cancelLogin={() => {
-                  AuthService.cancelAuth();
+                  // AuthService.cancelAuth();
                 }}
                 close={() => {
                   setLoginOpenAction(false);
@@ -677,7 +677,7 @@ function NewLoginWidget() {
             data-testid="take-look-text"
             onClick={() => {
               laterTakeAlook(false);
-              AuthService.cancelAuth();
+              // AuthService.cancelAuth();
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
               //   value: GA_CLICK_EVENT_VALUES.SKIP_LOGIN_WIDGET,
@@ -696,7 +696,7 @@ function NewLoginWidget() {
             data-testid="login-close-icon"
             className="z-50"
             onClick={() => {
-              if (stepIndicator < 6) AuthService.cancelAuth();
+              // if (stepIndicator < 6) AuthService.cancelAuth();
               setLoginOpenAction(false);
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,

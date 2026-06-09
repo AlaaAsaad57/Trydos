@@ -12,6 +12,8 @@ export interface OtpStatsResult extends OtpStats {
     normalizedIp: string;
     sid: string;
     ip: string;
+    userId: string | null;
+    hasUserId: boolean;
     hasMarketToken: boolean;
     hasDeviceToken: boolean;
   };
@@ -27,6 +29,8 @@ export async function otpStatsAction(): Promise<OtpStatsResult> {
       normalizedIp: id.normalizedIp,
       sid: id.sid,
       ip: id.ip,
+      userId: id.userId,
+      hasUserId: id.hasUserId,
       hasMarketToken: id.hasMarketToken,
       hasDeviceToken: id.hasDeviceToken,
     },
