@@ -405,7 +405,7 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
           <MenuItem
             dataCy="show-otp-statics"
             icon={
-              <MenuIcon>
+              <MenuIcon isRtl={isRtl}>
                 <path d="M3 3v18h18" />
                 <rect x="7" y="11" width="3" height="6" />
                 <rect x="13" y="7" width="3" height="10" />
