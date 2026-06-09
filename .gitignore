@@ -19,6 +19,7 @@ req.json
 /public/reports/videos/*
 /public/reports/*
 .env.development
+env.development
 .env.production
 # secrets
 vercel-secrets.json
