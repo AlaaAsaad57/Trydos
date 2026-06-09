@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { removeRedis, getKeys } from "serverRequests/radis";
+import { removeRedis, getKeys, flushOtpLimitsAction } from "serverRequests/radis";
 // your helper
 
 export async function GET(req: NextRequest) {
@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     return new NextResponse(null, { status: 204, headers });
   }
   try {
+   await flushOtpLimitsAction();
     // Find all keys that start with "product:"
     const keys = await getKeys("product*");
 

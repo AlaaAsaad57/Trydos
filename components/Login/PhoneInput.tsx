@@ -13,6 +13,18 @@ import { FlagIcon } from "utils/tinyUtils";
 
 import { usePhoneInput } from "utils/usePhoneInput";
 import CustomPhoneInput from "components/global/CustomPhoneInput";
+import { getNumberLockRemaining } from "utils/otpLocks";
+
+// mm:ss for the live cooldown countdown.
+const fmtCountdown = (total: number) => {
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+};
+
+// A server cooldown/limit message looks like "...seconds before trying again".
+const isTimedMessage = (msg: unknown) =>
+  typeof msg === "string" && msg.includes("seconds before trying again");
 
 function PhoneInput({
   stepIndicator,
@@ -78,6 +90,26 @@ function PhoneInput({
       initial: inputValue,
       getCountry: getCountry,
     });
+
+  // Live cooldown countdown, sourced from the persisted OTP lock (absolute
+  // expiry in sessionStorage). Recomputing from storage every second means the
+  // timer SURVIVES step navigation — coming back continues from the real
+  // remaining time, it does not restart from the value baked into the message.
+  const [lockRemaining, setLockRemaining] = useState(0);
+  useEffect(() => {
+    const sync = () => {
+      const remaining = getNumberLockRemaining(inputValue);
+      setLockRemaining(remaining);
+      // Once the cooldown is over, drop the stale "wait N seconds…" text so it
+      // doesn't reappear as a hardcoded message.
+      if (remaining === 0 && isTimedMessage(wrongNumber)) {
+        setWrongNumber(false);
+      }
+    };
+    sync();
+    const id = setInterval(sync, 1000);
+    return () => clearInterval(id);
+  }, [inputValue, stepIndicator, wrongNumber, setWrongNumber]);
 
   useEffect(() => {
     if (isKeyboardOpen) {
@@ -513,12 +545,23 @@ function PhoneInput({
           </span>
         )}
       </div>
-      {wrongNumber && (
+      {(lockRemaining > 0 || (wrongNumber && !isTimedMessage(wrongNumber))) && (
         <div
+          data-cy="WaitForTryAgain"
           className="blue-text"
-          style={{ color: "#ff5f61", fontSize: "12px", marginTop: "10px" }}
+          style={{ color: "#ff5f61", fontSize: "12px", marginTop: "10px" ,padding:'0px 5px'}}
         >
-          {wrongNumber || translate("Invalid Phone Number", language)}
+          {lockRemaining > 0 ? (
+            <>
+              <span className="mx-[4px]">{translate("Wait")}</span>
+              <span dir="ltr">{fmtCountdown(lockRemaining)}</span>
+              <span className="mx-[4px]">
+                {translate("before trying again")}
+              </span>
+            </>
+          ) : (
+            wrongNumber || translate("Invalid Phone Number", language)
+          )}
         </div>
       )}
     </div>

@@ -103,6 +103,8 @@ const translations = {
   Translate: "Çevir",
   "Show Original": "Orijinali Göster",
   "Waiting…": "Bekleniyor…",
+  Wait: "Bekleyin",
+  "before trying again": "tekrar denemeden önce",
   "Product Return Request Approve": "Ürün iade talebini onayla",
   "Product Return Needs Confirm": "Ürün iade talebi onay gerektiriyor",
   "Notification is Blocked in This Browser Please Enable Notification premission and refresh":

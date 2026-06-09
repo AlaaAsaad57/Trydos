@@ -15,6 +15,8 @@ const NotificationsPanel = dynamic(
 );
 import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
+
+const OtpStatsModal = dynamic(() => import("./OtpStatsModal"), { ssr: false });
 import auth from "services/auth";
 import { COOKIE_NAMES, deleteCookie } from "utils/cookies/cookie-manager";
 import { clearAllUserData } from "utils/tinyUtils";
@@ -101,6 +103,7 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
   const userStories = useAppStore.getState().userStories;
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWishList, setShowWishList] = useState(false);
+  const [showOtpStats, setShowOtpStats] = useState(false);
   const { lang } = useParams();
   const [loading, setLoading] = useState(false);
 
@@ -399,6 +402,21 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
           >
             {translateFunction("Reset Redeemed Products")}
           </MenuItem>
+          <MenuItem
+            dataCy="show-otp-statics"
+            icon={
+              <MenuIcon>
+                <path d="M3 3v18h18" />
+                <rect x="7" y="11" width="3" height="6" />
+                <rect x="13" y="7" width="3" height="10" />
+              </MenuIcon>
+            }
+            onClick={() => {
+              setShowOtpStats(true);
+            }}
+          >
+            {translateFunction("Show OTP Statics")}
+          </MenuItem>
         </>
         {shouldShowLogout() && (
           <MenuItem
@@ -473,6 +491,10 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
       )}
 
       {showWishList && <WishListPanel onClose={() => setShowWishList(false)} />}
+
+      {showOtpStats && (
+        <OtpStatsModal onClose={() => setShowOtpStats(false)} />
+      )}
     </>
   );
 };

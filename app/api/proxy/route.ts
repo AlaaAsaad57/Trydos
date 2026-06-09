@@ -6,6 +6,7 @@ import {
   logSecureRequest,
   getTokenForServer,
 } from "utils/server/tokenManager";
+import { SEND_OTP } from "utils/endpointConfig";
 import { LogServerError } from "utils/serverErrorReporter";
 
 export async function POST(request: NextRequest) {
@@ -39,6 +40,19 @@ export async function POST(request: NextRequest) {
     if(need_decode==="true"){
       targetUrl = decodeURI(targetUrl);
     }
+
+    // OTP send must NEVER go through the generic proxy. It runs exclusively via
+    // the sendOtpAction Server Action, which enforces the Redis rate limit
+    // (per-session / per-IP / per-number cooldown) before the backend is ever
+    // called. Blocking it here stops anyone using the proxy as an open relay to
+    // reach the OTP endpoint directly and bypass that limiter.
+    if (targetUrl.includes(SEND_OTP)) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
     let fullUrl = getServerBaseUrl(server, targetUrl) + targetUrl;
     const headers = await buildProxyHeaders(
       server,

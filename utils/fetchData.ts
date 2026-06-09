@@ -376,6 +376,7 @@ export const fetchData = async <T = any>(
       }
 
       status = res.status;
+
       try {
         responseData = await res.json();
       } catch (e) {}
