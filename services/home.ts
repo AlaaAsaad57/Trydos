@@ -216,6 +216,22 @@ class HomeService {
   // new unified action
   async AllowNotifications() {
     try {
+      // Request the OS notification permission FIRST, synchronously, before any
+      // `await`/dynamic-import below. Browsers only surface the loud permission
+      // prompt while the originating click's *transient user activation* is
+      // still alive, and every `await` (including `import()`) ends that window.
+      // The old code only reached `requestPermission` (inside Firebase's
+      // `getToken`) after 3 dynamic imports + a service-worker registration, by
+      // which point the activation was gone — so stricter/slower Edge builds
+      // silently downgraded to the quiet "bell icon" UI and the user never saw
+      // a prompt. Invoking it here keeps the request inside the gesture.
+      if (
+        typeof Notification !== "undefined" &&
+        Notification.permission === "default"
+      ) {
+        await Notification.requestPermission();
+      }
+
       const {
         requestFirebaseNotificationPermission,
         onMessageListener,
