@@ -93,7 +93,9 @@ export async function GET(req: NextRequest) {
     ]);
 
     return NextResponse.json(
-      { data: result, appliedFilters: filters, suggestion: suggestionRes.suggestion },
+      {  data: result,
+         appliedFilters: filters,
+          suggestion: suggestionRes.suggestion },
       { headers },
     );
   } catch (error: any) {

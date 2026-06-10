@@ -66,24 +66,20 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
     try {
       setDownloadingTemplate(true);
       setStatus(null);
-      const res = await SellerDashboardService.downloadExcelTemplate(
-        sellerId,
-        selectedCategory,
-      );
-      const url: string =
-        res?.data?.url || res?.url || res?.data?.file || res?.data || "";
-      if (!url || typeof url !== "string") {
-        throw new Error(translateFunction("Template is not available", language));
-      }
-      // Trigger the download in a new tab; the url is a directly-usable link.
+      const { blob, filename } =
+        await SellerDashboardService.downloadExcelTemplate(
+          sellerId,
+          selectedCategory,
+        );
+      // The backend streams the file itself — turn the blob into a download.
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.download = "";
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (error: any) {
       console.error("Error downloading template:", error);
       setStatus({

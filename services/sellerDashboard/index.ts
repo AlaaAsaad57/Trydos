@@ -610,15 +610,58 @@ class SellerDashboardService {
   }
 
   // GET /shop/excel/downloadExcel/{category_id} — the template for a category.
-  // Backend returns the template location; we surface the url to the caller.
-  async downloadExcelTemplate(sellerId: string, categoryId: string | number) {
-    return fetchData({
-      url: `/shop/excel/downloadExcel/${categoryId}`,
-      method: "GET",
-      server: "market-dashboard",
-      reqTitle: REQUESTS_DATA.DOWNLOAD_EXCEL_TEMPLATE,
-      sellerId,
+  // The backend streams the .xlsx file itself (binary), not a URL. We can't use
+  // fetchData (it always parses JSON), so we hit the proxy directly — which
+  // injects the auth token server-side and passes binary responses through —
+  // and return the blob + filename so the caller can trigger a download.
+  async downloadExcelTemplate(
+    sellerId: string,
+    categoryId: string | number,
+  ): Promise<{ blob: Blob; filename: string }> {
+    const [country, lang] = (
+      window.location.pathname.split("/")[1] || ""
+    ).split("-");
+    const targetUrl = `/shop/excel/downloadExcel/${categoryId}`;
+
+    const res = await fetch("/api/proxy", {
+      method: "POST",
+      headers: {
+        "x-proxy-server": "market-dashboard",
+        "x-proxy-url": encodeURI(targetUrl),
+        "x-proxy-method": "GET",
+        "x-country": country || "sy",
+        "x-language": lang || "en",
+        "x-need-decode": "true",
+        "x-seller-id": sellerId,
+      },
+      credentials: "include",
     });
+
+    const contentType = res.headers.get("content-type") || "";
+
+    // On error (or "no template") the backend/proxy returns JSON, not a file.
+    if (!res.ok || contentType.includes("application/json")) {
+      let message = `Failed to download template (${res.status})`;
+      try {
+        const data = await res.json();
+        message = data?.message || data?.error || message;
+      } catch {}
+      throw new Error(message);
+    }
+
+    const blob = await res.blob();
+
+    // The proxy doesn't forward Content-Disposition, so fall back to a default
+    // name (still try the header in case it's present).
+    const disposition = res.headers.get("content-disposition") || "";
+    const match = disposition.match(
+      /filename\*?=(?:UTF-8'')?["']?([^"';]+)/i,
+    );
+    const filename = match?.[1]
+      ? decodeURIComponent(match[1])
+      : `template-${categoryId}.xlsx`;
+
+    return { blob, filename };
   }
 
   // POST /shop/excel/processExcel — process a filled excel by its media url.
