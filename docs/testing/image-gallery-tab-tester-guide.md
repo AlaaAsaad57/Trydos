@@ -9,7 +9,6 @@ A simple, non‑technical walkthrough for testing the **Gallery** tab inside the
 The **Gallery** tab is a shared image library for a shop's products. From here a seller can:
 
 - **Browse** all images already uploaded for the shop.
-- **Search** images by name.
 - **Upload** new images (single files, multiple files, or a whole folder).
 - **View** an image full‑screen, **copy its link**, or **delete** it.
 
@@ -23,14 +22,14 @@ Access is controlled by **permissions** assigned to the logged‑in user for tha
 
 | Permission | What it allows |
 | --- | --- |
-| `READ_PRODUCT_IMAGES` | The user can **see** the Gallery tab and browse/search images. |
+| `READ_PRODUCT_IMAGES` | The user can **see** the Gallery tab and browse images. |
 | `UPLOAD_PRODUCT_IMAGES` | The user can **upload** new images (the upload box appears). |
 | `DELETE_PRODUCT_IMAGES` | The user can **delete** images (the 🗑️ button appears). |
 
 What this means when testing:
 
 - A user **without** `READ_PRODUCT_IMAGES` will **not** see the "Gallery" menu item at all.
-- A user **with** `READ_PRODUCT_IMAGES` only can **browse and search**, but the upload box is hidden and there is **no delete button**.
+- A user **with** `READ_PRODUCT_IMAGES` only can **browse**, but the upload box is hidden and there is **no delete button**.
 - `UPLOAD_PRODUCT_IMAGES` adds the upload box; `DELETE_PRODUCT_IMAGES` adds the delete button. They are independent.
 - A **Super Admin** automatically has access to everything.
 
@@ -53,7 +52,6 @@ What this means when testing:
 When the screen finishes loading:
 
 - **(If you can upload)** A dashed **"Drop images here"** box at the top with **Select Files** and **Select Folder** buttons.
-- A **search bar**.
 - A **grid of images**. Hovering over an image shows action buttons: 👁️ View, 📋 Copy URL, and (if you can delete) 🗑️ Delete.
 - If the shop has many images, **Previous / Next** paging buttons appear at the bottom.
 - If there are no images yet, you'll see **"No images found"**.
@@ -66,12 +64,9 @@ When the screen finishes loading:
 1. Open the Gallery tab.
 2. **Check:** the saved images load into the grid, each with its name underneath.
 
-### B. Search
-1. Type part of an image name in the search bar.
-2. **Check:** after a short pause the grid updates to show only matching images.
-3. Clear the search and **check:** the full list returns.
 
-### C. Upload single / multiple files (UPLOAD_PRODUCT_IMAGES)
+
+### B. Upload single / multiple files (UPLOAD_PRODUCT_IMAGES)
 1. Click **Select Files**.
 2. Pick one or several pictures from your computer.
 3. A **confirmation window** opens showing thumbnails of what you chose.
@@ -79,29 +74,29 @@ When the screen finishes loading:
 5. Click **Upload**.
 6. **Check:** the window closes, and after a moment the new images appear in the grid.
 
-### D. Upload a whole folder
+### C. Upload a whole folder
 1. Click **Select Folder** and choose a folder containing images.
 2. **Check:** only image files from that folder appear in the confirmation window (non‑images are ignored).
 3. Click **Upload** and confirm they appear in the grid.
 
-### E. Drag & drop
+### D. Drag & drop
 1. Drag image files from your computer directly onto the dashed box.
 2. **Check:** the confirmation window opens with those images, and Upload works the same way.
 
-### F. View full‑screen
+### E. View full‑screen
 1. Hover an image and click **👁️**.
 2. **Check:** the image opens large; clicking the background or the **×** closes it.
 
-### G. Copy URL
+### F. Copy URL
 1. Hover an image and click **📋**.
 2. **Check:** the icon briefly turns into a ✅ ("Copied!"). Paste somewhere to confirm a link was copied.
 
-### H. Delete an image (DELETE_PRODUCT_IMAGES)
+### G. Delete an image (DELETE_PRODUCT_IMAGES)
 1. Hover an image and click **🗑️**.
 2. **Check:** a small spinner shows, then the image disappears from the grid.
 3. Refresh and re‑open the tab — **check:** it stays gone.
 
-### I. Read‑only user (no upload, no delete)
+### H. Read‑only user (no upload, no delete)
 1. Log in as a user with **only** `READ_PRODUCT_IMAGES`.
 2. **Check:** the upload box is **not** shown and images have **no 🗑️ delete button**, but View and Copy still work.
 
@@ -117,7 +112,7 @@ The app supports **English, Arabic, Turkish, and Kurdish**.
 
 1. Switch the app language.
 2. Re‑open the Gallery tab.
-3. **Check:** labels (Drop images here, Select Files, Search, buttons, messages) appear translated, and Arabic/Kurdish display correctly right‑to‑left.
+3. **Check:** labels (Drop images here, Select Files, buttons, messages) appear translated, and Arabic/Kurdish display correctly right‑to‑left.
 
 ---
 
@@ -138,7 +133,6 @@ When raising a bug, please include:
 
 - [ ] Gallery menu item appears for users with read permission.
 - [ ] Existing images load with their names.
-- [ ] Search filters the grid correctly.
 - [ ] Uploading files (and a folder) works and the new images appear.
 - [ ] Drag & drop upload works.
 - [ ] View (full‑screen) and Copy URL work.

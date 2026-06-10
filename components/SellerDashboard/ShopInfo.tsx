@@ -359,13 +359,13 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
                 <Skeleton height={200} width={200} borderRadius={16} className="mt-4" />
               ) : (
                 <div className="w-48 h-48 mt-4 border border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden bg-white relative">
-                  {imageSrc&&<span className='absolute z-10 top-1 right-1 rounded-full p-1 h-[30px] w-[30px] flex items-center justify-center bg-red-500 cursor-pointer' onClick={()=>{
+                  {/* {imageSrc&&<span className='absolute z-10 top-1 right-1 rounded-full p-1 h-[30px] w-[30px] flex items-center justify-center bg-red-500 cursor-pointer' onClick={()=>{
                     setImageFile(null);
                     setImagePreview(null);
                     setImageUrl(null);
                   }}>
                     <img src={'/icons/DeleteIcon.svg'} width={15} height={15}/>
-                    </span>}
+                    </span>} */}
                   {imageSrc ? (
                     <img src={imageSrc} alt="Shop logo preview" className="w-full h-full object-cover" />
                   ) : (
@@ -418,13 +418,13 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
                 <Skeleton height={200} borderRadius={12} className="w-full mt-4" />
               ) : (
                 <div className="w-full h-48 mt-4 border border-[#5d5d5d] rounded-xl flex items-center justify-center overflow-hidden bg-[#5d5d5d] relative">
-                   {bannerSrc && <span className='absolute z-10 top-1 right-1 rounded-full p-1 h-[30px] w-[30px] flex items-center justify-center bg-red-500 cursor-pointer' onClick={()=>{
+                   {/* {bannerSrc && <span className='absolute z-10 top-1 right-1 rounded-full p-1 h-[30px] w-[30px] flex items-center justify-center bg-red-500 cursor-pointer' onClick={()=>{
                     setBannerFile(null);
                     setBannerPreview(null);
                     setBannerUrl(null);
                    }}>
                     <img src={'/icons/DeleteIcon.svg'} width={15} height={15}/>
-                    </span>}
+                    </span>} */}
                   {bannerSrc ? (
                     <img src={bannerSrc} alt="Banner preview" className="w-full h-full object-cover" />
                   ) : (
