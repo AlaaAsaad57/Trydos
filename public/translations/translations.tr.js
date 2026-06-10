@@ -1,4 +1,20 @@
 const translations = {
+  "Pick a category, download its template, fill it in, then upload it.":
+    "Bir kategori seçin, şablonunu indirin, doldurun ve ardından yükleyin.",
+  Category: "Kategori",
+  "Loading categories...": "Kategoriler yükleniyor...",
+  "Select a category": "Bir kategori seçin",
+  "Failed to load categories": "Kategoriler yüklenemedi",
+  "Please select a category first": "Lütfen önce bir kategori seçin",
+  "Download Template": "Şablonu İndir",
+  "Preparing template...": "Şablon hazırlanıyor...",
+  "Template is not available": "Şablon mevcut değil",
+  "Failed to download template": "Şablon indirilemedi",
+  "Supports .xlsx, .xls, .xlsm, .xlsb": ".xlsx, .xls, .xlsm, .xlsb destekler",
+  "Please upload a valid Excel file (.xlsx, .xls, .xlsm, .xlsb)":
+    "Lütfen geçerli bir Excel dosyası yükleyin (.xlsx, .xls, .xlsm, .xlsb)",
+  "File uploaded and processed successfully!":
+    "Dosya başarıyla yüklendi ve işlendi!",
   "Select Shop": "Mağaza Seçimi",
   "Customers Comments": "Müşteri Yorumları",
   "Upload Excel File": "Excel Dosyası Yükle",
@@ -1448,7 +1464,7 @@ const translations = {
     "Update": "Güncelle",
     "Shop Name is required": "Mağaza adı gereklidir",
     "Contact is required": "İletişim numarası gereklidir",
-    "Contact must contain only numbers": "İletişim numarası sadece rakamlardan oluşmalıdır",
+    "Contact must contain valid numbers": "İletişim numarası sadece rakamlardan oluşmalıdır",
     "Address is required": "Adres gereklidir",
     "Shop Info Updated Successfully!": "Mağaza Bilgileri Başarıyla Güncellendi!",
     "Failed to update": "Güncelleme başarısız oldu",

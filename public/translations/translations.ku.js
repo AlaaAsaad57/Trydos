@@ -1,4 +1,20 @@
 const translations = {
+  "Pick a category, download its template, fill it in, then upload it.":
+    "پۆلێک هەڵبژێرە، قاڵبەکەی دابەزێنە، پڕی بکەرەوە، ئینجا بەرزی بکەرەوە.",
+  Category: "پۆل",
+  "Loading categories...": "پۆلەکان باردەکرێن...",
+  "Select a category": "پۆلێک هەڵبژێرە",
+  "Failed to load categories": "بارکردنی پۆلەکان سەرکەوتوو نەبوو",
+  "Please select a category first": "تکایە سەرەتا پۆلێک هەڵبژێرە",
+  "Download Template": "داگرتنی قاڵب",
+  "Preparing template...": "قاڵب ئامادە دەکرێت...",
+  "Template is not available": "قاڵب بەردەست نییە",
+  "Failed to download template": "داگرتنی قاڵب سەرکەوتوو نەبوو",
+  "Supports .xlsx, .xls, .xlsm, .xlsb": "پشتگیری .xlsx، .xls، .xlsm، .xlsb دەکات",
+  "Please upload a valid Excel file (.xlsx, .xls, .xlsm, .xlsb)":
+    "تکایە فایلێکی ئێکسێلی دروست بەرز بکەرەوە (.xlsx، .xls، .xlsm، .xlsb)",
+  "File uploaded and processed successfully!":
+    "فایل بە سەرکەوتوویی بەرزکرایەوە و پرۆسێس کرا!",
   "Select Shop": "هەڵبژاردنی فرۆشگا",
   "Customers Comments": "سەرنجەکانی کڕیاران",
   "Upload Excel File": "بارکردنی پەڕگەی ئێکسڵ",
@@ -1471,7 +1487,7 @@ const translations = {
     "Update": "نوێکردنەوە",
     "Shop Name is required": "ناوی فرۆشگا پێویستە",
     "Contact is required": "ژمارەی پەیوەندی پێویستە",
-    "Contact must contain only numbers": "دەبێت ژمارەی پەیوەندی تەنها ژمارە بێت",
+    "Contact must contain valid numbers": "دەبێت ژمارەی پەیوەندی تەنها ژمارە بێت",
     "Address is required": "ناونیشان پێویستە",
     "Shop Info Updated Successfully!": "زانیاری فرۆشگا بە سەرکەوتوویی نوێکرایەوە!",
     "Failed to update": "نوێکردنەوە سەرکەوتوو نەبوو",

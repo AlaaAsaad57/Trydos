@@ -1,4 +1,19 @@
 const translations = {
+  "Pick a category, download its template, fill it in, then upload it.":
+    "اختر فئة، ثم نزّل القالب الخاص بها، واملأه، ثم ارفعه.",
+  Category: "الفئة",
+  "Loading categories...": "جاري تحميل الفئات...",
+  "Select a category": "اختر فئة",
+  "Failed to load categories": "فشل تحميل الفئات",
+  "Please select a category first": "يرجى اختيار فئة أولاً",
+  "Download Template": "تنزيل القالب",
+  "Preparing template...": "جاري تجهيز القالب...",
+  "Template is not available": "القالب غير متوفر",
+  "Failed to download template": "فشل تنزيل القالب",
+  "Supports .xlsx, .xls, .xlsm, .xlsb": "يدعم .xlsx و .xls و .xlsm و .xlsb",
+  "Please upload a valid Excel file (.xlsx, .xls, .xlsm, .xlsb)":
+    "يرجى رفع ملف إكسل صالح (.xlsx أو .xls أو .xlsm أو .xlsb)",
+  "File uploaded and processed successfully!": "تم رفع الملف ومعالجته بنجاح!",
   "Select Shop": "اختيار المتجر",
   "Customers Comments": "تعليقات العملاء",
   "Upload Excel File": "تحميل ملف إكسل",
@@ -1443,7 +1458,7 @@ const translations = {
   "Update": "تحديث",
   "Shop Name is required": "اسم المتجر مطلوب",
   "Contact is required": "رقم التواصل مطلوب",
-  "Contact must contain only numbers": "يجب أن يحتوي رقم التواصل على أرقام فقط",
+  "Contact must contain valid numbers": "يجب أن يحتوي رقم التواصل على أرقام صحيحة",
   "Address is required": "العنوان مطلوب",
   "Shop Info Updated Successfully!": "تم تحديث معلومات المتجر بنجاح!",
   "Failed to update": "فشل التحديث",

@@ -124,6 +124,12 @@ const PERMISSION_GROUPS = {
     "UPDATE_COUNTRIES",
     "DELETE_COUNTRIES",
   ],
+  SHOP_INFO: ["READ_SHOP_INFO", "UPDATE_SHOP_INFO"],
+  PRODUCT_IMAGES: [
+    "READ_PRODUCT_IMAGES",
+    "UPLOAD_PRODUCT_IMAGES",
+    "DELETE_PRODUCT_IMAGES",
+  ],
   ADMIN: ["SUPER_ADMIN", "USER_MANAGEMENT_ACCESS"],
 };
 
@@ -248,8 +254,15 @@ function SellerDashBoard() {
   const canViewOrders = PERMISSION_GROUPS.ORDERS.some((p: string) =>
     hasPermission(p),
   );
-  const canViewGallery = hasPermission("SUPER_ADMIN");
+  const canViewGallery = hasPermission("READ_PRODUCT_IMAGES");
+  const canUploadProductImages = hasPermission("UPLOAD_PRODUCT_IMAGES");
+  const canDeleteProductImages = hasPermission("DELETE_PRODUCT_IMAGES");
   const canViewStories = hasPermission("SUPER_ADMIN");
+  const canViewShopInfo = hasPermission("READ_SHOP_INFO");
+  const canUpdateShopInfo = hasPermission("UPDATE_SHOP_INFO");
+  // Excel bulk upload is gated on product create/update (SUPER_ADMIN included via hasPermission)
+  const canUploadExcel =
+    hasPermission("CREATE_PRODUCT") || hasPermission("UPDATE_PRODUCT");
   const isAdmin = hasPermission("SUPER_ADMIN");
 
   const currentUserId = auth.UserID ? auth.UserID() : null;
@@ -1729,7 +1742,7 @@ function SellerDashBoard() {
                   )}
                 </button>
               )}
-              {isAdmin && (
+              {canUploadExcel && (
                 <button
                   onClick={() => {
                     setActiveTab("excel");
@@ -1748,7 +1761,7 @@ function SellerDashBoard() {
                   )}
                 </button>
               )}
-              {isAdmin && (
+              {canViewShopInfo && (
                 <button
                   onClick={() => {
                     setActiveTab("shopInfo");
@@ -1823,16 +1836,26 @@ function SellerDashBoard() {
             activeTab={activeTab}
           />
         )}
-        {activeTab === "gallery" && canViewGallery && <GalleryTab  sellerId={sellerId}/>}
+        {activeTab === "gallery" && canViewGallery && (
+          <GalleryTab
+            sellerId={sellerId}
+            canUpload={canUploadProductImages}
+            canDelete={canDeleteProductImages}
+          />
+        )}
         {activeTab === "stories" && canViewStories && <StoriesTab sellerId={sellerId} />}
         {activeTab === "comments" && isAdmin && (
           <CommentsTab sellerId={sellerId} language={language} isRtl={isRtl} />
         )}
-        {activeTab === "excel" && isAdmin && (
+        {activeTab === "excel" && canUploadExcel && (
           <ExcelUploadTab sellerId={sellerId} language={language} />
         )}
-        {activeTab === "shopInfo" && isAdmin && (
-          <ShopInfo sellerId={sellerId} language={language} />
+        {activeTab === "shopInfo" && canViewShopInfo && (
+          <ShopInfo
+            sellerId={sellerId}
+            language={language}
+            canUpdate={canUpdateShopInfo}
+          />
         )}
       </div>
     </div>

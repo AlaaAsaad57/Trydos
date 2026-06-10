@@ -4,6 +4,7 @@ import NextLink from "components/global/NextLink";
 import VerifyUser from "./VerifyUser";
 import { GetImageUrl, isGuestName } from "utils/tinyUtils";
 import { translateFunction } from "utils/functions";
+import { formatPhoneInternational } from "utils/formatPhone";
 import { useAppStore } from "store";
 
 function Profile({ isRtl, language, local, SafeUserProfile }) {
@@ -34,7 +35,7 @@ function Profile({ isRtl, language, local, SafeUserProfile }) {
   };
 
   const displayName = isGuestName(user?.name) ? "" : (user?.name || "");
-  const displayPhone = isNotLoggedIn ? "" : `+ ${user?.phone?.replace("+", "")}`;
+  const displayPhone = isNotLoggedIn ? "" : formatPhoneInternational(user?.phone);
 
   return (
     <div

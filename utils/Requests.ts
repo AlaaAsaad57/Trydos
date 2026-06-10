@@ -242,4 +242,12 @@ export const REQUESTS_DATA = {
   SAVE_SELLER_STORY: { reqTitle: "SAVE_SELLER_STORY", code: 168 },
   DELETE_SELLER_STORY: { reqTitle: "DELETE_SELLER_STORY", code: 169 },
   GET_DELIVERY_TIMES: { reqTitle: "Get Delivery Times", code: 170 },
+  GET_SHOP_INFO: { reqTitle: "GET_SHOP_INFO", code: 171 },
+  UPDATE_SHOP_INFO: { reqTitle: "UPDATE_SHOP_INFO", code: 172 },
+  GET_PRODUCT_IMAGES: { reqTitle: "GET_PRODUCT_IMAGES", code: 173 },
+  UPLOAD_PRODUCT_IMAGES: { reqTitle: "UPLOAD_PRODUCT_IMAGES", code: 174 },
+  DELETE_PRODUCT_IMAGE: { reqTitle: "DELETE_PRODUCT_IMAGE", code: 175 },
+  GET_EXCEL_CATEGORIES: { reqTitle: "GET_EXCEL_CATEGORIES", code: 176 },
+  DOWNLOAD_EXCEL_TEMPLATE: { reqTitle: "DOWNLOAD_EXCEL_TEMPLATE", code: 177 },
+  PROCESS_EXCEL: { reqTitle: "PROCESS_EXCEL", code: 178 },
 };

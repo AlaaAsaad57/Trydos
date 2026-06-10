@@ -152,6 +152,7 @@ export async function GET(request: NextRequest) {
           firstName: String(name || InventoryUser.name)?.split(" ")?.[0] ?? "",
           lastName: String(name || InventoryUser.name)?.split(" ")?.[1] ?? "",
           email: String(InventoryUser.email) ?? "",
+          platform:"web"
         },
       ),
     ]);

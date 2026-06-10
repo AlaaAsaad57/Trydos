@@ -395,12 +395,12 @@ class SellerDashboardService {
     });
   }
 
-  async bulkUploadImages(files: File[]) {
+  async bulkUploadImages(files: File[], folder: string = "product") {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server is not configured");
     }
     const form = new FormData();
-    form.append("folder", "product");
+    form.append("folder", folder);
     files.forEach((file) => form.append("files", file));
 
     const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload/bulk`, {
@@ -419,6 +419,266 @@ class SellerDashboardService {
     if (!response.ok) {
       throw new Error(data?.message || "Bulk upload failed");
     }
+    return data;
+  }
+
+  // ---------- Product Images Gallery ----------
+  // (READ_PRODUCT_IMAGES / UPLOAD_PRODUCT_IMAGES / DELETE_PRODUCT_IMAGES)
+
+  // GET /shop/products/images — protected by READ_PRODUCT_IMAGES
+  async getProductImages(
+    sellerId: string,
+    page: number = 1,
+    perPage: number = 60,
+    search: string = "",
+  ) {
+    const params = new URLSearchParams({
+      page: String(page),
+      per_page: String(perPage),
+    });
+    if (search) params.set("search", search);
+    return fetchData({
+      url: `/shop/products/images?${params.toString()}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_PRODUCT_IMAGES,
+      sellerId,
+    });
+  }
+
+  // POST /shop/products/images — protected by UPLOAD_PRODUCT_IMAGES
+  // Persists already-uploaded media URLs as product images.
+  async saveProductImages(
+    sellerId: string,
+    images: { url: string; name: string }[],
+  ) {
+    return fetchData({
+      url: `/shop/products/images`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.UPLOAD_PRODUCT_IMAGES,
+      body: JSON.stringify({ images }),
+      sellerId,
+    });
+  }
+
+  // DELETE /shop/products/images/{id} — protected by DELETE_PRODUCT_IMAGES
+  async deleteProductImage(imageId: number | string, sellerId: string) {
+    return fetchData({
+      url: `/shop/products/images/${imageId}`,
+      method: "DELETE",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.DELETE_PRODUCT_IMAGE,
+      sellerId,
+    });
+  }
+
+  // Normalize the media server bulk-upload response into { url, name }[].
+  // The bulk endpoint returns only the stored file name (e.g. "1781080470388204.png"),
+  // not a full URL — so we prefix it with the folder to build the "/folder/file" path
+  // the backend expects (matching the full URLs returned by getProductImages).
+  private normalizeBulkUpload(
+    data: any,
+    files: File[],
+    folder: string,
+  ): { url: string; name: string }[] {
+    const arr: any[] =
+      data?.files ?? data?.urls ?? data?.results ?? data?.data ?? data ?? [];
+    if (!Array.isArray(arr)) return [];
+    return arr
+      .map((item: any, i: number) => {
+        const raw =
+          typeof item === "string"
+            ? item
+            : item?.url ?? item?.path ?? item?.file_name ?? item?.name ?? "";
+        if (!raw) return { url: "", name: "" };
+        // Keep absolute URLs as-is; otherwise build "/folder/filename".
+        const isAbsolute = /^https?:\/\//i.test(raw) || raw.startsWith("/");
+        const fileName = raw.replace(/^\/+/, "").split("/").pop() || raw;
+        const url = isAbsolute ? raw : `/${folder}/${fileName}`;
+        const name =
+          (typeof item === "object" &&
+            (item?.originalName ?? item?.name ?? item?.file_name)) ||
+          files[i]?.name ||
+          fileName ||
+          `image-${i + 1}`;
+        return { url, name };
+      })
+      .filter((x) => x.url);
+  }
+
+  // Full upload flow: media server (bulk) -> persist URLs to the backend.
+  async uploadProductImages(files: File[], sellerId: string) {
+    const folder = "product";
+    const uploadRes = await this.bulkUploadImages(files, folder);
+    const images = this.normalizeBulkUpload(uploadRes, files, folder);
+    if (images.length === 0) {
+      throw new Error("No images were uploaded to the media server");
+    }
+    return this.saveProductImages(sellerId, images);
+  }
+
+  // ---------- Shop Info (READ_SHOP_INFO / UPDATE_SHOP_INFO) ----------
+
+  // Upload a single shop image (logo/banner) to the media server.
+  // Returns the stored file URL/key the backend expects in `image` / `banner`.
+  async uploadShopImage(
+    file: File,
+    folder: string = "shops",
+  ): Promise<string> {
+    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+      throw new Error("Media server upload is not configured");
+    }
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", folder);
+
+    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload`, {
+      method: "POST",
+      headers: { "x-api-key": MEDIA_API_KEY },
+      body: form,
+    });
+
+    let data: any = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+    if (!response.ok || !data?.url) {
+      throw new Error(data?.error || data?.message || "Media server upload failed");
+    }
+    return data.url as string;
+  }
+
+  // GET /shop/info — protected by READ_SHOP_INFO
+  async getShopInfo(sellerId: string) {
+    try {
+      const res = await fetchData({
+        url: `/shop/info`,
+        method: "GET",
+        server: "market-dashboard",
+        reqTitle: REQUESTS_DATA.GET_SHOP_INFO,
+        sellerId,
+      });
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // PUT /shop/info — protected by UPDATE_SHOP_INFO
+  async updateShopInfo(
+    sellerId: string,
+    data: {
+      name: string;
+      address: string;
+      contact: string;
+      image: string | null;
+      banner: string | null;
+    },
+  ) {
+    try {
+      const res = await fetchData({
+        url: `/shop/info`,
+        method: "PUT",
+        server: "market-dashboard",
+        reqTitle: REQUESTS_DATA.UPDATE_SHOP_INFO,
+        body: JSON.stringify(data),
+        sellerId,
+      });
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // ---------- Excel Bulk Upload ----------
+  // Flow: pick category -> download its template -> fill it ->
+  //       upload file to media server -> processExcel(url) on the backend.
+
+  // GET /shop/excel/categories — categories that expose an excel template.
+  async getExcelCategories(sellerId: string) {
+    return fetchData({
+      url: `/shop/excel/categories`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_EXCEL_CATEGORIES,
+      sellerId,
+    });
+  }
+
+  // GET /shop/excel/downloadExcel/{category_id} — the template for a category.
+  // Backend returns the template location; we surface the url to the caller.
+  async downloadExcelTemplate(sellerId: string, categoryId: string | number) {
+    return fetchData({
+      url: `/shop/excel/downloadExcel/${categoryId}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.DOWNLOAD_EXCEL_TEMPLATE,
+      sellerId,
+    });
+  }
+
+  // POST /shop/excel/processExcel — process a filled excel by its media url.
+  async processExcel(sellerId: string, url: string) {
+    return fetchData({
+      url: `/shop/excel/processExcel`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.PROCESS_EXCEL,
+      body: JSON.stringify({ url }),
+      sellerId,
+    });
+  }
+
+  // Upload a filled excel file to the media server.
+  // POST /upload/excel?folder=<folder> — multipart field "file", X-API-Key header.
+  // Accepted: .xlsx, .xls, .xlsm, .xlsb (max 512 MB).
+  // Success 201 → { url, key, filename, originalName, contentType }.
+  //
+  // NOTE: dummy implementation — replace with the real upload logic.
+  async uploadExcelFile(
+    file: File,
+    folder: string = "excel",
+  ): Promise<{
+    url: string;
+    key?: string;
+    filename?: string;
+    originalName?: string;
+    contentType?: string;
+  }> {
+    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+      throw new Error("Media server upload is not configured");
+    }
+
+    // folder must be in the query string — it's read before the file streams.
+    const form = new FormData();
+    form.append("file", file);
+
+    const response = await fetch(
+      `${MEDIA_SERVER_BASE_URL}/upload/excel?folder=${encodeURIComponent(folder)}`,
+      {
+        method: "POST",
+        headers: { "x-api-key": MEDIA_API_KEY },
+        body: form,
+      },
+    );
+
+    let data: any = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+    if (!response.ok || !data?.url) {
+      throw new Error(
+        data?.error || data?.message || "Excel upload to media server failed",
+      );
+    }
+
     return data;
   }
 }

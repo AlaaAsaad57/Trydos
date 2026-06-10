@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useRef } from "react";
-import sellerCommentsService from "services/sellerDashboard/comments";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 
@@ -9,12 +9,92 @@ interface ExcelUploadTabProps {
   language: string;
 }
 
+interface ExcelCategory {
+  id: number | string;
+  name?: string;
+  title?: string;
+}
+
+const ACCEPTED_EXTENSIONS = ["xlsx", "xls", "xlsm", "xlsb"];
+const ACCEPT_ATTR = ".xlsx,.xls,.xlsm,.xlsb";
+
 export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabProps) {
+  // ----- categories -----
+  const [categories, setCategories] = useState<ExcelCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState<boolean>(false);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+
+  // ----- template download -----
+  const [downloadingTemplate, setDownloadingTemplate] = useState<boolean>(false);
+
+  // ----- file upload -----
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const getCategoryName = (cat: ExcelCategory) =>
+    cat.name || cat.title || `#${cat.id}`;
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      setCategoriesLoading(true);
+      setCategoriesError(null);
+      const res = await SellerDashboardService.getExcelCategories(sellerId);
+      console.log(res);
+      const list: ExcelCategory[] =
+        res?.data?.categories || res?.categories || res?.data || [];
+      setCategories(Array.isArray(list) ? list : []);
+    } catch (error: any) {
+      console.error("Error fetching excel categories:", error);
+      setCategoriesError(
+        error?.message || translateFunction("Failed to load categories", language),
+      );
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, [sellerId, language]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  const handleDownloadTemplate = async () => {
+    if (!selectedCategory) return;
+    try {
+      setDownloadingTemplate(true);
+      setStatus(null);
+      const res = await SellerDashboardService.downloadExcelTemplate(
+        sellerId,
+        selectedCategory,
+      );
+      const url: string =
+        res?.data?.url || res?.url || res?.data?.file || res?.data || "";
+      if (!url || typeof url !== "string") {
+        throw new Error(translateFunction("Template is not available", language));
+      }
+      // Trigger the download in a new tab; the url is a directly-usable link.
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.download = "";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error: any) {
+      console.error("Error downloading template:", error);
+      setStatus({
+        type: "error",
+        message:
+          error?.message || translateFunction("Failed to download template", language),
+      });
+    } finally {
+      setDownloadingTemplate(false);
+    }
+  };
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -30,10 +110,8 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const droppedFile = e.dataTransfer.files[0];
-      validateAndSetFile(droppedFile);
+      validateAndSetFile(e.dataTransfer.files[0]);
     }
   };
 
@@ -46,14 +124,17 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
 
   const validateAndSetFile = (selectedFile: File) => {
     const fileExtension = selectedFile.name.split(".").pop()?.toLowerCase();
-    if (fileExtension === "xlsx" || fileExtension === "xls") {
+    if (fileExtension && ACCEPTED_EXTENSIONS.includes(fileExtension)) {
       setFile(selectedFile);
       setStatus(null);
     } else {
       setFile(null);
       setStatus({
         type: "error",
-        message: translateFunction("Please upload a valid Excel file (.xlsx or .xls)", language),
+        message: translateFunction(
+          "Please upload a valid Excel file (.xlsx, .xls, .xlsm, .xlsb)",
+          language,
+        ),
       });
     }
   };
@@ -63,6 +144,13 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
   };
 
   const handleUpload = async () => {
+    if (!selectedCategory) {
+      setStatus({
+        type: "error",
+        message: translateFunction("Please select a category first", language),
+      });
+      return;
+    }
     if (!file) {
       setStatus({
         type: "error",
@@ -74,17 +162,20 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
     try {
       setLoading(true);
       setStatus(null);
-      await sellerCommentsService.UploadExcel(file);
+      // 1) Upload the filled excel to the media server (dummy — user will write).
+      const uploaded = await SellerDashboardService.uploadExcelFile(file);
+      // 2) Hand the resulting url to the backend for processing.
+      await SellerDashboardService.processExcel(sellerId, uploaded.url);
       setStatus({
         type: "success",
-        message: translateFunction("File uploaded successfully!", language),
+        message: translateFunction("File uploaded and processed successfully!", language),
       });
       setFile(null);
     } catch (error: any) {
       console.error("Excel upload error:", error);
       setStatus({
         type: "error",
-        message: error.message || translateFunction("File upload failed.", language),
+        message: error?.message || translateFunction("File upload failed.", language),
       });
     } finally {
       setLoading(false);
@@ -98,10 +189,78 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
           {translateFunction("Upload Excel File", language)}
         </h2>
         <p className="text-[14px] text-gray-500">
-          {translateFunction("Upload product sheets or vendor files directly to the media server.", language)}
+          {translateFunction(
+            "Pick a category, download its template, fill it in, then upload it.",
+            language,
+          )}
         </p>
       </div>
 
+      {/* Step 1 — Category select */}
+      <div className="space-y-2">
+        <label className="block text-[14px] font-medium text-gray-800">
+          {translateFunction("Category", language)}
+        </label>
+        {categoriesLoading ? (
+          <div className="flex items-center gap-2 py-3">
+            <Spinner />
+            <span className="text-[14px] text-gray-500">
+              {translateFunction("Loading categories...", language)}
+            </span>
+          </div>
+        ) : categoriesError ? (
+          <div className="flex items-center justify-between gap-2 p-3 bg-red-50 border border-red-100 rounded-xl">
+            <span className="text-[13px] text-red-700">{categoriesError}</span>
+            <button
+              onClick={fetchCategories}
+              className="text-[13px] font-medium text-red-700 underline shrink-0"
+            >
+              {translateFunction("Retry", language)}
+            </button>
+          </div>
+        ) : (
+          <select
+            value={selectedCategory}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setStatus(null);
+            }}
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-[14px] bg-white"
+          >
+            <option value="">
+              {translateFunction("Select a category", language)}
+            </option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={String(cat.id)}>
+                {getCategoryName(cat)}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      {/* Step 2 — Download template */}
+      <button
+        onClick={handleDownloadTemplate}
+        disabled={!selectedCategory || downloadingTemplate}
+        className="w-full py-3 border border-blue-200 text-blue-700 bg-blue-50/60 font-semibold rounded-xl hover:bg-blue-50 disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-100 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+      >
+        {downloadingTemplate ? (
+          <>
+            <Spinner />
+            <span>{translateFunction("Preparing template...", language)}</span>
+          </>
+        ) : (
+          <>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+            </svg>
+            <span>{translateFunction("Download Template", language)}</span>
+          </>
+        )}
+      </button>
+
+      {/* Step 3 — Drop zone */}
       <div
         onDragEnter={handleDrag}
         onDragOver={handleDrag}
@@ -118,7 +277,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
           ref={fileInputRef}
           type="file"
           className="hidden"
-          accept=".xlsx, .xls"
+          accept={ACCEPT_ATTR}
           onChange={handleChange}
         />
         <div className="p-3 bg-blue-50 text-blue-600 rounded-full">
@@ -142,7 +301,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
             {translateFunction("Drag & drop Excel file here, or click to select", language)}
           </p>
           <p className="text-[12px] text-gray-400">
-            {translateFunction("Supports .xlsx, .xls", language)}
+            {translateFunction("Supports .xlsx, .xls, .xlsm, .xlsb", language)}
           </p>
         </div>
       </div>
@@ -210,7 +369,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
 
       <button
         onClick={handleUpload}
-        disabled={loading || !file}
+        disabled={loading || !file || !selectedCategory}
         className="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed shadow-sm transition-all duration-200 flex items-center justify-center space-x-2"
       >
         {loading ? (
