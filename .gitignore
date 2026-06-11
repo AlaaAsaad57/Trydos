@@ -56,3 +56,6 @@ next-env.d.ts
 graphify-out/
 
 scripts/
+
+# Local design references (XD exports) - not for repo
+xd-designs-for-inspreation/
