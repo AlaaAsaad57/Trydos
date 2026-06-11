@@ -182,11 +182,11 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
         className=" w-full h-full fixed top-0 left-0 z-50"
       />
       <div
-       className={`${isRtl?'left-[10px]':'right-[10px]'}`}
+   
         style={{
           position: "absolute",
           top: "50px",
-          
+          right:'10px',
           background: "#fff",
           boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
           borderRadius: "8px",
