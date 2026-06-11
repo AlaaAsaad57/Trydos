@@ -111,9 +111,13 @@ function Init() {
     }
 
     try {
+      // Start the session recorder for EVERY visitor (guests included) —
+      // session-replay is meant to capture all traffic, not just logged-in
+      // users. init() is idempotent, so re-running it on auth changes is safe.
+      smartlookInit(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
+
       if (auth.UserID()) {
         if (typeof Notification !== "undefined") initPageLoad();
-        smartlookInit(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
 
         const user = useAppStore.getState().userProfile;
 
