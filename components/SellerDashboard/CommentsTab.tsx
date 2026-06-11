@@ -2,7 +2,14 @@
 import React, { useState, useEffect } from "react";
 import sellerCommentsService from "services/sellerDashboard/comments";
 import { translateFunction } from "utils/functions";
-import Spinner from "components/global/Spinner";
+import { DashIcon } from "components/SellerDashboard/ui/icons";
+import {
+  DashCard,
+  DashButton,
+  LoadingState,
+  EmptyState,
+  Segmented,
+} from "components/SellerDashboard/ui";
 
 interface CommentsTabProps {
   sellerId: string;
@@ -125,81 +132,59 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-5">
       {/* Sub-tab Switcher */}
-      <div className="flex border-b border-gray-100 pb-px">
-        <button
-          onClick={() => setSubTab("faq")}
-          className={`pb-4 px-6 text-[15px] font-semibold transition-all relative ${
-            subTab === "faq"
-              ? "text-blue-600 font-bold"
-              : "text-gray-400 hover:text-gray-600"
-          }`}
-        >
-          {translateFunction("FAQ", language)}
-          {subTab === "faq" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full animate-fade-in" />
-          )}
-        </button>
-        <button
-          onClick={() => setSubTab("reviews")}
-          className={`pb-4 px-6 text-[15px] font-semibold transition-all relative ${
-            subTab === "reviews"
-              ? "text-blue-600 font-bold"
-              : "text-gray-400 hover:text-gray-600"
-          }`}
-        >
-          {translateFunction("Reviewing", language)}
-          {subTab === "reviews" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full animate-fade-in" />
-          )}
-        </button>
-      </div>
+      <Segmented
+        value={subTab}
+        onChange={(v) => setSubTab(v)}
+        options={[
+          { value: "faq", label: translateFunction("FAQ", language) },
+          { value: "reviews", label: translateFunction("Reviewing", language) },
+        ]}
+      />
 
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Spinner />
-          <span className="ml-3 text-[14px] text-gray-500">
-            {translateFunction("Loading...", language)}
-          </span>
-        </div>
+        <LoadingState label={translateFunction("Loading...", language)} />
       ) : comments.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center space-y-2">
-          <p className="text-[16px] font-semibold text-gray-800">
-            {translateFunction("No comments found.", language)}
-          </p>
-          <p className="text-[13px] text-gray-400">
-            {translateFunction("Check back later for comments from customers.", language)}
-          </p>
-        </div>
+        <EmptyState
+          icon="comments"
+          title={translateFunction("No comments found.", language)}
+          subtitle={translateFunction(
+            "Check back later for comments from customers.",
+            language,
+          )}
+        />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Comments Table */}
-          <div className="overflow-x-auto bg-white rounded-2xl border border-gray-100 shadow-xs">
+          <div
+            className="overflow-x-auto bg-white rounded-[15px] border border-[#ededed]"
+            style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+          >
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100 text-[13px] font-semibold text-gray-500 uppercase tracking-wider">
-                  <th className="py-4 px-6 font-medium">{translateFunction("Comment ID", language)}</th>
-                  <th className="py-4 px-6 font-medium">{translateFunction("Customer", language)}</th>
-                  <th className="py-4 px-6 font-medium">{translateFunction("Comment", language)}</th>
+                <tr className="bg-[#f8f8f8] border-b border-[#ededed] text-[12px] semibold text-[#8e8e8e]">
+                  <th className="py-3.5 px-5">{translateFunction("Comment ID", language)}</th>
+                  <th className="py-3.5 px-5">{translateFunction("Customer", language)}</th>
+                  <th className="py-3.5 px-5">{translateFunction("Comment", language)}</th>
                   {subTab === "reviews" ? (
-                    <th className="py-4 px-6 font-medium">{translateFunction("Rating", language)}</th>
+                    <th className="py-3.5 px-5">{translateFunction("Rating", language)}</th>
                   ) : (
-                    <th className="py-4 px-6 font-medium">{translateFunction("Product ID", language)}</th>
+                    <th className="py-3.5 px-5">{translateFunction("Product ID", language)}</th>
                   )}
-                  <th className="py-4 px-6 font-medium">{translateFunction("Variant", language)}</th>
-                  <th className="py-4 px-6 font-medium">{translateFunction("Date", language)}</th>
-                  <th className="py-4 px-6 font-medium">{translateFunction("Reply Status", language)}</th>
-                  <th className="py-4 px-6 font-medium">{translateFunction("Actions", language)}</th>
+                  <th className="py-3.5 px-5">{translateFunction("Variant", language)}</th>
+                  <th className="py-3.5 px-5">{translateFunction("Date", language)}</th>
+                  <th className="py-3.5 px-5">{translateFunction("Reply Status", language)}</th>
+                  <th className="py-3.5 px-5">{translateFunction("Actions", language)}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50 text-[14px]">
+              <tbody className="divide-y divide-[#f2f2f2] text-[14px]">
                 {comments.map((comment) => (
-                  <tr key={comment.comment_id} className="hover:bg-gray-50/30 transition-colors">
-                    <td className="py-4 px-6 text-gray-400 font-mono text-[12px]">{comment.comment_id}</td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden flex-shrink-0">
+                  <tr key={comment.comment_id} className="hover:bg-[#f8f8f8] transition-colors">
+                    <td className="py-4 px-5 text-[#b8b8b8] font-mono text-[12px]">{comment.comment_id}</td>
+                    <td className="py-4 px-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-[#f2f2f2] overflow-hidden shrink-0">
                           {comment.user_avatar ? (
                             <img
                               src={comment.user_avatar}
@@ -207,63 +192,67 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-[12px] font-bold">
+                            <div className="w-full h-full flex items-center justify-center text-[#8e8e8e] text-[12px] bold">
                               {comment.user_name?.substring(0, 2).toUpperCase()}
                             </div>
                           )}
                         </div>
-                        <span className="font-medium text-gray-800">{comment.user_name}</span>
+                        <span className="medium text-[#3c3c3c]">{comment.user_name}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6 max-w-xs truncate text-gray-700" title={comment.text}>
+                    <td className="py-4 px-5 max-w-xs truncate text-[#505050]" title={comment.text}>
                       {comment.text}
                     </td>
                     {subTab === "reviews" ? (
-                      <td className="py-4 px-6">
-                        <div className="flex items-center space-x-1">
-                          <span className="font-semibold text-yellow-600">{comment.rating ?? "-"}</span>
+                      <td className="py-4 px-5">
+                        <div className="flex items-center gap-1 text-[#e6b400]">
+                          <span className="semibold">{comment.rating ?? "-"}</span>
                           {comment.rating && (
-                            <span className="text-yellow-400 text-[16px]">&#9733;</span>
+                            <DashIcon name="star" size={15} strokeWidth={1.4} />
                           )}
                         </div>
                       </td>
                     ) : (
-                      <td className="py-4 px-6 text-gray-500 font-mono text-[12px]">{comment.product_id}</td>
+                      <td className="py-4 px-5 text-[#8e8e8e] font-mono text-[12px]">{comment.product_id}</td>
                     )}
-                    <td className="py-4 px-6 text-gray-500">{comment.variant || "-"}</td>
-                    <td className="py-4 px-6 text-gray-400 text-[12px]">
+                    <td className="py-4 px-5 text-[#8e8e8e]">{comment.variant || "-"}</td>
+                    <td className="py-4 px-5 text-[#b8b8b8] text-[12px]">
                       {new Date(comment.created_at).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", {
                         year: "numeric",
                         month: "short",
                         day: "numeric",
                       })}
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-5">
                       {comment.has_reply ? (
                         <div className="space-y-1">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] semibold bg-[#eaf7ef] text-[#2ea84f]">
                             {translateFunction("Replied", language)}
                           </span>
-                          <p className="text-[12px] text-gray-500 italic max-w-xs truncate" title={comment.seller_reply}>
+                          <p className="text-[12px] text-[#8e8e8e] italic max-w-xs truncate" title={comment.seller_reply}>
                             {comment.seller_reply}
                           </p>
                         </div>
                       ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700 border border-yellow-100">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] semibold bg-[#fbf6e6] text-[#b8860b]">
                           {translateFunction("Pending", language)}
                         </span>
                       )}
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-5">
                       {subTab === "faq" && (
                         <button
                           onClick={() => openReplyModal(comment)}
-                          className={`text-[13px] font-semibold transition-colors ${
+                          className={`inline-flex items-center gap-1.5 text-[13px] semibold transition-colors ${
                             comment.has_reply
-                              ? "text-blue-600 hover:text-blue-800"
-                              : "text-green-600 hover:text-green-800"
+                              ? "text-[#388CFF] hover:opacity-80"
+                              : "text-[#5d5d5d] hover:opacity-80"
                           }`}
                         >
+                          <DashIcon
+                            name={comment.has_reply ? "edit" : "reply"}
+                            size={15}
+                          />
                           {comment.has_reply
                             ? translateFunction("Edit Reply", language)
                             : translateFunction("Reply", language)}
@@ -279,20 +268,13 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
           {/* Load More Button */}
           {hasMore && (
             <div className="flex justify-center pt-2">
-              <button
+              <DashButton
+                variant="secondary"
                 onClick={() => fetchComments(false)}
-                disabled={loadingMore}
-                className="px-6 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 disabled:bg-gray-50 disabled:text-gray-400 transition-colors flex items-center space-x-2"
+                loading={loadingMore}
               >
-                {loadingMore ? (
-                  <>
-                    <Spinner />
-                    <span>{translateFunction("Loading...", language)}</span>
-                  </>
-                ) : (
-                  <span>{translateFunction("Load More", language)}</span>
-                )}
-              </button>
+                {translateFunction("Load More", language)}
+              </DashButton>
             </div>
           )}
         </div>
@@ -300,39 +282,41 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
 
       {/* Reply Modal */}
       {replyModalOpen && selectedComment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs transition-opacity">
           <div
-            className="w-full max-w-lg bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 animate-scale-up"
-            style={{ direction: isRtl ? "rtl" : "ltr" }}
+            className="w-full max-w-lg bg-white rounded-[20px] overflow-hidden animate-scale-up"
+            style={{
+              direction: isRtl ? "rtl" : "ltr",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.18)",
+            }}
           >
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="text-[18px] font-bold text-gray-900">
+            <div className="p-5 lg:p-6 border-b border-[#ededed] flex items-center justify-between">
+              <h3 className="text-[16px] bold text-[#3c3c3c]">
                 {selectedComment.has_reply
                   ? translateFunction("Edit Reply", language)
                   : translateFunction("Reply to FQA Comment", language)}
               </h3>
               <button
                 onClick={() => setReplyModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label={translateFunction("Cancel", language)}
+                className="text-[#8e8e8e] hover:text-[#3c3c3c] transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <DashIcon name="close" size={22} />
               </button>
             </div>
 
             <form onSubmit={handleReplySubmit}>
-              <div className="p-6 space-y-4">
-                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-left space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-gray-800">{selectedComment.user_name}</span>
-                    <span className="text-[12px] text-gray-400 font-mono">({selectedComment.comment_id})</span>
+              <div className="p-5 lg:p-6 space-y-4">
+                <div className="p-4 bg-[#f8f8f8] rounded-[12px] border border-[#ededed] text-left space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="semibold text-[#3c3c3c]">{selectedComment.user_name}</span>
+                    <span className="text-[12px] text-[#b8b8b8] font-mono">({selectedComment.comment_id})</span>
                   </div>
-                  <p className="text-[14px] text-gray-600 italic">"{selectedComment.text}"</p>
+                  <p className="text-[14px] text-[#505050] italic">"{selectedComment.text}"</p>
                 </div>
 
                 <div className="space-y-2 text-left">
-                  <label className="block text-[14px] font-semibold text-gray-700">
+                  <label className="block text-[13px] medium text-[#505050]">
                     {translateFunction("Reply Text", language)}
                   </label>
                   <textarea
@@ -340,34 +324,28 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder={translateFunction("Write a reply...", language)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent text-[14px] resize-none"
+                    className="w-full px-4 py-3 bg-[#f8f8f8] border border-[#ededed] rounded-[12px] outline-none focus:border-[#388CFF] focus:bg-white text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] resize-none transition-colors"
                     required
                   />
                 </div>
               </div>
 
-              <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex items-center justify-end space-x-3">
-                <button
+              <div className="p-5 lg:p-6 border-t border-[#ededed] bg-[#fafafa] flex items-center justify-end gap-3">
+                <DashButton
                   type="button"
+                  variant="ghost"
                   onClick={() => setReplyModalOpen(false)}
-                  className="px-5 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
                 >
                   {translateFunction("Cancel", language)}
-                </button>
-                <button
+                </DashButton>
+                <DashButton
                   type="submit"
-                  disabled={submittingReply || !replyText.trim()}
-                  className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed shadow-xs transition-colors flex items-center space-x-2"
+                  icon="reply"
+                  loading={submittingReply}
+                  disabled={!replyText.trim()}
                 >
-                  {submittingReply ? (
-                    <>
-                      <Spinner />
-                      <span>{translateFunction("Submitting...", language)}</span>
-                    </>
-                  ) : (
-                    <span>{translateFunction("Submit Reply", language)}</span>
-                  )}
-                </button>
+                  {translateFunction("Submit Reply", language)}
+                </DashButton>
               </div>
             </form>
           </div>

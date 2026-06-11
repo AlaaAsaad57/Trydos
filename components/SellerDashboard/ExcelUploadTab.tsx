@@ -3,6 +3,12 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
+import { DashIcon } from "components/SellerDashboard/ui/icons";
+import {
+  DashButton,
+  LoadingState,
+  EmptyState,
+} from "components/SellerDashboard/ui";
 
 interface ExcelUploadTabProps {
   sellerId: string;
@@ -95,15 +101,15 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
   const statusBadgeClass = (status?: string) => {
     switch ((status || "").toLowerCase()) {
       case EXCEL_STATUS.COMPLETED:
-        return "bg-green-50 text-green-700 border-green-100";
+        return "bg-[#eaf7ef] text-[#2ea84f]";
       case EXCEL_STATUS.FAILED:
-        return "bg-red-50 text-red-700 border-red-100";
+        return "bg-[#fff1f1] text-[#f85555]";
       case EXCEL_STATUS.PROCESSING:
-        return "bg-amber-50 text-amber-700 border-amber-100";
+        return "bg-[#fbf6e6] text-[#b8860b]";
       case EXCEL_STATUS.UPLOADED:
-        return "bg-blue-50 text-blue-700 border-blue-100";
+        return "bg-[#388CFF]/[0.1] text-[#388CFF]";
       default:
-        return "bg-gray-50 text-gray-600 border-gray-200";
+        return "bg-[#f2f2f2] text-[#8e8e8e]";
     }
   };
 
@@ -112,7 +118,6 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       setCategoriesLoading(true);
       setCategoriesError(null);
       const res = await SellerDashboardService.getExcelCategories(sellerId);
-      console.log(res);
       const list: ExcelCategory[] =
         res?.data?.categories || res?.categories || res?.data || [];
       setCategories(Array.isArray(list) ? list : []);
@@ -265,13 +270,19 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
   };
 
   return (
-    <div className="w-full  mx-auto space-y-8">
-    <div className="w-full  mx-auto p-8 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-6">
+    <div className="w-full mx-auto space-y-6">
+    <div
+      className="w-full mx-auto p-5 lg:p-8 bg-white rounded-[15px] border border-[#ededed] space-y-6"
+      style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+    >
       <div className="space-y-2 text-center">
-        <h2 className="text-[20px] font-bold text-gray-900 tracking-tight">
+        <span className="inline-flex text-[#5d5d5d]">
+          <DashIcon name="excel" size={34} strokeWidth={1.4} />
+        </span>
+        <h2 className="text-[18px] bold text-[#3c3c3c]">
           {translateFunction("Upload Excel File", language)}
         </h2>
-        <p className="text-[14px] text-gray-500">
+        <p className="text-[14px] text-[#8e8e8e]">
           {translateFunction(
             "Pick a category, download its template, fill it in, then upload it.",
             language,
@@ -281,22 +292,22 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
 
       {/* Step 1 — Category select */}
       <div className="space-y-2">
-        <label className="block text-[14px] font-medium text-gray-800">
+        <label className="block text-[13px] medium text-[#505050]">
           {translateFunction("Category", language)}
         </label>
         {categoriesLoading ? (
           <div className="flex items-center gap-2 py-3">
             <Spinner />
-            <span className="text-[14px] text-gray-500">
+            <span className="text-[14px] text-[#8e8e8e]">
               {translateFunction("Loading categories...", language)}
             </span>
           </div>
         ) : categoriesError ? (
-          <div className="flex items-center justify-between gap-2 p-3 bg-red-50 border border-red-100 rounded-xl">
-            <span className="text-[13px] text-red-700">{categoriesError}</span>
+          <div className="flex items-center justify-between gap-2 p-3 bg-[#fff1f1] border border-[#ffd9d9] rounded-[12px]">
+            <span className="text-[13px] text-[#f85555]">{categoriesError}</span>
             <button
               onClick={fetchCategories}
-              className="text-[13px] font-medium text-red-700 underline shrink-0"
+              className="text-[13px] medium text-[#f85555] underline shrink-0"
             >
               {translateFunction("Retry", language)}
             </button>
@@ -308,7 +319,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
               setSelectedCategory(e.target.value);
               setStatus(null);
             }}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-[14px] bg-white"
+            className="w-full px-4 h-[48px] border border-[#ededed] rounded-[12px] outline-none focus:border-[#388CFF] text-[14px] text-[#3c3c3c] bg-[#f8f8f8] focus:bg-white transition-colors"
           >
             <option value="">
               {translateFunction("Select a category", language)}
@@ -323,25 +334,18 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       </div>
 
       {/* Step 2 — Download template */}
-      <button
+      <DashButton
+        variant="secondary"
+        fullWidth
+        icon="download"
         onClick={handleDownloadTemplate}
-        disabled={!selectedCategory || downloadingTemplate}
-        className="w-full py-3 border border-blue-200 text-blue-700 bg-blue-50/60 font-semibold rounded-xl hover:bg-blue-50 disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-100 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+        loading={downloadingTemplate}
+        disabled={!selectedCategory}
       >
-        {downloadingTemplate ? (
-          <>
-            <Spinner />
-            <span>{translateFunction("Preparing template...", language)}</span>
-          </>
-        ) : (
-          <>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
-            </svg>
-            <span>{translateFunction("Download Template", language)}</span>
-          </>
-        )}
-      </button>
+        {downloadingTemplate
+          ? translateFunction("Preparing template...", language)
+          : translateFunction("Download Template", language)}
+      </DashButton>
 
       {/* Step 3 — Drop zone */}
       <div
@@ -350,10 +354,10 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
         onDragLeave={handleDrag}
         onDrop={handleDrop}
         onClick={onButtonClick}
-        className={`w-full py-12 px-6 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center space-y-4 cursor-pointer transition-all duration-300 ${
+        className={`w-full py-12 px-6 border-2 border-dashed rounded-[15px] flex flex-col items-center justify-center space-y-4 cursor-pointer transition-colors duration-300 ${
           dragActive
-            ? "border-blue-500 bg-blue-50/50"
-            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/30"
+            ? "border-[#388CFF] bg-[#388CFF]/[0.06]"
+            : "border-[#dcdcdc] hover:border-[#b8b8b8] hover:bg-[#f8f8f8]"
         }`}
       >
         <input
@@ -363,182 +367,143 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
           accept={ACCEPT_ATTR}
           onChange={handleChange}
         />
-        <div className="p-3 bg-blue-50 text-blue-600 rounded-full">
-          <svg
-            className="w-8 h-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-            ></path>
-          </svg>
+        <div className="p-3 bg-[#5d5d5d]/[0.1] text-[#5d5d5d] rounded-full">
+          <DashIcon name="upload" size={30} strokeWidth={1.5} />
         </div>
         <div className="text-center space-y-1">
-          <p className="text-[14px] font-medium text-gray-800">
+          <p className="text-[14px] medium text-[#3c3c3c]">
             {translateFunction("Drag & drop Excel file here, or click to select", language)}
           </p>
-          <p className="text-[12px] text-gray-400">
+          <p className="text-[12px] text-[#8e8e8e]">
             {translateFunction("Supports .xlsx, .xls, .xlsm, .xlsb", language)}
           </p>
         </div>
       </div>
 
       {file && (
-        <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between border border-gray-100 animate-fade-in">
-          <div className="flex items-center space-x-3 overflow-hidden">
-            <svg
-              className="w-6 h-6 text-green-600 shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              ></path>
-            </svg>
+        <div className="p-4 bg-[#f8f8f8] rounded-[12px] flex items-center justify-between border border-[#ededed] animate-fade-in">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <span className="text-[#2ea84f] shrink-0">
+              <DashIcon name="file" size={22} />
+            </span>
             <div className="text-left overflow-hidden">
-              <p className="text-[14px] font-medium text-gray-800 truncate">{file.name}</p>
-              <p className="text-[12px] text-gray-400">
+              <p className="text-[14px] medium text-[#3c3c3c] truncate">{file.name}</p>
+              <p className="text-[12px] text-[#8e8e8e]">
                 {(file.size / 1024).toFixed(1)} KB
               </p>
             </div>
           </div>
           <button
+            aria-label={translateFunction("Cancel", language)}
             onClick={(e) => {
               e.stopPropagation();
               setFile(null);
             }}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+            className="text-[#8e8e8e] hover:text-[#3c3c3c] transition-colors p-1"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <DashIcon name="close" size={20} />
           </button>
         </div>
       )}
 
       {status && (
         <div
-          className={`p-4 rounded-xl text-[14px] font-medium border flex items-start space-x-2 animate-fade-in ${
+          className={`p-4 rounded-[12px] text-[14px] medium border flex items-start gap-2 animate-fade-in ${
             status.type === "success"
-              ? "bg-green-50 border-green-100 text-green-800"
-              : "bg-red-50 border-red-100 text-red-800"
+              ? "bg-[#eaf7ef] border-[#bfe6cc] text-[#2ea84f]"
+              : "bg-[#fff1f1] border-[#ffd9d9] text-[#f85555]"
           }`}
         >
           <span className="mt-0.5 shrink-0">
-            {status.type === "success" ? (
-              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            )}
+            <DashIcon name={status.type === "success" ? "check" : "alert"} size={16} />
           </span>
           <span className="text-left">{status.message}</span>
         </div>
       )}
 
-      <button
+      <DashButton
+        fullWidth
+        icon="upload"
         onClick={handleUpload}
-        disabled={loading || !file}
-        className="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed shadow-sm transition-all duration-200 flex items-center justify-center space-x-2"
+        loading={loading}
+        disabled={!file}
       >
-        {loading ? (
-          <>
-            <Spinner />
-            <span>{translateFunction("Uploading...", language)}</span>
-          </>
-        ) : (
-          <span>{translateFunction("Upload Excel", language)}</span>
-        )}
-      </button>
+        {loading
+          ? translateFunction("Uploading...", language)
+          : translateFunction("Upload Excel", language)}
+      </DashButton>
     </div>
 
       {/* Uploaded excel files table */}
-      <div className="w-full p-6 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-4">
+      <div
+        className="w-full p-5 lg:p-6 bg-white rounded-[15px] border border-[#ededed] space-y-4"
+        style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+      >
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-[16px] font-bold text-gray-900">
+          <h3 className="text-[15px] semibold text-[#3c3c3c] flex items-center gap-2">
+            <span className="text-[#5d5d5d]">
+              <DashIcon name="excel" size={18} />
+            </span>
             {translateFunction("Uploaded Excel Files", language)}
           </h3>
           <button
             onClick={fetchExcelFiles}
             disabled={filesLoading}
-            className="text-[13px] font-medium text-blue-700 hover:text-blue-800 disabled:text-gray-400 flex items-center gap-1.5"
+            className="text-[13px] medium text-[#388CFF] hover:opacity-80 disabled:text-[#b8b8b8] flex items-center gap-1.5"
           >
-            <svg
-              className={`w-4 h-4 ${filesLoading ? "animate-spin" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+            <span className={filesLoading ? "animate-spin" : ""}>
+              <DashIcon name="refresh" size={15} />
+            </span>
             {translateFunction("Refresh", language)}
           </button>
         </div>
 
         {filesLoading ? (
-          <div className="flex items-center gap-2 py-8 justify-center">
-            <Spinner />
-            <span className="text-[14px] text-gray-500">
-              {translateFunction("Loading files...", language)}
-            </span>
-          </div>
+          <LoadingState label={translateFunction("Loading files...", language)} />
         ) : filesError ? (
-          <div className="flex items-center justify-between gap-2 p-3 bg-red-50 border border-red-100 rounded-xl">
-            <span className="text-[13px] text-red-700">{filesError}</span>
+          <div className="flex items-center justify-between gap-2 p-3 bg-[#fff1f1] border border-[#ffd9d9] rounded-[12px]">
+            <span className="text-[13px] text-[#f85555]">{filesError}</span>
             <button
               onClick={fetchExcelFiles}
-              className="text-[13px] font-medium text-red-700 underline shrink-0"
+              className="text-[13px] medium text-[#f85555] underline shrink-0"
             >
               {translateFunction("Retry", language)}
             </button>
           </div>
         ) : excelFiles.length === 0 ? (
-          <div className="py-8 text-center text-[14px] text-gray-400">
-            {translateFunction("No files uploaded yet.", language)}
-          </div>
+          <EmptyState
+            icon="excel"
+            title={translateFunction("No files uploaded yet.", language)}
+          />
         ) : (
           <div className="overflow-x-auto -mx-2">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="text-[12px] font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">
-                  <th className="px-3 py-2.5">{translateFunction("Title", language)}</th>
-                  <th className="px-3 py-2.5">{translateFunction("ID", language)}</th>
-                  <th className="px-3 py-2.5">{translateFunction("Status", language)}</th>
-                  <th className="px-3 py-2.5">{translateFunction("Created At", language)}</th>
-                  <th className="px-3 py-2.5 text-right">{translateFunction("Actions", language)}</th>
+                <tr className="text-[12px] semibold text-[#8e8e8e] border-b border-[#ededed]">
+                  <th className="px-3 py-3">{translateFunction("Title", language)}</th>
+                  <th className="px-3 py-3">{translateFunction("ID", language)}</th>
+                  <th className="px-3 py-3">{translateFunction("Status", language)}</th>
+                  <th className="px-3 py-3">{translateFunction("Created At", language)}</th>
+                  <th className="px-3 py-3 text-right">{translateFunction("Actions", language)}</th>
                 </tr>
               </thead>
-              <tbody className="text-[13px] text-gray-700">
+              <tbody className="text-[13px] text-[#505050]">
                 {excelFiles.map((item) => (
-                  <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                    <td className="px-3 py-3 font-medium text-gray-800 max-w-[180px] truncate">
+                  <tr key={item.id} className="border-b border-[#f2f2f2] hover:bg-[#f8f8f8] transition-colors">
+                    <td className="px-3 py-3 medium text-[#3c3c3c] max-w-[180px] truncate">
                       {item.original_filename || "—"}
                     </td>
-                    <td className="px-3 py-3 text-gray-500">{item.id}</td>
+                    <td className="px-3 py-3 text-[#8e8e8e]">{item.id}</td>
                     <td className="px-3 py-3">
                       <span
-                        className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-medium border capitalize ${statusBadgeClass(
+                        className={`inline-block px-2.5 py-1 rounded-full text-[11px] semibold capitalize ${statusBadgeClass(
                           item.upload_status,
                         )}`}
                       >
                         {item.upload_status || "—"}
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-gray-500 whitespace-nowrap">
+                    <td className="px-3 py-3 text-[#8e8e8e] whitespace-nowrap">
                       {formatDate(item.created_at)}
                     </td>
                     <td className="px-3 py-3">
@@ -547,7 +512,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
                           onClick={() => setNotesModal(item)}
                           disabled={!item.processing_notes}
                           title={translateFunction("Show notes", language)}
-                          className="px-2.5 py-1.5 rounded-lg text-[12px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 disabled:text-gray-300 disabled:border-gray-100 disabled:cursor-not-allowed transition-colors"
+                          className="px-2.5 py-1.5 rounded-[10px] text-[12px] medium text-[#505050] border border-[#ededed] hover:bg-[#f5f5f5] disabled:text-[#c4c2c2] disabled:border-[#f2f2f2] disabled:cursor-not-allowed transition-colors"
                         >
                           {translateFunction("Notes", language)}
                         </button>
@@ -558,12 +523,12 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
                             rel="noopener noreferrer"
                             download
                             title={translateFunction("Download", language)}
-                            className="px-2.5 py-1.5 rounded-lg text-[12px] font-medium text-blue-700 border border-blue-200 bg-blue-50/60 hover:bg-blue-50 transition-colors"
+                            className="px-2.5 py-1.5 rounded-[10px] text-[12px] medium text-[#388CFF] border border-[#388CFF] hover:bg-[#388CFF]/[0.06] transition-colors"
                           >
                             {translateFunction("Download", language)}
                           </a>
                         ) : (
-                          <span className="px-2.5 py-1.5 rounded-lg text-[12px] font-medium text-gray-300 border border-gray-100 cursor-not-allowed">
+                          <span className="px-2.5 py-1.5 rounded-[10px] text-[12px] medium text-[#c4c2c2] border border-[#f2f2f2] cursor-not-allowed">
                             {translateFunction("Download", language)}
                           </span>
                         )}
@@ -580,28 +545,28 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       {/* Notes modal */}
       {notesModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 animate-fade-in"
           onClick={() => setNotesModal(null)}
         >
           <div
-            className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-4"
+            className="w-full max-w-md bg-white rounded-[20px] p-5 lg:p-6 space-y-4"
+            style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between gap-2">
-              <h4 className="text-[16px] font-bold text-gray-900">
+              <h4 className="text-[16px] bold text-[#3c3c3c]">
                 {translateFunction("Notes", language)}
                 {notesModal.original_filename ? ` — ${notesModal.original_filename}` : ""}
               </h4>
               <button
                 onClick={() => setNotesModal(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                aria-label={translateFunction("Close", language)}
+                className="text-[#8e8e8e] hover:text-[#3c3c3c] transition-colors p-1"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <DashIcon name="close" size={20} />
               </button>
             </div>
-            <p className="text-[14px] text-gray-700 whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
+            <p className="text-[14px] text-[#505050] whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
               {notesModal.processing_notes || translateFunction("No notes available.", language)}
             </p>
           </div>

@@ -1,24 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  SellerProfileProvider,
-  useSellerProfile,
-} from "./SellerProfileContext"; // Import the context
+import { useSellerProfile } from "./SellerProfileContext"; // Import the context
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction } from "utils/functions";
 import BackBar from "components/setting/BackBar";
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Spinner from "components/global/Spinner";
+import { DashIcon } from "components/SellerDashboard/ui/icons";
+import { Monogram, DashButton, EmptyState } from "components/SellerDashboard/ui";
+
 function Page() {
-  const [activeTab, setActiveTab] = useState(null);
+  const [, setActiveTab] = useState(null);
   const { lang } = useParams();
-  let [country, language] = lang?.toString()?.split("-");
+  let [, language] = lang?.toString()?.split("-");
   const isRtl = language === "ar" || language === "ku";
-  const { sellerData, setLoading, loading, shopes, setShopes } =
-    useSellerProfile(); // Use the context
+  const { setLoading, loading, shopes, setShopes } = useSellerProfile(); // Use the context
 
   // Leave shop confirmation state
   const [leaveConfirmShopId, setLeaveConfirmShopId] = useState<
@@ -65,9 +63,17 @@ function Page() {
     getInitialData();
   }, []);
 
+  const leavingShop = shopes.find(
+    (s: any) => String(s.seller_id) === String(leaveConfirmShopId),
+  );
+
+  const isSuperAdmin = (shop: any) =>
+    Array.isArray(shop.permissions) &&
+    shop.permissions.includes("SUPER_ADMIN");
+
   return (
-    <div className="w-full max-w-[1365px] flex flex-col items-start bg-white p-6 rounded-lg shadow-md setting-screen">
-      <div className="w-full mb-3">
+    <div className="w-full max-w-[1366px] mx-auto setting-screen">
+      <div className="mb-3">
         <BackBar
           isRtl={isRtl}
           local={lang?.toString()}
@@ -76,110 +82,187 @@ function Page() {
           DataCy="seller-profile-screen"
         />
       </div>
-      <span>
-        {translateFunction("please Select a shop to continue", language)}
-      </span>
-      <div className="p-3">
-        {loading && (
-          <div className="flex-row flex gap-2">
-            <Spinner /> {translateFunction("Loading...", language)}
-          </div>
-        )}
 
-        {shopes.length === 0 && !loading ? (
-          <p className="text-[14px] text-[#8D8D8D]">
-            {translateFunction("No shops available", language)}
-          </p>
-        ) : (
-          <div className="overflow-auto mb-[100px]">
-            <table className="w-full text-left mb-[300px]">
-              <thead>
-                <tr>
-                  <th className="py-2 px-3">
-                    {translateFunction("Shop Name", language)}
-                  </th>
-                  <th className="py-2 px-3">
-                    {translateFunction("Seller ID", language)}
-                  </th>
-                  <th className="py-2 px-3">
-                    {translateFunction("Actions", language)}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {shopes.map((shop: any) => (
-                  <tr key={shop.seller_id} className="border-t">
-                    <td className="py-3 px-3">{shop.shop_name}</td>
-                    <td className="py-3 px-3">{shop.seller_id}</td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/${lang}/sellerProfile/sellerDashboard/${shop.seller_id}`}
-                          onClick={() => {
-                            setLoading(true);
-                            setActiveTab(shop.seller_id);
-                          }}
-                        >
-                          <button className="px-3 py-1 bg-blue-500 text-white rounded-sm">
-                            {translateFunction("Enter", language)}
-                          </button>
-                        </Link>
+      {/* Intro */}
+      <div className="px-1 mb-5">
+        <h1 className="text-[22px] bold text-[#1d1d1d]">
+          {translateFunction("Your Shops", language)}
+        </h1>
+        <p className="text-[14px] text-[#8e8e8e] mt-1">
+          {translateFunction(
+            "Pick a shop to open its dashboard.",
+            language,
+          )}
+        </p>
+      </div>
 
-                        <button
-                          onClick={() => setLeaveConfirmShopId(shop.seller_id)}
-                          className="px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-sm disabled:opacity-50"
-                        >
-                          {translateFunction("Leave", language)}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Confirm modal */}
-        {leaveConfirmShopId && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Loading skeletons */}
+      {loading ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {[0, 1, 2].map((i) => (
             <div
-              className="absolute inset-0 bg-black opacity-40"
-              onClick={() => setLeaveConfirmShopId(null)}
-            />
-            <div className="bg-white p-6 rounded-sm shadow-lg z-10 w-full max-w-md">
-              <h3 className="text-[16px] font-bold mb-2">
-                {translateFunction("Confirm leave shop", language)}
-              </h3>
-              <p className="text-[14px] text-[#333]">
-                {translateFunction(
-                  "Are you sure you want to leave this shop? This will remove your access to the shop dashboard.",
-                  language,
-                )}
-              </p>
-              {leaveError && <p className="text-red-500 mt-3">{leaveError}</p>}
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  className="px-4 py-2 bg-gray-100 rounded-sm"
-                  onClick={() => setLeaveConfirmShopId(null)}
-                  disabled={leaveProcessing}
-                >
-                  {translateFunction("Cancel", language)}
-                </button>
-                <button
-                  className="px-4 py-2 bg-red-600 text-white rounded-sm"
-                  onClick={confirmLeaveShop}
-                  disabled={leaveProcessing}
-                >
-                  {leaveProcessing
-                    ? translateFunction("Leaving...", language)
-                    : translateFunction("Leave", language)}
-                </button>
+              key={i}
+              className="bg-white rounded-[15px] p-5 animate-pulse"
+              style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-[52px] h-[52px] rounded-[15px] bg-[#f0f0f0]" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3.5 w-2/3 rounded-full bg-[#f0f0f0]" />
+                  <div className="h-3 w-1/3 rounded-full bg-[#f4f4f4]" />
+                </div>
               </div>
+              <div className="h-[44px] mt-5 rounded-[12px] bg-[#f4f4f4]" />
+            </div>
+          ))}
+        </div>
+      ) : shopes.length === 0 ? (
+        <div
+          className="bg-white rounded-[15px]"
+          style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+        >
+          <EmptyState
+            icon="shopInfo"
+            title={translateFunction("No shops available", language)}
+            subtitle={translateFunction(
+              "Shops you can manage will appear here.",
+              language,
+            )}
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pb-[60px]">
+          {shopes.map((shop: any) => {
+            const admin = isSuperAdmin(shop);
+            const permCount = Array.isArray(shop.permissions)
+              ? shop.permissions.length
+              : 0;
+            return (
+              <div
+                key={shop.seller_id}
+                className="group relative bg-white rounded-[15px] p-5 transition-all hover:-translate-y-0.5"
+                style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+              >
+                {/* Identity row */}
+                <div className="flex items-center gap-3.5">
+                  <Monogram name={shop.shop_name} size={52} />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-[16px] bold text-[#1d1d1d] truncate">
+                      {shop.shop_name}
+                    </h3>
+                    <p className="text-[12px] text-[#8e8e8e] mt-0.5">
+                      {translateFunction("Seller ID", language)} ·{" "}
+                      <span className="medium text-[#505050]">
+                        {shop.seller_id}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Role + access meta */}
+                <div className="flex flex-wrap items-center gap-2 mt-4">
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] semibold ${
+                      admin
+                        ? "bg-[#5d5d5d]/10 text-[#5d5d5d]"
+                        : "bg-[#f4f4f4] text-[#505050]"
+                    }`}
+                  >
+                    <DashIcon name={admin ? "star" : "role"} size={13} />
+                    {admin
+                      ? translateFunction("Super Admin", language)
+                      : shop.shop_role || translateFunction("Member", language)}
+                  </span>
+                  {!admin && permCount > 0 && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] medium bg-[#388CFF]/[0.08] text-[#388CFF]">
+                      <DashIcon name="permissions" size={13} />
+                      {permCount} {translateFunction("permissions", language)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 mt-5">
+                  <Link
+                    href={`/${lang}/sellerProfile/sellerDashboard/${shop.seller_id}`}
+                    onClick={() => {
+                      setLoading(true);
+                      setActiveTab(shop.seller_id);
+                    }}
+                    className="flex-1"
+                  >
+                    <DashButton
+                      fullWidth
+                      iconRight={isRtl ? "chevronLeft" : "chevronRight"}
+                    >
+                      {translateFunction("Enter Dashboard", language)}
+                    </DashButton>
+                  </Link>
+                  <button
+                    onClick={() => setLeaveConfirmShopId(shop.seller_id)}
+                    title={translateFunction("Leave shop", language)}
+                    aria-label={translateFunction("Leave shop", language)}
+                    className="h-[44px] w-[44px] shrink-0 inline-flex items-center justify-center rounded-[12px] bg-[#fff1f1] text-[#f85555] hover:bg-[#ffe6e6] transition-all active:scale-[0.98]"
+                  >
+                    <DashIcon name="logout" size={18} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Confirm leave — destructive confirmation dialog */}
+      {leaveConfirmShopId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/45"
+            onClick={() => !leaveProcessing && setLeaveConfirmShopId(null)}
+          />
+          <div
+            className="relative bg-white rounded-[20px] p-6 z-10 w-full max-w-sm text-center"
+            style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
+            dir={isRtl ? "rtl" : "ltr"}
+          >
+            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[#fff1f1] text-[#f85555] flex items-center justify-center">
+              <DashIcon name="logout" size={24} />
+            </div>
+            <h3 className="text-[17px] bold text-[#1d1d1d] mb-1.5">
+              {translateFunction("Leave", language)}{" "}
+              {leavingShop?.shop_name || translateFunction("this shop", language)}?
+            </h3>
+            <p className="text-[14px] text-[#8e8e8e] mb-5">
+              {translateFunction(
+                "This will remove your access to the shop dashboard. You can be re-invited later.",
+                language,
+              )}
+            </p>
+            {leaveError && (
+              <p className="text-[13px] text-[#f85555] mb-4">{leaveError}</p>
+            )}
+            <div className="flex gap-3">
+              <DashButton
+                variant="ghost"
+                fullWidth
+                onClick={() => setLeaveConfirmShopId(null)}
+                disabled={leaveProcessing}
+              >
+                {translateFunction("Cancel", language)}
+              </DashButton>
+              <button
+                onClick={confirmLeaveShop}
+                disabled={leaveProcessing}
+                className="flex-1 h-[44px] rounded-[12px] bg-[#f85555] text-white medium text-[14px] hover:bg-[#e84444] disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              >
+                {leaveProcessing
+                  ? translateFunction("Leaving...", language)
+                  : translateFunction("Leave", language)}
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

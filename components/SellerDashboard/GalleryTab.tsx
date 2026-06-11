@@ -3,6 +3,13 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import Spinner from "components/global/Spinner";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction } from "utils/functions";
+import { DashIcon } from "components/SellerDashboard/ui/icons";
+import {
+  DashButton,
+  LoadingState,
+  EmptyState,
+  Pagination,
+} from "components/SellerDashboard/ui";
 
 interface GalleryImage {
   id: number | string;
@@ -157,7 +164,9 @@ export default function GalleryTab({
       {canUpload && (
       <div
         className={`border-2 border-dashed rounded-[15px] p-8 text-center transition-colors ${
-          dragOver ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white"
+          dragOver
+            ? "border-[#388CFF] bg-[#388CFF]/[0.06]"
+            : "border-[#dcdcdc] bg-[#fafafa]"
         }`}
         onDragOver={(e) => {
           e.preventDefault();
@@ -166,32 +175,28 @@ export default function GalleryTab({
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
       >
-        <img
-          src="/icons/image.svg"
-          alt=""
-          width={40}
-          height={40}
-          className="mx-auto mb-3 opacity-70"
-        />
-        <p className="text-[16px] font-semibold text-[#1d1d1d] mb-1">
+        <span className="inline-flex text-[#5d5d5d] mb-3">
+          <DashIcon name="upload" size={40} strokeWidth={1.4} />
+        </span>
+        <p className="text-[16px] semibold text-[#3c3c3c] mb-1">
           {translateFunction("Drop images here")}
         </p>
-        <p className="text-[14px] text-[#8D8D8D] mb-4">
+        <p className="text-[14px] text-[#8e8e8e] mb-4">
           {translateFunction("or choose files / folder")}
         </p>
         <div className="flex gap-3 justify-center flex-wrap">
-          <button
+          <DashButton
+            icon="upload"
             onClick={() => filesInputRef.current?.click()}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-[14px]"
           >
             {translateFunction("Select Files")}
-          </button>
-          <button
+          </DashButton>
+          <DashButton
+            variant="secondary"
             onClick={() => folderInputRef.current?.click()}
-            className="px-4 py-2 bg-white border border-gray-300 text-[#1d1d1d] rounded-lg hover:bg-gray-50 text-[14px]"
           >
             {translateFunction("Select Folder")}
-          </button>
+          </DashButton>
         </div>
         {/* Hidden file inputs */}
         <input
@@ -215,36 +220,40 @@ export default function GalleryTab({
 
       {/* Error banner */}
       {error && (
-        <div className="p-3 bg-red-100 border border-red-300 rounded-lg text-red-700 text-[14px] flex items-center justify-between">
-          <span>{error}</span>
+        <div className="p-3 bg-[#fff1f1] border border-[#ffd9d9] rounded-[12px] text-[#f85555] text-[14px] flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <DashIcon name="alert" size={16} />
+            {error}
+          </span>
           <button
             onClick={() => setError(null)}
-            title={translateFunction("Close")}
-            className="ml-3 shrink-0 hover:opacity-70"
+            aria-label={translateFunction("Close")}
+            className="ml-3 shrink-0 hover:opacity-70 text-[#f85555]"
           >
-            <img src="/icons/CloseIcon.svg" alt="" width={12} height={12} />
+            <DashIcon name="close" size={16} />
           </button>
         </div>
       )}
 
       {/* Gallery Grid */}
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Spinner />
-          <span className="ml-3 text-[#3c3c3c]">{translateFunction("Loading images...")}</span>
-        </div>
+        <LoadingState label={translateFunction("Loading images...")} />
       ) : images.length === 0 ? (
-        <div className="flex items-center justify-center py-12">
-          <p className="text-[#8D8D8D]">{translateFunction("No images found")}</p>
-        </div>
+        <EmptyState
+          icon="gallery"
+          title={translateFunction("No images found")}
+          subtitle={translateFunction(
+            "Uploaded product images will appear here.",
+          )}
+        />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 pb-[30px]">
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 pb-[30px]">
           {images.map((img) => (
             <div
               key={img.id}
-              className="bg-white rounded-xl shadow-sm overflow-hidden group relative"
+              className="bg-[#f8f8f8] rounded-[12px] border border-[#ededed] overflow-hidden group relative"
             >
-              <div className="relative w-full aspect-square bg-[#f8f8f8]">
+              <div className="relative w-full aspect-square bg-[#e6e6e6]">
                 <img
                   src={getImageUrl(img)}
                   alt={getImageName(img)}
@@ -256,9 +265,9 @@ export default function GalleryTab({
                   <button
                     title={translateFunction("View")}
                     onClick={() => setLightboxUrl(getImageUrl(img))}
-                    className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white"
+                    className="w-8 h-8 bg-white/90 text-[#3c3c3c] rounded-full flex items-center justify-center hover:bg-white transition-colors active:scale-[0.95]"
                   >
-                    <img src="/icons/EyeIcon.svg" alt="" width={15} height={15} />
+                    <DashIcon name="eye" size={15} />
                   </button>
                   <button
                     title={
@@ -267,13 +276,13 @@ export default function GalleryTab({
                         : translateFunction("Copy URL")
                     }
                     onClick={() => copyToClipboard(getImageUrl(img), img.id)}
-                    className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white"
+                    className={`w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors active:scale-[0.95] ${
+                      copySuccessId === img.id ? "text-[#2ea84f]" : "text-[#3c3c3c]"
+                    }`}
                   >
-                    <img
-                      src={copySuccessId === img.id ? "/icons/CheckIcon.svg" : "/icons/copyIcon.svg"}
-                      alt=""
-                      width={15}
-                      height={15}
+                    <DashIcon
+                      name={copySuccessId === img.id ? "check" : "copy"}
+                      size={15}
                     />
                   </button>
                   {canDelete && (
@@ -281,18 +290,18 @@ export default function GalleryTab({
                       title={translateFunction("Delete")}
                       onClick={() => setDeleteTarget(img)}
                       disabled={deletingId === img.id}
-                      className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 disabled:opacity-50"
+                      className="w-8 h-8 bg-[#f85555] text-white rounded-full flex items-center justify-center hover:bg-[#e84444] disabled:opacity-50 transition-colors active:scale-[0.95]"
                     >
                       {deletingId === img.id ? (
                         <Spinner />
                       ) : (
-                        <img src="/icons/DeleteIcon.svg" alt="" width={14} height={14} />
+                        <DashIcon name="trash" size={14} />
                       )}
                     </button>
                   )}
                 </div>
               </div>
-              <p className="text-[11px] text-[#8D8D8D] px-2 py-1 truncate">
+              <p className="text-[11px] text-[#8e8e8e] px-2 py-1 truncate">
                 {getImageName(img)}
               </p>
             </div>
@@ -302,77 +311,76 @@ export default function GalleryTab({
 
       {/* Pagination */}
       {meta && meta.last_page > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-4">
-          <button
-            onClick={() => fetchImages(page - 1)}
-            disabled={page === 1 || loading}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            {translateFunction("Previous")}
-          </button>
-          <span className="text-[14px] text-[#8D8D8D]">
-            {translateFunction("Page")} {meta.current_page}{" "}
-            {translateFunction("of")} {meta.last_page}
-          </span>
-          <button
-            onClick={() => fetchImages(page + 1)}
-            disabled={page >= meta.last_page || loading}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            {translateFunction("Next")}
-          </button>
-        </div>
+        <Pagination
+          current={meta.current_page || page}
+          last={meta.last_page}
+          disabled={loading}
+          onPrev={() => fetchImages(page - 1)}
+          onNext={() => fetchImages(page + 1)}
+        />
       )}
 
       {/* Confirmation Modal */}
       {showConfirm && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[20px] p-6 max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl">
-            <h2 className="text-[20px] font-bold text-[#1d1d1d] mb-1">
+          <div
+            className="bg-white rounded-[20px] p-5 lg:p-6 max-w-2xl w-full max-h-[80vh] flex flex-col"
+            style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
+          >
+            <h2 className="text-[16px] bold text-[#3c3c3c] mb-1">
               {translateFunction("Confirm Upload")}
             </h2>
-            <p className="text-[14px] text-[#8D8D8D] mb-4">
+            <p className="text-[14px] text-[#8e8e8e] mb-4">
               {selectedFiles.length} {translateFunction("files selected")}
             </p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 overflow-y-auto flex-1 mb-4">
               {selectedFiles.map((file, i) => (
-                <div key={i} className="rounded-lg overflow-hidden bg-[#f8f8f8] relative">
-                  <span className="absolute bg-red-500 text-[12px] font-black w-[25px] h-[25px] flex items-center justify-center top-0 right-1 cursor-pointer text-white rounded-full hover:bg-red-600" onClick={() => {
-                    const newFiles = [...selectedFiles];
-                    newFiles.splice(i, 1);
-                    setSelectedFiles(newFiles);
-                    if (newFiles.length === 0) setShowConfirm(false);
-                  }}>
-                    x
-                    </span>
+                <div key={i} className="rounded-[12px] overflow-hidden bg-[#f8f8f8] border border-[#ededed] relative">
+                  <button
+                    type="button"
+                    aria-label={translateFunction("Cancel")}
+                    className="absolute bg-[#f85555] w-[24px] h-[24px] flex items-center justify-center top-1 right-1 cursor-pointer text-white rounded-full hover:bg-[#e84444] z-10"
+                    onClick={() => {
+                      const newFiles = [...selectedFiles];
+                      newFiles.splice(i, 1);
+                      setSelectedFiles(newFiles);
+                      if (newFiles.length === 0) setShowConfirm(false);
+                    }}
+                  >
+                    <DashIcon name="close" size={13} strokeWidth={2} />
+                  </button>
                   <img
                     src={previewUrls[i]}
                     alt={file.name}
                     className="w-full aspect-square object-cover"
                   />
-                  <p className="text-[10px] text-[#8D8D8D] px-1 py-1 truncate">{file.name}</p>
+                  <p className="text-[10px] text-[#8e8e8e] px-1 py-1 truncate">{file.name}</p>
                 </div>
               ))}
             </div>
             {uploadError && (
-              <p className="text-red-600 text-[13px] mb-3">{uploadError}</p>
+              <p className="text-[#f85555] text-[13px] mb-3 flex items-center gap-1.5">
+                <DashIcon name="alert" size={15} />
+                {uploadError}
+              </p>
             )}
             <div className="flex gap-3 justify-end">
-              <button
+              <DashButton
+                variant="ghost"
                 onClick={handleCancelConfirm}
                 disabled={uploading}
-                className="px-5 py-2 border border-gray-300 rounded-lg text-[14px] hover:bg-gray-50 disabled:opacity-50"
               >
                 {translateFunction("Cancel")}
-              </button>
-              <button
+              </DashButton>
+              <DashButton
+                icon="upload"
                 onClick={handleSubmitUpload}
-                disabled={uploading}
-                className="px-5 py-2 bg-blue-500 text-white rounded-lg text-[14px] hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2"
+                loading={uploading}
               >
-                {uploading && <Spinner />}
-                {uploading ? translateFunction("Uploading...") : translateFunction("Upload")}
-              </button>
+                {uploading
+                  ? translateFunction("Uploading...")
+                  : translateFunction("Upload")}
+              </DashButton>
             </div>
           </div>
         </div>
@@ -385,19 +393,20 @@ export default function GalleryTab({
           onClick={() => deletingId === null && setDeleteTarget(null)}
         >
           <div
-            className="bg-white rounded-[20px] p-6 max-w-sm w-full shadow-2xl"
+            className="bg-white rounded-[20px] p-5 lg:p-6 max-w-sm w-full"
+            style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-14 h-14 mx-auto mb-4 bg-red-500 rounded-full flex items-center justify-center">
-              <img src="/icons/DeleteIcon.svg" alt="" width={22} height={22} />
+            <div className="w-14 h-14 mx-auto mb-4 bg-[#fff1f1] text-[#f85555] rounded-full flex items-center justify-center">
+              <DashIcon name="trash" size={24} />
             </div>
-            <h2 className="text-[18px] font-bold text-[#1d1d1d] text-center mb-1">
+            <h2 className="text-[16px] bold text-[#3c3c3c] text-center mb-1">
               {translateFunction("Delete Image")}
             </h2>
-            <p className="text-[14px] text-[#8D8D8D] text-center mb-5">
+            <p className="text-[14px] text-[#8e8e8e] text-center mb-5">
               {translateFunction("Are you sure you want to delete this image? This action cannot be undone.")}
             </p>
-            <div className="w-24 h-24 mx-auto mb-5 rounded-lg overflow-hidden bg-[#f8f8f8]">
+            <div className="w-24 h-24 mx-auto mb-5 rounded-[12px] overflow-hidden bg-[#f8f8f8] border border-[#ededed]">
               <img
                 src={getImageUrl(deleteTarget)}
                 alt={getImageName(deleteTarget)}
@@ -405,19 +414,21 @@ export default function GalleryTab({
               />
             </div>
             <div className="flex gap-3">
-              <button
+              <DashButton
+                variant="ghost"
+                fullWidth
                 onClick={() => setDeleteTarget(null)}
                 disabled={deletingId !== null}
-                className="flex-1 px-5 py-2 border border-gray-300 rounded-lg text-[14px] hover:bg-gray-50 disabled:opacity-50"
               >
                 {translateFunction("Cancel")}
-              </button>
+              </DashButton>
               <button
                 onClick={handleDelete}
                 disabled={deletingId !== null}
-                className="flex-1 px-5 py-2 bg-red-500 text-white rounded-lg text-[14px] hover:bg-red-600 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 h-[44px] rounded-[12px] bg-[#f85555] text-white medium text-[14px] hover:bg-[#e84444] disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {deletingId !== null && <Spinner />}
+                <DashIcon name="trash" size={16} />
                 {translateFunction("Delete")}
               </button>
             </div>
@@ -432,10 +443,11 @@ export default function GalleryTab({
           onClick={() => setLightboxUrl(null)}
         >
           <button
-            className="absolute top-4 right-4 text-white text-[36px] leading-none hover:opacity-70"
+            aria-label={translateFunction("Close")}
+            className="absolute top-4 right-4 text-white hover:opacity-70"
             onClick={() => setLightboxUrl(null)}
           >
-            ×
+            <DashIcon name="close" size={32} />
           </button>
           <img
             src={lightboxUrl}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import "styles/globals.css";
 /**
  * Laravel vs Go backend performance comparison.
  *

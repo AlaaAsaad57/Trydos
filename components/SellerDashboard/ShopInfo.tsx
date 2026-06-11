@@ -5,6 +5,13 @@ import Skeleton from 'react-loading-skeleton';
 import { translateFunction } from 'utils/functions';
 import { showSuccessMessage } from 'components/global/AddToCartMessage';
 import { GetImageUrl } from 'utils/tinyUtils';
+import { DashIcon } from 'components/SellerDashboard/ui/icons';
+import {
+  SectionHeader,
+  DashButton,
+  DashField,
+  Monogram,
+} from 'components/SellerDashboard/ui';
 
 // --- Types & Interfaces ---
 interface ShopInfoProps {
@@ -227,7 +234,7 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
   const bannerFileLabel = bannerFile?.name || (bannerUrl ? bannerUrl.split('/').pop() : '');
 
   return (
-    <div className="min-h-screen bg-transparent p-6 flex justify-center items-start relative">
+    <div className="relative">
 
       {/* Conditionally Render the Crop Widget */}
       {pendingImageFile && croppingType && (
@@ -238,235 +245,221 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
         />
       )}
 
-      <div className="w-full max-w-5xl bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+      <SectionHeader
+        icon="shopInfo"
+        title={translateFunction('Edit Shop Info', language)}
+        right={
+          !canUpdate ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] semibold bg-[#f4f4f4] text-[#8e8e8e]">
+              <DashIcon name="lock" size={13} />
+              {translateFunction('Read only', language)}
+            </span>
+          ) : undefined
+        }
+      />
 
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#1f1f1f] to-[#5d5d5d] px-6 py-4">
-          <h2 className="text-white text-xl font-semibold tracking-wide">
-            {translateFunction('Edit Shop Info', language)}
-          </h2>
-        </div>
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
 
-        {/* Form Content */}
-        <form onSubmit={handleSubmit} className="p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-
-            {/* Left Column - Text Inputs */}
-            <div className="space-y-6">
-              {/* Shop Name */}
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">
-                  {translateFunction('Shop Name *', language)}
-                </label>
-                {isLoading ? (
-                  <Skeleton height={45} borderRadius={8} />
-                ) : (
-                  <input
-                    type="text"
-                    name="shopName"
-                    value={formData.shopName}
-                    onChange={handleTextChange}
-                    disabled={!canUpdate}
-                    className={`w-full px-4 py-3 rounded-lg bg-[#f0f4fa] border focus:outline-none focus:ring-2 focus:ring-[#5d5d5d] disabled:opacity-60 disabled:cursor-not-allowed ${
-                      errors.shopName ? 'border-red-500' : 'border-transparent'
-                    }`}
-                  />
-                )}
-                {errors.shopName && <p className="text-red-500 text-xs mt-1">{errors.shopName}</p>}
-              </div>
-
-              {/* Contact */}
-              <div>
-                <label className=" text-sm text-gray-600 mb-1 flex items-center flex-wrap gap-1">
-                  {translateFunction('Contact', language)}
-                  <span className="text-red-500 text-xs">
-                    ({translateFunction('* Country Code Must Like for AE 971', language)})
-                  </span>
-                </label>
-                {isLoading ? (
-                  <Skeleton height={45} borderRadius={8} />
-                ) : (
-                  <input
-                    type="text"
-                    name="contact"
-                    value={formData.contact}
-                    onChange={handleTextChange}
-                    disabled={!canUpdate}
-                    className={`w-full px-4 py-3 rounded-lg bg-[#f0f4fa] border focus:outline-none focus:ring-2 focus:ring-[#5d5d5d] disabled:opacity-60 disabled:cursor-not-allowed ${
-                      errors.contact ? 'border-red-500' : 'border-transparent'
-                    }`}
-                  />
-                )}
-                {errors.contact && <p className="text-red-500 text-xs mt-1">{errors.contact}</p>}
-              </div>
-
-              {/* Address */}
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">
-                  {translateFunction('Address *', language)}
-                </label>
-                {isLoading ? (
-                  <Skeleton height={120} borderRadius={8} />
-                ) : (
-                  <textarea
-                    name="address"
-                    rows={4}
-                    value={formData.address}
-                    onChange={handleTextChange}
-                    disabled={!canUpdate}
-                    className={`w-full px-4 py-3 rounded-lg bg-[#f0f4fa] border focus:outline-none focus:ring-2 focus:ring-[#5d5d5d] resize-none disabled:opacity-60 disabled:cursor-not-allowed ${
-                      errors.address ? 'border-red-500' : 'border-transparent'
-                    }`}
-                  />
-                )}
-                {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
-              </div>
-            </div>
-
-            {/* Right Column - Image Upload */}
-            <div className="flex flex-col space-y-4">
-              <label className="block text-sm text-gray-600">
-                {translateFunction('Upload Image', language)}
-              </label>
-
+          {/* Left Column - Text Inputs */}
+          <div className="space-y-5">
+            {/* Shop Name */}
+            <DashField
+              label={translateFunction('Shop Name', language)}
+              error={errors.shopName}
+            >
               {isLoading ? (
-                <Skeleton height={45} borderRadius={8} />
+                <Skeleton height={48} borderRadius={12} />
               ) : (
-                <div className="flex rounded-lg overflow-hidden border border-gray-200">
-                  <div className="flex-1 px-4 py-2 bg-white text-gray-400 text-sm flex items-center border-r border-gray-200 truncate">
-                    {imageFileLabel || translateFunction('Choose File', language)}
-                  </div>
-                  <button
+                <input
+                  type="text"
+                  name="shopName"
+                  value={formData.shopName}
+                  onChange={handleTextChange}
+                  disabled={!canUpdate}
+                  placeholder={translateFunction('Shop Name', language)}
+                  className={`w-full px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                    errors.shopName
+                      ? 'border-[#f85555]'
+                      : 'border-[#ededed] focus:border-[#5d5d5d]'
+                  }`}
+                />
+              )}
+            </DashField>
+
+            {/* Contact */}
+            <DashField
+              label={translateFunction('Contact', language)}
+              hint={translateFunction('Country code must lead, e.g. AE = 971', language)}
+              error={errors.contact}
+            >
+              {isLoading ? (
+                <Skeleton height={48} borderRadius={12} />
+              ) : (
+                <input
+                  type="text"
+                  name="contact"
+                  value={formData.contact}
+                  onChange={handleTextChange}
+                  disabled={!canUpdate}
+                  placeholder="971XXXXXXXXX"
+                  className={`w-full px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                    errors.contact
+                      ? 'border-[#f85555]'
+                      : 'border-[#ededed] focus:border-[#5d5d5d]'
+                  }`}
+                />
+              )}
+            </DashField>
+
+            {/* Address */}
+            <DashField
+              label={translateFunction('Address', language)}
+              error={errors.address}
+            >
+              {isLoading ? (
+                <Skeleton height={120} borderRadius={12} />
+              ) : (
+                <textarea
+                  name="address"
+                  rows={4}
+                  value={formData.address}
+                  onChange={handleTextChange}
+                  disabled={!canUpdate}
+                  placeholder={translateFunction('Address', language)}
+                  className={`w-full px-4 py-3 rounded-[12px] bg-[#f8f8f8] border text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white resize-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                    errors.address
+                      ? 'border-[#f85555]'
+                      : 'border-[#ededed] focus:border-[#5d5d5d]'
+                  }`}
+                />
+              )}
+            </DashField>
+          </div>
+
+          {/* Right Column - Logo Upload */}
+          <div className="space-y-3">
+            <label className="block text-[13px] medium text-[#505050]">
+              {translateFunction('Shop Logo', language)}
+            </label>
+            {isLoading ? (
+              <Skeleton height={160} width={160} borderRadius={15} />
+            ) : (
+              <div className="flex items-start gap-4">
+                <div className="w-40 h-40 rounded-[15px] overflow-hidden bg-[#f8f8f8] border border-[#ededed] flex items-center justify-center shrink-0">
+                  {imageSrc ? (
+                    <img
+                      src={imageSrc}
+                      alt="Shop logo preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Monogram name={formData.shopName} size={80} rounded={15} />
+                  )}
+                </div>
+                <div className="space-y-2 pt-1">
+                  <DashButton
                     type="button"
+                    variant="secondary"
+                    size="sm"
+                    icon="upload"
                     onClick={() => imageInputRef.current?.click()}
                     disabled={!canUpdate}
-                    className="px-6 py-2 bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {translateFunction('Browse', language)}
-                  </button>
-                  <input
-                    type="file"
-                    ref={imageInputRef}
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleFileChange(e, 'image')}
-                  />
-                </div>
-              )}
-
-              {/* Image Preview Box */}
-              {isLoading ? (
-                <Skeleton height={200} width={200} borderRadius={16} className="mt-4" />
-              ) : (
-                <div className="w-48 h-48 mt-4 border border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden bg-white relative">
-                  {/* {imageSrc&&<span className='absolute z-10 top-1 right-1 rounded-full p-1 h-[30px] w-[30px] flex items-center justify-center bg-red-500 cursor-pointer' onClick={()=>{
-                    setImageFile(null);
-                    setImagePreview(null);
-                    setImageUrl(null);
-                  }}>
-                    <img src={'/icons/DeleteIcon.svg'} width={15} height={15}/>
-                    </span>} */}
-                  {imageSrc ? (
-                    <img src={imageSrc} alt="Shop logo preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-gray-400 text-sm px-4 text-center">
-                      {translateFunction('Preview', language)}
-                    </span>
+                    {imageSrc
+                      ? translateFunction('Change', language)
+                      : translateFunction('Upload', language)}
+                  </DashButton>
+                  {imageFileLabel && (
+                    <p className="text-[11px] text-[#8e8e8e] max-w-[140px] truncate">
+                      {imageFileLabel}
+                    </p>
                   )}
                 </div>
-              )}
+              </div>
+            )}
+            <input
+              type="file"
+              ref={imageInputRef}
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleFileChange(e, 'image')}
+            />
+          </div>
+
+          {/* Full Width - Banner Upload */}
+          <div className="lg:col-span-2 space-y-3">
+            <div className="flex items-center gap-2">
+              <label className="block text-[13px] medium text-[#505050]">
+                {translateFunction('Shop Banner', language)}
+              </label>
+              <span className="text-[11px] text-[#8e8e8e]">
+                {translateFunction('Ratio 6:1', language)}
+              </span>
             </div>
 
-            {/* Full Width - Banner Upload */}
-            <div className="lg:col-span-2 space-y-4 pt-4">
-              <div className="flex items-center gap-2">
-                <label className="block text-sm text-gray-600">
-                  {translateFunction('Upload Banner', language)}
-                </label>
-                <span className="text-red-500 text-xs">
-                  {translateFunction('Ratio .( 6:1 )', language)}
-                </span>
-              </div>
-
-              {isLoading ? (
-                <Skeleton height={45} borderRadius={8} className="w-1/2" />
-              ) : (
-                <div className="flex rounded-lg overflow-hidden border border-gray-200 w-full lg:w-1/2">
-                  <div className="flex-1 px-4 py-2 bg-white text-gray-400 text-sm flex items-center border-r border-gray-200 truncate">
-                    {bannerFileLabel || translateFunction('Choose File', language)}
-                  </div>
-                  <button
+            {isLoading ? (
+              <Skeleton height={120} borderRadius={15} className="w-full" />
+            ) : (
+              <div className="space-y-3">
+                <div className="w-full aspect-[6/1] min-h-[88px] rounded-[15px] overflow-hidden bg-[#f8f8f8] border border-[#ededed] flex items-center justify-center relative">
+                  {bannerSrc ? (
+                    <img
+                      src={bannerSrc}
+                      alt="Banner preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-1 text-[#c4c2c2]">
+                      <DashIcon name="gallery" size={26} strokeWidth={1.4} />
+                      <span className="text-[12px]">
+                        {translateFunction('No banner yet', language)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <DashButton
                     type="button"
+                    variant="secondary"
+                    size="sm"
+                    icon="upload"
                     onClick={() => bannerInputRef.current?.click()}
                     disabled={!canUpdate}
-                    className="px-6 py-2 bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {translateFunction('Browse', language)}
-                  </button>
-                  <input
-                    type="file"
-                    ref={bannerInputRef}
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleFileChange(e, 'banner')}
-                  />
-                </div>
-              )}
-
-              {/* Banner Preview Box */}
-              {isLoading ? (
-                <Skeleton height={200} borderRadius={12} className="w-full mt-4" />
-              ) : (
-                <div className="w-full h-48 mt-4 border border-[#5d5d5d] rounded-xl flex items-center justify-center overflow-hidden bg-[#5d5d5d] relative">
-                   {/* {bannerSrc && <span className='absolute z-10 top-1 right-1 rounded-full p-1 h-[30px] w-[30px] flex items-center justify-center bg-red-500 cursor-pointer' onClick={()=>{
-                    setBannerFile(null);
-                    setBannerPreview(null);
-                    setBannerUrl(null);
-                   }}>
-                    <img src={'/icons/DeleteIcon.svg'} width={15} height={15}/>
-                    </span>} */}
-                  {bannerSrc ? (
-                    <img src={bannerSrc} alt="Banner preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-white text-lg font-bold tracking-widest drop-shadow-md">
-                      {translateFunction('Preview', language)}
-                    </span>
+                    {bannerSrc
+                      ? translateFunction('Change Banner', language)
+                      : translateFunction('Upload Banner', language)}
+                  </DashButton>
+                  {bannerFileLabel && (
+                    <p className="text-[11px] text-[#8e8e8e] max-w-[200px] truncate">
+                      {bannerFileLabel}
+                    </p>
                   )}
                 </div>
-              )}
-            </div>
-
-          </div>
-
-          {/* Action Buttons */}
-          <div className="mt-10 flex justify-between items-center border-t border-gray-100 pt-6">
-            {isLoading ? (
-              <>
-                <Skeleton width={100} height={45} borderRadius={8} />
-                <Skeleton width={100} height={45} borderRadius={8} />
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className="px-8 py-2.5 bg-[#ff6464] text-white rounded-lg shadow-sm hover:bg-[#ffa3a3] transition-colors font-medium"
-                >
-                  {translateFunction('Cancel', language)}
-                </button>
-                {canUpdate && (
-                  <button
-                    type="submit"
-                    disabled={isSaving}
-                    className="px-8 py-2.5 bg-[#5d5d5d] text-white rounded-lg shadow-sm hover:bg-white hover:text-[#5d5d5d]! transition-colors disabled:opacity-70 disabled:cursor-not-allowed font-medium"
-                  >
-                    {isSaving ? '...' : translateFunction('Update', language)}
-                  </button>
-                )}
-              </>
+              </div>
             )}
+            <input
+              type="file"
+              ref={bannerInputRef}
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleFileChange(e, 'banner')}
+            />
           </div>
-        </form>
-      </div>
+        </div>
+
+        {/* Action Buttons */}
+        {canUpdate && (
+          <div className="mt-8 flex justify-end items-center border-t border-[#ededed] pt-6">
+            <DashButton type="submit" icon="check" loading={isSaving}>
+              {isSaving
+                ? translateFunction('Saving...', language)
+                : translateFunction('Save Changes', language)}
+            </DashButton>
+          </div>
+        )}
+      </form>
     </div>
   );
 }

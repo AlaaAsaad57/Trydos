@@ -12,63 +12,14 @@ import {
   showSuccessNotification,
 } from "store/notifications/reducer";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
-
-// ─── Icons ────────────────────────────────────────────────────────────────────
-
-const CloseIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor" />
-  </svg>
-);
-
-const FileIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z" fill="currentColor" />
-  </svg>
-);
-
-const LinkIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M3.9 12C3.9 10.29 5.29 8.9 7 8.9H11V7H7C4.24 7 2 9.24 2 12C2 14.76 4.24 17 7 17H11V15.1H7C5.29 15.1 3.9 13.71 3.9 12ZM8 13H16V11H8V13ZM17 7H13V8.9H17C18.71 8.9 20.1 10.29 20.1 12C20.1 13.71 18.71 15.1 17 15.1H13V17H17C19.76 17 22 14.76 22 12C22 9.24 19.76 7 17 7Z" fill="currentColor" />
-  </svg>
-);
-
-const PlaceholderIcon = () => (
-  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19ZM15 15V13H13V15H11V13H9V11H11V9H13V11H15V9H17V11H19V13H17V15H15Z" fill="currentColor" />
-  </svg>
-);
-
-const ProductIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20.54 5.23L19.15 3.55C18.88 3.21 18.47 3 18 3H6C5.53 3 5.12 3.21 4.84 3.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V6.5C21 6.02 20.83 5.57 20.54 5.23ZM12 17.5L6.5 12H10V10H14V12H17.5L12 17.5ZM5.12 5L5.93 4H17.93L18.87 5H5.12Z" fill="currentColor" />
-  </svg>
-);
-
-const VideoIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M17 10.5V7C17 6.45 16.55 6 16 6H4C3.45 6 3 6.45 3 7V17C3 17.55 3.45 18 4 18H16C16.55 18 17 17.55 17 17V13.5L21 17.5V6.5L17 10.5Z" fill="currentColor" />
-  </svg>
-);
-
-const PhotoIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 15.2C13.7673 15.2 15.2 13.7673 15.2 12C15.2 10.2327 13.7673 8.8 12 8.8C10.2327 8.8 8.8 10.2327 8.8 12C8.8 13.7673 10.2327 15.2 12 15.2Z" fill="currentColor" />
-    <path d="M9 2L7.17 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4H16.83L15 2H9ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17Z" fill="currentColor" />
-  </svg>
-);
-
-const EyeIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17ZM12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z" fill="currentColor" />
-  </svg>
-);
-
-const StoriesEmptyIcon = () => (
-  <svg width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M21 3H3C1.9 3 1 3.9 1 5V19C1 20.1 1.9 21 3 21H21C22.1 21 23 20.1 23 19V5C23 3.9 22.1 3 21 3ZM21 19H3V5H21V19ZM8 15H16V17H8V15ZM8 11H16V13H8V11ZM8 7H16V9H8V7Z" fill="currentColor" />
-  </svg>
-);
+import { DashIcon } from "components/SellerDashboard/ui/icons";
+import {
+  DashButton,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  dashInputClass,
+} from "components/SellerDashboard/ui";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -161,9 +112,10 @@ function StoryViewerModal({
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute -top-10 right-0 text-white text-4xl leading-none hover:opacity-70"
+          aria-label={translateFunction("Close")}
+          className="absolute -top-12 right-0 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors active:scale-[0.95]"
         >
-          ×
+          <DashIcon name="close" size={20} />
         </button>
 
         {/* Media */}
@@ -172,43 +124,46 @@ function StoryViewerModal({
             src={mediaUrl}
             controls
             autoPlay
-            className="w-full h-auto rounded-xl"
+            className="w-full h-auto rounded-[15px]"
           />
         ) : mediaUrl ? (
           <img
             src={mediaUrl}
             alt="Story"
-            className="w-full h-auto rounded-xl object-contain"
+            className="w-full h-auto rounded-[15px] object-contain"
           />
         ) : (
-          <div className="w-full h-100 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400">
-            <PlaceholderIcon />
+          <div className="w-full h-100 bg-white/[0.06] rounded-[15px] flex items-center justify-center text-white/40">
+            <DashIcon name="gallery" size={56} strokeWidth={1.2} />
           </div>
         )}
 
         {/* Meta */}
-        <div className="mt-3 text-white text-[13px] space-y-1.5 px-1">
+        <div className="mt-4 text-white text-[13px] space-y-2 px-1">
           {story.link && (
-            <p>
-              <a
-                href={story.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline break-all opacity-80 hover:opacity-100"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {story.link}
-              </a>
-            </p>
+            <a
+              href={story.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 break-all opacity-80 hover:opacity-100 transition-opacity"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <DashIcon name="link" size={14} />
+              <span className="underline">{story.link}</span>
+            </a>
           )}
           {story.product_slug && (
-            <p className="text-gray-300">
+            <p className="flex items-center gap-1.5 text-white/75">
+              <DashIcon name="products" size={14} />
               {translateFunction("Linked to product")}: {story.product_slug}
             </p>
           )}
-          <p className="text-gray-400 text-[11px]">
-            {story.viewers_count ?? 0} {translateFunction("viewers")} ·{" "}
-            {story.created_at?.slice(0, 10)}
+          <p className="flex items-center gap-3 text-white/50 text-[11px]">
+            <span className="inline-flex items-center gap-1">
+              <DashIcon name="eye" size={13} /> {story.viewers_count ?? 0}{" "}
+              {translateFunction("viewers")}
+            </span>
+            <span>{story.created_at?.slice(0, 10)}</span>
           </p>
         </div>
       </div>
@@ -229,30 +184,38 @@ function DeleteConfirmModal({
   loading: boolean;
 }) {
   return createPortal(
-    <div className="fixed inset-0 z-999999999 bg-black/50 flex items-center justify-center">
-      <div className="bg-white rounded-[15px] p-6 max-w-sm w-full mx-4 shadow-xl">
-        <h3 className="text-[18px] font-semibold text-[#1d1d1d] mb-2">
+    <div className="fixed inset-0 z-999999999 bg-black/45 flex items-center justify-center p-4">
+      <div
+        className="bg-white rounded-[20px] p-6 max-w-sm w-full text-center"
+        style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
+      >
+        <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[#fff1f1] text-[#f85555] flex items-center justify-center">
+          <DashIcon name="trash" size={24} />
+        </div>
+        <h3 className="text-[17px] bold text-[#1d1d1d] mb-1.5">
           {translateFunction("Delete Story")}
         </h3>
-        <p className="text-[14px] text-[#8D8D8D] mb-6">
+        <p className="text-[14px] text-[#8e8e8e] mb-5">
           {translateFunction(
             "Are you sure you want to delete this story? This action cannot be undone.",
           )}
         </p>
         <div className="flex gap-3">
-          <button
+          <DashButton
+            variant="ghost"
+            fullWidth
             onClick={onCancel}
             disabled={loading}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-[#1d1d1d] hover:bg-gray-50 text-[14px] disabled:opacity-50"
           >
             {translateFunction("Cancel")}
-          </button>
+          </DashButton>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-[14px] disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 h-[44px]  min-w-[125px] rounded-[12px] bg-[#f85555] text-white medium text-[14px] hover:bg-[#e84444] disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
           >
             {loading && <Spinner />}
+            <DashIcon name="trash" size={16} />
             {translateFunction("Delete")}
           </button>
         </div>
@@ -313,33 +276,37 @@ function ProductPickerModal({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-[15px] p-6 max-w-lg w-full mx-4 max-h-[80vh] flex flex-col shadow-xl"
+        className="bg-white rounded-[20px] max-w-lg w-full mx-4 max-h-[80vh] flex flex-col"
+        style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4 w-full flex justify-between">
-          <h3 className="text-[18px] font-semibold text-[#1d1d1d]">
+        <div className="flex items-center justify-between gap-2 p-5 lg:p-6 border-b border-[#ededed]">
+          <h3 className="text-[16px] bold text-[#3c3c3c] flex items-center gap-2">
+            <span className="text-[#5d5d5d]">
+              <DashIcon name="products" size={19} />
+            </span>
             {translateFunction("Select Product")}
           </h3>
           <button
             onClick={onClose}
-            className="text-[#8D8D8D] text-3xl leading-none hover:text-[#1d1d1d]"
+            aria-label={translateFunction("Close")}
+            className="text-[#8e8e8e] hover:text-[#3c3c3c] transition-colors p-1"
           >
-            ×
+            <DashIcon name="close" size={20} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto p-5 lg:p-6">
           {loading ? (
-            <div className="flex justify-center py-10">
-              <Spinner />
-            </div>
+            <LoadingState label={translateFunction("Loading products...")} />
           ) : products.length === 0 ? (
-            <p className="text-center text-[#8D8D8D] py-10 text-[14px]">
-              {translateFunction("No products found")}
-            </p>
+            <EmptyState
+              icon="products"
+              title={translateFunction("No products found")}
+            />
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {products.map((product: any) => {
                   const imgSrc =
                     typeof product.images?.[0] === "string"
@@ -356,9 +323,9 @@ function ProductPickerModal({
                           image: imgSrc,
                         })
                       }
-                      className="flex flex-col border border-gray-200 rounded-[10px] overflow-hidden hover:border-blue-400 hover:shadow-md transition-all text-left"
+                      className="group flex flex-col bg-[#f8f8f8] border border-[#ededed] rounded-[12px] overflow-hidden hover:border-[#5d5d5d]/40 hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-all active:scale-[0.98] text-left"
                     >
-                      <div className="w-full h-22.5 bg-gray-100">
+                      <div className="w-full aspect-square bg-[#e6e6e6]">
                         {imgSrc ? (
                           <img
                             src={imgSrc}
@@ -366,13 +333,13 @@ function ProductPickerModal({
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            <ProductIcon />
+                          <div className="w-full h-full flex items-center justify-center text-[#c4c2c2]">
+                            <DashIcon name="products" size={26} />
                           </div>
                         )}
                       </div>
-                      <p className="text-[12px] text-[#1d1d1d] p-2 line-clamp-2">
-                        {product.name || "Unnamed Product"}
+                      <p className="text-[12px] medium text-[#3c3c3c] p-2 line-clamp-2">
+                        {product.name || translateFunction("Unnamed Product")}
                       </p>
                     </button>
                   );
@@ -380,15 +347,15 @@ function ProductPickerModal({
               </div>
 
               {meta && meta.current_page < meta.last_page && (
-                <div className="flex justify-center mt-4">
-                  <button
+                <div className="flex justify-center mt-5">
+                  <DashButton
+                    variant="secondary"
+                    size="sm"
                     onClick={() => fetchProducts(page + 1)}
-                    disabled={loadingMore}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2 text-[14px]"
+                    loading={loadingMore}
                   >
-                    {loadingMore && <Spinner />}
                     {translateFunction("Load more")}
-                  </button>
+                  </DashButton>
                 </div>
               )}
             </>
@@ -547,156 +514,213 @@ function UploadStoryModal({
         />
       )}
 
-      <div className="fixed top-0 left-0 w-screen h-screen text-[#5d5d5d] z-999999999 bg-white rounded-t-2xl shadow-lg p-4">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-[#1d1d1d]">
-            {translateFunction("Add Story")}
-          </h3>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            <CloseIcon />
-          </button>
-        </div>
-
-        {/* Body */}
+      <div className="fixed inset-0 z-999999999 flex items-center justify-center p-4 bg-black/45">
         <div
-          className={`${uploading ? "opacity-70 pointer-events-none" : ""} flex h-[calc(100vh-250px)] max-w-312.5`}
+          className={`relative w-full max-w-3xl max-h-[92vh] flex flex-col bg-white rounded-[20px] overflow-hidden text-[#3c3c3c] ${
+            uploading ? "pointer-events-none" : ""
+          }`}
+          style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
         >
-          {/* Preview pane */}
-          <div className="flex-1 flex items-center w-1/2 justify-center border-r border-gray-200 pr-4">
-            {preview ? (
-              <div className="relative w-full h-75 rounded-lg overflow-hidden">
-                {selectedFile?.type.startsWith("video/") ? (
-                  <video
-                    src={preview}
-                    className="object-contain"
-                    controls={false}
-                  />
-                ) : (
-                  <Image
-                    src={preview}
-                    alt="Preview"
-                    fill
-                    className="object-contain"
-                  />
-                )}
-                <button
-                  onClick={clearPreview}
-                  className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full"
-                >
-                  <CloseIcon />
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center text-gray-400">
-                <PlaceholderIcon />
-                <p className="mt-2">
-                  {translateFunction("No media selected")}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Options pane */}
-          <div className="pl-4 w-1/2 flex flex-col gap-4 items-start">
-            {/* File picker */}
+          {/* Header */}
+          <div className="flex justify-between items-center gap-2 p-5 lg:p-6 border-b border-[#ededed]">
+            <h3 className="text-[16px] bold text-[#3c3c3c] flex items-center gap-2">
+              <span className="text-[#5d5d5d]">
+                <DashIcon name="stories" size={19} />
+              </span>
+              {translateFunction("Add Story")}
+            </h3>
             <button
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg"
+              onClick={onClose}
+              aria-label={translateFunction("Close")}
+              className="text-[#8e8e8e] hover:text-[#3c3c3c] transition-colors p-1"
             >
-              <FileIcon />
-              <span>{translateFunction("Upload Photo/Video")}</span>
+              <DashIcon name="close" size={20} />
             </button>
+          </div>
 
-            {/* Link input */}
-            <div className="flex items-center gap-3 p-3">
-              <LinkIcon />
-              <div className="flex-1">
-                <input
-                  type="url"
-                  value={link}
-                  onChange={handleLinkChange}
-                  onBlur={() => {
-                    const sanitized = pollinateInput(link);
-                    if (link !== sanitized) setLink(sanitized);
-                  }}
-                  placeholder={translateFunction("Add link...")}
-                  className={`w-full outline-hidden ${
-                    linkError ? "border-b border-red-500" : ""
-                  }`}
-                />
-                {linkError && (
-                  <p className="text-red-500 text-sm mt-1">{linkError}</p>
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto p-5 lg:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
+              {/* Preview pane — 9:16 story frame */}
+              <div className="flex flex-col">
+                <p className="text-[13px] medium text-[#505050] mb-2">
+                  {translateFunction("Preview")}
+                </p>
+                {preview ? (
+                  <div className="relative w-full aspect-9/16 max-h-[360px] mx-auto rounded-[15px] overflow-hidden bg-black border border-[#ededed]">
+                    {selectedFile?.type.startsWith("video/") ? (
+                      <video
+                        src={preview}
+                        className="w-full h-full object-contain"
+                        controls={false}
+                        autoPlay
+                        muted
+                        loop
+                      />
+                    ) : (
+                      <Image
+                        src={preview}
+                        alt="Preview"
+                        fill
+                        className="object-contain"
+                      />
+                    )}
+                    <button
+                      onClick={clearPreview}
+                      aria-label={translateFunction("Remove")}
+                      className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-black/55 text-white rounded-full hover:bg-black/75 transition-colors active:scale-[0.95]"
+                    >
+                      <DashIcon name="close" size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full aspect-9/16 max-h-[360px] mx-auto rounded-[15px] border-2 border-dashed border-[#dcdcdc] bg-[#fafafa] hover:border-[#5d5d5d]/50 hover:bg-[#f8f8f8] transition-colors flex flex-col items-center justify-center gap-2 text-[#c4c2c2]"
+                  >
+                    <span className="w-14 h-14 rounded-full bg-[#5d5d5d]/[0.08] text-[#5d5d5d] flex items-center justify-center">
+                      <DashIcon name="upload" size={26} strokeWidth={1.5} />
+                    </span>
+                    <span className="text-[13px] medium text-[#3c3c3c]">
+                      {translateFunction("No media selected")}
+                    </span>
+                    <span className="text-[12px] text-[#8e8e8e]">
+                      {translateFunction("Photo or video, up to")} {MAX_FILE_SIZE_MB}MB
+                    </span>
+                  </button>
                 )}
               </div>
-            </div>
 
-            {/* Product picker */}
-            <div className="p-3 w-full">
-              {linkedProduct ? (
-                <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg p-2">
-                  {linkedProduct.image && (
-                    <img
-                      src={linkedProduct.image}
-                      alt={linkedProduct.name}
-                      className="w-10 h-10 rounded-md object-cover shrink-0"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-medium text-[#1d1d1d] truncate">
-                      {linkedProduct.name}
-                    </p>
-                    <div className="flex gap-2 mt-0.5">
-                      <button
-                        onClick={() => setShowProductPicker(true)}
-                        className="text-[11px] text-blue-500 hover:underline"
-                      >
-                        {translateFunction("Change")}
-                      </button>
-                      <span className="text-gray-300">|</span>
-                      <button
-                        onClick={() => setLinkedProduct(null)}
-                        className="text-[11px] text-red-500 hover:underline"
-                      >
-                        {translateFunction("Remove")}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowProductPicker(true)}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg"
+              {/* Options pane */}
+              <div className="flex flex-col gap-5">
+                {/* File picker */}
+                <DashButton
+                  variant="secondary"
+                  fullWidth
+                  icon={preview ? "edit" : "upload"}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  <ProductIcon />
-                  <span>{translateFunction("Link to Product")}</span>
-                </button>
-              )}
+                  {preview
+                    ? translateFunction("Change media")
+                    : translateFunction("Upload Photo/Video")}
+                </DashButton>
+
+                {/* Link input */}
+                <div>
+                  <label className="block text-[13px] medium text-[#505050] mb-1.5">
+                    {translateFunction("Link")}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8e8e8e] pointer-events-none">
+                      <DashIcon name="link" size={16} />
+                    </span>
+                    <input
+                      type="url"
+                      value={link}
+                      onChange={handleLinkChange}
+                      onBlur={() => {
+                        const sanitized = pollinateInput(link);
+                        if (link !== sanitized) setLink(sanitized);
+                      }}
+                      placeholder={translateFunction("Add link...")}
+                      className={`${dashInputClass} pl-10 ${
+                        linkError
+                          ? "border-[#f85555] focus:border-[#f85555]"
+                          : ""
+                      }`}
+                    />
+                  </div>
+                  {linkError && (
+                    <p className="text-[12px] text-[#f85555] mt-1 flex items-center gap-1">
+                      <DashIcon name="alert" size={13} />
+                      {linkError}
+                    </p>
+                  )}
+                </div>
+
+                {/* Product picker */}
+                <div>
+                  <label className="block text-[13px] medium text-[#505050] mb-1.5">
+                    {translateFunction("Linked product")}
+                  </label>
+                  {linkedProduct ? (
+                    <div className="flex items-center gap-3 bg-[#388CFF]/[0.06] border border-[#388CFF]/20 rounded-[12px] p-2.5">
+                      {linkedProduct.image ? (
+                        <img
+                          src={linkedProduct.image}
+                          alt={linkedProduct.name}
+                          className="w-11 h-11 rounded-[10px] object-cover shrink-0"
+                        />
+                      ) : (
+                        <span className="w-11 h-11 rounded-[10px] bg-[#388CFF]/10 text-[#388CFF] flex items-center justify-center shrink-0">
+                          <DashIcon name="products" size={20} />
+                        </span>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] medium text-[#3c3c3c] truncate">
+                          {linkedProduct.name}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <button
+                            onClick={() => setShowProductPicker(true)}
+                            className="text-[12px] medium text-[#388CFF] hover:opacity-80"
+                          >
+                            {translateFunction("Change")}
+                          </button>
+                          <span className="text-[#dcdcdc]">·</span>
+                          <button
+                            onClick={() => setLinkedProduct(null)}
+                            className="text-[12px] medium text-[#f85555] hover:opacity-80"
+                          >
+                            {translateFunction("Remove")}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowProductPicker(true)}
+                      className="w-full flex items-center gap-2.5 px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border border-[#ededed] text-[#505050] hover:bg-white hover:border-[#5d5d5d]/40 transition-colors active:scale-[0.99]"
+                    >
+                      <span className="text-[#5d5d5d]">
+                        <DashIcon name="products" size={17} />
+                      </span>
+                      <span className="text-[14px]">
+                        {translateFunction("Link to Product")}
+                      </span>
+                      <span className="ml-auto text-[#c4c2c2]">
+                        <DashIcon name="plus" size={16} />
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-
-            {/* Submit */}
-            {preview && (
-              <button
-                onClick={handleShareStory}
-                disabled={!!linkError || uploading}
-                className="w-full bg-blue-500 text-white flex justify-center items-center py-2 rounded-lg hover:bg-blue-600 mt-auto disabled:bg-blue-200"
-              >
-                {uploading ? <Spinner /> : translateFunction("Share Story")}
-              </button>
-            )}
           </div>
-        </div>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".jpg,.jpeg,.png,.gif,.mp4,.mov,.3gp,.avi"
-          className="hidden"
-          onChange={handleFileSelect}
-        />
+          {/* Footer */}
+          <div className="p-5 lg:p-6 border-t border-[#ededed] bg-[#fafafa] flex items-center justify-end gap-3">
+            <DashButton type="button" variant="ghost" onClick={onClose}>
+              {translateFunction("Cancel")}
+            </DashButton>
+            <DashButton
+              icon="check"
+              onClick={handleShareStory}
+              loading={uploading}
+              disabled={!preview || !!linkError}
+            >
+              {translateFunction("Share Story")}
+            </DashButton>
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.gif,.mp4,.mov,.3gp,.avi"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+        </div>
       </div>
     </>,
     document.body,
@@ -719,18 +743,20 @@ function StoryCard({
   const isVideo = isVideoStory(story);
   const thumb = isVideo ? story.full_video_path : story.photo_path;
 
+  const hasFooter = !!story.link || !!story.product_slug || canDelete;
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
+    <div className="group bg-white rounded-[16px] border border-[#ededed] overflow-hidden hover:border-transparent hover:shadow-[0_10px_28px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
       {/* Thumbnail (clickable → viewer) */}
       <button
         onClick={onView}
-        className="relative w-full aspect-9/16 bg-gray-100 block shrink-0"
+        className="relative w-full aspect-9/16 bg-[#f0f0f0] block shrink-0 overflow-hidden"
       >
         {thumb ? (
           isVideo ? (
             <video
               src={thumb}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
               muted
               preload="metadata"
             />
@@ -738,47 +764,75 @@ function StoryCard({
             <img
               src={thumb}
               alt="Story thumbnail"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
             />
           )
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300">
-            {isVideo ? <VideoIcon /> : <PlaceholderIcon />}
+          <div className="w-full h-full flex items-center justify-center text-[#c4c2c2]">
+            <DashIcon name={isVideo ? "video" : "gallery"} size={32} strokeWidth={1.4} />
           </div>
         )}
 
+        {/* Scrims for badge legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/55 pointer-events-none" />
+
         {/* Type badge */}
-        <span className="absolute top-2 left-2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-          {isVideo ? <VideoIcon /> : <PhotoIcon />}
+        <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-black/40 backdrop-blur-md text-white text-[10px] medium">
+          <DashIcon name={isVideo ? "video" : "gallery"} size={12} />
+          {isVideo ? translateFunction("Video") : translateFunction("Photo")}
         </span>
+
+        {/* Views analytics chip */}
+        <span className="absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-black/40 backdrop-blur-md text-white text-[10px] semibold">
+          <DashIcon name="eye" size={12} />
+          {story.viewers_count ?? 0}
+        </span>
+
+        {/* Play affordance for video */}
+        {isVideo && thumb && (
+          <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="w-12 h-12 rounded-full bg-white/15 backdrop-blur-[2px] border border-white/30 text-white flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+              <DashIcon name="play" size={18} />
+            </span>
+          </span>
+        )}
+
+        {/* Date */}
+        {story.created_at && (
+          <span className="absolute bottom-2 left-2.5 text-[11px] medium text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+            {story.created_at.slice(0, 10)}
+          </span>
+        )}
       </button>
 
       {/* Info */}
-      <div className="p-2.5 space-y-1.5 flex flex-col flex-1">
-        <div className="flex items-center justify-between text-[11px] text-[#8D8D8D] gap-[8px]">
-          <span className="flex items-center gap-1"><EyeIcon /> {story.viewers_count ?? 0}</span>
-          <span>{story.created_at?.slice(0, 10)}</span>
+      {hasFooter && (
+        <div className="p-2.5 space-y-1.5 flex flex-col flex-1">
+          {story.link && (
+            <p className="inline-flex items-center gap-1 text-[11px] text-[#388CFF] min-w-0">
+              <DashIcon name="link" size={12} />
+              <span className="truncate">{story.link}</span>
+            </p>
+          )}
+
+          {story.product_slug && (
+            <p className="inline-flex items-center gap-1 text-[11px] text-[#2ea84f] min-w-0">
+              <DashIcon name="products" size={12} />
+              <span className="truncate">{story.product_slug}</span>
+            </p>
+          )}
+
+          {canDelete && (
+            <button
+              onClick={onDelete}
+              className="mt-auto w-[100px] py-1.5 text-[12px] min-w-[100px] medium text-[#f85555] hover:bg-[#fff1f1] rounded-[10px] border border-[#ffd9d9] transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
+            >
+              <DashIcon name="trash" size={14} />
+              {translateFunction("Delete")}
+            </button>
+          )}
         </div>
-
-        {story.link && (
-          <p className="text-[11px] text-blue-500 truncate">{story.link}</p>
-        )}
-
-        {story.product_slug && (
-          <p className="text-[11px] text-green-600 truncate">
-            {story.product_slug}
-          </p>
-        )}
-
-        {canDelete && (
-          <button
-            onClick={onDelete}
-            className="mt-auto w-full py-1.5 text-[12px] text-red-500 hover:bg-red-50 rounded-lg border border-red-100 transition-colors"
-          >
-            {translateFunction("Delete")}
-          </button>
-        )}
-      </div>
+      )}
     </div>
   );
 }
@@ -879,59 +933,46 @@ export default function StoriesTab({
   return (
     <div className="space-y-6">
       {/* Top bar */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-[20px] font-bold text-[#1d1d1d]">
-          {translateFunction("Stories")}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="text-[#5d5d5d] shrink-0">
+            <DashIcon name="stories" size={20} />
+          </span>
+          <h2 className="text-[16px] semibold text-[#3c3c3c] truncate">
+            {translateFunction("Stories")}
+          </h2>
           {meta && (
-            <span className="ml-2 text-[14px] text-[#8D8D8D] font-normal">
-              ({meta.total})
+            <span className="shrink-0 min-w-[22px] h-[22px] px-1.5 flex items-center justify-center rounded-full bg-[#5d5d5d]/10 text-[#5d5d5d] text-[11px] semibold">
+              {meta.total}
             </span>
           )}
-        </h2>
+        </div>
         {canCreate && (
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-[10px] hover:bg-blue-600 text-[14px] flex items-center gap-1.5 transition-colors"
-          >
-            <span className="text-[16px] leading-none">+</span>
+          <DashButton icon="plus" onClick={() => setShowUploadModal(true)}>
             {translateFunction("Add Story")}
-          </button>
+          </DashButton>
         )}
       </div>
 
       {/* Error state */}
       {error && !loading && (
-        <div className="flex flex-col items-center justify-center py-12">
-          <p className="text-red-500 mb-4 text-[14px]">{error}</p>
-          <button
-            onClick={() => fetchStories(page)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-[14px]"
-          >
-            {translateFunction("Retry")}
-          </button>
-        </div>
+        <ErrorState message={error} onRetry={() => fetchStories(page)} />
       )}
 
       {/* Loading state */}
       {loading && stories.length === 0 && (
-        <div className="flex justify-center py-16">
-          <Spinner />
-        </div>
+        <LoadingState label={translateFunction("Loading stories...")} />
       )}
 
       {/* Empty state */}
       {!loading && !error && stories.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-[#8D8D8D]">
-          <span className="mb-4"><StoriesEmptyIcon /></span>
-          <p className="text-[16px] font-medium text-[#1d1d1d]">
-            {translateFunction("No stories yet")}
-          </p>
-          <p className="text-[14px] mt-1">
-            {translateFunction(
-              "Upload your first story to get started",
-            )}
-          </p>
-        </div>
+        <EmptyState
+          icon="stories"
+          title={translateFunction("No stories yet")}
+          subtitle={translateFunction(
+            "Upload your first story to get started",
+          )}
+        />
       )}
 
       {/* Stories grid */}
@@ -951,27 +992,31 @@ export default function StoriesTab({
 
       {/* Pagination */}
       {(page > 1 || hasMore) && (
-        <div className="flex items-center justify-center gap-2 mt-4">
-          <button
+        <div className="flex items-center justify-center gap-3 mt-6">
+          <DashButton
+            variant="secondary"
+            size="sm"
+            icon="chevronLeft"
             onClick={() => fetchStories(page - 1)}
             disabled={page === 1 || loading}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-[14px]"
           >
             {translateFunction("Previous")}
-          </button>
-          <span className="text-[14px] text-[#8D8D8D]">
+          </DashButton>
+          <span className="text-[13px] text-[#8e8e8e]">
             {translateFunction("Page")} {meta?.current_page ?? page}
             {meta?.last_page
               ? ` ${translateFunction("of")} ${meta.last_page}`
               : ""}
           </span>
-          <button
+          <DashButton
+            variant="secondary"
+            size="sm"
+            iconRight="chevronRight"
             onClick={() => fetchStories(page + 1)}
             disabled={!hasMore || loading}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-[14px]"
           >
             {translateFunction("Next")}
-          </button>
+          </DashButton>
         </div>
       )}
 
