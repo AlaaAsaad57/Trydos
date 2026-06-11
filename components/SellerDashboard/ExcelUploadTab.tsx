@@ -15,8 +15,43 @@ interface ExcelCategory {
   title?: string;
 }
 
+// One row from GET /shop/excel/getUploadedExcelFiles (Laravel paginator → data[]).
+interface ExcelFile {
+  id: number;
+  original_filename: string;
+  s3_path: string;
+  file_size: number;
+  mime_type: string;
+  uploaded_by_user_type: number;
+  uploaded_by_user_id: number;
+  upload_status: string;
+  processing_notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Backend upload_status values.
+const EXCEL_STATUS = {
+  UPLOADED: "uploaded",
+  PROCESSING: "processing",
+  COMPLETED: "completed",
+  FAILED: "failed",
+} as const;
+
 const ACCEPTED_EXTENSIONS = ["xlsx", "xls", "xlsm", "xlsb"];
 const ACCEPT_ATTR = ".xlsx,.xls,.xlsm,.xlsb";
+
+const MEDIA_SERVER_BASE_URL =
+  process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
+const EXCEL_FOLDER = "excel";
+
+// Build the media-server download URL: <base>/excel/<original_filename>.
+const buildDownloadUrl = (file: ExcelFile) => {
+  if (!MEDIA_SERVER_BASE_URL || !file.original_filename) return "";
+  return `${MEDIA_SERVER_BASE_URL}/file/upload/${EXCEL_FOLDER}/${encodeURIComponent(
+    file.original_filename,
+  )}`;
+};
 
 export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabProps) {
   // ----- categories -----
@@ -35,8 +70,42 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // ----- uploaded excel files table -----
+  const [excelFiles, setExcelFiles] = useState<ExcelFile[]>([]);
+  const [filesLoading, setFilesLoading] = useState<boolean>(false);
+  const [filesError, setFilesError] = useState<string | null>(null);
+  const [notesModal, setNotesModal] = useState<ExcelFile | null>(null);
+
   const getCategoryName = (cat: ExcelCategory) =>
     cat.name || cat.title || `#${cat.id}`;
+
+  const formatDate = (value?: string) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return value;
+    return date.toLocaleString(language || undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const statusBadgeClass = (status?: string) => {
+    switch ((status || "").toLowerCase()) {
+      case EXCEL_STATUS.COMPLETED:
+        return "bg-green-50 text-green-700 border-green-100";
+      case EXCEL_STATUS.FAILED:
+        return "bg-red-50 text-red-700 border-red-100";
+      case EXCEL_STATUS.PROCESSING:
+        return "bg-amber-50 text-amber-700 border-amber-100";
+      case EXCEL_STATUS.UPLOADED:
+        return "bg-blue-50 text-blue-700 border-blue-100";
+      default:
+        return "bg-gray-50 text-gray-600 border-gray-200";
+    }
+  };
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -57,9 +126,28 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
     }
   }, [sellerId, language]);
 
+  const fetchExcelFiles = useCallback(async () => {
+    try {
+      setFilesLoading(true);
+      setFilesError(null);
+      const res = await SellerDashboardService.getExcelFiles(sellerId);
+      // Response is a Laravel paginator: the rows live in `.data.data`.
+      const list: ExcelFile[] = res?.data?.data || res?.data || [];
+      setExcelFiles(Array.isArray(list) ? list : []);
+    } catch (error: any) {
+      console.error("Error fetching excel files:", error);
+      setFilesError(
+        error?.message || translateFunction("Failed to load uploaded files", language),
+      );
+    } finally {
+      setFilesLoading(false);
+    }
+  }, [sellerId, language]);
+
   useEffect(() => {
     fetchCategories();
-  }, [fetchCategories]);
+    fetchExcelFiles();
+  }, [fetchCategories, fetchExcelFiles]);
 
   const handleDownloadTemplate = async () => {
     if (!selectedCategory) return;
@@ -140,13 +228,6 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
   };
 
   const handleUpload = async () => {
-    if (!selectedCategory) {
-      setStatus({
-        type: "error",
-        message: translateFunction("Please select a category first", language),
-      });
-      return;
-    }
     if (!file) {
       setStatus({
         type: "error",
@@ -161,12 +242,17 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       // 1) Upload the filled excel to the media server (dummy — user will write).
       const uploaded = await SellerDashboardService.uploadExcelFile(file);
       // 2) Hand the resulting url to the backend for processing.
-      await SellerDashboardService.processExcel(sellerId, uploaded.url);
+      let response=await SellerDashboardService.processExcel(sellerId, uploaded.url);
+      if(!response.success){
+        throw new Error(response?.message)
+      }
       setStatus({
         type: "success",
         message: translateFunction("File uploaded and processed successfully!", language),
       });
       setFile(null);
+      // Refresh the uploaded files table with the newly processed file.
+      fetchExcelFiles();
     } catch (error: any) {
       console.error("Excel upload error:", error);
       setStatus({
@@ -179,7 +265,8 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto p-8 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-6">
+    <div className="w-full  mx-auto space-y-8">
+    <div className="w-full  mx-auto p-8 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-6">
       <div className="space-y-2 text-center">
         <h2 className="text-[20px] font-bold text-gray-900 tracking-tight">
           {translateFunction("Upload Excel File", language)}
@@ -365,7 +452,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
 
       <button
         onClick={handleUpload}
-        disabled={loading || !file || !selectedCategory}
+        disabled={loading || !file}
         className="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed shadow-sm transition-all duration-200 flex items-center justify-center space-x-2"
       >
         {loading ? (
@@ -377,6 +464,149 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
           <span>{translateFunction("Upload Excel", language)}</span>
         )}
       </button>
+    </div>
+
+      {/* Uploaded excel files table */}
+      <div className="w-full p-6 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-[16px] font-bold text-gray-900">
+            {translateFunction("Uploaded Excel Files", language)}
+          </h3>
+          <button
+            onClick={fetchExcelFiles}
+            disabled={filesLoading}
+            className="text-[13px] font-medium text-blue-700 hover:text-blue-800 disabled:text-gray-400 flex items-center gap-1.5"
+          >
+            <svg
+              className={`w-4 h-4 ${filesLoading ? "animate-spin" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {translateFunction("Refresh", language)}
+          </button>
+        </div>
+
+        {filesLoading ? (
+          <div className="flex items-center gap-2 py-8 justify-center">
+            <Spinner />
+            <span className="text-[14px] text-gray-500">
+              {translateFunction("Loading files...", language)}
+            </span>
+          </div>
+        ) : filesError ? (
+          <div className="flex items-center justify-between gap-2 p-3 bg-red-50 border border-red-100 rounded-xl">
+            <span className="text-[13px] text-red-700">{filesError}</span>
+            <button
+              onClick={fetchExcelFiles}
+              className="text-[13px] font-medium text-red-700 underline shrink-0"
+            >
+              {translateFunction("Retry", language)}
+            </button>
+          </div>
+        ) : excelFiles.length === 0 ? (
+          <div className="py-8 text-center text-[14px] text-gray-400">
+            {translateFunction("No files uploaded yet.", language)}
+          </div>
+        ) : (
+          <div className="overflow-x-auto -mx-2">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="text-[12px] font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">
+                  <th className="px-3 py-2.5">{translateFunction("Title", language)}</th>
+                  <th className="px-3 py-2.5">{translateFunction("ID", language)}</th>
+                  <th className="px-3 py-2.5">{translateFunction("Status", language)}</th>
+                  <th className="px-3 py-2.5">{translateFunction("Created At", language)}</th>
+                  <th className="px-3 py-2.5 text-right">{translateFunction("Actions", language)}</th>
+                </tr>
+              </thead>
+              <tbody className="text-[13px] text-gray-700">
+                {excelFiles.map((item) => (
+                  <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td className="px-3 py-3 font-medium text-gray-800 max-w-[180px] truncate">
+                      {item.original_filename || "—"}
+                    </td>
+                    <td className="px-3 py-3 text-gray-500">{item.id}</td>
+                    <td className="px-3 py-3">
+                      <span
+                        className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-medium border capitalize ${statusBadgeClass(
+                          item.upload_status,
+                        )}`}
+                      >
+                        {item.upload_status || "—"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 text-gray-500 whitespace-nowrap">
+                      {formatDate(item.created_at)}
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setNotesModal(item)}
+                          disabled={!item.processing_notes}
+                          title={translateFunction("Show notes", language)}
+                          className="px-2.5 py-1.5 rounded-lg text-[12px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 disabled:text-gray-300 disabled:border-gray-100 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {translateFunction("Notes", language)}
+                        </button>
+                        {buildDownloadUrl(item) ? (
+                          <a
+                            href={buildDownloadUrl(item)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            title={translateFunction("Download", language)}
+                            className="px-2.5 py-1.5 rounded-lg text-[12px] font-medium text-blue-700 border border-blue-200 bg-blue-50/60 hover:bg-blue-50 transition-colors"
+                          >
+                            {translateFunction("Download", language)}
+                          </a>
+                        ) : (
+                          <span className="px-2.5 py-1.5 rounded-lg text-[12px] font-medium text-gray-300 border border-gray-100 cursor-not-allowed">
+                            {translateFunction("Download", language)}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Notes modal */}
+      {notesModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in"
+          onClick={() => setNotesModal(null)}
+        >
+          <div
+            className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="text-[16px] font-bold text-gray-900">
+                {translateFunction("Notes", language)}
+                {notesModal.original_filename ? ` — ${notesModal.original_filename}` : ""}
+              </h4>
+              <button
+                onClick={() => setNotesModal(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-[14px] text-gray-700 whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
+              {notesModal.processing_notes || translateFunction("No notes available.", language)}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

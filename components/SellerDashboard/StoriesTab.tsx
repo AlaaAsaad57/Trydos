@@ -73,19 +73,25 @@ const StoriesEmptyIcon = () => (
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface SellerStory {
-  id: string;
-  full_video_path: string | null;
-  link: string | null;
-  user_id: number;
-  created_at: string;
-  is_photo: 0 | 1;
-  is_video: 0 | 1;
-  video_duration_in_second: number | null;
-  photo_path: string | null;
-  product_id: number | null;
-  product_slug: string | null;
-  viewers_count: number;
+  id: string | number;
+  full_video_path?: string | null;
+  link?: string | null;
+  user_id?: number;
+  created_at?: string;
+  is_photo?: 0 | 1;
+  is_video?: 0 | 1;
+  video_duration_in_second?: number | null;
+  video_duration_in_seconds?: number | null;
+  photo_path?: string | null;
+  product_id?: number | null;
+  product_slug?: string | null;
+  viewers_count?: number;
 }
+
+// The stories server (like users_stories) doesn't always carry an explicit
+// `is_video` flag — infer it from the presence of a video path.
+const isVideoStory = (story: SellerStory): boolean =>
+  story.is_video === 1 || (!story.is_video && !!story.full_video_path);
 
 interface PaginationMeta {
   current_page: number;
@@ -140,7 +146,8 @@ function StoryViewerModal({
   story: SellerStory;
   onClose: () => void;
 }) {
-  const mediaUrl = story.is_video ? story.full_video_path : story.photo_path;
+  const isVideo = isVideoStory(story);
+  const mediaUrl = isVideo ? story.full_video_path : story.photo_path;
 
   return createPortal(
     <div
@@ -160,7 +167,7 @@ function StoryViewerModal({
         </button>
 
         {/* Media */}
-        {story.is_video && mediaUrl ? (
+        {isVideo && mediaUrl ? (
           <video
             src={mediaUrl}
             controls
@@ -200,7 +207,7 @@ function StoryViewerModal({
             </p>
           )}
           <p className="text-gray-400 text-[11px]">
-            {story.viewers_count} {translateFunction("viewers")} ·{" "}
+            {story.viewers_count ?? 0} {translateFunction("viewers")} ·{" "}
             {story.created_at?.slice(0, 10)}
           </p>
         </div>
@@ -397,10 +404,12 @@ function ProductPickerModal({
 
 function UploadStoryModal({
   sellerId,
+  userId,
   onUploaded,
   onClose,
 }: {
   sellerId: string;
+  userId: number | string;
   onUploaded: () => void;
   onClose: () => void;
 }) {
@@ -494,13 +503,13 @@ function UploadStoryModal({
         await SellerDashboardService.uploadStoryToMediaServer(selectedFile);
       const filePath = process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL + url;
       const isVideo = selectedFile.type.startsWith("video/");
-      await SellerDashboardService.saveSellerStory(sellerId, {
+      await SellerDashboardService.saveSellerStory(sellerId, userId, {
         file_path: filePath,
         is_video: isVideo ? 1 : 0,
-        is_photo: isVideo ? 0 : 1,
         link: normalizeLink(link),
         product_id: linkedProduct?.id ?? null,
-        video_duration_in_second: durationSeconds ?? null,
+        product_slug: linkedProduct?.slug ?? null,
+        video_duration_in_seconds: durationSeconds ?? null,
       });
       showSuccessNotification(translateFunction("Story uploaded successfully"));
       onUploaded();
@@ -700,12 +709,15 @@ function StoryCard({
   story,
   onView,
   onDelete,
+  canDelete,
 }: {
   story: SellerStory;
   onView: () => void;
   onDelete: () => void;
+  canDelete: boolean;
 }) {
-  const thumb = story.is_video ? story.full_video_path : story.photo_path;
+  const isVideo = isVideoStory(story);
+  const thumb = isVideo ? story.full_video_path : story.photo_path;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
@@ -715,7 +727,7 @@ function StoryCard({
         className="relative w-full aspect-9/16 bg-gray-100 block shrink-0"
       >
         {thumb ? (
-          story.is_video ? (
+          isVideo ? (
             <video
               src={thumb}
               className="w-full h-full object-cover"
@@ -731,20 +743,20 @@ function StoryCard({
           )
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300">
-            {story.is_video ? <VideoIcon /> : <PlaceholderIcon />}
+            {isVideo ? <VideoIcon /> : <PlaceholderIcon />}
           </div>
         )}
 
         {/* Type badge */}
         <span className="absolute top-2 left-2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-          {story.is_video ? <VideoIcon /> : <PhotoIcon />}
+          {isVideo ? <VideoIcon /> : <PhotoIcon />}
         </span>
       </button>
 
       {/* Info */}
       <div className="p-2.5 space-y-1.5 flex flex-col flex-1">
-        <div className="flex items-center justify-between text-[11px] text-[#8D8D8D]">
-          <span className="flex items-center gap-1"><EyeIcon /> {story.viewers_count}</span>
+        <div className="flex items-center justify-between text-[11px] text-[#8D8D8D] gap-[8px]">
+          <span className="flex items-center gap-1"><EyeIcon /> {story.viewers_count ?? 0}</span>
           <span>{story.created_at?.slice(0, 10)}</span>
         </div>
 
@@ -758,12 +770,14 @@ function StoryCard({
           </p>
         )}
 
-        <button
-          onClick={onDelete}
-          className="mt-auto w-full py-1.5 text-[12px] text-red-500 hover:bg-red-50 rounded-lg border border-red-100 transition-colors"
-        >
-          {translateFunction("Delete")}
-        </button>
+        {canDelete && (
+          <button
+            onClick={onDelete}
+            className="mt-auto w-full py-1.5 text-[12px] text-red-500 hover:bg-red-50 rounded-lg border border-red-100 transition-colors"
+          >
+            {translateFunction("Delete")}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -771,9 +785,20 @@ function StoryCard({
 
 // ─── StoriesTab (main) ────────────────────────────────────────────────────────
 
-export default function StoriesTab({ sellerId }: { sellerId: string }) {
+export default function StoriesTab({
+  sellerId,
+  userId,
+  canCreate = false,
+  canDelete = false,
+}: {
+  sellerId: string;
+  userId: number | string;
+  canCreate?: boolean;
+  canDelete?: boolean;
+}) {
   const [stories, setStories] = useState<SellerStory[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -788,11 +813,31 @@ export default function StoriesTab({ sellerId }: { sellerId: string }) {
       try {
         setLoading(true);
         setError(null);
-        const res = await SellerDashboardService.getSellerStories(sellerId, p);
-        const data =
-          res.data?.stories ?? res.data?.data ?? res.data ?? [];
-        setStories(Array.isArray(data) ? data : []);
-        setMeta(res.data?.meta ?? null);
+        const res = await SellerDashboardService.getSellerStories(
+          sellerId,
+          userId,
+          p,
+        );
+        // The stories server mirrors users_stories: the list lives under
+        // `data.data` (or `data.stories`). It may come back flat or grouped
+        // (each group carrying a nested `stories` array) — flatten defensively.
+        const payload = res.data ?? {};
+        const raw = payload.data ?? payload.stories ?? payload ?? [];
+        const list: any[] = Array.isArray(raw) ? raw : [];
+        const flat: SellerStory[] = list.some((it) =>
+          Array.isArray(it?.stories),
+        )
+          ? list.flatMap((g) => (Array.isArray(g.stories) ? g.stories : []))
+          : list;
+        setStories(flat);
+        // Pagination: prefer `meta`, fall back to a `next_page_url` flag.
+        const metaObj = payload.meta ?? null;
+        setMeta(metaObj);
+        setHasMore(
+          metaObj
+            ? metaObj.current_page < metaObj.last_page
+            : Boolean(payload.next_page_url),
+        );
         setPage(p);
       } catch (e: any) {
         setError(
@@ -802,7 +847,7 @@ export default function StoriesTab({ sellerId }: { sellerId: string }) {
         setLoading(false);
       }
     },
-    [sellerId],
+    [sellerId, userId],
   );
 
   useEffect(() => {
@@ -816,6 +861,7 @@ export default function StoriesTab({ sellerId }: { sellerId: string }) {
       await SellerDashboardService.deleteSellerStory(
         deletingStory.id,
         sellerId,
+        userId,
       );
       setStories((prev) =>
         prev.filter((s) => s.id !== deletingStory.id),
@@ -842,13 +888,15 @@ export default function StoriesTab({ sellerId }: { sellerId: string }) {
             </span>
           )}
         </h2>
-        <button
-          onClick={() => setShowUploadModal(true)}
-          className="px-4 py-2 bg-blue-500 text-white rounded-[10px] hover:bg-blue-600 text-[14px] flex items-center gap-1.5 transition-colors"
-        >
-          <span className="text-[16px] leading-none">+</span>
-          {translateFunction("Add Story")}
-        </button>
+        {canCreate && (
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-[10px] hover:bg-blue-600 text-[14px] flex items-center gap-1.5 transition-colors"
+          >
+            <span className="text-[16px] leading-none">+</span>
+            {translateFunction("Add Story")}
+          </button>
+        )}
       </div>
 
       {/* Error state */}
@@ -895,13 +943,14 @@ export default function StoriesTab({ sellerId }: { sellerId: string }) {
               story={story}
               onView={() => setViewingStory(story)}
               onDelete={() => setDeletingStory(story)}
+              canDelete={canDelete}
             />
           ))}
         </div>
       )}
 
       {/* Pagination */}
-      {meta && meta.last_page > 1 && (
+      {(page > 1 || hasMore) && (
         <div className="flex items-center justify-center gap-2 mt-4">
           <button
             onClick={() => fetchStories(page - 1)}
@@ -911,12 +960,14 @@ export default function StoriesTab({ sellerId }: { sellerId: string }) {
             {translateFunction("Previous")}
           </button>
           <span className="text-[14px] text-[#8D8D8D]">
-            {translateFunction("Page")} {meta.current_page}{" "}
-            {translateFunction("of")} {meta.last_page}
+            {translateFunction("Page")} {meta?.current_page ?? page}
+            {meta?.last_page
+              ? ` ${translateFunction("of")} ${meta.last_page}`
+              : ""}
           </span>
           <button
             onClick={() => fetchStories(page + 1)}
-            disabled={page >= meta.last_page || loading}
+            disabled={!hasMore || loading}
             className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-[14px]"
           >
             {translateFunction("Next")}
@@ -943,6 +994,7 @@ export default function StoriesTab({ sellerId }: { sellerId: string }) {
       {showUploadModal && (
         <UploadStoryModal
           sellerId={sellerId}
+          userId={userId}
           onUploaded={() => fetchStories(1)}
           onClose={() => setShowUploadModal(false)}
         />

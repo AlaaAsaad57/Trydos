@@ -353,45 +353,81 @@ class SellerDashboardService {
     return { url: data.url as string, durationSeconds: data?.durationSeconds as number | undefined };
   }
 
-  // TODO: replace stub URLs with real endpoints once the API is ready
-  async getSellerStories(sellerId: string, page: number = 1) {
+  // ---------- Seller Stories (READ_STORY / CREATE_STORY / DELETE_STORY) ----------
+  // These hit the dedicated stories server (`server: "stories"`), mirroring the
+  // user-stories flow in `services/story.ts`. `userId` is the original/inventory
+  // user id (AuthService.UserID()); `sellerId` is the shop id being managed.
+
+  // GET /api/v1/stories/seller_stories?user_id=&seller_id=&page=&perPage= (like users_stories)
+  async getSellerStories(
+    sellerId: string,
+    userId: number | string,
+    page: number = 1,
+    perPage: number = 20,
+  ) {
+    const params = new URLSearchParams({
+      user_id: String(userId ?? ""),
+      seller_id: String(sellerId),
+      page: String(page),
+      perPage: String(perPage),
+    });
     return fetchData({
-      url: `/shop/stories?page=${page}`, // TODO: update endpoint
+      url: `/api/v1/stories/seller-stories?${params.toString()}`,
       method: "GET",
-      server: "market-dashboard",
+      server: "stories",
       reqTitle: REQUESTS_DATA.GET_SELLER_STORIES,
-      sellerId,
     });
   }
 
+  // POST /api/v1/stories/add-seller-story (like add_story for a user)
   async saveSellerStory(
     sellerId: string,
+    userId: number | string,
     data: {
       file_path: string;
       is_video: 0 | 1;
-      is_photo: 0 | 1;
       link: string | null;
       product_id: number | null;
-      video_duration_in_second: number | null;
+      product_slug: string | null;
+      video_duration_in_seconds: number | null;
     },
   ) {
     return fetchData({
-      url: `/shop/stories/add`, // TODO: update endpoint
+      url: `/api/v1/stories/add-seller-story`,
       method: "POST",
-      server: "market-dashboard",
+      server: "stories",
       reqTitle: REQUESTS_DATA.SAVE_SELLER_STORY,
-      sellerId,
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        user_id: userId,
+        seller_id: Number(sellerId),
+        file_path: data.file_path,
+        is_video: data.is_video,
+        link: data.link,
+        product_id: data.product_id,
+        product_slug: data.product_slug,
+        video_duration_in_second: data.video_duration_in_seconds,
+        order_detail_id: null,
+      }),
     });
   }
 
-  async deleteSellerStory(storyId: string | number, sellerId: string) {
+  // POST /api/v1/stories/delete-seller-story
+  async deleteSellerStory(
+    storyId: string | number,
+    sellerId: string,
+    userId: number | string,
+  ) {
     return fetchData({
-      url: `/shop/stories/${storyId}/delete`, // TODO: update endpoint
-      method: "DELETE",
-      server: "market-dashboard",
+      url: `/api/v1/stories/delete-seller-story`,
+      method: "POST",
+      server: "stories",
       reqTitle: REQUESTS_DATA.DELETE_SELLER_STORY,
-      sellerId,
+      noMessage: true,
+      body: JSON.stringify({
+        user_id: userId,
+        seller_id: sellerId,
+        story_id: storyId,
+      }),
     });
   }
 
@@ -671,7 +707,7 @@ class SellerDashboardService {
       method: "POST",
       server: "market-dashboard",
       reqTitle: REQUESTS_DATA.PROCESS_EXCEL,
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ file_url:url }),
       sellerId,
     });
   }
@@ -724,5 +760,17 @@ class SellerDashboardService {
 
     return data;
   }
+
+   async getExcelFiles(sellerId: string) {
+    return fetchData({
+      url: `/shop/excel/getUploadedExcelFiles`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.PROCESS_EXCEL,
+      sellerId,
+    });
+  }
+  
+
 }
 export default new SellerDashboardService();

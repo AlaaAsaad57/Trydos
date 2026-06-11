@@ -130,6 +130,7 @@ const PERMISSION_GROUPS = {
     "UPLOAD_PRODUCT_IMAGES",
     "DELETE_PRODUCT_IMAGES",
   ],
+  STORIES: ["READ_STORY", "CREATE_STORY", "DELETE_STORY"],
   ADMIN: ["SUPER_ADMIN", "USER_MANAGEMENT_ACCESS"],
 };
 
@@ -257,7 +258,9 @@ function SellerDashBoard() {
   const canViewGallery = hasPermission("READ_PRODUCT_IMAGES");
   const canUploadProductImages = hasPermission("UPLOAD_PRODUCT_IMAGES");
   const canDeleteProductImages = hasPermission("DELETE_PRODUCT_IMAGES");
-  const canViewStories = hasPermission("SUPER_ADMIN");
+  const canViewStories = hasPermission("READ_STORY");
+  const canCreateStory = hasPermission("CREATE_STORY");
+  const canDeleteStory = hasPermission("DELETE_STORY");
   const canViewShopInfo = hasPermission("READ_SHOP_INFO");
   const canUpdateShopInfo = hasPermission("UPDATE_SHOP_INFO");
   // Excel bulk upload is gated on product create/update (SUPER_ADMIN included via hasPermission)
@@ -1843,7 +1846,14 @@ function SellerDashBoard() {
             canDelete={canDeleteProductImages}
           />
         )}
-        {activeTab === "stories" && canViewStories && <StoriesTab sellerId={sellerId} />}
+        {activeTab === "stories" && canViewStories && (
+          <StoriesTab
+            sellerId={sellerId}
+            userId={currentUserId}
+            canCreate={canCreateStory}
+            canDelete={canDeleteStory}
+          />
+        )}
         {activeTab === "comments" && isAdmin && (
           <CommentsTab sellerId={sellerId} language={language} isRtl={isRtl} />
         )}
