@@ -53,6 +53,12 @@ export default function GalleryTab({
   const [copySuccessId, setCopySuccessId] = useState<string | number | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
+  // Multi-select / bulk delete
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
   const folderInputRef = useRef<HTMLInputElement>(null);
   const filesInputRef = useRef<HTMLInputElement>(null);
 
@@ -137,13 +143,71 @@ export default function GalleryTab({
     const imageId = deleteTarget.id;
     try {
       setDeletingId(imageId);
-      await SellerDashboardService.deleteProductImage(imageId, sellerId);
+      const res = await SellerDashboardService.deleteProductImages(imageId, sellerId);
+      if (res?.success === false) {
+        throw new Error(res?.message || translateFunction("Failed to delete image"));
+      }
       setImages((prev) => prev.filter((img) => String(img.id) !== String(imageId)));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(String(imageId));
+        return next;
+      });
       setDeleteTarget(null);
     } catch (e: any) {
       setError(e?.message || translateFunction("Failed to delete image"));
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  // ---- Multi-select helpers ----
+  const enterSelectMode = () => {
+    setSelectMode(true);
+    setLightboxUrl(null);
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelect = (id: string | number) => {
+    const key = String(id);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const allSelected =
+    images.length > 0 && images.every((img) => selectedIds.has(String(img.id)));
+
+  const toggleSelectAll = () => {
+    if (allSelected) setSelectedIds(new Set());
+    else setSelectedIds(new Set(images.map((img) => String(img.id))));
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    try {
+        alert("جاري العمل على ميزة حذف المحدد");
+        throw new Error("Not implmented");
+      setBulkDeleting(true);
+      const res = await SellerDashboardService.deleteProductImages(ids, sellerId);
+      if (res?.success === false) {
+        throw new Error(res?.message || translateFunction("Failed to delete images"));
+      }
+      setImages((prev) => prev.filter((img) => !selectedIds.has(String(img.id))));
+      setShowBulkDelete(false);
+      exitSelectMode();
+    } catch (e: any) {
+      setError(e?.message || translateFunction("Failed to delete images"));
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -247,66 +311,176 @@ export default function GalleryTab({
           )}
         />
       ) : (
-        <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 pb-[30px]">
-          {images.map((img) => (
-            <div
-              key={img.id}
-              className="bg-[#f8f8f8] rounded-[12px] border border-[#ededed] overflow-hidden group relative"
-            >
-              <div className="relative w-full aspect-square bg-[#e6e6e6]">
-                <img
-                  src={getImageUrl(img)}
-                  alt={getImageName(img)}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                {/* Action overlay on hover */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button
-                    title={translateFunction("View")}
-                    onClick={() => setLightboxUrl(getImageUrl(img))}
-                    className="w-8 h-8 bg-white/90 text-[#3c3c3c] rounded-full flex items-center justify-center hover:bg-white transition-colors active:scale-[0.95]"
-                  >
-                    <DashIcon name="eye" size={15} />
-                  </button>
-                  <button
-                    title={
-                      copySuccessId === img.id
-                        ? translateFunction("Copied!")
-                        : translateFunction("Copy URL")
-                    }
-                    onClick={() => copyToClipboard(getImageUrl(img), img.id)}
-                    className={`w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors active:scale-[0.95] ${
-                      copySuccessId === img.id ? "text-[#2ea84f]" : "text-[#3c3c3c]"
-                    }`}
-                  >
-                    <DashIcon
-                      name={copySuccessId === img.id ? "check" : "copy"}
-                      size={15}
-                    />
-                  </button>
-                  {canDelete && (
+        <>
+          {/* Selection toolbar — sticks under the page header while scrolling a
+              long gallery so the bulk actions stay reachable. */}
+          {canDelete && (
+            <div className="sticky top-0 z-20 -mt-2 mb-1 py-2 bg-white/85 backdrop-blur-sm flex items-center justify-between gap-3 flex-wrap">
+              {selectMode ? (
+                <>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-[14px] semibold text-[#3c3c3c]">
+                      {selectedIds.size > 0
+                        ? `${selectedIds.size} ${translateFunction("selected")}`
+                        : translateFunction("Select images to delete")}
+                    </span>
                     <button
-                      title={translateFunction("Delete")}
-                      onClick={() => setDeleteTarget(img)}
-                      disabled={deletingId === img.id}
-                      className="w-8 h-8 bg-[#f85555] text-white rounded-full flex items-center justify-center hover:bg-[#e84444] disabled:opacity-50 transition-colors active:scale-[0.95]"
+                      onClick={toggleSelectAll}
+                      className="text-[13px] medium text-[#388CFF] hover:opacity-80 active:scale-[0.98]"
                     >
-                      {deletingId === img.id ? (
-                        <Spinner />
-                      ) : (
-                        <DashIcon name="trash" size={14} />
-                      )}
+                      {allSelected
+                        ? translateFunction("Deselect all")
+                        : translateFunction("Select all")}
                     </button>
-                  )}
-                </div>
-              </div>
-              <p className="text-[11px] text-[#8e8e8e] px-2 py-1 truncate">
-                {getImageName(img)}
-              </p>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <DashButton
+                      variant="ghost"
+                      size="sm"
+                      onClick={exitSelectMode}
+                    >
+                      {translateFunction("Cancel")}
+                    </DashButton>
+                    <DashButton
+                      variant="danger"
+                      size="sm"
+                      icon="trash"
+                      disabled={selectedIds.size === 0}
+                      onClick={() => setShowBulkDelete(true)}
+                    >
+                      {translateFunction("Delete")}
+                      {selectedIds.size > 0 ? ` (${selectedIds.size})` : ""}
+                    </DashButton>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="text-[13px] text-[#8e8e8e]">
+                    {meta?.total ?? images.length} {translateFunction("images")}
+                  </span>
+                  <DashButton
+                    variant="secondary"
+                    size="sm"
+                    icon="check"
+                    onClick={enterSelectMode}
+                  >
+                    {translateFunction("Select")}
+                  </DashButton>
+                </>
+              )}
             </div>
-          ))}
-        </div>
+          )}
+
+          <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 pb-[30px]">
+            {images.map((img) => {
+              const selected = selectedIds.has(String(img.id));
+              return (
+                <div
+                  key={img.id}
+                  onClick={selectMode ? () => toggleSelect(img.id) : undefined}
+                  className={`bg-[#f8f8f8] rounded-[12px] border overflow-hidden group relative transition-all ${
+                    selectMode ? "cursor-pointer" : ""
+                  } ${
+                    selected
+                      ? "border-[#388CFF] ring-2 ring-[#388CFF] ring-offset-1"
+                      : "border-[#ededed]"
+                  }`}
+                >
+                  <div className="relative w-full aspect-square bg-[#e6e6e6]">
+                    <img
+                      src={getImageUrl(img)}
+                      alt={getImageName(img)}
+                      className={`w-full h-full object-cover transition-opacity ${
+                        selectMode && !selected ? "opacity-90" : ""
+                      }`}
+                      loading="lazy"
+                    />
+
+                    {/* Selection tint */}
+                    {selectMode && selected && (
+                      <div className="absolute inset-0 bg-[#388CFF]/15 pointer-events-none" />
+                    )}
+
+                    {/* Checkbox — visible in select mode (and on hover otherwise
+                        as an affordance to start selecting). */}
+                    {canDelete && (
+                      <button
+                        type="button"
+                        aria-label={
+                          selected
+                            ? translateFunction("Deselect")
+                            : translateFunction("Select")
+                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!selectMode) setSelectMode(true);
+                          toggleSelect(img.id);
+                        }}
+                        className={`absolute top-2 left-2 z-10 w-6 h-6 rounded-full flex items-center justify-center border transition-all active:scale-[0.9] ${
+                          selected
+                            ? "bg-[#388CFF] border-[#388CFF] text-white"
+                            : "bg-white/85 border-white/90 text-transparent"
+                        } ${
+                          selectMode
+                            ? "opacity-100"
+                            : "opacity-0 group-hover:opacity-100"
+                        }`}
+                      >
+                        <DashIcon name="check" size={14} strokeWidth={3} />
+                      </button>
+                    )}
+
+                    {/* Action overlay on hover — disabled while selecting */}
+                    {!selectMode && (
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <button
+                          title={translateFunction("View")}
+                          onClick={() => setLightboxUrl(getImageUrl(img))}
+                          className="w-8 h-8 bg-white/90 text-[#3c3c3c] rounded-full flex items-center justify-center hover:bg-white transition-colors active:scale-[0.95]"
+                        >
+                          <DashIcon name="eye" size={15} />
+                        </button>
+                        <button
+                          title={
+                            copySuccessId === img.id
+                              ? translateFunction("Copied!")
+                              : translateFunction("Copy URL")
+                          }
+                          onClick={() => copyToClipboard(getImageUrl(img), img.id)}
+                          className={`w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors active:scale-[0.95] ${
+                            copySuccessId === img.id ? "text-[#2ea84f]" : "text-[#3c3c3c]"
+                          }`}
+                        >
+                          <DashIcon
+                            name={copySuccessId === img.id ? "check" : "copy"}
+                            size={15}
+                          />
+                        </button>
+                        {canDelete && (
+                          <button
+                            title={translateFunction("Delete")}
+                            onClick={() => setDeleteTarget(img)}
+                            disabled={deletingId === img.id}
+                            className="w-8 h-8 bg-[#f85555] text-white rounded-full flex items-center justify-center hover:bg-[#e84444] disabled:opacity-50 transition-colors active:scale-[0.95]"
+                          >
+                            {deletingId === img.id ? (
+                              <Spinner />
+                            ) : (
+                              <DashIcon name="trash" size={14} />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[#8e8e8e] px-2 py-1 truncate">
+                    {getImageName(img)}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* Pagination */}
@@ -430,6 +604,75 @@ export default function GalleryTab({
                 {deletingId !== null && <Spinner />}
                 <DashIcon name="trash" size={16} />
                 {translateFunction("Delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {showBulkDelete && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+          onClick={() => !bulkDeleting && setShowBulkDelete(false)}
+        >
+          <div
+            className="bg-white rounded-[20px] p-5 lg:p-6 max-w-md w-full"
+            style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-14 h-14 mx-auto mb-4 bg-[#fff1f1] text-[#f85555] rounded-full flex items-center justify-center">
+              <DashIcon name="trash" size={24} />
+            </div>
+            <h2 className="text-[16px] bold text-[#3c3c3c] text-center mb-1">
+              {translateFunction("Delete")} {selectedIds.size}{" "}
+              {translateFunction("images")}
+            </h2>
+            <p className="text-[14px] text-[#8e8e8e] text-center mb-5">
+              {translateFunction(
+                "Are you sure you want to delete the selected images? This action cannot be undone.",
+              )}
+            </p>
+            {/* Thumbnails of the selection (capped) */}
+            <div className="flex flex-wrap gap-2 justify-center mb-5 max-h-[160px] overflow-y-auto">
+              {images
+                .filter((img) => selectedIds.has(String(img.id)))
+                .slice(0, 12)
+                .map((img) => (
+                  <div
+                    key={img.id}
+                    className="w-14 h-14 rounded-[10px] overflow-hidden bg-[#f8f8f8] border border-[#ededed]"
+                  >
+                    <img
+                      src={getImageUrl(img)}
+                      alt={getImageName(img)}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              {selectedIds.size > 12 && (
+                <div className="w-14 h-14 rounded-[10px] bg-[#f4f4f4] border border-[#ededed] flex items-center justify-center text-[12px] semibold text-[#8e8e8e]">
+                  +{selectedIds.size - 12}
+                </div>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <DashButton
+                variant="ghost"
+                fullWidth
+                onClick={() => setShowBulkDelete(false)}
+                disabled={bulkDeleting}
+              >
+                {translateFunction("Cancel")}
+              </DashButton>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                className="flex-1 h-[44px] rounded-[12px] bg-[#f85555] text-white medium text-[14px] hover:bg-[#e84444] disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {bulkDeleting && <Spinner />}
+                <DashIcon name="trash" size={16} />
+                {translateFunction("Delete")} ({selectedIds.size})
               </button>
             </div>
           </div>

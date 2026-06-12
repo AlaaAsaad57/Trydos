@@ -498,13 +498,22 @@ class SellerDashboardService {
     });
   }
 
-  // DELETE /shop/products/images/{id} — protected by DELETE_PRODUCT_IMAGES
-  async deleteProductImage(imageId: number | string, sellerId: string) {
+  // DELETE /shop/products/images — protected by DELETE_PRODUCT_IMAGES
+  // Same endpoint for single and bulk deletes: the id(s) are always sent as an
+  // `ids` array in the body, so deleting one image and deleting a selection
+  // share one code path.
+  async deleteProductImages(
+    imageIds: number | string | (number | string)[],
+    sellerId: string,
+  ) {
+    // const ids = Array.isArray(imageIds) ? imageIds : [imageIds];
+    let normalizeId=Array.isArray
     return fetchData({
-      url: `/shop/products/images/${imageId}`,
+      url: `/shop/products/images/${imageIds}`,
       method: "DELETE",
       server: "market-dashboard",
       reqTitle: REQUESTS_DATA.DELETE_PRODUCT_IMAGE,
+      // body: JSON.stringify({ ids }),
       sellerId,
     });
   }

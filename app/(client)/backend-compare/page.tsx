@@ -5,19 +5,22 @@ import "styles/globals.css";
 /**
  * Laravel vs Go backend performance comparison.
  *
- * Hits the SAME path on both backends (NEXT_PUBLIC_BACKEND_URL = Laravel,
- * NEXT_PUBLIC_GO_BACKEND_URL = Go) with identical method / body / headers,
- * runs N iterations each, and reports avg/min/max latency plus which backend
- * is faster and by what percentage.
+ * Each endpoint row is ONE logical API expressed as two independent, fully
+ * editable URLs — the left cell hits server A, the right cell hits server B.
+ * They are paired only for reporting ("same API, different servers"); the paths,
+ * hosts and even ports may differ. A template (base URL + path) is pre-filled
+ * when you add a row, but every URL is free text you can rewrite afterwards.
  *
- * Requests go straight from the browser to each backend (same approach as the
- * existing /api-test page). You supply the access token, language and country;
- * those are sent as the Authorization / lang / country headers the backends
- * expect.
+ * Requests are NOT sent from the browser directly — they go through the
+ * same-origin `/api/backend-compare` route, which forwards them server-to-server.
+ * That sidesteps CORS entirely (the Go backend rejects browser pre-flights) and
+ * the latency reported is the pure backend round-trip measured on the server.
  */
 
 const LARAVEL_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 const GO_BASE = process.env.NEXT_PUBLIC_GO_BACKEND_URL || "";
+
+const PROXY_URL = "/api/backend-compare";
 
 const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 
@@ -37,51 +40,107 @@ const COUNTRIES = [
   { value: "eg", label: "Egypt" },
 ];
 
-interface EndpointConfig {
-  id: string;
-  name: string;
-  path: string;
-  method: string;
-  body: string;
+// Optional teardown fired after EACH call (warm-up + every measured iteration)
+// so a mutating endpoint can be retried cleanly. Its latency is NOT measured.
+// Example: Cart Add must remove the item it just created before the next add,
+// using the cart-item id returned in the add response.
+interface CleanupConfig {
+  enabled: boolean;
+  url: string; // full URL of the teardown request (e.g. Laravel /cart/remove)
+  idPath: string; // dot-path to the id inside the call's response (e.g. data.id_cart)
+  bodyTemplate: string; // teardown body; "{{id}}" is replaced with the extracted id
 }
 
-// Endpoints that have already been migrated to Go (mirrors GO_APIS in
-// utils/server/tokenManager.ts). These make good comparison defaults.
-const DEFAULT_ENDPOINTS: EndpointConfig[] = [
+// One row = one API, with a separate free-typed URL + body per backend.
+interface EndpointPair {
+  id: string;
+  name: string;
+  method: string;
+  leftUrl: string; // server A (Laravel) — full URL, editable
+  rightUrl: string; // server B (Go) — full URL, editable
+  leftBody: string; // server A request body, editable
+  rightBody: string; // server B request body, editable
+  cleanup?: CleanupConfig; // optional unmeasured teardown after each call
+}
+
+const join = (base: string, path: string) =>
+  base.replace(/\/$/, "") + (path.startsWith("/") ? path : `/${path}`);
+
+// Bases used to pre-fill the default rows. They fall back to the configured
+// env URLs, but default to the known dev hosts so the comparison set always
+// loads ready to run.
+const LARAVEL_DEFAULT_BASE =
+  LARAVEL_BASE || "https://trydos_develop.ramaaz.dev/api/v1";
+const GO_DEFAULT_BASE = GO_BASE || "https://trydosv2.ramaaz.dev/api/v1";
+
+// New (manually added) rows pre-fill from the env template; defaults below are
+// explicit because each side can carry a different URL/body.
+const pair = (
+  id: string,
+  name: string,
+  method: string,
+  path: string,
+  body = "",
+): EndpointPair => ({
+  id,
+  name,
+  method,
+  leftUrl: LARAVEL_BASE ? join(LARAVEL_BASE, path) : path,
+  rightUrl: GO_BASE ? join(GO_BASE, path) : path,
+  leftBody: body,
+  rightBody: body,
+});
+
+// Endpoints already migrated to Go — the comparison set shown on every load.
+// Cart Add intentionally differs per side (Laravel expects `id`, Go expects
+// `product_id`).
+const DEFAULT_ENDPOINTS: EndpointPair[] = [
   {
     id: "1",
     name: "Starting Settings",
-    path: "/web/home/startingSettings",
     method: "GET",
-    body: "",
+    leftUrl: join(LARAVEL_DEFAULT_BASE, "/web/home/startingSettings"),
+    rightUrl: join(GO_DEFAULT_BASE, "/web/home/startingSettings"),
+    leftBody: "",
+    rightBody: "",
   },
   {
     id: "2",
     name: "Currency",
-    path: "/home/currency",
     method: "GET",
-    body: "",
+    leftUrl: join(LARAVEL_DEFAULT_BASE, "/home/currency"),
+    rightUrl: join(GO_DEFAULT_BASE, "/home/currency"),
+    leftBody: "",
+    rightBody: "",
   },
   {
     id: "3",
     name: "Register Guest",
-    path: "/auth/register-guest",
     method: "POST",
-    body: "{}",
+    leftUrl: join(LARAVEL_DEFAULT_BASE, "/auth/register-guest"),
+    rightUrl: join(GO_DEFAULT_BASE, "/auth/register-guest"),
+    leftBody: '{\n  "original_user_id": 9040\n}',
+    rightBody: '{\n  "original_user_id": 9040\n}',
   },
   {
     id: "4",
-    name: "Checklist",
-    path: "/checklist",
-    method: "GET",
-    body: "",
-  },
-  {
-    id: "5",
     name: "Cart Add",
-    path: "/cart/add",
     method: "POST",
-    body: '{\n  "product_id": 1,\n  "quantity": 1\n}',
+    leftUrl: join(LARAVEL_DEFAULT_BASE, "/cart/add"),
+    rightUrl: join(GO_DEFAULT_BASE, "/cart/add"),
+    leftBody:
+      '{\n  "id": 17,\n  "image": "pllchnqdjlerqxmvxl7r.jpg",\n  "quantity": 1,\n  "product_variation_id": "cdc8a521-e3dc-4571-b417-7d5785ff8fca",\n  "is_luck": false\n}',
+    rightBody:
+      '{\n  "product_id": 17,\n  "image": "pllchnqdjlerqxmvxl7r.jpg",\n  "quantity": 1,\n  "product_variation_id": "cdc8a521-e3dc-4571-b417-7d5785ff8fca",\n  "is_luck": false\n}',
+    // After each add, remove the created item via Laravel so the next add is
+    // clean. The add response carries the cart-item id at data.id_cart, which
+    // /cart/remove expects as { "key": <id> }.
+    cleanup: {
+      enabled: true,
+      url: join(LARAVEL_DEFAULT_BASE, "/cart/remove"),
+      idPath: "data.id_cart",
+      bodyTemplate: '{ "key": {{id}} }',
+    },
   },
 ];
 
@@ -103,7 +162,7 @@ interface BackendResult {
 }
 
 interface ComparisonResult {
-  endpoint: EndpointConfig;
+  endpoint: EndpointPair;
   laravel: BackendResult;
   go: BackendResult;
   winner: "laravel" | "go" | "tie" | "n/a";
@@ -127,12 +186,34 @@ function summarize(runs: SingleRun[], lastStatus: number, lastBody: string): Bac
   };
 }
 
+// Walk a dot-path ("data.id_cart") into a parsed response and pull the id out.
+function extractId(bodyText: string, idPath: string): string | number | null {
+  if (!bodyText || !idPath.trim()) return null;
+  try {
+    const json = JSON.parse(bodyText);
+    const value = idPath
+      .split(".")
+      .reduce<unknown>(
+        (acc, key) =>
+          acc != null && typeof acc === "object"
+            ? (acc as Record<string, unknown>)[key]
+            : undefined,
+        json,
+      );
+    return typeof value === "string" || typeof value === "number"
+      ? value
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function BackendComparePage() {
   const [token, setToken] = useState("");
   const [language, setLanguage] = useState("en");
   const [country, setCountry] = useState("gb");
   const [iterations, setIterations] = useState(10);
-  const [endpoints, setEndpoints] = useState<EndpointConfig[]>(DEFAULT_ENDPOINTS);
+  const [endpoints, setEndpoints] = useState<EndpointPair[]>(DEFAULT_ENDPOINTS);
   const [results, setResults] = useState<ComparisonResult[]>([]);
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState("");
@@ -152,61 +233,101 @@ export default function BackendComparePage() {
     return headers;
   };
 
-  // Run one HTTP call and measure wall-clock time.
+  // Run one HTTP call (via the same-origin proxy) and capture the
+  // server-measured backend latency.
   const runOnce = async (
-    base: string,
-    ep: EndpointConfig,
+    url: string,
+    ep: EndpointPair,
+    rawBody: string,
   ): Promise<SingleRun & { body?: string }> => {
     const headers = buildHeaders();
-    const options: RequestInit = {
-      method: ep.method,
-      headers,
-      credentials: "omit",
-      cache: "no-store",
-    };
-    if (["POST", "PUT", "PATCH"].includes(ep.method) && ep.body.trim()) {
-      options.body = ep.body;
-      headers["Content-Type"] = "application/json";
-    }
+    const sendBody =
+      ["POST", "PUT", "PATCH"].includes(ep.method) && rawBody.trim()
+        ? rawBody
+        : undefined;
+    if (sendBody) headers["Content-Type"] = "application/json";
 
-    const url = base.replace(/\/$/, "") + ep.path;
-    const start = performance.now();
     try {
-      const res = await fetch(url, options);
-      const time = performance.now() - start;
-      let bodyText = "";
-      try {
-        bodyText = await res.text();
-      } catch {
-        /* ignore body read errors */
-      }
+      const res = await fetch(PROXY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          url,
+          method: ep.method,
+          headers,
+          body: sendBody,
+        }),
+      });
+      const data = (await res.json()) as {
+        ok: boolean;
+        status: number;
+        time: number;
+        error?: string;
+        body?: string;
+      };
       return {
-        ok: res.ok,
-        status: res.status,
-        time,
-        body: bodyText.slice(0, 2000),
+        ok: data.ok,
+        status: data.status,
+        time: data.time ?? 0,
+        error: data.error,
+        body: data.body ?? "",
       };
     } catch (err) {
-      const time = performance.now() - start;
       return {
         ok: false,
         status: 0,
-        time,
-        error: err instanceof Error ? err.message : "Network error",
+        time: 0,
+        error: err instanceof Error ? err.message : "Proxy request failed",
         body: "",
       };
     }
   };
 
+  // Fire the teardown request (e.g. /cart/remove). Unmeasured and best-effort —
+  // failures are swallowed so they never affect the comparison.
+  const runCleanup = async (cleanup: CleanupConfig, id: string | number) => {
+    const headers = buildHeaders();
+    headers["Content-Type"] = "application/json";
+    const body = cleanup.bodyTemplate.replace(/\{\{\s*id\s*\}\}/g, String(id));
+    try {
+      await fetch(PROXY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          url: cleanup.url,
+          method: "POST",
+          headers,
+          body,
+        }),
+      });
+    } catch {
+      /* teardown is best-effort */
+    }
+  };
+
+  // One measured call, followed by its (unmeasured) teardown so the next
+  // iteration starts from a clean state.
+  const runMeasured = async (url: string, ep: EndpointPair, rawBody: string) => {
+    const r = await runOnce(url, ep, rawBody);
+    if (ep.cleanup?.enabled && ep.cleanup.url.trim() && r.body) {
+      const id = extractId(r.body, ep.cleanup.idPath);
+      if (id != null) await runCleanup(ep.cleanup, id);
+    }
+    return r;
+  };
+
   const runBackend = async (
-    base: string,
-    ep: EndpointConfig,
+    url: string,
+    ep: EndpointPair,
+    rawBody: string,
   ): Promise<BackendResult> => {
     const runs: SingleRun[] = [];
     let lastStatus = 0;
     let lastBody = "";
     for (let i = 0; i < iterations; i++) {
-      const r = await runOnce(base, ep);
+      const r = await runMeasured(url, ep, rawBody);
       runs.push({ ok: r.ok, status: r.status, time: r.time, error: r.error });
       lastStatus = r.status;
       if (r.body) lastBody = r.body;
@@ -215,27 +336,28 @@ export default function BackendComparePage() {
   };
 
   const runTest = async () => {
-    if (!LARAVEL_BASE || !GO_BASE) {
-      alert(
-        "Backend URLs are not configured. Check NEXT_PUBLIC_BACKEND_URL and NEXT_PUBLIC_GO_BACKEND_URL.",
-      );
-      return;
-    }
     setRunning(true);
     setResults([]);
     const out: ComparisonResult[] = [];
 
     for (const ep of endpoints) {
-      if (!ep.path.trim()) continue;
-      setProgress(`Testing "${ep.name || ep.path}" …`);
+      const hasLeft = ep.leftUrl.trim();
+      const hasRight = ep.rightUrl.trim();
+      if (!hasLeft && !hasRight) continue;
+      setProgress(`Testing "${ep.name || ep.leftUrl || ep.rightUrl}" …`);
 
-      // Warm-up call to each backend (excluded from stats) so the first-request
-      // connection/TLS cost doesn't unfairly skew one side.
-      await runOnce(LARAVEL_BASE, ep);
-      await runOnce(GO_BASE, ep);
+      // Warm-up call to each side (excluded from stats) so the first-request
+      // connection/TLS cost doesn't unfairly skew one backend. Runs the teardown
+      // too, so the warm-up doesn't leave a stale item behind.
+      if (hasLeft) await runMeasured(ep.leftUrl, ep, ep.leftBody);
+      if (hasRight) await runMeasured(ep.rightUrl, ep, ep.rightBody);
 
-      const laravel = await runBackend(LARAVEL_BASE, ep);
-      const go = await runBackend(GO_BASE, ep);
+      const laravel = hasLeft
+        ? await runBackend(ep.leftUrl, ep, ep.leftBody)
+        : summarize([], 0, "");
+      const go = hasRight
+        ? await runBackend(ep.rightUrl, ep, ep.rightBody)
+        : summarize([], 0, "");
 
       let winner: ComparisonResult["winner"] = "n/a";
       let diffPercent = 0;
@@ -262,23 +384,35 @@ export default function BackendComparePage() {
   // ---- endpoint row editing ----
   const updateEndpoint = (
     id: string,
-    field: keyof EndpointConfig,
+    field: keyof EndpointPair,
     value: string,
   ) => {
     setEndpoints((prev) =>
       prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)),
     );
   };
+  const updateCleanup = (
+    id: string,
+    field: keyof CleanupConfig,
+    value: string | boolean,
+  ) => {
+    setEndpoints((prev) =>
+      prev.map((e) => {
+        if (e.id !== id) return e;
+        const base: CleanupConfig = e.cleanup ?? {
+          enabled: false,
+          url: "",
+          idPath: "data.id_cart",
+          bodyTemplate: '{ "key": {{id}} }',
+        };
+        return { ...e, cleanup: { ...base, [field]: value } };
+      }),
+    );
+  };
   const addEndpoint = () => {
     setEndpoints((prev) => [
       ...prev,
-      {
-        id: `${Date.now()}`,
-        name: "",
-        path: "",
-        method: "GET",
-        body: "",
-      },
+      pair(`${Date.now()}`, "", "GET", ""),
     ]);
   };
   const removeEndpoint = (id: string) => {
@@ -321,16 +455,16 @@ export default function BackendComparePage() {
           Laravel vs Go — Backend Performance
         </h1>
         <p className="text-gray-600 mb-8">
-          Same path, method, body and headers fired at both backends. Times are
-          wall-clock latency measured in the browser (a warm-up request per
-          backend is discarded).
+          Each row is one API with a separate, fully editable URL per backend.
+          Requests are proxied server-side (no CORS) and the reported time is the
+          pure backend round-trip; a warm-up request per side is discarded.
         </p>
 
-        {/* Base URLs */}
+        {/* Base URLs (used only to pre-fill new rows) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <div className="text-xs font-semibold text-orange-700 uppercase mb-1">
-              Laravel base URL
+              Server A — Laravel base (template)
             </div>
             <div className="text-sm text-gray-700 break-all">
               {LARAVEL_BASE || "⚠️ NEXT_PUBLIC_BACKEND_URL not set"}
@@ -338,7 +472,7 @@ export default function BackendComparePage() {
           </div>
           <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
             <div className="text-xs font-semibold text-sky-700 uppercase mb-1">
-              Go base URL
+              Server B — Go base (template)
             </div>
             <div className="text-sm text-gray-700 break-all">
               {GO_BASE || "⚠️ NEXT_PUBLIC_GO_BACKEND_URL not set"}
@@ -426,7 +560,7 @@ export default function BackendComparePage() {
           )}
         </div>
 
-        {/* Endpoints editor */}
+        {/* Endpoints editor — two columns, one row per API */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Endpoints to compare</h2>
@@ -437,12 +571,24 @@ export default function BackendComparePage() {
               + Add endpoint
             </button>
           </div>
+
+          {/* Column headers */}
+          <div className="hidden md:grid grid-cols-2 gap-4 mb-2 px-1">
+            <div className="text-xs font-semibold text-orange-700 uppercase">
+              Server A — Laravel URL
+            </div>
+            <div className="text-xs font-semibold text-sky-700 uppercase">
+              Server B — Go URL
+            </div>
+          </div>
+
           <div className="space-y-4">
             {endpoints.map((ep) => (
               <div
                 key={ep.id}
-                className="border border-gray-200 rounded-md p-4 space-y-2"
+                className="border border-gray-200 rounded-md p-4 space-y-3"
               >
+                {/* Shared meta: name + method, with remove */}
                 <div className="flex flex-col md:flex-row gap-2">
                   <input
                     type="text"
@@ -450,8 +596,8 @@ export default function BackendComparePage() {
                     onChange={(e) =>
                       updateEndpoint(ep.id, "name", e.target.value)
                     }
-                    placeholder="Name"
-                    className="md:w-48 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    placeholder="API name (optional)"
+                    className="md:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm"
                   />
                   <select
                     value={ep.method}
@@ -466,34 +612,130 @@ export default function BackendComparePage() {
                       </option>
                     ))}
                   </select>
-                  <input
-                    type="text"
-                    value={ep.path}
-                    onChange={(e) =>
-                      updateEndpoint(ep.id, "path", e.target.value)
-                    }
-                    placeholder="/path/on/both/backends"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
-                  />
+                  <div className="flex-1" />
                   <button
                     onClick={() => removeEndpoint(ep.id)}
-                    className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-md text-sm"
+                    className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-md text-sm self-start"
                   >
                     Remove
                   </button>
                 </div>
-                {["POST", "PUT", "PATCH"].includes(ep.method) && (
-                  <textarea
-                    value={ep.body}
-                    onChange={(e) =>
-                      updateEndpoint(ep.id, "body", e.target.value)
-                    }
-                    placeholder="Request body (JSON)"
-                    className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md font-mono text-xs"
-                  />
-                )}
+
+                {/* Two columns: left = server A (URL + body), right = server B */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={ep.leftUrl}
+                      onChange={(e) =>
+                        updateEndpoint(ep.id, "leftUrl", e.target.value)
+                      }
+                      placeholder="https://laravel.host/full/url"
+                      className="w-full px-3 py-2 border border-orange-200 bg-orange-50/40 rounded-md font-mono text-xs"
+                    />
+                    {["POST", "PUT", "PATCH"].includes(ep.method) && (
+                      <textarea
+                        value={ep.leftBody}
+                        onChange={(e) =>
+                          updateEndpoint(ep.id, "leftBody", e.target.value)
+                        }
+                        placeholder="Server A request body (JSON)"
+                        className="w-full h-24 px-3 py-2 border border-orange-200 bg-orange-50/40 rounded-md font-mono text-xs"
+                      />
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={ep.rightUrl}
+                      onChange={(e) =>
+                        updateEndpoint(ep.id, "rightUrl", e.target.value)
+                      }
+                      placeholder="https://go.host/full/url"
+                      className="w-full px-3 py-2 border border-sky-200 bg-sky-50/40 rounded-md font-mono text-xs"
+                    />
+                    {["POST", "PUT", "PATCH"].includes(ep.method) && (
+                      <textarea
+                        value={ep.rightBody}
+                        onChange={(e) =>
+                          updateEndpoint(ep.id, "rightBody", e.target.value)
+                        }
+                        placeholder="Server B request body (JSON)"
+                        className="w-full h-24 px-3 py-2 border border-sky-200 bg-sky-50/40 rounded-md font-mono text-xs"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Optional unmeasured teardown after each call (e.g. remove
+                    the cart item that Cart Add just created). */}
+                <div className="border-t border-gray-100 pt-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={!!ep.cleanup?.enabled}
+                      onChange={(e) =>
+                        updateCleanup(ep.id, "enabled", e.target.checked)
+                      }
+                    />
+                    Reset after each call (not measured) — runs a teardown
+                    request so the call can be repeated cleanly
+                  </label>
+                  {ep.cleanup?.enabled && (
+                    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div>
+                        <span className="block text-xs text-gray-500 mb-1">
+                          Teardown URL (POST)
+                        </span>
+                        <input
+                          type="text"
+                          value={ep.cleanup.url}
+                          onChange={(e) =>
+                            updateCleanup(ep.id, "url", e.target.value)
+                          }
+                          placeholder="https://laravel.host/api/v1/cart/remove"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-xs"
+                        />
+                      </div>
+                      <div>
+                        <span className="block text-xs text-gray-500 mb-1">
+                          Id path in the response
+                        </span>
+                        <input
+                          type="text"
+                          value={ep.cleanup.idPath}
+                          onChange={(e) =>
+                            updateCleanup(ep.id, "idPath", e.target.value)
+                          }
+                          placeholder="data.id_cart"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-xs"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <span className="block text-xs text-gray-500 mb-1">
+                          Teardown body — <code>{"{{id}}"}</code> is replaced with
+                          the extracted id
+                        </span>
+                        <input
+                          type="text"
+                          value={ep.cleanup.bodyTemplate}
+                          onChange={(e) =>
+                            updateCleanup(ep.id, "bodyTemplate", e.target.value)
+                          }
+                          placeholder='{ "key": {{id}} }'
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-xs"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
+            {endpoints.length === 0 && (
+              <div className="text-sm text-gray-500 text-center py-6">
+                No endpoints. Click “+ Add endpoint” to start.
+              </div>
+            )}
           </div>
         </div>
 
@@ -567,14 +809,14 @@ export default function BackendComparePage() {
                   >
                     <td className="py-3 pr-4">
                       <div className="font-medium text-gray-800">
-                        {r.endpoint.name || r.endpoint.path}
+                        {r.endpoint.name || r.endpoint.leftUrl || r.endpoint.rightUrl}
                       </div>
-                      <div className="text-xs text-gray-500 font-mono">
-                        {r.endpoint.method} {r.endpoint.path}
+                      <div className="text-xs text-gray-500 font-mono break-all">
+                        {r.endpoint.method}
                       </div>
                     </td>
                     <td className="py-3 px-2">
-                      <div className="font-semibold">{ms(r.laravel.avg)}</div>
+                      <div className="font-semibold text-black">{ms(r.laravel.avg)}</div>
                       <div className="text-xs text-gray-500">
                         {ms(r.laravel.min)} / {ms(r.laravel.max)}
                       </div>
@@ -584,7 +826,7 @@ export default function BackendComparePage() {
                       </div>
                     </td>
                     <td className="py-3 px-2">
-                      <div className="font-semibold">{ms(r.go.avg)}</div>
+                      <div className="font-semibold text-black">{ms(r.go.avg)}</div>
                       <div className="text-xs text-gray-500">
                         {ms(r.go.min)} / {ms(r.go.max)}
                       </div>
@@ -606,7 +848,7 @@ export default function BackendComparePage() {
                         {r.winner}
                       </span>
                     </td>
-                    <td className="py-3 pl-2 text-right font-medium">
+                    <td className="py-3 pl-2 text-right font-medium text-black">
                       {r.winner === "go" || r.winner === "laravel"
                         ? `${r.diffPercent.toFixed(1)}%`
                         : "—"}
