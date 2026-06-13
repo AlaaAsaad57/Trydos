@@ -2,7 +2,7 @@ import { ImageCropWidget } from 'components/global/ImageCropWidget';
 import SellerDashboardService from 'services/sellerDashboard';
 import React, { useState, useEffect, useRef } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { translateFunction } from 'utils/functions';
+import { translateFunction, LogError } from 'utils/functions';
 import { showSuccessMessage } from 'components/global/AddToCartMessage';
 import { GetImageUrl } from 'utils/tinyUtils';
 import { DashIcon } from 'components/SellerDashboard/ui/icons';
@@ -71,6 +71,9 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
       setIsLoading(true);
       try {
         const res = await SellerDashboardService.getShopInfo(sellerId);
+        if (!res?.success) {
+          throw new Error(res?.message || 'Failed to fetch shop data');
+        }
         const data = res?.data ?? res ?? {};
         setFormData({
           shopName: data.name ?? '',
@@ -80,7 +83,10 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
         setImageUrl(GetImageUrl(data.image) ?? null);
         setBannerUrl(GetImageUrl(data.banner) ?? null);
       } catch (error) {
-        console.error('Failed to fetch shop data', error);
+        LogError({
+          scenario: 'ShopInfo.loadData',
+          error: error instanceof Error ? error.message : String(error),
+        });
       } finally {
         setIsLoading(false);
       }
@@ -220,7 +226,10 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
 
       showSuccessMessage(translateFunction('Shop Info Updated Successfully!', language));
     } catch (error) {
-      console.error('Failed to update shop info', error);
+      LogError({
+        scenario: 'ShopInfo.handleSubmit',
+        error: error instanceof Error ? error.message : String(error),
+      });
       alert(translateFunction('Failed to update', language));
     } finally {
       setIsSaving(false);

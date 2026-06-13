@@ -7,7 +7,7 @@ import {
   translateFunction,
   WaitForCondition,
 } from "utils/functions";
-import { smartlookIdentify } from "utils/smartlook";
+import { posthogIdentify } from "utils/posthog";
 
 import {
   CUSTOMER_INFO_URL,
@@ -198,7 +198,7 @@ class HomeService {
           expired_at: repo.data.expires_at,
         });
         if (process.env.NODE_ENV === "production")
-          smartlookIdentify(repo.data.user.id, {
+          posthogIdentify(repo.data.user.id, {
             name: repo.data.user.name,
             phone: "guest",
           });
@@ -349,7 +349,7 @@ class HomeService {
 
     if (userData && userData?.is_phone_verified === 1 && hasMarketToken) {
       if (process.env.NODE_ENV === "production")
-        smartlookIdentify(userData.id, {
+        posthogIdentify(userData.id, {
           name: userData.name,
           phone: userData.mobilePhone,
         });
@@ -366,7 +366,7 @@ class HomeService {
       if (userData) {
         if (userStories) loginSuccessStories({ ...userStories });
         if (process.env.NODE_ENV === "production")
-          smartlookIdentify(userData.id, {
+          posthogIdentify(userData.id, {
             name: userData.name,
             phone: userData.mobilePhone,
           });
@@ -422,7 +422,7 @@ class HomeService {
       SetGAUser(repo.data?.user, isNewUser);
       if (repo.data?.user) {
         if (process.env.NODE_ENV === "production")
-          smartlookIdentify(repo.data.user.id, {
+          posthogIdentify(repo.data.user.id, {
             name: repo.data.user.name,
             phone: "guest",
           });

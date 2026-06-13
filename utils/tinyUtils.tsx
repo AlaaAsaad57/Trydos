@@ -1,5 +1,6 @@
 import { useAppStore } from "store";
 import { LogError, translateFunction } from "./functions";
+import { posthogReset } from "./posthog";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
 import Image from "next/image";
@@ -16,6 +17,9 @@ export const ChatConroller = (payload) => {
 };
 export const clearAllUserData = async () => {
   await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+  // Break the PostHog identity link so the next guest session isn't stitched
+  // onto the user who just logged out (fresh anonymous distinct_id + session).
+  posthogReset();
   sessionStorage.clear();
   localStorage.clear();
   document.cookie = "";

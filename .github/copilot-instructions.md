@@ -229,7 +229,7 @@ Smart code is calm code.
 | Client fetch    | `fetchData` utility in `utils/fetchData.ts`                           |
 | API protection  | Vercel Firewall (rate limiting + abuse/DDoS) at the edge             |
 | Error reporting | `LogError` / `LogServerError` → Sentry                                |
-| Analytics       | Google Analytics (`gtag`), Smartlook                                  |
+| Analytics       | Google Analytics (`gtag`), PostHog (`utils/posthog.ts`)               |
 | Media           | Cloudinary, Agora RTC                                                 |
 | Monitoring      | Sentry, Vercel Speed Insights                                         |
 

@@ -171,6 +171,39 @@ export async function GetFromRedis(key) {
 }
 
 // ---------------------------------------------------------------------------
+// Generic fixed-window rate limiter (Node runtime only).
+// ---------------------------------------------------------------------------
+// Atomic-enough counter: INCR the key, set its TTL only on first hit so the
+// window is fixed (not sliding). Used to throttle authenticated server actions
+// such as the seller-dashboard comment replies. FAILS OPEN — if Redis is down,
+// a transient outage must never lock legitimate sellers out of replying; the
+// per-action permission check is still the real security boundary.
+export async function fixedWindowRateLimit(
+  key: string,
+  limit: number,
+  windowSeconds: number,
+): Promise<{ allowed: boolean; remaining: number; ttl: number }> {
+  try {
+    if (!redis) return { allowed: true, remaining: limit, ttl: 0 };
+
+    const count = await redis.incr(key);
+    if (count === 1) {
+      await redis.expire(key, windowSeconds);
+    }
+    const ttl = await redis.ttl(key);
+
+    return {
+      allowed: count <= limit,
+      remaining: Math.max(0, limit - count),
+      ttl: ttl > 0 ? ttl : windowSeconds,
+    };
+  } catch (error) {
+    LogServerError({ error, type: "redis fixedWindowRateLimit failed", key }, "/");
+    return { allowed: true, remaining: limit, ttl: 0 };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // OTP abuse protection
 // ---------------------------------------------------------------------------
 // Atomic, single-round-trip rate limiter for the "send OTP" flow. Enforces

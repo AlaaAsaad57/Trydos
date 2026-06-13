@@ -19,6 +19,7 @@ import { useAppStore } from "store";
 import cartService from "services/cart";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import { EnableScroll } from "utils/tinyUtils";
 
 import { fetchData } from "utils/fetchData";
@@ -97,6 +98,9 @@ function CartContainer({ close, toOrders }) {
           screen_name: GA_GLOBAL_SCREEN.CART_SCREEN,
           screen_path: window.location.pathname,
         },
+      });
+      trackOrder(ORDER_EVENTS.CART_VIEWED, {
+        item_count: data.cart.length,
       });
     }
   };
@@ -569,10 +573,14 @@ export const QuantutyInput = ({
   const singlePriceFontClass = compactPrice ? "text-[12px]" : "text-[14px]";
   const decreaseQuantity = async (i) => {
     if (!loading) {
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.CLICK,
-      //   value: GA_CLICK_EVENT_VALUES.DECREASE_QUANTITY_BUTTON_FROM_CART,
-      // });
+      trackOrder(ORDER_EVENTS.CART_ITEM_QTY_DECREASED, {
+        product_id: product?.product_id ?? id,
+        item_name: product?.name,
+        variant: product?.variant,
+        from_qty: parseInt(i),
+        to_qty: parseInt(i) - 1,
+        unit_price: currentUnitPrice,
+      });
       setInputValue(parseInt(i) - 1);
       setLoading(true);
 
@@ -588,10 +596,14 @@ export const QuantutyInput = ({
   const [loading, setLoading] = useState(false);
   const increaseQuantity = async (i) => {
     if (!loading) {
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.CLICK,
-      //   value: GA_CLICK_EVENT_VALUES.INCREASE_QUANTITY_BUTTON_FROM_CART,
-      // });
+      trackOrder(ORDER_EVENTS.CART_ITEM_QTY_INCREASED, {
+        product_id: product?.product_id ?? id,
+        item_name: product?.name,
+        variant: product?.variant,
+        from_qty: parseInt(i.toString()),
+        to_qty: parseInt(i.toString()) + 1,
+        unit_price: currentUnitPrice,
+      });
       setInputValue(parseInt(i.toString()) + 1);
       setLoading(true);
       GAevent({
@@ -641,6 +653,11 @@ export const QuantutyInput = ({
   const ConvertToOldCart = async () => {
     try {
       setLoading(true);
+      trackOrder(ORDER_EVENTS.CART_ITEM_MOVED_TO_OLD, {
+        product_id: product?.product_id ?? id,
+        item_name: product?.name,
+        variant: product?.variant,
+      });
       await cartService.ConvertToOldCart({ cart_item: id });
       setLoading(false);
       removeFromCart(id);
@@ -777,10 +794,13 @@ export const QuantutyInput = ({
               className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
               data-cy="DeleteIcon_CartPage"
               onClick={() => {
-                // Sendevent({
-                //   event: GA_EVENT_NAMES.CLICK,
-                //   value: GA_CLICK_EVENT_VALUES.REMOVE_PRODUCT_FROM_CART,
-                // });
+                trackOrder(ORDER_EVENTS.CART_ITEM_REMOVED, {
+                  product_id: product?.product_id ?? id,
+                  item_name: product?.name,
+                  variant: product?.variant,
+                  qty: parseInt(inputValue?.toString() ?? "0"),
+                  unit_price: currentUnitPrice,
+                });
                 deleteFunction();
               }}
             >

@@ -248,6 +248,9 @@ function ProductPickerModal({
         if (p === 1) setLoading(true);
         else setLoadingMore(true);
         const res = await SellerDashboardService.getSellerProducts(sellerId, p);
+        if (!res?.success) {
+          throw new Error(res?.message || "Failed to load products");
+        }
         const data = res.data?.products || res.data || [];
         if (p > 1) {
           setProducts((prev) => [...prev, ...(Array.isArray(data) ? data : [])]);
@@ -256,8 +259,12 @@ function ProductPickerModal({
         }
         setMeta(res.data?.meta || null);
         setPage(p);
-      } catch {
-        // silently fail — list will show empty state
+      } catch (error) {
+        // list will show empty state — still log the failure
+        LogError({
+          scenario: "StoriesTab.fetchProducts",
+          error: error instanceof Error ? error.message : String(error),
+        });
       } finally {
         setLoading(false);
         setLoadingMore(false);
@@ -470,14 +477,21 @@ function UploadStoryModal({
         await SellerDashboardService.uploadStoryToMediaServer(selectedFile);
       const filePath = process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL + url;
       const isVideo = selectedFile.type.startsWith("video/");
-      await SellerDashboardService.saveSellerStory(sellerId, userId, {
-        file_path: filePath,
-        is_video: isVideo ? 1 : 0,
-        link: normalizeLink(link),
-        product_id: linkedProduct?.id ?? null,
-        product_slug: linkedProduct?.slug ?? null,
-        video_duration_in_seconds: durationSeconds ?? null,
-      });
+      const saveRes = await SellerDashboardService.saveSellerStory(
+        sellerId,
+        userId,
+        {
+          file_path: filePath,
+          is_video: isVideo ? 1 : 0,
+          link: normalizeLink(link),
+          product_id: linkedProduct?.id ?? null,
+          product_slug: linkedProduct?.slug ?? null,
+          video_duration_in_seconds: durationSeconds ?? null,
+        },
+      );
+      if (!saveRes?.success) {
+        throw new Error(saveRes?.message || "Failed to save seller story");
+      }
       showSuccessNotification(translateFunction("Story uploaded successfully"));
       onUploaded();
       onClose();
@@ -872,6 +886,9 @@ export default function StoriesTab({
           userId,
           p,
         );
+        if (!res?.success) {
+          throw new Error(res?.message || "Failed to load stories");
+        }
         // The stories server mirrors users_stories: the list lives under
         // `data.data` (or `data.stories`). It may come back flat or grouped
         // (each group carrying a nested `stories` array) — flatten defensively.
@@ -894,6 +911,10 @@ export default function StoriesTab({
         );
         setPage(p);
       } catch (e: any) {
+        LogError({
+          scenario: "StoriesTab.fetchStories",
+          error: e instanceof Error ? e.message : String(e),
+        });
         setError(
           e?.message ?? translateFunction("Failed to load stories"),
         );
@@ -912,16 +933,23 @@ export default function StoriesTab({
     if (!deletingStory) return;
     try {
       setDeleteLoading(true);
-      await SellerDashboardService.deleteSellerStory(
+      const res = await SellerDashboardService.deleteSellerStory(
         deletingStory.id,
         sellerId,
         userId,
       );
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to delete story");
+      }
       setStories((prev) =>
         prev.filter((s) => s.id !== deletingStory.id),
       );
       setDeletingStory(null);
     } catch (e: any) {
+      LogError({
+        scenario: "StoriesTab.handleDelete",
+        error: e instanceof Error ? e.message : String(e),
+      });
       showErrorNotification(
         e?.message ?? translateFunction("Failed to delete story"),
       );

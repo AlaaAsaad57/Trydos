@@ -326,6 +326,10 @@ function AddToCartComponent({ product, slug, color }) {
   });
   const [selectedColor, setSelectedColor] = useState(initialDefaults.color);
   const [selectedSize, setSelectedSize] = useState(initialDefaults.size);
+  // Track whether the user actively changed color/size before adding to cart
+  // (PostHog add_to_cart enrichment). Reset when the product changes.
+  const colorChangedRef = useRef(false);
+  const sizeChangedRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
 
@@ -399,6 +403,9 @@ function AddToCartComponent({ product, slug, color }) {
       });
       setSelectedColor(defaults.color);
       setSelectedSize(defaults.size);
+      // New product loaded → selections are defaults, not user-changed yet.
+      colorChangedRef.current = false;
+      sizeChangedRef.current = false;
 
       if (
         product &&
@@ -787,6 +794,7 @@ function AddToCartComponent({ product, slug, color }) {
                     selectedSize?.option ?? selectedSize?.name ?? selectedSize,
                 },
               });
+              colorChangedRef.current = true;
               setSelectedColor(e);
             }}
           />
@@ -819,6 +827,7 @@ function AddToCartComponent({ product, slug, color }) {
                   selected_size: e?.option ?? e?.name ?? e,
                 },
               });
+              sizeChangedRef.current = true;
               setSelectedSize(e);
             }}
             sizes={sizeOptions}
@@ -958,6 +967,8 @@ function AddToCartComponent({ product, slug, color }) {
             loading={requestLoading}
             setLoading={setRequestLoading}
             selectedVariant={getSelectedVariantQty()}
+            colorChanged={colorChangedRef.current}
+            sizeChanged={sizeChangedRef.current}
           />
         )}
       </div>

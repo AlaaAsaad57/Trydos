@@ -27,6 +27,7 @@ import AddToCartComponent from "./AddToCart/AddToCartComponent";
 import { GA_GLOBAL_SCREEN, GA_EVENT_NAMES } from "utils/GAEvents";
 
 import { GAevent } from "utils/gtag";
+import { ORDER_EVENTS, startOrderAttempt, trackOrder } from "utils/orderFunnel";
 import auth from "services/auth";
 import { getCookie } from "utils/cookies/cookie-manager";
 import SearchParamUpdater from "components/global/ParamsUpdater";
@@ -221,6 +222,13 @@ const StepSlider = ({ enableCart }) => {
           item_variant: item.variant ?? "N/A",
         })),
       },
+    });
+    // Funnel anchor: mint the attempt id BEFORE the begin_checkout event so it
+    // carries the correlation id, then every later step shares it.
+    startOrderAttempt();
+    trackOrder(ORDER_EVENTS.BEGIN_CHECKOUT, {
+      value: total_cash,
+      item_count: cart.length,
     });
     setStep(1);
   };

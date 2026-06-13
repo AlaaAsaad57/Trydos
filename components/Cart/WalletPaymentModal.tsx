@@ -13,6 +13,7 @@ import { showErrorNotification } from "@/store/notifications/reducer";
 import { createPortal } from "react-dom";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
 export default function WalletPaymentModal({
   onSuccess,
@@ -69,6 +70,9 @@ export default function WalletPaymentModal({
       }
 
       if (response.data && response.data?.length > 0) {
+        trackOrder(ORDER_EVENTS.WALLET_PAYMENT_SUCCEEDED, {
+          cart_group_id: cartGroupId,
+        });
         onSuccess();
         onClose();
         setOrderData({ data: response.data, success: true });
@@ -86,6 +90,9 @@ export default function WalletPaymentModal({
 
     isPollingActiveRef.current = true;
     stopPollingRef.current = false;
+    trackOrder(ORDER_EVENTS.WALLET_PAYMENT_PROCESSING, {
+      cart_group_id: cartGroupId,
+    });
     const pollingStartTime = Date.now();
 
     const poll = async (): Promise<void> => {
@@ -108,6 +115,9 @@ export default function WalletPaymentModal({
       if (Date.now() - pollingStartTime >= POLLING_TIMEOUT_MS) {
         isPollingActiveRef.current = false;
         setIsProcessing(false);
+        trackOrder(ORDER_EVENTS.WALLET_PAYMENT_TIMEOUT, {
+          cart_group_id: cartGroupId,
+        });
         showErrorNotification(
           translateFunction(
             "Order processing timed out. Please check your orders",
@@ -168,6 +178,9 @@ export default function WalletPaymentModal({
         if (balRes) setWalletData(balRes);
       } catch (error) {
         showErrorNotification(translateFunction("Failed to load wallet data"));
+        trackOrder(ORDER_EVENTS.WALLET_DATA_LOAD_FAILED, {
+          reason: error instanceof Error ? error.message : String(error),
+        });
         onClose();
       } finally {
         setIsLoadingData(false);
@@ -200,6 +213,10 @@ export default function WalletPaymentModal({
     newCurrency: CurrenciesApi["items"][0],
   ) => {
     setSelectedCurrency(newCurrency);
+    trackOrder(ORDER_EVENTS.WALLET_CURRENCY_CHANGED, {
+      currency_id: newCurrency?.id,
+      currency_symbol: newCurrency?.symbol,
+    });
     setIsLoadingData(true);
     try {
       const balRes = await GetWalletBalanceInCurrency({
@@ -225,11 +242,20 @@ export default function WalletPaymentModal({
 
     if (!isBalanceSufficient) {
       showErrorNotification(translateFunction("Insufficient wallet balance"));
+      trackOrder(ORDER_EVENTS.WALLET_PAYMENT_BLOCKED_INSUFFICIENT, {
+        balance: availableBalance,
+        required: checkoutAmount,
+        currency_symbol: selectedCurrency?.symbol,
+      });
       return;
     }
 
     isSubmittedRef.current = true;
     setIsProcessing(true);
+    trackOrder(ORDER_EVENTS.WALLET_PAYMENT_ATTEMPT, {
+      amount: checkoutAmount,
+      currency_symbol: selectedCurrency?.symbol,
+    });
     try {
       const result = await CheckoutOrder({
         cartId: cart[0].cart_group_id,
@@ -250,12 +276,20 @@ export default function WalletPaymentModal({
         showErrorNotification(
           translateFunction("Wallet payment failed. Please try again"),
         );
+        trackOrder(ORDER_EVENTS.WALLET_PAYMENT_FAILED, {
+          // @ts-ignore
+          stage: result && result.url ? "unexpected_redirect" : "no_result",
+        });
         setIsProcessing(false);
       }
     } catch (error) {
       showErrorNotification(
         translateFunction("Wallet payment failed. Please try again"),
       );
+      trackOrder(ORDER_EVENTS.WALLET_PAYMENT_FAILED, {
+        stage: "exception",
+        reason: error instanceof Error ? error.message : String(error),
+      });
       setIsProcessing(false);
     }
   };

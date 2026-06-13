@@ -4,8 +4,9 @@ import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useSellerProfile } from "../../SellerProfileContext";
 import Spinner from "components/global/Spinner";
 import SellerDashboardService from "services/sellerDashboard";
+import sellerCommentsService from "services/sellerDashboard/comments";
 import auth from "services/auth";
-import { translateFunction, getConfiguredImage } from "utils/functions";
+import { translateFunction, getConfiguredImage, LogError } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import RenderOrders from "components/SellerDashboard/orders";
 import GalleryTab from "components/SellerDashboard/GalleryTab";
@@ -146,6 +147,7 @@ const PERMISSION_GROUPS = {
     "DELETE_PRODUCT_IMAGES",
   ],
   STORIES: ["READ_STORY", "CREATE_STORY", "DELETE_STORY"],
+  COMMENTS: ["READ_COMMENTS", "REPLY_COMMENT", "EDIT_REPLY", "DELETE_REPLY"],
   ADMIN: ["SUPER_ADMIN", "USER_MANAGEMENT_ACCESS"],
 };
 
@@ -189,6 +191,9 @@ function SellerDashBoard() {
   const [activeTab, setActiveTab] = useState<TabType>("none");
   const [error, setError] = useState<string | null>(null);
   const [productsMeta, setProductsMeta] = useState<any>(null);
+  // Per-product social counts (reactions / FAQ / reviews / shares), keyed by
+  // product id. Loaded lazily once the Products tab has products.
+  const [productsSocial, setProductsSocial] = useState<Record<string, any>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [roles, setRoles] = useState<any[]>([]);
   const [rolesMeta, setRolesMeta] = useState<any | null>(null);
@@ -278,6 +283,12 @@ function SellerDashBoard() {
   const canDeleteStory = hasPermission("DELETE_STORY");
   const canViewShopInfo = hasPermission("READ_SHOP_INFO");
   const canUpdateShopInfo = hasPermission("UPDATE_SHOP_INFO");
+  // Comments tab (direct-Elastic seller comments). Server actions re-enforce
+  // these against /shop/auth/permissions — the flags here are UX only.
+  const canViewComments = hasPermission("READ_COMMENTS");
+  const canReplyComment = hasPermission("REPLY_COMMENT");
+  const canEditReply = hasPermission("EDIT_REPLY");
+  const canDeleteReply = hasPermission("DELETE_REPLY");
   // Excel bulk upload is gated on product create/update (SUPER_ADMIN included via hasPermission)
   const canUploadExcel =
     hasPermission("CREATE_PRODUCT") || hasPermission("UPDATE_PRODUCT");
@@ -294,13 +305,21 @@ function SellerDashBoard() {
         sellerId,
         page,
       );
+      // fetchData returns { success: false } instead of throwing — treat that as
+      // a failure so it flows into the catch and gets logged.
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load products");
+      }
       // API returns { data: { products: [...], meta: {...} } }
       const products = res.data?.products || res.data || [];
       setSellerProducts(products);
       setProductsMeta(res.data?.meta || null);
       setCurrentPage(page);
     } catch (error: any) {
-      console.error("Error fetching products:", error);
+      LogError({
+        scenario: "SellerDashboard.getSellerProducts",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setError(error?.message || translateFunction("Failed to load products"));
     } finally {
       setLoading(false);
@@ -313,11 +332,17 @@ function SellerDashBoard() {
       setLoading(true);
       setError(null);
       const res = await SellerDashboardService.getSellerBoutiques(sellerId);
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load boutiques");
+      }
       // API returns { data: { boutiques: [...], meta: {...} } }
       const boutiques = res.data?.boutiques || res.data || [];
       setSellerBoutiques(Array.isArray(boutiques) ? boutiques : []);
     } catch (error: any) {
-      console.error("Error fetching boutiques:", error);
+      LogError({
+        scenario: "SellerDashboard.getSellerBoutiques",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setError(error?.message || translateFunction("Failed to load boutiques"));
     } finally {
       setLoading(false);
@@ -335,6 +360,9 @@ function SellerDashBoard() {
       }
       setError(null);
       const res = await SellerDashboardService.getRoles(sellerId, page, search);
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load roles");
+      }
       const rolesData = res.data?.shop_roles || res.data || [];
       if (page > 1) {
         setRoles((prev) => [
@@ -347,7 +375,10 @@ function SellerDashBoard() {
       setRolesMeta(res.data?.meta || null);
       setRolesPage(page);
     } catch (error: any) {
-      console.error("Error fetching roles:", error);
+      LogError({
+        scenario: "SellerDashboard.getRoles",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setError(error?.message || translateFunction("Failed to load roles"));
     } finally {
       if (page === 1) {
@@ -367,6 +398,9 @@ function SellerDashBoard() {
       }
       setError(null);
       const res = await SellerDashboardService.getRoles(sellerId, page, search);
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load roles");
+      }
       const rolesData = res.data?.shop_roles || res.data || [];
       if (page > 1) {
         setRolesForChange((prev) => [
@@ -379,7 +413,10 @@ function SellerDashBoard() {
       setRolesForChangeMeta(res.data?.meta || null);
       setRolesForChangePage(page);
     } catch (error: any) {
-      console.error("Error fetching roles for change:", error);
+      LogError({
+        scenario: "SellerDashboard.getRolesForChange",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setError(error?.message || translateFunction("Failed to load roles"));
     } finally {
       if (page === 1) {
@@ -404,6 +441,9 @@ function SellerDashBoard() {
         page,
         langSegment,
       );
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load users");
+      }
       const usersData = res.data?.users || res.data || [];
       if (page > 1) {
         setUsers((prev) => [
@@ -416,7 +456,10 @@ function SellerDashBoard() {
       setUsersMeta(res.data?.meta || null);
       setUsersPage(page);
     } catch (error: any) {
-      console.error("Error fetching users:", error);
+      LogError({
+        scenario: "SellerDashboard.getUsers",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setUsersError(
         error?.message || translateFunction("Failed to load users"),
       );
@@ -429,10 +472,16 @@ function SellerDashBoard() {
   const handleDeleteUser = async (userId: number | string) => {
     try {
       setUsersError(null);
-      await SellerDashboardService.deleteUser(userId, sellerId);
+      const res = await SellerDashboardService.deleteUser(userId, sellerId);
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to delete user");
+      }
       setUsers((prev) => prev.filter((u) => String(u.id) !== String(userId)));
     } catch (error: any) {
-      console.error("Error deleting user:", error);
+      LogError({
+        scenario: "SellerDashboard.handleDeleteUser",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setUsersError(
         error?.message || translateFunction("Failed to delete user"),
       );
@@ -445,10 +494,13 @@ function SellerDashBoard() {
   ) => {
     try {
       setUsersError(null);
-      await SellerDashboardService.updateUserRole(
+      const res = await SellerDashboardService.updateUserRole(
         { user_id: Number(userId), role_id: Number(roleId) },
         sellerId,
       );
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to update user role");
+      }
       // Update local users array with new role info (name from roles list)
       const roleObj = roles.find((r) => Number(r.id) === Number(roleId));
       setUsers((prev) =>
@@ -464,7 +516,10 @@ function SellerDashBoard() {
         ),
       );
     } catch (error: any) {
-      console.error("Error updating user role:", error);
+      LogError({
+        scenario: "SellerDashboard.handleUpdateUserRole",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setUsersError(
         error?.message || translateFunction("Failed to update user role"),
       );
@@ -473,10 +528,16 @@ function SellerDashBoard() {
 
   const handleLeaveShop = async () => {
     try {
-      await SellerDashboardService.leaveShop(sellerId);
+      const res = await SellerDashboardService.leaveShop(sellerId);
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to leave shop");
+      }
       // client-side behavior after leaving shop is not defined here; trigger a refresh or redirect if needed
     } catch (error: any) {
-      console.error("Error leaving shop:", error);
+      LogError({
+        scenario: "SellerDashboard.handleLeaveShop",
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   };
 
@@ -511,7 +572,10 @@ function SellerDashBoard() {
         throw new Error(res.message || translateFunction("Failed to add user"));
       }
     } catch (error: any) {
-      console.error("Error adding user:", error);
+      LogError({
+        scenario: "SellerDashboard.handleAddUser",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setError(
         error?.message || translateFunction("Failed to add user to shop"),
       );
@@ -534,6 +598,9 @@ function SellerDashBoard() {
       }
       // Fallback: fetch from API
       const res = await SellerDashboardService.getSellerPermissions(sellerId);
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load permissions");
+      }
       // API returns array of shops: [{ seller_id, shop_name, permissions: [...] }]
       const shopData = Array.isArray(res.data)
         ? res.data.find((shop: any) => shop.seller_id?.toString() === sellerId)
@@ -542,7 +609,10 @@ function SellerDashBoard() {
         shopData?.permissions || currentShop?.permissions || [];
       setSellerPermissions(Array.isArray(permissions) ? permissions : []);
     } catch (error: any) {
-      console.error("Error fetching permissions:", error);
+      LogError({
+        scenario: "SellerDashboard.getSellerPermissions",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setError(
         error?.message || translateFunction("Failed to load permissions"),
       );
@@ -661,6 +731,33 @@ function SellerDashBoard() {
     }
   }, [activeTab, canViewProducts, sellerId]);
 
+  // Lazily fetch per-product social counts for any products not yet loaded.
+  // Permission-gated server-side (READ_COMMENTS); failures degrade silently to
+  // zero-state without blocking the product grid.
+  useEffect(() => {
+    if (activeTab !== "products" || !canViewProducts || sellerProducts.length === 0)
+      return;
+    const missing = sellerProducts
+      .map((p: any) => String(p.product_id ?? p.id ?? ""))
+      .filter((id) => id && !productsSocial[id]);
+    if (missing.length === 0) return;
+    sellerCommentsService
+      .GetProductsSocial(sellerId, missing)
+      .then((res: any) => {
+        if (res?.success && res.data) {
+          setProductsSocial((prev) => ({ ...prev, ...res.data }));
+        }
+      })
+      .catch((e: any) =>
+        LogError({
+          scenario: "SellerDashboard.getProductsSocial",
+          error: e instanceof Error ? e.message : String(e),
+        }),
+      );
+    // productsSocial intentionally omitted from deps — it's updated here and
+    // re-including it would re-trigger after every successful batch.
+  }, [activeTab, canViewProducts, sellerProducts, sellerId]);
+
   useEffect(() => {
     if (
       activeTab === "boutiques" &&
@@ -683,13 +780,36 @@ function SellerDashBoard() {
   const [loadingSideBar, setLoadingSideBar] = useState(false);
   const initializeData = async () => {
     setLoadingSideBar(true);
-   let [productsRes,BoutiqueRes,ShopesRes]= await Promise.all([getSellerProducts(), getSellerBoutiques(),SellerDashboardService.getShopes(true)]);
-     const isSuperAdmin = sellerPermissions.includes("SUPER_ADMIN");
-   if(isSuperAdmin){
-      setCurrentRole("Super Admin");
-   }else {
-   setCurrentRole(ShopesRes.data?.find((s: any) => s.seller_id?.toString() === sellerId)?.shop_role);}
-  setLoadingSideBar(false);
+    try {
+      let [productsRes, BoutiqueRes, ShopesRes] = await Promise.all([
+        getSellerProducts(),
+        getSellerBoutiques(),
+        SellerDashboardService.getShopes(true),
+      ]);
+      // getShopes goes through fetchData (returns { success: false } on failure
+      // instead of throwing) — surface that so it's logged rather than silently
+      // leaving the current role unset.
+      if (!ShopesRes?.success) {
+        throw new Error(ShopesRes?.message || "Failed to fetch seller shops");
+      }
+      const isSuperAdmin = sellerPermissions.includes("SUPER_ADMIN");
+      if (isSuperAdmin) {
+        setCurrentRole("Super Admin");
+      } else {
+        setCurrentRole(
+          ShopesRes.data?.find(
+            (s: any) => s.seller_id?.toString() === sellerId,
+          )?.shop_role,
+        );
+      }
+    } catch (error: any) {
+      LogError({
+        scenario: "SellerDashboard.initializeData",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      setLoadingSideBar(false);
+    }
   };
   useEffect(() => {
     if (menuOpen) initializeData();
@@ -831,6 +951,52 @@ function SellerDashBoard() {
                     </span>
                   )}
                 </div>
+                {/* Social stats — reactions / questions / reviews / shares.
+                    "—" until the permission-gated counts arrive. */}
+                {(() => {
+                  const s =
+                    productsSocial[String(product.product_id ?? product.id)];
+                  const stats = [
+                    {
+                      icon: "heart",
+                      value: s?.total_reactions,
+                      label: translateFunction("Reactions"),
+                    },
+                    {
+                      icon: "comments",
+                      value: s?.total_fqa,
+                      label: translateFunction("Questions"),
+                    },
+                    {
+                      icon: "star",
+                      value: s?.total_reviews,
+                      label: translateFunction("Reviews"),
+                    },
+                    {
+                      icon: "share",
+                      value: s?.total_shares,
+                      label: translateFunction("Shares"),
+                    },
+                  ];
+                  return (
+                    <div className="flex items-center justify-between gap-1 mt-2.5 pt-2.5 border-t border-[#f4f4f4]">
+                      {stats.map((st) => (
+                        <span
+                          key={st.icon}
+                          title={st.label}
+                          className="inline-flex items-center gap-1 text-[11px] text-[#8e8e8e]"
+                        >
+                          <DashIcon
+                            name={st.icon as IconName}
+                            size={14}
+                            strokeWidth={1.6}
+                          />
+                          {s ? (st.value ?? 0) : "—"}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           ))}
@@ -1534,7 +1700,7 @@ function SellerDashBoard() {
       icon: "comments",
       label: translateFunction("Customers Comments"),
       desc: translateFunction("Reply to reviews and FAQ"),
-      show: isAdmin,
+      show: canViewComments,
     },
     {
       tab: "users",
@@ -1639,13 +1805,17 @@ function SellerDashBoard() {
               menuOpen ? "translate-x-0" : "-translate-x-full"
             }`}
           >
-            {/* Menu Header */}
+            {/* Menu Header — shop image (placeholder if none) + shop name */}
             <div className="px-5 py-5 border-b border-[#ededed] flex items-center gap-2.5">
-              <span className="text-[#5d5d5d]">
-                <DashIcon name="shopInfo" size={22} />
-              </span>
-              <h2 className="text-[#3c3c3c] text-[16px] semibold">
-                {translateFunction("Dashboard Menu")}
+              <Monogram
+                name={currentShop?.shop_name}
+                src={
+                  currentShop?.image ? GetImageUrl(currentShop.image) : undefined
+                }
+                size={40}
+              />
+              <h2 className="text-[#3c3c3c] text-[16px] semibold truncate">
+                {currentShop?.shop_name || translateFunction("Seller Dashboard")}
               </h2>
             </div>
 
@@ -1805,7 +1975,7 @@ function SellerDashBoard() {
                   )}
                 </button>
               )}
-              {isAdmin && (
+              {canViewComments && (
                 <button
                   onClick={() => {
                     setActiveTab("comments");
@@ -1967,8 +2137,15 @@ function SellerDashBoard() {
             canDelete={canDeleteStory}
           />
         )}
-        {activeTab === "comments" && isAdmin && (
-          <CommentsTab sellerId={sellerId} language={language} isRtl={isRtl} />
+        {activeTab === "comments" && canViewComments && (
+          <CommentsTab
+            sellerId={sellerId}
+            language={language}
+            isRtl={isRtl}
+            canReply={canReplyComment}
+            canEditReply={canEditReply}
+            canDelete={canDeleteReply}
+          />
         )}
         {activeTab === "excel" && canUploadExcel && (
           <ExcelUploadTab sellerId={sellerId} language={language} />

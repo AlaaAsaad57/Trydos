@@ -3,7 +3,7 @@ import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
 import React, { useEffect } from "react";
 import SellerDashboardService from "services/sellerDashboard";
-import { translateFunction } from "utils/functions";
+import { translateFunction, LogError } from "utils/functions";
 import BecomeSellerModal from "./BecomeSellerModal";
 import GoToSellerDashBoardIcon from "public/icons/goToSeller";
 import { useAppStore } from "store";
@@ -18,7 +18,11 @@ function GoToSellerDashBoard({ language }: { language: string }) {
     setLoading(true);
     try {
       let res = await SellerDashboardService.getShopes(true);
-      console.log(res);
+      // fetchData returns { success: false } instead of throwing — treat that as
+      // a failure so it flows into the catch and gets logged, not as "no shops".
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to fetch seller shops");
+      }
       if (res.data && res.data.length > 0) {
         setShouldShow(true);
       } else {
@@ -27,6 +31,10 @@ function GoToSellerDashBoard({ language }: { language: string }) {
 
       setLoading(false);
     } catch (error) {
+      LogError({
+        scenario: "GoToSellerDashBoard.getPermission",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setLoading(false);
       setShouldShow(false);
     }

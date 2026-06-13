@@ -13,6 +13,7 @@ import { REQUESTS_DATA } from "./Requests";
 import { readStoredLastPaths } from "./history";
 import { getLastRequest } from "./requestLoggerClient";
 import { ReportError } from "./errorReported";
+import { posthogCaptureException } from "./posthog";
 import {
   extractPrimaryErrorMessage,
   serializeUnknownForErrorLog,
@@ -525,6 +526,15 @@ export const LogError = async (error) => {
       typeof navigator !== "undefined" ? navigator.userAgent : undefined,
   };
   ReportError(Error_Object);
+  // Mirror to PostHog error tracking so each exception links to its session
+  // replay. No-op until PostHog has initialised; never throws (best-effort).
+  posthogCaptureException(error, {
+    scenario: baseError?.scenario,
+    message,
+    url: Error_Object.url,
+    country,
+    language,
+  });
   await storeError(Error_Object);
   } catch {
     // ignore — error logging is best-effort and must never throw

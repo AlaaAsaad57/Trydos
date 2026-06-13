@@ -7,6 +7,7 @@ import { useAppStore } from "store";
 import { useEffect, useState } from "react";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_PAYMENTS } from "utils/GAEvents";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import order from "services/order";
 function PaymentMethod() {
@@ -52,6 +53,10 @@ function PaymentMethod() {
           })),
         },
       });
+      trackOrder(ORDER_EVENTS.PAYMENT_METHOD_SELECTED, {
+        payment_type: GA_PAYMENTS.WALLET,
+        auto_selected: true,
+      });
       setOrderData({
         payment: [
           {
@@ -83,6 +88,9 @@ function PaymentMethod() {
           })),
         },
       });
+      trackOrder(ORDER_EVENTS.PAYMENT_METHOD_SELECTED, {
+        payment_type: GA_PAYMENTS.COD,
+      });
       setOrderData({
         payment: [
           {
@@ -113,6 +121,9 @@ function PaymentMethod() {
           })),
         },
       });
+      trackOrder(ORDER_EVENTS.PAYMENT_METHOD_SELECTED, {
+        payment_type: GA_PAYMENTS.CRYPTO,
+      });
       setOrderData({
         payment: [
           {
@@ -139,6 +150,9 @@ function PaymentMethod() {
             quantity: item.quantity,
           })),
         },
+      });
+      trackOrder(ORDER_EVENTS.PAYMENT_METHOD_SELECTED, {
+        payment_type: GA_PAYMENTS.CREDIT,
       });
       setOrderData({
         payment: [

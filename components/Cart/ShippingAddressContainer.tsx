@@ -11,6 +11,7 @@ import home from "services/home";
 
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import { GetCountries } from "serverRequests/product";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const { setCountries, cart, user } = useAppStore();
@@ -645,6 +646,11 @@ const DefaultAddress = ({
             quantity: item.quantity,
           })),
         },
+      });
+      trackOrder(ORDER_EVENTS.ADDRESS_SELECTED, {
+        address_id: defaultAddress.id,
+        shipping_tier: total_shipping_cost > 0 ? "Paid" : "Free",
+        shipping_cost: total_shipping_cost,
       });
     }
   }, []);

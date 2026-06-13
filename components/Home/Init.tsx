@@ -7,7 +7,7 @@ import home from "services/home";
 
 import { LogError, translateFunction } from "utils/functions";
 import { installGlobalErrorListeners } from "utils/globalErrorListeners";
-import { smartlookInit, smartlookIdentify } from "utils/smartlook";
+import { posthogInit, posthogIdentify } from "utils/posthog";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import NotificationWidget from "components/global/NotificationWidget";
 import { useAppStore } from "store";
@@ -113,8 +113,9 @@ function Init() {
     try {
       // Start the session recorder for EVERY visitor (guests included) —
       // session-replay is meant to capture all traffic, not just logged-in
-      // users. init() is idempotent, so re-running it on auth changes is safe.
-      smartlookInit(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
+      // users. init() guards against re-entry, so re-running it on auth
+      // changes is safe.
+      posthogInit(process.env.NEXT_PUBLIC_POSTHOG_KEY);
 
       if (auth.UserID()) {
         if (typeof Notification !== "undefined") initPageLoad();
@@ -122,7 +123,7 @@ function Init() {
         const user = useAppStore.getState().userProfile;
 
         if (user) {
-          smartlookIdentify(user.id, {
+          posthogIdentify(user.id, {
             name: user?.name || "Guest",
             phone: user?.mobilePhone || "null",
           });
@@ -131,7 +132,7 @@ function Init() {
     } catch (error) {
       LogError({
         error: error,
-        scenario: "Init SmartLook in Init",
+        scenario: "Init PostHog in Init",
       });
     }
   }, [auth.UserID()]);

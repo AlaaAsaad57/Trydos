@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Spinner from "components/global/Spinner";
 import SellerDashboardService from "services/sellerDashboard";
-import { translateFunction } from "utils/functions";
+import { translateFunction, LogError } from "utils/functions";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
 import {
   DashButton,
@@ -74,11 +74,18 @@ export default function GalleryTab({
       setLoading(true);
       setError(null);
       const res = await SellerDashboardService.getProductImages(sellerId, p, PER_PAGE);
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load images");
+      }
       const data = res.data?.images ?? res.data?.data ?? res.data ?? [];
       setImages(Array.isArray(data) ? data : []);
       setMeta(res.data?.meta ?? res.meta ?? null);
       setPage(p);
     } catch (e: any) {
+      LogError({
+        scenario: "GalleryTab.fetchImages",
+        error: e instanceof Error ? e.message : String(e),
+      });
       setError(e?.message || translateFunction("Failed to load images"));
     } finally {
       setLoading(false);
@@ -118,11 +125,21 @@ export default function GalleryTab({
     try {
       setUploading(true);
       setUploadError(null);
-      await SellerDashboardService.uploadProductImages(selectedFiles, sellerId);
+      const res = await SellerDashboardService.uploadProductImages(
+        selectedFiles,
+        sellerId,
+      );
+      if (res && res.success === false) {
+        throw new Error(res?.message || "Upload failed");
+      }
       setShowConfirm(false);
       setSelectedFiles([]);
       fetchImages(1);
     } catch (e: any) {
+      LogError({
+        scenario: "GalleryTab.handleSubmitUpload",
+        error: e instanceof Error ? e.message : String(e),
+      });
       setUploadError(e?.message || translateFunction("Upload failed"));
     } finally {
       setUploading(false);
@@ -155,6 +172,10 @@ export default function GalleryTab({
       });
       setDeleteTarget(null);
     } catch (e: any) {
+      LogError({
+        scenario: "GalleryTab.handleDelete",
+        error: e instanceof Error ? e.message : String(e),
+      });
       setError(e?.message || translateFunction("Failed to delete image"));
     } finally {
       setDeletingId(null);
@@ -205,6 +226,10 @@ export default function GalleryTab({
       setShowBulkDelete(false);
       exitSelectMode();
     } catch (e: any) {
+      LogError({
+        scenario: "GalleryTab.handleBulkDelete",
+        error: e instanceof Error ? e.message : String(e),
+      });
       setError(e?.message || translateFunction("Failed to delete images"));
     } finally {
       setBulkDeleting(false);

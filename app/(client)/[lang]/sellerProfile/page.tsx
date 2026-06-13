@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSellerProfile } from "./SellerProfileContext"; // Import the context
 import SellerDashboardService from "services/sellerDashboard";
-import { translateFunction } from "utils/functions";
+import { translateFunction, LogError } from "utils/functions";
 import BackBar from "components/setting/BackBar";
 
 import Link from "next/link";
@@ -29,9 +29,17 @@ function Page() {
     try {
       setLoading(true);
       let res = await SellerDashboardService.getShopes();
-
+      // fetchData returns { success: false } instead of throwing — treat that as
+      // a failure so it flows into the catch and gets logged.
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to fetch seller shops");
+      }
       setShopes(res.data || []);
     } catch (error) {
+      LogError({
+        scenario: "sellerProfile.getInitialData",
+        error: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       setLoading(false);
     }
@@ -41,7 +49,12 @@ function Page() {
     try {
       setLeaveProcessing(true);
       setLeaveError(null);
-      await SellerDashboardService.leaveShop(String(leaveConfirmShopId));
+      const res = await SellerDashboardService.leaveShop(
+        String(leaveConfirmShopId),
+      );
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to leave shop");
+      }
       // remove from local list
       setShopes((prev: any[]) =>
         prev.filter(
@@ -50,7 +63,10 @@ function Page() {
       );
       setLeaveConfirmShopId(null);
     } catch (error: any) {
-      console.error("Error leaving shop:", error);
+      LogError({
+        scenario: "sellerProfile.confirmLeaveShop",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setLeaveError(
         error?.message || translateFunction("Failed to leave shop", language),
       );

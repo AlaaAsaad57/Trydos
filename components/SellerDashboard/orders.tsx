@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { getConfiguredImage, translateFunction } from "utils/functions";
+import { getConfiguredImage, translateFunction, LogError } from "utils/functions";
 import SellerDashboardService from "services/sellerDashboard";
 import home from "services/home";
 import { useParams } from "next/navigation";
@@ -1915,6 +1915,9 @@ export const RenderOrders = ({
         page,
         status,
       );
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load orders");
+      }
       const orders = res.data?.orders || res.data || [];
       const normalizedOrders = Array.isArray(orders) ? orders : [];
       setSellerOrders(normalizedOrders);
@@ -1925,7 +1928,10 @@ export const RenderOrders = ({
       );
       setOrdersPage(page);
     } catch (error: any) {
-      // console.error("Error fetching orders:", error);
+      LogError({
+        scenario: "SellerOrders.getSellerOrders",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setOrdersError(
         error?.message || translateFunction("Failed to load orders"),
       );
@@ -1939,10 +1945,13 @@ export const RenderOrders = ({
     try {
       setOrderActionLoading(String(orderId));
       setOrdersError(null);
-      await SellerDashboardService.updateOrderStatus(sellerId, {
+      const res = await SellerDashboardService.updateOrderStatus(sellerId, {
         id: Number(orderId),
         status,
       });
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to update order status");
+      }
       setSellerOrders((prev) =>
         prev.map((order) =>
           order.id === orderId
@@ -1951,7 +1960,10 @@ export const RenderOrders = ({
         ),
       );
     } catch (error: any) {
-      // console.error("Error updating order status:", error);
+      LogError({
+        scenario: "SellerOrders.handleChangeOrderStatus",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setOrdersError(
         error?.message || translateFunction("Failed to update order status"),
       );
@@ -1992,15 +2004,24 @@ export const RenderOrders = ({
     try {
       setOrderDetailActionLoading(String(detailId));
       setOrdersError(null);
-      await SellerDashboardService.confirmOrderDetailStatus(sellerId, {
-        order_detail_id: Number(detailId),
-      });
+      const res = await SellerDashboardService.confirmOrderDetailStatus(
+        sellerId,
+        {
+          order_detail_id: Number(detailId),
+        },
+      );
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to confirm order item");
+      }
       syncOrderDetailUpdate(orderId, detailId, (current) => ({
         ...current,
         is_confirm: true,
       }));
     } catch (error: any) {
-      // console.error("Error confirming order detail:", error);
+      LogError({
+        scenario: "SellerOrders.handleConfirmItem",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setOrdersError(
         error?.message || translateFunction("Failed to confirm order item"),
       );
@@ -2015,16 +2036,22 @@ export const RenderOrders = ({
     try {
       setOrderDetailActionLoading(String(detailId));
       setOrdersError(null);
-      await SellerDashboardService.packOrderDetailStatus(sellerId, {
+      const res = await SellerDashboardService.packOrderDetailStatus(sellerId, {
         order_detail_id: Number(detailId),
       });
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to pack order item");
+      }
       syncOrderDetailUpdate(orderId, detailId, (current) => ({
         ...current,
         is_confirm: true,
         is_packed: true,
       }));
     } catch (error: any) {
-      // console.error("Error packing order detail:", error);
+      LogError({
+        scenario: "SellerOrders.handlePackItem",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setOrdersError(
         error?.message || translateFunction("Failed to pack order item"),
       );
@@ -2041,14 +2068,20 @@ export const RenderOrders = ({
     try {
       setOrderDetailActionLoading(String(detailId));
       setOrdersError(null);
-      await SellerDashboardService.cancelOrderDetail(sellerId, {
+      const res = await SellerDashboardService.cancelOrderDetail(sellerId, {
         detail_id: Number(detailId),
         order_id: Number(orderId),
         qty,
       });
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to cancel order item");
+      }
       syncOrderDetailCancel(orderId, detailId, qty);
     } catch (error: any) {
-      // console.error("Error cancelling order detail:", error);
+      LogError({
+        scenario: "SellerOrders.handleCancelItem",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setOrdersError(
         error?.message || translateFunction("Failed to cancel order item"),
       );
@@ -2144,6 +2177,9 @@ export const RenderOrders = ({
           page,
           status,
         );
+        if (!res?.success) {
+          throw new Error(res?.message || "Failed to load orders");
+        }
         const orders = res.data?.orders || res.data || [];
         const normalizedOrders = Array.isArray(orders) ? orders : [];
         setSellerOrders([...sellerOrders, ...normalizedOrders]);
@@ -2154,7 +2190,10 @@ export const RenderOrders = ({
         );
         setOrdersPage(page);
       } catch (error: any) {
-        // console.error("Error fetching orders:", error);
+        LogError({
+          scenario: "SellerOrders.loadMoreOrders",
+          error: error instanceof Error ? error.message : String(error),
+        });
         setOrdersError(
           error?.message || translateFunction("Failed to load orders"),
         );

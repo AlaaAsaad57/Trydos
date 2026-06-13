@@ -58,7 +58,7 @@ Rate limiting and abuse/DDoS protection run at the platform edge via **Vercel Fi
 JWTs live **only** in HttpOnly cookies — `MARKET-TOKEN` (logged-in), `DEVICE-TOKEN` (guest), `User-Data` (profile JSON). Read server-side via `utils/cookies/cookie-manager` / `next/headers`. Never put tokens in localStorage or expose them to client components.
 
 ### Error reporting & analytics
-`LogError` / `LogServerError` route to **Sentry** (config in `sentry.*.config.ts`, `instrumentation*.ts`). Analytics via `utils/gtag.ts` (Google Analytics) and Smartlook (`utils/smartlook.ts`).
+`LogError` / `LogServerError` route to **Sentry** (config in `sentry.*.config.ts`, `instrumentation*.ts`). Analytics via `utils/gtag.ts` (Google Analytics) and PostHog (`utils/posthog.ts`) for session replay + product analytics.
 
 ### Integrations
 Firebase / FCM push (`utils/firebaseAdmin.ts`, `utils/NotificationHandler.ts`, `app/api/fcm`), Cloudinary media, Agora RTC (live video), Elasticsearch search, Redis (`ioredis`), and the private `rdb` digital-banking package (Git dependency).

@@ -1,6 +1,7 @@
 import { useAppStore } from "store";
 import { DetectScreen } from "./tinyUtils";
 import { LogError } from "./functions";
+import { posthogCapture } from "./posthog";
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID; // replace with your ID
 let countries = [
   { name: "Syria", iso: "sy" },
@@ -63,6 +64,19 @@ export const GAevent = ({
       screen_path: window.location.pathname,
       ...params,
     };
+    // Fan the same event out to PostHog so funnels / paths / retention run off
+    // the existing GA taxonomy (no new call sites). Lean prop set — drop the
+    // gtag debug noise, keep what's useful for cohorting in PostHog.
+    posthogCapture(action, {
+      ...params,
+      country_name: country?.name,
+      device_language: language?.name,
+      device_type: getDeviceCategory(),
+      operating_system: getOperatingSystem(),
+      session_id,
+      platform_source: "WEB",
+      ...user_param,
+    });
     if (process.env.NEXT_PUBLIC_ANALYTICS_LOG === "true") {
       console.log(`🟡🟡  window?.gtag?.("event", ${action}, {
         debug_mode: true,

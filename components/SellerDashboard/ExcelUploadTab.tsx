@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import SellerDashboardService from "services/sellerDashboard";
-import { translateFunction } from "utils/functions";
+import { translateFunction, LogError } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
 import {
@@ -118,11 +118,17 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       setCategoriesLoading(true);
       setCategoriesError(null);
       const res = await SellerDashboardService.getExcelCategories(sellerId);
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load categories");
+      }
       const list: ExcelCategory[] =
         res?.data?.categories || res?.categories || res?.data || [];
       setCategories(Array.isArray(list) ? list : []);
     } catch (error: any) {
-      console.error("Error fetching excel categories:", error);
+      LogError({
+        scenario: "ExcelUploadTab.fetchCategories",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setCategoriesError(
         error?.message || translateFunction("Failed to load categories", language),
       );
@@ -136,11 +142,17 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       setFilesLoading(true);
       setFilesError(null);
       const res = await SellerDashboardService.getExcelFiles(sellerId);
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load uploaded files");
+      }
       // Response is a Laravel paginator: the rows live in `.data.data`.
       const list: ExcelFile[] = res?.data?.data || res?.data || [];
       setExcelFiles(Array.isArray(list) ? list : []);
     } catch (error: any) {
-      console.error("Error fetching excel files:", error);
+      LogError({
+        scenario: "ExcelUploadTab.fetchExcelFiles",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setFilesError(
         error?.message || translateFunction("Failed to load uploaded files", language),
       );
@@ -174,7 +186,10 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      console.error("Error downloading template:", error);
+      LogError({
+        scenario: "ExcelUploadTab.handleDownloadTemplate",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setStatus({
         type: "error",
         message:
@@ -259,7 +274,10 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       // Refresh the uploaded files table with the newly processed file.
       fetchExcelFiles();
     } catch (error: any) {
-      console.error("Excel upload error:", error);
+      LogError({
+        scenario: "ExcelUploadTab.handleUpload",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setStatus({
         type: "error",
         message: error?.message || translateFunction("File upload failed.", language),

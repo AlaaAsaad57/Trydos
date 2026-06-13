@@ -1,20 +1,27 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import sellerCommentsService from "services/sellerDashboard/comments";
-import { translateFunction } from "utils/functions";
+import { translateFunction, LogError } from "utils/functions";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
 import {
-  DashCard,
   DashButton,
   LoadingState,
   EmptyState,
   Segmented,
 } from "components/SellerDashboard/ui";
+import RatingStars from "components/settings/cards/RatingStars";
+import "styles/comment.css";
+
+const FALLBACK_AVATAR = "/images/profileNo.png";
 
 interface CommentsTabProps {
   sellerId: string;
   language: string;
   isRtl: boolean;
+  // Permission flags (UX only — the server actions re-enforce them).
+  canReply: boolean;
+  canEditReply: boolean;
+  canDelete: boolean;
 }
 
 interface CommentData {
@@ -30,9 +37,52 @@ interface CommentData {
   seller_reply: string;
   has_reply: boolean;
   seller_name: string;
+  reply_created_at: string | null;
+  // Heart/reaction counts (enriched server-side from the reactions index).
+  total_likes: number;
+  reply_total_likes: number;
 }
 
-export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabProps) {
+function formatDate(value: string | null, language: string) {
+  if (!value) return "";
+  return new Date(value).toLocaleDateString(
+    language === "ar" ? "ar-EG" : "en-US",
+    { year: "numeric", month: "short", day: "numeric" },
+  );
+}
+
+// Static heart + count — same look as the storefront's LikeButton, but
+// display-only (the dashboard shows totals, it doesn't react).
+function HeartCount({ count }: { count: number }) {
+  return (
+    <div className="flex items-center gap-[4px] text-[#1d1d1d] text-[9px] regular select-none">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="11"
+        height="11"
+        viewBox="0 0 11 11"
+        className="scale-[1.2]"
+      >
+        <path
+          d="M5.5 9.79L4.85 9.24C2.43 7.13 1 5.66 1 3.94 1 2.51 2.02 1.46 3.45 1.46 c0.8 0 1.57.37 2.05.95 0.48-.58 1.25-.95 2.05-.95 1.43 0 2.45 1.05 2.45 2.48 0 1.72-1.43 3.19-3.85 5.3L5.5 9.79z"
+          strokeWidth="0.5"
+          stroke="#1d1d1d"
+          fill="transparent"
+        />
+      </svg>
+      <span>{(count ?? 0).toLocaleString()}</span>
+    </div>
+  );
+}
+
+export default function CommentsTab({
+  sellerId,
+  language,
+  isRtl,
+  canReply,
+  canEditReply,
+  canDelete,
+}: CommentsTabProps) {
   const [subTab, setSubTab] = useState<"faq" | "reviews">("faq");
   const [comments, setComments] = useState<CommentData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -45,6 +95,7 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
   const [selectedComment, setSelectedComment] = useState<CommentData | null>(null);
   const [replyText, setReplyText] = useState<string>("");
   const [submittingReply, setSubmittingReply] = useState<boolean>(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchComments = async (resetPage = false) => {
     try {
@@ -58,6 +109,12 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
       const res = subTab === "faq"
         ? await sellerCommentsService.GetFQAComments(sellerId, nextPage)
         : await sellerCommentsService.GetReviewComments(sellerId, nextPage);
+
+      // fetchData returns { success: false } instead of throwing — treat that as
+      // a failure so it flows into the catch and gets logged.
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load comments");
+      }
 
       // Adjust to support standard Paginated response structures:
       // e.g. { data: { comments: [...], meta: { has_more_pages, last_page } } }
@@ -84,7 +141,10 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
       }
 
     } catch (error) {
-      console.error("Failed to load comments:", error);
+      LogError({
+        scenario: "CommentsTab.fetchComments",
+        error: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -107,10 +167,11 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
 
     try {
       setSubmittingReply(true);
-      if (selectedComment.has_reply) {
-        await sellerCommentsService.EditReplyForFqaComment(sellerId, selectedComment.comment_id, replyText);
-      } else {
-        await sellerCommentsService.ReplyToFQAComment(sellerId, selectedComment.comment_id, replyText);
+      const res = selectedComment.has_reply
+        ? await sellerCommentsService.EditReplyForFqaComment(sellerId, selectedComment.comment_id, replyText)
+        : await sellerCommentsService.ReplyToFQAComment(sellerId, selectedComment.comment_id, replyText);
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to submit reply");
       }
 
       // Update local comment state
@@ -125,9 +186,48 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
       setSelectedComment(null);
       setReplyText("");
     } catch (error) {
-      console.error("Failed to submit reply:", error);
+      LogError({
+        scenario: "CommentsTab.handleReplySubmit",
+        error: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       setSubmittingReply(false);
+    }
+  };
+
+  const handleDeleteReply = async (comment: CommentData) => {
+    if (!comment.has_reply || deletingId) return;
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        translateFunction("Delete this reply?", language),
+      )
+    ) {
+      return;
+    }
+    try {
+      setDeletingId(comment.comment_id);
+      const res = await sellerCommentsService.DeleteReplyForFqaComment(
+        sellerId,
+        comment.comment_id,
+      );
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to delete reply");
+      }
+      setComments((prev) =>
+        prev.map((c) =>
+          c.comment_id === comment.comment_id
+            ? { ...c, has_reply: false, seller_reply: "" }
+            : c,
+        ),
+      );
+    } catch (error) {
+      LogError({
+        scenario: "CommentsTab.handleDeleteReply",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -155,115 +255,170 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
           )}
         />
       ) : (
-        <div className="space-y-5">
-          {/* Comments Table */}
-          <div
-            className="overflow-x-auto bg-white rounded-[15px] border border-[#ededed]"
-            style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
-          >
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#f8f8f8] border-b border-[#ededed] text-[12px] semibold text-[#8e8e8e]">
-                  <th className="py-3.5 px-5">{translateFunction("Comment ID", language)}</th>
-                  <th className="py-3.5 px-5">{translateFunction("Customer", language)}</th>
-                  <th className="py-3.5 px-5">{translateFunction("Comment", language)}</th>
-                  {subTab === "reviews" ? (
-                    <th className="py-3.5 px-5">{translateFunction("Rating", language)}</th>
-                  ) : (
-                    <th className="py-3.5 px-5">{translateFunction("Product ID", language)}</th>
-                  )}
-                  <th className="py-3.5 px-5">{translateFunction("Variant", language)}</th>
-                  <th className="py-3.5 px-5">{translateFunction("Date", language)}</th>
-                  <th className="py-3.5 px-5">{translateFunction("Reply Status", language)}</th>
-                  <th className="py-3.5 px-5">{translateFunction("Actions", language)}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#f2f2f2] text-[14px]">
-                {comments.map((comment) => (
-                  <tr key={comment.comment_id} className="hover:bg-[#f8f8f8] transition-colors">
-                    <td className="py-4 px-5 text-[#b8b8b8] font-mono text-[12px]">{comment.comment_id}</td>
-                    <td className="py-4 px-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#f2f2f2] overflow-hidden shrink-0">
-                          {comment.user_avatar ? (
-                            <img
-                              src={comment.user_avatar}
-                              alt={comment.user_name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[#8e8e8e] text-[12px] bold">
-                              {comment.user_name?.substring(0, 2).toUpperCase()}
-                            </div>
-                          )}
-                        </div>
-                        <span className="medium text-[#3c3c3c]">{comment.user_name}</span>
+        <div className="space-y-4 max-w-[640px]">
+          {/* Cards mirror the storefront product page: BuyersCommentItem for
+              reviews, FaqItemComponent (question + shop reply) for FAQ. No
+              status badge / comment id / product id is surfaced here. */}
+          {comments.map((comment) => {
+            const isReview = subTab === "reviews";
+            return (
+              <div key={comment.comment_id} className="flex-col w-full">
+                {/* Customer comment / review */}
+                <div
+                  className="comment-item rounded-[15px] flex-col justify-between max-w-full w-full bg-[#F8F8F8] min-h-[111px]"
+                  style={{ direction: isRtl ? "rtl" : "ltr" }}
+                >
+                  <div className="w-full flex-col">
+                    <div className="flex-row items-center">
+                      <div className="comment-photo">
+                        <img
+                          src={comment.user_avatar || FALLBACK_AVATAR}
+                          alt={comment.user_name}
+                        />
                       </div>
-                    </td>
-                    <td className="py-4 px-5 max-w-xs truncate text-[#505050]" title={comment.text}>
-                      {comment.text}
-                    </td>
-                    {subTab === "reviews" ? (
-                      <td className="py-4 px-5">
-                        <div className="flex items-center gap-1 text-[#e6b400]">
-                          <span className="semibold">{comment.rating ?? "-"}</span>
-                          {comment.rating && (
-                            <DashIcon name="star" size={15} strokeWidth={1.4} />
-                          )}
+                      <div className="comment-content capitalize mx-[10px]">
+                        <div className="comment-source text-[#1D1D1D] text-[9px] regular">
+                          {!isReview && <span className="bold pr-[4px]">Q</span>}
+                          {comment.user_name}
                         </div>
-                      </td>
-                    ) : (
-                      <td className="py-4 px-5 text-[#8e8e8e] font-mono text-[12px]">{comment.product_id}</td>
+                      </div>
+                    </div>
+                    {comment.variant && (
+                      <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
+                        {comment.variant}
+                      </span>
                     )}
-                    <td className="py-4 px-5 text-[#8e8e8e]">{comment.variant || "-"}</td>
-                    <td className="py-4 px-5 text-[#b8b8b8] text-[12px]">
-                      {new Date(comment.created_at).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </td>
-                    <td className="py-4 px-5">
-                      {comment.has_reply ? (
-                        <div className="space-y-1">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] semibold bg-[#eaf7ef] text-[#2ea84f]">
-                            {translateFunction("Replied", language)}
+                    <div
+                      className="comment-date text-[9px] absolute text-[#1d1d1d]"
+                      style={{
+                        right: isRtl ? "initial" : "10px",
+                        left: isRtl ? "10px" : "initial",
+                      }}
+                    >
+                      {formatDate(comment.created_at, language)}
+                    </div>
+                    <div
+                      className={`${
+                        !isRtl ? "pr-[27px]" : "pl-[27px]"
+                      } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0`}
+                    >
+                      {comment.text}
+                    </div>
+                  </div>
+                  <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center mt-[8px]">
+                    <HeartCount count={comment.total_likes} />
+                    {isReview && comment.rating != null && (
+                      <RatingStars
+                        color="#1d1d1d"
+                        initialRating={comment.rating}
+                        readOnly
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* FAQ only: shop reply, or the waiting/reply affordance.
+                    Reviews are display-only — they get no reply, matching the
+                    storefront. */}
+                {!isReview &&
+                  (comment.has_reply ? (
+                    <>
+                      <div className="px-[10px] w-full bg-[#F8F8F8]">
+                        <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
+                      </div>
+                      <div
+                        className="comment-item flex-col rounded-t-none mt-0 rounded-b-[15px] justify-between max-w-full w-full bg-[#F8F8F8] min-h-[111px]"
+                        style={{ direction: isRtl ? "rtl" : "ltr" }}
+                      >
+                        <div className="w-full flex-col">
+                          <div className="flex-row items-center">
+                            <div className="comment-photo">
+                              <img
+                                src={FALLBACK_AVATAR}
+                                alt={comment.seller_name}
+                              />
+                            </div>
+                            <div className="comment-content capitalize mx-[10px]">
+                              {/* Reply is attributed to the shop, never a user. */}
+                              <div className="comment-source text-[#1D1D1D] text-[9px] regular">
+                                <span className="bold pr-[4px]">A</span>
+                                {comment.seller_name ||
+                                  translateFunction("Your shop", language)}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
+                            {translateFunction("Dear", language)}{" "}
+                            {comment.user_name}
                           </span>
-                          <p className="text-[12px] text-[#8e8e8e] italic max-w-xs truncate" title={comment.seller_reply}>
+                          <div
+                            className="comment-date text-[9px]"
+                            style={{
+                              right: isRtl ? "initial" : "10px",
+                              left: isRtl ? "10px" : "initial",
+                            }}
+                          >
+                            {formatDate(comment.reply_created_at, language)}
+                          </div>
+                          <div className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0">
                             {comment.seller_reply}
-                          </p>
+                          </div>
                         </div>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] semibold bg-[#fbf6e6] text-[#b8860b]">
-                          {translateFunction("Pending", language)}
+                        <div className="flex-row pl-[10px] pr-[3px] gap-2 w-full items-center justify-between mt-[8px]">
+                          <HeartCount count={comment.reply_total_likes} />
+                          <div className="flex items-center gap-3">
+                            {canEditReply && (
+                              <button
+                                onClick={() => openReplyModal(comment)}
+                                className="inline-flex items-center gap-1 text-[12px] semibold text-[#388CFF] hover:opacity-80 transition-colors"
+                              >
+                                <DashIcon name="edit" size={14} />
+                                {translateFunction("Edit Reply", language)}
+                              </button>
+                            )}
+                            {canDelete && (
+                              <button
+                                onClick={() => handleDeleteReply(comment)}
+                                disabled={deletingId === comment.comment_id}
+                                className="inline-flex items-center gap-1 text-[12px] semibold text-[#f85555] hover:opacity-80 transition-colors disabled:opacity-50"
+                              >
+                                <DashIcon name="trash" size={14} />
+                                {deletingId === comment.comment_id
+                                  ? translateFunction("Deleting...", language)
+                                  : translateFunction("Delete Reply", language)}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="px-[10px] w-full bg-[#F8F8F8]">
+                        <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
+                      </div>
+                      <div
+                        className="comment-item text-[#1d1d1d] regular flex-row items-center rounded-t-none mt-0 rounded-b-[15px] justify-between max-w-full w-full bg-[#F8F8F8]"
+                        style={{ direction: isRtl ? "rtl" : "ltr" }}
+                      >
+                        <span className="text-[11px] text-[#8d8d8d]">
+                          {translateFunction("Waiting Seller Reply...", language)}
                         </span>
-                      )}
-                    </td>
-                    <td className="py-4 px-5">
-                      {subTab === "faq" && (
-                        <button
-                          onClick={() => openReplyModal(comment)}
-                          className={`inline-flex items-center gap-1.5 text-[13px] semibold transition-colors ${
-                            comment.has_reply
-                              ? "text-[#388CFF] hover:opacity-80"
-                              : "text-[#5d5d5d] hover:opacity-80"
-                          }`}
-                        >
-                          <DashIcon
-                            name={comment.has_reply ? "edit" : "reply"}
-                            size={15}
-                          />
-                          {comment.has_reply
-                            ? translateFunction("Edit Reply", language)
-                            : translateFunction("Reply", language)}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        {canReply && (
+                          <button
+                            onClick={() => openReplyModal(comment)}
+                            className="inline-flex items-center gap-1 text-[12px] semibold text-[#388CFF] hover:opacity-80 transition-colors"
+                          >
+                            <DashIcon name="reply" size={14} />
+                            {translateFunction("Reply", language)}
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  ))}
+              </div>
+            );
+          })}
 
           {/* Load More Button */}
           {hasMore && (
@@ -310,7 +465,6 @@ export default function CommentsTab({ sellerId, language, isRtl }: CommentsTabPr
                 <div className="p-4 bg-[#f8f8f8] rounded-[12px] border border-[#ededed] text-left space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="semibold text-[#3c3c3c]">{selectedComment.user_name}</span>
-                    <span className="text-[12px] text-[#b8b8b8] font-mono">({selectedComment.comment_id})</span>
                   </div>
                   <p className="text-[14px] text-[#505050] italic">"{selectedComment.text}"</p>
                 </div>

@@ -1,5 +1,5 @@
 import { useAppStore } from "store";
-import { smartlookIdentify } from "utils/smartlook";
+import { posthogIdentify } from "utils/posthog";
 import { _isStoreLastJson, LogError, translateFunction } from "utils/functions";
 import { sendOtpAction } from "serverActions/sendOtp";
 import { lockNumber, recordSessionNumber } from "utils/otpLocks";
@@ -216,7 +216,7 @@ class AuthService {
       setReAuthResult("success");
       setShouldAuthinticated(false);
       if (user) {
-        smartlookIdentify(user.id, {
+        posthogIdentify(user.id, {
           name: user.name,
           phone: user.mobilePhone,
         });

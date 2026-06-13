@@ -10,6 +10,7 @@ import {
 } from "utils/functions";
 import { CartItemLink, QuantutyInput } from ".";
 import { GetImageUrl } from "utils/tinyUtils";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import Skeleton from "react-loading-skeleton";
 import Image from "next/image";
 
@@ -175,10 +176,9 @@ function OldCartContainer() {
           data-cy="hideAll"
           className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
           onClick={() => {
-            // Sendevent({
-            //   event: GA_EVENT_NAMES.CLICK,
-            //   value: GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCTS_BUTTON,
-            // });
+            trackOrder(ORDER_EVENTS.OLD_CART_CLEARED, {
+              item_count: filteredOldCart?.length,
+            });
             home.hideOldCart({});
             storeOldCart([]);
           }}
@@ -422,11 +422,10 @@ function OldCartContainer() {
               } absolute  top-[35px] hide-btn cursor-pointer z-40`}
               onClick={(e) => {
                 e.preventDefault();
-                // Sendevent({
-                //   event: GA_EVENT_NAMES.CLICK,
-                //   value:
-                //     GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCT_ITEM_BUTTON,
-                // });
+                trackOrder(ORDER_EVENTS.OLD_CART_ITEM_REMOVED, {
+                  product_id: product?.product_id ?? product.id,
+                  item_name: product?.name,
+                });
                 hideOldCart(product.id);
                 home.hideOldCart({ id: product.id });
               }}

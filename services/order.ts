@@ -9,6 +9,7 @@ import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { returnDetails } from "utils/types/OrderInterface";
 import { LogServerError } from "utils/serverErrorReporter";
 import { GetWalletBalanceForCountryCurrency } from "./wallet";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
@@ -89,6 +90,9 @@ class OrderService {
         setOrderSuccess({ data: response.data });
         setOrderData({ data: response.data, success: true });
       } else {
+        // External payment gateway (crypto / card): user leaves the app — a
+        // major drop point worth isolating in the funnel.
+        trackOrder(ORDER_EVENTS.PAYMENT_REDIRECT_OPENED, { payment_method });
         setCryptoCardPayment(response.data[0]);
       }
 
@@ -97,6 +101,11 @@ class OrderService {
       LogServerError({
         error: error,
         scenario: "Error In PlaceOrder in services/order",
+      });
+      trackOrder(ORDER_EVENTS.ORDER_PLACE_FAILED, {
+        payment_method,
+        reason: error instanceof Error ? error.message : String(error),
+        stage: "PlaceOrder_service",
       });
       setOrderLoading(false);
     }
@@ -270,13 +279,19 @@ class OrderService {
       await GetCartOreview();
 
       callback(response?.data?.id);
-
+      trackOrder(ORDER_EVENTS.ADDRESS_SAVED, {
+        country: body.country,
+        city: body.city,
+      });
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
       LogServerError({
         error: error,
         scenario: "Error In AddAddressList in services/order",
+      });
+      trackOrder(ORDER_EVENTS.ADDRESS_SAVE_FAILED, {
+        reason: error instanceof Error ? error.message : String(error),
       });
     }
   }
