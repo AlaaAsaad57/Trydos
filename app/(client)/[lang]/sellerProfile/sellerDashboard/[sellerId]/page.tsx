@@ -1810,7 +1810,7 @@ function SellerDashBoard() {
               <Monogram
                 name={currentShop?.shop_name}
                 src={
-                  currentShop?.image ? GetImageUrl(currentShop.image) : undefined
+            undefined
                 }
                 size={40}
               />
