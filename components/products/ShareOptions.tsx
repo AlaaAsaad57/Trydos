@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import ShareAvatar from "./ShareAvatar";
 import "styles/share-options.css";
 import {
@@ -30,6 +31,37 @@ function ShareOptions({ product }: any) {
     contacts,
     data,
   } = useAppStore();
+
+  // The Web Share API isn't available on every browser (e.g. Firefox
+  // desktop). Detect after mount to avoid a hydration mismatch, and only
+  // render the native "Share" button where it actually works — elsewhere
+  // the explicit network buttons below remain the fallback.
+  const [canNativeShare, setCanNativeShare] = useState(false);
+  useEffect(() => {
+    setCanNativeShare(
+      typeof navigator !== "undefined" && typeof navigator.share === "function",
+    );
+  }, []);
+
+  const nativeShare = async () => {
+    try {
+      await navigator.share({
+        title: product?.name,
+        text: product?.name,
+        url: generateUrlForSharing("native_share"),
+      });
+      // navigator.share resolves only on a successful share and rejects
+      // with AbortError when the user dismisses the sheet, so we count
+      // the share here rather than before opening it.
+      shareSocial("native_share");
+    } catch (err: any) {
+      if (err?.name === "AbortError") return; // user cancelled — not an error
+      LogError({
+        error: err,
+        scenario: "Error In nativeShare in ShareOptions",
+      });
+    }
+  };
 
   const shareSocial = async (appName) => {
     try {
@@ -147,6 +179,33 @@ function ShareOptions({ product }: any) {
 
   return (
     <div className="share-options">
+      {canNativeShare && (
+        <div className={`share-avatar`} data-cy="NativeShare">
+          <div
+            className="share-image social shadow-none flex justify-center items-center bg-[#f0f0f0]"
+            onClick={nativeShare}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#505050"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+          </div>
+          <div className="share-name">{translateFunction("Share")}</div>
+        </div>
+      )}
       <div className={`share-avatar`}>
         <div className="share-image social shadow-none">
           <FacebookShareButton
@@ -227,15 +286,19 @@ function ShareOptions({ product }: any) {
               // });
               shareSocial("email");
             }}
-            href={`https://mail.google.com/mail/?view=cm&fs=1&su=Check%20this%20out&body=${
-              product?.name
-            } %0A ${generateUrlForSharing("email")}`}
-            target="_blank"
+            // mailto: opens the device's default mail handler (Gmail app on
+            // Android, Mail on iOS, Outlook/default on Windows) instead of
+            // forcing the Gmail website.
+            href={`mailto:?subject=${encodeURIComponent(
+              product?.name || "Check this out",
+            )}&body=${encodeURIComponent(
+              `${product?.name ?? ""}\n\n${generateUrlForSharing("email")}`,
+            )}`}
           >
             <EmailIcon size={70} borderRadius={20} />
           </a>
         </div>
-        <div className="share-name">Gmail</div>
+        <div className="share-name">{translateFunction("Email")}</div>
       </div>
       <div className={`share-avatar`}>
         <div
