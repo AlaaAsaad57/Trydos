@@ -85,10 +85,7 @@ function Profile({ isRtl, language, local, SafeUserProfile }) {
 
           {/* نجعل العناصر التفاعلية pointer-events-auto لتعمل رغم وجود الرابط الخفي */}
           {!isNotLoggedIn && <div className="pointer-events-auto">
-            <VerifyUser
-              phone={user?.phone}
-              is_phone_verified={user?.is_phone_verified}
-            />
+            <VerifyUser phone={user?.phone} />
           </div>}
         </div>}
 

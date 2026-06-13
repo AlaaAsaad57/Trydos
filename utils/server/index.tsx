@@ -95,6 +95,21 @@ export function translateFunction(key: string, language: string) {
   return translations[language]?.[key] || key;
 }
 
+// Resolve a country ISO code (e.g. "TR") to its English name so it can be fed
+// into translateFunction (translation keys use English country names).
+export function countryNameFromIso(iso?: string): string {
+  if (!iso) return null;
+  try {
+    const name = new Intl.DisplayNames(["en"], { type: "region" }).of(
+      iso.toUpperCase(),
+    );
+    // Normalize so the key matches existing translations like "Made In Turkey".
+    return name || iso.toUpperCase();
+  } catch {
+    return iso.toUpperCase();
+  }
+}
+
 function preciseMultiply(a, b) {
   const aStr = a?.toString();
   const bStr = b?.toString();

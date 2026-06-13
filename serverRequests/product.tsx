@@ -69,6 +69,7 @@ interface ProdutGlobalData {
   flash_deal_max_allowed_quantity: any;
   shipping_days: number;
   is_featured: boolean;
+  origin_country_iso: string;
   globalFromRedis: boolean;
 }
 

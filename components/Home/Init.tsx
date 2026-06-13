@@ -115,20 +115,26 @@ function Init() {
       // session-replay is meant to capture all traffic, not just logged-in
       // users. init() guards against re-entry, so re-running it on auth
       // changes is safe.
-      posthogInit(process.env.NEXT_PUBLIC_POSTHOG_KEY);
+      // Must await: posthogIdentify no-ops until init() has finished
+      // (it guards on _inited). For an already-logged-in user this effect
+      // runs init + identify back-to-back, so without awaiting, identify
+      // fires before init completes and the user stays an anonymous uuid.
+      void (async () => {
+        await posthogInit(process.env.NEXT_PUBLIC_POSTHOG_KEY);
 
-      if (auth.UserID()) {
-        if (typeof Notification !== "undefined") initPageLoad();
+        if (auth.UserID()) {
+          if (typeof Notification !== "undefined") initPageLoad();
 
-        const user = useAppStore.getState().userProfile;
+          const user = useAppStore.getState().userProfile;
 
-        if (user) {
-          posthogIdentify(user.id, {
-            name: user?.name || "Guest",
-            phone: user?.mobilePhone || "null",
-          });
+          if (user) {
+            posthogIdentify(user.id, {
+              name: user?.name || "Guest",
+              phone: user?.mobilePhone || "null",
+            });
+          }
         }
-      }
+      })();
     } catch (error) {
       LogError({
         error: error,

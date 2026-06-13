@@ -9,22 +9,13 @@ let nextConfig: NextConfig = {
   reactCompiler: true,
   // Reverse-proxy PostHog ingestion through our own domain so ad-blockers can't
   // drop events / session replays (utils/posthog.ts sets api_host: "/ingest").
-  // The middleware (proxy.ts) excludes `ingest` from its matcher so these are
-  // never rewritten by the i18n logic. skipTrailingSlashRedirect keeps PostHog's
-  // trailing-slash endpoints intact.
+  // The proxy itself is a route handler (app/ingest/[...path]/route.ts), NOT a
+  // rewrite: it strips the Cookie header before forwarding, because our large
+  // first-party cookies otherwise overflow PostHog's upstream header limit and
+  // get a 400. The middleware (proxy.ts) excludes `ingest` from its matcher so
+  // the route handler is reached untouched. skipTrailingSlashRedirect keeps
+  // PostHog's trailing-slash endpoints intact.
   skipTrailingSlashRedirect: true,
-  async rewrites() {
-    return [
-      {
-        source: "/ingest/static/:path*",
-        destination: "https://eu-assets.i.posthog.com/static/:path*",
-      },
-      {
-        source: "/ingest/:path*",
-        destination: "https://eu.i.posthog.com/:path*",
-      },
-    ];
-  },
   async headers() {
     return [
       {

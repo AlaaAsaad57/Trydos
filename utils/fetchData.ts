@@ -173,6 +173,29 @@ const handleUnauthorized = async (
             return true;
           }
 
+          // Seller dashboard: don't silently re-register as a guest and bounce.
+          // Register the guest (with the old user id, so closing the prompt
+          // still leaves a usable token), then surface the confirmMobile widget
+          // and wait for the seller to re-verify — mirroring the chat/stories
+          // 401 flow. On success the original request is retried with the fresh
+          // MARKET token; on cancel the widget redirects to home.
+          const isSeller =
+            !!options?.sellerId ||
+            (typeof window !== "undefined" &&
+              window.location.pathname.includes("/seller"));
+
+          if (isSeller) {
+            const authService = await import("../services/auth");
+            await authService.default.ExpiredUser();
+
+            const { setShouldAuthinticated, setReAuthResult } =
+              useAppStore.getState();
+            setReAuthResult("pending");
+            setShouldAuthinticated("seller");
+
+            return waitForReAuthSuccess();
+          }
+
           const authService = await import("../services/auth");
           await authService.default.ExpiredUser();
           return true;
@@ -380,8 +403,10 @@ export const fetchData = async <T = any>(
       try {
         responseData = await res.json();
       } catch (e) {}
-      // if user not linked to seller it should redirect to home page
-      if (status !== 200 && method === "GET") {
+      // if user not linked to seller it should redirect to home page.
+      // 401 is excluded: an expired token is handled by the re-auth flow below
+      // (confirmMobile widget), not by an immediate bounce to home.
+      if (status !== 200 && status !== 401 && method === "GET") {
         if (server === "market" && sellerId) {
           window.location.href = `/`;
         }
@@ -405,6 +430,7 @@ export const fetchData = async <T = any>(
           body,
           status,
           responseData,
+          sellerId,
         });
         if (shouldRetry) {
           retryActionIfUnAuth?.();

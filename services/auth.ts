@@ -224,9 +224,9 @@ class AuthService {
       try {
         home.getNotificationPermissionStatus();
         home.getClientData();
-        if (window.location.pathname.includes("/seller")) {
-          window.location.reload();
-        }
+        // On /seller, do NOT reload: setReAuthResult("success") above lets the
+        // pending fetchData re-auth poll retry the original request so the seller
+        // continues in place (mirrors the chat/stories flow).
         // await this.CheckUserName();
       } catch (error) {}
       return [response.data.already_exists, user.name];

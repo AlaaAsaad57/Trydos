@@ -19,7 +19,7 @@ interface AuthState {
   failedLogin: boolean;
   attempts: number;
   wrongNumber: string;
-  shouldAuthinticated: boolean | "open Story" | "open chat";
+  shouldAuthinticated: boolean | "open Story" | "open chat" | "seller";
   reAuthResult: ReAuthResult;
   verficationID: string | null;
   firebaseSettings: FirebaseSettings;
