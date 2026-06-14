@@ -8,6 +8,7 @@ import SelectRegion from "components/Cart/SelectRegion";
 import AddAddressForm from "components/Cart/AddAddressForm";
 import ConfirmAddressModal from "./ConfirmAddressModal";
 import orderService from "services/order";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import BottomSheet from "components/global/BottomSheet";
 import Spinner from "components/global/Spinner";
 import { OrderInterface } from "utils/types/OrderInterface";
@@ -63,6 +64,12 @@ function ChangeAddressWidget({
     let response = await orderService.changeOrderAddress({
       order_id: ActivePacks.order_group_id,
       address_id: selectedAddressId,
+    });
+    trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ADDRESS_CHANGED, {
+      order_id: ActivePacks.order_group_id,
+      from_address_id: address_id,
+      to_address_id: selectedAddressId,
+      note_added: deliveryNote !== "",
     });
 
     getOrderDetails();

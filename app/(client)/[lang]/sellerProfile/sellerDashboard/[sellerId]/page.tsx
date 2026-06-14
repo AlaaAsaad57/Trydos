@@ -1,5 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useSellerProfile } from "../../SellerProfileContext";
 import Spinner from "components/global/Spinner";
@@ -867,9 +868,10 @@ function SellerDashBoard() {
         />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
           {sellerProducts.map((product: any) => (
-            <div
+            <Link
               key={product.product_id || product.id}
-              className="group bg-white rounded-[16px] overflow-hidden border border-[#ededed] hover:border-transparent hover:shadow-[0_10px_28px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300"
+              href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/${product.product_id || product.id}`}
+              className="group block bg-white rounded-[16px] overflow-hidden border border-[#ededed] hover:border-transparent hover:shadow-[0_10px_28px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300"
             >
               <div className="relative w-full aspect-[4/5] bg-[#f0f0f0] overflow-hidden">
                 {product.images?.[0] ? (
@@ -998,7 +1000,7 @@ function SellerDashBoard() {
                   );
                 })()}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
         {productsMeta && productsMeta.last_page > 1 && (

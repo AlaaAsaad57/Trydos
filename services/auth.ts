@@ -7,6 +7,11 @@ import { lockNumber, recordSessionNumber } from "utils/otpLocks";
 import StoryService from "services/story";
 import home from "./home";
 import { GAevent, SetGAUser } from "utils/gtag";
+import {
+  ORDER_EVENTS,
+  resolveVerifyFlowSource,
+  trackOrder,
+} from "utils/orderFunnel";
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
@@ -236,6 +241,14 @@ class AuthService {
       } else {
         loginFailed();
       }
+      // PostHog: OTP verification failed. Tag with the flow it was opened from so
+      // checkout-driven verification drop-off is separable from login elsewhere.
+      trackOrder(ORDER_EVENTS.VERIFY_OTP_FAILED, {
+        flow_source: resolveVerifyFlowSource(
+          useAppStore.getState().shouldAuthinticated,
+        ),
+        reason: e instanceof Error ? e.message : String(e),
+      });
       LogServerError({
         error: e,
         scenario: "Error In VerifyOtp in services/auth",

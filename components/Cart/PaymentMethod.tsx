@@ -171,6 +171,7 @@ function PaymentMethod() {
     try {
       setWalletLoading(true);
       await order.GetWallet();
+      trackOrder(ORDER_EVENTS.WALLET_BALANCE_REFRESHED);
       setWalletLoading(false);
     } catch (error) {
       LogError({

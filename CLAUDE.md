@@ -60,6 +60,8 @@ JWTs live **only** in HttpOnly cookies — `MARKET-TOKEN` (logged-in), `DEVICE-T
 ### Error reporting & analytics
 `LogError` / `LogServerError` route to **Sentry** (config in `sentry.*.config.ts`, `instrumentation*.ts`). Analytics via `utils/gtag.ts` (Google Analytics) and PostHog (`utils/posthog.ts`) for session replay + product analytics.
 
+**Whenever you add a new PostHog event, document it in `docs/posthog-events.md`** — the event name, when it fires, and its properties. Keep that file in sync with the events emitted in code.
+
 ### Integrations
 Firebase / FCM push (`utils/firebaseAdmin.ts`, `utils/NotificationHandler.ts`, `app/api/fcm`), Cloudinary media, Agora RTC (live video), Elasticsearch search, Redis (`ioredis`), and the private `rdb` digital-banking package (Git dependency).
 

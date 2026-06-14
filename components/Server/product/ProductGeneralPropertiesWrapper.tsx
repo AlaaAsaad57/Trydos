@@ -73,7 +73,7 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
         )}
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
        {originIso&& <div className="flex-row items-center product-property-row">
-          <FlagIcon iso={originIso} />
+          <FlagIcon iso={originIso} isFromProductPage={true} />
           <span className="mx-1">
             {translateFunction(`Made In ${originCountry}`, language)}
           </span>

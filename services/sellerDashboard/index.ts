@@ -779,7 +779,71 @@ class SellerDashboardService {
       sellerId,
     });
   }
-  
+
+  // ---------- Product Edit / Update / Change-status ----------
+  // The three seller-product endpoints (see docs/product-edit.md). They reuse
+  // the website seller-edit service + validation, so a product edited here
+  // behaves exactly like one edited on the website (incl. the admin-approval
+  // flow). All are scoped to `X-Seller-ID` (attached by fetchData via sellerId).
+
+  // GET /shop/products/{id}/edit — UPDATE_PRODUCT | SUPER_ADMIN
+  // Returns the product's editable columns + precomputed selections + `lookups`
+  // (every dataset needed to render the form).
+  async getProductForEdit(sellerId: string, productId: string | number) {
+    const res = await fetchData({
+      url: `/shop/products/${productId}/edit`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_PRODUCT_FOR_EDIT,
+      sellerId,
+    });
+    if (!res?.success) {
+      throw new Error(res?.message || "Failed to load product for edit");
+    }
+    return res;
+  }
+
+  // POST /shop/products/{id}/update — UPDATE_PRODUCT | SUPER_ADMIN
+  // Sends the same field set as the website edit form (multipart FormData:
+  // flat variant keys, indexed custom_data, JSON sync_color_images, etc.).
+  // Prices are sent in the display currency (driven by the `country` header)
+  // and converted server-side. Resolves to the standard envelope; on a
+  // requires-approval seller the change is stored pending until admin approval.
+  async updateProduct(
+    sellerId: string,
+    productId: string | number,
+    formData: FormData,
+  ) {
+    return fetchData({
+      url: `/shop/products/${productId}/update`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.UPDATE_PRODUCT,
+      body: formData,
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // POST /shop/products/{id}/change-status — CHANGE_PRODUCT_STATUS | SUPER_ADMIN
+  // Toggles the "allow to purchase" switch. status=0 always succeeds; status=1
+  // only succeeds if the product passes activation checks, otherwise a 422 with
+  // `detailed_error` listing the blocking reasons is returned.
+  async changeProductStatus(
+    sellerId: string,
+    productId: string | number,
+    status: 0 | 1,
+  ) {
+    return fetchData({
+      url: `/shop/products/${productId}/change-status`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.CHANGE_PRODUCT_STATUS,
+      body: JSON.stringify({ status }),
+      sellerId,
+      noMessage: true,
+    });
+  }
 
 }
 export default new SellerDashboardService();

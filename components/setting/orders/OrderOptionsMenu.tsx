@@ -6,6 +6,7 @@ import { translateFunction } from "utils/functions";
 import ChangeAddressWidget from "components/Orders/ChangeAddressWidget";
 import CancelOrderWrapper from "./CancelOrderWrapper";
 import OrderCancelConfirmationWindow from "./confirmations/OrderCancelConfirmationWindow";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import { createPortal } from "react-dom";
 
 function OrderOptionsMenu({
@@ -20,11 +21,20 @@ function OrderOptionsMenu({
   isRtl: boolean;
 }) {
   const [canceled, setCanceled] = useState(false);
-  const [ShouldConfirmCancel, setShouldConfirmCancel] = useState(false);
+  const [ShouldConfirmCancel, setShouldConfirmCancel] = useState<
+    boolean | string[]
+  >(false);
   const shouldShowChangeAddress = () => {
     return order.can_update_address;
   };
   const [selectedScreen, setSelectedScreen] = useState("options");
+  React.useEffect(() => {
+    trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_OPTIONS_OPENED, {
+      order_id: order?.id,
+      order_group_id: order?.order_group_id,
+      order_status: order?.order_status?.value,
+    });
+  }, []);
   const renderScreen = () => {
     if (selectedScreen === "options") {
       return (
@@ -82,6 +92,10 @@ function OrderOptionsMenu({
                 {
                   <div
                     onClick={() => {
+                      trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_PACK_HIDDEN, {
+                        order_id: order?.id,
+                        order_group_id: order?.order_group_id,
+                      });
                       // setScreen("changeAddress");
                     }}
                     className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
@@ -199,6 +213,9 @@ function OrderOptionsMenu({
         <OrderCancelConfirmationWindow
           isRtl={isRtl}
           callback={async () => await update()}
+          cancelReasons={
+            Array.isArray(ShouldConfirmCancel) ? ShouldConfirmCancel : []
+          }
           order={order}
           close={() => {
             setCanceled(false);

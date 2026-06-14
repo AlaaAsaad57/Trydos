@@ -1,6 +1,6 @@
 "use client";
 import ChatWidget from "components/Chat/ChatWidget";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BackBar from "../BackBar";
 import OrderDetailsSkeleton from "components/skeleton/loaders/OrderDetailsSkeleton";
 import {
@@ -34,6 +34,7 @@ import {
   returnDetails,
 } from "utils/types/OrderInterface";
 import Order from "services/order";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import OrderChatIcon from "components/settings/OrderChatIcon";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -68,6 +69,9 @@ function OrderDetailsWrapper({
   >(null);
   const [showOrderOptions, setShowOrderOption] =
     useState<OrderInterface | null>(null);
+  // getOrderDetails re-runs on every post-action refresh; only count the first
+  // load as a "details viewed".
+  const hasTrackedView = useRef(false);
   const {
     setShouldUpdateOrders,
     shouldUpdateOrders,
@@ -122,6 +126,16 @@ function OrderDetailsWrapper({
         data?.[0];
 
       setActivePack(active_order);
+
+      if (!hasTrackedView.current && active_order) {
+        hasTrackedView.current = true;
+        trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_DETAILS_VIEWED, {
+          order_id: active_order.id,
+          order_group_id: active_order.order_group_id,
+          order_status: active_order.order_status?.value,
+          item_count: active_order.details?.length,
+        });
+      }
 
       const [order_ratings, returnRequests]: [any, any] = await Promise.all([
         ratingsPromise,

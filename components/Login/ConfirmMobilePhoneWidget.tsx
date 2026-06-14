@@ -3,6 +3,11 @@ import React, { useEffect } from "react";
 import { useAppStore } from "store";
 import { ChatConroller, DisableScroll, EnableScroll } from "utils/tinyUtils";
 import { showSuccessNotification } from "store/notifications/reducer";
+import {
+  ORDER_EVENTS,
+  resolveVerifyFlowSource,
+  trackOrder,
+} from "utils/orderFunnel";
 import { createPortal } from "react-dom";
 
 function ConfirmMobilePhoneWidget() {
@@ -13,8 +18,16 @@ function ConfirmMobilePhoneWidget() {
     openChat,
     setReAuthResult,
   } = useAppStore();
+  // Capture the source the verify widget was opened from once, at mount — the
+  // store marker is cleared to `false` the moment verification succeeds.
+  const flowSourceRef = React.useRef(
+    resolveVerifyFlowSource(shouldAuthinticated),
+  );
   useEffect(() => {
     DisableScroll();
+    trackOrder(ORDER_EVENTS.VERIFY_FLOW_OPENED, {
+      flow_source: flowSourceRef.current,
+    });
 
     return () => {
       EnableScroll();
@@ -122,6 +135,14 @@ function ConfirmMobilePhoneWidget() {
               goToOrders={() => {
                 // equal to success flag when goToOrders trigrred then it means the verification success
 
+                // Verification succeeded; if this flow was opened from the
+                // checkout gate, the user is being returned to checkout.
+                if (flowSourceRef.current === "checkout") {
+                  trackOrder(
+                    ORDER_EVENTS.VERIFY_COMPLETED_RETURNED_TO_CHECKOUT,
+                    { flow_source: flowSourceRef.current },
+                  );
+                }
                 if (shouldAuthinticated === "open Story") {
                   setAddStory(true);
                 }

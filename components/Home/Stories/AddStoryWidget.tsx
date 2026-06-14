@@ -16,6 +16,7 @@ import {
   showSuccessNotification,
 } from "store/notifications/reducer";
 import { getUserStories, LogError, translateFunction } from "utils/functions";
+import { trackPosthog, STORY_EVENTS } from "utils/posthogEvents";
 import StoryServiceClass from "services/story";
 import { DisableScroll, EnableScroll, pollinateInput } from "@/utils/tinyUtils";
 import Spinner from "components/global/Spinner";
@@ -269,6 +270,10 @@ export default function AddStoryWidget() {
         router.refresh();
 
         setStoryData(storiesData.data);
+        trackPosthog(STORY_EVENTS.STORY_UPLOADED, {
+          media_type: "video",
+          has_link: !!link,
+        });
         showSuccessNotification("Story Uploaded");
         setPreview(null);
         setFile(null);
@@ -312,6 +317,10 @@ export default function AddStoryWidget() {
         setStoriesRefreshing(true);
         router.refresh();
         setStoryData(storiesData.data);
+        trackPosthog(STORY_EVENTS.STORY_UPLOADED, {
+          media_type: "image",
+          has_link: !!link,
+        });
         showSuccessNotification("Story Uploaded");
         setPreview(null);
         setFile(null);

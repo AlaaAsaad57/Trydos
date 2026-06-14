@@ -1,0 +1,781 @@
+"use client";
+import React, { useRef, useState } from "react";
+import { translateFunction } from "utils/functions";
+import {
+  DashButton,
+  DashField,
+  DashIcon,
+  dashInputClass,
+} from "components/SellerDashboard/ui";
+import {
+  combos,
+  ProductForm,
+  Lookups,
+  UNITS,
+  VariantRow,
+  emptyVariantRow,
+} from "./helpers";
+
+/* ------------------------------- shared UI ------------------------------- */
+
+export interface SectionProps {
+  form: ProductForm;
+  patch: (p: Partial<ProductForm>) => void;
+  errors: Record<string, string>;
+  lookups: Lookups;
+  disabled: boolean;
+  onUploadImages?: (files: File[]) => Promise<void>;
+  onUploadMeta?: (file: File) => Promise<void>;
+  onUploadVideo?: (file: File) => Promise<void>;
+  uploading?: { images?: boolean; meta?: boolean; video?: boolean };
+}
+
+const t = (s: string) => translateFunction(s);
+
+/** One titled card section — matches the dashboard DashCard rhythm. */
+export function Section({
+  icon,
+  title,
+  desc,
+  children,
+}: {
+  icon: any;
+  title: string;
+  desc?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="bg-white rounded-[15px] p-5 lg:p-6"
+      style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+    >
+      <div className="flex items-start gap-2.5 mb-5 pb-4 border-b border-[#ededed]">
+        <span className="text-[#5d5d5d] shrink-0 mt-0.5">
+          <DashIcon name={icon} size={19} />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-[15px] semibold text-[#3c3c3c]">{t(title)}</h2>
+          {desc && <p className="text-[12px] text-[#8e8e8e] mt-0.5">{t(desc)}</p>}
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+const Grid = ({ children }: { children: React.ReactNode }) => (
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">{children}</div>
+);
+
+function Txt({
+  label,
+  value,
+  onChange,
+  error,
+  hint,
+  disabled,
+  placeholder,
+  required,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+  hint?: string;
+  disabled?: boolean;
+  placeholder?: string;
+  required?: boolean;
+}) {
+  return (
+    <DashField label={required ? `${t(label)} *` : t(label)} error={error} hint={hint}>
+      <input
+        type="text"
+        value={value}
+        disabled={disabled}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
+          disabled ? "opacity-70" : ""
+        }`}
+      />
+    </DashField>
+  );
+}
+
+function Num({
+  label,
+  value,
+  onChange,
+  error,
+  hint,
+  disabled,
+  required,
+  step = "any",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+  hint?: string;
+  disabled?: boolean;
+  required?: boolean;
+  step?: string;
+}) {
+  return (
+    <DashField label={required ? `${t(label)} *` : t(label)} error={error} hint={hint}>
+      <input
+        type="number"
+        step={step}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
+          disabled ? "opacity-70" : ""
+        }`}
+      />
+    </DashField>
+  );
+}
+
+function Area({
+  label,
+  value,
+  onChange,
+  disabled,
+  rows = 4,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+  rows?: number;
+}) {
+  return (
+    <DashField label={t(label)}>
+      <textarea
+        rows={rows}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        className={`${dashInputClass} h-auto py-3 leading-relaxed ${
+          disabled ? "opacity-70" : ""
+        }`}
+      />
+    </DashField>
+  );
+}
+
+function Select({
+  label,
+  value,
+  onChange,
+  options,
+  disabled,
+  error,
+  required,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  disabled?: boolean;
+  error?: string;
+  required?: boolean;
+}) {
+  return (
+    <DashField label={required ? `${t(label)} *` : t(label)} error={error}>
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
+          disabled ? "opacity-70" : ""
+        }`}
+      >
+        <option value="">{t("Select")}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </DashField>
+  );
+}
+
+/** Selection = outline + faint tint (design-language §10.8), never checkbox. */
+function Chip({
+  active,
+  onClick,
+  disabled,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`px-3.5 h-[34px] rounded-full text-[13px] medium border transition-colors active:scale-[0.98] disabled:cursor-not-allowed ${
+        active
+          ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#3c3c3c]"
+          : "border-transparent bg-[#f2f2f2] text-[#8e8e8e] hover:text-[#505050]"
+      } ${disabled && !active ? "opacity-60" : ""}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Toggle({
+  label,
+  desc,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  desc?: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 p-3.5 rounded-[12px] bg-[#f8f8f8] border border-[#ededed]">
+      <div className="min-w-0">
+        <p className="text-[13px] medium text-[#3c3c3c]">{t(label)}</p>
+        {desc && <p className="text-[12px] text-[#8e8e8e] mt-0.5">{t(desc)}</p>}
+      </div>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onChange(!value)}
+        className={`relative shrink-0 w-[44px] h-[26px] rounded-full transition-colors disabled:opacity-50 ${
+          value ? "bg-[#5d5d5d]" : "bg-[#d9d9de]"
+        }`}
+        aria-pressed={value}
+      >
+        <span
+          className={`absolute top-[3px] w-[20px] h-[20px] rounded-full bg-white shadow-sm transition-all ${
+            value ? "left-[21px]" : "left-[3px]"
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
+/* ------------------------------- sections -------------------------------- */
+
+export function CoreSection({ form, patch, errors, lookups, disabled }: SectionProps) {
+  return (
+    <Section icon="products" title="General" desc="Identity & classification of the product.">
+      <Grid>
+        <Txt label="Product Name" value={form.name} required error={errors.name} disabled={disabled} onChange={(v) => patch({ name: v })} />
+        <Txt label="Seller Product ID" value={form.seller_product_id} required error={errors.seller_product_id} hint="Must stay unique across the marketplace" disabled={disabled} onChange={(v) => patch({ seller_product_id: v })} />
+        <Txt label="Barcode" value={form.barcode} disabled={disabled} onChange={(v) => patch({ barcode: v })} />
+        <Select label="Unit" value={form.unit} required error={errors.unit} disabled={disabled} onChange={(v) => patch({ unit: v })} options={UNITS.map((u) => ({ value: u, label: u }))} />
+        <Select label="Brand" value={form.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.name }))} />
+        <Select label="Boutique" value={form.boutique_id} disabled={disabled} onChange={(v) => patch({ boutique_id: v })} options={(lookups.boutiques || []).map((b) => ({ value: String(b.id), label: b.name }))} />
+        <Txt label="Model Number" value={form.model_number} disabled={disabled} onChange={(v) => patch({ model_number: v })} />
+        <Txt label="Report Ref. Number" value={form.report_ref_number} disabled={disabled} onChange={(v) => patch({ report_ref_number: v })} />
+      </Grid>
+      <div className="mt-5">
+        <Area label="Description" value={form.description} disabled={disabled} onChange={(v) => patch({ description: v })} rows={5} />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-5">
+        <Toggle label="Multiply Shipping × Quantity" desc="Charge shipping per item ordered." value={form.multiply_qty} disabled={disabled} onChange={(v) => patch({ multiply_qty: v })} />
+        <Toggle label="Packed After Ordering" desc="Item is packed once an order is placed." value={form.packed_after_ordering} disabled={disabled} onChange={(v) => patch({ packed_after_ordering: v })} />
+      </div>
+    </Section>
+  );
+}
+
+export function PricingSection({ form, patch, errors, disabled }: SectionProps) {
+  return (
+    <Section icon="orders" title="Pricing & Stock" desc="Prices are in your display currency; converted server-side.">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <Num label="Unit Price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} onChange={(v) => patch({ unit_price: v })} />
+        <Num label="Discount Price" value={form.discount_price} error={errors.discount_price} hint="Must be ≤ unit price" disabled={disabled} onChange={(v) => patch({ discount_price: v })} />
+        <Num label="Purchase Price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} onChange={(v) => patch({ purchase_price: v })} />
+        <Num label="Luck Price" value={form.luck_price} disabled={disabled} onChange={(v) => patch({ luck_price: v })} />
+        <Num label="Current Stock" value={form.current_stock} error={errors.current_stock} disabled={disabled} onChange={(v) => patch({ current_stock: v })} />
+        <Num label="Weight" value={form.weight} error={errors.weight} hint="Required for pc / liter" disabled={disabled} onChange={(v) => patch({ weight: v })} />
+        <Num label="Max Allowed Qty" value={form.max_allowed_qty} disabled={disabled} onChange={(v) => patch({ max_allowed_qty: v })} />
+        <Num label="Pieces / Unit" value={form.count_of_pieces} disabled={disabled} step="1" onChange={(v) => patch({ count_of_pieces: v })} />
+        <Num label="Shipping Cost" value={form.shipping_cost} disabled={disabled} onChange={(v) => patch({ shipping_cost: v })} />
+        <Num label="Shipping Days" value={form.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
+        <Num label="Tax" value={form.tax} disabled={disabled} onChange={(v) => patch({ tax: v })} />
+        <Select label="Tax Type" value={form.tax_type} disabled={disabled} onChange={(v) => patch({ tax_type: v })} options={[{ value: "percent", label: t("Percent") }, { value: "flat", label: t("Flat") }]} />
+      </div>
+    </Section>
+  );
+}
+
+function toggleId(arr: number[], id: number): number[] {
+  return arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id];
+}
+function toggleStr(arr: string[], v: string): string[] {
+  return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
+}
+
+export function CategoriesSection({ form, patch, lookups, disabled }: SectionProps) {
+  const group = (
+    title: string,
+    items: { id: number; name: string }[],
+    selected: number[],
+    key: keyof ProductForm,
+  ) => (
+    <div>
+      <p className="text-[13px] medium text-[#505050] mb-2">{t(title)}</p>
+      {items.length === 0 ? (
+        <p className="text-[12px] text-[#b8b8b8]">{t("No options available for the current selection.")}</p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {items.map((c) => (
+            <Chip key={c.id} active={selected.includes(c.id)} disabled={disabled} onClick={() => patch({ [key]: toggleId(selected, c.id) } as any)}>
+              {c.name}
+            </Chip>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+  return (
+    <Section icon="boutiques" title="Categories" desc="Sub-categories shown match the current parents (re-open the page after changing parents to load others).">
+      <div className="space-y-5">
+        {group("Main Categories", lookups.parent_categories || [], form.category_id, "category_id")}
+        {group("Sub Categories", lookups.sub_categories || [], form.sub_category_id, "sub_category_id")}
+        {group("Sub-sub Categories", lookups.sub_sub_categories || [], form.sub_sub_category_id, "sub_sub_category_id")}
+      </div>
+    </Section>
+  );
+}
+
+export function ClassificationSection({ form, patch, errors, lookups, disabled }: SectionProps) {
+  return (
+    <Section icon="permissions" title="Labels & Tags">
+      <div className="space-y-5">
+        <div>
+          <p className="text-[13px] medium text-[#505050] mb-2">
+            {t("Labels")}{" "}
+            <span className="text-[#8e8e8e] regular">({t("max 3")})</span>
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {(lookups.labels || []).map((l) => {
+              const active = form.labels.includes(l.id);
+              return (
+                <Chip key={l.id} active={active} disabled={disabled || (!active && form.labels.length >= 3)} onClick={() => patch({ labels: toggleId(form.labels, l.id) })}>
+                  {l.label}
+                </Chip>
+              );
+            })}
+          </div>
+          {errors.labels && <p className="text-[12px] text-[#f85555] mt-1.5">{errors.labels}</p>}
+        </div>
+        <div>
+          <p className="text-[13px] medium text-[#505050] mb-2">{t("Tags")}</p>
+          <div className="flex flex-wrap gap-2">
+            {(lookups.tags || []).map((tg) => (
+              <Chip key={tg.id} active={form.tags_ids.includes(tg.id)} disabled={disabled} onClick={() => patch({ tags_ids: toggleId(form.tags_ids, tg.id) })}>
+                {tg.name}
+              </Chip>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+export function CountriesSection({ form, patch, lookups, disabled }: SectionProps) {
+  const countries = lookups.countries || [];
+  const addExtra = () => patch({ extra_price_for_country: [...form.extra_price_for_country, { country_iso: "", extra_price: "" }] });
+  const setExtra = (i: number, k: "country_iso" | "extra_price", v: string) => {
+    const next = form.extra_price_for_country.map((e, idx) => (idx === i ? { ...e, [k]: v } : e));
+    patch({ extra_price_for_country: next });
+  };
+  const removeExtra = (i: number) => patch({ extra_price_for_country: form.extra_price_for_country.filter((_, idx) => idx !== i) });
+
+  return (
+    <Section icon="shopInfo" title="Origin & Countries">
+      <div className="space-y-6">
+        <div className="max-w-md">
+          <Select label="Country of Origin" value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={countries.map((c) => ({ value: c.iso, label: c.nicename }))} />
+        </div>
+
+        <div>
+          <p className="text-[13px] medium text-[#505050] mb-2">{t("Restricted Countries")}</p>
+          <p className="text-[12px] text-[#8e8e8e] mb-2.5">{t("The product is restricted to the selected countries.")}</p>
+          <div className="flex flex-wrap gap-2 max-h-[180px] overflow-auto p-0.5">
+            {countries.map((c) => (
+              <Chip key={c.iso} active={form.countries_iso.includes(c.iso)} disabled={disabled} onClick={() => patch({ countries_iso: toggleStr(form.countries_iso, c.iso) })}>
+                {c.iso.toUpperCase()}
+              </Chip>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-2.5">
+            <p className="text-[13px] medium text-[#505050]">{t("Per-country Extra Price")}</p>
+            {!disabled && (
+              <DashButton type="button" variant="secondary" size="sm" icon="plus" onClick={addExtra}>
+                {t("Add")}
+              </DashButton>
+            )}
+          </div>
+          {form.extra_price_for_country.length === 0 ? (
+            <p className="text-[12px] text-[#b8b8b8]">{t("No per-country surcharges.")}</p>
+          ) : (
+            <div className="space-y-2.5">
+              {form.extra_price_for_country.map((e, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <select value={e.country_iso} disabled={disabled} onChange={(ev) => setExtra(i, "country_iso", ev.target.value)} className={`${dashInputClass} flex-1`}>
+                    <option value="">{t("Country")}</option>
+                    {countries.map((c) => (
+                      <option key={c.iso} value={c.iso}>{c.nicename}</option>
+                    ))}
+                  </select>
+                  <input type="number" step="any" value={e.extra_price} disabled={disabled} placeholder={t("Extra price")} onChange={(ev) => setExtra(i, "extra_price", ev.target.value)} className={`${dashInputClass} w-[130px]`} />
+                  {!disabled && (
+                    <button type="button" onClick={() => removeExtra(i)} className="shrink-0 w-[44px] h-[44px] rounded-[12px] bg-[#fff1f1] text-[#f85555] flex items-center justify-center hover:bg-[#ffe6e6]">
+                      <DashIcon name="trash" size={17} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+export function SeoSection({ form, patch, disabled, onUploadMeta, uploading }: SectionProps) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  return (
+    <Section icon="search" title="SEO / Meta">
+      <Grid>
+        <Txt label="Meta Title" value={form.meta_title} disabled={disabled} onChange={(v) => patch({ meta_title: v })} />
+        <Txt label="Meta Description" value={form.meta_description} disabled={disabled} onChange={(v) => patch({ meta_description: v })} />
+      </Grid>
+      <div className="mt-5">
+        <p className="text-[13px] medium text-[#505050] mb-2">{t("Meta Image")}</p>
+        <div className="flex items-center gap-4">
+          <div className="w-[96px] h-[96px] rounded-[12px] overflow-hidden bg-[#f4f4f4] border border-[#ededed] flex items-center justify-center shrink-0">
+            {form.meta_image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={form.meta_image_url} alt="meta" className="w-full h-full object-cover" />
+            ) : (
+              <DashIcon name="gallery" size={26} strokeWidth={1.4} />
+            )}
+          </div>
+          {!disabled && (
+            <div>
+              <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) onUploadMeta?.(f); e.target.value = ""; }} />
+              <DashButton type="button" variant="secondary" size="sm" icon="upload" loading={!!uploading?.meta} onClick={() => fileRef.current?.click()}>
+                {form.meta_image ? t("Change Image") : t("Upload Image")}
+              </DashButton>
+            </div>
+          )}
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+export function MediaSection({ form, patch, errors, disabled, onUploadImages, uploading }: SectionProps) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= form.images.length) return;
+    const next = [...form.images];
+    [next[i], next[j]] = [next[j], next[i]];
+    patch({ images: next });
+  };
+  const remove = (name: string) => {
+    const nextColorImages: Record<string, string[]> = {};
+    for (const [code, list] of Object.entries(form.colorImages))
+      nextColorImages[code] = list.filter((n) => n !== name);
+    patch({
+      images: form.images.filter((im) => im.name !== name),
+      colorImages: nextColorImages,
+    });
+  };
+  return (
+    <Section icon="gallery" title="Images" desc="The first image is the cover. Drag order with the arrows.">
+      {errors.images && <p className="text-[12px] text-[#f85555] mb-3">{errors.images}</p>}
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+        {form.images.map((im, i) => (
+          <div key={im.name + i} className="relative group rounded-[12px] overflow-hidden border border-[#ededed] bg-[#f4f4f4] aspect-square">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={im.url} alt={im.name} className="w-full h-full object-cover" />
+            {i === 0 && (
+              <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-[#5d5d5d] text-white text-[9px] semibold">{t("Cover")}</span>
+            )}
+            {!disabled && (
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between p-1.5 bg-gradient-to-t from-black/55 to-transparent">
+                <div className="flex gap-1">
+                  <button type="button" onClick={() => move(i, -1)} className="w-6 h-6 rounded-md bg-white/90 text-[#3c3c3c] flex items-center justify-center disabled:opacity-40" disabled={i === 0}>
+                    <DashIcon name="chevronLeft" size={13} />
+                  </button>
+                  <button type="button" onClick={() => move(i, 1)} className="w-6 h-6 rounded-md bg-white/90 text-[#3c3c3c] flex items-center justify-center disabled:opacity-40" disabled={i === form.images.length - 1}>
+                    <DashIcon name="chevronRight" size={13} />
+                  </button>
+                </div>
+                <button type="button" onClick={() => remove(im.name)} className="w-6 h-6 rounded-md bg-white/90 text-[#f85555] flex items-center justify-center">
+                  <DashIcon name="trash" size={13} />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        {!disabled && (
+          <button type="button" onClick={() => fileRef.current?.click()} className="aspect-square rounded-[12px] border border-dashed border-[#cfcfcf] bg-[#fafafa] flex flex-col items-center justify-center gap-1.5 text-[#8e8e8e] hover:border-[#5d5d5d] hover:text-[#5d5d5d] transition-colors">
+            {uploading?.images ? (
+              <span className="text-[11px]">{t("Uploading…")}</span>
+            ) : (
+              <>
+                <DashIcon name="plus" size={22} />
+                <span className="text-[11px] medium">{t("Add")}</span>
+              </>
+            )}
+          </button>
+        )}
+      </div>
+      <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => { const fs = Array.from(e.target.files || []); if (fs.length) onUploadImages?.(fs); e.target.value = ""; }} />
+    </Section>
+  );
+}
+
+export function VariantsSection({ form, patch, errors, lookups, disabled }: SectionProps) {
+  const cmb = combos(form);
+  const setVariant = (key: string, field: keyof VariantRow, value: string) => {
+    const row = form.variations[key] || emptyVariantRow();
+    patch({ variations: { ...form.variations, [key]: { ...row, [field]: value } } });
+  };
+  const toggleColor = (c: { id: number; code: string; name: string }) => {
+    const exists = form.colors.some((x) => x.code === c.code);
+    const colors = exists
+      ? form.colors.filter((x) => x.code !== c.code)
+      : [...form.colors, { code: c.code, name: c.name, id: c.id }];
+    const colorImages = { ...form.colorImages };
+    if (exists) delete colorImages[c.code];
+    patch({ colors, colorImages });
+  };
+  const toggleSize = (s: { id: number; name: string }) => {
+    const exists = form.sizes.some((x) => x.id === s.id);
+    const sizes = exists ? form.sizes.filter((x) => x.id !== s.id) : [...form.sizes, s];
+    patch({ sizes });
+  };
+  const toggleColorImage = (code: string, name: string) => {
+    const cur = form.colorImages[code] || [];
+    const next = cur.includes(name) ? cur.filter((n) => n !== name) : [...cur, name];
+    patch({ colorImages: { ...form.colorImages, [code]: next } });
+  };
+
+  return (
+    <Section icon="permissions" title="Variants" desc="Pick colors & sizes, then set price and stock for each combination.">
+      <div className="space-y-5">
+        <div>
+          <p className="text-[13px] medium text-[#505050] mb-2">{t("Colors")}</p>
+          <div className="flex flex-wrap gap-2 max-h-[160px] overflow-auto p-0.5">
+            {(lookups.colors || []).map((c) => {
+              const active = form.colors.some((x) => x.code === c.code);
+              return (
+                <button key={c.id} type="button" disabled={disabled} onClick={() => toggleColor(c)} className={`inline-flex items-center gap-2 pl-1.5 pr-3 h-[34px] rounded-full text-[13px] medium border transition-colors active:scale-[0.98] ${active ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#3c3c3c]" : "border-transparent bg-[#f2f2f2] text-[#8e8e8e]"}`}>
+                  <span className="w-[22px] h-[22px] rounded-full border border-black/10 shrink-0" style={{ background: c.code }} />
+                  {c.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-[13px] medium text-[#505050] mb-2">{t("Sizes")}</p>
+          <div className="flex flex-wrap gap-2">
+            {(lookups.sizes || []).map((s) => (
+              <Chip key={s.id} active={form.sizes.some((x) => x.id === s.id)} disabled={disabled} onClick={() => toggleSize(s)}>
+                {s.name}
+              </Chip>
+            ))}
+          </div>
+        </div>
+
+        {errors.variations && <p className="text-[12px] text-[#f85555]">{errors.variations}</p>}
+
+        {cmb.length > 0 && (
+          <div className="overflow-x-auto -mx-1 px-1">
+            <table className="w-full min-w-[640px] text-left border-separate border-spacing-y-1.5">
+              <thead>
+                <tr className="text-[11px] semibold text-[#8e8e8e]">
+                  <th className="py-1 pr-3">{t("Variant")}</th>
+                  <th className="py-1 px-2">{t("Price")}</th>
+                  <th className="py-1 px-2">{t("Discount")}</th>
+                  <th className="py-1 px-2">{t("Extra")}</th>
+                  <th className="py-1 px-2">{t("Luck")}</th>
+                  <th className="py-1 px-2">{t("Qty")}</th>
+                  <th className="py-1 px-2">{t("SKU")}</th>
+                  <th className="py-1 px-2">{t("Barcode")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cmb.map((c) => {
+                  const r = form.variations[c.key] || emptyVariantRow();
+                  const cell = (field: keyof VariantRow, w: string, type = "number") => (
+                    <td className="px-1">
+                      <input type={type} step="any" value={r[field]} disabled={disabled} onChange={(e) => setVariant(c.key, field, e.target.value)} className={`${w} h-[38px] px-2.5 bg-[#f8f8f8] border border-[#ededed] rounded-[10px] text-[13px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white`} />
+                    </td>
+                  );
+                  return (
+                    <tr key={c.key}>
+                      <td className="pr-3 text-[12px] medium text-[#3c3c3c] whitespace-nowrap">
+                        {[c.colorName, c.sizeName].filter(Boolean).join(" · ")}
+                      </td>
+                      {cell("price", "w-[88px]")}
+                      {cell("discount", "w-[88px]")}
+                      {cell("extra", "w-[80px]")}
+                      {cell("luck", "w-[80px]")}
+                      {cell("qty", "w-[70px]")}
+                      {cell("sku", "w-[110px]", "text")}
+                      {cell("barcode", "w-[110px]", "text")}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Color → image assignment (sync_color_images) */}
+        {form.colors.length > 0 && (
+          <div className="pt-2">
+            <p className="text-[13px] medium text-[#505050] mb-1">{t("Color Images")}</p>
+            <p className="text-[12px] text-[#8e8e8e] mb-3">{t("Assign each uploaded image to a color. Every color needs at least one image, and every image must be assigned.")}</p>
+            {errors.colorImages && <p className="text-[12px] text-[#f85555] mb-3">{errors.colorImages}</p>}
+            <div className="space-y-4">
+              {form.colors.map((c) => (
+                <div key={c.code} className="rounded-[12px] border border-[#ededed] p-3">
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <span className="w-4 h-4 rounded-full border border-black/10" style={{ background: c.code }} />
+                    <span className="text-[13px] medium text-[#3c3c3c]">{c.name}</span>
+                  </div>
+                  {form.images.length === 0 ? (
+                    <p className="text-[12px] text-[#b8b8b8]">{t("Upload images first.")}</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2.5">
+                      {form.images.map((im) => {
+                        const on = (form.colorImages[c.code] || []).includes(im.name);
+                        return (
+                          <button key={im.name} type="button" disabled={disabled} onClick={() => toggleColorImage(c.code, im.name)} className={`relative w-[58px] h-[58px] rounded-[10px] overflow-hidden border-2 transition-colors ${on ? "border-[#5d5d5d]" : "border-transparent opacity-60 hover:opacity-100"}`}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={im.url} alt={im.name} className="w-full h-full object-cover" />
+                            {on && (
+                              <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#5d5d5d] text-white flex items-center justify-center">
+                                <DashIcon name="check" size={10} />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </Section>
+  );
+}
+
+const LANGS = [
+  { code: "en", label: "English" },
+  { code: "ar", label: "العربية" },
+  { code: "tr", label: "Türkçe" },
+  { code: "ku", label: "Kurdî" },
+];
+
+export function TranslationsSection({ form, patch, errors, disabled }: SectionProps) {
+  const setTr = (code: string, field: "name" | "description", v: string) => {
+    const exists = form.translations.some((t2) => t2.language_code === code);
+    const next = exists
+      ? form.translations.map((t2) => (t2.language_code === code ? { ...t2, [field]: v } : t2))
+      : [...form.translations, { language_code: code, name: "", description: "", [field]: v }];
+    patch({ translations: next });
+  };
+  return (
+    <Section icon="comments" title="Translations" desc="An English (en) name is required to enable the product.">
+      {errors.translations && <p className="text-[12px] text-[#f85555] mb-3">{errors.translations}</p>}
+      <div className="space-y-5">
+        {LANGS.map((l) => {
+          const tr = form.translations.find((x) => x.language_code === l.code) || { name: "", description: "" };
+          return (
+            <div key={l.code} className="rounded-[12px] border border-[#ededed] p-4">
+              <p className="text-[13px] semibold text-[#3c3c3c] mb-3">{l.label} <span className="text-[#8e8e8e] regular text-[11px]">({l.code})</span></p>
+              <Grid>
+                <Txt label="Name" value={tr.name} disabled={disabled} onChange={(v) => setTr(l.code, "name", v)} required={l.code === "en"} />
+                <Txt label="Description" value={tr.description} disabled={disabled} onChange={(v) => setTr(l.code, "description", v)} />
+              </Grid>
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
+
+export function VideosSection({ form, patch, disabled, onUploadVideo, uploading }: SectionProps) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const toggleRemove = (v: string) => patch({ remove_videos: form.remove_videos.includes(v) ? form.remove_videos.filter((x) => x !== v) : [...form.remove_videos, v] });
+  return (
+    <Section icon="video" title="Video" desc="Optional. Upload a new product video or remove existing ones.">
+      <div className="space-y-3">
+        {form.existing_videos.length === 0 && !form.cloud_video && (
+          <p className="text-[12px] text-[#b8b8b8]">{t("No video attached.")}</p>
+        )}
+        {form.existing_videos.map((v) => {
+          const removing = form.remove_videos.includes(v);
+          return (
+            <div key={v} className={`flex items-center justify-between gap-3 p-3 rounded-[12px] border ${removing ? "border-[#ffd9d9] bg-[#fff1f1]" : "border-[#ededed] bg-[#f8f8f8]"}`}>
+              <span className="flex items-center gap-2 text-[13px] text-[#3c3c3c] truncate">
+                <DashIcon name="play" size={16} /> {v.split("/").pop()}
+              </span>
+              {!disabled && (
+                <button type="button" onClick={() => toggleRemove(v)} className={`text-[12px] medium ${removing ? "text-[#8e8e8e]" : "text-[#f85555]"}`}>
+                  {removing ? t("Keep") : t("Remove")}
+                </button>
+              )}
+            </div>
+          );
+        })}
+        {form.cloud_video && (
+          <div className="flex items-center justify-between gap-3 p-3 rounded-[12px] border border-[#bfe6cc] bg-[#eaf7ef]">
+            <span className="flex items-center gap-2 text-[13px] text-[#2ea84f] truncate">
+              <DashIcon name="check" size={16} /> {t("New video ready")}: {form.cloud_video}
+            </span>
+            {!disabled && (
+              <button type="button" onClick={() => patch({ cloud_video: "" })} className="text-[12px] medium text-[#f85555]">{t("Remove")}</button>
+            )}
+          </div>
+        )}
+        {!disabled && (
+          <>
+            <input ref={fileRef} type="file" accept="video/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) onUploadVideo?.(f); e.target.value = ""; }} />
+            <DashButton type="button" variant="secondary" size="sm" icon="upload" loading={!!uploading?.video} onClick={() => fileRef.current?.click()}>
+              {t("Upload Video")}
+            </DashButton>
+          </>
+        )}
+      </div>
+    </Section>
+  );
+}

@@ -8,6 +8,7 @@ import order from "services/order";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 export const ModifyOrderItemModal = ({
   type,
   confirmationData,
@@ -61,6 +62,19 @@ export const ModifyOrderItemModal = ({
       )?.option,
       image: imageVar,
       order_detail_id: confirmationData?.detail_id,
+    });
+    trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_CHANGE_REQUESTED, {
+      change_type: type,
+      order_detail_id: confirmationData?.detail_id,
+      product_id: orderItem?.product_id,
+      from_variant:
+        type === "Color"
+          ? confirmationData?.currentColor
+          : confirmationData?.currentSize,
+      to_variant:
+        type === "Color"
+          ? confirmationData?.newColor
+          : confirmationData?.newSize,
     });
     setLoading(false);
     setConfirmationData(false);

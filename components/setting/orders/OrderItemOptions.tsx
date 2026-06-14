@@ -15,6 +15,7 @@ import { ModifyOrderItemModal } from "./confirmations/ChangeOrderItemConfirmWind
 import OrderItemCancelConfirmationWindow from "./confirmations/CancelOrderItemConfirmationWindow";
 import CancelOrderItemWrapper from "./CancelOrderItemWrapper";
 import ReturnOrderItemWrapper from "./ReturnOrderItemWrapper";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 
 import { createPortal } from "react-dom";
 function OrderItemOptions({
@@ -46,6 +47,15 @@ function OrderItemOptions({
   const [selectedScreen, setSelectedScreen] = useState("options");
   const [ShowConfirmChangeOrder, setShowConfirmChangeOrder] =
     useState<any>(false);
+
+  React.useEffect(() => {
+    trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_OPTIONS_OPENED, {
+      order_id: parentOrder?.id,
+      item_id: orderItem?.id,
+      product_id: orderItem?.product_id,
+      order_status: parentOrder?.order_status?.value,
+    });
+  }, []);
 
   const ShouldShowCahngeColor = () => {
     if (parentOrder?.order_status?.value === "delivered") return false;
@@ -277,6 +287,11 @@ function OrderItemOptions({
             {
               <div
                 onClick={() => {
+                  trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_REPORTED, {
+                    order_id: parentOrder?.id,
+                    item_id: orderItem?.id,
+                    product_id: orderItem?.product_id,
+                  });
                   setSelectedScreen("report");
                 }}
                 className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
@@ -309,6 +324,11 @@ function OrderItemOptions({
             {
               <div
                 onClick={() => {
+                  trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_HIDDEN, {
+                    order_id: parentOrder?.id,
+                    item_id: orderItem?.id,
+                    product_id: orderItem?.product_id,
+                  });
                   setSelectedScreen("hide");
                 }}
                 className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${

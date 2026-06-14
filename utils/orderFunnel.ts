@@ -88,6 +88,7 @@ export const ORDER_EVENTS = {
   WALLET_PAYMENT_FAILED: "wallet_payment_failed",
   WALLET_CURRENCY_CHANGED: "wallet_currency_changed",
   WALLET_DATA_LOAD_FAILED: "wallet_data_load_failed",
+  WALLET_BALANCE_REFRESHED: "wallet_balance_refreshed",
 
   // --- Completion ---
   ORDER_COMPLETED: "order_completed",
@@ -162,4 +163,74 @@ export const trackOrder = (
   props: Record<string, unknown> = {},
 ) => {
   posthogCapture(event, { ...baseProps(), ...props });
+};
+
+// ---------------------------------------------------------------------------
+// Post-purchase order management (history / details / cancel / return / rate)
+//
+// These fire on screens where the checkout is already finished, so the cart /
+// total / order_attempt_id that `baseProps()` reads are empty and meaningless.
+// They go through their own `trackOrderMgmt` wrapper with a cart-free base set.
+// ---------------------------------------------------------------------------
+export const ORDER_MGMT_EVENTS = {
+  // --- Browse past orders ---
+  ORDER_HISTORY_VIEWED: "order_history_viewed",
+  ORDER_HISTORY_FILTERED: "order_history_filtered",
+  ORDER_DETAILS_VIEWED: "order_details_viewed",
+
+  // --- Modify a placed order ---
+  ORDER_ITEM_CHANGE_REQUESTED: "order_item_change_requested",
+  ORDER_ADDRESS_CHANGED: "order_address_changed",
+
+  // --- Cancel / return / rate / report ---
+  ORDER_CANCELLED: "order_cancelled",
+  ORDER_ITEM_CANCELLED: "order_item_cancelled",
+  ORDER_RETURN_REQUESTED: "order_return_requested",
+  ORDER_ITEM_RATED: "order_item_rated",
+  ORDER_ITEM_REPORTED: "order_item_reported",
+
+  // --- Option-sheet entry points + list hygiene (denominators / lower priority) ---
+  ORDER_OPTIONS_OPENED: "order_options_opened",
+  ORDER_ITEM_OPTIONS_OPENED: "order_item_options_opened",
+  ORDER_PACK_HIDDEN: "order_pack_hidden",
+  ORDER_ITEM_HIDDEN: "order_item_hidden",
+} as const;
+
+export type OrderMgmtEvent =
+  (typeof ORDER_MGMT_EVENTS)[keyof typeof ORDER_MGMT_EVENTS];
+
+// Cart-free base props for the order-management screens. Keep it to the
+// dimensions that are actually available post-purchase.
+const mgmtBaseProps = (): Record<string, unknown> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const s = useAppStore.getState();
+    return {
+      screen: DetectScreen(),
+      currency: (s.currency as any)?.code,
+      user_id: auth.UserID?.(),
+    };
+  } catch {
+    return {};
+  }
+};
+
+export const trackOrderMgmt = (
+  event: OrderMgmtEvent,
+  props: Record<string, unknown> = {},
+) => {
+  posthogCapture(event, { ...mgmtBaseProps(), ...props });
+};
+
+// Resolve the `flow_source` for the verify-number sub-flow from the auth store's
+// `shouldAuthinticated` marker. String markers identify their origin
+// ("open Story", "open chat", "seller"); the bare boolean `true` is the generic
+// "must verify to proceed" gate used by the cart/checkout purchase buttons, so
+// we map it to "checkout".
+export const resolveVerifyFlowSource = (marker: unknown): string => {
+  if (marker === "open Story") return "story";
+  if (marker === "open chat") return "chat";
+  if (marker === "seller") return "seller";
+  if (typeof marker === "string" && marker.length > 0) return marker;
+  return "checkout";
 };

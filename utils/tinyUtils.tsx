@@ -47,10 +47,13 @@ export const getCurrency = async ({ callback }) => {
     return null;
   }
 };
-export const FlagIcon = ({ iso }) => {
+export const FlagIcon = ({ iso ,isFromProductPage=false}) => {
   if (iso.toLowerCase() === "sy")
     return (
       <Image
+        style={isFromProductPage?{
+          maxHeight:'14px'
+        }:{}}
         src="/icons/flag/sy.svg"
         alt={translateFunction("sy") || "sy"}
         width={25}
@@ -60,6 +63,9 @@ export const FlagIcon = ({ iso }) => {
 
   return (
     <Image
+           style={isFromProductPage?{
+          maxHeight:'14px'
+        }:{}}
       src={`/icons/flag/${iso?.toLowerCase()}.svg`}
       alt={translateFunction(iso) || "iso"}
       width={25}

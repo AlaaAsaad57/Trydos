@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 
 import order from "services/order";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import storyService from "services/story";
@@ -51,6 +52,14 @@ function RatingOrderItem({
         owner_id: owner_id,
         owner_type: owner_type,
         images: images,
+      });
+      trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_RATED, {
+        product_id: productId,
+        order_detail_id: order_detail_id,
+        star_rating: e || rating,
+        has_comment: !!comment,
+        image_count: images?.length ?? 0,
+        is_edit: !!lastRatingId,
       });
       router.refresh();
       setRatedComplete(true);

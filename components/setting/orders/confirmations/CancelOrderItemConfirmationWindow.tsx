@@ -4,6 +4,7 @@ import { LogError, translateFunction } from "utils/functions";
 import Order from "services/order";
 import Spinner from "components/global/Spinner";
 import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 
 function OrderItemCancelConfirmationWindow({
   order_id,
@@ -26,6 +27,11 @@ function OrderItemCancelConfirmationWindow({
     try {
       setLoading(true);
       await Order.CancelOrderItem({
+        order_id: order_id,
+        item_id: item_id,
+        qty: qty,
+      });
+      trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_CANCELLED, {
         order_id: order_id,
         item_id: item_id,
         qty: qty,

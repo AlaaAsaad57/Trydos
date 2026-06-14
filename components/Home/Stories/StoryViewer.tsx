@@ -9,6 +9,7 @@ import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
+import { trackPosthog, STORY_EVENTS } from "utils/posthogEvents";
 
 // Using a generic story media type to keep the component independent from
 // the previous `react-insta-stories` definitions.
@@ -418,7 +419,14 @@ const StoryViewer = ({
                 zIndex: 99999999999999,
                 boxShadow: "0px 3px 10px #0000001f",
               }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                trackPosthog(STORY_EVENTS.STORY_LINK_CLICKED, {
+                  story_id: currentStory?.id,
+                  story_type: isImage ? "image" : "video",
+                  link,
+                });
+              }}
             >
               <span>
                 <img src="/icons/copyIcon.svg" className="w-[20px] h-[20px]" />
@@ -430,6 +438,11 @@ const StoryViewer = ({
             <div
               className="flex"
               onClick={() => {
+                trackPosthog(STORY_EVENTS.STORY_PRODUCT_CLICKED, {
+                  story_id: currentStory?.id,
+                  product_slug,
+                  story_type: isImage ? "image" : "video",
+                });
                 setSelectedStory(null);
               }}
             >
