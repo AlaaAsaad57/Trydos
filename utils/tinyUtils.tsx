@@ -2,7 +2,7 @@ import { useAppStore } from "store";
 import { LogError, translateFunction } from "./functions";
 import { posthogReset } from "./posthog";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
-import { fetchData } from "./fetchData";
+import { fetchData, abortInFlightForLogout } from "./fetchData";
 import Image from "next/image";
 import { REQUESTS_DATA } from "./Requests";
 
@@ -16,6 +16,10 @@ export const ChatConroller = (payload) => {
   } catch (error) {}
 };
 export const clearAllUserData = async () => {
+  // Stop every in-flight authed request NOW so none of them can resolve a 401
+  // mid-logout and trigger a re-register. Runs after FCM-token removal (done
+  // earlier in handleLogout) and does not affect this bare logout fetch.
+  abortInFlightForLogout();
   await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
   // Break the PostHog identity link so the next guest session isn't stitched
   // onto the user who just logged out (fresh anonymous distinct_id + session).

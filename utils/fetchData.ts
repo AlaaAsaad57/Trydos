@@ -42,6 +42,42 @@ interface FetchDataParams {
 // ---------- Internal State ----------
 const requestCache = new Map<string, any>();
 const inflightRequests = new Map<string, Promise<any>>();
+
+// Aborted as a group the moment a logout starts, so every in-flight authed
+// request stops immediately instead of resolving a 401 mid-logout (which is
+// what used to let a late response resurrect the just-cleared session). The
+// page reloads right after logout, giving a fresh module instance with a fresh
+// controller — so there is no need to re-create it here.
+let logoutAbortController = new AbortController();
+
+/**
+ * Abort all in-flight `fetchData` requests because a logout has started.
+ * Call this AFTER any must-finish logout request (e.g. FCM token removal) and
+ * before clearing cookies. Bare `fetch` calls (the logout route itself) are
+ * unaffected — only `fetchData`-issued requests join this group.
+ */
+export const abortInFlightForLogout = () => {
+  try {
+    logoutAbortController.abort();
+  } catch {}
+};
+
+// Merge the caller's per-request signal with the logout-group signal so a fetch
+// aborts if EITHER fires. Done manually (not via `AbortSignal.any`) for broad
+// browser support.
+const withLogoutSignal = (signal?: AbortSignal): AbortSignal => {
+  const controller = new AbortController();
+  if (logoutAbortController.signal.aborted || signal?.aborted) {
+    controller.abort();
+    return controller.signal;
+  }
+  const onAbort = () => controller.abort();
+  logoutAbortController.signal.addEventListener("abort", onAbort, {
+    once: true,
+  });
+  signal?.addEventListener("abort", onAbort, { once: true });
+  return controller.signal;
+};
 const retryableStatusCodes = [502, 504, 429, 503];
 const ignoredMessages = [
   "Data Got!",
@@ -336,13 +372,16 @@ export const fetchData = async <T = any>(
       const { country, language } = getLocale();
       let res: Response;
 
+      // Abort on the caller's signal OR when a logout begins.
+      const effectiveSignal = withLogoutSignal(signal);
+
       if (isUploadStory(server)) {
         // ── UPLOAD STORY: cross-origin Cloudinary, no auth, no custom headers ──
         res = await fetch(url, {
           method,
           body: body && method !== "GET" ? (body as BodyInit) : undefined,
           credentials: "omit",
-          signal,
+          signal: effectiveSignal,
         });
       } else if (isLocalServer(server)) {
         // ── LOCAL: same-origin fetch, HttpOnly cookies sent automatically ──
@@ -359,7 +398,7 @@ export const fetchData = async <T = any>(
           headers: localHeaders,
           body: body && method !== "GET" ? (body as BodyInit) : undefined,
           credentials: "include",
-          signal,
+          signal: effectiveSignal,
         });
       } else {
         const safeProxyUrl = encodeURI(url);
@@ -394,7 +433,7 @@ export const fetchData = async <T = any>(
           headers: proxyHeaders,
           body: proxyBody,
           credentials: "include", // sends HttpOnly cookies to proxy
-          signal,
+          signal: effectiveSignal,
         });
       }
 

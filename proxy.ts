@@ -6,6 +6,11 @@ const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
 const DEFAULT_LANGUAGE = "en";
 const DEFAULT_COUNTRY = "gb";
 
+// Mirror of COOKIE_NAMES.LOGOUT_GUARD. Declared as a literal (not imported) so
+// this Edge middleware never pulls in cookie-manager, which depends on the
+// Node-only `jsonwebtoken`. Keep this string in sync with that constant.
+const LOGOUT_GUARD_COOKIE = "LOGOUT-GUARD";
+
 // Cookie options
 const COOKIE_OPTIONS = {
   path: "/",
@@ -271,6 +276,17 @@ export async function proxy(request: NextRequest) {
 
   const supportedLocales = buildSupportedLocales(allSupportedCountries);
   const response = NextResponse.next();
+
+  // End of the logout window. The logout route armed LOGOUT-GUARD so that any
+  // in-flight 401 couldn't resurrect the cleared session; this top-level
+  // navigation IS the post-logout reload, so drop the marker now and let the
+  // fresh page register a guest normally again. Only cleared on a real page
+  // render (NextResponse.next) — redirect hops below intentionally keep the
+  // guard so protection holds until the reload actually lands. (The matcher
+  // excludes /api, so the follow-up /api/auth/register-device is never blocked.)
+  if (request.cookies.get(LOGOUT_GUARD_COOKIE)?.value) {
+    response.cookies.delete(LOGOUT_GUARD_COOKIE);
+  }
   if (isBotAgent) {
     if (urlLocale && supportedLocales.has(urlLocale.locale)) {
       return response;

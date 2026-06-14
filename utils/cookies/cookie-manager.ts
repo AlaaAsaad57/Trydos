@@ -54,6 +54,18 @@ export const COOKIE_NAMES = {
    * HttpOnly — the client can't read or tamper with it.
    */
   VISIT_ID: "VISIT-ID",
+  /**
+   * Short-lived, server-visible marker set the moment a logout starts and
+   * cleared on the very next top-level navigation (the post-logout reload, in
+   * `proxy.ts`). While present it tells every server-side 401 → guest
+   * re-register path (`HandleAuthedFetch`, `/api/auth/expire`,
+   * `/api/auth/register-device`) to NOT mint a fresh token or write any
+   * identity cookie. This is what stops an in-flight authed request that
+   * resolves a 401 *after* logout cleared the cookies from silently
+   * resurrecting the session (the "user still logged in after logout" bug).
+   * HttpOnly + short TTL backstop so it can never get stuck.
+   */
+  LOGOUT_GUARD: "LOGOUT-GUARD",
   USER_ID_HASH:
     "x7k9m2p4q8r1s5t3u6v2w9y4z7a1b5c8d2e6f9g3h7j1k4l8m2n5p9q3r6s1t4u7v2w5x8y1z4a7b2c5d8e1f4g7h2j5k8l1m4n7o2p5q8r1s4t7u2v5w8x1y4z7", // Random gibberish name
 } as const;

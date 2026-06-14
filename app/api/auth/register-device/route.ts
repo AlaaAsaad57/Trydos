@@ -13,6 +13,16 @@ const REGISTER_DEVICE_URL = "/auth/register-guest";
 
 export async function POST(request: NextRequest) {
   try {
+    // Logout guard: while a logout is in progress (cookies just cleared, guard
+    // armed) refuse to mint a token or write identity cookies. Otherwise a
+    // request racing the logout would re-register the just-cleared user. The
+    // post-logout reload clears the guard, after which fresh-guest registration
+    // resumes normally.
+    const guardStore = await cookies();
+    if (guardStore.get(COOKIE_NAMES.LOGOUT_GUARD)?.value) {
+      return NextResponse.json({ loggingOut: true }, { status: 200 });
+    }
+
     const body = await request.json().catch(() => ({}));
     const oldGuestUserId = body.old_guest_user_id ?? null;
     const country = request.headers.get("x-country")?.trim() || "sy";
