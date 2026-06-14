@@ -215,8 +215,6 @@ export default function GalleryTab({
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
     try {
-        alert("جاري العمل على ميزة حذف المحدد");
-        throw new Error("Not implmented");
       setBulkDeleting(true);
       const res = await SellerDashboardService.deleteProductImages(ids, sellerId);
       if (res?.success === false) {
