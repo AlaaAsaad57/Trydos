@@ -506,14 +506,14 @@ class SellerDashboardService {
     imageIds: number | string | (number | string)[],
     sellerId: string,
   ) {
-    // const ids = Array.isArray(imageIds) ? imageIds : [imageIds];
+    const ids = Array.isArray(imageIds) ? imageIds : [imageIds];
     let normalizeId=Array.isArray
     return fetchData({
-      url: `/shop/products/images/${imageIds}`,
+      url: `/shop/products/images`,
       method: "DELETE",
       server: "market-dashboard",
       reqTitle: REQUESTS_DATA.DELETE_PRODUCT_IMAGE,
-      // body: JSON.stringify({ ids }),
+      body: JSON.stringify({ ids }),
       sellerId,
     });
   }
