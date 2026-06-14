@@ -287,7 +287,7 @@ function ProductPickerModal({
         style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-2 p-5 lg:p-6 border-b border-[#ededed]">
+        <div className="flex items-center justify-between gap-2 p-5 lg:p-6 border-b border-[#ededed] w-full">
           <h3 className="text-[16px] bold text-[#3c3c3c] flex items-center gap-2">
             <span className="text-[#5d5d5d]">
               <DashIcon name="products" size={19} />

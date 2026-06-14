@@ -624,7 +624,7 @@ export default function GalleryTab({
               <button
                 onClick={handleDelete}
                 disabled={deletingId !== null}
-                className="flex-1 h-[44px] rounded-[12px] bg-[#f85555] text-white medium text-[14px] hover:bg-[#e84444] disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 h-[44px] rounded-[12px] min-w-[100px] bg-[#f85555] text-white medium text-[14px] hover:bg-[#e84444] disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {deletingId !== null && <Spinner />}
                 <DashIcon name="trash" size={16} />
@@ -693,7 +693,7 @@ export default function GalleryTab({
               <button
                 onClick={handleBulkDelete}
                 disabled={bulkDeleting}
-                className="flex-1 h-[44px] rounded-[12px] bg-[#f85555] text-white medium text-[14px] hover:bg-[#e84444] disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 h-[44px] rounded-[12px] min-w-[100px] bg-[#f85555] text-white medium text-[14px] hover:bg-[#e84444] disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {bulkDeleting && <Spinner />}
                 <DashIcon name="trash" size={16} />

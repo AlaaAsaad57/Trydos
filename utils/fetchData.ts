@@ -483,7 +483,7 @@ export const fetchData = async <T = any>(
         throw new Error(
           responseData?.message ??
             responseData?.data?.message ??
-            `Error fetching data for request ${reqTitle?.code}`,
+            `Error fetching data for request ${reqTitle?.code} : ${res.status} : ${res.statusText}`,
         );
       }
 

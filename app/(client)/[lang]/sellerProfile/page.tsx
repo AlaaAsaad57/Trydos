@@ -269,7 +269,7 @@ function Page() {
               <button
                 onClick={confirmLeaveShop}
                 disabled={leaveProcessing}
-                className="flex-1 h-[44px] rounded-[12px] bg-[#f85555] text-white medium text-[14px] hover:bg-[#e84444] disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                className="flex-1 h-[44px] rounded-[12px] bg-[#f85555] min-w-[100px] text-white medium text-[14px] hover:bg-[#e84444] disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
               >
                 {leaveProcessing
                   ? translateFunction("Leaving...", language)
