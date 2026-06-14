@@ -359,7 +359,7 @@ const guardedGetSellerComments = withSellerCommentAccess<
   }
 
   try {
-    const result: any = await elasticSearchClient.search({
+    const searchBody: any = {
       index: comments_index,
       from,
       size: pageSize,
@@ -374,7 +374,23 @@ const guardedGetSellerComments = withSellerCommentAccess<
           must_not: [{ term: { status: "deleted" } }],
         },
       },
-    });
+    };
+
+    // Reviews only: one review per order line. A poor-network double-write can
+    // leave two docs sharing the same order_details_id, so collapse to show the
+    // newest per order line (sort already orders newest first). FAQ comments
+    // have no order_details_id, so collapsing them would wrongly fold every FAQ
+    // into a single null bucket — never collapse those.
+    if (isReview) {
+      searchBody.collapse = { field: "order_details_id" };
+      // Distinct order lines = real review count after collapse, so pagination
+      // doesn't count duplicate docs.
+      searchBody.aggs = {
+        collapsed_total: { cardinality: { field: "order_details_id" } },
+      };
+    }
+
+    const result: any = await elasticSearchClient.search(searchBody);
 
     const hits: any[] = result?.hits?.hits ?? [];
     const comments = hits.map((hit) => {
@@ -399,8 +415,13 @@ const guardedGetSellerComments = withSellerCommentAccess<
     const enriched = await attachReactionCounts(comments);
 
     const totalRaw = result?.hits?.total;
-    const total =
+    const rawTotal =
       typeof totalRaw === "number" ? totalRaw : (totalRaw?.value ?? 0);
+    // For reviews use the collapsed (distinct-order-line) count so duplicate
+    // docs don't inflate the total/page count.
+    const total = isReview
+      ? (result?.aggregations?.collapsed_total?.value ?? rawTotal)
+      : rawTotal;
     const last_page = Math.max(1, Math.ceil(total / pageSize));
 
     return {

@@ -346,6 +346,15 @@ export const fetchData = async <T = any>(
   }
 
   const cacheKey = generateCacheKey(params);
+  // Mutating writes are NOT idempotent: on a poor network the request can reach
+  // the backend and succeed while the response/ACK is lost (socket drop →
+  // "Failed to fetch", or a 502/504 from an edge proxy *after* the backend
+  // already processed it). Retrying then creates a duplicate (e.g. a review
+  // comment written twice in Elasticsearch). Never auto-retry these — the create
+  // endpoint has no idempotency key to dedupe on. GETs stay retryable.
+  const isMutatingMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(
+    String(method || "").toUpperCase(),
+  );
   let retryCount = 0;
   let status: number;
   let responseData: any;
@@ -545,8 +554,9 @@ export const fetchData = async <T = any>(
     } catch (err: any) {
       retryCount++;
       if (
-        (err instanceof TypeError && err.message.includes("fetch")) ||
-        retryableStatusCodes.includes(status)
+        !isMutatingMethod &&
+        ((err instanceof TypeError && err.message.includes("fetch")) ||
+          retryableStatusCodes.includes(status))
       ) {
         if (retryCount < 3) {
           await new Promise((r) => setTimeout(r, 1000 * retryCount));
