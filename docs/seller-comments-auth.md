@@ -70,68 +70,19 @@ Elasticsearch and back, including the permission cache and rate-limit gate that 
 added. Read it top to bottom.
 
 ```mermaid
-sequenceDiagram
-    autonumber
+flowchart TD
+    A["Browser sends reply<br/>sellerId 42 + commentId 99 (UNTRUSTED)"] --> B
 
-    participant U as Browser<br/>(CommentsTab.tsx)
-    participant SA as Server Action<br/>(withSellerCommentAccess)
-    participant RL as Redis<br/>(cache + rate limit)
-    participant GO as Go Market Backend
-    participant ES as Elasticsearch<br/>(comments_develop)
+    B["STEP 1: Verify identity<br/>read cached permissions, else ask Go backend"] --> C{"Shop 42 owned<br/>and has REPLY_COMMENT?"}
+    C -- No --> X["Reject: Not authorized"]
+    C -- Yes --> D{"Within write<br/>rate limit?"}
+    D -- No --> Y["Reject: Too many requests"]
+    D -- Yes --> E["STEP 3: sanitizeReply<br/>+ ownerFilter(42)"]
 
-    Note over U: User clicks "Reply". sellerId + commentId<br/>come from the browser = UNTRUSTED input.
-
-    U->>SA: replyToComment({ sellerId: 42, commentId: 99, replyText })
-
-    rect rgb(31, 58, 37)
-        Note over SA,GO: STEP 1 — Resolve & verify identity (cached)
-        SA->>SA: hash auth token (cache / limit key)
-        SA->>RL: GET seller:perms:&lt;hash&gt;
-
-        alt Fresh cache hit
-            RL-->>SA: shops[] (no Go hop)
-        else Cache miss
-            SA->>GO: GET /shop/auth/permissions<br/>(HttpOnly MARKET-TOKEN)
-            alt Go reachable
-                GO-->>SA: shops[] + permissions[]
-                SA->>RL: SET fresh (30s) + stale (1h)
-            else Go DOWN
-                SA->>RL: GET seller:perms:stale:&lt;hash&gt;
-                RL-->>SA: stale shops[] (degraded, not dead)
-            end
-        end
-
-        SA->>SA: is shop 42 in my list? has REPLY_COMMENT / SUPER_ADMIN?
-    end
-
-    rect rgb(58, 31, 31)
-        Note over SA,U: STEP 2 — Fail closed, then rate limit
-        alt Not a member, OR permission missing, OR no perms at all
-            SA-->>U: { success: false, "Not authorized" }
-        end
-        SA->>RL: INCR seller:cmt:rl:write:42:&lt;hash&gt;
-        alt Over the write limit
-            RL-->>SA: blocked
-            SA-->>U: { success: false, "Too many requests" }
-        end
-    end
-
-    rect rgb(31, 42, 58)
-        Note over SA,ES: STEP 3 — Sanitize + enforce ownership at the data layer
-        SA->>SA: sanitizeReply() — strip HTML/control chars, cap length
-        SA->>SA: ownerFilter(42) from the VERIFIED id, never client input
-        SA->>ES: update_by_query<br/>WHERE comment_id = 99<br/>AND owner_id = 42<br/>AND owner_type = "seller"
-
-        alt Comment is not owned by shop 42
-            ES-->>SA: { updated: 0 }
-            SA-->>U: { success: false, "not found or not permitted" }
-        else Comment belongs to shop 42
-            ES-->>SA: { updated: 1 }
-            SA-->>U: { success: true }
-        end
-    end
-
-    Note over U,ES: A forged sellerId fails STEP 1.<br/>A forged commentId survives to STEP 3<br/>but matches zero documents (updated: 0).
+    E --> F["Elasticsearch update<br/>commentId 99 AND ownerId 42"]
+    F --> G{"Document owned<br/>by shop 42?"}
+    G -- No --> Z["updated 0: not found / not permitted"]
+    G -- Yes --> S["updated 1: success"]
 ```
 
 ---

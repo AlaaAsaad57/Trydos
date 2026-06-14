@@ -442,10 +442,10 @@ function OldCartContainer() {
                 offer_price: product?.offer_price,
               }}
               updateData={async () => {}}
-              isCollectedAfterOrdering={false}
-              maxAllowed={product.max_allowed_qty}
+         
+             
               disabled={true}
-              isHurry={false}
+       
               value={product.quantity}
               max={product.available_quantity}
               setValue={() => {}}

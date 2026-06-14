@@ -342,11 +342,6 @@ function CartContainer({ close, toOrders }) {
                           await updateDataForProduct(product.slug);
                         }}
                         product={product}
-                        maxAllowed={product.max_allowed_qty}
-                        isCollectedAfterOrdering={Boolean(
-                          product.packed_after_ordering,
-                        )}
-                        isHurry={true || product.have_hurry_up_notify}
                         disabled={false}
                         max={product.available_quantity}
                         setValue={() => {}}
@@ -467,10 +462,8 @@ export const QuantutyInput = ({
   id,
   disabled,
   updateData,
-  isHurry,
   product,
-  maxAllowed,
-  isCollectedAfterOrdering,
+
 }) => {
   const { initCart, settings, currency, removeFromCart } = useAppStore();
   const luckPrice = (product as any)?.luck_price;

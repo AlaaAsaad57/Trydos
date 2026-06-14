@@ -530,13 +530,13 @@ function UploadStoryModal({
 
       <div className="fixed inset-0 z-999999999 flex items-center justify-center p-4 bg-black/45">
         <div
-          className={`relative w-full max-w-3xl max-h-[92vh] flex flex-col bg-white rounded-[20px] overflow-hidden text-[#3c3c3c] ${
+          className={`relative w-full max-[400px] max-h-[92vh] flex flex-col bg-white rounded-[20px] overflow-hidden text-[#3c3c3c] ${
             uploading ? "pointer-events-none" : ""
           }`}
           style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
         >
           {/* Header */}
-          <div className="flex justify-between items-center gap-2 p-5 lg:p-6 border-b border-[#ededed]">
+          <div className="flex justify-between items-center gap-2 p-5 lg:p-6 border-b border-[#ededed] w-full">
             <h3 className="text-[16px] bold text-[#3c3c3c] flex items-center gap-2">
               <span className="text-[#5d5d5d]">
                 <DashIcon name="stories" size={19} />
@@ -553,7 +553,7 @@ function UploadStoryModal({
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto p-5 lg:p-6">
+          <div className="flex-1 w-full overflow-y-auto p-5 lg:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
               {/* Preview pane — 9:16 story frame */}
               <div className="flex flex-col">
@@ -620,7 +620,7 @@ function UploadStoryModal({
                 </DashButton>
 
                 {/* Link input */}
-                <div>
+                <div className="w-full">
                   <label className="block text-[13px] medium text-[#505050] mb-1.5">
                     {translateFunction("Link")}
                   </label>
@@ -653,7 +653,7 @@ function UploadStoryModal({
                 </div>
 
                 {/* Product picker */}
-                <div>
+                <div className="w-full">
                   <label className="block text-[13px] medium text-[#505050] mb-1.5">
                     {translateFunction("Linked product")}
                   </label>
@@ -713,7 +713,7 @@ function UploadStoryModal({
           </div>
 
           {/* Footer */}
-          <div className="p-5 lg:p-6 border-t border-[#ededed] bg-[#fafafa] flex items-center justify-end gap-3">
+          <div className="p-5 w-full lg:p-6 border-t border-[#ededed] bg-[#fafafa] flex items-center justify-end gap-3">
             <DashButton type="button" variant="ghost" onClick={onClose}>
               {translateFunction("Cancel")}
             </DashButton>
