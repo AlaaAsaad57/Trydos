@@ -67,7 +67,7 @@ export function normalizeIp(raw: string | null | undefined): string {
 }
 
 export interface OtpIdentity {
-  /** Hashed session key source — the stable user id (or "anon"). */
+  /** Hashed session key — derived from the durable visit id. */
   sid: string;
   /** Hashed, normalized IP key. */
   ip: string;
@@ -82,9 +82,46 @@ export interface OtpIdentity {
   registeredGuest: boolean;
   hasMarketToken: boolean;
   hasDeviceToken: boolean;
+  /** The durable visit id the session key is derived from (debug only). */
+  visitId: string;
+  /** True when this request had to mint a fresh visit id. */
+  mintedVisitId: boolean;
 }
 
 const REGISTER_GUEST_URL = "/auth/register-guest";
+
+/**
+ * Resolve the durable visit id — the STABLE source for the OTP session key.
+ *
+ * Read the `VISIT-ID` cookie; if absent, mint a fresh UUID and persist it as a
+ * long-lived HttpOnly cookie. NOTHING in the app ever deletes or rotates this
+ * cookie (not logout, not guest re-register, not token refresh), so the
+ * per-session OTP counter survives the token/user-id churn that previously let
+ * an attacker reset the cap. The per-IP cap remains the backstop for someone who
+ * manually clears all their cookies.
+ *
+ * The cookie write is best effort — it only persists in a Server Action / Route
+ * Handler. In a pure render it can't be written, but the OTP flow always runs
+ * inside the send-OTP server action, so the id is persisted there on first use.
+ */
+async function resolveVisitId(): Promise<{ visitId: string; minted: boolean }> {
+  const cookieStore = await cookies();
+  const existing = cookieStore.get(COOKIE_NAMES.VISIT_ID)?.value;
+  if (existing) return { visitId: existing, minted: false };
+
+  const fresh = crypto.randomUUID();
+  try {
+    cookieStore.set({
+      name: COOKIE_NAMES.VISIT_ID,
+      value: fresh,
+      ...SECURE_COOKIE_OPTIONS,
+    });
+  } catch {
+    // Pure render context — can't persist the cookie here. The id still keys
+    // this request; the server action persists it on the next send.
+  }
+  return { visitId: fresh, minted: true };
+}
 
 /** Read the stable user id from the `User-Data` cookie, or null if absent. */
 async function readUserId(): Promise<string | null> {
@@ -171,19 +208,22 @@ async function registerGuestForOtp(): Promise<string | null> {
 /**
  * Resolve the sid/ip identity for the current request (cookies + headers).
  *
- * The session key (`sid`) is derived from the STABLE user-data id, not the
- * auth token: tokens rotate (a guest re-register on 401 mints a fresh
- * `DEVICE-TOKEN`), which would otherwise reset the per-session OTP counter and
- * hand an attacker a free way to bypass the cap. The user id survives those
- * rotations because `register-guest` is called with `old_guest_user_id`.
+ * The session key (`sid`) is derived from the durable VISIT-ID cookie, not the
+ * auth token OR the user-data id. Both of those rotate within a single session
+ * (a guest re-register on 401 mints a fresh `DEVICE-TOKEN`; the brand-new-guest
+ * retry path mints a fresh user id), which would reset the per-session OTP
+ * counter and hand an attacker a free way to bypass the cap. The visit id is
+ * minted once and never cleared by any code path, so it can't be rotated away.
  *
  * Pass `{ ensureUserId: true }` (the send-OTP path) to register a guest when no
- * user id exists yet, so the session counter always has a durable identity.
+ * user id exists yet, so the backend OTP call always has a usable token.
  */
 export async function resolveOtpIdentity(
   options: { ensureUserId?: boolean } = {},
 ): Promise<OtpIdentity> {
   const [cookieStore, hdrs] = await Promise.all([cookies(), headers()]);
+
+  const { visitId, minted: mintedVisitId } = await resolveVisitId();
 
   let userId = await readUserId();
   let registeredGuest = false;
@@ -191,7 +231,6 @@ export async function resolveOtpIdentity(
     userId = await registerGuestForOtp();
     registeredGuest = Boolean(userId);
   }
-  const sidSource = userId ?? "anon";
 
   const marketToken = cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value;
   const deviceToken = cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value;
@@ -204,7 +243,7 @@ export async function resolveOtpIdentity(
   const normalizedIp = normalizeIp(rawIp);
 
   return {
-    sid: hashKey(sidSource),
+    sid: hashKey(visitId),
     ip: hashKey(normalizedIp),
     rawIp,
     normalizedIp,
@@ -213,5 +252,7 @@ export async function resolveOtpIdentity(
     registeredGuest,
     hasMarketToken: Boolean(marketToken),
     hasDeviceToken: Boolean(deviceToken),
+    visitId,
+    mintedVisitId,
   };
 }

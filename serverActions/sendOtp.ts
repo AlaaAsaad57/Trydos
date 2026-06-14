@@ -66,8 +66,10 @@ export async function sendOtpAction(input: {
     const phone = `+${digits}`;
 
     // Session + IP identity (shared with the debug stats action so the keys
-    // match exactly). The session key is derived from the stable user-data id;
-    // `ensureUserId` registers a guest if none exists yet so we always have one.
+    // match exactly). The session key is derived from the durable VISIT-ID
+    // cookie (minted here on first use, never cleared), so a forced token/
+    // user-id rotation can't reset the per-session OTP counter. `ensureUserId`
+    // still registers a guest so the backend OTP call has a token.
     // IPv6 is normalized to its /64 prefix here.
     const identity = await resolveOtpIdentity({ ensureUserId: true });
     const { sid, ip } = identity;
@@ -75,7 +77,7 @@ export async function sendOtpAction(input: {
     // TEMP DEBUG: confirm the resolved IP identity is stable across sessions.
     // Remove once the per-IP cap is verified on staging.
     console.log(
-      `[OTP][send] rawIp=${identity.rawIp} normalizedIp=${identity.normalizedIp} ipKey=${ip} sidKey=${sid} userId=${identity.userId} registeredGuest=${identity.registeredGuest} phone=${phone}`,
+      `[OTP][send] rawIp=${identity.rawIp} normalizedIp=${identity.normalizedIp} ipKey=${ip} sidKey=${sid} visitId=${identity.visitId} mintedVisitId=${identity.mintedVisitId} userId=${identity.userId} registeredGuest=${identity.registeredGuest} phone=${phone}`,
     );
 
     // ── Rate limit BEFORE touching the backend ──

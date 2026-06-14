@@ -46,6 +46,14 @@ export const COOKIE_NAMES = {
   COUNTRY: "country",
   LANG: "lang",
   lANGUAGE: "language",
+  /**
+   * Durable, server-minted per-visitor id used to key the OTP session rate
+   * limit. Unlike the auth tokens / `User-Data` id, this is NEVER cleared or
+   * rotated by any code path (logout, guest re-register, token refresh), so the
+   * `otp:sid:*` counter can't be reset mid-session by forcing a token rotation.
+   * HttpOnly — the client can't read or tamper with it.
+   */
+  VISIT_ID: "VISIT-ID",
   USER_ID_HASH:
     "x7k9m2p4q8r1s5t3u6v2w9y4z7a1b5c8d2e6f9g3h7j1k4l8m2n5p9q3r6s1t4u7v2w5x8y1z4a7b2c5d8e1f4g7h2j5k8l1m4n7o2p5q8r1s4t7u2v5w8x1y4z7", // Random gibberish name
 } as const;
