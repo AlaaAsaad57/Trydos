@@ -15,7 +15,6 @@ import ProductDescriptorsWrapper from "components/Server/product/ProductDescript
 import ProductColorsWrapper from "components/Server/product/ProductColorsWrapper";
 import ProductExpectedDeleiveryWrapper from "components/Server/product/ProductExpectedDeleiveryWrapper";
 import FreeShippingOption from "components/products/FreeShippingOption";
-import { translateFunction } from "utils/server";
 import FreeReturnBadge from "components/products/FreeReturnBadge";
 import { getCurrency, GetStarttingSetting } from "serverRequests";
 import ProductStoriesWrapper from "components/Server/product/ProductStoriesWrapper";

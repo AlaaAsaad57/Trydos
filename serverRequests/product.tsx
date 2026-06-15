@@ -553,6 +553,12 @@ export async function GetProductBuyersComment({
       { created_at: "desc" }, // newest first
       { comment_id: "desc" }, // tie-breaker for consistent pagination
     ],
+    // One review per order line: a poor-network double-write can leave two docs
+    // with the same order_details_id in the index. Collapse so each order line
+    // surfaces only its newest comment (sort already puts newest first).
+    collapse: {
+      field: "order_details_id",
+    },
     query: {
       bool: {
         must: [
