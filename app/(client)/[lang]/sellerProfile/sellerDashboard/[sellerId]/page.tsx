@@ -1331,9 +1331,13 @@ function SellerDashBoard() {
                         {rolesMeta?.has_more_pages && (
                           <div className="flex justify-end p-2 border-t">
                             <button
-                              onMouseDown={() =>
-                                getRoles(rolesPage + 1, rolesQuery)
-                              }
+                              onMouseDown={(e) => {
+                                // keep input focused (avoid onBlur closing the
+                                // dropdown) and stop the outside-click handler
+                                e.preventDefault();
+                                e.stopPropagation();
+                                getRoles(rolesPage + 1, rolesQuery);
+                              }}
                               className="px-3 py-1.5 text-[12px] medium text-[#388CFF] bg-white border border-[#388CFF] rounded-[10px] hover:bg-[#388CFF]/[0.06]"
                               disabled={rolesLoadingMore}
                             >
@@ -1567,12 +1571,18 @@ function SellerDashBoard() {
                                         {rolesForChangeMeta?.has_more_pages && (
                                           <div className="flex justify-end p-2 border-t">
                                             <button
-                                              onMouseDown={() =>
+                                              onMouseDown={(e) => {
+                                                // stop the document outside-click
+                                                // handler from closing the dropdown
+                                                // when the button re-renders into a
+                                                // spinner (detaches the click target)
+                                                e.preventDefault();
+                                                e.stopPropagation();
                                                 getRolesForChange(
                                                   rolesForChangePage + 1,
                                                   rolesForChangeQuery,
-                                                )
-                                              }
+                                                );
+                                              }}
                                               className="px-3 py-1.5 text-[12px] medium text-[#388CFF] bg-white border border-[#388CFF] rounded-[10px] hover:bg-[#388CFF]/[0.06]"
                                               disabled={
                                                 rolesForChangeLoadingMore
