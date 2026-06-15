@@ -426,7 +426,7 @@ function LogInPins({
             {!expired ? (
               <span className={`blue-text`} id="text-wrap-element">
                 <Timer
-                  minutes={2}
+                  minutes={1}
                   onFinish={() => {
                     // Sendevent({
                     //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
