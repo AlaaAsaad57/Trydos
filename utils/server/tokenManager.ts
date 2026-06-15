@@ -52,7 +52,7 @@ const GO_APIS = [
   "/home/currency",
   "/web/home/startingSettings",
   "/checklist",
-  "/cart/add",
+  // "/cart/add",
 ];
 // ---------- Server URL Resolution ----------
 const isFromGoApi = (url: string) =>
