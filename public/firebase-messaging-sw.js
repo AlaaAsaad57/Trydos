@@ -1,5 +1,5 @@
 // Force update - increment this version when you want to force update
-const CACHE_VERSION = "v1.0.5";
+const CACHE_VERSION = "v1.0.6";
 const BASE_CLOUDINARY_URL =
   "https://res.cloudinary.com/dtcmozf4d/image/upload/v1";
 // Get image url function
@@ -72,14 +72,46 @@ const messaging = firebase.messaging();
 // Base origin for this service worker's scope (works per-branch/domain)
 const BASE_ORIGIN = self.location.origin;
 
-// Helper to build absolute URLs on this origin
-const buildUrl = (path) => {
-  if (!path) return BASE_ORIGIN;
-  if (typeof path !== "string") return BASE_ORIGIN;
+// Read the active locale ("<country>-<language>", e.g. "gb-en") from the
+// non-HttpOnly cookies the client persists (see proxy.ts -> setLocaleCookies).
+// Service workers have no `document`, so we use the Cookie Store API, which is
+// only available on Chromium. On browsers without it (Firefox/Safari) we return
+// "" and let proxy.ts inject the locale via a redirect on navigation — the App
+// Router routes are all locale-scoped (`app/(client)/[lang]/...`), so a bare
+// path like `/settings/orders/1` is redirected to `/gb-en/settings/orders/1`.
+async function getLocalePrefix() {
+  try {
+    if (typeof self.cookieStore !== "undefined") {
+      const [countryCookie, langCookie, languageCookie] = await Promise.all([
+        self.cookieStore.get("country"),
+        self.cookieStore.get("lang"),
+        self.cookieStore.get("language"),
+      ]);
+      const country = countryCookie && countryCookie.value;
+      const language =
+        (langCookie && langCookie.value) ||
+        (languageCookie && languageCookie.value);
+      if (country && language) {
+        return `/${country.toLowerCase()}-${language.toLowerCase()}`;
+      }
+    }
+  } catch (e) {
+    // Ignore — fall back to an unprefixed path and let proxy.ts redirect.
+  }
+  return "";
+}
+
+// Helper to build absolute URLs on this origin. `localePrefix` is the
+// "/<country>-<language>" segment (may be "" when unknown — proxy.ts then adds
+// it on navigation). For app routes pass the prefix so the click lands on the
+// correct locale-scoped page without an extra redirect hop.
+const buildUrl = (path, localePrefix = "") => {
+  const prefix = localePrefix || "";
+  if (!path || typeof path !== "string") return BASE_ORIGIN + prefix;
   if (/^https?:\/\//i.test(path)) return path; // already absolute
-  if (path.startsWith("/")) return BASE_ORIGIN + path;
-  if (path.startsWith("?")) return BASE_ORIGIN + "/" + path;
-  return BASE_ORIGIN + "/" + path;
+  if (path.startsWith("?")) return BASE_ORIGIN + prefix + path;
+  if (path.startsWith("/")) return BASE_ORIGIN + prefix + path;
+  return BASE_ORIGIN + prefix + "/" + path;
 };
 
 // Function to check if any client tabs are open
@@ -116,6 +148,10 @@ async function sendToForeground(payload) {
 
 messaging.onBackgroundMessage(async function (payload) {
   try {
+    // Resolve the active locale once so every notification URL points at the
+    // correct locale-scoped App Router route (e.g. /gb-en/settings/orders/1).
+    const localePrefix = await getLocalePrefix();
+
     // Check if any tabs are open
     const sentToForeground = await sendToForeground(payload);
 
@@ -132,6 +168,7 @@ messaging.onBackgroundMessage(async function (payload) {
               `filters/boutiques/${
                 JSON.parse(payload?.data.body)?.boutique_slug
               }`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -150,6 +187,7 @@ messaging.onBackgroundMessage(async function (payload) {
               `filters/categories/${
                 JSON.parse(payload?.data.body).category_slug
               }`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -162,7 +200,7 @@ messaging.onBackgroundMessage(async function (payload) {
         notificationOptions = {
           body: JSON.parse(payload.data.body)?.description,
           data: {
-            url: buildUrl(`?cart=true`),
+            url: buildUrl(`?cart=true`, localePrefix),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -178,6 +216,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url: buildUrl(
               `products/${JSON.parse(payload.data.body).product_slug}`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -191,7 +230,7 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body).description,
           image: JSON.parse(payload.data.body).image,
           data: {
-            url: buildUrl(`?cart=true`),
+            url: buildUrl(`?cart=true`, localePrefix),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -206,6 +245,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url: buildUrl(
               `products/${JSON.parse(payload.data.body).product_slug}`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -222,6 +262,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url: buildUrl(
               `products/${JSON.parse(payload.data.body).product_slug}`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -238,6 +279,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url: buildUrl(
               `products/${JSON.parse(payload.data.body).product_slug}`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -256,6 +298,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url: buildUrl(
               `products/${JSON.parse(payload.data.body).product_slug}`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -270,7 +313,7 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body)?.description,
           // image: JSON.parse(payload.data.body)?.image,
           data: {
-            url: buildUrl(`setting?tab=Orders`),
+            url: buildUrl(`settings/orders`, localePrefix),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -287,9 +330,10 @@ messaging.onBackgroundMessage(async function (payload) {
           // image: JSON.parse(payload.data.body)?.image,
           data: {
             url: buildUrl(
-              `setting?tab=Orders&id=${
+              `settings/orders/${
                 JSON.parse(payload.data.body).order_group_id
               }`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -367,12 +411,13 @@ messaging.onBackgroundMessage(async function (payload) {
           body: "there is new message from Deleivery Worker",
           data: {
             url: buildUrl(
-              `setting?tab=Orders&id=${
+              `settings/orders/${
                 JSON.parse(payload?.data.data)?.order_group_id
-              }&order_id_chat=${
+              }?order_id=${
                 JSON.parse(payload?.data?.data).parent_order_id ??
                 JSON.parse(payload?.data?.data).order_id
               }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}`,
+              localePrefix,
             ),
           },
         };
