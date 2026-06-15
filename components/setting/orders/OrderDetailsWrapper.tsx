@@ -1021,6 +1021,23 @@ const ProductCard = ({
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
 
+  // A returned item (whose return request is past the "draft" stage) should
+  // surface the returned quantity beside its "Item: qty" line. Draft returns
+  // are still being composed by the user and aren't shown — same draft check
+  // used in OrderItemReturnConfirmationWindow.
+  const productReturnInfo = getProductWithReturn(product);
+  const returnRequestStatus = returnDetails?.return_requests_data?.find(
+    (s) => s.order_id === order.id,
+  )?.status;
+  const returnedQty = Number(
+    productReturnInfo?.return_request_product_quantity,
+  );
+  const showReturnedQty =
+    productReturnInfo?.already_return &&
+    !!returnRequestStatus?.value &&
+    !returnRequestStatus?.name?.toLowerCase()?.includes("draft") &&
+    returnedQty > 0;
+
   return (
     <>
       <div className={`relative w-full flex-col`}>
@@ -1112,13 +1129,18 @@ const ProductCard = ({
                 </span>
               </div>
 
-              <div className="flex-row mx-[40px]">
+              <div className="flex-row items-center mx-[40px]">
                 <span className="text-[10px] regular">
                   {translateFunction("Item")}:
                 </span>
                 <span className="text-[#505050] text-[10px] medium mx-[2px]">
                   {product?.qty?.toFixed(1)}
                 </span>
+                {showReturnedQty && (
+                  <span className="bg-[#FFF3C4] text-[#946C00] text-[9px] medium rounded-[6px] px-[5px] py-[1px] mx-[4px] whitespace-nowrap">
+                    {translateFunction("Returned")}: {returnedQty}
+                  </span>
+                )}
               </div>
             </div>
             <div className="flex-row justify-between w-full">
