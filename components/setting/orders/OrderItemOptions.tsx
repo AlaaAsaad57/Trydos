@@ -66,16 +66,26 @@ function OrderItemOptions({
   const canCancelProduct = () => {
     return parentOrder?.can_cancele_order && orderItem.qty > 0;
   };
+  // Is *this product* already part of the order's return request?
+  const isProductAlreadyReturned = () =>
+    !!returnDetails?.return_requests_data
+      ?.find((s) => s.order_id === parentOrder?.id)
+      ?.order_details?.find((s) => s.detail_id === orderItem?.id)
+      ?.already_return;
   const shouldShowRetutn = () => {
     if (parentOrder?.order_status?.value !== "delivered") return false;
     if (orderItem.qty === 0) return false;
-    if (
-      returnDetails?.return_requests_data
-        ?.find((s) => s.order_id === parentOrder?.id)
-        ?.order_details?.find((s) => s.detail_id === orderItem?.id)
-        ?.already_return
-    ) {
+    // Editing a product that's already in the request: only while the whole
+    // request is still editable.
+    if (isProductAlreadyReturned()) {
       return parentOrder?.edit_return_request;
+    }
+    // Adding a not-yet-returned product. Each order has a single return
+    // request; if one already exists and is locked (e.g. already confirmed /
+    // return_to_location), no more products can be added to it even though this
+    // product itself is still returnable (can_return_order stays true).
+    if (parentOrder?.order_has_return_request && !parentOrder?.edit_return_request) {
+      return false;
     }
     return parentOrder.can_return_order;
   };
@@ -259,11 +269,7 @@ function OrderItemOptions({
                         isRtl ? " text-right pr-2" : " "
                       }`}
                     >
-                      {returnDetails?.return_requests_data
-                        ?.find((s) => s.order_id === parentOrder?.id)
-                        ?.order_details?.find(
-                          (s) => s.detail_id === orderItem?.id,
-                        )?.already_return
+                      {isProductAlreadyReturned()
                         ? translateFunction(
                             "Update Return Request For This Product",
                           )
