@@ -6,6 +6,7 @@ import { otpRateLimit } from "serverRequests/radis";
 import { SEND_OTP } from "utils/endpointConfig";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { resolveOtpIdentity } from "utils/server/otpIdentity";
+import { captureOtpAttempt } from "utils/server/otpTelemetry";
 import { LogServerError } from "utils/serverErrorReporter";
 
 // ---------------------------------------------------------------------------
@@ -83,6 +84,16 @@ export async function sendOtpAction(input: {
     // ── Rate limit BEFORE touching the backend ──
     const limit = await otpRateLimit({ sid, ip, phone });
     if (!limit.allowed) {
+      // Record the blocked attempt with the real IP (the value to blocklist) —
+      // these are the abusive senders the client `send_otp` event can't surface.
+      captureOtpAttempt({
+        outcome: "blocked",
+        reason: limit.reason,
+        rawIp: identity.rawIp,
+        normalizedIp: identity.normalizedIp,
+        sid,
+        isWhatsapp: input.isWhatsapp,
+      });
       const wait = limit.lockSeconds || 60;
       // Reuse the existing PhoneNumberError parser: any message containing
       // "seconds before trying again" renders a live countdown in the UI.
@@ -115,6 +126,14 @@ export async function sendOtpAction(input: {
     const message = data?.message || extractMessage(res?.error) || "";
 
     if (verificationId) {
+      captureOtpAttempt({
+        outcome: "sent",
+        reason: limit.reason,
+        rawIp: identity.rawIp,
+        normalizedIp: identity.normalizedIp,
+        sid,
+        isWhatsapp: input.isWhatsapp,
+      });
       return {
         success: true,
         verificationId,
@@ -125,6 +144,14 @@ export async function sendOtpAction(input: {
 
     // No verificationId → either an invalid number or a backend throttle
     // ("...seconds before trying again"). Surface the backend message as-is.
+    captureOtpAttempt({
+      outcome: "failed",
+      reason: message ? "backend_rejected" : "no_verification_id",
+      rawIp: identity.rawIp,
+      normalizedIp: identity.normalizedIp,
+      sid,
+      isWhatsapp: input.isWhatsapp,
+    });
     return {
       success: false,
       message: message || "Failed to send verification code",

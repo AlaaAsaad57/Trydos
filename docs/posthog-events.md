@@ -35,6 +35,11 @@ There are **several event streams** plus identity and error capture. All wrapper
    `services/auth.ts`); `posthogReset()` on logout (`utils/tinyUtils.tsx`).
 6. **Exceptions** — `LogError` → `posthogCaptureException(error, props)` (PostHog
    error-tracking, linked to the matching session replay).
+7. **Server-side OTP stream** — `utils/server/otpTelemetry.ts:captureOtpAttempt()` POSTs
+   straight to the PostHog capture API from the `sendOtpAction` Server Action (NOT through
+   `posthog-js` or the `/ingest` proxy). This is the only stream that carries the **raw client
+   IP** (client events can't — see §5) and the only one that sees server-side blocks and
+   scripted RSC-direct attacks. See [Server-side OTP events](#5-server-side-otp-events).
 
 > Autocapture, pageviews, pageleave, and session replay are enabled by the
 > `defaults: "2025-05-24"` preset in `posthogInit()` — those are automatic and **not**
@@ -261,6 +266,33 @@ Funnel designs that use these: `funnels/chat-stories-funnels.md`.
 | `chat_opened` | Chat panel opens (`chatVar` → true) | — (global props only) | `components/Chat/ChatModal.tsx` |
 | `chat_message_sent` | A message is sent — text + media (image/voice/video/file) | `conversation_id`, `message_type`, `is_order_chat`, `is_reply` | `components/Chat/pages/ConversationContainer.tsx` |
 | `chat_product_shared` | A product is shared into a chat → `ShareProduct()` (commerce bridge) | `product_id`, `product_slug`, `receiver_user_id` | `services/chat.ts` |
+
+---
+
+## 5. Server-side OTP events
+
+Emitted by **`captureOtpAttempt()`** (`utils/server/otpTelemetry.ts`) from the `sendOtpAction`
+Server Action (`serverActions/sendOtp.ts`). Best-effort: **production-only**, never throws, and
+fired in `after()` so it never adds latency to the send.
+
+**Why a server stream exists at all:** the client `send_otp` event **cannot carry the IP** —
+PostHog geo-enriches at ingestion and then discards the raw IP, so `properties.$ip` is `null` on
+every client event (verified in-project). It also can't see two cases: server-side rate-limit
+blocks, and scripted attackers hitting the RSC action endpoint directly (no browser → no client
+event). `otp_send_attempt` is the authoritative, one-per-server-attempt record with the real IP.
+
+| Event | Fires when | Props | File |
+|---|---|---|---|
+| `otp_send_attempt` | Every send that reaches `sendOtpAction` — one per outcome branch | `outcome` (`sent`/`blocked`/`failed`), `block_reason` (`cooldown`/`session_cap`/`ip_cap`/`ok`/`backend_rejected`/`no_verification_id`), `ip` (raw client IP — the blocklist value), `normalized_ip` (IPv6→/64, the Redis key), `is_whatsapp`, `source` (`server_action`) | `serverActions/sendOtp.ts` |
+
+Notes:
+- `distinct_id` is the hashed durable session key (`sid`, from the `VISIT-ID` cookie) — no PII,
+  stable across the token/user-id churn the limiter defends against.
+- `$process_person_profile: false` (no person profile, mirrors the client `identified_only`
+  config) and `$geoip_disable: true` (don't geo-resolve the *server's* IP).
+- **`ip` is PII.** It's stored deliberately for abuse forensics/blocklisting. Blocking itself
+  happens at the **Vercel Firewall** edge, not in PostHog.
+- Insight + how to read it: `docs/posthog-otp-abuse-insight.md`.
 
 ---
 
