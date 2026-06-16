@@ -38,6 +38,7 @@ import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import OrderChatIcon from "components/settings/OrderChatIcon";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { OPEN_DELIVERY_CHAT_EVENT } from "utils/notificationEvents";
 import auth from "services/auth";
 import OrderOptionsMenu from "./OrderOptionsMenu";
 import OrderItemOptions from "./OrderItemOptions";
@@ -151,21 +152,10 @@ function OrderDetailsWrapper({
         setReturnData(returnRequests);
       }
 
-      if (
-        order_chat_id &&
-        (order_item?.order_status?.value === "out_for_delivery" ||
-          returnRequests?.return_requests_data?.find(
-            (return_item) =>
-              String(return_item.order_id) === String(order_id) ||
-              String(order_item?.return_request_id) === String(order_chat_id),
-          )?.status?.value === "out_for_return")
-      ) {
-        safeGetChatWithShipping({
-          is_return: order_item?.return_request_id,
-          order_id: order_item?.return_request_id,
-          parent_order_id: order_item?.id,
-        });
-      }
+      openShippingChatForChatId(order_chat_id, {
+        orderData: data,
+        returnData: returnRequests,
+      });
       setShouldUpdateOrders(0);
     } catch (error) {
       LogError({
@@ -353,6 +343,49 @@ function OrderDetailsWrapper({
       is_return,
     });
   };
+
+  // Shared chat-open logic used both on mount (with freshly-fetched data) and
+  // when an open tab is asked to show the chat via OPEN_DELIVERY_CHAT_EVENT
+  // (reading current state). The status gate is unchanged: open only for
+  // out_for_delivery / out_for_return.
+  const openShippingChatForChatId = (chatId, source?) => {
+    if (!chatId) return;
+    const data = source?.orderData ?? orderData;
+    const returns = source?.returnData ?? returnData;
+    const order_item = data?.find(
+      (order) =>
+        String(order.id) === String(chatId) ||
+        String(order.return_request_id) === String(chatId),
+    );
+    if (!order_item) return;
+    const isOutForDelivery =
+      order_item?.order_status?.value === "out_for_delivery";
+    const isOutForReturn =
+      returns?.return_requests_data?.find(
+        (return_item) =>
+          String(return_item.order_id) === String(order_id) ||
+          String(order_item?.return_request_id) === String(chatId),
+      )?.status?.value === "out_for_return";
+    if (isOutForDelivery || isOutForReturn) {
+      safeGetChatWithShipping({
+        order_id: order_item?.return_request_id ?? order_item?.id,
+        parent_order_id: order_item?.id,
+        is_return: order_item?.return_request_id,
+      });
+    }
+  };
+
+  // When the service worker focuses this already-open tab for a delivery-worker
+  // message, open the chat in place (no reload).
+  useEffect(() => {
+    const handler = (e) => {
+      const detail = e?.detail || {};
+      if (String(detail.order_group_id) !== String(order_group_id)) return;
+      openShippingChatForChatId(detail.chat_id);
+    };
+    window.addEventListener(OPEN_DELIVERY_CHAT_EVENT, handler);
+    return () => window.removeEventListener(OPEN_DELIVERY_CHAT_EVENT, handler);
+  }, [orderData, returnData, order_id, order_group_id]);
   const ShowChats = () => {
     if (shouldShowChatIcon(ActivePack) && ActivePack?.order_status) {
       let arr = [];

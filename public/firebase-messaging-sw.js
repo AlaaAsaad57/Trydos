@@ -406,19 +406,24 @@ messaging.onBackgroundMessage(async function (payload) {
         // the original behavior (no grouping).
       }
       if (JSON.parse(payload.data.data)?.is_private) {
+        const privateData = JSON.parse(payload.data.data);
+        const orderGroupId = privateData?.order_group_id;
+        const orderId = privateData?.parent_order_id ?? privateData?.order_id;
+        const chatId = privateData?.order_id;
         notificationTitle = "Deleivery Worker";
         notificationOptions = {
           body: "there is new message from Deleivery Worker",
           data: {
             url: buildUrl(
-              `settings/orders/${
-                JSON.parse(payload?.data.data)?.order_group_id
-              }?order_id=${
-                JSON.parse(payload?.data?.data).parent_order_id ??
-                JSON.parse(payload?.data?.data).order_id
-              }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}`,
+              `settings/orders/${orderGroupId}?order_id=${orderId}&chat_id=${chatId}`,
               localePrefix,
             ),
+            // Markers consumed by the notificationclick handler to reuse an
+            // already-open tab on this order's page instead of opening a new one.
+            reuseTab: true,
+            order_group_id: orderGroupId,
+            order_id: orderId,
+            chat_id: chatId,
           },
         };
       } else if (
@@ -542,6 +547,48 @@ messaging.onBackgroundMessage(async function (payload) {
   }
 });
 
+// Reuse an already-open tab that is on this order's detail page and ask it to
+// open the delivery-worker chat in place (no reload). Falls back to opening a
+// new tab when no matching tab exists.
+async function focusOrOpenOrderTab(notificationData, targetUrl) {
+  const baseUrl = self.location.origin;
+  const groupId = notificationData.order_group_id;
+  try {
+    const windowClients = await clients.matchAll({
+      type: "window",
+      includeUncontrolled: true,
+    });
+    // matchAll returns window clients most-recently-focused first, so the first
+    // match is the tab the user used most recently.
+    const match = windowClients.find((client) => {
+      if (!client.url.startsWith(baseUrl) || groupId == null) return false;
+      try {
+        const path = new URL(client.url).pathname;
+        return path.endsWith(`/settings/orders/${groupId}`);
+      } catch (e) {
+        return false;
+      }
+    });
+    if (match) {
+      if ("focus" in match) {
+        await match.focus();
+      }
+      match.postMessage({
+        type: "OPEN_DELIVERY_CHAT",
+        order_group_id: notificationData.order_group_id,
+        order_id: notificationData.order_id,
+        chat_id: notificationData.chat_id,
+      });
+      return;
+    }
+  } catch (e) {
+    // Fall through to opening a new tab.
+  }
+  if (clients.openWindow) {
+    await clients.openWindow(targetUrl);
+  }
+}
+
 // Notification click handler - works for background notifications only
 self.addEventListener("notificationclick", function (event) {
   const baseUrl = self.location.origin;
@@ -550,7 +597,12 @@ self.addEventListener("notificationclick", function (event) {
   event.notification.close();
   // Only open the link by default if this is NOT a call notification
   if (!notificationData.callType) {
-    clients.openWindow(targetUrl); // Android needs explicit close.
+    if (notificationData.reuseTab) {
+      // Delivery-worker chat: reuse an open order tab, else open a new one.
+      event.waitUntil(focusOrOpenOrderTab(notificationData, targetUrl));
+    } else {
+      clients.openWindow(targetUrl); // Android needs explicit close.
+    }
   }
   switch (event.action) {
     case "open_url":

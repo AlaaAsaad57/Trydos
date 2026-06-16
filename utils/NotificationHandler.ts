@@ -17,7 +17,10 @@ import { watchChannel as watchChannelAction } from "store/chat/actions";
 import { REQUESTS_DATA } from "./Requests";
 
 import auth from "services/auth";
-import { MARKET_NOTIFICATION_RECEIVED_EVENT } from "./notificationEvents";
+import {
+  MARKET_NOTIFICATION_RECEIVED_EVENT,
+  OPEN_DELIVERY_CHAT_EVENT,
+} from "./notificationEvents";
 
 // --- Interfaces ---
 
@@ -87,9 +90,24 @@ class ForegroundNotificationHandler {
   }
 
   private handleServiceWorkerMessage(event: MessageEvent): void {
-    const message: ServiceWorkerMessage = event.data;
+    const message: any = event.data;
+    if (!message) return;
     if (message.type === "FCM_NOTIFICATION") {
       this.handleNotification(() => {}, message.payload);
+    } else if (message.type === "OPEN_DELIVERY_CHAT") {
+      // Sent by the service worker when it focused an already-open order tab.
+      // Re-broadcast as a window event the order page listens for.
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent(OPEN_DELIVERY_CHAT_EVENT, {
+            detail: {
+              order_group_id: message.order_group_id,
+              order_id: message.order_id,
+              chat_id: message.chat_id,
+            },
+          }),
+        );
+      }
     }
   }
 
