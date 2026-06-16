@@ -1616,6 +1616,7 @@ const translations = {
   "Invalid upload response": "استجابة رفع غير صالحة",
   "Upload returned no file": "لم يُرجع الرفع أي ملف",
   "Upload returned no files": "لم يُرجع الرفع أي ملفات",
+  "Buyer": "المشتري",
 };
 
 export default translations;

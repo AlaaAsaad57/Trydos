@@ -1622,6 +1622,7 @@ const translations = {
   "Invalid upload response": "Geçersiz yükleme yanıtı",
   "Upload returned no file": "Yükleme hiçbir dosya döndürmedi",
   "Upload returned no files": "Yükleme hiçbir dosya döndürmedi",
+  "Buyer": "Alıcı",
 };
 
 export default translations;

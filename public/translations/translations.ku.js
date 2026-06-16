@@ -1645,6 +1645,7 @@ const translations = {
   "Invalid upload response": "وەڵامی بارکردنی نادروستە",
   "Upload returned no file": "بارکردن هیچ فایلێک نەگەڕاندەوە",
   "Upload returned no files": "بارکردن هیچ فایلێک نەگەڕاندەوە",
+  "Buyer": "کڕیار",
 };
 
 export default translations;
