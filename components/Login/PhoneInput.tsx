@@ -422,7 +422,7 @@ function PhoneInput({
           +
         </span>
         <label htmlFor="phoneInput" className="hidden">
-          Search
+          {translateFunction("Search")}
         </label>
         {/* <input
           data-cy="phone-number-input"

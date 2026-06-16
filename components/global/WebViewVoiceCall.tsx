@@ -8,6 +8,7 @@ import AgoraRTC, {
 import { useStopwatch } from "react-timer-hook";
 import { getTwoLetters } from "components/Chat/chatsFunctions";
 import { GetImageUrl } from "utils/tinyUtils";
+import { translateFunction } from "utils/functions";
 import {
   CALL_END_DURATION_MINUTES,
   CALL_WARNING_MESSAGE_MINUTES,
@@ -176,7 +177,8 @@ function WebViewVoiceCall(props) {
       <div className="video-call">
         {minutes >= CALL_WARNING_MESSAGE_MINUTES && (
           <div className="call-warn">
-            Call End in {CALL_END_DURATION_MINUTES - minutes} minutes
+            {translateFunction("Call End in")}{" "}
+            {CALL_END_DURATION_MINUTES - minutes} minutes
           </div>
         )}
         {
@@ -354,7 +356,7 @@ function WebViewVoiceCall(props) {
             }}
           >
             <img src="/icons/chat/endCall.svg" />
-            <span>End Call</span>
+            <span>{translateFunction("End Call")}</span>
           </div>
         </div>
 
@@ -371,7 +373,7 @@ function WebViewVoiceCall(props) {
             ) : callStatus ? (
               <span>{callStatus}</span>
             ) : (
-              <span>Calling ...</span>
+              <span>{translateFunction("Calling ...")}</span>
             )}
           </div>
         )}

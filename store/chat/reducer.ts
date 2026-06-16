@@ -1058,7 +1058,7 @@ export const useChatStore = (set: any, get: any) => ({
       }
     } else {
       const Toast = async () => {
-        showErrorNotification("only 3 pinned chats allowed");
+        showErrorNotification(translate("only 3 pinned chats allowed"));
       };
       Toast();
     }

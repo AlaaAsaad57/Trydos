@@ -40,7 +40,7 @@ function ChatInfo({
         error: error,
         scenario: "handleCopyPhone in chat info - chat widget",
       });
-      showErrorNotification("Number copy failed");
+      showErrorNotification(translateFunction("Number copy failed"));
     }
   };
   const [showMedia, setMedia] = useState(false);

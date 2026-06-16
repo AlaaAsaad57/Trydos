@@ -3,6 +3,7 @@ import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";
 import { showErrorNotification } from "store/notifications/reducer";
+import { translateFunction } from "utils/functions";
 import { LogError } from "utils/functions";
 
 function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
@@ -132,7 +133,7 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
         error: error,
         scenario: "initializeMediaRecorder in SearchVoice",
       });
-      showErrorNotification("Microphone access denied");
+      showErrorNotification(translateFunction("Microphone access denied"));
     }
   };
 
@@ -164,10 +165,10 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
           lang: lang,
         });
       } else {
-        showErrorNotification("Try again with clear voice");
+        showErrorNotification(translateFunction("Try again with clear voice"));
       }
     } catch (error) {
-      showErrorNotification("Failed to process audio");
+      showErrorNotification(translateFunction("Failed to process audio"));
     } finally {
       setIsProcessing(false);
     }
@@ -289,7 +290,9 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
               src="/icons/SearchMicIcon.svg"
               data-cy="searchVoiceIcon"
               onClick={() => {
-                showErrorNotification("Browser does not support this feature");
+                showErrorNotification(
+                  translateFunction("Browser does not support this feature"),
+                );
               }}
               className={`opacity-50 cursor-pointer`}
             />

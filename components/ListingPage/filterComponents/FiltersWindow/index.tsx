@@ -317,7 +317,7 @@ const FiltersWindowUI = ({
               <div className="price-min-max flex-row z-20">
                 {filters?.prices?.length && filters?.prices?.[0] >= 0 && (
                   <div className="price-min">
-                    Min{" "}
+                    {translateFunction("Min")}{" "}
                     {RoundPrice({
                       num: filters.prices?.[0] || filters?.prices?.[0],
                       rate: currency?.exchange_rate,
@@ -328,7 +328,7 @@ const FiltersWindowUI = ({
                 )}
                 {filters?.prices?.[1] >= 0 && (
                   <div className="price-max">
-                    Max{" "}
+                    {translateFunction("Max")}{" "}
                     {RoundPrice({
                       num: filters.prices?.[1] || filters?.prices?.[1],
                       rate: currency?.exchange_rate,

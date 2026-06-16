@@ -6,6 +6,9 @@
 .pnp.js
 .cursor
 req.json
+# generated localization scan reports
+hardcoded-text-report.json
+hardcoded-text-report.md
 # testing
 /coverage/*
 /site/*

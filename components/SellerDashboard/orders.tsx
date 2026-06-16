@@ -1422,7 +1422,7 @@ const OrderListScreen = ({
                       <span className="font-bold text-[#505050] text-[12px]">
                         {itemCount}
                       </span>
-                      <span className="text-[#505050] text-[12px]">Item</span>
+                      <span className="text-[#505050] text-[12px]">{translateFunction("Item")}</span>
                       <span className="text-[#505050] text-[12px]">.</span>
                       <span className="font-bold text-[#505050] text-[12px]">
                         {order.order_amount ?? 0}
@@ -1565,7 +1565,7 @@ const OrderDetailScreen = ({
           <div className="bg-[#F4F4F4] px-3 py-2 rounded-[15px] flex flex-col justify-start h-[74px] items-start">
             <Icons.Bag2 className="w-[18px] h-[18px]" />
             <span className="text-[9px] text-[#8D8D8D] mt-[5px]">
-              Order Number
+              {translateFunction("Order Number")}
             </span>
             <span className="text-[12px] text-[#1D1D1D] font-bold">
               {order.id}
@@ -1574,7 +1574,7 @@ const OrderDetailScreen = ({
           <div className="bg-[#F4F4F4] px-3 py-2 rounded-[15px] flex flex-col justify-start h-[74px] items-start">
             <Icons.Clock className="w-[18px] h-[18px]" />
             <span className="text-[9px] text-[#8D8D8D] mt-[5px]">
-              Order Date
+              {translateFunction("Order Date")}
             </span>
             <span className="text-[12px] text-[#1D1D1D]">
               {formatCreatedAt(createdAt) || "N/A"}
@@ -1583,7 +1583,7 @@ const OrderDetailScreen = ({
           <div className="bg-[#F4F4F4] px-3 py-2 rounded-[15px] flex flex-col justify-start h-[74px] items-start">
             <Icons.FileText className="w-[18px] h-[18px]" />
             <span className="text-[9px] text-[#8D8D8D] mt-[5px]">
-              Order Invoice
+              {translateFunction("Order Invoice")}
             </span>
             <div className="text-[12px] text-[#1D1D1D] font-bold">
               {orderTotal}
@@ -1598,10 +1598,10 @@ const OrderDetailScreen = ({
             <div className="flex items-center">
               <Icons.ShoppingCart />
             </div>
-            <span className="text-[10px] text-[#8D8D8D]">Collect Type</span>
+            <span className="text-[10px] text-[#8D8D8D]">{translateFunction("Collect Type")}</span>
             <div className="flex">
               <div className="text-[12px] mr-[22px] text-[#1D1D1D]">
-                Collect
+                {translateFunction("Collect")}
               </div>
               <div className="flex flex-row gap-x-[8px]">
                 <Icons.CheckCircle className="w-[15px] h-[15px] text-[#000000]" />
@@ -1629,7 +1629,7 @@ const OrderDetailScreen = ({
               <Icons.Clock2Image />
             </div>
             <span className="text-[10px] text-[#8D8D8D]">
-              Duration To Do Action
+              {translateFunction("Duration To Do Action")}
             </span>
             <div className="text-[12px] text-[#388CFF]">
               {remainingMinutes > 0
@@ -1779,20 +1779,20 @@ const OrderDetailScreen = ({
                     <div className="space-y-1">
                       <div className="flex flex-row items-center gap-10">
                         <div className="text-xs flex mb-[5px]">
-                          <span className="text-gray-400 mr-[5px]">Color:</span>{" "}
+                          <span className="text-gray-400 mr-[5px]">{translateFunction("Color:")}</span>{" "}
                           <span className="text-gray-700 font-medium">
                             {variantColor || translateFunction("N/A")}
                           </span>
                         </div>
                         <div className="text-xs flex mb-[5px]">
-                          <span className="text-gray-400 mr-[5px]">Size:</span>{" "}
+                          <span className="text-gray-400 mr-[5px]">{translateFunction("Size:")}</span>{" "}
                           <span className="text-gray-700 font-medium">
                             {variantSize || translateFunction("N/A")}
                           </span>
                         </div>
                       </div>
                       <div className="text-xs flex mb-[5px]">
-                        <span className="text-gray-400 mr-[5px]">ID:</span>{" "}
+                        <span className="text-gray-400 mr-[5px]">{translateFunction("ID:")}</span>{" "}
                         <span className="text-gray-700 font-medium">
                           {item?.product_id ?? item?.id ?? "N/A"}
                         </span>
@@ -1801,7 +1801,7 @@ const OrderDetailScreen = ({
 
                     <div className="flex justify-between items-end mb-[5px]">
                       <div className="text-xs text-[#8D8D8D]">
-                        Quantity:{" "}
+                        {translateFunction("Quantity:")}{" "}
                         <span className="text-gray-900 font-bold">{qty}</span>
                       </div>
                       <div className="text-right">
@@ -1814,7 +1814,7 @@ const OrderDetailScreen = ({
                       </div>
                     </div>
                     <div className="text-xs text-[#8D8D8D]">
-                      Status:{" "}
+                      {translateFunction("Status:")}{" "}
                       <span className="text-[#505050]">{statusLabel}</span>
                     </div>
                   </div>

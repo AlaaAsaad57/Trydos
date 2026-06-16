@@ -1,6 +1,6 @@
 import React from "react";
 import { useAppStore } from "store";
-import { getUserChat } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
 
 function RepliedTextMessage({
@@ -46,7 +46,7 @@ function RepliedTextMessage({
         }
         {deleted_by_user_id ? (
           <span className="message-body-text-content">
-            this message was deleted
+            {translateFunction("this message was deleted")}
           </span>
         ) : (
           <span className="message-body-text-content">{content}</span>

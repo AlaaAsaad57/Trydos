@@ -24,7 +24,7 @@ function ChatListSearch(props) {
   return (
     <div className="chat-window-search-holder">
       <label htmlFor="search" className="hidden">
-        Search
+        {translateFunction("Search")}
       </label>
       <input
         aria-label="Search"

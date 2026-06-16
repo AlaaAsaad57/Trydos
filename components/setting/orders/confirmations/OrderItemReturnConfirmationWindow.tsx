@@ -339,7 +339,7 @@ const RenderReturnedItem = ({
             {/* Quantity Badge */}
             <div className="absolute bottom-3 left-3">
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 backdrop-blur-xs">
-                Qty: {parseInt(return_item.return_request_product_quantity)}
+                {translateFunction("Qty:")} {parseInt(return_item.return_request_product_quantity)}
               </span>
             </div>
           </div>
@@ -361,7 +361,7 @@ const RenderReturnedItem = ({
             {/* Price and Subtotal */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex flex-col">
-                <span className="text-xs text-gray-500">Price</span>
+                <span className="text-xs text-gray-500">{translateFunction("Price")}</span>
                 <span className="text-sm font-medium text-gray-900">
                   {RoundPrice({
                     num: return_item.product_price,
@@ -371,7 +371,7 @@ const RenderReturnedItem = ({
                 </span>
               </div>
               <div className="flex flex-col items-end">
-                <span className="text-xs text-gray-500">Subtotal</span>
+                <span className="text-xs text-gray-500">{translateFunction("Subtotal")}</span>
                 <span className="text-sm font-semibold text-blue-600">
                   {RoundPrice({
                     num:

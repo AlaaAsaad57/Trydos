@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";
+import { translateFunction } from "utils/functions";
 
 function SearchHistory({ options, setOptions, deleteOption }) {
   const { setSearchPartialLoading, setSearchLoading, setResettingLoadMore } =
@@ -67,7 +68,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
             className="filter-label-search"
             data-cy="SearchHistoryStatement"
           >
-            Search History
+            {translateFunction("Search History")}
           </span>
         )}
       </div>
@@ -119,7 +120,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
             localStorage.setItem("search-history", JSON.stringify([]));
           }}
         >
-          Clear All
+          {translateFunction("Clear All")}
         </span>
       )}
 

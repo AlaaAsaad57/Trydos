@@ -120,7 +120,7 @@ function StoriesList() {
         {/* End of stories indicator */}
         {!hasMoreStories && storiesData.length > 0 && (
           <div className="flex justify-center items-center py-4 text-gray-500 text-sm">
-            No more stories
+            {translateFunction("No more stories")}
           </div>
         )}
       </div>

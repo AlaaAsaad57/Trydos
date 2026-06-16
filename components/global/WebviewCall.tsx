@@ -26,7 +26,7 @@ const WebViewVideoCall = dynamic(() => import("./WebViewVideoCall"), {
           marginRight: "10px",
         }}
       />
-      Loading Call Information...
+      {translateFunction("Loading Call Information...")}
     </div>
   ),
 });
@@ -54,7 +54,7 @@ const WebViewVoiceCall = dynamic(() => import("./WebViewVoiceCall"), {
           marginRight: "10px",
         }}
       />
-      Loading Call Information...
+      {translateFunction("Loading Call Information...")}
     </div>
   ),
 });
@@ -68,7 +68,7 @@ import {
   getUserInfo,
 } from "./WebViewActions";
 
-import { LogError } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 function WebviewCall() {
   const [error, setError] = useState(null);
   const getToken = (tok) => {

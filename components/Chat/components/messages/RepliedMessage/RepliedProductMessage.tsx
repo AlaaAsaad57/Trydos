@@ -1,6 +1,6 @@
 import React from "react";
 import ChatPhoto from "../../ChatPhoto";
-import { getUserChat } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 
 function RepliedProductMessage({
@@ -41,10 +41,10 @@ function RepliedProductMessage({
         </div>
         {deleted_by_user_id ? (
           <span className="message-body-text-content">
-            this message was deleted
+            {translateFunction("this message was deleted")}
           </span>
         ) : (
-          <>Product</>
+          <>{translateFunction("Product")}</>
         )}
       </div>
     </div>

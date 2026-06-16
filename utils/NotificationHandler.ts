@@ -156,7 +156,7 @@ class ForegroundNotificationHandler {
 
       switch (eventType) {
         case "InAnotherCallEvent":
-          showErrorNotification("User In Another Call", 3000);
+          showErrorNotification(translateFunction("User In Another Call"), 3000);
           break;
 
         case "RefuseCallEvent":

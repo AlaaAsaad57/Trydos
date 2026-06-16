@@ -274,7 +274,7 @@ export default function AddStoryWidget() {
           media_type: "video",
           has_link: !!link,
         });
-        showSuccessNotification("Story Uploaded");
+        showSuccessNotification(translateFunction("Story Uploaded"));
         setPreview(null);
         setFile(null);
         setSelectedFile(null);
@@ -321,7 +321,7 @@ export default function AddStoryWidget() {
           media_type: "image",
           has_link: !!link,
         });
-        showSuccessNotification("Story Uploaded");
+        showSuccessNotification(translateFunction("Story Uploaded"));
         setPreview(null);
         setFile(null);
         setSelectedFile(null);
@@ -338,7 +338,7 @@ export default function AddStoryWidget() {
         error: error,
         scenario: "Upload Image Story",
       });
-      showErrorNotification("Error Uploading Story");
+      showErrorNotification(translateFunction("Error Uploading Story"));
     }
   };
   const selectMedia = async ({ imageFile, link }) => {

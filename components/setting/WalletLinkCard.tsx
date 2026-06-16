@@ -97,7 +97,7 @@ function WalletLinkCard({ isRtl, language, country }) {
             height={80}
           >
             <div className="text-[#1D1D1D] text-[14px] regular p-[12px] text-center flex items-center justify-center h-full">
-              Under Development
+              {translateFunction("Under Development")}
             </div>
             {/* // @ts-ignore */}
             {/* <RDB

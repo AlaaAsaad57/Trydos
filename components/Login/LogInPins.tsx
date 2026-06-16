@@ -455,7 +455,7 @@ function LogInPins({
                   {translate("Resend Code", language)}
                 </span>
                 <span className="blue-text" style={{ color: "#5d5d5d" }}>
-                  OR
+                  {translateFunction("OR")}
                 </span>
                 <span
                   className="blue-text"

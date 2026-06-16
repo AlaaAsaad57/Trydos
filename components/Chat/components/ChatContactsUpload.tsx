@@ -204,7 +204,7 @@ function ChatContactsUpload() {
       ) : (
         <div className="w-full p-4 rounded-md bg-white border border-gray-200 shadow-xs">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-gray-700">Add a new contact</h3>
+            <h3 className="font-semibold text-gray-700">{translateFunction("Add a new contact")}</h3>
             <button onClick={() => setShowAddForm(false)}>
               <CloseIcon />
             </button>
@@ -213,7 +213,7 @@ function ChatContactsUpload() {
           <div className="space-y-4">
             <div>
               <label className="text-xs font-bold text-gray-500 uppercase">
-                Contact Name
+                {translateFunction("Contact Name")}
               </label>
               <input
                 type="text"
@@ -226,7 +226,7 @@ function ChatContactsUpload() {
 
             <div>
               <label className="text-xs font-bold text-gray-500 uppercase">
-                Phone Number
+                {translateFunction("Phone Number")}
               </label>
               <PhoneInput
                 dialCode={dialCode}
@@ -239,7 +239,7 @@ function ChatContactsUpload() {
               {conflictingName && (
                 <div className="flex items-center gap-1 mt-1 text-orange-600">
                   <p className="text-xs">
-                    Already saved as <strong>{conflictingName}</strong>
+                    {translateFunction("Already saved as")} <strong>{conflictingName}</strong>
                   </p>
                 </div>
               )}

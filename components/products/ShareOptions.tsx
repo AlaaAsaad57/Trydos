@@ -315,7 +315,7 @@ function ShareOptions({ product }: any) {
         >
           <img src="/icons/copyIcon.svg" />
         </div>
-        <div className="share-name">Copy Link</div>
+        <div className="share-name">{translateFunction("Copy Link")}</div>
       </div>
  {canNativeShare && (
         <div className={`share-avatar`} data-cy="NativeShare">
