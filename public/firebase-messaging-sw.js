@@ -1,5 +1,5 @@
 // Force update - increment this version when you want to force update
-const CACHE_VERSION = "v1.0.6";
+const CACHE_VERSION = "v1.0.7";
 const BASE_CLOUDINARY_URL =
   "https://res.cloudinary.com/dtcmozf4d/image/upload/v1";
 // Get image url function
