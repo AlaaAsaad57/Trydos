@@ -1,8 +1,7 @@
-import { translateFunction } from "utils/server";
+import { countryNameFromIso, translateFunction } from "utils/server";
 import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
 import Skeleton from "react-loading-skeleton";
 import ExpectedDeleiveryBanner from "components/products/ExpectedDeleiveryBanner";
-import { GetCountries } from "serverRequests/product";
 
 async function ProductExpectedDeleiveryWrapper({
   language,
@@ -10,10 +9,10 @@ async function ProductExpectedDeleiveryWrapper({
   country,
   StarttingSettingPromise,
 }) {
-  let [productData, starttingSetting, countries] = await Promise.all([
+  let [productData, starttingSetting] = await Promise.all([
     globalPromise,
     StarttingSettingPromise,
-    GetCountries({ country, language }),
+
   ]);
 
   const isRtl = language === "ar" || language === "ku";
@@ -103,14 +102,9 @@ async function ProductExpectedDeleiveryWrapper({
         {translateFunction("Work Days", language)}{" "}
         {translateFunction("At Your Address In", language)}
         <span className="capitalize px-[3px]">
-          {countries?.length ? (
-            translateFunction(
-              countries?.find((s) => s.iso?.toLowerCase() === country)?.name,
-              language,
-            )
-          ) : (
-            <Skeleton width="100%" height="100%" borderRadius={16} />
-          )}
+          { country?countryNameFromIso(country, language): (
+                             <Skeleton width="100%" height="100%" borderRadius={16} />
+                           )}
         </span>
       </span>
     </ExpectedDeleiveryBanner>

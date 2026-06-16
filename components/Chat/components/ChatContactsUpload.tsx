@@ -7,6 +7,7 @@ import { pollinateInput, sanitizePhone } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
 import { allCountries } from "country-telephone-data";
 import { showErrorNotification } from "store/notifications/reducer";
+import { getLocalizedCountryName } from "utils/countryData";
 // --- Utilities ---
 
 /**
@@ -314,6 +315,9 @@ const PhoneInput = ({
   onPhoneChange,
   hasConflict,
 }) => {
+
+  const {language}=useAppStore();
+  
   // Find country for the flag
 
   const activeCountry =
@@ -342,7 +346,7 @@ const PhoneInput = ({
               key={`${country.iso2}-${country.dialCode}`}
               value={`+${country.dialCode}`}
             >
-              +{country.dialCode} ({country.name})
+              +{country.dialCode} ({getLocalizedCountryName(country.iso2,language)})
             </option>
           ))}
         </select>

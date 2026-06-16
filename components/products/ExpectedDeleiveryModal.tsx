@@ -12,6 +12,7 @@ import {
   DeliveredOrder,
   GetProductDeliveryTimes,
 } from "services/products";
+import { countryNameFromIso } from "utils/server";
 function ExpectedDeleiveryModal({
   product_id,
   shipping_days,
@@ -23,7 +24,7 @@ function ExpectedDeleiveryModal({
 }) {
   // Backend signals "no returns" with 0 — hide the return sections entirely.
   const canReturn = Number(allow_return_in_days) > 0;
-  const [countriesData, setCountries] = useState([]);
+ 
   const { lang } = useParams();
   const [country, language] = (lang as string)?.split("-");
   const { ColorBottomSheet, setColorBottomSheet, settings } = useAppStore();
@@ -32,14 +33,14 @@ function ExpectedDeleiveryModal({
     try {
       if (sessionStorage.getItem(`countries-${country}-${language}`)) {
         let data = sessionStorage.getItem(`countries-${country}-${language}`);
-        setCountries(JSON.parse(data));
+        
       } else {
         const data = await GetCountries({ country, language });
         sessionStorage.setItem(
           `countries-${country}-${language}`,
           JSON.stringify(data),
         );
-        setCountries(data);
+        
       }
     } catch (error) {}
   };
@@ -152,10 +153,7 @@ function ExpectedDeleiveryModal({
                 </span>
                 {translateFunction("At Your Address In", language)}
                 <span className="capitalize px-[3px]">
-                  {countriesData?.length ? (
-                    countriesData?.find((s) => s.iso?.toLowerCase() === country)
-                      ?.name
-                  ) : (
+                  { country?countryNameFromIso(country, language): (
                     <Skeleton width="100%" height="100%" borderRadius={16} />
                   )}
                 </span>

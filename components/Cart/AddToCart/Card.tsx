@@ -1,3 +1,4 @@
+import { Skeleton } from "components/Server/Skeleton";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 
@@ -5,6 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { GetCountries } from "serverRequests/product";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
+import { countryNameFromIso } from "utils/server";
 import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
 
 function Card({
@@ -188,11 +190,8 @@ function Card({
             >
               {translateFunction("At Your Address In", language)}
               <span>
-                {countries?.length &&
-                  translateFunction(
-                    countries?.find((s) => s.iso?.toLowerCase() === country)
-                      ?.name,
-                    language,
+                 { country?countryNameFromIso(country, language): (
+                    <Skeleton width="100%" height="100%" borderRadius={16} />
                   )}
               </span>
             </span>
