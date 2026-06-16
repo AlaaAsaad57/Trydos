@@ -1,5 +1,5 @@
 "use client";
-import { getCountryNameByIso2 } from "utils/countryData";
+import { getLocalizedCountryName } from "utils/countryData";
 import React, { useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import Map from "./Map";
@@ -237,10 +237,10 @@ const CountryLabel = () => {
   const { setAddressDetails } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
-  let country = lang.split("-")[0];
-  country = {
-    name: getCountryNameByIso2(country),
-    iso: country,
+  const [countryIso, language] = lang.split("-");
+  const country = {
+    name: getLocalizedCountryName(countryIso, language),
+    iso: countryIso,
   };
 
   useEffect(() => {
@@ -645,10 +645,10 @@ const AddAddressButtons = ({
 
   const { lang } = useParams();
   // @ts-ignore
-  let country = lang.split("-")[0];
-  country = {
-    name: getCountryNameByIso2(country),
-    code: country,
+  const [countryIso, language] = lang.split("-");
+  const country = {
+    name: getLocalizedCountryName(countryIso, language),
+    code: countryIso,
   };
   const handleAddressAction = async () => {
     try {

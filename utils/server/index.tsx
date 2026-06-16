@@ -1,6 +1,7 @@
 import ar from "public/translations/translations.ar.js";
 import ku from "public/translations/translations.ku.js";
 import tr from "public/translations/translations.tr.js";
+import { getLocalizedCountryName } from "utils/countryData";
 const translations = { ar, ku, tr };
 export const getConfiguredImage = ({
   src,
@@ -96,22 +97,11 @@ export function translateFunction(key: string, language: string) {
 }
 
 // Resolve a country ISO code (e.g. "TR") to its localized name in the given
-// language, falling back to English then the raw ISO code.
+// language. Delegates to the shared resolver so behaviour (incl. ku → Sorani)
+// stays consistent everywhere.
 export function countryNameFromIso(iso?: string, language = "en"): string {
   if (!iso) return null;
-  const code = iso.toUpperCase();
-  try {
-    const name =
-      new Intl.DisplayNames([language], { type: "region" }).of(code) ||
-      new Intl.DisplayNames(["en"], { type: "region" }).of(code);
-    return name || code;
-  } catch {
-    try {
-      return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code;
-    } catch {
-      return code;
-    }
-  }
+  return getLocalizedCountryName(iso, language) || iso.toUpperCase();
 }
 
 // Build the localized "Made In <country>" label. Country name is localized and

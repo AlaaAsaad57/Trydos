@@ -2,7 +2,7 @@ import { useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 
 import { useParams } from "next/navigation";
-import { getCountryNameByIso2 } from "utils/countryData";
+import { getLocalizedCountryName } from "utils/countryData";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
@@ -14,10 +14,10 @@ function SelectRegion({ closeSelect }) {
   const { addressDetails } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
-  let country = lang.split("-")[0];
-  country = {
-    name: getCountryNameByIso2(country),
-    iso: country,
+  const [countryIso, language] = lang.split("-");
+  const country = {
+    name: getLocalizedCountryName(countryIso, language),
+    iso: countryIso,
   };
   const showRegion = () => {
     return (

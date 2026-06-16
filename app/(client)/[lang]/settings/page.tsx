@@ -7,7 +7,7 @@ import GoToSellerDashBoard from "components/settings/GoToSellerDashBoard";
 import { Suspense } from "react";
 import Skeleton from "react-loading-skeleton";
 import { translateFunction } from "utils/server";
-import { getCountryNameByIso2 } from "utils/countryData";
+import { getLocalizedCountryName } from "utils/countryData";
 import { buildAlternates } from "serverRequests/meta/buildAlternates";
 import RouterRefresh from "components/global/RouterRefresh";
 
@@ -90,7 +90,7 @@ async function page({ params }) {
   ];
 
   let countryData = {
-    name: getCountryNameByIso2(country),
+    name: getLocalizedCountryName(country, language),
     iso: country,
   };
 
