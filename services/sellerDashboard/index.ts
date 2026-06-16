@@ -528,7 +528,7 @@ class SellerDashboardService {
     folder: string,
   ): { url: string; name: string }[] {
     const arr: any[] =
-      data?.files ?? data?.urls ?? data?.results ?? data?.data ?? data ?? [];
+      data?.urls ??( data?.url&&[data?.url]);
     if (!Array.isArray(arr)) return [];
     return arr
       .map((item: any, i: number) => {
