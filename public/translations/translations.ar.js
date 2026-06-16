@@ -712,6 +712,7 @@ const translations = {
   "Verified by trydos": "تم التحقق بواسطة ترايدوس",
   "Made In Turkey": "صنع في تركيا",
   "Made In {country}": "صنع في {country}",
+  "You May Also Like": "قد يعجبك أيضاً",
   "Free Return": "ارجاع مجاني",
   "Read More": "عرض المزيد",
   "Read Less": "عرض اقل",
@@ -1512,7 +1513,7 @@ const translations = {
     "للمساعدة بشأن الطلبات أو الإرجاع أو حسابك، تواصل مع فريق الدعم عبر التطبيق أو بالبريد الإلكتروني support@trydos.com.",
   "Business & Boutiques": "الأعمال والمتاجر",
   "Interested in selling on TryDos? Get in touch and our team will guide you through joining as a boutique.":
-    "هل ترغب في البيع على ترايدوس؟ تواصل معنا وسيرشدك فريقنا خلال الانضمام كمتجر."
+    "هل ترغب في البيع على ترايدوس؟ تواصل معنا وسيرشدك فريقنا خلال الانضمام كمتجر.",
   "Checkout": "الدفع",
   "Wallet Checkout": "الدفع بالمحفظة",
   "Select Payment Currency": "اختر عملة الدفع",

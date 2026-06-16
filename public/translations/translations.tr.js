@@ -610,6 +610,7 @@ const translations = {
   "Verified by trydos": "trydos tarafından doğrulandı",
   "Made In Turkey": "Türkiye'de Üretilmiştir",
   "Made In {country}": "{country} Üretimi",
+  "You May Also Like": "Bunları da Beğenebilirsin",
   "Read More": "Daha Fazla Oku",
   "Read Less": "Daha Az Oku",
   "All Inclusive Without Additions": "Her Şey Dahil Ekstra Yok",
@@ -1518,7 +1519,7 @@ const translations = {
       "Siparişler, iadeler veya hesabınız konusunda yardım için uygulama üzerinden veya support@trydos.com e-posta adresinden destek ekibimizle iletişime geçin.",
     "Business & Boutiques": "İş Ortaklığı ve Butikler",
     "Interested in selling on TryDos? Get in touch and our team will guide you through joining as a boutique.":
-      "TryDos'ta satış yapmak ister misiniz? Bize ulaşın, ekibimiz butik olarak katılım sürecinde size rehberlik etsin."
+      "TryDos'ta satış yapmak ister misiniz? Bize ulaşın, ekibimiz butik olarak katılım sürecinde size rehberlik etsin.",
   "Checkout": "Ödeme",
   "Wallet Checkout": "Cüzdan ile Ödeme",
   "Select Payment Currency": "Ödeme Para Birimini Seçin",

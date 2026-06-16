@@ -700,6 +700,7 @@ const translations = {
   "Verified by trydos": "لەلایەن ترایدۆسەوە پشتڕاستکراوە",
   "Made In Turkey": "لە تورکیا دروستکراوە",
   "Made In {country}": "لە {country} دروستکراوە",
+  "You May Also Like": "لەوانەیە ئەمانەشت بەدڵ بێت",
   "Free Return": "گەڕاندنەوەی بەخۆڕایی",
   "Read More": "زیاتر بخوێنەوە",
   "Read Less": "کەمتر بخوێنەوە",
@@ -1541,7 +1542,7 @@ const translations = {
       "بۆ یارمەتی دەربارەی داواکاری یان گەڕاندنەوە یان هەژمارەکەت، پەیوەندی بە تیمی پشتگیریمانەوە بکە لە ڕێگەی ئەپەکە یان بە ئیمەیڵ support@trydos.com.",
     "Business & Boutiques": "بازرگانی و بووتیکەکان",
     "Interested in selling on TryDos? Get in touch and our team will guide you through joining as a boutique.":
-      "ئارەزووی فرۆشتنت لەسەر ترایدۆس هەیە؟ پەیوەندیمان پێوە بکە و تیمەکەمان ڕێنماییت دەکات بۆ بەشداریکردن وەک بووتیک."
+      "ئارەزووی فرۆشتنت لەسەر ترایدۆس هەیە؟ پەیوەندیمان پێوە بکە و تیمەکەمان ڕێنماییت دەکات بۆ بەشداریکردن وەک بووتیک.",
   "Checkout": "پارەدان",
   "Wallet Checkout": "پارەدان بە جزدان",
   "Select Payment Currency": "دراوی پارەدان هەڵبژێرە",
