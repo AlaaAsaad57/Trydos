@@ -194,7 +194,7 @@ const NotificationsContainer = () => {
               {/* Sender Name */}
               <div className="flex items-center gap-2">
                 <p className="text-[15px] font-bold text-[#402CDD] truncate">
-                  {notification.chatData.senderName || "Unknown"}
+                  {notification.chatData.senderName || translateFunction("Unknown")}
                 </p>
                 <span className="text-[10px] text-[#676767] font-medium">
                   {translateFunction("now")}

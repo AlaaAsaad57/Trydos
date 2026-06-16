@@ -168,7 +168,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps)
           </button>
 
           <span className="font-semibold text-lg tracking-wide text-white/90">
-            {imageFile ? "Preview Photo" : vidUrl ? "Preview Video" : "Create Story"}
+            {imageFile ? translateFunction("Preview Photo") : vidUrl ? translateFunction("Preview Video") : translateFunction("Create Story")}
           </span>
 
           <div className="w-10 h-10" /> {/* Spacer */}

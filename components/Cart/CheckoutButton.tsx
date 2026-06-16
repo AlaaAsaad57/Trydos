@@ -136,12 +136,12 @@ export default function CheckoutButton({ local = "gb-en" }) {
 
   const handleCheckout = async () => {
     if (!cart[0]?.cart_group_id || !selectedCurrency || checkoutAmount <= 0) {
-      alert("Invalid cart data");
+      alert(translateFunction("Invalid cart data"));
       return;
     }
 
     if (checkoutAmount > availableBalance) {
-      alert("Insufficient balance in your wallet.");
+      alert(translateFunction("Insufficient balance in your wallet."));
       return;
     }
 
@@ -157,14 +157,14 @@ export default function CheckoutButton({ local = "gb-en" }) {
       });
 
       if (result) {
-        alert("Payment successful!");
+        alert(translateFunction("Payment successful!"));
         setShowModal(false);
         // Optionally refresh cart or redirect
         window.location.reload();
       }
     } catch (error) {
       console.error("Checkout failed:", error);
-      alert("Payment failed. Please try again.");
+      alert(translateFunction("Payment failed. Please try again."));
     } finally {
       setIsProcessing(false);
     }

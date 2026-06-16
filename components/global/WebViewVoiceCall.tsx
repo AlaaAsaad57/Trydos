@@ -226,8 +226,8 @@ function WebViewVoiceCall(props) {
         <span className="caller-name">
           {props.data?.is_private
             ? props.data?.is_private === "customer"
-              ? "Customer"
-              : "Deleivery Worker"
+              ? translateFunction("Customer")
+              : translateFunction("Deleivery Worker")
             : props.userData.name || props.userData.phone}
         </span>
 
@@ -389,7 +389,7 @@ function WebViewVoiceCall(props) {
             flexDirection: "column",
           }}
         >
-          <span>Errors: {error?.message || "None"}</span>
+          <span>Errors: {error?.message || translateFunction("None")}</span>
         </div>
       )}
     </>

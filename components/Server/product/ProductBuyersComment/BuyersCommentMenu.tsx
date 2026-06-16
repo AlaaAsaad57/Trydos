@@ -151,7 +151,7 @@ function BuyersCommentMenu({
               disabled={loading}
             >
               <img src="/icons/PenIcon.svg" className="w-4 h-4" />
-              {loading ? "Updating..." : translateFunction("Edit")}
+              {loading ? translateFunction("Updating...", language) : translateFunction("Edit")}
             </button>
           )}
           {isOwner && (

@@ -1591,7 +1591,7 @@ function SellerDashBoard() {
                                               {rolesForChangeLoadingMore ? (
                                                 <Spinner />
                                               ) : (
-                                                "Load more"
+                                                translateFunction("Load more")
                                               )}
                                             </button>
                                           </div>

@@ -40,8 +40,8 @@ function CallComponentWidget({
       <span className="caller-name" style={{ top: "400px" }}>
         {data?.is_private
           ? data?.is_private === "customer"
-            ? "Customer"
-            : "Deleivery Worker"
+            ? translateFunction("Customer")
+            : translateFunction("Deleivery Worker")
           : userData.name || userData.phone}
       </span>
       <div

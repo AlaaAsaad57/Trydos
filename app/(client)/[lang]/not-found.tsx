@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "store";
+import { translateFunction } from "utils/functions";
 
 export default function NotFound() {
   const params = useParams();
@@ -130,35 +131,35 @@ export default function NotFound() {
             href={`/${lang}/categories`}
             className="inline-flex items-center justify-center px-8 py-4 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full transition-all duration-300 font-quicksand-medium text-lg min-w-[200px]"
           >
-            {isArabic ? "تصفح الفئات" : "Browse Categories"}
+            {isArabic ? "تصفح الفئات" : translateFunction("Browse Categories")}
           </Link>
         </div>
 
         {/* Popular Links */}
         <div className="mt-12 pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-500 mb-4 font-quicksand-regular">
-            {isArabic ? "روابط شائعة:" : "Popular Links:"}
+            {isArabic ? "روابط شائعة:" : translateFunction("Popular Links:")}
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-sm">
             <Link
               href={`/${lang}/featured`}
               className="text-gray-600 hover:text-black transition-colors font-quicksand-regular"
             >
-              {isArabic ? "المنتجات المميزة" : "Featured Products"}
+              {isArabic ? "المنتجات المميزة" : translateFunction("Featured Products")}
             </Link>
             <span className="text-gray-300">•</span>
             <Link
               href={`/${lang}/flashDeals`}
               className="text-gray-600 hover:text-black transition-colors font-quicksand-regular"
             >
-              {isArabic ? "العروض السريعة" : "Flash Deals"}
+              {isArabic ? "العروض السريعة" : translateFunction("Flash Deals")}
             </Link>
             <span className="text-gray-300">•</span>
             <Link
               href={`/${lang}/filters/boutiques`}
               className="text-gray-600 hover:text-black transition-colors font-quicksand-regular"
             >
-              {isArabic ? "البوتيكات" : "Boutiques"}
+              {isArabic ? "البوتيكات" : translateFunction("Boutiques")}
             </Link>
           </div>
         </div>

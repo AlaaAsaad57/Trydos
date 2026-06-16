@@ -39,7 +39,8 @@ function SelectRegion({ closeSelect }) {
             data-cy="Province-extend"
           >
             <span className="px-1">|</span>
-            {addressDetails.region_details?.province || "Province"}
+            {addressDetails.region_details?.province ||
+              translateFunction("Province")}
           </div>
         )}
         {addressDetails.region_details?.city && (
@@ -52,7 +53,7 @@ function SelectRegion({ closeSelect }) {
             data-cy="Town-extend"
           >
             <span className="px-1">|</span>
-            {addressDetails.region_details?.city || "Town"}
+            {addressDetails.region_details?.city || translateFunction("Town")}
           </div>
         )}
         {addressDetails.region_details?.town && (
@@ -65,7 +66,8 @@ function SelectRegion({ closeSelect }) {
             data-cy="Suburb-extend"
           >
             <span className="px-1">|</span>
-            {addressDetails.region_details?.town || "Suburb"}
+            {addressDetails.region_details?.town ||
+              translateFunction("Suburb")}
           </div>
         )}
       </>

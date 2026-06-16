@@ -576,7 +576,7 @@ function ChatVideoCall({ token }) {
             flexDirection: "column",
           }}
         >
-          <span> Errors:{error?.message || "None"}</span>
+          <span> Errors:{error?.message || translateFunction("None")}</span>
         </div>
       )}
     </>

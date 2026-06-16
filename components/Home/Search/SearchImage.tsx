@@ -145,7 +145,9 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     } else {
       setLoading(false);
       alert(
-        "please select supported image format (jpeg, png, jpg, webp, svg, avif)",
+        translateFunction(
+          "please select supported image format (jpeg, png, jpg, webp, svg, avif)",
+        ),
       );
       // @ts-ignore
       event.target.value = null;

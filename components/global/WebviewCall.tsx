@@ -269,7 +269,7 @@ function WebviewCall() {
             src="/icons/chat/CallInProg.svg"
             style={{ marginBottom: "10px", transform: "scale(1.5)" }}
           />
-          {error ? error : "  Loading Call Information..."}
+          {error ? error : translateFunction("Loading Call Information...")}
         </div>
       )}
       {data.authToken && data.action === "receive" && (

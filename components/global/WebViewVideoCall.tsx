@@ -283,8 +283,8 @@ function WebViewVideoCall(props) {
           <span className="caller-name">
             {props.data?.is_private
               ? props.data?.is_private === "customer"
-                ? "Customer"
-                : "Deleivery Worker"
+                ? translateFunction("Customer")
+                : translateFunction("Deleivery Worker")
               : props.userData.name || props.userData.phone}
           </span>
 
@@ -554,7 +554,7 @@ function WebViewVideoCall(props) {
             flexDirection: "column",
           }}
         >
-          <span> Errors:{error?.message || "None"}</span>
+          <span> Errors:{error?.message || translateFunction("None")}</span>
         </div>
       )}
     </>

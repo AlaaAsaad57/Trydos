@@ -187,7 +187,7 @@ function ChatContactsUpload() {
             <SyncIcon spinning={isUploading} />
             <span className="font-medium">
               {isUploading
-                ? "Syncing..."
+                ? translateFunction("Syncing...")
                 : translateFunction("Get from your contacts")}
             </span>
           </button>
@@ -257,7 +257,7 @@ function ChatContactsUpload() {
               }
               className="w-full p-3 bg-[#8fc3ff] hover:bg-[#7eb2ef] text-white font-bold rounded-md disabled:bg-gray-200"
             >
-              {isUploading ? "Adding..." : "Confirm Add"}
+              {isUploading ? translateFunction("Adding...") : translateFunction("Confirm Add")}
             </button>
           </div>
         </div>
