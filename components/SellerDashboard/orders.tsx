@@ -1427,7 +1427,7 @@ const OrderListScreen = ({
                       <span className="font-bold text-[#505050] text-[12px]">
                         {order.order_amount ?? 0}
                       </span>
-                      <span className="text-[#505050] text-[12px]">USD</span>
+                      <span className="text-[#505050] text-[12px]">{translateFunction("USD")}</span>
                     </div>
                   </div>
 
@@ -1587,7 +1587,7 @@ const OrderDetailScreen = ({
             </span>
             <div className="text-[12px] text-[#1D1D1D] font-bold">
               {orderTotal}
-              <span className="font-semibold"> USD</span>
+              <span className="font-semibold"> {translateFunction("USD")}</span>
             </div>
           </div>
         </div>
@@ -1810,7 +1810,7 @@ const OrderDetailScreen = ({
                             ? `${offerPrice} / ${itemTotalPrice}`
                             : `${itemTotalPrice}`}{" "}
                         </span>
-                        <span className="text-[12px] text-[#1D1D1D]">USD</span>
+                        <span className="text-[12px] text-[#1D1D1D]">{translateFunction("USD")}</span>
                       </div>
                     </div>
                     <div className="text-xs text-[#8D8D8D]">

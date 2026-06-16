@@ -276,7 +276,7 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
     <Section icon="products" title="General" desc="Identity & classification of the product.">
       <Grid>
         <Txt label="Product Name" value={form.name} required error={errors.name} disabled={disabled} onChange={(v) => patch({ name: v })} />
-        <Txt label="Seller Product ID" value={form.seller_product_id} required error={errors.seller_product_id} hint="Must stay unique across the marketplace" disabled={disabled} onChange={(v) => patch({ seller_product_id: v })} />
+        <Txt label="Seller Product ID" value={form.seller_product_id} required error={errors.seller_product_id} hint={t("Must stay unique across the marketplace")} disabled={disabled} onChange={(v) => patch({ seller_product_id: v })} />
         <Txt label="Barcode" value={form.barcode} disabled={disabled} onChange={(v) => patch({ barcode: v })} />
         <Select label="Unit" value={form.unit} required error={errors.unit} disabled={disabled} onChange={(v) => patch({ unit: v })} options={UNITS.map((u) => ({ value: u, label: u }))} />
         <Select label="Brand" value={form.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.name }))} />
@@ -300,11 +300,11 @@ export function PricingSection({ form, patch, errors, disabled }: SectionProps) 
     <Section icon="orders" title="Pricing & Stock" desc="Prices are in your display currency; converted server-side.">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <Num label="Unit Price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} onChange={(v) => patch({ unit_price: v })} />
-        <Num label="Discount Price" value={form.discount_price} error={errors.discount_price} hint="Must be ≤ unit price" disabled={disabled} onChange={(v) => patch({ discount_price: v })} />
+        <Num label="Discount Price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} onChange={(v) => patch({ discount_price: v })} />
         <Num label="Purchase Price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} onChange={(v) => patch({ purchase_price: v })} />
         <Num label="Luck Price" value={form.luck_price} disabled={disabled} onChange={(v) => patch({ luck_price: v })} />
         <Num label="Current Stock" value={form.current_stock} error={errors.current_stock} disabled={disabled} onChange={(v) => patch({ current_stock: v })} />
-        <Num label="Weight" value={form.weight} error={errors.weight} hint="Required for pc / liter" disabled={disabled} onChange={(v) => patch({ weight: v })} />
+        <Num label="Weight" value={form.weight} error={errors.weight} hint={t("Required for pc / liter")} disabled={disabled} onChange={(v) => patch({ weight: v })} />
         <Num label="Max Allowed Qty" value={form.max_allowed_qty} disabled={disabled} onChange={(v) => patch({ max_allowed_qty: v })} />
         <Num label="Pieces / Unit" value={form.count_of_pieces} disabled={disabled} step="1" onChange={(v) => patch({ count_of_pieces: v })} />
         <Num label="Shipping Cost" value={form.shipping_cost} disabled={disabled} onChange={(v) => patch({ shipping_cost: v })} />

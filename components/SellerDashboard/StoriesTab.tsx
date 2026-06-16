@@ -599,7 +599,7 @@ function UploadStoryModal({
                       {translateFunction("No media selected")}
                     </span>
                     <span className="text-[12px] text-[#8e8e8e]">
-                      {translateFunction("Photo or video, up to")} {MAX_FILE_SIZE_MB}MB
+                      {translateFunction("Photo or video, up to")} {MAX_FILE_SIZE_MB}{translateFunction("MB")}
                     </span>
                   </button>
                 )}

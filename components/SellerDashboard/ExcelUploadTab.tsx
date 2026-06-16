@@ -407,7 +407,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
             <div className="text-left overflow-hidden">
               <p className="text-[14px] medium text-[#3c3c3c] truncate">{file.name}</p>
               <p className="text-[12px] text-[#8e8e8e]">
-                {(file.size / 1024).toFixed(1)} KB
+                {(file.size / 1024).toFixed(1)} {translateFunction("KB")}
               </p>
             </div>
           </div>

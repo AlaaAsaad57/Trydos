@@ -931,7 +931,7 @@ function SellerDashBoard() {
                     <p className="text-[16px] bold text-[#3c3c3c] leading-none">
                       {Number(product.unit_price).toFixed(2)}
                       <span className="text-[10px] text-[#8e8e8e] ml-1 regular">
-                        USD
+                        {translateFunction("USD")}
                       </span>
                     </p>
                   ) : (

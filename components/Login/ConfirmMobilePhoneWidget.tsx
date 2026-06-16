@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { useAppStore } from "store";
 import { ChatConroller, DisableScroll, EnableScroll } from "utils/tinyUtils";
 import { showSuccessNotification } from "store/notifications/reducer";
+import { translateFunction } from "utils/functions";
 import {
   ORDER_EVENTS,
   resolveVerifyFlowSource,
@@ -42,7 +43,9 @@ function ConfirmMobilePhoneWidget() {
     await navigator.clipboard.writeText(
       JSON.stringify({ last_verify_date, last_unauthorized_request }, null, 2),
     );
-    showSuccessNotification("copy reason of  verification success!");
+    showSuccessNotification(
+      translateFunction("copy reason of verification success!"),
+    );
   };
 
   return (
@@ -119,7 +122,7 @@ function ConfirmMobilePhoneWidget() {
               onClick={copyInitialData}
               className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded font-medium"
             >
-              Copy Data
+              {translateFunction("Copy Data")}
             </button>
 
             <ConfirmMobile

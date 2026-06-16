@@ -1128,7 +1128,7 @@ function ConversationContainer({
                     />
                     <div className="input-chat-container">
                       <label htmlFor="type" className="hidden">
-                        Type
+                        {translateFunction("Type")}
                       </label>
                       <input
                         id="type"
