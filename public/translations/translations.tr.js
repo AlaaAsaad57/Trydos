@@ -609,6 +609,7 @@ const translations = {
   "Good Quality Product": "İyi Kaliteli Ürün",
   "Verified by trydos": "trydos tarafından doğrulandı",
   "Made In Turkey": "Türkiye'de Üretilmiştir",
+  "Made In {country}": "{country} Üretimi",
   "Read More": "Daha Fazla Oku",
   "Read Less": "Daha Az Oku",
   "All Inclusive Without Additions": "Her Şey Dahil Ekstra Yok",

@@ -95,19 +95,35 @@ export function translateFunction(key: string, language: string) {
   return translations[language]?.[key] || key;
 }
 
-// Resolve a country ISO code (e.g. "TR") to its English name so it can be fed
-// into translateFunction (translation keys use English country names).
-export function countryNameFromIso(iso?: string): string {
+// Resolve a country ISO code (e.g. "TR") to its localized name in the given
+// language, falling back to English then the raw ISO code.
+export function countryNameFromIso(iso?: string, language = "en"): string {
   if (!iso) return null;
+  const code = iso.toUpperCase();
   try {
-    const name = new Intl.DisplayNames(["en"], { type: "region" }).of(
-      iso.toUpperCase(),
-    );
-    // Normalize so the key matches existing translations like "Made In Turkey".
-    return name || iso.toUpperCase();
+    const name =
+      new Intl.DisplayNames([language], { type: "region" }).of(code) ||
+      new Intl.DisplayNames(["en"], { type: "region" }).of(code);
+    return name || code;
   } catch {
-    return iso.toUpperCase();
+    try {
+      return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code;
+    } catch {
+      return code;
+    }
   }
+}
+
+// Build the localized "Made In <country>" label. Country name is localized and
+// inserted into a per-language template so word order stays correct (e.g. tr/ku
+// place the country first).
+export function madeInText(iso?: string, language = "en"): string {
+  const country = countryNameFromIso(iso, language);
+  if (!country) return null;
+  return translateFunction("Made In {country}", language).replace(
+    "{country}",
+    country,
+  );
 }
 
 function preciseMultiply(a, b) {

@@ -699,6 +699,7 @@ const translations = {
   "Good Quality Product": "بەرهەمی کوالیتی بەرز",
   "Verified by trydos": "لەلایەن ترایدۆسەوە پشتڕاستکراوە",
   "Made In Turkey": "لە تورکیا دروستکراوە",
+  "Made In {country}": "لە {country} دروستکراوە",
   "Free Return": "گەڕاندنەوەی بەخۆڕایی",
   "Read More": "زیاتر بخوێنەوە",
   "Read Less": "کەمتر بخوێنەوە",

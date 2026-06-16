@@ -1,7 +1,7 @@
 import ProductGeneralProperties from "components/products/ProductGeneralProperties";
 import { Suspense } from "react";
 import ProductRating from "./ProductRating";
-import { countryNameFromIso, translateFunction } from "utils/server";
+import { madeInText, translateFunction } from "utils/server";
 import ProductViews from "components/products/ProductViews";
 import { GetProductGeneralData } from "serverRequests/product";
 import { FlagIcon } from "utils/tinyUtils";
@@ -12,7 +12,7 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
     id: productGlobalData?.id,
   });
   const originIso = productGlobalData?.origin_country_iso;
-  const originCountry = countryNameFromIso(originIso);
+  const originText = madeInText(originIso, language);
   const TotalBuyers = () => {
     let total = 0;
     product?.ratingDetails?.map((s) => (total += s.count));
@@ -74,9 +74,7 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
        {originIso&& <div className="flex-row items-center product-property-row">
           <FlagIcon iso={originIso} isFromProductPage={true} />
-          <span className="mx-1">
-            {translateFunction(`Made In ${originCountry}`, language)}
-          </span>
+          <span className="mx-1">{originText}</span>
         </div>}
       </ProductGeneralProperties>
     </Suspense>

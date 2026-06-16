@@ -711,6 +711,7 @@ const translations = {
   "Recommend It": "ينصح به",
   "Verified by trydos": "تم التحقق بواسطة ترايدوس",
   "Made In Turkey": "صنع في تركيا",
+  "Made In {country}": "صنع في {country}",
   "Free Return": "ارجاع مجاني",
   "Read More": "عرض المزيد",
   "Read Less": "عرض اقل",
