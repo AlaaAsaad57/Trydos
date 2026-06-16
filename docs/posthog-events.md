@@ -165,7 +165,7 @@ Summary of what exists today:
 
 | Group | Events |
 |---|---|
-| Cart edit | `order_add_to_cart` (enriched: `source`, `has_discount`, `is_flash_deal`, `is_luck`, `color_changed`, `size_changed`, `brand`, `category`, `quantity`, `price`, `original_price`, …), `cart_item_qty_increased`, `cart_item_qty_decreased`, `cart_item_removed`, `cart_item_moved_to_old`, `old_cart_item_removed`, `old_cart_cleared`, `order_cart_viewed` |
+| Cart edit | `add_to_cart_widget_opened` (`product_id`, `item_name`, `brand`, `category`, `is_luck`, `is_flash_deal`, `source`; fires once when the add-to-cart bottom sheet mounts, `AddToCartComponent.tsx`), `add_to_cart_buy_clicked` (`product_id`, `item_name`, `brand`, `category`, `variant`, `selected_color`, `selected_size`, `is_valid`, `reached_max`, `already_in_cart`, `is_luck`, `source`; fires on every tap of the "Add To Bag" button **before validation** — so taps that fail because no size/color was picked, or max qty was hit, are captured too, `AddToCart/Button.tsx`), `order_add_to_cart` (enriched: `source`, `has_discount`, `is_flash_deal`, `is_luck`, `color_changed`, `size_changed`, `brand`, `category`, `quantity`, `price`, `original_price`, …), `cart_item_qty_increased`, `cart_item_qty_decreased`, `cart_item_removed`, `cart_item_moved_to_old`, `old_cart_item_removed`, `old_cart_cleared`, `order_cart_viewed` |
 | Discount | `coupon_apply_attempt`, `coupon_apply_succeeded`, `coupon_apply_failed`, `discount_totals_shown`, `order_coupon_used` |
 | Checkout entry | `order_begin_checkout` (mints `order_attempt_id`), `checkout_address_screen_viewed` |
 | Address | `address_list_opened` (`address_count`; checkout list bottom-sheet mount, `AddressListContainer.tsx`), `address_add_started` (`source`; "Add New Shipping Address" tap, `AddressListContainer.tsx`), `address_saved`, `address_save_failed`, `address_selected`, `address_deleted` |
@@ -176,6 +176,12 @@ Summary of what exists today:
 | Payment exec (COD/crypto/card) | `order_submit_attempt`, `payment_redirect_opened`, `order_place_failed` (`reason`, `stage`, `payment_method`) |
 | Payment exec (wallet) | `wallet_modal_opened`, `wallet_payment_attempt`, `wallet_payment_blocked_insufficient`, `wallet_payment_processing`, `wallet_payment_succeeded`, `wallet_payment_timeout`, `wallet_payment_failed`, `wallet_currency_changed`, `wallet_data_load_failed`, `wallet_balance_refreshed` (refresh icon, `PaymentMethod.tsx`) |
 | Completion | `order_completed` (clears `order_attempt_id`), `order_success_done_clicked` |
+
+> **Add-to-cart drop-off funnel:** `add_to_cart_widget_opened` → `add_to_cart_buy_clicked` →
+> `order_add_to_cart`. Step 1→2 measures users who open the bottom sheet but never tap "Add To
+> Bag"; step 2→3 measures taps that didn't result in an add (filter `add_to_cart_buy_clicked`
+> by `is_valid = false` / `reached_max = true` to see why). `order_add_to_cart` only fires on a
+> successful add, so the two new events are the true denominators for intent.
 
 > **`flow_source`** on the verify events is resolved by `resolveVerifyFlowSource()` from the
 > auth store's `shouldAuthinticated` marker: `"open Story"→story`, `"open chat"→chat`,

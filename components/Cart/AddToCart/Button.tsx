@@ -83,6 +83,35 @@ function AddToCartButton({
 
   const canAddMore = () => IsValid() && !reachedMaxQty();
 
+  // Numerator-of-intent for the add-to-cart funnel: fires on every tap of the
+  // "Add To Bag" button (before validation), so taps that fail because no
+  // size/color was picked, or max qty was hit, are still captured. Outcome is
+  // recorded in props (is_valid / reached_max / already_in_cart).
+  const trackBuyClicked = () => {
+    const productVariationId =
+      selectedVariant?.product_variation_id ??
+      selectedVariant?.id ??
+      selectedVariant?.variation_id ??
+      null;
+    trackOrder(ORDER_EVENTS.ADD_TO_CART_BUY_CLICKED, {
+      product_id: id,
+      item_name: product?.name,
+      brand: product?.brand?.name,
+      category: product?.categories?.[0]?.name,
+      variant: productVariationId,
+      selected_color:
+        selectedColor?.color_option ??
+        selectedColor?.color_name ??
+        selectedColor,
+      selected_size: selectedSize?.option ?? selectedSize?.name ?? selectedSize,
+      is_valid: IsValid(),
+      reached_max: reachedMaxQty(),
+      already_in_cart: Boolean(isVariantInCart({ exact: false })),
+      is_luck: Boolean(product?.is_luck),
+      source: DetectScreen(),
+    });
+  };
+
   const Validate = () => {
     if (reachedMaxQty()) {
       showErrorNotification(translateFunction("Max Allowed Quantity Reached"));
@@ -397,6 +426,7 @@ function AddToCartButton({
       <div
         onClick={(e) => {
           if ((e.target as any).closest(".minuse-qty-icon")) return false;
+          trackBuyClicked();
           let val = Validate();
           if (!val) return;
           if (!loading && !initialLoading) {

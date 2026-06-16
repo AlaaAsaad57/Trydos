@@ -21,6 +21,8 @@ import auth from "services/auth";
 // Canonical event names. Snake_case, PostHog-friendly. Grouped by stage.
 export const ORDER_EVENTS = {
   // --- Cart edit ---
+  ADD_TO_CART_WIDGET_OPENED: "add_to_cart_widget_opened",
+  ADD_TO_CART_BUY_CLICKED: "add_to_cart_buy_clicked",
   ADD_TO_CART: "order_add_to_cart",
   CART_ITEM_QTY_INCREASED: "cart_item_qty_increased",
   CART_ITEM_QTY_DECREASED: "cart_item_qty_decreased",

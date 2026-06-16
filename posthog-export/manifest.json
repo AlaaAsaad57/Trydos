@@ -1,0 +1,26 @@
+{
+  "_comment": "Portable PostHog export of created entities (NOT raw event/person data). Generated via the PostHog MCP. Re-import into a different org/account by following README.md. IDs are NOT preserved — entities are re-created and cross-references (dashboard<->insight) are rebuilt by name at import time.",
+  "source": {
+    "org": "Ramaaz",
+    "org_id": "019eb950-b88b-0000-a15f-bc7653b6e636",
+    "project": "Default project",
+    "project_id": 200119,
+    "base_url": "https://eu.posthog.com",
+    "exported_at": "2026-06-15"
+  },
+  "inventory": {
+    "insights": 17,
+    "dashboards": 2,
+    "cohorts": 1,
+    "actions": 0,
+    "feature_flags": 0,
+    "surveys": 0,
+    "experiments": 0
+  },
+  "notes": [
+    "Insights flagged \"starter\": true are PostHog's auto-generated starter insights/dashboard. A fresh project creates its own copies, so importing them will DUPLICATE. Skip unless you specifically want them.",
+    "Raw collected data (events, persons, sessions) is NOT portable and is not included — it re-accumulates once the SDK points at the new project.",
+    "Insight queries reference events by NAME (e.g. order_completed, chat_opened). They keep working in the new project as soon as those events are ingested.",
+    "import order: cohorts -> dashboards -> insights (insights attach to dashboards by name via the new dashboard id)."
+  ]
+}

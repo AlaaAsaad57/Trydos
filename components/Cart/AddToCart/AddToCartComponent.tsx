@@ -11,8 +11,9 @@ import { useParams, useSearchParams } from "next/navigation";
 import auth from "services/auth";
 import home from "services/home";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
-import { GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, DetectScreen } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import {
   showErrorNotification,
   showSuccessNotification,
@@ -573,6 +574,20 @@ function AddToCartComponent({ product, slug, color }) {
   useEffect(() => {
     abortControllerRef.current = new AbortController();
     isComponentActiveRef.current = true;
+    // Denominator for the add-to-cart funnel: fires once per widget open. Paired
+    // with `add_to_cart_buy_clicked` (the tap) and `order_add_to_cart` (success),
+    // it surfaces users who open the sheet but never add the item.
+    trackOrder(ORDER_EVENTS.ADD_TO_CART_WIDGET_OPENED, {
+      product_id: product?.product_id ?? product?.id,
+      item_name: product?.name,
+      brand: product?.brand?.name,
+      category: product?.categories?.[0]?.name,
+      is_luck: Boolean(product?.is_luck),
+      is_flash_deal: Boolean(
+        product?.flash_deal_end_date || product?.flash_deal_details,
+      ),
+      source: DetectScreen(),
+    });
     if (
       document.querySelector<HTMLElement>(".alternate-product-details-footer")
     )
