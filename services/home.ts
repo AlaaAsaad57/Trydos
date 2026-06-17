@@ -136,7 +136,8 @@ class HomeService {
       if (response_customer_Info.data.customer_info) {
         if (response_customer_Info.data.customer_info) {
           updateUserInfo(response_customer_Info.data.customer_info);
-
+         const { orderData,setOrderData } = useAppStore.getState();
+          setOrderData({agree:response_customer_Info.data.customer_info.is_approve_policies})
           // if (
           //   response_customer_Info.data.customer_info &&
           //   response_customer_Info.data.customer_info?.is_phone_verified !== 1

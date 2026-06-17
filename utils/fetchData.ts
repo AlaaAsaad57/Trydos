@@ -96,6 +96,7 @@ const ignoredMessages = [
   "The user aborted a request.",
   "Fetch is aborted",
   "success",
+  "Policies Approved!"
 ];
 
 // ---------- Helper Functions ----------

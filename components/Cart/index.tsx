@@ -69,7 +69,7 @@ function CartContainer({ close, toOrders }) {
     setOrderData({
       payment: [],
       coupon: false,
-      agree: false,
+      
       coupon_number: "",
       loading: false,
       success: false,

@@ -75,7 +75,7 @@ export const getBrandIconImageUrl = (
   }
   const width = options?.width ?? 60;
   const height = options?.height ?? 30;
-  const transform = `w_${width},h_${height},c_limit,f_auto,q_auto:good`;
+  const transform = `w_${width},h_${height},c_fit,f_auto,q_auto:good`;
   return baseUrl.replace("/upload/", `/upload/${transform}/`);
 };
 

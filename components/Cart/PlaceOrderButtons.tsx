@@ -12,6 +12,8 @@ import { useParams } from "next/navigation";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import WalletPaymentModal from "./WalletPaymentModal";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const {
@@ -54,7 +56,23 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const setAgree = async (e) => {
     if (loading || agreeLoading) return;
     setAgreeLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    if(e){
+    try{
+      await fetchData({
+        url:'/customer/approve-policies',
+        server:"market",
+        method:'GET',
+        reqTitle:REQUESTS_DATA.APPROVE_POLICY,
+        noMessage:true
+      });
+
+    }catch(e){
+      LogError({
+        error: e,
+        scenario: "error in agree to policy - setAgree - cart widget",
+      });
+    }
+  }
     setOrderData({ agree: e });
     trackOrder(ORDER_EVENTS.TERMS_AGREED_TOGGLED, { agreed: !!e });
     setAgreeLoading(false);
