@@ -489,7 +489,7 @@ class AuthService {
         userObj?.image ?? userProfile?.image,
       );
       const profilePictureURL = imagePath
-        ? `${process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL}${imagePath}`
+        ? `${process.env.NEXT_PUBLIC_BASE_MEDIA_URL}${imagePath}`
         : null;
 
       let wallet_update = await fetchData({

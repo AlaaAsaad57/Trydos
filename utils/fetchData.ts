@@ -103,7 +103,7 @@ const ignoredMessages = [
 // Servers that are on the same origin — direct fetch, cookies sent automatically
 const isLocalServer = (server: ServerType) => server === "local";
 
-// "upload story" goes to Cloudinary (cross-origin, no auth, no custom headers)
+
 const isUploadStory = (server: ServerType) => server === "upload story";
 
 const getLocale = () => {
@@ -385,7 +385,7 @@ export const fetchData = async <T = any>(
       const effectiveSignal = withLogoutSignal(signal);
 
       if (isUploadStory(server)) {
-        // ── UPLOAD STORY: cross-origin Cloudinary, no auth, no custom headers ──
+
         res = await fetch(url, {
           method,
           body: body && method !== "GET" ? (body as BodyInit) : undefined,

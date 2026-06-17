@@ -2,6 +2,12 @@ import { withSentryConfig } from "@sentry/nextjs";
 import withBundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 
+// Crawl/index only on the real production domain (NEXT_PUBLIC_ALLOW_INDEXING=true).
+// dev/preview deployments are themselves production Next builds, so without this
+// they'd advertise `index, follow` and crawlers would hammer SSR across every
+// locale — driving Vercel Function Duration up. Mirrors isIndexingAllowed().
+const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
+
 let nextConfig: NextConfig = {
   reactStrictMode: false,
   compress: true,
@@ -32,10 +38,10 @@ let nextConfig: NextConfig = {
         headers: [
           {
             key: "X-Robots-Tag",
-
-            // "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
-            value: "index, follow",
-            // value: "noindex, nofollow",
+            // Gated on the indexing flag so only the real prod domain is
+            // crawlable; everywhere else stays noindex (keeps bots from
+            // triggering SSR renders we pay Function Duration for).
+            value: allowIndexing ? "index, follow" : "noindex, nofollow",
           },
           {
             key: "Cache-Control",
@@ -108,8 +114,7 @@ let nextConfig: NextConfig = {
   images: {
     unoptimized: false,
     qualities: [
-      100, 90, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5,
-    ],
+    70,65,],
     domains: [
       "cdn.example.com",
       "res.cloudinary.com",

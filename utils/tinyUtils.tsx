@@ -222,22 +222,17 @@ export const GetAddressString = (location) => {
 };
 export const GetImageUrl = (url) => {
   if (url?.file_path) {
-    if (url?.file_path?.includes("cloudinary")) {
+    if (url?.file_path?.includes("media_server")) {
       return url?.file_path;
     } else {
-      return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url?.file_path;
+      return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url?.file_path;
     }
   }
   if (!url || typeof url !== "string") return url;
   if (url && url?.includes("http")) return url;
-  return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url;
+  return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url;
 };
-/**
- * Get the best Cloudinary video URL with optional clip segment and size.
- * @param input - Cloudinary video URL or public ID (e.g., 'folder/video.mp4' or full URL)
- * @param options - Optional: { start?: number (seconds), end?: number (seconds), width?: number, height?: number }
- * @returns Cloudinary video URL with best quality, size, and optional clip
- */
+
 export const getVideoUrl = (
   input: string,
   options?: {
@@ -267,7 +262,6 @@ export const getVideoUrl = (
 
   const transformStr = transformations.join(",");
 
-  // If input is a full Cloudinary URL, insert the transformation after '/upload/' and before '/v1/'
   if (input.startsWith("http") && input.includes("/video/upload/")) {
     return input.replace(
       /\/video\/upload\/(v\d+)?/,
@@ -275,9 +269,7 @@ export const getVideoUrl = (
     );
   }
 
-  // Otherwise, treat input as public ID and build the correct format
-  // const cloudinaryBase = "https://res.cloudinary.com/dtcmozf4d/video/upload/";
-  const cloudinaryBase = process.env.NEXT_PUBLIC_BASE_VIDEO_CLOUDINARY_URL;
+  const mediaBase = process.env.NEXT_PUBLIC_BASE_VIDEO_MEDIA_URL;
   // const version = "v1";
   const folder = "product/videos";
 
@@ -287,8 +279,8 @@ export const getVideoUrl = (
     filename = `${filename}.mp4`;
   }
 
-  // return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
-  return `${cloudinaryBase}${transformStr}/${folder}/${filename}`;
+
+  return `${mediaBase}${transformStr}/${folder}/${filename}`;
 };
 export const ShowNotificationSign = ({
   order_group_id = null,

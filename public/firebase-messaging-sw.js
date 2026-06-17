@@ -1,19 +1,19 @@
 // Force update - increment this version when you want to force update
 const CACHE_VERSION = "v1.0.7";
-const BASE_CLOUDINARY_URL =
-  "https://res.cloudinary.com/dtcmozf4d/image/upload/v1";
+const BASE_MEDIA_URL =
+  "https://media_server.ramaaz.dev/image/upload";
 // Get image url function
 const GetImageUrl = (url) => {
   if (url?.file_path) {
-    if (url?.file_path?.includes("cloudinary")) {
+    if (url?.file_path?.includes("media_server")) {
       return url?.file_path;
     } else {
-      return BASE_CLOUDINARY_URL + url?.file_path;
+      return BASE_MEDIA_URL + url?.file_path;
     }
   }
   if (!url || typeof url !== "string") return url;
   if (url && url?.includes("http")) return url;
-  return BASE_CLOUDINARY_URL + url;
+  return BASE_MEDIA_URL + url;
 };
 // Skip waiting and claim clients immediately
 self.addEventListener("install", (event) => {

@@ -1,7 +1,6 @@
 "use server";
 
 import {
-  generateCloudinaryUrl,
   getThumb,
   stripHtml,
   buildOgImageUrl,
@@ -309,7 +308,7 @@ export async function GetProductMeta({
       title += ` | ${titleContext}`;
     }
     const firstImagePath = product?.images?.[0]?.images ?? product?.images?.[0];
-    // const image = firstImagePath ? buildOgImageUrl("https://res.cloudinary.com/dtcmozf4d/image/upload"+firstImagePath) : null;
+
     const image = firstImagePath ? buildOgImageUrl(GetImageUrl(firstImagePath)) : null;
     const fallbackImageUrl = `${General_Site_Data.url}/opengraph-image.png`;
     const ogImages = image

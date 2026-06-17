@@ -1,6 +1,5 @@
 
-There's no test suite, so this is manual via browser DevTools. Run pnpm dev (set PROXY_GUARD_SECRET locally first to exercise the real path).
-
+There's no test suite, so this is manual via browser DevTools. Run pnpm dev 
 1. OTP is hidden from the network
 - Open DevTools → Network. Go through login → enter number → pick WhatsApp/SMS.
 - ✅ You should see no request to /auth/phone/send_otp and no backend host — only an opaque POST to the current route (the Server Action). The phone is in the action body, but the endpoint/host/proxy headers are gone.
@@ -25,7 +24,7 @@ There's no test suite, so this is manual via browser DevTools. Run pnpm dev (set
 - ✅ Returns 403 (no/foreign Origin). With a fake -H "Origin: https://evil.com" → still 403. Strip/expire x-guard withe real clientauto-refreshes via /api/guard and retries once.
 
 7. Fail-safe checks (so this can't take the app down):
-- Unset PROXY_GUARD_SECRET →ame-origin on).
+
 - Stop Redis → OTP still sends (limiter fails open; backend keeps its own throttle).
 
 One thing I'd watch on first deploy: since /api/proxy is the global fetch path, confirm production traffic 200s righSECRET (the 419 self-healcovers token refresh, but it's worth eyeballing).

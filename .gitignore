@@ -21,8 +21,6 @@ hardcoded-text-report.md
 /cypress/screenshots
 /public/reports/videos/*
 /public/reports/*
-.env.development
-env.development
 .env.production
 # secrets
 vercel-secrets.json
@@ -49,6 +47,9 @@ package-lock.json
 # vercel
 .vercel
 
+# Claude Code local settings (personal, may contain tokens — never commit)
+.claude/settings.local.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -64,3 +65,7 @@ scripts/
 xd-designs-for-inspreation/
 
 Tickets/
+
+.env
+
+.env.development

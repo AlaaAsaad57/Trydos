@@ -101,7 +101,7 @@ export async function fetchStoriesForGuest(
       url: `${process.env.NEXT_PUBLIC_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
       method: "GET",
       tags: ["stories", "home"],
-      // revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
+     
       revalidate: 0,
       local: `${country}-${language}`,
       headers: headers,

@@ -303,9 +303,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url, 308);
   }
   const ip = getClientIp(request);
-  console.log(
-    `Incoming request: ${pathname} from IP: ${ip}, User-Agent: ${ua}`,
-  );
+  // console.log(
+  //   `Incoming request: ${pathname} from IP: ${ip}, User-Agent: ${ua}`,
+  // );
   if (!isBotAgent) {
     if (ip && ip !== userIP) {
       response.cookies.set("userIP", ip, {

@@ -96,10 +96,10 @@ export const getConfiguredImage = ({ src, width, height, q, c_pad }: any) => {
       }/f_auto/q_auto:good/fl_lossy/so_0`,
     );
   }
-  if (src?.file_path?.includes("cloudinary")) {
+  if (src?.file_path?.includes("media_server")) {
     return src.file_path.replace(
-      "/upload/v1",
-      `/upload/v1/h_${height}${width ? `,w_${width}` : ""},${
+      "/upload/",
+      `/upload/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
       }/f_auto/q_auto:good/fl_lossy/so_0`,
     );

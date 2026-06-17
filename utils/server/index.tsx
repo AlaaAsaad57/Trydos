@@ -19,10 +19,10 @@ export const getConfiguredImage = ({
       }/f_auto/q_${q}/fl_lossy/so_0`,
     );
   }
-  if (src?.file_path.includes("cloudinary")) {
+  if (src?.file_path.includes("media_server")) {
     return src.file_path.replace(
-      "/upload/v1",
-      `/upload/v1/h_${height}${width ? `,w_${width}` : ""},${
+      "/upload/",
+      `/upload/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
       }/f_auto/q_${q}/fl_lossy/so_0`,
     );
@@ -33,15 +33,15 @@ export const GetImageUrl = (url) => {
   if(!url) return url;
  
   if (url?.file_path) {
-    if (url?.file_path?.includes("cloudinary")) {
+    if (url?.file_path?.includes("media_server")) {
       return url?.file_path;
     } else {
-      return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url?.file_path;
+      return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url?.file_path;
     }
   }
   if (!url || typeof url !== "string") return url;
   if (url && url?.includes("http")) return url;
-  return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url;
+  return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url;
 };
 
 export const configureImageForBoutique = (src) => {
@@ -53,11 +53,7 @@ export const configureImageForBoutique = (src) => {
   );
 };
 
-/**
- * Generates a Cloudinary URL optimised for Open Graph images (1200×630 JPEG).
- * Avoids `b_auto` (expensive background analysis) and `so_0` (video-only),
- * and forces `f_jpg` directly so bots always receive a compatible format.
- */
+
 export const buildOgImageUrl = (rawUrl: string | null | undefined): string | null => {
   if (!rawUrl || typeof rawUrl !== "string") return null;
   const normalizedUrl = rawUrl?.replace("media_server.ramaaz.dev", "media.ramaaz.dev");
@@ -68,22 +64,13 @@ export const buildOgImageUrl = (rawUrl: string | null | undefined): string | nul
   );
 };
 
-/**
- * Returns a Cloudinary URL optimized for brand/icon images so they display
- * clearly with no clipping and no stretching. Uses c_limit so the image
- * fits inside the given dimensions, preserves aspect ratio, and never
- * upscales (small images stay sharp).
- * @param url - Image source: string (path or full URL) or { file_path: string }
- * @param options - Optional width/height in pixels (defaults: 60×30 for 2x display of 30×15)
- * @returns Optimized Cloudinary URL, or original URL if not Cloudinary
- */
 export const getBrandIconImageUrl = (
   url: string | { file_path?: string } | null | undefined,
   options?: { width?: number; height?: number },
 ): string => {
   const baseUrl = GetImageUrl(url);
   if (!baseUrl || typeof baseUrl !== "string") return baseUrl ?? "";
-  if (!baseUrl?.includes("cloudinary") || !baseUrl?.includes("/upload")) {
+  if (!baseUrl?.includes("media_server") || !baseUrl?.includes("/upload")) {
     return baseUrl;
   }
   const width = options?.width ?? 60;
@@ -216,7 +203,7 @@ export const getVideoUrl = (
 
   const transformStr = transformations.join(",");
 
-  // If input is a full Cloudinary URL, insert the transformation after '/upload/' and before '/v1/'
+  
   if (input.startsWith("http") && input?.includes("/video/upload/")) {
     return input.replace(
       /\/video\/upload\/(v\d+)?/,
@@ -225,7 +212,7 @@ export const getVideoUrl = (
   }
 
   // Otherwise, treat input as public ID and build the correct format
-  const cloudinaryBase = process.env.NEXT_PUBLIC_BASE_VIDEO_CLOUDINARY_URL;
+  const mediaBase = process.env.NEXT_PUBLIC_BASE_VIDEO_MEDIA_URL;
   // const version = "v1";
   const folder = "product/videos";
 
@@ -235,8 +222,8 @@ export const getVideoUrl = (
     filename = `${filename}.mp4`;
   }
 
-  // return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
-  return `${cloudinaryBase}/${folder}/${filename}?${options.end ? "target=preview" : ""}`;
+
+  return `${mediaBase}/${folder}/${filename}?${options.end ? "target=preview" : ""}`;
 };
 
 export const getUrlofProduct = (
@@ -479,44 +466,7 @@ export function getRobotsConfig(productionRobots) {
   return productionRobots;
 }
 
-export function generateCloudinaryUrl({
-  width,
-  height,
-  publicIds,
-  overlayText,
-}: {
-  width: number;
-  height: number;
-  publicIds: string[];
-  overlayText?: string;
-}) {
-  const baseUrl = `https://res.cloudinary.com/dtcmozf4d/image`;
 
-  // Keep full path including extension
-  const cleanPublicIds = publicIds.map((id) => id.replace(/^\//, ""));
-
-  // Base image (used directly in URL)
-  const baseImage = cleanPublicIds[0]; // must include .png
-
-  // Overlays (all except the first)
-  const overlayIds = cleanPublicIds;
-
-  const layerWidth = Math.floor(width / publicIds.length);
-
-  const layers = overlayIds.map((id, i) => {
-    const safeId = id.split(".")[0].replace(/\//g, ":"); // remove .png for overlay syntax
-    const x = i * layerWidth; // (i + 1) because base is at x=0
-    return `l_${safeId},w_${layerWidth},h_${height},c_fill,g_north_west,x_${x},y_0`;
-  });
-
-  const transform = [
-    `w_${width},h_${height}`,
-    `f_auto/q_auto:good/fl_lossy/so_0`,
-    ...layers,
-  ].join("/");
-
-  return `${baseUrl}/upload/${transform}/${baseImage}`;
-}
 
 export const HandleIsActive = ({ values, item }) => {
   return values?.includes(item);

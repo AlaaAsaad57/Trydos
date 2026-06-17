@@ -127,7 +127,7 @@ export default function BecomeSellerModal({ onClose }) {
         body: JSON.stringify({
           mime_type: newDocFile.type || "application/octet-stream",
         }),
-        reqTitle: REQUESTS_DATA.UPLOAD_CLOUDINARY,
+        reqTitle: REQUESTS_DATA.UPLOAD_MEDIA,
         server: "market",
       });
 

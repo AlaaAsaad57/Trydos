@@ -230,7 +230,7 @@ Smart code is calm code.
 | API protection | Vercel Firewall (rate limiting + abuse/DDoS) at the edge |
 | Error reporting | `LogError` / `LogServerError` → Sentry |
 | Analytics | Google Analytics (`gtag`), PostHog (`utils/posthog.ts`) |
-| Media | Cloudinary, Agora RTC |
+| Media |  Agora RTC |
 | Monitoring | Sentry, Vercel Speed Insights |
 
 ---
@@ -334,7 +334,7 @@ Review every change against these concerns:
 
 ### Third-Party Data
 - [ ] All data from external APIs is treated as untrusted — shape-validated before use.
-- [ ] `cloudinary` signed uploads use server-side signing only.
+
 
 ### General
 - [ ] No `dangerouslySetInnerHTML` without explicit sanitization.

@@ -57,13 +57,19 @@ export const posthogInit = async (key?: string) => {
         // drop events/replays (rewrites: /ingest/* → eu.i.posthog.com).
         api_host: "/ingest",
         ui_host: "https://eu.posthog.com",
-        // Only materialise person profiles for identified users (cost control);
-        // session replay still captures every visitor, guests included.
+        // Only materialise person profiles for identified users (cost control).
+        // (Session replay is currently paused below — see disable_session_recording.)
         person_profiles: "identified_only",
         // Opt into PostHog's current sensible defaults (autocapture, pageviews,
         // pageleave, exception capture, session-replay config). Autocapture is
         // also what powers heatmaps in the PostHog toolbar.
         defaults: "2025-05-24",
+        // PAUSED to cut Vercel cost: session replay funnels a continuous stream
+        // of chunks through the /ingest edge proxy (one edge invocation + data
+        // transfer per chunk), which dominated the bill. Autocapture, pageviews
+        // and custom events still flow. Set back to `false` (or delete this
+        // line) to re-enable replay later.
+        disable_session_recording: true,
       });
       _inited = true;
     }

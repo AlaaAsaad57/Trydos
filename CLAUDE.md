@@ -49,7 +49,7 @@ Endpoint path constants live in `utils/endpointConfig.tsx`.
 All slices (`auth`, `Cart`, `chat`, `Details`, `homepage`, `listing`, `search`, `notifications`) live in `store/<domain>/reducer.ts` and are spread into one `useAppStore`. Devtools middleware is applied **only** in development — do not add it elsewhere. In non-React / service code use `useAppStore.getState()`; never call the hook in a Server Component.
 
 ### Services (`services/`)
-Domain modules (`auth.ts`, `cart.ts`, `chat.ts`, `search.ts`, `order(s).ts`, plus `cloudinary/`, `elastic/`, `RDB/`, `sellerDashboard/`, `wallet/`) hold client-side business logic. They call `fetchData`, then dispatch into the store via `useAppStore.getState()`. Functional, not class-based.
+Domain modules (`auth.ts`, `cart.ts`, `chat.ts`, `search.ts`, `order(s).ts`, `elastic/`, `RDB/`, `sellerDashboard/`, `wallet/`) hold client-side business logic. They call `fetchData`, then dispatch into the store via `useAppStore.getState()`. Functional, not class-based.
 
 ### API protection — Vercel Firewall
 Rate limiting and abuse/DDoS protection run at the platform edge via **Vercel Firewall** (rules configured in the Vercel dashboard), before functions are invoked. There is no in-code rate-limiter wrapper. If a specific endpoint needs business-logic limits (auth, OTP, checkout), use an edge-compatible limiter such as Upstash `@upstash/ratelimit` — never `ioredis` in middleware (it can't run on the Edge runtime).
@@ -63,7 +63,7 @@ JWTs live **only** in HttpOnly cookies — `MARKET-TOKEN` (logged-in), `DEVICE-T
 **Whenever you add a new PostHog event, document it in `docs/posthog-events.md`** — the event name, when it fires, and its properties. Keep that file in sync with the events emitted in code.
 
 ### Integrations
-Firebase / FCM push (`utils/firebaseAdmin.ts`, `utils/NotificationHandler.ts`, `app/api/fcm`), Cloudinary media, Agora RTC (live video), Elasticsearch search, Redis (`ioredis`), and the private `rdb` digital-banking package (Git dependency).
+Firebase / FCM push (`utils/firebaseAdmin.ts`, `utils/NotificationHandler.ts`, `app/api/fcm`),  media, Agora RTC (live video), Elasticsearch search, Redis (`ioredis`), and the private `rdb` digital-banking package (Git dependency).
 
 ## Conventions
 

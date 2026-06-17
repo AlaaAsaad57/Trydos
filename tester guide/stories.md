@@ -38,7 +38,6 @@ Verify that the Stories feature works correctly end-to-end for all user types (g
 - Push notification delivery for stories
 - Internal Sentry/logging validation (backend concern)
 - Stories backend server configuration
-- Cloudinary or media server infrastructure
 - Any feature not visible in the app UI
 
 ---

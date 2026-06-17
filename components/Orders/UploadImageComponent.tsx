@@ -159,9 +159,9 @@ const UploadImageComponent = ({
     let url_file_path = isForRating
       ? "/rating_orders/"
       : "/return_request_products/";
-    if (img.includes(process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL)) return img;
+    if (img.includes(process.env.NEXT_PUBLIC_BASE_MEDIA_URL)) return img;
     else
-      return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url_file_path + img;
+      return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url_file_path + img;
   };
 
   const removeImage = async (e: React.MouseEvent, i: string) => {
