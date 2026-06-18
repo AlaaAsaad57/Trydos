@@ -723,6 +723,7 @@ class OrderService {
         error: error,
         scenario: "Error In ReturnProduct in services/order",
       });
+      throw new Error(error);
     }
   }
   async CancelReturn({ return_request_product_id }) {
