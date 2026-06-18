@@ -1787,6 +1787,14 @@ function SellerDashBoard() {
     <div className="w-full max-w-[1366px] mx-auto setting-screen">
       <div className="mb-3 bg-white">
         <BackBar
+        onBackIntercept={()=>{
+          if(activeTab==="none"){
+            return false
+          }else{
+            setActiveTab("none");
+            return true
+          }
+        }}
           isRtl={isRtl}
           local={local}
           name={translateFunction("Seller Dashboard", language)}
