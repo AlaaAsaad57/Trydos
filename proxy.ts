@@ -317,6 +317,23 @@ export async function proxy(request: NextRequest) {
   // Handle referer and UTM tracking
   const referer = request.headers.get("referer");
   const utm_source = url.searchParams.get("utm_source");
+  const mediaUrl=process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL;
+ if (mediaUrl) {
+    // We only need to preconnect to the base domain origin, not the full subpaths
+    response.headers.append(
+      'Link',
+      `<${mediaUrl}>; rel="preconnect"; crossorigin`
+    );
+    response.headers.append(
+      'Link',
+      '<https://www.googletagmanager.com>; rel="preconnect"'
+    );
+
+    response.headers.append(
+      'Link',
+      '<https://www.google-analytics.com>; rel="dns-prefetch"'
+    );
+  }
 
   if (!isBotAgent && (referer || utm_source)) {
     if (utm_source) {
