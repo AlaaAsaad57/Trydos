@@ -2,7 +2,6 @@ import "styles/globals.css";
 import "styles/home.css";
 
 import localFont from "next/font/local";
-import dynamic from "next/dynamic";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
