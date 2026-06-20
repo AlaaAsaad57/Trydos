@@ -1,0 +1,206 @@
+# Canonical workflow configuration for Engineering Workflow v1.
+# This file is the SINGLE source of truth for stages, the state machine, modes,
+# closure, and decisions. All other docs describe/reference it and must not
+# contradict it. (`workflow.yml` has been retired in favour of this file.)
+
+project:
+  name: Trydos
+  slug: trydos
+  description: Multilingual e-commerce / live-shopping storefront (Next.js 16 + React 19 + Zustand, separate Go backend; deployed on Vercel).
+
+workflow:
+  version: v1
+
+stages:
+  - intake
+  - research
+  - spec
+  - plan
+  - review
+  - implement
+  - verify
+
+# ---------------------------------------------------------------------------
+# Canonical ticket state machine. `blocked` is NOT a state; it is an orthogonal
+# flag carried in artifact front-matter (see artifact_status). Each entry lists
+# the ONLY allowed next states; anything not listed is a forbidden transition.
+# ---------------------------------------------------------------------------
+lifecycle:
+  # Single canonical owner of ticket state (ADR-003). Commands read/write this
+  # file and must never infer state from artifact existence.
+  state_record: _specs/<ticket>/ticket.md
+  initial: draft
+  terminal: closed
+  states:
+    draft:                       [ready-for-research, closed]
+    ready-for-research:          [research-complete, closed]
+    research-complete:           [spec-complete, research-complete, closed]
+    spec-complete:               [plan-complete, research-complete, closed]
+    plan-complete:               [approved, plan-complete, spec-complete, closed]
+    approved:                    [implementation-in-progress, plan-complete, closed]
+    implementation-in-progress:  [implemented, closed]
+    implemented:                 [verified, implementation-in-progress, closed]
+    verified:                    [closed, implementation-in-progress]
+    closed:                      []   # terminal — no reopen; open a new ticket
+  artifact_status: [not_started, in_progress, blocked, complete]
+
+# ---------------------------------------------------------------------------
+# Execution modes. v1 supports `standard` and `high_risk` only (lowercase
+# identifiers; STANDARD/HIGH_RISK in prose are display labels). `fast` mode is
+# DEFERRED (not in v1) — `/start-ticket` rejects it. Same lifecycle, different
+# depth. The review gate is required in ALL modes.
+# ---------------------------------------------------------------------------
+modes:
+  # fast: DEFERRED to a future version — intentionally omitted from v1.
+  standard:
+    description: Default lifecycle for normal work; all seven stages.
+    stages: [intake, research, spec, plan, review, implement, verify]
+    criteria: Normal feature/fix work with bounded blast radius.
+    approvals: 1            # one reviewer
+    adr_required: false
+    verification: all-ac    # every acceptance criterion mapped to a result
+  high_risk:
+    description: Protected-runtime, irreversible, or wide-blast-radius work.
+    stages: [intake, research, spec, plan, review, implement, verify]
+    criteria: Touches any path in `protected_paths` (auth/proxy/checkout/store core), is irreversible, or has broad blast radius.
+    approvals: 2            # reviewer + second approver (workflow_owner eligible)
+    adr_required: true
+    verification: all-ac+rollback   # every AC plus a rollback rehearsal
+
+# ---------------------------------------------------------------------------
+# Protected runtime paths (Trydos adaptation of the original `observability/**`
+# guardrail). These are the high-blast-radius areas of the storefront: any
+# ticket whose plan touches one of these MUST run in `mode: high_risk` (MO-3),
+# may only be modified at an approved /implement (GU-2/IM-5), and must carry a
+# protected-path impact statement at /verify (VF-9/TR-3).
+#
+# Wherever the rules or commands say `observability/**`, read it as "any path
+# matching protected_paths below". Globs are matched from the repo root.
+# ---------------------------------------------------------------------------
+protected_paths:
+  - "proxy.ts"                    # the middleware: i18n routing, bot detection, locale cookies
+  - "serverRequests/**"           # server auth-token fetch + guest auto-register/retry
+  - "utils/cookies/**"            # HttpOnly token / User-Data cookie manager
+  - "app/api/auth/**"             # auth + token endpoints
+  - "services/auth.ts"            # client-side auth/session logic
+  - "services/cart.ts"            # cart mutations
+  - "services/order.ts"           # checkout / order placement
+  - "services/orders.ts"          # order lifecycle
+  - "store/index.ts"             # combined Zustand store root
+  - "next.config.ts"             # build/runtime config, image allowlist, headers
+
+# ---------------------------------------------------------------------------
+# Single closure strategy: there is no /close command. A ticket moves
+# verified -> closed at /verify sign-off, performed by the reviewer.
+# ---------------------------------------------------------------------------
+closure:
+  # No /close command. Closure is owned by two commands:
+  strategy: no-close-command
+  paths:
+    success:                       # successful implementation
+      owner: /verify
+      performed_by: reviewer
+      transition: verified -> closed
+    rejection:                     # plan rejected at the review gate
+      owner: /review
+      performed_by: reviewer
+      transition: spec-complete -> closed
+
+# Architectural decision tracking.
+decisions:
+  location: .claude/docs/adr/
+  template: .claude/docs/adr/ADR-0000-template.md
+
+roles:
+  workflow_owner:
+    description: >-
+      Owns workflow governance — workflow evolution, governance decisions,
+      escalations, and cross-project issues. NOT a per-ticket gate; does not
+      participate in every ticket.
+  reviewer:
+    description: >-
+      Per-ticket gate authority for /review and /verify. Any qualified team
+      member who is NOT the ticket's author (separation of duties). Need not be
+      an Engineering Manager.
+  developer:
+    description: Implements approved plans and authors ticket artifacts.
+  ai_agent:
+    description: Assists across stages within the rules in CLAUDE.md.
+  # Legacy: earlier artifacts recorded `em` as the gate/governance actor. `em`
+  # now maps to `reviewer` (per-ticket gate) and `workflow_owner` (governance).
+
+# Role authority & separation of duties (validation: RA-1..RA-3; workflow-rules.md).
+role_authority:
+  gate_commands: [review, verify]                       # invocable by role `reviewer`
+  author_commands: [start-ticket, research, spec, plan, implement]   # developer/ai_agent
+  delivery_commands: [publish-pr]     # additive (wf-004/ADR-007); developer/ai_agent. Delivery only — orthogonal to the state machine, never a gate, performs no state transition.
+  governance_owner: workflow_owner    # owns evolution/escalation; not a per-ticket gate
+separation_of_duties:
+  enabled: true
+  rule: >-
+    The `reviewer` invoking a review gate (/review, /verify) must not be the author
+    of the plan/implementation under review. All recorded actors (owner, history
+    `by`) must be defined roles.
+  # Exception (opt-in, off by default). For `standard` (low-risk) tickets ONLY,
+  # the author may also serve as the `reviewer` gate actor when self-review is
+  # explicitly enabled below. `high_risk` ALWAYS requires a distinct second
+  # actor and can never self-review.
+  allow_self_review:
+    standard: false      # set true to permit author == reviewer on standard tickets
+    high_risk: false     # MUST stay false — high_risk never self-reviews
+
+features:
+  clickup: true
+  github: true
+  observability: false   # Trydos has no local observability stack; protected_paths replaces the observability/** guardrail
+
+# ---------------------------------------------------------------------------
+# Validation profiles (WF-PILOT-003). TWO SEPARATE, ADDITIVE concepts:
+#   validation_checks   — DEFINITIONS: check-id -> command + pass condition.
+#                         Commands live ONLY here.
+#   validation_profiles — SELECTION: profile-id -> required check-ids + depth.
+#                         Profiles reference check-ids ONLY (never a command).
+# A ticket optionally names ONE profile in plan.md "Validation strategy".
+# /verify resolves profile -> checks -> commands, executes them LOCALLY
+# (deterministic, non-interactive, read-only), and records command, exit code,
+# output summary, and result mapped to AC-n. No profile referenced => unchanged
+# behavior. Local execution only — no GitHub/CI-CD/MCP/external runner.
+# Validation: VP-1..VP-5 in validation-model.md. Decision: ADR-006.
+# ---------------------------------------------------------------------------
+validation_checks:
+  typecheck:
+    description: TypeScript compiles with no type errors.
+    command: "pnpm exec tsc --noEmit"
+    pass_when: exit-zero          # exit-zero | exit-code:<n>
+  lint:
+    description: ESLint passes (Next.js lint).
+    command: "pnpm lint"
+    pass_when: exit-zero
+  build:
+    description: Production build succeeds.
+    command: "pnpm build"
+    pass_when: exit-zero
+  knip:
+    description: No unused files/exports/dependencies introduced.
+    command: "pnpm knip"
+    pass_when: exit-zero
+
+validation_profiles:
+  # Lightweight gate for typical feature/fix work.
+  standard-frontend:
+    description: Type safety + lint for normal Trydos changes.
+    requires:
+      - check: typecheck
+        depth: all-ac             # smoke | all-ac | rollback (reuse MO-6 tiers)
+      - check: lint
+        depth: all-ac
+  # Full gate for protected-path / high_risk changes.
+  full-build:
+    description: Type safety + lint + production build for high-blast-radius changes.
+    requires:
+      - check: typecheck
+        depth: all-ac
+      - check: lint
+        depth: all-ac
+      - check: build
+        depth: rollback
