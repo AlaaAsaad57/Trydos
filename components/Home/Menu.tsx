@@ -65,7 +65,7 @@ const MenuItem = ({
   };
   const pathname = usePathname();
 
-  if (href && !pathname.includes(href)) {
+  if (href && pathname !== href) {
     return (
       <NextLink
         onClick={() => {
