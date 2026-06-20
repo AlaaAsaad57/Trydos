@@ -9,7 +9,7 @@ created_at: 2026-06-20
 updated_at: 2026-06-20
 links:
   clickup: https://app.clickup.com/t/86ey0f0d2
-  github:
+  github: https://github.com/AlaaAsaad57998/Trydos/pull/52
 ---
 
 # Ticket Record — fix-settings-button
