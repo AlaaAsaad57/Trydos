@@ -59,7 +59,10 @@ next-env.d.ts
 
 graphify-out/
 
-scripts/
+scripts/*
+# Engineering Workflow v1 helpers must be shared with the team (exceptions to scripts/* above)
+!scripts/clickup_intake.py
+!scripts/github_publish.py
 
 # Local design references (XD exports) - not for repo
 xd-designs-for-inspreation/
@@ -69,3 +72,6 @@ Tickets/
 .env
 
 .env.development
+
+opt/
+vercel-usage.txt
