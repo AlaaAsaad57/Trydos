@@ -43,7 +43,7 @@ present); then apply:
 - **IM-5 / GU-2** — if any planned file is under a `protected_paths` entry, require
   `ticket.md > mode` = `high_risk`; else block.
 - Branch checks:
-  - *Initial (IM-3 / GU-4):* `main` clean AND no `ticket/<slug>` branch exists.
+  - *Initial (IM-3 / GU-4):* `develop` clean AND no `ticket/<slug>` branch exists.
   - *Resume (IM-3a):* the `ticket/<slug>` branch **already exists** and is the
     current checked-out branch. If missing or mismatched → block (do not create
     a second branch).

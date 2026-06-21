@@ -78,7 +78,7 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 | GU-1 | ERROR | Non-mutating stages (`research`, `spec`, `plan`, `review`) produced no diff outside `_specs/<ticket>/`. |
 | GU-2 | ERROR | No modification of a `protected_paths` entry unless `mode: high_risk` and approved at the review gate. |
 | GU-3 | ERROR | A command writes only inside `_specs/<ticket>/` (and, for `/implement`, the approved files on branch `ticket/<slug>`). |
-| GU-4 | ERROR | Branches are created only by the implementation-entry command (after state = `approved`), named `ticket/<slug>`, from clean `main`. `/start-ticket` must NOT create a branch, and no branch may exist for a not-yet-approved ticket. |
+| GU-4 | ERROR | Branches are created only by the implementation-entry command (after state = `approved`), named `ticket/<slug>`, from clean `develop`. `/start-ticket` must NOT create a branch, and no branch may exist for a not-yet-approved ticket. |
 
 ### RS — Research artifact (`/research`)
 | Code | Severity | Condition |
