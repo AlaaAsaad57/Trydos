@@ -9,7 +9,7 @@ created_at: 2026-06-20
 updated_at: 2026-06-20
 links:
   clickup:
-  github:
+  github: https://github.com/AlaaAsaad57998/Trydos/pull/53
 ---
 
 # Ticket Record — add-arrows-for-main-categories-bar
