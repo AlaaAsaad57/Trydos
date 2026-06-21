@@ -114,7 +114,7 @@ export default function ReportStoryModal({
       >
         {/* Grabber */}
         {/* Header */}
-        <div className="relative flex items-center justify-center px-6 py-3">
+        <div className="relative flex items-center w-full justify-center px-6 py-3">
           <h3 className="text-[16px] font-medium text-[#3c3c3c]">
             {translateFunction("Report Story")}
           </h3>
