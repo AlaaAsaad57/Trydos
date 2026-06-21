@@ -403,7 +403,7 @@ const StoryViewer = ({
       {/* Story Link absolutely positioned at the bottom */}
       {(link || product_slug) && (
         <div className="absolute bottom-0 left-0 w-full flex justify-center z-50 pb-4 pointer-events-none">
-          {link && (
+          {link &&!isPaused&& (
             <a
               href={
                 link.startsWith("http://") || link.startsWith("https://")
@@ -434,7 +434,7 @@ const StoryViewer = ({
               {translateFunction("View More")}
             </a>
           )}
-          {product_slug && (
+          {product_slug &&!isPaused&& (
             <div
               className="flex"
               onClick={() => {
