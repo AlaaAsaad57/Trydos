@@ -7,6 +7,7 @@ import {
   setPreviousStory,
 } from "store/homepage/actions";
 import StoryViewer from "./StoryViewer";
+import ReportStoryModal from "./ReportStoryModal";
 import { useAppStore } from "store";
 import StoryServiceClass from "services/story";
 import {
@@ -19,8 +20,7 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 import { ConfirmModal } from "components/global/ConfirmModal";
 function StoryHolder({ story, active, isPaused }) {
-  const { shouldAuthinticated, removeStory } = useAppStore();
-  const userStories = useAppStore.getState().userStories;
+  const { shouldAuthinticated, removeStory, userStories } = useAppStore();
   const [currentStoryId, setCurrentStoryId] = useState(
     userStories?.id !== story.id ? 0 : story?.stories?.length - 1,
   );
@@ -78,24 +78,6 @@ function StoryHolder({ story, active, isPaused }) {
       );
     }
   };
-  const handleReportStory = async () => {
-    setLoading(true);
-    try {
-      // Placeholder for future API call
-      // const storyId = story.stories[currentStoryId]?.id;
-      // await StoryServiceClass.reportStory(storyId);
-      showSuccessNotification(
-        translateFunction("Story reported successfully."),
-      );
-      setShowReportModal(false);
-    } catch (err) {
-      showErrorNotification(translateFunction("Failed to report story."));
-      setShowReportModal(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div
       className="story-holder relative w-full h-full flex items-center justify-center"
@@ -121,7 +103,7 @@ function StoryHolder({ story, active, isPaused }) {
               />
             </span>
           )}
-          {!isOwner && (
+          {!isOwner && userStories && (
             <span
               className="cursor-pointer pr-5"
               style={{
@@ -181,14 +163,11 @@ function StoryHolder({ story, active, isPaused }) {
         />
       )}
       {showReportModal && (
-        <ConfirmModal
-          onCancel={() => setShowReportModal(false)}
-          onConfirm={handleReportStory}
-          loading={loading}
-          type="Report"
-          showModal={showReportModal}
-          confirmMessage={"Are you sure you want to report this story?"}
-          confirmTilte={"Report Story"}
+        <ReportStoryModal
+          storyId={
+            story.stories[currentStoryId]?.id || story.stories[0]?.id
+          }
+          onClose={() => setShowReportModal(false)}
         />
       )}
       <StoryViewer

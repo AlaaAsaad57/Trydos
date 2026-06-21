@@ -1,4 +1,17 @@
 const translations = {
+  // Report Story flow
+  "Inappropriate Content": "محتوى غير لائق",
+  "Harassment or Hate Speech": "مضايقة أو خطاب كراهية",
+  "Spam or Scam": "محتوى غير مرغوب فيه أو احتيال",
+  "Intellectual Property Violation": "انتهاك الملكية الفكرية",
+  "Violence or Dangerous Content": "عنف أو محتوى خطير",
+  Other: "أخرى",
+  "Report Reason": "سبب الإبلاغ",
+  "Details (optional)": "تفاصيل (اختياري)",
+  "Write details here...": "اكتب التفاصيل هنا...",
+  "Submit Report": "إرسال البلاغ",
+  "Please select at least one reason or provide details.":
+    "يرجى تحديد سبب واحد على الأقل أو تقديم تفاصيل.",
   "Copy Data": "نسخ البيانات",
   "copy reason of verification success!": "تم نسخ سبب التحقق بنجاح!",
   "Pick a category, download its template, fill it in, then upload it.":

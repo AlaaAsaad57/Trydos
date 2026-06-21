@@ -211,12 +211,20 @@ class StoryService {
       throw error;
     }
   }
-  async reportStory(storyId: string | number) {
+  async reportStory(
+    storyId: string | number,
+    reasons: string[],
+    content: string,
+  ) {
     try {
       const response = await fetchData({
-        url: "",
+        url: "/api/v1/stories/report_story",
         method: "POST",
-        body: JSON.stringify({ story_id: storyId }),
+        body: JSON.stringify({
+          story_id: storyId,
+          reasons,
+          content,
+        }),
         reqTitle: REQUESTS_DATA.REPORT_STORY,
         server: "stories",
       });
@@ -230,7 +238,10 @@ class StoryService {
         error,
         scenario: "Error in reportStory in services/story",
       });
-      return null;
+      // Propagate the failure so the report UI can surface a real error instead
+      // of a false "reported successfully" (the previous `return null` swallowed
+      // errors, hiding failed reports from the user).
+      throw error;
     }
   }
   getUserStories() {

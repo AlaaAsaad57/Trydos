@@ -1,4 +1,17 @@
 const translations = {
+  // Report Story flow
+  "Inappropriate Content": "Uygunsuz İçerik",
+  "Harassment or Hate Speech": "Taciz veya Nefret Söylemi",
+  "Spam or Scam": "Spam veya Dolandırıcılık",
+  "Intellectual Property Violation": "Fikri Mülkiyet İhlali",
+  "Violence or Dangerous Content": "Şiddet veya Tehlikeli İçerik",
+  Other: "Diğer",
+  "Report Reason": "Bildirme Nedeni",
+  "Details (optional)": "Detaylar (isteğe bağlı)",
+  "Write details here...": "Detayları buraya yazın...",
+  "Submit Report": "Bildirimi Gönder",
+  "Please select at least one reason or provide details.":
+    "Lütfen en az bir neden seçin veya detay belirtin.",
   "Copy Data": "Verileri Kopyala",
   "copy reason of verification success!":
     "Doğrulama nedeni başarıyla kopyalandı!",

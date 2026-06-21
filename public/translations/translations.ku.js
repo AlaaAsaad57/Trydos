@@ -1,4 +1,17 @@
 const translations = {
+  // Report Story flow
+  "Inappropriate Content": "ناوەڕۆکی نەشیاو",
+  "Harassment or Hate Speech": "هەراسانکردن یان وتاری ڕق و کینە",
+  "Spam or Scam": "سپام یان فێڵکاری",
+  "Intellectual Property Violation": "پێشێلکردنی مافی خاوەندارێتی ڕۆشنبیری",
+  "Violence or Dangerous Content": "توندوتیژی یان ناوەڕۆکی مەترسیدار",
+  Other: "هیتر",
+  "Report Reason": "هۆکاری ڕاپۆرتکردن",
+  "Details (optional)": "زانیاری زیاتر (ئارەزوومەندانە)",
+  "Write details here...": "زانیاری لێرە بنووسە...",
+  "Submit Report": "ناردنی ڕاپۆرت",
+  "Please select at least one reason or provide details.":
+    "تکایە لانی کەم هۆکارێک هەڵبژێرە یان زانیاری زیاتر بنووسە.",
   "Copy Data": "داتا کۆپی بکە",
   "copy reason of verification success!":
     "هۆکاری پشتڕاستکردنەوە بە سەرکەوتوویی کۆپی کرا!",
