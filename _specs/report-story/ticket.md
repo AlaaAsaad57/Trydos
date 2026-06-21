@@ -9,7 +9,7 @@ created_at: 2026-06-20
 updated_at: 2026-06-21
 links:                   # OPTIONAL delivery links — metadata only, NOT workflow state
   clickup:               # ClickUp task URL (seeded at intake if a clickup_id was given)
-  github:                # PR URL (set by /publish-pr after publishing; never drives state)
+  github: https://github.com/AlaaAsaad57998/Trydos/pull/54   # PR URL (set by /publish-pr after publishing; never drives state)
 ---
 
 # Ticket Record — report-story
