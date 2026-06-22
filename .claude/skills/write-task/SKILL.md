@@ -23,18 +23,32 @@ If a required metadata value is genuinely unknowable (Assignee, exact Sprint, Ti
 Estimate), put a sensible placeholder/estimate and flag it with `⚠️` so the user fills it,
 rather than leaving it blank — a blank required field fails the standard.
 
+> **Field values below are the LIVE ClickUp schema** of the *Product Backlog List*
+> (folder **Backlog**, list id `901818662901`, team **Ramaaz Co** `90182710436`,
+> space **TryDosProject** `901811062695`). Only ever use option labels listed in the
+> **ClickUp field reference** at the bottom of this skill — never invent a status,
+> actor, priority, type, risk, or environment value that isn't in that list.
+
 ## Required metadata (top of ticket — all required fields MUST be filled)
 
 | Property | Required | Notes |
 | --- | --- | --- |
 | Title | ✔️ | Short, action-oriented: **Verb + Object** (e.g. "Create User", "Add Comment Section"). Never a vague noun ("Comments", "Users"). |
-| Status | ✔️ | Start at `Backlog`. Workflow: `Backlog → Planned → TODO → In progress → Ready For Developer Review → Ready For EM Review → EM Testing (DEV ENV) → Ready For Release → In Release (STAGING) → Released To PROD` |
-| Backbone | ✔️ | The module (e.g. Seller Dashboard, Admin Dashboard, RDP…) |
-| Actor | ✔️ | One/more of: System Admin, Account Admin, Normal User, System (pick the real actor — e.g. Seller / Account Admin) |
-| Assignee | ✔️ | Person responsible (placeholder + ⚠️ if unknown) |
-| Time Estimate (h) | ✔️ | Hours (give a real estimate, flag ⚠️ if guessed) |
-| Sprint | ⬜ | Optional relation |
-| User Story Relation | ⬜ | Link to Epic by ID |
+| Status | ✔️ | Start new tickets at **`draft`**. Workflow: `draft → refining → ready for sprint → blocked → complete`. Use exactly these labels (lower-case). |
+| Work Item Type | ✔️ | One of: `Feature`, `Story`, `Bug`, `Improvement`, `Task`, `Epic`. |
+| Backbone (module) | ✔️ | The ClickUp module folder the ticket belongs to: `Admin Dashboard`, `Seller DashBoard`, `Story`, `Chat`, `Client`, `Auth`, `MobApp`, `QA`. (Not a custom field — it is the folder; pick the closest module.) |
+| Actor | ✔️ | One or more of: `System Admin`, `Account Admin`, `Seller`, `Driver`, `Normal User`, `System`. (Multi-label field — pick the real actor(s).) |
+| Priority | ✔️ | `low`, `Medium`, or `High`. |
+| Risk Level | ✔️ | `Low`, `Medium`, or `High`. |
+| Environment | ✔️ | One or more of: `Web`, `Staging`, `Production`, `Development`, `Laravel Admin Dashboard`, `Go-Inventory`. |
+| Assignee | ✔️ | Person responsible (placeholder + ⚠️ if unknown). |
+| Time Estimate (h) | ✔️ | Hours, numeric (give a real estimate, flag ⚠️ if guessed). |
+| Sprint | ⬜ | Sprint relation (e.g. `Sprint 1 (6/15 - 6/28)`). Leave blank for backlog items. |
+| User Story Relation | ⬜ | Link parent Epic/Story task by ID. |
+| Business Value | ⬜ | One-line value statement (mirrors the User Story `so that`). |
+| Dependencies | ⬜ | Blocking tickets/work, by ID. |
+| Technical Notes | ⬜ | Short implementation pointers (files, endpoints) for the dev. |
+| Questions | ⬜ | Open questions for the reviewer/EM. |
 
 ## Body — exactly 3 sections, in order
 
@@ -85,7 +99,8 @@ Append this and tick honestly:
 ```
 Ticket Quality Checklist
 - [ ] Title is short and action-oriented (verb + object)
-- [ ] Status, Backbone, Actor, Assignee, Time Estimate are filled
+- [ ] Status, Work Item Type, Backbone, Actor, Priority, Risk Level, Environment, Assignee, Time Estimate are filled
+- [ ] Every field value matches a label in the ClickUp field reference (no invented values)
 - [ ] Body contains all 3 sections: User Story, Acceptance Criteria, Test Cases
 - [ ] User Story uses As / I want / so that format with a real benefit
 - [ ] Summary paragraph includes scope, constraints, in/out of scope
@@ -100,4 +115,47 @@ Ticket Quality Checklist
 - [ ] Test Cases cover: Happy Path, Validation Error, Authorization Failure
 - [ ] No ambiguous words ("maybe", "etc.", "should probably")
 - [ ] Related tickets referenced by ID (if applicable)
+```
+
+## ClickUp field reference (live values — source of truth)
+
+Pulled from the live **Product Backlog List** (`901818662901`). When ClickUp changes,
+re-pull and update this section (see "Refreshing this reference" below). These are the
+**only** legal option labels.
+
+### Statuses (workflow order)
+`draft` (open) → `refining` → `ready for sprint` → `blocked` → `complete` (closed).
+New tickets start at `draft`.
+
+### Custom field options
+| Field | Type | Allowed values |
+| --- | --- | --- |
+| Work Item Type | drop_down | `Feature`, `Story`, `Bug`, `Improvement`, `Task`, `Epic` |
+| Actor | labels (multi) | `System Admin`, `Account Admin`, `Seller`, `Driver`, `Normal User`, `System` |
+| Priority | drop_down | `low`, `Medium`, `High` |
+| Risk Level | drop_down | `Low`, `Medium`, `High` |
+| Environment | drop_down (multi) | `Web`, `Staging`, `Production`, `Development`, `Laravel Admin Dashboard`, `Go-Inventory` |
+| Time Estimate (h) | number | hours (numeric) |
+| Sprint | list_relationship | current: `Sprint 1 (6/15 - 6/28)` |
+| User Story Relation | tasks | parent Epic/Story task id(s) |
+| Business Value | short_text | free text |
+| Dependencies | short_text | free text |
+| Technical Notes | text | free text |
+| Questions | text | free text |
+| Acceptance Criteria | short_text | free text (the body's AC section is canonical) |
+
+### Backbone → ClickUp module folders
+`Admin Dashboard`, `Seller DashBoard`, `Story`, `Chat`, `Client`, `Auth`, `MobApp`, `QA`
+(all under space **TryDosProject**). Lists also exist for `Bugs` and `Fixes & Technical Debt`
+in the **Backlog** folder — same status set as above.
+
+### Refreshing this reference
+Token is in env (`CLICKUP_API_TOKEN`). Re-pull with:
+```bash
+# statuses
+curl -s -H "Authorization: $CLICKUP_API_TOKEN" \
+  "https://api.clickup.com/api/v2/list/901818662901" | python -m json.tool
+# custom fields + options
+curl -s -H "Authorization: $CLICKUP_API_TOKEN" \
+  "https://api.clickup.com/api/v2/list/901818662901/field" | python -m json.tool
 ```

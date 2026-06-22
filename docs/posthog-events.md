@@ -28,8 +28,8 @@ There are **several event streams** plus identity and error capture. All wrapper
    cart-free base-prop set for post-purchase screens. See [Order-management events](#3-order-management-events-posthog-only--order_mgmt_events).
 4. **PostHog-only chat/stories stream** — `utils/posthogEvents.ts:trackPosthog(event, props)`
    → `posthogCapture` only. Attaches the shared `globalProps()` block (the same context the GA
-   fan-out adds), but names live in `STORY_EVENTS` / `CHAT_EVENTS`, **not** in `GA_EVENT_NAMES`
-   — use this for new events with no GA counterpart. See
+   fan-out adds), but names live in `STORY_EVENTS` / `CHAT_EVENTS` / `PRODUCT_EVENTS`, **not** in
+   `GA_EVENT_NAMES` — use this for new events with no GA counterpart. See
    [Chat & stories events](#4-chat--stories-events-posthog-only) and `funnels/chat-stories-funnels.md`.
 5. **Identity** — `posthogIdentify(userId, props)` on login (`components/Home/Init.tsx`,
    `services/auth.ts`); `posthogReset()` on logout (`utils/tinyUtils.tsx`).
@@ -272,6 +272,11 @@ Funnel designs that use these: `funnels/chat-stories-funnels.md`.
 | `chat_opened` | Chat panel opens (`chatVar` → true) | — (global props only) | `components/Chat/ChatModal.tsx` |
 | `chat_message_sent` | A message is sent — text + media (image/voice/video/file) | `conversation_id`, `message_type`, `is_order_chat`, `is_reply` | `components/Chat/pages/ConversationContainer.tsx` |
 | `chat_product_shared` | A product is shared into a chat → `ShareProduct()` (commerce bridge) | `product_id`, `product_slug`, `receiver_user_id` | `services/chat.ts` |
+
+### Product page
+| Event | Fires when | Props | File |
+|---|---|---|---|
+| `delivery_stats_viewed` | The "Expected Shipping & Delivery" bottom sheet first opens for a product (fires once per opened product, on the lazy delivery-time fetch) | `product_id`, `expected_days` (`starting_setting.shipping_duration_days` + product `shipping_days`) | `components/products/ExpectedDeleiveryModal.tsx` |
 
 ---
 

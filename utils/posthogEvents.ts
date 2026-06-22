@@ -27,6 +27,11 @@ export const CHAT_EVENTS = {
   CHAT_PRODUCT_SHARED: "chat_product_shared",
 } as const;
 
+// Product page — names live here, NOT in GA_EVENT_NAMES.
+export const PRODUCT_EVENTS = {
+  DELIVERY_STATS_VIEWED: "delivery_stats_viewed",
+} as const;
+
 export const trackPosthog = (
   event: string,
   props?: Record<string, unknown>,

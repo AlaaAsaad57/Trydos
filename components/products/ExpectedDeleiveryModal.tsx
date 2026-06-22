@@ -13,6 +13,7 @@ import {
   GetProductDeliveryTimes,
 } from "services/products";
 import { countryNameFromIso } from "utils/server";
+import { PRODUCT_EVENTS, trackPosthog } from "utils/posthogEvents";
 function ExpectedDeleiveryModal({
   product_id,
   shipping_days,
@@ -58,6 +59,13 @@ function ExpectedDeleiveryModal({
   useEffect(() => {
     if (!isOpen || !product_id || fetchedRef.current) return;
     fetchedRef.current = true;
+    // Fire once when the delivery-statistics sheet first opens for this product.
+    trackPosthog(PRODUCT_EVENTS.DELIVERY_STATS_VIEWED, {
+      product_id,
+      expected_days:
+        (settings?.["starting_setting"]?.shipping_duration_days || 0) +
+        shipping_days,
+    });
     setLoadingTimes(true);
     GetProductDeliveryTimes({ productId: product_id })
       .then((data) => setDeliveredOrders(data || []))

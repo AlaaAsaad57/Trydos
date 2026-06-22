@@ -11,7 +11,7 @@ import { getLocalizedCountryName } from "utils/countryData";
 import { buildAlternates } from "serverRequests/meta/buildAlternates";
 import RouterRefresh from "components/global/RouterRefresh";
 
-import { GetOrders, getWallet } from "serverRequests/settings";
+import { GetOrders } from "serverRequests/settings";
 import {
   COOKIE_NAMES,
   getCookieServer,
@@ -57,35 +57,35 @@ async function page({ params }) {
       Icon: `/icons/SettingsIcon.svg`,
       href: `/${Params?.lang}/settings/prefferences`,
     },
+    // {
+    //   name: "Terms & Conditions",
+    //   Icon: `/icons/TermsIcon.svg`,
+    //   href: `/${Params?.lang}/terms-of-service`,
+    // },
+    {
+      name: "Legal Information",
+      Icon: `/icons/LegalInfoIcon.svg`,
+      href: `#`,
+    },
+    // {
+    //   name: "Contact Us",
+    //   Icon: `/icons/ContactInfoIcon.svg`,
+    //   href: `/${Params?.lang}/contact`,
+    // },
     {
       name: "About Us",
       Icon: `/icons/AboutIcon.svg`,
-      href: `/${Params?.lang}/about`,
+      href: `#`,
     },
-    {
-      name: "Privacy Policy",
-      Icon: `/icons/privacyicon.svg`,
-      href: `/${Params?.lang}/privacy-policy`,
-    },
-    {
-      name: "Terms & Conditions",
-      Icon: `/icons/TermsIcon.svg`,
-      href: `/${Params?.lang}/terms-of-service`,
-    },
-    {
-      name: "Contact Us",
-      Icon: `/icons/ContactInfoIcon.svg`,
-      href: `/${Params?.lang}/contact`,
-    },
-    {
-      name: "Compare",
-      Icon: `/icons/FilterInfoIcon.svg`,
-      href: `/${Params?.lang}/compare`,
-    },
+    // {
+    //   name: "Compare",
+    //   Icon: `/icons/FilterInfoIcon.svg`,
+    //   href: `/${Params?.lang}/compare`,
+    // },
     {
       name: "Share App",
       Icon: `/icons/ShareAppIcon.svg`,
-      href: `/${Params?.lang}/settings/share`,
+      href: `#`,
     },
   ];
 

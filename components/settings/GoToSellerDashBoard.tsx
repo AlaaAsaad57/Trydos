@@ -37,6 +37,8 @@ function GoToSellerDashBoard({ language }: { language: string }) {
       });
       setLoading(false);
       setShouldShow(false);
+    } finally{
+      setLoading(false);
     }
   };
 
