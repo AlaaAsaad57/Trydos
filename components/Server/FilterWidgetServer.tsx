@@ -34,6 +34,9 @@ async function FilterWidgetServer({
         language={language}
         country={country}
         initialFilters={parsedFilters}
+        // FiltersWindow consumes `children` as a structured map (categories/brands/…),
+        // not JSX children — passing it as a prop is intentional.
+        // eslint-disable-next-line react/no-children-prop
         children={{
           categories: filtersData.categories.map((item) => (
             <CategoryImageCircel

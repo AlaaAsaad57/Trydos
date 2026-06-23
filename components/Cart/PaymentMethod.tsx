@@ -314,12 +314,12 @@ function PaymentMethod() {
               if (item?.toLowerCase() === "trydos_wallet".toLowerCase()) {
                 return (
                   <div
+                    key={key}
                     className={`flex-row items-end gap-[8px] ${
                       isRtl ? "flex-row-reverse" : "flex-row"
                     }`}
                   >
                     <TryDosWalletInput
-                      key={key}
                       balance={wallet?.wallet_balance?.toFixed(
                         currency?.decimal_digits,
                       )}

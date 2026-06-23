@@ -236,20 +236,20 @@ export function extractFilters(
   const customProducts: CustomProduct[] = [];
 
   products?.forEach((product) => {
-    if (Array.isArray(product.custom_products)) {
-      product.custom_products.forEach((customProduct: any) => {
-        if (customProduct.language_code === languageCode) {
-          customProducts.push(
-            processCustomProduct(
-              product,
-              customProduct,
-              languageCode,
-              isFromBrowser,
-              country,
-            ),
-          );
-        }
-      });
+    if (product.custom_products && Array.isArray(product.custom_products)) {
+          const matchingCustomProduct = product.custom_products.find(
+        (cp: any) => cp.language_code === languageCode,
+      );
+    if (matchingCustomProduct) {
+        const processed = processCustomProduct(
+          product,
+          matchingCustomProduct,
+          languageCode,
+          isFromBrowser,
+          country,
+        );
+        customProducts.push(processed);
+      }
     }
   });
 

@@ -70,8 +70,8 @@ const OrderCartItem = () => {
       >
         {getProductsOfOrder()?.map((s, i) => {
           return (
-            <div className="flex flex-col items-center">
-              <div className="flex relative h-[125px]" key={i}>
+            <div className="flex flex-col items-center" key={i}>
+              <div className="flex relative h-[125px]">
                 <span
                   className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
                   data-cy="order-item-quantity-label"

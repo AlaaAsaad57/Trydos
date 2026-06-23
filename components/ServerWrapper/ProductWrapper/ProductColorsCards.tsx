@@ -24,7 +24,7 @@ function ProductColorsCards({
   return (
     <div className="w-full pb-[40px] max-w-[1310px] min-h-[60vh] bg-white pt-[10px] flex flex-wrap gap-y-[18px] gap-x-[4px] justify-center items-center">
       {InitialProductData?.sync_color_images?.map((color, i) => (
-        <div className="flex relative">
+        <div className="flex relative" key={color?.color_name ?? i}>
           <NextLink
             data={{
               is_product: true,

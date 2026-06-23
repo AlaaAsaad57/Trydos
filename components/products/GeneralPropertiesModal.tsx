@@ -138,7 +138,7 @@ function GeneralPropertiesModal({
               </div>
               <div className="flex-col gap-[4px]">
                 {reviews_arr.map((s) => (
-                  <ReviewProgress title={s.title} value={s.value} />
+                  <ReviewProgress key={s.title} title={s.title} value={s.value} />
                 ))}
               </div>
             </div>

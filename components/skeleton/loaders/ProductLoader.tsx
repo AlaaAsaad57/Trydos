@@ -114,8 +114,8 @@ function ProductLoader({ product }) {
 
               {/* Skeleton commenst */}
               <div className="w-full h-[228px] flex-row gap-[8px]">
-                {[1, 1, 1].map((s) => (
-                  <Skeleton borderRadius={12} width={"85%"} height={"100%"} />
+                {[1, 1, 1].map((s, i) => (
+                  <Skeleton key={i} borderRadius={12} width={"85%"} height={"100%"} />
                 ))}
               </div>
             </div>

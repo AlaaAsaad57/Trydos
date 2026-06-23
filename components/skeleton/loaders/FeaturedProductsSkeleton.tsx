@@ -29,9 +29,8 @@ function FeaturedProductsSkeleton() {
         data-cy="featured-products-container"
       >
         {Array.from({ length: 6 }).map((s, key) => (
-          <div className="relative flex">
+          <div className="relative flex" key={key}>
             <div
-              key={key}
               className="max-h-[377px] relative"
               data-cy="product-card-flash-deal"
             >
