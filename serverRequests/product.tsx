@@ -357,6 +357,7 @@ export async function GetProductMeta({
     RedisSet(cacheKey, data, 3600);
     return { ...data, metaFromRedis: false };
   } catch (error) {
+
     LogServerError({
       slug,
       language,
@@ -364,6 +365,7 @@ export async function GetProductMeta({
       error: error,
       scenario: "Error In GetProductMeta in serverRequest/product",
     });
+    return null;
     // log error
   }
 }

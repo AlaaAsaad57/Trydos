@@ -11,6 +11,7 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
   let product = await GetProductGeneralData({
     id: productGlobalData?.id,
   });
+  if(!productGlobalData?.id) return <></>;
   const originIso = productGlobalData?.origin_country_iso;
   const originText = madeInText(originIso, language);
   const TotalBuyers = () => {
