@@ -19,7 +19,7 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
     });
 
     // @ts-ignore
-    if (metaData?.error || !metaData?.id) {
+    if (metaData?.error || !metaData) {
       // @ts-ignore
       throw new Error(metaData?.error ?? metaData);
     }

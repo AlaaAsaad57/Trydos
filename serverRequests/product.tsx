@@ -29,7 +29,6 @@ import {
   user_interactions_index,
   views_index,
 } from "services/elastic/INDEXES";
-import { redirect } from "next/navigation";
 
 let client = elasticSearchClient;
 interface ProdutGlobalData {
@@ -207,7 +206,6 @@ export async function GetGlobalProduct({
     throw new Error(
       error?.message ?? error ?? "Failed to Get Global Product Data",
     );
-     redirect(`/${country}-${language}?message=product_not_found`);
     // log error
   }
 }
@@ -359,7 +357,6 @@ export async function GetProductMeta({
     RedisSet(cacheKey, data, 3600);
     return { ...data, metaFromRedis: false };
   } catch (error) {
-
     LogServerError({
       slug,
       language,
@@ -367,7 +364,6 @@ export async function GetProductMeta({
       error: error,
       scenario: "Error In GetProductMeta in serverRequest/product",
     });
-    return null;
     // log error
   }
 }
