@@ -29,6 +29,7 @@ import {
   user_interactions_index,
   views_index,
 } from "services/elastic/INDEXES";
+import { redirect } from "next/navigation";
 
 let client = elasticSearchClient;
 interface ProdutGlobalData {
@@ -206,6 +207,7 @@ export async function GetGlobalProduct({
     throw new Error(
       error?.message ?? error ?? "Failed to Get Global Product Data",
     );
+     redirect(`/${country}-${language}?message=product_not_found`);
     // log error
   }
 }
