@@ -4,7 +4,7 @@ import ProductRating from "./ProductRating";
 import { madeInText, translateFunction } from "utils/server";
 import ProductViews from "components/products/ProductViews";
 import { GetProductGeneralData } from "serverRequests/product";
-import { FlagIcon } from "utils/tinyUtils";
+import { FlagIcon, VALID_ISO } from "utils/tinyUtils";
 
 async function ProductGeneralPropertiesWrapper({ globalData, language }) {
   let productGlobalData = await globalData;
@@ -73,10 +73,10 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
           </>
         )}
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-       {originIso&& <div className="flex-row items-center product-property-row" style={{
+       {originIso&&VALID_ISO.includes(originIso?.toUpperCase())&& <div className="flex-row items-center product-property-row" style={{
         direction:language==='ar'||language==='ku'?'rtl':"ltr"
        }}>
-          <FlagIcon iso={originIso} isFromProductPage={true} />
+          <FlagIcon iso={originIso?.toUpperCase()} isFromProductPage={true} />
           <span className="mx-1">{originText}</span>
         </div>}
       </ProductGeneralProperties>

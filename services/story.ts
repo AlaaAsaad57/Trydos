@@ -213,17 +213,21 @@ class StoryService {
   }
   async reportStory(
     storyId: string | number,
+    userId:string,
     reasons: string[],
     content: string,
+    
   ) {
     try {
       const response = await fetchData({
-        url: "/api/v1/stories/report_story",
+        url: "/api/v1/stories/report",
         method: "POST",
         body: JSON.stringify({
           story_id: storyId,
           reasons,
-          content,
+          notes:content,
+          reporter_user_id:userId
+
         }),
         reqTitle: REQUESTS_DATA.REPORT_STORY,
         server: "stories",

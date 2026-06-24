@@ -18,10 +18,10 @@ import Spinner from "components/global/Spinner";
 export const REPORT_REASONS: { value: string; labelKey: string }[] = [
   { value: "inappropriate_content", labelKey: "Inappropriate Content" },
   {
-    value: "harassment_or_hate_speech",
+    value: "harassment",
     labelKey: "Harassment or Hate Speech",
   },
-  { value: "spam_or_scam", labelKey: "Spam or Scam" },
+  { value: "spam", labelKey: "Spam or Scam" },
   {
     value: "intellectual_property_violation",
     labelKey: "Intellectual Property Violation",
@@ -49,7 +49,7 @@ export default function ReportStoryModal({
   const [submitting, setSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const { language } = useAppStore();
+  const { language ,userProfile} = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
   useEffect(() => {
@@ -80,6 +80,7 @@ export default function ReportStoryModal({
     try {
       await StoryServiceClass.reportStory(
         storyId,
+        userProfile?.id,
         selectedReasons,
         details.trim(),
       );
