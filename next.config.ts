@@ -149,8 +149,6 @@ let nextConfig: NextConfig = {
     optimizeCss: true,
     optimizeServerReact: true,
     optimizePackageImports: [
-      "framer-motion",
-      "react-spring",
       "embla-carousel-react",
       "embla-carousel-autoplay",
       "react-intersection-observer",
