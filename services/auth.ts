@@ -368,6 +368,7 @@ class AuthService {
     return useAppStore.getState().userProfile;
   }
   async validateFCMToken() {
+   
     if (!localStorage.getItem("FBID")) return;
     try {
       let res = await fetchData({
@@ -375,7 +376,7 @@ class AuthService {
         url: "/firebase_device_tokens/validate_token",
         method: "POST",
         body: JSON.stringify({
-          firebase_token_id: localStorage.getItem("FBID"),
+          firebase_token_id: parseInt(localStorage.getItem("FBID")),
         }),
         reqTitle: REQUESTS_DATA.VALIDATE_FCM_TOKEN,
         noMessage: true,

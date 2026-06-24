@@ -96,7 +96,8 @@ const ignoredMessages = [
   "The user aborted a request.",
   "Fetch is aborted",
   "success",
-  "Policies Approved!"
+  "Policies Approved!",
+  "firebase device token stored successfully"
 ];
 
 // ---------- Helper Functions ----------

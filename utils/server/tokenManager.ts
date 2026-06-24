@@ -52,11 +52,21 @@ const GO_APIS = [
   "/home/currency",
   "/web/home/startingSettings",
   "/checklist",
-  // "/cart/add",
+  "/firebase_device_tokens/validate_token",
+  "/firebase_device_tokens",
+  "/cart/add",
+  "/cart/update",
+  "/cart/remove",
+  "/cart",
+  "/cart/cart_shipping",
+  "/cart/cart_overview",
+  "/old-cart/get_old_cart",
+  "/old-cart/hide"
 ];
 // ---------- Server URL Resolution ----------
-const isFromGoApi = (url: string) =>
-  GO_APIS.some((endpoint) => url.startsWith(endpoint));
+export const isFromGoApi = (url: string) =>{
+  let normalizedUrl=url.split('?')?.[0];
+ return GO_APIS.some((endpoint) => normalizedUrl.endsWith(endpoint))};
 function getServerBaseUrl(server: ProxiedServer, url: string): string {
   console.log(url, isFromGoApi(url));
   switch (server) {

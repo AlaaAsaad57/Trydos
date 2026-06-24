@@ -513,7 +513,7 @@ class HomeService {
       throw new Error("Invalid URL format for country-language pair");
     }
     const { getFirebaseSettings } = useAppStore.getState();
-    setCookie(COOKIE_NAMES.LOCAL, `${countryCode}-${languageCode}`);
+    setCookie(COOKIE_NAMES.LOCAL, `${countryCode?.toLowerCase()}-${languageCode?.toLowerCase()}`);
 
     if (!token) return;
 

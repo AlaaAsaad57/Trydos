@@ -1,5 +1,6 @@
 import { NextResponse, userAgent, type NextRequest } from "next/server";
 import { ipAddress } from "@vercel/functions";
+import { NextURL } from "next/dist/server/web/next-url";
 
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
@@ -112,9 +113,9 @@ function parseUrlLocale(pathname: string): LocaleInfo | null {
   const parts = pathname.split("/")[1]?.toLowerCase()?.split("-");
   if (parts?.length === 2) {
     return {
-      country: parts[0],
-      language: parts[1],
-      locale: `${parts[0]}-${parts[1]}`,
+      country: parts[0]?.toLowerCase(),
+      language: parts[1]?.toLowerCase(),
+      locale: `${parts[0]}-${parts[1]}`?.toLowerCase(),
     };
   }
   return null;
@@ -248,6 +249,17 @@ function getClientIp(req: NextRequest): string {
   if (ip) return ip;
   return "0.0.0.0"; // fallback, should not happen on Vercel
 }
+
+const normalizeUrl=(url:NextURL):NextURL=>{
+ url.pathname=url.pathname.toLowerCase();
+ return url
+}
+const extractLocales=(u:string)=>{
+   const parts = u.split("/")[1]?.split("-");
+   if(parts.length===2){
+    return `${parts[0]}-${parts[1]}`
+   }
+}
 // Main middleware function
 export async function proxy(request: NextRequest) {
   const ua = request.headers.get("user-agent") ?? "";
@@ -275,7 +287,11 @@ export async function proxy(request: NextRequest) {
   const allSupportedCountries = getAllSupportedCountries(coutries);
 
   const supportedLocales = buildSupportedLocales(allSupportedCountries);
-  const response = NextResponse.next();
+  const hasUppercase = extractLocales(url.pathname) !== extractLocales(url.pathname)?.toLowerCase();
+  const response = hasUppercase 
+    ? NextResponse.redirect(normalizeUrl(url), 308) 
+    : NextResponse.next();
+  console.log(hasUppercase,"HASUPPERCASE******")
 
   // End of the logout window. The logout route armed LOGOUT-GUARD so that any
   // in-flight 401 couldn't resurrect the cleared session; this top-level
@@ -299,7 +315,7 @@ export async function proxy(request: NextRequest) {
 
     // Preserve full path, prefix with locale
     const cleanPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
-    url.pathname = `/${defaultLocale}${cleanPathname}`;
+    url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname}`;
     return NextResponse.redirect(url, 308);
   }
   const ip = getClientIp(request);
@@ -361,10 +377,10 @@ export async function proxy(request: NextRequest) {
   }
 
   // Get and validate cookie values
-  const countryFromCookies = request.cookies.get("country")?.value;
+  const countryFromCookies = request.cookies.get("country")?.value?.toLowerCase();
   const langFromCookies =
-    request.cookies.get("lang")?.value ||
-    request.cookies.get("language")?.value;
+    request.cookies.get("lang")?.value?.toLowerCase() ||
+    request.cookies.get("language")?.value?.toLowerCase();
   const cookieValidation = validateCookieValues(
     countryFromCookies,
     langFromCookies,
@@ -403,7 +419,7 @@ export async function proxy(request: NextRequest) {
         ? pathname
         : `/${pathname}`;
 
-    url.pathname = `/${defaultLocale}${cleanPathname}`;
+    url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname}`;
     url.searchParams.delete("cart");
     url.searchParams.set("no-country", "true");
     return NextResponse.redirect(url);
@@ -413,8 +429,8 @@ export async function proxy(request: NextRequest) {
   if (urlLocale && supportedLocales.has(urlLocale.locale)) {
     // Validate URL locale against supported countries
     const urlLocaleValidation = validateLocalePair(
-      urlLocale.country,
-      urlLocale.language,
+      urlLocale.country?.toLowerCase(),
+      urlLocale.language?.toLowerCase(),
       allSupportedCountries,
     );
 
@@ -433,11 +449,11 @@ export async function proxy(request: NextRequest) {
         if (urlLocale.country === "gb" && cKey !== "gb") {
           const targetLocale = buildLocale(cKey!, lKey!);
           const cleanPath = getCleanPathname(pathname, urlLocale);
-          url.pathname = `/${targetLocale}${cleanPath === "/" ? "" : cleanPath}`;
+          url.pathname = `/${targetLocale?.toLowerCase()}${cleanPath === "/" ? "" : cleanPath}`;
 
           const res = createRedirectResponse(url, redirectCount);
           // IMPORTANT: You must attach cookies to the redirect response
-          setLocaleCookies(res, cKey!, lKey!);
+          setLocaleCookies(res, cKey!.toLowerCase(), lKey!.toLowerCase());
           return res;
         }
       }
@@ -472,6 +488,8 @@ export async function proxy(request: NextRequest) {
             "changed-country",
             `${urlLocale.country},${cookieCountry}`,
           );
+          let parts=url.pathname.split('/');
+          let normalizedPart=parts[1];
           return createRedirectResponse(url, redirectCount);
         }
       }
@@ -507,14 +525,14 @@ export async function proxy(request: NextRequest) {
       cookieValidation.language,
     );
     const cleanPath = getCleanPathname(pathname, urlLocale);
-    url.pathname = `/${targetLocale}${cleanPath === "/" ? "" : cleanPath}`;
+    url.pathname = `/${targetLocale?.toLowerCase()}${cleanPath === "/" ? "" : cleanPath}`;
 
     const redirectResponse = NextResponse.redirect(url);
     // نقل الكوكيز الصالحة للـ Response الجديد لضمان عدم ضياعها
     setLocaleCookies(
       redirectResponse,
-      cookieValidation.country,
-      cookieValidation.language,
+      cookieValidation.country?.toLowerCase(),
+      cookieValidation.language?.toLowerCase(),
     );
     return redirectResponse;
   }
@@ -533,8 +551,8 @@ export async function proxy(request: NextRequest) {
     geoValidation.country &&
     geoValidation.language
   ) {
-    const locale = buildLocale(geoValidation.country, geoValidation.language);
-    url.pathname = `/${locale}${pathname.startsWith("/") ? pathname : "/" + pathname}`;
+    const locale = buildLocale(geoValidation.country?.toLowerCase(), geoValidation.language?.toLowerCase());
+    url.pathname = `/${locale?.toLowerCase()}${pathname.startsWith("/") ? pathname : "/" + pathname}`;
     return NextResponse.redirect(url);
   }
 
@@ -546,7 +564,7 @@ export async function proxy(request: NextRequest) {
       ? pathname
       : `/${pathname}`;
 
-  url.pathname = `/${defaultLocale}${cleanPathname === "/" ? "" : cleanPathname}`;
+  url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname === "/" ? "" : cleanPathname}`;
   url.searchParams.delete("cart");
   url.searchParams.set("no-country", "true");
   return NextResponse.redirect(url);

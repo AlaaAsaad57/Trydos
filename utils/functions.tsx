@@ -387,7 +387,7 @@ export const getOldCart = async () => {
     }
     const { storeOldCart } = useAppStore.getState();
 
-  const originalData = response?.data?.original?.data;
+  const originalData = response?.data?.original?.data ?? response?.data;
   const oldCart = originalData?.oldCart || []; // 1. Fallback to an empty array
 
   // 2. Create a shallow copy using [...] before sorting
@@ -425,6 +425,7 @@ export const getCart = async ({ callback }): Promise<CartApiInterface> => {
   if (!userId) return { cart: [] } as CartApiInterface;
   try {
     let response: any = await fetchData({
+      // url: "/cart",
       url: "/cart/cart_shipping",
       reqTitle: REQUESTS_DATA.CART_REQUEST,
       method: "GET",

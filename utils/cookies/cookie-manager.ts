@@ -305,14 +305,14 @@ export function setLocaizationCookies(country: string, language: string): void {
     });
   }
   if (language) {
-    setCookie(COOKIE_NAMES.LANG, language, {
+    setCookie(COOKIE_NAMES.LANG, language?.toLowerCase(), {
       path: "/",
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 365 * 24 * 60 * 60, // 1 year
       httpOnly: false,
     });
-    setCookie(COOKIE_NAMES.lANGUAGE, language, {
+    setCookie(COOKIE_NAMES.lANGUAGE, language?.toLowerCase(), {
       path: "/",
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

@@ -97,6 +97,7 @@ export default async function RootLayout({ params, children, modal }) {
         "overflow-x-hidden",
       ].join(" ")}
       lang={mapLocaleToBCP47(lang)}
+      translate="no"
       // dir={language === "ar" || language === "ku" ? "rtl" : "ltr"}
     >
       <body

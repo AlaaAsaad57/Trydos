@@ -227,7 +227,7 @@ function OldCartContainer() {
                     src={getConfiguredImage({
                       height: 150,
                       width: 150,
-                      src: GetImageUrl(product?.brand?.icon?.file_path),
+                      src: GetImageUrl(product?.brand?.icon?.file_path??product?.brand?.icon),
                     })}
                     height={10}
                     style={{

@@ -5,6 +5,7 @@ import {
   buildProxyHeaders,
   logSecureRequest,
   getTokenForServer,
+  isFromGoApi,
 } from "utils/server/tokenManager";
 import { SEND_OTP } from "utils/endpointConfig";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -128,6 +129,7 @@ export async function POST(request: NextRequest) {
         status: backendResponse.status,
         headers: {
           "Cache-Control": "no-store",
+           "IS-FROM-GO":`${isFromGoApi(targetUrl)}`
         },
       });
     }
@@ -138,6 +140,8 @@ export async function POST(request: NextRequest) {
       status: backendResponse.status,
       headers: {
         "Content-Type": responseContentType,
+        "IS-FROM-GO":`${isFromGoApi(targetUrl)}`,
+        "fullUrl":''
       },
     });
   } catch (error) {
