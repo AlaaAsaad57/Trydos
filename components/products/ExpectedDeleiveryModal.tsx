@@ -196,7 +196,7 @@ function ExpectedDeleiveryModal({
                       />
                     ))
                   : rating_arr.map((s, i) => (
-                      <ReviewProgress key={i} title={s.days} value={s.value} />
+                      <ReviewProgress key={i} title={s.days>=10?`+${s.days}`:s.days} value={s.value} />
                     ))}
               </div>
             </div>

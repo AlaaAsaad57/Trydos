@@ -396,9 +396,6 @@ export async function generateStaticPagesSitemapUrls(): Promise<SitemapUrl[]> {
  */
 async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
   try {
-    console.log(
-      `[getTopSearchTerms] Starting search terms query with limit: ${limit}`,
-    );
 
     // First, get the most used search terms (following PHP pattern)
     const searchQuery = {
@@ -422,57 +419,40 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
       },
     };
 
-    console.log(
-      "[getTopSearchTerms] Elasticsearch query params:",
-      JSON.stringify(searchQuery, null, 2),
-    );
+  
 
     const response = await elasticSearchClient.search(searchQuery);
 
-    console.log(
-      "[getTopSearchTerms] Raw Elasticsearch response:",
-      JSON.stringify(response, null, 2),
-    );
+
 
     const topTerms: SearchTerm[] = [];
 
     // Process results
     const buckets =
       (response.aggregations as any)?.top_search_terms?.buckets || [];
-    console.log(
-      `[getTopSearchTerms] Found ${buckets.length} buckets in response`,
-    );
 
     if (buckets.length === 0) {
-      console.log(
-        "[getTopSearchTerms] No buckets found - checking if index exists and has data",
-      );
+
 
       // Check if index exists
       try {
         const indexExists = await elasticSearchClient.indices.exists({
           index: search_log_index,
         });
-        console.log("[getTopSearchTerms] Index exists check:", indexExists);
+      
 
         if (indexExists) {
           // Get index stats to see if there's any data
           const indexStats = await elasticSearchClient.indices.stats({
             index: search_log_index,
           });
-          console.log(
-            "[getTopSearchTerms] Index stats:",
-            JSON.stringify(indexStats, null, 2),
-          );
+
 
           // Try a simple count query to see total documents
           const countResponse = await elasticSearchClient.count({
             index: search_log_index,
           });
-          console.log(
-            "[getTopSearchTerms] Total documents in index:",
-            countResponse.count,
-          );
+
 
           // Try a query without the range filter to see if any documents exist
           const simpleQuery = {
@@ -489,10 +469,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
           };
 
           const simpleResponse = await elasticSearchClient.search(simpleQuery);
-          console.log(
-            "[getTopSearchTerms] Simple query response:",
-            JSON.stringify(simpleResponse, null, 2),
-          );
+
         }
       } catch (error) {
         console.error("[getTopSearchTerms] Error checking index:", error);
@@ -501,13 +478,11 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
 
     for (const bucket of buckets) {
       let term = bucket.key;
-      console.log(
-        `[getTopSearchTerms] Processing term: "${term}" with count: ${bucket.doc_count}`,
-      );
+
 
       // Skip invalid terms
       if (typeof term !== "string" || !term.trim()) {
-        console.log(`[getTopSearchTerms] Skipping invalid term: "${term}"`);
+       
         continue;
       }
 
@@ -516,9 +491,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
 
       // For each search term, get the most common country and language used with it
       const termDetails = await getMostCommonCountryAndLanguageForTerm(term);
-      console.log(
-        `[getTopSearchTerms] Term "${term}" - country: ${termDetails.country_iso}, language: ${termDetails.language_code}`,
-      );
+
 
       topTerms.push({
         term: term,
@@ -528,9 +501,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
       });
     }
 
-    console.log(
-      `[getTopSearchTerms] Final result: ${topTerms.length} valid search terms`,
-    );
+
     return topTerms;
   } catch (error) {
     console.error("Error fetching top search terms:", error);
