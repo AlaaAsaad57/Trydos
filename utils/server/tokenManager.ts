@@ -57,15 +57,14 @@ const GO_APIS = [
   "/cart/add",
   "/cart/update",
   "/cart/remove",
-  "/cart",
   "/cart/cart_shipping",
-  "/cart/cart_overview",
   "/old-cart/get_old_cart",
   "/old-cart/hide"
 ];
 // ---------- Server URL Resolution ----------
 export const isFromGoApi = (url: string) =>{
   let normalizedUrl=url.split('?')?.[0];
+  if(url.startsWith('/checklist')) return true;
  return GO_APIS.some((endpoint) => normalizedUrl.endsWith(endpoint))};
 function getServerBaseUrl(server: ProxiedServer, url: string): string {
   console.log(url, isFromGoApi(url));

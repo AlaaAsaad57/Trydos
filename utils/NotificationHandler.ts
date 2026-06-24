@@ -129,7 +129,7 @@ class ForegroundNotificationHandler {
       const rawData = payload?.data || {};
       const body = safeParse(rawData.body);
       const data = safeParse(rawData?.data || "{}");
-      if (body.type === "greeting"||body.showed_type==="greeting") {
+      if (body.type === "greeting" || body.showed_type==="greeting") {
         console.log("Hello from the foreground notification handler!");
         await new Promise((resolve) => setTimeout(resolve, 2000));
         auth.validateFCMToken();
@@ -227,7 +227,7 @@ class ForegroundNotificationHandler {
     const { country, language, sellerOrders = [], setSellerOrders } = state;
     const lang = `${country?.toLowerCase()}-${language?.toLowerCase()}`;
     const type = data?.type || "";
-
+    const showed_type=data?.showed_type||"";
     // Helper for common market notifications
     const notify = (url?: string, extra?: any) => {
       showSuccessNotification(
@@ -286,7 +286,7 @@ class ForegroundNotificationHandler {
           href: `/${lang}/settings/orders/${data?.order_group_id}`,
         });
       }
-    } else if (type.includes("product hurry up")) {
+    } else if (type.includes("product hurry up")||showed_type?.includes('product hurry up')) {
       notify(data?.product_id ? `/products/${data.product_id}` : undefined, {
         is_product: true,
       });

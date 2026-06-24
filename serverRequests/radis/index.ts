@@ -136,7 +136,7 @@ export async function RedisGet(key) {
 export async function RedisSet(key, value, ttl?: number) {
   try {
     const effectiveTtl =
-      ttl ?? Number(process.env.PRODUCT_REDIS_TTL_SECONDS) ?? 86400;
+      ttl ?? Number(process.env.PRODUCT_REDIS_TTL_SECONDS) ?? 120;
     await redis.set(key, JSON.stringify(value), "EX", effectiveTtl);
   } catch (error) {
     LogServerError({ error, type: "redis RedisSet failed", key }, "/");
