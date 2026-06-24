@@ -123,37 +123,44 @@ function ShareOptions({ product }: any) {
     }?${searchParams.toString()}`;
   };
 
-  const shareViaEmail = () => {
-    shareSocial("email");
+const shareViaEmail = (e) => {
+  e?.preventDefault();
 
-    const subject = product?.name || "Check this out";
-    const body = `${product?.name ?? ""}\n\n${generateUrlForSharing("email")}`;
+  // 1. Fire your tracking synchronously
+  shareSocial("email");
 
-    // On mobile a mail handler (Gmail/Mail/Outlook) is always registered, so
-    // mailto: opens the user's chosen mail app. On desktop mailto: silently
-    // does nothing when no default mail client is set (the navigation is
-    // handed off to the OS and the request just "closes"), so fall back to
-    // Gmail's web compose window — something always opens.
-    const isMobile =
-      typeof navigator !== "undefined" &&
-      typeof navigator.share === "function";
+  const subject = product?.name || "Check this out";
+  const body = `${product?.name ?? ""}\n\n${generateUrlForSharing("email")}`;
 
-    if (isMobile) {
-      window.location.href = `mailto:?subject=${encodeURIComponent(
-        subject,
-      )}&body=${encodeURIComponent(body)}`;
-      return;
-    }
+  // THE FIX: Check the actual User Agent, because desktops support navigator.share now
+  const isMobile =
+    typeof navigator !== "undefined" &&
+    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    window.open(
-      `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(
-        subject,
-      )}&body=${encodeURIComponent(body)}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
-  };
+  // --- MOBILE ROUTE (Uses native mailto) ---
+  if (isMobile) {
+    window.location.href = `mailto:?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
+    return;
+  }
 
+  // --- DESKTOP ROUTE (Bypasses the "mailto" user gesture blocker entirely) ---
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(
+    subject
+  )}&body=${encodeURIComponent(body)}`;
+
+  // Create a genuine HTML anchor tag dynamically
+  const link = document.createElement("a");
+  link.href = gmailUrl;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+
+  // Append, click, and clean up
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
   const getContactsForSharing = () => {
     const currentUserId = getUserChat()?.id;
 
@@ -283,15 +290,15 @@ function ShareOptions({ product }: any) {
       </div>
       <div className={`share-avatar`} data-cy="Whatsapp">
         <div className="share-image social shadow-none">
-          <a
-            className="cursor-pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              shareViaEmail();
-            }}
-          >
-            <EmailIcon size={70} borderRadius={20} />
-          </a>
+          <button
+  type="button"
+  className="cursor-pointer flex items-start bg-transparent border-none p-0 outline-none appearance-none"
+  onClick={(e) => {
+    shareViaEmail(e);
+  }}
+>
+  <EmailIcon size={70} borderRadius={20} />
+</button>
         </div>
         <div className="share-name">{translateFunction("Email")}</div>
       </div>
@@ -313,7 +320,7 @@ function ShareOptions({ product }: any) {
             }
           }}
         >
-          <img src="/icons/copyIcon.svg" />
+          <img src="/icons/copyIcon.svg" width={30} height={30} className="h-[30px] object-contain"/>
         </div>
         <div className="share-name">{translateFunction("Copy Link")}</div>
       </div>
