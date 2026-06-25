@@ -1314,12 +1314,14 @@ const OrderListScreen = ({
   selectedTab,
   onSelectTab,
   isLoading,
+  sellerId
 }: {
   orders: any[];
   onSelectOrder: (order: any) => void;
   selectedTab: OrderFilterTabLabel;
   onSelectTab: (tab: OrderFilterTabLabel) => void;
   isLoading: boolean;
+  sellerId:string
 }) => {
   const { language } = useAppStore();
   const { lang: local } = useParams();
@@ -1333,7 +1335,7 @@ const OrderListScreen = ({
           Icon={"/icons/OrderDetailsIcon.svg"}
           local={local}
           name={translateFunction("Orders", language)}
-          preivous_page={`/${local}/sellerProfile`}
+          preivous_page={`/${local}/sellerProfile/sellerDashboard/${sellerId}`}
           DataCy="seller-dashboard-screen-top"
         />
 
@@ -2211,6 +2213,7 @@ export const RenderOrders = ({
           {screen === "list" ? (
             <>
               <OrderListScreen
+              sellerId={sellerId}
                 orders={sellerOrders}
                 selectedTab={selectedOrderFilterTab}
                 isLoading={ordersLoading}
