@@ -117,11 +117,22 @@ function StoryHolder({ story, active, isPaused }) {
                   setShowReportModal(true);
               }}
             >
-              <img
+              {/* Flag = universally understood "report" affordance; white
+                  stroke keeps it legible on the dark story container. */}
+              <svg
                 data-cy="report-story-icon"
-                src="/icons/ReportOrderItemIcon.svg"
-                className="w-[22px] h-[22px] fill-white"
-              />
+                className="w-[22px] h-[22px]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 21V4" />
+                <path d="M4 4h11l-1.5 3.5L15 11H4" fill="#ffffff" />
+              </svg>
             </span>
           )}
           <span

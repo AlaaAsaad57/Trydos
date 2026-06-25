@@ -2139,6 +2139,7 @@ function SellerDashBoard() {
           <RenderOrders
             canViewOrders={canViewOrders}
             sellerId={sellerId}
+            setActiveTab={(s)=>setActiveTab(s)}
             activeTab={activeTab}
           />
         )}

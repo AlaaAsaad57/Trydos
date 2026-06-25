@@ -1314,14 +1314,16 @@ const OrderListScreen = ({
   selectedTab,
   onSelectTab,
   isLoading,
-  sellerId
+  sellerId,
+  setActiveTab
 }: {
   orders: any[];
   onSelectOrder: (order: any) => void;
   selectedTab: OrderFilterTabLabel;
   onSelectTab: (tab: OrderFilterTabLabel) => void;
   isLoading: boolean;
-  sellerId:string
+  sellerId:string;
+  setActiveTab:(s:any)=>void
 }) => {
   const { language } = useAppStore();
   const { lang: local } = useParams();
@@ -1331,6 +1333,10 @@ const OrderListScreen = ({
       {/* Header */}
       <div className="bg-white sticky top-0 z-10 w-full">
         <BackBar
+        onBackIntercept={()=>{
+          setActiveTab("none")
+          return true
+        }}
           isRtl={isRtl}
           Icon={"/icons/OrderDetailsIcon.svg"}
           local={local}
@@ -1872,10 +1878,12 @@ export const RenderOrders = ({
   canViewOrders,
   sellerId,
   activeTab,
+  setActiveTab
 }: {
   canViewOrders: boolean;
   sellerId: string;
   activeTab: string;
+  setActiveTab:(s:any)=>void
 }) => {
   const [ordersLoading, setOrdersLoading] = useState<boolean>(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
@@ -2214,6 +2222,7 @@ export const RenderOrders = ({
             <>
               <OrderListScreen
               sellerId={sellerId}
+              setActiveTab={setActiveTab}
                 orders={sellerOrders}
                 selectedTab={selectedOrderFilterTab}
                 isLoading={ordersLoading}
