@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
@@ -48,6 +48,7 @@ export default function ReportStoryModal({
   const [details, setDetails] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const detailsRef = useRef<HTMLTextAreaElement>(null);
 
   const { language ,userProfile} = useAppStore();
   const isRtl = language === "ar" || language === "ku";
@@ -57,11 +58,30 @@ export default function ReportStoryModal({
   }, []);
 
   const toggleReason = (value: string) => {
-    setSelectedReasons((prev) =>
-      prev.includes(value)
-        ? prev.filter((r) => r !== value)
-        : [...prev, value],
-    );
+    setSelectedReasons((prev) => {
+      const willSelect = !prev.includes(value);
+      // Selecting "Other" sends focus straight to the free-text area so the
+      // user can start typing the required explanation immediately.
+      if (value === "other" && willSelect) {
+        // Defer until after the state-driven re-render so the textarea exists/focusable.
+        requestAnimationFrame(() => detailsRef.current?.focus());
+      }
+      return willSelect ? [...prev, value] : prev.filter((r) => r !== value);
+    });
+  };
+
+  const handleDetailsChange = (value: string) => {
+    const next = value.slice(0, DETAILS_MAX);
+    setDetails(next);
+    // Typing any details implies the "Other" reason; clearing it removes that
+    // implication again (without disturbing the user's other selections).
+    setSelectedReasons((prev) => {
+      const hasOther = prev.includes("other");
+      if (next.trim().length > 0 && !hasOther) return [...prev, "other"];
+      if (next.trim().length === 0 && hasOther)
+        return prev.filter((r) => r !== "other");
+      return prev;
+    });
   };
 
   const canSubmit = selectedReasons.length > 0 || details.trim().length > 0;
@@ -179,8 +199,9 @@ export default function ReportStoryModal({
               {translateFunction("Details (optional)")}
             </label>
             <textarea
+              ref={detailsRef}
               value={details}
-              onChange={(e) => setDetails(e.target.value.slice(0, DETAILS_MAX))}
+              onChange={(e) => handleDetailsChange(e.target.value)}
               placeholder={translateFunction("Write details here...")}
               maxLength={DETAILS_MAX}
               className={`h-[100px] w-full resize-none rounded-[15px] border border-[#e6e6e6] p-3 text-[14px] text-[#3c3c3c] focus:border-[#5b3fe0] focus:outline-hidden ${
