@@ -354,11 +354,11 @@ class AuthService {
   }
   async NotifyForProducts({ id, variant }) {
     if (!variant || variant?.includes("N/A"))
-      await home.subscribeToTopic({
+      await home.subscribeToTopicInventory({
         topic: `product_availability_${id}`,
       });
     else
-      await home.subscribeToTopic({
+      await home.subscribeToTopicInventory({
         topic: `product_availability_${id}`,
         variant: variant,
       });

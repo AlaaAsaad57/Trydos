@@ -63,6 +63,8 @@ function MoreOptionsSection({ product }) {
   const AddedToCompare = () => {
     return addedToCompare;
   };
+
+  
   const enableNotificationTopic = async (payload, type) => {
     try {
       await home.AllowNotifications();
@@ -73,11 +75,11 @@ function MoreOptionsSection({ product }) {
           firebaseSettings?.subscribed_topics.some((s) => s.topic === payload)
         ) {
           disableNotification(payload);
-          await home.UnsubscripeFromTopic({ topic: payload });
+          await home.UnsubscribeToTopicInventory({ topic: payload });
         } else {
           send_GA_EVENT(type);
           enableNotification(payload);
-          await home.subscribeToTopic({ topic: payload });
+          await home.subscribeToTopicInventory({ topic: payload });
         }
         setLoading(false);
       }
@@ -292,7 +294,7 @@ function MoreOptionsSection({ product }) {
                   key={type.topic}
                   className={`button-option  ${
                     checkIfTopicEnabled(`${type.topic}_${product?.id}`) &&
-                    "bg-green-300"
+                    "bg-green-300 px-[16px]"
                   }`}
                   onClick={async () => {
                     enableNotificationTopic(

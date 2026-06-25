@@ -23,11 +23,11 @@ export const REPORT_REASONS: { value: string; labelKey: string }[] = [
   },
   { value: "spam", labelKey: "Spam or Scam" },
   {
-    value: "intellectual_property_violation",
+    value: "intellectual_property",
     labelKey: "Intellectual Property Violation",
   },
   {
-    value: "violence_or_dangerous_content",
+    value: "violence",
     labelKey: "Violence or Dangerous Content",
   },
   { value: "other", labelKey: "Other" },

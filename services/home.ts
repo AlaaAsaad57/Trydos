@@ -503,6 +503,31 @@ class HomeService {
       });
     }
   }
+
+  async subscribeToTopicInventory({topic,variant=null}){
+   await fetchData({
+        url:'/firebase_device_tokens/subscribe_topic',
+        method:'POST',
+        body:{
+          topic:topic,
+          variant:variant
+        },
+        reqTitle:REQUESTS_DATA.STORE_FIREBASE_SUBSCRIBE_TOPIC,
+        server:'market'
+      });
+  }
+   async UnsubscribeToTopicInventory({topic,variant=null}){
+      await fetchData({
+        url:'/firebase_device_tokens/unsubscribe_topic',
+        method:'POST',
+        body:{
+          topic:topic,
+          variant:variant
+        },
+        reqTitle:REQUESTS_DATA.STORE_FIREBASE_UNSUBSCRIBE_TOPIC,
+        server:'market'
+      });
+  }
   async handleTopicsOnPageRefresh(token: string) {
     // Extract country and language from the URL
     const [countryCode, languageCode] = window.location.pathname
