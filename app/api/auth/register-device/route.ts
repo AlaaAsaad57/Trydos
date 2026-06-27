@@ -7,6 +7,7 @@ import {
   setSecureCookieJSON,
   getSecureCookie,
   getTokenForServer,
+  isFromGoApi,
 } from "utils/server/tokenManager";
 
 const REGISTER_DEVICE_URL = "/auth/register-guest";
@@ -77,7 +78,9 @@ export async function POST(request: NextRequest) {
         error: data,
         type: "register-device route error",
       });
-      return NextResponse.json(data, { status: response.status });
+      return NextResponse.json(data, { status: response.status ,headers:{
+        "IS-FROM-GO":`${isFromGoApi(REGISTER_DEVICE_URL)}`
+      }});
     }
 
     // Set device token as HttpOnly cookie
@@ -108,13 +111,17 @@ export async function POST(request: NextRequest) {
           token: undefined, // Strip token from response
         },
       },
-      { status: 200 },
+      { status: 200 ,headers:{
+        "IS-FROM-GO":`${isFromGoApi(REGISTER_DEVICE_URL)}`
+      }},
     );
   } catch (error) {
     LogServerError({ error, type: "register-device route error" });
     return NextResponse.json(
       { message: "Registration failed" },
-      { status: 500 },
+      { status: 500 ,headers:{
+        "IS-FROM-GO":`${isFromGoApi(REGISTER_DEVICE_URL)}`
+      }},
     );
   }
 }
