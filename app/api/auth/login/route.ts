@@ -34,7 +34,7 @@ async function safeServiceLogin(url: string, body: any) {
       body: JSON.stringify(body),
       credentials: "omit",
     });
-
+    
     if (!response.ok) {
       const errorData = await response.json().catch((e) => {
         LogServerError(
@@ -47,6 +47,12 @@ async function safeServiceLogin(url: string, body: any) {
     }
 
     const data = await response.json();
+    console.log({
+      url:url,
+      method:"POST",
+      body:JSON.stringify(body),
+      response:data
+    })
     return { success: true, status: 200, data };
   } catch (err) {
     LogServerError({ error: err, type: "login api route", url, body });
@@ -166,17 +172,7 @@ export async function GET(request: NextRequest) {
         user_id: String(InventoryUser?.id),
         phone: String(InventoryUser.phone),
       });
-    console.log("Stories Login Response:", {
-      request: {
-        url:
-          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
-        body: {
-          otp_id_token: idToken,
-          mobile_phone: InventoryUser.phone,
-        },
-        response: JSON.stringify(storiesRes, null, 2),
-      },
-    });
+    
     if (!storiesRes.success)
       failures.push({
         endpoint: "STORIES",
