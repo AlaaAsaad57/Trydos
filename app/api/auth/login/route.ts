@@ -272,6 +272,7 @@ export async function GET(request: NextRequest) {
       walletUserData
         ? setSecureCookieJSON(COOKIE_NAMES.WALLET_USER, walletUserData)
         : Promise.resolve(),
+        
     ]);
 
     // 7. Return sanitized response (NO tokens in response body)
@@ -286,6 +287,7 @@ export async function GET(request: NextRequest) {
         StoriesUser: sanitizeServiceUser(storiesUserData),
         is_failed: failures?.length > 0 ? failures : undefined,
         WalletUser: walletUserData,
+        original_user_id: String(InventoryUser.id),
       },
       { status: 200 },
     );
