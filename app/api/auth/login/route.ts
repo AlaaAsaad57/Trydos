@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
       id_token: idToken,
       user: InventoryUser,
     } = otp_response.data;
-
+    console.log(otp_response);
     // Treat backend guest placeholder names ("guest"/"verified_guest") as "no name"
     // so the UI prompts the user to enter a real name. Don't surface them as-is.
     if (InventoryUser && isGuestName(InventoryUser.name)) {
