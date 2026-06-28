@@ -405,7 +405,7 @@ class SellerDashboardService {
         link: data.link,
         product_id: data.product_id,
         product_slug: data.product_slug,
-        video_duration_in_second: data.video_duration_in_seconds,
+        video_duration_in_second: Math.round(data.video_duration_in_seconds),
         order_detail_id: null,
       }),
     });
