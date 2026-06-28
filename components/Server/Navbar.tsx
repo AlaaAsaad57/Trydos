@@ -84,7 +84,7 @@ function NavbarServer({ lang, mainCategory, categoriesData, children }: any) {
       <div
         className={`absolute left-0 top-0 bottom-0 w-[60px] bg-gradient-to-r from-white via-white/70 to-transparent pointer-events-none flex items-center justify-start pl-1.5 z-20 transition-opacity duration-300 ${
           canScrollLeft ? "opacity-100" : "opacity-0"
-        }`}
+        } ${enable_search ? "hidden" : ""}`}
       >
         <button
           type="button"
@@ -127,7 +127,7 @@ function NavbarServer({ lang, mainCategory, categoriesData, children }: any) {
       <div
         className={`absolute right-0 top-0 bottom-0 w-[60px] bg-gradient-to-l from-white via-white/70 to-transparent pointer-events-none flex items-center justify-end pr-1.5 z-20 transition-opacity duration-300 ${
           canScrollRight ? "opacity-100" : "opacity-0"
-        }`}
+        } ${enable_search ? "hidden" : ""}`}
       >
         <button
           type="button"

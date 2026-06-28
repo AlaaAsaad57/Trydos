@@ -530,7 +530,7 @@ function UploadStoryModal({
 
       <div className="fixed inset-0 z-999999999 flex items-center justify-center p-4 bg-black/45">
         <div
-          className={`relative w-full max-[400px] max-h-[92vh] flex flex-col bg-white rounded-[20px] overflow-hidden text-[#3c3c3c] ${
+          className={`relative w-full max-w-[400px] max-h-[92vh] flex flex-col bg-white rounded-[20px] overflow-hidden text-[#3c3c3c] ${
             uploading ? "pointer-events-none" : ""
           }`}
           style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
@@ -566,10 +566,7 @@ function UploadStoryModal({
                       <video
                         src={preview}
                         className="w-full h-full object-contain"
-                        controls={false}
-                        autoPlay
-                        muted
-                        loop
+                        controls={true}
                       />
                     ) : (
                       <Image
