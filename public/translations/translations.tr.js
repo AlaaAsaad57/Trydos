@@ -361,6 +361,10 @@ const translations = {
   Buying: "Satın Alındı",
   Pieces: "Adet",
   "No orders found for this status.": "Bu Duruma Ait Sipariş Bulunamadı",
+  "Order Not Found": "Sipariş Bulunamadı",
+  "This order doesn't exist or the link is incorrect.":
+    "Bu sipariş mevcut değil veya bağlantı hatalı.",
+  "Go to My Orders": "Siparişlerime Git",
   "No more orders": "Daha fazla sipariş yok",
   "Orders Details": "Sipariş Detayları",
   "Expected Delivery Date": "Teslimat Tarihi",
@@ -1041,6 +1045,8 @@ const translations = {
   "Cancellation Terms.": "İptal Şartları.",
   "Hide This Pack": "Bu Paketi Gizle",
   "Hide This Pack From My List": "Bu Paketi Listemden Gizle",
+  "Are you sure you want to hide this order?": "Bu siparişi gizlemek istediğinizden emin misiniz?",
+  "Are you sure you want to hide this product?": "Bu ürünü gizlemek istediğinizden emin misiniz?",
   "You Can Cancel This Pack And Back Your Money":
     "Bu Paketi İptal Edip Paranızı Geri Alabilirsiniz",
   "Cancel This Pack": "Bu Paketi İptal Et",

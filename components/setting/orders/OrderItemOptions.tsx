@@ -15,8 +15,9 @@ import { ModifyOrderItemModal } from "./confirmations/ChangeOrderItemConfirmWind
 import OrderItemCancelConfirmationWindow from "./confirmations/CancelOrderItemConfirmationWindow";
 import CancelOrderItemWrapper from "./CancelOrderItemWrapper";
 import ReturnOrderItemWrapper from "./ReturnOrderItemWrapper";
+import ReportOrderItemWrapper from "./ReportOrderItemWrapper";
 import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
-
+import { ConfirmModal } from "components/global/ConfirmModal";
 import { createPortal } from "react-dom";
 function OrderItemOptions({
   orderItem,
@@ -47,6 +48,24 @@ function OrderItemOptions({
   const [selectedScreen, setSelectedScreen] = useState("options");
   const [ShowConfirmChangeOrder, setShowConfirmChangeOrder] =
     useState<any>(false);
+  const [showHideConfirm, setShowHideConfirm] = useState(false);
+  const [hiding, setHiding] = useState(false);
+  const handleHideProduct = async () => {
+    try {
+      setHiding(true);
+      await Order.HideOrderDetail({ detail_id: orderItem.id });
+      setHiding(false);
+      setShowHideConfirm(false);
+      close();
+      await update();
+    } catch (error) {
+      setHiding(false);
+      LogError({
+        error: error,
+        scenario: "Error In handleHideProduct in OrderItemOptions",
+      });
+    }
+  };
 
   React.useEffect(() => {
     trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_OPTIONS_OPENED, {
@@ -66,6 +85,7 @@ function OrderItemOptions({
   const canCancelProduct = () => {
     return parentOrder?.can_cancele_order && orderItem.qty > 0;
   };
+  const isDelivered = () => parentOrder?.order_status?.value === "delivered";
   // Is *this product* already part of the order's return request?
   const isProductAlreadyReturned = () =>
     !!returnDetails?.return_requests_data
@@ -290,43 +310,70 @@ function OrderItemOptions({
                 )}
               </div>
             )}
-            {
-              <div
-                onClick={() => {
-                  trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_REPORTED, {
-                    order_id: parentOrder?.id,
-                    item_id: orderItem?.id,
-                    product_id: orderItem?.product_id,
-                  });
-                  setSelectedScreen("report");
-                }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
-                  isRtl ? "flex-row-reverse" : " "
-                }`}
-              >
-                <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                  <img src="/icons/ReportOrderItemIcon.svg" />
+            {isDelivered() &&
+              (orderItem?.is_reported ? (
+                <div
+                  className={`mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                    isRtl ? "flex-row-reverse" : " "
+                  }`}
+                >
+                  <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                    <img src="/icons/ReportOrderItemIcon.svg" />
+                  </div>
+                  <div className="flex-col ml-[15px]">
+                    <span
+                      className={`regular text-[14px] text-[#1D1D1D] medium ${
+                        isRtl ? " text-right pr-2" : " "
+                      }`}
+                    >
+                      {translateFunction("We received your report")}
+                    </span>
+                    <span
+                      className={`regular text-[12px] text-[#8D8D8D] ${
+                        isRtl ? "pr-2 " : " "
+                      }`}
+                    >
+                      {translateFunction("Thanks for your thoughts")}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex-col ml-[15px]">
-                  <span
-                    className={`regular text-[14px] text-[#1D1D1D] medium ${
-                      isRtl ? " text-right pr-2" : " "
-                    }`}
-                  >
-                    {translateFunction("Report This Product")}
-                  </span>
-                  <span
-                    className={`regular text-[12px] text-[#8D8D8D] ${
-                      isRtl ? "pr-2 " : " "
-                    }`}
-                  >
-                    {translateFunction(
-                      "Delivery Time, Delivery Man, Delivery Car",
-                    )}
-                  </span>
+              ) : (
+                <div
+                  onClick={() => {
+                    trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_REPORTED, {
+                      order_id: parentOrder?.id,
+                      item_id: orderItem?.id,
+                      product_id: orderItem?.product_id,
+                    });
+                    setSelectedScreen("report");
+                  }}
+                  className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                    isRtl ? "flex-row-reverse" : " "
+                  }`}
+                >
+                  <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                    <img src="/icons/ReportOrderItemIcon.svg" />
+                  </div>
+                  <div className="flex-col ml-[15px]">
+                    <span
+                      className={`regular text-[14px] text-[#1D1D1D] medium ${
+                        isRtl ? " text-right pr-2" : " "
+                      }`}
+                    >
+                      {translateFunction("Report This Product")}
+                    </span>
+                    <span
+                      className={`regular text-[12px] text-[#8D8D8D] ${
+                        isRtl ? "pr-2 " : " "
+                      }`}
+                    >
+                      {translateFunction(
+                        "Delivery Time, Delivery Man, Delivery Car",
+                      )}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            }
+              ))}
             {
               <div
                 onClick={() => {
@@ -335,7 +382,7 @@ function OrderItemOptions({
                     item_id: orderItem?.id,
                     product_id: orderItem?.product_id,
                   });
-                  setSelectedScreen("hide");
+                  setShowHideConfirm(true);
                 }}
                 className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
                   isRtl ? "flex-row-reverse" : " "
@@ -452,6 +499,23 @@ function OrderItemOptions({
     }
   };
 
+  // The report screen is its own draggable BottomSheet (grabber drag-to-dismiss,
+  // scrim-tap close), so it renders standalone rather than inside the options'
+  // white container — otherwise we'd nest a full-screen sheet inside a sheet.
+  if (selectedScreen === "report") {
+    return createPortal(
+      <ReportOrderItemWrapper
+        item={orderItem}
+        parentOrder={parentOrder}
+        isRtl={isRtl}
+        backToMain={() => setSelectedScreen("options")}
+        close={close}
+        update={update}
+      />,
+      document.body,
+    );
+  }
+
   return createPortal(
     <>
       <div
@@ -465,6 +529,18 @@ function OrderItemOptions({
       </div>
 
       {renderConfirmation()}
+      {showHideConfirm && (
+        <ConfirmModal
+          showModal={showHideConfirm}
+          loading={hiding}
+          type={"Delete"}
+          confirmTilte={"Hide This Product"}
+          confirmMessage={"Are you sure you want to hide this product?"}
+          onCancel={() => setShowHideConfirm(false)}
+          onConfirm={handleHideProduct}
+          dataCy="confirm-hide-product"
+        />
+      )}
     </>,
     document.body,
   );

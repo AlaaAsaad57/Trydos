@@ -114,6 +114,7 @@ export interface OrderInterface {
     odoo_id: number;
     odoo_order_id: number;
     comments: any;
+    is_reported?: boolean;
   }>;
   checked_at: string;
 }

@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       cookiesSnapshot,
     };
 
-    await fetch(
+    let res= await fetch(
       process.env.NEXT_PUBLIC_GO_BACKEND_URL + "/mobile_error_log/store",
       {
         method: "POST",
@@ -53,12 +53,33 @@ export async function POST(request: NextRequest) {
         },
         body: new URLSearchParams({
           error_description: JSON.stringify(enrichedError),
-          credentials: "omit",
         }),
       },
     );
+    let res2= await fetch(
+      process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          error_description: JSON.stringify(enrichedError),
+        }),
+      },
+    );
+    res=await res.json();
+    console.log("*******GO*************",{res,body:new URLSearchParams({
+          error_description: JSON.stringify(enrichedError),
+          credentials: "omit",
+        })});
+       res2=await res2.json(); 
 
-    return NextResponse.json({ success: true });
+        console.log("*******LARAVEL*************",{res2,body:new URLSearchParams({
+          error_description: JSON.stringify(enrichedError),
+          credentials: "omit",
+        })})    
+    return NextResponse.json({ success: true,res });
   } catch (err) {
     console.error("mobile-error-log route error:", err);
     return NextResponse.json({ success: false }, { status: 500 });

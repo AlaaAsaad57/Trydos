@@ -10,6 +10,7 @@ import { returnDetails } from "utils/types/OrderInterface";
 import { LogServerError } from "utils/serverErrorReporter";
 import { GetWalletBalanceForCountryCurrency } from "./wallet";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
+import type { ReportPointSelection } from "utils/orderReportOptions";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
@@ -428,6 +429,93 @@ class OrderService {
         error: error,
         scenario: "Error In CancelOrder in services/order",
       });
+    }
+  }
+  async HideOrder({ order_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/${order_id}/visibility`,
+        reqTitle: REQUESTS_DATA.HIDE_ORDER,
+        method: "PATCH",
+        server: "market",
+        body: JSON.stringify({ is_hidden: true }),
+      });
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In HideOrder in services/order",
+      });
+      throw error;
+    }
+  }
+  async HideOrderDetail({ detail_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/detail/${detail_id}/visibility`,
+        reqTitle: REQUESTS_DATA.HIDE_ORDER_DETAIL,
+        method: "PATCH",
+        server: "market",
+        body: JSON.stringify({ is_hidden: true }),
+      });
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In HideOrderDetail in services/order",
+      });
+      throw error;
+    }
+  }
+  async ReportOrderItem({
+    order_id,
+    order_detail_id,
+    product_id,
+    order_group_id,
+    points,
+    note,
+  }: {
+    order_id: number;
+    order_detail_id: number;
+    product_id: number;
+    order_group_id: string;
+    points: ReportPointSelection[];
+    note: string;
+  }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/report`,
+        reqTitle: REQUESTS_DATA.REPORT_ORDER_ITEM,
+        method: "POST",
+        server: "market",
+        body: JSON.stringify({
+          order_id,
+          order_detail_id,
+          product_id,
+          order_group_id,
+          points,
+          note,
+        }),
+      });
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In ReportOrderItem in services/order",
+      });
+      throw error;
     }
   }
   async CancelOrderItem({ order_id, qty, item_id }) {

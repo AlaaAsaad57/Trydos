@@ -291,7 +291,7 @@ export async function proxy(request: NextRequest) {
   const response = hasUppercase 
     ? NextResponse.redirect(normalizeUrl(url), 308) 
     : NextResponse.next();
-  console.log(hasUppercase,"HASUPPERCASE******")
+
 
   // End of the logout window. The logout route armed LOGOUT-GUARD so that any
   // in-flight 401 couldn't resurrect the cleared session; this top-level

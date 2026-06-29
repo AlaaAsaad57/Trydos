@@ -255,4 +255,7 @@ export const REQUESTS_DATA = {
   CHANGE_PRODUCT_STATUS: { reqTitle: "CHANGE_PRODUCT_STATUS", code: 181 },
   GET_CATEGORY_CHILDREN: { reqTitle: "GET_CATEGORY_CHILDREN", code: 182 },
   APPROVE_POLICY: { reqTitle: "APPROVE_POLICY", code: 183 },
+  HIDE_ORDER: { reqTitle: "HIDE_ORDER", code: 184 },
+  HIDE_ORDER_DETAIL: { reqTitle: "HIDE_ORDER_DETAIL", code: 185 },
+  REPORT_ORDER_ITEM: { reqTitle: "REPORT_ORDER_ITEM", code: 186 },
 };

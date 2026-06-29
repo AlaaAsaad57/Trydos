@@ -192,6 +192,8 @@ const translations = {
   "I’m Afraid Of Sizes": "من له‌قه‌قه‌کان ترسم",
   "Hide This Pack": "ئەم کۆمه‌ڵه‌ پنهان بکە",
   "Hide This Pack From My List": "ئەم کۆمه‌ڵه‌ له‌ لیسته‌کەم پنهان بکە",
+  "Are you sure you want to hide this order?": "دڵنیایت ده‌تەوێت ئەم داواکارییە بشاریتەوە؟",
+  "Are you sure you want to hide this product?": "دڵنیایت ده‌تەوێت ئەم به‌رهه‌مه‌ بشاریتەوە؟",
   "You Can Cancel This Pack And Back Your Money":
     "ده‌توانیت ئه‌م کۆمه‌ڵه‌ ڕه‌ت بکەیت و پارەکانت وەرگرە",
   "Cancel This Pack": "ڕه‌تکردنی ئه‌م کۆمه‌ڵه‌",
@@ -422,6 +424,10 @@ const translations = {
   "What Is Your Weight?": "قەبارەکەت چەندە؟",
   "No orders found for this status.":
     "هیچ داواکاریێک بۆ ئەم بارودۆخە نەدۆزرایەوە.",
+  "Order Not Found": "داواکاری نەدۆزرایەوە",
+  "This order doesn't exist or the link is incorrect.":
+    "ئەم داواکارییە بوونی نییە یان بەستەرەکە هەڵەیە.",
+  "Go to My Orders": "بڕۆ بۆ داواکارییەکانم",
   "Available Countries": "وڵاتە بەردەستەکان",
   "Profile | Countries": "پڕۆفایل | وڵاتەکان",
   "Profile | Languages": "پڕۆفایل | زمانەکان",

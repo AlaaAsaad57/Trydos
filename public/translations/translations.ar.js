@@ -229,6 +229,8 @@ const translations = {
   "I’m Afraid Of Sizes": "أخاف من المقاسات",
   "Hide This Pack": "إخفاء المجموعة",
   "Hide This Pack From My List": "إخفاء المجموعة من قائمتي",
+  "Are you sure you want to hide this order?": "هل أنت متأكد أنك تريد إخفاء هذا الطلب؟",
+  "Are you sure you want to hide this product?": "هل أنت متأكد أنك تريد إخفاء هذا المنتج؟",
   "You Can Cancel This Pack And Back Your Money":
     "يمكنك إلغاء المجموعة واسترجاع أموالك",
   "Cancel This Pack": "إلغاء المجموعة",
@@ -460,6 +462,10 @@ const translations = {
   "Order Number": "رقم الطلب",
   "What Is Your Weight?": "كم وزنك؟",
   "No orders found for this status.": "لا يوجد طلبات لهذا الحالة",
+  "Order Not Found": "الطلب غير موجود",
+  "This order doesn't exist or the link is incorrect.":
+    "هذا الطلب غير موجود أو الرابط غير صحيح.",
+  "Go to My Orders": "الذهاب إلى طلباتي",
   "Available Countries": "البلدان المتاحة",
   "Profile | Countries": "الملف الشخصي | البلدان",
   "Profile | Languages": "الملف الشخصي | اللغة",

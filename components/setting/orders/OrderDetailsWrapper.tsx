@@ -1,6 +1,6 @@
 "use client";
 import ChatWidget from "components/Chat/ChatWidget";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import BackBar from "../BackBar";
 import OrderDetailsSkeleton from "components/skeleton/loaders/OrderDetailsSkeleton";
 import {
@@ -59,6 +59,10 @@ function OrderDetailsWrapper({
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInfo, setChatInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Set when the order group can't be resolved — a failed request (null) or an
+  // empty `data: []` (e.g. opening the details URL with an invalid/foreign
+  // order_group_id). Drives the "wrong path" empty state below.
+  const [notFound, setNotFound] = useState(false);
   const [orderData, setOrderData] = useState<OrderInterface[]>([]);
   const [ActivePack, setActivePack] = useState<OrderInterface>(null);
   const [returnData, setReturnData] = useState<returnDetails | null>(null);
@@ -70,6 +74,11 @@ function OrderDetailsWrapper({
   >(null);
   const [showOrderOptions, setShowOrderOption] =
     useState<OrderInterface | null>(null);
+  // Tracks the post-hide navigation to the orders list. router.replace is wrapped
+  // in this transition so `isNavigatingAway` stays true until the orders-list
+  // route has finished fetching/rendering — that's the ~2s gap we cover with an
+  // overlay so the user gets immediate feedback instead of a frozen page.
+  const [isNavigatingAway, startNavigation] = useTransition();
   // getOrderDetails re-runs on every post-action refresh; only count the first
   // load as a "details viewed".
   const hasTrackedView = useRef(false);
@@ -86,8 +95,21 @@ function OrderDetailsWrapper({
 
   const getOrderDetails = async () => {
     setLoading(true);
+    setNotFound(false);
     try {
       let data: OrderInterface[] = await Order.getOrderDetails(order_group_id);
+
+      // A failed request returns null and an unknown/foreign order_group_id
+      // returns an empty array — neither is a viewable order, so surface the
+      // "wrong path" empty state instead of trying to render null data.
+      if (!Array.isArray(data) || data.length === 0) {
+        setNotFound(true);
+        setOrderData([]);
+        setActivePack(null);
+        setShouldUpdateOrders(0);
+        setLoading(false);
+        return;
+      }
 
       // Ratings and return-details both depend only on `data`, not on each other —
       // fire them together. Each is guarded by its own condition (null when not
@@ -441,6 +463,13 @@ const isNotDraft=()=>{
 }
   return (
     <>
+      {isNavigatingAway &&
+        createPortal(
+          <div className="fixed inset-0 z-999999999 flex items-center justify-center bg-white/70">
+            <Spinner className="w-[40px] h-[40px]" />
+          </div>,
+          document.body,
+        )}
       {shouldShowConfirmReturn &&
         createPortal(
           <>
@@ -485,6 +514,18 @@ const isNotDraft=()=>{
           close={() => {
             setShowOrderOption(null);
           }}
+          onHidden={() => {
+            setShowOrderOption(null);
+            // Leave the details page for the orders list. We deliberately do NOT
+            // bump `shouldUpdateOrders` here: it's a global signal that would (a)
+            // make this still-mounted page re-fetch the now-hidden order and show
+            // its skeleton, and (b) trigger RouterRefresh's router.refresh() on the
+            // current route, fighting this navigation. The list already refetches
+            // on mount, so it lands fresh without the hidden pack.
+            startNavigation(() => {
+              router.replace(`/${local}/settings/orders`);
+            });
+          }}
         />
       )}
       {selectedOrderItem && (
@@ -526,6 +567,12 @@ const isNotDraft=()=>{
         />
         {loading ? (
           <OrderDetailsSkeleton />
+        ) : notFound ? (
+          <OrderNotFoundState
+            local={local}
+            language={language}
+            isRtl={isRtl}
+          />
         ) : (
           <>
             <div className="flex flex-col max-h-full overflow-y-auto">
@@ -678,6 +725,76 @@ const isNotDraft=()=>{
 }
 
 export default OrderDetailsWrapper;
+
+// Shown when the order group can't be resolved (failed request or empty
+// `data: []`) — e.g. a user lands on the details URL with an invalid or
+// foreign order_group_id. Communicates the wrong path and routes back to the
+// orders list.
+const OrderNotFoundState = ({
+  local,
+  language,
+  isRtl,
+}: {
+  local: string;
+  language: string;
+  isRtl: boolean;
+}) => {
+  const router = useRouter();
+  // Wrap the navigation so the button can show a spinner until the orders-list
+  // route has finished fetching/rendering, instead of looking unresponsive.
+  const [isNavigating, startNavigation] = useTransition();
+  return (
+    <div
+      className="flex flex-col items-center justify-center w-full flex-1 min-h-[60vh] px-[24px] py-[40px] text-center"
+      style={{ direction: isRtl ? "rtl" : "ltr" }}
+      data-cy="order-not-found"
+    >
+      <div className="flex items-center justify-center w-[120px] h-[120px] rounded-full bg-[#F0F0F0] mb-[24px]">
+        <svg
+          className="w-[56px] h-[56px] text-[#C4C2C2]"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.4}
+            d="M20.5 7.27 12 12m0 0L3.5 7.27M12 12v9.5M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.6}
+            d="m15.5 8.5 5 5m0-5-5 5"
+          />
+        </svg>
+      </div>
+      <span className="text-[#1D1D1D] text-[18px] medium mb-[8px]">
+        {translateFunction("Order Not Found", language)}
+      </span>
+      <p className="text-[#8D8D8D] text-[13px] regular max-w-[320px] mb-[24px]">
+        {translateFunction(
+          "This order doesn't exist or the link is incorrect.",
+          language,
+        )}
+      </p>
+      <button
+        type="button"
+        disabled={isNavigating}
+        onClick={() => {
+          startNavigation(() => {
+            router.replace(`/${local}/settings/orders`);
+          });
+        }}
+        className="flex mt-4 items-center justify-center gap-[8px] bg-[#1D1D1D] text-white text-[14px] medium rounded-full px-[28px] h-[48px] min-w-[200px] disabled:opacity-80"
+      >
+        {translateFunction("Go to My Orders", language)}
+        {isNavigating && <Spinner className="w-[16px] h-[16px] fill-white" />}
+      </button>
+    </div>
+  );
+};
 
 const OrderExpandedDetails = ({
   order,
