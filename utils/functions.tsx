@@ -562,7 +562,7 @@ export async function storeError(error) {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: new URLSearchParams({
+          body: JSON.stringify({
             error_description: JSON.stringify({
               platform: "\u{1F6D1}WEB\u{1F6D1}",
               ...(typeof safeError === "object" &&
@@ -571,7 +571,6 @@ export async function storeError(error) {
                 ? (safeError as Record<string, unknown>)
                 : { payload: safeError }),
             }),
-            credentials: "omit",
           }),
         },
       ).catch(() => {});
