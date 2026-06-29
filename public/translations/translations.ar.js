@@ -231,6 +231,8 @@ const translations = {
   "Hide This Pack From My List": "إخفاء المجموعة من قائمتي",
   "Are you sure you want to hide this order?": "هل أنت متأكد أنك تريد إخفاء هذا الطلب؟",
   "Are you sure you want to hide this product?": "هل أنت متأكد أنك تريد إخفاء هذا المنتج؟",
+  "This is the only product in this order, so hiding it will hide the whole order.":
+    "هذا هو المنتج الوحيد في هذا الطلب، لذا فإن إخفاءه سيؤدي إلى إخفاء الطلب بالكامل.",
   "You Can Cancel This Pack And Back Your Money":
     "يمكنك إلغاء المجموعة واسترجاع أموالك",
   "Cancel This Pack": "إلغاء المجموعة",

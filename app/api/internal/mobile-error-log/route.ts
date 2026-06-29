@@ -56,7 +56,9 @@ export async function POST(request: NextRequest) {
       },
     );
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true },{headers:{
+      'IS-FROM-GO':'true'
+    }});
   } catch (err) {
     console.error("mobile-error-log route error:", err);
     return NextResponse.json({ success: false }, { status: 500 });

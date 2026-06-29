@@ -59,7 +59,9 @@ const GO_APIS = [
   "/cart/remove",
   "/cart/cart_shipping",
   "/old-cart/get_old_cart",
-  "/old-cart/hide"
+  "/old-cart/hide",
+  '/firebase_device_tokens/subscribe_topic',
+  '/firebase_device_tokens/unsubscribe_topic'
 ];
 // ---------- Server URL Resolution ----------
 export const isFromGoApi = (url: string) =>{

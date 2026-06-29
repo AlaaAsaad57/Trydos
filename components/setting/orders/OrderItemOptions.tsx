@@ -30,6 +30,7 @@ function OrderItemOptions({
   shouldShowConfirmReturn,
   setShouldConfirmReturn,
   orderData,
+  onOrderEmptied,
 }: {
   orderItem: OrderInterface["details"][0];
   parentOrder: OrderInterface;
@@ -41,6 +42,9 @@ function OrderItemOptions({
   shouldShowConfirmReturn: boolean;
   setShouldConfirmReturn: (e: boolean) => void;
   orderData: OrderInterface[];
+  // Called instead of update() when hiding the last product empties the order,
+  // so the parent can leave for the orders list (same as Hide This Pack).
+  onOrderEmptied?: () => void;
 }) {
   const [canceled, setCanceled] = useState(false);
   const [ShouldConfirmCancel, setShouldConfirmCancel] = useState(false);
@@ -50,6 +54,11 @@ function OrderItemOptions({
     useState<any>(false);
   const [showHideConfirm, setShowHideConfirm] = useState(false);
   const [hiding, setHiding] = useState(false);
+  // Hiding the only remaining product leaves an empty order, so the backend
+  // hides the whole order. Mirror that in the UI: warn in the confirm dialog and,
+  // on success, leave for the orders list like Hide This Pack instead of
+  // re-fetching a now-empty order.
+  const isLastProductInOrder = (parentOrder?.details?.length ?? 0) <= 1;
   const handleHideProduct = async () => {
     try {
       setHiding(true);
@@ -57,7 +66,11 @@ function OrderItemOptions({
       setHiding(false);
       setShowHideConfirm(false);
       close();
-      await update();
+      if (isLastProductInOrder) {
+        onOrderEmptied?.();
+      } else {
+        await update();
+      }
     } catch (error) {
       setHiding(false);
       LogError({
@@ -535,7 +548,11 @@ function OrderItemOptions({
           loading={hiding}
           type={"Delete"}
           confirmTilte={"Hide This Product"}
-          confirmMessage={"Are you sure you want to hide this product?"}
+          confirmMessage={
+            isLastProductInOrder
+              ? "This is the only product in this order, so hiding it will hide the whole order."
+              : "Are you sure you want to hide this product?"
+          }
           onCancel={() => setShowHideConfirm(false)}
           onConfirm={handleHideProduct}
           dataCy="confirm-hide-product"

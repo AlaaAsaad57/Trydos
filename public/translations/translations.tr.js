@@ -1047,6 +1047,8 @@ const translations = {
   "Hide This Pack From My List": "Bu Paketi Listemden Gizle",
   "Are you sure you want to hide this order?": "Bu siparişi gizlemek istediğinizden emin misiniz?",
   "Are you sure you want to hide this product?": "Bu ürünü gizlemek istediğinizden emin misiniz?",
+  "This is the only product in this order, so hiding it will hide the whole order.":
+    "Bu, bu siparişteki tek üründür, bu nedenle onu gizlemek tüm siparişi gizleyecektir.",
   "You Can Cancel This Pack And Back Your Money":
     "Bu Paketi İptal Edip Paranızı Geri Alabilirsiniz",
   "Cancel This Pack": "Bu Paketi İptal Et",

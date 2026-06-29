@@ -241,6 +241,19 @@ function OrderDetailsWrapper({
     // This replaces the URL with just the path, effectively deleting params
     router.replace(pathname);
   };
+
+  // Hiding an order — or hiding the last product, which empties the order —
+  // removes it from the list, so we leave the details page for the orders list
+  // rather than re-fetching a now-hidden/empty order. We deliberately do NOT bump
+  // `shouldUpdateOrders`: it's a global signal that would (a) make this
+  // still-mounted page re-fetch the now-hidden order and show its skeleton, and
+  // (b) trigger RouterRefresh's router.refresh() on the current route, fighting
+  // this navigation. The list already refetches on mount, so it lands fresh.
+  const leaveForOrdersList = () => {
+    startNavigation(() => {
+      router.replace(`/${local}/settings/orders`);
+    });
+  };
   const shouldShowChatIcon = (pack) => {
     // Out for Delivery
     if (pack && pack?.order_status?.value === "out_for_delivery")
@@ -516,15 +529,7 @@ const isNotDraft=()=>{
           }}
           onHidden={() => {
             setShowOrderOption(null);
-            // Leave the details page for the orders list. We deliberately do NOT
-            // bump `shouldUpdateOrders` here: it's a global signal that would (a)
-            // make this still-mounted page re-fetch the now-hidden order and show
-            // its skeleton, and (b) trigger RouterRefresh's router.refresh() on the
-            // current route, fighting this navigation. The list already refetches
-            // on mount, so it lands fresh without the hidden pack.
-            startNavigation(() => {
-              router.replace(`/${local}/settings/orders`);
-            });
+            leaveForOrdersList();
           }}
         />
       )}
@@ -540,6 +545,7 @@ const isNotDraft=()=>{
           returnDetails={returnData}
           setActivePack={setActivePack}
           update={async () => await getOrderDetails()}
+          onOrderEmptied={leaveForOrdersList}
         />
       )}
       <div

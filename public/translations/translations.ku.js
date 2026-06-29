@@ -194,6 +194,8 @@ const translations = {
   "Hide This Pack From My List": "ئەم کۆمه‌ڵه‌ له‌ لیسته‌کەم پنهان بکە",
   "Are you sure you want to hide this order?": "دڵنیایت ده‌تەوێت ئەم داواکارییە بشاریتەوە؟",
   "Are you sure you want to hide this product?": "دڵنیایت ده‌تەوێت ئەم به‌رهه‌مه‌ بشاریتەوە؟",
+  "This is the only product in this order, so hiding it will hide the whole order.":
+    "ئەمە تاکە به‌رهه‌مه‌ له‌م داواکارییەدا، بۆیە شاردنه‌وه‌ی هه‌موو داواکارییەکە ده‌شارێته‌وه‌.",
   "You Can Cancel This Pack And Back Your Money":
     "ده‌توانیت ئه‌م کۆمه‌ڵه‌ ڕه‌ت بکەیت و پارەکانت وەرگرە",
   "Cancel This Pack": "ڕه‌تکردنی ئه‌م کۆمه‌ڵه‌",
