@@ -556,7 +556,7 @@ export async function storeError(error) {
       }).catch(() => {});
     } else {
       await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store",
+        process.env.NEXT_PUBLIC_GO_BACKEND_URL + "/mobile_error_log/store",
         {
           method: "POST",
           headers: {

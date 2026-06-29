@@ -6,6 +6,7 @@ This file is the **canonical list of every PostHog event** we send, what it mean
 the properties attached to each. **When you add a new event, add it here in the same PR.**
 
 Companion docs:
+- `docs/posthog-events-mobile.md` — **mobile-app parity spec** (platform-agnostic hand-off; same event names/props, `platform_source: "MOBILE"`). Keep in sync when events change here.
 - `docs/posthog-order-funnel.md` — deep dive on the create-order funnel (correlation, drop-off analysis, how to build the funnel in the PostHog UI).
 - `docs/posthog-vs-smartlook-comparison.md` — why we use PostHog and what it replaced.
 
