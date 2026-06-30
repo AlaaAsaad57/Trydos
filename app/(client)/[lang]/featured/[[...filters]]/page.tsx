@@ -44,7 +44,7 @@ async function getCurrency(country, language) {
       return { ...cachedCurrency, redis: true };
     } else {
       let currencyData = await fetchCurrency(language, country);
-      let currency = { ...currencyData.data.currency };
+      let currency = { ...currencyData.data };
       StoreCurrency(country, currency);
       return { ...currency, redis: false };
     }

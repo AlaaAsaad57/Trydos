@@ -74,7 +74,7 @@ async function getCurrencyForListing(country: string, language: string) {
       };
     }
     const currencyData = await fetchCurrency(language, country);
-    const currency = { ...currencyData.data.currency };
+    const currency = { ...currencyData.data };
     StoreCurrency(country, currency);
     let end = process.hrtime.bigint();
     return {
