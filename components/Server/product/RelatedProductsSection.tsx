@@ -59,6 +59,7 @@ async function RelatedProductsSection({
           currency={resolvedCurrency}
           offset={response.offset}
           initialProductIds={(response as any).productIds || []}
+          pit_id={(response as any).pit_id ?? null}
         />
         </HortiznalScrollBar>
        

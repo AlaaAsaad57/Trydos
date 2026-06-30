@@ -120,6 +120,7 @@ async function ProductListConainer({
         boutique={boutique?.name}
         products={productsData ?? []}
         offset={filtersData?.offset}
+        pit_id={filtersData?.pit_id ?? null}
         currency={currency}
         key={`product-list-${JSON.stringify(parsedFilters)}`}
         parsedFilters={parsedFiltersVar}

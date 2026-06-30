@@ -127,6 +127,7 @@ export async function GetProducts({
   userId = null,
   recomended_offset = null,
   sizes_filters = null,
+  pit_id = null,
 }) {
   try {
   let response = await getProductsAndFiltersFromElastic({
@@ -138,6 +139,9 @@ export async function GetProducts({
     search_after: offset,
     recommended_offset: recomended_offset,
     userId: userId,
+    // PIT snapshot pagination (ADR-009): reuse the session snapshot id.
+    usePit: true,
+    pit_id: pit_id,
   });
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
   let productsData: any = response.products.map((product) => {
@@ -237,6 +241,11 @@ export async function GetProducts({
     items: items,
     offset: newOffset,
     recomended_offset: response?.recommended_offset,
+    // Rotated PIT snapshot id for the next page (ADR-009); null when PIT is off.
+    pit_id: response?.pit_id ?? null,
+    // Stable per-item ids, parallel to `items`, for client dedupe that does not
+    // depend on the analytics array staying aligned.
+    productIds: productsData?.map((p: any) => String(p?.product_id)) ?? [],
     GA_PRODUCTS_LIST: response?.products?.map((s) => ({
       item_id: s?.product_id,
       item_name: s?.name,
@@ -255,6 +264,8 @@ export async function GetProducts({
       items: [],
       offset: undefined,
       recomended_offset: undefined,
+      pit_id: null,
+      productIds: [],
       GA_PRODUCTS_LIST: [],
     };
   }
@@ -396,6 +407,7 @@ export async function GetRelatedProducts({
   offset,
   currency,
   sizes_filters = null,
+  pit_id = null,
 }) {
   try {
     let response = await getRelatedProducts({
@@ -404,6 +416,9 @@ export async function GetRelatedProducts({
       productId,
       limit: 3,
       search_after: offset,
+      // PIT snapshot pagination (ADR-009): reuse the session snapshot id.
+      usePit: true,
+      pit_id: pit_id,
     });
 
     const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
@@ -506,6 +521,7 @@ export async function GetRelatedProducts({
       items: items,
       offset: newOffset,
       total_size: response.total_size,
+      pit_id: response?.pit_id ?? null,
       productIds: productsData?.map((product: any) => String(product?.product_id)) || [],
     };
   } catch (error) {
@@ -519,6 +535,8 @@ export async function GetRelatedProducts({
       items: [],
       offset: [],
       total_size: 0,
+      pit_id: null,
+      productIds: [],
     };
   }
 }

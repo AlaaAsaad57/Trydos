@@ -10,6 +10,7 @@ function ProductListServer({
   products,
   currency,
   offset,
+  pit_id = null,
   isFeatured = false,
   isFlashDeals = false,
   boutique,
@@ -65,6 +66,7 @@ function ProductListServer({
         })}
         <ProductsInfiniteScroll
           recomended_offset={recomended_offset}
+          pit_id={pit_id}
           boutiqueName={boutique?.name}
           analyticsData={products?.map((s) => ({
             item_id: s?.product_id,

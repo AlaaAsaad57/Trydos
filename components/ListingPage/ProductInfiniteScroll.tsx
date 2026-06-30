@@ -22,6 +22,7 @@ function ProductsInfiniteScroll({
   isFlashDeals,
   recomended_offset = null,
   sizes_filters = null,
+  pit_id = null,
 }: {
   offset: any;
   currency: any;
@@ -32,6 +33,7 @@ function ProductsInfiniteScroll({
   boutiqueName;
   recomended_offset?: any;
   sizes_filters?: string[] | null;
+  pit_id?: string | null;
 }) {
   const { resetBoutique } = useAppStore();
   const { lang }: { lang: string } = useParams();
@@ -63,9 +65,18 @@ function ProductsInfiniteScroll({
   const offsetRef = useRef(offset);
   const recommendedOffsetRef = useRef(recomended_offset);
   const isReachEndRef = useRef(false);
+  // PIT snapshot id for this filter session (ADR-009). Rotated from each
+  // response; reset to the new first-page snapshot on the keyed remount.
+  const pitIdRef = useRef<string | null>(pit_id);
+  // Bounded auto-advance guard: how many consecutive all-already-seen pages
+  // we've skipped. Caps the auto-advance loop so it can never spin (AC-9).
+  const emptyPagesRef = useRef(0);
   const seenIdsRef = useRef<Set<string>>(
     new Set((analyticsData || []).map((product) => String(product?.item_id))),
   );
+  // Page size requested from the server; a shorter page means the last page.
+  const PAGE_LIMIT = 10;
+  const MAX_CONSECUTIVE_EMPTY_PAGES = 5;
 
   useEffect(() => {
     offsetRef.current = offsetValue;
@@ -96,6 +107,9 @@ function ProductsInfiniteScroll({
     isFetchingRef.current = true;
     setLoading(true);
 
+    // Set when an all-already-seen page advanced the cursor: we must fetch the
+    // next page ourselves, otherwise the in-view sentinel stays put and stalls.
+    let scheduleNext = false;
     try {
       let user = useAppStore.getState().userProfile;
       let userId = user?.id;
@@ -108,6 +122,8 @@ function ProductsInfiniteScroll({
         userId: userId,
         recomended_offset: recommendedOffsetRef.current,
         sizes_filters: sizes_filters,
+        // PIT snapshot pagination (ADR-009): carry the session snapshot id.
+        pit_id: pitIdRef.current,
       });
 
       if (!response) {
@@ -121,42 +137,48 @@ function ProductsInfiniteScroll({
       }
 
       const sameOffset = areArraysEqual(offsetRef.current, response.offset);
-      if (response.items.length === 0 || sameOffset) {
-        isReachEndRef.current = true;
-        setIsReachEnd(true);
-        return;
-      }
+      // End of results when: the page is empty, the cursor did not advance, or
+      // it is a short (final) page. A short page can still carry new items, so
+      // we append first and set reach-end afterwards.
+      const reachedEnd =
+        response.items.length === 0 ||
+        sameOffset ||
+        response.items.length < PAGE_LIMIT;
 
-      const incomingIds = (response.GA_PRODUCTS_LIST || []).map((product) =>
-        String(product?.item_id),
-      );
+      // Dedupe by each item's OWN product id (parallel to items). Fall back to
+      // the analytics array only if productIds is unavailable, so dedupe never
+      // silently breaks if the analytics list is missing/misaligned.
+      const incomingIds: string[] = (
+        response.productIds && response.productIds.length > 0
+          ? response.productIds
+          : (response.GA_PRODUCTS_LIST || []).map((p) => p?.item_id)
+      ).map((id) => String(id));
 
       const uniqueIndexes = incomingIds
         .map((id, index) => ({ id, index }))
         .filter(({ id }) => {
-          if (!id) return false;
+          if (!id || id === "undefined") return false;
           if (seenIdsRef.current.has(id)) return false;
           seenIdsRef.current.add(id);
           return true;
         })
         .map(({ index }) => index);
 
-      const temp_products =
-        uniqueIndexes.length > 0
-          ? uniqueIndexes.map((index) => response.items[index]).filter(Boolean)
-          : response.items;
+      // Hard guarantee: only ever append never-seen items. No whole-page
+      // fallback — an all-duplicate page appends nothing (Layer 1, ADR-009).
+      const temp_products = uniqueIndexes
+        .map((index) => response.items[index])
+        .filter(Boolean);
 
       if (temp_products.length > 0) {
         setProducts((prev) => [...prev, ...temp_products]);
       }
 
-      if (response.GA_PRODUCTS_LIST?.length > 0) {
-        const uniqueAnalytics =
-          uniqueIndexes.length > 0
-            ? uniqueIndexes
-                .map((index) => response.GA_PRODUCTS_LIST[index])
-                .filter(Boolean)
-            : response.GA_PRODUCTS_LIST;
+      // Analytics only for the newly-shown items.
+      if (uniqueIndexes.length > 0 && response.GA_PRODUCTS_LIST?.length > 0) {
+        const uniqueAnalytics = uniqueIndexes
+          .map((index) => response.GA_PRODUCTS_LIST[index])
+          .filter(Boolean);
 
         if (uniqueAnalytics.length > 0) {
           GAevent({
@@ -172,13 +194,41 @@ function ProductsInfiniteScroll({
         }
       }
 
+      // Advance the cursor and rotate the PIT id for the next page.
       offsetRef.current = response.offset;
       recommendedOffsetRef.current = response.recomended_offset;
+      pitIdRef.current = response.pit_id ?? pitIdRef.current;
       setOffsetValue(response.offset);
       setRecommendedOffset(response.recomended_offset);
+
+      if (reachedEnd) {
+        isReachEndRef.current = true;
+        setIsReachEnd(true);
+        return;
+      }
+
+      // A full-size page that added nothing new → auto-advance to the next page
+      // (bounded), so duplicates never render and the scroll never stalls.
+      if (temp_products.length === 0) {
+        emptyPagesRef.current += 1;
+        if (emptyPagesRef.current >= MAX_CONSECUTIVE_EMPTY_PAGES) {
+          isReachEndRef.current = true;
+          setIsReachEnd(true);
+          return;
+        }
+        scheduleNext = true;
+      } else {
+        emptyPagesRef.current = 0;
+      }
     } finally {
       isFetchingRef.current = false;
       setLoading(false);
+    }
+
+    if (scheduleNext) {
+      setTimeout(() => {
+        getProductsReq();
+      }, 0);
     }
   };
 

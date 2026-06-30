@@ -131,6 +131,10 @@ export default async function FiltersPageContent({
         },
         limit: 10,
         userId: parsedUserId,
+        // Open a PIT snapshot for this filter session (ADR-009); the returned
+        // pit_id rides inside filtersData and is threaded to the infinite
+        // scroll so every "load more" reads the same immutable snapshot.
+        usePit: true,
       }),
       currencyPromise,
       boutiquePromise,
