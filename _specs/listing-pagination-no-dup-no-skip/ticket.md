@@ -2,7 +2,7 @@
 ticket: listing-pagination-no-dup-no-skip
 title: "Fix: Listing pagination shows duplicate products and can skip products (filters/featured/flashDeals)"
 mode: high_risk
-state: approved
+state: closed
 status: active
 owner: ai_agent
 created_at: 2026-06-30
@@ -57,6 +57,22 @@ GU-2** any change touching a protected path must run in `mode: high_risk`:
   timestamp: 2026-06-30
 - state: approved
   event: plan-approved
+  by: reviewer
+  timestamp: 2026-06-30
+- state: implementation-in-progress
+  event: implementation-started
+  by: ai_agent
+  timestamp: 2026-06-30
+- state: implemented
+  event: implementation-completed
+  by: ai_agent
+  timestamp: 2026-06-30
+- state: verified
+  event: verification-passed
+  by: reviewer
+  timestamp: 2026-06-30
+- state: closed
+  event: ticket-closed
   by: reviewer
   timestamp: 2026-06-30
 ```

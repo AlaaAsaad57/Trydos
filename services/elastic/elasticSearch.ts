@@ -41,6 +41,13 @@ interface SearchParams {
   noFilters?: boolean;
   userId?: string | number | null;
   recommended_offset?: number;
+  // ── Point-in-Time pagination (ADR-009) ──────────────────────────────
+  // When `usePit` is set AND the runtime flag is enabled, the product search
+  // runs inside a PIT snapshot so every page of one browsing session reads an
+  // immutable view (no drift → no duplicate, no skip). `pit_id` carries the
+  // snapshot id across pages; null/absent on the first page (a PIT is opened).
+  pit_id?: string | null;
+  usePit?: boolean;
 }
 
 interface FilterResult {
@@ -91,6 +98,7 @@ interface SearchResult {
   isAnalyzed?: any;
   applied?: any;
   recommended_offset?: number;
+  pit_id?: string | null;
   time: number;
 }
 
@@ -129,6 +137,60 @@ interface ExtractFiltersResult {
   prices: any;
 }
 let client = elasticSearchClient;
+
+// ── Point-in-Time pagination (ADR-009) ────────────────────────────────────
+// Disabled by default. Flip `ELASTIC_LISTING_PIT=true` to enable the snapshot
+// pagination; with the flag off the code path below is inert and the listing
+// behaves exactly as before (index-based stateless `search_after`). This is the
+// plan's primary rollback (flag off) and lets us stage the rollout.
+const LISTING_PIT_ENABLED = process.env.ELASTIC_LISTING_PIT === "true";
+const LISTING_PIT_KEEPALIVE = process.env.ELASTIC_LISTING_PIT_KEEPALIVE || "2m";
+
+/**
+ * Open a fresh PIT snapshot over the catalog index. Returns the pit id, or null
+ * if PIT could not be opened (caller then falls back to index-based search).
+ */
+async function openListingPit(): Promise<string | null> {
+  try {
+    const pit = await client.openPointInTime({
+      index: catalog_index,
+      keep_alive: LISTING_PIT_KEEPALIVE,
+    });
+    return pit?.id ?? null;
+  } catch (error) {
+    LogServerError(
+      { error, type: "openListingPit failed" },
+      "/listing/pit",
+    );
+    return null;
+  }
+}
+
+/**
+ * Run a product search that may be PIT-scoped. On a PIT-expired/invalid error
+ * we transparently re-open a fresh PIT and retry once from the same cursor
+ * (OQ-1: resume-and-continue, never end early). Returns the search response and
+ * the pit id that was actually in effect (rotated id if the server returned one,
+ * or the freshly re-opened id after a retry).
+ */
+async function runListingSearch(
+  searchQuery: any,
+  activePitId: string | null,
+): Promise<{ response: any; pitId: string | null }> {
+  try {
+    const response = await client.search(searchQuery);
+    return { response, pitId: (response as any)?.pit_id ?? activePitId };
+  } catch (error) {
+    // Only attempt a resume when we were actually using a PIT.
+    if (!activePitId) throw error;
+    const fresh = await openListingPit();
+    if (!fresh) throw error;
+    searchQuery.pit = { id: fresh, keep_alive: LISTING_PIT_KEEPALIVE };
+    const response = await client.search(searchQuery);
+    return { response, pitId: (response as any)?.pit_id ?? fresh };
+  }
+}
+
 /**
  * Main function to search products and get filters from Elasticsearch
  */
@@ -147,6 +209,8 @@ export async function getProductsAndFiltersFromElastic(
     noProducts = false,
     userId = null,
     recommended_offset = 0,
+    pit_id = null,
+    usePit = false,
   } = params;
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
@@ -247,12 +311,30 @@ export async function getProductsAndFiltersFromElastic(
       // @ts-ignore
       searchQuery.search_after = search_after;
     }
+
+    // ── PIT scoping (ADR-009) ────────────────────────────────────────────
+    // When enabled: reuse the incoming pit_id, or open a fresh PIT for the
+    // first page of the session. A PIT search must NOT carry an `index`.
+    const pitEnabled = usePit && LISTING_PIT_ENABLED;
+    let activePitId: string | null = pitEnabled
+      ? pit_id || (await openListingPit())
+      : null;
+    if (activePitId) {
+      // @ts-ignore — `pit` replaces `index` on a snapshot search
+      delete searchQuery.index;
+      // @ts-ignore
+      searchQuery.pit = { id: activePitId, keep_alive: LISTING_PIT_KEEPALIVE };
+    }
+
     // Execute search with pagination
     const customProducts: any[] = [];
     let lastSortValue: any[] = search_after;
-    let response;
 
-    response = await client.search(searchQuery);
+    const { response, pitId: effectivePitId } = await runListingSearch(
+      searchQuery,
+      activePitId,
+    );
+    activePitId = effectivePitId;
     const hits = response.hits.hits as ElasticsearchHit[];
     let total_size = response.hits?.total?.value;
     hits.forEach((hit: ElasticsearchHit) => {
@@ -330,6 +412,7 @@ export async function getProductsAndFiltersFromElastic(
         limit: limit,
         time: Number(end - start) / 1_000_000,
         recommended_offset: newRecommendedOffset,
+        pit_id: activePitId,
       };
     }
 
@@ -507,6 +590,7 @@ export async function getProductsAndFiltersFromElastic(
       isAnalyzed: isAnalyzed,
       applied: filters,
       recommended_offset: newRecommendedOffset,
+      pit_id: activePitId,
       time: Number(end - start) / 1_000_000,
     };
   } catch (error) {
@@ -774,6 +858,8 @@ export interface RelatedProductsParams {
   search_after?: any[];
   language_code?: string;
   country?: string;
+  pit_id?: string | null;
+  usePit?: boolean;
 }
 
 export async function getRelatedProducts(
@@ -785,6 +871,8 @@ export async function getRelatedProducts(
     search_after = [],
     language_code = "en",
     country = "",
+    pit_id = null,
+    usePit = false,
   } = params;
 
   let start = process.hrtime.bigint();
@@ -889,8 +977,22 @@ export async function getRelatedProducts(
       searchQuery.search_after = search_after;
     }
 
-    // Execute the search
-    const response = await client.search(searchQuery);
+    // ── PIT scoping (ADR-009) — same snapshot pagination as the main listing.
+    const pitEnabled = usePit && LISTING_PIT_ENABLED;
+    let activePitId: string | null = pitEnabled
+      ? pit_id || (await openListingPit())
+      : null;
+    if (activePitId) {
+      delete searchQuery.index;
+      searchQuery.pit = { id: activePitId, keep_alive: LISTING_PIT_KEEPALIVE };
+    }
+
+    // Execute the search (with transparent PIT resume on expiry)
+    const { response, pitId: effectivePitId } = await runListingSearch(
+      searchQuery,
+      activePitId,
+    );
+    activePitId = effectivePitId;
     const hits = response.hits.hits as ElasticsearchHit[];
     const total_size = typeof response.hits?.total === "number" ? response.hits.total : (response.hits?.total as any)?.value;
 
@@ -925,6 +1027,7 @@ export async function getRelatedProducts(
       limit: limit,
       total_size: total_size,
       products: catalogProducts,
+      pit_id: activePitId,
       time: Number(end - start) / 1_000_000,
     };
   } catch (error) {

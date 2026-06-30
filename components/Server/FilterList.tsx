@@ -76,6 +76,7 @@ function FilterList({
                 if (
                   filter !== "search_text" &&
                   filter !== "boutiques" &&
+                  filter !== "related_categories" &&
                   filters[filter] &&
                   filters[filter]?.length > 0
                 )

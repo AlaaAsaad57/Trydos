@@ -10,6 +10,7 @@ interface RelatedProductsInfiniteScrollProps {
   currency: string;
   offset: any[];
   initialProductIds?: string[];
+  pit_id?: string | null;
 }
 
 function RelatedProductsInfiniteScroll({
@@ -17,6 +18,7 @@ function RelatedProductsInfiniteScroll({
   currency,
   offset,
   initialProductIds = [],
+  pit_id = null,
 }: RelatedProductsInfiniteScrollProps) {
   const { lang }: { lang: string } = useParams();
   let [country, languageVariable] = lang.split("-");
@@ -32,7 +34,14 @@ function RelatedProductsInfiniteScroll({
   const isFetchingRef = useRef(false);
   const offsetRef = useRef(offset);
   const isReachEndRef = useRef(false);
+  // PIT snapshot id for this carousel session (ADR-009), rotated per response.
+  const pitIdRef = useRef<string | null>(pit_id);
+  // Bounded auto-advance guard for all-already-seen pages (AC-9).
+  const emptyPagesRef = useRef(0);
   const seenIdsRef = useRef<Set<string>>(new Set(initialProductIds));
+  // Related pages are requested with limit 3 (see GetRelatedProducts).
+  const PAGE_LIMIT = 3;
+  const MAX_CONSECUTIVE_EMPTY_PAGES = 5;
 
   useEffect(() => {
     offsetRef.current = offsetValue;
@@ -54,10 +63,11 @@ function RelatedProductsInfiniteScroll({
   }
 
   const getProductsReq = async () => {
-    if (isFetchingRef.current || isReachEndRef.current||loading) return;
+    if (isFetchingRef.current || isReachEndRef.current || loading) return;
     isFetchingRef.current = true;
     setLoading(true);
 
+    let scheduleNext = false;
     try {
       const response = await GetRelatedProducts({
         country,
@@ -65,6 +75,8 @@ function RelatedProductsInfiniteScroll({
         currency,
         offset: offsetRef.current,
         productId,
+        // PIT snapshot pagination (ADR-009): carry the session snapshot id.
+        pit_id: pitIdRef.current,
       });
 
       if (!response) {
@@ -75,37 +87,67 @@ function RelatedProductsInfiniteScroll({
       }
 
       const sameOffset = areArraysEqual(offsetRef.current, response.offset);
-      if (response.items.length === 0 || sameOffset) {
-        isReachEndRef.current = true;
-        setIsReachEnd(true);
-        return;
-      }
+      // End on empty, unchanged cursor, or short (final) page — but append any
+      // new items on a short page first.
+      const reachedEnd =
+        response.items.length === 0 ||
+        sameOffset ||
+        response.items.length < PAGE_LIMIT;
 
-      const incomingIds = (response as any).productIds || [];
+      const incomingIds: string[] = ((response as any).productIds || []).map(
+        (id: any) => String(id),
+      );
       const uniqueIndexes = incomingIds
         .map((id: string, index: number) => ({ id, index }))
         .filter(({ id }: { id: string }) => {
-          if (!id) return false;
+          if (!id || id === "undefined") return false;
           if (seenIdsRef.current.has(id)) return false;
           seenIdsRef.current.add(id);
           return true;
         })
         .map(({ index }: { index: number }) => index);
 
-      const temp_products =
-        uniqueIndexes.length > 0
-          ? uniqueIndexes.map((index: number) => response.items[index]).filter(Boolean)
-          : response.items;
+      // Hard guarantee: only append never-seen items (no whole-page fallback).
+      const temp_products = uniqueIndexes
+        .map((index: number) => response.items[index])
+        .filter(Boolean);
 
       if (temp_products.length > 0) {
         setProducts((prev) => [...prev, ...temp_products]);
       }
 
       offsetRef.current = response.offset;
+      pitIdRef.current = (response as any).pit_id ?? pitIdRef.current;
       setOffsetValue(response.offset);
+
+      if (reachedEnd) {
+        isReachEndRef.current = true;
+        setIsReachEnd(true);
+        return;
+      }
+
+      // All-already-seen full page → advance to the next page (bounded) so the
+      // "Show More" button never appears to do nothing.
+      if (temp_products.length === 0) {
+        emptyPagesRef.current += 1;
+        if (emptyPagesRef.current >= MAX_CONSECUTIVE_EMPTY_PAGES) {
+          isReachEndRef.current = true;
+          setIsReachEnd(true);
+          return;
+        }
+        scheduleNext = true;
+      } else {
+        emptyPagesRef.current = 0;
+      }
     } finally {
       isFetchingRef.current = false;
       setLoading(false);
+    }
+
+    if (scheduleNext) {
+      setTimeout(() => {
+        getProductsReq();
+      }, 0);
     }
   };
 
