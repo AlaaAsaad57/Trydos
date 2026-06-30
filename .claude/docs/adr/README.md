@@ -22,7 +22,7 @@ Rules:
 | 006 | [Validation profiles](./ADR-006-validation-profiles.md) | accepted | — |
 | 007 | [GitHub PR publish as a delivery-only surface](./ADR-007-github-pr-publish.md) | accepted | wf-004 |
 | 008 | [Single git delivery boundary + next-step guidance](./ADR-008-delivery-commit-boundary.md) | accepted | wf-005 |
-| 009 | [Elasticsearch PIT for listing pagination](./ADR-009-elasticsearch-pit-listing-pagination.md) | proposed | listing-pagination-no-dup-no-skip |
+| 009 | [Elasticsearch PIT for listing pagination](./ADR-009-elasticsearch-pit-listing-pagination.md) | accepted | listing-pagination-no-dup-no-skip |
 
 > Note: ADR-003 was assigned by the phase that created it; 001–002 are reserved
 > for earlier decisions not yet retro-documented. ADR-008 extends (does not

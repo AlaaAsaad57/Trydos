@@ -2,7 +2,7 @@
 ticket: listing-pagination-no-dup-no-skip
 title: "Fix: Listing pagination shows duplicate products and can skip products (filters/featured/flashDeals)"
 mode: high_risk
-state: spec-complete
+state: approved
 status: active
 owner: ai_agent
 created_at: 2026-06-30
@@ -51,11 +51,23 @@ GU-2** any change touching a protected path must run in `mode: high_risk`:
   event: open-questions-resolved
   by: ai_agent
   timestamp: 2026-06-30
+- state: plan-complete
+  event: plan-validated
+  by: reviewer
+  timestamp: 2026-06-30
+- state: approved
+  event: plan-approved
+  by: reviewer
+  timestamp: 2026-06-30
 ```
 
 > OQ-1 and OQ-2 resolved during plan refinement (no state transition): OQ-1 →
 > resume-from-fresh-snapshot on expiry (safest); OQ-2 → related-products carousel
 > now in scope. Updated `spec.md` (FR-7, AC-14, Resolved Decisions) and `plan.md`.
+>
+> **Approved at /review (2026-06-30), high_risk:** 2 approvers — AlaaAsaadDev
+> (reviewer) + AlaaAsaadRev — ADR reference ADR-009. See `review.md`. Next:
+> `/implement` (author creates branch `ticket/listing-pagination-no-dup-no-skip`).
 
 > Authored as a review-ready package (research → spec → plan). The canonical
 > state is `spec-complete`: research, spec, and plan artifacts exist and the

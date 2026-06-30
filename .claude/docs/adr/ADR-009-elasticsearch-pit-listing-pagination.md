@@ -1,6 +1,6 @@
 # ADR 009: Elasticsearch Point-in-Time (PIT) for listing pagination
 
-- **Status:** proposed
+- **Status:** accepted
 - **Date:** 2026-06-30
 - **Ticket:** listing-pagination-no-dup-no-skip
 - **Deciders:** reviewer (TBD — gate, not the author), ai_agent (author)
