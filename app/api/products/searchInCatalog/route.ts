@@ -76,6 +76,7 @@ export async function GET(req: NextRequest) {
       language_code: language,
       user_id: userId,
       recommended_offset: Number(searchParams.get("recommended_offset") || 0),
+      fullSource: true,
     };
     // Inline autocomplete (ghost text) for the mobile app — runs in parallel
     // with the main search so it adds no latency, and respects the same applied

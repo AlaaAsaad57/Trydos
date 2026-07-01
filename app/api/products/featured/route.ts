@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
       filters_offset: Number(searchParams.get("filters_offset") || 1),
       country,
       language_code: language,
+      fullSource: true,
     };
     const result = await getProductsAndFiltersFromElastic(params);
 

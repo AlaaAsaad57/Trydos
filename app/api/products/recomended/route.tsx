@@ -71,6 +71,7 @@ export async function GET(req: NextRequest) {
       search_after: searchParams.get("offset")
         ? parseNumberArray(searchParams.get("offset"))
         : [],
+      fullSource: true,
     });
 
     return NextResponse.json(

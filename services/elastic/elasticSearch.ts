@@ -47,6 +47,10 @@ interface SearchParams {
   noFilters?: boolean;
   userId?: string | number | null;
   recommended_offset?: number;
+  // ── WEB vs MOBILE `_source` split (ticket 7c) ───────────────────────
+  // Defaults to the trimmed WEB `_source`. Mobile API routes (source not in
+  // this repo) pass `fullSource: true` to get the full field set back.
+  fullSource?: boolean;
   // ── Point-in-Time pagination (ADR-009) ──────────────────────────────
   // When `usePit` is set AND the runtime flag is enabled, the product search
   // runs inside a PIT snapshot so every page of one browsing session reads an
@@ -228,6 +232,7 @@ export async function getProductsAndFiltersFromElastic(
     recommended_offset = 0,
     pit_id = null,
     usePit = false,
+    fullSource = false,
   } = params;
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
@@ -301,7 +306,7 @@ export async function getProductsAndFiltersFromElastic(
 
     const searchQuery = {
       index: catalog_index,
-      _source: getSourceFields(),
+      _source: getSourceFields(fullSource),
       track_scores: true,
       // Facet/initial loads still get a bounded count for display; pure
       // product-pagination requests (`noFilters`) skip the full count.
@@ -798,7 +803,11 @@ async function fetchRecommendationCandidates(userId: string | number) {
     }))
     .sort((a, b) => b.score - a.score); // Highest score first
 }
-async function fetchProductDetailsBatch(ids: string[], country: string) {
+async function fetchProductDetailsBatch(
+  ids: string[],
+  country: string,
+  fullSource: boolean = false,
+) {
   if (ids.length === 0) return [];
 
   const baseConditions = buildBaseConditions({}, country);
@@ -809,7 +818,7 @@ async function fetchProductDetailsBatch(ids: string[], country: string) {
 
   const response = await client.search({
     index: catalog_index,
-    _source: getSourceFields(),
+    _source: getSourceFields(fullSource),
     size: ids.length, // Fetch exactly what we asked for
     query: {
       bool: { must, must_not },
@@ -827,6 +836,7 @@ export async function GetRecomendationsForUser({
   country,
   search_after = [0], // Default to Index 0
   limit = 50,
+  fullSource = false,
 }) {
   try {
     const start = process.hrtime.bigint();
@@ -865,6 +875,7 @@ export async function GetRecomendationsForUser({
       const fetchedProductsRaw = await fetchProductDetailsBatch(
         batchIds,
         country,
+        fullSource,
       );
       const productsWithFilters: any = extractFilters(
         fetchedProductsRaw,
@@ -995,6 +1006,7 @@ export interface RelatedProductsParams {
   country?: string;
   pit_id?: string | null;
   usePit?: boolean;
+  fullSource?: boolean;
 }
 
 export async function getRelatedProducts(
@@ -1008,6 +1020,7 @@ export async function getRelatedProducts(
     country = "",
     pit_id = null,
     usePit = false,
+    fullSource = false,
   } = params;
 
   let start = process.hrtime.bigint();
@@ -1095,7 +1108,7 @@ export async function getRelatedProducts(
 
     const searchQuery: any = {
       index: catalog_index,
-      _source: getSourceFields(),
+      _source: getSourceFields(fullSource),
       track_scores: true,
       track_total_hits: true,
       size: limit,

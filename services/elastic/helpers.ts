@@ -12,8 +12,21 @@ export interface PopularSearchTerm {
   count: number;
 }
 
-export function getSourceFields(): string[] {
-  return [
+// Fields excluded from the WEB `_source` payload to shrink ES hit size, but
+// still required by MOBILE API routes (source not in this repo) that read
+// them directly from the hit. See getSourceFields(full).
+const MOBILE_ONLY_SOURCE_FIELDS = [
+  "custom_products.details", // full description; product detail page reads details from the Go backend, not this ES hit — but mobile still reads it here
+  "custom_boutiques.banners", // web boutique page/aggregation fetch banners via their own separate _source specs
+  "custom_categories.flat_photo_path", // web category icon navbar/chip data comes from separate queries (GetMainCategories, aggregation top_hits, serverRequests/Search.tsx), not this per-product hit
+  "custom_categories.outline_photo_path",
+  "custom_categories.png_photo_path",
+  "custom_categories.fill_photo_path",
+  "custom_categories.banner_photo_path",
+];
+
+export function getSourceFields(full: boolean = false): string[] {
+  const baseFields = [
     "id",
     "status",
     "seller_status",
@@ -60,7 +73,6 @@ export function getSourceFields(): string[] {
     "custom_boutiques.id",
     "custom_boutiques.name",
     "custom_boutiques.slug",
-    // "custom_boutiques.banners", // unused per-product hit; boutique page/aggregation fetch banners via their own separate _source specs
     "custom_boutiques.language_code",
     "custom_categories.id",
     "custom_categories.category_id",
@@ -69,20 +81,16 @@ export function getSourceFields(): string[] {
     // "custom_categories.description",
     // "custom_categories.bio",
     "custom_categories.language_code",
-    // "custom_categories.flat_photo_path", // category icon navbar/chip data comes from separate queries (GetMainCategories, aggregation top_hits, serverRequests/Search.tsx), not this per-product hit
-    // "custom_categories.outline_photo_path",
-    // "custom_categories.png_photo_path",
-    // "custom_categories.fill_photo_path",
-    // "custom_categories.banner_photo_path",
     "custom_products.id",
     "custom_products.product_id",
     "custom_products.name",
     "custom_products.slug",
     "custom_products.status",
-    // "custom_products.details", // full description unused in listing/card path; product detail page reads details from the Go backend, not this ES hit
     "custom_products.language_code",
     "custom_products.label_names",
   ];
+
+  return full ? [...baseFields, ...MOBILE_ONLY_SOURCE_FIELDS] : baseFields;
 }
 export interface ExtractFiltersResult {
   custom_products: CustomProduct[];
