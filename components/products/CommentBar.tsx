@@ -69,6 +69,8 @@ function CommentBar({ product_data, setCommentsData }) {
         product_id: String(product_data?.id),
         comment: val,
         variant,
+        ownerId: product_data?.owner_id,
+        ownerType: product_data?.owner_type,
         created_at: new Date().toISOString(),
         has_reply: false,
         good_quality_comment: false,
@@ -81,8 +83,12 @@ function CommentBar({ product_data, setCommentsData }) {
         reply_is_liked: false,
         isOwner: true,
       };
+      // Optimistic prepend is the source of truth here. Do NOT trigger
+      // setShouldUpdateComment: CommentSection would clear + refetch page 1 from
+      // Elasticsearch, which isn't consistent yet (the indexing wait was
+      // removed), wiping the just-posted comment. Mirror FaqAskInput: prepend +
+      // bump the count only.
       setCommentsData(newComment);
-      setShouldUpdateComment({ id });
       setShouldUpdateCommentsCount(true);
       setVal("");
       setLoading(false);

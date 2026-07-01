@@ -423,6 +423,8 @@ export async function GetFQACommentsForProduct({
       },
       product_id: s.product_id,
       comment: s.text,
+      ownerId: s?.owner_id,
+      ownerType: s?.owner_type,
       created_at: s.created_at,
       has_reply: s.has_reply,
       good_quality_comment: s?.good_quality_comment,

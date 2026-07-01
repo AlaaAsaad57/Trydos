@@ -95,6 +95,8 @@ export const AskInput = ({
         product_id: String(productId),
         comment,
         variant,
+        ownerId: owner_id,
+        ownerType: owner_type,
         created_at: new Date().toISOString(),
         has_reply: false,
         good_quality_comment: false,

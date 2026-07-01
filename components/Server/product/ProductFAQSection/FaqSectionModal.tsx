@@ -69,18 +69,18 @@ function FaqSectionModal({
       setLoading(false);
     }
   };
-  // ✅ Handle filter toggle
+  // ✅ Handle filter toggle — always reset the list/cursor before (re)loading so
+  // switching filters replaces results instead of appending, and clicking the
+  // active filter deselects it (mirrors BuyersCommentModal).
   const handleFilter = async (id) => {
     if (loading) return;
-
-    if (activeTabRef.current === id || id === 0) {
-      // Unselect filter → restore original comments
+    setCommentsData([]);
+    OffsetRef.current = null;
+    if (activeTabRef.current === id) {
       activeTabRef.current = 0;
-      setCommentsData([]);
-      OffsetRef.current = null;
+    } else {
+      activeTabRef.current = id;
     }
-
-    activeTabRef.current = id;
     await loadMore();
   };
   useEffect(() => {
