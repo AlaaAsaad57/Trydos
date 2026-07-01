@@ -2,7 +2,7 @@ import "styles/listing.css";
 import "styles/globals.css";
 
 import ProductsInfiniteScroll from "components/ListingPage/ProductInfiniteScroll";
-import ProductWrapper from "components/ServerWrapper/ProductWrapper";
+import ProductCard from "components/products/ProductCard";
 
 function ProductListServer({
   params,
@@ -27,43 +27,20 @@ function ProductListServer({
           isRtl ? "flex-row-reverse flex" : "flex flex-row"
         } listing-container mt-2  bg-[#f4f4f4] gap-x-[10px] gap-y-[18px] justify-center  min-w-full min-h-[48vh] relative  pb-[390px] max-w-[1310px] flex-wrap`}
       >
-        {products.map((product, key) => {
-          return (
-            <ProductWrapper
-              key={product.slug}
-              category_tree={product?.categories?.map((s) => s.name)}
-              labels={product?.label_names}
-              color={product?.sync_color_images?.[0]?.color_name}
-              InitialProductData={{ ...product, id: product?.product_id }}
-              country={country}
-              images={
-                product?.sync_color_images?.[0]?.images ?? product?.images
-              }
-              videos={product?.videos}
-              name={product.name}
-              slug={product.slug}
-              Sliders={true}
-              brand={{
-                name: product.brand.name,
-                icon: product.brand.icon?.file_path ?? product?.brand,
-                is_verified: product.brand.is_verified,
-              }}
-              luck_price={product.luck_price}
-              currency={currency}
-              endDate={product.flash_deal_end_date}
-              flash_deal_price={product.flash_deal_price}
-              id={product?.product_id ?? product?.id}
-              is_flashDeal={product.flash_deal_end_date}
-              is_luck={product.is_luck}
-              language={language}
-              offer_price={product.offer_price}
-              price={product.price}
-              sizes_filters={
-                parsedFilters?.sizes?.length > 0 ? parsedFilters.sizes : null
-              }
-            />
-          );
-        })}
+        {products.map((product, key) => (
+          <ProductCard
+            key={product.slug}
+            product={product}
+            currency={currency}
+            country={country}
+            language={language}
+            sliders={true}
+            priority={key < 4}
+            sizesFilters={
+              parsedFilters?.sizes?.length > 0 ? parsedFilters.sizes : null
+            }
+          />
+        ))}
         <ProductsInfiniteScroll
           recomended_offset={recomended_offset}
           pit_id={pit_id}
