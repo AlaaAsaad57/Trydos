@@ -4,12 +4,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 import { fetchData } from "utils/fetchData";
+import { TRANSLATE_COMMENT_URL } from "utils/endpointConfig";
 
 type BuyersReplyMenuProps = {
   id: number | string;
   isRtl: boolean;
   language: string;
   sellerReply: string;
+  setDisplayReply?: (text: string) => void;
 };
 
 const BuyersReplyMenu = ({
@@ -17,6 +19,7 @@ const BuyersReplyMenu = ({
   isRtl,
   language,
   sellerReply,
+  setDisplayReply,
 }: BuyersReplyMenuProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [translateLoading, setTranslateLoading] = useState(false);
@@ -30,17 +33,9 @@ const BuyersReplyMenu = ({
   };
 
   const handleTranslateReply = async () => {
-    const replyElement = document.querySelector<HTMLDivElement>(
-      `#comment-${id}-reply-text`,
-    );
-
-    if (!replyElement) {
-      return;
-    }
-
+    // Show Original: restore the source reply via React state (no DOM mutation).
     if (isReplyTranslated) {
-      const textToShow = originalReply ?? sellerReply ?? "";
-      replyElement.innerText = textToShow;
+      setDisplayReply?.(originalReply ?? sellerReply ?? "");
       setIsReplyTranslated(false);
       setMenuOpen(false);
       return;
@@ -49,7 +44,7 @@ const BuyersReplyMenu = ({
     try {
       setTranslateLoading(true);
       const response = await fetchData({
-        url: `/public_comment/comments/${id}/translate`,
+        url: TRANSLATE_COMMENT_URL(String(id)),
         method: "POST",
         body: JSON.stringify({
           target_language: language,
@@ -61,16 +56,14 @@ const BuyersReplyMenu = ({
 
       if (!response.success) throw new Error(response.message);
 
-      if (response?.success) {
-        const original = response.original_text || sellerReply;
-        if (!originalReply && original) {
-          setOriginalReply(original);
-        }
+      const original = response.original_text || sellerReply;
+      if (!originalReply && original) {
+        setOriginalReply(original);
+      }
 
-        if (response.translated_text) {
-          replyElement.innerText = response.translated_text;
-          setIsReplyTranslated(true);
-        }
+      if (response.translated_text) {
+        setDisplayReply?.(response.translated_text);
+        setIsReplyTranslated(true);
       }
       setMenuOpen(false);
     } catch (error) {

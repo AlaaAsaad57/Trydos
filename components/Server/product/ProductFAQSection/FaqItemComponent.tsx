@@ -1,4 +1,6 @@
+"use client";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import {
   convertTextToXFormat,
   formatTime,
@@ -18,6 +20,16 @@ function FaqItemComponent({
   seller_name,
   isFromComments = false,
 }) {
+  // Own question + reply text so translate/show-original is React state, not
+  // DOM mutation; re-sync when the comment prop changes (e.g. after an edit).
+  const [displayText, setDisplayText] = useState(comment?.comment);
+  const [displayReply, setDisplayReply] = useState(comment?.seller_reply);
+  useEffect(() => {
+    setDisplayText(comment?.comment);
+  }, [comment?.comment]);
+  useEffect(() => {
+    setDisplayReply(comment?.seller_reply);
+  }, [comment?.seller_reply]);
   return (
     <div
       className={`flex-col ${
@@ -42,6 +54,7 @@ function FaqItemComponent({
           ownerID={comment?.ownerId}
           id={comment.id}
           ownerType={comment?.ownerType}
+          setDisplayText={setDisplayText}
         />
         <div className="w-full flex-col">
           <div className="flex-row items-center">
@@ -82,7 +95,7 @@ function FaqItemComponent({
               !isRtl ? "pr-[27px]" : "pl-[27px]"
             } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0`}
           >
-            {comment.comment}
+            {displayText}
           </div>
         </div>
         <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
@@ -145,7 +158,7 @@ function FaqItemComponent({
                 id={`comment-${comment.id}-reply-text`}
                 className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0"
               >
-                {comment?.seller_reply}
+                {displayReply}
               </div>
             </div>
             <div className="flex-row pl-[10px] pr-[3px] gap-2 w-full items-center">
@@ -161,6 +174,7 @@ function FaqItemComponent({
                 isRtl={isRtl}
                 language={language}
                 sellerReply={comment?.seller_reply}
+                setDisplayReply={setDisplayReply}
               />
             </div>
           </div>

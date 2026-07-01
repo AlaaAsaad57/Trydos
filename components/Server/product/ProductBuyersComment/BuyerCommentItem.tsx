@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useState } from "react";
 import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/server";
 import profilePng from "public/images/profileNo.png";
 import Image from "next/image";
@@ -5,6 +7,12 @@ import BuyersCommentMenu from "./BuyersCommentMenu";
 import { BuyerCommentRateInfo } from "./BuyerCommentRateInfo";
 export const BuyersCommentItem = ({ id, comment, language, width = 90 }) => {
   const isRtl = language === "ar" || language === "ku";
+  // Own the displayed text so translate/show-original is React state, not DOM
+  // mutation; re-sync when the comment prop changes (e.g. after an edit).
+  const [displayText, setDisplayText] = useState(comment?.comment);
+  useEffect(() => {
+    setDisplayText(comment?.comment);
+  }, [comment?.comment]);
   return (
     <div
       id={`comment-${comment.id}`}
@@ -23,6 +31,7 @@ export const BuyersCommentItem = ({ id, comment, language, width = 90 }) => {
         ownerID={comment?.ownerId}
         id={comment.id}
         ownerType={comment?.ownerType}
+        setDisplayText={setDisplayText}
       />
       {/* here we will put the menu and options */}
       <div className="w-full flex-col">
@@ -63,7 +72,7 @@ export const BuyersCommentItem = ({ id, comment, language, width = 90 }) => {
             !isRtl ? "pr-[27px]" : "pl-[27px]"
           } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0`}
         >
-          {comment?.comment}
+          {displayText}
         </div>
       </div>
       <BuyerCommentRateInfo
