@@ -1,6 +1,7 @@
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
 import { GetFlashDealProducts } from "serverRequests/home";
 import { getRedeemedIds } from "utils/cookies/getRedeemedIds";
+import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
 
 export async function FlashProductWrapper({
   lang,
@@ -24,67 +25,9 @@ export async function FlashProductWrapper({
     getRedeemedIds(),
   ]);
   const redeemed_ids = redeemedIds ?? [];
-  let productsData = response.data.products.map((product) => {
-    if (product?.is_luck) {
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        luck_price: product.luck_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-        is_luck: !redeemed_ids.find((s) => s.id === product.product_id),
-      };
-    } else
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        luck_price: product.luck_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-      };
-  });
+  let productsData = response.data.products.map((product) =>
+    normalizeListingProduct(product, redeemed_ids),
+  );
   return (
     <>
       <FlashDealsProducts
