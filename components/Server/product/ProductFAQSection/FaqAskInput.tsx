@@ -22,7 +22,7 @@ export const AskInput = ({
   owner_type,
   productId,
 }) => {
-  const { user, setShouldUpdateComeentsCount } = useAppStore();
+  const { user, setShouldUpdateCommentsCount } = useAppStore();
   const renderBorderSvg = () => {
     return (
       <svg
@@ -94,7 +94,7 @@ export const AskInput = ({
       if (response.comment) {
         setCommentsData(response.comment);
       }
-      setShouldUpdateComeentsCount(true);
+      setShouldUpdateCommentsCount(true);
       setComment("");
       setLoading(false);
     } catch (error) {

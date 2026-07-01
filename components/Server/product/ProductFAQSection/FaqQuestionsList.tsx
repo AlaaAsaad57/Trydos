@@ -34,7 +34,7 @@ function FaqQuestionsList({
     shouldUpdateComment,
     setShouldUpdateComment,
     ColorBottomSheet,
-    setShouldUpdateComeentsCount,
+    setShouldUpdateCommentsCount,
   } = useAppStore();
   const [commentsNodes, setCommentsNodes] = useState(children);
   const [offsetValue, setOffsetValue] = useState(offset);
@@ -119,7 +119,7 @@ function FaqQuestionsList({
       setLoading(false);
       setBuyerCommentModalOption(null);
       setShouldUpdateComment({ id: id });
-      setShouldUpdateComeentsCount(true);
+      setShouldUpdateCommentsCount(true);
       return id;
     } catch (error) {
       LogError({

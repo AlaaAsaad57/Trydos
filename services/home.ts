@@ -12,7 +12,9 @@ import { posthogIdentify } from "utils/posthog";
 import {
   CUSTOMER_INFO_URL,
   FIREBASE_SETTINGS_URL,
+  LIKE_COMMENT_URL,
   STARTER_SETTINGS,
+  UNLIKE_COMMENT_URL,
 } from "utils/endpointConfig";
 import auth from "./auth";
 import LocalizationServiceClass from "./localization";
@@ -809,7 +811,7 @@ class HomeService {
   }
   async LikeComment({ comment_id, target_type, product_id }) {
     let resp = await fetchData({
-      url: "/public_comment/likes/like",
+      url: LIKE_COMMENT_URL,
       server: "comments",
       method: "POST",
       body: JSON.stringify({ target_id: comment_id, target_type, product_id }),
@@ -819,7 +821,7 @@ class HomeService {
   }
   async UnLikeComment({ comment_id, target_type, product_id }) {
     let resp = await fetchData({
-      url: "/public_comment/likes/unlike",
+      url: UNLIKE_COMMENT_URL,
       server: "comments",
       method: "DELETE",
       body: JSON.stringify({ target_id: comment_id, target_type, product_id }),

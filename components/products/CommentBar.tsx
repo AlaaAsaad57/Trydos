@@ -11,7 +11,7 @@ import "styles/comment.css";
 import { GetFaqItemElement } from "serverRequests/product";
 import Spinner from "components/global/Spinner";
 function CommentBar({ product_data, setCommentsData }) {
-  let { language, setShouldUpdateComment, setShouldUpdateComeentsCount } =
+  let { language, setShouldUpdateComment, setShouldUpdateCommentsCount } =
     useAppStore();
   const [val, setVal] = useState("");
   const [loading, setLoading] = useState(false);
@@ -68,7 +68,7 @@ function CommentBar({ product_data, setCommentsData }) {
         setCommentsData(response.comment);
       }
       setShouldUpdateComment({ id });
-      setShouldUpdateComeentsCount(true);
+      setShouldUpdateCommentsCount(true);
       setVal("");
       setLoading(false);
     } catch (error) {
