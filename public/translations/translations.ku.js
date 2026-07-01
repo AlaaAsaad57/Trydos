@@ -32,6 +32,7 @@ const translations = {
   Other: "هیتر",
   "Report Reason": "هۆکاری ڕاپۆرتکردن",
   "Details (optional)": "زانیاری زیاتر (ئارەزوومەندانە)",
+  "Details": "زانیاری زیاتر",
   "Write details here...": "زانیاری لێرە بنووسە...",
   "Submit Report": "ناردنی ڕاپۆرت",
   "Tell us what went wrong so we can improve your experience":

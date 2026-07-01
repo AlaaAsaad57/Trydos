@@ -196,7 +196,7 @@ export default function ReportStoryModal({
           {/* Optional details */}
           <div className="mb-2 flex flex-col">
             <label className="mb-2 text-[13px] text-[#505050]">
-              {translateFunction("Details (optional)")}
+              {!selectedReasons.includes('other')?translateFunction("Details (optional)"):translateFunction("Details")}
             </label>
             <textarea
               ref={detailsRef}

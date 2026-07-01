@@ -32,6 +32,7 @@ const translations = {
   Other: "Diğer",
   "Report Reason": "Bildirme Nedeni",
   "Details (optional)": "Detaylar (isteğe bağlı)",
+  "Details": "Detaylar",
   "Write details here...": "Detayları buraya yazın...",
   "Submit Report": "Bildirimi Gönder",
   "Tell us what went wrong so we can improve your experience":

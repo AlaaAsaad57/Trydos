@@ -32,6 +32,7 @@ const translations = {
   Other: "أخرى",
   "Report Reason": "سبب الإبلاغ",
   "Details (optional)": "تفاصيل (اختياري)",
+  "Details": "تفاصيل",
   "Write details here...": "اكتب التفاصيل هنا...",
   "Submit Report": "إرسال البلاغ",
   "Tell us what went wrong so we can improve your experience":
