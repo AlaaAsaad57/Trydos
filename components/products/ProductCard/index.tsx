@@ -289,7 +289,7 @@ function ProductCard({
                         <Image
                           width={400}
                           height={580}
-                          loading="lazy"
+                          loading={priority && idx === 0 ? undefined : "lazy"}
                           quality={70}
                           fetchPriority="auto"
                           sizes="200px"
@@ -333,7 +333,7 @@ function ProductCard({
                 width={400}
                 height={580}
                 quality={70}
-                loading="lazy"
+                loading={priority ? undefined : "lazy"}
                 fetchPriority="auto"
                 sizes="200px"
                 priority={priority}
