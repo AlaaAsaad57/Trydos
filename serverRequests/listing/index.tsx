@@ -1,7 +1,6 @@
 "use server";
 import CategoryImageCircel from "components/ListingPage/filterComponents/FiltersWindow/CategoryImageCircel";
 import ImageCircel from "components/ListingPage/filterComponents/FiltersWindow/ImageCircel";
-import FilterItem from "components/ListingPage/FilterItem";
 import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 import { getProductsAndFiltersFromElastic, getRelatedProducts } from "services/elastic/elasticSearch";
 import type { GetProductsResult, GetRelatedProductsResult } from "types/listing";
@@ -192,12 +191,6 @@ export async function GetNextPageFilters({
   params,
   currency = null,
 }) {
-  const baseUrlOfFiltersPage = () => {
-    if (filters.isFeatured || filters?.featured) return `/featured`;
-    if (filters.isFlashDeals || filters?.flashdeal) return "/flashDeals";
-    return "/filters";
-  };
-  const isRtl = language === "ar" || language === "ku";
   try {
     let response = await getProductsAndFiltersFromElastic({
       country,
@@ -232,75 +225,11 @@ export async function GetNextPageFilters({
     //   }
 
     return {
-      categories: new_filters?.categories?.map((item) => (
-        <FilterItem
-          isRtl={isRtl}
-          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-          params={params}
-          filterParams={filters}
-          isUsingParsedFilters={true}
-          key={item.id ?? item?.slug ?? item}
-          currency={null}
-          term={"categories"}
-          item={item}
-        />
-      )),
-      brands: new_filters?.brands?.map((item) => (
-        <FilterItem
-          isRtl={isRtl}
-          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-          params={params}
-          filterParams={filters}
-          isUsingParsedFilters={true}
-          key={item.id ?? item?.slug ?? item}
-          currency={null}
-          term={"brands"}
-          item={item}
-        />
-      )),
-      colors: new_filters?.colors?.map((item) => {
-        return (
-          <FilterItem
-            isRtl={isRtl}
-            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-            params={params}
-            filterParams={filters}
-            isUsingParsedFilters={true}
-            key={item.id ?? item?.slug ?? item}
-            currency={null}
-            term={"colors"}
-            item={item}
-          />
-        );
-      }),
-      sizes: new_filters?.sizes?.map((item) => (
-        <FilterItem
-          isRtl={isRtl}
-          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-          params={params}
-          filterParams={filters}
-          isUsingParsedFilters={true}
-          key={item}
-          currency={null}
-          term={"sizes"}
-          item={item}
-        />
-      )),
-      prices: response?.prices?.priceRanges?.map((item) => {
-        return (
-          <FilterItem
-            isRtl={isRtl}
-            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-            params={params}
-            filterParams={filters}
-            isUsingParsedFilters={true}
-            key={`${item.min_price}-${item.max_price}`}
-            currency={currency}
-            term={"prices"}
-            item={item}
-          />
-        );
-      }),
+      categories: new_filters?.categories ?? [],
+      brands: new_filters?.brands ?? [],
+      colors: new_filters?.colors ?? [],
+      sizes: new_filters?.sizes ?? [],
+      prices: response?.prices?.priceRanges ?? [],
       total_size: response?.total_size,
     };
   } catch (error) {

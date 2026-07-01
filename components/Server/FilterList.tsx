@@ -735,6 +735,9 @@ const FilterItemsRow = ({
             filters={filterParams}
             country={country}
             language={language}
+            isRtl={isRtl}
+            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+            isUsingParsedFilters={isUsingParsedFilters}
             // key={JSON.stringify(filterParams)}
           />
         )}
