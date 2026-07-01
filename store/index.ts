@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import { useAuthStore } from "./auth/reducer";
+import { useCommentsStore } from "./comments/reducer";
 import { useDetailsStore } from "./Details/reducer";
 import { useHomeStore } from "./homepage/reducer";
 import { useListingStore } from "./listing/reducer";
@@ -19,6 +20,7 @@ const withDevtools =
 type AppState = ReturnType<typeof useAuthStore> &
   ReturnType<typeof useCartStore> &
   ReturnType<typeof useChatStore> &
+  ReturnType<typeof useCommentsStore> &
   ReturnType<typeof useDetailsStore> &
   ReturnType<typeof useHomeStore> &
   ReturnType<typeof useListingStore> &
@@ -38,6 +40,7 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       ...useAuthStore(set, get),
       ...useChatStore(set, get),
+      ...useCommentsStore(set, get),
       ...useDetailsStore(set, get),
       ...useHomeStore(set, get),
       ...useListingStore(set, get),
