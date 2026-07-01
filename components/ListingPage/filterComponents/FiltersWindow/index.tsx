@@ -276,7 +276,9 @@ const FiltersWindowUI = ({
           </FiltersRowContainer>
         )}
 
-        {FiltersNodes.prices && FiltersNodes.total_size > 1 && (
+        {FiltersNodes.prices &&
+          (FiltersNodes.total_size > 1 ||
+            (FiltersNodes.prices?.total ?? 0) > 1) && (
           <>
             <div
               className={`flex-col justify-start ${
@@ -290,11 +292,12 @@ const FiltersWindowUI = ({
                 src="/icons/PriceCancel.svg"
                 className="absolute top-[30px] right-[32px]"
                 onClick={() => {
-                  // Sendevent({
-                  //   event: GA_EVENT_NAMES.CLICK,
-                  //   value: GA_CLICK_EVENT_VALUES.RESET_PRICE,
-                  // });
-                  //   resetPrice();
+                  if (loading) return;
+                  // Price-only reset: clear just the price selection (keep all
+                  // other active filters). The debounced re-fetch then re-scopes
+                  // the facet to those filters, so the slider/curve/cards return
+                  // to the active-filters range (e.g. the category's full range).
+                  setFilter({ ...filters, prices: [] });
                 }}
               />
               <div
@@ -361,9 +364,13 @@ const FiltersWindowUI = ({
                       ? filters.prices?.[0]
                       : FiltersNodes?.prices?.min_price
                   }
-                  min={filters.prices?.[0] ?? FiltersNodes?.prices?.min_price}
+                  // Slider BOUNDS come from the (self-excluding) facet so the
+                  // track always spans the full data range and stays widenable;
+                  // the selection (filters.prices) only positions the thumbs via
+                  // initialMin/initialMax above.
+                  min={FiltersNodes?.prices?.min_price ?? filters.prices?.[0]}
                   points={currency?.decimal_digits}
-                  max={filters.prices?.[1] ?? FiltersNodes?.prices?.max_price}
+                  max={FiltersNodes?.prices?.max_price ?? filters.prices?.[1]}
                   onChange={(min, max) => {
                     if (!loading) setFilter({ ...filters, prices: [min, max] });
                   }}
@@ -373,8 +380,11 @@ const FiltersWindowUI = ({
               {showChart && (
                 <SmoothPolygon
                   data={
-                    FiltersNodes?.prices?.priceRanges?.map((s) => ({
-                      count: s.products_count,
+                    (FiltersNodes?.prices?.histogram?.length
+                      ? FiltersNodes?.prices?.histogram
+                      : FiltersNodes?.prices?.priceRanges
+                    )?.map((s) => ({
+                      count: s.count ?? s.products_count,
                       mon: s.min_price,
                       max: s.max_price,
                     })) || []

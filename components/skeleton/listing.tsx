@@ -4,6 +4,73 @@ import Skeleton from "react-loading-skeleton";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
+
+// Filter circles row — mirrors FilterList → FilterItemsRow → FilterItem so the
+// skeleton occupies the exact same layout (boutique-category-filter / 103px row,
+// category-circle + category-text-container) and never shifts when real filters
+// swap in.
+const FilterCirclesRow = ({ count = 10 }: { count?: number }) => (
+  <div className={`w-full relative flex-row items-center pl-3.75`}>
+    <div className="flex-row flex ml-11.25 items-center pr-5 justify-start align-start filter-container overflow-auto scroll-smooth">
+      <div className="boutique-category-filter flex-row">
+        <div className="category-row-container flex-row">
+          {Array.from({ length: count }).map((_, index) => (
+            <div
+              key={index}
+              className="category-circle flex-col align-center extended-circle"
+            >
+              <div className="relative w-[70px] h-[70px] z-10">
+                <Skeleton width={70} height={70} borderRadius={"50%"} />
+              </div>
+              <div className="category-text-container flex-col align-center max-w-[70px]">
+                <Skeleton width={50} height={10} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Single product card — mirrors ProductWrapper: product-container (200×377)
+// with the product-container-slider image area, product-body title and
+// product-footer price, so cards line up 1:1 with the rendered grid.
+const ProductCardSkeleton = () => (
+  <div className="relative flex">
+    <div className="product-container align-center flex-col relative pb-[12px]">
+      <div className="product-container-slider h-[290px] duration-300 w-full relative">
+        <Skeleton
+          width={200}
+          height={290}
+          borderRadius={15}
+          style={{ display: "block" }}
+        />
+      </div>
+      <div className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px] w-full flex-col align-start justify-start max-h-[60px] min-h-[30px]">
+        <Skeleton width={120} height={12} />
+      </div>
+      <div className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-full flex-row align-center max-h-[30px]">
+        <Skeleton width={60} height={12} />
+      </div>
+    </div>
+  </div>
+);
+
+// Product grid — mirrors ProductListServer's listing-container wrapper exactly
+// (gaps, justify-center, padding) so the swap to real products is shift-free.
+const ProductGridSkeleton = ({ count = 8 }: { count?: number }) => (
+  <div
+    className={
+      "flex flex-row listing-container mt-2 bg-[#f4f4f4] gap-x-[10px] gap-y-[18px] justify-center min-w-full min-h-[48vh] relative pb-[390px] max-w-[1310px] flex-wrap"
+    }
+  >
+    {Array.from({ length: count }).map((_, index) => (
+      <ProductCardSkeleton key={index} />
+    ))}
+  </div>
+);
+
 function ListingSkeleton({
   forProducts,
   withBanners,
@@ -12,20 +79,7 @@ function ListingSkeleton({
   isForSearch,
 }: any) {
   if (justFilters) {
-    return (
-      <div className={`w-full flex-row items-center pl-[15px] mt-[20px]`}>
-        {Array.from({ length: 20 }).map((_, index) => (
-          <div key={index} className="filter-option w-[70px] h-[70px]">
-            <Skeleton
-              width={70}
-              height={70}
-              borderRadius={"50%"}
-              className="ml-2"
-            />
-          </div>
-        ))}
-      </div>
-    );
+    return <FilterCirclesRow />;
   }
   return (
     <>
@@ -36,7 +90,7 @@ function ListingSkeleton({
               <div className="back-icon">
                 <Skeleton width={20} height={20} borderRadius={"50%"} />
               </div>
-              <div className="filter-bar-options flex-row align-center justify-between w-[170px">
+              <div className="filter-bar-options flex-row align-center justify-between w-[170px]">
                 <div className="filter-option">
                   <Skeleton width={20} height={20} borderRadius={"50%"} />
                 </div>
@@ -118,91 +172,11 @@ function ListingSkeleton({
                 </div>
               </div>
             </div>
-            <div className={`w-full flex-row items-center pl-[15px] mt-[20px]`}>
-              {Array.from({ length: 20 }).map((_, index) => (
-                <div key={index} className="filter-option w-[70px] h-[70px]">
-                  <Skeleton
-                    width={70}
-                    height={70}
-                    borderRadius={"50%"}
-                    className="ml-2"
-                  />
-                </div>
-              ))}
-            </div>
+            <FilterCirclesRow />
           </div>
         </>
       )}
-      <div
-        className={
-          "listing-container justify-around bg-[#f4f4f4] min-w-full min-h-[48vh] relative flex pb-[350px] max-w-[1310px] flex-wrap"
-        }
-      >
-        <div className="product-container rounded-15 align-center flex-col relative">
-          <Skeleton
-            width={"100%"}
-            style={{ minHeight: "100%" }}
-            height={"100%"}
-            borderRadius={15}
-          />
-        </div>
-        <div className="product-container rounded-15 align-center flex-col relative">
-          <Skeleton
-            width={"100%"}
-            style={{ minHeight: "100%" }}
-            height={"100%"}
-            borderRadius={15}
-          />
-        </div>
-        <div className="product-container rounded-15 align-center flex-col relative">
-          <Skeleton
-            width={"100%"}
-            style={{ minHeight: "100%" }}
-            height={"100%"}
-            borderRadius={15}
-          />
-        </div>
-        <div className="product-container rounded-15 align-center flex-col relative">
-          <Skeleton
-            width={"100%"}
-            style={{ minHeight: "100%" }}
-            height={"100%"}
-            borderRadius={15}
-          />
-        </div>
-        <div className="product-container rounded-15 align-center flex-col relative">
-          <Skeleton
-            width={"100%"}
-            style={{ minHeight: "100%" }}
-            height={"100%"}
-            borderRadius={15}
-          />
-        </div>
-        <div className="product-container rounded-15 align-center flex-col relative">
-          <Skeleton
-            width={"100%"}
-            style={{ minHeight: "100%" }}
-            height={"100%"}
-            borderRadius={15}
-          />
-        </div>
-        <div className="product-container rounded-15 align-center flex-col relative">
-          <Skeleton
-            width={"100%"}
-            style={{ minHeight: "100%" }}
-            height={"100%"}
-            borderRadius={15}
-          />
-        </div>
-        <div className="product-container rounded-15 align-center flex-col relative">
-          <Skeleton
-            width={"100%"}
-            style={{ minHeight: "100%" }}
-            height={"100%"}
-            borderRadius={15}
-          />
-        </div>
-      </div>
+      <ProductGridSkeleton />
     </>
   );
 }

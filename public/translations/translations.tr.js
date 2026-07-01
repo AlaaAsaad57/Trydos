@@ -1,4 +1,28 @@
 const translations = {
+  // Become Seller modal
+  "Tell us about you and your shop to start selling":
+    "Satışa başlamak için kendinizden ve mağazanızdan bahsedin",
+  Password: "Şifre",
+  "Select document type": "Belge türünü seçin",
+  John: "Ahmet",
+  Doe: "Yılmaz",
+  "example@mail.com": "example@mail.com",
+  "+1 234...": "+90 5XX...",
+  "My Shop": "Mağazam",
+  "Street 1": "1. Sokak",
+  Warehouse: "Depo",
+  "Full Address": "Tam Adres",
+  Identity: "Kimlik",
+  Passport: "Pasaport",
+  "Commercial License": "Ticari Lisans",
+  "Tax Certificate": "Vergi Sertifikası",
+  "Bank Statement": "Banka Hesap Özeti",
+  "Address Proof": "Adres Belgesi",
+  "Authorization Letter": "Yetki Belgesi",
+  "Please select a document type": "Lütfen bir belge türü seçin",
+  "Something went wrong": "Bir şeyler ters gitti",
+  "Upload URL not found": "Yükleme bağlantısı bulunamadı",
+  "Failed to upload document": "Belge yüklenemedi",
   // Report Story flow
   "Inappropriate Content": "Uygunsuz İçerik",
   "Harassment or Hate Speech": "Taciz veya Nefret Söylemi",
@@ -10,6 +34,17 @@ const translations = {
   "Details (optional)": "Detaylar (isteğe bağlı)",
   "Write details here...": "Detayları buraya yazın...",
   "Submit Report": "Bildirimi Gönder",
+  "Tell us what went wrong so we can improve your experience":
+    "Deneyiminizi iyileştirebilmemiz için neyin yanlış gittiğini bize bildirin",
+  "Additional notes": "Ek notlar",
+  Optional: "İsteğe bağlı",
+  "Write more details here": "Buraya daha fazla ayrıntı yazın",
+  "We received your report. Thanks for your thoughts":
+    "Bildiriminizi aldık. Görüşleriniz için teşekkürler",
+  "Could not submit your report. Please try again":
+    "Bildiriminiz gönderilemedi. Lütfen tekrar deneyin",
+  "We received your report": "Bildiriminizi aldık",
+  "Thanks for your thoughts": "Görüşleriniz için teşekkürler",
   "Please select at least one reason or provide details.":
     "Lütfen en az bir neden seçin veya detay belirtin.",
   "Copy Data": "Verileri Kopyala",

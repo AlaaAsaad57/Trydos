@@ -4,13 +4,19 @@ import AnalyzeSearchText from "./analyzeSearchText";
 import {
   buildAggregations,
   buildBaseConditions,
+  buildPriceHistogramAggregation,
+  buildPriceStatsAggregation,
   calculatePriceRange,
   CustomProduct,
+  deriveEqualCountCards,
   GenderEnum,
   getChildrenAndGrandchildren,
   getSourceFields,
   GroupAgeEnum,
   logSearchTerm,
+  mergePriceHistogram,
+  mergePriceStats,
+  priceHistogramInterval,
   normalizeCustomProducts,
   paginateFilters,
   processBoutiquesAggregation,
@@ -145,6 +151,17 @@ let client = elasticSearchClient;
 // plan's primary rollback (flag off) and lets us stage the rollout.
 const LISTING_PIT_ENABLED = process.env.ELASTIC_LISTING_PIT === "true";
 const LISTING_PIT_KEEPALIVE = process.env.ELASTIC_LISTING_PIT_KEEPALIVE || "2m";
+
+// ── Global price-filter aggregations (ticket: price-filter-elastic-aggregations)
+// Flag OFF ⇒ exact current page-scan price behavior (the primary rollback). When
+// ON, the slider bounds / equal-count cards / distribution curve come from global
+// Elasticsearch aggregations over ALL matching docs (ADR-010). The debug flag is
+// dev-only and is hard-suppressed in production so it can never log there.
+const LISTING_PRICE_AGG_ENABLED =
+  process.env.LISTING_PRICE_AGG_ENABLED === "true";
+const LISTING_PRICE_AGG_DEBUG =
+  process.env.LISTING_PRICE_AGG_DEBUG === "true" &&
+  process.env.NODE_ENV !== "production";
 
 /**
  * Open a fresh PIT snapshot over the catalog index. Returns the pit id, or null
@@ -306,6 +323,25 @@ export async function getProductsAndFiltersFromElastic(
     };
 
     if (noFilters) delete searchQuery.aggs;
+
+    // ── Global price-facet (ticket: price-filter-elastic-aggregations) ───────
+    // The price facet re-scopes to ALL active filters INCLUDING the selected
+    // price range, so the slider bounds, the curve, and the cards reflect the
+    // current selection (product-owner testing decision; supersedes the earlier
+    // self-excluding approach). It uses the same must/must_not as the main query.
+    // For the filters-only panel request (`noProducts`) drop product fetching to
+    // `size: 0`.
+    let priceFacetActive = false;
+    if (LISTING_PRICE_AGG_ENABLED && !noFilters && (searchQuery as any).aggs) {
+      priceFacetActive = true;
+      (searchQuery as any).aggs.price_facet = buildPriceStatsAggregation(
+        mustConditions,
+        mustNotConditions,
+        country,
+      );
+      if (noProducts) (searchQuery as any).size = 0;
+    }
+
     // Add search_after for pagination
     if (search_after?.length > 0) {
       // @ts-ignore
@@ -350,6 +386,100 @@ export async function getProductsAndFiltersFromElastic(
       country,
     );
     prices = productsWithFilters.prices;
+
+    // ── Global price-facet result (ticket: price-filter-elastic-aggregations) ─
+    // Replace the page-scan prices with aggregation-derived bounds + cards over
+    // ALL matching docs. Phase 1 (stats) rides the main request above; Phase 2
+    // (the fine histogram → curve + equal-count cards) is a cheap `size:0`
+    // aggregation-only request. It runs for any filter-bearing request
+    // (`!noFilters`) — including the `/filters` page render, which fetches the
+    // grid (`noProducts:false`) yet still needs the cards. Grid-only pagination
+    // (`GetProducts`) passes `noFilters:true`, so it is excluded entirely.
+    if (LISTING_PRICE_AGG_ENABLED && !noFilters && priceFacetActive) {
+      const computeStart = process.hrtime.bigint();
+      const priceFacet = (response as any).aggregations?.price_facet;
+      // Stats are re-scoped to all active filters (incl. the selected price
+      // range), so the slider bounds track the current selection.
+      const stats = mergePriceStats(priceFacet);
+      let histogram: { min_price: number; max_price: number; count: number }[] =
+        [];
+      let priceRanges: any[] = [];
+
+      if (stats.max_price > stats.min_price) {
+        // One histogram over the re-scoped result set feeds BOTH the curve and
+        // the equal-count cards, so all of slider/curve/cards agree.
+        const interval = priceHistogramInterval(stats.min_price, stats.max_price);
+        const { response: histResponse } = await runListingSearch(
+          {
+            index: catalog_index,
+            size: 0,
+            track_total_hits: false,
+            query: { match_all: {} },
+            aggs: {
+              price_facet_hist: buildPriceHistogramAggregation(
+                mustConditions,
+                mustNotConditions,
+                country,
+                interval,
+                stats.min_price,
+              ),
+            },
+          } as any,
+          null,
+        );
+        histogram = mergePriceHistogram(
+          (histResponse as any).aggregations?.price_facet_hist,
+          interval,
+        );
+        priceRanges = deriveEqualCountCards(histogram);
+      } else if (stats.total > 0) {
+        // All matching products share one price → a single card / flat curve.
+        histogram = [
+          {
+            min_price: stats.min_price,
+            max_price: stats.max_price,
+            count: stats.total,
+          },
+        ];
+        priceRanges = [
+          {
+            min_price: stats.min_price,
+            max_price: stats.max_price,
+            products_count: stats.total,
+          },
+        ];
+      }
+
+      prices = {
+        min_price: stats.min_price,
+        max_price: stats.max_price,
+        priceRanges,
+        histogram,
+        total: stats.total,
+      };
+
+      if (LISTING_PRICE_AGG_DEBUG) {
+        const computeEnd = process.hrtime.bigint();
+        console.debug(
+          "[price-agg]",
+          JSON.stringify({
+            country,
+            filters: {
+              must: mustConditions.length,
+              must_not: mustNotConditions.length,
+            },
+            base_stats: priceFacet?.base_stats?.stats,
+            country_stats: priceFacet?.country_stats?.matched?.stats,
+            merged: stats,
+            histogramBuckets: histogram.length,
+            cards: priceRanges,
+            es_took_ms: (response as any).took,
+            compute_ms: Number(computeEnd - computeStart) / 1_000_000,
+          }),
+        );
+      }
+    }
+
     if (filters.colors?.length) {
       productsWithFilters.custom_products = sortSyncColorImagesByFilteredColor(
         productsWithFilters.custom_products,

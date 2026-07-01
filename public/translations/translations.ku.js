@@ -1,4 +1,28 @@
 const translations = {
+  // Become Seller modal
+  "Tell us about you and your shop to start selling":
+    "باسی خۆت و فرۆشگاکەت بکە بۆ دەستپێکردنی فرۆشتن",
+  Password: "وشەی نهێنی",
+  "Select document type": "جۆری بەڵگە هەڵبژێرە",
+  John: "ئاران",
+  Doe: "ئەحمەد",
+  "example@mail.com": "example@mail.com",
+  "+1 234...": "+964 7XX...",
+  "My Shop": "فرۆشگاکەم",
+  "Street 1": "شەقامی ١",
+  Warehouse: "کۆگا",
+  "Full Address": "ناونیشانی تەواو",
+  Identity: "ناسنامە",
+  Passport: "پاسپۆرت",
+  "Commercial License": "مۆڵەتی بازرگانی",
+  "Tax Certificate": "بڕوانامەی باج",
+  "Bank Statement": "کشفی حسابی بانک",
+  "Address Proof": "بەڵگەی ناونیشان",
+  "Authorization Letter": "نامەی ڕێپێدان",
+  "Please select a document type": "تکایە جۆری بەڵگەیەک هەڵبژێرە",
+  "Something went wrong": "هەڵەیەک ڕوویدا",
+  "Upload URL not found": "بەستەری بارکردن نەدۆزرایەوە",
+  "Failed to upload document": "بارکردنی بەڵگە سەرکەوتوو نەبوو",
   // Report Story flow
   "Inappropriate Content": "ناوەڕۆکی نەشیاو",
   "Harassment or Hate Speech": "هەراسانکردن یان وتاری ڕق و کینە",
@@ -10,6 +34,17 @@ const translations = {
   "Details (optional)": "زانیاری زیاتر (ئارەزوومەندانە)",
   "Write details here...": "زانیاری لێرە بنووسە...",
   "Submit Report": "ناردنی ڕاپۆرت",
+  "Tell us what went wrong so we can improve your experience":
+    "پێمان بڵێ چی هەڵە بوو تاکو بتوانین ئەزموونەکەت باشتر بکەین",
+  "Additional notes": "تێبینی زیاتر",
+  Optional: "ئارەزوومەندانە",
+  "Write more details here": "زانیاری زیاتر لێرە بنووسە",
+  "We received your report. Thanks for your thoughts":
+    "ڕاپۆرتەکەت پێگەیشت. سوپاس بۆ بۆچوونەکانت",
+  "Could not submit your report. Please try again":
+    "نەتوانرا ڕاپۆرتەکەت بنێردرێت. تکایە دووبارە هەوڵ بدەرەوە",
+  "We received your report": "ڕاپۆرتەکەت پێگەیشت",
+  "Thanks for your thoughts": "سوپاس بۆ بۆچوونەکانت",
   "Please select at least one reason or provide details.":
     "تکایە لانی کەم هۆکارێک هەڵبژێرە یان زانیاری زیاتر بنووسە.",
   "Copy Data": "داتا کۆپی بکە",
