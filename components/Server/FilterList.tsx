@@ -10,7 +10,7 @@ import InfiniteScrollFilters from "components/ListingPage/filterComponents/Infin
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
-import { getConfiguredImage, RoundPrice } from "utils/functions";
+import { getConfiguredImage, RoundPrice } from "utils/server";
 
 import FilterItem from "components/ListingPage/FilterItem";
 
@@ -586,6 +586,7 @@ const ActiveFiltersBar = ({
                     {RoundPrice({
                       num: activeFilters?.prices?.[0],
                       rate: currency?.exchange_rate,
+                      points:currency?.decimal_digits,
                       language: language,
                     })}
                   </span>
