@@ -58,8 +58,16 @@ function FaqQuestionsList({
     setShouldUpdateComment,
     ColorBottomSheet,
     setShouldUpdateCommentsCount,
+    patchCommentEntity,
+    removeCommentEntity,
+    appendedFaqIds,
   } = useAppStore();
   const [commentsData, setCommentsData] = useState(comments);
+  // Questions created this session in any FAQ widget that aren't already in this
+  // widget's own list — rendered on top so a new question fans out here too.
+  const appendedComments = (appendedFaqIds?.[String(productId)] || []).filter(
+    (aid) => !commentsData?.some((c) => c.id === aid),
+  );
   const [offsetValue, setOffsetValue] = useState(offset);
   const [hasEnd, setHasEnd] = useState(commentsData?.length < 5);
   const [loading, setLoading] = useState(false);
@@ -111,6 +119,8 @@ function FaqQuestionsList({
       }
       // Optimistic patch from the submitted text — no re-fetch / setTimeout.
       const patched = { comment: comment?.comment };
+      // Shared entity → every widget showing this question reflects the edit.
+      patchCommentEntity(comment.id, patched);
       setCommentsData((prev) =>
         prev?.map((c) => (c.id === comment.id ? { ...c, ...patched } : c)),
       );
@@ -140,6 +150,8 @@ function FaqQuestionsList({
         setLoading(false);
         return;
       }
+      // Shared entity → the deleted question disappears from every widget.
+      removeCommentEntity(id);
       setCommentsData((prev) => prev.filter((c) => c.id !== id));
       setLoading(false);
       setBuyerCommentModalOption(null);
@@ -199,6 +211,16 @@ function FaqQuestionsList({
         id="comments-buyers-bar"
         className="flex-row w-full gap-[4px]"
       >
+        {appendedComments.map((aid) => (
+          <FaqItemComponent
+            key={aid}
+            id={aid}
+            comment={{ id: aid }}
+            isRtl={isRtl}
+            language={language}
+            width={90}
+          />
+        ))}
         {commentsData?.map((comment) => (
           <FaqItemComponent
             key={comment.id}

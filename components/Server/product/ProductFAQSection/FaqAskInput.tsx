@@ -22,7 +22,7 @@ export const AskInput = ({
   owner_type,
   productId,
 }) => {
-  const { user, setShouldUpdateCommentsCount } = useAppStore();
+  const { user, setShouldUpdateCommentsCount, appendFaqComment } = useAppStore();
   const renderBorderSvg = () => {
     return (
       <svg
@@ -109,7 +109,10 @@ export const AskInput = ({
         reply_is_liked: false,
         isOwner: true,
       };
+      // Local prepend for this widget + shared store so the new question also
+      // shows in every other mounted FAQ widget (modal, extended area).
       setCommentsData(newComment);
+      appendFaqComment(productId, newComment);
       setShouldUpdateCommentsCount(true);
       setComment("");
       setLoading(false);

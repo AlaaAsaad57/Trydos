@@ -23,6 +23,7 @@ function FaqSectionModal({
     BuyerCommentModalOption,
     setBuyerCommentModalOption,
     setShouldUpdateComment,
+    appendedFaqIds,
   } = useAppStore();
 
   const activeTabRef = useRef<any>(null);
@@ -34,6 +35,10 @@ function FaqSectionModal({
   const [loading, setLoading] = useState(false);
 
   const isRtl = language === "ar" || language === "ku";
+  // FAQ questions created this session in any widget, not already loaded here.
+  const appendedComments = (appendedFaqIds?.[String(productId)] || []).filter(
+    (aid: string) => !commentsData?.some((c: any) => c.id === aid),
+  );
 
   // ✅ Stable loadMore function — fetches the FAQ-comments data page from the
   // internal Next route (same-origin); renders items from data, never JSX.
@@ -172,6 +177,17 @@ function FaqSectionModal({
                     </div>
                   ))}
 
+                {!loading &&
+                  appendedComments.map((aid: string) => (
+                    <FaqItemComponent
+                      key={aid}
+                      id={aid}
+                      comment={{ id: aid }}
+                      isRtl={isRtl}
+                      language={language}
+                      width={100}
+                    />
+                  ))}
                 {!loading &&
                   commentsData?.map((comment: any) => (
                     <FaqItemComponent

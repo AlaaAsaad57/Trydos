@@ -21,12 +21,17 @@ function CommentSection({ product_data }) {
 
     shouldUpdateComment,
     setShouldUpdateComment,
+    appendedFaqIds,
   } = useAppStore();
   const [commentsData, setCommentsData] = useState([]);
   const OffsetRef = useRef(null);
   const TotalRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  // FAQ questions created this session in any widget, not already loaded here.
+  const appendedComments = (
+    appendedFaqIds?.[String(product_data?.id)] || []
+  ).filter((aid: string) => !commentsData?.some((c: any) => c.id === aid));
   useEffect(() => {
     GAevent({
       action: GA_EVENT_NAMES.VIEW_COMMENTS,
@@ -153,18 +158,31 @@ function CommentSection({ product_data }) {
             ></Skeleton>
           </>
         ) : (
-          commentsData?.map((comment: any) => (
-            <FaqItemComponent
-              key={comment.id}
-              id={comment.id}
-              comment={comment}
-              isRtl={isRtl}
-              language={languageVariable}
-              seller_name={comment.seller_name}
-              width={100}
-              isFromComments={true}
-            />
-          ))
+          <>
+            {appendedComments.map((aid: string) => (
+              <FaqItemComponent
+                key={aid}
+                id={aid}
+                comment={{ id: aid }}
+                isRtl={isRtl}
+                language={languageVariable}
+                width={100}
+                isFromComments={true}
+              />
+            ))}
+            {commentsData?.map((comment: any) => (
+              <FaqItemComponent
+                key={comment.id}
+                id={comment.id}
+                comment={comment}
+                isRtl={isRtl}
+                language={languageVariable}
+                seller_name={comment.seller_name}
+                width={100}
+                isFromComments={true}
+              />
+            ))}
+          </>
         )}
         {TotalRef.current > commentsData?.length && !loading && (
           <div className="p-2 flex w-full items-center justify-center">

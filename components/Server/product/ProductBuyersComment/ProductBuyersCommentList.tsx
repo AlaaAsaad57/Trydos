@@ -55,6 +55,8 @@ function ProductBuyersCommentList({
     ColorBottomSheet,
     shouldUpdateComment,
     setShouldUpdateComment,
+    patchCommentEntity,
+    removeCommentEntity,
   } = useAppStore();
   const [commentsData, setCommentsData] = useState(comments);
   const [offsetValue, setOffsetValue] = useState(offset);
@@ -110,6 +112,8 @@ function ProductBuyersCommentList({
         star_rating: comment?.star_rating,
         comments_images_customer: comment?.comments_images_customer ?? [],
       };
+      // Shared entity → every widget showing this review reflects the edit.
+      patchCommentEntity(comment.id, patched);
       setCommentsData((prev) =>
         prev?.map((c) => (c.id === comment.id ? { ...c, ...patched } : c)),
       );
@@ -139,6 +143,8 @@ function ProductBuyersCommentList({
         setLoading(false);
         return;
       }
+      // Shared entity → the deleted review disappears from every widget.
+      removeCommentEntity(id);
       setCommentsData((prev) => prev.filter((c) => c.id !== id));
       setLoading(false);
       setBuyerCommentModalOption(null);

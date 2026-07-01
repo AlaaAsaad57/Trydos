@@ -11,8 +11,12 @@ import "styles/comment.css";
 import { CREATE_COMMENT_URL } from "utils/endpointConfig";
 import Spinner from "components/global/Spinner";
 function CommentBar({ product_data, setCommentsData }) {
-  let { language, setShouldUpdateComment, setShouldUpdateCommentsCount } =
-    useAppStore();
+  let {
+    language,
+    setShouldUpdateComment,
+    setShouldUpdateCommentsCount,
+    appendFaqComment,
+  } = useAppStore();
   const [val, setVal] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -88,7 +92,10 @@ function CommentBar({ product_data, setCommentsData }) {
       // Elasticsearch, which isn't consistent yet (the indexing wait was
       // removed), wiping the just-posted comment. Mirror FaqAskInput: prepend +
       // bump the count only.
+      // Local prepend for this widget + shared store so the new question also
+      // shows in every other mounted FAQ widget (list, modal).
       setCommentsData(newComment);
+      appendFaqComment(product_data?.id, newComment);
       setShouldUpdateCommentsCount(true);
       setVal("");
       setLoading(false);

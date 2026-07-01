@@ -18,7 +18,7 @@ function FaqItemComponent({
   language,
   width = 90,
   isRtl,
-  seller_name,
+  seller_name = null,
   isFromComments = false,
 }) {
   // Read the shared entity so edits/likes/deletes done in any widget reflect
