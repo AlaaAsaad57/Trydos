@@ -14,6 +14,7 @@ import Map from "components/Cart/Map"; // Ensure this path matches where you sav
 import { FlagIcon } from "utils/tinyUtils";
 import { getLocalizedCountryName } from "utils/countryData";
 import { GetCountries } from "serverRequests/product";
+import { isValidPhone } from "utils/phone";
 
 // Persisted flag so a user who already submitted a vendor request sees a simple
 // "we're processing it" screen instead of the full form on their next visit.
@@ -30,10 +31,23 @@ const VENDOR_DOCUMENT_TYPES = [
 ];
 
 // Shared field chrome — hairline card, 10px radius, indigo focus ring.
-const FIELD_CLASS =
-  "w-full h-[44px] rounded-[10px] border border-[#e6e6e6] bg-white " +
-  "text-[13px] text-[#3c3c3c] placeholder:text-[#929191] outline-none " +
-  "transition-colors focus:border-[#402CDD] focus:ring-2 focus:ring-[#402CDD]/20";
+// FIELD_BASE omits the border/focus colours so FormInput can swap in a red
+// error state (Tailwind precedence follows CSS source order, not the order of
+// classes in the attribute, so we compose rather than append an override).
+const FIELD_BASE =
+  "w-full h-[44px] rounded-[10px] border bg-white " +
+  "text-[13px] text-[#3c3c3c] placeholder:text-[#929191] outline-none transition-colors";
+
+const FIELD_CLASS = `${FIELD_BASE} border-[#e6e6e6] focus:border-[#402CDD] focus:ring-2 focus:ring-[#402CDD]/20`;
+
+// Credential validation. Email requires a real 2+ char TLD and no whitespace;
+// password must be at least 8 chars with a letter and a number. Phone reuses
+// the shared E.164 helper (utils/phone) so it stays consistent with login.
+const isValidEmail = (email: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((email || "").trim());
+
+const isStrongPassword = (password: string) =>
+  /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password || "");
 
 const FieldLabel = ({ htmlFor, children }) => (
   <label htmlFor={htmlFor} className="text-[12px] font-medium text-[#505050]">
@@ -75,21 +89,32 @@ const FormInput = ({
   type = "text",
   value,
   onChange,
+  onBlur = undefined,
   placeholder,
-}) => (
-  <div className="flex flex-col gap-1.5 w-full items-start">
-    <FieldLabel htmlFor={name}>{label}</FieldLabel>
-    <input
-      id={name}
-      name={name}
-      type={type}
-      value={value || ""}
-      onChange={onChange}
-      placeholder={placeholder}
-      className={`${FIELD_CLASS} px-3.5`}
-    />
-  </div>
-);
+  error = "",
+}) => {
+  const stateClass = error
+    ? "border-[#f85555] focus:border-[#f85555] focus:ring-2 focus:ring-[#f85555]/20"
+    : "border-[#e6e6e6] focus:border-[#402CDD] focus:ring-2 focus:ring-[#402CDD]/20";
+
+  return (
+    <div className="flex flex-col gap-1.5 w-full items-start">
+      <FieldLabel htmlFor={name}>{label}</FieldLabel>
+      <input
+        id={name}
+        name={name}
+        type={type}
+        value={value || ""}
+        onChange={onChange}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        aria-invalid={error ? true : undefined}
+        className={`${FIELD_BASE} px-3.5 ${stateClass}`}
+      />
+      {error && <span className="text-[11px] text-[#f85555]">{error}</span>}
+    </div>
+  );
+};
 
 // Country picker: native <select> (accessible, RTL-safe) with the selected
 // country's flag rendered inside the field. Default value comes from the URL.
@@ -150,6 +175,8 @@ export default function BecomeSellerModal({ onClose }) {
   const [mapExpanded, setMapExpanded] = useState(false);
   const [countries, setCountries] = useState<any[]>([]);
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  // Inline validation messages, keyed by field name (email/phone/password/…).
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { setAddressDetails } = useAppStore();
 
@@ -190,7 +217,44 @@ export default function BecomeSellerModal({ onClose }) {
   const [newDocFile, setNewDocFile] = useState(null);
   const [uploadingDoc, setUploadingDoc] = useState(false);
 
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    // Clear a field's error as soon as the user edits it.
+    setErrors((prev) => (prev[name] ? { ...prev, [name]: "" } : prev));
+  };
+
+  // Per-field credential validation → returns a translated message or "".
+  const fieldError = (name: string, values = form) => {
+    switch (name) {
+      case "email":
+        if (!values.email.trim()) return t("Email is required");
+        return isValidEmail(values.email)
+          ? ""
+          : t("Enter a valid email address");
+      case "phone":
+        if (!values.phone.trim()) return t("Phone number is required");
+        return isValidPhone(values.phone) ? "" : t("Invalid Phone Number");
+      case "password":
+        if (!values.password) return t("Password is required");
+        return isStrongPassword(values.password)
+          ? ""
+          : t("Min 8 characters, including a letter and a number");
+      case "repeat_password":
+        if (!values.repeat_password) return t("Please repeat your password");
+        return values.password === values.repeat_password
+          ? ""
+          : t("Passwords do not match");
+      default:
+        return "";
+    }
+  };
+
+  // Validate a single credential field on blur for immediate feedback.
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setErrors((prev) => ({ ...prev, [name]: fieldError(name) }));
+  };
 
   // Load the selectable country list (mirrors PersonalInfoCountries:
   // session cache keyed by country+language, falling back to GetCountries).
@@ -315,30 +379,21 @@ export default function BecomeSellerModal({ onClose }) {
   };
 
   const submit = async () => {
-    // Basic validations
-    if (
-      !form.f_name ||
-      !form.l_name ||
-      !form.email ||
-      !form.phone ||
-      !form.password ||
-      !form.repeat_password ||
-      !form.shop_name ||
-      !form.shop_address
-    ) {
+    // Credential fields (email, phone, password) → inline per-field validation.
+    const credentialFields = ["email", "phone", "password", "repeat_password"];
+    const nextErrors: Record<string, string> = {};
+    credentialFields.forEach((name) => {
+      const msg = fieldError(name);
+      if (msg) nextErrors[name] = msg;
+    });
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    // Remaining required fields keep the existing single-toast behaviour.
+    if (!form.f_name || !form.l_name || !form.shop_name || !form.shop_address) {
       showErrorNotification(t("Please fill in all fields"));
-      return;
-    }
-
-    // Email format validation
-    const emailRegex = /^\S+@\S+\.\S+$/;
-    if (!emailRegex.test(form.email)) {
-      showErrorNotification(t("Enter Email"));
-      return;
-    }
-
-    if (form.password !== form.repeat_password) {
-      showErrorNotification(t("Passwords do not match"));
       return;
     }
 
@@ -543,6 +598,8 @@ export default function BecomeSellerModal({ onClose }) {
                   type="email"
                   value={form.email}
                   onChange={onChange}
+                  onBlur={handleBlur}
+                  error={errors.email}
                   placeholder={t("example@mail.com")}
                 />
                 <FormInput
@@ -550,6 +607,8 @@ export default function BecomeSellerModal({ onClose }) {
                   label={t("Phone")}
                   value={form.phone}
                   onChange={onChange}
+                  onBlur={handleBlur}
+                  error={errors.phone}
                   placeholder={t("+1 234...")}
                 />
                 <FormInput
@@ -558,6 +617,8 @@ export default function BecomeSellerModal({ onClose }) {
                   type="password"
                   value={form.password}
                   onChange={onChange}
+                  onBlur={handleBlur}
+                  error={errors.password}
                   placeholder="******"
                 />
                 <FormInput
@@ -566,6 +627,8 @@ export default function BecomeSellerModal({ onClose }) {
                   type="password"
                   value={form.repeat_password}
                   onChange={onChange}
+                  onBlur={handleBlur}
+                  error={errors.repeat_password}
                   placeholder="******"
                 />
                 <CountrySelect

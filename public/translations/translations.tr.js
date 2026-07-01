@@ -355,12 +355,20 @@ const translations = {
   "Your Current Location is Not belong to Country Bounds":
     "Mevcut Konumunuz Seçilen Ülke Sınırları İçinde Değil",
   "Request submitted successfully": "Talebiniz başarıyla gönderildi",
+  "Request already submitted": "Talep zaten gönderildi",
+  "You have already submitted a seller request. We are processing it and will get back to you soon.":
+    "Zaten bir satıcı talebi gönderdiniz. Talebinizi işleme alıyoruz ve en kısa sürede size geri döneceğiz.",
   "Please fill in all fields": "Lütfen tüm alanları doldurun",
   "Personal Details": "Kişisel Bilgiler",
   "First Name": "Ad",
   "Last Name": "Soyad",
   "Repeat Password": "Parolayı Tekrarla",
   "Passwords do not match": "Şifreler eşleşmiyor",
+  "Enter a valid email address": "Geçerli bir e-posta adresi girin",
+  "Password is required": "Şifre gereklidir",
+  "Min 8 characters, including a letter and a number":
+    "En az 8 karakter, bir harf ve bir rakam içermeli",
+  "Please repeat your password": "Lütfen şifrenizi tekrar girin",
   "Shop Information": "Mağaza Bilgileri",
   "Shop Address": "Mağaza Adresi",
   "Location Details": "Konum Bilgileri",

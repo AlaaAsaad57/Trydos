@@ -406,6 +406,9 @@ const translations = {
   "Please Be Accurate and select your Location":
     "تکایە دۆقی بەدەست بهێنە و شوێنت هەڵبژێرە",
   "Request submitted successfully": "داواکاریەکەت بە سەرکەوتوویی نێردرا",
+  "Request already submitted": "داواکاری پێشتر نێردراوە",
+  "You have already submitted a seller request. We are processing it and will get back to you soon.":
+    "تۆ پێشتر داواکاری فرۆشیارت ناردووە. ئێمە خەریکی پرۆسێسکردنیەتین و بەم زووانە پەیوەندیت پێوە دەکەین.",
   "Please fill in all fields": "تکایە هەموو خانەکان پڕبکە",
   Documents: "بەلگەکان",
   Remove: "سڕینەوە",
@@ -422,6 +425,11 @@ const translations = {
   "Last Name": "ناوی دووەم",
   "Repeat Password": "تێپەڕوشەی دووبارە",
   "Passwords do not match": "تێپەڕوشەکان یەکسان نیین",
+  "Enter a valid email address": "ئیمەیڵێکی دروست بنووسە",
+  "Password is required": "تێپەڕوشە پێویستە",
+  "Min 8 characters, including a letter and a number":
+    "لانیکەم ٨ پیت، بە پیتێک و ژمارەیەکەوە",
+  "Please repeat your password": "تکایە تێپەڕوشەکەت دووبارە بکەرەوە",
   "Shop Information": "زانیاری فرۆشگا",
   "Shop Address": "ناونیشانی فرۆشگا",
   "Location Details": "زانیاری شوێن",

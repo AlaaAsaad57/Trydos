@@ -448,6 +448,9 @@ const translations = {
   "Please Be Accurate and select your Location":
     "كن دقيقا من فضلك باختيار موقعك الجغرافي",
   "Request submitted successfully": "تم إرسال طلبك بنجاح",
+  "Request already submitted": "تم إرسال الطلب مسبقاً",
+  "You have already submitted a seller request. We are processing it and will get back to you soon.":
+    "لقد قمت بالفعل بإرسال طلب بائع. نحن نعالجه وسنعاود التواصل معك قريباً.",
   "Please fill in all fields": "يرجى تعبئة جميع الحقول",
   Documents: "المستندات",
   Remove: "حذف",
@@ -464,6 +467,11 @@ const translations = {
   "Last Name": "اسم العائلة",
   "Repeat Password": "أعد كلمة المرور",
   "Passwords do not match": "كلمات المرور غير متطابقة",
+  "Enter a valid email address": "أدخل بريدًا إلكترونيًا صالحًا",
+  "Password is required": "كلمة المرور مطلوبة",
+  "Min 8 characters, including a letter and a number":
+    "8 أحرف على الأقل، تتضمن حرفًا ورقمًا",
+  "Please repeat your password": "يرجى إعادة إدخال كلمة المرور",
   "Shop Information": "معلومات المتجر",
   "Shop Address": "عنوان المتجر",
   "Location Details": "تفاصيل الموقع",
