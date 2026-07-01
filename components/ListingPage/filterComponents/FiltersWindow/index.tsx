@@ -1,8 +1,11 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { isValidElement, useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "store";
 import FiltersRowContainer from "./FiltersRowContainer";
+import CategoryImageCircel from "./CategoryImageCircel";
+import ImageCircel from "./ImageCircel";
 import { EnableScroll } from "utils/tinyUtils";
+import { HandleIsActive } from "utils/server";
 
 import { GetFilters } from "serverRequests/listing";
 import { PriceSliderComponent } from "./PriceSliderComponent";
@@ -78,6 +81,89 @@ const FiltersWindowUI = ({
 
   const isRtl = language === "ar" || language === "ku";
   const [loading, setLoading] = useState(false);
+
+  // GetFilters now returns raw data arrays (chips are client components rendered
+  // here). The initial `children` from the server (FilterWidgetServer) may still
+  // arrive as pre-rendered chip elements, so render valid elements as-is and map
+  // raw data objects/strings into the client chips (props mirror the old
+  // server-side GetFilters exactly).
+  const renderCategoryChips = (items) =>
+    items?.map((item) =>
+      isValidElement(item) ? (
+        item
+      ) : (
+        <CategoryImageCircel
+          key={item?.slug}
+          isActive={HandleIsActive({
+            values: filters.categories,
+            item: item?.slug,
+          })}
+          name={item?.name}
+          term={"Category"}
+          value={item?.slug}
+          image={item?.most_viewed_product_thumbnail}
+          childes={item?.childes}
+          values={filters.categories}
+          isRtl={isRtl}
+        />
+      ),
+    );
+
+  const renderBrandChips = (items) =>
+    items?.map((brand) =>
+      isValidElement(brand) ? (
+        brand
+      ) : (
+        <ImageCircel
+          key={brand?.slug}
+          isActive={HandleIsActive({
+            values: filters.brands,
+            item: brand?.slug,
+          })}
+          name={brand?.name}
+          term={"Category"}
+          value={brand?.slug}
+          image={brand?.icon}
+        />
+      ),
+    );
+
+  const renderColorChips = (items) =>
+    items?.map((color) =>
+      isValidElement(color) ? (
+        color
+      ) : (
+        <ImageCircel
+          key={color}
+          isActive={HandleIsActive({
+            values: filters?.colors?.map((s) => s?.replace("#", "")),
+            item: color.replace("#", ""),
+          })}
+          color={color}
+          name={color}
+          value={color}
+          term={"Color"}
+        />
+      ),
+    );
+
+  const renderSizeChips = (items) =>
+    items?.map((size) =>
+      isValidElement(size) ? (
+        size
+      ) : (
+        <ImageCircel
+          key={size}
+          isActive={HandleIsActive({
+            values: filters?.sizes,
+            item: size,
+          })}
+          name={size}
+          value={size}
+          term={"Size"}
+        />
+      ),
+    );
 
   const isFirstMount = useRef(true);
 
@@ -235,7 +321,7 @@ const FiltersWindowUI = ({
             term={"categories"}
             values={filters.categories ?? []}
           >
-            {FiltersNodes.categories}
+            {renderCategoryChips(FiltersNodes.categories)}
           </FiltersRowContainer>
         )}
         {FiltersNodes?.brands && (
@@ -247,7 +333,7 @@ const FiltersWindowUI = ({
             term={"brands"}
             values={filters.brands ?? []}
           >
-            {FiltersNodes.brands}
+            {renderBrandChips(FiltersNodes.brands)}
           </FiltersRowContainer>
         )}
         {FiltersNodes?.colors && (
@@ -260,7 +346,7 @@ const FiltersWindowUI = ({
             term={"colors"}
             values={filters.colors ?? []}
           >
-            {FiltersNodes.colors}
+            {renderColorChips(FiltersNodes.colors)}
           </FiltersRowContainer>
         )}
         {FiltersNodes?.sizes && (
@@ -272,7 +358,7 @@ const FiltersWindowUI = ({
             term={"sizes"}
             values={filters.sizes ?? []}
           >
-            {FiltersNodes.sizes}
+            {renderSizeChips(FiltersNodes.sizes)}
           </FiltersRowContainer>
         )}
 

@@ -1,12 +1,9 @@
 "use server";
-import CategoryImageCircel from "components/ListingPage/filterComponents/FiltersWindow/CategoryImageCircel";
-import ImageCircel from "components/ListingPage/filterComponents/FiltersWindow/ImageCircel";
-import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 import { getProductsAndFiltersFromElastic, getRelatedProducts } from "services/elastic/elasticSearch";
 import type { GetProductsResult, GetRelatedProductsResult } from "types/listing";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
-import { HandleIsActive, combineCategoriesWithRelated } from "utils/server";
+import { combineCategoriesWithRelated } from "utils/server";
 import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GetFilters({
@@ -52,60 +49,10 @@ export async function GetFilters({
         : "/filters";
 
     return {
-      categories: new_filters?.categories?.map((item) => (
-        <CategoryImageCircel
-          key={item.slug}
-          isActive={HandleIsActive({
-            values: filters.categories,
-            item: item.slug,
-          })}
-          name={item.name}
-          term={"Category"}
-          value={item.slug}
-          image={item.most_viewed_product_thumbnail}
-          childes={item.childes}
-          values={filters.categories}
-          isRtl={isRtl}
-        />
-      )),
-      brands: new_filters?.brands?.map((brand) => (
-        <ImageCircel
-          key={brand.slug}
-          isActive={HandleIsActive({
-            values: filters.brands,
-            item: brand.slug,
-          })}
-          name={brand.name}
-          term={"Category"}
-          value={brand.slug}
-          image={brand.icon}
-        />
-      )),
-      colors: new_filters?.colors?.map((color) => (
-        <ImageCircel
-          key={color}
-          isActive={HandleIsActive({
-            values: filters?.colors?.map((s) => s?.replace("#", "")),
-            item: color.replace("#", ""),
-          })}
-          color={color}
-          name={color}
-          value={color}
-          term={"Color"}
-        />
-      )),
-      sizes: new_filters?.sizes?.map((size) => (
-        <ImageCircel
-          isActive={HandleIsActive({
-            values: filters?.sizes,
-            item: size,
-          })}
-          key={size}
-          name={size}
-          value={size}
-          term={"Size"}
-        />
-      )),
+      categories: new_filters?.categories ?? [],
+      brands: new_filters?.brands ?? [],
+      colors: new_filters?.colors ?? [],
+      sizes: new_filters?.sizes ?? [],
       prices: response.prices,
       total_size: response.total_size,
     };
