@@ -18,7 +18,12 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { LogError } from "utils/functions";
 
 // Internal Next route (same-origin) returning the buyers-comments data page.
-async function fetchBuyersComments({ productId, offset, filter, language }) {
+async function fetchBuyersComments({
+  productId,
+  offset,
+  filter = null,
+  language,
+}) {
   const params = new URLSearchParams({ product_id: String(productId) });
   const userId = auth.UserID();
   if (userId) params.set("user_id", String(userId));

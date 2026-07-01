@@ -2,21 +2,45 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Spinner from "components/global/Spinner";
 import React, { useEffect, useState } from "react";
-import {
-  GetProductFaqQuestions,
-  GetFaqItemElement,
-} from "serverRequests/product";
 import auth from "services/auth";
 import { useAppStore } from "store";
+import FaqItemComponent from "./FaqItemComponent";
 import { FaqItemOptions } from "./FaqItemOptions";
 import FaqSectionModal from "./FaqSectionModal";
 import { AskInput } from "./FaqAskInput";
 import { fetchData } from "utils/fetchData";
+import {
+  DELETE_COMMENT_URL,
+  UPDATE_COMMENT_URL,
+} from "utils/endpointConfig";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogError } from "utils/functions";
 
+// Internal Next route (same-origin) returning the FAQ-comments data page.
+async function fetchFaqComments({
+  productId,
+  offset,
+  filter = null,
+  language,
+}) {
+  const params = new URLSearchParams({ product_id: String(productId) });
+  const userId = auth.UserID();
+  if (userId) params.set("user_id", String(userId));
+  if (offset) params.set("offset", encodeURIComponent(JSON.stringify(offset)));
+  if (filter) params.set("filter", String(filter));
+  const res = await fetch(
+    `/api/products/comments/fqa_comments?${params.toString()}`,
+    { headers: { language: language ?? "en" } },
+  );
+  const json = await res.json();
+  return {
+    comments: json?.data?.fqa_comments ?? [],
+    offset: json?.data?.offset ?? null,
+  };
+}
+
 function FaqQuestionsList({
-  children,
+  comments,
   offset,
   loadMoreString,
   language,
@@ -27,7 +51,6 @@ function FaqQuestionsList({
   size,
   filterKeys,
 }) {
-  const [modalKey, setModalKey] = useState(new Date().getDate());
   const {
     BuyerCommentModalOption,
     setBuyerCommentModalOption,
@@ -36,37 +59,39 @@ function FaqQuestionsList({
     ColorBottomSheet,
     setShouldUpdateCommentsCount,
   } = useAppStore();
-  const [commentsNodes, setCommentsNodes] = useState(children);
+  const [commentsData, setCommentsData] = useState(comments);
   const [offsetValue, setOffsetValue] = useState(offset);
-  const [hasEnd, setHasEnd] = useState(commentsNodes?.length < 5);
+  const [hasEnd, setHasEnd] = useState(commentsData?.length < 5);
   const [loading, setLoading] = useState(false);
+  const isRtl = language === "ar" || language === "ku";
 
   const GetNextComments = async () => {
-    if (!offset || loading) return;
+    if (!offsetValue || loading) return;
     setLoading(true);
-
-    let response = await GetProductFaqQuestions({
-      language: language,
-      productId: productId,
-      filter: null,
-      offset: offsetValue,
-      userId: auth.UserID(),
-    });
-    if (response.comments.length === 0 || !offset) {
-      setHasEnd(true);
+    try {
+      const response = await fetchFaqComments({
+        productId,
+        offset: offsetValue,
+        language,
+      });
+      if (response.comments.length === 0 || !response.offset) setHasEnd(true);
+      setCommentsData([...commentsData, ...response.comments]);
+      setOffsetValue(response.offset);
+    } catch (error) {
+      LogError({
+        error,
+        scenario: "Error In GetNextComments in FaqQuestionsList",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    setCommentsNodes([...commentsNodes, ...response.comments]);
-    setOffsetValue(response.offset);
-    setLoading(false);
-    setModalKey(new Date().getDate());
   };
 
   const EditComment = async (comment) => {
     try {
       setLoading(true);
-      await fetchData({
-        url: `/public_comment/comments/${comment.id}/update`,
+      const res = await fetchData({
+        url: UPDATE_COMMENT_URL(comment.id),
         server: "comments",
         method: "PUT",
         body: JSON.stringify({
@@ -79,22 +104,19 @@ function FaqQuestionsList({
         reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
         noMessage: true,
       });
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      let res = await GetFaqItemElement({
-        language: language,
-        id: comment.id,
-      });
-
-      setCommentsNodes(
-        commentsNodes?.map((node) =>
-          node.key === BuyerCommentModalOption.id ? res.comment : node,
-        ),
+      // Only mutate local state once the server confirms the write.
+      if (!res?.success) {
+        setLoading(false);
+        return;
+      }
+      // Optimistic patch from the submitted text — no re-fetch / setTimeout.
+      const patched = { comment: comment?.comment };
+      setCommentsData((prev) =>
+        prev?.map((c) => (c.id === comment.id ? { ...c, ...patched } : c)),
       );
       setBuyerCommentModalOption(null);
       setLoading(false);
-      setModalKey(new Date().getDate());
-      setShouldUpdateComment({ id: comment.id });
-      return { commentElement: res.comment, id: comment.id };
+      return { comment: { ...comment, ...patched }, id: comment.id };
     } catch (error) {
       LogError({
         error: error,
@@ -107,18 +129,20 @@ function FaqQuestionsList({
   const deleteComment = async (id) => {
     try {
       setLoading(true);
-      let res = await fetchData({
-        url: `/public_comment/comments/${id}/delete`,
+      const res = await fetchData({
+        url: DELETE_COMMENT_URL(id),
         method: "DELETE",
         server: "comments",
         reqTitle: REQUESTS_DATA.DELETE_COMMENT,
       });
-      setCommentsNodes(
-        commentsNodes.filter((node) => node.key !== BuyerCommentModalOption.id),
-      );
+      // Only remove locally once the server confirms the delete.
+      if (!res?.success) {
+        setLoading(false);
+        return;
+      }
+      setCommentsData((prev) => prev.filter((c) => c.id !== id));
       setLoading(false);
       setBuyerCommentModalOption(null);
-      setShouldUpdateComment({ id: id });
       setShouldUpdateCommentsCount(true);
       return id;
     } catch (error) {
@@ -131,21 +155,19 @@ function FaqQuestionsList({
   };
 
   useEffect(() => {
-    setCommentsNodes(children);
-  }, [children]);
+    setCommentsData(comments);
+  }, [comments]);
 
   useEffect(() => {
     const refreshFaqComments = async () => {
       try {
         setLoading(true);
-        const response = await GetProductFaqQuestions({
-          language,
+        const response = await fetchFaqComments({
           productId,
-          filter: null,
           offset: null,
-          userId: auth.UserID(),
+          language,
         });
-        setCommentsNodes(response.comments);
+        setCommentsData(response.comments);
         setOffsetValue(response.offset);
         setHasEnd(response.comments?.length < 5);
       } catch (error) {
@@ -162,12 +184,11 @@ function FaqQuestionsList({
     if (shouldUpdateComment) {
       refreshFaqComments();
     }
-  }, [shouldUpdateComment, language, productId, setShouldUpdateComment]);
+  }, [shouldUpdateComment, productId, language, setShouldUpdateComment]);
 
   return (
     <>
       <FaqSectionModal
-        key={modalKey}
         productId={productId}
         filters_key={filterKeys}
         deleteComment={deleteComment}
@@ -178,8 +199,18 @@ function FaqQuestionsList({
         id="comments-buyers-bar"
         className="flex-row w-full gap-[4px]"
       >
-        {commentsNodes}
-        {!hasEnd && offset && (
+        {commentsData?.map((comment) => (
+          <FaqItemComponent
+            key={comment.id}
+            id={comment.id}
+            comment={comment}
+            isRtl={isRtl}
+            language={language}
+            seller_name={comment.seller_name}
+            width={90}
+          />
+        ))}
+        {!hasEnd && offsetValue && (
           <div
             className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[100px] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
             style={{
@@ -203,7 +234,7 @@ function FaqQuestionsList({
         owner_type={owner_type}
         language={language}
         setCommentsData={(e) => {
-          setCommentsNodes([e, ...commentsNodes]);
+          setCommentsData([e, ...commentsData]);
         }}
       />
       {!ColorBottomSheet?.is_for_faq &&
