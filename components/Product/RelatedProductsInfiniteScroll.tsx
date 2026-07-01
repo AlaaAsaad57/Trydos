@@ -4,6 +4,7 @@ import Spinner from "components/global/Spinner";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { GetRelatedProducts } from "serverRequests/listing";
+import ProductCard from "components/products/ProductCard";
 
 interface RelatedProductsInfiniteScrollProps {
   productId: number;
@@ -90,9 +91,9 @@ function RelatedProductsInfiniteScroll({
       // End on empty, unchanged cursor, or short (final) page — but append any
       // new items on a short page first.
       const reachedEnd =
-        response.items.length === 0 ||
+        response.products.length === 0 ||
         sameOffset ||
-        response.items.length < PAGE_LIMIT;
+        response.products.length < PAGE_LIMIT;
 
       const incomingIds: string[] = ((response as any).productIds || []).map(
         (id: any) => String(id),
@@ -109,7 +110,7 @@ function RelatedProductsInfiniteScroll({
 
       // Hard guarantee: only append never-seen items (no whole-page fallback).
       const temp_products = uniqueIndexes
-        .map((index: number) => response.items[index])
+        .map((index: number) => response.products[index])
         .filter(Boolean);
 
       if (temp_products.length > 0) {
@@ -153,7 +154,16 @@ function RelatedProductsInfiniteScroll({
 
   return (
     <>
-      {products}
+      {products.map((product) => (
+        <ProductCard
+          key={product?.product_id ?? product?.slug}
+          product={product}
+          currency={currency}
+          country={country}
+          language={languageVariable}
+          sliders={false}
+        />
+      ))}
 
       <div
         className="get-next-product regular-text color-dark-gray  flex justify-center items-end bottom-[40px]"

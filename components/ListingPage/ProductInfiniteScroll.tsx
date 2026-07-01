@@ -11,6 +11,7 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { EnableScroll } from "utils/tinyUtils";
 import auth from "services/auth";
 import { GetProducts } from "serverRequests/listing";
+import ProductCard from "components/products/ProductCard";
 
 function ProductsInfiniteScroll({
   offset,
@@ -35,7 +36,7 @@ function ProductsInfiniteScroll({
   sizes_filters?: string[] | null;
   pit_id?: string | null;
 }) {
-  const { resetBoutique } = useAppStore();
+  const resetBoutique = useAppStore((s) => s.resetBoutique);
   const { lang }: { lang: string } = useParams();
   // @ts-ignore
   let [country, languageVariable] = lang.split("-");
@@ -141,9 +142,9 @@ function ProductsInfiniteScroll({
       // it is a short (final) page. A short page can still carry new items, so
       // we append first and set reach-end afterwards.
       const reachedEnd =
-        response.items.length === 0 ||
+        response.products.length === 0 ||
         sameOffset ||
-        response.items.length < PAGE_LIMIT;
+        response.products.length < PAGE_LIMIT;
 
       // Dedupe by each item's OWN product id (parallel to items). Fall back to
       // the analytics array only if productIds is unavailable, so dedupe never
@@ -167,7 +168,7 @@ function ProductsInfiniteScroll({
       // Hard guarantee: only ever append never-seen items. No whole-page
       // fallback — an all-duplicate page appends nothing (Layer 1, ADR-009).
       const temp_products = uniqueIndexes
-        .map((index) => response.items[index])
+        .map((index) => response.products[index])
         .filter(Boolean);
 
       if (temp_products.length > 0) {
@@ -248,11 +249,7 @@ function ProductsInfiniteScroll({
     });
     EnableScroll();
     resetBoutique();
-    const timer = setTimeout(() => {
-      getProductsReq();
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    getProductsReq();
   }, []);
   const getItemsListName = () => {
     if (isFeatured) {
@@ -267,7 +264,17 @@ function ProductsInfiniteScroll({
   };
   return (
     <>
-      {products}
+      {products.map((product) => (
+        <ProductCard
+          key={product?.product_id ?? product?.slug}
+          product={product}
+          currency={currency}
+          country={country}
+          language={languageVariable}
+          sliders={true}
+          sizesFilters={sizes_filters}
+        />
+      ))}
 
       <div
         className="get-next-product regular-text color-dark-gray absolute flex justify-center items-end bottom-[300px]"
