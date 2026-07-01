@@ -9,12 +9,13 @@ import auth from "services/auth";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import Skeleton from "react-loading-skeleton";
-import { GetProductFaqQuestions } from "serverRequests/product";
+import FaqItemComponent from "components/Server/product/ProductFAQSection/FaqItemComponent";
 
 function CommentSection({ product_data }) {
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
   const {
     user,
 
@@ -45,13 +46,26 @@ function CommentSection({ product_data }) {
   const getMoreComments = async (reset = false) => {
     try {
       setIsLoading(true);
-      let res = await GetProductFaqQuestions({
-        language: languageVariable,
-        productId: product_data?.id,
-        userId: auth.UserID(),
-        offset: OffsetRef.current,
-        isFromComments: true,
+      const params = new URLSearchParams({
+        product_id: String(product_data?.id),
       });
+      const userId = auth.UserID();
+      if (userId) params.set("user_id", String(userId));
+      if (OffsetRef.current)
+        params.set(
+          "offset",
+          encodeURIComponent(JSON.stringify(OffsetRef.current)),
+        );
+      const response = await fetch(
+        `/api/products/comments/fqa_comments?${params.toString()}`,
+        { headers: { language: languageVariable ?? "en" } },
+      );
+      const json = await response.json();
+      const res = {
+        comments: json?.data?.fqa_comments ?? [],
+        offset: json?.data?.offset ?? null,
+        total: json?.data?.total ?? 0,
+      };
       if (reset) {
         setCommentsData(res.comments);
       } else {
@@ -139,7 +153,18 @@ function CommentSection({ product_data }) {
             ></Skeleton>
           </>
         ) : (
-          commentsData
+          commentsData?.map((comment: any) => (
+            <FaqItemComponent
+              key={comment.id}
+              id={comment.id}
+              comment={comment}
+              isRtl={isRtl}
+              language={languageVariable}
+              seller_name={comment.seller_name}
+              width={100}
+              isFromComments={true}
+            />
+          ))
         )}
         {TotalRef.current > commentsData?.length && !loading && (
           <div className="p-2 flex w-full items-center justify-center">

@@ -8,7 +8,7 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
 import { getFirstLetterLang } from "utils/tinyUtils";
 import "styles/comment.css";
-import { GetFaqItemElement } from "serverRequests/product";
+import { CREATE_COMMENT_URL } from "utils/endpointConfig";
 import Spinner from "components/global/Spinner";
 function CommentBar({ product_data, setCommentsData }) {
   let { language, setShouldUpdateComment, setShouldUpdateCommentsCount } =
@@ -34,7 +34,7 @@ function CommentBar({ product_data, setCommentsData }) {
           ?.filter((s) => Boolean(s))
           ?.join("-") ?? null;
       let res = await fetchData({
-        url: `/public_comment/comments/create`,
+        url: CREATE_COMMENT_URL,
         method: "POST",
         body: JSON.stringify({
           text: val,
@@ -53,20 +53,35 @@ function CommentBar({ product_data, setCommentsData }) {
         server: "comments",
         noMessage: true,
       });
-      let id = res.data.comment_id;
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      let response = await GetFaqItemElement({
-        id: id,
-        language,
-      });
-      // @ts-ignore
-      if (!response.success) {
-        // @ts-ignore
-        throw new Error(response.message);
+      if (!res?.success || !res?.data?.comment_id) {
+        throw new Error(res?.message || "Failed to create comment");
       }
-      if (response.comment) {
-        setCommentsData(response.comment);
-      }
+      // Prepend the new question as data (no ES-indexing setTimeout, no JSX
+      // action): the fields not returned by the create call are known locally.
+      const id = res.data.comment_id;
+      const newComment = {
+        id,
+        customer: {
+          id: auth.UserID(),
+          name: auth.User()?.name,
+          image: auth.User()?.image,
+        },
+        product_id: String(product_data?.id),
+        comment: val,
+        variant,
+        created_at: new Date().toISOString(),
+        has_reply: false,
+        good_quality_comment: false,
+        seller_reply: null,
+        seller_name: null,
+        reply_created_at: null,
+        total_likes: 0,
+        is_liked: false,
+        reply_total_likes: 0,
+        reply_is_liked: false,
+        isOwner: true,
+      };
+      setCommentsData(newComment);
       setShouldUpdateComment({ id });
       setShouldUpdateCommentsCount(true);
       setVal("");
