@@ -49,6 +49,18 @@ const isValidEmail = (email: string) =>
 const isStrongPassword = (password: string) =>
   /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password || "");
 
+// Plain required text fields → their "<Field> is required" message key. The
+// credential fields (email/phone/password/repeat_password) have their own
+// format rules and are handled explicitly in fieldError().
+const REQUIRED_FIELD_MESSAGES: Record<string, string> = {
+  f_name: "First Name is required",
+  l_name: "Last Name is required",
+  shop_name: "Shop Name is required",
+  shop_address: "Shop Address is required",
+  location_name: "Location Name is required",
+  location_address: "Location Address is required",
+};
+
 const FieldLabel = ({ htmlFor, children }) => (
   <label htmlFor={htmlFor} className="text-[12px] font-medium text-[#505050]">
     {children}
@@ -246,6 +258,12 @@ export default function BecomeSellerModal({ onClose }) {
           ? ""
           : t("Passwords do not match");
       default:
+        // Plain required text fields: non-empty check with a translated message.
+        if (REQUIRED_FIELD_MESSAGES[name]) {
+          return String(values[name] ?? "").trim()
+            ? ""
+            : t(REQUIRED_FIELD_MESSAGES[name]);
+        }
         return "";
     }
   };
@@ -295,19 +313,24 @@ export default function BecomeSellerModal({ onClose }) {
   const handleDocFileChange = (e) => {
     const file = e.target.files?.[0] ?? null;
     setNewDocFile(file);
+    if (file) setErrors((prev) => ({ ...prev, doc_file: "" }));
+  };
+
+  const handleDocTypeChange = (e) => {
+    setNewDocType(e.target.value);
+    if (e.target.value) setErrors((prev) => ({ ...prev, doc_type: "" }));
   };
 
   const docTypeLabel = (val) =>
     VENDOR_DOCUMENT_TYPES.find((d) => d.value === val)?.label || val;
 
   const uploadDocument = async () => {
-    if (!newDocType) {
-      showErrorNotification(t("Please select a document type"));
-      return;
-    }
-
-    if (!newDocFile) {
-      showErrorNotification(t("Please select a file"));
+    // Inline validation for the add-document sub-form (no toasts).
+    const docErrors: Record<string, string> = {};
+    if (!newDocType) docErrors.doc_type = t("Please select a document type");
+    if (!newDocFile) docErrors.doc_file = t("Please select a file");
+    if (Object.keys(docErrors).length) {
+      setErrors((prev) => ({ ...prev, ...docErrors }));
       return;
     }
 
@@ -371,6 +394,8 @@ export default function BecomeSellerModal({ onClose }) {
       setForm((prev) => ({ ...prev, documents: [...prev.documents, doc] }));
       setNewDocType("");
       setNewDocFile(null);
+      // A document now exists → clear the "at least one document" error.
+      setErrors((prev) => ({ ...prev, documents: "" }));
     } catch (err) {
       showErrorNotification(t("Something went wrong"));
     } finally {
@@ -379,21 +404,33 @@ export default function BecomeSellerModal({ onClose }) {
   };
 
   const submit = async () => {
-    // Credential fields (email, phone, password) → inline per-field validation.
-    const credentialFields = ["email", "phone", "password", "repeat_password"];
+    // Every field is validated inline (no toasts): personal, credential, shop
+    // and location fields all run through fieldError().
+    const validatableFields = [
+      "f_name",
+      "l_name",
+      "email",
+      "phone",
+      "password",
+      "repeat_password",
+      "shop_name",
+      "shop_address",
+      "location_name",
+      "location_address",
+    ];
     const nextErrors: Record<string, string> = {};
-    credentialFields.forEach((name) => {
+    validatableFields.forEach((name) => {
       const msg = fieldError(name);
       if (msg) nextErrors[name] = msg;
     });
-    if (Object.keys(nextErrors).length) {
-      setErrors(nextErrors);
-      return;
+
+    // At least one document must be uploaded → inline error under the section.
+    if (!form.documents || form.documents.length === 0) {
+      nextErrors.documents = t("Please upload at least one document");
     }
 
-    // Remaining required fields keep the existing single-toast behaviour.
-    if (!form.f_name || !form.l_name || !form.shop_name || !form.shop_address) {
-      showErrorNotification(t("Please fill in all fields"));
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
       return;
     }
 
@@ -402,12 +439,6 @@ export default function BecomeSellerModal({ onClose }) {
     //   showErrorNotification(t("Please Be Accurate and select your Location"));
     //   return;
     // }
-
-    // Ensure at least one document uploaded
-    if (!form.documents || form.documents.length === 0) {
-      showErrorNotification(t("Please upload at least one document"));
-      return;
-    }
 
     setLoading(true);
     try {
@@ -583,6 +614,8 @@ export default function BecomeSellerModal({ onClose }) {
                   label={t("First Name")}
                   value={form.f_name}
                   onChange={onChange}
+                  onBlur={handleBlur}
+                  error={errors.f_name}
                   placeholder={t("John")}
                 />
                 <FormInput
@@ -590,6 +623,8 @@ export default function BecomeSellerModal({ onClose }) {
                   label={t("Last Name")}
                   value={form.l_name}
                   onChange={onChange}
+                  onBlur={handleBlur}
+                  error={errors.l_name}
                   placeholder={t("Doe")}
                 />
                 <FormInput
@@ -653,6 +688,8 @@ export default function BecomeSellerModal({ onClose }) {
                   label={t("Shop Name")}
                   value={form.shop_name}
                   onChange={onChange}
+                  onBlur={handleBlur}
+                  error={errors.shop_name}
                   placeholder={t("My Shop")}
                 />
                 <FormInput
@@ -660,6 +697,8 @@ export default function BecomeSellerModal({ onClose }) {
                   label={t("Shop Address")}
                   value={form.shop_address}
                   onChange={onChange}
+                  onBlur={handleBlur}
+                  error={errors.shop_address}
                   placeholder={t("Street 1")}
                 />
               </div>
@@ -684,6 +723,8 @@ export default function BecomeSellerModal({ onClose }) {
                   label={t("Location Name")}
                   value={form.location_name}
                   onChange={onChange}
+                  onBlur={handleBlur}
+                  error={errors.location_name}
                   placeholder={t("Warehouse")}
                 />
                 <FormInput
@@ -691,6 +732,8 @@ export default function BecomeSellerModal({ onClose }) {
                   label={t("Location Address")}
                   value={form.location_address}
                   onChange={onChange}
+                  onBlur={handleBlur}
+                  error={errors.location_address}
                   placeholder={t("Full Address")}
                 />
               </div>
@@ -730,6 +773,12 @@ export default function BecomeSellerModal({ onClose }) {
             {/* Documents Upload */}
             <div>
               <SectionHeader>{t("Documents")}</SectionHeader>
+
+              {errors.documents && (
+                <span className="mb-2 block text-[11px] text-[#f85555]">
+                  {errors.documents}
+                </span>
+              )}
 
               {/* Existing uploaded documents */}
               <div className="flex flex-col gap-2 mb-3">
@@ -779,7 +828,8 @@ export default function BecomeSellerModal({ onClose }) {
                     <select
                       id="doc-type"
                       value={newDocType}
-                      onChange={(e) => setNewDocType(e.target.value)}
+                      onChange={handleDocTypeChange}
+                      aria-invalid={errors.doc_type ? true : undefined}
                       className={`${FIELD_CLASS} appearance-none px-3.5 pr-9 cursor-pointer`}
                     >
                       <option value="">{t("Select document type")}</option>
@@ -791,6 +841,11 @@ export default function BecomeSellerModal({ onClose }) {
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#929191]" />
                   </div>
+                  {errors.doc_type && (
+                    <span className="text-[11px] text-[#f85555]">
+                      {errors.doc_type}
+                    </span>
+                  )}
                 </div>
 
                 <div className="md:col-span-1 flex flex-col gap-1.5">
@@ -812,6 +867,11 @@ export default function BecomeSellerModal({ onClose }) {
                     onChange={handleDocFileChange}
                     className="hidden"
                   />
+                  {errors.doc_file && (
+                    <span className="text-[11px] text-[#f85555]">
+                      {errors.doc_file}
+                    </span>
+                  )}
                 </div>
 
                 <div className="md:col-span-1">

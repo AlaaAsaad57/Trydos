@@ -109,7 +109,7 @@ export function PriceSliderComponent({
         {/* Active range fill */}
         <div
           ref={rangeRef}
-          className="absolute h-full bg-[#FF5F61] rounded-sm"
+          className="absolute h-full bg-[#FF5F61] rounded-sm max-w-[100%]"
         ></div>
 
         {/* Min range input */}
