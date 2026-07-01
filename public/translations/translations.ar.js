@@ -1,4 +1,28 @@
 const translations = {
+  // Become Seller modal
+  "Tell us about you and your shop to start selling":
+    "أخبرنا عنك وعن متجرك لتبدأ البيع",
+  Password: "كلمة المرور",
+  "Select document type": "اختر نوع المستند",
+  John: "محمد",
+  Doe: "أحمد",
+  "example@mail.com": "example@mail.com",
+  "+1 234...": "+1 234...",
+  "My Shop": "متجري",
+  "Street 1": "شارع 1",
+  Warehouse: "مستودع",
+  "Full Address": "العنوان الكامل",
+  Identity: "الهوية",
+  Passport: "جواز السفر",
+  "Commercial License": "رخصة تجارية",
+  "Tax Certificate": "شهادة ضريبية",
+  "Bank Statement": "كشف حساب بنكي",
+  "Address Proof": "إثبات العنوان",
+  "Authorization Letter": "خطاب تفويض",
+  "Please select a document type": "الرجاء اختيار نوع المستند",
+  "Something went wrong": "حدث خطأ ما",
+  "Upload URL not found": "لم يتم العثور على رابط الرفع",
+  "Failed to upload document": "فشل رفع المستند",
   // Report Story flow
   "Inappropriate Content": "محتوى غير لائق",
   "Harassment or Hate Speech": "مضايقة أو خطاب كراهية",
@@ -10,6 +34,17 @@ const translations = {
   "Details (optional)": "تفاصيل (اختياري)",
   "Write details here...": "اكتب التفاصيل هنا...",
   "Submit Report": "إرسال البلاغ",
+  "Tell us what went wrong so we can improve your experience":
+    "أخبرنا بما حدث من خطأ حتى نتمكن من تحسين تجربتك",
+  "Additional notes": "ملاحظات إضافية",
+  Optional: "اختياري",
+  "Write more details here": "اكتب المزيد من التفاصيل هنا",
+  "We received your report. Thanks for your thoughts":
+    "لقد استلمنا بلاغك. شكرًا لملاحظاتك",
+  "Could not submit your report. Please try again":
+    "تعذّر إرسال بلاغك. يرجى المحاولة مرة أخرى",
+  "We received your report": "لقد استلمنا بلاغك",
+  "Thanks for your thoughts": "شكرًا لملاحظاتك",
   "Please select at least one reason or provide details.":
     "يرجى تحديد سبب واحد على الأقل أو تقديم تفاصيل.",
   "Copy Data": "نسخ البيانات",
@@ -413,6 +448,9 @@ const translations = {
   "Please Be Accurate and select your Location":
     "كن دقيقا من فضلك باختيار موقعك الجغرافي",
   "Request submitted successfully": "تم إرسال طلبك بنجاح",
+  "Request already submitted": "تم إرسال الطلب مسبقاً",
+  "You have already submitted a seller request. We are processing it and will get back to you soon.":
+    "لقد قمت بالفعل بإرسال طلب بائع. نحن نعالجه وسنعاود التواصل معك قريباً.",
   "Please fill in all fields": "يرجى تعبئة جميع الحقول",
   Documents: "المستندات",
   Remove: "حذف",
@@ -429,6 +467,11 @@ const translations = {
   "Last Name": "اسم العائلة",
   "Repeat Password": "أعد كلمة المرور",
   "Passwords do not match": "كلمات المرور غير متطابقة",
+  "Enter a valid email address": "أدخل بريدًا إلكترونيًا صالحًا",
+  "Password is required": "كلمة المرور مطلوبة",
+  "Min 8 characters, including a letter and a number":
+    "8 أحرف على الأقل، تتضمن حرفًا ورقمًا",
+  "Please repeat your password": "يرجى إعادة إدخال كلمة المرور",
   "Shop Information": "معلومات المتجر",
   "Shop Address": "عنوان المتجر",
   "Location Details": "تفاصيل الموقع",

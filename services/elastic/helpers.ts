@@ -893,6 +893,265 @@ function calculatePriceFilter(
     priceRanges,
   };
 }
+
+// ───────────────────────────────────────────────────────────────────────────
+// Global price-facet aggregations (ticket: price-filter-elastic-aggregations)
+//
+// Compute the slider bounds, the distribution histogram, and equal-count price
+// cards from ALL documents matching the active (non-price) filters — not just
+// the current page — using only indexed fields (no scripts). The country-aware
+// offer price lives in two indexed locations, so two populations are aggregated
+// separately and merged in code:
+//   P1 (override): nested `country_offer_prices[country].offer_price`
+//   P3 (base):     root `offered_price` for docs without a country entry
+// The price facet is self-excluding: callers pass the NON-price must/must_not so
+// the bounds/cards reflect every other filter but not the selected price range.
+// See ADR-010.
+// ───────────────────────────────────────────────────────────────────────────
+
+export const PRICE_CARD_COUNT = 5;
+// Resolution of the merged price histogram. Kept fairly fine so the dense region
+// of a skewed catalog (most products cheap, a few expensive) still resolves into
+// several buckets; equal-count card boundaries are then interpolated within a
+// bucket (see deriveEqualCountCards), so cards stay balanced regardless of skew.
+export const PRICE_HISTOGRAM_BUCKETS = 200;
+
+export function priceHistogramInterval(minPrice: number, maxPrice: number): number {
+  const span = maxPrice - minPrice;
+  if (!(span > 0)) return 1;
+  return span / PRICE_HISTOGRAM_BUCKETS;
+}
+
+function countryOverrideNestedQuery(countryIso: string) {
+  return {
+    nested: {
+      path: "country_offer_prices",
+      ignore_unmapped: true,
+      query: { term: { "country_offer_prices.country_iso": countryIso } },
+    },
+  };
+}
+
+// Phase 1 — merged min/max/count across both populations, wrapped in a filter
+// context that re-applies all NON-price conditions (self-excluding facet).
+export function buildPriceStatsAggregation(
+  nonPriceMust: any[],
+  nonPriceMustNot: any[],
+  country: string,
+): any {
+  const countryIso = String(country || "").trim().toUpperCase();
+  const aggs: Record<string, any> = {
+    base_stats: {
+      filter: countryIso
+        ? { bool: { must_not: [countryOverrideNestedQuery(countryIso)] } }
+        : { match_all: {} },
+      aggs: { stats: { stats: { field: "offered_price" } } },
+    },
+  };
+  if (countryIso) {
+    aggs.country_stats = {
+      nested: { path: "country_offer_prices" },
+      aggs: {
+        matched: {
+          filter: { term: { "country_offer_prices.country_iso": countryIso } },
+          aggs: {
+            stats: { stats: { field: "country_offer_prices.offer_price" } },
+          },
+        },
+      },
+    };
+  }
+  return {
+    filter: { bool: { must: nonPriceMust, must_not: nonPriceMustNot } },
+    aggs,
+  };
+}
+
+// Phase 2 — a fine fixed-interval histogram over both populations (shared
+// interval + offset so the two bucket sets align), each with min_doc_count:1.
+export function buildPriceHistogramAggregation(
+  nonPriceMust: any[],
+  nonPriceMustNot: any[],
+  country: string,
+  interval: number,
+  offset: number,
+): any {
+  const countryIso = String(country || "").trim().toUpperCase();
+  const safeInterval = interval > 0 ? interval : 1;
+  const aggs: Record<string, any> = {
+    base_hist: {
+      filter: countryIso
+        ? { bool: { must_not: [countryOverrideNestedQuery(countryIso)] } }
+        : { match_all: {} },
+      aggs: {
+        hist: {
+          histogram: {
+            field: "offered_price",
+            interval: safeInterval,
+            offset,
+            min_doc_count: 1,
+          },
+        },
+      },
+    },
+  };
+  if (countryIso) {
+    aggs.country_hist = {
+      nested: { path: "country_offer_prices" },
+      aggs: {
+        matched: {
+          filter: { term: { "country_offer_prices.country_iso": countryIso } },
+          aggs: {
+            hist: {
+              histogram: {
+                field: "country_offer_prices.offer_price",
+                interval: safeInterval,
+                offset,
+                min_doc_count: 1,
+              },
+            },
+          },
+        },
+      },
+    };
+  }
+  return {
+    filter: { bool: { must: nonPriceMust, must_not: nonPriceMustNot } },
+    aggs,
+  };
+}
+
+// Merge the two populations' stats into global { min_price, max_price, total }.
+export function mergePriceStats(priceFacetAgg: any): {
+  min_price: number;
+  max_price: number;
+  total: number;
+} {
+  const base = priceFacetAgg?.base_stats?.stats;
+  const country = priceFacetAgg?.country_stats?.matched?.stats;
+  const parts: { count: number; min: number; max: number }[] = [];
+  if (base && base.count > 0) parts.push(base);
+  if (country && country.count > 0) parts.push(country);
+  if (parts.length === 0) {
+    return { min_price: 0, max_price: 0, total: 0 };
+  }
+  return {
+    min_price: Math.min(...parts.map((p) => p.min)),
+    max_price: Math.max(...parts.map((p) => p.max)),
+    total: parts.reduce((sum, p) => sum + p.count, 0),
+  };
+}
+
+// Merge the two populations' histograms by aligned bucket key.
+export function mergePriceHistogram(
+  priceFacetHistAgg: any,
+  interval: number,
+): { min_price: number; max_price: number; count: number }[] {
+  const width = interval > 0 ? interval : 1;
+  const byKey = new Map<number, number>();
+  const add = (buckets: any[] = []) => {
+    for (const b of buckets) {
+      const key = Number(b.key);
+      byKey.set(key, (byKey.get(key) || 0) + (b.doc_count || 0));
+    }
+  };
+  add(priceFacetHistAgg?.base_hist?.hist?.buckets);
+  add(priceFacetHistAgg?.country_hist?.matched?.hist?.buckets);
+  return Array.from(byKey.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([key, count]) => ({
+      min_price: key,
+      max_price: key + width,
+      count,
+    }));
+}
+
+function priceRoundTo(value: number, decimals: number = 2): number {
+  const f = Math.pow(10, decimals);
+  return Math.round(value * f) / f;
+}
+
+// Count the histogram products overlapping [lo, hi], allocating each bucket's
+// count proportionally to the overlap (piecewise-uniform assumption).
+function countInPriceRange(
+  buckets: { min_price: number; max_price: number; count: number }[],
+  lo: number,
+  hi: number,
+): number {
+  let c = 0;
+  for (const b of buckets) {
+    const width = b.max_price - b.min_price;
+    if (width <= 0) {
+      if (b.min_price >= lo && b.min_price <= hi) c += b.count;
+      continue;
+    }
+    const overlapLo = Math.max(lo, b.min_price);
+    const overlapHi = Math.min(hi, b.max_price);
+    if (overlapHi <= overlapLo) continue;
+    c += b.count * ((overlapHi - overlapLo) / width);
+  }
+  return Math.round(c);
+}
+
+// Derive up to `cardCount` equal-count (quantile) cards from the merged
+// histogram. Boundaries are placed at the cumulative-count quantiles and
+// INTERPOLATED within a bucket (piecewise-uniform), so the cards stay balanced
+// even for highly skewed catalogs where most products fall in one wide bucket.
+// Every card holds ≥1 product (the histogram uses min_doc_count:1), so no empty
+// card is ever produced.
+export function deriveEqualCountCards(
+  histBuckets: { min_price: number; max_price: number; count: number }[],
+  cardCount: number = PRICE_CARD_COUNT,
+): PriceRange[] {
+  const buckets = histBuckets.filter((b) => b.count > 0);
+  if (!buckets.length) return [];
+  const total = buckets.reduce((s, b) => s + b.count, 0);
+  if (total <= 0) return [];
+
+  const globalMin = buckets[0].min_price;
+  const globalMax = buckets[buckets.length - 1].max_price;
+  const n = Math.max(1, Math.min(cardCount, Math.floor(total)));
+  if (n === 1) {
+    return [
+      { min_price: globalMin, max_price: globalMax, products_count: total },
+    ];
+  }
+
+  // Interior boundaries at cumulative thresholds total*k/n (k = 1..n-1),
+  // interpolated within the bucket that contains each threshold.
+  const boundaries: number[] = [globalMin];
+  let bi = 0;
+  let cumBefore = 0;
+  for (let k = 1; k < n; k++) {
+    const threshold = (total * k) / n;
+    while (
+      bi < buckets.length - 1 &&
+      cumBefore + buckets[bi].count < threshold
+    ) {
+      cumBefore += buckets[bi].count;
+      bi++;
+    }
+    const b = buckets[bi];
+    const within = b.count > 0 ? (threshold - cumBefore) / b.count : 0;
+    const price = b.min_price + within * (b.max_price - b.min_price);
+    boundaries.push(priceRoundTo(price));
+  }
+  boundaries.push(globalMax);
+
+  const cards: PriceRange[] = [];
+  for (let i = 0; i < boundaries.length - 1; i++) {
+    const lo = boundaries[i];
+    const hi = boundaries[i + 1];
+    if (hi <= lo) continue; // skip degenerate ranges after rounding
+    cards.push({
+      min_price: lo,
+      max_price: hi,
+      products_count: countInPriceRange(buckets, lo, hi),
+    });
+  }
+  return cards;
+}
+
 export function buildBaseConditions(filters: SearchFilters, country: string) {
   const categoriesFilterSlugs = [
     ...(filters.categories || []),
