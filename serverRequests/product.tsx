@@ -948,6 +948,43 @@ export async function GetProductStories({ page, productId }) {
   };
 }
 
+// Data-returning twin of GetProductStories: returns the raw story payload plus
+// a normalized `stories` list (id, thumbnail, has_new) so the client renders
+// the card/border itself instead of receiving server JSX.
+export async function GetProductStoriesData({ page, productId }) {
+  let cookiesStore = await cookies();
+  let storiesToken = cookiesStore.get("USER-STORIES")?.value;
+  let headers = {};
+  if (storiesToken) {
+    headers = { ...headers, Authorization: `Bearer ${storiesToken}` };
+  }
+
+  let response = await fetchServerData({
+    url:
+      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
+      `/api/v1/stories/product_stories/${productId}?page=${page}`,
+    method: "GET",
+    headers: headers,
+  });
+
+  if (!response.data) {
+    return { data: [], stories: [] };
+  }
+
+  const rawStories = response.data.data.data;
+  return {
+    data: rawStories,
+    stories: rawStories?.map((story) => ({
+      id: story.id,
+      has_new: story.stories?.filter((s) => s.is_seen === false)?.length > 0,
+      thumb: getThumb(
+        story.stories?.[0]?.full_video_path || story.stories?.[0]?.photo_path,
+        Boolean(story.stories?.[0]?.full_video_path),
+      ),
+    })),
+  };
+}
+
 export async function GetProductFaqQuestions({
   language,
   productId,

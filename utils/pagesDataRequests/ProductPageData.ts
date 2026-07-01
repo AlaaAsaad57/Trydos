@@ -312,6 +312,10 @@ export async function GetRatingCommentsForProduct({
       },
       product_id: s.product_id,
       comment: s.text,
+      ownerId: s?.owner_id,
+      ownerType: s?.owner_type,
+      isOwner:
+        user_id && s?.user_id && String(s?.user_id) === String(user_id),
       variant: s.variant,
       created_at: s.created_at,
       true_size: s.aspects?.size?.fit_analysis?.correct ?? false,
@@ -429,6 +433,8 @@ export async function GetFQACommentsForProduct({
       is_liked: s?.is_liked,
       reply_total_likes: s?.reply_total_likes,
       reply_is_liked: s?.reply_is_liked,
+      isOwner:
+        user_id && s?.user_id && String(s?.user_id) === String(user_id),
     })),
     total: (response.hits.total as any)?.value,
     filters_key: filters_key,
@@ -440,8 +446,16 @@ async function GetFQACommentsForProductWithReactions({
   user_id,
   commentsResult,
 }) {
-  const commentIds = commentsResult.map((s) => s.id);
-  if (commentIds.length === 0) return commentsResult;
+  const temp = commentsResult.map((s) => s.id);
+  if (temp.length === 0) return commentsResult;
+  // Seller-reply reactions are stored under `${comment_id}-seller_reply`
+  // (see LikeButton `comment_id={comment.id + "-seller_reply"}`), so query
+  // both the comment id and its reply id to resolve reply likes correctly.
+  const commentIds: string[] = [];
+  temp.forEach((s) => {
+    commentIds.push(s);
+    commentIds.push(`${s}-seller_reply`);
+  });
 
   const reactionsQuery: any = {
     index: comments_interactions_index,
@@ -522,11 +536,11 @@ async function GetFQACommentsForProductWithReactions({
     is_liked: commentLikesMap[comment.id]?.is_liked || false,
     reply_total_likes:
       comment.has_reply && comment.seller_reply
-        ? replyLikesMap[comment.id]?.total_likes || 0
+        ? replyLikesMap[`${comment.id}-seller_reply`]?.total_likes || 0
         : 0,
     reply_is_liked:
       comment.has_reply && comment.seller_reply
-        ? replyLikesMap[comment.id]?.is_liked || false
+        ? replyLikesMap[`${comment.id}-seller_reply`]?.is_liked || false
         : false,
   }));
 }
