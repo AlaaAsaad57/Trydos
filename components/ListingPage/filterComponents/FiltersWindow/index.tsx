@@ -1,5 +1,5 @@
 "use client";
-import { isValidElement, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "store";
 import FiltersRowContainer from "./FiltersRowContainer";
 import CategoryImageCircel from "./CategoryImageCircel";
@@ -82,88 +82,70 @@ const FiltersWindowUI = ({
   const isRtl = language === "ar" || language === "ku";
   const [loading, setLoading] = useState(false);
 
-  // GetFilters now returns raw data arrays (chips are client components rendered
-  // here). The initial `children` from the server (FilterWidgetServer) may still
-  // arrive as pre-rendered chip elements, so render valid elements as-is and map
-  // raw data objects/strings into the client chips (props mirror the old
-  // server-side GetFilters exactly).
+  // GetFilters (and the initial `children` seeded from FilterWidgetServer) now
+  // return raw data arrays — chips are always rendered here as client
+  // components (props mirror the old server-side GetFilters exactly).
   const renderCategoryChips = (items) =>
-    items?.map((item) =>
-      isValidElement(item) ? (
-        item
-      ) : (
-        <CategoryImageCircel
-          key={item?.slug}
-          isActive={HandleIsActive({
-            values: filters.categories,
-            item: item?.slug,
-          })}
-          name={item?.name}
-          term={"Category"}
-          value={item?.slug}
-          image={item?.most_viewed_product_thumbnail}
-          childes={item?.childes}
-          values={filters.categories}
-          isRtl={isRtl}
-        />
-      ),
-    );
+    items?.map((item) => (
+      <CategoryImageCircel
+        key={item?.slug}
+        isActive={HandleIsActive({
+          values: filters.categories,
+          item: item?.slug,
+        })}
+        name={item?.name}
+        term={"Category"}
+        value={item?.slug}
+        image={item?.most_viewed_product_thumbnail}
+        childes={item?.childes}
+        values={filters.categories}
+        isRtl={isRtl}
+      />
+    ));
 
   const renderBrandChips = (items) =>
-    items?.map((brand) =>
-      isValidElement(brand) ? (
-        brand
-      ) : (
-        <ImageCircel
-          key={brand?.slug}
-          isActive={HandleIsActive({
-            values: filters.brands,
-            item: brand?.slug,
-          })}
-          name={brand?.name}
-          term={"Category"}
-          value={brand?.slug}
-          image={brand?.icon}
-        />
-      ),
-    );
+    items?.map((brand) => (
+      <ImageCircel
+        key={brand?.slug}
+        isActive={HandleIsActive({
+          values: filters.brands,
+          item: brand?.slug,
+        })}
+        name={brand?.name}
+        term={"Category"}
+        value={brand?.slug}
+        image={brand?.icon}
+      />
+    ));
 
   const renderColorChips = (items) =>
-    items?.map((color) =>
-      isValidElement(color) ? (
-        color
-      ) : (
-        <ImageCircel
-          key={color}
-          isActive={HandleIsActive({
-            values: filters?.colors?.map((s) => s?.replace("#", "")),
-            item: color.replace("#", ""),
-          })}
-          color={color}
-          name={color}
-          value={color}
-          term={"Color"}
-        />
-      ),
-    );
+    items?.map((color) => (
+      <ImageCircel
+        key={color}
+        isActive={HandleIsActive({
+          values: filters?.colors?.map((s) => s?.replace("#", "")),
+          item: color.replace("#", ""),
+        })}
+        color={color}
+        name={color}
+        value={color}
+        term={"Color"}
+      />
+    ));
 
   const renderSizeChips = (items) =>
-    items?.map((size) =>
-      isValidElement(size) ? (
-        size
-      ) : (
-        <ImageCircel
-          key={size}
-          isActive={HandleIsActive({
-            values: filters?.sizes,
-            item: size,
-          })}
-          name={size}
-          value={size}
-          term={"Size"}
-        />
-      ),
-    );
+    items?.map((size) => (
+      <ImageCircel
+        key={size}
+        isActive={HandleIsActive({
+          values: filters?.sizes,
+          item: size,
+        })}
+        name={size}
+        value={size}
+        term={"Size"}
+      />
+    ));
 
   const isFirstMount = useRef(true);
 
@@ -312,7 +294,7 @@ const FiltersWindowUI = ({
         </div>
       </div>
       <div className="flex flex-col items-start gap-[20px] overflow-y-auto max-h-full pb-[120px] px-[25px]">
-        {FiltersNodes?.categories && (
+        {FiltersNodes?.categories?.length > 0 && (
           <FiltersRowContainer
             loading={loading}
             setValues={(e) => {
@@ -324,7 +306,7 @@ const FiltersWindowUI = ({
             {renderCategoryChips(FiltersNodes.categories)}
           </FiltersRowContainer>
         )}
-        {FiltersNodes?.brands && (
+        {FiltersNodes?.brands?.length > 0 && (
           <FiltersRowContainer
             loading={loading}
             setValues={(e) => {
@@ -336,7 +318,7 @@ const FiltersWindowUI = ({
             {renderBrandChips(FiltersNodes.brands)}
           </FiltersRowContainer>
         )}
-        {FiltersNodes?.colors && (
+        {FiltersNodes?.colors?.length > 0 && (
           <FiltersRowContainer
             loading={loading}
             setValues={(e) => {
@@ -349,7 +331,7 @@ const FiltersWindowUI = ({
             {renderColorChips(FiltersNodes.colors)}
           </FiltersRowContainer>
         )}
-        {FiltersNodes?.sizes && (
+        {FiltersNodes?.sizes?.length > 0 && (
           <FiltersRowContainer
             loading={loading}
             setValues={(e) => {
