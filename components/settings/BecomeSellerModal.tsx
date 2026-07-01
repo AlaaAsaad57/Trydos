@@ -15,6 +15,10 @@ import { FlagIcon } from "utils/tinyUtils";
 import { getLocalizedCountryName } from "utils/countryData";
 import { GetCountries } from "serverRequests/product";
 
+// Persisted flag so a user who already submitted a vendor request sees a simple
+// "we're processing it" screen instead of the full form on their next visit.
+const SELLER_REQUEST_KEY = "trydos_seller_request_submitted";
+
 const VENDOR_DOCUMENT_TYPES = [
   { value: "identity", label: "Identity" },
   { value: "passport", label: "Passport" },
@@ -73,7 +77,7 @@ const FormInput = ({
   onChange,
   placeholder,
 }) => (
-  <div className="flex flex-col gap-1.5 w-full">
+  <div className="flex flex-col gap-1.5 w-full items-start">
     <FieldLabel htmlFor={name}>{label}</FieldLabel>
     <input
       id={name}
@@ -103,9 +107,9 @@ const CountrySelect = ({
   );
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className="flex flex-col gap-1.5 w-full items-start">
       <FieldLabel htmlFor={name}>{label}</FieldLabel>
-      <div className="relative">
+      <div className="relative w-full">
         <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex w-[24px] h-[16px] items-center overflow-hidden rounded-[2px]">
           <FlagIcon iso={current} />
         </span>
@@ -114,7 +118,7 @@ const CountrySelect = ({
           name={name}
           value={current}
           onChange={onChange}
-          className={`${FIELD_CLASS} appearance-none pl-10 pr-9 cursor-pointer`}
+          className={`${FIELD_CLASS} appearance-none px-[40px] cursor-pointer`}
         >
           {current && !hasCurrent && (
             <option value={current}>
@@ -145,8 +149,21 @@ export default function BecomeSellerModal({ onClose }) {
   const [loading, setLoading] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
   const [countries, setCountries] = useState<any[]>([]);
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 
   const { setAddressDetails } = useAppStore();
+
+  // If a request was already submitted (persisted locally), show the simple
+  // "processing" view instead of the full form.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(SELLER_REQUEST_KEY)) {
+        setAlreadySubmitted(true);
+      }
+    } catch {
+      // localStorage unavailable (private mode / SSR) — fall back to the form.
+    }
+  }, []);
 
   const [form, setForm] = useState({
     f_name: "",
@@ -363,8 +380,16 @@ export default function BecomeSellerModal({ onClose }) {
           showErrorNotification(t("Something went wrong"));
         }
       } else {
+        try {
+          localStorage.setItem(
+            SELLER_REQUEST_KEY,
+            JSON.stringify({ submittedAt: new Date().toISOString() }),
+          );
+        } catch {
+          // Non-fatal: request still succeeded even if we can't persist locally.
+        }
         showSuccessNotification(t("Request submitted successfully"));
-        onClose();
+        setAlreadySubmitted(true);
       }
     } catch (e) {
       const err = e || {};
@@ -385,6 +410,74 @@ export default function BecomeSellerModal({ onClose }) {
     }
   };
 
+  // Already-submitted view: a small confirmation that the request is being
+  // processed, shown instead of the full form.
+  if (alreadySubmitted) {
+    return (
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-black/45 animate-fade-in font-sans"
+        style={{ zIndex: 999999999 }}
+      >
+        <div
+          className="relative flex flex-col items-center w-[90vw] max-w-[420px] bg-white rounded-[15px] p-7 text-center shadow-[0_3px_10px_rgba(0,0,0,0.1)]"
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            onClick={onClose}
+            aria-label={t("Cancel")}
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-[#929191] hover:bg-[#f2f2f2] hover:text-[#3c3c3c] transition-colors"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#402CDD]/10 text-[#402CDD]">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </span>
+
+          <h2 className="mt-4 text-[16px] font-semibold text-[#3c3c3c]">
+            {t("Request already submitted")}
+          </h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-[#707070]">
+            {t(
+              "You have already submitted a seller request. We are processing it and will get back to you soon.",
+            )}
+          </p>
+
+          <button
+            onClick={onClose}
+            className="mt-6 h-[46px] w-full rounded-full bg-[#402CDD] text-[14px] font-semibold text-white hover:bg-[#3422b0] focus:outline-hidden focus:ring-2 focus:ring-[#402CDD]/30 transition-colors"
+          >
+            {t("Close")}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black/45 animate-fade-in font-sans"
@@ -396,7 +489,7 @@ export default function BecomeSellerModal({ onClose }) {
         aria-modal="true"
       >
         {/* Header */}
-        <div className="relative shrink-0 mb-5">
+        <div className="relative shrink-0 mb-5 w-full">
           <button
             onClick={onClose}
             aria-label={t("Cancel")}
@@ -607,7 +700,7 @@ export default function BecomeSellerModal({ onClose }) {
                     </div>
                   ))
                 ) : (
-                  <div className="rounded-[12px] border border-dashed border-[#e0e0e0] py-4 text-center text-[12px] text-[#929191]">
+                  <div className="w-full rounded-[12px] border border-dashed border-[#e0e0e0] py-4 text-center text-[12px] text-[#929191]">
                     {t("No documents uploaded")}
                   </div>
                 )}
@@ -641,7 +734,7 @@ export default function BecomeSellerModal({ onClose }) {
                   <FieldLabel htmlFor="doc-upload-btn">{t("File")}</FieldLabel>
                   <button
                     id="doc-upload-btn"
-                    className="h-[44px] px-3.5 rounded-[10px] border border-[#e6e6e6] bg-white text-[13px] text-[#3c3c3c] hover:border-[#402CDD] hover:text-[#402CDD] transition-colors truncate"
+                    className="h-[44px] w-full px-3.5 rounded-[10px] border border-[#e6e6e6] bg-white text-[13px] text-[#3c3c3c] hover:border-[#402CDD] hover:text-[#402CDD] transition-colors truncate"
                     onClick={() => {
                       let Element =
                         document.querySelector<HTMLInputElement>("#doc-upload");
