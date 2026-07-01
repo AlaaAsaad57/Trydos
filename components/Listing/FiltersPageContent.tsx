@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import "styles/listing-components.css";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
@@ -15,6 +16,8 @@ import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import FilterListingBackButton from "components/Listing/FilterListingBackButton";
+import ListingSkeleton from "components/skeleton/listing";
+import BoutiqueSlidersSkeleton from "components/skeleton/loaders/BoutiqueSlidersSkeleton";
 
 async function getBoutique(
   boutique: string | null,
@@ -119,40 +122,41 @@ export default async function FiltersPageContent({
     );
     const parsedUserId = userData?.id ?? null;
 
-    const [filtersData, currency, boutique] = await Promise.all([
-      getProductsAndFiltersFromElastic({
-        country,
-        language_code: language,
-        filters: {
-          ...parsedFilters,
-          featured: false,
-          flashdeal: false,
-          search_text: parsedFilters.search_text?.[0],
-        },
-        limit: 10,
-        userId: parsedUserId,
-        // Open a PIT snapshot for this filter session (ADR-009); the returned
-        // pit_id rides inside filtersData and is threaded to the infinite
-        // scroll so every "load more" reads the same immutable snapshot.
-        usePit: true,
-      }),
-      currencyPromise,
-      boutiquePromise,
-    ]);
+    // Kick off the main ES query and hand un-awaited promises straight to the
+    // Suspense-wrapped containers below (mirrors featured/[[...filters]]/page.tsx)
+    // so the HTML shell can stream immediately instead of blocking on ES.
+    const filtersDataPromise = getProductsAndFiltersFromElastic({
+      country,
+      language_code: language,
+      filters: {
+        ...parsedFilters,
+        featured: false,
+        flashdeal: false,
+        search_text: parsedFilters.search_text?.[0],
+      },
+      limit: 10,
+      userId: parsedUserId,
+      // Open a PIT snapshot for this filter session (ADR-009); the returned
+      // pit_id rides inside filtersData and is threaded to the infinite
+      // scroll so every "load more" reads the same immutable snapshot.
+      usePit: true,
+    });
 
     const isRtl = language === "ar" || language === "ku";
 
     return (
       <>
-        <FilterWidgetServer
-          isFeatured={false}
-          isFlashDeal={false}
-          currencyPromise={currency}
-          language={language}
-          country={country}
-          parsedFilters={parsedFilters}
-          filtersPromise={filtersData}
-        />
+        <Suspense fallback={<></>} key={`FilterWidget ${Params.lang}`}>
+          <FilterWidgetServer
+            isFeatured={false}
+            isFlashDeal={false}
+            currencyPromise={currencyPromise}
+            language={language}
+            country={country}
+            parsedFilters={parsedFilters}
+            filtersPromise={filtersDataPromise}
+          />
+        </Suspense>
         <div
           data-cy="filter_listing_bar"
           className={`filter-listing-bar z-99999999 relative ${
@@ -168,12 +172,14 @@ export default async function FiltersPageContent({
               parsedFilters?.search_text?.length > 0 ? "w-full" : ""
             }`}
           >
-            <ListingSearchContainer
-              country={country}
-              language={language}
-              filtersPromise={filtersData}
-              parsedFilters={parsedFilters}
-            />
+            <Suspense fallback={<></>}>
+              <ListingSearchContainer
+                country={country}
+                language={language}
+                filtersPromise={filtersDataPromise}
+                parsedFilters={parsedFilters}
+              />
+            </Suspense>
             <div
               data-cy="filter_option_loseSearchInput"
               className="filter-option"
@@ -194,29 +200,44 @@ export default async function FiltersPageContent({
           className="boutique-header flex-col align-center"
         >
           {parsedFilters?.boutiques?.[0] && (
-            <ListingBoutiqueSlider
-              boutiquePromise={boutique}
+            <Suspense
+              fallback={<BoutiqueSlidersSkeleton />}
               key={boutiqueItem || "noFilters"}
-            />
+            >
+              <ListingBoutiqueSlider
+                boutiquePromise={boutiquePromise}
+                key={boutiqueItem || "noFilters"}
+              />
+            </Suspense>
           )}
 
-          <FilterListContainer
-            filtersPromis={filtersData}
-            currencyPromise={currency}
-            Params={Params}
-            parsedFilters={parsedFilters}
-          />
+          <Suspense
+            fallback={<ListingSkeleton justFilters />}
+            key={`FilterList ${Params.lang}`}
+          >
+            <FilterListContainer
+              filtersPromis={filtersDataPromise}
+              currencyPromise={currencyPromise}
+              Params={Params}
+              parsedFilters={parsedFilters}
+            />
+          </Suspense>
         </div>
-        <ProductListConainer
-          isFlashDeals={false}
-          isFeatured={false}
-          Params={Params}
-          boutiquePromise={boutique}
-          currencyPromise={currency}
-          filtersDataPromise={filtersData}
-          parsedFilters={parsedFilters}
-          language={language}
-        />
+        <Suspense
+          fallback={<ListingSkeleton forProducts={true} />}
+          key={`ProductList ${Params.lang}`}
+        >
+          <ProductListConainer
+            isFlashDeals={false}
+            isFeatured={false}
+            Params={Params}
+            boutiquePromise={boutiquePromise}
+            currencyPromise={currencyPromise}
+            filtersDataPromise={filtersDataPromise}
+            parsedFilters={parsedFilters}
+            language={language}
+          />
+        </Suspense>
       </>
     );
   } catch (error) {

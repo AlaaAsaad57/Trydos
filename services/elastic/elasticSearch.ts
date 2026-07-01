@@ -303,7 +303,9 @@ export async function getProductsAndFiltersFromElastic(
       index: catalog_index,
       _source: getSourceFields(),
       track_scores: true,
-      track_total_hits: true,
+      // Facet/initial loads still get a bounded count for display; pure
+      // product-pagination requests (`noFilters`) skip the full count.
+      track_total_hits: noFilters ? false : 10000,
       size: limit,
       query: {
         bool: {
@@ -324,13 +326,17 @@ export async function getProductsAndFiltersFromElastic(
 
     if (noFilters) delete searchQuery.aggs;
 
+    // Facet-only requests (`noProducts`) never need product hits — the facets
+    // are served entirely from `aggs`, independent of any price-agg flag.
+    if (noProducts) (searchQuery as any).size = 0;
+
     // ── Global price-facet (ticket: price-filter-elastic-aggregations) ───────
     // The price facet re-scopes to ALL active filters INCLUDING the selected
     // price range, so the slider bounds, the curve, and the cards reflect the
     // current selection (product-owner testing decision; supersedes the earlier
     // self-excluding approach). It uses the same must/must_not as the main query.
-    // For the filters-only panel request (`noProducts`) drop product fetching to
-    // `size: 0`.
+    // For the filters-only panel request (`noProducts`) product fetching is
+    // already forced to `size: 0` above, independent of this flag.
     let priceFacetActive = false;
     if (LISTING_PRICE_AGG_ENABLED && !noFilters && (searchQuery as any).aggs) {
       priceFacetActive = true;
@@ -339,7 +345,6 @@ export async function getProductsAndFiltersFromElastic(
         mustNotConditions,
         country,
       );
-      if (noProducts) (searchQuery as any).size = 0;
     }
 
     // Add search_after for pagination
