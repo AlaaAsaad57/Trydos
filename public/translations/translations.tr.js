@@ -1,4 +1,21 @@
 const translations = {
+  // Listing sort widget
+  "Sort products": "Ürünleri sırala",
+  "Choose how products are ordered": "Ürünlerin nasıl sıralanacağını seçin",
+  Recommended: "Önerilen",
+  "Best match for your search": "Aramanız için en iyi eşleşme",
+  "Best sellers": "Çok satanlar",
+  "Most bought right now": "Şu anda en çok alınanlar",
+  "New arrivals": "Yeni gelenler",
+  "By date added": "Eklenme tarihine göre",
+  Newest: "En yeni",
+  Oldest: "En eski",
+  "By product price": "Ürün fiyatına göre",
+  "Low to High": "Düşükten yükseğe",
+  "High to Low": "Yüksekten düşüğe",
+  Alphabetical: "Alfabetik",
+  "A to Z": "A'dan Z'ye",
+  "Z to A": "Z'den A'ya",
   // Become Seller modal
   "Tell us about you and your shop to start selling":
     "Satışa başlamak için kendinizden ve mağazanızdan bahsedin",

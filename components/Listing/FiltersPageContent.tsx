@@ -16,6 +16,7 @@ import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import FilterListingBackButton from "components/Listing/FilterListingBackButton";
+import ListingSortControl from "components/Listing/ListingSortControl";
 import ListingHeaderCollapse from "components/Listing/ListingHeaderCollapse";
 import BoutiqueMiniLogo from "components/Listing/BoutiqueMiniLogo";
 import ListingSkeleton from "components/skeleton/listing";
@@ -94,10 +95,12 @@ async function getCurrencyForListing(country: string, language: string) {
 
 interface FiltersPageContentProps {
   params: { lang: string; filters?: string[] };
+  sort?: string;
 }
 
 export default async function FiltersPageContent({
   params,
+  sort,
 }: FiltersPageContentProps) {
   const Params = params;
   try {
@@ -138,6 +141,8 @@ export default async function FiltersPageContent({
       },
       limit: 10,
       userId: parsedUserId,
+      // User-facing listing sort (`?sort=`); undefined ⇒ relevance default.
+      sort,
       // Open a PIT snapshot for this filter session (ADR-009); the returned
       // pit_id rides inside filtersData and is threaded to the infinite
       // scroll so every "load more" reads the same immutable snapshot.
@@ -194,16 +199,7 @@ export default async function FiltersPageContent({
                     parsedFilters={parsedFilters}
                   />
                 </Suspense>
-                <div
-                  data-cy="filter_option_loseSearchInput"
-                  className="filter-option"
-                >
-                  <img
-                    src="/icons/sortIcon.svg"
-                    data-cy="closeSearchInput"
-                    alt=""
-                  />
-                </div>
+                <ListingSortControl language={language} isRtl={isRtl} />
                 <FilterBoutiquePageButton key="filter-button" />
                 <ShareBoutiquePageButton />
               </div>
@@ -249,6 +245,7 @@ export default async function FiltersPageContent({
                 filtersDataPromise={filtersDataPromise}
                 parsedFilters={parsedFilters}
                 language={language}
+                sort={sort}
               />
             </Suspense>
           }

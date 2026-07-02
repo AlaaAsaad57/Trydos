@@ -4,6 +4,7 @@ import AnalyzeSearchText from "./analyzeSearchText";
 import {
   buildAggregations,
   buildBaseConditions,
+  buildSortClause,
   buildPriceHistogramAggregation,
   buildPriceStatsAggregation,
   calculatePriceRange,
@@ -43,6 +44,9 @@ interface SearchParams {
   country?: string;
   is_from_browser?: boolean;
   filters_offset?: number;
+  // User-facing listing sort key (`?sort=`). Maps to an ES sort array via
+  // buildSortClause; undefined / unknown ⇒ relevance (unchanged default).
+  sort?: string;
   noProducts?: boolean;
   noFilters?: boolean;
   userId?: string | number | null;
@@ -233,6 +237,7 @@ export async function getProductsAndFiltersFromElastic(
     pit_id = null,
     usePit = false,
     fullSource = false,
+    sort,
   } = params;
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
@@ -318,7 +323,7 @@ export async function getProductsAndFiltersFromElastic(
           must_not: mustNotConditions,
         },
       },
-      sort: [{ _score: { order: "desc" } }, { id: { order: "asc" } }],
+      sort: buildSortClause(sort, language_code),
       aggs: buildAggregations(
         mustConditions,
         mustNotConditions,

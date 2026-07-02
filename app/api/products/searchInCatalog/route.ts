@@ -76,7 +76,19 @@ export async function GET(req: NextRequest) {
       language_code: language,
       user_id: userId,
       recommended_offset: Number(searchParams.get("recommended_offset") || 0),
+      // Mobile parity: same `?sort=` keys as web; undefined ⇒ relevance default.
+      sort: searchParams.get("sort") || undefined,
       fullSource: true,
+      // ── Point-in-Time pagination (ADR-009) ────────────────────────────
+      // Opt-in per request so the mobile rollout is independent of web: the
+      // app sends `use_pit=true` to page a browsing session against one frozen
+      // snapshot (no duplicate, no skip). `pit_id` is echoed back on every
+      // "load more"; it is null/absent on the first page (the server opens a
+      // PIT and returns its id in `data.pit_id`). Still double-gated by the
+      // server flag `LISTING_PIT_ENABLED` — if that is off, `pit_id` comes back
+      // null and pagination falls back to the current stateless `offset` path.
+      usePit: searchParams.get("use_pit") === "true",
+      pit_id: searchParams.get("pit_id") || null,
     };
     // Inline autocomplete (ghost text) for the mobile app — runs in parallel
     // with the main search so it adds no latency, and respects the same applied

@@ -1,4 +1,21 @@
 const translations = {
+  // Listing sort widget
+  "Sort products": "ترتيب المنتجات",
+  "Choose how products are ordered": "اختر طريقة ترتيب المنتجات",
+  Recommended: "موصى به",
+  "Best match for your search": "الأفضل لبحثك",
+  "Best sellers": "الأكثر مبيعاً",
+  "Most bought right now": "الأكثر شراءً الآن",
+  "New arrivals": "وصل حديثاً",
+  "By date added": "حسب تاريخ الإضافة",
+  Newest: "الأحدث",
+  Oldest: "الأقدم",
+  "By product price": "حسب سعر المنتج",
+  "Low to High": "من الأقل إلى الأعلى",
+  "High to Low": "من الأعلى إلى الأقل",
+  Alphabetical: "أبجدياً",
+  "A to Z": "من أ إلى ي",
+  "Z to A": "من ي إلى أ",
   // Become Seller modal
   "Tell us about you and your shop to start selling":
     "أخبرنا عنك وعن متجرك لتبدأ البيع",

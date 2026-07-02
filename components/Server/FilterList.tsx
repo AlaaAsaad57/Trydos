@@ -60,8 +60,8 @@ function FilterList({
             id="filter-list-row-container"
             className={`$${
               isRtl
-                ? "flex-row-reverse flex mr-11.25"
-                : "flex-row flex ml-11.25"
+                ? "flex-row-reverse flex mr-[45px]"
+                : "flex-row flex ml-[45px]"
             }  items-center pr-5   justify-start align-start filter-container overflow-auto scroll-smooth`}
           >
             {(Object.keys(filters) as any)

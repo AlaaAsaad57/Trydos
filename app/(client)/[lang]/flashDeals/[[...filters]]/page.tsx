@@ -17,6 +17,7 @@ import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
+import ListingSortControl from "components/Listing/ListingSortControl";
 export const dynamicParams = true;
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -61,10 +62,12 @@ async function getCurrency(country, language) {
     );
   }
 }
-export default async function Page({ params }) {
+export default async function Page({ params, searchParams }) {
   let Params = await params;
 
   try {
+    const sp = (await searchParams) ?? {};
+    const sort = typeof sp.sort === "string" ? sp.sort : undefined;
     let parsedFilters = parseFiltersFromParams(Params.filters || []);
     const [country, language] = Params.lang.split("-");
     let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
@@ -90,6 +93,7 @@ export default async function Page({ params }) {
           search_text: parsedFilters.search_text?.[0],
         },
         limit: 10,
+        sort,
       }),
       getCurrency(country, language),
     ];
@@ -153,12 +157,7 @@ export default async function Page({ params }) {
                 parsedFilters={parsedFilters}
               />
             </Suspense>
-            <div
-              data-cy="filter_option_loseSearchInput"
-              className="filter-option"
-            >
-              <img src="/icons/sortIcon.svg" data-cy="closeSearchInput" />
-            </div>
+            <ListingSortControl language={language} isRtl={isRtl} />
             <FilterBoutiquePageButton key={"filter-button"} />
             <ShareBoutiquePageButton />
           </div>
@@ -193,6 +192,7 @@ export default async function Page({ params }) {
             filtersDataPromise={filtersData}
             parsedFilters={parsedFilters}
             language={language}
+            sort={sort}
           />
         </Suspense>
       </>

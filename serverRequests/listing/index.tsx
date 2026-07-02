@@ -76,6 +76,7 @@ export async function GetProducts({
   recomended_offset = null,
   sizes_filters = null,
   pit_id = null,
+  sort = undefined,
 }): Promise<GetProductsResult> {
   try {
   let response = await getProductsAndFiltersFromElastic({
@@ -87,6 +88,8 @@ export async function GetProducts({
     search_after: offset,
     recommended_offset: recomended_offset,
     userId: userId,
+    // User-facing listing sort (`?sort=`); undefined ⇒ relevance default.
+    sort: sort,
     // PIT snapshot pagination (ADR-009): reuse the session snapshot id.
     usePit: true,
     pit_id: pit_id,

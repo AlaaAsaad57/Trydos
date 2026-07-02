@@ -16,6 +16,7 @@ async function ProductListConainer({
   isFlashDeals = false,
   isFeatured = false,
   language,
+  sort = undefined,
 }) {
   let [filtersData, currency, boutique] = await Promise.all([
     filtersDataPromise,
@@ -39,7 +40,7 @@ async function ProductListConainer({
 
   return (
     <Suspense
-      key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
+      key={`Suspense-product-list-${JSON.stringify(parsedFilters)}-${sort ?? "relevance"}`}
       fallback={<ListingSkeleton forProducts={true} />}
     >
       <ClientLogger
@@ -63,11 +64,12 @@ async function ProductListConainer({
         offset={filtersData?.offset}
         pit_id={filtersData?.pit_id ?? null}
         currency={currency}
-        key={`product-list-${JSON.stringify(parsedFilters)}`}
+        key={`product-list-${JSON.stringify(parsedFilters)}-${sort ?? "relevance"}`}
         parsedFilters={parsedFiltersVar}
         params={Params}
         isFeatured={isFeatured}
         isFlashDeals={isFlashDeals}
+        sort={sort}
         target={path}
         title={title}
       />

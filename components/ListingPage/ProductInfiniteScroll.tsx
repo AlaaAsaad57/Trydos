@@ -24,6 +24,7 @@ function ProductsInfiniteScroll({
   recomended_offset = null,
   sizes_filters = null,
   pit_id = null,
+  sort = undefined,
 }: {
   offset: any;
   currency: any;
@@ -35,6 +36,7 @@ function ProductsInfiniteScroll({
   recomended_offset?: any;
   sizes_filters?: string[] | null;
   pit_id?: string | null;
+  sort?: string;
 }) {
   const resetBoutique = useAppStore((s) => s.resetBoutique);
   const { lang }: { lang: string } = useParams();
@@ -123,6 +125,10 @@ function ProductsInfiniteScroll({
         userId: userId,
         recomended_offset: recommendedOffsetRef.current,
         sizes_filters: sizes_filters,
+        // User-facing listing sort (`?sort=`); the remount key ensures a fresh
+        // mount (offset/seenIds/pit reset) whenever sort changes, so every page
+        // of this session pages the same sort order.
+        sort: sort,
         // PIT snapshot pagination (ADR-009): carry the session snapshot id.
         pit_id: pitIdRef.current,
       });

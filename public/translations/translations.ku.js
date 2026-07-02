@@ -1,4 +1,21 @@
 const translations = {
+  // Listing sort widget
+  "Sort products": "ڕیزکردنی بەرهەمەکان",
+  "Choose how products are ordered": "شێوازی ڕیزکردنی بەرهەمەکان هەڵبژێرە",
+  Recommended: "پێشنیارکراو",
+  "Best match for your search": "باشترین بۆ گەڕانەکەت",
+  "Best sellers": "زۆرترین فرۆش",
+  "Most bought right now": "زۆرترین کڕدراو ئێستا",
+  "New arrivals": "نوێ گەیشتوو",
+  "By date added": "بەپێی بەرواری زیادکردن",
+  Newest: "نوێترین",
+  Oldest: "کۆنترین",
+  "By product price": "بەپێی نرخی بەرهەم",
+  "Low to High": "لە کەم بۆ زۆر",
+  "High to Low": "لە زۆر بۆ کەم",
+  Alphabetical: "پیتی",
+  "A to Z": "لە A بۆ Z",
+  "Z to A": "لە Z بۆ A",
   // Become Seller modal
   "Tell us about you and your shop to start selling":
     "باسی خۆت و فرۆشگاکەت بکە بۆ دەستپێکردنی فرۆشتن",

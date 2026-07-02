@@ -17,6 +17,7 @@ function ProductListServer({
   target,
   title,
   recomended_offset = null,
+  sort = undefined,
 }) {
   let [country, language] = params.lang.split("-");
   const isRtl = language === "ar" || language === "ku";
@@ -62,6 +63,7 @@ function ProductListServer({
           offset={offset}
           isFeatured={isFeatured}
           isFlashDeals={isFlashDeals}
+          sort={sort}
           sizes_filters={
             parsedFilters?.sizes?.length > 0 ? parsedFilters.sizes : null
           }
