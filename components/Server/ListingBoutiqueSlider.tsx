@@ -80,7 +80,7 @@ const BouqiuePhotoSlider = ({ banners }) => {
                       style={{ height: "100%" }}
                     />
 
-                    <Image
+                    <img
                       data-cy="image_image"
                       loading={"eager"}
                       fetchPriority={"high"}
@@ -89,6 +89,7 @@ const BouqiuePhotoSlider = ({ banners }) => {
                       src={getConfiguredImage({
                         src: GetImageUrl(banner.file_path),
                         height: 320,
+                        width:800,
                         c_pad: true,
                       })}
                       width={380}
