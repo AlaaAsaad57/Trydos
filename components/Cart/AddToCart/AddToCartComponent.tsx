@@ -26,7 +26,8 @@ import ColorSelect from "./ColorSelect";
 import SizeSelect from "./SizeSelect";
 import PricesRow from "./PricesRow";
 import ExtraInfoArea from "./ExtraInfoArea";
-import { getCookie, setCookie } from "utils/cookies/cookie-manager";
+import { useLuckTimer } from "hooks/useLuckTimer";
+import { isRedeemed } from "utils/luck";
 import AddToCartButton from "./Button";
 import NotifyButton from "./NotifyButton";
 
@@ -259,13 +260,7 @@ function AddToCartComponent({ product, slug, color }) {
   const isComponentActiveRef = useRef(true);
   const shouldShowLuck = () => {
     if (!product.is_luck) return false;
-    let redeemed_products_ids = getCookie<any[]>("redemed_ids");
-    if (redeemed_products_ids) {
-      return !redeemed_products_ids.find(
-        (s) => s.id === (product?.product_id ?? product?.id),
-      );
-    }
-    return true;
+    return !isRedeemed(product?.product_id ?? product?.id);
   };
   const searchParams = useSearchParams();
   const [sizeFromUrl, colorFromUrl] = [
@@ -288,35 +283,10 @@ function AddToCartComponent({ product, slug, color }) {
     ...product,
     is_luck: shouldShowLuck(),
   });
-  const configureRedeemedProducts = (id) => {
-    let redeemed_products_ids = getCookie<any>("redemed_ids");
-
-    if (redeemed_products_ids) {
-      let parsed_redeemed_products_ids = redeemed_products_ids
-        ? redeemed_products_ids
-        : [];
-      if (!parsed_redeemed_products_ids?.find((s) => s.id === id)) {
-        let MAX_ARRAY_LENGTH =
-          parseInt(process.env.NEXT_PUBLIC_MAX_ARRAY_LENGTH) || 5;
-        if (parsed_redeemed_products_ids.length < MAX_ARRAY_LENGTH)
-          setCookie("redemed_ids", [
-            ...parsed_redeemed_products_ids,
-            { id: id, showingDate: new Date().toISOString() },
-          ]);
-        else
-          setCookie("redemed_ids", [
-            ...parsed_redeemed_products_ids.slice(1, MAX_ARRAY_LENGTH),
-            { id: id, showingDate: new Date().toISOString() },
-          ]);
-      } else {
-        return;
-      }
-    } else {
-      setCookie("redemed_ids", [
-        { id: id, showingDate: new Date().toISOString() },
-      ]);
-    }
-  };
+  const { luckActive, secondsLeft } = useLuckTimer(
+    ProductData?.id ?? ProductData?.product_id,
+    { isLuck: Boolean(ProductData?.is_luck) },
+  );
 
   const initialDefaults = resolveDefaultSelection({
     productData: ProductData,
@@ -678,7 +648,7 @@ function AddToCartComponent({ product, slug, color }) {
   };
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
   const GetFinalPriceOfProduct = () => {
-    if (ProductData?.is_luck && shouldShowLuck()) {
+    if (luckActive) {
       return ProductData?.luck_price;
     }
     return ProductData?.offer_price;
@@ -697,7 +667,7 @@ function AddToCartComponent({ product, slug, color }) {
       return vColor === colorVariant?.color_name;
     });
     if (!variant) return false;
-    if (ProductData?.is_luck && shouldShowLuck()) {
+    if (luckActive) {
       return Math.round(
         ((GetFinalPriceOfProduct() - variant?.luck_price) * 100) /
           GetFinalPriceOfProduct(),
@@ -769,7 +739,7 @@ function AddToCartComponent({ product, slug, color }) {
               : getSelectedVariantQty()?.offer_price
           }
           price={getSelectedVariantQty()?.price}
-          luck_price={shouldShowLuck() && getSelectedVariantQty()?.luck_price}
+          luck_price={luckActive && getSelectedVariantQty()?.luck_price}
           shippingDays={ProductData?.shipping_days}
           shouldShowOrangeBorder={
             ProductData.is_luck ||
@@ -882,11 +852,7 @@ function AddToCartComponent({ product, slug, color }) {
           }
           price={getSelectedVariantQty()?.price}
           id={ProductData?.id}
-          luck_price={
-            shouldShowLuck() &&
-            ProductData?.is_luck &&
-            getSelectedVariantQty()?.luck_price
-          }
+          luck_price={luckActive && getSelectedVariantQty()?.luck_price}
           shipping_cost={product?.shipping_cost}
           shipping_days={ProductData?.shipping_days ?? product?.shipping_days}
           allow_return_in_days={
@@ -901,17 +867,11 @@ function AddToCartComponent({ product, slug, color }) {
           selected_size={selectedSize}
           isQtyEmpty={getSelectedVariantQty()?.qty === 0}
           product={ProductData}
-          isLuck={ProductData?.is_luck && shouldShowLuck()}
+          isLuck={ProductData?.is_luck}
+          luckActive={luckActive}
+          secondsLeft={secondsLeft}
           flashDeal={ProductData?.flash_deal_end_date}
           id={ProductData?.id}
-          LuckEnd={() => {
-            configureRedeemedProducts(ProductData?.id);
-            setProductData({ ...ProductData, is_luck: false });
-            let element = document.querySelector(".product-redeem-counter");
-            if (element) {
-              element.classList.add("hidden");
-            }
-          }}
           isInCart={localCart?.find((s) => s.id === ProductData?.id)}
         />
         {shouldShowNotifyButton() ? (
@@ -954,7 +914,6 @@ function AddToCartComponent({ product, slug, color }) {
           />
         ) : (
           <AddToCartButton
-            key={ProductData?.is_luck}
             reachedMaxQty={() => reachedMaxQty()}
             fullQty={localCart.filter((s) => s.id === product?.id)?.length}
             colors={ProductData?.sync_color_images}
@@ -967,17 +926,6 @@ function AddToCartComponent({ product, slug, color }) {
             updateQuantity={async (isLocal, variantId = null, operation) => {
               if (ProductData.packed_after_ordering === 0)
                 await updateQuantity({ isLocal, variantId, operation });
-            }}
-            expireLuck={() => {
-              setProductData({
-                ...ProductData,
-                is_luck: false,
-              });
-              configureRedeemedProducts(ProductData?.id);
-              let element = document.querySelector(".product-redeem-counter");
-              if (element) {
-                element.classList.add("hidden");
-              }
             }}
             loading={requestLoading}
             setLoading={setRequestLoading}

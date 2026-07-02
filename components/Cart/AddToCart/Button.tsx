@@ -25,7 +25,6 @@ function AddToCartButton({
   product,
   reachedMaxQty,
   initialLoading,
-  expireLuck,
   colorChanged,
   sizeChanged,
 }) {
@@ -293,7 +292,7 @@ function AddToCartButton({
             ? selectedVariant?.luck_price
             : selectedVariant?.offer_price,
         });
-        expireLuck();
+        if (product?.is_luck) useAppStore.getState().expireLuck(id);
 
         if (val) {
           GAevent({
