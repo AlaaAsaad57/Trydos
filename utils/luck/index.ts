@@ -44,7 +44,12 @@ export function addRedeemedId(id: string | number): void {
 
 // ---- per-product timer persistence (localStorage; survives hard nav) ----
 
-function readTimers(): Record<string, LuckTimer> {
+interface StoredTimer extends LuckTimer {
+  /** last write time; used to evict the oldest entries past the cap */
+  _ts: number;
+}
+
+function readTimers(): Record<string, StoredTimer> {
   if (typeof window === "undefined") return {};
   try {
     return JSON.parse(localStorage.getItem(LUCK_TIMERS_STORAGE_KEY) || "{}");
@@ -54,14 +59,33 @@ function readTimers(): Record<string, LuckTimer> {
 }
 
 export function readTimer(id: string | number): LuckTimer | null {
-  return readTimers()[String(id)] ?? null;
+  const stored = readTimers()[String(id)];
+  if (!stored) return null;
+  const { _ts, ...timer } = stored;
+  return timer;
 }
 
+/** Persist a product's timer. The map is capped at the same MAX_REDEEMED count
+ *  as the redeemed cookie: when a new product would exceed it, the
+ *  least-recently-written entries are evicted (by `_ts`, so it is robust to
+ *  numeric-string keys whose object order is not insertion order). */
 export function writeTimer(id: string | number, timer: LuckTimer | null): void {
   if (typeof window === "undefined") return;
   const all = readTimers();
-  if (timer === null) delete all[String(id)];
-  else all[String(id)] = timer;
+  const k = String(id);
+  if (timer === null) {
+    delete all[k];
+  } else {
+    all[k] = { ...timer, _ts: Date.now() };
+    const max = MAX_REDEEMED();
+    const keys = Object.keys(all);
+    if (keys.length > max) {
+      keys
+        .sort((a, b) => all[a]._ts - all[b]._ts)
+        .slice(0, keys.length - max)
+        .forEach((old) => delete all[old]);
+    }
+  }
   try {
     localStorage.setItem(LUCK_TIMERS_STORAGE_KEY, JSON.stringify(all));
   } catch {

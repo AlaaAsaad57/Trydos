@@ -103,7 +103,7 @@ Because all surfaces read the same store record by `id`, the countdown is contin
 ### 3.3 Persistence (`utils/luck/*`)
 
 One module owns every luck storage key (no scattered string literals):
-- **Timer state** (`deadlineTs` / `pausedRemaining` / `expired`) persisted per product so a hard navigation (e.g. to the product page route) rehydrates the *same* window — replacing both `localStorage("counter")` and the store `seconds` hand-off.
+- **Timer state** (`deadlineTs` / `pausedRemaining` / `expired`) persisted per product so a hard navigation (e.g. to the product page route) rehydrates the *same* window — replacing both `localStorage("counter")` and the store `seconds` hand-off. The persisted map is **capped at the same `MAX_REDEEMED` (5)** as the redeemed cookie (evicting least-recently-written entries); on expiry the entry is removed (redemption lives in the cookie), so it never grows unbounded.
 - **`redemed_ids` cookie** stays the canonical redeemed record read server-side. Fix the two `redeemd_ids` misreads to the canonical key; expose it as a single constant so the misspelling can't recur.
 
 > Note: the cookie value string stays `redemed_ids` (matching all existing writers and the server readers); only the *outlier misspelled reads* are corrected. Renaming the cookie itself is out of scope (would orphan live cookies).

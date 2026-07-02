@@ -88,7 +88,9 @@ export const useLuckStore = (set, get) => ({
       pausedRemaining: 0,
       expired: true,
     };
-    writeTimer(id, next);
+    // Redemption is recorded in the (capped) cookie and startLuck short-circuits
+    // on isRedeemed, so drop the persisted timer to free a slot in the map.
+    writeTimer(id, null);
     addRedeemedId(id);
     set((s) => ({ luckByProduct: { ...s.luckByProduct, [k]: next } }));
   },
