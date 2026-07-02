@@ -295,3 +295,24 @@
 .floating-info .filter-info-bar {
   margin: 0px;
 }
+
+/* Height-agnostic banner collapse (no pixel heights). */
+.banner-collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.35s ease;
+}
+.listing-header[data-collapsed="true"] .banner-collapse {
+  grid-template-rows: 0fr;
+}
+.banner-collapse > * {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 1px marker at the top of the banner; drives the collapse observer. */
+.banner-sentinel {
+  height: 1px;
+  width: 100%;
+  pointer-events: none;
+}
