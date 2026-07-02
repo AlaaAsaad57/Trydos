@@ -132,8 +132,10 @@ The global scroll listener and both `expandView` / `normalizeView` functions are
 
 ### Persistent branding (compact logo crossfade)
 
-- A compact store logo is rendered inside the sticky bar. Expanded: hidden. Collapsed:
-  crossfades in (pure CSS opacity/transform transition on `[data-collapsed="true"]`).
+- A compact store logo is rendered inside the sticky bar, **on the leading side next to the
+  back button** (`FilterListingBackButton`); it mirrors on the trailing side for RTL.
+  Expanded: hidden. Collapsed: crossfades in (pure CSS opacity/transform transition on
+  `[data-collapsed="true"]`).
 - The large logo + name collapse together with the banner.
 - Rationale: avoids physically flying the `.boutique-top-info` element across the DOM (the
   fragile `move-anim` / FLIP problem). Same visual intent (branding stays visible while
@@ -211,4 +213,6 @@ The global scroll listener and both `expandView` / `normalizeView` functions are
 - Scroll-up: banner re-expands **only near the top**. ✅
 - Branding: keep persistent branding (compact-logo crossfade). ✅
 - Skeleton: static, never responds to scroll. ✅
-- Global navbar: keep pinned, via native sticky; drop the slide-in flourish. ✅
+- Global navbar: keep pinned, via native sticky; drop the slide-in flourish (globally, all
+  pages). ✅
+- Compact logo placement: leading side next to the back button (RTL-mirrored). ✅
