@@ -24,7 +24,7 @@ Let users sort a product listing by: **Newest / Oldest**, **Price low / high**, 
 
 ## Decisions (locked during brainstorming)
 
-1. **Sort options (v1):** Newest/Oldest, Price low/high, A-Z/Z-A. **Excluded:** has-offer-first (no indexed boolean; would need a `_script` sort or a new backend field).
+1. **Sort options (v1):** Best-selling, Newest/Oldest, Price low/high, A-Z/Z-A. **Excluded:** has-offer-first (no indexed boolean; would need a `_script` sort or a new backend field), top-rated / most-viewed / biggest-discount (need backend-indexed fields).
 2. **Price precision:** root `offered_price` (base offer price). Per-country `country_offer_prices` overrides are **not** applied to sort — accepted trade-off; a few country-override products may sort slightly off.
 3. **UI mechanism:** `?sort=` query param (orthogonal to the path-based filters), SSR-rendered, shareable.
 4. **A-Z localization:** all four locales (ar/en/tr/ku), byte-order via `custom_products.name.keyword` filtered by active locale. True locale collation is **deferred** (see A-Z section).
@@ -37,6 +37,7 @@ A single `?sort=` param. Every clause **always appends `{ id: { order: "asc" } }
 | `?sort=` value | Elasticsearch sort array |
 |---|---|
 | *(omitted)* → **relevance** (default) | `[{ _score: { order: "desc" } }, { id: { order: "asc" } }]` — **identical to today** |
+| `best_selling` | `[{ orders_count: { order: "desc", missing: "_last" } }, { id: { order: "asc" } }]` |
 | `newest` | `[{ created_at: { order: "desc", missing: "_last" } }, { id: { order: "asc" } }]` |
 | `oldest` | `[{ created_at: { order: "asc", missing: "_last" } }, { id: { order: "asc" } }]` |
 | `price_asc` | `[{ offered_price: { order: "asc", missing: "_last" } }, { id: { order: "asc" } }]` |
@@ -79,7 +80,7 @@ Listing uses `search_after` cursor + PIT snapshots (ADR-009); the cursor *is* th
 
 Wire the dead `<img src="/icons/sortIcon.svg">` (`FiltersPageContent.tsx:197` and the featured/flashDeals copies):
 
-- Wrap in a button opening a lightweight **popover / bottom-sheet** listing the 7 options (local `useState` for open/close — **no store change needed**).
+- Wrap in a button opening a lightweight **popover / bottom-sheet** listing the 8 options (local `useState` for open/close — **no store change needed**).
 - On select: navigate with `useRouter().push()` to the current path with an updated `?sort=` (preserve existing query keys), read current value via `useSearchParams`. SSR re-renders; the remount key handles pagination reset.
 - Show the active option (checkmark) from `useSearchParams`.
 - Fix the copy-paste artifact: `data-cy="closeSearchInput"` → `data-cy="sort_control"`.
