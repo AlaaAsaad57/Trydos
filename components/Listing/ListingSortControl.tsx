@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import BottomSheet from "components/global/BottomSheet";
 import { translateFunction } from "utils/functions";
@@ -144,13 +144,24 @@ export default function ListingSortControl({
     else params.set("sort", key);
     const qs = params.toString();
     router.push(qs ? `${pathname}?${qs}` : pathname);
-    // next.config `staleTimes.dynamic` caches the dynamic RSC (~30s), so a
-    // query-only push would reuse the stale product grid (URL changes but the
-    // server components don't refetch). refresh() invalidates the Router Cache
-    // and re-renders the server tree for the new ?sort=; combined with `sort`
-    // in the product-list Suspense key, the skeleton shows while it refetches.
-    router.refresh();
   };
+
+  // next.config `staleTimes.dynamic` caches the dynamic page RSC and does NOT
+  // vary it by search params, so a `?sort=` push alone reuses the stale product
+  // grid (URL + widget update, grid does not). Refresh AFTER the push has
+  // committed — a refresh() called inline in the click handler races with and
+  // cancels the push, so the URL never changes. This effect fires once the live
+  // sort param has actually changed (a separate commit), then invalidates the
+  // Router Cache; combined with `sort` in the product-list Suspense key the
+  // skeleton shows while the server re-renders. Skip the first mount (SSR fresh).
+  const didMount = useRef(false);
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true;
+      return;
+    }
+    router.refresh();
+  }, [raw, router]);
 
   // A short, human summary of the current selection for the trigger's a11y label.
   const ACTIVE_LABELS: Record<SortKey, string> = {
@@ -391,7 +402,7 @@ function DirectionalRow({
         </span>
       </div>
       <div
-        className="flex gap-[8px]"
+        className="flex w-full gap-[8px]"
         style={{ flexDirection: isRtl ? "row-reverse" : "row" }}
       >
         {options.map((o) => (
@@ -402,7 +413,7 @@ function DirectionalRow({
             aria-checked={o.active}
             aria-label={`${title}: ${o.label}`}
             onClick={() => onSelect(o.key)}
-            className="grow rounded-full py-[8px] text-[12px] medium transition-colors"
+            className="flex-1 basis-0 rounded-full py-[8px] text-center text-[12px] medium transition-colors"
             style={{
               border: `1px solid ${o.active ? PRIMARY : "transparent"}`,
               background: o.active ? "rgba(91,63,224,0.10)" : "#f2f2f2",
