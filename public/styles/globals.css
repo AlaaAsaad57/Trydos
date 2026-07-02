@@ -116,7 +116,7 @@ img {
 
 .embla__slide {
   flex: 0 0 var(--slide-size);
-  min-width: 94.64%;
+  min-width: var(--slide-size, 94.64%);
   padding-left: var(--slide-spacing);
 }
 

@@ -55,6 +55,9 @@ const BouqiuePhotoSlider = ({ banners }) => {
         className={`${
           banners?.length > 1 && "justify-start"
         } offer-slider-container`}
+        style={
+          { "--slide-size": banners?.length > 1 ? "85%" : "100%" } as React.CSSProperties
+        }
       >
         <BoutiquePhotoSliderWrapper>
           {banners &&
