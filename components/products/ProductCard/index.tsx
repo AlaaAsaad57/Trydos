@@ -204,23 +204,6 @@ function ProductCard({
         </ProductColorsWrapper>
       )}
       <NextLink
-        // onClick={() => {
-        //   if (ProductData?.is_redeem) {
-        //     let text = document.querySelector(
-        //       `#counter-${product.product_id}`
-        //     )?.textContent;
-        //     if (text) text = text.match(/\d+/)[0];
-        //     if (text?.length)
-        //       localStorage.setItem(
-        //         "counter",
-        //         JSON.stringify({
-        //           counter: text,
-        //           product_id: product?.product_id,
-        //         })
-        //       );
-        //   }
-        //   storeCookies();
-        // }}
         fromRecomended={
           fromRecomended
             ? {

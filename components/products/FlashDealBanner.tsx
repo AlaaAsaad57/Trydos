@@ -70,7 +70,7 @@ function FlashDealBanner({
       }
     };
 
-    // Mirrors the visibility gate in components/ListingPage/LuckyDrawer.tsx:
+    // Mirrors the visibility gate in hooks/useLuckTimer.ts:
     // only tick the interval while the card is on screen and the tab is active.
     const syncTimerToVisibility = () => {
       if (isInView && !document.hidden) {
