@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   getConfiguredImage,
@@ -24,6 +25,7 @@ import ProductColorsBottomSheet from "components/ServerWrapper/ProductWrapper/Pr
 import ProductColorsCards from "components/ServerWrapper/ProductWrapper/ProductColorsCards";
 import type { ListingProduct } from "types/listing";
 import { deriveCardProps, type CardContext } from "./derivedProps";
+import { useLuckTimer } from "hooks/useLuckTimer";
 
 interface ProductCardProps extends CardContext {
   product: ListingProduct;
@@ -69,6 +71,22 @@ function ProductCard({
     InitialProductData,
     sizes_filters,
   } = p;
+  const [inView, setInView] = useState(true);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el || !is_luck) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.1 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [is_luck]);
+  const { luckActive, secondsLeft } = useLuckTimer(id, {
+    isLuck: Boolean(is_luck),
+    visible: inView,
+  });
   let isRtl = language === "ar" || language === "ku";
   let isFlash: any = null;
   let flash_price = offer_price ?? price;
@@ -133,8 +151,9 @@ function ProductCard({
 
   return (
     <div
+      ref={cardRef}
       id={`product_${slug}`}
-      className={`${is_luck && `product_redeem`}  relative flex`}
+      className={`${luckActive ? "product_redeem" : ""}  relative flex`}
     >
       {Sliders && (
         <ProductColorsBottomSheet id={id}>
@@ -424,7 +443,7 @@ function ProductCard({
             <RenderPrice
               currency={currency}
               flash_price={flash_price}
-              is_luck={is_luck}
+              luckActive={luckActive}
               offer_price={offer_price}
               price={price}
             />
@@ -439,14 +458,11 @@ function ProductCard({
         InitialProductData={InitialProductData}
         slug={slug}
         currency={currency}
-        endDate={endDate}
-        flash_deal_price={flash_deal_price}
-        is_flashDeal={is_flashDeal}
         id={id}
         is_luck={is_luck}
+        luckActive={luckActive}
+        secondsLeft={secondsLeft}
         language={language}
-        offer_price={offer_price}
-        price={price}
         luck_price={luck_price}
         sizes_filters={sizes_filters}
       />
