@@ -16,6 +16,7 @@ export default async function BoutiqueMiniLogo({
         alt={boutique?.name ?? ""}
         width={90}
         height={18}
+        className="w-[25px] h-[25px] rounded-[5px]"
         src={GetImageUrl(boutique.icon)}
       />
     </div>

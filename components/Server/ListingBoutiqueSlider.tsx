@@ -49,7 +49,7 @@ function BoutiqueHeader({ boutique }) {
 }
 const BouqiuePhotoSlider = ({ banners }) => {
   return (
-    <div data-cy="boutique_photo_holder" className="boutique-photo-holder">
+    <div data-cy="boutique_photo_holder" className="boutique-photo-holder w-full">
       <div
         data-cy="banners_length-1"
         className={`${
@@ -85,7 +85,7 @@ const BouqiuePhotoSlider = ({ banners }) => {
                       className="OfferImage object-cover max-h-full"
                       src={getConfiguredImage({
                         src: GetImageUrl(banner.file_path),
-                        height: 400,
+                        height: 320,
                         c_pad: true,
                       })}
                       width={380}
