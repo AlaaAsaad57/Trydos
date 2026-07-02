@@ -59,7 +59,9 @@ export default function ListingHeaderCollapse({
         className="boutique-header flex-col align-center"
       >
         <div ref={sentinelRef} aria-hidden className="banner-sentinel" />
-        <div className="banner-collapse items-center justify-center justify-items-center">{banner}</div>
+        <div className="banner-collapse items-center justify-center justify-items-center">
+          <div className="banner-collapse-inner w-full">{banner}</div>
+        </div>
         {categoryFilters}
       </div>
       {productList}
