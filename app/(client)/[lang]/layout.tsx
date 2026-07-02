@@ -94,7 +94,7 @@ export default async function RootLayout({ params, children, modal }) {
         quicksand_medium.variable,
         quicksand_bold.variable,
         quicksand_semibold.variable,
-        "overflow-x-hidden",
+        "overflow-x-clip",
       ].join(" ")}
       lang={mapLocaleToBCP47(lang)}
       translate="no"

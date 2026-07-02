@@ -193,31 +193,13 @@
   transition: height 0.3s;
   width: 90%;
 }
-.filter-listing-bar,
+.filter-listing-bar {
+  position: sticky;
+  top: var(--listing-navbar-h);
+  background: #fff;
+}
 .boutique-top-info {
-  transition: 1s;
-}
-@keyframes move {
-  0% {
-    position: fixed;
-    top: 160px;
-    z-index: 999999999999999;
-    scale: 1;
-  }
-  100% {
-    top: 111px;
-    position: fixed;
-    z-index: 999999999999999;
-    left: -10px;
-    scale: 0.8;
-  }
-}
-.move-anim {
-  top: 109px !important;
-  position: fixed !important;
-  z-index: 999999999999999 !important;
-  left: -10px !important;
-  scale: 1;
+  transition: opacity 0.3s ease;
 }
 
 .price-min-max {

@@ -5,7 +5,6 @@ import "styles/search.css";
 import {
   getConfiguredImage,
   LogError,
-  normalizeView,
   onClickSearchHistory,
   translateFunction,
 } from "utils/functions";
@@ -392,7 +391,6 @@ function SearchIcon({ language, country }) {
         onClick={() => {
           if (!searchEnabled) {
             DisableScroll();
-            // normalizeView();
             setSearchEnabled(true);
           }
         }}
