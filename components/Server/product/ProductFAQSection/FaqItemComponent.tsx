@@ -23,8 +23,8 @@ function FaqItemComponent({
 }) {
   // Read the shared entity so edits/likes/deletes done in any widget reflect
   // here; fall back to the prop before the store is seeded.
-  const entity = useAppStore((s) => s.commentEntities[c?.id]);
-  const deleted = useAppStore((s) => s.deletedCommentIds[c?.id]);
+  const entity = useAppStore((s) => s.commentEntities[comment?.id]);
+  const deleted = useAppStore((s) => s.deletedCommentIds[comment?.id]);
   const c = { ...comment, ...entity };
   // Own question + reply text so translate/show-original is React state, not
   // DOM mutation; re-sync when the (shared) comment text changes.
