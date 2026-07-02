@@ -181,7 +181,7 @@ export default async function Page({ params, searchParams }) {
         </div>
         <Suspense
           fallback={<ListingSkeleton forProducts={true} />}
-          key={`ProductList ${Params.lang}`}
+          key={`ProductList ${Params.lang} ${sort ?? "relevance"}`}
         >
           <ProductListConainer
             isFlashDeals={true}

@@ -137,12 +137,19 @@ export default function ListingSortControl({
   const t = (key: string) => translateFunction(key, language);
 
   const applySort = (key: SortKey) => {
+    setIsOpen(false);
+    if (key === active) return; // already selected — nothing to refetch
     const params = new URLSearchParams(searchParams.toString());
     if (key === "relevance") params.delete("sort");
     else params.set("sort", key);
     const qs = params.toString();
-    setIsOpen(false);
     router.push(qs ? `${pathname}?${qs}` : pathname);
+    // next.config `staleTimes.dynamic` caches the dynamic RSC (~30s), so a
+    // query-only push would reuse the stale product grid (URL changes but the
+    // server components don't refetch). refresh() invalidates the Router Cache
+    // and re-renders the server tree for the new ?sort=; combined with `sort`
+    // in the product-list Suspense key, the skeleton shows while it refetches.
+    router.refresh();
   };
 
   // A short, human summary of the current selection for the trigger's a11y label.

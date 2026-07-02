@@ -234,7 +234,7 @@ export default async function FiltersPageContent({
           productList={
             <Suspense
               fallback={<ListingSkeleton forProducts={true} />}
-              key={`ProductList ${Params.lang}`}
+              key={`ProductList ${Params.lang} ${sort ?? "relevance"}`}
             >
               <ProductListConainer
                 isFlashDeals={false}
