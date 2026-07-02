@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import BottomSheet from "components/global/BottomSheet";
 import { translateFunction } from "utils/functions";
@@ -136,34 +136,21 @@ export default function ListingSortControl({
 
   const t = (key: string) => translateFunction(key, language);
 
-  const [, startNavigation] = useTransition();
-
   const applySort = (key: SortKey) => {
     setIsOpen(false);
-    if (key === active) return; // already selected — nothing to refetch
+    if (key === active) return; // already selected — nothing to change
     const params = new URLSearchParams(searchParams.toString());
     if (key === "relevance") params.delete("sort");
     else params.set("sort", key);
     const qs = params.toString();
-    const url = qs ? `${pathname}?${qs}` : pathname;
-    // Why push AND refresh, batched in one transition:
-    //  • next.config `staleTimes.dynamic: 30` caches the dynamic page RSC and
-    //    does NOT vary it by search params, so a `?sort=` push alone reuses the
-    //    stale grid (URL + widget update, but products never re-sort). This is
-    //    compounded by the intercepting `@modal/(.)filters` parallel-route slot,
-    //    which serves the cached listing overlay.
-    //  • refresh() invalidates the Router Cache and forces a fresh server render
-    //    (incl. the modal slot) for the new sort.
-    //  • Batching both in ONE transition is what makes them cooperate: called
-    //    inline back-to-back the refresh cancels the push (URL never changes); in
-    //    a follow-up effect the refresh races the push. In a single transition
-    //    the push URL is applied and the refresh refetches against it.
-    // With `sort` in the product-list Suspense key, the skeleton shows while the
-    // server re-renders. Applies uniformly to filters / featured / flashDeals.
-    startNavigation(() => {
-      router.push(url);
-      router.refresh();
-    });
+    // Plain push updates the URL (shareable) and the widget's active state.
+    // Refetching the grid is NOT done via router.refresh() here: `staleTimes.
+    // dynamic` (next.config) caches the dynamic RSC and doesn't vary it by search
+    // params, and every push+refresh combination either cancels the push (URL
+    // never changes) or fails to re-render. Instead `SortableGrid` watches the
+    // `sort` param and refetches page 1 through the GetProducts server action
+    // (always fresh — bypasses the Router Cache). See components/Server/SortableGrid.
+    router.push(qs ? `${pathname}?${qs}` : pathname);
   };
 
   // A short, human summary of the current selection for the trigger's a11y label.

@@ -3,6 +3,7 @@ import "styles/globals.css";
 
 import ProductsInfiniteScroll from "components/ListingPage/ProductInfiniteScroll";
 import ProductCard from "components/products/ProductCard";
+import SortableGrid from "components/Server/SortableGrid";
 
 function ProductListServer({
   params,
@@ -28,46 +29,62 @@ function ProductListServer({
           isRtl ? "flex-row-reverse flex" : "flex flex-row"
         } listing-container mt-2  bg-[#f4f4f4] gap-x-[10px] gap-y-[18px] justify-center  min-w-full min-h-[48vh] relative  pb-[390px] max-w-[1310px] flex-wrap`}
       >
-        {products.map((product, key) => (
-          <ProductCard
-            key={product.slug}
-            product={product}
-            currency={currency}
-            country={country}
-            language={language}
-            sliders={true}
-            priority={key < 4}
-            sizesFilters={
-              parsedFilters?.sizes?.length > 0 ? parsedFilters.sizes : null
-            }
-          />
-        ))}
-        <ProductsInfiniteScroll
-          recomended_offset={recomended_offset}
-          pit_id={pit_id}
+        <SortableGrid
+          serverSort={sort ?? ""}
+          currency={currency}
           boutiqueName={boutique?.name}
-          analyticsData={products?.map((s) => ({
-            item_id: s?.product_id,
-            item_name: s?.name,
-            category: s?.category?.name,
-            brand: s.brand?.name,
-            category_id: s?.category?.id,
-            brand_id: s?.brand?.id,
-          }))}
           parsedFilters={{
             ...parsedFilters,
             featured: isFeatured,
             flashdeal: isFlashDeals,
           }}
-          currency={currency}
-          offset={offset}
           isFeatured={isFeatured}
           isFlashDeals={isFlashDeals}
-          sort={sort}
-          sizes_filters={
+          sizesFilters={
             parsedFilters?.sizes?.length > 0 ? parsedFilters.sizes : null
           }
-        />
+        >
+          {products.map((product, key) => (
+            <ProductCard
+              key={product.slug}
+              product={product}
+              currency={currency}
+              country={country}
+              language={language}
+              sliders={true}
+              priority={key < 4}
+              sizesFilters={
+                parsedFilters?.sizes?.length > 0 ? parsedFilters.sizes : null
+              }
+            />
+          ))}
+          <ProductsInfiniteScroll
+            recomended_offset={recomended_offset}
+            pit_id={pit_id}
+            boutiqueName={boutique?.name}
+            analyticsData={products?.map((s) => ({
+              item_id: s?.product_id,
+              item_name: s?.name,
+              category: s?.category?.name,
+              brand: s.brand?.name,
+              category_id: s?.category?.id,
+              brand_id: s?.brand?.id,
+            }))}
+            parsedFilters={{
+              ...parsedFilters,
+              featured: isFeatured,
+              flashdeal: isFlashDeals,
+            }}
+            currency={currency}
+            offset={offset}
+            isFeatured={isFeatured}
+            isFlashDeals={isFlashDeals}
+            sort={sort}
+            sizes_filters={
+              parsedFilters?.sizes?.length > 0 ? parsedFilters.sizes : null
+            }
+          />
+        </SortableGrid>
       </div>
     </>
   );

@@ -12,6 +12,7 @@ import { EnableScroll } from "utils/tinyUtils";
 import auth from "services/auth";
 import { GetProducts } from "serverRequests/listing";
 import ProductCard from "components/products/ProductCard";
+import { ProductCardSkeleton } from "components/skeleton/listing";
 
 function ProductsInfiniteScroll({
   offset,
@@ -25,6 +26,7 @@ function ProductsInfiniteScroll({
   sizes_filters = null,
   pit_id = null,
   sort = undefined,
+  firstPageSkeleton = false,
 }: {
   offset: any;
   currency: any;
@@ -37,6 +39,10 @@ function ProductsInfiniteScroll({
   sizes_filters?: string[] | null;
   pit_id?: string | null;
   sort?: string;
+  // When this component owns the WHOLE grid (client sort refetch from page 1),
+  // show product-card skeletons while the first page is loading, instead of the
+  // small bottom spinner used for load-more.
+  firstPageSkeleton?: boolean;
 }) {
   const resetBoutique = useAppStore((s) => s.resetBoutique);
   const { lang }: { lang: string } = useParams();
@@ -281,6 +287,13 @@ function ProductsInfiniteScroll({
           sizesFilters={sizes_filters}
         />
       ))}
+
+      {firstPageSkeleton &&
+        products.length === 0 &&
+        !isReachEnd &&
+        Array.from({ length: 8 }).map((_, i) => (
+          <ProductCardSkeleton key={`sort-skeleton-${i}`} />
+        ))}
 
       <div
         className="get-next-product regular-text color-dark-gray absolute flex justify-center items-end bottom-[300px]"
