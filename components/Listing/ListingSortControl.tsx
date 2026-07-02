@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import BottomSheet from "components/global/BottomSheet";
 import { translateFunction } from "utils/functions";
@@ -136,6 +136,8 @@ export default function ListingSortControl({
 
   const t = (key: string) => translateFunction(key, language);
 
+  const [, startNavigation] = useTransition();
+
   const applySort = (key: SortKey) => {
     setIsOpen(false);
     if (key === active) return; // already selected — nothing to refetch
@@ -143,25 +145,26 @@ export default function ListingSortControl({
     if (key === "relevance") params.delete("sort");
     else params.set("sort", key);
     const qs = params.toString();
-    router.push(qs ? `${pathname}?${qs}` : pathname);
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    // Why push AND refresh, batched in one transition:
+    //  • next.config `staleTimes.dynamic: 30` caches the dynamic page RSC and
+    //    does NOT vary it by search params, so a `?sort=` push alone reuses the
+    //    stale grid (URL + widget update, but products never re-sort). This is
+    //    compounded by the intercepting `@modal/(.)filters` parallel-route slot,
+    //    which serves the cached listing overlay.
+    //  • refresh() invalidates the Router Cache and forces a fresh server render
+    //    (incl. the modal slot) for the new sort.
+    //  • Batching both in ONE transition is what makes them cooperate: called
+    //    inline back-to-back the refresh cancels the push (URL never changes); in
+    //    a follow-up effect the refresh races the push. In a single transition
+    //    the push URL is applied and the refresh refetches against it.
+    // With `sort` in the product-list Suspense key, the skeleton shows while the
+    // server re-renders. Applies uniformly to filters / featured / flashDeals.
+    startNavigation(() => {
+      router.push(url);
+      router.refresh();
+    });
   };
-
-  // next.config `staleTimes.dynamic` caches the dynamic page RSC and does NOT
-  // vary it by search params, so a `?sort=` push alone reuses the stale product
-  // grid (URL + widget update, grid does not). Refresh AFTER the push has
-  // committed — a refresh() called inline in the click handler races with and
-  // cancels the push, so the URL never changes. This effect fires once the live
-  // sort param has actually changed (a separate commit), then invalidates the
-  // Router Cache; combined with `sort` in the product-list Suspense key the
-  // skeleton shows while the server re-renders. Skip the first mount (SSR fresh).
-  const didMount = useRef(false);
-  useEffect(() => {
-    if (!didMount.current) {
-      didMount.current = true;
-      return;
-    }
-    router.refresh();
-  }, [raw, router]);
 
   // A short, human summary of the current selection for the trigger's a11y label.
   const ACTIVE_LABELS: Record<SortKey, string> = {
@@ -380,18 +383,19 @@ function DirectionalRow({
   const groupActive = options.some((o) => o.active);
   return (
     <div
-      className="w-full flex flex-col gap-[10px] rounded-[15px] px-[12px] py-[11px]"
+      className="w-full flex items-center gap-[12px] rounded-[15px] px-[12px] py-[11px]"
       style={{
         border: `1px solid ${groupActive ? PRIMARY : "transparent"}`,
         background: groupActive ? "rgba(91,63,224,0.06)" : "#f8f8f8",
+        flexDirection: isRtl ? "row-reverse" : "row",
       }}
     >
+      <IconBadge active={groupActive}>{icon}</IconBadge>
       <div
-        className="flex items-center gap-[12px]"
-        style={{ flexDirection: isRtl ? "row-reverse" : "row" }}
+        className="flex flex-col grow gap-[8px]"
+        style={{ textAlign: isRtl ? "right" : "left" }}
       >
-        <IconBadge active={groupActive}>{icon}</IconBadge>
-        <span className="flex flex-col grow gap-[1px]">
+        <span className="flex flex-col gap-[1px]">
           <span
             className="text-[14px] medium"
             style={{ color: groupActive ? PRIMARY : "#3c3c3c" }}
@@ -400,29 +404,29 @@ function DirectionalRow({
           </span>
           <span className="text-[12px] regular text-[#707070]">{subtitle}</span>
         </span>
-      </div>
-      <div
-        className="flex w-full gap-[8px]"
-        style={{ flexDirection: isRtl ? "row-reverse" : "row" }}
-      >
-        {options.map((o) => (
-          <button
-            key={o.key}
-            type="button"
-            role="radio"
-            aria-checked={o.active}
-            aria-label={`${title}: ${o.label}`}
-            onClick={() => onSelect(o.key)}
-            className="flex-1 basis-0 rounded-full py-[8px] text-center text-[12px] medium transition-colors"
-            style={{
-              border: `1px solid ${o.active ? PRIMARY : "transparent"}`,
-              background: o.active ? "rgba(91,63,224,0.10)" : "#f2f2f2",
-              color: o.active ? PRIMARY : "#505050",
-            }}
-          >
-            {o.label}
-          </button>
-        ))}
+        <div
+          className="flex w-full gap-[8px]"
+          style={{ flexDirection: isRtl ? "row-reverse" : "row" }}
+        >
+          {options.map((o) => (
+            <button
+              key={o.key}
+              type="button"
+              role="radio"
+              aria-checked={o.active}
+              aria-label={`${title}: ${o.label}`}
+              onClick={() => onSelect(o.key)}
+              className="flex-1 basis-0 rounded-full py-[8px] text-center text-[12px] medium transition-colors"
+              style={{
+                border: `1px solid ${o.active ? PRIMARY : "transparent"}`,
+                background: o.active ? "rgba(91,63,224,0.10)" : "#f2f2f2",
+                color: o.active ? PRIMARY : "#505050",
+              }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
