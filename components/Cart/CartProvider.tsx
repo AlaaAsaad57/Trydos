@@ -45,7 +45,6 @@ const CartProvider = ({ language, country }) => {
     setAppCountry,
     setCurrency,
     setChatOpen,
-    filterEnabled,
     openPayIframe,
     payIframeURL,
     cart_enable: enable,

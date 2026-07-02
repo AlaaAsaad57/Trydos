@@ -235,22 +235,24 @@ export default async function FiltersPageContent({
               />
             </Suspense>
           }
+          productList={
+            <Suspense
+              fallback={<ListingSkeleton forProducts={true} />}
+              key={`ProductList ${Params.lang}`}
+            >
+              <ProductListConainer
+                isFlashDeals={false}
+                isFeatured={false}
+                Params={Params}
+                boutiquePromise={boutiquePromise}
+                currencyPromise={currencyPromise}
+                filtersDataPromise={filtersDataPromise}
+                parsedFilters={parsedFilters}
+                language={language}
+              />
+            </Suspense>
+          }
         />
-        <Suspense
-          fallback={<ListingSkeleton forProducts={true} />}
-          key={`ProductList ${Params.lang}`}
-        >
-          <ProductListConainer
-            isFlashDeals={false}
-            isFeatured={false}
-            Params={Params}
-            boutiquePromise={boutiquePromise}
-            currencyPromise={currencyPromise}
-            filtersDataPromise={filtersDataPromise}
-            parsedFilters={parsedFilters}
-            language={language}
-          />
-        </Suspense>
       </>
     );
   } catch (error) {

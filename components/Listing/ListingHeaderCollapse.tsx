@@ -10,6 +10,8 @@ interface ListingHeaderCollapseProps {
   banner: ReactNode;
   /** Category filters — stay visible, rendered below the collapsing banner. */
   categoryFilters: ReactNode;
+  /** Product grid — rendered inside .listing-header so the sticky bar's containing block spans the full scroll length. */
+  productList: ReactNode;
   isRtl?: boolean;
 }
 
@@ -22,6 +24,7 @@ export default function ListingHeaderCollapse({
   filterBar,
   banner,
   categoryFilters,
+  productList,
   isRtl = false,
 }: ListingHeaderCollapseProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -59,6 +62,7 @@ export default function ListingHeaderCollapse({
         <div className="banner-collapse">{banner}</div>
         {categoryFilters}
       </div>
+      {productList}
     </div>
   );
 }

@@ -431,7 +431,7 @@ body {
   min-height: 100%;
   justify-content: space-around;
   height: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 input[type="search"]::-webkit-search-cancel-button {
