@@ -33,7 +33,7 @@ import {
 // backend's ListingSortKey vocabulary exactly (services/elastic/helpers).
 type SortKey = ListingSortKey | "relevance";
 
-const PRIMARY = "#5b3fe0";
+const PRIMARY = "#FF6464";
 
 function IconBadge({
   active,
@@ -48,7 +48,7 @@ function IconBadge({
       style={{
         width: 38,
         height: 38,
-        background: active ? "rgba(91,63,224,0.10)" : "#f2f2f2",
+        background: active ? "rgba(255,100,100,0.10)" : "#f2f2f2",
         color: active ? PRIMARY : "#707070",
       }}
     >
@@ -329,7 +329,7 @@ function SingleRow({
       className="w-full flex items-center gap-[12px] rounded-[15px] px-[12px] py-[11px] transition-colors"
       style={{
         border: `1px solid ${active ? PRIMARY : "transparent"}`,
-        background: active ? "rgba(91,63,224,0.06)" : "#f8f8f8",
+        background: active ? "rgba(255,100,100,0.06)" : "#f8f8f8",
         flexDirection: isRtl ? "row-reverse" : "row",
         textAlign: isRtl ? "right" : "left",
       }}
@@ -373,7 +373,7 @@ function DirectionalRow({
       className="w-full flex items-center gap-[12px] rounded-[15px] px-[12px] py-[11px]"
       style={{
         border: `1px solid ${groupActive ? PRIMARY : "transparent"}`,
-        background: groupActive ? "rgba(91,63,224,0.06)" : "#f8f8f8",
+        background: groupActive ? "rgba(255,100,100,0.06)" : "#f8f8f8",
         flexDirection: isRtl ? "row-reverse" : "row",
       }}
     >
@@ -406,7 +406,7 @@ function DirectionalRow({
               className="flex-1 basis-0 rounded-full py-[8px] text-center text-[12px] medium transition-colors"
               style={{
                 border: `1px solid ${o.active ? PRIMARY : "transparent"}`,
-                background: o.active ? "rgba(91,63,224,0.10)" : "#f2f2f2",
+                background: o.active ? "rgba(255,100,100,0.10)" : "#f2f2f2",
                 color: o.active ? PRIMARY : "#505050",
               }}
             >
