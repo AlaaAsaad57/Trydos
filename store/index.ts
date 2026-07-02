@@ -8,6 +8,7 @@ import { useListingStore } from "./listing/reducer";
 import { useSearchStore } from "./search/reducer";
 import { useChatStore } from "./chat/reducer";
 import useCartStore from "./Cart/reducer";
+import { useLuckStore } from "./luck/reducer";
 import { devtools } from "zustand/middleware";
 
 // Only enable devtools in development
@@ -24,7 +25,8 @@ type AppState = ReturnType<typeof useAuthStore> &
   ReturnType<typeof useDetailsStore> &
   ReturnType<typeof useHomeStore> &
   ReturnType<typeof useListingStore> &
-  ReturnType<typeof useSearchStore> & {
+  ReturnType<typeof useSearchStore> &
+  ReturnType<typeof useLuckStore> & {
     _hasHydrated: boolean;
     setHasHydrated: (hasHydrated: boolean) => void;
     cameraPermissions: any;
@@ -46,6 +48,7 @@ export const useAppStore = create<AppState>()(
       ...useListingStore(set, get),
       ...useSearchStore(set, get),
       ...useCartStore(set, get),
+      ...useLuckStore(set, get),
 
       cameraPermissions: "asked",
       setCameraPermissions: (value: any) => set({ cameraPermissions: value }),
