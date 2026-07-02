@@ -17,6 +17,7 @@ import ProductListConainer from "components/Server/ProductListConainer";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import FilterListingBackButton from "components/Listing/FilterListingBackButton";
 import ListingHeaderCollapse from "components/Listing/ListingHeaderCollapse";
+import BoutiqueMiniLogo from "components/Listing/BoutiqueMiniLogo";
 import ListingSkeleton from "components/skeleton/listing";
 import BoutiqueSlidersSkeleton from "components/skeleton/loaders/BoutiqueSlidersSkeleton";
 
@@ -167,7 +168,16 @@ export default async function FiltersPageContent({
                 isRtl ? "flex-row-reverse flex" : "flex-row flex"
               } align-center left-0 right-0 mx-auto w-full h-[50px] pl-[15px] max-w-[1365px] pr-[20px] justify-between bg-white z-10`}
             >
-              <FilterListingBackButton lang={Params.lang} isRtl={isRtl} />
+              <div
+                className={`align-center ${
+                  isRtl ? "flex-row-reverse flex" : "flex-row flex"
+                } items-center gap-[8px]`}
+              >
+                <FilterListingBackButton lang={Params.lang} isRtl={isRtl} />
+                <Suspense fallback={<></>}>
+                  <BoutiqueMiniLogo boutiquePromise={boutiquePromise} />
+                </Suspense>
+              </div>
               <div
                 data-cy="filter_bar_options"
                 className={`filter-bar-options w-[170px] justify-between ${

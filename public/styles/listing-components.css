@@ -316,3 +316,25 @@
   width: 100%;
   pointer-events: none;
 }
+
+/* Compact branding: hidden when expanded, crossfades in when collapsed. */
+.brand-mini {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transform: translateX(-6px);
+  transition: opacity 0.3s ease, transform 0.3s ease, max-width 0.3s ease;
+  pointer-events: none;
+}
+.listing-header[data-collapsed="true"] .brand-mini {
+  opacity: 1;
+  max-width: 120px;
+  transform: none;
+  pointer-events: auto;
+}
+.listing-header[data-rtl="true"] .brand-mini {
+  transform: translateX(6px);
+}
+.listing-header[data-rtl="true"][data-collapsed="true"] .brand-mini {
+  transform: none;
+}
