@@ -29,9 +29,13 @@ export function useLuckTimer(
   const expireLuck = useAppStore((s) => s.expireLuck);
 
   const [tabHidden, setTabHidden] = useState(false);
-  // `tick` is only a re-render trigger; the displayed value is computed from a
-  // live clock below so a resumed/re-shown timer never paints a stale value.
-  const [, setTick] = useState(0);
+  // The countdown is driven by this reactive `now` clock, resampled once per
+  // second while running. It MUST be React state, not a render-time
+  // `Date.now()` call: React Compiler (reactCompiler: true) cannot see
+  // `Date.now()` as reactive, so it memoises `secondsLeft` on `timer` alone and
+  // the displayed value freezes until `timer`'s identity next changes (only on
+  // pause/resume). Keying the clock in state makes each tick a tracked change.
+  const [now, setNow] = useState(() => Date.now());
 
   // Start / rehydrate the window once, for luck products only.
   useEffect(() => {
@@ -55,18 +59,18 @@ export function useLuckTimer(
     else resumeLuck(id);
   }, [paused, isLuck, timer?.expired, id, pauseLuck, resumeLuck]);
 
-  // 1-second re-render cadence, only while actively running.
+  // 1-second tick, only while actively running. `now` is resampled the instant
+  // the timer (re)starts/resumes, alongside the fresh deadlineTs, so there is
+  // no frame where secondsLeft is inflated by the paused duration.
   const running = Boolean(timer && !timer.expired && timer.deadlineTs != null);
   useEffect(() => {
     if (!running) return;
-    const iv = setInterval(() => setTick((t) => (t + 1) % 1_000_000), 1000);
+    setNow(Date.now());
+    const iv = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(iv);
   }, [running]);
 
-  // Read the clock at render time (not a cached `now` state): on resume the
-  // fresh deadlineTs and the clock are sampled together, so there is no frame
-  // where secondsLeft is inflated by the paused duration.
-  const secondsLeft = computeSecondsLeft(timer, Date.now());
+  const secondsLeft = computeSecondsLeft(timer, now);
 
   // Expire exactly once when a running countdown hits 0.
   useEffect(() => {
