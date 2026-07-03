@@ -688,6 +688,11 @@ const translations = {
   "Shipping Is Completely Free Without Any Extras":
     "Kargo Tamamen Ücretsiz, Ekstra Ücret Yok",
   "Reach End": "Sonuca Ulaş",
+  "You've reached the end": "Sona ulaştınız",
+  "You've seen everything in this list.": "Bu listedeki her şeyi gördünüz.",
+  "No products found": "Ürün bulunamadı",
+  "Try changing or clearing your filters.": "Filtrelerinizi değiştirmeyi veya temizlemeyi deneyin.",
+  "Clear filters": "Filtreleri temizle",
   "Good Quality Product": "İyi Kaliteli Ürün",
   "Verified by trydos": "trydos tarafından doğrulandı",
   "Made In Turkey": "Türkiye'de Üretilmiştir",

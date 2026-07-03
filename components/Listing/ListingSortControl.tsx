@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import BottomSheet from "components/global/BottomSheet";
+import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import {
   LISTING_SORT_KEYS,
@@ -23,10 +24,15 @@ import {
  *   • Name         → name_asc / name_desc   (directional pair)
  *
  * Rather than a flat radio list, related directions are grouped so the intent
- * ("Price") and the direction ("Low to High") read as one thought. Selection is
- * driven purely by the `?sort=` query param (SSR + shareable); picking an option
- * navigates and the server re-renders. The product grid's remount key includes
- * `sort`, so pagination state resets cleanly on every change.
+ * ("Price") and the direction ("Low to High") read as one thought.
+ *
+ * Select-then-confirm (mirrors the filter widget): picking an option only stages
+ * a local `pending` choice — the sheet stays open and nothing navigates. A fixed
+ * footer commits it: **Confirm** (primary) applies `pending` via the `?sort=`
+ * query param (SSR + shareable) and closes the sheet; **Clear** (outline) resets
+ * `pending` back to Recommended without navigating. On Confirm `SortableGrid`
+ * sees the changed param and shows product-card skeletons immediately. The
+ * product grid's remount key includes `sort`, so pagination resets on change.
  */
 
 // "relevance" is the implicit default (no `?sort=`); the rest mirror the
@@ -134,6 +140,14 @@ export default function ListingSortControl({
     : "relevance";
   const isActive = active !== "relevance";
 
+  // Staged selection (select-then-confirm). Rows update `pending`; only Confirm
+  // applies it. Re-synced to the applied sort every time the sheet opens so a
+  // dismissed-then-reopened sheet reflects reality, not a stale draft.
+  const [pending, setPending] = useState<SortKey>(active);
+  useEffect(() => {
+    if (isOpen) setPending(active);
+  }, [isOpen, active]);
+
   const t = (key: string) => translateFunction(key, language);
 
   const applySort = (key: SortKey) => {
@@ -143,6 +157,11 @@ export default function ListingSortControl({
     if (key === "relevance") params.delete("sort");
     else params.set("sort", key);
     const qs = params.toString();
+    // Show the full-screen listing skeleton immediately (same as the filter
+    // links). SortableGrid swaps to a fresh grid that clears the loader once its
+    // first page lands; if the sort returns to the server order, SortableGrid
+    // clears it directly (no remount happens).
+    useAppStore.getState().setIsNavigating({ is_filter: true });
     // Plain push updates the URL (shareable) and the widget's active state.
     // Refetching the grid is NOT done via router.refresh() here: `staleTimes.
     // dynamic` (next.config) caches the dynamic RSC and doesn't vary it by search
@@ -219,9 +238,9 @@ export default function ListingSortControl({
                 icon={<SparkleIcon />}
                 title={t("Recommended")}
                 subtitle={t("Best match for your search")}
-                active={active === "relevance"}
+                active={pending === "relevance"}
                 isRtl={isRtl}
-                onSelect={() => applySort("relevance")}
+                onSelect={() => setPending("relevance")}
               />
 
               {/* Best sellers */}
@@ -229,9 +248,9 @@ export default function ListingSortControl({
                 icon={<FlameIcon />}
                 title={t("Best sellers")}
                 subtitle={t("Most bought right now")}
-                active={active === "best_selling"}
+                active={pending === "best_selling"}
                 isRtl={isRtl}
-                onSelect={() => applySort("best_selling")}
+                onSelect={() => setPending("best_selling")}
               />
 
               {/* Date added */}
@@ -244,15 +263,15 @@ export default function ListingSortControl({
                   {
                     key: "newest",
                     label: t("Newest"),
-                    active: active === "newest",
+                    active: pending === "newest",
                   },
                   {
                     key: "oldest",
                     label: t("Oldest"),
-                    active: active === "oldest",
+                    active: pending === "oldest",
                   },
                 ]}
-                onSelect={applySort}
+                onSelect={setPending}
               />
 
               {/* Price */}
@@ -265,15 +284,15 @@ export default function ListingSortControl({
                   {
                     key: "price_asc",
                     label: t("Low to High"),
-                    active: active === "price_asc",
+                    active: pending === "price_asc",
                   },
                   {
                     key: "price_desc",
                     label: t("High to Low"),
-                    active: active === "price_desc",
+                    active: pending === "price_desc",
                   },
                 ]}
-                onSelect={applySort}
+                onSelect={setPending}
               />
 
               {/* Name */}
@@ -286,16 +305,52 @@ export default function ListingSortControl({
                   {
                     key: "name_asc",
                     label: t("A to Z"),
-                    active: active === "name_asc",
+                    active: pending === "name_asc",
                   },
                   {
                     key: "name_desc",
                     label: t("Z to A"),
-                    active: active === "name_desc",
+                    active: pending === "name_desc",
                   },
                 ]}
-                onSelect={applySort}
+                onSelect={setPending}
               />
+            </div>
+
+            {/* Fixed footer — Clear (outline) + Confirm (primary), mirrors the
+                filter widget. Sticky so it pins while the options scroll. */}
+            <div
+              className="sticky bottom-0 -mx-[14px] mt-[16px] flex gap-[10px] border-t border-[#f0f0f0] bg-white px-[14px] pt-[12px] pb-[6px]"
+              style={{ flexDirection: isRtl ? "row-reverse" : "row" }}
+            >
+              <button
+                type="button"
+                data-cy="sort_clear"
+                disabled={pending === "relevance"}
+                onClick={() => setPending("relevance")}
+                className="h-[48px] rounded-[15px] px-[22px] text-[14px] medium transition-colors"
+                style={{
+                  border: "1px solid #d5d5d5",
+                  background: "#fff",
+                  color: pending === "relevance" ? "#b5b5b5" : "#505050",
+                  opacity: pending === "relevance" ? 0.6 : 1,
+                }}
+              >
+                {t("Reset")}
+              </button>
+              <button
+                type="button"
+                data-cy="sort_confirm"
+                disabled={pending === active}
+                onClick={() => applySort(pending)}
+                className="h-[48px] grow rounded-[15px] text-[15px] semibold text-white transition-opacity"
+                style={{
+                  background: PRIMARY,
+                  opacity: pending === active ? 0.5 : 1,
+                }}
+              >
+                {t("Confirm")}
+              </button>
             </div>
           </div>
         </BottomSheet>

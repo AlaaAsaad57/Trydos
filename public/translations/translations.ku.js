@@ -766,6 +766,11 @@ const translations = {
   "Within 3 Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back":
     "لە ماوەی ٣ ڕۆژدا دوای وەرگرتنی بەرهەمەکە، دەتوانیت بیگەڕێنیتەوە بەبێ هیچ مەرج و هۆکارێک بە تەواوی ئاسان و پارەکەت وەربگریتەوە",
   "Reach End": "گەیشتنە کۆتایی",
+  "You've reached the end": "گەیشتیتە کۆتایی",
+  "You've seen everything in this list.": "هەموو ئەوەی لەم لیستەدایە بینیت.",
+  "No products found": "هیچ بەرهەمێک نەدۆزرایەوە",
+  "Try changing or clearing your filters.": "هەوڵبدە فلتەرەکانت بگۆڕیت یان بیانسڕیتەوە.",
+  "Clear filters": "سڕینەوەی فلتەرەکان",
   "Notify Me About The Product When":
     "ئاگادارم بکەرەوە سەبارەت بە بەرهەمەکە کاتێک",
   "Before Stock Out": "پێش کۆتاییهاتنی کۆگا",

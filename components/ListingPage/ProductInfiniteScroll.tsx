@@ -13,6 +13,7 @@ import auth from "services/auth";
 import { GetProducts } from "serverRequests/listing";
 import ProductCard from "components/products/ProductCard";
 import { ProductCardSkeleton } from "components/skeleton/listing";
+import { BagReachedEnd } from "components/Listing/illustrations/ListingBagIllustration";
 
 function ProductsInfiniteScroll({
   offset,
@@ -74,6 +75,11 @@ function ProductsInfiniteScroll({
   const offsetRef = useRef(offset);
   const recommendedOffsetRef = useRef(recomended_offset);
   const isReachEndRef = useRef(false);
+  // Whether the full-screen page loader (isNavigating) has been cleared for this
+  // mount. A normal navigation arrival clears it on mount (the server grid is
+  // already here); a client-owned first-page refetch (sort confirm / cleared
+  // filters landing here) keeps it up until the first page's data actually lands.
+  const pageLoaderClearedRef = useRef(false);
   // PIT snapshot id for this filter session (ADR-009). Rotated from each
   // response; reset to the new first-page snapshot on the keyed remount.
   const pitIdRef = useRef<string | null>(pit_id);
@@ -236,6 +242,12 @@ function ProductsInfiniteScroll({
     } finally {
       isFetchingRef.current = false;
       setLoading(false);
+      // First page has resolved → the client-owned refetch's data has landed;
+      // clear the page loader now (a no-op if a normal mount already cleared it).
+      if (!pageLoaderClearedRef.current) {
+        pageLoaderClearedRef.current = true;
+        useAppStore.getState().setIsNavigating(null);
+      }
     }
 
     if (scheduleNext) {
@@ -247,7 +259,14 @@ function ProductsInfiniteScroll({
 
   useEffect(() => {
     const { setIsNavigating } = useAppStore.getState();
-    setIsNavigating(null);
+    // Normal navigation arrival: the server-rendered grid is already present, so
+    // the destination has "arrived" — clear the page loader on mount. For a
+    // client-owned first-page refetch (firstPageSkeleton), keep it up until the
+    // first page's data lands (cleared in getProductsReq's finally).
+    if (!firstPageSkeleton) {
+      setIsNavigating(null);
+      pageLoaderClearedRef.current = true;
+    }
 
     GAevent({
       action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
@@ -296,28 +315,34 @@ function ProductsInfiniteScroll({
         ))}
 
       <div
-        className="get-next-product regular-text color-dark-gray absolute flex justify-center items-end bottom-[300px]"
+        className="get-next-product absolute left-0 right-0 bottom-[200px] flex flex-col items-center justify-center"
         data-cy="ReachEnd"
       >
         {!isReachEnd ? (
-          <>
-            {!loading ? (
-              <InView
-                threshold={0.5}
-                className="spinner-container"
-                as="div"
-                onChange={(inView) => {
-                  if (inView && !loading) {
-                    getProductsReq();
-                  }
-                }}
-              ></InView>
-            ) : (
-              <h2>{loading && <Spinner no={false} className="" />}</h2>
-            )}
-          </>
+          !loading ? (
+            <InView
+              threshold={0.5}
+              className="spinner-container"
+              as="div"
+              onChange={(inView) => {
+                if (inView && !loading) {
+                  getProductsReq();
+                }
+              }}
+            ></InView>
+          ) : (
+            <Spinner no={false} className="" />
+          )
         ) : (
-          <>{translate("Reach End")}</>
+          <div className="flex flex-col items-center text-center">
+            <BagReachedEnd />
+            <h2 className="f-16 medium color-dark-gray mt-4">
+              {translate("You've reached the end")}
+            </h2>
+            <p className="f-14 mt-1 text-[#707070]">
+              {translate("You've seen everything in this list.")}
+            </p>
+          </div>
         )}
       </div>
     </>

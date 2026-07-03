@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useAppStore } from "store";
 import ProductsInfiniteScroll from "components/ListingPage/ProductInfiniteScroll";
 
 /**
@@ -47,8 +49,16 @@ export default function SortableGrid({
 }) {
   const searchParams = useSearchParams();
   const sortParam = searchParams.get("sort") || "";
+  const showingServerGrid = sortParam === serverSort;
 
-  if (sortParam === serverSort) return <>{children}</>;
+  // When the sort returns to the server-rendered order we simply re-show the
+  // already-mounted server grid — no ProductsInfiniteScroll remounts to clear the
+  // page loader that Confirm set. Clear it here so the loader never hangs.
+  useEffect(() => {
+    if (showingServerGrid) useAppStore.getState().setIsNavigating(null);
+  }, [showingServerGrid]);
+
+  if (showingServerGrid) return <>{children}</>;
 
   return (
     <ProductsInfiniteScroll

@@ -51,7 +51,7 @@ class HomeService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      console.log("starting_setting", response);
+    
       setSettings(response.data);
       sessionStorage.setItem("starttingSetting", JSON.stringify(response.data));
       await this.getCustomerInfo();
