@@ -9,6 +9,7 @@ import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
+import { dedupeRequest } from "serverRequests/requestDedup";
 import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
@@ -130,24 +131,34 @@ export default async function FiltersPageContent({
     // Kick off the main ES query and hand un-awaited promises straight to the
     // Suspense-wrapped containers below (mirrors featured/[[...filters]]/page.tsx)
     // so the HTML shell can stream immediately instead of blocking on ES.
-    const filtersDataPromise = getProductsAndFiltersFromElastic({
-      country,
-      language_code: language,
-      filters: {
-        ...parsedFilters,
-        featured: false,
-        flashdeal: false,
-        search_text: parsedFilters.search_text?.[0],
-      },
-      limit: 10,
-      userId: parsedUserId,
-      // User-facing listing sort (`?sort=`); undefined ⇒ relevance default.
-      sort,
-      // Open a PIT snapshot for this filter session (ADR-009); the returned
-      // pit_id rides inside filtersData and is threaded to the infinite
-      // scroll so every "load more" reads the same immutable snapshot.
-      usePit: true,
-    });
+    //
+    // Deduped per request: this page renders twice in one request (real page in
+    // the `children` slot + the `(.)filters` copy in the `@modal` slot). Without
+    // this, both fire the ES query and each opens a PIT — and on a hard load the
+    // discarded modal copy leaks its unused PIT. The key covers everything that
+    // makes the query unique so the two identical renders share one execution.
+    const filtersDataPromise = dedupeRequest(
+      `listing:${country}:${language}:${sort ?? ""}:${parsedUserId ?? ""}:${JSON.stringify(parsedFilters)}`,
+      () =>
+        getProductsAndFiltersFromElastic({
+          country,
+          language_code: language,
+          filters: {
+            ...parsedFilters,
+            featured: false,
+            flashdeal: false,
+            search_text: parsedFilters.search_text?.[0],
+          },
+          limit: 10,
+          userId: parsedUserId,
+          // User-facing listing sort (`?sort=`); undefined ⇒ relevance default.
+          sort,
+          // Open a PIT snapshot for this filter session (ADR-009); the returned
+          // pit_id rides inside filtersData and is threaded to the infinite
+          // scroll so every "load more" reads the same immutable snapshot.
+          usePit: true,
+        }),
+    );
 
     const isRtl = language === "ar" || language === "ku";
 
