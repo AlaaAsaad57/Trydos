@@ -7,7 +7,8 @@ import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
 import { showErrorMessage } from "components/global/AddToCartMessage";
 import { GetNextRecommendations } from "serverRequests/home";
-function RecomendedProducts({ lang, InitialOffset, userId }) {
+import ProductCard from "components/products/ProductCard";
+function RecomendedProducts({ lang, InitialOffset, userId, currency }) {
   const { user } = useAppStore();
   const [products, setProducts] = useState([]);
   const [offset, setOffset] = useState(InitialOffset ?? []);
@@ -54,7 +55,17 @@ function RecomendedProducts({ lang, InitialOffset, userId }) {
 
   return (
     <>
-      {products}
+      {products.map((product) => (
+        <ProductCard
+          key={product?.product_id ?? product?.id}
+          product={product}
+          currency={currency}
+          country={country}
+          language={language}
+          sliders={false}
+          fromRecomended={true}
+        />
+      ))}
       {products?.length !== totalSize && (
         <div
           onClick={() => {

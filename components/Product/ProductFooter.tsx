@@ -34,7 +34,7 @@ async function ProductFooter({
   ]);
   const isRedeemed = async () => {
     if (!qtyPricePromise?.is_luck) return false;
-    let redeemed: any = await getCookieServer<any[]>("redeemd_ids");
+    let redeemed: any = await getCookieServer<any[]>("redemed_ids");
     if (
       redeemed &&
       redeemed.find((s) => String(s.id) === String(qtyPricePromise.id))

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import "styles/listing-components.css";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
@@ -8,6 +9,7 @@ import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
+import { dedupeRequest } from "serverRequests/requestDedup";
 import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
@@ -15,6 +17,11 @@ import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import FilterListingBackButton from "components/Listing/FilterListingBackButton";
+import ListingSortControl from "components/Listing/ListingSortControl";
+import ListingHeaderCollapse from "components/Listing/ListingHeaderCollapse";
+import BoutiqueMiniLogo from "components/Listing/BoutiqueMiniLogo";
+import ListingSkeleton from "components/skeleton/listing";
+import BoutiqueSlidersSkeleton from "components/skeleton/loaders/BoutiqueSlidersSkeleton";
 
 async function getBoutique(
   boutique: string | null,
@@ -89,10 +96,12 @@ async function getCurrencyForListing(country: string, language: string) {
 
 interface FiltersPageContentProps {
   params: { lang: string; filters?: string[] };
+  sort?: string;
 }
 
 export default async function FiltersPageContent({
   params,
+  sort,
 }: FiltersPageContentProps) {
   const Params = params;
   try {
@@ -119,103 +128,138 @@ export default async function FiltersPageContent({
     );
     const parsedUserId = userData?.id ?? null;
 
-    const [filtersData, currency, boutique] = await Promise.all([
-      getProductsAndFiltersFromElastic({
-        country,
-        language_code: language,
-        filters: {
-          ...parsedFilters,
-          featured: false,
-          flashdeal: false,
-          search_text: parsedFilters.search_text?.[0],
-        },
-        limit: 10,
-        userId: parsedUserId,
-        // Open a PIT snapshot for this filter session (ADR-009); the returned
-        // pit_id rides inside filtersData and is threaded to the infinite
-        // scroll so every "load more" reads the same immutable snapshot.
-        usePit: true,
-      }),
-      currencyPromise,
-      boutiquePromise,
-    ]);
+    // Kick off the main ES query and hand un-awaited promises straight to the
+    // Suspense-wrapped containers below (mirrors featured/[[...filters]]/page.tsx)
+    // so the HTML shell can stream immediately instead of blocking on ES.
+    //
+    // Deduped per request: this page renders twice in one request (real page in
+    // the `children` slot + the `(.)filters` copy in the `@modal` slot). Without
+    // this, both fire the ES query and each opens a PIT — and on a hard load the
+    // discarded modal copy leaks its unused PIT. The key covers everything that
+    // makes the query unique so the two identical renders share one execution.
+    const filtersDataPromise = dedupeRequest(
+      `listing:${country}:${language}:${sort ?? ""}:${parsedUserId ?? ""}:${JSON.stringify(parsedFilters)}`,
+      () =>
+        getProductsAndFiltersFromElastic({
+          country,
+          language_code: language,
+          filters: {
+            ...parsedFilters,
+            featured: false,
+            flashdeal: false,
+            search_text: parsedFilters.search_text?.[0],
+          },
+          limit: 10,
+          userId: parsedUserId,
+          // User-facing listing sort (`?sort=`); undefined ⇒ relevance default.
+          sort,
+          // Open a PIT snapshot for this filter session (ADR-009); the returned
+          // pit_id rides inside filtersData and is threaded to the infinite
+          // scroll so every "load more" reads the same immutable snapshot.
+          usePit: true,
+        }),
+    );
 
     const isRtl = language === "ar" || language === "ku";
 
     return (
       <>
-        <FilterWidgetServer
-          isFeatured={false}
-          isFlashDeal={false}
-          currencyPromise={currency}
-          language={language}
-          country={country}
-          parsedFilters={parsedFilters}
-          filtersPromise={filtersData}
-        />
-        <div
-          data-cy="filter_listing_bar"
-          className={`filter-listing-bar z-99999999 relative ${
-            isRtl ? "flex-row-reverse flex" : "flex-row flex"
-          } align-center left-0 right-0 mx-auto w-full h-[50px] pl-[15px] max-w-[1365px] pr-[20px] justify-between bg-white z-10`}
-        >
-          <FilterListingBackButton lang={Params.lang} isRtl={isRtl} />
-          <div
-            data-cy="filter_bar_options"
-            className={`filter-bar-options w-[170px] justify-between ${
-              isRtl ? "flex-row-reverse flex" : "flex-row flex"
-            }  align-center ${
-              parsedFilters?.search_text?.length > 0 ? "w-full" : ""
-            }`}
-          >
-            <ListingSearchContainer
-              country={country}
-              language={language}
-              filtersPromise={filtersData}
-              parsedFilters={parsedFilters}
-            />
-            <div
-              data-cy="filter_option_loseSearchInput"
-              className="filter-option"
-            >
-              <img
-                src="/icons/sortIcon.svg"
-                data-cy="closeSearchInput"
-                alt=""
-              />
-            </div>
-            <FilterBoutiquePageButton key="filter-button" />
-            <ShareBoutiquePageButton />
-          </div>
-        </div>
-
-        <div
-          data-cy="boutique_header"
-          className="boutique-header flex-col align-center"
-        >
-          {parsedFilters?.boutiques?.[0] && (
-            <ListingBoutiqueSlider
-              boutiquePromise={boutique}
-              key={boutiqueItem || "noFilters"}
-            />
-          )}
-
-          <FilterListContainer
-            filtersPromis={filtersData}
-            currencyPromise={currency}
-            Params={Params}
+        <Suspense fallback={<></>} key={`FilterWidget ${Params.lang}`}>
+          <FilterWidgetServer
+            isFeatured={false}
+            isFlashDeal={false}
+            currencyPromise={currencyPromise}
+            language={language}
+            country={country}
             parsedFilters={parsedFilters}
+            filtersPromise={filtersDataPromise}
           />
-        </div>
-        <ProductListConainer
-          isFlashDeals={false}
-          isFeatured={false}
-          Params={Params}
-          boutiquePromise={boutique}
-          currencyPromise={currency}
-          filtersDataPromise={filtersData}
-          parsedFilters={parsedFilters}
-          language={language}
+        </Suspense>
+        <ListingHeaderCollapse
+          isRtl={isRtl}
+          filterBar={
+            <div
+              data-cy="filter_listing_bar"
+              className={`filter-listing-bar z-99999999 ${
+                isRtl ? "flex-row-reverse flex" : "flex-row flex"
+              } align-center left-0 right-0 mx-auto w-full h-[50px] pl-[15px] max-w-[1365px] pr-[20px] justify-between bg-white z-10`}
+            >
+              <div
+                className={`align-center ${
+                  isRtl ? "flex-row-reverse flex" : "flex-row flex"
+                } items-center gap-[8px]`}
+              >
+                <FilterListingBackButton lang={Params.lang} isRtl={isRtl} />
+                <Suspense fallback={<></>}>
+                  <BoutiqueMiniLogo boutiquePromise={boutiquePromise} />
+                </Suspense>
+              </div>
+              <div
+                data-cy="filter_bar_options"
+                className={`filter-bar-options w-[170px] justify-between ${
+                  isRtl ? "flex-row-reverse flex" : "flex-row flex"
+                }  align-center ${
+                  parsedFilters?.search_text?.length > 0 ? "w-full" : ""
+                }`}
+              >
+                <Suspense fallback={<></>}>
+                  <ListingSearchContainer
+                    country={country}
+                    language={language}
+                    filtersPromise={filtersDataPromise}
+                    parsedFilters={parsedFilters}
+                  />
+                </Suspense>
+                <ListingSortControl language={language} isRtl={isRtl} />
+                <FilterBoutiquePageButton key="filter-button" />
+                <ShareBoutiquePageButton />
+              </div>
+            </div>
+          }
+          banner={
+            parsedFilters?.boutiques?.[0] ? (
+              <Suspense
+                fallback={<BoutiqueSlidersSkeleton />}
+                key={boutiqueItem || "noFilters"}
+              >
+                <ListingBoutiqueSlider
+                  boutiquePromise={boutiquePromise}
+                  key={boutiqueItem || "noFilters"}
+                />
+              </Suspense>
+            ) : null
+          }
+          categoryFilters={
+            <Suspense
+              fallback={<ListingSkeleton justFilters />}
+              key={`FilterList ${Params.lang}`}
+            >
+              <FilterListContainer
+                filtersPromis={filtersDataPromise}
+                currencyPromise={currencyPromise}
+                Params={Params}
+                parsedFilters={parsedFilters}
+              />
+            </Suspense>
+          }
+          productList={
+            <Suspense
+              fallback={<ListingSkeleton forProducts={true} />}
+              key={`ProductList ${Params.lang} ${sort ?? "relevance"}`}
+            >
+              <ProductListConainer
+                isFlashDeals={false}
+                isFeatured={false}
+                Params={Params}
+                boutiquePromise={boutiquePromise}
+                currencyPromise={currencyPromise}
+                filtersDataPromise={filtersDataPromise}
+                parsedFilters={parsedFilters}
+                language={language}
+                sort={sort}
+              />
+            </Suspense>
+          }
         />
       </>
     );

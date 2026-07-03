@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { translateFunction } from "utils/functions";
 
 interface FlashDealBannerProps {
@@ -23,6 +23,7 @@ function FlashDealBanner({
     seconds: number;
   } | null>(initial);
   const [isExpired, setIsExpired] = useState(false);
+  const bannerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -49,10 +50,58 @@ function FlashDealBanner({
       }
     };
 
+    // Initial calculation happens regardless of visibility so the countdown
+    // is correct as soon as the banner enters the viewport.
     calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 1000);
 
-    return () => clearInterval(timer);
+    let timer: ReturnType<typeof setInterval> | null = null;
+    let isInView = false;
+
+    const startTimer = () => {
+      if (timer) return;
+      calculateTimeLeft();
+      timer = setInterval(calculateTimeLeft, 1000);
+    };
+
+    const stopTimer = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+
+    // Mirrors the visibility gate in hooks/useLuckTimer.ts:
+    // only tick the interval while the card is on screen and the tab is active.
+    const syncTimerToVisibility = () => {
+      if (isInView && !document.hidden) {
+        startTimer();
+      } else {
+        stopTimer();
+      }
+    };
+
+    const node = bannerRef.current;
+    let observer: IntersectionObserver | null = null;
+    if (node) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            isInView = entry.isIntersecting;
+          });
+          syncTimerToVisibility();
+        },
+        { threshold: 0.1 }
+      );
+      observer.observe(node);
+    }
+
+    document.addEventListener("visibilitychange", syncTimerToVisibility);
+
+    return () => {
+      stopTimer();
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", syncTimerToVisibility);
+    };
   }, [end_data]);
 
   const FlashIcon = () => (
@@ -95,6 +144,7 @@ function FlashDealBanner({
 
   return (
     <div
+      ref={bannerRef}
       data-cy="flash-deal-banner"
       className={`absolute pr-[5px] pl-[8px] text-nowrap flex-row h-[19px] gap-[2px] items-center  ${top} left-0 z-99 rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px] bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]`}
       style={{

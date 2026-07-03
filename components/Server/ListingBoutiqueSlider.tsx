@@ -49,12 +49,15 @@ function BoutiqueHeader({ boutique }) {
 }
 const BouqiuePhotoSlider = ({ banners }) => {
   return (
-    <div data-cy="boutique_photo_holder" className="boutique-photo-holder">
+    <div data-cy="boutique_photo_holder" className="boutique-photo-holder w-full min-w-[100vw]">
       <div
         data-cy="banners_length-1"
         className={`${
           banners?.length > 1 && "justify-start"
         } offer-slider-container`}
+        style={
+          { "--slide-size": banners?.length > 1 ? "85%" : "100%" } as React.CSSProperties
+        }
       >
         <BoutiquePhotoSliderWrapper>
           {banners &&
@@ -77,7 +80,7 @@ const BouqiuePhotoSlider = ({ banners }) => {
                       style={{ height: "100%" }}
                     />
 
-                    <Image
+                    <img
                       data-cy="image_image"
                       loading={"eager"}
                       fetchPriority={"high"}
@@ -85,7 +88,8 @@ const BouqiuePhotoSlider = ({ banners }) => {
                       className="OfferImage object-cover max-h-full"
                       src={getConfiguredImage({
                         src: GetImageUrl(banner.file_path),
-                        height: 400,
+                        height: 320,
+                        width:800,
                         c_pad: true,
                       })}
                       width={380}

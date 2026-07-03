@@ -1,8 +1,11 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "store";
 import FiltersRowContainer from "./FiltersRowContainer";
+import CategoryImageCircel from "./CategoryImageCircel";
+import ImageCircel from "./ImageCircel";
 import { EnableScroll } from "utils/tinyUtils";
+import { HandleIsActive } from "utils/server";
 
 import { GetFilters } from "serverRequests/listing";
 import { PriceSliderComponent } from "./PriceSliderComponent";
@@ -20,7 +23,8 @@ function FiltersWindow({
   isFeatured,
   isFlashDeal,
 }) {
-  const { filterEnabled, setFilterEnabled } = useAppStore();
+  const filterEnabled = useAppStore((s) => s.filterEnabled);
+  const setFilterEnabled = useAppStore((s) => s.setFilterEnabled);
   if (filterEnabled) {
     return (
       <FiltersWindowUI
@@ -48,44 +52,125 @@ const FiltersWindowUI = ({
   isFeatured,
   isFlashDeal,
 }) => {
-  const { filterEnabled, setFilterEnabled } = useAppStore();
+  const filterEnabled = useAppStore((s) => s.filterEnabled);
+  const setFilterEnabled = useAppStore((s) => s.setFilterEnabled);
   const [FiltersNodes, setFiltersNodes] = useState(children);
   const [showChart, setShowChart] = useState(false);
-  let InitialFiltersObject = {
-    categories: [...new Set([...(initialFilters?.categories ?? [])])],
-    brands: initialFilters?.brands ?? [],
-    sizes: initialFilters?.sizes ?? [],
-    prices: initialFilters?.prices ?? [],
-    boutiques: initialFilters?.boutiques ?? [],
-    colors: initialFilters?.colors ?? [],
-    search_text: initialFilters?.search_text ?? "",
-    tags_names: initialFilters?.tags_names ?? [],
-    featured: initialFilters?.featured ?? false,
-    flashdeal: initialFilters?.flashdeal ?? false,
-  };
-  const [filters, setFilter] = useState<{
+
+  // Stabilized so identity only changes when `initialFilters` itself changes —
+  // keeps the dirty-check comparison and effect deps from recomputing every render.
+  const initialSelectedChips = useMemo(
+    () => ({
+      categories: [...new Set([...(initialFilters?.categories ?? [])])],
+      brands: initialFilters?.brands ?? [],
+      sizes: initialFilters?.sizes ?? [],
+      boutiques: initialFilters?.boutiques ?? [],
+      colors: initialFilters?.colors ?? [],
+      search_text: initialFilters?.search_text ?? "",
+      tags_names: initialFilters?.tags_names ?? [],
+      featured: initialFilters?.featured ?? false,
+      flashdeal: initialFilters?.flashdeal ?? false,
+    }),
+    [initialFilters],
+  );
+  const initialPriceRange = useMemo(
+    () => initialFilters?.prices ?? [],
+    [initialFilters],
+  );
+
+  // Chip selections (categories/brands/colors/sizes/etc.) and the price range
+  // are kept as distinct state so toggling a chip doesn't touch price state
+  // (and dragging the price slider doesn't touch chip state) — each region of
+  // the UI only reads the slice it depends on.
+  const [selectedChips, setSelectedChips] = useState<{
     categories?: string[];
     brands?: string[];
     boutiques?: string[];
     colors?: string[];
     sizes?: string[];
     search_text?: string;
-    prices?: number[];
     tags_names?: string[];
     featured?: boolean;
     flashdeal?: boolean;
-  }>(InitialFiltersObject);
+  }>(initialSelectedChips);
+  const [priceRange, setPriceRange] = useState<number[]>(initialPriceRange);
 
   const isRtl = language === "ar" || language === "ku";
   const [loading, setLoading] = useState(false);
+
+  // GetFilters (and the initial `children` seeded from FilterWidgetServer) now
+  // return raw data arrays — chips are always rendered here as client
+  // components (props mirror the old server-side GetFilters exactly).
+  const renderCategoryChips = (items) =>
+    items?.map((item) => (
+      <CategoryImageCircel
+        key={item?.slug}
+        isActive={HandleIsActive({
+          values: selectedChips.categories,
+          item: item?.slug,
+        })}
+        name={item?.name}
+        term={"Category"}
+        value={item?.slug}
+        image={item?.most_viewed_product_thumbnail}
+        childes={item?.childes}
+        values={selectedChips.categories}
+        isRtl={isRtl}
+      />
+    ));
+
+  const renderBrandChips = (items) =>
+    items?.map((brand) => (
+      <ImageCircel
+        key={brand?.slug}
+        isActive={HandleIsActive({
+          values: selectedChips.brands,
+          item: brand?.slug,
+        })}
+        name={brand?.name}
+        term={"Category"}
+        value={brand?.slug}
+        image={brand?.icon}
+      />
+    ));
+
+  const renderColorChips = (items) =>
+    items?.map((color) => (
+      <ImageCircel
+        key={color}
+        isActive={HandleIsActive({
+          values: selectedChips?.colors?.map((s) => s?.replace("#", "")),
+          item: color.replace("#", ""),
+        })}
+        color={color}
+        name={color}
+        value={color}
+        term={"Color"}
+      />
+    ));
+
+  const renderSizeChips = (items) =>
+    items?.map((size) => (
+      <ImageCircel
+        key={size}
+        isActive={HandleIsActive({
+          values: selectedChips?.sizes,
+          item: size,
+        })}
+        name={size}
+        value={size}
+        term={"Size"}
+      />
+    ));
 
   const isFirstMount = useRef(true);
 
   useEffect(() => {
     if (!filterEnabled) return;
-    setFilter(InitialFiltersObject);
+    setSelectedChips(initialSelectedChips);
+    setPriceRange(initialPriceRange);
     setFiltersNodes(children);
-  }, [filterEnabled, initialFilters, children]);
+  }, [filterEnabled, initialFilters, initialSelectedChips, initialPriceRange, children]);
 
   const UpdateFilters = useCallback(async () => {
     if (loading) return;
@@ -95,7 +180,7 @@ const FiltersWindowUI = ({
       let response = await GetFilters({
         country,
         language,
-        filters,
+        filters: { ...selectedChips, prices: priceRange },
         filter_offset: 1,
       });
 
@@ -115,7 +200,7 @@ const FiltersWindowUI = ({
     } finally {
       setLoading(false);
     }
-  }, [filters, country, language]);
+  }, [selectedChips, priceRange, country, language]);
 
   // 2. The Debounced Effect with a mount check
 
@@ -127,13 +212,14 @@ const FiltersWindowUI = ({
       return;
     }
 
-    // Now, this will run on EVERY change to 'filters' after the initial render
+    // Runs on EVERY change to either the chip selection or the price range
+    // after the initial render.
     const timer = setTimeout(() => {
       UpdateFilters();
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [filters, UpdateFilters]);
+  }, [selectedChips, priceRange, UpdateFilters]);
   useEffect(() => {
     setTimeout(() => {
       setShowChart(true);
@@ -145,8 +231,16 @@ const FiltersWindowUI = ({
   }
 
   const resetSelection = () => {
-    setFilter(InitialFiltersObject);
+    setSelectedChips(initialSelectedChips);
+    setPriceRange(initialPriceRange);
   };
+
+  // Combined filters object, derived only where a combined shape is actually
+  // needed (dirty-check, apply/search URL) — not read by the individual
+  // chip-row / price-section JSX below, so those regions stay decoupled.
+  const isChanged =
+    JSON.stringify(selectedChips) !== JSON.stringify(initialSelectedChips) ||
+    JSON.stringify(priceRange) !== JSON.stringify(initialPriceRange);
 
   return (
     <div className="fixed mx-auto right-0 max-w-[1366px] pt-[20px] gap-[10px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-hidden top-[97px]   left-0 z-9999999999">
@@ -226,53 +320,53 @@ const FiltersWindowUI = ({
         </div>
       </div>
       <div className="flex flex-col items-start gap-[20px] overflow-y-auto max-h-full pb-[120px] px-[25px]">
-        {FiltersNodes?.categories && (
+        {FiltersNodes?.categories?.length > 0 && (
           <FiltersRowContainer
             loading={loading}
             setValues={(e) => {
-              setFilter({ ...filters, categories: e });
+              setSelectedChips((prev) => ({ ...prev, categories: e }));
             }}
             term={"categories"}
-            values={filters.categories ?? []}
+            values={selectedChips.categories ?? []}
           >
-            {FiltersNodes.categories}
+            {renderCategoryChips(FiltersNodes.categories)}
           </FiltersRowContainer>
         )}
-        {FiltersNodes?.brands && (
+        {FiltersNodes?.brands?.length > 0 && (
           <FiltersRowContainer
             loading={loading}
             setValues={(e) => {
-              setFilter({ ...filters, brands: e });
+              setSelectedChips((prev) => ({ ...prev, brands: e }));
             }}
             term={"brands"}
-            values={filters.brands ?? []}
+            values={selectedChips.brands ?? []}
           >
-            {FiltersNodes.brands}
+            {renderBrandChips(FiltersNodes.brands)}
           </FiltersRowContainer>
         )}
-        {FiltersNodes?.colors && (
+        {FiltersNodes?.colors?.length > 0 && (
           <FiltersRowContainer
             loading={loading}
             setValues={(e) => {
               let newValue = e.map((s) => s.replace("#", ""));
-              setFilter({ ...filters, colors: newValue });
+              setSelectedChips((prev) => ({ ...prev, colors: newValue }));
             }}
             term={"colors"}
-            values={filters.colors ?? []}
+            values={selectedChips.colors ?? []}
           >
-            {FiltersNodes.colors}
+            {renderColorChips(FiltersNodes.colors)}
           </FiltersRowContainer>
         )}
-        {FiltersNodes?.sizes && (
+        {FiltersNodes?.sizes?.length > 0 && (
           <FiltersRowContainer
             loading={loading}
             setValues={(e) => {
-              setFilter({ ...filters, sizes: e });
+              setSelectedChips((prev) => ({ ...prev, sizes: e }));
             }}
             term={"sizes"}
-            values={filters.sizes ?? []}
+            values={selectedChips.sizes ?? []}
           >
-            {FiltersNodes.sizes}
+            {renderSizeChips(FiltersNodes.sizes)}
           </FiltersRowContainer>
         )}
 
@@ -297,7 +391,7 @@ const FiltersWindowUI = ({
                   // other active filters). The debounced re-fetch then re-scopes
                   // the facet to those filters, so the slider/curve/cards return
                   // to the active-filters range (e.g. the category's full range).
-                  setFilter({ ...filters, prices: [] });
+                  setPriceRange([]);
                 }}
               />
               <div
@@ -318,22 +412,22 @@ const FiltersWindowUI = ({
                 )}
               </div>
               <div className="price-min-max flex-row z-20">
-                {filters?.prices?.length && filters?.prices?.[0] >= 0 && (
+                {priceRange?.length && priceRange?.[0] >= 0 && (
                   <div className="price-min">
                     {translateFunction("Min")}{" "}
                     {RoundPrice({
-                      num: filters.prices?.[0] || filters?.prices?.[0],
+                      num: priceRange?.[0] || priceRange?.[0],
                       rate: currency?.exchange_rate,
                       language: language,
                     })}{" "}
                     <span>{currency?.symbol}</span>
                   </div>
                 )}
-                {filters?.prices?.[1] >= 0 && (
+                {priceRange?.[1] >= 0 && (
                   <div className="price-max">
                     {translateFunction("Max")}{" "}
                     {RoundPrice({
-                      num: filters.prices?.[1] || filters?.prices?.[1],
+                      num: priceRange?.[1] || priceRange?.[1],
                       rate: currency?.exchange_rate,
                       language: language,
                     })}{" "}
@@ -355,24 +449,24 @@ const FiltersWindowUI = ({
                     })
                   }
                   initialMax={
-                    filters.prices?.[1] >= 0
-                      ? filters.prices?.[1]
+                    priceRange?.[1] >= 0
+                      ? priceRange?.[1]
                       : FiltersNodes?.prices?.max_price
                   }
                   initialMin={
-                    filters.prices?.[0] >= 0
-                      ? filters.prices?.[0]
+                    priceRange?.[0] >= 0
+                      ? priceRange?.[0]
                       : FiltersNodes?.prices?.min_price
                   }
                   // Slider BOUNDS come from the (self-excluding) facet so the
                   // track always spans the full data range and stays widenable;
-                  // the selection (filters.prices) only positions the thumbs via
+                  // the selection (priceRange) only positions the thumbs via
                   // initialMin/initialMax above.
-                  min={FiltersNodes?.prices?.min_price ?? filters.prices?.[0]}
+                  min={FiltersNodes?.prices?.min_price ?? priceRange?.[0]}
                   points={currency?.decimal_digits}
-                  max={FiltersNodes?.prices?.max_price ?? filters.prices?.[1]}
+                  max={FiltersNodes?.prices?.max_price ?? priceRange?.[1]}
                   onChange={(min, max) => {
-                    if (!loading) setFilter({ ...filters, prices: [min, max] });
+                    if (!loading) setPriceRange([min, max]);
                   }}
                 />
               </div>
@@ -402,10 +496,8 @@ const FiltersWindowUI = ({
         isFeatured={isFeatured}
         onReset={resetSelection}
         total_size={FiltersNodes.total_size}
-        filters={filters}
-        isChanged={
-          JSON.stringify(filters) !== JSON.stringify(InitialFiltersObject)
-        }
+        filters={{ ...selectedChips, prices: priceRange }}
+        isChanged={isChanged}
       />
     </div>
   );

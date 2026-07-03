@@ -20,4 +20,15 @@ export const SEND_MESSAGE_URL = "/api/v1/messages/send";
 export const SEARCH_CONTACTS_URL = "/api/v1/users/search/";
 export const DELETE_CHAT_URL = "/api/v1/channels/destroy";
 export const SET_CHANNEL_OPT_UTL = UPDATED_API_DATA.MOD_UPDATE_CHAT_URL;
+
+// Comment backend (used with fetchData `server: "comments"`).
+export const CREATE_COMMENT_URL = "/public_comment/comments/create";
+export const UPDATE_COMMENT_URL = (id: string) =>
+  `/public_comment/comments/${id}/update`;
+export const DELETE_COMMENT_URL = (id: string) =>
+  `/public_comment/comments/${id}/delete`;
+export const TRANSLATE_COMMENT_URL = (id: string) =>
+  `/public_comment/comments/${id}/translate`;
+export const LIKE_COMMENT_URL = "/public_comment/likes/like";
+export const UNLIKE_COMMENT_URL = "/public_comment/likes/unlike";
 // ###EDIT###

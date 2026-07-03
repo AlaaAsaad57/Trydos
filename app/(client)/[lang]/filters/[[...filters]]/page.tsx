@@ -64,8 +64,10 @@ export async function generateMetadata({ params }) {
   }
 }
 
-export default async function Page({ params }) {
+export default async function Page({ params, searchParams }) {
   const Params = await params;
+  const sp = (await searchParams) ?? {};
+  const sort = typeof sp.sort === "string" ? sp.sort : undefined;
   // @ts-ignore
-  return <FiltersPageContent params={Params} />;
+  return <FiltersPageContent params={Params} sort={sort} />;
 }

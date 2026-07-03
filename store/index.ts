@@ -1,12 +1,14 @@
 import { create } from "zustand";
 
 import { useAuthStore } from "./auth/reducer";
+import { useCommentsStore } from "./comments/reducer";
 import { useDetailsStore } from "./Details/reducer";
 import { useHomeStore } from "./homepage/reducer";
 import { useListingStore } from "./listing/reducer";
 import { useSearchStore } from "./search/reducer";
 import { useChatStore } from "./chat/reducer";
 import useCartStore from "./Cart/reducer";
+import { useLuckStore } from "./luck/reducer";
 import { devtools } from "zustand/middleware";
 
 // Only enable devtools in development
@@ -19,10 +21,12 @@ const withDevtools =
 type AppState = ReturnType<typeof useAuthStore> &
   ReturnType<typeof useCartStore> &
   ReturnType<typeof useChatStore> &
+  ReturnType<typeof useCommentsStore> &
   ReturnType<typeof useDetailsStore> &
   ReturnType<typeof useHomeStore> &
   ReturnType<typeof useListingStore> &
-  ReturnType<typeof useSearchStore> & {
+  ReturnType<typeof useSearchStore> &
+  ReturnType<typeof useLuckStore> & {
     _hasHydrated: boolean;
     setHasHydrated: (hasHydrated: boolean) => void;
     cameraPermissions: any;
@@ -38,11 +42,13 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       ...useAuthStore(set, get),
       ...useChatStore(set, get),
+      ...useCommentsStore(set, get),
       ...useDetailsStore(set, get),
       ...useHomeStore(set, get),
       ...useListingStore(set, get),
       ...useSearchStore(set, get),
       ...useCartStore(set, get),
+      ...useLuckStore(set, get),
 
       cameraPermissions: "asked",
       setCameraPermissions: (value: any) => set({ cameraPermissions: value }),

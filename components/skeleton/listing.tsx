@@ -36,7 +36,7 @@ const FilterCirclesRow = ({ count = 10 }: { count?: number }) => (
 // Single product card — mirrors ProductWrapper: product-container (200×377)
 // with the product-container-slider image area, product-body title and
 // product-footer price, so cards line up 1:1 with the rendered grid.
-const ProductCardSkeleton = () => (
+export const ProductCardSkeleton = () => (
   <div className="relative flex">
     <div className="product-container align-center flex-col relative pb-[12px]">
       <div className="product-container-slider h-[290px] duration-300 w-full relative">

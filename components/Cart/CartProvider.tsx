@@ -1,7 +1,6 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { expandView, normalizeView } from "utils/functions";
 
 import home from "services/home";
 
@@ -46,7 +45,6 @@ const CartProvider = ({ language, country }) => {
     setAppCountry,
     setCurrency,
     setChatOpen,
-    filterEnabled,
     openPayIframe,
     payIframeURL,
     cart_enable: enable,
@@ -122,15 +120,6 @@ const CartProvider = ({ language, country }) => {
       }
     };
     window.addEventListener("popstate", handlePopState);
-    window.addEventListener("scroll", function (e) {
-      if (!filterEnabled) {
-        if (window.scrollY > 80) {
-          expandView({ filter: false });
-        } else {
-          normalizeView();
-        }
-      }
-    });
     setAppLanguage(language);
     setAppCountry(country);
 

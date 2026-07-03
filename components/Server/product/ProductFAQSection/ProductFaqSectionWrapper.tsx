@@ -1,6 +1,6 @@
 import { getCookieServer, COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import React from "react";
-import { GetProductFaqQuestions } from "serverRequests/product";
+import { GetFQACommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
 import FaqSectionTopBar from "./FaqSectionTopBar";
 
 import { translateFunction } from "utils/server";
@@ -18,10 +18,10 @@ async function ProductFaqSectionWrapper({
   let parsedUser = await getCookieServer<{ id: string }>(
     COOKIE_NAMES.USER_DATA,
   );
-  let faq_questions = await GetProductFaqQuestions({
-    productId,
+  let faq_questions = await GetFQACommentsForProduct({
+    product_id: productId,
     language,
-    userId: parsedUser?.id,
+    user_id: parsedUser?.id,
     pageSize: 5,
   });
   const isRtl = language === "ar" || language === "ku";
@@ -67,6 +67,7 @@ async function ProductFaqSectionWrapper({
         </div>
       </FaqSectionTopBar>
       <FaqQuestionsList
+        comments={faq_questions.fqa_comments}
         color={color}
         size={size}
         owner_id={product?.owner_id}
@@ -74,11 +75,9 @@ async function ProductFaqSectionWrapper({
         filterKeys={faq_questions.filters_key}
         language={language}
         productId={productId}
-        offset={faq_questions.offset}
+        offset={faq_questions.searchAfter}
         loadMoreString={translateFunction("Load More", language)}
-      >
-        {faq_questions.comments}
-      </FaqQuestionsList>
+      />
     </div>
   );
 }

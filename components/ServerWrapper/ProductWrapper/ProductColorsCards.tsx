@@ -1,6 +1,8 @@
+"use client";
 import NextLink from "components/global/NextLink";
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 import Image from "next/image";
+import { useLuckTimer } from "hooks/useLuckTimer";
 
 import {
   getConfiguredImage,
@@ -21,6 +23,9 @@ function ProductColorsCards({
   currency,
 }) {
   const isRtl = language === "ar" || language === "ku";
+  const { luckActive, secondsLeft } = useLuckTimer(InitialProductData?.id, {
+    isLuck: Boolean(InitialProductData?.is_luck),
+  });
   return (
     <div className="w-full pb-[40px] max-w-[1310px] min-h-[60vh] bg-white pt-[10px] flex flex-wrap gap-y-[18px] gap-x-[4px] justify-center items-center">
       {InitialProductData?.sync_color_images?.map((color, i) => (
@@ -145,7 +150,7 @@ function ProductColorsCards({
                 <RenderPrice
                   currency={currency}
                   flash_price={InitialProductData?.flash_deal_price}
-                  is_luck={InitialProductData?.is_luck}
+                  luckActive={luckActive}
                   offer_price={InitialProductData?.offer_price}
                   price={InitialProductData?.price}
                 />
@@ -168,14 +173,11 @@ function ProductColorsCards({
             }}
             slug={slug}
             currency={currency}
-            endDate={InitialProductData?.endDate}
-            flash_deal_price={InitialProductData?.flash_deal_price}
-            is_flashDeal={InitialProductData?.endDate}
             id={InitialProductData?.id}
             is_luck={InitialProductData?.is_luck}
+            luckActive={luckActive}
+            secondsLeft={secondsLeft}
             language={language}
-            offer_price={InitialProductData?.offer_price}
-            price={InitialProductData?.price}
             luck_price={InitialProductData?.luck_price}
           />
         </div>

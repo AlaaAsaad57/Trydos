@@ -1,8 +1,6 @@
 "use server";
 
 import { getRedeemedIds } from "utils/cookies/getRedeemedIds";
-import ProductWrapper from "components/ServerWrapper/ProductWrapper";
-import { getCurrency } from "./currency";
 import BoutiqueWrapper from "components/ServerWrapper/BoutiqueWrapper";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import {
@@ -13,6 +11,7 @@ import {
   NormalizeSearchParamsForSearchRequest,
   parseNumberArray,
 } from "utils/server";
+import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
 export async function GetNextRecommendations({
   language,
   country,
@@ -20,7 +19,6 @@ export async function GetNextRecommendations({
   userId,
   limit,
 }) {
-  let currency = await getCurrency(country, language);
   let response: any = await GetRecomendationsForUser({
     country: country,
     language: language,
@@ -29,101 +27,12 @@ export async function GetNextRecommendations({
     search_after: parseNumberArray(offset),
   });
   const redeemed_ids = await getRedeemedIds();
-  let productsData = response.products.map((product) => {
-    if (product?.is_luck) {
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        luck_price: product.luck_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-        is_luck: !redeemed_ids.find((s) => s.id === product.product_id),
-      };
-    } else
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        luck_price: product.luck_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-      };
-  });
+  let productsData = response.products.map((product) =>
+    normalizeListingProduct(product, redeemed_ids),
+  );
   let newOffset = response?.offset;
-  let items = productsData?.map((product) => (
-    <ProductWrapper
-      fromRecomended={true}
-      key={product?.product_id ?? product?.id}
-      category_tree={product?.categories?.map((s) => s.name)}
-      labels={product?.label_names}
-      color={product?.sync_color_images?.[0]?.color_name}
-      InitialProductData={{ ...product, id: product?.product_id }}
-      country={country}
-      images={product?.sync_color_images?.[0]?.images ?? product?.images}
-      videos={product?.videos}
-      name={product.name}
-      slug={product.slug}
-      Sliders={false}
-      brand={{
-        name: product.brand.name,
-        icon: product.brand.icon?.file_path ?? product?.brand,
-        is_verified: product.brand.is_verified,
-      }}
-      luck_price={product.luck_price}
-      currency={currency}
-      endDate={product.flash_deal_end_date}
-      flash_deal_price={product.flash_deal_price}
-      id={product?.product_id ?? product?.id}
-      is_flashDeal={product.flash_deal_end_date}
-      is_luck={product.is_luck}
-      language={language}
-      offer_price={product.offer_price}
-      price={product.price}
-    />
-  ));
   return {
-    items: items,
+    items: productsData,
     offset: newOffset,
   };
 }
@@ -240,67 +149,9 @@ export async function GetRecommedndedProducts({
     search_after: parseNumberArray(offset),
   });
   const redeemed_ids = await getRedeemedIds();
-  let productsData = response.products.map((product) => {
-    if (product?.is_luck) {
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        luck_price: product.luck_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-        is_luck: !redeemed_ids.find((s) => s.id === product.product_id),
-      };
-    } else
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        luck_price: product.luck_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-      };
-  });
+  let productsData = response.products.map((product) =>
+    normalizeListingProduct(product, redeemed_ids),
+  );
   let newOffset = response?.offset;
   return {
     items: productsData,

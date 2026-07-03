@@ -12,7 +12,7 @@ function BoutiqueLoader({ boutique, isForSearch = false }) {
     <div
       style={{
         zIndex: "99999999999999",
-        top: isForSearch ? "150px" : "100px",
+        top: isForSearch ? "150px" : "98px",
       }}
       className="fixed max-w-[1365px] mx-auto flex-col bg-[#fafafa] min-h-screen flex    w-screen  overflow-hidden"
     >

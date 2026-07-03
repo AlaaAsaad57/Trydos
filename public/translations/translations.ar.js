@@ -1,4 +1,21 @@
 const translations = {
+  // Listing sort widget
+  "Sort products": "ترتيب المنتجات",
+  "Choose how products are ordered": "اختر طريقة ترتيب المنتجات",
+  Recommended: "موصى به",
+  "Best match for your search": "الأفضل لبحثك",
+  "Best sellers": "الأكثر مبيعاً",
+  "Most bought right now": "الأكثر شراءً الآن",
+  "New arrivals": "وصل حديثاً",
+  "By date added": "حسب تاريخ الإضافة",
+  Newest: "الأحدث",
+  Oldest: "الأقدم",
+  "By product price": "حسب سعر المنتج",
+  "Low to High": "من الأقل إلى الأعلى",
+  "High to Low": "من الأعلى إلى الأقل",
+  Alphabetical: "أبجدياً",
+  "A to Z": "من أ إلى ي",
+  "Z to A": "من ي إلى أ",
   // Become Seller modal
   "Tell us about you and your shop to start selling":
     "أخبرنا عنك وعن متجرك لتبدأ البيع",
@@ -32,6 +49,7 @@ const translations = {
   Other: "أخرى",
   "Report Reason": "سبب الإبلاغ",
   "Details (optional)": "تفاصيل (اختياري)",
+  "Details": "تفاصيل",
   "Write details here...": "اكتب التفاصيل هنا...",
   "Submit Report": "إرسال البلاغ",
   "Tell us what went wrong so we can improve your experience":
@@ -757,6 +775,11 @@ const translations = {
   "Within 3 Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back":
     "خلال 3 أيام من استلام المنتج يمكنك إرجاعه بدون شروط أو أسباب بكل سهولة واستعادة المبلغ",
   "Reach End": "آخر الصفحة",
+  "You've reached the end": "لقد وصلت إلى النهاية",
+  "You've seen everything in this list.": "لقد شاهدت كل ما في هذه القائمة.",
+  "No products found": "لا توجد منتجات",
+  "Try changing or clearing your filters.": "جرّب تغيير عوامل التصفية أو مسحها.",
+  "Clear filters": "مسح عوامل التصفية",
   "Notify Me About The Product When": "أرسل لي إشعار عن هذا المنتج عندما",
   "Before Stock Out": "يكون على وشك النفاذ",
   "Change In Price": "يتغير السعر",

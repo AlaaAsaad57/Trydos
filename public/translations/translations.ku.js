@@ -1,4 +1,21 @@
 const translations = {
+  // Listing sort widget
+  "Sort products": "ڕیزکردنی بەرهەمەکان",
+  "Choose how products are ordered": "شێوازی ڕیزکردنی بەرهەمەکان هەڵبژێرە",
+  Recommended: "پێشنیارکراو",
+  "Best match for your search": "باشترین بۆ گەڕانەکەت",
+  "Best sellers": "زۆرترین فرۆش",
+  "Most bought right now": "زۆرترین کڕدراو ئێستا",
+  "New arrivals": "نوێ گەیشتوو",
+  "By date added": "بەپێی بەرواری زیادکردن",
+  Newest: "نوێترین",
+  Oldest: "کۆنترین",
+  "By product price": "بەپێی نرخی بەرهەم",
+  "Low to High": "لە کەم بۆ زۆر",
+  "High to Low": "لە زۆر بۆ کەم",
+  Alphabetical: "پیتی",
+  "A to Z": "لە A بۆ Z",
+  "Z to A": "لە Z بۆ A",
   // Become Seller modal
   "Tell us about you and your shop to start selling":
     "باسی خۆت و فرۆشگاکەت بکە بۆ دەستپێکردنی فرۆشتن",
@@ -32,6 +49,7 @@ const translations = {
   Other: "هیتر",
   "Report Reason": "هۆکاری ڕاپۆرتکردن",
   "Details (optional)": "زانیاری زیاتر (ئارەزوومەندانە)",
+  "Details": "زانیاری زیاتر",
   "Write details here...": "زانیاری لێرە بنووسە...",
   "Submit Report": "ناردنی ڕاپۆرت",
   "Tell us what went wrong so we can improve your experience":
@@ -748,6 +766,11 @@ const translations = {
   "Within 3 Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back":
     "لە ماوەی ٣ ڕۆژدا دوای وەرگرتنی بەرهەمەکە، دەتوانیت بیگەڕێنیتەوە بەبێ هیچ مەرج و هۆکارێک بە تەواوی ئاسان و پارەکەت وەربگریتەوە",
   "Reach End": "گەیشتنە کۆتایی",
+  "You've reached the end": "گەیشتیتە کۆتایی",
+  "You've seen everything in this list.": "هەموو ئەوەی لەم لیستەدایە بینیت.",
+  "No products found": "هیچ بەرهەمێک نەدۆزرایەوە",
+  "Try changing or clearing your filters.": "هەوڵبدە فلتەرەکانت بگۆڕیت یان بیانسڕیتەوە.",
+  "Clear filters": "سڕینەوەی فلتەرەکان",
   "Notify Me About The Product When":
     "ئاگادارم بکەرەوە سەبارەت بە بەرهەمەکە کاتێک",
   "Before Stock Out": "پێش کۆتاییهاتنی کۆگا",

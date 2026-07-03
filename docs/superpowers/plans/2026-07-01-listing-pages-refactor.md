@@ -21,6 +21,8 @@
 - **i18n/RTL:** `en/ar/tr/ku`; `ar`/`ku` are RTL. Preserve `isRtl` handling.
 - **Commit frequently**, one task per commit. Branch: work on a `ticket/listing-refactor` branch off `develop` (never touch `main` directly). End commit messages with the `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>` trailer.
 - **Do not sweep the pre-existing uncommitted `PriceSliderComponent.tsx` change into these commits** unless the owner confirms.
+- **Import hygiene:** when a step removes the last render of an imported component, remove its now-unused import in the same commit (e.g. as `serverRequests/listing/index.tsx` stops rendering `ProductWrapper`/`FilterItem`/`CategoryImageCircel`/`ImageCircel` across Tasks 3/9/11, each such import is deleted when its last usage goes). Leave no dangling imports.
+- **Scope note (post-audit):** a consumer audit expanded the original scope. All server actions that returned JSX are data-ified (`GetProducts`, `GetRelatedProducts`, `GetNextPageFilters`, `GetFilters`); `FilterItem`, `CategoryImageCircel`, `ImageCircel` become client components; every `ProductWrapper` consumer (listing pages, home Featured/Flash/recommended/boutiques strips, PDP related row) migrates to the one `ProductCard`, and `ProductWrapper` is deleted.
 
 ---
 
@@ -352,7 +354,7 @@ Annotate `export async function GetProducts(...): Promise<GetProductsResult>` an
 - [ ] **Step 5: Verify (compile only — consumers updated next task)**
 
 Run: `pnpm exec tsc --noEmit`
-Expected: errors ONLY in `ProductInfiniteScroll.tsx` / `RelatedProductsInfiniteScroll.tsx` (they still read `response.items`). No errors inside `serverRequests/listing/index.tsx`.
+Expected: errors ONLY in the three consumers that still read `response.items` — `components/ListingPage/ProductInfiniteScroll.tsx`, `components/Product/RelatedProductsInfiniteScroll.tsx`, and `components/Server/product/RelatedProductsSection.tsx` (the PDP SSR related row). No errors inside `serverRequests/listing/index.tsx`. All three are fixed in Tasks 5–6.
 
 - [ ] **Step 6: Commit**
 
@@ -458,13 +460,14 @@ git commit -m "feat(listing): shared client ProductCard + deriveCardProps"
 
 ---
 
-## Task 5: Render `ProductCard` in the SSR first-page grid (prove parity here)
+## Task 5: Render `ProductCard` in the SSR first-page grid + PDP related row (prove parity here)
 
 **Files:**
 - Modify: `components/Server/ProductList.tsx:30-91`
+- Modify: `components/Server/product/RelatedProductsSection.tsx` (PDP SSR related row — consumes `GetRelatedProducts`)
 
 **Interfaces:**
-- Consumes: `ProductCard`, `deriveCardProps` context shape (Task 4).
+- Consumes: `ProductCard`, `deriveCardProps` context shape (Task 4); `GetRelatedProductsResult.products` (Task 3).
 
 - [ ] **Step 1: Swap the map to `ProductCard`**
 
@@ -489,7 +492,28 @@ Replace the `products.map(...)` block (lines 30-66) with:
 
 Replace the import `import ProductWrapper from "components/ServerWrapper/ProductWrapper";` with `import ProductCard from "components/products/ProductCard";`. (`priority` requires the optional prop added in Task 4 Step 3.4.)
 
-- [ ] **Step 2: Verify parity (the key checkpoint)**
+- [ ] **Step 2: Migrate the PDP related row (GAP A — was breaking)**
+
+`components/Server/product/RelatedProductsSection.tsx` currently renders `{response.items}` (line ~55) from `GetRelatedProducts` and guards on `response.items` (line ~35). Task 3 removed `.items`, so this file no longer type-checks and would render nothing. Fix it to render `ProductCard` from `response.products` (this is a server component rendering the client card — SSR, SEO preserved, same as the grid):
+- Guard: change `if (!response || !response.items || response.items.length === 0) return null;` → `if (!response || !response.products || response.products.length === 0) return null;`.
+- Render: replace `{response.items}` with a map over `response.products`:
+
+```tsx
+{response.products.map((product) => (
+  <ProductCard
+    key={product?.product_id ?? product?.slug}
+    product={product}
+    currency={currency}
+    country={country}
+    language={language}
+    sliders={false}
+  />
+))}
+```
+
+Use the `country`/`language`/`currency` already in scope in this file (derive `country`/`language` from the same source the file already uses — check the top of the file; it may split `params.lang`). Keep `.offset`/`.productIds`/`.pit_id` usage unchanged. Add `import ProductCard from "components/products/ProductCard";`. Remove the now-unused `ProductWrapper`-derived rendering if any.
+
+- [ ] **Step 3: Verify parity (the key checkpoint)**
 
 Run: `pnpm build && pnpm start` (or `pnpm dev`).
 Manual checks on `/en-gb/filters`, `/en-gb/featured`, `/en-gb/flashDeals` AND `/ar-iq/filters` (RTL):
@@ -497,12 +521,13 @@ Manual checks on `/en-gb/filters`, `/en-gb/featured`, `/en-gb/flashDeals` AND `/
 - View page source: product markup is present in server HTML (SEO preserved).
 - Click a card → PDP navigates correctly.
 - Flash-deal countdown + lucky-draw timer still tick.
+- Open a PDP → the "related products" row renders (server HTML) with correct cards.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add components/Server/ProductList.tsx
-git commit -m "refactor(listing): render shared ProductCard in SSR grid"
+git add components/Server/ProductList.tsx components/Server/product/RelatedProductsSection.tsx
+git commit -m "refactor(listing): render ProductCard in SSR grid + PDP related row"
 ```
 
 ---
@@ -513,10 +538,12 @@ git commit -m "refactor(listing): render shared ProductCard in SSR grid"
 - Modify: `components/ListingPage/ProductInfiniteScroll.tsx`
 - Modify: `components/Product/RelatedProductsInfiniteScroll.tsx`
 - Modify: `components/Server/FeatureProducts.tsx`, `components/Server/FlashDealsProducts.tsx`, `components/ServerWrapper/FeaturedProduct.tsx`, `components/ServerWrapper/FlashDealsProduct.tsx`
+- Modify: `serverRequests/home.tsx` (home recommended-products strip — renders `ProductWrapper`)
+- Modify: `components/ServerWrapper/BoutiquesListWrapper.tsx` (home boutiques product list — renders `ProductWrapper`)
 - Modify: `components/products/FlashDealBanner.tsx` (visibility-gate the per-card timer)
 
 **Interfaces:**
-- Consumes: `GetProductsResult.products` (Task 3), `ProductCard` (Task 4).
+- Consumes: `GetProductsResult.products` (Task 3), `ProductCard` (Task 4), `normalizeListingProduct` (Task 2).
 
 - [ ] **Step 1: Product infinite scroll holds data, renders cards**
 
@@ -551,6 +578,16 @@ In `components/Product/RelatedProductsInfiniteScroll.tsx`, apply the same change
 
 In `FeaturedProduct.tsx` / `FlashDealsProduct.tsx` (the wrappers) and `FeatureProducts.tsx` / `FlashDealsProducts.tsx` (the strips), replace the duplicated `ProductWrapper` prop blocks with `normalizeListingProduct` + `<ProductCard product={...} sliders={...} .../>`. Keep each strip's header text/icon/href unchanged.
 
+- [ ] **Step 3b: Home recommended strip + boutiques list (GAP C — full ProductWrapper retirement)**
+
+Two more home surfaces render `ProductWrapper` and must migrate so `ProductWrapper` can be deleted in Task 12:
+- `serverRequests/home.tsx` — `GetRecommedndedProducts` renders `ProductWrapper` (~line 95) and a second render feeds the boutiques list (~line 118). First determine whether this function renders during SSR (server component tree) or is invoked from a client component for pagination:
+  - If **SSR** (rendered in a server tree): swap `ProductWrapper` → `ProductCard` and build the `product` prop via `normalizeListingProduct`. A server file rendering the client `ProductCard` is fine (SSR).
+  - If it **returns JSX to a client** (like the old `GetProducts` did — an infinite scroll consuming the returned nodes): data-ify it — return `normalizeListingProduct(...)` data and render `<ProductCard>` in the client consumer, mirroring Task 6 Step 1. Trace its consumer before changing.
+- `components/ServerWrapper/BoutiquesListWrapper.tsx` — renders `ProductWrapper` (~line 118, plus `RecomendedProductWrapper` ~line 40/53). Swap to `ProductCard` + `normalizeListingProduct` for the data prop; keep the boutiques layout/scroll unchanged.
+
+Record in the report whether `home.tsx` was SSR or client-paginated and how it was handled.
+
 - [ ] **Step 4: Visibility-gate the flash-deal timer (Tier A)**
 
 In `components/products/FlashDealBanner.tsx`, the `setInterval(..., 1000)` (~line 53) ticks for every card even off-screen. Mirror the pattern `LuckyDrawer` already uses: wrap the component in an `IntersectionObserver` (or `react-intersection-observer`'s `useInView`) and only run the interval while the card is in view; clear it when it scrolls out. Keep the displayed countdown identical when visible. This caps live intervals to roughly the on-screen cards.
@@ -558,12 +595,12 @@ In `components/products/FlashDealBanner.tsx`, the `setInterval(..., 1000)` (~lin
 - [ ] **Step 5: Verify**
 
 Run: `pnpm exec tsc --noEmit && pnpm build && pnpm start`
-Manual: scroll all three listing pages → pagination appends non-duplicate cards, spinner shows, "Reach End" shows at the end; home Featured/Flash strips render; PDP related-products render + paginate. Flash-deal countdowns tick when visible and stop when scrolled away (verify via a `console.count` in dev or React DevTools profiler that off-screen cards stop updating). Watch the network tab: no burst beyond the bounded auto-advance. Confirm GA `VIEW_ITEMS_LIST` fires with the same payload shape (DevTools → GA debug / network).
+Manual: scroll all three listing pages → pagination appends non-duplicate cards, spinner shows, "Reach End" shows at the end; the **home page** renders Featured, Flash, **recommended-products**, and **boutiques product lists** all correctly; PDP related-products render + paginate. Flash-deal countdowns tick when visible and stop when scrolled away (verify via a `console.count` in dev or React DevTools profiler that off-screen cards stop updating). Watch the network tab: no burst beyond the bounded auto-advance. Confirm GA `VIEW_ITEMS_LIST` fires with the same payload shape (DevTools → GA debug / network). After this task, grep confirms `ProductWrapper` is imported ONLY by its own directory (retirement-ready for Task 12).
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add components/ListingPage/ProductInfiniteScroll.tsx components/Product/RelatedProductsInfiniteScroll.tsx components/Server/FeatureProducts.tsx components/Server/FlashDealsProducts.tsx components/ServerWrapper/FeaturedProduct.tsx components/ServerWrapper/FlashDealsProduct.tsx components/products/FlashDealBanner.tsx
+git add components/ListingPage/ProductInfiniteScroll.tsx components/Product/RelatedProductsInfiniteScroll.tsx components/Server/FeatureProducts.tsx components/Server/FlashDealsProducts.tsx components/ServerWrapper/FeaturedProduct.tsx components/ServerWrapper/FlashDealsProduct.tsx components/ServerWrapper/BoutiquesListWrapper.tsx serverRequests/home.tsx components/products/FlashDealBanner.tsx
 git commit -m "refactor(listing): render ProductCard everywhere; visibility-gate flash timer"
 ```
 
@@ -606,11 +643,17 @@ git commit -m "perf(listing): stream /filters, noProducts size=0, bound track_to
 
 ---
 
-## Task 8: `FilterItem` — compute-once + split
+## Task 8: `FilterItem` — convert to client + compute-once + split
 
 **Files:**
 - Modify: `components/ListingPage/FilterItem.tsx`
-- (Optional) Create: `utils/server` addition or `utils/listing/filterItemState.ts` for the hoisted pure helpers.
+- Create: `utils/listing/filterItemState.ts` for the hoisted pure helpers.
+
+**Why client:** Task 9 has the client `InfiniteScrollFilters` map returned data into `<FilterItem>`. A client component cannot render a server component, so `FilterItem` must become a client component. It still server-renders for the initial filter bar in `FilterList` (client components SSR for initial HTML), so SEO/first paint is unchanged. Bundle cost is accepted per the owner's "data-ify the filters" decision.
+
+- [ ] **Step 0: Convert `FilterItem` to a client component (client-safety first)**
+
+`FilterItem` imports `NextLink` and (per audit) filter-URL helpers. Before adding `"use client"`, confirm nothing it imports is server-only: Grep the file's imports for `import "server-only"`, `next/headers`, `cookies(`, or `fs`. Expected: none (it builds URLs + renders links — all client-safe). If any server-only helper is found, replace it with a client-safe equivalent or compute that value in the server parent and pass it as a prop. Then add `"use client";` as line 1. Rebuild after this step to confirm the initial filter bar (rendered by the server `FilterList`) still SSRs it without error.
 
 - [ ] **Step 1: Hoist repeated computations**
 
@@ -638,14 +681,15 @@ git commit -m "perf(listing): FilterItem compute-once + extract pure url-state h
 
 ---
 
-## Task 9: Filter actions return data; `InfiniteScrollFilters` renders `FilterItem`
+## Task 9: `GetNextPageFilters` returns data; `InfiniteScrollFilters` renders `FilterItem`
 
 **Files:**
-- Modify: `serverRequests/listing/index.tsx` (`GetNextPageFilters` 321-392; `GetFilters` 53-110)
+- Modify: `serverRequests/listing/index.tsx` (`GetNextPageFilters` 321-392 only — `GetFilters` is handled in Task 11)
 - Modify: `components/ListingPage/filterComponents/InfiniteScrollFilters.tsx`
+- Modify: `components/Server/FilterList.tsx` (pass the constants `InfiniteScrollFilters` now needs)
 
 **Interfaces:**
-- Consumes: `FilterItem` (Task 8), `FilterOption`/`GetFiltersResult` (Task 1).
+- Consumes: `FilterItem` (now a client component after Task 8), `FilterOption` (Task 1).
 
 - [ ] **Step 1: `GetNextPageFilters` returns raw arrays**
 
@@ -662,11 +706,7 @@ return {
 };
 ```
 
-- [ ] **Step 2: `GetFilters` returns raw arrays**
-
-Similarly replace the `<CategoryImageCircel/>` / `<ImageCircel/>` maps (53-107) with `new_filters.categories/brands/colors/sizes` raw arrays; keep `prices`/`total_size`. (Confirm `GetFilters`’ consumer — trace before changing; if it currently expects JSX, update that consumer too. If `GetFilters` has no live consumer, still return data for consistency and note it.)
-
-- [ ] **Step 3: `InfiniteScrollFilters` maps to `<FilterItem>`**
+- [ ] **Step 2: `InfiniteScrollFilters` maps to `<FilterItem>`**
 
 In `InfiniteScrollFilters.tsx`:
 - Change `filterItems` state to hold `any[]` data objects (init `[]`, not `[<Fragment/>]`).
@@ -691,18 +731,16 @@ In `InfiniteScrollFilters.tsx`:
 
 Pass the missing constants (`isRtl`, `baseUrlOfFiltersPage`, `isUsingParsedFilters`) as props from `FilterList` where `<InfiniteScrollFilters>` is mounted (FilterList.tsx ~730-740).
 
-- [ ] **Step 4: Remove the now-unused `ProductWrapper` import** from `serverRequests/listing/index.tsx` (and any other import no longer rendered there).
-
-- [ ] **Step 5: Verify**
+- [ ] **Step 3: Verify**
 
 Run: `pnpm exec tsc --noEmit && pnpm build && pnpm start`
 Manual: on `/en-gb/filters`, click "More From {category/brand}" → additional chips load and are clickable with correct URLs; end state stops loading; RTL intact.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add serverRequests/listing/index.tsx components/ListingPage/filterComponents/InfiniteScrollFilters.tsx components/Server/FilterList.tsx
-git commit -m "refactor(listing): filter actions return data; InfiniteScrollFilters renders FilterItem"
+git commit -m "refactor(listing): GetNextPageFilters returns data; InfiniteScrollFilters renders FilterItem"
 ```
 
 ---
@@ -730,29 +768,60 @@ git commit -m "perf(listing): FilterList flatten category tree once via Map"
 
 ---
 
-## Task 11: `FiltersWindow` — selectors + split price state (Tier B)
+## Task 11: `GetFilters` → data + client chips + `FiltersWindow` (GAP B + Tier B)
 
 **Files:**
-- Modify: `components/ListingPage/filterComponents/FiltersWindow/index.tsx`
+- Modify: `components/ListingPage/filterComponents/FiltersWindow/CategoryImageCircel.tsx` (→ client component)
+- Modify: `components/ListingPage/filterComponents/FiltersWindow/ImageCircel.tsx` (→ client component)
+- Modify: `serverRequests/listing/index.tsx` (`GetFilters` 11-119 → return data)
+- Modify: `components/ListingPage/filterComponents/FiltersWindow/index.tsx` (render chips from data + selectors + split state)
 
-- [ ] **Step 1: Store selectors**
+**Interfaces:**
+- Consumes: `GetFiltersResult` (Task 1). `GetFilters` returns `{ categories, brands, colors, sizes, prices, total_size }` where the four facet arrays are raw data (not JSX).
+
+**Context (GAP B):** `FiltersWindow` (a client component) calls `GetFilters` inside `UpdateFilters` (~line 95) and today receives server-rendered `<CategoryImageCircel/>`/`<ImageCircel/>` chips, storing them in `FiltersNodes` and rendering them via `<FiltersRowContainer>` (~lines 238/250/263/275). `.prices` and `.total_size` are already consumed as raw data. To remove JSX from `GetFilters`, the two chip components must render on the client from data — so they must become client components first.
+
+- [ ] **Step 1: Convert the chip components to client (client-safety first)**
+
+For BOTH `CategoryImageCircel.tsx` and `ImageCircel.tsx`: Grep their imports for `server-only` / `next/headers` / `cookies(` / `fs`. `ImageCircel` imports `getConfiguredImage`/`GetImageUrl` from `utils/server` — confirm those are pure (they build image URLs; the ProductCard client-safety check in Task 4 already established this). If pure, add `"use client";` as line 1 of each. `CategoryImageCircel` renders nested category chips (self/child/grandchild) — after conversion, confirm it still SSRs when rendered by a server parent, and note that its hard-coded 3-level nesting is unchanged. Rebuild to confirm no server-only violation.
+
+- [ ] **Step 2: `GetFilters` returns raw arrays**
+
+In `serverRequests/listing/index.tsx`, replace the `<CategoryImageCircel/>`/`<ImageCircel/>` `.map` blocks (53-107) with the raw `new_filters` arrays; keep `prices`/`total_size` as-is:
+
+```tsx
+return {
+  categories: new_filters?.categories ?? [],
+  brands: new_filters?.brands ?? [],
+  colors: new_filters?.colors ?? [],
+  sizes: new_filters?.sizes ?? [],
+  prices: response.prices,
+  total_size: response.total_size,
+};
+```
+
+- [ ] **Step 3: `FiltersWindow` renders chips from data**
+
+In `FiltersWindow/index.tsx`, `UpdateFilters` stores the `GetFilters` result into `FiltersNodes`. Where it currently renders `FiltersNodes.categories/brands/colors/sizes` directly (arrays of JSX) via `<FiltersRowContainer>` (~238/250/263/275), instead map the raw arrays into the now-client `<CategoryImageCircel>`/`<ImageCircel>` client-side, reproducing the exact props the server action used to pass (see `GetFilters` original code: `isActive={HandleIsActive({ values, item })}`, `name`, `term`, `value`, `image`, `childes`, `values`, `isRtl`, `color`). `HandleIsActive` from `utils/server` must be client-safe (it's a pure array check) — verify. Keep `.prices` / `.total_size` consumption unchanged.
+
+- [ ] **Step 4: Store selectors**
 
 Replace bare `useAppStore()` (lines 23, 51) with selectors: `const filterEnabled = useAppStore((s) => s.filterEnabled);` and `const setFilterEnabled = useAppStore((s) => s.setFilterEnabled);` (and any other slice members individually).
 
-- [ ] **Step 2: Split price state from chip state**
+- [ ] **Step 5: Split price state from chip state**
 
 Separate the monolithic `filters` object (line 66) so a chip toggle doesn't re-render the price slider/chart: keep `selectedChips` and `priceRange` as distinct `useState`, and derive the combined object only when building the apply URL. Stabilize `InitialFiltersObject` (54-65) with `useRef`/`useMemo` keyed on `initialFilters`, and remove the double `JSON.stringify` compare (line 407) in favor of a single stable comparison.
 
-- [ ] **Step 3: Verify**
+- [ ] **Step 6: Verify**
 
-Run: `pnpm build && pnpm start`
-Manual: open the filter modal, toggle chips (categories/brands/colors/sizes), drag the price slider, Apply and Reset → all behave as before; only the changed section visibly updates; applied URL is correct; RTL intact.
+Run: `pnpm exec tsc --noEmit && pnpm build && pnpm start`
+Manual: open the filter modal → category/brand/color/size chips render (now client-rendered from data) with correct active highlighting and images; toggle chips, drag the price slider, Apply and Reset → all behave as before; only the changed section visibly updates; applied URL is correct; RTL intact. After this task, `GetFilters` returns NO JSX and `serverRequests/listing/index.tsx` no longer imports `CategoryImageCircel`/`ImageCircel`/`ProductWrapper`.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add components/ListingPage/filterComponents/FiltersWindow/index.tsx
-git commit -m "perf(listing): FiltersWindow store selectors + split price/chip state"
+git add components/ListingPage/filterComponents/FiltersWindow/index.tsx components/ListingPage/filterComponents/FiltersWindow/CategoryImageCircel.tsx components/ListingPage/filterComponents/FiltersWindow/ImageCircel.tsx serverRequests/listing/index.tsx
+git commit -m "refactor(listing): GetFilters returns data; client filter chips; FiltersWindow perf"
 ```
 
 ---
@@ -767,9 +836,9 @@ git commit -m "perf(listing): FiltersWindow store selectors + split price/chip s
 
 Delete `getProducts` / `getNextProducts` from `store/listing/reducer.ts` (and their state members if unused: confirm `products` slice member has no remaining consumers). Update `ListingState` type. Confirm via search that nothing references them (the audit found only the reducer + a spec doc).
 
-- [ ] **Step 2: Retire `ProductWrapper` if orphaned**
+- [ ] **Step 2: Retire `ProductWrapper` (all consumers migrated in Tasks 5–6)**
 
-Run a search for `ProductWrapper` imports. If ONLY `ProductButtonWrapper`/`ProductColorsBottomSheet`/`ProductPhotosWrapper` (the child files) remain and nothing imports `components/ServerWrapper/ProductWrapper` index, delete it. If any consumer remains (e.g. a boutique page not in this refactor's scope), leave it and note the remaining consumer.
+Grep the whole repo for imports of `components/ServerWrapper/ProductWrapper` (the index). After Tasks 5, 6, 9, and 11, the audited consumers (`serverRequests/listing/index.tsx`, `serverRequests/home.tsx`, `BoutiquesListWrapper.tsx`, `Server/ProductList.tsx`, `Server/FeatureProducts.tsx`, `Server/FlashDealsProducts.tsx`) should all be migrated to `ProductCard`. Expected: zero remaining importers of the index. Delete `components/ServerWrapper/ProductWrapper/index.tsx`. Keep its child files (`ProductButtonWrapper`, `ProductColorsBottomSheet`, `ProductPhotosWrapper`, `ProductColorsCards`, `StackedColors`, `OldPrice`, `RenderPrice`) — `ProductCard` reuses them. If, against expectation, grep finds a remaining importer, STOP and report it (do not delete) — it means a consumer was missed and must be migrated first.
 
 - [ ] **Step 3: Verify**
 

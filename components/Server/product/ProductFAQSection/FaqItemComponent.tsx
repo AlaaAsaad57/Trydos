@@ -1,4 +1,6 @@
+"use client";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import {
   convertTextToXFormat,
   formatTime,
@@ -6,6 +8,7 @@ import {
   translateFunction,
 } from "utils/server";
 import profilePng from "public/images/profileNo.png";
+import { useAppStore } from "store";
 import { LikeButton } from "../LikeButtton";
 import BuyersCommentMenu from "../ProductBuyersComment/BuyersCommentMenu";
 import BuyersReplyMenu from "../ProductBuyersComment/BuyersReplyMenu";
@@ -15,9 +18,25 @@ function FaqItemComponent({
   language,
   width = 90,
   isRtl,
-  seller_name,
+  seller_name = null,
   isFromComments = false,
 }) {
+  // Read the shared entity so edits/likes/deletes done in any widget reflect
+  // here; fall back to the prop before the store is seeded.
+  const entity = useAppStore((s) => s.commentEntities[comment?.id]);
+  const deleted = useAppStore((s) => s.deletedCommentIds[comment?.id]);
+  const c = { ...comment, ...entity };
+  // Own question + reply text so translate/show-original is React state, not
+  // DOM mutation; re-sync when the (shared) comment text changes.
+  const [displayText, setDisplayText] = useState(c?.comment);
+  const [displayReply, setDisplayReply] = useState(c?.seller_reply);
+  useEffect(() => {
+    setDisplayText(c?.comment);
+  }, [c?.comment]);
+  useEffect(() => {
+    setDisplayReply(c?.seller_reply);
+  }, [c?.seller_reply]);
+  if (deleted) return null;
   return (
     <div
       className={`flex-col ${
@@ -25,7 +44,7 @@ function FaqItemComponent({
       } ${"max-w-full w-full"}`}
     >
       <div
-        id={`comment-${comment.id}`}
+        id={`comment-${c.id}`}
         className={`${isFromComments && "comment-item-text"} comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-full w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
         style={{
           position: "relative",
@@ -35,22 +54,23 @@ function FaqItemComponent({
         <BuyersCommentMenu
           fromComments={isFromComments}
           comment_type="faq"
-          comment={comment}
+          comment={c}
           isRtl={isRtl}
           language={language}
-          isOwner={comment?.isOwner}
-          ownerID={comment?.ownerId}
-          id={comment.id}
-          ownerType={comment?.ownerType}
+          isOwner={c?.isOwner}
+          ownerID={c?.ownerId}
+          id={c.id}
+          ownerType={c?.ownerType}
+          setDisplayText={setDisplayText}
         />
         <div className="w-full flex-col">
           <div className="flex-row items-center">
             <div className="comment-photo">
               <Image
-                src={GetImageUrl(comment?.customer?.image) ?? profilePng}
+                src={GetImageUrl(c?.customer?.image) ?? profilePng}
                 width={20}
                 height={20}
-                alt={convertTextToXFormat(comment?.customer?.name)}
+                alt={convertTextToXFormat(c?.customer?.name)}
               />
             </div>
             <div className="comment-content capitalize mx-[10px]">
@@ -59,12 +79,12 @@ function FaqItemComponent({
                 data-cy="Source-Of-Comment"
               >
                 <span className="bold pr-[4px]">Q</span>{" "}
-                {convertTextToXFormat(comment?.customer?.name)}
+                {convertTextToXFormat(c?.customer?.name)}
               </div>
             </div>
           </div>
           <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
-            {comment?.variant}
+            {c?.variant}
           </span>
           <div
             className="comment-date text-[9px] absolute text-[#1d1d1d]"
@@ -74,28 +94,28 @@ function FaqItemComponent({
               left: isRtl ? "10px" : "initial",
             }}
           >
-            {formatTime(comment?.created_at, language)}
+            {formatTime(c?.created_at, language)}
           </div>
           <div
-            id={`comment-${comment.id}-text`}
+            id={`comment-${c.id}-text`}
             className={`${
               !isRtl ? "pr-[27px]" : "pl-[27px]"
             } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0`}
           >
-            {comment.comment}
+            {displayText}
           </div>
         </div>
         <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
           <LikeButton
-            comment_id={comment.id}
-            is_liked={comment.is_liked}
-            productId={comment.product_id}
+            comment_id={c.id}
+            is_liked={c.is_liked}
+            productId={c.product_id}
             target_type={"comment"}
-            total_likes={comment.total_likes}
+            total_likes={c.total_likes}
           />
         </div>
       </div>
-      {comment.has_reply ? (
+      {c.has_reply ? (
         <>
           <div className="px-[10px] w-full bg-[#F8F8F8]">
             <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
@@ -129,7 +149,7 @@ function FaqItemComponent({
               </div>
               <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
                 {translateFunction("Dear", language)}{" "}
-                {convertTextToXFormat(comment?.customer?.name)}
+                {convertTextToXFormat(c?.customer?.name)}
               </span>
               <div
                 className="comment-date text-[9px]"
@@ -139,28 +159,29 @@ function FaqItemComponent({
                   left: isRtl ? "10px" : "initial",
                 }}
               >
-                {formatTime(comment?.reply_created_at, language)}
+                {formatTime(c?.reply_created_at, language)}
               </div>
               <div
-                id={`comment-${comment.id}-reply-text`}
+                id={`comment-${c.id}-reply-text`}
                 className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0"
               >
-                {comment?.seller_reply}
+                {displayReply}
               </div>
             </div>
             <div className="flex-row pl-[10px] pr-[3px] gap-2 w-full items-center">
               <LikeButton
-                comment_id={comment.id + `-seller_reply`}
-                is_liked={comment.reply_is_liked}
-                productId={comment.product_id}
+                comment_id={c.id + `-seller_reply`}
+                is_liked={c.reply_is_liked}
+                productId={c.product_id}
                 target_type={"seller_reply"}
-                total_likes={comment.reply_total_likes}
+                total_likes={c.reply_total_likes}
               />
               <BuyersReplyMenu
-                id={comment.id}
+                id={c.id}
                 isRtl={isRtl}
                 language={language}
-                sellerReply={comment?.seller_reply}
+                sellerReply={c?.seller_reply}
+                setDisplayReply={setDisplayReply}
               />
             </div>
           </div>

@@ -1,5 +1,4 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import home from "services/home";
 import { useAppStore } from "store";
@@ -18,8 +17,20 @@ export function LikeButton({
   const [loading, setLoading] = useState(false);
   const [likes, setLikes] = useState(total_likes || 0);
   const [animating, setAnimating] = useState(false);
-  const router = useRouter();
-  const { setLoginOpen } = useAppStore();
+  const { setLoginOpen, patchCommentEntity } = useAppStore();
+  // Seller-reply likes live on the parent comment entity under reply_* fields;
+  // strip the suffix to reach the real comment id.
+  const isReplyTarget = target_type === "seller_reply";
+  const realId = isReplyTarget
+    ? String(comment_id).replace(/-seller_reply$/, "")
+    : String(comment_id);
+  const syncEntity = (liked: boolean, count: number) =>
+    patchCommentEntity(
+      realId,
+      isReplyTarget
+        ? { reply_is_liked: liked, reply_total_likes: count }
+        : { is_liked: liked, total_likes: count },
+    );
   const ReactOnComment = async () => {
     let user_cookies = useAppStore.getState().userProfile?.id;
     if (!user_cookies) {
@@ -31,8 +42,14 @@ export function LikeButton({
     setAnimating(true);
     const previousIsLiked = isLiked;
     const previousLikes = likes;
-    setIsLiked(!isLiked);
-    setLikes((prev) => (isLiked ? prev - 1 : prev + 1));
+    const nextIsLiked = !isLiked;
+    const nextLikes = isLiked ? likes - 1 : likes + 1;
+    setIsLiked(nextIsLiked);
+    setLikes(nextLikes);
+    // Push to the shared entity so the same comment updates in every widget
+    // (list, modal, extended) instantly — no router.refresh (which would
+    // re-seed from a not-yet-indexed Elasticsearch and revert the like).
+    syncEntity(nextIsLiked, nextLikes);
 
     try {
       setLoading(true);
@@ -49,8 +66,6 @@ export function LikeButton({
           product_id: productId,
         });
       }
-      router.refresh();
-      // handleLikeAction(!isLiked, isLiked ? likes - 1 : likes + 1);
       setLoading(false);
     } catch (error) {
       LogError({
@@ -60,6 +75,7 @@ export function LikeButton({
       setLoading(false);
       setIsLiked(previousIsLiked);
       setLikes(previousLikes);
+      syncEntity(previousIsLiked, previousLikes);
     } finally {
       setLoading(false);
       // small delay to allow the animation to finish

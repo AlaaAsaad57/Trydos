@@ -10,7 +10,7 @@ function ProductCommentButton({
   total_comments,
   productId,
 }) {
-  const { shouldUpdateComeentsCount, setShouldUpdateComeentsCount } =
+  const { shouldUpdateCommentsCount, setShouldUpdateCommentsCount } =
     useAppStore();
   const [commentsTotal, setCommentsTotal] = useState(total_comments);
   const UpdateCommentCount = async () => {
@@ -19,7 +19,7 @@ function ProductCommentButton({
       let res = await GetProductCommentsCount({ productId });
 
       setCommentsTotal(res.total);
-      setShouldUpdateComeentsCount(false);
+      setShouldUpdateCommentsCount(false);
     } catch (error) {
       LogError({
         error: error,
@@ -28,8 +28,8 @@ function ProductCommentButton({
     }
   };
   useEffect(() => {
-    if (shouldUpdateComeentsCount) UpdateCommentCount();
-  }, [shouldUpdateComeentsCount]);
+    if (shouldUpdateCommentsCount) UpdateCommentCount();
+  }, [shouldUpdateCommentsCount]);
   const getCommentsCount = () => {
     if (commentsTotal > 0) return commentsTotal;
     else return <></>;

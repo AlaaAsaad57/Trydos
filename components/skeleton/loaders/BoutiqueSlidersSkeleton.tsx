@@ -22,7 +22,7 @@ function BoutiqueSlidersSkeleton({ boutique }: any) {
         </div>
         <div className="boutique-text">{boutique?.name}</div>
       </div>
-      <div data-cy="boutique_photo_holder" className="boutique-photo-holder">
+      <div data-cy="boutique_photo_holder" className="boutique-photo-holder w-full min-w-[100vw]">
         <div
           data-cy="banners_length-1"
           className={`${

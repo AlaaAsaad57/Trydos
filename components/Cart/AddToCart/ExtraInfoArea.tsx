@@ -1,7 +1,5 @@
-import Timer from "components/Login/Timer";
 import React from "react";
 import { useAppStore } from "store";
-import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import { RoundPrice, translateFunction } from "utils/functions";
 import FlashDealBannerCart from "./FlashDealBannerCart";
 import PropertiesFeaturesInAddToCart from "./ProductFeatures";
@@ -10,6 +8,8 @@ import CartContentOfProduct from "./CartContentOfProduct";
 function ExtraInfoArea({
   isInCart,
   isLuck,
+  luckActive = false,
+  secondsLeft = 0,
   isQtyEmpty,
   isValid = true,
   selected_color,
@@ -18,55 +18,9 @@ function ExtraInfoArea({
   flashDeal,
   isCollectAfterOrder,
   colors,
-  LuckEnd = () => {},
   id,
   product,
 }) {
-  const configureRedeemedProducts = () => {
-    let redeemed_products_ids = getCookie<any>("redemed_ids");
-
-    if (redeemed_products_ids) {
-      let parsed_redeemed_products_ids = redeemed_products_ids
-        ? redeemed_products_ids
-        : [];
-      if (!parsed_redeemed_products_ids?.find((s) => s.id === id)) {
-        let MAX_ARRAY_LENGTH =
-          parseInt(process.env.NEXT_PUBLIC_MAX_ARRAY_LENGTH) || 5;
-        if (parsed_redeemed_products_ids.length < MAX_ARRAY_LENGTH)
-          setCookie("redemed_ids", [
-            ...parsed_redeemed_products_ids,
-            { id: id, showingDate: new Date().toISOString() },
-          ]);
-        else
-          setCookie("redemed_ids", [
-            ...parsed_redeemed_products_ids.slice(1, MAX_ARRAY_LENGTH),
-            { id: id, showingDate: new Date().toISOString() },
-          ]);
-      } else {
-        return;
-      }
-    } else {
-      setCookie("redemed_ids", [
-        { id: id, showingDate: new Date().toISOString() },
-      ]);
-    }
-  };
-  const hideRedeemPriceIfItsStillShown = () => {
-    let bar = document.querySelector<HTMLDivElement>("#product-redeem-counter");
-    if (bar) {
-      bar.classList.remove("flex");
-      bar.style.display = "none";
-    }
-  };
-  const getCounters = () => {
-    if (typeof window === "undefined") return 0;
-    let counter = localStorage?.getItem("counter");
-    let parsed_counter = JSON.parse(counter);
-    if (parsed_counter?.product_id === id) {
-      return parseInt(parsed_counter.counter);
-    }
-    return 50;
-  };
   const { currency, language } = useAppStore();
   const ClockIcon = () => (
     <svg
@@ -183,26 +137,14 @@ function ExtraInfoArea({
   // never add to cart
   if (!isInCart) {
     // if reddem
-    if (isLuck) {
+    if (isLuck && luckActive) {
       return (
         <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full px-[20px]">
           <div className="flex items-center justify-center align-baseline rounded-[10px] bg-[#FFF3E8] text-[9px] text-[#FF6200] w-full h-[25px] relative gap-[3px]">
             <ClockIcon />
             <span className="bold">{translateFunction("Luck!")}</span>
             <span>{translateFunction("Add To Bag Within")}</span>
-            <span className="bold">
-              <Timer
-                onlySeconds={true}
-                isForRedeem={true}
-                onFinish={() => {
-                  configureRedeemedProducts();
-                  LuckEnd();
-                  hideRedeemPriceIfItsStillShown();
-                }}
-                minutes={0}
-                seconds={product?.seconds}
-              />
-            </span>
+            <span className="bold">{secondsLeft}</span>
             <span className="bold">{translateFunction("Seconds")}</span>
             <span className="bold">|</span>
             <span>{translateFunction("Only")}</span>

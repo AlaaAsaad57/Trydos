@@ -4,6 +4,7 @@ import AnalyzeSearchText from "./analyzeSearchText";
 import {
   buildAggregations,
   buildBaseConditions,
+  buildSortClause,
   buildPriceHistogramAggregation,
   buildPriceStatsAggregation,
   calculatePriceRange,
@@ -43,10 +44,17 @@ interface SearchParams {
   country?: string;
   is_from_browser?: boolean;
   filters_offset?: number;
+  // User-facing listing sort key (`?sort=`). Maps to an ES sort array via
+  // buildSortClause; undefined / unknown ⇒ relevance (unchanged default).
+  sort?: string;
   noProducts?: boolean;
   noFilters?: boolean;
   userId?: string | number | null;
   recommended_offset?: number;
+  // ── WEB vs MOBILE `_source` split (ticket 7c) ───────────────────────
+  // Defaults to the trimmed WEB `_source`. Mobile API routes (source not in
+  // this repo) pass `fullSource: true` to get the full field set back.
+  fullSource?: boolean;
   // ── Point-in-Time pagination (ADR-009) ──────────────────────────────
   // When `usePit` is set AND the runtime flag is enabled, the product search
   // runs inside a PIT snapshot so every page of one browsing session reads an
@@ -228,6 +236,8 @@ export async function getProductsAndFiltersFromElastic(
     recommended_offset = 0,
     pit_id = null,
     usePit = false,
+    fullSource = false,
+    sort,
   } = params;
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
@@ -301,9 +311,11 @@ export async function getProductsAndFiltersFromElastic(
 
     const searchQuery = {
       index: catalog_index,
-      _source: getSourceFields(),
+      _source: getSourceFields(fullSource),
       track_scores: true,
-      track_total_hits: true,
+      // Facet/initial loads still get a bounded count for display; pure
+      // product-pagination requests (`noFilters`) skip the full count.
+      track_total_hits: noFilters ? false : 10000,
       size: limit,
       query: {
         bool: {
@@ -311,7 +323,7 @@ export async function getProductsAndFiltersFromElastic(
           must_not: mustNotConditions,
         },
       },
-      sort: [{ _score: { order: "desc" } }, { id: { order: "asc" } }],
+      sort: buildSortClause(sort, language_code),
       aggs: buildAggregations(
         mustConditions,
         mustNotConditions,
@@ -324,13 +336,17 @@ export async function getProductsAndFiltersFromElastic(
 
     if (noFilters) delete searchQuery.aggs;
 
+    // Facet-only requests (`noProducts`) never need product hits — the facets
+    // are served entirely from `aggs`, independent of any price-agg flag.
+    if (noProducts) (searchQuery as any).size = 0;
+
     // ── Global price-facet (ticket: price-filter-elastic-aggregations) ───────
     // The price facet re-scopes to ALL active filters INCLUDING the selected
     // price range, so the slider bounds, the curve, and the cards reflect the
     // current selection (product-owner testing decision; supersedes the earlier
     // self-excluding approach). It uses the same must/must_not as the main query.
-    // For the filters-only panel request (`noProducts`) drop product fetching to
-    // `size: 0`.
+    // For the filters-only panel request (`noProducts`) product fetching is
+    // already forced to `size: 0` above, independent of this flag.
     let priceFacetActive = false;
     if (LISTING_PRICE_AGG_ENABLED && !noFilters && (searchQuery as any).aggs) {
       priceFacetActive = true;
@@ -339,7 +355,6 @@ export async function getProductsAndFiltersFromElastic(
         mustNotConditions,
         country,
       );
-      if (noProducts) (searchQuery as any).size = 0;
     }
 
     // Add search_after for pagination
@@ -661,15 +676,15 @@ export async function getProductsAndFiltersFromElastic(
       filters_offset,
     );
     let end = process.hrtime.bigint();
-    console.log(
-      filters.search_text,
-      "search term",
-      total_size,
-      "products count",
-      "Time taken:",
-      Number(end - start) / 1_000_000,
-      "ms",
-    );
+    // console.log(
+    //   filters.search_text,
+    //   "search term",
+    //   total_size,
+    //   "products count",
+    //   "Time taken:",
+    //   Number(end - start) / 1_000_000,
+    //   "ms",
+    // );
     if (
       filters?.search_text &&
       filters.search_text.trim().length > 0 &&
@@ -793,7 +808,11 @@ async function fetchRecommendationCandidates(userId: string | number) {
     }))
     .sort((a, b) => b.score - a.score); // Highest score first
 }
-async function fetchProductDetailsBatch(ids: string[], country: string) {
+async function fetchProductDetailsBatch(
+  ids: string[],
+  country: string,
+  fullSource: boolean = false,
+) {
   if (ids.length === 0) return [];
 
   const baseConditions = buildBaseConditions({}, country);
@@ -804,7 +823,7 @@ async function fetchProductDetailsBatch(ids: string[], country: string) {
 
   const response = await client.search({
     index: catalog_index,
-    _source: getSourceFields(),
+    _source: getSourceFields(fullSource),
     size: ids.length, // Fetch exactly what we asked for
     query: {
       bool: { must, must_not },
@@ -822,6 +841,7 @@ export async function GetRecomendationsForUser({
   country,
   search_after = [0], // Default to Index 0
   limit = 50,
+  fullSource = false,
 }) {
   try {
     const start = process.hrtime.bigint();
@@ -860,6 +880,7 @@ export async function GetRecomendationsForUser({
       const fetchedProductsRaw = await fetchProductDetailsBatch(
         batchIds,
         country,
+        fullSource,
       );
       const productsWithFilters: any = extractFilters(
         fetchedProductsRaw,
@@ -990,6 +1011,7 @@ export interface RelatedProductsParams {
   country?: string;
   pit_id?: string | null;
   usePit?: boolean;
+  fullSource?: boolean;
 }
 
 export async function getRelatedProducts(
@@ -1003,6 +1025,7 @@ export async function getRelatedProducts(
     country = "",
     pit_id = null,
     usePit = false,
+    fullSource = false,
   } = params;
 
   let start = process.hrtime.bigint();
@@ -1090,7 +1113,7 @@ export async function getRelatedProducts(
 
     const searchQuery: any = {
       index: catalog_index,
-      _source: getSourceFields(),
+      _source: getSourceFields(fullSource),
       track_scores: true,
       track_total_hits: true,
       size: limit,

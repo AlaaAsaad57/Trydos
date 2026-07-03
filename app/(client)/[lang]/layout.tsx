@@ -16,6 +16,10 @@ import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants"
 import { mapLocaleToBCP47 } from "serverRequests/meta/StructuredData/utils";
 import PathTracker from "components/PathTracker";
 import ModalSlot from "components/ModalRoute/ModalSlot";
+import {
+  OverlayVisibilityProvider,
+  MainContent,
+} from "components/ModalRoute/OverlayVisibility";
 // Non-critical, render-null / post-hydration client components — code-split and
 // loaded after hydration (ssr:false) to trim main-thread hydration cost.
 import DeferredLayoutClients from "components/global/DeferredLayoutClients";
@@ -94,7 +98,7 @@ export default async function RootLayout({ params, children, modal }) {
         quicksand_medium.variable,
         quicksand_bold.variable,
         quicksand_semibold.variable,
-        "overflow-x-hidden",
+        "overflow-x-clip",
       ].join(" ")}
       lang={mapLocaleToBCP47(lang)}
       translate="no"
@@ -141,13 +145,10 @@ export default async function RootLayout({ params, children, modal }) {
             </a>
             <AuthNavContainer />
           </div>
-          <div
-            className="w-full flex-col main-content max-w-[1365px]"
-            style={{ display: "flex" }}
-          >
-            {children}
-          </div>
-          <ModalSlot>{modal}</ModalSlot>
+          <OverlayVisibilityProvider>
+            <MainContent>{children}</MainContent>
+            <ModalSlot>{modal}</ModalSlot>
+          </OverlayVisibilityProvider>
         </div>
         <Init />
 

@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   getConfiguredImage,
@@ -7,45 +9,84 @@ import {
   getVideoUrl,
   getUrlofProduct,
 } from "utils/server";
-import ProductPhotosWrapper from "./ProductPhotosWrapper";
+import ProductPhotosWrapper from "components/ServerWrapper/ProductWrapper/ProductPhotosWrapper";
 import NextLink from "components/global/NextLink";
 
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
-import { OldPrice } from "./OldPrice";
-import { RenderPrice } from "./RenderPrice";
+import { OldPrice } from "components/ServerWrapper/ProductWrapper/OldPrice";
+import { RenderPrice } from "components/ServerWrapper/ProductWrapper/RenderPrice";
 import FlashDealBanner from "components/products/FlashDealBanner";
-import ProductButtonWrapper from "./ProductButtonWrapper";
+import ProductButtonWrapper from "components/ServerWrapper/ProductWrapper/ProductButtonWrapper";
 import "styles/product-card.css";
 import ProductColorsWrapper from "components/clientWrapper/product/ProductColorsWrapper";
 import ImageAvatar from "components/ListingPage/ImageAvatar";
-import StackedSlider from "./StackedColors";
-import ProductColorsBottomSheet from "./ProductColorsBottomSheet";
-import ProductColorsCards from "./ProductColorsCards";
-function ProductWrapper({
-  images,
-  videos,
-  id,
-  color = null,
-  slug,
-  name,
-  category_tree,
-  language,
-  labels,
-  brand,
+import StackedSlider from "components/ServerWrapper/ProductWrapper/StackedColors";
+import ProductColorsBottomSheet from "components/ServerWrapper/ProductWrapper/ProductColorsBottomSheet";
+import ProductColorsCards from "components/ServerWrapper/ProductWrapper/ProductColorsCards";
+import type { ListingProduct } from "types/listing";
+import { deriveCardProps, type CardContext } from "./derivedProps";
+import { useLuckTimer } from "hooks/useLuckTimer";
+
+interface ProductCardProps extends CardContext {
+  product: ListingProduct;
+  priority?: boolean;
+}
+
+function ProductCard({
+  product,
   currency,
-  is_luck,
-  endDate,
-  is_flashDeal,
-  luck_price,
-  price,
-  offer_price,
-  flash_deal_price,
   country,
-  Sliders = false,
-  InitialProductData,
-  fromRecomended = null,
-  sizes_filters = null,
-}) {
+  language,
+  sliders,
+  sizesFilters,
+  fromRecomended,
+  priority,
+}: ProductCardProps) {
+  const p = deriveCardProps(product, {
+    currency,
+    country,
+    language,
+    sliders,
+    sizesFilters,
+    fromRecomended,
+  });
+  const {
+    images,
+    videos,
+    id,
+    color,
+    slug,
+    name,
+    category_tree,
+    labels,
+    brand,
+    is_luck,
+    endDate,
+    is_flashDeal,
+    luck_price,
+    price,
+    offer_price,
+    flash_deal_price,
+    Sliders,
+    InitialProductData,
+    sizes_filters,
+  } = p;
+  const [inView, setInView] = useState(true);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el || !is_luck) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.1 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [is_luck]);
+  const { luckActive, secondsLeft } = useLuckTimer(id, {
+    isLuck: Boolean(is_luck),
+    visible: inView,
+  });
   let isRtl = language === "ar" || language === "ku";
   let isFlash: any = null;
   let flash_price = offer_price ?? price;
@@ -110,8 +151,9 @@ function ProductWrapper({
 
   return (
     <div
+      ref={cardRef}
       id={`product_${slug}`}
-      className={`${is_luck && `product_redeem`}  relative flex`}
+      className={`${luckActive ? "product_redeem" : ""}  relative flex`}
     >
       {Sliders && (
         <ProductColorsBottomSheet id={id}>
@@ -162,23 +204,6 @@ function ProductWrapper({
         </ProductColorsWrapper>
       )}
       <NextLink
-        // onClick={() => {
-        //   if (ProductData?.is_redeem) {
-        //     let text = document.querySelector(
-        //       `#counter-${product.product_id}`
-        //     )?.textContent;
-        //     if (text) text = text.match(/\d+/)[0];
-        //     if (text?.length)
-        //       localStorage.setItem(
-        //         "counter",
-        //         JSON.stringify({
-        //           counter: text,
-        //           product_id: product?.product_id,
-        //         })
-        //       );
-        //   }
-        //   storeCookies();
-        // }}
         fromRecomended={
           fromRecomended
             ? {
@@ -266,9 +291,11 @@ function ProductWrapper({
                         <Image
                           width={400}
                           height={580}
-                          loading="eager"
-                          quality={100}
+                          loading={priority && idx === 0 ? undefined : "lazy"}
+                          quality={70}
                           fetchPriority="auto"
+                          sizes="200px"
+                          priority={priority && idx === 0}
                           src={getConfiguredImage({
                             src: GetImageUrl(image),
                             width: 400,
@@ -307,9 +334,11 @@ function ProductWrapper({
               <Image
                 width={400}
                 height={580}
-                quality={100}
-                loading="eager"
+                quality={70}
+                loading={priority ? undefined : "lazy"}
                 fetchPriority="auto"
+                sizes="200px"
+                priority={priority}
                 style={{
                   borderRadius: "15px",
                   zIndex: "3",
@@ -349,7 +378,7 @@ function ProductWrapper({
                   })}
                   alt={brand.name || "Brand"}
                   className="h-[15px] w-[30px] object-contain inline-block ml-[7px]"
-                  loading="eager"
+                  loading="lazy"
                   draggable="false"
                 />
               ) : (
@@ -397,7 +426,7 @@ function ProductWrapper({
             <RenderPrice
               currency={currency}
               flash_price={flash_price}
-              is_luck={is_luck}
+              luckActive={luckActive}
               offer_price={offer_price}
               price={price}
             />
@@ -412,14 +441,11 @@ function ProductWrapper({
         InitialProductData={InitialProductData}
         slug={slug}
         currency={currency}
-        endDate={endDate}
-        flash_deal_price={flash_deal_price}
-        is_flashDeal={is_flashDeal}
         id={id}
         is_luck={is_luck}
+        luckActive={luckActive}
+        secondsLeft={secondsLeft}
         language={language}
-        offer_price={offer_price}
-        price={price}
         luck_price={luck_price}
         sizes_filters={sizes_filters}
       />
@@ -427,4 +453,4 @@ function ProductWrapper({
   );
 }
 
-export default ProductWrapper;
+export default ProductCard;

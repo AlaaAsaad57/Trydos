@@ -1,4 +1,21 @@
 const translations = {
+  // Listing sort widget
+  "Sort products": "Ürünleri sırala",
+  "Choose how products are ordered": "Ürünlerin nasıl sıralanacağını seçin",
+  Recommended: "Önerilen",
+  "Best match for your search": "Aramanız için en iyi eşleşme",
+  "Best sellers": "Çok satanlar",
+  "Most bought right now": "Şu anda en çok alınanlar",
+  "New arrivals": "Yeni gelenler",
+  "By date added": "Eklenme tarihine göre",
+  Newest: "En yeni",
+  Oldest: "En eski",
+  "By product price": "Ürün fiyatına göre",
+  "Low to High": "Düşükten yükseğe",
+  "High to Low": "Yüksekten düşüğe",
+  Alphabetical: "Alfabetik",
+  "A to Z": "A'dan Z'ye",
+  "Z to A": "Z'den A'ya",
   // Become Seller modal
   "Tell us about you and your shop to start selling":
     "Satışa başlamak için kendinizden ve mağazanızdan bahsedin",
@@ -32,6 +49,7 @@ const translations = {
   Other: "Diğer",
   "Report Reason": "Bildirme Nedeni",
   "Details (optional)": "Detaylar (isteğe bağlı)",
+  "Details": "Detaylar",
   "Write details here...": "Detayları buraya yazın...",
   "Submit Report": "Bildirimi Gönder",
   "Tell us what went wrong so we can improve your experience":
@@ -670,6 +688,11 @@ const translations = {
   "Shipping Is Completely Free Without Any Extras":
     "Kargo Tamamen Ücretsiz, Ekstra Ücret Yok",
   "Reach End": "Sonuca Ulaş",
+  "You've reached the end": "Sona ulaştınız",
+  "You've seen everything in this list.": "Bu listedeki her şeyi gördünüz.",
+  "No products found": "Ürün bulunamadı",
+  "Try changing or clearing your filters.": "Filtrelerinizi değiştirmeyi veya temizlemeyi deneyin.",
+  "Clear filters": "Filtreleri temizle",
   "Good Quality Product": "İyi Kaliteli Ürün",
   "Verified by trydos": "trydos tarafından doğrulandı",
   "Made In Turkey": "Türkiye'de Üretilmiştir",

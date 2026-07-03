@@ -79,6 +79,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       search_after: offset,
       language_code: language,
       country,
+      fullSource: true,
     });
 
 

@@ -4,6 +4,7 @@ import { GetRelatedProducts } from "serverRequests/listing";
 import RelatedProductsInfiniteScroll from "components/Product/RelatedProductsInfiniteScroll";
 import { translateFunction } from "utils/server";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
+import ProductCard from "components/products/ProductCard";
 
 interface RelatedProductsSectionProps {
   globalPromise: Promise<any>;
@@ -32,7 +33,7 @@ async function RelatedProductsSection({
     currency: resolvedCurrency,
   });
 
-  if (!response || !response.items || response.items.length === 0) {
+  if (!response || !response.products || response.products.length === 0) {
     return null;
   }
 
@@ -52,7 +53,16 @@ async function RelatedProductsSection({
         id="related-products-container"
         dataCy="related-products-container"
         >
-    {response.items}
+    {response.products.map((product) => (
+      <ProductCard
+        key={product?.product_id ?? product?.slug}
+        product={product}
+        currency={resolvedCurrency}
+        country={country}
+        language={language}
+        sliders={false}
+      />
+    ))}
 
     <RelatedProductsInfiniteScroll
           productId={product.id}

@@ -12,8 +12,21 @@ export interface PopularSearchTerm {
   count: number;
 }
 
-export function getSourceFields(): string[] {
-  return [
+// Fields excluded from the WEB `_source` payload to shrink ES hit size, but
+// still required by MOBILE API routes (source not in this repo) that read
+// them directly from the hit. See getSourceFields(full).
+const MOBILE_ONLY_SOURCE_FIELDS = [
+  "custom_products.details", // full description; product detail page reads details from the Go backend, not this ES hit — but mobile still reads it here
+  "custom_boutiques.banners", // web boutique page/aggregation fetch banners via their own separate _source specs
+  "custom_categories.flat_photo_path", // web category icon navbar/chip data comes from separate queries (GetMainCategories, aggregation top_hits, serverRequests/Search.tsx), not this per-product hit
+  "custom_categories.outline_photo_path",
+  "custom_categories.png_photo_path",
+  "custom_categories.fill_photo_path",
+  "custom_categories.banner_photo_path",
+];
+
+export function getSourceFields(full: boolean = false): string[] {
+  const baseFields = [
     "id",
     "status",
     "seller_status",
@@ -60,7 +73,6 @@ export function getSourceFields(): string[] {
     "custom_boutiques.id",
     "custom_boutiques.name",
     "custom_boutiques.slug",
-    "custom_boutiques.banners",
     "custom_boutiques.language_code",
     "custom_categories.id",
     "custom_categories.category_id",
@@ -69,21 +81,110 @@ export function getSourceFields(): string[] {
     // "custom_categories.description",
     // "custom_categories.bio",
     "custom_categories.language_code",
-    "custom_categories.flat_photo_path",
-    "custom_categories.outline_photo_path",
-    "custom_categories.png_photo_path",
-    "custom_categories.fill_photo_path",
-    "custom_categories.banner_photo_path",
     "custom_products.id",
     "custom_products.product_id",
     "custom_products.name",
     "custom_products.slug",
     "custom_products.status",
-    "custom_products.details",
     "custom_products.language_code",
     "custom_products.label_names",
   ];
+
+  return full ? [...baseFields, ...MOBILE_ONLY_SOURCE_FIELDS] : baseFields;
 }
+
+// ───────────────────────────────────────────────────────────────────────────
+// Listing sort (ticket: listing-sort — docs/superpowers/specs/2026-07-01-listing-sort-design.md)
+//
+// Map a user-facing `?sort=` key → an Elasticsearch sort array. Rules:
+//   • Every clause ALWAYS ends with `{ id: { order: "asc" } }` as the final
+//     tie-breaker — required for `search_after` cursor stability (ADR-009).
+//   • `missing: "_last"` keeps docs lacking the sort field at the end.
+//   • Unknown / absent keys fall back to RELEVANCE, byte-for-byte identical to
+//     the previous hardcoded default, so stale/malformed URLs degrade gracefully
+//     and the default listing behaviour is unchanged.
+// A-Z/Z-A sort on the localized product name: `custom_products.name.keyword` is
+// byte-order (raw UTF-8), filtered to the active locale's nested row so the
+// correct localized name is the sort key. True locale collation is deferred.
+//
+// Every field sort also carries `unmapped_type` so that if a field is absent
+// from the index mapping, Elasticsearch does NOT throw
+// ("No mapping found … to sort on") and 500 the listing — it treats the field
+// as unmapped, `missing:"_last"` applies, and results fall back to the `id`
+// tie-breaker. This is defensive: these fields are expected to be mapped, but an
+// unmet assumption degrades gracefully instead of breaking the page.
+//
+// Price sorts on the ROOT `offered_price` only. Per-country
+// `country_offer_prices` overrides are intentionally NOT applied to the sort key
+// (locked design decision — a few country-override products may order slightly
+// off vs. their displayed price; country-accurate price sorting is out of scope).
+// ───────────────────────────────────────────────────────────────────────────
+
+// The sort-key vocabulary lives in the client-safe ./sortKeys module (this file
+// imports next/headers + the ES client, so a "use client" component must never
+// import it). Re-exported here for server callers already importing from helpers.
+export { LISTING_SORT_KEYS, type ListingSortKey } from "./sortKeys";
+
+const RELEVANCE_SORT: any[] = [
+  { _score: { order: "desc" } },
+  { id: { order: "asc" } },
+];
+
+export function buildSortClause(
+  sortKey: string | undefined | null,
+  languageCode: string,
+): any[] {
+  const tieBreaker = { id: { order: "asc" } };
+
+  switch (sortKey) {
+    case "best_selling":
+      return [
+        { orders_count: { order: "desc", missing: "_last", unmapped_type: "long" } },
+        tieBreaker,
+      ];
+    case "newest":
+      return [
+        { created_at: { order: "desc", missing: "_last", unmapped_type: "date" } },
+        tieBreaker,
+      ];
+    case "oldest":
+      return [
+        { created_at: { order: "asc", missing: "_last", unmapped_type: "date" } },
+        tieBreaker,
+      ];
+    case "price_asc":
+      return [
+        { offered_price: { order: "asc", missing: "_last", unmapped_type: "double" } },
+        tieBreaker,
+      ];
+    case "price_desc":
+      return [
+        { offered_price: { order: "desc", missing: "_last", unmapped_type: "double" } },
+        tieBreaker,
+      ];
+    case "name_asc":
+    case "name_desc":
+      return [
+        {
+          "custom_products.name.keyword": {
+            order: sortKey === "name_asc" ? "asc" : "desc",
+            missing: "_last",
+            unmapped_type: "keyword",
+            nested: {
+              path: "custom_products",
+              filter: {
+                term: { "custom_products.language_code": languageCode },
+              },
+            },
+          },
+        },
+        tieBreaker,
+      ];
+    default:
+      return [...RELEVANCE_SORT];
+  }
+}
+
 export interface ExtractFiltersResult {
   custom_products: CustomProduct[];
   prices: any;

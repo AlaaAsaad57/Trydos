@@ -3,7 +3,7 @@ import React from "react";
 import { RoundPrice } from "utils/functions";
 import PropertiesMarquee from "./PropertiesMarquee";
 
-import { getCookie } from "utils/cookies/cookie-manager";
+import { isRedeemed } from "utils/luck";
 
 function PricesRow({
   shipping_cost,
@@ -20,8 +20,7 @@ function PricesRow({
 }) {
   const shouldShowLuck = () => {
     if (typeof window === "undefined") return false;
-    const redeemed_ids = getCookie<any[]>("redemed_ids");
-    return !redeemed_ids?.find((s) => s.id === id);
+    return !isRedeemed(id);
   };
   const isRtl = language === "ar" || language === "ku";
   const renderPrice = () => {

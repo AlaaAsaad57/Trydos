@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 import { fetchData } from "utils/fetchData";
+import { TRANSLATE_COMMENT_URL } from "utils/endpointConfig";
 import { useAppStore } from "store";
 
 function BuyersCommentMenu({
@@ -16,8 +17,8 @@ function BuyersCommentMenu({
   comment,
   comment_type,
   fromComments = false,
+  setDisplayText,
 }) {
-  const [loading, setLoading] = useState(false);
   const { BuyerCommentModalOption, setBuyerCommentModalOption } = useAppStore();
   const [translatedComment, setTranslatedComment] = useState<string | null>(
     null,
@@ -34,27 +35,19 @@ function BuyersCommentMenu({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleTranslateComment = async () => {
+    // Show Original: restore the source text via React state (no DOM mutation).
     if (isCommentTranslated) {
       setIsCommentTranslated(false);
       setTranslatedComment(null);
       setMenuOpen(false);
-      if (fromComments) {
-        document.querySelector<HTMLDivElement>(
-          `.extended-section #comment-${comment.id}-text`,
-        ).innerText = comment?.comment;
-      } else {
-        document.querySelector<HTMLDivElement>(
-          `#comment-${comment.id}-text`,
-        ).innerText = comment?.comment ?? "";
-      }
-
+      setDisplayText?.(comment?.comment ?? "");
       return;
     }
 
     try {
       setTranslateLoading(true);
       const response = await fetchData({
-        url: `/public_comment/comments/${id}/translate`,
+        url: TRANSLATE_COMMENT_URL(String(id)),
         method: "POST",
         body: JSON.stringify({
           target_language: language,
@@ -66,27 +59,16 @@ function BuyersCommentMenu({
 
       if (!response.success) throw new Error(response.message);
 
-      if (response?.success) {
-        // Store original text from API response or comment
-        const original = response.original_text;
-        if (!originalComment && original) {
-          setOriginalComment(original);
-        }
+      // Store original text from API response or comment
+      const original = response.original_text;
+      if (!originalComment && original) {
+        setOriginalComment(original);
+      }
 
-        // Check if it's already in the target language
-        if (response.translated_text) {
-          setTranslatedComment(response.translated_text);
-          setIsCommentTranslated(true);
-        }
-        if (fromComments) {
-          document.querySelector<HTMLDivElement>(
-            `.extended-section #comment-${comment.id}-text`,
-          ).innerText = response.translated_text;
-        } else {
-          document.querySelector<HTMLDivElement>(
-            `#comment-${comment.id}-text`,
-          ).innerText = response.translated_text;
-        }
+      if (response.translated_text) {
+        setTranslatedComment(response.translated_text);
+        setIsCommentTranslated(true);
+        setDisplayText?.(response.translated_text);
       }
       setMenuOpen(false);
     } catch (error) {
@@ -148,10 +130,9 @@ function BuyersCommentMenu({
                 });
                 setMenuOpen(false);
               }}
-              disabled={loading}
             >
               <img src="/icons/PenIcon.svg" className="w-4 h-4" />
-              {loading ? translateFunction("Updating...", language) : translateFunction("Edit")}
+              {translateFunction("Edit")}
             </button>
           )}
           {isOwner && (

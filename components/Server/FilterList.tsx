@@ -60,8 +60,8 @@ function FilterList({
             id="filter-list-row-container"
             className={`$${
               isRtl
-                ? "flex-row-reverse flex mr-11.25"
-                : "flex-row flex ml-11.25"
+                ? "flex-row-reverse flex mr-[45px]"
+                : "flex-row flex ml-[45px]"
             }  items-center pr-5   justify-start align-start filter-container overflow-auto scroll-smooth`}
           >
             {(Object.keys(filters) as any)
@@ -131,40 +131,55 @@ const ActiveFiltersBar = ({
   if (isUsingParsedFilters) {
     // Handle new parsedFilters format
     activeFilters = Object.keys(filterParams).reduce((acc, key) => {
-      return {
-        ...acc,
-        [key]:
-          key === "Search"
-            ? filterParams[key][0] // Get first element for search text
-            : filterParams[key], // Array is already parsed
-      };
+      acc[key] =
+        key === "Search"
+          ? filterParams[key][0] // Get first element for search text
+          : filterParams[key]; // Array is already parsed
+      return acc;
     }, {});
   } else {
     // Handle old searchParams format
     activeFilters = Object.keys(filterParams).reduce((acc, key) => {
-      return {
-        ...acc,
-        [key]:
-          key === "Search"
-            ? filterParams[key]
-            : JSON.parse(decodeURIComponent(filterParams[key])),
-      };
+      acc[key] =
+        key === "Search"
+          ? filterParams[key]
+          : JSON.parse(decodeURIComponent(filterParams[key]));
+      return acc;
     }, {});
   }
 
-  const getItemData = ({ value, arr, key, isCategory = false }) => {
-    let selected_filters_array = Array.isArray(arr) ? [...arr] : [];
-    if (isCategory) {
-      selected_filters_array.forEach((category) => {
-        category?.childes?.map((child_category) => {
-          selected_filters_array.push(child_category);
-          child_category?.childes?.map((child_child) => {
-            selected_filters_array.push(child_child);
-          });
-        });
-      });
+  // Flatten the category tree (self + children + grandchildren) once per
+  // render instead of re-flattening it on every getItemData({isCategory:true})
+  // call (previously ~7x per active category).
+  const categoryBySlug = new Map<string, any>();
+  (filters?.categories ?? []).forEach((category) => {
+    if (category?.slug !== undefined && !categoryBySlug.has(category.slug)) {
+      categoryBySlug.set(category.slug, category);
     }
+    category?.childes?.forEach((child_category) => {
+      if (
+        child_category?.slug !== undefined &&
+        !categoryBySlug.has(child_category.slug)
+      ) {
+        categoryBySlug.set(child_category.slug, child_category);
+      }
+      child_category?.childes?.forEach((child_child) => {
+        if (
+          child_child?.slug !== undefined &&
+          !categoryBySlug.has(child_child.slug)
+        ) {
+          categoryBySlug.set(child_child.slug, child_child);
+        }
+      });
+    });
+  });
+
+  const getItemData = ({ value, arr, key, isCategory = false }) => {
     try {
+      if (isCategory) {
+        return categoryBySlug.get(value);
+      }
+      const selected_filters_array = Array.isArray(arr) ? arr : [];
       if (key)
         return selected_filters_array.find((item) => item[key] === value);
       else return selected_filters_array.find((item) => item === value);
@@ -735,6 +750,9 @@ const FilterItemsRow = ({
             filters={filterParams}
             country={country}
             language={language}
+            isRtl={isRtl}
+            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+            isUsingParsedFilters={isUsingParsedFilters}
             // key={JSON.stringify(filterParams)}
           />
         )}

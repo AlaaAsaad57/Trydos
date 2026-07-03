@@ -2,13 +2,13 @@
 import Spinner from "components/global/Spinner";
 
 import { useState } from "react";
-import { GetFaqItemElement } from "serverRequests/product";
 
 import auth from "services/auth";
 import { useAppStore } from "store";
 
 import { showErrorNotification } from "store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { CREATE_COMMENT_URL } from "utils/endpointConfig";
 import { LogError, translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 import { getFirstLetterLang } from "utils/tinyUtils";
@@ -22,7 +22,7 @@ export const AskInput = ({
   owner_type,
   productId,
 }) => {
-  const { user, setShouldUpdateComeentsCount } = useAppStore();
+  const { user, setShouldUpdateCommentsCount, appendFaqComment } = useAppStore();
   const renderBorderSvg = () => {
     return (
       <svg
@@ -61,7 +61,7 @@ export const AskInput = ({
       const variant =
         [color, size]?.filter((s) => Boolean(s))?.join("-") ?? null;
       let res = await fetchData({
-        url: `/public_comment/comments/create`,
+        url: CREATE_COMMENT_URL,
         method: "POST",
         body: JSON.stringify({
           text: comment,
@@ -80,21 +80,40 @@ export const AskInput = ({
         server: "comments",
         noMessage: true,
       });
-      let id = res.data.comment_id;
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      let response = await GetFaqItemElement({
-        id: id,
-        language,
-      });
-      // @ts-ignore
-      if (!response.success) {
-        // @ts-ignore
-        throw new Error(response.message);
+      if (!res?.success || !res?.data?.comment_id) {
+        throw new Error(res?.message || "Failed to create comment");
       }
-      if (response.comment) {
-        setCommentsData(response.comment);
-      }
-      setShouldUpdateComeentsCount(true);
+      // Prepend the new question as data (no ES-indexing setTimeout, no JSX
+      // action): the fields not returned by the create call are known locally.
+      const newComment = {
+        id: res.data.comment_id,
+        customer: {
+          id: auth.UserID(),
+          name: auth.User()?.name,
+          image: auth.User()?.image,
+        },
+        product_id: String(productId),
+        comment,
+        variant,
+        ownerId: owner_id,
+        ownerType: owner_type,
+        created_at: new Date().toISOString(),
+        has_reply: false,
+        good_quality_comment: false,
+        seller_reply: null,
+        seller_name: null,
+        reply_created_at: null,
+        total_likes: 0,
+        is_liked: false,
+        reply_total_likes: 0,
+        reply_is_liked: false,
+        isOwner: true,
+      };
+      // Local prepend for this widget + shared store so the new question also
+      // shows in every other mounted FAQ widget (modal, extended area).
+      setCommentsData(newComment);
+      appendFaqComment(productId, newComment);
+      setShouldUpdateCommentsCount(true);
       setComment("");
       setLoading(false);
     } catch (error) {
