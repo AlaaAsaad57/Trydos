@@ -10,6 +10,8 @@ import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
 import { generateMetadataForListing } from "serverRequests/meta/listing";
+import { permanentRedirect } from "next/navigation";
+import { buildSearchRedirectTarget } from "utils/listing/searchPathRedirect";
 
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
@@ -63,9 +65,17 @@ async function getCurrency(country, language) {
 }
 export default async function Page({ params, searchParams }) {
   let Params = await params;
+  const sp = (await searchParams) ?? {};
+
+  const legacy = buildSearchRedirectTarget(
+    Params.lang,
+    "flashDeals",
+    Params.filters,
+    sp,
+  );
+  if (legacy) permanentRedirect(legacy);
 
   try {
-    const sp = (await searchParams) ?? {};
     const sort = typeof sp.sort === "string" ? sp.sort : undefined;
     const search = typeof sp.search === "string" ? sp.search : undefined;
     let parsedFilters = parseFiltersFromParams(Params.filters || []);
