@@ -26,7 +26,9 @@
 - Modify: `store/listing/reducer.ts`
 
 **Interfaces:**
-- Produces: store state `searchLoading: boolean`, `searchHasResults: boolean`, `searchExpanded: boolean`; setters `setSearchLoading(v: boolean)`, `setSearchHasResults(v: boolean)`, `setSearchExpanded(v: boolean)`. Accessed anywhere via `useAppStore((s) => s.searchLoading)` etc. (the `listing` slice is spread into `useAppStore` by `store/index.ts`).
+- Produces: store state `searchLoading: boolean`, `searchHasResults: boolean`, `searchExpanded: boolean`; setters `setListingSearchLoading(v: boolean)`, `setSearchHasResults(v: boolean)`, `setSearchExpanded(v: boolean)`. Accessed anywhere via `useAppStore((s) => s.searchLoading)` etc. (the `listing` slice is spread into `useAppStore` by `store/index.ts`).
+
+> **NOTE (post-Task-4 fix):** the setter is named `setListingSearchLoading`, NOT `setListingSearchLoading` — the `search` store slice already owns `setListingSearchLoading` (sets `loading_search`) and, being spread after the listing slice in `store/index.ts`, would shadow it. The field stays `searchLoading` (no collision). All references below use `setListingSearchLoading`.
 
 - [ ] **Step 1: Add the three flags + setters**
 
@@ -51,7 +53,7 @@ Change `initialState` to add:
 
 Add these setters inside `useListingStore` (before `resetEnd`):
 ```ts
-  setSearchLoading: (loading: boolean) => set({ searchLoading: loading }),
+  setListingSearchLoading: (loading: boolean) => set({ searchLoading: loading }),
 
   setSearchHasResults: (hasResults: boolean) =>
     set({ searchHasResults: hasResults }),
@@ -404,7 +406,7 @@ Generalise the sort controller to also watch `?search=`. On a search different f
 - Modify: `components/ListingPage/ProductInfiniteScroll.tsx`
 
 **Interfaces:**
-- Consumes: `store.setSearchLoading`, `store.setSearchHasResults` (Task 1); `GetProducts.isAnalyzed` (Task 2); `serverSearch`/`serverHasResults` props (Task 3).
+- Consumes: `store.setListingSearchLoading`, `store.setSearchHasResults` (Task 1); `GetProducts.isAnalyzed` (Task 2); `serverSearch`/`serverHasResults` props (Task 3).
 - Produces: `SortableGrid` prop contract `{ serverSort?: string; serverSearch?: string; serverHasResults?: boolean; ... }`. `ProductsInfiniteScroll` gains `searchMode?: boolean` and `searchQuery?: string` props.
 
 - [ ] **Step 1: Rewrite `SortableGrid`**
@@ -471,7 +473,7 @@ export default function SortableGrid({
   useEffect(() => {
     if (showingServerGrid) {
       useAppStore.getState().setIsNavigating(null);
-      useAppStore.getState().setSearchLoading(false);
+      useAppStore.getState().setListingSearchLoading(false);
       useAppStore.getState().setSearchHasResults(serverHasResults);
     }
   }, [showingServerGrid, serverHasResults]);
@@ -561,7 +563,7 @@ In the `finally` block of `getProductsReq`, after the existing `pageLoaderCleare
       if (searchMode && !searchResultPublishedRef.current) {
         searchResultPublishedRef.current = true;
         const store = useAppStore.getState();
-        store.setSearchLoading(false);
+        store.setListingSearchLoading(false);
         store.setSearchHasResults(products.length > 0);
       }
 ```
@@ -574,7 +576,7 @@ Add the guard ref near the other refs:
       if (searchMode && !searchResultPublishedRef.current) {
         searchResultPublishedRef.current = true;
         const store = useAppStore.getState();
-        store.setSearchLoading(false);
+        store.setListingSearchLoading(false);
         store.setSearchHasResults(seenIdsRef.current.size > 0);
       }
 ```
@@ -924,7 +926,7 @@ Replace `SearchBoutiquePage` with a locally-controlled input that commits to `?s
 - Rewrite: `components/filterPage/SearchBoutiquePage.tsx`
 
 **Interfaces:**
-- Consumes: `serverSearch` prop (Task 3); `store.setSearchLoading`, `store.searchLoading`, `store.setSearchExpanded` (Task 1); `GetSearchSuggestion` (existing).
+- Consumes: `serverSearch` prop (Task 3); `store.setListingSearchLoading`, `store.searchLoading`, `store.setSearchExpanded` (Task 1); `GetSearchSuggestion` (existing).
 
 - [ ] **Step 1: Rewrite the component**
 
@@ -970,7 +972,7 @@ export default function SearchBoutiquePage({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const setSearchLoading = useAppStore((s) => s.setSearchLoading);
+  const setListingSearchLoading = useAppStore((s) => s.setListingSearchLoading);
   const setSearchExpanded = useAppStore((s) => s.setSearchExpanded);
   const searchLoading = useAppStore((s) => s.searchLoading);
 
@@ -1004,13 +1006,13 @@ export default function SearchBoutiquePage({
       // No-op commit (value unchanged from the URL): nothing will refetch, so
       // stop the spinner here — SortableGrid won't fire to clear it.
       if (trimmed === current) {
-        setSearchLoading(false);
+        setListingSearchLoading(false);
         return;
       }
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     },
-    [router, pathname, searchParams, setSearchLoading],
+    [router, pathname, searchParams, setListingSearchLoading],
   );
 
   const scheduleCommit = useCallback(
@@ -1027,7 +1029,7 @@ export default function SearchBoutiquePage({
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = e.target.value;
     setValue(next);
-    setSearchLoading(true); // spinner from first keystroke until results land
+    setListingSearchLoading(true); // spinner from first keystroke until results land
     scheduleCommit(next);
   };
 
@@ -1116,7 +1118,7 @@ export default function SearchBoutiquePage({
     const full = value + ghostSuffix;
     setValue(full);
     setSuggestion("");
-    setSearchLoading(true);
+    setListingSearchLoading(true);
     scheduleCommit(full);
     requestAnimationFrame(() => {
       const input = inputElRef.current;
@@ -1564,6 +1566,6 @@ Run: `git status` → only the intended files changed across the task commits; t
 
 **Placeholder scan:** No TBD/TODO; every code step shows full code. Verify steps use concrete commands (`npx tsc --noEmit`, `pnpm build/lint/knip`) and expected outcomes.
 
-**Type consistency:** `serverSearch` (string) threaded page → `FiltersPageContent`/`ListingSearchContainer`/`ProductListConainer`/`ProductListServer`/`SortableGrid`. `serverHasResults` (boolean) ProductListServer → SortableGrid; `ListingBarActionsClient` prop is also `serverHasResults`. Store setters `setSearchLoading/setSearchHasResults/setSearchExpanded` defined in Task 1, used in Tasks 4/5/7. `GetProductsResult.isAnalyzed` defined in Task 2, read in Task 4. `ProductsInfiniteScroll` new props `searchMode`/`searchQuery` defined in Task 4, passed by `SortableGrid` in Task 4. `buildSearchRedirectTarget` signature consistent between Task 8 steps 1 and 2–3.
+**Type consistency:** `serverSearch` (string) threaded page → `FiltersPageContent`/`ListingSearchContainer`/`ProductListConainer`/`ProductListServer`/`SortableGrid`. `serverHasResults` (boolean) ProductListServer → SortableGrid; `ListingBarActionsClient` prop is also `serverHasResults`. Store setters `setListingSearchLoading/setSearchHasResults/setSearchExpanded` defined in Task 1, used in Tasks 4/5/7. `GetProductsResult.isAnalyzed` defined in Task 2, read in Task 4. `ProductsInfiniteScroll` new props `searchMode`/`searchQuery` defined in Task 4, passed by `SortableGrid` in Task 4. `buildSearchRedirectTarget` signature consistent between Task 8 steps 1 and 2–3.
 
 **Known deliberate call-outs:** `firstPageSkeleton` remains on for pure-sort (unchanged sort UX) and off for search. The empty-gate seed relies on `ListingBarActionsClient` re-seeding on server re-render + `SortableGrid` restoring on the server-grid branch — both covered. Old input's `isAnalyzed` color/size path-stripping is intentionally not reimplemented (search no longer rewrites filter paths; spec §8.6).
