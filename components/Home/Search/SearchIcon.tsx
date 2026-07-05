@@ -369,16 +369,20 @@ function SearchIcon({ language, country }) {
       }
     }
     if (e.key === "Enter") {
-      let pathParams = buildParamsFromFilters({
+      const pathParams = buildParamsFromFilters({
         categories: appliedFilters?.categories?.map((s) => s.slug),
         brands: appliedFilters?.brands?.map((s) => s.slug),
         boutiques: appliedFilters?.boutiques?.map((s) => s.slug),
-        search: [value],
+        // search is a query param now — not a path segment
       });
-      setIsNavigating({
-        is_boutique: true,
-      });
-      router.push(`/${lang}/filters/${pathParams.join("/")}`);
+      const base = `/${lang}/filters${
+        pathParams.length ? `/${pathParams.join("/")}` : ""
+      }`;
+      const url = value?.trim()
+        ? `${base}?search=${encodeURIComponent(value.trim())}`
+        : base;
+      setIsNavigating({ is_boutique: true });
+      router.push(url);
     }
   };
   return (
@@ -612,13 +616,17 @@ const SearchContainer = ({
   };
   const { lang } = useParams();
   const pageUrl = () => {
-    let pathParams = buildParamsFromFilters({
+    const pathParams = buildParamsFromFilters({
       categories: applied_filter?.categories?.map((s) => s.slug),
       brands: applied_filter?.brands?.map((s) => s.slug),
       boutiques: applied_filter?.boutiques?.map((s) => s.slug),
-      search: [value],
     });
-    return `/${lang}/filters/${pathParams.join("/")}`;
+    const base = `/${lang}/filters${
+      pathParams.length ? `/${pathParams.join("/")}` : ""
+    }`;
+    return value?.trim()
+      ? `${base}?search=${encodeURIComponent(value.trim())}`
+      : base;
   };
   return (
     <div
