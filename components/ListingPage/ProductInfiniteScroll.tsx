@@ -13,7 +13,10 @@ import auth from "services/auth";
 import { GetProducts } from "serverRequests/listing";
 import ProductCard from "components/products/ProductCard";
 import { ProductCardSkeleton } from "components/skeleton/listing";
-import { BagReachedEnd } from "components/Listing/illustrations/ListingBagIllustration";
+import {
+  BagReachedEnd,
+  BagNoResults,
+} from "components/Listing/illustrations/ListingBagIllustration";
 
 function ProductsInfiniteScroll({
   offset,
@@ -28,6 +31,8 @@ function ProductsInfiniteScroll({
   pit_id = null,
   sort = undefined,
   firstPageSkeleton = false,
+  searchMode = false,
+  searchQuery = "",
 }: {
   offset: any;
   currency: any;
@@ -44,6 +49,11 @@ function ProductsInfiniteScroll({
   // show product-card skeletons while the first page is loading, instead of the
   // small bottom spinner used for load-more.
   firstPageSkeleton?: boolean;
+  // Search-driven client refetch (?search=): no skeleton (in-input spinner
+  // instead), forward the analyzed name to later pages, and write result state
+  // to the store for the reactive empty-gate.
+  searchMode?: boolean;
+  searchQuery?: string;
 }) {
   const resetBoutique = useAppStore((s) => s.resetBoutique);
   const { lang }: { lang: string } = useParams();
@@ -83,12 +93,17 @@ function ProductsInfiniteScroll({
   // PIT snapshot id for this filter session (ADR-009). Rotated from each
   // response; reset to the new first-page snapshot on the keyed remount.
   const pitIdRef = useRef<string | null>(pit_id);
+  // For a search session: page 1 sends the RAW query so ES analyzes it; from the
+  // response we lock the analyzed name and page 2+ reuse it (parity with the
+  // server's ProductListConainer), keeping the PIT snapshot consistent.
+  const searchNameRef = useRef<string | null>(searchMode ? searchQuery : null);
   // Bounded auto-advance guard: how many consecutive all-already-seen pages
   // we've skipped. Caps the auto-advance loop so it can never spin (AC-9).
   const emptyPagesRef = useRef(0);
   const seenIdsRef = useRef<Set<string>>(
     new Set((analyticsData || []).map((product) => String(product?.item_id))),
   );
+  const searchResultPublishedRef = useRef(false);
   // Page size requested from the server; a shorter page means the last page.
   const PAGE_LIMIT = 10;
   const MAX_CONSECUTIVE_EMPTY_PAGES = 5;
@@ -133,7 +148,9 @@ function ProductsInfiniteScroll({
         language: languageVariable,
         currency,
         offset: offsetRef.current,
-        parsedFilters: parsedFilters,
+        parsedFilters: searchMode
+          ? { ...parsedFilters, search_text: searchNameRef.current || undefined }
+          : parsedFilters,
         userId: userId,
         recomended_offset: recommendedOffsetRef.current,
         sizes_filters: sizes_filters,
@@ -153,6 +170,14 @@ function ProductsInfiniteScroll({
           getProductsReq();
         }, 3000);
         return;
+      }
+
+      // Lock the analyzed name from page 1 so subsequent pages stay consistent.
+      if (searchMode && searchNameRef.current === searchQuery) {
+        const analyzedName = response?.isAnalyzed?.name;
+        if (analyzedName && typeof analyzedName === "string") {
+          searchNameRef.current = analyzedName;
+        }
       }
 
       const sameOffset = areArraysEqual(offsetRef.current, response.offset);
@@ -248,6 +273,14 @@ function ProductsInfiniteScroll({
         pageLoaderClearedRef.current = true;
         useAppStore.getState().setIsNavigating(null);
       }
+      // Search session: page 1 has resolved → stop the in-input spinner and
+      // publish the has-results verdict for the empty-gate + empty-state.
+      if (searchMode && !searchResultPublishedRef.current) {
+        searchResultPublishedRef.current = true;
+        const store = useAppStore.getState();
+        store.setSearchLoading(false);
+        store.setSearchHasResults(seenIdsRef.current.size > 0);
+      }
     }
 
     if (scheduleNext) {
@@ -308,6 +341,7 @@ function ProductsInfiniteScroll({
       ))}
 
       {firstPageSkeleton &&
+        !searchMode &&
         products.length === 0 &&
         !isReachEnd &&
         Array.from({ length: 8 }).map((_, i) => (
@@ -333,6 +367,16 @@ function ProductsInfiniteScroll({
           ) : (
             <Spinner no={false} className="" />
           )
+        ) : searchMode && products.length === 0 ? (
+          <div className="flex flex-col items-center text-center">
+            <BagNoResults />
+            <h2 className="f-16 medium color-dark-gray mt-4">
+              {translate("No products found")}
+            </h2>
+            <p className="f-14 mt-1 text-[#707070]">
+              {translate("Try changing or clearing your filters.")}
+            </p>
+          </div>
         ) : (
           <div className="flex flex-col items-center text-center">
             <BagReachedEnd />
