@@ -15,6 +15,7 @@ import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
+import ListingBarOptions from "components/Listing/ListingBarOptions";
 export const dynamicParams = true;
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -136,23 +137,15 @@ export default async function Page({ params, searchParams }) {
               className={`${isRtl && "rotate-180"}`}
             />
           </NextLink>
-          {/** TODO: classname edit when serach active w-full */}
-          <div
-            data-cy="filter_bar_options"
-            className={`filter-bar-options w-[170px] justify-between ${
-              isRtl ? "flex-row-reverse flex" : "flex-row flex"
-            }  align-center ${
-              parsedFilters?.search_text?.length > 0 && "w-full"
-            }`}
-          >
+          <ListingBarOptions serverSearch={effectiveSearch} isRtl={isRtl}>
             <Suspense fallback={<></>}>
               <ListingSearchContainer
                 country={country}
                 language={language}
                 featured={true}
                 filtersPromise={filtersData}
-                serverSearch={effectiveSearch}
                 parsedFilters={parsedFilters}
+                serverSearch={effectiveSearch}
               />
             </Suspense>
             <ListingBarActions
@@ -160,7 +153,7 @@ export default async function Page({ params, searchParams }) {
               language={language}
               isRtl={isRtl}
             />
-          </div>
+          </ListingBarOptions>
         </div>
 
         <div

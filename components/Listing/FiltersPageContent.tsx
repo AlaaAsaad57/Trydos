@@ -18,6 +18,8 @@ import FilterListingBackButton from "components/Listing/FilterListingBackButton"
 import ListingBarActions from "components/Server/ListingBarActions";
 import ListingHeaderCollapse from "components/Listing/ListingHeaderCollapse";
 import BoutiqueMiniLogo from "components/Listing/BoutiqueMiniLogo";
+import ListingBarOptions from "components/Listing/ListingBarOptions";
+import BoutiqueLogoCollapse from "components/Listing/BoutiqueLogoCollapse";
 import ListingSkeleton from "components/skeleton/listing";
 import BoutiqueSlidersSkeleton from "components/skeleton/loaders/BoutiqueSlidersSkeleton";
 
@@ -194,18 +196,13 @@ export default async function FiltersPageContent({
                 } items-center gap-[8px]`}
               >
                 <FilterListingBackButton lang={Params.lang} isRtl={isRtl} />
-                <Suspense fallback={<></>}>
-                  <BoutiqueMiniLogo boutiquePromise={boutiquePromise} />
-                </Suspense>
+                <BoutiqueLogoCollapse>
+                  <Suspense fallback={<></>}>
+                    <BoutiqueMiniLogo boutiquePromise={boutiquePromise} />
+                  </Suspense>
+                </BoutiqueLogoCollapse>
               </div>
-              <div
-                data-cy="filter_bar_options"
-                className={`filter-bar-options w-[170px] justify-between ${
-                  isRtl ? "flex-row-reverse flex" : "flex-row flex"
-                }  align-center ${
-                  parsedFilters?.search_text?.length > 0 ? "w-full" : ""
-                }`}
-              >
+              <ListingBarOptions serverSearch={effectiveSearch} isRtl={isRtl}>
                 <Suspense fallback={<></>}>
                   <ListingSearchContainer
                     country={country}
@@ -220,7 +217,7 @@ export default async function FiltersPageContent({
                   language={language}
                   isRtl={isRtl}
                 />
-              </div>
+              </ListingBarOptions>
             </div>
           }
           banner={
