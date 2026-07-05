@@ -75,10 +75,16 @@ const svgProps = {
   strokeLinejoin: "round" as const,
 };
 
-const SparkleIcon = () => (
+// Default order — plain list/lines (no ranking claim). Fits "Default", not the
+// former "Recommended" sparkle.
+const ListIcon = () => (
   <svg {...svgProps} aria-hidden="true">
-    <path d="M12 3l1.9 4.9L18.8 9.8 13.9 11.7 12 16.6 10.1 11.7 5.2 9.8 10.1 7.9z" />
-    <path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" />
+    <path d="M8 6h12" />
+    <path d="M8 12h12" />
+    <path d="M8 18h12" />
+    <circle cx="4" cy="6" r="1" />
+    <circle cx="4" cy="12" r="1" />
+    <circle cx="4" cy="18" r="1" />
   </svg>
 );
 const FlameIcon = () => (
@@ -174,7 +180,7 @@ export default function ListingSortControl({
 
   // A short, human summary of the current selection for the trigger's a11y label.
   const ACTIVE_LABELS: Record<SortKey, string> = {
-    relevance: "Recommended",
+    relevance: "Default",
     best_selling: "Best sellers",
     newest: "Newest",
     oldest: "Oldest",
@@ -233,10 +239,10 @@ export default function ListingSortControl({
             </div>
 
             <div className="flex flex-col gap-[10px]">
-              {/* Recommended — the default / reset */}
+              {/* Default — the relevance order / reset */}
               <SingleRow
-                icon={<SparkleIcon />}
-                title={t("Recommended")}
+                icon={<ListIcon />}
+                title={t("Default")}
                 subtitle={t("Best match for your search")}
                 active={pending === "relevance"}
                 isRtl={isRtl}

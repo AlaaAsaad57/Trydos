@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import ListingSkeleton from "components/skeleton/listing";
 import "styles/listing-components.css";
-import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
+import ListingShareControl from "components/Listing/ListingShareControl";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
@@ -153,7 +153,7 @@ export default async function Page({ params, searchParams }) {
             </Suspense>
             <ListingSortControl language={language} isRtl={isRtl} />
             <FilterBoutiquePageButton key={"filter-button"} />
-            <ShareBoutiquePageButton />
+            <ListingShareControl language={language} isRtl={isRtl} />
           </div>
         </div>
 

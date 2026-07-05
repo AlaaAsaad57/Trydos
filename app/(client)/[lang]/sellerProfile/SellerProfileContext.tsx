@@ -37,14 +37,14 @@ export const SellerProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [sellerData, setSellerData] = useState({
-    name: "John Doe",
-    avatar: "https://placehold.co/72x72",
+    name: "",
+    avatar: "",
     stats: {
-      totalProducts: 124,
-      totalPurchases: 856,
+      totalProducts: 0,
+      totalPurchases: 0,
       interactions: {
-        day: 45,
-        month: 1234,
+        day: 0,
+        month: 0,
       },
     },
   });

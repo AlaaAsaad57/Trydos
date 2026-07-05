@@ -75,11 +75,11 @@ export async function sendOtpAction(input: {
     const identity = await resolveOtpIdentity({ ensureUserId: true });
     const { sid, ip } = identity;
 
-    // TEMP DEBUG: confirm the resolved IP identity is stable across sessions.
-    // Remove once the per-IP cap is verified on staging.
-    console.log(
-      `[OTP][send] rawIp=${identity.rawIp} normalizedIp=${identity.normalizedIp} ipKey=${ip} sidKey=${sid} visitId=${identity.visitId} mintedVisitId=${identity.mintedVisitId} userId=${identity.userId} registeredGuest=${identity.registeredGuest} phone=${phone}`,
-    );
+    // // TEMP DEBUG: confirm the resolved IP identity is stable across sessions.
+    // // Remove once the per-IP cap is verified on staging.
+    // console.log(
+    //   `[OTP][send] rawIp=${identity.rawIp} normalizedIp=${identity.normalizedIp} ipKey=${ip} sidKey=${sid} visitId=${identity.visitId} mintedVisitId=${identity.mintedVisitId} userId=${identity.userId} registeredGuest=${identity.registeredGuest} phone=${phone}`,
+    // );
 
     // ── Rate limit BEFORE touching the backend ──
     const limit = await otpRateLimit({ sid, ip, phone });

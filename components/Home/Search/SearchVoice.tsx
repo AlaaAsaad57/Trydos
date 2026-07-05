@@ -1,10 +1,18 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useAppStore } from "store";
-import search from "services/search";
-import { useParams } from "next/navigation";
 import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
 import { LogError } from "utils/functions";
+
+// Live-mic fallback languages for the browser's Web Speech API (BCP-47). Only
+// the app languages the API can actually recognize are listed — Kurdish (`ku`)
+// is intentionally absent: no browser engine supports it, so a ku recording has
+// no fallback and falls through to the toast (same as before).
+const WEB_SPEECH_LANG: Record<string, string> = {
+  en: "en-US",
+  ar: "ar-SA",
+  tr: "tr-TR",
+};
 
 function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   const { language } = useAppStore();
@@ -19,7 +27,101 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { lang } = useParams();
+  // Web Speech API fallback: runs live on the mic in parallel with the recorder.
+  // AssemblyAI stays primary; this only rescues a failed transcription.
+  const recognitionRef = useRef<any>(null);
+  const webSpeechTextRef = useRef<string>("");
+  const webSpeechEndedRef = useRef<boolean>(false);
+  const webSpeechResolveRef = useRef<(() => void) | null>(null);
+
+  // Start live browser recognition alongside the recorder. Fully guarded — any
+  // failure here must never disturb the primary AssemblyAI recording path.
+  const startWebSpeech = () => {
+    try {
+      const SR =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
+      const bcp47 = WEB_SPEECH_LANG[(language || "en").slice(0, 2)];
+      // Unsupported browser (Firefox) or unsupported language (ku) → no fallback.
+      if (!SR || !bcp47) return;
+
+      const recognition = new SR();
+      recognition.lang = bcp47;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.continuous = false;
+
+      webSpeechTextRef.current = "";
+      webSpeechEndedRef.current = false;
+
+      recognition.onresult = (e: any) => {
+        const t = e?.results?.[0]?.[0]?.transcript;
+        if (t) webSpeechTextRef.current = t;
+      };
+      // Both a clean end and an error (no-speech / not-allowed /
+      // language-not-supported) settle the fallback — errors are swallowed.
+      const settle = () => {
+        webSpeechEndedRef.current = true;
+        if (webSpeechResolveRef.current) {
+          webSpeechResolveRef.current();
+          webSpeechResolveRef.current = null;
+        }
+      };
+      recognition.onend = settle;
+      recognition.onerror = settle;
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch {
+      // best-effort only — ignore
+    }
+  };
+
+  // Finalize live recognition (keeps its result) when recording stops.
+  const stopWebSpeech = () => {
+    try {
+      recognitionRef.current?.stop();
+    } catch {
+      // ignore
+    }
+  };
+
+  // Discard live recognition + its result (AssemblyAI already won, or unmount).
+  const abortWebSpeech = () => {
+    try {
+      recognitionRef.current?.abort?.();
+    } catch {
+      // ignore
+    }
+    recognitionRef.current = null;
+  };
+
+  // Wait (bounded) for the live recognition to settle so its transcript is
+  // final before we decide whether to fall back to it.
+  const waitForWebSpeech = (timeoutMs: number) =>
+    new Promise<void>((resolve) => {
+      if (!recognitionRef.current || webSpeechEndedRef.current) return resolve();
+      webSpeechResolveRef.current = resolve;
+      setTimeout(() => {
+        if (webSpeechResolveRef.current) {
+          webSpeechResolveRef.current = null;
+          resolve();
+        }
+      }, timeoutMs);
+    });
+
+  // AssemblyAI failed: use the browser fallback's transcript if it heard
+  // anything (en/ar/tr), otherwise show the give-up toast.
+  const fallbackOrToast = async (toastKey: string) => {
+    await waitForWebSpeech(1500);
+    const fallback = webSpeechTextRef.current.trim();
+    abortWebSpeech();
+    if (fallback.length > 0) {
+      setSearchValue(fallback);
+    } else {
+      showErrorNotification(translateFunction(toastKey));
+    }
+  };
 
   // Start countdown timer
   const startCountdown = () => {
@@ -50,6 +152,9 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
       mediaRecorder.stop();
     }
     setIsRecording(false);
+
+    // Finalize the live fallback so its transcript is ready if AssemblyAI fails.
+    stopWebSpeech();
 
     // Clear timers
     if (recordingTimeoutRef.current) {
@@ -121,6 +226,10 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
       recorder.start();
       setIsRecording(true);
 
+      // Fire the live browser fallback in parallel (guarded, never blocks the
+      // recorder). Started AFTER the recorder so the primary mic path wins setup.
+      startWebSpeech();
+
       // Start countdown
       startCountdown();
 
@@ -159,16 +268,19 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
         result.transcription &&
         result.transcription.trim().length > 0
       ) {
+        // AssemblyAI (primary) won — discard the browser fallback.
+        abortWebSpeech();
+        // Setting the search value drives the overlay's single GetSearchData
+        // path directly (see SD-07); no separate store-based search needed.
         setSearchValue(result.transcription);
-        search.getSearchOptions({
-          noProducts: false,
-          lang: lang,
-        });
       } else {
-        showErrorNotification(translateFunction("Try again with clear voice"));
+        // AssemblyAI couldn't recognize — try the live browser fallback before
+        // giving up (en/ar/tr only).
+        await fallbackOrToast("Try again with clear voice");
       }
     } catch (error) {
-      showErrorNotification(translateFunction("Failed to process audio"));
+      // AssemblyAI request failed — same fallback path before the error toast.
+      await fallbackOrToast("Failed to process audio");
     } finally {
       setIsProcessing(false);
     }
@@ -200,6 +312,8 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
       }
+      // Tear down any live browser recognition still running.
+      abortWebSpeech();
     };
   }, []);
 

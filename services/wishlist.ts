@@ -48,7 +48,7 @@ class WishlistService {
     });
 
     if (!res.success) {
-      throw new Error(res.message || "Failed to add product to wishlist");
+      throw new Error(res.message || "Failed to remove product from wishlist");
     }
   }
 

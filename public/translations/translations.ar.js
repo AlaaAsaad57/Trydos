@@ -1,7 +1,12 @@
 const translations = {
+  // Listing share widget
+  "Share this page": "شارك هذه الصفحة",
+  "Send this page to your favourite apps": "أرسل هذه الصفحة إلى تطبيقاتك المفضلة",
+  "Link Copied to Clipboard": "تم نسخ الرابط",
   // Listing sort widget
   "Sort products": "ترتيب المنتجات",
   "Choose how products are ordered": "اختر طريقة ترتيب المنتجات",
+  Default: "الافتراضي",
   Recommended: "موصى به",
   "Best match for your search": "الأفضل لبحثك",
   "Best sellers": "الأكثر مبيعاً",
@@ -257,10 +262,13 @@ const translations = {
     "الرجاء إدخال عنوان URL صالح (مثال: example.com أو www.example.com)",
   "Only links from": "فقط الروابط من",
   "Yes, I Agree": "نعم، أوافق",
-  "We Will Ignore The First Size And Send Your Order To The New Address.":
-    "سنتجاهل الحجم الأول وسنرسل طلبك إلى العنوان الجديد.",
-  "We Will Ignore The First Color And Send Your Order To The New Address.":
-    "سنتجاهل اللون الأول وسنرسل طلبك إلى العنوان الجديد.",
+  "We Will Ignore The First Size And Send Your Order With The New Size.":
+    "سنتجاهل الحجم الأول وسنرسل طلبك بالحجم الجديد.",
+  "We Will Ignore The First Color And Send Your Order With The New Color.":
+    "سنتجاهل اللون الأول وسنرسل طلبك باللون الجديد.",
+  "You Can Add Up To 5 Photos Only": "يمكنك إضافة 5 صور كحد أقصى",
+  "Each Photo Must Be 5 MB Or Less":
+    "يجب أن يكون حجم كل صورة 5 ميغابايت أو أقل",
   "The Change Size Terms.": ".شروط تغيير الحجم",
   "The Change Color Terms.": ".شروط تغيير اللون",
   "To New Size": "إلى الحجم الجديد",
@@ -312,7 +320,7 @@ const translations = {
   "Delete Story": "حذف القصة",
   "The number was copied successfully": "تم نسخ الرقم بنجاح",
   "Number copy failed": "فشل نسخ الرقم",
-  "You Have New Messages From Deleivery Worker":
+  "You Have New Messages From Delivery Worker":
     "لديك رسالة جديدة من عامل التوصيل..انقر للمزيد",
   "Share Story": "مشاركة القصة",
   Cancel: "الغاء",
@@ -402,6 +410,10 @@ const translations = {
     "سوف تستلم على المبلغ المسترد  خلال 12 ساعة.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "ستؤثر عمليات الإلغاء المتكررة على تقييمك، مما سيؤثر بدوره على قدرتك على تلقي عروض أو فرص جديدة منا.",
+  "Repeated Returns Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
+    "ستؤثر عمليات الإرجاع المتكررة على تقييمك، مما سيؤثر بدوره على قدرتك على تلقي عروض أو فرص جديدة منا.",
+  "Terms Of Return": "شروط الإرجاع",
+  "Return Terms.": "شروط الإرجاع.",
   "I Agree & Cancel": "أوافق و ألغي",
   "I Disagree": "أنا أعترض",
   "Terms Of Cancellation Terms": "شروط الإلغاء",
@@ -1259,6 +1271,9 @@ const translations = {
   "Please Login so You Can Add a comment":
     "يرجى تسجيل الدخول حتى تتمكن من إضافة تعليق",
   "Update Rating": "تحديث التقييم",
+  "Edit Your Question": "تعديل سؤالك",
+  "Update your question about this product": "حدّث سؤالك حول هذا المنتج",
+  "Update Question": "تحديث السؤال",
   "Your Comment": "تعليقك",
   Edit: "تعديل",
   "Add your comment": "أضف تعليقك",
@@ -1690,7 +1705,7 @@ const translations = {
   "FILE": "ملف",
   "please select supported image format (jpeg, png, jpg, webp, svg, avif)": "الرجاء اختيار صيغة صورة مدعومة (jpeg, png, jpg, webp, svg, avif)",
   "No options found": "لا توجد خيارات",
-  "Deleivery Worker": "عامل التوصيل",
+  "Delivery Worker": "عامل التوصيل",
   "Unknown": "غير معروف",
   "Wrong Code": "رمز خاطئ",
   "Please Review Your Cart Info": "يرجى مراجعة معلومات سلة التسوق",

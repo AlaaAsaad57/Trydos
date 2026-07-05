@@ -199,7 +199,7 @@ function OrderItemReturnConfirmationWindow({
           </span>
           <span className="mt-[45px] regular text-white text-[16px] text-center">
             {translateFunction(
-              "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.",
+              "Repeated Returns Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.",
             )}
           </span>
         </div>
@@ -209,7 +209,7 @@ function OrderItemReturnConfirmationWindow({
         <div className="flex-col mt-auto w-full items-center">
           <img src="/icons/OrderCancelTerms.svg" />
           <span className="mt-[7px] regular text-white text-[14px]">
-            {translateFunction("Terms Of Cancellation Terms")}
+            {translateFunction("Terms Of Return")}
           </span>
           <p
             className={`${
@@ -226,7 +226,7 @@ function OrderItemReturnConfirmationWindow({
               href="#"
               className=" medium text-[14px] text-white underline"
             >
-              {translateFunction(`Cancellation Terms.`)}
+              {translateFunction(`Return Terms.`)}
             </a>
           </p>
 

@@ -41,7 +41,7 @@ function CallComponentWidget({
         {data?.is_private
           ? data?.is_private === "customer"
             ? translateFunction("Customer")
-            : translateFunction("Deleivery Worker")
+            : translateFunction("Delivery Worker")
           : userData.name || userData.phone}
       </span>
       <div

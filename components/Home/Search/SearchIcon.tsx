@@ -668,6 +668,8 @@ const SearchContainer = ({
               <ProductItem
                 product={product}
                 index={index + 1}
+                searchValue={value}
+                resultsProducts={products}
                 key={product?.product_id || index}
                 onClick={(e) => {
                   onClickSearchHistory(value);

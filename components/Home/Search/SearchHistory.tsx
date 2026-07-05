@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
-import search from "services/search";
-import { useParams } from "next/navigation";
 import { translateFunction } from "utils/functions";
 
 function SearchHistory({ options, setOptions, deleteOption }) {
-  const { setSearchPartialLoading, setSearchLoading, setResettingLoadMore } =
-    useAppStore();
+  const { setSearchPartialLoading, setSearchLoading } = useAppStore();
   const [openMenu, setOpen] = useState(false);
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -40,17 +37,9 @@ function SearchHistory({ options, setOptions, deleteOption }) {
       });
     }
   }, []);
-  const { lang } = useParams();
-  const SearchForHistoryItem = async (historyItem) => {
-    setSearchPartialLoading(true);
-    setSearchLoading(true);
-    setResettingLoadMore(true);
+  const SearchForHistoryItem = (historyItem) => {
+    // Value change drives the overlay's single GetSearchData search directly.
     setOptions(historyItem);
-    await search.getSearchOptions({
-      noProducts: false,
-      lang: lang,
-    });
-    setResettingLoadMore(false);
   };
   return (
     <div

@@ -9,7 +9,9 @@ import {
   OrderNumberCard,
 } from "components/settings/cards";
 import OrderStatusCard from "components/settings/cards/OrderStatusCard";
-import OrderExpectedDeliveryCard from "components/settings/cards/OrderExpectedDeliveryCard";
+import OrderExpectedDeliveryCard, {
+  getExpectedDelivery,
+} from "components/settings/cards/OrderExpectedDeliveryCard";
 import OrderAddressCard from "components/settings/cards/OrderAddressCard";
 import RateOrderButton from "components/settings/cards/RateOrderButton";
 import OrderItemsList from "components/settings/cards/OrderItemsList";
@@ -308,7 +310,7 @@ function OrderDetailsWrapper({
               ? s
               : {
                   ...s,
-                  user: { ...s.user, name: "Deleivery Worker", phone: "" },
+                  user: { ...s.user, name: "Delivery Worker", phone: "" },
                 },
           ),
           messages:
@@ -333,11 +335,11 @@ function OrderDetailsWrapper({
             },
             {
               user_id: response?.data?.recipient?.id,
-              name: "Deleivery Worker",
+              name: "Delivery Worker",
               phone: "",
               user: {
                 id: response?.data.recipient?.id,
-                name: "Deleivery Worker",
+                name: "Delivery Worker",
                 phone: "",
               },
             },
@@ -821,28 +823,13 @@ const OrderExpandedDetails = ({
 }) => {
   const { currency, user, settings } = useAppStore();
 
-  const getSafeNumber = (value: unknown) => {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-  };
-
-  const orderMaxShippingDays = (order?.details || []).reduce(
-    (maxDays, detail) =>
-      Math.max(maxDays, getSafeNumber(detail?.product_details?.shipping_days)),
-    0,
-  );
-
-  const shippingDurationFromSettings = getSafeNumber(
-    settings?.["starting_setting"]?.shipping_duration_days,
-  );
-
-  const expectedWorkDays = orderMaxShippingDays + shippingDurationFromSettings;
-
-  const baseDate = order?.created_at ? new Date(order.created_at) : new Date();
-  const safeBaseDate = Number.isNaN(baseDate.getTime()) ? new Date() : baseDate;
-  const expectedDate = new Date(
-    safeBaseDate.getTime() + expectedWorkDays * 24 * 60 * 60 * 1000,
-  );
+  const { expectedWorkDays, expectedDate } = getExpectedDelivery({
+    productsShippingDays: (order?.details || []).map(
+      (detail) => detail?.product_details?.shipping_days,
+    ),
+    time: order?.created_at,
+    shippingDurationDays: settings?.["starting_setting"]?.shipping_duration_days,
+  });
 
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {

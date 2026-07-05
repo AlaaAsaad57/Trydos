@@ -157,19 +157,23 @@ const ComparePage = ({ showInstantLoading = true }) => {
       let QTY_URL = "/web/product/qtyPriceDetails";
       // globalDetails and qtyPriceDetails are independent (both keyed by slug) —
       // fetch them in parallel instead of one after the other.
+      const country = lang.toString().split("-")[0];
+      const language = lang.toString().split("-")[1];
       const headers = {
-        country: lang.toString().split("-")[0],
-        lang: lang.toString().split("-")[1],
+        country,
+        lang: language,
       };
       const [res, res1] = await Promise.all([
         fetch(
           process.env.NEXT_PUBLIC_BACKEND_URL +
             DETAILS_URL +
-            `/${slug}?lang=en`,
+            `/${slug}?lang=${language}`,
           { method: "GET", headers, credentials: "omit" },
         ),
         fetch(
-          process.env.NEXT_PUBLIC_BACKEND_URL + QTY_URL + `/${slug}?lang=en`,
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+            QTY_URL +
+            `/${slug}?lang=${language}`,
           { method: "GET", headers, credentials: "omit" },
         ),
       ]);

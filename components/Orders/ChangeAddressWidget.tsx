@@ -59,20 +59,26 @@ function ChangeAddressWidget({
   const [tabs, setTabs] = useState<"address" | "note">("address");
   const [deliveryNote, setDeliveryNote] = useState("");
   const ChangeAddress = async () => {
-    setLoading(true);
-    close();
-    let response = await orderService.changeOrderAddress({
-      order_id: ActivePacks.order_group_id,
-      address_id: selectedAddressId,
-    });
-    trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ADDRESS_CHANGED, {
-      order_id: ActivePacks.order_group_id,
-      from_address_id: address_id,
-      to_address_id: selectedAddressId,
-      note_added: deliveryNote !== "",
-    });
-
-    getOrderDetails();
+    try {
+      setLoading(true);
+      await orderService.changeOrderAddress({
+        order_id: ActivePacks.order_group_id,
+        address_id: selectedAddressId,
+      });
+      trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ADDRESS_CHANGED, {
+        order_id: ActivePacks.order_group_id,
+        from_address_id: address_id,
+        to_address_id: selectedAddressId,
+        note_added: deliveryNote !== "",
+      });
+      await getOrderDetails();
+      close();
+    } catch (error) {
+      // changeOrderAddress re-throws on failure; keep the modal open so the
+      // shopper can retry instead of showing a false success.
+    } finally {
+      setLoading(false);
+    }
   };
   const getAddressList = async () => {
     setLoading(true);

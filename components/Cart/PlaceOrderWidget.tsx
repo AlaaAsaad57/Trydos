@@ -741,11 +741,7 @@ const CryptoInput = ({ total }) => {
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
-      onClick={(e) => {
-        // @ts-ignore
 
-        setActive();
-      }}
       style={{
         border: "#C4C2C28c 1px soild",
       }}

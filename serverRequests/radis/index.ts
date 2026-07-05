@@ -303,19 +303,19 @@ export async function otpRateLimit(params: {
 
     // TEMP DEBUG: log how full the session set / IP send-counter are after each
     // decision so we can confirm the per-IP cap is accumulating on staging.
-    try {
-      const [sidCount, ipCount] = await Promise.all([
-        redis.scard(`otp:sid:${sid}`),
-        redis.get(`otp:ipc:${ip}`),
-      ]);
-      console.log(
-        `[OTP][limit] status=${status} (0=ok,1=cd,2=session,3=ip) ` +
-          `sid=${sidCount}/${sessionMax} ip=${Number(ipCount ?? 0)}/${ipMax} lock=${ttl}s ` +
-          `ipKey=otp:ipc:${ip}`,
-      );
-    } catch {
-      /* logging only */
-    }
+    // try {
+    //   const [sidCount, ipCount] = await Promise.all([
+    //     redis.scard(`otp:sid:${sid}`),
+    //     redis.get(`otp:ipc:${ip}`),
+    //   ]);
+    //   console.log(
+    //     `[OTP][limit] status=${status} (0=ok,1=cd,2=session,3=ip) ` +
+    //       `sid=${sidCount}/${sessionMax} ip=${Number(ipCount ?? 0)}/${ipMax} lock=${ttl}s ` +
+    //       `ipKey=otp:ipc:${ip}`,
+    //   );
+    // } catch {
+    //   /* logging only */
+    // }
 
     if (status === 0) return { allowed: true, reason: "ok", lockSeconds: ttl };
 

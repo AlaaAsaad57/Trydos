@@ -17,7 +17,7 @@ import {
   getCookieServer,
   UserData,
 } from "utils/cookies/cookie-manager";
-import DummyAddDeposite from "components/settings/DummyAddDeposite";
+
 
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -131,7 +131,7 @@ async function page({ params }) {
         />
       </Suspense>
       <GoToSellerDashBoard language={language} />
-      <DummyAddDeposite />
+     
       <div
         className={`flex w-full ${
           isRtl ? "flex-row-reverse" : "flex-row"

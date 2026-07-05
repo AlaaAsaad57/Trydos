@@ -149,7 +149,7 @@ function BuyersCommentMenu({
                 setMenuOpen(false);
               }}
             >
-              <img src="/icons/DeleteCommentIcon.svg" className="w-4 h-4" />
+              <img src="/icons/DeleteCommentIcon.svg" className="w-4 h-4 object-contain" />
               {translateFunction("Delete")}
             </button>
           )}

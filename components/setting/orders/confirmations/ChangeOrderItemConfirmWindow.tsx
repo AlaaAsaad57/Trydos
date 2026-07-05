@@ -19,17 +19,6 @@ export const ModifyOrderItemModal = ({
 }) => {
   const { language } = useAppStore();
   const [loading, setLoading] = useState(false);
-  const getVariant = () => {
-    let e = findVariation(
-      confirmationData?.productDetails?.variations,
-      confirmationData?.productDetails?.sync_color_images,
-      confirmationData?.productDetails?.sizes,
-      confirmationData?.newColor ?? confirmationData?.currentColor,
-      confirmationData?.newSize ?? confirmationData?.currentSize,
-    );
-
-    return e;
-  };
 
   const isChanged = () => {
     if (
@@ -53,7 +42,6 @@ export const ModifyOrderItemModal = ({
     const imageVar = image.split("/")[image.split("/").length - 1];
 
     await order.changeOrderItemVariant({
-      product_variant_id: getVariant()?.id,
       choice_1: confirmationData?.newSize ?? "",
       color: confirmationData?.productDetails?.colors?.find(
         (s) =>
@@ -206,11 +194,11 @@ export const ModifyOrderItemModal = ({
           <p className="text-[14px] text-white medium mt-[40px] text-center ">
             {type === "Color"
               ? translateFunction(
-                  "We Will Ignore The First Color And Send Your Order To The New Address.",
+                  "We Will Ignore The First Color And Send Your Order With The New Color.",
                   language,
                 )
               : translateFunction(
-                  "We Will Ignore The First Size And Send Your Order To The New Address.",
+                  "We Will Ignore The First Size And Send Your Order With The New Size.",
                   language,
                 )}
           </p>

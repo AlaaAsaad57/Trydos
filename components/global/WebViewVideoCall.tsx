@@ -284,7 +284,7 @@ function WebViewVideoCall(props) {
             {props.data?.is_private
               ? props.data?.is_private === "customer"
                 ? translateFunction("Customer")
-                : translateFunction("Deleivery Worker")
+                : translateFunction("Delivery Worker")
               : props.userData.name || props.userData.phone}
           </span>
 

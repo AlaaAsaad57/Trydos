@@ -473,26 +473,26 @@ export async function getProductsAndFiltersFromElastic(
         total: stats.total,
       };
 
-      if (LISTING_PRICE_AGG_DEBUG) {
-        const computeEnd = process.hrtime.bigint();
-        console.debug(
-          "[price-agg]",
-          JSON.stringify({
-            country,
-            filters: {
-              must: mustConditions.length,
-              must_not: mustNotConditions.length,
-            },
-            base_stats: priceFacet?.base_stats?.stats,
-            country_stats: priceFacet?.country_stats?.matched?.stats,
-            merged: stats,
-            histogramBuckets: histogram.length,
-            cards: priceRanges,
-            es_took_ms: (response as any).took,
-            compute_ms: Number(computeEnd - computeStart) / 1_000_000,
-          }),
-        );
-      }
+      // if (LISTING_PRICE_AGG_DEBUG) {
+      //   const computeEnd = process.hrtime.bigint();
+      //   console.debug(
+      //     "[price-agg]",
+      //     JSON.stringify({
+      //       country,
+      //       filters: {
+      //         must: mustConditions.length,
+      //         must_not: mustNotConditions.length,
+      //       },
+      //       base_stats: priceFacet?.base_stats?.stats,
+      //       country_stats: priceFacet?.country_stats?.matched?.stats,
+      //       merged: stats,
+      //       histogramBuckets: histogram.length,
+      //       cards: priceRanges,
+      //       es_took_ms: (response as any).took,
+      //       compute_ms: Number(computeEnd - computeStart) / 1_000_000,
+      //     }),
+      //   );
+      // }
     }
 
     if (filters.colors?.length) {

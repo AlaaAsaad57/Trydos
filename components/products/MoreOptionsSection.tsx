@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import home from "services/home";
 import {
   addToCompare,
+  COMPARE_CHANGED_EVENT,
   LogError,
   removeFromCompare,
   translateFunction,
@@ -144,21 +145,22 @@ function MoreOptionsSection({ product }) {
         await wishlistService.addToWishlist(Number(productId));
         setIsInWishlist(true);
         showSuccessNotification(translate("Added to checklist", language));
-      }
 
-      GAevent({
-        action: GA_EVENT_NAMES.ADD_TO_FAV,
-        params: {
-          user_id_custom: auth.UserID(),
-          item_id: product?.id,
-          item_name: product?.name,
-          brand: product?.brand?.name,
-          brand_id: product?.brand?.id,
-          category: product?.category?.name,
-          category_id: product?.category?.id,
-          price: product?.price,
-        },
-      });
+        // Only the "add" is a favourite event — firing on remove inflated the metric.
+        GAevent({
+          action: GA_EVENT_NAMES.ADD_TO_FAV,
+          params: {
+            user_id_custom: auth.UserID(),
+            item_id: product?.id,
+            item_name: product?.name,
+            brand: product?.brand?.name,
+            brand_id: product?.brand?.id,
+            category: product?.category?.name,
+            category_id: product?.category?.id,
+            price: product?.price,
+          },
+        });
+      }
     } catch (error) {
       showErrorNotification(translate("Failed to update checklist", language));
     } finally {
@@ -174,12 +176,12 @@ function MoreOptionsSection({ product }) {
       setAddedToCompare(isAdded);
     };
     checkCompareStatus();
-    // Check periodically for cookie changes (cookies don't have storage events)
-    const interval = setInterval(checkCompareStatus, 500);
-    // Also check on focus
+    // Cookies don't emit change events, so sync on the compare-changed event
+    // (fired by add/removeFromCompare) and on window focus — no timer polling.
+    window.addEventListener(COMPARE_CHANGED_EVENT, checkCompareStatus);
     window.addEventListener("focus", checkCompareStatus);
     return () => {
-      clearInterval(interval);
+      window.removeEventListener(COMPARE_CHANGED_EVENT, checkCompareStatus);
       window.removeEventListener("focus", checkCompareStatus);
     };
   }, [product?.slug]);
@@ -472,14 +474,26 @@ function MoreOptionsSection({ product }) {
                 translate("Removed From Compare", language),
               );
             } else {
+              const f_p = getCookie<string>("f_p");
+              const s_p = getCookie<string>("s_p");
+              // Both slots are taken by other products → addToCompare replaces
+              // the first one. Tell the shopper instead of overwriting silently.
+              const willReplaceFirst =
+                !!f_p &&
+                !!s_p &&
+                f_p !== product?.slug &&
+                s_p !== product?.slug;
               setAddedToCompare(true);
               addToCompare(product?.slug);
               showSuccessNotification(
                 translate(
-                  "Added To Compare! Click To Go To Compare Page",
+                  willReplaceFirst
+                    ? "Compare was full — replaced the first product. Click To Go To Compare Page"
+                    : "Added To Compare! Click To Go To Compare Page",
                   language,
                 ),
                 5000,
+                `/${lang}/compare`,
               );
             }
           }}

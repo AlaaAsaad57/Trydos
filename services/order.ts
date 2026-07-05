@@ -429,6 +429,7 @@ class OrderService {
         error: error,
         scenario: "Error In CancelOrder in services/order",
       });
+      throw error;
     }
   }
   async HideOrder({ order_id }) {
@@ -537,6 +538,7 @@ class OrderService {
         error: error,
         scenario: "Error In CancelOrderItem in services/order",
       });
+      throw error;
     }
   }
   async changeOrderAddress({ order_id, address_id }) {
@@ -561,6 +563,7 @@ class OrderService {
         error: error,
         scenario: "Error In changeOrderAddress in services/order",
       });
+      throw error;
     }
   }
   async changeOrderItemVariant({
@@ -568,7 +571,6 @@ class OrderService {
     choice_1,
     order_detail_id,
     image,
-    product_variant_id,
   }) {
     try {
       let response = await fetchData({
@@ -879,24 +881,7 @@ class OrderService {
       throw error;
     }
   }
-  async ViewReturnRequest({ return_request_id }) {
-    try {
-      let response = await fetchData({
-        url: `/customer/order/return_requests/view?return_request_id=${return_request_id}`,
-        reqTitle: REQUESTS_DATA.VIEW_RETURN_PRODUCT,
-        method: "GET",
-        server: "market",
-      });
-      if (response?.success) return response.data;
-      else throw new Error();
-    } catch (error) {
-      LogServerError({
-        error: error,
-        scenario: "Error In ViewReturnRequest in services/order",
-      });
-      throw error;
-    }
-  }
+
   async CancelReturnRequest({ return_request_id }) {
     try {
       let response = await fetchData({

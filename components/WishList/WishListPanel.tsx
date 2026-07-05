@@ -10,7 +10,10 @@ import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import { GetImageUrl } from "utils/tinyUtils";
 import { wishlistService, WishlistItem } from "services/wishlist";
-import { showSuccessNotification } from "@/store/notifications/reducer";
+import {
+  showSuccessNotification,
+  showErrorNotification,
+} from "@/store/notifications/reducer";
 
 const WishListPanel = ({ onClose }) => {
   const wishListRef = useRef<HTMLDivElement>(null);
@@ -102,6 +105,9 @@ const WishListPanel = ({ onClose }) => {
       showSuccessNotification(translateFunction("Removed from checklist"));
     } catch (error) {
       console.error("Error removing from CheckList:", error);
+      showErrorNotification(
+        translateFunction("Failed to remove from checklist"),
+      );
     }
   };
 

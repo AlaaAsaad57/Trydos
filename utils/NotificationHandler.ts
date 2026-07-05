@@ -406,9 +406,9 @@ class ForegroundNotificationHandler {
     const isPrivateCall = data?.is_private;
     const privateData = isPrivateCall
       ? {
-          name: "Deleivery Worker",
+          name: "Delivery Worker",
           photo_path: null,
-          channel_name: "Deleivery Worker",
+          channel_name: "Delivery Worker",
           isPrivate: true,
         }
       : {};
@@ -574,7 +574,7 @@ class ForegroundNotificationHandler {
         const deepLink = `/${country}-${language}/settings/orders/${orderGroupId}?order_id=${orderId}&chat_id=${chatId}&mid=${messageData?.id}`;
 
         showChatNotification(
-          "Deleivery Worker",
+          "Delivery Worker",
           displayPreview,
           channel?.id || messageData?.channel_id,
           channel,

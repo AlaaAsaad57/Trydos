@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import "styles/listing-components.css";
-import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
@@ -18,6 +17,7 @@ import ProductListConainer from "components/Server/ProductListConainer";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import FilterListingBackButton from "components/Listing/FilterListingBackButton";
 import ListingSortControl from "components/Listing/ListingSortControl";
+import ListingShareControl from "components/Listing/ListingShareControl";
 import ListingHeaderCollapse from "components/Listing/ListingHeaderCollapse";
 import BoutiqueMiniLogo from "components/Listing/BoutiqueMiniLogo";
 import ListingSkeleton from "components/skeleton/listing";
@@ -212,7 +212,7 @@ export default async function FiltersPageContent({
                 </Suspense>
                 <ListingSortControl language={language} isRtl={isRtl} />
                 <FilterBoutiquePageButton key="filter-button" />
-                <ShareBoutiquePageButton />
+                <ListingShareControl language={language} isRtl={isRtl} />
               </div>
             </div>
           }

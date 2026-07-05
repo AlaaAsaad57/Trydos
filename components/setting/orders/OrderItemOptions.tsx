@@ -55,10 +55,18 @@ function OrderItemOptions({
   const [showHideConfirm, setShowHideConfirm] = useState(false);
   const [hiding, setHiding] = useState(false);
   // Hiding the only remaining product leaves an empty order, so the backend
-  // hides the whole order. Mirror that in the UI: warn in the confirm dialog and,
-  // on success, leave for the orders list like Hide This Pack instead of
-  // re-fetching a now-empty order.
+  // hides the whole order (pack).
   const isLastProductInOrder = (parentOrder?.details?.length ?? 0) <= 1;
+  // Whether the order group still has sibling packs that survive this hide.
+  // `orderData` is every pack in the group; drop the pack we're emptying.
+  const hasOtherPacksInGroup =
+    (orderData ?? []).filter(
+      (p) => String(p.id) !== String(parentOrder?.id),
+    ).length > 0;
+  // Leave for the orders list ONLY when emptying this pack empties the WHOLE
+  // group (single-order group). When siblings remain we stay on the details
+  // page and let the refetch re-select a surviving pack (setActivePack).
+  const shouldLeaveAfterHide = isLastProductInOrder && !hasOtherPacksInGroup;
   const handleHideProduct = async () => {
     try {
       setHiding(true);
@@ -66,9 +74,12 @@ function OrderItemOptions({
       setHiding(false);
       setShowHideConfirm(false);
       close();
-      if (isLastProductInOrder) {
+      if (shouldLeaveAfterHide) {
         onOrderEmptied?.();
       } else {
+        // Multi-pack group (or not the last product): refetch and stay.
+        // getOrderDetails drops the now-hidden pack and re-selects a remaining
+        // one via its `?? data[0]` fallback, keeping the user on this page.
         await update();
       }
     } catch (error) {

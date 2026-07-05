@@ -73,9 +73,9 @@ Find this exact block:
 
 ```js
       if (JSON.parse(payload.data.data)?.is_private) {
-        notificationTitle = "Deleivery Worker";
+        notificationTitle = "Delivery Worker";
         notificationOptions = {
-          body: "there is new message from Deleivery Worker",
+          body: "there is new message from Delivery Worker",
           data: {
             url: buildUrl(
               `settings/orders/${
@@ -99,9 +99,9 @@ Replace it with (compute the ids once, then attach them to `data` alongside `reu
         const orderGroupId = privateData?.order_group_id;
         const orderId = privateData?.parent_order_id ?? privateData?.order_id;
         const chatId = privateData?.order_id;
-        notificationTitle = "Deleivery Worker";
+        notificationTitle = "Delivery Worker";
         notificationOptions = {
-          body: "there is new message from Deleivery Worker",
+          body: "there is new message from Delivery Worker",
           data: {
             url: buildUrl(
               `settings/orders/${orderGroupId}?order_id=${orderId}&chat_id=${chatId}`,

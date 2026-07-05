@@ -428,58 +428,7 @@ export async function GetWalletBalanceInCurrency({
   );
 }
 
-export async function GetJournalEntries({
-  local = "gb-en",
-  handleUnauthenticated = () => {},
-}: {
-  local?: string;
-  handleUnauthenticated?: () => void;
-}) {
-  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
-  let response: FetchResponse<GetJournalEntriesApi> = await fetchServerData({
-    method: "GET",
-    local: local,
-    url:
-      process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
-      `/wallets/my/journal-entries`,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
 
-  return processResponse<GetJournalEntriesApi>(
-    response,
-    handleUnauthenticated,
-    {
-      scenario: "GetJournalEntries in wallet system",
-      userId: "server",
-    },
-  );
-}
-
-export async function GetTransactions({
-  local = "gb-en",
-  handleUnauthenticated = () => {},
-}: {
-  local?: string;
-  handleUnauthenticated?: () => void;
-}) {
-  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
-  let response: FetchResponse<GetTransactionsApi> = await fetchServerData({
-    method: "GET",
-    local: local,
-    url:
-      process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/wallets/my/transactions`,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return processResponse<GetTransactionsApi>(response, handleUnauthenticated, {
-    scenario: "get transactions",
-    userId: "server",
-  });
-}
 
 export async function CheckoutOrder({
   cartId,

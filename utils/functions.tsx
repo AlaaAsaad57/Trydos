@@ -442,44 +442,59 @@ export const WaitForCondition = async () => {
   });
 };
 
+// Compare membership lives in cookies (`f_p` / `s_p`), which don't emit change
+// events. Firing this lets interested components sync event-driven instead of
+// polling on a timer.
+export const COMPARE_CHANGED_EVENT = "compare-changed";
+const notifyCompareChanged = () => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(COMPARE_CHANGED_EVENT));
+  }
+};
+
 export const addToCompare = (slug: string) => {
   const f_p = getCookie<string>("f_p");
   const s_p = getCookie<string>("s_p");
 
+  let result: string;
   if (!f_p) {
     setCookie("f_p", slug);
-    return `?f_p=${slug}`;
+    result = `?f_p=${slug}`;
   } else if (!s_p) {
     setCookie("s_p", slug);
-    return `?f_p=${f_p}&s_p=${slug}`;
+    result = `?f_p=${f_p}&s_p=${slug}`;
   } else {
     // If both exist, replace the first one
     setCookie("f_p", slug);
-    return `?f_p=${slug}&s_p=${s_p}`;
+    result = `?f_p=${slug}&s_p=${s_p}`;
   }
+  notifyCompareChanged();
+  return result;
 };
 
 export const removeFromCompare = (slug: string) => {
   const f_p = getCookie<string>("f_p");
   const s_p = getCookie<string>("s_p");
 
+  let result: string | null;
   if (f_p === slug) {
     deleteCookie("f_p");
     if (s_p) {
       // Move s_p to f_p
       setCookie("f_p", s_p);
       deleteCookie("s_p");
-      return `?f_p=${s_p}`;
+      result = `?f_p=${s_p}`;
+    } else {
+      result = "";
     }
-    return "";
   } else if (s_p === slug) {
     deleteCookie("s_p");
-    if (f_p) {
-      return `?f_p=${f_p}`;
-    }
-    return "";
+    result = f_p ? `?f_p=${f_p}` : "";
+  } else {
+    result = null;
   }
-  return null;
+  notifyCompareChanged();
+  return result;
 };
 
 /**

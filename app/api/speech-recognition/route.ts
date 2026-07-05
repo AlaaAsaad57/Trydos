@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LogServerError } from "utils/serverErrorReporter";
 
-const ASSEMBLYAI_API_KEY = "570c38c748e94bc29e774c441d9315ad";
-const ASSEMBLYAI_BASE_URL = "https://api.assemblyai.com/v2";
+const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY ;
+const ASSEMBLYAI_BASE_URL = process.env.ASSEMBLYAI_BASE_URL;
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,9 +68,17 @@ export async function POST(request: NextRequest) {
 
     // Step 2: Request transcription
 
+    // Auto-detect the spoken language instead of forcing en/ar, so the app's
+    // English / Arabic / Turkish users are all transcribed in their own tongue.
+    // AssemblyAI's ALD (language_detection) covers en/ar/tr (and ~99 more);
+    // Kurdish (ku) is NOT supported by the provider — a ku speaker is detected
+    // as the nearest supported language. `language_code` is intentionally
+    // omitted: on this endpoint it forces a single language and cannot be
+    // combined with detection. `language` (app locale) is kept only for the
+    // response echo / fallback below.
     const transcriptionPayload = {
       audio_url: upload_url,
-      language_code: language === "ar" ? "ar" : "en_us",
+      language_detection: true,
       speech_model: "best",
       auto_highlights: false,
       disfluencies: false,
@@ -147,7 +155,9 @@ export async function POST(request: NextRequest) {
       success: true,
       transcription: transcript.text || "",
       confidence: transcript.confidence,
-      language: language,
+      // Report the language AssemblyAI actually detected (falls back to the
+      // app locale if the field is absent).
+      language: transcript.language_code || language,
     });
   } catch (error) {
     LogServerError({

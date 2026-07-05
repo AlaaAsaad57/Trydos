@@ -16,12 +16,15 @@ async function ProductExpectedDeleiveryWrapper({
   ]);
 
   const isRtl = language === "ar" || language === "ku";
+  // Guard against a missing `shipping_days` — without it the delivery estimate
+  // and "work days" count compute as NaN.
+  const productShippingDays = Number(productData?.shipping_days) || 0;
   return (
     <ExpectedDeleiveryBanner
       country={country}
       language={language}
       product_id={productData?.id}
-      shipping_days={productData?.shipping_days}
+      shipping_days={productShippingDays}
       allow_return_in_days={productData?.allow_return_in_days}
     >
       <img src="/icons/expectedDelevery.svg" className="w-[30px] h-[30px]" />
@@ -70,7 +73,7 @@ async function ProductExpectedDeleiveryWrapper({
               Date.now() +
               Number(
                 (starttingSetting?.shipping_duration_days || 0) +
-                productData?.shipping_days,
+                productShippingDays,
               ) *
               24 *
               60 *
@@ -86,7 +89,7 @@ async function ProductExpectedDeleiveryWrapper({
               Date.now() +
               Number(
                 (starttingSetting?.shipping_duration_days || 0) +
-                productData?.shipping_days,
+                productShippingDays,
               ) *
               24 *
               60 *
@@ -98,7 +101,7 @@ async function ProductExpectedDeleiveryWrapper({
         </span>{" "}
         |{" "}
         {(starttingSetting?.shipping_duration_days || 0) +
-          productData?.shipping_days}{" "}
+          productShippingDays}{" "}
         {translateFunction("Work Days", language)}{" "}
         {translateFunction("At Your Address In", language)}
         <span className="capitalize px-[3px]">

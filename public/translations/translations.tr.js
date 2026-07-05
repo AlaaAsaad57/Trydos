@@ -1,7 +1,12 @@
 const translations = {
+  // Listing share widget
+  "Share this page": "Bu sayfayı paylaş",
+  "Send this page to your favourite apps": "Bu sayfayı favori uygulamalarınıza gönderin",
+  "Link Copied to Clipboard": "Bağlantı panoya kopyalandı",
   // Listing sort widget
   "Sort products": "Ürünleri sırala",
   "Choose how products are ordered": "Ürünlerin nasıl sıralanacağını seçin",
+  Default: "Varsayılan",
   Recommended: "Önerilen",
   "Best match for your search": "Aramanız için en iyi eşleşme",
   "Best sellers": "Çok satanlar",
@@ -261,10 +266,12 @@ const translations = {
   "I Read And Agree To": "Okudum ve kabul ediyorum",
   "Confirm the Changes First": "Önce değişiklikleri onaylayın",
   "Yes, I Agree": "Evet, kabul ediyorum",
-  "We Will Ignore The First Size And Send Your Order To The New Address.":
-    "İlk bedeni dikkate almayacağız ve siparişinizi yeni adrese göndereceğiz.",
-  "We Will Ignore The First Color And Send Your Order To The New Address.":
-    "İlk rengi dikkate almayacağız ve siparişinizi yeni adrese göndereceğiz.",
+  "We Will Ignore The First Size And Send Your Order With The New Size.":
+    "İlk bedeni dikkate almayacağız ve siparişinizi yeni bedenle göndereceğiz.",
+  "We Will Ignore The First Color And Send Your Order With The New Color.":
+    "İlk rengi dikkate almayacağız ve siparişinizi yeni renkle göndereceğiz.",
+  "You Can Add Up To 5 Photos Only": "En fazla 5 fotoğraf ekleyebilirsiniz",
+  "Each Photo Must Be 5 MB Or Less": "Her fotoğraf en fazla 5 MB olmalıdır",
   "The Change Size Terms.": "Beden değişikliği koşulları.",
   "The Change Color Terms.": "Renk değişikliği koşulları.",
   "To New Size": "Yeni bedene",
@@ -289,7 +296,7 @@ const translations = {
   Experience: "Deneyim",
   "Featured Products": "Öne Çıkan Ürünler",
   "Share Story": "Hikayeyi Paylaş",
-  "You Have New Messages From Deleivery Worker..click for more":
+  "You Have New Messages From Delivery Worker..click for more":
     "Teslimat Elemanından Yeni Mesajlarınız Var..daha fazlası için tıklayın",
   "Flash Deal": "Hızlı Fırsatlar",
   "Premium Brands": "Premium Markalar",
@@ -987,6 +994,10 @@ const translations = {
     "12 Saat İçinde Tam İadenizi Alacaksınız.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "Tekrarlanan İptaller Puanınızı Etkileyecek ve Bu da Bizden Yeni Teklifler veya Fırsatlar Alabilme Yeteneğinizi Etkileyecektir.",
+  "Repeated Returns Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
+    "Tekrarlanan İadeler Puanınızı Etkileyecek ve Bu da Bizden Yeni Teklifler veya Fırsatlar Alabilme Yeteneğinizi Etkileyecektir.",
+  "Terms Of Return": "İade Şartları",
+  "Return Terms.": "İade Şartları.",
   "I Agree & Cancel": "Kabul Ediyor ve İptal Ediyorum",
   "I Disagree": "Katılmıyorum",
   "Terms Of Cancellation Terms": "İptal Şartları",
@@ -1246,6 +1257,10 @@ const translations = {
   "Please Login so You Can Add a comment":
     "تکایە بچۆ ژوورەوە بۆ ئەوەی بتوانیت لێدوانێک زیاد بکەیت",
   "Update Rating": "Değerlendirmeyi Güncelle",
+  "Edit Your Question": "Sorunuzu Düzenleyin",
+  "Update your question about this product":
+    "Bu ürünle ilgili sorunuzu güncelleyin",
+  "Update Question": "Soruyu Güncelle",
   "Your Comment": "Yorumunuz",
   Edit: "Düzenle",
   "Add your comment": "Yorumunuzu ekleyin",
@@ -1698,7 +1713,7 @@ const translations = {
   "FILE": "DOSYA",
   "please select supported image format (jpeg, png, jpg, webp, svg, avif)": "lütfen desteklenen bir resim formatı seçin (jpeg, png, jpg, webp, svg, avif)",
   "No options found": "Seçenek bulunamadı",
-  "Deleivery Worker": "Teslimat Görevlisi",
+  "Delivery Worker": "Teslimat Görevlisi",
   "Unknown": "Bilinmeyen",
   "Wrong Code": "Yanlış Kod",
   "Please Review Your Cart Info": "Lütfen Sepet Bilgilerinizi Gözden Geçirin",

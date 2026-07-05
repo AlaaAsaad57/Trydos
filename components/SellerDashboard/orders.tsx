@@ -2130,6 +2130,26 @@ export const RenderOrders = ({
     }
   }, [shouldUpdateOrders, activeTab, canViewOrders, sellerId]);
 
+  // Hooks must run on every render — keep them above the early returns below,
+  // otherwise a permission/error path renders fewer hooks than a prior render
+  // and React throws "Rendered fewer hooks than expected."
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const lastElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (ordersLoading) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          loadMoreOrders(ordersPage + 1);
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [ordersLoading, hasMore, ordersPage],
+  );
+
   if (!canViewOrders) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -2160,22 +2180,6 @@ export const RenderOrders = ({
       </div>
     );
   }
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const lastElementRef = useCallback(
-    (node: HTMLDivElement) => {
-      if (ordersLoading) return;
-      if (observerRef.current) observerRef.current.disconnect();
-
-      observerRef.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          loadMoreOrders(ordersPage + 1);
-        }
-      });
-
-      if (node) observerRef.current.observe(node);
-    },
-    [ordersLoading, hasMore, ordersPage],
-  );
   const loadMoreOrders = async (page) => {
     if (!ordersLoading && hasMore) {
       try {

@@ -64,7 +64,7 @@ Four files change. The chat-open status gate (open only for `out_for_delivery` /
 ### 1. `public/firebase-messaging-sw.js`
 
 **Tag the delivery-chat notification.** In `onBackgroundMessage`, the
-`is_private` branch (the "Deleivery Worker" notification), add markers to the
+`is_private` branch (the "Delivery Worker" notification), add markers to the
 notification `data` so the click handler can recognise it and message the tab
 without parsing the URL:
 

@@ -58,6 +58,8 @@ const GO_APIS = [
   "/cart/update",
   "/cart/remove",
   "/cart/cart_shipping",
+  "/cart/cart_overview",
+  "/cart/convert_to_old",
   "/old-cart/get_old_cart",
   "/old-cart/hide",
   '/firebase_device_tokens/subscribe_topic',

@@ -1,7 +1,12 @@
 const translations = {
+  // Listing share widget
+  "Share this page": "ئەم پەڕەیە هاوبەش بکە",
+  "Send this page to your favourite apps": "ئەم پەڕەیە بنێرە بۆ ئەپە دڵخوازەکانت",
+  "Link Copied to Clipboard": "بەستەرەکە کۆپی کرا",
   // Listing sort widget
   "Sort products": "ڕیزکردنی بەرهەمەکان",
   "Choose how products are ordered": "شێوازی ڕیزکردنی بەرهەمەکان هەڵبژێرە",
+  Default: "بنەڕەت",
   Recommended: "پێشنیارکراو",
   "Best match for your search": "باشترین بۆ گەڕانەکەت",
   "Best sellers": "زۆرترین فرۆش",
@@ -273,7 +278,7 @@ const translations = {
   "Delete Story": "سڕینی چیرۆک",
   "The number was copied successfully": "ژمارەکە بەسەرکەوتووی کۆپی کرا",
   "Number copy failed": "کۆپی کردنی ژمارەکە سەرکەوتوو نەبوو",
-  "You Have New Messages From Deleivery Worker":
+  "You Have New Messages From Delivery Worker":
     "پەیامە نوێکان هەن لەلایەن پێشکەشکەری گەیاندنەوە… کرتە بکە بۆ زانیاری زیاتر",
   "Share Story": "هاوکردنی چیرۆک",
   Cancel: "ڕەتکردن",
@@ -364,6 +369,10 @@ const translations = {
     "پارەی تەواوت لە ماوەی 12 کاتژمێر دەوەری دەبینی.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "ڕەتکردنەوەی پێوەکراوەکان سەر نمرەکردنت کاریگەری دەبەخشێت، کە کاریگەری دەکات سەر توانایەت بۆ وەرگرتنی پێشنیار یان دەروازە نوێکان لەمانەوە.",
+  "Repeated Returns Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
+    "گەڕاندنەوەی پێوەکراوەکان سەر نمرەکردنت کاریگەری دەبەخشێت، کە کاریگەری دەکات سەر توانایەت بۆ وەرگرتنی پێشنیار یان دەروازە نوێکان لەمانەوە.",
+  "Terms Of Return": "مەرجەکانی گەڕاندنەوە",
+  "Return Terms.": "مەرجەکانی گەڕاندنەوە.",
   "I Agree & Cancel": "من ڕازی‌م و ڕەتکردن",
   "I Disagree": "من ڕازی نەبم",
   "Terms Of Cancellation Terms": "مەرجەکانی ڕەتکردن",
@@ -1123,10 +1132,13 @@ const translations = {
     "تکایە URL دروست بنووسە (نمونە example.com یان www.example.com)",
   "Only links from": "تەنها بەستەرەکان لە",
   "Yes, I Agree": "بەڵێ، ڕازی‌م",
-  "We Will Ignore The First Size And Send Your Order To The New Address.":
-    "ئێمه‌ قەبارەی یەکەم لاق دەکەین و داواکاریەکەت نێردرێ بۆ ناونیشانی نوێ.",
-  "We Will Ignore The First Color And Send Your Order To The New Address.":
-    "ئێمه‌ ڕەنگی یەکەم لاق دەکەین و داواکاریەکەت نێردرێ بۆ ناونیشانی نوێ.",
+  "We Will Ignore The First Size And Send Your Order With The New Size.":
+    "ئێمه‌ قەبارەی یەکەم لاق دەکەین و داواکاریەکەت نێردرێ به‌ قەبارەی نوێ.",
+  "We Will Ignore The First Color And Send Your Order With The New Color.":
+    "ئێمه‌ ڕەنگی یەکەم لاق دەکەین و داواکاریەکەت نێردرێ به‌ ڕەنگی نوێ.",
+  "You Can Add Up To 5 Photos Only": "دەتوانیت زۆرترین ٥ وێنە زیاد بکەیت",
+  "Each Photo Must Be 5 MB Or Less":
+    "پێویستە هەر وێنەیەک ٥ مێگابایت یان کەمتر بێت",
   "The Change Size Terms.": "مەرجەکانی گۆڕینی قەبارە.",
   "The Change Color Terms.": "مەرجەکانی گۆڕینی ڕەنگ.",
   "To New Size": "بۆ قەبارەی نوێ",
@@ -1298,6 +1310,10 @@ const translations = {
   "Your Balance Not meet purchase value":
     "بەلانستەکەت ناتوانێت نرخی کڕینەکە پۆش بکاتەوە",
   "Update Rating": "هەڵسەنگاندن نوێ بکە",
+  "Edit Your Question": "پرسیارەکەت دەستکاری بکە",
+  "Update your question about this product":
+    "پرسیارەکەت دەربارەی ئەم بەرهەمە نوێ بکەرەوە",
+  "Update Question": "نوێکردنەوەی پرسیار",
   "Your Comment": "لێدوانەکەت",
   Edit: "دەستکاریکردن",
   "Add your comment": "لێدوانەکەت زیاد بکە",
@@ -1721,7 +1737,7 @@ const translations = {
   "FILE": "فایل",
   "please select supported image format (jpeg, png, jpg, webp, svg, avif)": "تکایە فۆرماتێکی وێنەی پاڵپشتیکراو هەڵبژێرە (jpeg, png, jpg, webp, svg, avif)",
   "No options found": "هیچ هەڵبژاردنێک نەدۆزرایەوە",
-  "Deleivery Worker": "کرێکاری گەیاندن",
+  "Delivery Worker": "کرێکاری گەیاندن",
   "Unknown": "نەناسراو",
   "Wrong Code": "کۆدی هەڵە",
   "Please Review Your Cart Info": "تکایە زانیاری سەبەتەکەت بپشکنە",
