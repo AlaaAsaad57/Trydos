@@ -4,8 +4,7 @@ import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import ListingSkeleton from "components/skeleton/listing";
 import "styles/listing-components.css";
-import ListingShareControl from "components/Listing/ListingShareControl";
-import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
+import ListingBarActions from "components/Server/ListingBarActions";
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
@@ -16,7 +15,6 @@ import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
-import ListingSortControl from "components/Listing/ListingSortControl";
 export const dynamicParams = true;
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -151,9 +149,11 @@ export default async function Page({ params, searchParams }) {
                 parsedFilters={parsedFilters}
               />
             </Suspense>
-            <ListingSortControl language={language} isRtl={isRtl} />
-            <FilterBoutiquePageButton key={"filter-button"} />
-            <ListingShareControl language={language} isRtl={isRtl} />
+            <ListingBarActions
+              filtersPromise={filtersData}
+              language={language}
+              isRtl={isRtl}
+            />
           </div>
         </div>
 
