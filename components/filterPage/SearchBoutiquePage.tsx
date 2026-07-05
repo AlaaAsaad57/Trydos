@@ -9,14 +9,15 @@ import { LogError } from "utils/functions";
 import { GetSearchSuggestion } from "serverRequests/Search";
 
 function SearchBoutiquePage({
-  search_text,
+  search_text = undefined,
   parsedFilters,
-  lang,
-  isAnalyzed,
+  lang = undefined,
+  isAnalyzed = undefined,
   country,
   language,
   featured = false,
   flashdeal = false,
+  serverSearch = "",
 }) {
   const router = useRouter();
   const pathname = usePathname();

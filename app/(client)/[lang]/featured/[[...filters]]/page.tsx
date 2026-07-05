@@ -60,9 +60,14 @@ export default async function Page({ params, searchParams }) {
   try {
     const sp = (await searchParams) ?? {};
     const sort = typeof sp.sort === "string" ? sp.sort : undefined;
+    const search = typeof sp.search === "string" ? sp.search : undefined;
     let parsedFilters = parseFiltersFromParams(Params.filters || []);
     const [country, language] = Params.lang.split("-");
     let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
+    const effectiveSearch =
+      (search && search.length > 0
+        ? search
+        : parsedFilters.search_text?.[0]) ?? "";
 
     if (parsedFilters.prices) {
       parsedFilters = {
@@ -82,7 +87,7 @@ export default async function Page({ params, searchParams }) {
           // priceRange:parsedFilters.prices?.map((s)=>s.split('-').map((d)=>Number(d))),
           featured: true,
           flashdeal: false,
-          search_text: parsedFilters.search_text?.[0],
+          search_text: effectiveSearch || undefined,
         },
         limit: 10,
         sort,
@@ -146,6 +151,7 @@ export default async function Page({ params, searchParams }) {
                 language={language}
                 featured={true}
                 filtersPromise={filtersData}
+                serverSearch={effectiveSearch}
                 parsedFilters={parsedFilters}
               />
             </Suspense>
@@ -187,6 +193,7 @@ export default async function Page({ params, searchParams }) {
             parsedFilters={parsedFilters}
             language={language}
             sort={sort}
+            serverSearch={effectiveSearch}
           />
         </Suspense>
       </>

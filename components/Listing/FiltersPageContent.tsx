@@ -95,17 +95,23 @@ async function getCurrencyForListing(country: string, language: string) {
 interface FiltersPageContentProps {
   params: { lang: string; filters?: string[] };
   sort?: string;
+  search?: string;
 }
 
 export default async function FiltersPageContent({
   params,
   sort,
+  search,
 }: FiltersPageContentProps) {
   const Params = params;
   try {
     let parsedFilters = parseFiltersFromParams(Params.filters || []);
     const [country, language] = Params.lang.split("-");
     const boutiqueItem = parsedFilters?.boutiques?.[0] || null;
+    const effectiveSearch =
+      (typeof search === "string" && search.length > 0
+        ? search
+        : parsedFilters?.search_text?.[0]) ?? "";
 
     if (parsedFilters.prices) {
       parsedFilters = {
@@ -136,7 +142,7 @@ export default async function FiltersPageContent({
     // discarded modal copy leaks its unused PIT. The key covers everything that
     // makes the query unique so the two identical renders share one execution.
     const filtersDataPromise = dedupeRequest(
-      `listing:${country}:${language}:${sort ?? ""}:${parsedUserId ?? ""}:${JSON.stringify(parsedFilters)}`,
+      `listing:${country}:${language}:${sort ?? ""}:${effectiveSearch}:${parsedUserId ?? ""}:${JSON.stringify(parsedFilters)}`,
       () =>
         getProductsAndFiltersFromElastic({
           country,
@@ -145,7 +151,7 @@ export default async function FiltersPageContent({
             ...parsedFilters,
             featured: false,
             flashdeal: false,
-            search_text: parsedFilters.search_text?.[0],
+            search_text: effectiveSearch || undefined,
           },
           limit: 10,
           userId: parsedUserId,
@@ -206,6 +212,7 @@ export default async function FiltersPageContent({
                     language={language}
                     filtersPromise={filtersDataPromise}
                     parsedFilters={parsedFilters}
+                    serverSearch={effectiveSearch}
                   />
                 </Suspense>
                 <ListingBarActions
@@ -257,6 +264,7 @@ export default async function FiltersPageContent({
                 parsedFilters={parsedFilters}
                 language={language}
                 sort={sort}
+                serverSearch={effectiveSearch}
               />
             </Suspense>
           }

@@ -17,6 +17,7 @@ async function ProductListConainer({
   isFeatured = false,
   language,
   sort = undefined,
+  serverSearch = "",
 }) {
   let [filtersData, currency, boutique] = await Promise.all([
     filtersDataPromise,
@@ -70,6 +71,7 @@ async function ProductListConainer({
         isFeatured={isFeatured}
         isFlashDeals={isFlashDeals}
         sort={sort}
+        serverSearch={serverSearch}
         target={path}
         title={title}
       />

@@ -68,6 +68,7 @@ export default async function Page({ params, searchParams }) {
   const Params = await params;
   const sp = (await searchParams) ?? {};
   const sort = typeof sp.sort === "string" ? sp.sort : undefined;
+  const search = typeof sp.search === "string" ? sp.search : undefined;
   // @ts-ignore
-  return <FiltersPageContent params={Params} sort={sort} />;
+  return <FiltersPageContent params={Params} sort={sort} search={search} />;
 }
