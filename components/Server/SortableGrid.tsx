@@ -58,7 +58,7 @@ export default function SortableGrid({
   useEffect(() => {
     if (showingServerGrid) {
       useAppStore.getState().setIsNavigating(null);
-      useAppStore.getState().setSearchLoading(false);
+      useAppStore.getState().setListingSearchLoading(false);
       useAppStore.getState().setSearchHasResults(serverHasResults);
     }
   }, [showingServerGrid, serverHasResults]);
@@ -67,7 +67,6 @@ export default function SortableGrid({
 
   // A search refetch merges the RAW live query into the filters so ES analyzes
   // it; page 2+ then reuse the analyzed name (handled inside the scroll).
-  const searchActive = isSearchDifferent && searchParam.length >= 0;
   const mergedFilters = isSearchDifferent
     ? { ...parsedFilters, search_text: searchParam || undefined }
     : parsedFilters;

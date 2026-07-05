@@ -52,7 +52,7 @@ export const useListingStore = (set, get) => ({
   resetListingFilter: () =>
     set({ offset: 1, isReachEnd: false, listing_loading: false }),
 
-  setSearchLoading: (loading: boolean) => set({ searchLoading: loading }),
+  setListingSearchLoading: (loading: boolean) => set({ searchLoading: loading }),
 
   setSearchHasResults: (hasResults: boolean) =>
     set({ searchHasResults: hasResults }),

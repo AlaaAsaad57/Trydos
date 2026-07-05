@@ -278,7 +278,7 @@ function ProductsInfiniteScroll({
       if (searchMode && !searchResultPublishedRef.current) {
         searchResultPublishedRef.current = true;
         const store = useAppStore.getState();
-        store.setSearchLoading(false);
+        store.setListingSearchLoading(false);
         store.setSearchHasResults(seenIdsRef.current.size > 0);
       }
     }
