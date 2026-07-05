@@ -5,7 +5,7 @@
 | **Feature ID** | CO-06 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-05 (against `develop`) |
 | **Source of truth** | `components/Cart/couponElement.tsx`, `components/Cart/PaymentMethod.tsx`, `components/Cart/PlaceOrderWidget.tsx`, `store/Cart/reducer.ts` |
 
 ---
@@ -72,10 +72,7 @@ backend's error inline.
 
 ## Known gaps / notes
 
-
-- **Code is sent as an unencoded URL query param** on a GET request. A code containing characters
-  like `&`, `=` or `#` could break the query, since the later encode step doesn't escape those.
-
+No dedicated gaps found.
 
 ## Related features
 

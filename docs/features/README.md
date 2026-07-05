@@ -6,7 +6,7 @@ file under `docs/features/<domain>/` — this index links them together and show
 glance, where each feature stands.
 
 **Audience:** Management / non-technical stakeholders.
-**Last updated:** 2026-07-03
+**Last updated:** 2026-07-05
 **How it was built:** Compiled directly from the current codebase (routes, services, and
 app state) — not from memory — so it reflects what is actually shipped on the `develop` branch.
 
@@ -33,7 +33,7 @@ app state) — not from memory — so it reflects what is actually shipped on th
 | Domain | Features | Notes |
 |--------|:--------:|-------|
 | A. Shopping & Product Discovery | 33 | Core storefront live; SD-17, SD-24, SD-27 & SD-33 partial |
-| B. Cart, Checkout & Orders | 28 | Full purchase & post-purchase lifecycle; partial: CO-05 (dead re-add), CO-17 & CO-18 (cancel reason not sent to backend), CO-28 (hardcoded return-tracking timers/refund) |
+| B. Cart, Checkout & Orders | 28 | Full purchase & post-purchase lifecycle; partial: CO-17 & CO-18 (cancel reason not sent to backend), CO-28 (hardcoded return-tracking timers/refund) |
 | C. Payments, Wallet & Banking | 6 | ⚠️ External wallet package, under active development (RDB). Balance/history view live; pay-with-wallet is a dummy test widget; deposits, accounts, cards & transfers expected from the external package (not in-app) |
 | D. Accounts & Authentication | 30 | Phone + OTP only; AC-06 consent + AC-27–30 legal/info pages are placeholder-grade |
 | E. Chat & Calls | 25 | 1-to-1 chat + Agora voice/video (customer↔customer, customer↔delivery worker) |
@@ -126,7 +126,7 @@ Everything from adding to cart through paying and managing an order.
 | [CO-02](B-cart-checkout-orders/CO-02-notify-me-when-available.md) | Notify me when available | Ask to be alerted when an out-of-stock item returns. | 🟢 |
 | [CO-03](B-cart-checkout-orders/CO-03-cart-drawer.md) | Cart drawer | Slide-in panel showing all items, quantities, prices and totals. | 🟢 |
 | [CO-04](B-cart-checkout-orders/CO-04-update-remove-items.md) | Update / remove items | Change quantity or remove items from the bag. | 🟢 |
-| [CO-05](B-cart-checkout-orders/CO-05-saved-for-later-old-cart.md) | Saved-for-later ("old cart") | A secondary bag for items kept aside from the active cart. | 🟡 |
+| [CO-05](B-cart-checkout-orders/CO-05-saved-for-later-old-cart.md) | Saved-for-later ("old cart") | A secondary bag for items kept aside from the active cart, with a one-tap "Add Again". | 🟢 |
 | [CO-06](B-cart-checkout-orders/CO-06-coupon-promo-codes.md) | Coupon & promo codes | Enter a discount code that is validated and applied. | 🟢 |
 
 ### Checkout

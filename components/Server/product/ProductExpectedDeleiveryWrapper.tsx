@@ -1,5 +1,9 @@
-import { countryNameFromIso, translateFunction } from "utils/server";
-import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
+import {
+  countryNameFromIso,
+  translateFunction,
+  formatTime,
+  ShowDayStr,
+} from "utils/server";
 import Skeleton from "react-loading-skeleton";
 import ExpectedDeleiveryBanner from "components/products/ExpectedDeleiveryBanner";
 
@@ -19,6 +23,11 @@ async function ProductExpectedDeleiveryWrapper({
   // Guard against a missing `shipping_days` — without it the delivery estimate
   // and "work days" count compute as NaN.
   const productShippingDays = Number(productData?.shipping_days) || 0;
+  const deliveryOffsetDays =
+    Number(starttingSetting?.shipping_duration_days || 0) + productShippingDays;
+  const deliveryDate = new Date(
+    Date.now() + deliveryOffsetDays * 24 * 60 * 60 * 1000,
+  );
   return (
     <ExpectedDeleiveryBanner
       country={country}
@@ -68,40 +77,13 @@ async function ProductExpectedDeleiveryWrapper({
           } w-max text-[#1D1D1D] text-[12px] regular mt-[3px] items-center flex  `}
       >
         <span className="pr-[4px]">
-          {ShowDayStr(
-            new Date(
-              Date.now() +
-              Number(
-                (starttingSetting?.shipping_duration_days || 0) +
-                productShippingDays,
-              ) *
-              24 *
-              60 *
-              60 *
-              1000,
-            )?.getDay(),
-            language,
-          )}
+          {ShowDayStr(deliveryDate.getDay(), language)}
         </span>
         <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
-          {formatTimeForAddress(
-            new Date(
-              Date.now() +
-              Number(
-                (starttingSetting?.shipping_duration_days || 0) +
-                productShippingDays,
-              ) *
-              24 *
-              60 *
-              60 *
-              1000,
-            ).toString(),
-            language,
-          )}
+          {formatTime(deliveryDate.toISOString(), language)}
         </span>{" "}
         |{" "}
-        {(starttingSetting?.shipping_duration_days || 0) +
-          productShippingDays}{" "}
+        {deliveryOffsetDays}{" "}
         {translateFunction("Work Days", language)}{" "}
         {translateFunction("At Your Address In", language)}
         <span className="capitalize px-[3px]">

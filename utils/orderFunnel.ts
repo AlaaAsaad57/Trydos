@@ -29,6 +29,7 @@ export const ORDER_EVENTS = {
   CART_ITEM_REMOVED: "cart_item_removed",
   CART_ITEM_MOVED_TO_OLD: "cart_item_moved_to_old",
   OLD_CART_ITEM_REMOVED: "old_cart_item_removed",
+  OLD_CART_ITEM_RE_ADDED: "old_cart_item_re_added",
   OLD_CART_CLEARED: "old_cart_cleared",
   CART_VIEWED: "order_cart_viewed",
 

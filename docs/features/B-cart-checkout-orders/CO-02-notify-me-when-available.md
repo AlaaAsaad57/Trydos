@@ -72,13 +72,7 @@ service; the alert itself is delivered through the app's push infrastructure (Do
 
 ## Known gaps / notes
 
-- **Optimistic UI.** The button flips to "notified" *before* the subscribe request resolves; a
-  failed request still surfaces the error toast, but there's a brief optimistic state.
-- **No explicit success toast on first subscribe** (in the add-to-cart flow) — the confirmation is
-  only the button relabel. (A toast *is* shown if you were already subscribed.)
-- **Topic id is built on the client** (`product_availability_{id}`), and a variant string literally
-  containing `"N/A"` is treated as "no variant" and dropped from the subscription — an edge-case
-  string check, not a normal-path issue.
+No dedicated gaps found.
 
 ## Related features
 

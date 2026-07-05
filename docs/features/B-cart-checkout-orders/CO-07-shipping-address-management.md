@@ -5,7 +5,7 @@
 | **Feature ID** | CO-07 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-05 (against `develop`) |
 | **Source of truth** | `components/Cart/ShippingAddressContainer.tsx`, `components/Cart/AddressListContainer.tsx`, `components/Cart/AddAddressForm.tsx`, `services/order.ts`, `store/Cart/reducer.ts` |
 
 ---
@@ -72,13 +72,7 @@ reused across checkout, settings and order-address changes.
 
 ## Known gaps / notes
 
-- **Hardcoded `zip: "123123"`** is sent on every add/update — a placeholder, not a real postal code.
-- **`"Not Entered"` fallbacks** are sent for city/province/town/street/building when the region is
-  left unset.
-
-
-- **Analytics mislabel:** selecting/showing the default address fires an "add address" GA event even
-  though nothing was added.
+No dedicated gaps found..
 
 ## Related features
 

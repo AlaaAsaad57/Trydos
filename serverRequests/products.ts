@@ -197,7 +197,7 @@ export async function fetchProductExtendedDetails(
 ) {
   try {
     let response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`,
+      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`,
       method: "GET",
       revalidate: 0,
       local: `${country}-${language}`,
@@ -242,7 +242,7 @@ export async function getProductDataForAddToCart({
     "";
   let [globalData, pricesData, notificationsSettings] = await Promise.all([
     fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/globalDetails/${slug}`,
+      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/globalDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -251,7 +251,7 @@ export async function getProductDataForAddToCart({
       },
     }),
     fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
+      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,

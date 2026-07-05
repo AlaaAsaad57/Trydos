@@ -28,16 +28,7 @@ class CartService {
       product_variation_id: product_variation_id ?? null,
       is_luck,
     };
-    let formBody = [];
-    for (var property in details) {
-      if (details[property]) {
-        var encodedKey = encodeURIComponent(property);
-        var encodedValue = encodeURIComponent(details[property]);
-        formBody.push(encodedKey + "=" + encodedValue);
-      }
-    }
-    // @ts-ignore
-    formBody = formBody.join("&");
+
 
     try {
       let response = await fetchData({
@@ -84,16 +75,7 @@ class CartService {
   async UpdateCart({ cart_id, qty, isFromAddWidget = false, is_luck = false }) {
     const { updateProductQuantityInCart } = useAppStore.getState();
 
-    let dataBody: any = [];
-    let dataObj = { key: cart_id, quantity: qty };
-    for (var property in dataObj) {
-      if (dataObj[property] || dataObj[property] === 0) {
-        var encodedKey = encodeURIComponent(property);
-        var encodedValue = encodeURIComponent(dataObj[property]);
-        dataBody.push(encodedKey + "=" + encodedValue);
-      }
-    }
-    dataBody = dataBody.join("&");
+
     try {
       let response = await fetchData({
         url: "/cart/update",
@@ -153,18 +135,7 @@ class CartService {
     }
   }
   async ConvertToOldCart({ cart_item }) {
-    let dataBody = [];
-    let dataObj = { key: cart_item };
-    for (var property in dataObj) {
-      if (dataObj[property] || dataObj[property] === 0) {
-        var encodedKey = encodeURIComponent(property);
-        var encodedValue = encodeURIComponent(dataObj[property]);
-        dataBody.push(encodedKey + "=" + encodedValue);
-      }
-    }
-    // @ts-ignore
-    dataBody = dataBody.join("&");
-
+   
     try {
       let response = await fetchData({
         url: "/cart/convert_to_old",

@@ -5,7 +5,7 @@
 | **Feature ID** | CO-04 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-05 (against `develop`) |
 | **Source of truth** | `components/Cart/index.tsx` (`QuantutyInput`, `RemoveFromCartAction`), `services/cart.ts`, `store/Cart/reducer.ts` |
 
 ---
@@ -33,7 +33,8 @@ Any shopper adjusting their bag before checkout.
 - **The number can't be typed.** Quantity only changes via the +/- icons; the count field itself is
   read-only.
 - **No debounce.** Each tap fires its own save request; overlapping taps are guarded only by a
-  simple "busy" flag while a request is in flight.
+  simple "busy" flag while a request is in flight. If the server rejects a change, the on-screen
+  number is rolled back to the value it held before the tap.
 - **Remove** takes the item out of the bag optimistically, then confirms with the server and
   refreshes the totals; if the server rejects it, the item is restored.
 
@@ -50,7 +51,7 @@ Any shopper adjusting their bag before checkout.
 
 | Item | Value |
 |------|-------|
-| Stepper + delete | `QuantutyInput` in `components/Cart/index.tsx` |
+| Stepper + delete | `QuantutyInput` in `components/Cart/index.tsx` (updates via `cartService.UpdateCart`) |
 | Remove action | `RemoveFromCartAction` in `components/Cart/index.tsx` |
 | Widget decrement | `decreaseHandler` in `components/Cart/AddToCart/Button.tsx` |
 | Service | `services/cart.ts` — `UpdateCart`, `RemoveFromCart` |
@@ -59,19 +60,12 @@ Any shopper adjusting their bag before checkout.
 
 ## Current status & maturity
 
-**Live** — the happy path (increment, decrement, remove, refresh totals) works. Two real
-code-quality issues below should be flagged for a fix even though they don't break normal use.
+**Live and stable.** The happy path (increment, decrement, remove, refresh totals) works, and the
+two former code-quality issues (see below) have been fixed.
 
 ## Known gaps / notes
 
-- ⚠️ **Broken error-rollback on quantity update.** The in-cart update helper's failure branch
-  reverts the number to the same (stale) value in both cases, so an optimistic +/- is **not
-  correctly rolled back** when the server rejects it. It also references its `setLoading` state
-  setter before it's declared in the component (a temporal-dead-zone risk). Fix recommended.
-
-- **Duplicated update path.** The in-cart stepper POSTs to `/cart/update` directly instead of going
-  through `cartService.UpdateCart`, so the same operation exists in two places with two store-sync
-  paths.
+No dedicated gaps found.
 
 ## Related features
 

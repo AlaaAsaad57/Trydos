@@ -318,12 +318,7 @@ function AddToCartComponent({ product, slug, color }) {
           initCart(data ?? { cart: [] });
         },
       });
-      // fetchData({
-      //   method: "GET",
-      //   url: `/api/mobile/product/details/${slug}`,
-      //   reqTitle: { reqTitle: "", code: 100 },
-      //   server: "local",
-      // });
+
       let data = await getProductDataForAddToCart({
         language: languageVariable,
         country: country,

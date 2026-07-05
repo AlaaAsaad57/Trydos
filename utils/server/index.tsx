@@ -681,6 +681,23 @@ export const formatTime = (timeString: string, language) => {
 
   return `${day}/${month}/${year} | ${timeFormat}`;
 };
+
+// Server-side weekday name. Mirrors utils/tinyUtils.ShowDayStr but resolves the
+// translation synchronously via the server translateFunction (statically
+// imported translations), so it never falls back to English during RSC render.
+export const ShowDayStr = (index: number, language: string) => {
+  const days = [
+    translateFunction("Sunday", language),
+    translateFunction("Monday", language),
+    translateFunction("Tuesday", language),
+    translateFunction("Wednesday", language),
+    translateFunction("Thursday", language),
+    translateFunction("Friday", language),
+    translateFunction("Saturday", language),
+  ];
+  return days[index];
+};
+
 export function getThumb(url, isVideo) {
   if (url) {
     if (isVideo) {

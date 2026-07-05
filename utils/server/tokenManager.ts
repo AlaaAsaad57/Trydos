@@ -63,12 +63,26 @@ const GO_APIS = [
   "/old-cart/get_old_cart",
   "/old-cart/hide",
   '/firebase_device_tokens/subscribe_topic',
-  '/firebase_device_tokens/unsubscribe_topic'
+  '/firebase_device_tokens/unsubscribe_topic',
+  "/web/get-colors-and-sizes",
+  "/web/notification_types",
+  "/web/notification_types/customer-notification-to-choose",
+];
+
+// Go endpoints whose URL carries a trailing dynamic segment (e.g. a product
+// slug), so the full path never `endsWith` a fixed string. Matched by prefix
+// instead. Keep the trailing slash so `/globalDetails/` can't match a sibling
+// like `/globalDetailsSomethingElse`.
+const GO_API_PREFIXES = [
+  "/web/product/globalDetails/",
+  "/web/product/qtyPriceDetails/",
+  "/web/product/product-meta/",
 ];
 // ---------- Server URL Resolution ----------
 export const isFromGoApi = (url: string) =>{
   let normalizedUrl=url.split('?')?.[0];
   if(url.startsWith('/checklist')) return true;
+  if(GO_API_PREFIXES.some((prefix) => normalizedUrl.includes(prefix))) return true;
  return GO_APIS.some((endpoint) => normalizedUrl.endsWith(endpoint))};
 function getServerBaseUrl(server: ProxiedServer, url: string): string {
   console.log(url, isFromGoApi(url));

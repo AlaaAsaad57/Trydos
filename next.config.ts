@@ -169,9 +169,13 @@ export default withSentryConfig(analyze(nextConfig), {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
-  org: "ramaaz-2x",
+  // Org/project the source maps are uploaded to. Read from env so switching
+  // Sentry accounts/projects is a Vercel env change, not a code change. The
+  // Sentry plugin also picks up SENTRY_ORG/SENTRY_PROJECT/SENTRY_AUTH_TOKEN and
+  // SENTRY_URL (region, e.g. https://de.sentry.io) from the environment.
+  org: process.env.SENTRY_ORG,
 
-  project: "trydos",
+  project: process.env.SENTRY_PROJECT,
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
@@ -181,8 +185,11 @@ export default withSentryConfig(analyze(nextConfig), {
 
   // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: false,
-  sourcemaps:{
-    disable:true
+  sourcemaps: {
+    // Upload source maps ONLY on Vercel builds. Local `pnpm build` sets no
+    // VERCEL env var, so upload stays disabled there (no token needed, no maps
+    // shipped). Vercel sets VERCEL=1 automatically on every build.
+    disable: !process.env.VERCEL,
   },
   // Uncomment to route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
   // This can increase your server load as well as your hosting bill.

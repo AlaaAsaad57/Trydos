@@ -93,7 +93,7 @@ export async function GET(request: NextRequest, { params }) {
         url: request.url,
         headers: request.headers,
       },
-      "/api/mobile/product/details/[slug]",
+      "/local/api/mobile/product/details/[slug]",
     );
     return withCORS(
       NextResponse.json(

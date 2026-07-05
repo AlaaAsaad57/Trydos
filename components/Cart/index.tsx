@@ -487,6 +487,7 @@ export const QuantutyInput = ({
       : 0;
   const [inputValue, setInputValue] = useState(parseInt(value));
   const [isNarrowScreen, setIsNarrowScreen] = useState(false);
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (parseInt(value) === inputValue) return;
     setInputValue(parseInt(value));
@@ -499,35 +500,23 @@ export const QuantutyInput = ({
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  const updateQuantity = async (quantity, bool) => {
-    try {
-      let a = await fetchData({
-        url: "/cart/update",
-        reqTitle: REQUESTS_DATA.UPDATE_CART_ITEM,
-        method: "POST",
-        server: "market",
-        body: JSON.stringify({ key: id, quantity: quantity }),
-      });
-      if (a.data.status === 0 && !a.success) {
-        throw new Error(a.data.message);
-      } else {
-        updateData();
-      }
-      updateData();
-    } catch (error) {
-      setLoading(false);
-      if (bool) {
-        setInputValue(inputValue);
-      } else {
-        setInputValue(inputValue);
-      }
+  const updateQuantity = async (quantity, previousValue) => {
+    // Single update path — go through the cart service (which syncs the store)
+    // instead of POSTing to /cart/update directly, so the operation isn't
+    // duplicated across two store-sync paths.
+    const succeeded = await cartService.UpdateCart({ cart_id: id, qty: quantity });
+    if (!succeeded) {
+      // Roll the optimistic +/- back to the value it held before this change.
+      setInputValue(previousValue);
       LogError({
-        error: error,
+        error: new Error("Cart quantity update rejected"),
         scenario: "Update Qty For Cart Item widget",
         id: id,
         quantity,
       });
+      return;
     }
+    updateData();
   };
 
   let { lang } = useParams();
@@ -577,7 +566,7 @@ export const QuantutyInput = ({
       setInputValue(parseInt(i) - 1);
       setLoading(true);
 
-      await updateQuantity(parseInt(i.toString()) - 1, false);
+      await updateQuantity(parseInt(i.toString()) - 1, parseInt(i.toString()));
       await getCart({
         callback: ([data, res]) => {
           initCart(data ?? { cart: [] });
@@ -586,7 +575,6 @@ export const QuantutyInput = ({
       setLoading(false);
     }
   };
-  const [loading, setLoading] = useState(false);
   const increaseQuantity = async (i) => {
     if (!loading) {
       trackOrder(ORDER_EVENTS.CART_ITEM_QTY_INCREASED, {
@@ -623,7 +611,7 @@ export const QuantutyInput = ({
           screen_path: window.location.pathname,
         },
       });
-      await updateQuantity(parseInt(i.toString()) + 1, true);
+      await updateQuantity(parseInt(i.toString()) + 1, parseInt(i.toString()));
       await getCart({
         callback: ([data, res]) => {
           initCart(data ?? { cart: [] });

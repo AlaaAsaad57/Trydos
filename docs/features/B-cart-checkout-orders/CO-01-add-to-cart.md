@@ -75,9 +75,7 @@ and notifications, with proper colour/size validation and out-of-stock fallback.
 ## Known gaps / notes
 
 
-- **Dead code (harmless):** `services/cart.ts` builds a URL-encoded `formBody` that is never sent
-  (the request uses JSON instead), and the local store mirror hard-codes `quantity: 1`. No user
-  impact, but worth cleaning up.
+No dedicated gaps found.
 
 ## Related features
 

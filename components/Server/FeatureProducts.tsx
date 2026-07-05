@@ -1,7 +1,7 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
 
-import { translateFunction } from "utils/functions";
+import { translateFunction } from "utils/server";
 import ProductCard from "components/products/ProductCard";
 
 function FeatureProducts({ lang, fetauredProductsData, currencyData }) {

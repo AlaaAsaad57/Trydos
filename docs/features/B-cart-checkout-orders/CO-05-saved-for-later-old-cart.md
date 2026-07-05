@@ -4,8 +4,8 @@
 |---|---|
 | **Feature ID** | CO-05 |
 | **Domain** | B · Cart, Checkout & Orders |
-| **Status** | 🟡 Partial — items save & hide, but the "add again" affordance is a dead placeholder |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Status** | 🟢 Live |
+| **Last verified** | 2026-07-05 (against `develop`) |
 | **Source of truth** | `components/Cart/OldCartContainer.tsx`, `components/Cart/index.tsx`, `services/cart.ts`, `services/home.ts`, `store/Cart/reducer.ts` |
 
 ---
@@ -36,18 +36,21 @@ Any shopper who wants to park an item without losing it — e.g. deciding on it 
   quantity from here.
 - **Removing.** Each item has a **"Hide"** action; there's also a **"Hide All"** to clear the whole
   Out-Of-Bag list. Both are optimistic and confirmed with the server.
-- **Getting an item back into the bag is NOT a one-tap action here.** The card shows a *"Time
-  Running Out. -30:00 | Add Again?"* label, but that text is a **hardcoded static string with no
-  countdown and no click handler** — tapping the card just navigates to the product page. To
-  actually re-add, the shopper opens the product and adds it again (CO-01); once re-added, the item
-  disappears from the Out-Of-Bag list.
+- **One-tap "Add Again".** Each card shows a live *"Time Running Out. -MM:SS | Add Again?"* label
+  whose countdown is derived from the item's `created_at` over a **30-minute window**. While the
+  window is open the counter ticks down each second; once it elapses the counter is hidden but
+  **"Add Again?" stays clickable**. Tapping "Add Again?" re-adds the item to the active cart
+  (`/cart/add`) and refreshes both the cart and the Out-Of-Bag list — so the re-added item then
+  disappears from Out-Of-Bag (it's now in the active cart). The tap is isolated from the card's
+  product link, so it re-adds rather than navigating.
 
 ## Data source
 
 | Item | Value |
 |------|-------|
 | Move to Out-Of-Bag | `POST /cart/convert_to_old` — `{ key: cartItemId }` (`cartService.ConvertToOldCart`) |
-| Load list | `GET /old-cart/get_old_cart` — `getOldCart()` (sorted newest first) |
+| Load list | `GET /old-cart/get_old_cart` — `getOldCart()` (sorted newest first, by `created_at`) |
+| Add Again (re-add) | `POST /cart/add` (`cartService.AddToCart`), then `getCart()` + `getOldCart()` refresh |
 | Hide / Hide All | `POST /old-cart/hide` — `{ id }` (or empty to clear all) — `home.hideOldCart` |
 | Backend | `/old-cart/get_old_cart` & `/old-cart/hide` → **Go backend**; `/cart/convert_to_old` → **legacy backend** (not on the Go allow-list) |
 
@@ -56,30 +59,28 @@ Any shopper who wants to park an item without losing it — e.g. deciding on it 
 | Item | Value |
 |------|-------|
 | Out-Of-Bag list | `components/Cart/OldCartContainer.tsx` (header "Out Of Bag!") |
+| Countdown + re-add label | `OldCartAddAgainLabel` in `components/Cart/OldCartContainer.tsx` (30-min window from `created_at`) |
+| Add-Again handler | `handleAddAgain` in `components/Cart/OldCartContainer.tsx` → `cartService.AddToCart` |
 | "Reschedule" action | `ConvertToOldCart` in `components/Cart/index.tsx` (`QuantutyInput`) |
 | Service (move) | `services/cart.ts` — `ConvertToOldCart` |
+| Service (re-add) | `services/cart.ts` — `AddToCart` |
 | Service (hide) | `services/home.ts` — `hideOldCart` |
-| Store | `store/Cart/reducer.ts` — `storeOldCart`, `hideOldCart` |
+| Store | `store/Cart/reducer.ts` — `storeOldCart`, `hideOldCart`, `initCart` |
 | Dedup vs. active cart | `areProductsEqual` (`utils/functions.tsx`) |
+| Analytics | `old_cart_item_re_added` (`ORDER_EVENTS`, `utils/orderFunnel.ts`; see `docs/posthog-events.md`) |
 | Request codes | `utils/Requests.ts` — `CONVERT_TO_OLD_CART` (89), `OLD_CART_REQUEST` (27), `HIDE_OLD_CART` (74) |
 
 ## Current status & maturity
 
-**Partial.** The core of a saved-for-later list works — items can be moved aside, they persist
-server-side, they de-duplicate against the active cart, and they can be hidden individually or all
-at once. But the **re-add ("Add Again?") affordance is not built**: the visible button is a static
-label with a fake `-30:00` timer and no handler, so bringing an item back requires re-navigating to
-the product page and adding it fresh.
+**Live.** The full saved-for-later loop works — items can be moved aside, they persist server-side,
+they de-duplicate against the active cart, they can be hidden individually or all at once, and the
+**"Add Again?" affordance is now real**: a live 30-minute countdown derived from `created_at`, after
+which the counter hides while "Add Again?" stays a one-tap re-add that adds the item back and
+refreshes both lists.
 
 ## Known gaps / notes
 
-- ⚠️ **"Add Again?" is a dead placeholder.** The `-30:00` countdown and "Add Again?" text are
-  **hardcoded strings** with no live timer and no re-add handler. Either wire up a real one-tap
-  re-add (and a real timer, if intended) or remove the misleading label.(need decision)
-
-
-- **Dead code:** `ConvertToOldCart` builds an unused URL-encoded body and returns nothing; the
-  store is updated by the caller instead.
+No dedicated gaps found.
 
 ## Related features
 

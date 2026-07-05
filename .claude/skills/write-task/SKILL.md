@@ -17,7 +17,9 @@ standard is rejected and sent back, so respect the format exactly.
    Acceptance Criteria → Test Cases.
 4. End with the **Ticket Quality Checklist**, with every box ticked `[x]` only if the
    ticket genuinely satisfies it.
-5. Output the whole ticket in one markdown block the user can paste straight into ClickUp.
+5. **Always write the finished ticket to `Tickets/<Verb-Object-Title>.md`** (repo-root
+   `Tickets/` folder, kebab/Title-Case filename matching the existing convention there),
+   then also output it in the chat as one markdown block the user can paste into ClickUp.
 
 If a required metadata value is genuinely unknowable (Assignee, exact Sprint, Time
 Estimate), put a sensible placeholder/estimate and flag it with `⚠️` so the user fills it,

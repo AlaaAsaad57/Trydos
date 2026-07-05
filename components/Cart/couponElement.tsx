@@ -53,7 +53,7 @@ const CouponElement = ({
     trackOrder(ORDER_EVENTS.COUPON_APPLY_ATTEMPT, { coupon_code: couponCode });
     try {
       const response = await fetchData({
-        url: `/coupon/apply?code=${couponCode}`,
+        url: `/coupon/apply?code=${encodeURIComponent(couponCode)}`,
         reqTitle: REQUESTS_DATA.APPLY_COUPON_REQUEST,
         method: "GET",
         server: "market",
