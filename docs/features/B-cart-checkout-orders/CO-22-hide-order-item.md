@@ -62,12 +62,15 @@ navigation.
 
 ## Known gaps / notes
 
-- **Irreversible from the UI.** Both calls hardcode `{ is_hidden: true }` and there is **no un-hide /
-  restore path anywhere** — a hidden order can't be brought back by the shopper.
+- **~~Irreversible from the UI.~~ Resolved by [CO-29](CO-29-restore-hidden-orders.md).** The hide
+  calls still hardcode `{ is_hidden: true }`, but the same two endpoints now accept
+  `{ is_hidden: false }`, and the **Hidden Orders** view (CO-29) lets a shopper restore a hidden pack
+  or a hidden product back to their list.
 
 
 ## Related features
 
 CO-15 (Order history — where hidden orders no longer appear) · CO-16 (Order details — hosts the
-menus) · CO-17 / CO-18 (Cancel — a different, order-changing action) · CO-05 (Saved-for-later "Hide"
-— a similarly named but cart-side action).
+menus) · **CO-29 (Restore hidden orders / products — the un-hide counterpart)** · CO-17 / CO-18
+(Cancel — a different, order-changing action) · CO-05 (Saved-for-later "Hide" — a similarly named but
+cart-side action).

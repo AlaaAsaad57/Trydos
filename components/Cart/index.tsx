@@ -748,7 +748,7 @@ export const QuantutyInput = ({
                   src={"/icons/CartMinusIcon.svg"}
                 />
               </div>
-              {!loading && (
+              {!loading && !disabled && (
                 <div
                   className="absolute h-[24px] flex items-center hide-btn right-[-20px] -top-px scale-125  cursor-pointer"
                   data-cy="DeleteIcon_CartPage"
@@ -770,7 +770,7 @@ export const QuantutyInput = ({
                 </div>
               )}
             </>
-          ) : (
+          ) : disabled ? null : (
             <div
               className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
               data-cy="DeleteIcon_CartPage"

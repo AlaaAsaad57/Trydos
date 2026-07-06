@@ -67,6 +67,13 @@ function OrderItemOptions({
   // group (single-order group). When siblings remain we stay on the details
   // page and let the refetch re-select a surviving pack (setActivePack).
   const shouldLeaveAfterHide = isLastProductInOrder && !hasOtherPacksInGroup;
+  // Return window from the item's `allow_return_in_days` (string|number).
+  // 1 => "24 Hours", anything greater => "<n> Days". Display only — never gates.
+  const allowReturnInDays = Number(orderItem?.allow_return_in_days);
+  const returnWindowText =
+    allowReturnInDays === 1
+      ? `24 ${translateFunction("Hours")}`
+      : `${allowReturnInDays} ${translateFunction("Days")}`;
   const handleHideProduct = async () => {
     try {
       setHiding(true);
@@ -326,7 +333,7 @@ function OrderItemOptions({
                     >
                       {translateFunction("Return This Product In")}
                       <span className="bold text-[12px] text-[#8D8D8D]  mx-[2px]">
-                        24 {translateFunction("Hours")}
+                        {returnWindowText}
                       </span>
                       {translateFunction("And Back Your Money")}
                     </p>

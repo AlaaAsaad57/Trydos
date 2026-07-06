@@ -266,19 +266,14 @@ export default function WalletPaymentModal({
         handleUnauthenticated,
       });
       // @ts-ignore
-      if (result && !result.url) {
+      if (result && !result.paymentFailed) {
         await startOrderConversionPolling(cart[0].cart_group_id);
       } else {
-        // @ts-ignore
-        if (result && result.url) {
-          alert(JSON.stringify(result, null, 2));
-        }
         showErrorNotification(
           translateFunction("Wallet payment failed. Please try again"),
         );
         trackOrder(ORDER_EVENTS.WALLET_PAYMENT_FAILED, {
-          // @ts-ignore
-          stage: result && result.url ? "unexpected_redirect" : "no_result",
+          stage: "checkout_failed",
         });
         setIsProcessing(false);
       }

@@ -68,11 +68,7 @@ and the return flow correctly requires at least one before submission.
 
 ## Known gaps / notes
 
-- **Operational note:** upload depends on media-server env config — if
-  `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` / `MEDIA_API_KEY` are unset, the upload throws *"Media server
-  upload is not configured."* (intentional guard, not a defect).
-- The same uploader (`isForRating`) also powers review photos (CO-23) — a shared component, so the new
-  5-photo / 5-MB cap applies to both.
+No dedicated gaps found.
 
 ## Related features
 

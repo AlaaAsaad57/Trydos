@@ -15,7 +15,10 @@ standard is rejected and sent back, so respect the format exactly.
 2. Fill in **every required metadata field** at the top.
 3. Write the body with **exactly the 3 sections, in this order**: User Story →
    Acceptance Criteria → Test Cases.
-4. End with the **Ticket Quality Checklist**, with every box ticked `[x]` only if the
+4. After the Test Cases, append a **QA Test Path (non-technical)** section — a
+   step-by-step manual test guide a non-developer QA person can follow with no
+   code, tools, or repo knowledge.
+5. End with the **Ticket Quality Checklist**, with every box ticked `[x]` only if the
    ticket genuinely satisfies it.
 5. **Always write the finished ticket to `Tickets/<Verb-Object-Title>.md`** (repo-root
    `Tickets/` folder, kebab/Title-Case filename matching the existing convention there),
@@ -86,6 +89,20 @@ At minimum these three, all in **Given / When / Then** format:
 - `## Validation Error — [scenario name]`
 - `## Authorization Failure — [scenario name]`
 
+### 4) QA Test Path (non-technical) — REQUIRED
+A `# QA Test Path (non-technical)` section, placed **after** the Test Cases and
+**before** the checklist (so the 3 canonical sections stay contiguous), written
+for a QA tester with **no coding, no dev tools, and no repo access**. Rules:
+- Numbered, click-by-click steps in plain language ("Open…", "Tap…", "Type…").
+- Every action step states **what the tester should see** ("**Expect:** …").
+- Name **where** to test (which page/route) and **what data/precondition** to set
+  up first; cover the main happy flow **and** the key edge/empty/error cases.
+- If behaviour varies by surface (routes, locales/RTL, roles, screen sizes),
+  tell the tester to repeat the relevant steps on each, and mark which steps.
+- End with an explicit **pass/fail criterion** and how to report a failure
+  (page + step number + what was seen).
+- No file paths, code, API names, or store/flag names — keep it business-language.
+
 ## Hard rules (auto-reject if violated)
 - Title is Verb + Object, not a vague noun.
 - All required metadata filled.
@@ -93,6 +110,7 @@ At minimum these three, all in **Given / When / Then** format:
 - AC is grouped, numbered, atomic, testable — never one long paragraph.
 - Tenant safety + Authorization + Validation explicitly covered.
 - Test cases cover Happy Path, Validation Error, Authorization Failure in Given/When/Then.
+- A **QA Test Path (non-technical)** section follows the Test Cases: numbered, no-code, plain-language steps, each action with an **Expect:**, plus a pass/fail criterion. No file paths/code/API names.
 - **No ambiguous words**: "maybe", "etc.", "should probably", "TBD" (unless an explicit ⚠️ placeholder).
 - Related tickets referenced by ID when applicable.
 
@@ -115,6 +133,7 @@ Ticket Quality Checklist
 - [ ] UI & API consistency is defined
 - [ ] Audit & Logging rules are included
 - [ ] Test Cases cover: Happy Path, Validation Error, Authorization Failure
+- [ ] QA Test Path (non-technical) included with step-by-step, no-code instructions
 - [ ] No ambiguous words ("maybe", "etc.", "should probably")
 - [ ] Related tickets referenced by ID (if applicable)
 ```

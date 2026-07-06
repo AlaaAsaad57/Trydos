@@ -33,7 +33,7 @@ app state) — not from memory — so it reflects what is actually shipped on th
 | Domain | Features | Notes |
 |--------|:--------:|-------|
 | A. Shopping & Product Discovery | 33 | Core storefront live; SD-17, SD-24, SD-27 & SD-33 partial |
-| B. Cart, Checkout & Orders | 28 | Full purchase & post-purchase lifecycle; partial: CO-17 & CO-18 (cancel reason not sent to backend), CO-28 (hardcoded return-tracking timers/refund) |
+| B. Cart, Checkout & Orders | 29 | Full purchase & post-purchase lifecycle; partial: CO-17 & CO-18 (cancel reason not sent to backend), CO-28 (hardcoded return-tracking timers/refund) |
 | C. Payments, Wallet & Banking | 6 | ⚠️ External wallet package, under active development (RDB). Balance/history view live; pay-with-wallet is a dummy test widget; deposits, accounts, cards & transfers expected from the external package (not in-app) |
 | D. Accounts & Authentication | 30 | Phone + OTP only; AC-06 consent + AC-27–30 legal/info pages are placeholder-grade |
 | E. Chat & Calls | 25 | 1-to-1 chat + Agora voice/video (customer↔customer, customer↔delivery worker) |
@@ -155,6 +155,7 @@ Everything from adding to cart through paying and managing an order.
 | [CO-23](B-cart-checkout-orders/CO-23-rate-review-a-purchase.md) | Rate & review a purchase | Star rating and written review (with images) on delivered items. | 🟢 |
 | [CO-24](B-cart-checkout-orders/CO-24-order-chat.md) | Order chat | Open a chat tied to a specific order — delivery-worker only (see E). | 🟢 |
 | [CO-25](B-cart-checkout-orders/CO-25-order-invoice-view.md) | Order invoice view | View the order's invoice — a total + payment-method summary | 🟢 |
+| [CO-29](B-cart-checkout-orders/CO-29-restore-hidden-orders.md) | Restore hidden orders / products | A "Hidden Orders" view (opened from the list's ⋮ menu) to un-hide packs or products hidden via CO-22. | 🟢 |
 
 ### Returns & refunds
 | ID | Feature | What it does | Status |
@@ -437,7 +438,6 @@ copy surfaced while writing the feature docs. Each is also noted in its feature 
 | Where | Issue | Needed |
 |-------|-------|--------|
 | **CO-20** Change item variant | "Change Color/Size Terms" link is a placeholder `href="#"` | Real terms page + link |
-| **CO-26** Create a return | Return-window copy *"Return This Product In 24 Hours"* is hardcoded and not enforced client-side | Confirm the real policy, then wire or reword |
 | **CO-26** Create a return | "Learn More Tips." link is inert (no handler) | Real tips content + link, or remove |
 | **CO-28** Manage a return | Refund-timing line *"You Will Receive Your Refund Within 12 Hours"* is hardcoded | Confirm the real SLA, then wire or reword |
 | **Legal / privacy** (AC-06, AC-27–30) | Signup consent gate has a **dead "Terms" link and no Privacy link**; the Privacy / Terms / About / Contact pages are thin boilerplate and **not linked from settings** | Real Privacy/Terms/About/Contact copy + design, and wire the links from the consent gate and settings |

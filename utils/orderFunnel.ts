@@ -197,6 +197,11 @@ export const ORDER_MGMT_EVENTS = {
   ORDER_ITEM_OPTIONS_OPENED: "order_item_options_opened",
   ORDER_PACK_HIDDEN: "order_pack_hidden",
   ORDER_ITEM_HIDDEN: "order_item_hidden",
+
+  // --- Restore hidden orders/products (CO-29 — the un-hide counterpart) ---
+  HIDDEN_ORDERS_OPENED: "hidden_orders_opened",
+  ORDER_RESTORED: "order_restored",
+  ORDER_ITEM_RESTORED: "order_item_restored",
 } as const;
 
 export type OrderMgmtEvent =

@@ -244,6 +244,13 @@ cart-free base set: **`screen`, `currency`, `user_id`** (explicit props override
 | `order_pack_hidden` | "Hide This Pack" tapped | `order_id`, `order_group_id` | `OrderOptionsMenu.tsx` |
 | `order_item_hidden` | "Hide This Product" tapped | `order_id`, `item_id`, `product_id` | `OrderItemOptions.tsx` |
 
+### Restore hidden orders/products (CO-29 — the un-hide counterpart)
+| Event | Fires when | Props | File |
+|---|---|---|---|
+| `hidden_orders_opened` | Hidden-Orders view mounts (opened from the list's ⋮ sheet) | — (base props only) | `HiddenOrdersWidget.tsx` |
+| `order_restored` | A hidden pack is restored (eye → confirm) | `order_group_id`, `pack_count` | `HiddenOrderItem.tsx` |
+| `order_item_restored` | A hidden product is restored (eye → confirm) | `order_group_id`, `detail_id` | `HiddenOrderItem.tsx` |
+
 > `order_options_opened` / `order_item_options_opened` are the denominators for "opened menu →
 > took an action" — pair them with the modify/cancel/return events above to measure intent-to-action.
 

@@ -31,6 +31,10 @@ Any shopper who has received an order and wants to send an item back.
   `order_status.value === "delivered"` and the remaining quantity is above zero; visibility is
   otherwise driven by backend flags (`can_return_order`, `edit_return_request`,
   `order_has_return_request`). One return request is assumed **per order**.
+- **Return window is backend-driven.** The row's *"Return This Product In …"* line reads the item's
+  **`allow_return_in_days`** field (`OrderInterface["details"][n]`): `1` renders **"24 Hours"**,
+  anything greater renders **"`<n>` Days"**. It is **display only** — it never gates whether return
+  is allowed (that stays with the backend flags above).
 - **Reasons come from the backend** (not hardcoded) — the form fetches the return-reason list and
   renders each. Some reasons carry a **deduction cost** (when `is_cost_by_system === 0`): that cost
   is shown next to the reason and **subtracted from the refund preview**; reasons whose cost would
@@ -78,10 +82,9 @@ all come from the server.
 
 ## Known gaps / notes
 
-- **Window copy is hardcoded, not enforced client-side.** The form shows *"Return This Product In
-  24 Hours"* as static text; there is no JavaScript time check — eligibility is enforced entirely by
-  backend flags. If the real policy differs, the copy can mislead. *(tracked in the README
-  known-issues list.)*
+- **Window copy is backend-driven (resolved).** The *"Return This Product In …"* line now reads the
+  item's **`allow_return_in_days`** field — `1` → "24 Hours", `>1` → "`<n>` Days". It is presentation
+  only and is **not** a client-side time check; eligibility remains enforced by backend flags.
 - **"Learn More Tips." link is inert** — no click handler. *(tracked in the README known-issues
   list.)*
 
