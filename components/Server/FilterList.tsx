@@ -11,7 +11,6 @@ import InfiniteScrollFilters from "components/ListingPage/filterComponents/Infin
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { getConfiguredImage, RoundPrice } from "utils/server";
 
 import FilterItem from "components/ListingPage/FilterItem";
@@ -139,16 +138,10 @@ const ActiveFiltersBar = ({
   params,
   searchText = "",
 }: ActiveFiltersBarProps) => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  // Chip ✕: clear ONLY ?search= (keep path filters + other query params like sort).
-  const removeSearch = () => {
-    const next = new URLSearchParams(searchParams.toString());
-    next.delete("search");
-    const qs = next.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  };
+  // The search chip is display-only, like the other active-filter chips. There is
+  // no per-chip remove: the leading "clear all" reset (getResetUrl) clears every
+  // applied filter INCLUDING the search (it navigates to a clean path with no
+  // ?search=).
   let activeFilters: any = {};
 
   if (isUsingParsedFilters) {
@@ -674,15 +667,6 @@ const ActiveFiltersBar = ({
           <div className="category-title filter-bar-main-title text-[#5d5d5d]">
             {typeof searchText === "string" ? pollinateInput(searchText) : ""}
           </div>
-          <img
-            src="/icons/CloseIcon.svg"
-            data-cy="removeSearchChip"
-            className="ml-1 scale-90"
-            onClick={(e) => {
-              e.stopPropagation();
-              removeSearch();
-            }}
-          />
         </>
       )}
 
