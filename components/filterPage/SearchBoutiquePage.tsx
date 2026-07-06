@@ -60,6 +60,15 @@ export default function SearchBoutiquePage({
     setSearchExpanded(expanded);
   }, [expanded, setSearchExpanded]);
 
+  // Mirror the committed ?search= into the box while NOT focused, so removing the
+  // search (chip ✕ / clear-all) empties the box. While focused (mid-typing) local
+  // state wins — never move the caret.
+  useEffect(() => {
+    if (focused) return;
+    const committed = searchParams.get("search") || "";
+    setValue((prev) => (prev === committed ? prev : committed));
+  }, [searchParams, focused]);
+
   // Commit the query to ?search= (shareable). replace = no history spam.
   const commit = useCallback(
     (next: string) => {
