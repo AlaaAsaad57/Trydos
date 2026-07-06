@@ -34,6 +34,7 @@ function readRecord(requestId: string): QrRecord | null {
 }
 
 function writeRecord(requestId: string, patch: Partial<QrRecord>): void {
+  if (typeof window === "undefined") return;
   const current = readRecord(requestId);
   if (!current && !patch.status) return;
   const next = { ...(current || {}), ...patch } as QrRecord;
@@ -105,7 +106,14 @@ export async function approveQrLogin(
   requestId: string,
   user: QrUser,
 ): Promise<{ ok: true }> {
-  writeRecord(requestId, { status: "approved", user });
+  const rec = readRecord(requestId);
+  const approvable =
+    rec &&
+    (rec.status === "pending" || rec.status === "scanned") &&
+    Date.now() <= rec.expiresAt;
+  if (approvable) {
+    writeRecord(requestId, { status: "approved", user });
+  }
   return { ok: true };
 }
 
