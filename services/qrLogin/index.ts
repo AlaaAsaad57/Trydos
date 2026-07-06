@@ -106,6 +106,10 @@ export async function approveQrLogin(
   requestId: string,
   user: QrUser,
 ): Promise<{ ok: true }> {
+  // `user` exists ONLY so this localStorage mock can populate getQrStatus().user
+  // for the desktop's demo greeting. The REAL POST /api/qr-login/approve must
+  // derive the approving user from the phone's MARKET-TOKEN cookie and ignore
+  // any client-supplied identity. Never trust a client value as identity.
   const rec = readRecord(requestId);
   const approvable =
     rec &&

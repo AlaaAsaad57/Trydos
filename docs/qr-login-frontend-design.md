@@ -103,9 +103,18 @@ getQrStatus(requestId: string): Promise<QrStatusResult>;   // polled ~1s
 
 // PHONE (signed in)
 markScanned(requestId: string): Promise<void>;             // right after decode
-approveQrLogin(requestId: string): Promise<{ ok: true }>;
+approveQrLogin(requestId: string, user: QrUser): Promise<{ ok: true }>;
 denyQrLogin(requestId: string): Promise<{ ok: true }>;
 ```
+
+> **Identity comes from the token, never from the client.** The mock's
+> `approveQrLogin` takes a `user` argument **only** so the localStorage mock can
+> populate `getQrStatus().user` for the desktop's demo greeting — the phone has
+> no `MARKET-TOKEN` to read in a mock. The **real** `POST /api/qr-login/approve`
+> MUST derive the approving user from the phone's `MARKET-TOKEN` cookie and
+> ignore/omit any client-supplied identity, returning the resolved user to the
+> desktop via `getQrStatus().user`. Do not let a client value stand in for
+> identity server-side.
 
 **Endpoint names for the backend** (documented now, unused until wired):
 `GET /api/qr-login/create`, `GET /api/qr-login/status?req=`,
@@ -113,6 +122,23 @@ denyQrLogin(requestId: string): Promise<{ ok: true }>;
 `POST /api/qr-login/deny`. Approve/deny read the phone's `MARKET-TOKEN`; the
 real `create`→`approved` handoff ends by minting a `MARKET-TOKEN` for the
 desktop (the one unavoidable Go touchpoint — out of scope for this frontend PR).
+
+### Backend-swap checklist (carry these when replacing the mock bodies with `fetchData`)
+
+- **Identity from `MARKET-TOKEN`**, not the `approveQrLogin` `user` arg (see box above).
+- **Add `try { … } finally { setBusy(false) }`** around approve/deny in
+  `QrApprovalSheet.tsx` — a real call *can* reject; without it, `busy` sticks and
+  both buttons stay disabled forever.
+- **Add the new copy keys** ("Approved (demo)", "Found on a device — approve on
+  your phone", "Request declined", "Code expired — reopen to refresh",
+  "Simulate scan (dev)", scanner strings) to the `ar`/`tr`/`ku` resources —
+  today `translateFunction` falls back to the English key.
+- **`parseQrPayload`**: the `?req=` fallback needs an absolute URL; harden if the
+  real payload is ever a relative form (the `trydos://` scheme path is unaffected).
+- **Re-gate** the scanner/sheet on `!isNotLoggedIn` in `profile/index.tsx` if
+  session invalidation mid-flow becomes possible.
+- Consider adding an explicit `"use client";` to `LoginMethods.tsx` now that it
+  imports a client-only lib (`qrcode.react`).
 
 ---
 
