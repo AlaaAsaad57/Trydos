@@ -326,6 +326,13 @@ function ProductsInfiniteScroll({
       return `${boutiqueName}-Boutique-Page`;
     } else return "Filters-Page";
   };
+  // First-page product-card skeletons for a client-owned refetch: a sort
+  // confirm/cleared-filters landing (firstPageSkeleton) OR a search refetch
+  // (searchMode). Search previously showed only the centered bottom spinner;
+  // it now shows skeletons like sort. While these are up we suppress that
+  // bottom spinner so the grid never shows a spinner + skeletons at once.
+  const showFirstPageSkeleton =
+    (firstPageSkeleton || searchMode) && products.length === 0 && !isReachEnd;
   return (
     <>
       {products.map((product) => (
@@ -340,10 +347,7 @@ function ProductsInfiniteScroll({
         />
       ))}
 
-      {firstPageSkeleton &&
-        !searchMode &&
-        products.length === 0 &&
-        !isReachEnd &&
+      {showFirstPageSkeleton &&
         Array.from({ length: 8 }).map((_, i) => (
           <ProductCardSkeleton key={`sort-skeleton-${i}`} />
         ))}
@@ -364,7 +368,7 @@ function ProductsInfiniteScroll({
                 }
               }}
             ></InView>
-          ) : (
+          ) : showFirstPageSkeleton ? null : (
             <Spinner no={false} className="" />
           )
         ) : searchMode && products.length === 0 ? (
