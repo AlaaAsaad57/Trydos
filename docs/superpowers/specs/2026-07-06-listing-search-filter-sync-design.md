@@ -1,7 +1,7 @@
 # Listing Search ↔ Filter Sync — Design
 
 **Date:** 2026-07-06
-**Status:** Approved (pending written-spec review)
+**Status:** Implemented
 **Depends on:** `docs/superpowers/plans/2026-07-05-listing-search-searchparams.md` (the `?search=` refactor — search now lives in the `?search=` query param, committed client-side by the rebuilt `SearchBoutiquePage`).
 
 ## 1. Problem
