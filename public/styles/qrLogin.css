@@ -77,3 +77,31 @@
   line-height: 38px;
   cursor: pointer;
 }
+.qr-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.qr-sheet {
+  width: 100%;
+  max-width: 460px;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+  animation: qr-sheet-up 0.26s ease;
+}
+@keyframes qr-sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.qr-sheet h3 { font-size: 17px; font-weight: 600; text-align: center; margin-bottom: 6px; color: #1d1d1d; }
+.qr-sheet .qr-sheet-ctx { text-align: center; font-size: 13px; color: #8d8d8d; margin-bottom: 18px; }
+.qr-sheet-actions { display: flex; gap: 10px; }
+.qr-sheet-actions button { flex: 1; padding: 13px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: 0; }
+.qr-sheet-deny { background: #f1efef; color: #1d1d1d; }
+.qr-sheet-approve { background: #1b8f4d; color: #fff; }
+.qr-sheet-approve:disabled { opacity: 0.6; cursor: default; }
