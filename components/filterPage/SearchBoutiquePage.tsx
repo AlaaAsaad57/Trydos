@@ -60,11 +60,12 @@ export default function SearchBoutiquePage({
     setSearchExpanded(expanded);
   }, [expanded, setSearchExpanded]);
 
-  // Mirror the committed ?search= into the box while NOT focused, so removing the
-  // search (chip ✕ / clear-all) empties the box. While focused (mid-typing) local
-  // state wins — never move the caret.
+  // Mirror the committed ?search= into the box while NOT focused AND no commit is
+  // pending, so removing the search (chip ✕ / clear-all) empties the box. While
+  // focused (mid-typing) or with a queued commit, local state wins — never move
+  // the caret or blank an in-flight query before it commits.
   useEffect(() => {
-    if (focused) return;
+    if (focused || commitTimerRef.current) return;
     const committed = searchParams.get("search") || "";
     setValue((prev) => (prev === committed ? prev : committed));
   }, [searchParams, focused]);
@@ -93,10 +94,10 @@ export default function SearchBoutiquePage({
   const scheduleCommit = useCallback(
     (next: string) => {
       if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
-      commitTimerRef.current = setTimeout(
-        () => commit(next),
-        COMMIT_DEBOUNCE_MS,
-      );
+      commitTimerRef.current = setTimeout(() => {
+        commitTimerRef.current = null;
+        commit(next);
+      }, COMMIT_DEBOUNCE_MS);
     },
     [commit],
   );
@@ -110,6 +111,7 @@ export default function SearchBoutiquePage({
 
   const flushCommit = () => {
     if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+    commitTimerRef.current = null;
     commit(value);
   };
 

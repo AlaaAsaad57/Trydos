@@ -34,7 +34,7 @@ function FilterList({
   // search_text, and FilterItem reads the live query itself, so adding it here only
   // scopes the paging fetch — it does not affect chip hrefs or active state.
   const filterParamsForPaging = searchText
-    ? { ...parsedFilters, search_text: [searchText] }
+    ? { ...parsedFilters, search_text: searchText }
     : parsedFilters;
   const language = params.lang.split("-")?.[1];
   const isRtl = language === "ar" || language === "ku";
