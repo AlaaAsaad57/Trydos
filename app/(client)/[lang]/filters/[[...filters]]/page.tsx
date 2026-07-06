@@ -10,12 +10,15 @@ import FiltersPageContent from "components/Listing/FiltersPageContent";
 import { buildSearchRedirectTarget } from "utils/listing/searchPathRedirect";
 
 export const dynamicParams = true;
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams }) {
   // Fetch your main product categories
   let Params = await params;
+  const sp = (await searchParams) ?? {};
+  const search = typeof sp.search === "string" ? sp.search : undefined;
   try {
     const metadata = await generateMetadataForListing({
       params,
+      searchText: search,
     });
 
     return metadata;

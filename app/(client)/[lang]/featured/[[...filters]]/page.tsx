@@ -19,13 +19,16 @@ import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
 import ListingBarOptions from "components/Listing/ListingBarOptions";
 export const dynamicParams = true;
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
+  const sp = (await searchParams) ?? {};
+  const search = typeof sp.search === "string" ? sp.search : undefined;
   // Fetch your main product categories
   try {
     const metadata = await generateMetadataForListing({
       params,
       routeBase: "featured",
+      searchText: search,
     });
 
     return metadata;

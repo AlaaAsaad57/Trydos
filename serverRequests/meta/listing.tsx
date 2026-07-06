@@ -207,7 +207,11 @@ const getMetadataLabels = async ({ parsedFilters, language }) => {
   }
 };
 
-export async function generateMetadataForListing({ params, routeBase = "filters" }) {
+export async function generateMetadataForListing({
+  params,
+  routeBase = "filters",
+  searchText,
+}) {
   const { lang, filters: filterParams } = await params;
   const [country, language] = lang.split("-");
 
@@ -215,7 +219,7 @@ export async function generateMetadataForListing({ params, routeBase = "filters"
   // by /filters, /featured and /flashDeals, so it must not hardcode "/filters".
   const cacheKey = `meta-listing-${routeBase}-${lang}-${
     filterParams?.join("-") || "none"
-  }`;
+  }-${searchText || "nosearch"}`;
   const cached = await RedisGet(cacheKey);
   if (cached) return cached;
 
@@ -232,7 +236,11 @@ export async function generateMetadataForListing({ params, routeBase = "filters"
 
   // بناء أجزاء العنوان بترتيب منطقي للـ SEO
   const titleParts = [
-    parsedFilters.search_text?.[0] ? `"${parsedFilters.search_text[0]}"` : null,
+    searchText
+      ? `"${searchText}"`
+      : parsedFilters.search_text?.[0]
+        ? `"${parsedFilters.search_text[0]}"`
+        : null,
     labels.boutique,
     labels.brand,
     labels.category,

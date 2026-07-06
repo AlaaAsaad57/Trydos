@@ -502,21 +502,16 @@ export const buildParamsFromFilters = (
     "colors",
     "sizes",
     "prices",
-    "search",
   ];
 
   filterOrder.forEach((filterType) => {
     const values = filters[filterType];
     if (values && values.length > 0) {
       // Add filter type
-      const paramName = filterType === "search" ? "search" : filterType;
-      params.push(paramName);
+      params.push(filterType);
 
       // Add values
-      if (filterType === "search") {
-        // Search is a single value
-        params.push(encodeURIComponent(values[0]));
-      } else if (filterType === "colors") {
+      if (filterType === "colors") {
         // Colors should be hex without #
         const colorValues = values.map((color) =>
           color.startsWith("#") ? color.substring(1) : color,

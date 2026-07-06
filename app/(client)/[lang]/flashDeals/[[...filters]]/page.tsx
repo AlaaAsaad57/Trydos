@@ -20,14 +20,17 @@ import ProductListConainer from "components/Server/ProductListConainer";
 import ListingBarActions from "components/Server/ListingBarActions";
 import ListingBarOptions from "components/Listing/ListingBarOptions";
 export const dynamicParams = true;
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
+  const sp = (await searchParams) ?? {};
+  const search = typeof sp.search === "string" ? sp.search : undefined;
 
   // Fetch your main product categories
   try {
     const metadata = await generateMetadataForListing({
       params,
       routeBase: "flashDeals",
+      searchText: search,
     });
 
     return metadata;
