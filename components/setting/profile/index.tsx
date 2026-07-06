@@ -1,15 +1,19 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import NextLink from "components/global/NextLink";
 import VerifyUser from "./VerifyUser";
 import { GetImageUrl, isGuestName } from "utils/tinyUtils";
 import { translateFunction } from "utils/functions";
 import { formatPhoneInternational } from "utils/formatPhone";
 import { useAppStore } from "store";
+import QrScannerModal from "components/Login/QrScannerModal";
+import QrApprovalSheet from "components/Login/QrApprovalSheet";
 
 function Profile({ isRtl, language, local, SafeUserProfile }) {
   const { userProfile: clientUser, setLoginOpen } = useAppStore();
   const user = clientUser || SafeUserProfile;
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [approveReq, setApproveReq] = useState<string | null>(null);
 
   const isNotLoggedIn = !user ||
     user.phone === "0" ||
@@ -66,8 +70,20 @@ function Profile({ isRtl, language, local, SafeUserProfile }) {
             <img alt="login" className="w-[15px] h-[15px]" src="/icons/login.svg" />
           </div>
         }
-        {!isNotLoggedIn && <img className="w-[15px] h-[15px]" src="/icons/qr.svg" alt="qr" />
-        }
+        {!isNotLoggedIn && (
+          <button
+            type="button"
+            className="pointer-events-auto cursor-pointer border-0 bg-transparent p-0"
+            aria-label={translateFunction("Scan QR to sign in", language)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setScannerOpen(true);
+            }}
+          >
+            <img className="w-[15px] h-[15px]" src="/icons/qr.svg" alt="qr" />
+          </button>
+        )}
         {!isNotLoggedIn && <div
           className={`flex ${isRtl ? "flex-row-reverse" : "flex-row"
             } items-end gap-[10px]`}
@@ -137,6 +153,26 @@ function Profile({ isRtl, language, local, SafeUserProfile }) {
             alt="user profile placeholder"
           />
         </div>
+      )}
+      {scannerOpen && (
+        <QrScannerModal
+          isRtl={isRtl}
+          language={language}
+          onDetected={(requestId) => {
+            setScannerOpen(false);
+            setApproveReq(requestId);
+          }}
+          onClose={() => setScannerOpen(false)}
+        />
+      )}
+      {approveReq && (
+        <QrApprovalSheet
+          requestId={approveReq}
+          isRtl={isRtl}
+          language={language}
+          user={{ name: user?.name || "", image: user?.image || "" }}
+          onDone={() => setApproveReq(null)}
+        />
       )}
     </div>
   );
