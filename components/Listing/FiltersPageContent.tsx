@@ -243,6 +243,7 @@ export default async function FiltersPageContent({
                 currencyPromise={currencyPromise}
                 Params={Params}
                 parsedFilters={parsedFilters}
+                serverSearch={effectiveSearch}
               />
             </Suspense>
           }

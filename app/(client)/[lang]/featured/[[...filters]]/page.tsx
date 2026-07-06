@@ -182,6 +182,8 @@ export default async function Page({ params, searchParams }) {
               currencyPromise={currency}
               Params={Params}
               parsedFilters={parsedFilters}
+              serverSearch={effectiveSearch}
+              isFeatured={true}
             />
           </Suspense>
         </div>
