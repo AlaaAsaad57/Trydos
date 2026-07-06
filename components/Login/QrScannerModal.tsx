@@ -20,16 +20,23 @@ function QrScannerModal({ isRtl, language, onDetected, onClose }: Props) {
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
   const doneRef = useRef(false);
+  const hitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onDetectedRef = useRef(onDetected);
   const [hit, setHit] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const t = (key: string) => translateFunction(key, language);
 
   useEffect(() => {
+    onDetectedRef.current = onDetected;
+  }, [onDetected]);
+
+  useEffect(() => {
     let mounted = true;
 
     const stop = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (hitTimeoutRef.current) clearTimeout(hitTimeoutRef.current);
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((tr) => tr.stop());
         streamRef.current = null;
@@ -60,7 +67,7 @@ function QrScannerModal({ isRtl, language, onDetected, onClose }: Props) {
         doneRef.current = true;
         setHit(true);
         stop();
-        setTimeout(() => onDetected(requestId), 180);
+        hitTimeoutRef.current = setTimeout(() => onDetectedRef.current(requestId), 180);
         return;
       }
       rafRef.current = requestAnimationFrame(tick);
@@ -83,7 +90,7 @@ function QrScannerModal({ isRtl, language, onDetected, onClose }: Props) {
         }
         rafRef.current = requestAnimationFrame(tick);
       } catch {
-        setError(t("Camera unavailable — allow camera access to scan"));
+        if (mounted) setError(t("Camera unavailable — allow camera access to scan"));
       }
     })();
 
@@ -91,7 +98,7 @@ function QrScannerModal({ isRtl, language, onDetected, onClose }: Props) {
       mounted = false;
       stop();
     };
-  }, [onDetected, language]);
+  }, []);
 
   if (typeof document === "undefined") return null;
 
