@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAppStore } from "store";
 import FiltersRowContainer from "./FiltersRowContainer";
 import CategoryImageCircel from "./CategoryImageCircel";
@@ -22,6 +23,7 @@ function FiltersWindow({
   currency,
   isFeatured,
   isFlashDeal,
+  serverSearch = "",
 }) {
   const filterEnabled = useAppStore((s) => s.filterEnabled);
   const setFilterEnabled = useAppStore((s) => s.setFilterEnabled);
@@ -34,6 +36,7 @@ function FiltersWindow({
         language={language}
         isFeatured={isFeatured}
         isFlashDeal={isFlashDeal}
+        serverSearch={serverSearch}
       >
         {children}
       </FiltersWindowUI>
@@ -51,9 +54,12 @@ const FiltersWindowUI = ({
   currency,
   isFeatured,
   isFlashDeal,
+  serverSearch = "",
 }) => {
   const filterEnabled = useAppStore((s) => s.filterEnabled);
   const setFilterEnabled = useAppStore((s) => s.setFilterEnabled);
+  const searchParams = useSearchParams();
+  const liveSearch = searchParams.get("search") || "";
   const [FiltersNodes, setFiltersNodes] = useState(children);
   const [showChart, setShowChart] = useState(false);
 
@@ -66,12 +72,13 @@ const FiltersWindowUI = ({
       sizes: initialFilters?.sizes ?? [],
       boutiques: initialFilters?.boutiques ?? [],
       colors: initialFilters?.colors ?? [],
-      search_text: initialFilters?.search_text ?? "",
+      search_text:
+        liveSearch || serverSearch || initialFilters?.search_text?.[0] || "",
       tags_names: initialFilters?.tags_names ?? [],
       featured: initialFilters?.featured ?? false,
       flashdeal: initialFilters?.flashdeal ?? false,
     }),
-    [initialFilters],
+    [initialFilters, liveSearch, serverSearch],
   );
   const initialPriceRange = useMemo(
     () => initialFilters?.prices ?? [],

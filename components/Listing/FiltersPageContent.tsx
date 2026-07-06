@@ -179,6 +179,7 @@ export default async function FiltersPageContent({
             country={country}
             parsedFilters={parsedFilters}
             filtersPromise={filtersDataPromise}
+            serverSearch={effectiveSearch}
           />
         </Suspense>
         <ListingHeaderCollapse

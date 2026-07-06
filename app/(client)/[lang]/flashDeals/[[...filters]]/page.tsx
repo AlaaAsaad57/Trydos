@@ -132,6 +132,7 @@ export default async function Page({ params, searchParams }) {
               flashdeal: true,
             }}
             filtersPromise={filtersData}
+            serverSearch={effectiveSearch}
           />
         </Suspense>
         <div
