@@ -26,6 +26,7 @@ export default function SortableGrid({
   serverSort = "",
   serverSearch = "",
   serverHasResults = true,
+  serverHasMultipleResults = true,
   currency,
   boutiqueName,
   parsedFilters,
@@ -37,6 +38,7 @@ export default function SortableGrid({
   serverSort?: string;
   serverSearch?: string;
   serverHasResults?: boolean;
+  serverHasMultipleResults?: boolean;
   currency: any;
   boutiqueName?: string;
   parsedFilters: any;
@@ -60,8 +62,11 @@ export default function SortableGrid({
       useAppStore.getState().setIsNavigating(null);
       useAppStore.getState().setListingSearchLoading(false);
       useAppStore.getState().setSearchHasResults(serverHasResults);
+      useAppStore
+        .getState()
+        .setSearchHasMultipleResults(serverHasMultipleResults);
     }
-  }, [showingServerGrid, serverHasResults]);
+  }, [showingServerGrid, serverHasResults, serverHasMultipleResults]);
 
   if (showingServerGrid) return <>{children}</>;
 

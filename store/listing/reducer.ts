@@ -12,7 +12,8 @@ interface ListingState {
   cameraPermissions: "asked";
   // Search UI coordination (listing search → ?search= refactor).
   searchLoading: boolean; // in-input spinner: typing → results landed
-  searchHasResults: boolean; // reactive sort/filter/share empty-gate + grid empty-state
+  searchHasResults: boolean; // gate for SHARE (results > 0) + grid empty-state
+  searchHasMultipleResults: boolean; // gate for SORT/FILTER (results > 1)
   searchExpanded: boolean; // collapse/expand of the search box + hide boutique logo
 }
 
@@ -27,6 +28,7 @@ const initialState: ListingState = {
   cameraPermissions: "asked",
   searchLoading: false,
   searchHasResults: true,
+  searchHasMultipleResults: true,
   searchExpanded: false,
 };
 
@@ -56,6 +58,9 @@ export const useListingStore = (set, get) => ({
 
   setSearchHasResults: (hasResults: boolean) =>
     set({ searchHasResults: hasResults }),
+
+  setSearchHasMultipleResults: (hasMultiple: boolean) =>
+    set({ searchHasMultipleResults: hasMultiple }),
 
   setSearchExpanded: (expanded: boolean) => set({ searchExpanded: expanded }),
 

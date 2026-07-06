@@ -280,6 +280,7 @@ function ProductsInfiniteScroll({
         const store = useAppStore.getState();
         store.setListingSearchLoading(false);
         store.setSearchHasResults(seenIdsRef.current.size > 0);
+        store.setSearchHasMultipleResults(seenIdsRef.current.size > 1);
       }
     }
 
