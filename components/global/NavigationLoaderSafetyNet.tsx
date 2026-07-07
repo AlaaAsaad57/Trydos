@@ -1,5 +1,6 @@
 "use client";
-import { useEffect } from "react";
+import { Suspense, useEffect, useRef } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useAppStore } from "store";
 
 /**
@@ -10,27 +11,44 @@ import { useAppStore } from "store";
  * compare.tsx, …). Because `.main-content` hides `children` while `isNavigating`
  * is set, a navigation whose clearer never fires would leave the page hidden.
  *
- * This watches `isNavigating` itself: whenever it becomes truthy, arm a grace
- * timeout; if the destination has not cleared it by then, force-clear it so the
- * hidden page can never stay hidden. Watching the flag (rather than the pathname)
- * is deliberate — some navigations that set `isNavigating` change only the query
- * (home category `?mainCategory=`, listing `?sort=`), and with
- * `next.config` `staleTimes.dynamic` the destination RSC can be served from cache
- * with no remount, so its own clearer never runs and no pathname change occurs.
- * In the normal case the destination clears first and the timeout is cancelled.
+ * It arms a short grace timeout **when the URL actually changes** (pathname OR
+ * search params) — i.e. once the destination route has committed — and
+ * force-clears `isNavigating` if the destination's own clearer did not.
+ *
+ * Watching the URL (rather than `isNavigating` on a fixed timer from nav-start)
+ * is what makes it safe for SLOW navigations: the URL only changes once the
+ * route commits, so the fallback can never fire mid-navigation and reveal the
+ * origin page (the settings→home flash). Watching `searchParams` (not just
+ * `pathname`) covers query-only navs (home `?mainCategory=`, listing `?sort=`)
+ * whose RSC can be served from the Router Cache with no remount, so their own
+ * clearer never runs.
  */
-export default function NavigationLoaderSafetyNet() {
-  const isNavigating = useAppStore((s) => s.isNavigating);
+function SafetyNetInner() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const url = `${pathname}?${searchParams.toString()}`;
+  const prev = useRef(url);
 
   useEffect(() => {
-    if (!isNavigating) return;
+    if (prev.current === url) return;
+    prev.current = url;
     const id = setTimeout(() => {
       if (useAppStore.getState().isNavigating) {
         useAppStore.getState().setIsNavigating(null);
       }
-    }, 2500);
+    }, 800);
     return () => clearTimeout(id);
-  }, [isNavigating]);
+  }, [url]);
 
   return null;
+}
+
+export default function NavigationLoaderSafetyNet() {
+  // useSearchParams() must sit inside a Suspense boundary (Next static-render
+  // rule); the fallback is null since this component renders nothing.
+  return (
+    <Suspense fallback={null}>
+      <SafetyNetInner />
+    </Suspense>
+  );
 }
