@@ -41,7 +41,7 @@ function GeneralPropertiesModal({
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_general_properties && (
         <BottomSheet
-          height={90}
+            height={80}
           isOpen={ColorBottomSheet?.is_general_properties}
           onClose={() => {
             setColorBottomSheet(false);

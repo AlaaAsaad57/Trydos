@@ -5,7 +5,7 @@ function BuyersCommentTopBar({ children, isRtl }) {
   const { setColorBottomSheet } = useAppStore();
   return (
     <div
-      className={`${isRtl && "items-end"} flex-col px-[10px]`}
+      className={`${isRtl && "items-end"} flex-col px-[10px] cursor-pointer`}
       onClick={() => {
         setColorBottomSheet({
           is_buyers_comments: true,

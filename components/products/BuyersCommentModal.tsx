@@ -91,7 +91,7 @@ function BuyersCommentModal({
     <>
       {ColorBottomSheet?.is_buyers_comments && (
         <BottomSheet
-          height={90}
+          height={80}
           isOpen={ColorBottomSheet?.is_buyers_comments}
           onClose={() => setColorBottomSheet(false)}
         >

@@ -39,7 +39,7 @@ const OrderProductSlider = ({
                 width: 91,
                 height: 125,
               })}
-              alt={product.product_details.name}
+              alt="OrderImage"
               width={100}
               height={100}
               style={{

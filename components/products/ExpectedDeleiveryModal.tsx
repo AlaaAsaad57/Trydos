@@ -99,7 +99,7 @@ function ExpectedDeleiveryModal({
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_for_deleviery && (
         <BottomSheet
-          height={90}
+          height={80}
           isOpen={ColorBottomSheet?.is_for_deleviery}
           onClose={() => {
             setColorBottomSheet(false);

@@ -99,7 +99,7 @@ function FaqSectionModal({
     <>
       {ColorBottomSheet?.is_for_faq && (
         <BottomSheet
-          height={90}
+            height={80}
           isOpen={ColorBottomSheet?.is_for_faq}
           onClose={() => setColorBottomSheet(false)}
         >

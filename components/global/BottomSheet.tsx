@@ -231,6 +231,7 @@ export default function BottomSheet({
           style={{
             willChange: "transform",
             transform: "translateY(100dvh)",
+            maxHeight:`${height}dvh`
           }}
         >
           <div
