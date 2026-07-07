@@ -157,25 +157,28 @@ export default function ListingSortControl({
   const t = (key: string) => translateFunction(key, language);
 
   const applySort = (key: SortKey) => {
-    setIsOpen(false);
-    if (key === active) return; // already selected — nothing to change
+    if (key === active) {
+      setIsOpen(false);
+      return; // already selected — nothing to change
+    }
     const params = new URLSearchParams(searchParams.toString());
     if (key === "relevance") params.delete("sort");
     else params.set("sort", key);
     const qs = params.toString();
-    // Show the full-screen listing skeleton immediately (same as the filter
-    // links). SortableGrid swaps to a fresh grid that clears the loader once its
-    // first page lands; if the sort returns to the server order, SortableGrid
-    // clears it directly (no remount happens).
+    // Show the full-screen listing skeleton FIRST — set it before the sheet
+    // begins its close animation, so the skeleton is already on screen behind the
+    // sliding sheet instead of appearing only after it finishes closing.
     useAppStore.getState().setIsNavigating({ is_filter: true });
-    // Plain push updates the URL (shareable) and the widget's active state.
-    // Refetching the grid is NOT done via router.refresh() here: `staleTimes.
-    // dynamic` (next.config) caches the dynamic RSC and doesn't vary it by search
-    // params, and every push+refresh combination either cancels the push (URL
-    // never changes) or fails to re-render. Instead `SortableGrid` watches the
-    // `sort` param and refetches page 1 through the GetProducts server action
-    // (always fresh — bypasses the Router Cache). See components/Server/SortableGrid.
-    router.push(qs ? `${pathname}?${qs}` : pathname);
+    setIsOpen(false);
+    // Defer the push one frame so the skeleton commits/paints before the router
+    // state churn. Plain push updates the URL (shareable) and the widget's active
+    // state; SortableGrid watches the `sort` param and refetches page 1 via the
+    // GetProducts server action (always fresh — bypasses the Router Cache), then
+    // clears the loader once its first page lands (or directly, if the sort
+    // returns to the server order and no remount happens).
+    requestAnimationFrame(() =>
+      router.push(qs ? `${pathname}?${qs}` : pathname),
+    );
   };
 
   // A short, human summary of the current selection for the trigger's a11y label.
