@@ -404,12 +404,24 @@ export default function BecomeSellerModal({ onClose }) {
     }
   };
 
-  // A 422 whose detailed_error flags "user_id" means the *account's* phone isn't
-  // verified (not any form field). We recover by having the user verify their own
-  // phone and resending, instead of surfacing the raw error.
+  // A 422's detailed_error can carry code "user_id" for two different account
+  // conditions, told apart by the message:
+  //  • "…phone is not verified" → the *account's* phone (not any form field)
+  //    needs verifying; we recover by verifying + resending.
+  //  • "User already exists"    → a request/account already exists; we show the
+  //    already-submitted confirmation instead of an error.
+  const userIdErrorMessage = (res: any): string => {
+    const entry = Array.isArray(res?.detailed_error)
+      ? res.detailed_error.find((e: any) => e?.code === "user_id")
+      : undefined;
+    return entry ? String(entry.message ?? res?.message ?? "") : "";
+  };
+
   const isPhoneUnverifiedError = (res: any) =>
-    Array.isArray(res?.detailed_error) &&
-    res.detailed_error.some((e: any) => e?.code === "user_id");
+    /not\s+verified/i.test(userIdErrorMessage(res));
+
+  const isUserAlreadyExistsError = (res: any) =>
+    /already\s+exists/i.test(userIdErrorMessage(res));
 
   // Open the global ConfirmMobilePhoneWidget (mounted in NavbarClient, driven by
   // `shouldAuthinticated`; it verifies the user's own phone from `userProfile`)
@@ -475,9 +487,25 @@ export default function BecomeSellerModal({ onClose }) {
         return;
       }
 
-      // Account phone not verified (code "user_id"): verify the user's own phone,
-      // then resend automatically once verified (no further verify retry).
+      // user_id + "User already exists": a request/account already exists →
+      // show the already-submitted confirmation rather than an error.
+      if (isUserAlreadyExistsError(res)) {
+        try {
+          localStorage.setItem(
+            SELLER_REQUEST_KEY,
+            JSON.stringify({ submittedAt: new Date().toISOString() }),
+          );
+        } catch {
+          // Non-fatal: the confirmation still shows even if we can't persist.
+        }
+        setAlreadySubmitted(true);
+        return;
+      }
+
+      // user_id + "phone is not verified": verify the user's own phone, then
+      // resend automatically once verified (no further verify retry → no loop).
       if (allowVerifyRetry && isPhoneUnverifiedError(res)) {
+        showErrorNotification(t("Please verify your phone number to continue"));
         const verified = await openPhoneVerifyAndWait();
         if (verified) await performSubmit(false);
         return;

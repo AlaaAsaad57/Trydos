@@ -342,6 +342,9 @@ const translations = {
     "Lütfen Sepetinizi İnceleyin Bazı Ürünler Mevcut Değil",
   "Please Verify Your Phone Number And Try Again":
     "Lütfen Telefon Numaranızı Doğrulayın ve Tekrar Deneyin",
+  "Please verify your phone number to continue":
+    "Devam etmek için lütfen telefon numaranızı doğrulayın",
+  "Close": "Kapat",
   "You Can Change Your Shipping Address And Delivery Notes":
     "Teslimat Adresinizi ve Teslimat Notlarınızı Kolayca Değiştirebilirsiniz",
   "Shipping Cost": "Kargo Ücreti",
