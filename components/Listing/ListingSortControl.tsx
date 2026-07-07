@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import BottomSheet from "components/global/BottomSheet";
-import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import {
   LISTING_SORT_KEYS,
@@ -157,28 +156,20 @@ export default function ListingSortControl({
   const t = (key: string) => translateFunction(key, language);
 
   const applySort = (key: SortKey) => {
-    if (key === active) {
-      setIsOpen(false);
-      return; // already selected — nothing to change
-    }
+    setIsOpen(false);
+    if (key === active) return; // already selected — nothing to change
     const params = new URLSearchParams(searchParams.toString());
     if (key === "relevance") params.delete("sort");
     else params.set("sort", key);
     const qs = params.toString();
-    // Show the full-screen listing skeleton FIRST — set it before the sheet
-    // begins its close animation, so the skeleton is already on screen behind the
-    // sliding sheet instead of appearing only after it finishes closing.
-    useAppStore.getState().setIsNavigating({ is_filter: true });
-    setIsOpen(false);
-    // Defer the push one frame so the skeleton commits/paints before the router
-    // state churn. Plain push updates the URL (shareable) and the widget's active
-    // state; SortableGrid watches the `sort` param and refetches page 1 via the
-    // GetProducts server action (always fresh — bypasses the Router Cache), then
-    // clears the loader once its first page lands (or directly, if the sort
-    // returns to the server order and no remount happens).
-    requestAnimationFrame(() =>
-      router.push(qs ? `${pathname}?${qs}` : pathname),
-    );
+    // Sort is an in-place refetch, not a full navigation: keep the listing chrome
+    // (search + filter bar) and let SortableGrid show the in-grid product-card
+    // skeletons (its `firstPageSkeleton`) until the sorted page lands. So we do
+    // NOT set the full-screen `isNavigating` loader here — SortableGrid watches
+    // the `sort` param, swaps to a fresh grid paged from 1 via the GetProducts
+    // server action (bypasses the Router Cache), and clears its own skeleton when
+    // page 1 arrives.
+    router.push(qs ? `${pathname}?${qs}` : pathname);
   };
 
   // A short, human summary of the current selection for the trigger's a11y label.
