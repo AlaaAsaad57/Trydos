@@ -9,13 +9,7 @@ function BoutiqueLoader({ boutique, isForSearch = false }) {
   const isRtl = language === "ar" || language === "ku";
 
   return (
-    <div
-      style={{
-        zIndex: "99999999999999",
-        top: isForSearch ? "150px" : "98px",
-      }}
-      className="fixed max-w-[1365px] mx-auto flex-col bg-[#fafafa] min-h-screen flex    w-screen  overflow-hidden"
-    >
+    <div className="w-full flex-col flex bg-[#fafafa] overflow-hidden">
       <div
         data-cy="filter_listing_bar"
         className={`filter-listing-bar z-99999999 relative ${
