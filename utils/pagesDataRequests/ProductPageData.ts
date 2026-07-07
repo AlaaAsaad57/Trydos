@@ -156,9 +156,8 @@ export async function GetRatingCommentsFromElastic({
       { created_at: "desc" }, // newest first
       { comment_id: "desc" }, // tie-breaker for consistent pagination
     ],
-    collapse: {
-      field: "order_details_id",
-    },
+    // Backend guarantees one comment per order_details_id, so no collapse needed
+    // (collapse + search_after with a multi-field sort is rejected by ES).
     query: {
       bool: {
         must: [
@@ -224,12 +223,9 @@ export async function GetRatingCommentsForProduct({
       { created_at: "desc" }, // newest first
       { comment_id: "desc" }, // tie-breaker for consistent pagination
     ],
-    // One review per order line: a poor-network double-write can leave two docs
-    // with the same order_details_id in the index. Collapse so each order line
-    // surfaces only its newest comment (sort already puts newest first).
-    collapse: {
-      field: "order_details_id",
-    },
+    // Dedup is enforced by the backend (one comment per order_details_id), so no
+    // collapse is needed here. Collapse + search_after is also illegal with a
+    // multi-field sort, which was breaking pagination beyond the first page.
     query: {
       bool: {
         must: [
@@ -246,11 +242,6 @@ export async function GetRatingCommentsForProduct({
           field: `discussed_aspects_${language}`,
           size: 1000, // adjust if you have more aspects
         },
-      },
-      // Distinct order lines = the real review count after collapse, so the
-      // total/pagination doesn't count duplicate docs.
-      collapsed_total: {
-        cardinality: { field: "order_details_id" },
       },
     },
   };
@@ -327,9 +318,7 @@ export async function GetRatingCommentsForProduct({
       total_likes: s?.total_likes,
       is_liked: s?.is_liked,
     })),
-    total:
-      (response.aggregations?.collapsed_total as any)?.value ??
-      (response.hits.total as any)?.value,
+    total: (response.hits.total as any)?.value,
     filters_key: filters_key,
     searchAfter: nextSearchAfter,
   };

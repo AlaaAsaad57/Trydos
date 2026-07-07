@@ -260,7 +260,8 @@ export async function getProductDataForAddToCart({
       },
     }),
     fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/likesDetails/${slug}`,
+      // url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/likesDetails/${slug}`,
+      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/likesDetails/${slug}`,
       headers: {
         Authorization: `Bearer ${token}`,
         language: language,
@@ -269,6 +270,23 @@ export async function getProductDataForAddToCart({
       },
     }),
   ]);
+
+  // likesDetails was migrated to the Go service. It runs server-side and
+  // fetchServerData swallows failures into `isError`, so a failure here is
+  // otherwise silent and hard to trace — capture it to Sentry explicitly with
+  // the slug/locale context. (`notificationsSettings` holds the likesDetails
+  // response.)
+  if (notificationsSettings?.isError) {
+    LogServerError({
+      scenario: "likesDetails go service failed in getProductDataForAddToCart",
+      slug,
+      language,
+      country,
+      status: notificationsSettings?.status,
+      error: notificationsSettings?.error,
+      url: notificationsSettings?.url,
+    });
+  }
 
   const variants_arr = Array.isArray(pricesData?.data?.data?.variations)
     ? pricesData.data.data.variations
