@@ -35,7 +35,7 @@ import Image from "next/image";
 import auth from "services/auth";
 
 function SearchIcon({ language, country }) {
-  const { setIsNavigating } = useAppStore();
+  const { setIsNavigating, setEnableSearch } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
   // UI States
@@ -89,6 +89,14 @@ function SearchIcon({ language, country }) {
   // can't clobber a stale ghost over newer input.
   const latestSuggestionRef = useRef(0);
   const suggestionTimeoutRef = useRef(null);
+
+  // Mirror the local open/close state into the store's `enable_search` flag so
+  // the rest of the header (category scroll arrows in Navbar, top user-nav) can
+  // enter/leave "search mode". Covers every close path (clear, close icon,
+  // result navigation) via the single local source of truth.
+  useEffect(() => {
+    setEnableSearch(searchEnabled);
+  }, [searchEnabled]);
 
   // --- Initial Data Load (Trending & History) ---
   useEffect(() => {
@@ -443,7 +451,7 @@ function SearchIcon({ language, country }) {
           {searchEnabled && (
             <>
               {focus || value.length > 0 ? (
-                <div className={`input-icons ${isRtl?"left-[38px]":"right-[38px]"} flex-row close-search-icon`}>
+                <div className={`input-icons right-[38px] flex-row close-search-icon`}>
                   <img
                     src="/icons/SearchCloseIcon.svg"
                     data-cy="SearchInputCloseIcon"
@@ -457,7 +465,7 @@ function SearchIcon({ language, country }) {
                   />
                 </div>
               ) : (
-                <div className={`input-icons ${isRtl?"left-[38px]":"right-[38px]"} flex-row h-full`}>
+                <div className={`input-icons right-[38px] flex-row h-full`}>
                   <SearchImage
                     setSearchValue={(e) => {
                       if (e) setValue(e);
