@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useAppStore } from "store";
 import NextLink from "components/global/NextLink";
 import {
   GetImageUrl,
@@ -37,6 +38,10 @@ function FilterList({
     : parsedFilters;
   const language = params.lang.split("-")?.[1];
   const isRtl = language === "ar" || language === "ku";
+  // While a filter re-navigation is in flight, keep the real filter chrome on
+  // screen but dim it and make it non-interactive — the grid below swaps to
+  // skeletons (SortableGrid). Cleared when the new listing arrives.
+  const isFilterPending = useAppStore((s) => !!s.isNavigating?.is_filter);
   const parseFiltersFunction = () => {
     if (filterParams?.Search)
       return { ...filterParams, Search: parsedFilters?.search };
@@ -44,7 +49,14 @@ function FilterList({
   };
 
   return (
-    <>
+    <div
+      className="w-full flex-col"
+      style={{
+        opacity: isFilterPending ? 0.45 : 1,
+        pointerEvents: isFilterPending ? "none" : "auto",
+        transition: "opacity 0.2s ease",
+      }}
+    >
       {/* Related Categories Section */}
 
       {/* ...existing code... */}
@@ -116,7 +128,7 @@ function FilterList({
         filters={filters}
         searchText={searchText}
       />
-    </>
+    </div>
   );
 }
 

@@ -28,7 +28,12 @@ export default function NavigationLoaderGate({
   children: ReactNode;
 }) {
   const isNavigating = useAppStore((s) => s.isNavigating);
-  const showLoader = !!isNavigating;
+  // `is_filter` (a listing re-filter) is handled IN-PLACE by the listing itself:
+  // FilterList dims the real filter chrome and SortableGrid shows in-grid product
+  // skeletons while the refetch is pending, so the chrome stays on screen instead
+  // of being replaced by a full-screen loader. Every other navigation type still
+  // gets the full in-flow loader here.
+  const showLoader = !!isNavigating && !isNavigating.is_filter;
 
   return (
     <>
