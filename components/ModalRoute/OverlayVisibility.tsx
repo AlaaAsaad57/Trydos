@@ -1,8 +1,6 @@
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { useAppStore } from "store";
-import InFlowPageLoader from "components/global/InFlowPageLoader";
 
 /**
  * Single source of truth for whether an intercepted-route overlay is showing.
@@ -44,25 +42,23 @@ export function OverlayVisibilityProvider({
 export const useOverlayVisibility = () => useContext(OverlayVisibilityContext);
 
 /**
- * Renders the page body (`children` slot). Two React-driven hide reasons, never
- * imperative DOM mutation:
- *  - an intercepted-route overlay is showing (`overlayActive`) → whole slot hidden;
- *  - a route navigation is in progress (`isNavigating`) → the in-flow loader shows
- *    and `children` are hidden but STILL MOUNTED, so the destination's own clearer
- *    fires and then the swap reveals the real page.
+ * Renders the page body (`children` slot). Hidden via React — not imperative DOM
+ * mutation — whenever an intercepted-route overlay is showing (`overlayActive`).
+ *
+ * The in-flow navigation loader is NOT hosted here: it lives in
+ * `NavigationLoaderGate`, one level up, so it can cover both this slot and the
+ * `@modal` overlay slot. Hosting it here made it invisible for any navigation
+ * started from an overlay (where `.main-content` is `display:none`).
  */
 export function MainContent({ children }: { children: ReactNode }) {
   const { overlayActive } = useOverlayVisibility();
-  const isNavigating = useAppStore((s) => s.isNavigating);
-  const showLoader = !!isNavigating && !overlayActive;
 
   return (
     <div
       className="w-full flex-col main-content max-w-[1365px]"
       style={{ display: overlayActive ? "none" : "flex" }}
     >
-      {showLoader && <InFlowPageLoader nav={isNavigating} />}
-      <div style={{ display: showLoader ? "none" : "contents" }}>{children}</div>
+      {children}
     </div>
   );
 }

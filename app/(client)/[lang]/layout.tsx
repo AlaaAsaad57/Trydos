@@ -20,6 +20,7 @@ import {
   OverlayVisibilityProvider,
   MainContent,
 } from "components/ModalRoute/OverlayVisibility";
+import NavigationLoaderGate from "components/global/NavigationLoaderGate";
 // Non-critical, render-null / post-hydration client components — code-split and
 // loaded after hydration (ssr:false) to trim main-thread hydration cost.
 import DeferredLayoutClients from "components/global/DeferredLayoutClients";
@@ -146,8 +147,10 @@ export default async function RootLayout({ params, children, modal }) {
             <AuthNavContainer />
           </div>
           <OverlayVisibilityProvider>
-            <MainContent>{children}</MainContent>
-            <ModalSlot>{modal}</ModalSlot>
+            <NavigationLoaderGate>
+              <MainContent>{children}</MainContent>
+              <ModalSlot>{modal}</ModalSlot>
+            </NavigationLoaderGate>
           </OverlayVisibilityProvider>
         </div>
         <Init />

@@ -163,6 +163,11 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
           setShowMobile={setShowMobile}
           setMessageMethod={(e: string) => setMessageMethod(e)}
           inputValue={inputValue}
+          // When the account already has a registered phone, this is the
+          // verify-your-phone flow — lock editing so the user can't swap the
+          // number before requesting the OTP. A fresh phone (hasMobile=false,
+          // entered via PhoneInput) stays editable, as does login (NewLoginWidget).
+          hideEdit={hasMobile}
         />
       )}
 

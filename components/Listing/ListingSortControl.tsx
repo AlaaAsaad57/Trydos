@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import BottomSheet from "components/global/BottomSheet";
 import { translateFunction } from "utils/functions";
 import {
@@ -134,7 +134,6 @@ export default function ListingSortControl({
   language: string;
   isRtl?: boolean;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -165,11 +164,16 @@ export default function ListingSortControl({
     // Sort is an in-place refetch, not a full navigation: keep the listing chrome
     // (search + filter bar) and let SortableGrid show the in-grid product-card
     // skeletons (its `firstPageSkeleton`) until the sorted page lands. So we do
-    // NOT set the full-screen `isNavigating` loader here — SortableGrid watches
-    // the `sort` param, swaps to a fresh grid paged from 1 via the GetProducts
-    // server action (bypasses the Router Cache), and clears its own skeleton when
-    // page 1 arrives.
-    router.push(qs ? `${pathname}?${qs}` : pathname);
+    // NOT set the full-screen `isNavigating` loader here.
+    //
+    // Update the URL via the History API — NOT router.push. Next's useSearchParams
+    // reflects window.history.pushState synchronously, with no RSC round-trip, so
+    // SortableGrid sees the new `?sort=` INSTANTLY, swaps to a page-1 grid and
+    // paints its skeletons immediately, then fills them via the GetProducts server
+    // action (which bypasses the Router Cache anyway). router.push instead blocked
+    // the whole swap behind a server round-trip to commit the URL, so the skeleton
+    // only appeared as the sorted results were already landing.
+    window.history.pushState(null, "", qs ? `${pathname}?${qs}` : pathname);
   };
 
   // A short, human summary of the current selection for the trigger's a11y label.
