@@ -27,13 +27,7 @@ function ProductLoader({ product }) {
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
 
   return (
-    <div
-      style={{
-        zIndex: "99999999999999",
-        top: "100px",
-      }}
-      className="fixed max-w-[1365px] mx-auto flex-col bg-[#fafafa] min-h-screen flex    w-screen  overflow-hidden"
-    >
+    <div className="w-full flex-col flex bg-[#fafafa] overflow-hidden">
       <div className="product-details-container w-full relative bg-[#ffffff] max-h-[calc(100vh-100px)]">
         <div className="product-details-slider mt-[12px] relative h-[474px] max-h-[474px]">
           <div className="embla flex flex-row">
