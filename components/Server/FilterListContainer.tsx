@@ -1,6 +1,6 @@
 import ListingSkeleton from "components/skeleton/listing";
 import { Suspense } from "react";
-import FilterList from "./FilterList";
+import FilterListReactive from "./FilterListReactive";
 import { combineCategoriesWithRelated } from "utils/server";
 import ClientLogger from "components/global/ClientLogger";
 
@@ -9,6 +9,9 @@ async function FilterListContainer({
   Params,
   parsedFilters,
   currencyPromise,
+  serverSearch = "",
+  isFeatured = false,
+  isFlashDeals = false,
 }) {
   let [filtersData, currency] = await Promise.all([
     filtersPromis,
@@ -63,13 +66,16 @@ async function FilterListContainer({
         }}
       />
       {
-        <FilterList
-          filters={filters}
-          itemsLength={filtersData.products?.length}
+        <FilterListReactive
+          serverFilters={filters}
+          serverSearch={serverSearch}
+          itemsLength={filtersData.products?.length ?? 0}
           currency={currency}
           key={`filter-list-filters`}
           params={Params}
           parsedFilters={parsedFilters}
+          isFeatured={isFeatured}
+          isFlashDeals={isFlashDeals}
         />
       }
     </Suspense>

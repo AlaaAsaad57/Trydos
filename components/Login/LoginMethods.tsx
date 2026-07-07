@@ -1,10 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { translateFunction } from "utils/functions";
 
 import Border from "./Border";
 import "styles/methods.css";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { QRCodeSVG } from "qrcode.react";
+import {
+  createQrSession,
+  getQrStatus,
+  approveQrLogin,
+  type QrSession,
+  type QrStatus,
+} from "services/qrLogin";
+
 const LoginMethods = ({ confirm }) => {
   const { language } = useAppStore();
 
@@ -15,6 +24,10 @@ const LoginMethods = ({ confirm }) => {
     return translateFunction(key, languageVariable);
   };
   const [showQr, setShowQr] = useState(false);
+  const [session, setSession] = useState<QrSession | null>(null);
+  const [status, setStatus] = useState<QrStatus>("pending");
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     let e = document.querySelector<HTMLDivElement>(".login-widget-container");
     if (e.classList.contains("qr-extend-comtainer")) {
@@ -23,16 +36,51 @@ const LoginMethods = ({ confirm }) => {
       e.classList.add("qr-extend-comtainer");
     }
   }, [showQr]);
+
+  // Create a session when the QR panel opens; poll its status while open.
+  useEffect(() => {
+    if (!showQr) return;
+    let cancelled = false;
+    (async () => {
+      const s = await createQrSession();
+      if (cancelled) return;
+      setSession(s);
+      setStatus("pending");
+      pollRef.current = setInterval(async () => {
+        const res = await getQrStatus(s.requestId);
+        setStatus(res.status);
+        if (res.status === "approved" || res.status === "denied") {
+          if (pollRef.current) clearInterval(pollRef.current);
+        }
+      }, 1200);
+    })();
+    return () => {
+      cancelled = true;
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [showQr]);
+
+  const statusText = () => {
+    switch (status) {
+      case "scanned":
+        return translate("Found on a device — approve on your phone", language);
+      case "approved":
+        return translate("Approved (demo)", language);
+      case "denied":
+        return translate("Request declined", language);
+      case "expired":
+        return translate("Code expired — reopen to refresh", language);
+      default:
+        return translate("Scan This Qr Code From You Trydos App In Your Phone", language);
+    }
+  };
+
   return (
     <div data-cy="login-methods-container" className="login-method-container">
       <div
         data-testid="login-method-qr"
         className={`${showQr ? "qr-extended" : ""} login-method-qr`}
         onClick={(e) => {
-          // Sendevent({
-          //   event: GA_EVENT_NAMES.CLICK,
-          //   value: GA_CLICK_EVENT_VALUES.LOGIN_METHOD_QR_BUTTON,
-          // });
           e.preventDefault();
           setShowQr(!showQr);
         }}
@@ -75,17 +123,60 @@ const LoginMethods = ({ confirm }) => {
                   fill="none"
                 />
               </svg>
-
-              <span>
-                {translate(
-                  "Scan This Qr Code From You Trydos App In Your Phone",
-                  language
-                )}
-              </span>
+              <span>{statusText()}</span>
             </div>
-            <div className="qr-image-container">
-              <img src="/icons/qrSample.svg" />
+            <div
+              className="qr-image-container"
+              onClick={(e) => e.stopPropagation()}
+              style={{ position: "relative" }}
+            >
+              {session ? (
+                <QRCodeSVG value={session.qrPayload} size={160} level="M" />
+              ) : (
+                <img src="/icons/qrSample.svg" />
+              )}
+              {status === "approved" && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "rgba(224,255,238,0.92)",
+                    borderRadius: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 600,
+                    color: "#1b8f4d",
+                  }}
+                >
+                  ✓ {translate("Approved (demo)", language)}
+                </div>
+              )}
             </div>
+            {process.env.NODE_ENV !== "production" && session && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  approveQrLogin(session.requestId, {
+                    name: "Demo User",
+                    image: "",
+                  });
+                }}
+                style={{
+                  marginTop: 8,
+                  fontSize: 11,
+                  padding: "4px 8px",
+                  borderRadius: 6,
+                  border: "1px dashed #aaa",
+                  background: "#fff",
+                  color: "#666",
+                  cursor: "pointer",
+                }}
+              >
+                {translate("Simulate scan (dev)", language)}
+              </button>
+            )}
           </>
         )}
       </div>
@@ -94,10 +185,6 @@ const LoginMethods = ({ confirm }) => {
           data-cy="login-method-phone"
           className="login-method-phone"
           onClick={() => {
-            // Sendevent({
-            //   event: GA_EVENT_NAMES.CLICK,
-            //   value: GA_CLICK_EVENT_VALUES.LOGIN_METHOD_PHONE_BUTTON,
-            // });
             confirm();
           }}
         >

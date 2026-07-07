@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import NextLink from "components/global/NextLink";
 import {
@@ -22,10 +23,18 @@ function FilterList({
   isFeatured,
   isFlashDeals,
   itemsLength,
+  searchText = "",
 }: any) {
   // Use parsedFilters if available, otherwise use searchParams for backward compatibility
   const filterParams = parsedFilters;
   const isUsingParsedFilters = Boolean(parsedFilters);
+  // "Load more filters" (InfiniteScrollFilters → GetNextPageFilters) must page
+  // within the active search. buildParamsFromFilters/getFilterStateForItem ignore
+  // search_text, and FilterItem reads the live query itself, so adding it here only
+  // scopes the paging fetch — it does not affect chip hrefs or active state.
+  const filterParamsForPaging = searchText
+    ? { ...parsedFilters, search_text: searchText }
+    : parsedFilters;
   const language = params.lang.split("-")?.[1];
   const isRtl = language === "ar" || language === "ku";
   const parseFiltersFunction = () => {
@@ -88,7 +97,7 @@ function FilterList({
                       isRtl={isRtl}
                       params={params}
                       currency={currency}
-                      filterParams={filterParams}
+                      filterParams={filterParamsForPaging}
                       isUsingParsedFilters={isUsingParsedFilters}
                       items={filters[filter]}
                       key={filter}
@@ -105,6 +114,7 @@ function FilterList({
         filterParams={parseFiltersFunction()}
         isUsingParsedFilters={isUsingParsedFilters}
         filters={filters}
+        searchText={searchText}
       />
     </>
   );
@@ -117,6 +127,7 @@ interface ActiveFiltersBarProps {
   isUsingParsedFilters: boolean;
   filters: any;
   params: any;
+  searchText?: string;
 }
 
 const ActiveFiltersBar = ({
@@ -125,7 +136,12 @@ const ActiveFiltersBar = ({
   isUsingParsedFilters,
   filters,
   params,
+  searchText = "",
 }: ActiveFiltersBarProps) => {
+  // The search chip is display-only, like the other active-filter chips. There is
+  // no per-chip remove: the leading "clear all" reset (getResetUrl) clears every
+  // applied filter INCLUDING the search (it navigates to a clean path with no
+  // ?search=).
   let activeFilters: any = {};
 
   if (isUsingParsedFilters) {
@@ -357,7 +373,10 @@ const ActiveFiltersBar = ({
     );
   };
 
-  if (activeFilters && Object.keys?.(activeFilters)?.length === 0) return <></>;
+  const hasAnyActiveFilter = Object.keys(activeFilters).some(
+    (key) => activeFilters[key]?.length > 0,
+  );
+  if (!hasAnyActiveFilter && !(searchText?.length > 0)) return <></>;
 
   // Check if only one boutique is selected and no other filters
   const hasOnlyOneBoutique = activeFilters?.boutiques?.length === 1;
@@ -366,10 +385,12 @@ const ActiveFiltersBar = ({
   ).length;
 
   // If only one boutique and no other filters, don't show ActiveFiltersBar
-  if (hasOnlyOneBoutique && otherFiltersCount === 0) {
+  if (hasOnlyOneBoutique && otherFiltersCount === 0 && !(searchText?.length > 0)) {
     return <></>;
   }
 
+  // Global clear-all: getResetUrl() returns a clean PATH with no query string, so
+  // it inherently drops ?search= (Req 2). Never append the active query here.
   // Determine reset URL based on boutique filters
   const getResetUrl = () => {
     if (activeFilters?.boutiques?.length === 1) {
@@ -637,16 +658,14 @@ const ActiveFiltersBar = ({
           ))}
         </>
       )}
-      {activeFilters?.search_text?.length > 0 && (
+      {searchText?.length > 0 && (
         <>
           <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           <span>
             <img src="/icons/Search.svg" className="scale-75" />
           </span>
-          <div className="category-title filter-bar-main-title  text-[#5d5d5d]">
-            {typeof activeFilters?.search_text?.[0] === "string"
-              ? pollinateInput(activeFilters?.search_text?.[0])
-              : ""}
+          <div className="category-title filter-bar-main-title text-[#5d5d5d]">
+            {typeof searchText === "string" ? pollinateInput(searchText) : ""}
           </div>
         </>
       )}

@@ -9,6 +9,7 @@ async function FilterWidgetServer({
   language,
   isFeatured,
   isFlashDeal,
+  serverSearch = "",
 }) {
   let currency = await currencyPromise;
   let filtersData = await filtersPromise;
@@ -21,6 +22,7 @@ async function FilterWidgetServer({
         currency={currency}
         language={language}
         country={country}
+        serverSearch={serverSearch}
         initialFilters={parsedFilters}
         // FiltersWindow consumes `children` as a structured map (categories/brands/…)
         // of raw data, not JSX children — passing it as a prop is intentional.

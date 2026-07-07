@@ -611,8 +611,8 @@ export async function generateSearchTermsSitemapUrls(): Promise<SitemapUrl[]> {
       countryIso = defaultCountry;
     }
 
-    // Create URL: {baseUrl}/{country}-{language}/filters/search/{encodedTerm}
-    const url = `${baseUrl}/${countryIso}-${languageCode}/filters/search/${encodedTerm}`;
+    // Create URL: {baseUrl}/{country}-{language}/filters?search={encodedTerm}
+    const url = `${baseUrl}/${countryIso}-${languageCode}/filters?search=${encodedTerm}`;
 
     sitemapUrls.push({
       loc: url,

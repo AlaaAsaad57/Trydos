@@ -258,4 +258,5 @@ export const REQUESTS_DATA = {
   HIDE_ORDER: { reqTitle: "HIDE_ORDER", code: 184 },
   HIDE_ORDER_DETAIL: { reqTitle: "HIDE_ORDER_DETAIL", code: 185 },
   REPORT_ORDER_ITEM: { reqTitle: "REPORT_ORDER_ITEM", code: 186 },
+  FETCH_HIDDEN_ORDERS: { reqTitle: "FETCH_HIDDEN_ORDERS", code: 187 },
 };

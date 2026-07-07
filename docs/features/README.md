@@ -6,9 +6,11 @@ file under `docs/features/<domain>/` — this index links them together and show
 glance, where each feature stands.
 
 **Audience:** Management / non-technical stakeholders.
-**Last updated:** 2026-07-05
+**Last updated:** 2026-07-07
 **How it was built:** Compiled directly from the current codebase (routes, services, and
 app state) — not from memory — so it reflects what is actually shipped on the `develop` branch.
+**Companion:** a prioritized management status report lives in
+[`docs/pm-status-report-2026-07-06.md`](../pm-status-report-2026-07-06.md).
 
 ---
 
@@ -32,24 +34,66 @@ app state) — not from memory — so it reflects what is actually shipped on th
 
 | Domain | Features | Notes |
 |--------|:--------:|-------|
-| A. Shopping & Product Discovery | 33 | Core storefront live; SD-17, SD-24, SD-27 & SD-33 partial |
-| B. Cart, Checkout & Orders | 28 | Full purchase & post-purchase lifecycle; partial: CO-17 & CO-18 (cancel reason not sent to backend), CO-28 (hardcoded return-tracking timers/refund) |
+| A. Shopping & Product Discovery | 33 | Core storefront live; SD-17 & SD-27 partial; SD-24 (virtual try-on) is a placeholder |
+| B. Cart, Checkout & Orders | 29 | Full purchase & post-purchase lifecycle; partial: CO-17 & CO-18 (cancel reason not sent to backend), CO-28 (hardcoded return-tracking timers/refund) |
 | C. Payments, Wallet & Banking | 6 | ⚠️ External wallet package, under active development (RDB). Balance/history view live; pay-with-wallet is a dummy test widget; deposits, accounts, cards & transfers expected from the external package (not in-app) |
-| D. Accounts & Authentication | 30 | Phone + OTP only; AC-06 consent + AC-27–30 legal/info pages are placeholder-grade |
-| E. Chat & Calls | 25 | 1-to-1 chat + Agora voice/video (customer↔customer, customer↔delivery worker) |
-| F. Stories | 7 | Seller/admin stories + customer stories (shoppable) |
+| D. Accounts & Authentication | 30 | Phone + OTP only; QR login (AC-09) is a built frontend on a mock (no real sign-in yet); AC-06 consent + AC-27–30 legal/info pages placeholder-grade |
+| E. Chat & Calls | 25 | 1-to-1 chat + Agora voice/video (customer↔customer, customer↔delivery worker); a few shipped controls are inert (Edit message, Category, Reminder, Archive — see Domain E note) |
+| F. Stories | 7 | Seller/admin stories + customer stories (shoppable); ST-07 view-time tracking only console-logs (not wired to backend/analytics) |
 | G. Notifications | 10 | Push (Firebase) + in-app |
-| H. Seller Dashboard | 14 | Merchant back-office; SL-04 product edit is interim (AI redesign planned) |
+| H. Seller Dashboard | 14 | Merchant back-office; partial: SL-02 (no post-leave UI reaction), SL-04 (interim, AI redesign planned), SL-06 (boutiques view-only), SL-07 (item-level fulfilment only) |
 | I. Platform & Foundations | 46 | Localization, SEO, analytics, PWA, security |
 | **Total** | **~199** | |
 
 ### Key things the manager should know up front
 - **Login is phone + OTP only** — no passwords, no email login, no Google/Apple/Facebook login.
 - **The wallet & banking domain (C) is an external package, still being built by the RDB developer** — Trydos integrates with it as a black box (`rdb` is not even installed yet). Today only a balance/history view and a **dummy test widget** for paying an order at checkout exist; **deposits, and full digital banking (accounts / cards / money transfers), are expected from the external package and are not available in-app** ("Under Development").
-- **Known placeholders:** Bank Cards screen (⚪), QR-code login (⚪), the Privacy / Terms / About / Contact legal-info pages (⚪, AC-27–30 — thin boilerplate, not linked from settings).
+- **QR-code login (AC-09) is now a working frontend on a mock** — live-generated QR, an Apple-style camera scanner, and an approve/deny sheet are all built and clickable, but the service is a local mock: it sets **no real session** and awaits the backend endpoints. Demo-ready, not sign-in-ready (🟡).
+- **Known placeholders:** Bank Cards screen (⚪), the Privacy / Terms / About / Contact legal-info pages (⚪, AC-27–30 — thin boilerplate, not linked from settings).
 - **No readable legal policy for users:** the signup consent gate (AC-06) has a dead "Terms" link and no Privacy link; there is no cookie-consent / GDPR banner. Real Privacy/Terms content + linking is still needed before launch.
 - **Seller product editing (SL-04)** is functional today but is planned to be replaced by a new AI-driven editor that extracts product info from images — treat the current form as interim.
 - **Pre-launch reminders:** search indexing (SEO) is gated behind env flags; PostHog session replay is currently paused for cost.
+- **Try-on now is a placeholder**: virtual try-on now is a placeholder in Product Page for now ⚪. 
+---
+
+## Not-yet-live features — what each needs to ship
+
+Every feature that is **not** 🟢 Live today, and the one thing it needs to get there. Full detail
+lives in each feature's own doc / the [status report](../pm-status-report-2026-07-06.md).
+
+### 🟡 Partial — works, but a core piece is missing
+| ID | Feature | What it needs to go Live |
+|----|---------|--------------------------|
+| SD-17 | Boutique storefront | Drive the "verified / top-seller" trust badges from real shop data (they're hardcoded) — or remove them. |
+| SD-27 | Specs & size guide | Build the real measurement / size-conversion chart; the IN/CM & EU/US/UK toggles are currently decorative. |
+| CO-17 | Cancel whole order | Send the cancel **reason** to the backend (currently analytics-only); wire the dead terms link. |
+| CO-18 | Cancel single item | Send the cancel **reason** to the backend (currently not persisted). |
+| CO-28 | Manage a return | Replace the hardcoded fake tracking timers ("3 H" steps) and flat "3 USD" refund with the real amount / currency / SLA. |
+| ST-07 | Story viewer tracking | Seen/viewer counts work, but per-story **view-time** only reaches a `console.log` — wire `onStoryViewTime` to the backend or analytics (or drop it). |
+| PW-01 | Wallet balance & history | **On hold by choice** — no in-app widget will be built until the external wallet package ships. Waiting on updates from the wallet dev team. |
+| PW-04 | Pay order with wallet | Swap the **dummy test widget** for the real external RDB payment widget; allow a failed payment to retry without reopening the modal. (Secret-leak fixed in code; rotate the merchant key — ops.) |
+| AC-06 | Privacy / terms consent | Wire the dead "Terms" link + add a Privacy link to real pages; ideally persist consent server-side (today it's only an analytics event). |
+| AC-09 | QR-code login | Replace the local **mock** with real backend endpoints (create / status / scanned / approve / deny) and mint a real session on approval. |
+| SL-02 | Leave a shop | Make the screen react after a successful leave (redirect/refresh/confirm) — the backend call already works, but the UI does nothing. |
+| SL-04 | Product editing | Fully functional today — "partial" only because it's slated for replacement by the planned AI-driven editor. Ship as-is or deliver the AI editor. |
+| SL-06 | Boutiques management | Build the create/edit/delete/status actions (the write permissions exist but the tab is read-only today), or rename it to a viewer. |
+| SL-07 | Orders & fulfillment | Un-comment/finish whole-order status change, and build (or hide) the payment/refund/shipping/tracking actions the order permissions imply. |
+
+### ⚪ Placeholder / Planned — scaffolded but not functional
+| ID | Feature | What it needs to go Live |
+|----|---------|--------------------------|
+| SD-24 | Virtual try-on | Build the real try-on engine (locked design: on-device 3D AR); today it just echoes the uploaded photo after a fake spinner. Hide the badge until then. |
+| PW-02 | Add funds (bank deposit) | Deposit flow is expected from the external wallet package (interim in-app UI was removed); live when the package delivers deposits. |
+| PW-05 | Bank cards | Empty shell today — build the screen, or hide it from the menu until it's real. |
+| PW-06 | Full digital bank | Install the `rdb` package, un-comment and wire the `<RDB />` widget + server bridge behind a real feature flag, verify the token handoff. Blocked on the external developer. |
+| AC-27 | Privacy Policy page | Replace the thin boilerplate with real, counsel-reviewed copy + design; link it from the consent gate and settings. |
+| AC-28 | Terms of Service page | Real legal copy + design; un-comment the settings link. |
+| AC-29 | About page | Real content + design; wire the settings "About Us" link (currently `#`). |
+| AC-30 | Contact page | Real content + design; un-comment the settings link. |
+| CH · Edit message | Chat — edit a sent message | Build the edit service + wire the empty Save handler (the dialog saves nothing today), or remove the option. |
+| CH · Category / Reminder | Chat — message options | Implement the Category and Reminder message actions, or remove the inert buttons. |
+| CH · Archive | Chat — archive a conversation | Implement Archive (sibling to Pin / Mute / Delete, which all work), or remove the inert option. |
+| PF-43 | Cookie-consent / GDPR banner | Build a cookie-consent banner (or obtain a documented legal exemption) before go-live. |
 
 ---
 
@@ -98,7 +142,7 @@ The shopper-facing browsing experience.
 | [SD-21](A-shopping-and-discovery/SD-21-colour-variant-selection.md) | Colour / variant selection | Pick a colour (reloads gallery) and size via chips. | 🟢 |
 | [SD-22](A-shopping-and-discovery/SD-22-product-labels-view-counts.md) | Product labels & view counts | Promotional label tags (rotating on cards) and product view counts. | 🟢 |
 | [SD-23](A-shopping-and-discovery/SD-23-delivery-shipping-returns.md) | Delivery & shipping/returns info | Expected delivery date, free-shipping and free-return badges + delivery-times sheet. | 🟢 |
-| [SD-24](A-shopping-and-discovery/SD-24-virtual-try-on.md) | Virtual try-on | ⚠️ Photo capture/upload UI only — the try-on itself is a stub (echoes the input photo; no AI/backend). | 🟡 |
+| [SD-24](A-shopping-and-discovery/SD-24-virtual-try-on.md) | Virtual try-on | Photo capture/upload UI only — the try-on itself is a placeholder (echoes the input photo; no AI/backend). | ⚪ |
 | [SD-25](A-shopping-and-discovery/SD-25-buyer-comments-reviews.md) | Buyer comments & reviews | Read/like/edit-own ratings + size-fit; reviews are written from Orders (CO-23). | 🟢 |
 | [SD-26](A-shopping-and-discovery/SD-26-product-qa-faq.md) | Product Q&A / FAQ | Interactive buyer→seller pre-purchase questions. | 🟢 |
 | [SD-27](A-shopping-and-discovery/SD-27-specs-size-guide.md) | Specs & size guide | Quality/rating/size-fit modal is live; the size-guide (measurement chart) is not built. | 🟡 |
@@ -111,7 +155,7 @@ The shopper-facing browsing experience.
 |----|---------|--------------|:------:|
 | [SD-31](A-shopping-and-discovery/SD-31-wishlist-favourites.md) | Wishlist / favourites | Save products ("CheckList") and view them in a slide-in panel. | 🟢 |
 | [SD-32](A-shopping-and-discovery/SD-32-product-comparison.md) | Product comparison | Add products to a compare list and view them side by side (2-item slots). | 🟢 |
-| [SD-33](A-shopping-and-discovery/SD-33-redeem-luck-rewards.md) | Redeem / "luck" rewards | Time-limited redeemable discount ("Luck!") on product cards and detail; hardcoded timer, cookie-gated. | 🟡 |
+| [SD-33](A-shopping-and-discovery/SD-33-redeem-luck-rewards.md) | Redeem / "luck" rewards | Time-limited redeemable discount ("Luck!") on product cards and detail. Timer + one-time limit are held in **local state (cookie)** — this is the intended design, not a gap. | 🟢 |
 
 ---
 
@@ -138,7 +182,7 @@ Everything from adding to cart through paying and managing an order.
 | [CO-10](B-cart-checkout-orders/CO-10-payment-method-selection.md) | Payment method selection | Choose wallet, cash on delivery, or card/crypto gateway. | 🟢 |
 | [CO-11](B-cart-checkout-orders/CO-11-place-order-checkout.md) | Place order / checkout | Confirm and submit the order for payment. | 🟢 |
 | [CO-12](B-cart-checkout-orders/CO-12-external-payment-gateway.md) | External payment gateway | Hosted card/crypto payment page in an embedded window. | 🟢 |
-| [CO-13](B-cart-checkout-orders/CO-13-pay-with-wallet.md) | Pay with wallet at checkout | Apply the in-app wallet balance to the order (see C). ⚠️ Secret-leak bug in the failure path. | 🟢 |
+| [CO-13](B-cart-checkout-orders/CO-13-pay-with-wallet.md) | Pay with wallet at checkout | Apply the in-app wallet balance to the order (see C). Prior secret-leak in the failure path is now **fixed in code** (key rotation still pending, ops). | 🟢 |
 | [CO-14](B-cart-checkout-orders/CO-14-order-confirmation-invoice.md) | Order confirmation & invoice | Order-placed screen with an invoice summary. | 🟢 |
 
 ### Orders (history, tracking & management)
@@ -155,6 +199,7 @@ Everything from adding to cart through paying and managing an order.
 | [CO-23](B-cart-checkout-orders/CO-23-rate-review-a-purchase.md) | Rate & review a purchase | Star rating and written review (with images) on delivered items. | 🟢 |
 | [CO-24](B-cart-checkout-orders/CO-24-order-chat.md) | Order chat | Open a chat tied to a specific order — delivery-worker only (see E). | 🟢 |
 | [CO-25](B-cart-checkout-orders/CO-25-order-invoice-view.md) | Order invoice view | View the order's invoice — a total + payment-method summary | 🟢 |
+| [CO-29](B-cart-checkout-orders/CO-29-restore-hidden-orders.md) | Restore hidden orders / products | A "Hidden Orders" view (opened from the list's ⋮ menu) to un-hide packs or products hidden via CO-22. | 🟢 |
 
 ### Returns & refunds
 | ID | Feature | What it does | Status |
@@ -169,22 +214,20 @@ Everything from adding to cart through paying and managing an order.
 
 In-app money features.
 
-> **🚨 Critical — the wallet is an external package, under active development.** Every feature in this
-> domain is delivered by an **external wallet package/service** owned by, and **still being built by, the
-> RDB developer**. Trydos integrates with it as a **black box** — we do **not** own, control or document
-> its internals (accounts, ledgers, signing, endpoints). The `rdb` package is currently **not installed**
-> in the app (its imports are commented out) and the full banking widget is stubbed to *"Under
-> Development"*. What Trydos has today is only a thin, interim layer — a balance/history view (the UI's
-> *"RDB Wallet"*) and a **dummy test widget** for paying an order at checkout; **deposits, accounts, cards
-> and transfers are expected to come from the external package** and are not available in-app. Treat this
-> entire domain as **subject to change** until that integration lands.
+> **🚨 Critical — the wallet is an external package, still being built.** This whole domain is delivered
+> by an **external wallet package (`rdb`)** owned and still being built by an outside developer; Trydos
+> treats it as a **black box**. The `rdb` package is **not installed** yet (its imports are commented out),
+> so the full banking widget shows *"Under Development."* Today Trydos has only a thin interim layer — a
+> balance/history view and a **dummy test widget** for paying an order at checkout. **Deposits, accounts,
+> cards and transfers are expected from the external package** and are not available in-app. Treat the
+> domain as **subject to change** until that integration lands.
 
 | ID | Feature | What it does | Status |
 |----|---------|--------------|:------:|
-| [PW-01](C-payments-wallet-banking/PW-01-wallet-balance-history.md) | Wallet balance & history | View the wallet balance and a list of past transactions. Thin in-app view over the external wallet. | 🟡 |
+| [PW-01](C-payments-wallet-banking/PW-01-wallet-balance-history.md) | Wallet balance & history | View the wallet balance and a list of past transactions. Thin in-app view over the external wallet — **on hold by choice**, awaiting the external wallet dev team; no further in-app work planned until the package ships. | 🟡 |
 | [PW-02](C-payments-wallet-banking/PW-02-add-funds-bank-deposit.md) | Add funds (bank deposit) | Top up the wallet by bank deposit. The interim in-app UI was **removed** — deposits are expected from the external wallet package. | ⚪ |
 | [PW-03](C-payments-wallet-banking/PW-03-wallet-multi-currency-balance.md) | Wallet & multi-currency balance | Auto-creates a wallet and shows the balance in the shopper's country currency (via the external wallet). | 🟢 |
-| [PW-04](C-payments-wallet-banking/PW-04-pay-order-with-wallet.md) | Pay an order with the wallet | Pay for a purchase from the wallet balance at checkout. Current modal is a **dummy test widget**; real payment expected via the external RDB widget. ⚠️ Secret-leak bug in the failure path (see CO-13). | 🟡 |
+| [PW-04](C-payments-wallet-banking/PW-04-pay-order-with-wallet.md) | Pay an order with the wallet | Pay for a purchase from the wallet balance at checkout. Current modal is a **dummy test widget**; real payment expected via the external RDB widget. Prior secret-leak in the failure path is now **fixed in code** (see CO-13; key rotation still pending). | 🟡 |
 | [PW-05](C-payments-wallet-banking/PW-05-bank-cards.md) | Bank cards | A "Bank Cards" screen exists but is an empty shell. | ⚪ |
 | [PW-06](C-payments-wallet-banking/PW-06-full-digital-bank.md) | Full digital bank (accounts / cards / transfers) | The rich banking UI (send money, cards, transfers) is the external package — not wired in; shows "Under Development". | ⚪ |
 
@@ -205,7 +248,7 @@ Signing in and managing an account. **Identity is phone-number + OTP only.**
 | AC-06 | Privacy / terms agreement | Consent screen accepted before creating an account. ⚠️ The gate works, but the "Terms of Services" link is a dead no-op, there is no Privacy link, and no readable policy is reachable from it. | 🟡 |
 | AC-07 | Outcome screens | Welcome-back / new-user / already-registered / not-found result screens. | 🟢 |
 | AC-08 | Resend code & rate limiting | Re-request a code with cooldown timers and abuse caps. | 🟢 |
-| AC-09 | QR-code login | "Scan from the app" option — shows a sample QR only. | ⚪ |
+| AC-09 | QR-code login | Cross-device QR sign-in: the login widget shows a **live-generated** QR, and a signed-in phone opens an Apple-style camera scanner + approve/deny sheet. Full frontend flow is built, but runs on a **local mock** — it sets no real session and awaits the backend. | 🟡 |
 | AC-10 | Browse as guest | Dismiss login and keep shopping without an account. | 🟢 |
 
 ### Sessions & lifecycle
@@ -281,6 +324,17 @@ Private real-time messaging and calling. **All conversations are 1-to-1 (Agora);
 | CH-24 | Conversation history | Paginated loading of older messages. | 🟢 |
 | CH-25 | Order / delivery chat | A chat thread tied to a specific order. | 🟢 |
 
+> **Note — inert chat controls (shipped, but do nothing).** A few buttons are wired into the UI
+> but have no handler behind them; they look live but are dead:
+> - **Edit message** — a full edit dialog (textarea + Save) whose Save handler is empty; no edit
+>   service exists, so message editing saves nothing (`Chat/components/OptionsMenu.tsx`).
+> - **Category** and **Reminder** message options — icon + label only, no action (`OptionsMenu.tsx`).
+> - **Archive** chat option — inert, while its siblings (Unread / Pin / Mute / Delete) all work
+>   (`Chat/components/ChatOptions.tsx`).
+> - **Save to Gallery / Never** auto-download row — decorative, no handler (`ChatInfo.tsx`).
+>
+> Decision needed: finish these or remove them so the UI doesn't promise actions it can't perform.
+
 ---
 
 ## F. Stories
@@ -295,7 +349,7 @@ Instagram-style image/video stories. A story can be authored either by a **selle
 | [ST-04](F-stories/ST-04-shoppable-stories.md) | Shoppable stories | A story can link to a product to tap through and buy. | 🟢 |
 | [ST-05](F-stories/ST-05-delete-own-story.md) | Delete own story | Remove a story you posted. | 🟢 |
 | [ST-06](F-stories/ST-06-report-a-story.md) | Report a story | Flag another user's story. | 🟢 |
-| [ST-07](F-stories/ST-07-viewer-tracking.md) | Viewer tracking | Marks stories seen and counts viewers. | 🟢 |
+| [ST-07](F-stories/ST-07-viewer-tracking.md) | Viewer tracking | Marks stories seen and counts viewers (works). But per-story **view-time** tracking is currently only a `console.log` — the value is computed then discarded, never sent to backend or analytics. | 🟡 |
 
 ---
 
@@ -325,19 +379,19 @@ The merchant/seller back-office (per-shop, permission-gated).
 | ID | Feature | What it does | Status |
 |----|---------|--------------|:------:|
 | [SL-01](H-seller-dashboard/SL-01-my-shops-shop-picker.md) | My shops / shop picker | The seller's "Your Shops" entry page — lists shops a user can manage (role + permissions) and opens the dashboard. | 🟢 |
-| SL-02 | Leave a shop | Remove your own access to a shop. | 🟢 |
-| SL-03 | Product management | Browse the shop's products with stock, status and social stats. | 🟢 |
-| SL-04 | Product editing | Full edit form for a product (variants, prices, images) — functional today (loads & saves real data), but slated to be replaced by a new AI-driven design that extracts product info from images, so treated as interim. | 🟡 |
-| SL-05 | Activate / allow purchase | Toggle a product on/off for sale, with eligibility checks. | 🟢 |
-| SL-06 | Boutiques management | View the shop's boutiques (sub-storefronts). | 🟢 |
-| SL-07 | Orders & fulfillment | View received orders and progress them (confirm, pack, cancel). | 🟢 |
-| SL-08 | Shop info / branding | Edit shop name, contact, address, logo and banner. | 🟢 |
-| SL-09 | Product image gallery | Upload, browse and delete product images. | 🟢 |
-| SL-10 | Seller stories | Create, view and delete shop stories, linkable to a product. | 🟢 |
-| SL-11 | Comments & reviews management | Read and reply to customer questions and reviews. | 🟢 |
-| SL-12 | Bulk upload (Excel) | Download a template, fill it, and create products in bulk. | 🟢 |
-| SL-13 | Team / user management | Invite staff by phone, assign roles, remove users. | 🟢 |
-| SL-14 | Roles & permissions viewer | See a user's role and grouped permission breakdown. | 🟢 |
+| [SL-02](H-seller-dashboard/SL-02-leave-a-shop.md) | Leave a shop | Remove your own access to a shop. The leave call works, but the screen doesn't react afterwards (no redirect/refresh/confirmation). | 🟡 |
+| [SL-03](H-seller-dashboard/SL-03-product-management.md) | Product management | Browse the shop's products with stock, status and social stats. | 🟢 |
+| [SL-04](H-seller-dashboard/SL-04-product-editing.md) | Product editing | Full edit form for a product (variants, prices, images) — functional today (loads & saves real data), but slated to be replaced by a new AI-driven design that extracts product info from images, so treated as interim. | 🟡 |
+| [SL-05](H-seller-dashboard/SL-05-activate-allow-purchase.md) | Activate / allow purchase | Toggle a product on/off for sale, with (server-side) eligibility checks. | 🟢 |
+| [SL-06](H-seller-dashboard/SL-06-boutiques-management.md) | Boutiques management | View the shop's boutiques (sub-storefronts) — view-only; no create/edit/delete/status actions are built. | 🟡 |
+| [SL-07](H-seller-dashboard/SL-07-orders-fulfillment.md) | Orders & fulfillment | View received orders and progress them (confirm, pack, cancel at item level). Whole-order status change is commented out; payments/shipping/tracking not built. | 🟡 |
+| [SL-08](H-seller-dashboard/SL-08-shop-info-branding.md) | Shop info / branding | Edit shop name, contact, address, logo and banner. | 🟢 |
+| [SL-09](H-seller-dashboard/SL-09-product-image-gallery.md) | Product image gallery | Upload, browse and delete product images (shop-wide library). | 🟢 |
+| [SL-10](H-seller-dashboard/SL-10-seller-stories.md) | Seller stories | Create, view and delete shop stories, linkable to a product. | 🟢 |
+| [SL-11](H-seller-dashboard/SL-11-comments-reviews-management.md) | Comments & reviews management | Read customer questions & reviews and reply to questions (reviews are read-only). | 🟢 |
+| [SL-12](H-seller-dashboard/SL-12-bulk-upload-excel.md) | Bulk upload (Excel) | Download a template, fill it, and create products in bulk. The widget hands the file to the backend, which does the parsing/creation. | 🟢 |
+| [SL-13](H-seller-dashboard/SL-13-team-user-management.md) | Team / user management | Invite staff by phone, assign roles, remove users (change-role/delete are Super-Admin-only). | 🟢 |
+| [SL-14](H-seller-dashboard/SL-14-roles-permissions-viewer.md) | Roles & permissions viewer | See your own role and grouped permission breakdown. | 🟢 |
 
 ---
 
@@ -437,7 +491,6 @@ copy surfaced while writing the feature docs. Each is also noted in its feature 
 | Where | Issue | Needed |
 |-------|-------|--------|
 | **CO-20** Change item variant | "Change Color/Size Terms" link is a placeholder `href="#"` | Real terms page + link |
-| **CO-26** Create a return | Return-window copy *"Return This Product In 24 Hours"* is hardcoded and not enforced client-side | Confirm the real policy, then wire or reword |
 | **CO-26** Create a return | "Learn More Tips." link is inert (no handler) | Real tips content + link, or remove |
 | **CO-28** Manage a return | Refund-timing line *"You Will Receive Your Refund Within 12 Hours"* is hardcoded | Confirm the real SLA, then wire or reword |
 | **Legal / privacy** (AC-06, AC-27–30) | Signup consent gate has a **dead "Terms" link and no Privacy link**; the Privacy / Terms / About / Contact pages are thin boilerplate and **not linked from settings** | Real Privacy/Terms/About/Contact copy + design, and wire the links from the consent gate and settings |
@@ -447,10 +500,3 @@ copy surfaced while writing the feature docs. Each is also noted in its feature 
 
 ---
 
-## Next steps
-
-1. **Review & adjust this index** with the team — confirm domain grouping, headlines and the first-pass statuses.
-2. **Write one detail file per feature** under `docs/features/<domain>/<ID>-<slug>.md`, reusing the IDs above. A suggested template per feature: *What it is · Who uses it · Current status & maturity · Key screens/entry points · Known gaps/TODOs · Dependencies.*
-3. **Prioritize the detail write-ups** — start with anything the manager flags as high-interest, and with the ⚪/🟡 items (placeholders, partial, disabled) since those most affect "where we are now".
-
-> This index reflects the codebase on the `develop` branch as of 2026-07-03. Re-run the inventory after major feature merges to keep it current.

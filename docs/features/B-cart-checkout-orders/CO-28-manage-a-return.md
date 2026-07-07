@@ -74,11 +74,7 @@ padded with **hardcoded placeholder values** that misrepresent the return to the
   active countdown is a fixed `minutes = 60 × 3`, and the cancel screen shows a flat **"3 USD"**
   refund incentive **regardless of the actual refund amount or the shopper's currency**. These are
   static strings, not real data — they should be wired to real values or removed. *(needs decision)* (NTF)
-- **Return confirmation copy fixed.** The confirmation now uses return-specific wording (*"Repeated
-  Returns…"*, *"Terms Of Return"*, *"Return Terms."*) instead of the old cancellation copy, in all
-  four languages. Two smaller items remain: the "Return Terms" link is still a dead `href="#"`, and
-  the *"You Will Receive Your Refund Within 12 Hours"* line is hardcoded *(both tracked in the README
-  known-issues list)*.
+
 
 
 ## Related features

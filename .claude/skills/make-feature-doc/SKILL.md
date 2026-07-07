@@ -63,6 +63,14 @@ changed it, and fix any "Status at a glance" counts/notes that are now wrong. If
 investigation contradicts the index (a feature is misfiled, a duplicate, or doesn't exist), **stop
 and ask the user** how to reconcile it rather than papering over it.
 
+**Also keep the "Not-yet-live features" rollup in sync.** The index carries a section listing
+**every** feature that is not 🟢 Live (🟡 Partial and ⚪ Placeholder/Planned), split into those two
+groups, with **one short row per feature** stating the single concrete thing it needs to go Live
+(e.g. "send the cancel reason to the backend", "swap the dummy widget for the real RDB widget").
+Whenever a feature's status changes to/from 🟢 — or its go-live requirement changes — add, move, or
+remove its row so the rollup stays a truthful, complete mirror of every 🟡/⚪ status in the tables.
+The requirement must be code-verified, not guessed.
+
 ### 6. Report
 Summarise per feature: the one headline finding, the status, and any ⚠️ issue. Call out anything
 that needs a user decision. Never commit unless asked.

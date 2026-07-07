@@ -48,6 +48,10 @@ export interface GetProductsResult {
   pit_id: string | null;
   productIds: string[];
   GA_PRODUCTS_LIST: GAProductListItem[];
+  // ES analysis of the free-text query (detected color/size/brand + analyzed
+  // `name`). Forwarded so a client-side search can page subsequent requests by
+  // the analyzed name (parity with the server's ProductListConainer).
+  isAnalyzed?: any;
 }
 
 export interface GetRelatedProductsResult {

@@ -248,10 +248,11 @@ function OrderRetailsReturnInfo({
           {loading ? (
             <Spinner />
           ) : (
+            // TODO
             <>
-              {translateFunction("Cancel Return Request & Get")}
+              {translateFunction("Cancel Return Request")}
               <span className="bold mx-[4px]">
-                {translateFunction("3 USD")}
+                {/* {translateFunction("3 USD")} */}
               </span>
             </>
           )}

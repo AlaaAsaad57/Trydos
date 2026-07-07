@@ -10,6 +10,11 @@ interface ListingState {
   showedFilter: string;
   limit: number;
   cameraPermissions: "asked";
+  // Search UI coordination (listing search → ?search= refactor).
+  searchLoading: boolean; // in-input spinner: typing → results landed
+  searchHasResults: boolean; // gate for SHARE (results > 0) + grid empty-state
+  searchHasMultipleResults: boolean; // gate for SORT/FILTER (results > 1)
+  searchExpanded: boolean; // collapse/expand of the search box + hide boutique logo
 }
 
 const initialState: ListingState = {
@@ -21,6 +26,10 @@ const initialState: ListingState = {
   showedFilter: "Categories",
   limit: 4,
   cameraPermissions: "asked",
+  searchLoading: false,
+  searchHasResults: true,
+  searchHasMultipleResults: true,
+  searchExpanded: false,
 };
 
 export const useListingStore = (set, get) => ({
@@ -44,6 +53,16 @@ export const useListingStore = (set, get) => ({
 
   resetListingFilter: () =>
     set({ offset: 1, isReachEnd: false, listing_loading: false }),
+
+  setListingSearchLoading: (loading: boolean) => set({ searchLoading: loading }),
+
+  setSearchHasResults: (hasResults: boolean) =>
+    set({ searchHasResults: hasResults }),
+
+  setSearchHasMultipleResults: (hasMultiple: boolean) =>
+    set({ searchHasMultipleResults: hasMultiple }),
+
+  setSearchExpanded: (expanded: boolean) => set({ searchExpanded: expanded }),
 
   resetEnd: () => set({ isReachEnd: false }),
 });

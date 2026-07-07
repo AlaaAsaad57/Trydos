@@ -6,6 +6,7 @@ async function ListingSearchContainer({
   language,
   parsedFilters,
   filtersPromise,
+  serverSearch = "",
   featured = false,
   flashdeal = false,
 }) {
@@ -13,15 +14,16 @@ async function ListingSearchContainer({
   return (
     <Suspense fallback={<></>}>
       <SearchBoutiquePage
-        lang={`${country}-${language}`}
         country={country}
         language={language}
         featured={featured}
         flashdeal={flashdeal}
-        isAnalyzed={filtersData.isAnalyzed}
         parsedFilters={parsedFilters}
-        search_text={
-          filtersData?.applied?.search_text ?? parsedFilters?.search_text?.[0]
+        serverSearch={
+          serverSearch ||
+          filtersData?.applied?.search_text ||
+          parsedFilters?.search_text?.[0] ||
+          ""
         }
       />
     </Suspense>

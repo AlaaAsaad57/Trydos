@@ -64,8 +64,7 @@ quantity math.
 
 - ⚠️ **The cancel reason is never sent to the backend** — like CO-17, reasons only gate the button and
   feed analytics; the confirmation window doesn't even receive them.
-- The full-cancel path always cancels the whole quantity; partial reduction is only reachable via the
-  separate "Change Qty" tab.
+
 
 ## Related features
 

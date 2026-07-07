@@ -432,14 +432,17 @@ class OrderService {
       throw error;
     }
   }
-  async HideOrder({ order_id }) {
+  // Toggles an order pack's visibility. `is_hidden` defaults to true so existing
+  // "Hide This Pack" callers are unchanged; the Hidden-Orders view passes false
+  // to restore a hidden pack (same endpoint, opposite flag).
+  async HideOrder({ order_id, is_hidden = true }) {
     try {
       let response = await fetchData({
         url: `/customer/order/${order_id}/visibility`,
         reqTitle: REQUESTS_DATA.HIDE_ORDER,
         method: "PATCH",
         server: "market",
-        body: JSON.stringify({ is_hidden: true }),
+        body: JSON.stringify({ is_hidden }),
       });
       if (response.success || response.isSuccessful) {
         return response;
@@ -454,14 +457,17 @@ class OrderService {
       throw error;
     }
   }
-  async HideOrderDetail({ detail_id }) {
+  // Toggles a single product line's visibility. `is_hidden` defaults to true so
+  // existing "Hide This Product" callers are unchanged; the Hidden-Orders view
+  // passes false to restore a hidden product (same endpoint, opposite flag).
+  async HideOrderDetail({ detail_id, is_hidden = true }) {
     try {
       let response = await fetchData({
         url: `/customer/order/detail/${detail_id}/visibility`,
         reqTitle: REQUESTS_DATA.HIDE_ORDER_DETAIL,
         method: "PATCH",
         server: "market",
-        body: JSON.stringify({ is_hidden: true }),
+        body: JSON.stringify({ is_hidden }),
       });
       if (response.success || response.isSuccessful) {
         return response;

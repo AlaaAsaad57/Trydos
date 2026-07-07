@@ -1996,6 +1996,16 @@ const translations = {
   "No cooling / improper temperature": "Soğutma yok / uygun olmayan sıcaklık",
   "Unsafe handling": "Güvensiz taşıma",
   "No proper vehicle": "Uygun araç yok",
+  // Hidden Orders widget
+  "Action About Your Orders": "Siparişleriniz Hakkında İşlem",
+  "Hidden Orders": "Gizli Siparişler",
+  "See orders and products you hid": "Gizlediğiniz sipariş ve ürünleri görün",
+  "These are orders and products you hid from your history. Tap the eye to restore any of them back to your list.": "Bunlar geçmişinizden gizlediğiniz sipariş ve ürünlerdir. Herhangi birini listenize geri getirmek için göz simgesine dokunun.",
+  "You have no hidden orders.": "Gizli siparişiniz yok.",
+  "Restore This Order": "Bu Siparişi Geri Yükle",
+  "Restore This Product": "Bu Ürünü Geri Yükle",
+  "Are you sure you want to restore this order to your list?": "Bu siparişi listenize geri yüklemek istediğinizden emin misiniz?",
+  "Are you sure you want to restore this product to your list?": "Bu ürünü listenize geri yüklemek istediğinizden emin misiniz?",
 };
 
 export default translations;

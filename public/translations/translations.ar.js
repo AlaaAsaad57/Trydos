@@ -1988,6 +1988,16 @@ const translations = {
   "No cooling / improper temperature": "لا يوجد تبريد / درجة حرارة غير مناسبة",
   "Unsafe handling": "تعامل غير آمن",
   "No proper vehicle": "لا توجد مركبة مناسبة",
+  // Hidden Orders widget
+  "Action About Your Orders": "إجراءات على طلباتك",
+  "Hidden Orders": "الطلبات المخفية",
+  "See orders and products you hid": "اعرض الطلبات والمنتجات التي أخفيتها",
+  "These are orders and products you hid from your history. Tap the eye to restore any of them back to your list.": "هذه هي الطلبات والمنتجات التي أخفيتها من سجلك. اضغط على العين لاستعادة أي منها إلى قائمتك.",
+  "You have no hidden orders.": "لا توجد لديك طلبات مخفية.",
+  "Restore This Order": "استعادة هذا الطلب",
+  "Restore This Product": "استعادة هذا المنتج",
+  "Are you sure you want to restore this order to your list?": "هل أنت متأكد أنك تريد استعادة هذا الطلب إلى قائمتك؟",
+  "Are you sure you want to restore this product to your list?": "هل أنت متأكد أنك تريد استعادة هذا المنتج إلى قائمتك؟",
 };
 
 export default translations;

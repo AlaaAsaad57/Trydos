@@ -113,7 +113,7 @@ let nextConfig: NextConfig = {
   },
   images: {
     unoptimized: false,
-    qualities: [100, 70, 65],
+    qualities: [100,90, 70, 65],
     domains: [
       "cdn.example.com",
       "res.cloudinary.com",

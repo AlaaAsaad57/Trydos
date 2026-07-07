@@ -2028,6 +2028,16 @@ const translations = {
   "No cooling / improper temperature": "ساردکەرەوەی نییە / پلەی گەرمی نەشیاو",
   "Unsafe handling": "مامەڵەکردنی نائارام",
   "No proper vehicle": "ئۆتۆمبێلی گونجاو نییە",
+  // Hidden Orders widget
+  "Action About Your Orders": "کردار لەسەر داواکارییەکانت",
+  "Hidden Orders": "داواکارییە شاراوەکان",
+  "See orders and products you hid": "ئەو داواکاری و بەرهەمانە ببینە کە شاردووتەتەوە",
+  "These are orders and products you hid from your history. Tap the eye to restore any of them back to your list.": "ئەمانە ئەو داواکاری و بەرهەمانەن کە لە مێژووەکەت شاردووتەتەوە. لەسەر چاوەکە دابگرە بۆ گەڕاندنەوەی هەر یەکێکیان بۆ لیستەکەت.",
+  "You have no hidden orders.": "هیچ داواکارییەکی شاراوەت نییە.",
+  "Restore This Order": "گەڕاندنەوەی ئەم داواکارییە",
+  "Restore This Product": "گەڕاندنەوەی ئەم بەرهەمە",
+  "Are you sure you want to restore this order to your list?": "دڵنیایت دەتەوێت ئەم داواکارییە بگەڕێنیتەوە بۆ لیستەکەت؟",
+  "Are you sure you want to restore this product to your list?": "دڵنیایت دەتەوێت ئەم بەرهەمە بگەڕێنیتەوە بۆ لیستەکەت؟",
 };
 
 export default translations;

@@ -7,6 +7,10 @@ export function getFilterStateForItem(
   parentValue?: string[],
   lang?: string,
   baseUrlOfFiltersPage?: string,
+  // Active query string (without leading "?") to carry across a filter click,
+  // e.g. `search=nike` / `sort=price_asc`. Filter links are path-based, so
+  // without this the current ?search=/?sort= would be dropped on every toggle.
+  activeQueryString?: string,
 ): FilterState {
   let currentValues: any[] = [];
 
@@ -92,8 +96,12 @@ export function getFilterStateForItem(
   const basePath = lang
     ? `/${lang}${baseUrlOfFiltersPage}`
     : baseUrlOfFiltersPage;
-  const href =
+  const path =
     pathParams.length > 0 ? `${basePath}/${pathParams.join("/")}` : basePath;
+  // Preserve the active ?search=/?sort= across the filter toggle so applying a
+  // filter narrows the current search instead of clearing it.
+  const query = activeQueryString ? `?${activeQueryString}` : "";
+  const href = `${path}${query}`;
 
   return {
     isFiltered,

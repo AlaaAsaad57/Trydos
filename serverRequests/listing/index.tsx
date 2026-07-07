@@ -105,6 +105,7 @@ export async function GetProducts({
     recomended_offset: response?.recommended_offset,
     // Rotated PIT snapshot id for the next page (ADR-009); null when PIT is off.
     pit_id: response?.pit_id ?? null,
+    isAnalyzed: response?.isAnalyzed ?? null,
     // Stable per-item ids, parallel to `products`, for client dedupe that does not
     // depend on the analytics array staying aligned.
     productIds: products?.map((p) => String(p?.product_id)) ?? [],
@@ -127,6 +128,7 @@ export async function GetProducts({
       offset: undefined,
       recomended_offset: undefined,
       pit_id: null,
+      isAnalyzed: null,
       productIds: [],
       GA_PRODUCTS_LIST: [],
     };

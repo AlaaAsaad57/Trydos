@@ -4,29 +4,33 @@ import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import ListingSkeleton from "components/skeleton/listing";
 import "styles/listing-components.css";
-import ListingShareControl from "components/Listing/ListingShareControl";
-import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
 import { generateMetadataForListing } from "serverRequests/meta/listing";
+import { permanentRedirect } from "next/navigation";
+import { buildSearchRedirectTarget } from "utils/listing/searchPathRedirect";
 
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
-import ListingSortControl from "components/Listing/ListingSortControl";
+import ListingBarActions from "components/Server/ListingBarActions";
+import ListingBarOptions from "components/Listing/ListingBarOptions";
 export const dynamicParams = true;
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
+  const sp = (await searchParams) ?? {};
+  const search = typeof sp.search === "string" ? sp.search : undefined;
 
   // Fetch your main product categories
   try {
     const metadata = await generateMetadataForListing({
       params,
       routeBase: "flashDeals",
+      searchText: search,
     });
 
     return metadata;
@@ -64,13 +68,26 @@ async function getCurrency(country, language) {
 }
 export default async function Page({ params, searchParams }) {
   let Params = await params;
+  const sp = (await searchParams) ?? {};
+
+  const legacy = buildSearchRedirectTarget(
+    Params.lang,
+    "flashDeals",
+    Params.filters,
+    sp,
+  );
+  if (legacy) permanentRedirect(legacy);
 
   try {
-    const sp = (await searchParams) ?? {};
     const sort = typeof sp.sort === "string" ? sp.sort : undefined;
+    const search = typeof sp.search === "string" ? sp.search : undefined;
     let parsedFilters = parseFiltersFromParams(Params.filters || []);
     const [country, language] = Params.lang.split("-");
     let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
+    const effectiveSearch =
+      (search && search.length > 0
+        ? search
+        : parsedFilters.search_text?.[0]) ?? "";
 
     if (parsedFilters.prices) {
       parsedFilters = {
@@ -90,7 +107,7 @@ export default async function Page({ params, searchParams }) {
           // priceRange:parsedFilters.prices?.map((s)=>s.split('-').map((d)=>Number(d))),
           featured: false,
           flashdeal: true,
-          search_text: parsedFilters.search_text?.[0],
+          search_text: effectiveSearch || undefined,
         },
         limit: 10,
         sort,
@@ -115,6 +132,7 @@ export default async function Page({ params, searchParams }) {
               flashdeal: true,
             }}
             filtersPromise={filtersData}
+            serverSearch={effectiveSearch}
           />
         </Suspense>
         <div
@@ -139,15 +157,7 @@ export default async function Page({ params, searchParams }) {
               className={`${isRtl && "rotate-180"}`}
             />
           </NextLink>
-          {/** TODO: classname edit when serach active w-full */}
-          <div
-            data-cy="filter_bar_options"
-            className={`filter-bar-options w-[170px] justify-between ${
-              isRtl ? "flex-row-reverse flex" : "flex-row flex"
-            }  align-center ${
-              parsedFilters?.search_text?.length > 0 && "w-full"
-            }`}
-          >
+          <ListingBarOptions serverSearch={effectiveSearch} isRtl={isRtl}>
             <Suspense fallback={<></>}>
               <ListingSearchContainer
                 country={country}
@@ -155,12 +165,15 @@ export default async function Page({ params, searchParams }) {
                 flashdeal={true}
                 filtersPromise={filtersData}
                 parsedFilters={parsedFilters}
+                serverSearch={effectiveSearch}
               />
             </Suspense>
-            <ListingSortControl language={language} isRtl={isRtl} />
-            <FilterBoutiquePageButton key={"filter-button"} />
-            <ListingShareControl language={language} isRtl={isRtl} />
-          </div>
+            <ListingBarActions
+              filtersPromise={filtersData}
+              language={language}
+              isRtl={isRtl}
+            />
+          </ListingBarOptions>
         </div>
 
         <div
@@ -176,6 +189,8 @@ export default async function Page({ params, searchParams }) {
               currencyPromise={currency}
               Params={Params}
               parsedFilters={parsedFilters}
+              serverSearch={effectiveSearch}
+              isFlashDeals={true}
             />
           </Suspense>
         </div>
@@ -193,6 +208,7 @@ export default async function Page({ params, searchParams }) {
             parsedFilters={parsedFilters}
             language={language}
             sort={sort}
+            serverSearch={effectiveSearch}
           />
         </Suspense>
       </>

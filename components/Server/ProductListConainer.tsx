@@ -17,6 +17,7 @@ async function ProductListConainer({
   isFeatured = false,
   language,
   sort = undefined,
+  serverSearch = "",
 }) {
   let [filtersData, currency, boutique] = await Promise.all([
     filtersDataPromise,
@@ -29,8 +30,16 @@ async function ProductListConainer({
   );
   let parsedFiltersVar = {
     ...parsedFilters,
+    // search_text drives client pagination (GetProducts page 2+) and sort/search
+    // refetches. Prefer the analyzed name so multi-word queries stay consistent
+    // across pages; fall back to the raw ?search= (serverSearch) so SINGLE-word
+    // queries — which skip LLM analysis — and analysis failures still keep the
+    // search on later pages instead of paging the whole category unscoped. Path
+    // search_text is the last resort (empty since search moved to ?search=).
     search_text:
-      filtersData?.isAnalyzed?.name ?? parsedFilters?.search_text?.[0],
+      filtersData?.isAnalyzed?.name ||
+      serverSearch ||
+      parsedFilters?.search_text?.[0],
   };
   let { path, title } = getTitleAndTargetofListing({
     filters: parsedFilters,
@@ -70,6 +79,7 @@ async function ProductListConainer({
         isFeatured={isFeatured}
         isFlashDeals={isFlashDeals}
         sort={sort}
+        serverSearch={serverSearch}
         target={path}
         title={title}
       />

@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import "styles/listing-components.css";
-import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
@@ -16,10 +15,11 @@ import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import FilterListingBackButton from "components/Listing/FilterListingBackButton";
-import ListingSortControl from "components/Listing/ListingSortControl";
-import ListingShareControl from "components/Listing/ListingShareControl";
+import ListingBarActions from "components/Server/ListingBarActions";
 import ListingHeaderCollapse from "components/Listing/ListingHeaderCollapse";
 import BoutiqueMiniLogo from "components/Listing/BoutiqueMiniLogo";
+import ListingBarOptions from "components/Listing/ListingBarOptions";
+import BoutiqueLogoCollapse from "components/Listing/BoutiqueLogoCollapse";
 import ListingSkeleton from "components/skeleton/listing";
 import BoutiqueSlidersSkeleton from "components/skeleton/loaders/BoutiqueSlidersSkeleton";
 
@@ -97,17 +97,23 @@ async function getCurrencyForListing(country: string, language: string) {
 interface FiltersPageContentProps {
   params: { lang: string; filters?: string[] };
   sort?: string;
+  search?: string;
 }
 
 export default async function FiltersPageContent({
   params,
   sort,
+  search,
 }: FiltersPageContentProps) {
   const Params = params;
   try {
     let parsedFilters = parseFiltersFromParams(Params.filters || []);
     const [country, language] = Params.lang.split("-");
     const boutiqueItem = parsedFilters?.boutiques?.[0] || null;
+    const effectiveSearch =
+      (typeof search === "string" && search.length > 0
+        ? search
+        : parsedFilters?.search_text?.[0]) ?? "";
 
     if (parsedFilters.prices) {
       parsedFilters = {
@@ -138,7 +144,7 @@ export default async function FiltersPageContent({
     // discarded modal copy leaks its unused PIT. The key covers everything that
     // makes the query unique so the two identical renders share one execution.
     const filtersDataPromise = dedupeRequest(
-      `listing:${country}:${language}:${sort ?? ""}:${parsedUserId ?? ""}:${JSON.stringify(parsedFilters)}`,
+      `listing:${country}:${language}:${sort ?? ""}:${effectiveSearch}:${parsedUserId ?? ""}:${JSON.stringify(parsedFilters)}`,
       () =>
         getProductsAndFiltersFromElastic({
           country,
@@ -147,7 +153,7 @@ export default async function FiltersPageContent({
             ...parsedFilters,
             featured: false,
             flashdeal: false,
-            search_text: parsedFilters.search_text?.[0],
+            search_text: effectiveSearch || undefined,
           },
           limit: 10,
           userId: parsedUserId,
@@ -173,6 +179,7 @@ export default async function FiltersPageContent({
             country={country}
             parsedFilters={parsedFilters}
             filtersPromise={filtersDataPromise}
+            serverSearch={effectiveSearch}
           />
         </Suspense>
         <ListingHeaderCollapse
@@ -190,30 +197,28 @@ export default async function FiltersPageContent({
                 } items-center gap-[8px]`}
               >
                 <FilterListingBackButton lang={Params.lang} isRtl={isRtl} />
-                <Suspense fallback={<></>}>
-                  <BoutiqueMiniLogo boutiquePromise={boutiquePromise} />
-                </Suspense>
+                <BoutiqueLogoCollapse>
+                  <Suspense fallback={<></>}>
+                    <BoutiqueMiniLogo boutiquePromise={boutiquePromise} />
+                  </Suspense>
+                </BoutiqueLogoCollapse>
               </div>
-              <div
-                data-cy="filter_bar_options"
-                className={`filter-bar-options w-[170px] justify-between ${
-                  isRtl ? "flex-row-reverse flex" : "flex-row flex"
-                }  align-center ${
-                  parsedFilters?.search_text?.length > 0 ? "w-full" : ""
-                }`}
-              >
+              <ListingBarOptions serverSearch={effectiveSearch} isRtl={isRtl}>
                 <Suspense fallback={<></>}>
                   <ListingSearchContainer
                     country={country}
                     language={language}
                     filtersPromise={filtersDataPromise}
                     parsedFilters={parsedFilters}
+                    serverSearch={effectiveSearch}
                   />
                 </Suspense>
-                <ListingSortControl language={language} isRtl={isRtl} />
-                <FilterBoutiquePageButton key="filter-button" />
-                <ListingShareControl language={language} isRtl={isRtl} />
-              </div>
+                <ListingBarActions
+                  filtersPromise={filtersDataPromise}
+                  language={language}
+                  isRtl={isRtl}
+                />
+              </ListingBarOptions>
             </div>
           }
           banner={
@@ -239,6 +244,7 @@ export default async function FiltersPageContent({
                 currencyPromise={currencyPromise}
                 Params={Params}
                 parsedFilters={parsedFilters}
+                serverSearch={effectiveSearch}
               />
             </Suspense>
           }
@@ -257,6 +263,7 @@ export default async function FiltersPageContent({
                 parsedFilters={parsedFilters}
                 language={language}
                 sort={sort}
+                serverSearch={effectiveSearch}
               />
             </Suspense>
           }

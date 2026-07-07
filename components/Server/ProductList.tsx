@@ -68,10 +68,15 @@ function ProductListServer({
   title,
   recomended_offset = null,
   sort = undefined,
+  serverSearch = "",
 }) {
   let [country, language] = params.lang.split("-");
   const isRtl = language === "ar" || language === "ku";
   const translate = (key: string) => translateFunction(key, language);
+  const hasResults = !!products && products.length > 0;
+  // >1 gate for sort/filter (page-1 length is an accurate proxy: a page short of
+  // the 10-item limit is the whole result set, so length>1 ⇔ total>1).
+  const hasMultipleResults = !!products && products.length > 1;
 
   if (!products || products.length === 0) {
     const clearHref = getClearFiltersHref({
@@ -116,6 +121,9 @@ function ProductListServer({
       >
         <SortableGrid
           serverSort={sort ?? ""}
+          serverSearch={serverSearch}
+          serverHasResults={hasResults}
+          serverHasMultipleResults={hasMultipleResults}
           currency={currency}
           boutiqueName={boutique?.name}
           parsedFilters={{

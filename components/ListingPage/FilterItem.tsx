@@ -4,6 +4,7 @@ import NextLink from "components/global/NextLink";
 import React from "react";
 
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import {
   getConfiguredImage,
   RoundPrice,
@@ -26,6 +27,10 @@ const FilterItem = ({
   baseUrlOfFiltersPage,
   isRtl = false,
 }: FilterItemProps) => {
+  // Live query string (?search=/?sort=) so filter links keep the active search
+  // instead of clearing it when a filter is toggled.
+  const searchParams = useSearchParams();
+  const activeQueryString = searchParams.toString();
   // Helper function to get filter state with proper typing
   const getFilterState = (
     itemValue: string,
@@ -40,6 +45,7 @@ const FilterItem = ({
         parentValue,
         params.lang,
         baseUrlOfFiltersPage,
+        activeQueryString,
       );
     } else {
       // For backward compatibility with searchParams
