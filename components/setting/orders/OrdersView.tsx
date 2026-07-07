@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BackBar from "components/setting/BackBar";
 import OrdersListWrapper from "./OrdersListWrapper";
 import HiddenOrdersWidget from "./HiddenOrdersWidget";
@@ -7,9 +7,10 @@ import OrdersOptionsMenu from "./OrdersOptionsMenu";
 import { translateFunction } from "utils/functions";
 
 // Owns the order-list screen and the in-place swap to the Hidden-Orders view.
-// The swap keeps the same URL (no navigation): the "three dots" on the list's
-// back bar opens a sheet whose single action flips `view` to "hidden"; the
-// Hidden view's back arrow flips it straight back to "list".
+// Opening the Hidden view pushes a `?view=hidden` entry via the History API
+// (no route navigation, so no RSC refetch); the browser back button — and the
+// in-place back arrow, which just calls history.back() — pop that entry and
+// `popstate` flips the view back to the list.
 function OrdersView({
   isRtl,
   language,
@@ -23,6 +24,32 @@ function OrdersView({
 }) {
   const [view, setView] = useState<"list" | "hidden">("list");
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Keep the view in sync with the `?view=hidden` search key so the browser
+  // back button returns to the list. Runs on mount (covers a reload while the
+  // Hidden view is open) and on every history pop.
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      setView(params.get("view") === "hidden" ? "hidden" : "list");
+    };
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, []);
+
+  const openHidden = () => {
+    setMenuOpen(false);
+    setView("hidden");
+    window.history.pushState(
+      { hiddenOrders: true },
+      "",
+      `${window.location.pathname}?view=hidden`,
+    );
+  };
+
+  // Pop the pushed entry; `popstate` resets both the view and the URL.
+  const closeHidden = () => window.history.back();
 
   return (
     <div
@@ -44,9 +71,9 @@ function OrdersView({
           DataCy="hidden-orders-screen"
           name={translateFunction("Hidden Orders", language)}
           Icon={"/icons/EyeIcon.svg"}
-          // Intercept back: return to the list view in place instead of routing.
+          // Intercept back: pop the `?view=hidden` entry instead of routing.
           onBackIntercept={() => {
-            setView("list");
+            closeHidden();
             return true;
           }}
         />
@@ -68,10 +95,7 @@ function OrdersView({
           isRtl={isRtl}
           language={language}
           close={() => setMenuOpen(false)}
-          onOpenHidden={() => {
-            setMenuOpen(false);
-            setView("hidden");
-          }}
+          onOpenHidden={openHidden}
         />
       )}
     </div>

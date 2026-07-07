@@ -9,9 +9,6 @@ import { LogError, translateFunction } from "utils/functions";
 import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import { OrderInterface } from "utils/types/OrderInterface";
 
-// One-shot key so the intro banner is suggested once, then stays dismissed.
-const INFO_DISMISSED_KEY = "trydos_hidden_orders_info_dismissed";
-
 // Collapses the flat getHiddenOrders list into one card per order group:
 //   • pack_ids       — every constituent pack (needed to restore a whole group);
 //   • is_fully_hidden — true only when every pack in the group is itself hidden
@@ -46,7 +43,6 @@ const groupHiddenOrders = (orders: OrderInterface[]): HiddenOrderCard[] => {
 function HiddenOrdersWidget({ isRtl }: { isRtl: boolean }) {
   const [loading, setLoading] = useState(true);
   const [cards, setCards] = useState<HiddenOrderCard[]>([]);
-  const [showInfo, setShowInfo] = useState(false);
 
   const load = async () => {
     try {
@@ -68,29 +64,17 @@ function HiddenOrdersWidget({ isRtl }: { isRtl: boolean }) {
   useEffect(() => {
     trackOrderMgmt(ORDER_MGMT_EVENTS.HIDDEN_ORDERS_OPENED);
     load();
-    try {
-      setShowInfo(localStorage.getItem(INFO_DISMISSED_KEY) !== "1");
-    } catch {
-      setShowInfo(true);
-    }
   }, []);
-
-  const dismissInfo = () => {
-    setShowInfo(false);
-    try {
-      localStorage.setItem(INFO_DISMISSED_KEY, "1");
-    } catch {}
-  };
 
   return (
     <div className="flex flex-col h-full w-full">
-      {showInfo && (
-        <div className="px-4 mt-4 w-full">
-          <div
-            className="bg-[#F8F8F8] min-h-[50px] flex-row items-center pl-[16px] pr-[12px] py-[10px] rounded-[12px]"
-            style={{ border: "1px solid rgb(211 211 211 / 51%)" }}
-            data-cy="hidden-orders-info"
-          >
+      {/* Persistent intro banner — always shown, no dismiss control. */}
+      <div className="px-4 mt-4 w-full">
+        <div
+          className="bg-[#F8F8F8] min-h-[50px] flex-row items-center pl-[16px] pr-[12px] py-[10px] rounded-[12px]"
+          style={{ border: "1px solid rgb(211 211 211 / 51%)" }}
+          data-cy="hidden-orders-info"
+        >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -119,24 +103,12 @@ function HiddenOrdersWidget({ isRtl }: { isRtl: boolean }) {
                 isRtl ? "mr-[8px] text-right" : "ml-[8px]"
               }`}
             >
-              {translateFunction(
-                "These are orders and products you hid from your history. Tap the eye to restore any of them back to your list.",
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={dismissInfo}
-              aria-label="Dismiss"
-              data-cy="hidden-orders-info-dismiss"
-              className={`text-[#8D8D8D] text-[16px] leading-none px-[6px] shrink-0 ${
-                isRtl ? "mr-[4px]" : "ml-[4px]"
-              }`}
-            >
-              ✕
-            </button>
+            {translateFunction(
+              "These are orders and products you hid from your history. Tap the eye to restore any of them back to your list.",
+            )}
           </div>
         </div>
-      )}
+      </div>
 
       <div className="flex-1 overflow-y-auto max-h-full px-3 mt-2 w-full pb-[40px]">
         {loading ? (
