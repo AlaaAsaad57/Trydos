@@ -86,6 +86,11 @@ export default function SearchBoutiquePage({
         return;
       }
       const qs = params.toString();
+      // Spinner reflects the actual request being dispatched (not each keystroke):
+      // turn it on here, right before the refetch fires. Cleared when results land
+      // (ProductInfiniteScroll finally, incl. 0-results) or when SortableGrid falls
+      // back to the server grid.
+      setListingSearchLoading(true);
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     },
     [router, pathname, searchParams, setListingSearchLoading],
@@ -105,7 +110,8 @@ export default function SearchBoutiquePage({
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = e.target.value;
     setValue(next);
-    setListingSearchLoading(true); // spinner from first keystroke until results land
+    // Spinner is driven by the request (see commit), not by typing — otherwise it
+    // shows during the whole debounce window before anything is actually called.
     scheduleCommit(next);
   };
 
@@ -195,7 +201,7 @@ export default function SearchBoutiquePage({
     const full = value + ghostSuffix;
     setValue(full);
     setSuggestion("");
-    setListingSearchLoading(true);
+    // Spinner is driven by the request (see commit), not by accepting a suggestion.
     scheduleCommit(full);
     requestAnimationFrame(() => {
       const input = inputElRef.current;
