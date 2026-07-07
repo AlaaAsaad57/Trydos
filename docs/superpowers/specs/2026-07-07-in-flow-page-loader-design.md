@@ -164,11 +164,21 @@ calls inside migrated loaders can be dropped.
 - **Search focused + typing** — safe by the Tier-1/Tier-2 split (§3). No `isNavigating` is set, so
   no hide; the input stays mounted and focused with only the in-grid skeleton + in-input spinner.
 - **Stuck loader / missing clearer** — with children hidden, a destination lacking a clearer would
-  hang (same failure mode as today's stuck overlay, no worse). **Safety-net:** a layout-level effect
-  watches `usePathname()`; when the path changes, after the new page has committed and painted, if
-  `isNavigating` is *still* set it clears it. This is a **fallback with a short delay**, not an
-  immediate clear — the per-destination clears remain the precise, data-ready swap in the normal
-  case; the safety-net only guarantees no permanent hang.
+  leave the page blank. **Safety-net:** a layout-level effect watches **`isNavigating` itself** —
+  whenever the flag becomes truthy it arms a 2500 ms grace timeout, and if the destination has not
+  cleared it by then it force-clears it. The per-destination clears remain the precise, data-ready
+  swap in the normal case (the timeout is cancelled); the safety-net only guarantees no permanent
+  blank.
+  - **Why watch the flag, not `usePathname()` (review finding):** some navigations that set
+    `isNavigating` change **only the query string** — home category switch (`?mainCategory=`, set by
+    `CategoryNavMobile`, flag `is_home`) and listing sort (`?sort=`, `ListingSortControl`, flag
+    `is_filter`). With `staleTimes.dynamic: 30` the destination RSC can be served from the Router
+    Cache **without a remount**, so the destination's own clearer never runs *and* the pathname never
+    changes. A pathname-only safety-net would miss these and leave a blank page (worse than the old
+    overlay, which left the page visible underneath). Watching the flag covers pathname navs,
+    query-only navs, and any future setter uniformly. Trade-off: a legitimately slow first page
+    (> 2500 ms) is revealed by the safety-net before its data lands — acceptable, since it reveals the
+    page's own in-grid loading state rather than hanging.
 - **Transformed ancestor** — resolved by being in-flow (no `fixed` to re-anchor).
 - **RTL** — no directional positioning remains, so RTL needs no special handling.
 - **Overlay + navigation interplay** — when an intercepted-route overlay is active
