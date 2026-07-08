@@ -423,26 +423,48 @@ function LogInPins({
               )}
             </span>
             {!expired ? (
-              <span className={`blue-text`} id="text-wrap-element">
-                <Timer
-                  minutes={1}
-                  onFinish={() => {
-                    // Sendevent({
-                    //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-                    //   value:
-                    //     GA_PROGRAMMING_EVENT_VALUES.TIMER_HAS_EXPIRED_EVENT,
-                    // });
-                    GAevent({
-                      action: GA_EVENT_NAMES.TIMER_EXPIRED,
-                      params: {
-                        method: MessageMethod === "WA" ? "whatsapp" : "sms",
-                        mission_name: operation,
-                      },
-                    });
-                    setDisabled(true);
-                  }}
-                />
-              </span>
+              <>
+                <span className={`blue-text`} id="text-wrap-element">
+                  <Timer
+                    minutes={1}
+                    onFinish={() => {
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                      //   value:
+                      //     GA_PROGRAMMING_EVENT_VALUES.TIMER_HAS_EXPIRED_EVENT,
+                      // });
+                      GAevent({
+                        action: GA_EVENT_NAMES.TIMER_EXPIRED,
+                        params: {
+                          method: MessageMethod === "WA" ? "whatsapp" : "sms",
+                          mission_name: operation,
+                        },
+                      });
+                      setDisabled(true);
+                    }}
+                  />
+                </span>
+                {/* While the verify request is in flight (outcome not yet
+                    known) show a subtle spinner beside the timer to signal
+                    pending — matches the pins' fade window and disappears the
+                    moment success/failure resolves. */}
+                {loadingPin && !successLogin && !failedLogin && (
+                  <span
+                    aria-hidden="true"
+                    className="animate-spin"
+                    style={{
+                      display: "inline-block",
+                      width: 12,
+                      height: 12,
+                      border: "2px solid #4d84ff",
+                      borderBottomColor: "transparent",
+                      borderRadius: "9999px",
+                      marginInlineStart: 6,
+                      verticalAlign: "middle",
+                    }}
+                  />
+                )}
+              </>
             ) : (
               <>
                 <span

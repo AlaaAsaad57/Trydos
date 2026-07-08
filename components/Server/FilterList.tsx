@@ -643,6 +643,7 @@ const ActiveFiltersBar = ({
                     {RoundPrice({
                       num: activeFilters?.prices?.[1],
                       rate: currency?.exchange_rate,
+                      points: currency?.decimal_digits,
                       language: language,
                     })}
                   </span>

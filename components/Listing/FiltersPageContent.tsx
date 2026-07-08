@@ -118,9 +118,15 @@ export default async function FiltersPageContent({
     if (parsedFilters.prices) {
       parsedFilters = {
         ...parsedFilters,
-        prices: parsedFilters.prices?.map((s) =>
-          s.split("-").map((d) => Number(d)),
-        )?.[0],
+        // Price cards encode the range as one dash token ("min-max"), but once a
+        // numeric [min,max] array round-trips through buildParamsFromFilters (any
+        // other filter click) it re-encodes comma-joined ("min,max") and re-parses
+        // into two elements. Accept BOTH delimiters and keep every bound so the
+        // range never collapses to [min,min] → empty results.
+        prices: parsedFilters.prices
+          .flatMap((s) => String(s).split("-"))
+          .map((d) => Number(d))
+          .filter((d) => !isNaN(d)),
       };
     }
 
