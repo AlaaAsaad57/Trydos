@@ -74,7 +74,9 @@ export async function GET(req: NextRequest) {
       filters_offset: Number(searchParams.get("filters_offset") || 1),
       country,
       language_code: language,
-      user_id: userId,
+      // Engine destructures `userId` (see getProductsAndFiltersFromElastic);
+      // key must match or the uid never reaches search-term logging.
+      userId: userId,
       recommended_offset: Number(searchParams.get("recommended_offset") || 0),
       // Mobile parity: same `?sort=` keys as web; undefined ⇒ relevance default.
       sort: searchParams.get("sort") || undefined,

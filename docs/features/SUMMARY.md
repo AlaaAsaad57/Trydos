@@ -1,7 +1,7 @@
 # Trydos — Feature Summary at a Glance
 
-**Source:** distilled from [`docs/features/README.md`](README.md) (full 199-feature inventory).
-**Last updated:** 2026-07-07 · reflects the `develop` branch.
+**Source:** distilled from [`docs/features/README.md`](README.md) (full 200-feature inventory).
+**Last updated:** 2026-07-08 · reflects the `develop` branch.
 
 Three buckets only: **what's done**, **what's left to do**, **what's a placeholder to fill**.
 

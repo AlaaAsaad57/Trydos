@@ -6,7 +6,7 @@ file under `docs/features/<domain>/` — this index links them together and show
 glance, where each feature stands.
 
 **Audience:** Management / non-technical stakeholders.
-**Last updated:** 2026-07-07
+**Last updated:** 2026-07-08
 **How it was built:** Compiled directly from the current codebase (routes, services, and
 app state) — not from memory — so it reflects what is actually shipped on the `develop` branch.
 **Companion:** a prioritized management status report lives in
@@ -43,7 +43,7 @@ app state) — not from memory — so it reflects what is actually shipped on th
 | G. Notifications | 10 | Push (Firebase) + in-app |
 | H. Seller Dashboard | 14 | Merchant back-office; partial: SL-02 (no post-leave UI reaction), SL-04 (interim, AI redesign planned), SL-06 (boutiques view-only), SL-07 (item-level fulfilment only) |
 | I. Platform & Foundations | 46 | Localization, SEO, analytics, PWA, security |
-| **Total** | **~199** | |
+| **Total** | **200** | |
 
 ### Key things the manager should know up front
 - **Login is phone + OTP only** — no passwords, no email login, no Google/Apple/Facebook login.
@@ -378,7 +378,7 @@ The merchant/seller back-office (per-shop, permission-gated).
 
 | ID | Feature | What it does | Status |
 |----|---------|--------------|:------:|
-| [SL-01](H-seller-dashboard/SL-01-my-shops-shop-picker.md) | My shops / shop picker | The seller's "Your Shops" entry page — lists shops a user can manage (role + permissions) and opens the dashboard. | 🟢 |
+| [SL-01](H-seller-dashboard/SL-01-my-shops-shop-picker.md) | My shops / shop picker | The seller's "Your Shops" entry page — lists shops a user can manage (role + permissions) and opens the dashboard. **Note:** the account-menu seller card's "Sales" banner shows a hardcoded `0` (the permissions API returns no counts); left as-is by decision (2026-07-08). | 🟢 |
 | [SL-02](H-seller-dashboard/SL-02-leave-a-shop.md) | Leave a shop | Remove your own access to a shop. The leave call works, but the screen doesn't react afterwards (no redirect/refresh/confirmation). | 🟡 |
 | [SL-03](H-seller-dashboard/SL-03-product-management.md) | Product management | Browse the shop's products with stock, status and social stats. | 🟢 |
 | [SL-04](H-seller-dashboard/SL-04-product-editing.md) | Product editing | Full edit form for a product (variants, prices, images) — functional today (loads & saves real data), but slated to be replaced by a new AI-driven design that extracts product info from images, so treated as interim. | 🟡 |
