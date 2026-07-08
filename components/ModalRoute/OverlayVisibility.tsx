@@ -43,10 +43,16 @@ export const useOverlayVisibility = () => useContext(OverlayVisibilityContext);
 
 /**
  * Renders the page body (`children` slot). Hidden via React — not imperative DOM
- * mutation — whenever an overlay is showing.
+ * mutation — whenever an intercepted-route overlay is showing (`overlayActive`).
+ *
+ * The in-flow navigation loader is NOT hosted here: it lives in
+ * `NavigationLoaderGate`, one level up, so it can cover both this slot and the
+ * `@modal` overlay slot. Hosting it here made it invisible for any navigation
+ * started from an overlay (where `.main-content` is `display:none`).
  */
 export function MainContent({ children }: { children: ReactNode }) {
   const { overlayActive } = useOverlayVisibility();
+
   return (
     <div
       className="w-full flex-col main-content max-w-[1365px]"

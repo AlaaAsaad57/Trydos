@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import BottomSheet from "components/global/BottomSheet";
-import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import {
   LISTING_SORT_KEYS,
@@ -135,7 +134,6 @@ export default function ListingSortControl({
   language: string;
   isRtl?: boolean;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -163,19 +161,19 @@ export default function ListingSortControl({
     if (key === "relevance") params.delete("sort");
     else params.set("sort", key);
     const qs = params.toString();
-    // Show the full-screen listing skeleton immediately (same as the filter
-    // links). SortableGrid swaps to a fresh grid that clears the loader once its
-    // first page lands; if the sort returns to the server order, SortableGrid
-    // clears it directly (no remount happens).
-    useAppStore.getState().setIsNavigating({ is_filter: true });
-    // Plain push updates the URL (shareable) and the widget's active state.
-    // Refetching the grid is NOT done via router.refresh() here: `staleTimes.
-    // dynamic` (next.config) caches the dynamic RSC and doesn't vary it by search
-    // params, and every push+refresh combination either cancels the push (URL
-    // never changes) or fails to re-render. Instead `SortableGrid` watches the
-    // `sort` param and refetches page 1 through the GetProducts server action
-    // (always fresh — bypasses the Router Cache). See components/Server/SortableGrid.
-    router.push(qs ? `${pathname}?${qs}` : pathname);
+    // Sort is an in-place refetch, not a full navigation: keep the listing chrome
+    // (search + filter bar) and let SortableGrid show the in-grid product-card
+    // skeletons (its `firstPageSkeleton`) until the sorted page lands. So we do
+    // NOT set the full-screen `isNavigating` loader here.
+    //
+    // Update the URL via the History API — NOT router.push. Next's useSearchParams
+    // reflects window.history.pushState synchronously, with no RSC round-trip, so
+    // SortableGrid sees the new `?sort=` INSTANTLY, swaps to a page-1 grid and
+    // paints its skeletons immediately, then fills them via the GetProducts server
+    // action (which bypasses the Router Cache anyway). router.push instead blocked
+    // the whole swap behind a server round-trip to commit the URL, so the skeleton
+    // only appeared as the sorted results were already landing.
+    window.history.pushState(null, "", qs ? `${pathname}?${qs}` : pathname);
   };
 
   // A short, human summary of the current selection for the trigger's a11y label.

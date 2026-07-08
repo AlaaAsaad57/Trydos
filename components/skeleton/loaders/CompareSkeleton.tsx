@@ -2,13 +2,7 @@ import Skeleton from "react-loading-skeleton";
 
 const CompareSkeleton = () => {
   return (
-    <div
-      style={{
-        zIndex: "99999999999999",
-        top: "100px",
-      }}
-      className="fixed bg-[#fafafa] h-screen max-w-[1365px] mx-auto flex justify-center p-5  w-screen overflow-hidden top-[100px]"
-    >
+    <div className="w-full bg-[#fafafa] flex justify-center p-5 overflow-hidden">
       <div className="container mx-auto p-4 max-w-7xl pb-[200px]">
         <div className="flex items-center gap-3 mb-8">
           <Skeleton width={25} height={25} />

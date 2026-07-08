@@ -45,6 +45,8 @@ function GoToSellerDashBoard({ language }: { language: string }) {
   useEffect(() => {
     if (userProfile && userProfile?.phone?.length > 3) {
       getPermission();
+    }else{
+      setLoading(false);
     }
   }, [userProfile]);
   if (!shouldShow) {

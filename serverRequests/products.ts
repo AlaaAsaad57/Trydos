@@ -259,8 +259,23 @@ export async function getProductDataForAddToCart({
         country: country,
       },
     }),
+    // Despite the "likesDetails" path, this endpoint ships the product's
+    // notification (notify-me-when-available) settings — that's why its response
+    // is held in `notificationsSettings` and only `variation` / notify flags are
+    // consumed below. The `is_liked` / `count_of_likes` fields it also returns
+    // are IGNORED here (liked state is resolved elsewhere). Shape:
+    //   data: {
+    //     id,
+    //     variation: [{ id, type, variant_notify_for_user }],
+    //     is_product_notify_for_user,
+    //     is_liked,        // ignored
+    //     count_of_likes,  // ignored
+    //   }
+    // Requires the user token (MARKET-TOKEN → DEVICE-TOKEN) so the notify flags
+    // are resolved per user. Migrated from Laravel to the Go backend.
     fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/likesDetails/${slug}`,
+      // url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/likesDetails/${slug}`,
+      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/likesDetails/${slug}`,
       headers: {
         Authorization: `Bearer ${token}`,
         language: language,
@@ -269,6 +284,22 @@ export async function getProductDataForAddToCart({
       },
     }),
   ]);
+
+  // The notification-settings call runs server-side and fetchServerData swallows
+  // failures into `isError`, so a failure here is otherwise silent and hard to
+  // trace — capture it to Sentry explicitly with the slug/locale context.
+  // (`notificationsSettings` holds the likesDetails/notify response.)
+  if (notificationsSettings?.isError) {
+    LogServerError({
+      scenario: "likesDetails go service failed in getProductDataForAddToCart",
+      slug,
+      language,
+      country,
+      status: notificationsSettings?.status,
+      error: notificationsSettings?.error,
+      url: notificationsSettings?.url,
+    });
+  }
 
   const variants_arr = Array.isArray(pricesData?.data?.data?.variations)
     ? pricesData.data.data.variations

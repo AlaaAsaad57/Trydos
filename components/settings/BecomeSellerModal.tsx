@@ -190,7 +190,8 @@ export default function BecomeSellerModal({ onClose }) {
   // Inline validation messages, keyed by field name (email/phone/password/…).
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { setAddressDetails } = useAppStore();
+  const { setAddressDetails, setShouldAuthinticated, setReAuthResult } =
+    useAppStore();
 
   // If a request was already submitted (persisted locally), show the simple
   // "processing" view instead of the full form.
@@ -403,6 +404,141 @@ export default function BecomeSellerModal({ onClose }) {
     }
   };
 
+  // A 422's detailed_error can carry code "user_id" for two different account
+  // conditions, told apart by the message:
+  //  • "…phone is not verified" → the *account's* phone (not any form field)
+  //    needs verifying; we recover by verifying + resending.
+  //  • "User already exists"    → a request/account already exists; we show the
+  //    already-submitted confirmation instead of an error.
+  const userIdErrorMessage = (res: any): string => {
+    const entry = Array.isArray(res?.detailed_error)
+      ? res.detailed_error.find((e: any) => e?.code === "user_id")
+      : undefined;
+    return entry ? String(entry.message ?? res?.message ?? "") : "";
+  };
+
+  const isPhoneUnverifiedError = (res: any) =>
+    /not\s+verified/i.test(userIdErrorMessage(res));
+
+  const isUserAlreadyExistsError = (res: any) =>
+    /already\s+exists/i.test(userIdErrorMessage(res));
+
+  // Open the global ConfirmMobilePhoneWidget (mounted in NavbarClient, driven by
+  // `shouldAuthinticated`; it verifies the user's own phone from `userProfile`)
+  // and resolve once verified — mirrors fetchData's waitForReAuthSuccess poll.
+  // Resolves false if the widget is cancelled/dismissed or the timeout elapses.
+  const openPhoneVerifyAndWait = (): Promise<boolean> => {
+    setReAuthResult("pending");
+    setShouldAuthinticated(true);
+    return new Promise((resolve) => {
+      const interval = setInterval(() => {
+        const state = useAppStore.getState();
+        if (state.reAuthResult === "success") {
+          clearInterval(interval);
+          resolve(true);
+        } else if (
+          !state.shouldAuthinticated ||
+          state.reAuthResult === "cancelled"
+        ) {
+          clearInterval(interval);
+          resolve(false);
+        }
+      }, 500);
+      setTimeout(() => {
+        clearInterval(interval);
+        resolve(false);
+      }, 300000); // 5-minute safety timeout
+    });
+  };
+
+  // Fire the vendor-request POST and handle the outcome. `allowVerifyRetry`
+  // guards the phone-verification recovery so a still-unverified phone after
+  // re-verifying surfaces the error instead of re-opening the widget forever.
+  const performSubmit = async (allowVerifyRetry = true) => {
+    setLoading(true);
+    try {
+      const res = await fetchData({
+        url: "/shop/vendor-requests",
+        method: "POST",
+        body: JSON.stringify({
+          ...form,
+          latitude: Number(form.latitude),
+          longitude: Number(form.longitude),
+        }),
+        reqTitle: REQUESTS_DATA.VENDOR_REQUEST,
+        server: "market",
+        // We own all messaging (success / errors / the verify prompt), so
+        // suppress fetchData's own toast — otherwise "This user phone is not
+        // verified" would flash alongside the verify widget.
+        noMessage: true,
+      });
+
+      if (res?.success) {
+        try {
+          localStorage.setItem(
+            SELLER_REQUEST_KEY,
+            JSON.stringify({ submittedAt: new Date().toISOString() }),
+          );
+        } catch {
+          // Non-fatal: request still succeeded even if we can't persist locally.
+        }
+        showSuccessNotification(t("Request submitted successfully"));
+        setAlreadySubmitted(true);
+        return;
+      }
+
+      // user_id + "User already exists": a request/account already exists →
+      // show the already-submitted confirmation rather than an error.
+      if (isUserAlreadyExistsError(res)) {
+        try {
+          localStorage.setItem(
+            SELLER_REQUEST_KEY,
+            JSON.stringify({ submittedAt: new Date().toISOString() }),
+          );
+        } catch {
+          // Non-fatal: the confirmation still shows even if we can't persist.
+        }
+        setAlreadySubmitted(true);
+        return;
+      }
+
+      // user_id + "phone is not verified": verify the user's own phone, then
+      // resend automatically once verified (no further verify retry → no loop).
+      if (allowVerifyRetry && isPhoneUnverifiedError(res)) {
+        showErrorNotification(t("Please verify your phone number to continue"));
+        const verified = await openPhoneVerifyAndWait();
+        if (verified) await performSubmit(false);
+        return;
+      }
+
+      // Any other failure → surface the backend detail(s).
+      if (Array.isArray(res?.detailed_error) && res.detailed_error.length) {
+        res.detailed_error.forEach((err: any) =>
+          showErrorNotification(err?.message || err),
+        );
+      } else if (res?.message) {
+        showErrorNotification(res.message);
+      } else {
+        showErrorNotification(t("Something went wrong"));
+      }
+    } catch (e: any) {
+      const err = e || {};
+      if (err?.detailed_error && Array.isArray(err.detailed_error)) {
+        err.detailed_error.forEach((d: any) =>
+          showErrorNotification(d?.message || d),
+        );
+      } else if (err?.response?.data?.message) {
+        showErrorNotification(err.response.data.message);
+      } else if (err?.message) {
+        showErrorNotification(err.message);
+      } else {
+        showErrorNotification(t("Something went wrong"));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const submit = async () => {
     // Every field is validated inline (no toasts): personal, credential, shop
     // and location fields all run through fieldError().
@@ -440,60 +576,7 @@ export default function BecomeSellerModal({ onClose }) {
     //   return;
     // }
 
-    setLoading(true);
-    try {
-      const res = await fetchData({
-        url: "/shop/vendor-requests",
-        method: "POST",
-        body: JSON.stringify({
-          ...form,
-          latitude: Number(form.latitude),
-          longitude: Number(form.longitude),
-        }),
-        reqTitle: REQUESTS_DATA.VENDOR_REQUEST,
-        server: "market",
-      });
-
-      if (!res || !res.success) {
-        // If validation details provided by backend, show them
-        if (res?.detailed_error && Array.isArray(res.detailed_error)) {
-          res.detailed_error.forEach((err) => {
-            showErrorNotification(err?.message || err);
-          });
-        } else if (res?.message) {
-          showErrorNotification(res.message);
-        } else {
-          showErrorNotification(t("Something went wrong"));
-        }
-      } else {
-        try {
-          localStorage.setItem(
-            SELLER_REQUEST_KEY,
-            JSON.stringify({ submittedAt: new Date().toISOString() }),
-          );
-        } catch {
-          // Non-fatal: request still succeeded even if we can't persist locally.
-        }
-        showSuccessNotification(t("Request submitted successfully"));
-        setAlreadySubmitted(true);
-      }
-    } catch (e) {
-      const err = e || {};
-      // If backend returned validation errors in thrown error
-      if (err?.detailed_error && Array.isArray(err.detailed_error)) {
-        err.detailed_error.forEach((d) =>
-          showErrorNotification(d?.message || d),
-        );
-      } else if (err?.response?.data?.message) {
-        showErrorNotification(err.response.data.message);
-      } else if (err?.message) {
-        showErrorNotification(err.message);
-      } else {
-        showErrorNotification(t("Something went wrong"));
-      }
-    } finally {
-      setLoading(false);
-    }
+    await performSubmit();
   };
 
   // Already-submitted view: a small confirmation that the request is being

@@ -442,6 +442,9 @@ const translations = {
     "لا يمكنك إرسال رسائل أو مكالمات لهذا المستخدم",
   "Please Verify Your Phone Number And Try Again":
     "الرجاء تاكيد رقم الهاتف والمحاولة مجددا",
+  "Please verify your phone number to continue":
+    "الرجاء تاكيد رقم هاتفك للمتابعة",
+  "Close": "إغلاق",
   "Modify Order": "تعديل الطلب",
   "Please select a reason for canceling this order":
     "الرجاء اختيار سبب لالغاء الطلب",

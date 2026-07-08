@@ -165,7 +165,7 @@ function UserNavTopSection({
   };
   return (
     <div
-      className={`${enable_search && "hidden"} user-nav-container`}
+      className={`user-nav-container`}
       data-cy="Nav_CartIcon_LogIn"
     >
       <div

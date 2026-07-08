@@ -164,11 +164,24 @@ calls inside migrated loaders can be dropped.
 - **Search focused + typing** — safe by the Tier-1/Tier-2 split (§3). No `isNavigating` is set, so
   no hide; the input stays mounted and focused with only the in-grid skeleton + in-input spinner.
 - **Stuck loader / missing clearer** — with children hidden, a destination lacking a clearer would
-  hang (same failure mode as today's stuck overlay, no worse). **Safety-net:** a layout-level effect
-  watches `usePathname()`; when the path changes, after the new page has committed and painted, if
-  `isNavigating` is *still* set it clears it. This is a **fallback with a short delay**, not an
-  immediate clear — the per-destination clears remain the precise, data-ready swap in the normal
-  case; the safety-net only guarantees no permanent hang.
+  leave the page blank. **Safety-net:** a layout-level effect (inside a `<Suspense>` boundary,
+  required by `useSearchParams`) watches the **full URL** (`pathname` + `searchParams`). When the URL
+  changes — i.e. once the destination route has **committed** — it arms an 800 ms grace timeout and
+  force-clears `isNavigating` if the destination's own clearer did not. The per-destination clears
+  remain the precise, data-ready swap in the normal case (the timeout is a no-op); the safety-net
+  only guarantees no permanent blank.
+  - **Why URL-watch, not a timer from nav-start (settings home-flash):** an earlier version armed a
+    fixed timer when `isNavigating` was *set* (nav-start). On a slow navigation (cold route / slow
+    network) it fired **before** the destination committed and revealed the still-mounted origin page
+    — the observed "settings loader → home reappears → then settings" flash. The URL only changes once
+    the route commits, so arming on URL change can never fire mid-navigation.
+  - **Why `searchParams`, not just `pathname`:** some navigations that set `isNavigating` change
+    **only the query string** — home category switch (`?mainCategory=`, `CategoryNavMobile`, `is_home`)
+    and listing sort (`?sort=`, `ListingSortControl`, `is_filter`). With `staleTimes.dynamic: 30` the
+    destination RSC can be served from the Router Cache **without a remount**, so the destination's own
+    clearer never runs. Watching `searchParams` catches these; a `pathname`-only net would leave them
+    blank. For query-only navs origin == destination (same page), so an early reveal is benign, not a
+    wrong-page flash.
 - **Transformed ancestor** — resolved by being in-flow (no `fixed` to re-anchor).
 - **RTL** — no directional positioning remains, so RTL needs no special handling.
 - **Overlay + navigation interplay** — when an intercepted-route overlay is active

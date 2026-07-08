@@ -9,7 +9,7 @@ import CartProvider from "components/Cart/CartProvider";
 import Init from "components/Home/Init";
 import AuthNavContainer from "components/Home/AuthNavContainer";
 import NavbarClient from "components/Home/NavbarClient";
-import PageLoadingIndicator from "hooks/PageLoadingIndicator";
+import NavigationLoaderSafetyNet from "components/global/NavigationLoaderSafetyNet";
 import Organaization from "serverRequests/meta/StructuredData/Organaization";
 import Website from "serverRequests/meta/StructuredData/Website";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
@@ -20,6 +20,7 @@ import {
   OverlayVisibilityProvider,
   MainContent,
 } from "components/ModalRoute/OverlayVisibility";
+import NavigationLoaderGate from "components/global/NavigationLoaderGate";
 // Non-critical, render-null / post-hydration client components — code-split and
 // loaded after hydration (ssr:false) to trim main-thread hydration cost.
 import DeferredLayoutClients from "components/global/DeferredLayoutClients";
@@ -146,8 +147,10 @@ export default async function RootLayout({ params, children, modal }) {
             <AuthNavContainer />
           </div>
           <OverlayVisibilityProvider>
-            <MainContent>{children}</MainContent>
-            <ModalSlot>{modal}</ModalSlot>
+            <NavigationLoaderGate>
+              <MainContent>{children}</MainContent>
+              <ModalSlot>{modal}</ModalSlot>
+            </NavigationLoaderGate>
           </OverlayVisibilityProvider>
         </div>
         <Init />
@@ -155,7 +158,7 @@ export default async function RootLayout({ params, children, modal }) {
         <NavbarClient />
         <CartProvider language={language} country={country} />
         <PathTracker />
-        <PageLoadingIndicator />
+        <NavigationLoaderSafetyNet />
         <DeferredLayoutClients />
         <svg className="opacity-0 absolute" width={0} height={0}>
           <defs>

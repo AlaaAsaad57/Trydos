@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAppStore } from "store";
 import ProductsInfiniteScroll from "components/ListingPage/ProductInfiniteScroll";
+import { ProductCardSkeleton } from "components/skeleton/listing";
 
 /**
  * SortableGrid — the client controller for the URL params that re-page the grid
@@ -50,6 +51,13 @@ export default function SortableGrid({
   const sortParam = searchParams.get("sort") || "";
   const searchParam = searchParams.get("search") || "";
 
+  // A filter re-navigation is pending (a filter chip/circle was tapped). Until the
+  // new listing commits, keep the listing chrome (FilterList dims it) and swap just
+  // this grid to product-card skeletons — the in-place "dim filters + skeleton grid"
+  // behaviour. The pending flag is cleared by the destination's own clearer on
+  // arrival (ProductsInfiniteScroll / PageLoaderReset mount).
+  const isFilterPending = useAppStore((s) => !!s.isNavigating?.is_filter);
+
   const isSearchDifferent = searchParam !== serverSearch;
   const isSortDifferent = sortParam !== serverSort;
   const showingServerGrid = !isSortDifferent && !isSearchDifferent;
@@ -67,6 +75,18 @@ export default function SortableGrid({
         .setSearchHasMultipleResults(serverHasMultipleResults);
     }
   }, [showingServerGrid, serverHasResults, serverHasMultipleResults]);
+
+  // Filter re-nav in flight: show first-page product-card skeletons in place of the
+  // grid (the chrome above stays, dimmed by FilterList) until the new listing lands.
+  if (isFilterPending) {
+    return (
+      <>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <ProductCardSkeleton key={`filter-skeleton-${i}`} />
+        ))}
+      </>
+    );
+  }
 
   if (showingServerGrid) return <>{children}</>;
 

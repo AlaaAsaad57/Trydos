@@ -71,6 +71,7 @@ function OrdersView({
           DataCy="hidden-orders-screen"
           name={translateFunction("Hidden Orders", language)}
           Icon={"/icons/EyeIcon.svg"}
+           preivous_page={`/${local}/settings/orders`}
           // Intercept back: pop the `?view=hidden` entry instead of routing.
           onBackIntercept={() => {
             closeHidden();

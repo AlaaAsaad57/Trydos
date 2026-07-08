@@ -396,6 +396,9 @@ const translations = {
     "تکایە سەیری سەڵەرەکەت بکە؛ هەندێک بەرهەم بەردەست نییە",
   "Please Verify Your Phone Number And Try Again":
     "تکایە ژمارەی مۆبایڵەکەت دڵنیا بکە و دووبارە هەوڵ بده",
+  "Please verify your phone number to continue":
+    "تکایە ژمارەی مۆبایڵەکەت دڵنیا بکە بۆ بەردەوامبوون",
+  "Close": "داخستن",
   "Modify Order": "دەستکاری داواکاری",
   "Please select a reason for canceling this order":
     "تکایە هۆکاری ڕەتکردنی ئەم داواکاریە هەڵبژێرە",

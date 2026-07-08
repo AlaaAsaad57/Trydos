@@ -90,24 +90,54 @@ export async function GET(request: NextRequest) {
 
     // 2. Primary OTP Verification (Critical Path)
     const otpUrl = `${
-      process.env.NEXT_PUBLIC_BACKEND_URL
+      // process.env.NEXT_PUBLIC_BACKEND_URL
+      process.env.NEXT_PUBLIC_GO_BACKEND_URL
     }${VERIFY_OTP_ENDPOINT}?verificationId=${verificationId}&otp=${otp}${
       name ? `&name=${name}` : ""
     }`;
-    const otpRes = await fetch(otpUrl, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${guest_token}`,
-        country,
-        language,
-      },
-      method: "POST",
-      body: JSON.stringify({ verificationId, otp, name }), // Send data in body for better security and consistency
-    });
+    let otpRes: Response;
+    let otp_response: any;
+    try {
+      otpRes = await fetch(otpUrl, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${guest_token}`,
+          country,
+          language,
+        },
+        method: "POST",
+        body: JSON.stringify({ verificationId, otp, name }), // Send data in body for better security and consistency
+      });
 
-    const otp_response = await otpRes.json();
+      otp_response = await otpRes.json();
+    } catch (error) {
+      // Transport/parse failure reaching the Go verify_otp_from_guest service.
+      // This is server-side and otherwise very hard to trace, so capture it to
+      // Sentry explicitly with the request context before falling through to the
+      // outer handler (which returns the generic 500).
+      await LogServerError(
+        {
+          scenario: "verify_otp_from_guest go service request failed",
+          error,
+          verificationId,
+          country,
+          language,
+        },
+        "/api/auth/login",
+      );
+      throw error;
+    }
+
     if (!otpRes.ok) {
-      LogServerError({ error: otp_response, type: "verify login api route" });
+      LogServerError(
+        {
+          scenario: "verify_otp_from_guest go service returned non-OK",
+          error: otp_response,
+          status: otpRes.status,
+          verificationId,
+        },
+        "/api/auth/login",
+      );
       return NextResponse.json(otp_response, { status: otpRes.status });
     }
 
