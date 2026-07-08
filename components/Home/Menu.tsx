@@ -17,9 +17,6 @@ import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
 
 const OtpStatsModal = dynamic(() => import("./OtpStatsModal"), { ssr: false });
-const AiRateLimitsModal = dynamic(() => import("./AiRateLimitsModal"), {
-  ssr: false,
-});
 import auth from "services/auth";
 import { COOKIE_NAMES, deleteCookie } from "utils/cookies/cookie-manager";
 import { clearAllUserData } from "utils/tinyUtils";
@@ -107,7 +104,6 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWishList, setShowWishList] = useState(false);
   const [showOtpStats, setShowOtpStats] = useState(false);
-  const [showAiLimits, setShowAiLimits] = useState(false);
   const { lang } = useParams();
   const [loading, setLoading] = useState(false);
 
@@ -421,34 +417,6 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
           >
             {translateFunction("Show OTP Statics")}
           </MenuItem>
-
-          {/* ---- Debug only ---- */}
-          <div
-            style={{
-              margin: "6px 15px 2px",
-              paddingTop: 6,
-              borderTop: "1px solid #eee",
-              fontSize: 10,
-              letterSpacing: 0.5,
-              textTransform: "uppercase",
-              color: "#aaa",
-            }}
-          >
-            Debug
-          </div>
-          <MenuItem
-            dataCy="show-ai-rate-limits"
-            icon={
-              <MenuIcon isRtl={isRtl}>
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-              </MenuIcon>
-            }
-            onClick={() => {
-              setShowAiLimits(true);
-            }}
-          >
-            {translateFunction("Show AI Rate Limits")}
-          </MenuItem>
         </>
         {shouldShowLogout() && (
           <MenuItem
@@ -526,10 +494,6 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
 
       {showOtpStats && (
         <OtpStatsModal onClose={() => setShowOtpStats(false)} />
-      )}
-
-      {showAiLimits && (
-        <AiRateLimitsModal onClose={() => setShowAiLimits(false)} />
       )}
     </>
   );

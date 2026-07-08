@@ -386,49 +386,6 @@ export type OtpStats = {
   cooldown: { key: string; ttl: number };
 };
 
-// ---------------------------------------------------------------------------
-// AI search-analyzer rate-limit snapshot (Cerebras)
-// ---------------------------------------------------------------------------
-// The Cerebras analyzer writes the last-seen x-ratelimit-* headers here after
-// every call; the "Show AI Rate Limits" debug modal reads them. Cerebras limits
-// are ORG-LEVEL, so a single latest snapshot is the correct shared view. Kept
-// for a day so a tester still sees the last state even when traffic is idle.
-const AI_RATE_LIMITS_KEY = "ai:cerebras:ratelimit";
-const AI_RATE_LIMITS_TTL = 86400;
-
-export type AiRateLimitsSnapshot = {
-  provider: string;
-  model: string;
-  status: number;
-  ok: boolean;
-  updatedAt: string;
-  headers: Record<string, string>;
-};
-
-export async function setAiRateLimits(
-  snapshot: AiRateLimitsSnapshot,
-): Promise<void> {
-  await RedisSet(AI_RATE_LIMITS_KEY, snapshot, AI_RATE_LIMITS_TTL);
-}
-
-// Returns whether Redis is reachable plus the last snapshot (null if none yet),
-// so the debug modal can distinguish "no calls yet" from "Redis is down".
-export async function getAiRateLimits(): Promise<{
-  redis: boolean;
-  snapshot: AiRateLimitsSnapshot | null;
-}> {
-  if (!redis) return { redis: false, snapshot: null };
-  try {
-    const snapshot = (await RedisGet(
-      AI_RATE_LIMITS_KEY,
-    )) as AiRateLimitsSnapshot | null;
-    return { redis: true, snapshot };
-  } catch (error) {
-    LogServerError({ error, type: "redis getAiRateLimits failed" }, "/");
-    return { redis: true, snapshot: null };
-  }
-}
-
 export async function getOtpStats(sid: string, ip: string): Promise<OtpStats> {
   const limits = {
     sessionMax: Number(process.env.OTP_SESSION_MAX ?? 2),
