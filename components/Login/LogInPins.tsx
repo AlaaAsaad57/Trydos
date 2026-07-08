@@ -3,7 +3,6 @@ import { translateFunction } from "utils/functions";
 import Timer from "./Timer";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { useParams } from "next/navigation";
-import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
@@ -498,16 +497,26 @@ function LogInPins({
       <div
         data-testid="pin-inputs-container"
         className="pin-inputs-container w-full"
-        style={{ marginTop: "0px" }}
+        style={{
+          marginTop: "0px",
+          // While the verify request is in flight we keep the pins on screen
+          // (instead of swapping in a spinner) so the success/failure styling
+          // can show once it resolves; a subtle fade + shrink signals "pending"
+          // and blocks re-entry. Once the outcome is known (success or failure)
+          // we snap back to full opacity so that styling reads clearly, even
+          // though the parent keeps loadingPin true briefly to animate the
+          // transition to the next step.
+          opacity: loadingPin && !successLogin && !failedLogin ? 0.6 : 1,
+          transform:
+            loadingPin && !successLogin && !failedLogin
+              ? "scale(0.97)"
+              : "scale(1)",
+          transition: "opacity .2s ease, transform .2s ease",
+          pointerEvents: loadingPin ? "none" : "auto",
+        }}
       >
-        {loadingPin ? (
-          <div className="flex justify-center items-center w-full">
-            <Spinner />
-          </div>
-        ) : (
-          <>
-            <div className="pin-border-container" style={{ zIndex: "1" }}>
-              {Array(6)
+        <div className="pin-border-container" style={{ zIndex: "1" }}>
+          {Array(6)
                 .fill(1)
                 .map((e, index) => (
                   <div
@@ -583,14 +592,12 @@ function LogInPins({
                 onChange={(value) => {
                   setPin(value);
                 }}
-                disabled={disabled}
+                disabled={disabled || loadingPin}
                 onComplete={(value) => Submit(value)}
                 // onComplete={(value, index) => setPin(value)}
                 autoSelect={true}
               />
             )}
-          </>
-        )}
       </div>
       <input className="opacity-0" disabled />
       {wrongNumber && (
@@ -659,6 +666,9 @@ const PinInputContainer: React.FC<PinInputProps> = ({
     }
 
     if (newVals.every((v) => v !== "")) {
+      // Drop focus once the code is complete so the pending/success styling
+      // reads clearly and the mobile keyboard closes while the API resolves.
+      inputsRef.current[index]?.blur();
       onComplete?.(joined);
     }
   };
