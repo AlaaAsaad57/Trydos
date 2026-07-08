@@ -791,6 +791,8 @@ class HomeService {
   }
 
   async EditNotificationSettings({ url, body }) {
+    // Returns true on success, false on failure so callers can revert
+    // optimistic UI updates when the request doesn't go through.
     try {
       const response = await fetchData({
         url: `/firebase_device_tokens/${url}`,
@@ -802,11 +804,13 @@ class HomeService {
       if (!response.success) {
         throw new Error(response.message);
       }
+      return true;
     } catch (error) {
       LogServerError({
         error: error,
         scenario: "Error In EditNotificationSettings in services/home",
       });
+      return false;
     }
   }
   async LikeComment({ comment_id, target_type, product_id }) {
