@@ -73,7 +73,7 @@ function Profile({ isRtl, language, local, SafeUserProfile }) {
         {!isNotLoggedIn && (
           <button
             type="button"
-            className="pointer-events-auto cursor-pointer border-0 bg-transparent p-0"
+            className="lg:hidden pointer-events-auto cursor-pointer border-0 bg-transparent p-0"
             aria-label={translateFunction("Scan QR to sign in", language)}
             onClick={(e) => {
               e.preventDefault();

@@ -981,7 +981,7 @@ export default function BecomeSellerModal({ onClose }) {
           </button>
           <button
             onClick={submit}
-            disabled={loading || uploadingDoc}
+            disabled={loading || uploadingDoc || form.documents.length === 0}
             className="flex-1 h-[46px] rounded-full bg-[#402CDD] text-[14px] font-semibold text-white hover:bg-[#3422b0] disabled:opacity-60 disabled:cursor-not-allowed flex justify-center items-center focus:outline-hidden focus:ring-2 focus:ring-[#402CDD]/30 transition-colors"
           >
             {loading || uploadingDoc ? <Spinner /> : t("Submit")}

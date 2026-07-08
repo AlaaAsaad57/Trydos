@@ -2,8 +2,6 @@ import ConfirmMobile from "components/Cart/ConfirmMobile";
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
 import { ChatConroller, DisableScroll, EnableScroll } from "utils/tinyUtils";
-import { showSuccessNotification } from "store/notifications/reducer";
-import { translateFunction } from "utils/functions";
 import {
   ORDER_EVENTS,
   resolveVerifyFlowSource,
@@ -35,18 +33,6 @@ function ConfirmMobilePhoneWidget() {
     };
   }, []);
   const userData = useAppStore.getState().userProfile;
-  const copyInitialData = async () => {
-    let last_verify_date = localStorage.getItem("LAST-VERIFY");
-    let last_unauthorized_request = localStorage.getItem(
-      "last_unauthorized_request",
-    );
-    await navigator.clipboard.writeText(
-      JSON.stringify({ last_verify_date, last_unauthorized_request }, null, 2),
-    );
-    showSuccessNotification(
-      translateFunction("copy reason of verification success!"),
-    );
-  };
 
   return (
     <>
@@ -78,7 +64,6 @@ function ConfirmMobilePhoneWidget() {
                   }),
                   credentials: "include",
                 });
-                copyInitialData();
                 window.location.reload();
               }}
               className="flex-row cursor-pointer justify-end items-center p-[10px] z-99999999999 rounded-full  bg-[#0000004d]"
@@ -117,13 +102,6 @@ function ConfirmMobilePhoneWidget() {
                 </g>
               </svg>
             </div>
-
-            <button
-              onClick={copyInitialData}
-              className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded font-medium"
-            >
-              {translateFunction("Copy Data")}
-            </button>
 
             <ConfirmMobile
               closeWindow={() => {

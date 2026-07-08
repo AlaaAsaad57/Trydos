@@ -62,7 +62,17 @@ shoppers never see a populated version of this page.
 
 ## Known gaps / notes
 
-No dedicated gaps found.
+- **"Sales" banner shows a hardcoded `0`.** The seller entry widget in the account/settings
+  menu (`components/settings/GoToSellerDashBoard.tsx`, the dark card with `data-cy="seller-sales"`
+  that links to `/sellerProfile`) renders `{0} Action` under the "Sales" label — the `0` is a
+  literal, not real data. The component only calls `getShopes()` → `GET /shop/auth/permissions`,
+  which returns **no counts** (each shop is just `seller_id` / `shop_name` / `shop_role` /
+  `permissions[]`), so there is no number available to display today. Wiring a real value would
+  require either a new backend count on `/shop/auth/permissions`, or a per-shop
+  `getSellerOrders()` → `data.meta.total` aggregation (one request per shop, since the banner is
+  global and a user can own several shops). The intended metric is also ambiguous — the heading
+  says "Sales" but the value is labelled "Action". **Left as-is by decision (2026-07-08);**
+  documented here rather than patched.
 
 ## Related features
 
