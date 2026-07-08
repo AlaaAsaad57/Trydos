@@ -105,6 +105,7 @@ function NewLoginWidget() {
         },
       });
     }
+    setSuccess(false);
     setTimeout(() => {
       setStepIndicator(0);
     }, 1500);
@@ -186,6 +187,7 @@ function NewLoginWidget() {
   const router = useRouter();
   const loginFunc = async (e) => {
     setAttempts(attempts + 1);
+    setSuccess(false);
     setLoadingPin(true);
     await VerifyOtpHook({
       code: e,
@@ -234,6 +236,7 @@ function NewLoginWidget() {
         }
       },
       successCallback: (exists, name) => {
+        setSuccess(true);
         router.refresh();
         GAevent({
           action: GA_EVENT_NAMES.VERIFY_OTP,

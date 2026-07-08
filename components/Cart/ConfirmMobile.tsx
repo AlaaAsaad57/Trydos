@@ -76,6 +76,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const [loadingPin, setLoadingPin] = useState(false);
   const router = useRouter();
   const loginFunc = async (e) => {
+    setSuccess(false);
     setLoadingPin(true);
     await VerifyOtpHook({
       code: e,
@@ -109,6 +110,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         setLoadingPin(false);
       },
       successCallback: async (exists, name) => {
+        setSuccess(true);
         router.refresh();
         // Sendevent({
         //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,

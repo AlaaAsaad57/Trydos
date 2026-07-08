@@ -512,24 +512,23 @@ function LogInPins({
                 .map((e, index) => (
                   <div
                     key={index}
-                    className={
-                      "pin-border-element" +
-                      " " +
-                      (expired && "input-expired ") +
-                      (Tempuser && user && !forChanging && " input-success ") +
-                      " " +
-                      ((wrongNumber || failedLogin) &&
-                        !Tempuser &&
-                        "input-failed")
-                    }
+                    className={[
+                      "pin-border-element",
+                      expired && "input-expired",
+                      successLogin && !forChanging && "input-success",
+                      (wrongNumber || failedLogin) && "input-failed",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                     style={{
-                      backgroundColor: wrongNumber
-                        ? "#fff5f5"
-                        : Tempuser && !forChanging
-                        ? "#F4FFF4"
-                        : pin[index] || disabled
-                        ? "#f5f5f5"
-                        : "#fafafa",
+                      backgroundColor:
+                        wrongNumber || failedLogin
+                          ? "#fff5f5"
+                          : successLogin && !forChanging
+                          ? "#F4FFF4"
+                          : pin[index] || disabled
+                          ? "#f5f5f5"
+                          : "#fafafa",
                       borderRadius: "15px",
                     }}
                     onClick={() => {
