@@ -102,21 +102,55 @@ interface VerifiedShop {
 }
 
 // ---------------------------------------------------------------------------
-// Identity helper — derive a stable, non-reversible cache/rate-limit key from
-// the caller's auth token. The raw token is never logged or stored.
+// Identity helpers — resolve the caller's raw auth token and derive a stable,
+// non-reversible cache/rate-limit key from it. The raw token is never logged.
+//
+// TOKEN SOURCE IS INJECTABLE (web vs mobile), but the security model is not:
+//   • Web (server actions) pass NO token → we read the HttpOnly MARKET-TOKEN /
+//     DEVICE-TOKEN cookie, exactly as before.
+//   • Mobile (the `/api/seller/comments/*` route handlers) pass the market
+//     token the app sent in the `Authorization` header.
+// Whatever the source, the token is verified against Go the same way and the
+// same ownership/permission gate runs — a caller can never grant itself access
+// by choosing a source.
 // ---------------------------------------------------------------------------
-async function readTokenHash(): Promise<string> {
+async function resolveAuthToken(explicitToken?: string): Promise<string> {
+  const explicit = explicitToken?.trim();
+  if (explicit) return explicit;
   const market = await getCookieServer<string>(COOKIE_NAMES.MARKET_TOKEN);
   const device = await getCookieServer<string>(COOKIE_NAMES.DEVICE_TOKEN);
-  const token = market || device || "anonymous";
+  return market || device || "anonymous";
+}
+
+function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex").slice(0, 32);
 }
 
 // Raw Go fetch — the only place that actually calls the market backend.
-async function fetchShopsFromGo(): Promise<{ ok: boolean; shops: any[] }> {
+async function fetchShopsFromGo(
+  explicitToken?: string,
+): Promise<{ ok: boolean; shops: any[] }> {
   let res: any;
   try {
-    res = await HandleAuthedFetch({ url: PERMISSIONS_URL, method: "GET" });
+    if (explicitToken) {
+      // Header/mobile path: verify the caller-supplied bearer token directly
+      // against Go. We deliberately do NOT fall back to guest re-registration
+      // the way HandleAuthedFetch does — a guest owns no shops, so a bad or
+      // expired token must simply fail closed here.
+      const response = await fetch(PERMISSIONS_URL, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${explicitToken}`,
+          Accept: "application/json",
+        },
+        cache: "no-store",
+      });
+      if (!response.ok) return { ok: false, shops: [] };
+      res = { data: await response.json().catch(() => null) };
+    } else {
+      // Web path: cookie token + automatic 401 handling, unchanged.
+      res = await HandleAuthedFetch({ url: PERMISSIONS_URL, method: "GET" });
+    }
   } catch (error) {
     LogServerError({
       scenario: "fetchShopsFromGo: permissions fetch failed",
@@ -154,14 +188,15 @@ async function fetchShopsFromGo(): Promise<{ ok: boolean; shops: any[] }> {
 // (default 30s) expires, and up to PERMS_STALE_TTL_SECONDS during a Go outage.
 // Acceptable for a low-risk comment-reply surface; tune the TTLs via env.
 // ---------------------------------------------------------------------------
-const getVerifiedShops = cache(async (tokenHash: string): Promise<any[] | null> => {
+const getVerifiedShops = cache(
+  async (tokenHash: string, explicitToken?: string): Promise<any[] | null> => {
   const freshKey = `seller:perms:${tokenHash}`;
   const staleKey = `seller:perms:stale:${tokenHash}`;
 
   const cached = await RedisGet(freshKey);
   if (Array.isArray(cached)) return cached;
 
-  const live = await fetchShopsFromGo();
+  const live = await fetchShopsFromGo(explicitToken);
   if (live.ok) {
     await RedisSet(freshKey, live.shops, PERMS_TTL_SECONDS);
     await RedisSet(staleKey, live.shops, PERMS_STALE_TTL_SECONDS);
@@ -183,13 +218,14 @@ async function assertSellerCommentAccess(
   sellerId: string | undefined,
   requiredPermission: CommentPermission,
   tokenHash: string,
+  explicitToken?: string,
 ): Promise<{ ok: boolean; message?: string; shop?: VerifiedShop }> {
   const normalizedSellerId = String(sellerId ?? "").trim();
   if (!normalizedSellerId) {
     return { ok: false, message: "Missing shop identifier." };
   }
 
-  const shops = await getVerifiedShops(tokenHash);
+  const shops = await getVerifiedShops(tokenHash, explicitToken);
   if (!shops) {
     return { ok: false, message: "Unable to verify permissions." };
   }
@@ -238,17 +274,24 @@ type GuardOptions = {
   kind: "read" | "write";
 };
 
-function withSellerCommentAccess<P extends { sellerId: string }, R>(
+function withSellerCommentAccess<
+  P extends { sellerId: string; authToken?: string },
+  R,
+>(
   opts: GuardOptions,
   handler: (shop: VerifiedShop, params: P) => Promise<ActionResult<R>>,
 ): (params: P) => Promise<ActionResult<R>> {
   return async (params: P): Promise<ActionResult<R>> => {
-    const tokenHash = await readTokenHash();
+    // Web callers omit `authToken` (identity comes from the HttpOnly cookie);
+    // mobile route handlers pass the token from the Authorization header.
+    const rawToken = await resolveAuthToken(params?.authToken);
+    const tokenHash = hashToken(rawToken);
 
     const access = await assertSellerCommentAccess(
       params?.sellerId,
       opts.permission,
       tokenHash,
+      params?.authToken,
     );
     if (!access.ok || !access.shop) {
       return { success: false, message: access.message || "Not authorized." };
@@ -346,7 +389,13 @@ async function attachReactionCounts<
 // are module-private, so the Elasticsearch helpers stay reachable ONLY through
 // `withSellerCommentAccess`.
 const guardedGetSellerComments = withSellerCommentAccess<
-  { sellerId: string; isReview: boolean; page?: number; pageSize?: number },
+  {
+    sellerId: string;
+    isReview: boolean;
+    page?: number;
+    pageSize?: number;
+    authToken?: string;
+  },
   { comments: any[]; meta: any }
 >({ permission: COMMENT_PERMISSIONS.READ, kind: "read" }, async (shop, params) => {
   const isReview = Boolean(params.isReview);
@@ -451,6 +500,7 @@ export async function getSellerComments(params: {
   isReview: boolean;
   page?: number;
   pageSize?: number;
+  authToken?: string;
 }): Promise<ActionResult<{ comments: any[]; meta: any }>> {
   return guardedGetSellerComments(params);
 }
@@ -538,7 +588,7 @@ async function upsertReply(
 }
 
 const guardedReplyToComment = withSellerCommentAccess<
-  { sellerId: string; commentId: string; replyText: string },
+  { sellerId: string; commentId: string; replyText: string; authToken?: string },
   { comment_id: string; seller_reply: string }
 >({ permission: COMMENT_PERMISSIONS.REPLY, kind: "write" }, (shop, params) =>
   upsertReply(shop, params.commentId, params.replyText),
@@ -548,12 +598,13 @@ export async function replyToComment(params: {
   sellerId: string;
   commentId: string;
   replyText: string;
+  authToken?: string;
 }): Promise<ActionResult<{ comment_id: string; seller_reply: string }>> {
   return guardedReplyToComment(params);
 }
 
 const guardedEditReply = withSellerCommentAccess<
-  { sellerId: string; commentId: string; replyText: string },
+  { sellerId: string; commentId: string; replyText: string; authToken?: string },
   { comment_id: string; seller_reply: string }
 >({ permission: COMMENT_PERMISSIONS.EDIT_REPLY, kind: "write" }, (shop, params) =>
   upsertReply(shop, params.commentId, params.replyText),
@@ -563,6 +614,7 @@ export async function editReply(params: {
   sellerId: string;
   commentId: string;
   replyText: string;
+  authToken?: string;
 }): Promise<ActionResult<{ comment_id: string; seller_reply: string }>> {
   return guardedEditReply(params);
 }
@@ -575,7 +627,7 @@ const DELETE_REPLY_SCRIPT = `
 `;
 
 const guardedDeleteReply = withSellerCommentAccess<
-  { sellerId: string; commentId: string },
+  { sellerId: string; commentId: string; authToken?: string },
   { comment_id: string }
 >({ permission: COMMENT_PERMISSIONS.DELETE_REPLY, kind: "write" }, async (shop, params) => {
   const id = String(params.commentId ?? "").trim();
@@ -601,6 +653,7 @@ const guardedDeleteReply = withSellerCommentAccess<
 export async function deleteReply(params: {
   sellerId: string;
   commentId: string;
+  authToken?: string;
 }): Promise<ActionResult<{ comment_id: string }>> {
   return guardedDeleteReply(params);
 }
@@ -623,7 +676,7 @@ export interface ProductSocial {
 }
 
 const guardedGetSellerProductsSocial = withSellerCommentAccess<
-  { sellerId: string; productIds: Array<string | number> },
+  { sellerId: string; productIds: Array<string | number>; authToken?: string },
   Record<string, ProductSocial>
 >({ permission: COMMENT_PERMISSIONS.READ, kind: "read" }, async (_shop, params) => {
   const ids = Array.from(
@@ -717,6 +770,7 @@ const guardedGetSellerProductsSocial = withSellerCommentAccess<
 export async function getSellerProductsSocial(params: {
   sellerId: string;
   productIds: Array<string | number>;
+  authToken?: string;
 }): Promise<ActionResult<Record<string, ProductSocial>>> {
   return guardedGetSellerProductsSocial(params);
 }
