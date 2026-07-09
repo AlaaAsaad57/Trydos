@@ -489,6 +489,7 @@ class OrderService {
     order_group_id,
     points,
     note,
+    image,
   }: {
     order_id: number;
     order_detail_id: number;
@@ -496,21 +497,44 @@ class OrderService {
     order_group_id: string;
     points: ReportPointSelection[];
     note: string;
+    image?: File | null;
   }) {
     try {
-      let response = await fetchData({
-        url: `/customer/order/report`,
-        reqTitle: REQUESTS_DATA.REPORT_ORDER_ITEM,
-        method: "POST",
-        server: "market",
-        body: JSON.stringify({
+      // With a photo we submit multipart/form-data (the backend added an
+      // optional `image` field, see api-changelog §1); without one we keep the
+      // original JSON body so the no-image path is unchanged. `fetchData`
+      // detects a FormData body and lets the browser set the multipart
+      // boundary. Points use Laravel bracket notation to match the JSON shape.
+      let body: FormData | string;
+      if (image) {
+        const form = new FormData();
+        form.append("order_id", String(order_id));
+        form.append("order_detail_id", String(order_detail_id));
+        form.append("product_id", String(product_id));
+        form.append("order_group_id", order_group_id);
+        form.append("note", note);
+        points.forEach((p, i) => {
+          form.append(`points[${i}][point]`, p.point);
+          p.values.forEach((v) => form.append(`points[${i}][values][]`, v));
+        });
+        form.append("image", image);
+        body = form;
+      } else {
+        body = JSON.stringify({
           order_id,
           order_detail_id,
           product_id,
           order_group_id,
           points,
           note,
-        }),
+        });
+      }
+      let response = await fetchData({
+        url: `/customer/order/report`,
+        reqTitle: REQUESTS_DATA.REPORT_ORDER_ITEM,
+        method: "POST",
+        server: "market",
+        body,
       });
       if (response.success || response.isSuccessful) {
         return response;

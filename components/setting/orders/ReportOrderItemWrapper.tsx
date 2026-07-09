@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { OrderInterface } from "utils/types/OrderInterface";
 import Order from "services/order";
@@ -32,6 +32,52 @@ function ReportOrderItemWrapper({
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+  // Optional single photo attached to the report (api-changelog §1). Held as a
+  // raw File and sent multipart by the service; never gates submission.
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Build a preview object-URL for the selected file and revoke it when the
+  // file changes or the widget unmounts, so no blob leaks.
+  useEffect(() => {
+    if (!image) {
+      setImagePreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(image);
+    setImagePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [image]);
+
+  // Mirror the backend rules so we fail fast without a wasted upload:
+  // image mime jpeg/png/jpg/webp, max 4096 KB.
+  const REPORT_IMAGE_MAX_KB = 4096;
+  const REPORT_IMAGE_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/jpg",
+    "image/webp",
+  ];
+
+  const handlePickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file
+    if (!file) return;
+    if (!REPORT_IMAGE_TYPES.includes(file.type)) {
+      showErrorNotification(
+        translateFunction("Please choose a JPEG, PNG or WebP image"),
+      );
+      return;
+    }
+    if (file.size > REPORT_IMAGE_MAX_KB * 1024) {
+      showErrorNotification(
+        translateFunction("The photo must be 4 MB or less"),
+      );
+      return;
+    }
+    setImage(file);
+  };
 
   const toggle = (pointKey: string, value: string) => {
     setSelections((prev) => {
@@ -64,6 +110,7 @@ function ReportOrderItemWrapper({
         order_group_id: parentOrder.order_group_id,
         points,
         note: note.trim(),
+        image,
       });
       showSuccessNotification(
         translateFunction("We received your report. Thanks for your thoughts"),
@@ -147,6 +194,46 @@ function ReportOrderItemWrapper({
             placeholder={translateFunction("Write more details here")}
             className="mt-[8px] w-full rounded-[15px] border border-[#E6E6E6] bg-white p-[12px] regular text-[12px] text-[#3c3c3c] outline-none resize-none"
           />
+        </div>
+
+        <div className="flex-col w-full mt-[20px]">
+          <span className="regular text-[12px] text-[#505050]">
+            {translateFunction("Add a photo")}{" "}
+            <span className="text-[#929191]">
+              ({translateFunction("Optional")})
+            </span>
+          </span>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/jpg,image/webp"
+            onChange={handlePickImage}
+            className="hidden"
+          />
+          {image && imagePreview ? (
+            <div className="relative mt-[8px] w-[88px] h-[88px]">
+              <img
+                src={imagePreview}
+                alt={translateFunction("Report photo")}
+                className="w-full h-full rounded-[12px] object-cover"
+              />
+              <div
+                onClick={() => setImage(null)}
+                className="absolute top-[-6px] right-[-6px] z-40 w-[24px] h-[24px] cursor-pointer rounded-full bg-white text-red-500 light flex justify-center items-center hover:bg-red-100 shadow-[0_3px_6px_#0000006e]"
+              >
+                X
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-[8px] flex-col items-center justify-center gap-[4px] w-full h-[80px] rounded-[12px] bg-[#F8F8F8] border border-dashed border-[#402CDD80] cursor-pointer"
+            >
+              <span className="text-[#402CDD] text-[10px] regular">
+                {translateFunction("Add Photo")}
+              </span>
+            </div>
+          )}
         </div>
 
         <div
