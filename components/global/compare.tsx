@@ -10,6 +10,7 @@ import {
 } from "utils/functions";
 import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
+import { sanitizeHtml } from "utils/sanitizeHtml";
 
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
@@ -449,7 +450,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
           return (
             <div
               className="prose prose-sm max-w-none text-gray-600"
-              dangerouslySetInnerHTML={{ __html: product.details }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.details) }}
             />
           );
         }

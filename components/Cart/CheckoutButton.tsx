@@ -8,6 +8,7 @@ import {
   GetWalletBalanceInCurrency,
   getCurrencies,
 } from "services/wallet";
+import { WALLET_REAUTH_ON_401 } from "services/wallet/reauthFlag";
 import { CurrenciesApi, GetWalletBalancesApi } from "services/wallet/types";
 import { RoundPrice, translateFunction } from "utils/functions";
 
@@ -57,7 +58,8 @@ export default function CheckoutButton({ local = "gb-en" }) {
   const handleUnauthenticated = () => {
     enableCart(false);
     setShowModal(false);
-    setShouldAuthinticated(true);
+    // Temporarily disabled: don't prompt phone re-verification on wallet 401.
+    if (WALLET_REAUTH_ON_401) setShouldAuthinticated(true);
   };
 
   // Load currencies and wallet data when modal opens

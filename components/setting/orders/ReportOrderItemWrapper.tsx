@@ -117,7 +117,9 @@ function ReportOrderItemWrapper({
       );
       await update();
       setLoading(false);
-      backToMain();
+      // On success, close the whole order-item options sheet (not just back to
+      // the options screen). Only on success — failures fall to catch below.
+      close();
     } catch (error) {
       setLoading(false);
       showErrorNotification(

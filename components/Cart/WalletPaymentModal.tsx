@@ -5,6 +5,7 @@ import {
   GetWalletBalanceInCurrency,
   getCurrencies,
 } from "services/wallet";
+import { WALLET_REAUTH_ON_401 } from "services/wallet/reauthFlag";
 import { CurrenciesApi, GetWalletBalancesApi } from "services/wallet/types";
 import { RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
@@ -54,7 +55,8 @@ export default function WalletPaymentModal({
   const handleUnauthenticated = () => {
     enableCart(false);
     onClose();
-    setShouldAuthinticated(true);
+    // Temporarily disabled: don't prompt phone re-verification on wallet 401.
+    if (WALLET_REAUTH_ON_401) setShouldAuthinticated(true);
   };
   const checkIfCartConvertToOrder = async (cartGroupId: string | number) => {
     try {

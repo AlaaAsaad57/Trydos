@@ -151,6 +151,53 @@ GA360 and is the lowest-operational-risk option. Then cut the bill at the source
 
 ---
 
+## 7. Can PostHog's AI recommend products per user? (asked by PM)
+
+**Question:** *Can we ask PostHog's AI one prompt per user and get back the
+product IDs that fit that user — based on their events plus other users'
+activity?*
+
+**Short answer: no — not in the way it was described.** PostHog's AI (**Max AI**)
+is an *analyst inside the PostHog dashboard*: it writes queries, builds funnels,
+and explains our data in the UI. It is **not** a runtime recommendation API you
+call per-user to get product IDs, and there is no supported "one prompt per user →
+their products" endpoint. Even if we scripted Max to do it, it would be too slow,
+too costly, and rate-limited to power a live product feed.
+
+Two things are being conflated:
+
+1. **"Based on other users' activity"** — that is **collaborative filtering**
+   ("people like you also bought…"), which is a **data/ML problem, not an LLM
+   prompt**. No language model can hold every user's activity in its context, so
+   asking it directly produces *plausible-but-made-up* product IDs, not real
+   recommendations.
+2. **A language model's actual strength** — *ranking and personalizing a
+   shortlist you already hand it.* It cannot generate the candidates from the
+   crowd; it can only re-order candidates you supply.
+
+**What actually works** (two layers, and neither is "prompt PostHog per user"):
+
+- **Recommendation signal (the "other users" part) — computed from data, cached.**
+  A nightly batch job over the event data (PostHog HogQL export, or our own store)
+  builds "viewed-also-viewed / bought-also-bought" per product. We also already
+  run **Elasticsearch**, which gives content-based "more like this" for free.
+- **Optional LLM layer.** Take those candidates + the user's recent events and
+  send them to an LLM (via Vercel AI Gateway) for a final re-rank/explanation —
+  one call per request, over *our* candidates, not over PostHog.
+
+**Bottom line for planning:** treat PostHog as the **event source and offline
+analysis tool**, not as the recommender. A "recommended for you" feature is
+buildable, but it's an engineering project (candidate generation + caching, with
+an optional LLM re-rank), **not** a PostHog AI prompt — and it carries no extra
+PostHog line item beyond the query/export volume already covered above.
+
+> **Caveat / to validate:** this reflects PostHog's product as understood at the
+> time of writing. PostHog ships fast — confirm against their current
+> [Max AI docs](https://posthog.com/docs/max-ai) before treating "no per-user
+> recommendation API" as final.
+
+---
+
 ## Sources
 
 - [PostHog pricing](https://posthog.com/pricing)

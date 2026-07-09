@@ -13,6 +13,9 @@ import OrderExpectedDeliveryCard, {
   getExpectedDelivery,
 } from "components/settings/cards/OrderExpectedDeliveryCard";
 import OrderAddressCard from "components/settings/cards/OrderAddressCard";
+// Used by the (currently commented-out) order-message block below; kept imported
+// so re-enabling that block renders sanitized HTML by default. Tree-shaken while unused.
+import { sanitizeHtml } from "utils/sanitizeHtml";
 import RateOrderButton from "components/settings/cards/RateOrderButton";
 import OrderItemsList from "components/settings/cards/OrderItemsList";
 import {
@@ -703,7 +706,7 @@ const isNotDraft=()=>{
                     <div>
 
                       <p className="text-sm text-amber-700">
-                       <div dangerouslySetInnerHTML={{__html:message}}>
+                       <div dangerouslySetInnerHTML={{__html:sanitizeHtml(message)}}>
 
                        </div>
                       </p>

@@ -10,6 +10,9 @@ const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
 
 let nextConfig: NextConfig = {
   reactStrictMode: false,
+  // Removes the `X-Powered-By: Next.js` header (security scan F-06 — tech
+  // fingerprinting). `Server: Vercel` is platform-managed and can't be dropped.
+  poweredByHeader: false,
   compress: true,
   bundlePagesRouterDependencies: false,
   reactCompiler: true,
@@ -30,6 +33,52 @@ let nextConfig: NextConfig = {
           {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains",
+          },
+          // Security-scan hardening (F-02..F-05). Deliberately excludes
+          // Content-Security-Policy (F-01): a strict CSP would need every
+          // third-party origin (GTM/GA, PostHog, Sentry, Firebase, Agora,
+          // Cloudinary/S3) allowlisted plus nonces for Next.js inline scripts,
+          // so it must roll out as Report-Only first — not added here.
+          {
+            // F-02 — SAMEORIGIN, not DENY: the only self-context needs framing
+            // to stay possible; external payment iframes (Cart/ModalIframe) are
+            // unaffected (that's us embedding them, not us being embedded).
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+          {
+            // F-03 — stop MIME sniffing.
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            // F-04 — matches the modern browser default (no behavior change).
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            // F-05 — restrict to same-origin, NOT deny: camera/mic power Agora
+            // calls, Stories, TryOn, QR scanner & voice search; geolocation
+            // powers the cart delivery map. `()` here would break all of them.
+            key: "Permissions-Policy",
+            value: "camera=(self), microphone=(self), geolocation=(self)",
+          },
+          {
+            // F-01 — minimal ENFORCED CSP, deliberately safe. It constrains only
+            // directives this app never relies on, so it cannot block a
+            // legitimate resource:
+            //   object-src 'none'      — no <object>/<embed>/plugins in the app
+            //   base-uri 'self'        — app never injects <base>; stops base-tag hijack
+            //   frame-ancestors 'self' — anti-clickjacking (mirrors X-Frame-Options above)
+            // IMPORTANT: there is intentionally NO `default-src` and NO
+            // `script-src`, so scripts, styles, images, fonts, media and
+            // XHR/WebSocket stay unrestricted — nothing the app loads is
+            // affected. The full XSS-blocking script-src policy is deferred to a
+            // Report-Only rollout; the real stored-XSS risk is already closed by
+            // HTML sanitization (utils/sanitizeHtml.ts).
+            // See docs/security/csp-decision.md.
+            key: "Content-Security-Policy",
+            value: "object-src 'none'; base-uri 'self'; frame-ancestors 'self'",
           },
         ],
       },
@@ -159,6 +208,14 @@ let nextConfig: NextConfig = {
       static: 180,
     },
   },
+
+  // Keep the server-side HTML sanitizer's deps out of the bundle/file-trace.
+  // isomorphic-dompurify pulls in jsdom, which imports `node:worker_threads`;
+  // Turbopack's file tracer can't handle that builtin and panics the build
+  // (NftJsonAsset: cannot handle filepath node:worker_threads). Marking them
+  // external makes them require()'d at runtime instead of traced. See
+  // utils/sanitizeHtml.ts.
+  serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
 
   productionBrowserSourceMaps: false,
 };

@@ -3,6 +3,7 @@ import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
 import AutoHeight from "embla-carousel-auto-height";
 import { useAppStore } from "store";
+import { sanitizeHtml } from "utils/sanitizeHtml";
 
 export function BoutiqueSliderWrapper({ boutique, children }) {
   const { language } = useAppStore();
@@ -64,7 +65,7 @@ export function BoutiqueSliderWrapper({ boutique, children }) {
               data-cy="boutique-description"
               className="regular text-[16px] text-white"
               dangerouslySetInnerHTML={{
-                __html: decodeHtmlSSR(boutique?.description),
+                __html: sanitizeHtml(decodeHtmlSSR(boutique?.description)),
               }}
             ></span>
           )}

@@ -9,6 +9,7 @@ import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { returnDetails } from "utils/types/OrderInterface";
 import { LogServerError } from "utils/serverErrorReporter";
 import { GetWalletBalanceForCountryCurrency } from "./wallet";
+import { WALLET_REAUTH_ON_401 } from "./wallet/reauthFlag";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import type { ReportPointSelection } from "utils/orderReportOptions";
 
@@ -160,7 +161,8 @@ class OrderService {
     } catch (error) {}
 
     if (walletBalance && "status" in walletBalance) {
-      if (walletBalance.status === 401) {
+      // Temporarily disabled: don't prompt phone re-verification on wallet 401.
+      if (walletBalance.status === 401 && WALLET_REAUTH_ON_401) {
         setShouldAuthinticated(true);
       }
     }

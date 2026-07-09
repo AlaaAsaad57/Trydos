@@ -1,3 +1,5 @@
+import { sanitizeHtml } from "utils/sanitizeHtml";
+
 function ProductDetailsText({ details, isRtl }) {
   return (
     <div className={`${isRtl ? "dir-rtl" : ""} product-details-text`}>
@@ -5,7 +7,7 @@ function ProductDetailsText({ details, isRtl }) {
         id="details"
         className="have-arabic "
         dangerouslySetInnerHTML={{
-          __html: details,
+          __html: sanitizeHtml(details),
         }}
       />
     </div>

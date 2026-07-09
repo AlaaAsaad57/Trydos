@@ -130,7 +130,10 @@ async function page({ params }) {
           SafeUserProfile={SafeUserProfile}
         />
       </Suspense>
-      <GoToSellerDashBoard language={language} />
+      <GoToSellerDashBoard
+        language={language}
+        isAuthed={(SafeUserProfile?.phone?.length ?? 0) > 3}
+      />
      
       <div
         className={`flex w-full ${

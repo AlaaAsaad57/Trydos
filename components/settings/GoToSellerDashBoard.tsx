@@ -7,12 +7,24 @@ import { translateFunction, LogError } from "utils/functions";
 import BecomeSellerModal from "./BecomeSellerModal";
 import GoToSellerDashBoardIcon from "public/icons/goToSeller";
 import { useAppStore } from "store";
-function GoToSellerDashBoard({ language }: { language: string }) {
+function GoToSellerDashBoard({
+  language,
+  isAuthed = false,
+}: {
+  language: string;
+  isAuthed?: boolean;
+}) {
   const { lang } = useParams();
-  const [shouldShow, setShouldShow] = React.useState(true);
+  const [shouldShow, setShouldShow] = React.useState(false);
   const [openSellerModal, setOpenSellerModal] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
+  // Only authenticated users have anything to load. Guests render nothing.
+  const [loading, setLoading] = React.useState(isAuthed);
   const { userProfile } = useAppStore();
+
+  // Logged-in per the server cookie (isAuthed) or once the client store hydrates
+  // a real profile. Guests (neither) see nothing at all.
+  const authenticated =
+    isAuthed || Boolean(userProfile && userProfile?.phone?.length > 3);
 
   const getPermission = async () => {
     setLoading(true);
@@ -44,11 +56,28 @@ function GoToSellerDashBoard({ language }: { language: string }) {
 
   useEffect(() => {
     if (userProfile && userProfile?.phone?.length > 3) {
+      // Real logged-in user: check whether they actually own shops/permissions.
       getPermission();
-    }else{
+    } else if (!isAuthed) {
+      // Confirmed guest (no server cookie, no client profile): nothing to load.
       setLoading(false);
     }
-  }, [userProfile]);
+    // authed per cookie but store not yet hydrated → keep the spinner until the
+    // profile arrives and this effect re-runs; never flash the wrong state.
+  }, [userProfile, isAuthed]);
+
+  // Not logged in yet → show nothing: no "Sales" dashboard entry and no
+  // "Become A Seller" CTA. Both require an authenticated account.
+  if (!authenticated) {
+    return null;
+  }
+  if (loading) {
+    return (
+      <div className="h-[50px] w-full rounded-[15px]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]">
+        <Spinner />
+      </div>
+    );
+  }
   if (!shouldShow) {
     return (
       <>
@@ -63,13 +92,6 @@ function GoToSellerDashBoard({ language }: { language: string }) {
           <BecomeSellerModal onClose={() => setOpenSellerModal(false)} />
         )}
       </>
-    );
-  }
-  if (loading) {
-    return (
-      <div className="h-[50px] w-full rounded-[15px]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]">
-        <Spinner />
-      </div>
     );
   }
   const isRtl = language === "ar" || language === "ku";
