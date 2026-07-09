@@ -216,9 +216,10 @@ function Page() {
                   </Link>
                   <button
                     onClick={() => setLeaveConfirmShopId(shop.seller_id)}
+                    disabled={shop.is_master===1}
                     title={translateFunction("Leave shop", language)}
                     aria-label={translateFunction("Leave shop", language)}
-                    className="h-[44px] w-[44px] shrink-0 inline-flex items-center justify-center rounded-[12px] bg-[#fff1f1] text-[#f85555] hover:bg-[#ffe6e6] transition-all active:scale-[0.98]"
+                    className="h-[44px] w-[44px] disabled:opacity-65 shrink-0 inline-flex items-center justify-center rounded-[12px] bg-[#fff1f1] text-[#f85555] hover:bg-[#ffe6e6] transition-all active:scale-[0.98]"
                   >
                     <DashIcon name="logout" size={18} />
                   </button>
