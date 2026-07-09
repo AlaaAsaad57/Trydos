@@ -16,10 +16,6 @@ import { getLocalizedCountryName } from "utils/countryData";
 import { GetCountries } from "serverRequests/product";
 import { isValidPhone } from "utils/phone";
 
-// Persisted flag so a user who already submitted a vendor request sees a simple
-// "we're processing it" screen instead of the full form on their next visit.
-const SELLER_REQUEST_KEY = "trydos_seller_request_submitted";
-
 const VENDOR_DOCUMENT_TYPES = [
   { value: "identity", label: "Identity" },
   { value: "passport", label: "Passport" },
@@ -48,6 +44,22 @@ const isValidEmail = (email: string) =>
 
 const isStrongPassword = (password: string) =>
   /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password || "");
+
+// Vendor documents may only be images or PDFs. The `accept` attribute is a hint
+// the OS file picker can ignore (drag/drop, "all files"), so we re-check here by
+// MIME type, falling back to the extension when the browser reports no type.
+const ACCEPTED_DOC_ACCEPT = "image/*,application/pdf";
+const ACCEPTED_DOC_EXTENSIONS =
+  /\.(jpe?g|png|gif|webp|avif|heic|heif|bmp|svg|pdf)$/i;
+
+const isAllowedDocFile = (file: File | null) => {
+  if (!file) return false;
+  if (file.type) {
+    return file.type.startsWith("image/") || file.type === "application/pdf";
+  }
+  // Some browsers/OSes report an empty MIME type — fall back to the extension.
+  return ACCEPTED_DOC_EXTENSIONS.test(file.name || "");
+};
 
 // Plain required text fields → their "<Field> is required" message key. The
 // credential fields (email/phone/password/repeat_password) have their own
@@ -177,6 +189,128 @@ const CountrySelect = ({
   );
 };
 
+// Result-screen icons (28px, matched to the rest of the modal's SVG style).
+const ClockIcon = () => (
+  <svg
+    width="28"
+    height="28"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </svg>
+);
+
+const CrossIcon = () => (
+  <svg
+    width="28"
+    height="28"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="9" />
+    <path d="M15 9l-6 6M9 9l6 6" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg
+    width="28"
+    height="28"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M20 6L9 17l-5-5" />
+  </svg>
+);
+
+const AlertIcon = () => (
+  <svg
+    width="28"
+    height="28"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M10.29 3.86 1.82 18a1 1 0 0 0 .86 1.5h18.64a1 1 0 0 0 .86-1.5L13.71 3.86a1 1 0 0 0-1.72 0z" />
+    <path d="M12 9v4M12 17h.01" />
+  </svg>
+);
+
+// One card layout shared by every non-form outcome (pending / rejected /
+// approved / error). `iconWrapClass` carries literal Tailwind colour classes so
+// they survive the JIT purge; `footer` supplies the action button(s).
+const StatusScreen = ({
+  onClose,
+  cancelLabel,
+  iconWrapClass,
+  icon,
+  title,
+  body,
+  footer,
+}) => (
+  <div
+    className="fixed inset-0 flex items-center justify-center bg-black/45 animate-fade-in font-sans"
+    style={{ zIndex: 999999999 }}
+  >
+    <div
+      className="relative flex flex-col items-center w-[90vw] max-w-[420px] bg-white rounded-[15px] p-7 text-center shadow-[0_3px_10px_rgba(0,0,0,0.1)]"
+      role="dialog"
+      aria-modal="true"
+    >
+      <button
+        onClick={onClose}
+        aria-label={cancelLabel}
+        className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-[#929191] hover:bg-[#f2f2f2] hover:text-[#3c3c3c] transition-colors"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+
+      <span
+        className={`flex h-14 w-14 items-center justify-center rounded-full ${iconWrapClass}`}
+      >
+        {icon}
+      </span>
+
+      <h2 className="mt-4 text-[16px] font-semibold text-[#3c3c3c]">{title}</h2>
+      <p className="mt-2 text-[13px] leading-relaxed text-[#707070]">{body}</p>
+
+      {footer}
+    </div>
+  </div>
+);
+
 export default function BecomeSellerModal({ onClose }) {
   const { lang } = useParams();
   // @ts-ignore
@@ -186,23 +320,56 @@ export default function BecomeSellerModal({ onClose }) {
   const [loading, setLoading] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
   const [countries, setCountries] = useState<any[]>([]);
-  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  // What the modal renders, driven by the caller's live vendor-request status
+  // (no local persistence — the backend is the single source of truth).
+  const [view, setView] = useState<
+    "loading" | "error" | "form" | "pending" | "rejected" | "approved"
+  >("loading");
+  const [rejectionReason, setRejectionReason] = useState("");
   // Inline validation messages, keyed by field name (email/phone/password/…).
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { setAddressDetails, setShouldAuthinticated, setReAuthResult } =
     useAppStore();
 
-  // If a request was already submitted (persisted locally), show the simple
-  // "processing" view instead of the full form.
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(SELLER_REQUEST_KEY)) {
-        setAlreadySubmitted(true);
-      }
-    } catch {
-      // localStorage unavailable (private mode / SSR) — fall back to the form.
+  // Read the caller's own vendor request and branch the modal on its status.
+  // No request on record → show the application form; a live PENDING/REJECTED/
+  // APPROVED shows the matching status screen instead of the form.
+  const fetchVendorRequest = async () => {
+    setView("loading");
+    const res = await fetchData({
+      url: "/shop/vendor-requests",
+      method: "GET",
+      reqTitle: REQUESTS_DATA.VENDOR_REQUEST,
+      server: "market",
+      // We own all messaging on this screen; suppress fetchData's own toast.
+      noMessage: true,
+    });
+
+    if (!res?.success) {
+      // A 404 is the backend's "you never applied" → let them apply. Any other
+      // failure (network/5xx) is a real error the user can retry.
+      setView(Number(res?.code) === 404 ? "form" : "error");
+      return;
     }
+
+    const status = String(res?.data?.status ?? "").toUpperCase();
+    if (status === "PENDING") {
+      setView("pending");
+    } else if (status === "REJECTED") {
+      setRejectionReason(res?.data?.rejection_reason || res?.data?.reason || "");
+      setView("rejected");
+    } else if (status === "APPROVED") {
+      setView("approved");
+    } else {
+      // Success but no request/unknown status → treat as "never applied".
+      setView("form");
+    }
+  };
+
+  useEffect(() => {
+    fetchVendorRequest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [form, setForm] = useState({
@@ -313,6 +480,18 @@ export default function BecomeSellerModal({ onClose }) {
   // Document upload helpers
   const handleDocFileChange = (e) => {
     const file = e.target.files?.[0] ?? null;
+    // Only images and PDFs are accepted — reject anything else and keep any
+    // previously chosen valid file untouched.
+    if (file && !isAllowedDocFile(file)) {
+      setNewDocFile(null);
+      // Reset the input so re-selecting the same rejected file re-fires onChange.
+      e.target.value = "";
+      setErrors((prev) => ({
+        ...prev,
+        doc_file: t("Only image or PDF files are allowed"),
+      }));
+      return;
+    }
     setNewDocFile(file);
     if (file) setErrors((prev) => ({ ...prev, doc_file: "" }));
   };
@@ -330,6 +509,8 @@ export default function BecomeSellerModal({ onClose }) {
     const docErrors: Record<string, string> = {};
     if (!newDocType) docErrors.doc_type = t("Please select a document type");
     if (!newDocFile) docErrors.doc_file = t("Please select a file");
+    else if (!isAllowedDocFile(newDocFile))
+      docErrors.doc_file = t("Only image or PDF files are allowed");
     if (Object.keys(docErrors).length) {
       setErrors((prev) => ({ ...prev, ...docErrors }));
       return;
@@ -474,31 +655,17 @@ export default function BecomeSellerModal({ onClose }) {
       });
 
       if (res?.success) {
-        try {
-          localStorage.setItem(
-            SELLER_REQUEST_KEY,
-            JSON.stringify({ submittedAt: new Date().toISOString() }),
-          );
-        } catch {
-          // Non-fatal: request still succeeded even if we can't persist locally.
-        }
         showSuccessNotification(t("Request submitted successfully"));
-        setAlreadySubmitted(true);
+        // Re-read the request so the modal reflects the real server status
+        // (normally PENDING) rather than assuming it.
+        await fetchVendorRequest();
         return;
       }
 
       // user_id + "User already exists": a request/account already exists →
-      // show the already-submitted confirmation rather than an error.
+      // re-read it so we show its true status (pending/rejected) not an error.
       if (isUserAlreadyExistsError(res)) {
-        try {
-          localStorage.setItem(
-            SELLER_REQUEST_KEY,
-            JSON.stringify({ submittedAt: new Date().toISOString() }),
-          );
-        } catch {
-          // Non-fatal: the confirmation still shows even if we can't persist.
-        }
-        setAlreadySubmitted(true);
+        await fetchVendorRequest();
         return;
       }
 
@@ -579,71 +746,115 @@ export default function BecomeSellerModal({ onClose }) {
     await performSubmit();
   };
 
-  // Already-submitted view: a small confirmation that the request is being
-  // processed, shown instead of the full form.
-  if (alreadySubmitted) {
+  // A single full-width Close button, reused by every status screen.
+  const closeButton = (
+    <button
+      onClick={onClose}
+      className="mt-6 h-[46px] w-full rounded-full bg-[#402CDD] text-[14px] font-semibold text-white hover:bg-[#3422b0] focus:outline-hidden focus:ring-2 focus:ring-[#402CDD]/30 transition-colors"
+    >
+      {t("Close")}
+    </button>
+  );
+
+  // Checking the caller's vendor-request status → spinner.
+  if (view === "loading") {
     return (
       <div
         className="fixed inset-0 flex items-center justify-center bg-black/45 animate-fade-in font-sans"
         style={{ zIndex: 999999999 }}
       >
         <div
-          className="relative flex flex-col items-center w-[90vw] max-w-[420px] bg-white rounded-[15px] p-7 text-center shadow-[0_3px_10px_rgba(0,0,0,0.1)]"
+          className="flex h-[140px] w-[90vw] max-w-[420px] items-center justify-center bg-white rounded-[15px] shadow-[0_3px_10px_rgba(0,0,0,0.1)]"
           role="dialog"
           aria-modal="true"
         >
-          <button
-            onClick={onClose}
-            aria-label={t("Cancel")}
-            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-[#929191] hover:bg-[#f2f2f2] hover:text-[#3c3c3c] transition-colors"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </button>
-
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#402CDD]/10 text-[#402CDD]">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
-          </span>
-
-          <h2 className="mt-4 text-[16px] font-semibold text-[#3c3c3c]">
-            {t("Request already submitted")}
-          </h2>
-          <p className="mt-2 text-[13px] leading-relaxed text-[#707070]">
-            {t(
-              "You have already submitted a seller request. We are processing it and will get back to you soon.",
-            )}
-          </p>
-
-          <button
-            onClick={onClose}
-            className="mt-6 h-[46px] w-full rounded-full bg-[#402CDD] text-[14px] font-semibold text-white hover:bg-[#3422b0] focus:outline-hidden focus:ring-2 focus:ring-[#402CDD]/30 transition-colors"
-          >
-            {t("Close")}
-          </button>
+          <Spinner />
         </div>
       </div>
+    );
+  }
+
+  // The status lookup failed (network/5xx) → error with a retry.
+  if (view === "error") {
+    return (
+      <StatusScreen
+        onClose={onClose}
+        cancelLabel={t("Cancel")}
+        iconWrapClass="bg-[#f85555]/10 text-[#f85555]"
+        icon={<AlertIcon />}
+        title={t("Couldn't load your request")}
+        body={t(
+          "We couldn't load your seller request status. Please try again.",
+        )}
+        footer={
+          <div className="mt-6 flex w-full gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 h-[46px] rounded-full bg-[#f2f2f2] text-[14px] font-medium text-[#3c3c3c] hover:bg-[#e9e9e9] focus:outline-hidden focus:ring-2 focus:ring-[#d9d9de] transition-colors"
+            >
+              {t("Close")}
+            </button>
+            <button
+              onClick={fetchVendorRequest}
+              className="flex-1 h-[46px] rounded-full bg-[#402CDD] text-[14px] font-semibold text-white hover:bg-[#3422b0] focus:outline-hidden focus:ring-2 focus:ring-[#402CDD]/30 transition-colors"
+            >
+              {t("Retry")}
+            </button>
+          </div>
+        }
+      />
+    );
+  }
+
+  // Request under review.
+  if (view === "pending") {
+    return (
+      <StatusScreen
+        onClose={onClose}
+        cancelLabel={t("Cancel")}
+        iconWrapClass="bg-[#402CDD]/10 text-[#402CDD]"
+        icon={<ClockIcon />}
+        title={t("Your seller request is under review")}
+        body={t(
+          "We've received your seller request and it's currently being reviewed. We'll let you know once it's processed.",
+        )}
+        footer={closeButton}
+      />
+    );
+  }
+
+  // Request rejected → show the backend reason when present, else generic copy.
+  if (view === "rejected") {
+    return (
+      <StatusScreen
+        onClose={onClose}
+        cancelLabel={t("Cancel")}
+        iconWrapClass="bg-[#f85555]/10 text-[#f85555]"
+        icon={<CrossIcon />}
+        title={t("Your seller request was rejected")}
+        body={
+          rejectionReason ||
+          t("Unfortunately, your seller request was not approved.")
+        }
+        footer={closeButton}
+      />
+    );
+  }
+
+  // Request approved (rare here — approved sellers usually already have a shop).
+  if (view === "approved") {
+    return (
+      <StatusScreen
+        onClose={onClose}
+        cancelLabel={t("Cancel")}
+        iconWrapClass="bg-[#22a06b]/10 text-[#22a06b]"
+        icon={<CheckIcon />}
+        title={t("Your seller request was approved")}
+        body={t(
+          "Your seller request has been approved. You can now start selling on Trydos.",
+        )}
+        footer={closeButton}
+      />
     );
   }
 
@@ -947,6 +1158,7 @@ export default function BecomeSellerModal({ onClose }) {
                   <input
                     type="file"
                     id="doc-upload"
+                    accept={ACCEPTED_DOC_ACCEPT}
                     onChange={handleDocFileChange}
                     className="hidden"
                   />
