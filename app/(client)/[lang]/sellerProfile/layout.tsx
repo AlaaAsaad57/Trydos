@@ -1,7 +1,7 @@
 import React from "react";
 import { redirect } from "next/navigation";
 import { SellerProfileProvider } from "./SellerProfileContext";
-import { GetSellerShops } from "serverRequests/settings";
+import { getSellerShopsCached } from "serverRequests/settings/sellerShopsGuard";
 
 async function layout({
   children,
@@ -17,7 +17,7 @@ async function layout({
   // when the backend conclusively confirms zero shops — inconclusive failures
   // (transient 5xx / network) fall through so a legitimate seller is never
   // kicked out on an infra hiccup; the client page still enforces its own state.
-  const { hasShops, conclusive } = await GetSellerShops(lang);
+  const { hasShops, conclusive } = await getSellerShopsCached(lang);
   if (conclusive && !hasShops) {
     redirect(`/${lang}`);
   }
