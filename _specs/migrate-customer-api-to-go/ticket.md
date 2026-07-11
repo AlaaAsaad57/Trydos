@@ -9,7 +9,7 @@ created_at: 2026-07-11
 updated_at: 2026-07-11
 links:
   clickup: https://app.clickup.com/t/86ey26atu
-  github:
+  github: https://github.com/AlaaAsaad57998/Trydos/pull/60
 ---
 
 # Ticket Record — migrate-customer-api-to-go
