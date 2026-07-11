@@ -476,6 +476,12 @@ class AuthService {
       wallet_done = false;
 
     try {
+      // --- Wallet profile update DISABLED (under development) ---
+      // The wallet `/users/me` PATCH is temporarily commented out. `wallet_done`
+      // stays false, so the wallet rollback block in the catch below is inert.
+      // NOTE: when re-enabling, fix `profilePictureURL` for Go's bare sub_path
+      // (needs a slash between the media base and "customers/profile/..").
+      /*
       // Update wallet user info
       const nameParts = (userObj?.name ?? userProfile?.name)?.split(" ") || [];
       const firstName = nameParts[0] || "";
@@ -523,6 +529,7 @@ class AuthService {
       updateSecureUserData([
         { name: COOKIE_NAMES.WALLET_USER, value: walletUpdate },
       ]);
+      */
 
       const {
         chatUser: chatUserFromCookies,

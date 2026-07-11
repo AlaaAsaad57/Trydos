@@ -73,6 +73,14 @@ const GO_APIS = [
   "/web/get-colors-and-sizes",
   "/web/notification_types",
   "/web/notification_types/customer-notification-to-choose",
+  // ── Customer profile API migration (ClickUp 86ey26atu) ──
+  // These four customer operations moved from the Laravel "market" backend to
+  // the Go Store Gateway. Rollback: comment out (or remove) this block to route
+  // them back to NEXT_PUBLIC_BACKEND_URL (Laravel) — no caller change needed.
+  "/customer/info",
+  "/customer/update-profile",
+  "/customer/update-name",
+  "/customer/approve-policies",
 ];
 
 // Go endpoints whose URL carries a trailing dynamic segment (e.g. a product

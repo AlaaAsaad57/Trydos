@@ -259,7 +259,13 @@ export const GetImageUrl = (url) => {
   }
   if (!url || typeof url !== "string") return url;
   if (url && url?.includes("http")) return url;
-  return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url;
+  // Go returns a bare sub_path (e.g. "customers/profile/x.jpg") with no leading
+  // slash, whereas legacy Laravel returned a full URL / leading-slash path.
+  // Ensure exactly one slash between the media base and a relative path so both
+  // forms resolve correctly.
+  return (
+    process.env.NEXT_PUBLIC_BASE_MEDIA_URL + (url.startsWith("/") ? url : "/" + url)
+  );
 };
 
 export const getVideoUrl = (
