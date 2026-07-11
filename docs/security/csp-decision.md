@@ -60,22 +60,30 @@ typical brochure storefront carries.
 ### What we did about it (the root fix)
 
 All five sinks now pass their HTML through a shared sanitizer,
-`utils/sanitizeHtml.ts`, backed by **`isomorphic-dompurify`** (DOMPurify that runs
-identically on the server via jsdom and on the client via the native DOM):
+`utils/sanitizeHtml.ts`, backed by **`xss`** (js-xss) — a pure-JS, whitelist-based
+sanitizer that runs identically on the server (Node) and the client (browser)
+**without needing a DOM**:
 
 ```ts
-import DOMPurify from "isomorphic-dompurify";
-
+import { FilterXSS, getDefaultWhiteList } from "xss";
+// … permissive-but-safe whitelist (class/style/rel on top of the defaults) …
 export function sanitizeHtml(dirty: string | null | undefined): string {
   if (!dirty) return "";
-  return DOMPurify.sanitize(dirty);
+  return filter.process(dirty);
 }
 ```
 
-DOMPurify strips `<script>`, inline event handlers, `javascript:` URLs and other
-vectors while preserving safe rich-text formatting. **This is the primary XSS
-defense.** With it in place, CSP becomes an optional hardening layer rather than a
-necessity.
+> **Why not DOMPurify?** The original implementation used `isomorphic-dompurify`,
+> which drags in **jsdom** on the server. jsdom could neither be bundled
+> (Turbopack's file tracer panics on `node:worker_threads`) nor externalized (a
+> transitive ESM dependency crashed `require()` at runtime on Vercel with
+> `ERR_REQUIRE_ESM`, white-screening product pages). `xss` needs no DOM, so it
+> sidesteps both failure modes and is far lighter in the client bundle.
+
+The sanitizer strips `<script>`, inline event handlers, `javascript:` URLs and
+other vectors while preserving safe rich-text formatting. **This is the primary
+XSS defense.** With it in place, CSP becomes an optional hardening layer rather
+than a necessity.
 
 **Conclusion:** CSP is **not required** for correctness or to close the known
 vulnerability — sanitization does that. CSP remains a *nice-to-have* second layer

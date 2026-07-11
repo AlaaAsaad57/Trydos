@@ -209,14 +209,6 @@ let nextConfig: NextConfig = {
     },
   },
 
-  // Keep the server-side HTML sanitizer's deps out of the bundle/file-trace.
-  // isomorphic-dompurify pulls in jsdom, which imports `node:worker_threads`;
-  // Turbopack's file tracer can't handle that builtin and panics the build
-  // (NftJsonAsset: cannot handle filepath node:worker_threads). Marking them
-  // external makes them require()'d at runtime instead of traced. See
-  // utils/sanitizeHtml.ts.
-  serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
-
   productionBrowserSourceMaps: false,
 };
 
