@@ -116,7 +116,6 @@ export default function ProductEditor({
     (sellerPermissions || []).includes("SUPER_ADMIN");
   const canUpdate = has("UPDATE_PRODUCT");
   const canChangeStatus = has("CHANGE_PRODUCT_STATUS");
-  const canCreate = has("CREATE_PRODUCT");
 
   const listProduct = useMemo(
     () =>
