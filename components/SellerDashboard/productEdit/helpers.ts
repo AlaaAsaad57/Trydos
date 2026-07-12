@@ -252,25 +252,52 @@ export function buildFormFromEdit(
   const colorById = new Map((lookups.colors || []).map((c) => [c.id, c]));
   const sizeById = new Map((lookups.sizes || []).map((s) => [s.id, s]));
 
-  const colors: SelColor[] = (product.selected_colors || []).map(
-    (code: string) => {
-      const c = colorByCode.get(String(code).toUpperCase());
-      return { code, name: c?.name || code, id: c?.id };
-    },
-  );
-  const sizes: SelSize[] = (product.selected_size_ids || [])
-    .map((id: number) => {
+  // The Go backend sometimes returns an empty `selected_colors` even when the
+  // product has colored variants (its colors still appear in
+  // `color_image_mappings`). Rebuild the color axis from every explicit source
+  // and dedupe by uppercased color code so the matrix isn't silently dropped.
+  const colorsByCode = new Map<string, SelColor>();
+  const addColor = (code?: string, name?: string, id?: number) => {
+    if (!code) return;
+    const k = String(code).toUpperCase();
+    if (colorsByCode.has(k)) return;
+    colorsByCode.set(k, { code, name: name || code, id });
+  };
+  for (const code of product.selected_colors || []) {
+    const c = colorByCode.get(String(code).toUpperCase());
+    addColor(code, c?.name, c?.id);
+  }
+  for (const m of product.color_image_mappings || []) {
+    if (m?.color_code) addColor(m.color_code, m.color_name, m.color_id);
+  }
+  const colors: SelColor[] = [...colorsByCode.values()];
+
+  // Rebuild sizes from the selection and from any size referenced by a
+  // variation (union, resolved through the size lookup, unresolved ids dropped).
+  const sizeIds = new Set<number>();
+  for (const id of product.selected_size_ids || []) sizeIds.add(id);
+  for (const v of product.variations || [])
+    if (v?.size_id != null) sizeIds.add(v.size_id);
+  const sizes: SelSize[] = [...sizeIds]
+    .map((id) => {
       const s = sizeById.get(id);
       return s ? { id: s.id, name: s.name } : null;
     })
     .filter(Boolean) as SelSize[];
 
-  // Variations -> keyed map.
+  // Variations -> keyed map. Prefer the backend's canonical `type` ("Aqua-S");
+  // cleanKey(type) is byte-identical to combos()'s variantKey(color, size)
+  // (cleanKey only strips whitespace / dots, never the "-" separator), so
+  // loaded keys line up with the matrix keys and the update payload. Fall back
+  // to resolving ids only when `type` is absent.
   const variations: Record<string, VariantRow> = {};
   for (const v of product.variations || []) {
-    const cName = v.color_id != null ? colorById.get(v.color_id)?.name : undefined;
-    const sName = v.size_id != null ? sizeById.get(v.size_id)?.name : undefined;
-    const key = variantKey(cName, sName);
+    let key = v.type ? cleanKey(v.type) : "";
+    if (!key) {
+      const cName = v.color_id != null ? colorById.get(v.color_id)?.name : undefined;
+      const sName = v.size_id != null ? sizeById.get(v.size_id)?.name : undefined;
+      key = variantKey(cName, sName);
+    }
     if (!key) continue;
     variations[key] = {
       price: numStr(v.unit_price),
