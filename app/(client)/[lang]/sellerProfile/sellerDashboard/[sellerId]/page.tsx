@@ -861,22 +861,44 @@ function SellerDashBoard() {
 
     if (sellerProducts.length === 0)
       return (
-        <EmptyState
-          icon="products"
-          title={translateFunction("No products found")}
-          subtitle={translateFunction(
-            "Products added to this shop will appear here.",
+        <div>
+          <EmptyState
+            icon="products"
+            title={translateFunction("No products found")}
+            subtitle={translateFunction(
+              "Products added to this shop will appear here.",
+            )}
+          />
+          {hasPermission("CREATE_PRODUCT") && (
+            <div className="flex justify-center mt-4">
+              <Link
+                href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/new`}
+                className="inline-flex items-center gap-1.5 h-[40px] px-5 rounded-[12px] bg-[#5d5d5d] text-white text-[14px] medium hover:bg-[#4d4d4d] transition-colors active:scale-[0.98]"
+              >
+                + {translateFunction("Add your first product")}
+              </Link>
+            </div>
           )}
-        />
+        </div>
       );
 
     return (
       <>
-        <SectionHeader
-          icon="products"
-          title={translateFunction("Products")}
-          count={productsMeta?.total ?? sellerProducts.length}
-        />
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <SectionHeader
+            icon="products"
+            title={translateFunction("Products")}
+            count={productsMeta?.total ?? sellerProducts.length}
+          />
+          {hasPermission("CREATE_PRODUCT") && (
+            <Link
+              href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/new`}
+              className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[12px] bg-[#5d5d5d] text-white text-[13px] medium hover:bg-[#4d4d4d] transition-colors active:scale-[0.98]"
+            >
+              + {translateFunction("Add Product")}
+            </Link>
+          )}
+        </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
           {sellerProducts.map((product: any) => (
             <Link
