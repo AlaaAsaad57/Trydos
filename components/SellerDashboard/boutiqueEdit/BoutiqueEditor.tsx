@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSellerProfile } from "../../../app/(client)/[lang]/sellerProfile/SellerProfileContext";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, LogError } from "utils/functions";
@@ -72,6 +72,7 @@ export default function BoutiqueEditor({
   // banner warning queue
   const [warn, setWarn] = useState<WarnState | null>(null);
   const queueRef = useRef<File[]>([]);
+  const drainingRef = useRef(false);
 
   const has = (p: string) =>
     (sellerPermissions || []).includes(p) ||
@@ -191,20 +192,27 @@ export default function BoutiqueEditor({
 
   // Process the queued banner files one at a time; pause on a warning.
   const processQueue = async () => {
-    while (queueRef.current.length > 0) {
-      const file = queueRef.current[0];
-      const check = await checkBannerFile(file);
-      if (check.hardError) {
+    if (drainingRef.current) return;
+    drainingRef.current = true;
+    try {
+      while (queueRef.current.length > 0) {
+        const file = queueRef.current[0];
+        const check = await checkBannerFile(file);
+        if (check.hardError) {
+          queueRef.current.shift();
+          showErrorMessage(t(check.hardError));
+          continue;
+        }
+        if (check.warning) {
+          setWarn({ file, dims: check.warning }); // stop; wait for user decision
+          drainingRef.current = false; // release lock so resolveWarn() can resume draining
+          return;
+        }
         queueRef.current.shift();
-        showErrorMessage(t(check.hardError));
-        continue;
+        await uploadBanner(file);
       }
-      if (check.warning) {
-        setWarn({ file, dims: check.warning }); // stop; wait for user decision
-        return;
-      }
-      queueRef.current.shift();
-      await uploadBanner(file);
+    } finally {
+      drainingRef.current = false;
     }
   };
 
@@ -262,6 +270,7 @@ export default function BoutiqueEditor({
 
       // Status change (only if the toggle moved). Edits are already saved.
       let savedStatus = form.status;
+      let statusFailed = false;
       if (form.status !== initial.status) {
         const sres = await SellerDashboardService.changeBoutiqueStatus(
           sellerId,
@@ -269,6 +278,7 @@ export default function BoutiqueEditor({
           form.status as 0 | 1,
         );
         if (!sres?.success) {
+          statusFailed = true;
           const blockers =
             Array.isArray(sres?.detailed_error) && sres.detailed_error.length
               ? sres.detailed_error.map((d: any) => d.message)
@@ -277,7 +287,7 @@ export default function BoutiqueEditor({
           savedStatus = initial.status; // revert the toggle; edits stay saved
           showErrorMessage(t("Your changes were saved, but the status could not be updated."));
         } else {
-          savedStatus = sres.data?.status ?? form.status;
+          savedStatus = Number(sres.data?.status ?? form.status);
         }
       }
 
@@ -286,7 +296,7 @@ export default function BoutiqueEditor({
       setInitial(persisted);
       setEditMode(false);
       setErrors({});
-      if (statusBlockers.length === 0 && savedStatus === form.status) {
+      if (!statusFailed) {
         showSuccessMessage(t("Boutique updated successfully."));
       }
     } catch (e: any) {
