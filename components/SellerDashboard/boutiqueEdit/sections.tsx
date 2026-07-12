@@ -211,7 +211,7 @@ export function BannersSection({
     <Section
       icon="gallery"
       title="Banners"
-      desc={`Recommended size ${RECOMMENDED_BANNER.label}. Used across all languages.`}
+      desc={`${t("Recommended size")} ${RECOMMENDED_BANNER.label}. ${t("Used across all languages.")}`}
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {form.banners.map((b, i) => (

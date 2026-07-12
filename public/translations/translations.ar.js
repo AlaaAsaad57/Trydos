@@ -2041,6 +2041,8 @@ const translations = {
   "Keep important content centered — the storefront may crop the top and bottom.": "أبقِ المحتوى المهم في الوسط — قد يقتطع المتجر الأعلى والأسفل.",
   "Your image is": "صورتك بمقاس",
   "Ignore & upload": "تجاهل وارفع",
+  "Recommended size": "الحجم المُوصى به",
+  "Used across all languages.": "يُستخدم في جميع اللغات.",
 };
 
 export default translations;

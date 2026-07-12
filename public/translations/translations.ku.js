@@ -2081,6 +2081,8 @@ const translations = {
   "Keep important content centered — the storefront may crop the top and bottom.": "ناوەڕۆکی گرنگ لە ناوەڕاستدا بهێڵەرەوە — فرۆشگا لەوانەیە سەرەوە و خوارەوە ببڕێت.",
   "Your image is": "وێنەکەت",
   "Ignore & upload": "پشتگوێخستن و بارکردن",
+  "Recommended size": "قەبارەی پێشنیارکراو",
+  "Used across all languages.": "لە هەموو زمانەکاندا بەکاردێت.",
 };
 
 export default translations;

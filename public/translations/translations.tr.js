@@ -2049,6 +2049,8 @@ const translations = {
   "Keep important content centered — the storefront may crop the top and bottom.": "Önemli içeriği ortada tutun — mağaza üst ve altı kırpabilir.",
   "Your image is": "Görseliniz",
   "Ignore & upload": "Yoksay ve yükle",
+  "Recommended size": "Önerilen boyut",
+  "Used across all languages.": "Tüm dillerde kullanılır.",
 };
 
 export default translations;
