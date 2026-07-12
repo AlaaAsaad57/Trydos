@@ -174,6 +174,32 @@ export const emptyVariantRow = (): VariantRow => ({
   barcode: "",
 });
 
+/**
+ * Fill each current variant's empty price / discount / luck from the
+ * product-level defaults, as real editable values. A field that already holds a
+ * value — and `extra` / `qty` / `sku` / `barcode` — is left untouched. Combos
+ * whose defaults are also empty are NOT materialized (avoids phantom rows /
+ * diffs). Returns the SAME `form.variations` reference when nothing changed, so
+ * callers can skip a needless patch.
+ */
+export function seedVariantDefaults(
+  form: ProductForm,
+): Record<string, VariantRow> {
+  let changed = false;
+  const next: Record<string, VariantRow> = { ...form.variations };
+  for (const c of combos(form)) {
+    const base = next[c.key] || emptyVariantRow();
+    const price = base.price === "" ? form.unit_price : base.price;
+    const discount = base.discount === "" ? form.discount_price : base.discount;
+    const luck = base.luck === "" ? form.luck_price : base.luck;
+    if (price !== base.price || discount !== base.discount || luck !== base.luck) {
+      next[c.key] = { ...base, price, discount, luck };
+      changed = true;
+    }
+  }
+  return changed ? next : form.variations;
+}
+
 /** Variant key suffix: "{Color}-{Size}", spaces removed, "." -> "_". */
 export const cleanKey = (s?: string): string =>
   (s || "").replace(/\s+/g, "").replace(/\./g, "_");

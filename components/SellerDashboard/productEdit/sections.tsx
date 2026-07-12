@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { translateFunction } from "utils/functions";
 import {
   DashButton,
@@ -14,6 +14,7 @@ import {
   UNITS,
   VariantRow,
   emptyVariantRow,
+  seedVariantDefaults,
 } from "./helpers";
 
 /* ------------------------------- shared UI ------------------------------- */
@@ -556,6 +557,19 @@ export function MediaSection({ form, patch, errors, disabled, onUploadImages, up
 
 export function VariantsSection({ form, patch, errors, lookups, disabled }: SectionProps) {
   const cmb = combos(form);
+
+  // Auto-fill empty variant prices from the product-level defaults so the seller
+  // sees what each variant will cost. Keyed on the SET of combo keys (+ edit
+  // mode), not on field values: it fires on entering edit mode and whenever a
+  // color/size is added, but never re-fills a field the seller cleared.
+  const comboKeys = cmb.map((c) => c.key).join("|");
+  useEffect(() => {
+    if (disabled) return;
+    const seeded = seedVariantDefaults(form);
+    if (seeded !== form.variations) patch({ variations: seeded });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comboKeys, disabled]);
+
   const setVariant = (key: string, field: keyof VariantRow, value: string) => {
     const row = form.variations[key] || emptyVariantRow();
     patch({ variations: { ...form.variations, [key]: { ...row, [field]: value } } });
