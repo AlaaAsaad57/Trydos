@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSellerProfile } from "../../../app/(client)/[lang]/sellerProfile/SellerProfileContext";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, LogError } from "utils/functions";
@@ -21,6 +22,7 @@ import {
   buildFormFromEdit,
   buildUpdateFormData,
   DiffEntry,
+  emptyProductForm,
   fileName,
   ImageItem,
   Lookups,
@@ -67,11 +69,15 @@ export default function ProductEditor({
   sellerId,
   productId,
   local,
+  mode = "edit",
 }: {
   sellerId: string;
-  productId: string;
+  productId?: string;
   local: string;
+  mode?: "edit" | "create";
 }) {
+  const router = useRouter();
+  const isCreate = mode === "create";
   const { sellerProducts, sellerPermissions, setSellerPermissions } =
     useSellerProfile();
 
@@ -110,6 +116,7 @@ export default function ProductEditor({
     (sellerPermissions || []).includes("SUPER_ADMIN");
   const canUpdate = has("UPDATE_PRODUCT");
   const canChangeStatus = has("CHANGE_PRODUCT_STATUS");
+  const canCreate = has("CREATE_PRODUCT");
 
   const listProduct = useMemo(
     () =>
@@ -143,9 +150,20 @@ export default function ProductEditor({
     setLoadError(null);
     setDenied(false);
     try {
+      if (isCreate) {
+        const res = await SellerDashboardService.getProductCreateForm(sellerId);
+        const lk = (res.data?.lookups || {}) as Lookups;
+        const built = emptyProductForm();
+        setLookups(lk);
+        setForm(built);
+        setInitial(built);
+        setStatus(0);
+        setEditMode(true);
+        return;
+      }
       const res = await SellerDashboardService.getProductForEdit(
         sellerId,
-        productId,
+        productId as string,
       );
       const product = res.data?.product;
       const lk = (res.data?.lookups || {}) as Lookups;
@@ -158,7 +176,7 @@ export default function ProductEditor({
       setProductMeta({ request_status: product.request_status });
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : String(e);
-      LogError({ scenario: "ProductEditor.load", error: msg, productId });
+      LogError({ scenario: "ProductEditor.load", error: msg, productId: productId ?? "new" });
       if (/permission|forbidden|403/i.test(msg)) setDenied(true);
       else setLoadError(msg || t("Failed to load product"));
     } finally {
@@ -265,9 +283,28 @@ export default function ProductEditor({
     setApprovalNote(false);
     try {
       const fd = buildUpdateFormData(form);
+      if (isCreate) {
+        const res = await SellerDashboardService.addProduct(sellerId, fd);
+        if (!res?.success) {
+          const detail =
+            Array.isArray(res?.detailed_error) && res.detailed_error.length
+              ? res.detailed_error.map((d: any) => d.message).join(" • ")
+              : "";
+          throw new Error(detail || res?.message || t("Failed to create product"));
+        }
+        setConfirm(null);
+        showSuccessMessage(t("Product created successfully."));
+        const newId = res.data?.product_id ?? res.data?.id;
+        router.replace(
+          newId != null
+            ? `/${local}/sellerProfile/sellerDashboard/${sellerId}/products/${newId}`
+            : `/${local}/sellerProfile/sellerDashboard/${sellerId}`,
+        );
+        return;
+      }
       const res = await SellerDashboardService.updateProduct(
         sellerId,
-        productId,
+        productId as string,
         fd,
       );
       if (!res?.success) {
@@ -287,7 +324,7 @@ export default function ProductEditor({
       if (!requiresApproval) showSuccessMessage(t("Product updated successfully."));
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : String(e);
-      LogError({ scenario: "ProductEditor.update", error: msg, productId });
+      LogError({ scenario: "ProductEditor.update", error: msg, productId: productId ?? "new" });
       showErrorMessage(msg);
       setConfirm(null);
     } finally {
@@ -381,55 +418,78 @@ export default function ProductEditor({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-[18px] bold text-[#3c3c3c] truncate">
-                {form.name || t("Untitled Product")}
+                {isCreate ? t("New Product") : form.name || t("Untitled Product")}
               </h1>
-              <StatusPill active={status === 1}>
-                {status === 1 ? t("Purchasable") : t("Disabled")}
-              </StatusPill>
-              {productMeta.request_status === 0 && (
+              {!isCreate && (
+                <StatusPill active={status === 1}>
+                  {status === 1 ? t("Purchasable") : t("Disabled")}
+                </StatusPill>
+              )}
+              {!isCreate && productMeta.request_status === 0 && (
                 <span className="px-2.5 py-1 rounded-full text-[10px] semibold bg-[#fbf6e6] text-[#b8860b]">
                   {t("Pending Approval")}
                 </span>
               )}
             </div>
             <p className="text-[12px] text-[#8e8e8e] mt-0.5">
-              {t("ID")}: {productId} · {form.seller_product_id}
+              {isCreate
+                ? t("Fill in the details and create your product.")
+                : `${t("ID")}: ${productId} · ${form.seller_product_id}`}
             </p>
           </div>
 
           {/* Actions */}
           <div className="flex items-center gap-2.5">
-            {canChangeStatus && (
-              <DashButton
-                variant={status === 1 ? "danger" : "secondary"}
-                size="sm"
-                icon={status === 1 ? "lock" : "check"}
-                onClick={() => {
-                  setStatusBlockers([]);
-                  setStatusTarget(status === 1 ? 0 : 1);
-                }}
-              >
-                {status === 1 ? t("Disable") : t("Allow Purchase")}
-              </DashButton>
-            )}
-            {!editMode ? (
-              canUpdate ? (
-                <DashButton icon="edit" onClick={() => setEditMode(true)}>
-                  {t("Edit")}
-                </DashButton>
-              ) : (
-                <span className="text-[12px] text-[#8e8e8e] flex items-center gap-1.5">
-                  <DashIcon name="lock" size={14} /> {t("View only")}
-                </span>
-              )
-            ) : (
+            {isCreate ? (
               <>
-                <DashButton variant="ghost" size="sm" onClick={cancelEdit}>
+                <DashButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    router.push(`/${local}/sellerProfile/sellerDashboard/${sellerId}`)
+                  }
+                >
                   {t("Cancel")}
                 </DashButton>
                 <DashButton icon="check" onClick={startSave}>
-                  {t("Save Changes")}
+                  {t("Create Product")}
                 </DashButton>
+              </>
+            ) : (
+              <>
+                {canChangeStatus && (
+                  <DashButton
+                    variant={status === 1 ? "danger" : "secondary"}
+                    size="sm"
+                    icon={status === 1 ? "lock" : "check"}
+                    onClick={() => {
+                      setStatusBlockers([]);
+                      setStatusTarget(status === 1 ? 0 : 1);
+                    }}
+                  >
+                    {status === 1 ? t("Disable") : t("Allow Purchase")}
+                  </DashButton>
+                )}
+                {!editMode ? (
+                  canUpdate ? (
+                    <DashButton icon="edit" onClick={() => setEditMode(true)}>
+                      {t("Edit")}
+                    </DashButton>
+                  ) : (
+                    <span className="text-[12px] text-[#8e8e8e] flex items-center gap-1.5">
+                      <DashIcon name="lock" size={14} /> {t("View only")}
+                    </span>
+                  )
+                ) : (
+                  <>
+                    <DashButton variant="ghost" size="sm" onClick={cancelEdit}>
+                      {t("Cancel")}
+                    </DashButton>
+                    <DashButton icon="check" onClick={startSave}>
+                      {t("Save Changes")}
+                    </DashButton>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -474,11 +534,22 @@ export default function ProductEditor({
               {t("Review your changes before saving.")}
             </span>
             <div className="flex items-center gap-2.5">
-              <DashButton variant="ghost" size="sm" onClick={cancelEdit}>
+              <DashButton
+                variant="ghost"
+                size="sm"
+                onClick={
+                  isCreate
+                    ? () =>
+                        router.push(
+                          `/${local}/sellerProfile/sellerDashboard/${sellerId}`,
+                        )
+                    : cancelEdit
+                }
+              >
                 {t("Cancel")}
               </DashButton>
               <DashButton icon="check" onClick={startSave}>
-                {t("Save Changes")}
+                {isCreate ? t("Create Product") : t("Save Changes")}
               </DashButton>
             </div>
           </div>
@@ -490,6 +561,7 @@ export default function ProductEditor({
         <ConfirmDialog
           diff={confirm}
           saving={saving}
+          create={isCreate}
           onCancel={() => !saving && setConfirm(null)}
           onConfirm={confirmSave}
         />
@@ -528,11 +600,13 @@ function Scrim({ children, onClose }: { children: React.ReactNode; onClose: () =
 function ConfirmDialog({
   diff,
   saving,
+  create,
   onCancel,
   onConfirm,
 }: {
   diff: DiffEntry[];
   saving: boolean;
+  create?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -540,10 +614,12 @@ function ConfirmDialog({
     <Scrim onClose={onCancel}>
       <div className="p-5 border-b border-[#ededed]">
         <h3 className="text-[16px] bold text-[#3c3c3c]">
-          {t("Confirm changes")}
+          {create ? t("Confirm new product") : t("Confirm changes")}
         </h3>
         <p className="text-[12px] text-[#8e8e8e] mt-0.5">
-          {t("These fields will be updated")} ({diff.length}).
+          {create
+            ? `${t("These details will be saved")} (${diff.length}).`
+            : `${t("These fields will be updated")} (${diff.length}).`}
         </p>
       </div>
       <div className="p-5 overflow-auto space-y-2.5">
