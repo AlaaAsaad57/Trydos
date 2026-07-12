@@ -16,9 +16,8 @@ import {
   emptyVariantRow,
   seedVariantDefaults,
   ImageItem,
-  fileName,
 } from "./helpers";
-import GalleryPickerModal from "./GalleryPickerModal";
+import GalleryPickerModal, { PickedImage } from "./GalleryPickerModal";
 
 /* ------------------------------- shared UI ------------------------------- */
 
@@ -467,7 +466,7 @@ export function SeoSection({ form, patch, disabled, onUploadMeta, uploading, sel
   const fileRef = useRef<HTMLInputElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const openDevice = () => fileRef.current?.click();
-  const pickMeta = (picked: { url: string; name: string }[]) => {
+  const pickMeta = (picked: PickedImage[]) => {
     const p = picked[0];
     if (p) patch({ meta_image: p.name, meta_image_url: p.url });
   };
@@ -569,7 +568,7 @@ export function MediaSection({ form, patch, errors, disabled, onUploadImages, up
   const fileRef = useRef<HTMLInputElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const openDevice = () => fileRef.current?.click();
-  const addFromGallery = (picked: { url: string; name: string }[]) => {
+  const addFromGallery = (picked: PickedImage[]) => {
     const existing = new Set(form.images.map((i) => i.name));
     const items: ImageItem[] = picked
       .filter((p) => p.name && !existing.has(p.name))

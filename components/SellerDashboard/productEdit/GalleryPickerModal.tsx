@@ -130,7 +130,7 @@ export default function GalleryPickerModal({
           ) : (
             <>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                {images.map((im) => {
+                {images.filter((im) => imgUrl(im)).map((im) => {
                   const key = imgKey(im);
                   const on = selected.has(key);
                   return (

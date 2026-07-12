@@ -177,10 +177,13 @@ export const emptyVariantRow = (): VariantRow => ({
 /**
  * Fill each current variant's empty price / discount / luck from the
  * product-level defaults, as real editable values. A field that already holds a
- * value — and `extra` / `qty` / `sku` / `barcode` — is left untouched. Combos
- * whose defaults are also empty are NOT materialized (avoids phantom rows /
- * diffs). Returns the SAME `form.variations` reference when nothing changed, so
- * callers can skip a needless patch.
+ * value — and `extra` / `qty` / `sku` / `barcode` — is left untouched. A combo
+ * whose product-level defaults are also empty is not materialized into a row.
+ * When a product-level default IS non-empty, though, filling it in is a real,
+ * intended change and will show up in the confirm-diff — this only avoids
+ * phantom (all-empty) rows, not diffs in general. Returns the SAME
+ * `form.variations` reference when nothing changed, so callers can skip a
+ * needless patch.
  */
 export function seedVariantDefaults(
   form: ProductForm,
@@ -289,12 +292,12 @@ export function buildFormFromEdit(
     if (colorsByCode.has(k)) return;
     colorsByCode.set(k, { code, name: name || code, id });
   };
+  for (const m of product.color_image_mappings || []) {
+    if (m?.color_code) addColor(m.color_code, m.color_name, m.color_id);
+  }
   for (const code of product.selected_colors || []) {
     const c = colorByCode.get(String(code).toUpperCase());
     addColor(code, c?.name, c?.id);
-  }
-  for (const m of product.color_image_mappings || []) {
-    if (m?.color_code) addColor(m.color_code, m.color_name, m.color_id);
   }
   const colors: SelColor[] = [...colorsByCode.values()];
 
@@ -311,19 +314,22 @@ export function buildFormFromEdit(
     })
     .filter(Boolean) as SelSize[];
 
-  // Variations -> keyed map. Prefer the backend's canonical `type` ("Aqua-S");
-  // cleanKey(type) is byte-identical to combos()'s variantKey(color, size)
-  // (cleanKey only strips whitespace / dots, never the "-" separator), so
-  // loaded keys line up with the matrix keys and the update payload. Fall back
-  // to resolving ids only when `type` is absent.
+  // Key each variation from the SAME reconstructed colors/sizes arrays that
+  // combos() iterates, so the variation-map keys are structurally identical to
+  // the matrix keys and to buildUpdateFormData's `price_<key>` — independent of
+  // how the backend formats `v.type`. Fall back to cleanKey(v.type) only when a
+  // variation's color/size id doesn't resolve.
+  const colorNameById = new Map<number, string>();
+  for (const c of colors) if (c.id != null) colorNameById.set(c.id, c.name);
+  const sizeNameById = new Map<number, string>();
+  for (const s of sizes) sizeNameById.set(s.id, s.name);
+
   const variations: Record<string, VariantRow> = {};
   for (const v of product.variations || []) {
-    let key = v.type ? cleanKey(v.type) : "";
-    if (!key) {
-      const cName = v.color_id != null ? colorById.get(v.color_id)?.name : undefined;
-      const sName = v.size_id != null ? sizeById.get(v.size_id)?.name : undefined;
-      key = variantKey(cName, sName);
-    }
+    const cName = v.color_id != null ? colorNameById.get(v.color_id) : undefined;
+    const sName = v.size_id != null ? sizeNameById.get(v.size_id) : undefined;
+    let key = variantKey(cName, sName);
+    if (!key && v.type) key = cleanKey(v.type);
     if (!key) continue;
     variations[key] = {
       price: numStr(v.unit_price),
