@@ -1085,9 +1085,10 @@ function SellerDashBoard() {
         />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4">
           {sellerBoutiques.map((boutique: any) => (
-            <div
+            <Link
               key={boutique.id}
-              className="group bg-white rounded-[16px] overflow-hidden border border-[#ededed] hover:border-transparent hover:shadow-[0_10px_28px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300"
+              href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/boutiques/${boutique.id}`}
+              className="group block bg-white rounded-[16px] overflow-hidden border border-[#ededed] hover:border-transparent hover:shadow-[0_10px_28px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300"
             >
               <div className="relative w-full h-[160px] bg-[#f0f0f0] overflow-hidden">
                 {boutique.icon ? (
@@ -1154,7 +1155,7 @@ function SellerDashBoard() {
                   </span>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </>
