@@ -373,6 +373,7 @@ export class ElasticsearchReader {
                                         _source: [
                                           "boutique_id",
                                           "thumbnail",
+                                          "images",
                                           "name",
                                         ],
                                       },
@@ -458,6 +459,20 @@ export class ElasticsearchReader {
             {};
           const catId = bucket.key;
 
+          // `thumbnail` is deprecated (null index-wide); fall back to the
+          // product's first image, matching the is_product mapping below.
+          let productImageThumbnail: string | null = null;
+          try {
+            const firstImage = thumbHit.images
+              ? JSON.parse(thumbHit.images)?.[0]
+              : null;
+            productImageThumbnail = firstImage
+              ? `/product/${firstImage}`
+              : null;
+          } catch {
+            productImageThumbnail = null;
+          }
+
           const orig = origMap[catId] ?? {
             num_available_product: 0,
             most_viewed_product_thumbnail: null,
@@ -487,7 +502,7 @@ export class ElasticsearchReader {
               origMap[catId] &&
               origMap[catId].most_viewed_product_thumbnail !== null
                 ? origMap[catId].most_viewed_product_thumbnail
-                : (thumbHit.thumbnail ?? null),
+                : (thumbHit.thumbnail ?? productImageThumbnail),
 
             most_viewed_product_name: thumbHit.name ?? null,
           });
