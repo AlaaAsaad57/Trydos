@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make existing variant prices actually load in the seller product editor, and auto-fill empty variant price fields from the product-level defaults as real, editable values.
+**Goal:** Make existing variant prices actually load in the seller product editor, auto-fill empty variant price fields from the product-level defaults, fix the single-file bulk-upload response, and add a "gallery vs device" image-picker menu.
 
-**Architecture:** Two client-only changes in `components/SellerDashboard/productEdit/`. Task 1 fixes `buildFormFromEdit` (helpers.ts) so the reconstructed color/size axes and the variation-map keys line up with `combos()`. Task 2 adds a pure `seedVariantDefaults` helper and a `useEffect` in `VariantsSection` that fills empty `price`/`discount`/`luck` from `unit_price`/`discount_price`/`luck_price`.
+**Architecture:** All changes are client-only, in `components/SellerDashboard/productEdit/` (plus one new modal). Task 1 fixes `buildFormFromEdit` (helpers.ts) so the reconstructed color/size axes and the variation-map keys line up with `combos()`. Task 2 adds a pure `seedVariantDefaults` helper and a `useEffect` in `VariantsSection`. Task 3 fixes `extractNames` (ProductEditor.tsx) for the single-file `{ url }` response. Tasks 4–5 add a `GalleryPickerModal` and a two-choice source menu on the product-image and meta-image pickers.
 
 **Tech Stack:** Next.js 16 App Router, React 19, TypeScript, TailwindCSS 4. Client components only. Package manager: **pnpm**.
 
@@ -25,6 +25,13 @@
   - Add exported `seedVariantDefaults(form): Record<string, VariantRow>`.
 - **Modify** `components/SellerDashboard/productEdit/sections.tsx`
   - `VariantsSection` — add `useEffect` (keyed on the combo-key set + `disabled`) that calls `seedVariantDefaults` and `patch`es when it differs. Add `useEffect` and `seedVariantDefaults` to imports.
+  - `SectionProps` — add `sellerId: string` and `canUseGallery?: boolean`.
+  - Add a local `SourceMenu` popover; wire it into `MediaSection` (multi) and `SeoSection` (single) to offer gallery vs device. Import `ImageItem`, `fileName`, `GalleryPickerModal`.
+- **Modify** `components/SellerDashboard/productEdit/ProductEditor.tsx`
+  - `extractNames` — handle the single-file `{ url }` response.
+  - `sectionProps` — supply `sellerId` and `canUseGallery: has("READ_PRODUCT_IMAGES")`.
+- **Create** `components/SellerDashboard/productEdit/GalleryPickerModal.tsx`
+  - Lightweight modal listing the seller's uploaded images via `getProductImages`, with grid + (multi/single) select + "Load more"; returns `{ url, name }[]`.
 
 ---
 

@@ -42,12 +42,18 @@ construction.
 - Fix variant-price loading in `buildFormFromEdit` (`helpers.ts`).
 - Auto-fill empty variant price fields from product-level defaults, as real editable
   values, in `VariantsSection` (`sections.tsx`).
+- Fix the single-file bulk-upload response (`{ url }` vs `{ urls }`) in the product
+  editor's `extractNames` (`ProductEditor.tsx`).
+- Add a "Choose from gallery / Upload from device" menu to the product-image and
+  meta-image pickers, backed by a new lightweight `GalleryPickerModal`.
 
 **Out of scope**
 - Per-country variant prices (none exist at the variant level).
 - `purchase_price` (no variant-level equivalent).
 - Changing the save-time fallback in `buildUpdateFormData` (kept as a safety net).
 - Any backend change; we make the client resilient to the current Go response.
+- Refactoring the existing `GalleryTab.tsx` (the picker is a separate, new component).
+- Video picker (`onUploadVideo`) — unchanged.
 
 ## Part 1 — Fix variant load (`helpers.ts` → `buildFormFromEdit`)
 
@@ -116,6 +122,41 @@ not on field values:
 - `price` = `unit_price` stays within the backend's allowed-percentage band → no new 422.
 - `qty` / `sku` are untouched → existing `validate()` rules unaffected.
 
+## Part 3 — Image picker: single-file fix + gallery menu
+
+### 3a. Single-file bulk-upload fix (`ProductEditor.tsx` → `extractNames`)
+The media server's `POST /upload/bulk` returns `{ urls: [...] }` for many files but
+`{ url: "..." }` for exactly one (documented in `mobile-seller-dashboard-api-guide.md:310`).
+The service's `normalizeBulkUpload` already handles both, but the product editor's
+`extractNames` checks only array-valued keys (`files`/`urls`/`results`/`data`), so a
+single-file upload falls through to `Array.isArray(object) === false` → returns `[]` →
+`onUploadImages`/`onUploadMeta` throw "Upload returned no file(s)". Fix: make
+`extractNames` also accept a scalar `data.url` by wrapping it (`data?.url ? [data.url] : …`),
+mirroring `normalizeBulkUpload`. This repairs both product-image and meta-image single
+uploads.
+
+### 3b. Gallery picker menu (`GalleryPickerModal` + `MediaSection`/`SeoSection`)
+Both the product-image "Add" tile and the meta-image button open a small two-choice menu:
+**Choose from gallery** or **Upload from device** (device = the existing hidden file input,
+unchanged).
+
+- **New component** `components/SellerDashboard/productEdit/GalleryPickerModal.tsx` — a
+  focused modal that lists the seller's uploaded images via
+  `getProductImages(sellerId, page, 60)` (the same endpoint `GalleryTab` uses), with the
+  same defensive unwrap (`res.data?.images ?? res.data?.data ?? res.data ?? []`) and
+  accessors (`url ?? path`, `name ?? file_name ?? id`). Grid + toggle-select (multi for
+  product images, single for meta) + "Load more" pagination from `meta.last_page`. It
+  returns `{ url, name }[]` where `name = fileName(url)` — the filename the update payload
+  expects. `GalleryTab.tsx` is left untouched.
+- **Gallery images skip upload** (already on the media server): the consumer pushes
+  `ImageItem { name: fileName(url), url, isNew: true }` for product images (deduped by
+  `name`), or sets `meta_image` / `meta_image_url` for the meta image.
+- **Permission gate:** the gallery option is shown only when the seller has
+  `READ_PRODUCT_IMAGES` (a new `canUseGallery` prop on `SectionProps`, computed in
+  `ProductEditor`). Without it, the picker behaves exactly as today (device-only, no menu).
+- **Plumbing:** `SectionProps` gains `sellerId: string` and `canUseGallery?: boolean`,
+  supplied from `ProductEditor`'s existing `sellerId` prop and `has("READ_PRODUCT_IMAGES")`.
+
 ## Validation strategy
 
 No test suite in this repo (per project policy). Validate by:
@@ -127,5 +168,7 @@ No test suite in this repo (per project policy). Validate by:
 
 ## Rollback
 
-Both parts are confined to `helpers.ts` and `sections.tsx`. Reverting those two files
-restores prior behavior; no data migration or backend coordination is involved.
+Parts 1–2 are confined to `helpers.ts` and `sections.tsx`. Part 3 touches
+`ProductEditor.tsx` (`extractNames`, `SectionProps` values), `sections.tsx` (menu wiring)
+and adds `GalleryPickerModal.tsx`. Reverting these files restores prior behavior; no data
+migration or backend coordination is involved.
