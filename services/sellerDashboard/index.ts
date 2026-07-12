@@ -845,5 +845,61 @@ class SellerDashboardService {
     });
   }
 
+  // ---------- Boutique Edit / Update / Change-status ----------
+  // Seller-owned boutique management (see shop-seller-product-boutique-apis.md §4).
+  // All scoped to X-Seller-ID via the sellerId arg. Laravel backend (/shop/* is
+  // not in the Go allow-list).
+
+  // GET /shop/boutiques/{id}/edit — UPDATE_BUTIKS | SUPER_ADMIN
+  async getBoutiqueForEdit(sellerId: string, boutiqueId: string | number) {
+    const res = await fetchData({
+      url: `/shop/boutiques/${boutiqueId}/edit`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_BOUTIQUE_FOR_EDIT,
+      sellerId,
+    });
+    if (!res?.success) {
+      throw new Error(res?.message || "Failed to load boutique for edit");
+    }
+    return res;
+  }
+
+  // POST /shop/boutiques/{id}/update — UPDATE_BUTIKS | SUPER_ADMIN
+  // Body: { boutique_global_data, custom_data } (see helpers.buildUpdatePayload).
+  async updateBoutique(
+    sellerId: string,
+    boutiqueId: string | number,
+    payload: Record<string, unknown>,
+  ) {
+    return fetchData({
+      url: `/shop/boutiques/${boutiqueId}/update`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.UPDATE_BOUTIQUE,
+      body: JSON.stringify(payload),
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // POST /shop/boutiques/{id}/change-status — CHANGE_BOUTIQUE_STATUS | SUPER_ADMIN
+  // status=0 always succeeds; status=1 may 422 with detailed_error blockers.
+  async changeBoutiqueStatus(
+    sellerId: string,
+    boutiqueId: string | number,
+    status: 0 | 1,
+  ) {
+    return fetchData({
+      url: `/shop/boutiques/${boutiqueId}/change-status`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.CHANGE_BOUTIQUE_STATUS,
+      body: JSON.stringify({ status }),
+      sellerId,
+      noMessage: true,
+    });
+  }
+
 }
 export default new SellerDashboardService();
