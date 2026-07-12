@@ -278,7 +278,6 @@ export function buildFormFromEdit(
   const colorByCode = new Map(
     (lookups.colors || []).map((c) => [String(c.code).toUpperCase(), c]),
   );
-  const colorById = new Map((lookups.colors || []).map((c) => [c.id, c]));
   const sizeById = new Map((lookups.sizes || []).map((s) => [s.id, s]));
 
   // The Go backend sometimes returns an empty `selected_colors` even when the
