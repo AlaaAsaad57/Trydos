@@ -15,7 +15,10 @@ import {
   VariantRow,
   emptyVariantRow,
   seedVariantDefaults,
+  ImageItem,
+  fileName,
 } from "./helpers";
+import GalleryPickerModal from "./GalleryPickerModal";
 
 /* ------------------------------- shared UI ------------------------------- */
 
@@ -29,6 +32,8 @@ export interface SectionProps {
   onUploadMeta?: (file: File) => Promise<void>;
   onUploadVideo?: (file: File) => Promise<void>;
   uploading?: { images?: boolean; meta?: boolean; video?: boolean };
+  sellerId: string;
+  canUseGallery?: boolean;
 }
 
 const t = (s: string) => translateFunction(s);
@@ -458,8 +463,14 @@ export function CountriesSection({ form, patch, lookups, disabled }: SectionProp
   );
 }
 
-export function SeoSection({ form, patch, disabled, onUploadMeta, uploading }: SectionProps) {
+export function SeoSection({ form, patch, disabled, onUploadMeta, uploading, sellerId, canUseGallery }: SectionProps) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const openDevice = () => fileRef.current?.click();
+  const pickMeta = (picked: { url: string; name: string }[]) => {
+    const p = picked[0];
+    if (p) patch({ meta_image: p.name, meta_image_url: p.url });
+  };
   return (
     <Section icon="search" title="SEO / Meta">
       <Grid>
@@ -480,19 +491,107 @@ export function SeoSection({ form, patch, disabled, onUploadMeta, uploading }: S
           {!disabled && (
             <div>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) onUploadMeta?.(f); e.target.value = ""; }} />
-              <DashButton type="button" variant="secondary" size="sm" icon="upload" loading={!!uploading?.meta} onClick={() => fileRef.current?.click()}>
-                {form.meta_image ? t("Change Image") : t("Upload Image")}
-              </DashButton>
+              {canUseGallery ? (
+                <SourceMenu
+                  onGallery={() => setPickerOpen(true)}
+                  onDevice={openDevice}
+                  trigger={(toggle) => (
+                    <DashButton type="button" variant="secondary" size="sm" icon="upload" loading={!!uploading?.meta} onClick={toggle}>
+                      {form.meta_image ? t("Change Image") : t("Add Image")}
+                    </DashButton>
+                  )}
+                />
+              ) : (
+                <DashButton type="button" variant="secondary" size="sm" icon="upload" loading={!!uploading?.meta} onClick={openDevice}>
+                  {form.meta_image ? t("Change Image") : t("Upload Image")}
+                </DashButton>
+              )}
             </div>
           )}
         </div>
       </div>
+      {pickerOpen && (
+        <GalleryPickerModal
+          sellerId={sellerId}
+          multiple={false}
+          onClose={() => setPickerOpen(false)}
+          onPick={pickMeta}
+        />
+      )}
     </Section>
   );
 }
 
-export function MediaSection({ form, patch, errors, disabled, onUploadImages, uploading }: SectionProps) {
+/** Small two-choice popover: pick from the gallery or upload from the device.
+ *  `trigger` renders the button that toggles the menu. */
+function SourceMenu({
+  onGallery,
+  onDevice,
+  trigger,
+}: {
+  onGallery: () => void;
+  onDevice: () => void;
+  trigger: (toggle: () => void) => React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      {trigger(() => setOpen((v) => !v))}
+      {open && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <div
+            className="absolute left-0 top-full z-40 mt-1 min-w-[200px] bg-white rounded-[12px] border border-[#ededed] p-1.5"
+            style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.14)" }}
+          >
+            <button
+              type="button"
+              onClick={() => { setOpen(false); onGallery(); }}
+              className="w-full flex items-center gap-2.5 px-3 h-[40px] rounded-[10px] text-[13px] text-[#3c3c3c] hover:bg-[#f4f4f4] text-left"
+            >
+              <DashIcon name="gallery" size={16} /> {t("Choose from gallery")}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setOpen(false); onDevice(); }}
+              className="w-full flex items-center gap-2.5 px-3 h-[40px] rounded-[10px] text-[13px] text-[#3c3c3c] hover:bg-[#f4f4f4] text-left"
+            >
+              <DashIcon name="upload" size={16} /> {t("Upload from device")}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export function MediaSection({ form, patch, errors, disabled, onUploadImages, uploading, sellerId, canUseGallery }: SectionProps) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const openDevice = () => fileRef.current?.click();
+  const addFromGallery = (picked: { url: string; name: string }[]) => {
+    const existing = new Set(form.images.map((i) => i.name));
+    const items: ImageItem[] = picked
+      .filter((p) => p.name && !existing.has(p.name))
+      .map((p) => ({ name: p.name, url: p.url, isNew: true }));
+    if (items.length) patch({ images: [...form.images, ...items] });
+  };
+  const addTile = (onClick: () => void) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full aspect-square rounded-[12px] border border-dashed border-[#cfcfcf] bg-[#fafafa] flex flex-col items-center justify-center gap-1.5 text-[#8e8e8e] hover:border-[#5d5d5d] hover:text-[#5d5d5d] transition-colors"
+    >
+      {uploading?.images ? (
+        <span className="text-[11px]">{t("Uploading…")}</span>
+      ) : (
+        <>
+          <DashIcon name="plus" size={22} />
+          <span className="text-[11px] medium">{t("Add")}</span>
+        </>
+      )}
+    </button>
+  );
   const move = (i: number, dir: -1 | 1) => {
     const j = i + dir;
     if (j < 0 || j >= form.images.length) return;
@@ -537,20 +636,26 @@ export function MediaSection({ form, patch, errors, disabled, onUploadImages, up
             )}
           </div>
         ))}
-        {!disabled && (
-          <button type="button" onClick={() => fileRef.current?.click()} className="aspect-square rounded-[12px] border border-dashed border-[#cfcfcf] bg-[#fafafa] flex flex-col items-center justify-center gap-1.5 text-[#8e8e8e] hover:border-[#5d5d5d] hover:text-[#5d5d5d] transition-colors">
-            {uploading?.images ? (
-              <span className="text-[11px]">{t("Uploading…")}</span>
-            ) : (
-              <>
-                <DashIcon name="plus" size={22} />
-                <span className="text-[11px] medium">{t("Add")}</span>
-              </>
-            )}
-          </button>
-        )}
+        {!disabled &&
+          (canUseGallery ? (
+            <SourceMenu
+              onGallery={() => setPickerOpen(true)}
+              onDevice={openDevice}
+              trigger={(toggle) => addTile(toggle)}
+            />
+          ) : (
+            addTile(openDevice)
+          ))}
       </div>
       <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => { const fs = Array.from(e.target.files || []); if (fs.length) onUploadImages?.(fs); e.target.value = ""; }} />
+      {pickerOpen && (
+        <GalleryPickerModal
+          sellerId={sellerId}
+          multiple
+          onClose={() => setPickerOpen(false)}
+          onPick={addFromGallery}
+        />
+      )}
     </Section>
   );
 }

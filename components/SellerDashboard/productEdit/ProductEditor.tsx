@@ -356,6 +356,8 @@ export default function ProductEditor({
     onUploadMeta,
     onUploadVideo,
     uploading,
+    sellerId,
+    canUseGallery: has("READ_PRODUCT_IMAGES"),
   };
 
   const cover = form.images[0]?.url || listProduct?.images?.[0];
