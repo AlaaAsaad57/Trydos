@@ -16,6 +16,7 @@ import CommentsTab from "components/SellerDashboard/CommentsTab";
 import ExcelUploadTab from "components/SellerDashboard/ExcelUploadTab";
 import BackBar from "components/setting/BackBar";
 import ShopInfo from "components/SellerDashboard/ShopInfo";
+import { ConfirmModal } from "components/global/ConfirmModal";
 import { DashIcon, IconName } from "components/SellerDashboard/ui/icons";
 import {
   DashCard,
@@ -234,6 +235,8 @@ function SellerDashBoard() {
   });
   const [addUserLoading, setAddUserLoading] = useState(false);
   const [addUserSuccess, setAddUserSuccess] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [leaveLoading, setLeaveLoading] = useState(false);
   const [sellerOrders, setSellerOrders] = useState<any[]>([]);
   const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<
     Record<string, string>
@@ -529,16 +532,24 @@ function SellerDashBoard() {
 
   const handleLeaveShop = async () => {
     try {
+      setLeaveLoading(true);
+      setUsersError(null);
       const res = await SellerDashboardService.leaveShop(sellerId);
       if (!res?.success) {
         throw new Error(res?.message || "Failed to leave shop");
       }
-      // client-side behavior after leaving shop is not defined here; trigger a refresh or redirect if needed
+      // Left successfully — the shop is no longer accessible, so leave the
+      // dashboard and send the user back to their shop picker. The navigation
+      // itself is the success signal; keep the spinner up until it unloads.
+      window.location.href = `/${local}/sellerProfile`;
     } catch (error: any) {
       LogError({
         scenario: "SellerDashboard.handleLeaveShop",
         error: error instanceof Error ? error.message : String(error),
       });
+      setUsersError(error?.message || translateFunction("Failed to leave shop"));
+      setShowLeaveConfirm(false);
+      setLeaveLoading(false);
     }
   };
 
@@ -1621,7 +1632,7 @@ function SellerDashBoard() {
                                 variant="ghost"
                                 size="sm"
                                 icon="logout"
-                                onClick={handleLeaveShop}
+                                onClick={() => setShowLeaveConfirm(true)}
                               >
                                 {translateFunction("Leave Shop")}
                               </DashButton>
@@ -1651,6 +1662,18 @@ function SellerDashBoard() {
               <div className="mt-3">
                 <InlineAlert tone="error">{usersError}</InlineAlert>
               </div>
+            )}
+
+            {showLeaveConfirm && (
+              <ConfirmModal
+                showModal={showLeaveConfirm}
+                type="Leave"
+                loading={leaveLoading}
+                confirmTilte="Leave Shop"
+                confirmMessage="Are you sure you want to leave this shop? You will lose access to it."
+                onCancel={() => setShowLeaveConfirm(false)}
+                onConfirm={handleLeaveShop}
+              />
             )}
           </DashCard>
         )}

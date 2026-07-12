@@ -283,7 +283,7 @@ class SellerDashboardService {
         sellerId,
       });
       if(!res.success){
-        throw new Error(res.message || "Failed to confirm order detail status");
+        throw new Error(res.message || "Failed to leave shop");
       }
       return res;
     } catch (error) {
