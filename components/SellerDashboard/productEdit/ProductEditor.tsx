@@ -46,7 +46,11 @@ const t = (s: string) => translateFunction(s);
 /** Best-effort filename extraction from the media-server /upload/bulk shapes. */
 function extractNames(data: any): string[] {
   const arr =
-    data?.files ?? data?.urls ?? data?.results ?? data?.data ?? data ?? [];
+    data?.files ??
+    data?.urls ??
+    data?.results ??
+    data?.data ??
+    (data?.url ? [data.url] : Array.isArray(data) ? data : []);
   if (!Array.isArray(arr)) return [];
   return arr
     .map((item: any) => {
