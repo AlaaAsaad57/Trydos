@@ -174,6 +174,61 @@ export const emptyVariantRow = (): VariantRow => ({
   barcode: "",
 });
 
+/** A blank ProductForm for the create flow. Defaults are chosen to satisfy the
+ *  same shape validate()/buildUpdateFormData() expect (unit "pc", tax percent,
+ *  status disabled, all number fields empty strings, empty collections). */
+export function emptyProductForm(): ProductForm {
+  return {
+    name: "",
+    unit: "pc",
+    barcode: "",
+    seller_product_id: "",
+    description: "",
+    brand_id: "",
+    boutique_id: "",
+    label: "",
+    model_number: "",
+    report_ref_number: "",
+    location_id: "",
+    unit_price: "",
+    discount_price: "",
+    purchase_price: "",
+    luck_price: "",
+    current_stock: "",
+    weight: "",
+    max_allowed_qty: "",
+    count_of_pieces: "",
+    shipping_cost: "",
+    shipping_days: "",
+    tax: "",
+    tax_type: "percent",
+    multiply_qty: false,
+    packed_after_ordering: false,
+    meta_title: "",
+    meta_description: "",
+    meta_image: "",
+    meta_image_url: "",
+    origin_country_iso: "",
+    status: 0,
+    category_id: [],
+    sub_category_id: [],
+    sub_sub_category_id: [],
+    labels: [],
+    tags_ids: [],
+    countries_iso: [],
+    extra_price_for_country: [],
+    images: [],
+    cloud_video: "",
+    remove_videos: [],
+    existing_videos: [],
+    colors: [],
+    sizes: [],
+    variations: {},
+    colorImages: {},
+    translations: [],
+  };
+}
+
 /**
  * Fill each current variant's empty price / discount / luck from the
  * product-level defaults, as real editable values. A field that already holds a

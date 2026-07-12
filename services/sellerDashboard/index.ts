@@ -825,6 +825,37 @@ class SellerDashboardService {
     });
   }
 
+  // GET /shop/products/create — CREATE_PRODUCT | SUPER_ADMIN
+  // Returns the lookups needed to render a BLANK product form (no product yet).
+  async getProductCreateForm(sellerId: string) {
+    const res = await fetchData({
+      url: `/shop/products/create`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_PRODUCT_CREATE_FORM,
+      sellerId,
+    });
+    if (!res?.success) {
+      throw new Error(res?.message || "Failed to load product form");
+    }
+    return res;
+  }
+
+  // POST /shop/products/add — CREATE_PRODUCT | SUPER_ADMIN
+  // Same multipart body as update (buildUpdateFormData). Returns the new product
+  // in the standard envelope; on a requires-approval seller it is stored pending.
+  async addProduct(sellerId: string, formData: FormData) {
+    return fetchData({
+      url: `/shop/products/add`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.ADD_PRODUCT,
+      body: formData,
+      sellerId,
+      noMessage: true,
+    });
+  }
+
   // POST /shop/products/{id}/change-status — CHANGE_PRODUCT_STATUS | SUPER_ADMIN
   // Toggles the "allow to purchase" switch. status=0 always succeeds; status=1
   // only succeeds if the product passes activation checks, otherwise a 422 with
