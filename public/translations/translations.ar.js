@@ -1,4 +1,8 @@
 const translations = {
+  "Bold": "عريض",
+  "Italic": "مائل",
+  "Underline": "تسطير",
+  "Heading": "عنوان",
   // Listing share widget
   "Share this page": "شارك هذه الصفحة",
   "Send this page to your favourite apps": "أرسل هذه الصفحة إلى تطبيقاتك المفضلة",

@@ -1,4 +1,8 @@
 const translations = {
+  "Bold": "Stûr",
+  "Italic": "Xwar",
+  "Underline": "Binxêz",
+  "Heading": "Sernav",
   // Listing share widget
   "Share this page": "ئەم پەڕەیە هاوبەش بکە",
   "Send this page to your favourite apps": "ئەم پەڕەیە بنێرە بۆ ئەپە دڵخوازەکانت",

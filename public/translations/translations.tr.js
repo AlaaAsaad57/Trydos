@@ -1,4 +1,8 @@
 const translations = {
+  "Bold": "Kalın",
+  "Italic": "İtalik",
+  "Underline": "Altı çizili",
+  "Heading": "Başlık",
   // Listing share widget
   "Share this page": "Bu sayfayı paylaş",
   "Send this page to your favourite apps": "Bu sayfayı favori uygulamalarınıza gönderin",
