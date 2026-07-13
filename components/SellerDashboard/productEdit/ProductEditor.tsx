@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSellerProfile } from "../../../app/(client)/[lang]/sellerProfile/SellerProfileContext";
 import SellerDashboardService from "services/sellerDashboard";
@@ -21,6 +21,8 @@ import {
   buildDiff,
   buildFormFromEdit,
   buildUpdateFormData,
+  CategoryLookup,
+  DescriptorGroup,
   DiffEntry,
   emptyProductForm,
   fileName,
@@ -33,6 +35,7 @@ import {
   CoreSection,
   PricingSection,
   CategoriesSection,
+  DescriptorsSection,
   ClassificationSection,
   CountriesSection,
   SeoSection,
@@ -101,6 +104,22 @@ export default function ProductEditor({
     video?: boolean;
   }>({});
 
+  // Per-category-id cache of cascading lookups; merged over base lookups on
+  // every category-selection change. Deselecting a category drops its entry.
+  const catCache = useRef<
+    Map<
+      number,
+      {
+        sub_categories: CategoryLookup[];
+        sub_sub_categories: CategoryLookup[];
+        descriptor_groups: DescriptorGroup[];
+      }
+    >
+  >(new Map());
+  const catSeq = useRef(0); // race guard: only the latest sync applies
+  const baseLookups = useRef<Lookups | null>(null); // lookups from /edit, pre-merge
+  const [catLoading, setCatLoading] = useState(false);
+
   const [confirm, setConfirm] = useState<DiffEntry[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [approvalNote, setApprovalNote] = useState(false);
@@ -153,6 +172,8 @@ export default function ProductEditor({
         const res = await SellerDashboardService.getProductCreateForm(sellerId);
         const lk = (res.data?.lookups || {}) as Lookups;
         const built = emptyProductForm();
+        baseLookups.current = lk;
+        catCache.current = new Map();
         setLookups(lk);
         setForm(built);
         setInitial(built);
@@ -168,6 +189,8 @@ export default function ProductEditor({
       const lk = (res.data?.lookups || {}) as Lookups;
       if (!product) throw new Error("Product not found");
       const built = buildFormFromEdit(product, lk);
+      baseLookups.current = lk;
+      catCache.current = new Map();
       setLookups(lk);
       setForm(built);
       setInitial(built);
@@ -188,8 +211,125 @@ export default function ProductEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sellerId, productId]);
 
+  const catKey = form
+    ? [...form.category_id, ...form.sub_category_id, ...form.sub_sub_category_id].join(",")
+    : "";
+  useEffect(() => {
+    if (!form || !baseLookups.current) return;
+    syncCategoryLookups(
+      form.category_id,
+      form.sub_category_id,
+      form.sub_sub_category_id,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catKey]);
+
   const patch = (p: Partial<ProductForm>) =>
     setForm((prev) => (prev ? { ...prev, ...p } : prev));
+
+  // Merge every cached category-branch lookup over the base lookups, dedupe by
+  // id (descriptor groups by group id, descriptors within a group by id), and
+  // return the merged Lookups. Base parent_categories/boutiques/brands/etc. are
+  // preserved; only the three cascading arrays are replaced by the union.
+  //
+  // Bucket each response by the queried id's LEVEL (we fire on every level):
+  // the endpoint returns a category's DIRECT children under `sub_categories`.
+  // So a MAIN id's `sub_categories` are true sub-categories and its
+  // `sub_sub_categories` are grandchildren; a SUB id's `sub_categories` are
+  // actually sub-sub categories. Bucketing by level keeps items from being
+  // mislabeled. Descriptors are branch-wide and always merged.
+  const mergeLookups = (
+    mainIds: Set<number>,
+    subIds: Set<number>,
+  ): Lookups => {
+    const base = baseLookups.current as Lookups;
+    const subs = new Map<number, CategoryLookup>();
+    const subSubs = new Map<number, CategoryLookup>();
+    const groups = new Map<number, DescriptorGroup>();
+    for (const [id, entry] of catCache.current.entries()) {
+      if (mainIds.has(id)) {
+        for (const s of entry.sub_categories) subs.set(s.id, s);
+        for (const s of entry.sub_sub_categories) subSubs.set(s.id, s);
+      } else if (subIds.has(id)) {
+        for (const s of entry.sub_categories) subSubs.set(s.id, s);
+      }
+      // (sub-sub ids contribute descriptors only — they are leaves)
+      for (const g of entry.descriptor_groups) {
+        const existing = groups.get(g.id);
+        if (!existing) {
+          groups.set(g.id, { ...g, descriptors: [...(g.descriptors || [])] });
+        } else {
+          const seen = new Set(existing.descriptors.map((d) => d.id));
+          for (const d of g.descriptors || [])
+            if (!seen.has(d.id)) existing.descriptors.push(d);
+        }
+      }
+    }
+    return {
+      ...base,
+      sub_categories: [...subs.values()],
+      sub_sub_categories: [...subSubs.values()],
+      descriptor_groups: [...groups.values()],
+    };
+  };
+
+  // Fetch lookups for every newly-selected category id (across all levels), drop
+  // deselected ones, then merge and prune now-invalid sub / sub-sub / descriptor
+  // selections.
+  const syncCategoryLookups = async (
+    mainArr: number[],
+    subArr: number[],
+    subSubArr: number[],
+  ) => {
+    if (!baseLookups.current) return;
+    const selectedIds = [...mainArr, ...subArr, ...subSubArr];
+    const wanted = new Set(selectedIds);
+    // Drop cache entries for deselected categories.
+    for (const id of [...catCache.current.keys()])
+      if (!wanted.has(id)) catCache.current.delete(id);
+    const missing = selectedIds.filter((id) => !catCache.current.has(id));
+
+    const seq = ++catSeq.current;
+    if (missing.length) setCatLoading(true);
+    try {
+      const results = await Promise.all(
+        missing.map(async (id) => {
+          try {
+            return { id, data: await SellerDashboardService.getCategoryLookups(sellerId, id) };
+          } catch (e: any) {
+            LogError({
+              scenario: "ProductEditor.getCategoryLookups",
+              error: e instanceof Error ? e.message : String(e),
+              categoryId: id,
+            });
+            return { id, data: { sub_categories: [], sub_sub_categories: [], descriptor_groups: [] } };
+          }
+        }),
+      );
+      if (seq !== catSeq.current) return; // superseded by a newer selection
+      for (const r of results) catCache.current.set(r.id, r.data as any);
+
+      const merged = mergeLookups(new Set(mainArr), new Set(subArr));
+      const subIds = new Set(merged.sub_categories.map((s) => s.id));
+      const subSubIds = new Set(merged.sub_sub_categories.map((s) => s.id));
+      const descIds = new Set(
+        merged.descriptor_groups.flatMap((g) => (g.descriptors || []).map((d) => d.id)),
+      );
+      setLookups(merged);
+      setForm((prev) =>
+        prev
+          ? {
+              ...prev,
+              sub_category_id: prev.sub_category_id.filter((id) => subIds.has(id)),
+              sub_sub_category_id: prev.sub_sub_category_id.filter((id) => subSubIds.has(id)),
+              descriptor_ids: prev.descriptor_ids.filter((id) => descIds.has(id)),
+            }
+          : prev,
+      );
+    } finally {
+      if (seq === catSeq.current) setCatLoading(false);
+    }
+  };
 
   /* ----------------------------- media uploads ---------------------------- */
 
@@ -394,6 +534,7 @@ export default function ProductEditor({
     uploading,
     sellerId,
     canUseGallery: has("READ_PRODUCT_IMAGES"),
+    busy: catLoading,
   };
 
   const cover = form.images[0]?.url || listProduct?.images?.[0];
@@ -516,6 +657,7 @@ export default function ProductEditor({
       <VariantsSection {...sectionProps} />
       <MediaSection {...sectionProps} />
       <CategoriesSection {...sectionProps} />
+      <DescriptorsSection {...sectionProps} />
       <ClassificationSection {...sectionProps} />
       <CountriesSection {...sectionProps} />
       <SeoSection {...sectionProps} />
