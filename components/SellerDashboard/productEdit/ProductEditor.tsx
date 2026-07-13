@@ -295,19 +295,26 @@ export default function ProductEditor({
       const results = await Promise.all(
         missing.map(async (id) => {
           try {
-            return { id, data: await SellerDashboardService.getCategoryLookups(sellerId, id) };
+            return {
+              id,
+              data: await SellerDashboardService.getCategoryLookups(sellerId, id),
+              ok: true,
+            };
           } catch (e: any) {
             LogError({
               scenario: "ProductEditor.getCategoryLookups",
               error: e instanceof Error ? e.message : String(e),
               categoryId: id,
             });
-            return { id, data: { sub_categories: [], sub_sub_categories: [], descriptor_groups: [] } };
+            return { id, data: null, ok: false };
           }
         }),
       );
       if (seq !== catSeq.current) return; // superseded by a newer selection
-      for (const r of results) catCache.current.set(r.id, r.data as any);
+      // Cache only successful fetches — a failed id stays a cache miss so the
+      // next sync retries it, and its branch never becomes a poisoned empty entry.
+      for (const r of results) if (r.ok) catCache.current.set(r.id, r.data as any);
+      const anyError = results.some((r) => !r.ok);
 
       const merged = mergeLookups(new Set(mainArr), new Set(subArr));
       const subIds = new Set(merged.sub_categories.map((s) => s.id));
@@ -316,16 +323,22 @@ export default function ProductEditor({
         merged.descriptor_groups.flatMap((g) => (g.descriptors || []).map((d) => d.id)),
       );
       setLookups(merged);
-      setForm((prev) =>
-        prev
-          ? {
-              ...prev,
-              sub_category_id: prev.sub_category_id.filter((id) => subIds.has(id)),
-              sub_sub_category_id: prev.sub_sub_category_id.filter((id) => subSubIds.has(id)),
-              descriptor_ids: prev.descriptor_ids.filter((id) => descIds.has(id)),
-            }
-          : prev,
-      );
+      // Prune stale selections ONLY when every selected branch loaded. If any
+      // fetch failed, its sub / sub-sub aren't in `merged`, so pruning here would
+      // wrongly drop the product's real saved categories (and could clear them on
+      // save). Skip the prune on error; a later successful sync reconciles.
+      if (!anyError) {
+        setForm((prev) =>
+          prev
+            ? {
+                ...prev,
+                sub_category_id: prev.sub_category_id.filter((id) => subIds.has(id)),
+                sub_sub_category_id: prev.sub_sub_category_id.filter((id) => subSubIds.has(id)),
+                descriptor_ids: prev.descriptor_ids.filter((id) => descIds.has(id)),
+              }
+            : prev,
+        );
+      }
     } finally {
       if (seq === catSeq.current) setCatLoading(false);
     }
