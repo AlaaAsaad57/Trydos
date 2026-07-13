@@ -16,6 +16,8 @@ import {
   emptyVariantRow,
   seedVariantDefaults,
   ImageItem,
+  parseDescriptorOptions,
+  renderableDescriptorGroups,
 } from "./helpers";
 import GalleryPickerModal, { PickedImage } from "./GalleryPickerModal";
 
@@ -369,34 +371,69 @@ export function CategoriesSection({ form, patch, lookups, disabled, busy }: Sect
   );
 }
 
-export function DescriptorsSection({ form, patch, lookups, disabled, busy }: SectionProps) {
-  const groups = lookups.descriptor_groups || [];
+/**
+ * Attributes: each descriptor GROUP (e.g. "Leather") holds DESCRIPTORS (e.g.
+ * "Luster"), and the seller sets one VALUE per descriptor. `string_choice`
+ * descriptors are single-select over their `options`; `numeric` descriptors take
+ * a number. Groups with no renderable descriptors, and descriptors with no input
+ * (a string_choice with no options), are dropped — never shown.
+ */
+export function DescriptorsSection({ form, patch, disabled, busy, lookups }: SectionProps) {
+  const groups = renderableDescriptorGroups(lookups.descriptor_groups || []);
+
+  const setVal = (id: number, value: string) => {
+    const next = { ...form.descriptor_values };
+    if (value === "") delete next[id];
+    else next[id] = value;
+    patch({ descriptor_values: next });
+  };
+  // Single value per string_choice descriptor: re-clicking the active option clears it.
+  const toggleChoice = (id: number, opt: string) =>
+    setVal(id, form.descriptor_values[id] === opt ? "" : opt);
+
   return (
-    <Section icon="permissions" title="Attributes" desc="Attributes for the selected categories. All optional.">
+    <Section icon="permissions" title="Attributes" desc="Set attribute values for the selected categories. All optional.">
       <div className="relative">
         {busy && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 rounded-[12px]">
             <span className="text-[12px] medium text-[#5d5d5d]">{t("Loading…")}</span>
           </div>
         )}
-        <div className={`space-y-5 ${busy ? "opacity-60 pointer-events-none" : ""}`}>
+        <div className={`space-y-4 ${busy ? "opacity-60 pointer-events-none" : ""}`}>
           {groups.length === 0 ? (
             <p className="text-[12px] text-[#b8b8b8]">{t("Select a category to see its attributes.")}</p>
           ) : (
             groups.map((g) => (
-              <div key={g.id}>
-                <p className="text-[13px] medium text-[#505050] mb-2">{g.name}</p>
-                {(g.descriptors || []).length === 0 ? (
-                  <p className="text-[12px] text-[#b8b8b8]">{t("No options available.")}</p>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {g.descriptors.map((d) => (
-                      <Chip key={d.id} active={form.descriptor_ids.includes(d.id)} disabled={disabled || busy} onClick={() => patch({ descriptor_ids: toggleId(form.descriptor_ids, d.id) })}>
-                        {d.name}
-                      </Chip>
-                    ))}
-                  </div>
-                )}
+              <div key={g.id} className="rounded-[12px] border border-[#ededed] p-4">
+                <p className="text-[13px] semibold text-[#3c3c3c] mb-3">{g.name}</p>
+                <div className="space-y-4">
+                  {g.descriptors.map((d) => {
+                    const value = form.descriptor_values[d.id] ?? "";
+                    return (
+                      <div key={d.id}>
+                        <p className="text-[12px] medium text-[#505050] mb-1.5">{d.name}</p>
+                        {d.type === "numeric" ? (
+                          <input
+                            type="number"
+                            step="any"
+                            value={value}
+                            disabled={disabled || busy}
+                            onChange={(e) => setVal(d.id, e.target.value)}
+                            className={`${dashInputClass} max-w-[220px] ${disabled ? "opacity-70" : ""}`}
+                          />
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {parseDescriptorOptions(d.options).map((opt) => (
+                              <Chip key={opt} active={value === opt} disabled={disabled || busy} onClick={() => toggleChoice(d.id, opt)}>
+                                {opt}
+                              </Chip>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ))
           )}

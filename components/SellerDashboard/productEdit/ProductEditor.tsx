@@ -334,7 +334,9 @@ export default function ProductEditor({
                 ...prev,
                 sub_category_id: prev.sub_category_id.filter((id) => subIds.has(id)),
                 sub_sub_category_id: prev.sub_sub_category_id.filter((id) => subSubIds.has(id)),
-                descriptor_ids: prev.descriptor_ids.filter((id) => descIds.has(id)),
+                descriptor_values: Object.fromEntries(
+                  Object.entries(prev.descriptor_values).filter(([id]) => descIds.has(Number(id))),
+                ),
               }
             : prev,
         );

@@ -42,15 +42,51 @@ export interface NamedLookup {
   id: number;
   name: string;
 }
+export type DescriptorType = "string_choice" | "numeric";
 export interface DescriptorLookup {
   id: number;
   name: string;
   descriptor_group_id: number;
+  icon?: string;
+  type: DescriptorType | string;
+  /** Backend sends a JSON-encoded string, e.g. '["Glossy","Matte"]'. Parse with
+   *  parseDescriptorOptions. Only meaningful for string_choice descriptors. */
+  options?: string | string[];
 }
 export interface DescriptorGroup {
   id: number;
   name: string;
+  icon?: string;
+  description?: string;
   descriptors: DescriptorLookup[];
+}
+
+/** The backend `options` field is a JSON-encoded string ('["A","B"]'); tolerate
+ *  an already-parsed array too. Returns [] for missing/blank/invalid input. */
+export function parseDescriptorOptions(raw: string | string[] | undefined | null): string[] {
+  if (Array.isArray(raw)) return raw.map(String);
+  if (typeof raw !== "string" || !raw.trim()) return [];
+  try {
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** A descriptor is renderable in the editor when the seller can supply a value:
+ *  numeric always (free number input); string_choice only if it has options. */
+export function descriptorHasInput(d: DescriptorLookup): boolean {
+  return d.type === "numeric" || parseDescriptorOptions(d.options).length > 0;
+}
+
+/** Groups/descriptors the editor should actually render: drop descriptors with
+ *  no input and groups left with none (design rule: never show an empty group,
+ *  never show a descriptor without options). */
+export function renderableDescriptorGroups(groups: DescriptorGroup[]): DescriptorGroup[] {
+  return (groups || [])
+    .map((g) => ({ ...g, descriptors: (g.descriptors || []).filter(descriptorHasInput) }))
+    .filter((g) => g.descriptors.length > 0);
 }
 
 export interface Lookups {
@@ -140,7 +176,10 @@ export interface ProductForm {
   sub_sub_category_id: number[];
   labels: number[];
   tags_ids: number[];
-  descriptor_ids: number[];
+  /** descriptor id -> chosen value. string_choice holds the picked option
+   *  string; numeric holds the entered number as a string (all form numbers are
+   *  strings here). A descriptor with no value is simply absent from the map. */
+  descriptor_values: Record<number, string>;
   countries_iso: string[];
   extra_price_for_country: ExtraPrice[];
   images: ImageItem[];
@@ -226,7 +265,7 @@ export function emptyProductForm(): ProductForm {
     sub_sub_category_id: [],
     labels: [],
     tags_ids: [],
-    descriptor_ids: [],
+    descriptor_values: {},
     countries_iso: [],
     extra_price_for_country: [],
     images: [],
@@ -470,7 +509,9 @@ export function buildFormFromEdit(
     sub_sub_category_id: [...(sel.sub_sub || [])],
     labels: [...(product.labels || [])],
     tags_ids: [...(product.tags_ids || [])],
-    descriptor_ids: [],
+    // The edit response returns no saved descriptor values, so edit mode starts
+    // empty (see docs follow-up: backend needs a selected-descriptors field).
+    descriptor_values: {},
     countries_iso: [...(product.restricted_countries_iso || [])],
     extra_price_for_country: (product.extra_price_for_country || []).map(
       (e: any) => ({
@@ -618,14 +659,13 @@ export function buildUpdateFormData(form: ProductForm): FormData {
 
   form.labels.forEach((id) => fd.append("labels[]", String(id)));
   form.tags_ids.forEach((id) => fd.append("tags_ids[]", String(id)));
-  // Only send descriptors when the seller actually has selections. The edit
-  // response returns no saved descriptors, so an always-sent empty array would
-  // risk clearing existing server-side descriptor selections on unrelated saves.
-  if (form.descriptor_ids.length > 0) {
-    form.descriptor_ids.forEach((id) =>
-      fd.append("descriptor_ids[]", String(id)),
-    );
-  }
+  // Descriptor values ({ descriptor_id -> value }) are collected in the form and
+  // shown in the diff, but NOT sent yet: the seller-update payload key/shape for
+  // descriptor values is not documented and must be confirmed with the backend
+  // before wiring. Sending a guessed key risks clearing/mis-saving. When the
+  // contract is known, emit form.descriptor_values here (only the non-empty
+  // entries) — see docs product-descriptors-followups.
+  // TODO(backend-key): wire descriptor_values into the payload once confirmed.
 
   form.countries_iso.forEach((iso) => fd.append("countries_iso[]", iso));
   fd.append(
@@ -757,8 +797,12 @@ export function buildDiff(
     cnt("Labels", initial.labels, current.labels);
   if (!eqArr(initial.tags_ids, current.tags_ids))
     cnt("Tags", initial.tags_ids, current.tags_ids);
-  if (!eqArr(initial.descriptor_ids, current.descriptor_ids))
-    cnt("Descriptors", initial.descriptor_ids, current.descriptor_ids);
+  if (JSON.stringify(initial.descriptor_values) !== JSON.stringify(current.descriptor_values))
+    push(
+      "Descriptors",
+      `${Object.keys(initial.descriptor_values).length} set`,
+      `${Object.keys(current.descriptor_values).length} set`,
+    );
   if (!eqArr(initial.countries_iso, current.countries_iso))
     cnt("Restricted Countries", initial.countries_iso, current.countries_iso);
 
