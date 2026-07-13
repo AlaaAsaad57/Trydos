@@ -42,6 +42,16 @@ export interface NamedLookup {
   id: number;
   name: string;
 }
+export interface DescriptorLookup {
+  id: number;
+  name: string;
+  descriptor_group_id: number;
+}
+export interface DescriptorGroup {
+  id: number;
+  name: string;
+  descriptors: DescriptorLookup[];
+}
 
 export interface Lookups {
   parent_categories: CategoryLookup[];
@@ -54,7 +64,7 @@ export interface Lookups {
   countries: CountryLookup[];
   labels: LabelLookup[];
   tags: NamedLookup[];
-  descriptor_groups: any[];
+  descriptor_groups: DescriptorGroup[];
   units: string[];
 }
 
@@ -130,6 +140,7 @@ export interface ProductForm {
   sub_sub_category_id: number[];
   labels: number[];
   tags_ids: number[];
+  descriptor_ids: number[];
   countries_iso: string[];
   extra_price_for_country: ExtraPrice[];
   images: ImageItem[];
@@ -215,6 +226,7 @@ export function emptyProductForm(): ProductForm {
     sub_sub_category_id: [],
     labels: [],
     tags_ids: [],
+    descriptor_ids: [],
     countries_iso: [],
     extra_price_for_country: [],
     images: [],
@@ -458,6 +470,7 @@ export function buildFormFromEdit(
     sub_sub_category_id: [...(sel.sub_sub || [])],
     labels: [...(product.labels || [])],
     tags_ids: [...(product.tags_ids || [])],
+    descriptor_ids: [],
     countries_iso: [...(product.restricted_countries_iso || [])],
     extra_price_for_country: (product.extra_price_for_country || []).map(
       (e: any) => ({
@@ -605,6 +618,14 @@ export function buildUpdateFormData(form: ProductForm): FormData {
 
   form.labels.forEach((id) => fd.append("labels[]", String(id)));
   form.tags_ids.forEach((id) => fd.append("tags_ids[]", String(id)));
+  // Only send descriptors when the seller actually has selections. The edit
+  // response returns no saved descriptors, so an always-sent empty array would
+  // risk clearing existing server-side descriptor selections on unrelated saves.
+  if (form.descriptor_ids.length > 0) {
+    form.descriptor_ids.forEach((id) =>
+      fd.append("descriptor_ids[]", String(id)),
+    );
+  }
 
   form.countries_iso.forEach((iso) => fd.append("countries_iso[]", iso));
   fd.append(
@@ -736,6 +757,8 @@ export function buildDiff(
     cnt("Labels", initial.labels, current.labels);
   if (!eqArr(initial.tags_ids, current.tags_ids))
     cnt("Tags", initial.tags_ids, current.tags_ids);
+  if (!eqArr(initial.descriptor_ids, current.descriptor_ids))
+    cnt("Descriptors", initial.descriptor_ids, current.descriptor_ids);
   if (!eqArr(initial.countries_iso, current.countries_iso))
     cnt("Restricted Countries", initial.countries_iso, current.countries_iso);
 
