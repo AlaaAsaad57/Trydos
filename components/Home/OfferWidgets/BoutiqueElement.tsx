@@ -59,16 +59,15 @@ export function BoutiqueSliderWrapper({ boutique, children }) {
         >
           {boutique?.name}
         </span>
-        {boutique?.description &&
-          !boutique?.description?.includes("script") && (
-            <span
-              data-cy="boutique-description"
-              className="regular text-[16px] text-white"
-              dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(decodeHtmlSSR(boutique?.description)),
-              }}
-            ></span>
-          )}
+        {boutique?.description && (
+          <span
+            data-cy="boutique-description"
+            className="regular text-[16px] text-white"
+            dangerouslySetInnerHTML={{
+              __html: sanitizeHtml(decodeHtmlSSR(boutique?.description)),
+            }}
+          ></span>
+        )}
       </div>
     </div>
   );
