@@ -1,8 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { useAppStore } from "store";
 import InFlowPageLoader from "components/global/InFlowPageLoader";
+import { enterOverlay } from "components/ModalRoute/overlayScroll";
 
 /**
  * Hosts the in-flow navigation loader ABOVE both page slots — the `children`
@@ -28,12 +30,23 @@ export default function NavigationLoaderGate({
   children: ReactNode;
 }) {
   const isNavigating = useAppStore((s) => s.isNavigating);
+  const pathname = usePathname();
   // `is_filter` (a listing re-filter) is handled IN-PLACE by the listing itself:
   // FilterList dims the real filter chrome and SortableGrid shows in-grid product
   // skeletons while the refetch is pending, so the chrome stays on screen instead
   // of being replaced by a full-screen loader. Every other navigation type still
   // gets the full in-flow loader here.
   const showLoader = !!isNavigating && !isNavigating.is_filter;
+
+  // The in-flow loader renders in normal document flow before the intercepted
+  // overlay appears, while the pathname is still the (scrolled) base page — so
+  // it inherited the base scroll and showed "from the bottom". Land it at the
+  // top the moment it appears; this also captures the base scroll for restore
+  // on back-out (see overlayScroll.ts). `enterOverlay` is idempotent, so the
+  // subsequent overlay phase won't re-save or fight it.
+  useEffect(() => {
+    if (showLoader) enterOverlay(pathname);
+  }, [showLoader]);
 
   return (
     <>

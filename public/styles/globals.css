@@ -161,7 +161,6 @@ p {
 
 .absolute {
   position: absolute;
-  will-change: transform;
 }
 
 .relative {
