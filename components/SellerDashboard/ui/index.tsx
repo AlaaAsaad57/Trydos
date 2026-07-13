@@ -233,7 +233,7 @@ export function DashButton({
     <button
       {...props}
       disabled={props.disabled || loading}
-      className={`inline-flex items-center justify-center medium transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${sizeClass} ${VARIANT_CLASS[variant]} ${fullWidth ? "w-full" : ""} ${className}`}
+      className={`inline-flex cursor-pointer items-center justify-center medium transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${sizeClass} ${VARIANT_CLASS[variant]} ${fullWidth ? "w-full" : ""} ${className}`}
     >
       {loading ? (
         <Spinner />

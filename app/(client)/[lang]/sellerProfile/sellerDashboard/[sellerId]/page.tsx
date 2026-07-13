@@ -1,7 +1,13 @@
 "use client";
-import { useParams } from "next/navigation";
+import {
+  useParams,
+  useRouter,
+  usePathname,
+  useSearchParams,
+} from "next/navigation";
 import Link from "next/link";
 import React, { useEffect, useState, useMemo, useRef } from "react";
+import { useAppStore } from "store";
 import { useSellerProfile } from "../../SellerProfileContext";
 import Spinner from "components/global/Spinner";
 import SellerDashboardService from "services/sellerDashboard";
@@ -190,7 +196,56 @@ function SellerDashBoard() {
   } = useSellerProfile();
 
   const [permissionsLoading, setPermissionsLoading] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<TabType>("none");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { setIsNavigating, setLastPathname } = useAppStore();
+
+  // The active section lives in the URL (`?tab=`) rather than local state so
+  // that opening a product/boutique detail and pressing back restores the exact
+  // list the seller was on — browser history round-trips the query. Absent /
+  // unknown param means the dashboard home ("none").
+  const VALID_TABS: TabType[] = [
+    "products",
+    "boutiques",
+    "permissions",
+    "users",
+    "orders",
+    "gallery",
+    "stories",
+    "comments",
+    "excel",
+    "shopInfo",
+  ];
+  const tabParam = searchParams.get("tab") as TabType | null;
+  const activeTab: TabType =
+    tabParam && VALID_TABS.includes(tabParam) ? tabParam : "none";
+
+  const changeTab = (tab: TabType) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === "none") params.delete("tab");
+    else params.set("tab", tab);
+    const qs = params.toString();
+    // `replace` keeps the dashboard as a single history entry (so BackBar/back
+    // collapse straight to home), while still updating the URL the next
+    // detail-route back will return to.
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+  // A product/boutique card hands off to a detail route. Show the app's in-flow
+  // navigation loader (a spinner via NavigationLoaderGate — never a skeleton)
+  // and record the origin so the detail BackBar returns here to the same tab.
+  const handleCardNavigate = () => {
+    setLastPathname(pathname);
+    setIsNavigating(true);
+  };
+
+  // Clear the in-flow loader once the dashboard has (re)mounted — e.g. after
+  // pressing back from a detail route with the loader still showing.
+  useEffect(() => {
+    setIsNavigating(null);
+  }, [setIsNavigating]);
+
   const [error, setError] = useState<string | null>(null);
   const [productsMeta, setProductsMeta] = useState<any>(null);
   // Per-product social counts (reactions / FAQ / reviews / shares), keyed by
@@ -873,6 +928,7 @@ function SellerDashBoard() {
             <div className="flex justify-center mt-4">
               <Link
                 href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/new`}
+                onClick={handleCardNavigate}
                 className="inline-flex items-center gap-1.5 h-[40px] px-5 rounded-[12px] bg-[#5d5d5d] text-white text-[14px] medium hover:bg-[#4d4d4d] transition-colors active:scale-[0.98]"
               >
                 + {translateFunction("Add your first product")}
@@ -893,6 +949,7 @@ function SellerDashBoard() {
           {hasPermission("CREATE_PRODUCT") && (
             <Link
               href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/new`}
+              onClick={handleCardNavigate}
               className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[12px] bg-[#5d5d5d] text-white text-[13px] medium hover:bg-[#4d4d4d] transition-colors active:scale-[0.98]"
             >
               + {translateFunction("Add Product")}
@@ -904,6 +961,7 @@ function SellerDashBoard() {
             <Link
               key={product.product_id || product.id}
               href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/${product.product_id || product.id}`}
+              onClick={handleCardNavigate}
               className="group block bg-white rounded-[16px] overflow-hidden border border-[#ededed] hover:border-transparent hover:shadow-[0_10px_28px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300"
             >
               <div className="relative w-full aspect-[4/5] bg-[#f0f0f0] overflow-hidden">
@@ -1067,27 +1125,52 @@ function SellerDashBoard() {
 
     if (!sellerBoutiques || sellerBoutiques.length === 0)
       return (
-        <EmptyState
-          icon="boutiques"
-          title={translateFunction("No boutiques found")}
-          subtitle={translateFunction(
-            "Boutiques created for this shop will appear here.",
+        <div>
+          <EmptyState
+            icon="boutiques"
+            title={translateFunction("No boutiques found")}
+            subtitle={translateFunction(
+              "Boutiques created for this shop will appear here.",
+            )}
+          />
+          {hasPermission("CREATE_BUTIKS") && (
+            <div className="flex justify-center mt-4">
+              <Link
+                href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/boutiques/new`}
+                onClick={handleCardNavigate}
+                className="inline-flex items-center gap-1.5 h-[40px] px-5 rounded-[12px] bg-[#5d5d5d] text-white text-[14px] medium hover:bg-[#4d4d4d] transition-colors active:scale-[0.98]"
+              >
+                + {translateFunction("Add your first boutique")}
+              </Link>
+            </div>
           )}
-        />
+        </div>
       );
 
     return (
       <>
-        <SectionHeader
-          icon="boutiques"
-          title={translateFunction("Boutiques")}
-          count={sellerBoutiques.length}
-        />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <SectionHeader
+            icon="boutiques"
+            title={translateFunction("Boutiques")}
+            count={sellerBoutiques.length}
+          />
+          {hasPermission("CREATE_BUTIKS") && (
+            <Link
+              href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/boutiques/new`}
+              onClick={handleCardNavigate}
+              className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[12px] bg-[#5d5d5d] text-white text-[13px] medium hover:bg-[#4d4d4d] transition-colors active:scale-[0.98]"
+            >
+              + {translateFunction("Add Boutique")}
+            </Link>
+          )}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4 mt-4">
           {sellerBoutiques.map((boutique: any) => (
             <Link
               key={boutique.id}
               href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/boutiques/${boutique.id}`}
+              onClick={handleCardNavigate}
               className="group block bg-white rounded-[16px] overflow-hidden border border-[#ededed] hover:border-transparent hover:shadow-[0_10px_28px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300"
             >
               <div className="relative w-full h-[160px] bg-[#f0f0f0] overflow-hidden">
@@ -1643,7 +1726,7 @@ function SellerDashBoard() {
                             {hasPermission("SUPER_ADMIN") && (
                               <DashButton
                                 variant="danger"
-                                size="sm"
+                               
                                 icon="trash"
                                 onClick={() => handleDeleteUser(user.id)}
                               >
@@ -1653,7 +1736,7 @@ function SellerDashBoard() {
                             {String(user.id) === String(currentUserId) && (
                               <DashButton
                                 variant="ghost"
-                                size="sm"
+                                
                                 icon="logout"
                                 onClick={() => setShowLeaveConfirm(true)}
                               >
@@ -1804,7 +1887,7 @@ function SellerDashBoard() {
           {tiles.map((t) => (
             <button
               key={t.tab}
-              onClick={() => setActiveTab(t.tab)}
+              onClick={() => changeTab(t.tab)}
               className="group flex items-center gap-3.5 p-4 rounded-[15px] bg-[#f8f8f8] border border-transparent hover:bg-white hover:border-[#ededed] hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-all active:scale-[0.99] text-left"
             >
               <span className="w-11 h-11 shrink-0 rounded-[12px] bg-[#5d5d5d]/10 text-[#5d5d5d] flex items-center justify-center group-hover:bg-[#5d5d5d] group-hover:text-white transition-colors">
@@ -1837,7 +1920,7 @@ function SellerDashBoard() {
           if(activeTab==="none"){
             return false
           }else{
-            setActiveTab("none");
+            changeTab("none");
             return true
           }
         }}
@@ -1890,7 +1973,7 @@ function SellerDashBoard() {
               {canViewProducts && (
                 <button
                   onClick={() => {
-                    setActiveTab("products");
+                    changeTab("products");
                     setMenuOpen(false);
                   }}
                   className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
@@ -1914,7 +1997,7 @@ function SellerDashBoard() {
               {canViewBoutiques && (
                 <button
                   onClick={() => {
-                    setActiveTab("boutiques");
+                    changeTab("boutiques");
                     setMenuOpen(false);
                   }}
                   className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
@@ -1939,7 +2022,7 @@ function SellerDashBoard() {
               {canViewOrders && (
                 <button
                   onClick={() => {
-                    setActiveTab("orders");
+                    changeTab("orders");
                     setMenuOpen(false);
                   }}
                   className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
@@ -1960,7 +2043,7 @@ function SellerDashBoard() {
               {
                 <button
                   onClick={() => {
-                    setActiveTab("permissions");
+                    changeTab("permissions");
                     setMenuOpen(false);
                   }}
                   className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
@@ -1981,7 +2064,7 @@ function SellerDashBoard() {
               {canViewUsers && (
                 <button
                   onClick={() => {
-                    setActiveTab("users");
+                    changeTab("users");
                     setMenuOpen(false);
                   }}
                   className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
@@ -2002,7 +2085,7 @@ function SellerDashBoard() {
               {canViewGallery && (
                 <button
                   onClick={() => {
-                    setActiveTab("gallery");
+                    changeTab("gallery");
                     setMenuOpen(false);
                   }}
                   className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
@@ -2023,7 +2106,7 @@ function SellerDashBoard() {
               {canViewStories && (
                 <button
                   onClick={() => {
-                    setActiveTab("stories");
+                    changeTab("stories");
                     setMenuOpen(false);
                   }}
                   className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
@@ -2044,7 +2127,7 @@ function SellerDashBoard() {
               {canViewComments && (
                 <button
                   onClick={() => {
-                    setActiveTab("comments");
+                    changeTab("comments");
                     setMenuOpen(false);
                   }}
                   className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
@@ -2065,7 +2148,7 @@ function SellerDashBoard() {
               {canUploadExcel && (
                 <button
                   onClick={() => {
-                    setActiveTab("excel");
+                    changeTab("excel");
                     setMenuOpen(false);
                   }}
                   className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
@@ -2086,7 +2169,7 @@ function SellerDashBoard() {
               {canViewShopInfo && (
                 <button
                   onClick={() => {
-                    setActiveTab("shopInfo");
+                    changeTab("shopInfo");
                     setMenuOpen(false);
                   }}
                   className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
@@ -2185,7 +2268,7 @@ function SellerDashBoard() {
           <RenderOrders
             canViewOrders={canViewOrders}
             sellerId={sellerId}
-            setActiveTab={(s)=>setActiveTab(s)}
+            setActiveTab={(s)=>changeTab(s)}
             activeTab={activeTab}
           />
         )}

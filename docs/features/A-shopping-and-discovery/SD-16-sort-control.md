@@ -71,10 +71,17 @@ Shoppers who want results in a particular order (cheapest first, newest first, e
 
 ## Known gaps / notes
 
-- **Price sort uses the base `offered_price` only** and ignores per-country price overrides —
-  a known, locked design trade-off. (This is the same root cause tracked in the listing
-  price-sort investigation: the sort key and the price shown on the card can differ when a
-  country/flash override applies.)
+- **Price sort uses the base `offered_price` only** and, by design, ignores per-country price
+  overrides — a **confirmed, locked decision (kept as-is)**, not a bug. When a country override
+  applies, the price shown on the card (country-accurate) can differ from the product's sort
+  position (ordered by base price): e.g. for `country=sy` a product whose base offer is `8` but
+  SY offer is `28` still sorts at `8`. Note the price **filter** and **facet** _are_ already
+  country-accurate — sort is the one operation that can't reuse that approach, because a filter
+  is a boolean match but a sort needs a single per-product ordering value that ES can't derive
+  from the per-country override + base price together. Making sort country-accurate would need
+  either a slow per-request price computation or a new backend-indexed price field; both were
+  weighed and **deliberately deferred**. See the sort design spec and `ADR-010` for the full
+  rationale.
 - **Name sort is raw byte order**, not true language-aware alphabetical ordering — noted as
   deferred in the code.
 

@@ -73,6 +73,23 @@ Firebase / FCM push (`utils/firebaseAdmin.ts`, `utils/NotificationHandler.ts`, `
 - **React Compiler is enabled** (`reactCompiler: true`) — don't add manual `useMemo`/`useCallback` without a profiled reason.
 - `next/image` domains are allowlisted in `next.config.ts` (`images.domains`); add new media hosts there.
 
+## Internationalization — MANDATORY for every user-visible string
+
+**Any word or sentence a user can see is translatable. Before you write or edit UI copy, translate it — never ship a hardcoded string.** This applies to JSX text, `placeholder` / `aria-label` / `title` / `alt`, button labels, validation and error messages, toast/dialog copy, confirm-diff labels — and to copy built in helper/`.ts` files (e.g. `validate()`, diff builders), not just `.tsx`.
+
+The app has **4 languages**: `en` is the source (the English string *is* the key — no file), and `ar` / `tr` / `ku` are looked up in the three files under `public/translations/translations.<lang>.js`. Resolve copy through `translateFunction(key)` (client) / the `utils/server` variant (server components — see the async-cache rule) rather than a raw literal.
+
+**Workflow before adding/editing any user-visible text:**
+1. **Check** whether the exact English key already exists in **all three** `translations.{ar,tr,ku}.js` files (`grep -F '"<exact string>":'`).
+2. **If it exists**, reuse it — wrap the string in `translateFunction(...)` / `t(...)`. Do **not** invent a synonym or restyle the wording to something new.
+3. **If it is missing**, first **add the key to every one of the three files** (with a correct `ar`, `tr`, `ku` translation), *then* use it in code. Never use a key that isn't in the files.
+
+**Rules:**
+- **Never miss a string.** Every hardcoded word/sentence must be traced and wrapped — placeholders, alts, and helper-file messages included.
+- **Never deduplicate keys.** Each distinct English string is its own key with one entry per file; don't merge distinct strings under a shared key, and don't drop an existing key to avoid a near-duplicate. A repeated word still gets wrapped at every call site.
+- **Interpolation:** translate the static sentence and interpolate the dynamic value — e.g. `` `${t("Missing")}: ${name}` `` — never build a key by string concatenation.
+- Keep the three files **key-parallel**: a key added to one must be added to the other two in the same edit.
+
 ## Security note
 
 `package.json` contains a **hardcoded GitLab access token** embedded in the `rdb` Git dependency URL. Treat it as a leaked secret — it should be rotated and moved to an auth'd `.npmrc` / env var rather than committed. Flag, don't propagate.

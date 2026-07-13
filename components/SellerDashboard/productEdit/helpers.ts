@@ -11,6 +11,11 @@
  * See docs/product-edit.md for the contract this mirrors.
  */
 
+import { translateFunction } from "utils/functions";
+
+// Aliased `tx` (not `t`) because `t` is used as a local param/var below.
+const tx = (s: string) => translateFunction(s);
+
 export const UNITS = ["pc", "kg", "gms", "l"] as const;
 
 /* --------------------------------- types --------------------------------- */
@@ -543,35 +548,35 @@ const idStr = (v: any): string =>
 export function validate(form: ProductForm): Record<string, string> {
   const e: Record<string, string> = {};
 
-  if (!form.name.trim()) e.name = "Product name is required";
-  if (!UNITS.includes(form.unit as any)) e.unit = "Select a valid unit";
+  if (!form.name.trim()) e.name = tx("Product name is required");
+  if (!UNITS.includes(form.unit as any)) e.unit = tx("Select a valid unit");
   if (!form.seller_product_id.trim())
-    e.seller_product_id = "Seller product ID is required";
+    e.seller_product_id = tx("Seller product ID is required");
 
   const up = num(form.unit_price);
   const dp = num(form.discount_price);
   if (form.unit_price === "" || isNaN(up) || up < 0)
-    e.unit_price = "Enter a valid unit price";
+    e.unit_price = tx("Enter a valid unit price");
   if (form.discount_price !== "") {
-    if (isNaN(dp) || dp < 0) e.discount_price = "Enter a valid discount price";
+    if (isNaN(dp) || dp < 0) e.discount_price = tx("Enter a valid discount price");
     else if (!isNaN(up) && dp > up)
-      e.discount_price = "Discount must be ≤ unit price";
+      e.discount_price = tx("Discount must be ≤ unit price");
   }
   if (form.purchase_price !== "" && (isNaN(num(form.purchase_price)) || num(form.purchase_price) < 0))
-    e.purchase_price = "Enter a valid purchase price";
+    e.purchase_price = tx("Enter a valid purchase price");
 
   if (
     (form.unit === "pc" || form.unit === "l") &&
     (form.weight === "" || isNaN(num(form.weight)) || num(form.weight) <= 0)
   )
-    e.weight = "Weight is required for pc / liter units";
+    e.weight = tx("Weight is required for pc / liter units");
 
   if (form.current_stock !== "" && (isNaN(num(form.current_stock)) || num(form.current_stock) < 0))
-    e.current_stock = "Enter a valid stock";
+    e.current_stock = tx("Enter a valid stock");
 
-  if (form.labels.length > 3) e.labels = "At most 3 labels allowed";
+  if (form.labels.length > 3) e.labels = tx("At most 3 labels allowed");
 
-  if (!form.images.length) e.images = "At least one product image is required";
+  if (!form.images.length) e.images = tx("At least one product image is required");
 
   // Color → image assignment completeness (server re-validates).
   if (form.colors.length && form.images.length) {
@@ -583,11 +588,11 @@ export function validate(form: ProductForm): Record<string, string> {
       imgs.forEach((i) => assigned.add(i));
     }
     if (missingColor)
-      e.colorImages = `Every color needs at least one image (missing: ${missingColor})`;
+      e.colorImages = `${tx("Every color needs at least one image")} (${tx("missing")}: ${missingColor})`;
     else {
       const unassigned = form.images.filter((im) => !assigned.has(im.name));
       if (unassigned.length)
-        e.colorImages = `Every image must be assigned to a color (${unassigned.length} unassigned)`;
+        e.colorImages = `${tx("Every image must be assigned to a color")} (${unassigned.length} ${tx("unassigned")})`;
     }
   }
 
@@ -595,18 +600,18 @@ export function validate(form: ProductForm): Record<string, string> {
   for (const c of combos(form)) {
     const r = form.variations[c.key];
     if (!r || r.qty === "" || isNaN(num(r.qty))) {
-      e.variations = "Every variant needs a quantity";
+      e.variations = tx("Every variant needs a quantity");
       break;
     }
     if (!r.sku.trim()) {
-      e.variations = "Every variant needs an SKU";
+      e.variations = tx("Every variant needs an SKU");
       break;
     }
   }
 
   // An English translation is required to (later) enable the product.
   if (!form.translations.some((t) => t.language_code === "en" && t.name.trim()))
-    e.translations = "An English (en) name is required";
+    e.translations = tx("An English (en) name is required");
 
   return e;
 }
@@ -754,7 +759,7 @@ export function buildDiff(
   };
 
   for (const [key, label] of SCALARS) {
-    push(label, initial[key], current[key]);
+    push(tx(label), initial[key], current[key]);
   }
 
   const brandName = (id: string) =>
@@ -763,30 +768,30 @@ export function buildDiff(
     lookups.boutiques.find((b) => String(b.id) === id)?.name || id || "—";
   if (initial.brand_id !== current.brand_id)
     out.push({
-      label: "Brand",
+      label: tx("Brand"),
       from: brandName(initial.brand_id),
       to: brandName(current.brand_id),
     });
   if (initial.boutique_id !== current.boutique_id)
     out.push({
-      label: "Boutique",
+      label: tx("Boutique"),
       from: boutiqueName(initial.boutique_id),
       to: boutiqueName(current.boutique_id),
     });
 
   push(
-    "Multiply Shipping × Qty",
-    initial.multiply_qty ? "On" : "Off",
-    current.multiply_qty ? "On" : "Off",
+    tx("Multiply Shipping × Qty"),
+    initial.multiply_qty ? tx("On") : tx("Off"),
+    current.multiply_qty ? tx("On") : tx("Off"),
   );
   push(
-    "Packed After Ordering",
-    initial.packed_after_ordering ? "On" : "Off",
-    current.packed_after_ordering ? "On" : "Off",
+    tx("Packed After Ordering"),
+    initial.packed_after_ordering ? tx("On") : tx("Off"),
+    current.packed_after_ordering ? tx("On") : tx("Off"),
   );
 
   const cnt = (label: string, a: any[], b: any[]) =>
-    push(label, `${a.length} item(s)`, `${b.length} item(s)`);
+    push(tx(label), `${a.length} ${tx("item(s)")}`, `${b.length} ${tx("item(s)")}`);
   if (!eqArr(initial.category_id, current.category_id))
     cnt("Main Categories", initial.category_id, current.category_id);
   if (!eqArr(initial.sub_category_id, current.sub_category_id))
@@ -799,9 +804,9 @@ export function buildDiff(
     cnt("Tags", initial.tags_ids, current.tags_ids);
   if (JSON.stringify(initial.descriptor_values) !== JSON.stringify(current.descriptor_values))
     push(
-      "Descriptors",
-      `${Object.keys(initial.descriptor_values).length} set`,
-      `${Object.keys(current.descriptor_values).length} set`,
+      tx("Descriptors"),
+      `${Object.keys(initial.descriptor_values).length} ${tx("set")}`,
+      `${Object.keys(current.descriptor_values).length} ${tx("set")}`,
     );
   if (!eqArr(initial.countries_iso, current.countries_iso))
     cnt("Restricted Countries", initial.countries_iso, current.countries_iso);
@@ -814,33 +819,33 @@ export function buildDiff(
     );
 
   if (initial.images.map((i) => i.name).join() !== current.images.map((i) => i.name).join())
-    push("Product Images", `${initial.images.length} image(s)`, `${current.images.length} image(s)`);
+    push(tx("Product Images"), `${initial.images.length} ${tx("image(s)")}`, `${current.images.length} ${tx("image(s)")}`);
 
   if (initial.meta_image !== current.meta_image)
-    push("Meta Image", initial.meta_image, current.meta_image);
+    push(tx("Meta Image"), initial.meta_image, current.meta_image);
 
   if (!eqArr(initial.colors.map((c) => c.code), current.colors.map((c) => c.code)))
     push(
-      "Colors",
+      tx("Colors"),
       initial.colors.map((c) => c.name).join(", ") || "—",
       current.colors.map((c) => c.name).join(", ") || "—",
     );
   if (!eqArr(initial.sizes.map((s) => s.id), current.sizes.map((s) => s.id)))
     push(
-      "Sizes",
+      tx("Sizes"),
       initial.sizes.map((s) => s.name).join(", ") || "—",
       current.sizes.map((s) => s.name).join(", ") || "—",
     );
 
   if (JSON.stringify(initial.variations) !== JSON.stringify(current.variations))
     out.push({
-      label: "Variant Pricing / Stock",
-      from: "edited",
-      to: `${combos(current).length} variant(s)`,
+      label: tx("Variant Pricing / Stock"),
+      from: tx("edited"),
+      to: `${combos(current).length} ${tx("variant(s)")}`,
     });
 
   if (JSON.stringify(initial.colorImages) !== JSON.stringify(current.colorImages))
-    out.push({ label: "Color → Image Assignment", from: "edited", to: "updated" });
+    out.push({ label: tx("Color → Image Assignment"), from: tx("edited"), to: tx("updated") });
 
   const trChanged = current.translations.filter((t) => {
     const o = initial.translations.find((x) => x.language_code === t.language_code);
@@ -848,17 +853,17 @@ export function buildDiff(
   });
   if (trChanged.length || initial.translations.length !== current.translations.length)
     push(
-      "Translations",
-      `${initial.translations.length} language(s)`,
-      `${current.translations.length} language(s)`,
+      tx("Translations"),
+      `${initial.translations.length} ${tx("language(s)")}`,
+      `${current.translations.length} ${tx("language(s)")}`,
     );
 
   if (current.cloud_video)
-    out.push({ label: "Video", from: "—", to: "new upload" });
+    out.push({ label: tx("Video"), from: "—", to: tx("new upload") });
   if (current.remove_videos.length)
     out.push({
-      label: "Video",
-      from: `${current.remove_videos.length} removed`,
+      label: tx("Video"),
+      from: `${current.remove_videos.length} ${tx("removed")}`,
       to: "—",
     });
 

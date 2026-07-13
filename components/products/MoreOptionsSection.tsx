@@ -67,22 +67,46 @@ function MoreOptionsSection({ product }) {
 
   
   const enableNotificationTopic = async (payload, type) => {
+    if (loading) return;
     try {
-      await home.AllowNotifications();
+      setLoading(true);
+      // Returns the FCM token, or undefined when this device can't register for
+      // push (unsupported browser, no service worker, permission not granted).
+      const fbtoken = await home.AllowNotifications();
 
-      if (!loading) {
-        setLoading(true);
-        if (
-          firebaseSettings?.subscribed_topics.some((s) => s.topic === payload)
-        ) {
-          disableNotification(payload);
-          await home.UnsubscribeToTopicInventory({ topic: payload });
-        } else {
-          send_GA_EVENT(type);
-          enableNotification(payload);
-          await home.subscribeToTopicInventory({ topic: payload });
+      const isCurrentlyEnabled = firebaseSettings?.subscribed_topics?.some(
+        (s) => s.topic === payload,
+      );
+
+      if (isCurrentlyEnabled) {
+        const res = await home.UnsubscribeToTopicInventory({ topic: payload });
+        // `fetchData` resolves to `{ success: false }` on failure instead of
+        // throwing, so check it explicitly. Only reflect the change locally
+        // once the backend confirms it — otherwise the UI would show a state
+        // the next page load (GetFireBaseSettings) silently undoes.
+        if (res?.success === false) {
+          throw new Error(res?.message);
         }
-        setLoading(false);
+        disableNotification(payload);
+      } else {
+        // No usable token → the backend has no device to subscribe, so the
+        // topic would fail to persist and reappear as "off" on revisit. Refuse
+        // instead of showing a green check that isn't real.
+        if (!fbtoken) {
+          throw new Error(
+            translateFunction(
+              "Notification Is Not Enabled! please Allow Notification Access",
+            ),
+          );
+        }
+        const res = await home.subscribeToTopicInventory({ topic: payload });
+        if (res?.success === false) {
+          throw new Error(res?.message);
+        }
+        // Paint the topic green only after the backend confirms the
+        // subscription, so the check mark matches what a revisit will show.
+        send_GA_EVENT(type);
+        enableNotification(payload);
       }
     } catch (error) {
       LogError({
@@ -95,6 +119,8 @@ function MoreOptionsSection({ product }) {
             "Notification Is Not Enabled! please Allow Notification Access",
           ),
       );
+    } finally {
+      setLoading(false);
     }
   };
   const checkIfTopicEnabled = (topic) => {

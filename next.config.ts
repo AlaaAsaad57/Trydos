@@ -8,6 +8,13 @@ import type { NextConfig } from "next";
 // locale — driving Vercel Function Duration up. Mirrors isIndexingAllowed().
 const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
 
+// Local dev on constrained machines: skip prod-only compile passes that add no
+// dev value but cost RAM/CPU. reactCompiler runs babel-plugin-react-compiler on
+// every module (the slow Babel path under Turbopack) and only affects shipped
+// runtime perf; optimizeCss (critters) and optimizeServerReact are prod-only
+// optimizations. All stay ON for real builds (NODE_ENV=production).
+const isDev = process.env.NODE_ENV === "development";
+
 let nextConfig: NextConfig = {
   reactStrictMode: false,
   // Removes the `X-Powered-By: Next.js` header (security scan F-06 — tech
@@ -15,7 +22,7 @@ let nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   bundlePagesRouterDependencies: false,
-  reactCompiler: true,
+  reactCompiler: !isDev,
   // Reverse-proxy PostHog ingestion through our own domain so ad-blockers can't
   // drop events / session replays (utils/posthog.ts sets api_host: "/ingest").
   // The proxy itself is a route handler (app/ingest/[...path]/route.ts), NOT a
@@ -194,8 +201,8 @@ let nextConfig: NextConfig = {
     },
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
-    optimizeCss: true,
-    optimizeServerReact: true,
+    optimizeCss: !isDev,
+    optimizeServerReact: !isDev,
     optimizePackageImports: [
       "embla-carousel-react",
       "embla-carousel-autoplay",
@@ -214,7 +221,10 @@ let nextConfig: NextConfig = {
 
 const analyze = withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" });
 
-export default withSentryConfig(analyze(nextConfig), {
+// The Sentry webpack wrapper adds OpenTelemetry instrumentation + source-map
+// tooling that we never use locally. Source maps only upload on Vercel builds
+// (VERCEL=1) anyway, so skip the wrapper entirely in local dev/build.
+const configWithSentry = withSentryConfig(analyze(nextConfig), {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
@@ -260,3 +270,7 @@ export default withSentryConfig(analyze(nextConfig), {
     },
   },
 });
+
+// Vercel sets VERCEL=1 on every build; locally it's unset, so dev/local builds
+// run without the Sentry wrapper's instrumentation overhead.
+export default process.env.VERCEL ? configWithSentry : analyze(nextConfig);

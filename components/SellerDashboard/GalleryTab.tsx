@@ -359,14 +359,14 @@ export default function GalleryTab({
                   <div className="flex items-center gap-2.5">
                     <DashButton
                       variant="ghost"
-                      size="sm"
+                      
                       onClick={exitSelectMode}
                     >
                       {translateFunction("Cancel")}
                     </DashButton>
                     <DashButton
                       variant="danger"
-                      size="sm"
+                      
                       icon="trash"
                       disabled={selectedIds.size === 0}
                       onClick={() => setShowBulkDelete(true)}
@@ -383,7 +383,7 @@ export default function GalleryTab({
                   </span>
                   <DashButton
                     variant="secondary"
-                    size="sm"
+                   
                     icon="check"
                     onClick={enterSelectMode}
                   >

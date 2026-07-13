@@ -5,10 +5,9 @@ import { translateFunction } from "utils/functions";
 import BoutiqueEditor from "components/SellerDashboard/boutiqueEdit/BoutiqueEditor";
 import { useDashboardDetailBack } from "components/SellerDashboard/useDashboardDetailBack";
 
-export default function SellerBoutiqueEditPage() {
+export default function SellerBoutiqueCreatePage() {
   const params = useParams();
   const sellerId = params.sellerId as string;
-  const boutiqueId = params.boutiqueId as string;
   const local = params.lang?.toString() || "";
   const [, language] = local.split("-");
   const isRtl = language === "ar" || language === "ku";
@@ -20,15 +19,15 @@ export default function SellerBoutiqueEditPage() {
         <BackBar
           isRtl={isRtl}
           local={local}
-          name={translateFunction("Boutique", language)}
+          name={translateFunction("New Boutique", language)}
           preivous_page={`/${local}/sellerProfile/sellerDashboard/${sellerId}`}
           onBackIntercept={onBackIntercept}
-          DataCy="seller-boutique-edit-screen"
+          DataCy="seller-boutique-create-screen"
         />
       </div>
 
       <div className="px-3 lg:px-0">
-        <BoutiqueEditor sellerId={sellerId} boutiqueId={boutiqueId} local={local} />
+        <BoutiqueEditor sellerId={sellerId} local={local} mode="create" />
       </div>
     </div>
   );

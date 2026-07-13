@@ -370,7 +370,7 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
                   <DashButton
                     type="button"
                     variant="secondary"
-                    size="sm"
+                   
                     icon="upload"
                     onClick={() => imageInputRef.current?.click()}
                     disabled={!canUpdate}
@@ -431,7 +431,7 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
                   <DashButton
                     type="button"
                     variant="secondary"
-                    size="sm"
+                  
                     icon="upload"
                     onClick={() => bannerInputRef.current?.click()}
                     disabled={!canUpdate}

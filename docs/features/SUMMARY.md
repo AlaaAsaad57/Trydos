@@ -1,7 +1,7 @@
 # Trydos — Feature Summary at a Glance
 
 **Source:** distilled from [`docs/features/README.md`](README.md) (full 200-feature inventory).
-**Last updated:** 2026-07-08 · reflects the `develop` branch.
+**Last updated:** 2026-07-12 · reconciled against `README.md`; reflects `develop` plus the SL-02 post-leave wiring landed on branch `ticket/migrate-customer-api-to-go`.
 
 Three buckets only: **what's done**, **what's left to do**, **what's a placeholder to fill**.
 
@@ -16,20 +16,21 @@ Anything 🟡 Partial or ⚪ Placeholder counts as **not done**.
 | B. Cart, Checkout & Orders | 29 | 26 | 3 | 0 | 0 | **90%** |
 | C. Payments, Wallet & Banking | 6 | 1 | 2 | 3 | 0 | **17%** |
 | D. Accounts & Authentication | 30 | 23 | 2 | 4 | 1 | **80%** |
-| E. Chat & Calls | 25 | 24 | 1 | 0 | 0 | **96%** ¹ |
+| E. Chat & Calls | 25 | 25 | 0 | 0 | 0 | **100%** ¹ |
 | F. Stories | 7 | 6 | 1 | 0 | 0 | **86%** |
 | G. Notifications | 10 | 9 | 0 | 0 | 1 | **100%** |
-| H. Seller Dashboard | 14 | 10 | 4 | 0 | 0 | **71%** |
+| H. Seller Dashboard | 14 | 11 | 3 | 0 | 0 | **79%** |
 | I. Platform & Foundations | 46 | 45 | 0 | 1 | 0 | **98%** |
-| **Total** | **200** | **174** | **15** | **9** | **2** | **🟩 88% complete** |
+| **Total** | **200** | **176** | **13** | **9** | **2** | **🟩 89% complete** |
 
-¹ All 25 chat feature IDs ship, but a cluster of inert chat sub-controls (Edit message,
-Category/Reminder, Archive — see the placeholder list below) counts as one not-done item, docking
-E to just under 100%.
+¹ All 25 chat feature IDs are Live, so E counts as 100% (matching `README.md`). A cluster of inert
+chat sub-controls (Edit message, Category/Reminder, Archive — see the placeholder list below) still
+needs to be finished or removed, but these are sub-controls of shipped features, not standalone
+feature IDs, so they are tracked as line-items below without docking a chat feature.
 
-**Overall: ~88% of the app is fully done** (176 of 200 features). The remaining ~12% is 15 partials
+**Overall: ~89% of the app is fully done** (178 of 200 features). The remaining ~11% is 13 partials
 + 9 placeholders, concentrated in **Payments/Wallet (C, 17%)** — an external package not yet
-installed — with the next-biggest gaps in the **seller dashboard (H, 71%)** and **accounts (D, 80%,
+installed — with the next-biggest gaps in the **seller dashboard (H, 79%)** and **accounts (D, 80%,
 mostly the legal pages)**.
 
 ---
@@ -63,7 +64,6 @@ Whole domains shipped and working:
 | PW-04 | Pay order with wallet | Swap the **dummy test widget** for the real external RDB widget; allow failed payment to retry in place. |
 | AC-06 | Privacy / terms consent | Wire the dead "Terms" link + add a Privacy link to real pages; ideally persist consent server-side. |
 | AC-09 | QR-code login | Replace the local **mock** with real backend endpoints and mint a real session on approval. |
-| SL-02 | Leave a shop | Make the UI react after a successful leave (redirect/refresh/confirm) — backend call already works. |
 | SL-04 | Product editing | Functional today; "partial" only because it's slated for the planned AI-driven editor. Ship as-is or deliver AI editor. |
 | SL-06 | Boutiques management | Build create/edit/delete/status actions (write permissions exist, tab is read-only) — or rename to a viewer. |
 | SL-07 | Orders & fulfillment | Finish whole-order status change (commented out); build or hide payment/refund/shipping/tracking actions. |

@@ -4,8 +4,8 @@
 |---|---|
 | **Feature ID** | SL-02 |
 | **Domain** | H · Seller Dashboard |
-| **Status** | 🟡 Partial — the leave call works, but the screen doesn't react afterwards (no redirect/refresh/confirmation) |
-| **Last verified** | 2026-07-07 (against `develop`) |
+| **Status** | 🟢 Live — leaving a shop now asks for confirmation, redirects to the shop picker on success, and surfaces errors inline |
+| **Last verified** | 2026-07-12 (against branch `ticket/migrate-customer-api-to-go`; ahead of `develop`) |
 | **Source of truth** | `app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx`, `services/sellerDashboard/index.ts` |
 
 ---
@@ -29,10 +29,13 @@ A way for a member of a shop's team to **remove their own access** to that shop.
 
 - The button is shown only when the row's user ID equals the current logged-in user's ID
   (`auth.UserID()`), so it always targets *you*.
-- Tapping it calls the leave-shop service directly. There is **no confirmation dialog**.
-- On success the code does nothing further — it does not redirect, refresh the list, remove the
-  row, or show a toast. On failure it logs the error to Sentry (via `LogError`) but shows no
-  visible message.
+- Tapping it opens a **confirmation dialog** (the shared `ConfirmModal`) — *"Are you sure you want
+  to leave this shop? You will lose access to it."* — rather than leaving immediately.
+- Confirming calls the leave-shop service and shows a spinner in the dialog while it runs.
+- **On success** the user is redirected to their shop picker (`/{lang}/sellerProfile`) — they leave
+  the dashboard they can no longer access, and the navigation itself is the success signal.
+- **On failure** the error is logged to Sentry (via `LogError`) **and** shown to the user as an
+  inline error alert in the Users tab (`usersError`); the dialog closes.
 
 ## Data source
 
@@ -44,24 +47,22 @@ A way for a member of a shop's team to **remove their own access** to that shop.
 
 | Item | Value |
 |------|-------|
-| Button + handler | `app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx` → `handleLeaveShop` (own-row gate: `String(user.id) === String(currentUserId)`) |
+| Button + handler | `app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx` → button opens `ConfirmModal` (`setShowLeaveConfirm(true)`); `handleLeaveShop` runs on confirm (own-row gate: `String(user.id) === String(currentUserId)`) |
+| Confirmation dialog | `components/global/ConfirmModal.tsx` (shared) |
 | Service | `services/sellerDashboard/index.ts` → `leaveShop` |
-| State | Local component state only (no store slice) |
+| State | Local component state only (`showLeaveConfirm`, `leaveLoading`, error via `usersError`) — no store slice |
 
 ## Current status & maturity
 
-The backend call is wired and functional, but the **client-side outcome is unfinished** — an
-in-code comment states *"client-side behavior after leaving shop is not defined here; trigger a
-refresh or redirect if needed."* From the user's point of view nothing appears to happen after
-leaving, which makes it feel broken even when it succeeded.
+Fully wired end-to-end: confirmation → server call (with in-dialog spinner) → redirect to the shop
+picker on success, or an inline error alert on failure. The previous *"client-side behavior after
+leaving shop is not defined here"* TODO has been removed.
 
 ## Known gaps / notes
 
-- ⚠️ **No post-leave feedback.** After a successful leave the UI does not redirect, refresh, remove
-  the row, or confirm — so the user gets no signal it worked (verified in-code comment).
-- No confirmation step before leaving.
-- Minor: the service's hardcoded fallback error string is a copy-paste artifact
-  (*"Failed to confirm order detail status"*), only shown if the backend returns no message.
+- Success is signalled by redirecting to the shop picker rather than a persistent toast — there is
+  no global toast system in the app, so the redirect (away from the now-inaccessible shop) is the
+  confirmation the user sees.
 
 ## Related features
 

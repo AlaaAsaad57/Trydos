@@ -955,5 +955,69 @@ class SellerDashboardService {
     });
   }
 
+  // GET /shop/boutiques/lookups — CREATE_BUTIKS | SUPER_ADMIN
+  // Returns the reference datasets to render the BLANK "add boutique" form
+  // (Boutique-Create-Delete-Create-Lookups §3). The lookups object
+  // ({ categories, colors, sizes, countries, languages, availabilities }) is
+  // returned directly under `data` — NOT nested under `data.lookups` like the
+  // edit endpoint.
+  async getBoutiqueCreateForm(sellerId: string) {
+    const res = await fetchData({
+      url: `/shop/boutiques/lookups`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_BOUTIQUE_CREATE_FORM,
+      sellerId,
+    });
+    if (!res?.success) {
+      throw new Error(res?.message || "Failed to load boutique form");
+    }
+    return res;
+  }
+
+  // POST /shop/boutiques — CREATE_BUTIKS | SUPER_ADMIN
+  // Nested body: { boutique_global_data, boutique_custom_data } (§4). NOTE the
+  // per-language key is `boutique_custom_data` on create — NOT `custom_data`
+  // (which is the update key); sending `custom_data` here silently drops every
+  // translation. Success `data` = { boutique_id }.
+  async addBoutique(sellerId: string, payload: Record<string, unknown>) {
+    return fetchData({
+      url: `/shop/boutiques`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.ADD_BOUTIQUE,
+      body: JSON.stringify(payload),
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // DELETE /shop/boutiques/{id}/delete — DELETE_BUTIKS | SUPER_ADMIN
+  // Soft-deletes a boutique owned by X-Seller-ID (§5). A boutique that belongs
+  // to another seller (or is already deleted) returns 404 "Boutique not found."
+  // so existence is never leaked across sellers. Success `data` = [].
+  async deleteBoutique(sellerId: string, boutiqueId: string | number) {
+    return fetchData({
+      url: `/shop/boutiques/${boutiqueId}/delete`,
+      method: "DELETE",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.DELETE_BOUTIQUE,
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // GET /languages — public language list (drives the boutique translation tabs).
+  // Response shape is normalized client-side via helpers.mapLanguages. Cached.
+  async getLanguages() {
+    return fetchData({
+      url: `/languages`,
+      method: "GET",
+      server: "market",
+      reqTitle: REQUESTS_DATA.GET_LANGUAGES,
+      useCached: true,
+    });
+  }
+
 }
 export default new SellerDashboardService();

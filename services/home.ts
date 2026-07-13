@@ -267,6 +267,13 @@ class HomeService {
             });
         }
       }
+
+      // Return the token so callers can tell whether this device actually has a
+      // usable FCM registration. When the browser can't get a token
+      // (unsupported browser, no service worker, permission not granted) this is
+      // undefined — the caller must NOT then show a topic as subscribed, because
+      // the backend has no device to attach it to and it would silently vanish.
+      return fbtoken;
     } catch (error) {
       LogError(error);
       LogServerError({
@@ -507,7 +514,11 @@ class HomeService {
   }
 
   async subscribeToTopicInventory({topic,variant=null}){
-   await fetchData({
+   // Return the result so the caller can confirm the backend actually
+   // subscribed before painting the topic as enabled. `fetchData` never throws
+   // — it resolves to `{ success: false }` on failure — so swallowing the
+   // return value here is what let a failed subscribe still show as enabled.
+   return await fetchData({
         url:'/firebase_device_tokens/subscribe_topic',
         method:'POST',
         body:{
@@ -515,11 +526,14 @@ class HomeService {
           variant:variant
         },
         reqTitle:REQUESTS_DATA.STORE_FIREBASE_SUBSCRIBE_TOPIC,
-        server:'market'
+        server:'market',
+        // The caller owns the user-facing error toast (and rolls back the UI on
+        // failure); silence fetchData's own toast to avoid a duplicate.
+        noMessage:true
       });
   }
    async UnsubscribeToTopicInventory({topic,variant=null}){
-      await fetchData({
+      return await fetchData({
         url:'/firebase_device_tokens/unsubscribe_topic',
         method:'POST',
         body:{
@@ -527,7 +541,8 @@ class HomeService {
           variant:variant
         },
         reqTitle:REQUESTS_DATA.STORE_FIREBASE_UNSUBSCRIBE_TOPIC,
-        server:'market'
+        server:'market',
+        noMessage:true
       });
   }
   async handleTopicsOnPageRefresh(token: string) {

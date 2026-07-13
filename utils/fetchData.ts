@@ -98,7 +98,8 @@ const ignoredMessages = [
   "success",
   "Policies Approved!",
   "firebase device token stored successfully",
-  "Firebase settings retrieved successfully"
+  "Firebase settings retrieved successfully",
+  "Languages retrieved successfully"
 ];
 
 // ---------- Helper Functions ----------

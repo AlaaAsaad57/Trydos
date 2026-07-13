@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { translateFunction } from "utils/functions";
+import { getLocalizedCountryName } from "utils/countryData";
+import LocalizationServiceClass from "services/localization";
 import {
   DashButton,
   DashField,
@@ -337,22 +339,28 @@ export function CategoriesSection({ form, patch, lookups, disabled, busy }: Sect
     items: { id: number; name: string }[],
     selected: number[],
     key: keyof ProductForm,
-  ) => (
-    <div>
-      <p className="text-[13px] medium text-[#505050] mb-2">{t(title)}</p>
-      {items.length === 0 ? (
-        <p className="text-[12px] text-[#b8b8b8]">{t("No options available for the current selection.")}</p>
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {items.map((c) => (
-            <Chip key={c.id} active={selected.includes(c.id)} disabled={disabled || busy} onClick={() => patch({ [key]: toggleId(selected, c.id) } as any)}>
-              {c.name}
-            </Chip>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  ) => {
+    // Read mode shows only the chosen values; edit mode shows the full picker.
+    const shown = disabled ? items.filter((c) => selected.includes(c.id)) : items;
+    return (
+      <div>
+        <p className="text-[13px] medium text-[#505050] mb-2">{t(title)}</p>
+        {shown.length === 0 ? (
+          <p className="text-[12px] text-[#b8b8b8]">
+            {disabled ? t("None") : t("No options available for the current selection.")}
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {shown.map((c) => (
+              <Chip key={c.id} active={selected.includes(c.id)} disabled={disabled || busy} onClick={() => patch({ [key]: toggleId(selected, c.id) } as any)}>
+                {c.name}
+              </Chip>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
   return (
     <Section icon="boutiques" title="Categories" desc="Sub-categories shown match the current parents (re-open the page after changing parents to load others).">
       <div className="relative">
@@ -444,35 +452,50 @@ export function DescriptorsSection({ form, patch, disabled, busy, lookups }: Sec
 }
 
 export function ClassificationSection({ form, patch, errors, lookups, disabled }: SectionProps) {
+  // Read mode shows only the chosen labels/tags; edit mode shows the full picker.
+  const shownLabels = disabled
+    ? (lookups.labels || []).filter((l) => form.labels.includes(l.id))
+    : lookups.labels || [];
+  const shownTags = disabled
+    ? (lookups.tags || []).filter((tg) => form.tags_ids.includes(tg.id))
+    : lookups.tags || [];
   return (
     <Section icon="permissions" title="Labels & Tags">
       <div className="space-y-5">
         <div>
           <p className="text-[13px] medium text-[#505050] mb-2">
             {t("Labels")}{" "}
-            <span className="text-[#8e8e8e] regular">({t("max 3")})</span>
+            {!disabled && <span className="text-[#8e8e8e] regular">({t("max 3")})</span>}
           </p>
-          <div className="flex flex-wrap gap-2">
-            {(lookups.labels || []).map((l) => {
-              const active = form.labels.includes(l.id);
-              return (
-                <Chip key={l.id} active={active} disabled={disabled || (!active && form.labels.length >= 3)} onClick={() => patch({ labels: toggleId(form.labels, l.id) })}>
-                  {l.label}
-                </Chip>
-              );
-            })}
-          </div>
+          {shownLabels.length === 0 ? (
+            <p className="text-[12px] text-[#b8b8b8]">{t("None")}</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {shownLabels.map((l) => {
+                const active = form.labels.includes(l.id);
+                return (
+                  <Chip key={l.id} active={active} disabled={disabled || (!active && form.labels.length >= 3)} onClick={() => patch({ labels: toggleId(form.labels, l.id) })}>
+                    {l.label}
+                  </Chip>
+                );
+              })}
+            </div>
+          )}
           {errors.labels && <p className="text-[12px] text-[#f85555] mt-1.5">{errors.labels}</p>}
         </div>
         <div>
           <p className="text-[13px] medium text-[#505050] mb-2">{t("Tags")}</p>
-          <div className="flex flex-wrap gap-2">
-            {(lookups.tags || []).map((tg) => (
-              <Chip key={tg.id} active={form.tags_ids.includes(tg.id)} disabled={disabled} onClick={() => patch({ tags_ids: toggleId(form.tags_ids, tg.id) })}>
-                {tg.name}
-              </Chip>
-            ))}
-          </div>
+          {shownTags.length === 0 ? (
+            <p className="text-[12px] text-[#b8b8b8]">{t("None")}</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {shownTags.map((tg) => (
+                <Chip key={tg.id} active={form.tags_ids.includes(tg.id)} disabled={disabled} onClick={() => patch({ tags_ids: toggleId(form.tags_ids, tg.id) })}>
+                  {tg.name}
+                </Chip>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </Section>
@@ -481,6 +504,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
 
 export function CountriesSection({ form, patch, lookups, disabled }: SectionProps) {
   const countries = lookups.countries || [];
+  const language = LocalizationServiceClass.GetAppLanguage();
   const addExtra = () => patch({ extra_price_for_country: [...form.extra_price_for_country, { country_iso: "", extra_price: "" }] });
   const setExtra = (i: number, k: "country_iso" | "extra_price", v: string) => {
     const next = form.extra_price_for_country.map((e, idx) => (idx === i ? { ...e, [k]: v } : e));
@@ -492,7 +516,7 @@ export function CountriesSection({ form, patch, lookups, disabled }: SectionProp
     <Section icon="shopInfo" title="Origin & Countries">
       <div className="space-y-6">
         <div className="max-w-md">
-          <Select label="Country of Origin" value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={countries.map((c) => ({ value: c.iso, label: c.nicename }))} />
+          <Select label="Country of Origin" value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={countries.map((c) => ({ value: c.iso, label: getLocalizedCountryName(c.iso, language) }))} />
         </div>
 
         <div>
@@ -501,7 +525,7 @@ export function CountriesSection({ form, patch, lookups, disabled }: SectionProp
           <div className="flex flex-wrap gap-2 max-h-[180px] overflow-auto p-0.5">
             {countries.map((c) => (
               <Chip key={c.iso} active={form.countries_iso.includes(c.iso)} disabled={disabled} onClick={() => patch({ countries_iso: toggleStr(form.countries_iso, c.iso) })}>
-                {c.iso.toUpperCase()}
+                {getLocalizedCountryName(c.iso, language)}
               </Chip>
             ))}
           </div>
@@ -525,7 +549,7 @@ export function CountriesSection({ form, patch, lookups, disabled }: SectionProp
                   <select value={e.country_iso} disabled={disabled} onChange={(ev) => setExtra(i, "country_iso", ev.target.value)} className={`${dashInputClass} flex-1`}>
                     <option value="">{t("Country")}</option>
                     {countries.map((c) => (
-                      <option key={c.iso} value={c.iso}>{c.nicename}</option>
+                      <option key={c.iso} value={c.iso}>{getLocalizedCountryName(c.iso, language)}</option>
                     ))}
                   </select>
                   <input type="number" step="any" value={e.extra_price} disabled={disabled} placeholder={t("Extra price")} onChange={(ev) => setExtra(i, "extra_price", ev.target.value)} className={`${dashInputClass} w-[130px]`} />
@@ -564,7 +588,7 @@ export function SeoSection({ form, patch, disabled, onUploadMeta, uploading, sel
           <div className="w-[96px] h-[96px] rounded-[12px] overflow-hidden bg-[#f4f4f4] border border-[#ededed] flex items-center justify-center shrink-0">
             {form.meta_image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={form.meta_image_url} alt="meta" className="w-full h-full object-cover" />
+              <img src={form.meta_image_url} alt={t("Meta Image")} className="w-full h-full object-cover" />
             ) : (
               <DashIcon name="gallery" size={26} strokeWidth={1.4} />
             )}
@@ -744,6 +768,14 @@ export function MediaSection({ form, patch, errors, disabled, onUploadImages, up
 export function VariantsSection({ form, patch, errors, lookups, disabled }: SectionProps) {
   const cmb = combos(form);
 
+  // Read mode shows only the chosen colors/sizes; edit mode shows the full picker.
+  const shownColors = disabled
+    ? (lookups.colors || []).filter((c) => form.colors.some((x) => x.code === c.code))
+    : lookups.colors || [];
+  const shownSizes = disabled
+    ? (lookups.sizes || []).filter((s) => form.sizes.some((x) => x.id === s.id))
+    : lookups.sizes || [];
+
   // Auto-fill empty variant prices from the product-level defaults so the seller
   // sees what each variant will cost. Keyed on the SET of combo keys (+ edit
   // mode), not on field values: it fires on entering edit mode and whenever a
@@ -785,28 +817,36 @@ export function VariantsSection({ form, patch, errors, lookups, disabled }: Sect
       <div className="space-y-5">
         <div>
           <p className="text-[13px] medium text-[#505050] mb-2">{t("Colors")}</p>
-          <div className="flex flex-wrap gap-2 max-h-[160px] overflow-auto p-0.5">
-            {(lookups.colors || []).map((c) => {
-              const active = form.colors.some((x) => x.code === c.code);
-              return (
-                <button key={c.id} type="button" disabled={disabled} onClick={() => toggleColor(c)} className={`inline-flex items-center gap-2 pl-1.5 pr-3 h-[34px] rounded-full text-[13px] medium border transition-colors active:scale-[0.98] ${active ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#3c3c3c]" : "border-transparent bg-[#f2f2f2] text-[#8e8e8e]"}`}>
-                  <span className="w-[22px] h-[22px] rounded-full border border-black/10 shrink-0" style={{ background: c.code }} />
-                  {c.name}
-                </button>
-              );
-            })}
-          </div>
+          {shownColors.length === 0 ? (
+            <p className="text-[12px] text-[#b8b8b8]">{t("None")}</p>
+          ) : (
+            <div className="flex flex-wrap gap-2 max-h-[160px] overflow-auto p-0.5">
+              {shownColors.map((c) => {
+                const active = form.colors.some((x) => x.code === c.code);
+                return (
+                  <button key={c.id} type="button" disabled={disabled} onClick={() => toggleColor(c)} className={`inline-flex items-center gap-2 pl-1.5 pr-3 h-[34px] rounded-full text-[13px] medium border transition-colors active:scale-[0.98] ${active ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#3c3c3c]" : "border-transparent bg-[#f2f2f2] text-[#8e8e8e]"}`}>
+                    <span className="w-[22px] h-[22px] rounded-full border border-black/10 shrink-0" style={{ background: c.code }} />
+                    {c.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div>
           <p className="text-[13px] medium text-[#505050] mb-2">{t("Sizes")}</p>
-          <div className="flex flex-wrap gap-2">
-            {(lookups.sizes || []).map((s) => (
-              <Chip key={s.id} active={form.sizes.some((x) => x.id === s.id)} disabled={disabled} onClick={() => toggleSize(s)}>
-                {s.name}
-              </Chip>
-            ))}
-          </div>
+          {shownSizes.length === 0 ? (
+            <p className="text-[12px] text-[#b8b8b8]">{t("None")}</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {shownSizes.map((s) => (
+                <Chip key={s.id} active={form.sizes.some((x) => x.id === s.id)} disabled={disabled} onClick={() => toggleSize(s)}>
+                  {s.name}
+                </Chip>
+              ))}
+            </div>
+          )}
         </div>
 
         {errors.variations && <p className="text-[12px] text-[#f85555]">{errors.variations}</p>}

@@ -6,7 +6,7 @@ file under `docs/features/<domain>/` — this index links them together and show
 glance, where each feature stands.
 
 **Audience:** Management / non-technical stakeholders.
-**Last updated:** 2026-07-08
+**Last updated:** 2026-07-12 (SL-02 post-leave wiring landed on branch `ticket/migrate-customer-api-to-go`, ahead of `develop`; rest reflects `develop`)
 **How it was built:** Compiled directly from the current codebase (routes, services, and
 app state) — not from memory — so it reflects what is actually shipped on the `develop` branch.
 **Companion:** a prioritized management status report lives in
@@ -41,7 +41,7 @@ app state) — not from memory — so it reflects what is actually shipped on th
 | E. Chat & Calls | 25 | 1-to-1 chat + Agora voice/video (customer↔customer, customer↔delivery worker); a few shipped controls are inert (Edit message, Category, Reminder, Archive — see Domain E note) |
 | F. Stories | 7 | Seller/admin stories + customer stories (shoppable); ST-07 view-time tracking only console-logs (not wired to backend/analytics) |
 | G. Notifications | 10 | Push (Firebase) + in-app |
-| H. Seller Dashboard | 14 | Merchant back-office; partial: SL-02 (no post-leave UI reaction), SL-04 (interim, AI redesign planned), SL-06 (boutiques view-only), SL-07 (item-level fulfilment only) |
+| H. Seller Dashboard | 14 | Merchant back-office; partial: SL-04 (interim, AI redesign planned), SL-06 (boutiques view-only), SL-07 (item-level fulfilment only) |
 | I. Platform & Foundations | 46 | Localization, SEO, analytics, PWA, security |
 | **Total** | **200** | |
 
@@ -74,7 +74,6 @@ lives in each feature's own doc / the [status report](../pm-status-report-2026-0
 | PW-04 | Pay order with wallet | Swap the **dummy test widget** for the real external RDB payment widget; allow a failed payment to retry without reopening the modal. (Secret-leak fixed in code; rotate the merchant key — ops.) |
 | AC-06 | Privacy / terms consent | Wire the dead "Terms" link + add a Privacy link to real pages; ideally persist consent server-side (today it's only an analytics event). |
 | AC-09 | QR-code login | Replace the local **mock** with real backend endpoints (create / status / scanned / approve / deny) and mint a real session on approval. |
-| SL-02 | Leave a shop | Make the screen react after a successful leave (redirect/refresh/confirm) — the backend call already works, but the UI does nothing. |
 | SL-04 | Product editing | Fully functional today — "partial" only because it's slated for replacement by the planned AI-driven editor. Ship as-is or deliver the AI editor. |
 | SL-06 | Boutiques management | Build the create/edit/delete/status actions (the write permissions exist but the tab is read-only today), or rename it to a viewer. |
 | SL-07 | Orders & fulfillment | Un-comment/finish whole-order status change, and build (or hide) the payment/refund/shipping/tracking actions the order permissions imply. |
@@ -379,7 +378,7 @@ The merchant/seller back-office (per-shop, permission-gated).
 | ID | Feature | What it does | Status |
 |----|---------|--------------|:------:|
 | [SL-01](H-seller-dashboard/SL-01-my-shops-shop-picker.md) | My shops / shop picker | The seller's "Your Shops" entry page — lists shops a user can manage (role + permissions) and opens the dashboard. **Note:** the account-menu seller card's "Sales" banner shows a hardcoded `0` (the permissions API returns no counts); left as-is by decision (2026-07-08). | 🟢 |
-| [SL-02](H-seller-dashboard/SL-02-leave-a-shop.md) | Leave a shop | Remove your own access to a shop. The leave call works, but the screen doesn't react afterwards (no redirect/refresh/confirmation). | 🟡 |
+| [SL-02](H-seller-dashboard/SL-02-leave-a-shop.md) | Leave a shop | Remove your own access to a shop. Confirms first, then on success redirects to the shop picker; failures show an inline error. | 🟢 |
 | [SL-03](H-seller-dashboard/SL-03-product-management.md) | Product management | Browse the shop's products with stock, status and social stats. | 🟢 |
 | [SL-04](H-seller-dashboard/SL-04-product-editing.md) | Product editing | Full edit form for a product (variants, prices, images) — functional today (loads & saves real data), but slated to be replaced by a new AI-driven design that extracts product info from images, so treated as interim. | 🟡 |
 | [SL-05](H-seller-dashboard/SL-05-activate-allow-purchase.md) | Activate / allow purchase | Toggle a product on/off for sale, with (server-side) eligibility checks. | 🟢 |

@@ -135,6 +135,79 @@ export function Select({
   );
 }
 
+/**
+ * "Copy from ▾" — pulls an already-filled field from another language into the
+ * current one. Renders nothing when disabled or when no other language has this
+ * field filled. Native select arrow (no custom icon dependency).
+ */
+export function CopyFrom({
+  options,
+  onPick,
+  disabled,
+}: {
+  options: { code: string; label: string }[];
+  onPick: (code: string) => void;
+  disabled?: boolean;
+}) {
+  if (disabled || options.length === 0) return null;
+  return (
+    <select
+      value=""
+      onChange={(e) => {
+        const code = e.target.value;
+        if (code) onPick(code);
+        e.currentTarget.value = "";
+      }}
+      title={t("Copy from another language")}
+      className="text-[11px] medium text-[#388CFF] bg-[#388CFF]/[0.07] hover:bg-[#388CFF]/[0.14] rounded-md px-2 h-[26px] cursor-pointer transition-colors focus:outline-none border-0"
+    >
+      <option value="">{t("Copy from")}…</option>
+      {options.map((o) => (
+        <option key={o.code} value={o.code}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/** Label row (label + optional trailing action, e.g. CopyFrom) above a control. */
+export function FieldShell({
+  label,
+  required,
+  action,
+  error,
+  shakeTick = 0,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  action?: React.ReactNode;
+  error?: string;
+  shakeTick?: number;
+  children: React.ReactNode;
+}) {
+  // When a save fails, `shakeTick` bumps; keying the wrapper on it remounts the
+  // node so the CSS shake animation re-plays on every attempt, not just once.
+  const shaking = !!error && shakeTick > 0;
+  return (
+    <div key={shaking ? `shake-${shakeTick}` : undefined} className={shaking ? "shake-anim" : ""}>
+      <div className="flex items-center justify-between gap-2 mb-1.5 min-h-[26px]">
+        <label className="text-[13px] medium text-[#3c3c3c]">
+          {t(label)}
+          {required ? " *" : ""}
+        </label>
+        {action}
+      </div>
+      {children}
+      {error && <p className="text-[11px] text-[#f85555] mt-1">{t(error)}</p>}
+    </div>
+  );
+}
+
+/** Shared input/textarea class re-export so sections can build raw fields. */
+export { dashInputClass };
+
 /** Selection = outline + faint tint (design-language §10.8), never checkbox. */
 export function Chip({
   active,

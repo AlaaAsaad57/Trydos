@@ -357,7 +357,7 @@ function ProductPickerModal({
                 <div className="flex justify-center mt-5">
                   <DashButton
                     variant="secondary"
-                    size="sm"
+                 
                     onClick={() => fetchProducts(page + 1)}
                     loading={loadingMore}
                   >
@@ -1020,7 +1020,7 @@ export default function StoriesTab({
         <div className="flex items-center justify-center gap-3 mt-6">
           <DashButton
             variant="secondary"
-            size="sm"
+            
             icon="chevronLeft"
             onClick={() => fetchStories(page - 1)}
             disabled={page === 1 || loading}
@@ -1035,7 +1035,7 @@ export default function StoriesTab({
           </span>
           <DashButton
             variant="secondary"
-            size="sm"
+            
             iconRight="chevronRight"
             onClick={() => fetchStories(page + 1)}
             disabled={!hasMore || loading}

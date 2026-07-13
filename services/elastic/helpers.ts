@@ -116,8 +116,18 @@ export function getSourceFields(full: boolean = false): string[] {
 //
 // Price sorts on the ROOT `offered_price` only. Per-country
 // `country_offer_prices` overrides are intentionally NOT applied to the sort key
-// (locked design decision — a few country-override products may order slightly
-// off vs. their displayed price; country-accurate price sorting is out of scope).
+// — a CONFIRMED, locked decision (kept as-is), so a country-override product
+// orders by its base price and can sit "off" vs. its country-accurate card price
+// (e.g. country=sy: base offer 8, SY offer 28 → still sorts at 8).
+// Why sort can't mirror the country-aware price FILTER/FACET (which do it
+// script-free): filtering/aggregating over the nested `country_offer_prices` is
+// boolean/bucketed (override-else-base via two `should`/agg branches — see
+// buildCountryAwarePriceRangeCondition), but a sort needs ONE coalesced scalar
+// per doc, COALESCE(country_override, offered_price), which ES can't derive from
+// a nested value + a root value without either a query-time `_script` sort
+// (parses _source per matching doc; rejected on perf at ~100k) or a
+// backend-indexed flat effective-price field (needs Go indexer + mapping change).
+// See ADR-010 for the same nested/no-script rationale on the filter side.
 // ───────────────────────────────────────────────────────────────────────────
 
 // The sort-key vocabulary lives in the client-safe ./sortKeys module (this file

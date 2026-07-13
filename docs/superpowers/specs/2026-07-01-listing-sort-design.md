@@ -25,7 +25,7 @@ Let users sort a product listing by: **Newest / Oldest**, **Price low / high**, 
 ## Decisions (locked during brainstorming)
 
 1. **Sort options (v1):** Best-selling, Newest/Oldest, Price low/high, A-Z/Z-A. **Excluded:** has-offer-first (no indexed boolean; would need a `_script` sort or a new backend field), top-rated / most-viewed / biggest-discount (need backend-indexed fields).
-2. **Price precision:** root `offered_price` (base offer price). Per-country `country_offer_prices` overrides are **not** applied to sort — accepted trade-off; a few country-override products may sort slightly off.
+2. **Price precision:** root `offered_price` (base offer price). Per-country `country_offer_prices` overrides are **not** applied to sort — a **confirmed, locked decision (kept as-is)**, not a gap. A country-override product sorts by its base price, so its sort position can differ from its country-accurate card price (e.g. `country=sy`: base offer `8`, SY offer `28` → still sorts at `8`). Unlike the price **filter** and **facet** — which are country-aware _script-free_ because filtering/aggregating over the **nested** `country_offer_prices` is boolean/bucketed (two `should`/agg branches: "override, else base") — a **sort** needs a single coalesced scalar per document (`COALESCE(country_override, offered_price)`), which ES cannot derive from a nested value + a root value without either a query-time Painless `_script` sort (parses `_source` per matching doc; rejected on performance at ~100k) or a backend-indexed flat effective-price field (needs Go indexer + mapping changes). Both were weighed and **declined for now**. See `ADR-010` for the identical nested/no-script rationale on the filter side.
 3. **UI mechanism:** `?sort=` query param (orthogonal to the path-based filters), SSR-rendered, shareable.
 4. **A-Z localization:** all four locales (ar/en/tr/ku), byte-order via `custom_products.name.keyword` filtered by active locale. True locale collation is **deferred** (see A-Z section).
 5. **Mobile parity:** `searchInCatalog` route **included** — parse `sort` and pass it through.
@@ -112,7 +112,7 @@ The index defines only `arabic` and `english` analyzers; there are no `tr`/`ku` 
 ## Out of scope
 
 - Has-offer-first sorting.
-- Country-accurate price sorting (per-country `country_offer_prices` overrides in the sort key).
+- Country-accurate price sorting (per-country `country_offer_prices` overrides in the sort key) — **confirmed kept out of scope**; requires a backend-indexed effective-price field or a query-time `_script` sort (see Decision 2 and `ADR-010`).
 - True locale collation for A-Z (ICU / reindex).
 
 ## Files touched (summary)
