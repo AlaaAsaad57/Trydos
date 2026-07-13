@@ -33,6 +33,7 @@ export interface SectionProps {
   uploading?: { images?: boolean; meta?: boolean; video?: boolean };
   sellerId: string;
   canUseGallery?: boolean;
+  busy?: boolean;
 }
 
 const t = (s: string) => translateFunction(s);
@@ -328,7 +329,7 @@ function toggleStr(arr: string[], v: string): string[] {
   return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 }
 
-export function CategoriesSection({ form, patch, lookups, disabled }: SectionProps) {
+export function CategoriesSection({ form, patch, lookups, disabled, busy }: SectionProps) {
   const group = (
     title: string,
     items: { id: number; name: string }[],
@@ -342,7 +343,7 @@ export function CategoriesSection({ form, patch, lookups, disabled }: SectionPro
       ) : (
         <div className="flex flex-wrap gap-2">
           {items.map((c) => (
-            <Chip key={c.id} active={selected.includes(c.id)} disabled={disabled} onClick={() => patch({ [key]: toggleId(selected, c.id) } as any)}>
+            <Chip key={c.id} active={selected.includes(c.id)} disabled={disabled || busy} onClick={() => patch({ [key]: toggleId(selected, c.id) } as any)}>
               {c.name}
             </Chip>
           ))}
@@ -352,10 +353,54 @@ export function CategoriesSection({ form, patch, lookups, disabled }: SectionPro
   );
   return (
     <Section icon="boutiques" title="Categories" desc="Sub-categories shown match the current parents (re-open the page after changing parents to load others).">
-      <div className="space-y-5">
-        {group("Main Categories", lookups.parent_categories || [], form.category_id, "category_id")}
-        {group("Sub Categories", lookups.sub_categories || [], form.sub_category_id, "sub_category_id")}
-        {group("Sub-sub Categories", lookups.sub_sub_categories || [], form.sub_sub_category_id, "sub_sub_category_id")}
+      <div className="relative">
+        {busy && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 rounded-[12px]">
+            <span className="text-[12px] medium text-[#5d5d5d]">{t("Loading…")}</span>
+          </div>
+        )}
+        <div className={`space-y-5 ${busy ? "opacity-60 pointer-events-none" : ""}`}>
+          {group("Main Categories", lookups.parent_categories || [], form.category_id, "category_id")}
+          {group("Sub Categories", lookups.sub_categories || [], form.sub_category_id, "sub_category_id")}
+          {group("Sub-sub Categories", lookups.sub_sub_categories || [], form.sub_sub_category_id, "sub_sub_category_id")}
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+export function DescriptorsSection({ form, patch, lookups, disabled, busy }: SectionProps) {
+  const groups = lookups.descriptor_groups || [];
+  return (
+    <Section icon="permissions" title="Attributes" desc="Attributes for the selected categories. All optional.">
+      <div className="relative">
+        {busy && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 rounded-[12px]">
+            <span className="text-[12px] medium text-[#5d5d5d]">{t("Loading…")}</span>
+          </div>
+        )}
+        <div className={`space-y-5 ${busy ? "opacity-60 pointer-events-none" : ""}`}>
+          {groups.length === 0 ? (
+            <p className="text-[12px] text-[#b8b8b8]">{t("Select a category to see its attributes.")}</p>
+          ) : (
+            groups.map((g) => (
+              <div key={g.id}>
+                <p className="text-[13px] medium text-[#505050] mb-2">{g.name}</p>
+                {(g.descriptors || []).length === 0 ? (
+                  <p className="text-[12px] text-[#b8b8b8]">{t("No options available.")}</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {g.descriptors.map((d) => (
+                      <Chip key={d.id} active={form.descriptor_ids.includes(d.id)} disabled={disabled || busy} onClick={() => patch({ descriptor_ids: toggleId(form.descriptor_ids, d.id) })}>
+                        {d.name}
+                      </Chip>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </Section>
   );
