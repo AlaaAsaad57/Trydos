@@ -264,4 +264,5 @@ export const REQUESTS_DATA = {
   FETCH_HIDDEN_ORDERS: { reqTitle: "FETCH_HIDDEN_ORDERS", code: 187 },
   GET_PRODUCT_CREATE_FORM: { reqTitle: "GET_PRODUCT_CREATE_FORM", code: 188 },
   ADD_PRODUCT: { reqTitle: "ADD_PRODUCT", code: 189 },
+  GET_CATEGORY_LOOKUPS: { reqTitle: "GET_CATEGORY_LOOKUPS", code: 190 },
 };

@@ -841,6 +841,29 @@ class SellerDashboardService {
     return res;
   }
 
+  // GET /shop/products/categories/{categoryId}/lookups — UPDATE_PRODUCT | SUPER_ADMIN
+  // Cascading lookups for a category branch: its sub_categories, the branch's
+  // sub_sub_categories, and the branch's descriptor_groups (deduped server-side).
+  // Empty arrays are a valid result (a leaf category with no children / groups).
+  async getCategoryLookups(sellerId: string, categoryId: string | number) {
+    const res = await fetchData({
+      url: `/shop/products/categories/${categoryId}/lookups`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_CATEGORY_LOOKUPS,
+      sellerId,
+    });
+    if (!res?.success) {
+      throw new Error(res?.message || "Failed to load category lookups");
+    }
+    const d = res.data || {};
+    return {
+      sub_categories: d.sub_categories || [],
+      sub_sub_categories: d.sub_sub_categories || [],
+      descriptor_groups: d.descriptor_groups || [],
+    };
+  }
+
   // POST /shop/products/add — CREATE_PRODUCT | SUPER_ADMIN
   // Same multipart body as update (buildUpdateFormData). Returns the new product
   // in the standard envelope; on a requires-approval seller it is stored pending.
