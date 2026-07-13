@@ -9,6 +9,7 @@ import {
   DashIcon,
   dashInputClass,
 } from "components/SellerDashboard/ui";
+import { RichTextEditor } from "components/SellerDashboard/ui/RichTextEditor";
 import {
   combos,
   ProductForm,
@@ -295,7 +296,9 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
         <Txt label="Report Ref. Number" value={form.report_ref_number} disabled={disabled} onChange={(v) => patch({ report_ref_number: v })} />
       </Grid>
       <div className="mt-5">
-        <Area label="Description" value={form.description} disabled={disabled} onChange={(v) => patch({ description: v })} rows={5} />
+        <DashField label={t("Description")}>
+          <RichTextEditor value={form.description} disabled={disabled} onChange={(v) => patch({ description: v })} />
+        </DashField>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-5">
         <Toggle label="Multiply Shipping × Quantity" desc="Charge shipping per item ordered." value={form.multiply_qty} disabled={disabled} onChange={(v) => patch({ multiply_qty: v })} />

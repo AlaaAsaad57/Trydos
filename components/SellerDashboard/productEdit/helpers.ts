@@ -12,6 +12,7 @@
  */
 
 import { translateFunction } from "utils/functions";
+import { sanitizeHtml } from "utils/sanitizeHtml";
 
 // Aliased `tx` (not `t`) because `t` is used as a local param/var below.
 const tx = (s: string) => translateFunction(s);
@@ -628,7 +629,7 @@ export function buildUpdateFormData(form: ProductForm): FormData {
   set("unit", form.unit);
   set("barcode", form.barcode);
   set("seller_product_id", form.seller_product_id);
-  set("description", form.description);
+  set("description", sanitizeHtml(form.description));
   set("brand_id", form.brand_id);
   set("boutique_id", form.boutique_id);
   if (form.label) set("label", form.label);
@@ -705,7 +706,7 @@ export function buildUpdateFormData(form: ProductForm): FormData {
   form.translations.forEach((t, i) => {
     fd.append(`custom_data[${i}][language_code]`, t.language_code);
     fd.append(`custom_data[${i}][name]`, t.name || "");
-    fd.append(`custom_data[${i}][description]`, t.description || "");
+    fd.append(`custom_data[${i}][description]`, sanitizeHtml(t.description || ""));
   });
 
   if (form.cloud_video) set("cloud_video", form.cloud_video);
