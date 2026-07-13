@@ -4,6 +4,7 @@ import { translateFunction } from "utils/functions";
 import { getLocalizedCountryName } from "utils/countryData";
 import LocalizationServiceClass from "services/localization";
 import { DashButton, DashIcon, Segmented } from "components/SellerDashboard/ui";
+import { RichTextEditor } from "components/SellerDashboard/ui/RichTextEditor";
 import { Section, Chip, CopyFrom, FieldShell, dashInputClass } from "./controls";
 import {
   RECOMMENDED_BANNER,
@@ -231,16 +232,11 @@ export function TranslationsSection(props: SectionProps) {
           error={descriptionError}
           shakeTick={shakeTick}
         >
-          <textarea
-            rows={4}
+          <RichTextEditor
             value={tr.description}
             disabled={disabled}
-            onChange={(e) =>
-              patchTranslation(activeLang, { description: e.target.value })
-            }
-            className={`${dashInputClass} h-auto py-3 leading-relaxed ${
-              descriptionError ? "border-[#f85555]" : ""
-            } ${disabled ? "opacity-70" : ""}`}
+            error={descriptionError}
+            onChange={(v) => patchTranslation(activeLang, { description: v })}
           />
         </FieldShell>
 

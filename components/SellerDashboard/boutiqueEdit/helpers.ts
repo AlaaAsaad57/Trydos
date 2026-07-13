@@ -3,6 +3,8 @@
 // PER-LANGUAGE — each translation carries its own copy. The boutique's global
 // data (boutique_global_data) is derived from the default (English) language.
 
+import { sanitizeHtml } from "utils/sanitizeHtml";
+
 /** Language codes are dynamic (sourced from the languages API), so this is a
  *  plain string — not a fixed union. */
 export type LangCode = string;
@@ -263,7 +265,7 @@ export function buildUpdatePayload(
         ...(tr.id ? { id: tr.id } : {}),
         language_code: code,
         name: tr.name,
-        description: tr.description,
+        description: sanitizeHtml(tr.description),
         bio: tr.bio,
         icon: tr.icon,
         banners: tr.banners.map((b, i) => ({
@@ -290,7 +292,7 @@ export function buildUpdatePayload(
     boutique_global_data: {
       name: base.name,
       availability: FIXED_AVAILABILITY,
-      description: base.description,
+      description: sanitizeHtml(base.description),
       bio: base.bio,
       icon: base.icon,
       countries_iso: form.countries_iso,
