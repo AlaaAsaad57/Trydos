@@ -337,7 +337,6 @@ export const LogError = async (error) => {
   }
   const language = getCookie("language");
   const country = getCookie("country");
-  const userIP = getCookie("userIP");
   let serializedError = error;
   if (error instanceof Error) {
     serializedError = {
@@ -367,7 +366,6 @@ export const LogError = async (error) => {
     last_request,
     language,
     country,
-    userIP,
     timestamp: new Date().toISOString(),
     url: typeof window !== "undefined" ? window.location.href : undefined,
     user_agent:

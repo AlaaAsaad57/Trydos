@@ -78,3 +78,6 @@ vercel-usage.txt
 docs/clickup-workflow-guide-ar.md
 _specs/inputs/OrderProductHideEndpoints.md
 price-filter-es-implementation.md
+
+# Security assessment HAR captures contain live tokens/cookies — never commit.
+security-check/*.har

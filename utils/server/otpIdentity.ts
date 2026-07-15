@@ -115,6 +115,10 @@ async function resolveVisitId(): Promise<{ visitId: string; minted: boolean }> {
       name: COOKIE_NAMES.VISIT_ID,
       value: fresh,
       ...SECURE_COOKIE_OPTIONS,
+      // Durable OTP rate-limit key: must NEVER follow the 48h token TTL — it is
+      // designed to survive token rotation/logout so the otp:sid counter can't
+      // be reset. Pin to 1 year regardless of TOKEN_COOKIE_MAX_AGE.
+      maxAge: 60 * 60 * 24 * 365,
     });
   } catch {
     // Pure render context — can't persist the cookie here. The id still keys

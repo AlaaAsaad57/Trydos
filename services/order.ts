@@ -15,11 +15,11 @@ import type { ReportPointSelection } from "utils/orderReportOptions";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
-const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
+
 
 class OrderService {
   async uploadToMediaServer(file: File, folder: string) {
-    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+    if (!MEDIA_SERVER_BASE_URL) {
       throw new Error("Media server upload is not configured");
     }
 
@@ -30,7 +30,7 @@ class OrderService {
     const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload`, {
       method: "POST",
       headers: {
-        "x-api-key": MEDIA_API_KEY,
+        "x-api-key": process.env.NEXT_PUBLIC_MEDIA_API_KEY,
       },
       body: form,
     });

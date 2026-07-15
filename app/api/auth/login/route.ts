@@ -15,6 +15,7 @@ import {
   setSecureCookieJSON,
   sanitizeUserData,
   sanitizeServiceUser,
+  sanitizeWalletUser,
 } from "utils/server/tokenManager";
 
 // Helper to handle sub-service fetches safely
@@ -47,12 +48,12 @@ async function safeServiceLogin(url: string, body: any) {
     }
 
     const data = await response.json();
-    console.log({
-      url:url,
-      method:"POST",
-      body:JSON.stringify(body),
-      response:data
-    })
+    // console.log({
+    //   url:url,
+    //   method:"POST",
+    //   body:JSON.stringify(body),
+    //   response:data
+    // })
     return { success: true, status: 200, data };
   } catch (err) {
     LogServerError({ error: err, type: "login api route", url, body });
@@ -296,7 +297,10 @@ export async function GET(request: NextRequest) {
           })
         : Promise.resolve(),
       walletUserData
-        ? setSecureCookieJSON(COOKIE_NAMES.WALLET_USER, walletUserData)
+        ? setSecureCookieJSON(
+            COOKIE_NAMES.WALLET_USER,
+            sanitizeWalletUser(walletUserData),
+          )
         : Promise.resolve(),
         
     ]);
@@ -312,7 +316,7 @@ export async function GET(request: NextRequest) {
         ChatUser: sanitizeServiceUser(chatUserData),
         StoriesUser: sanitizeServiceUser(storiesUserData),
         is_failed: failures?.length > 0 ? failures : undefined,
-        WalletUser: walletUserData,
+        WalletUser: sanitizeWalletUser(walletUserData),
         original_user_id: String(InventoryUser.id),
       },
       { status: 200 },

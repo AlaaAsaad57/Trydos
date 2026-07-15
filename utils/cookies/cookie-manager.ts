@@ -258,37 +258,13 @@ export function deleteCookie(name: string): void {
 }
 
 /**
- * Store hashed user ID in cookie
- * Usage: storeHashedUserId(response.user.id)
- */
-export function storeHashedUserId(userId: number | string): void {
-  setCookie(COOKIE_NAMES.USER_ID_HASH, userId, {
-    maxAge: 365 * 24 * 60 * 60, // 1 year
-    httpOnly: false,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-  });
-}
-
-/**
- * Get and decode hashed user ID from cookie
- * Returns the hashed user ID if found, null otherwise
- * Usage: const hashedUserId = getHashedUserId()
- */
-export function getHashedUserId(): string | null {
-  const hashedId = getCookie<string>(COOKIE_NAMES.USER_ID_HASH);
-
-  if (!hashedId) {
-    return null;
-  }
-
-  // Return the full hash string for comparison
-  return hashedId;
-}
-
-/**
  * Clear hashed user ID from cookie
  * Usage: clearHashedUserId() - typically called on logout
+ *
+ * Note: USER_ID_HASH is server-set and HttpOnly, so this client-side delete is a
+ * best-effort belt-and-suspenders; authoritative clearing happens server-side.
+ * (The former client-side setter/getter were removed — USER_ID_HASH must never
+ * be written non-HttpOnly from the client.)
  */
 export function clearHashedUserId(): void {
   deleteCookie(COOKIE_NAMES.USER_ID_HASH);

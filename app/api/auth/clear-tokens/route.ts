@@ -44,12 +44,14 @@ export async function POST(request: NextRequest) {
       userChat?.id
         ? setSecureCookieJSON(COOKIE_NAMES.USER_CHAT, {
             ...userChat,
+            access_token: undefined, // fully invalidate — proxy/SSR auth off token cookies now
             need_auth: true,
           })
         : Promise.resolve(),
       userStories?.id
         ? setSecureCookieJSON(COOKIE_NAMES.USER_STORIES, {
             ...userStories,
+            access_token: undefined, // fully invalidate — proxy/SSR auth off token cookies now
             need_auth: true,
           })
         : Promise.resolve(),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 import {
+  setSecureCookie,
   setSecureCookieJSON,
   getSecureCookie,
 } from "utils/server/tokenManager";
@@ -13,6 +14,14 @@ const UPDATABLE_COOKIES = new Set([
   COOKIE_NAMES.USER_STORIES,
   COOKIE_NAMES.WALLET_USER,
 ]);
+
+// User cookies whose re-auth payload carries a fresh service access_token that
+// must also refresh the dedicated (48h) token cookie the proxy authenticates
+// with — so chat/stories auth follows the token cookie, not the nested value.
+const TOKEN_COOKIE_FOR: Record<string, string> = {
+  [COOKIE_NAMES.USER_CHAT]: COOKIE_NAMES.CHAT_TOKEN,
+  [COOKIE_NAMES.USER_STORIES]: COOKIE_NAMES.STORIES_TOKEN,
+};
 
 /**
  * Updates user metadata stored in HttpOnly cookies.
@@ -44,6 +53,14 @@ export async function POST(request: NextRequest) {
         : update.value;
 
       await setSecureCookieJSON(update.name, merged);
+
+      // Keep the dedicated token cookie (CHAT_TOKEN/STORIES_TOKEN) in sync with
+      // the fresh access_token from re-auth, so the proxy stays authenticated.
+      const tokenCookie = TOKEN_COOKIE_FOR[update.name];
+      if (tokenCookie && merged?.access_token) {
+        await setSecureCookie(tokenCookie, merged.access_token);
+      }
+
       results.push(update.name);
     }
 

@@ -1034,6 +1034,7 @@ const translations = {
   "Name is required": "الاسم مطلوب",
   "Name must be at least 2 characters": "يجب أن يتكون الاسم من حرفين على الأقل",
   "Name must be less than 50 characters": "يجب أن يكون الاسم أقل من 50 حرفاً",
+  "Must not exceed 10 characters": "يجب ألا يتجاوز 10 أحرف",
   "Email is required": "البريد الإلكتروني مطلوب",
   "Please enter a valid email address": "الرجاء إدخال عنوان بريد إلكتروني صحيح",
   "Phone number is required": "رقم الهاتف مطلوب",

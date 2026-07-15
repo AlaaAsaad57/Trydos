@@ -18,7 +18,9 @@ const COOKIE_OPTIONS = {
   httpOnly: false,
   secure: true,
   sameSite: "lax" as const,
-  maxAge: 360 * 7 * 24 * 60 * 60,
+  // Non-token cookies (locale, referer, userIP). Default 1 year; override with
+  // DEFAULT_COOKIE_MAX_AGE (seconds). Was ~6.9y (360*7 days) — now a sane 1y.
+  maxAge: Number(process.env.DEFAULT_COOKIE_MAX_AGE) || 365 * 24 * 60 * 60, // 1y
 };
 
 // Types
@@ -324,9 +326,12 @@ export async function proxy(request: NextRequest) {
   // );
   if (!isBotAgent) {
     if (ip && ip !== userIP) {
+      // HttpOnly: userIP is PII and must not be readable by page JS. Server code
+      // still reads it via getCookieServer (serverErrorReporter); client error
+      // reports get the IP from Sentry ingestion (sendDefaultPii), not this cookie.
       response.cookies.set("userIP", ip, {
         ...COOKIE_OPTIONS,
-        httpOnly: false,
+        httpOnly: true,
       });
     }
   }

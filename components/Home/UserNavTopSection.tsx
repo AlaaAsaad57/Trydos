@@ -20,7 +20,6 @@ function UserNavTopSection({
       firstName: string;
       lastName: string;
       phone: string;
-      email: string;
     } | null;
   };
 }) {

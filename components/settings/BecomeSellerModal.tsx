@@ -73,6 +73,15 @@ const REQUIRED_FIELD_MESSAGES: Record<string, string> = {
   location_address: "Location Address is required",
 };
 
+// Per-field max lengths mirroring the backend's vendor-request validation
+// (/api/v1/shop/vendor-requests). The server rejects these over 10 chars, so we
+// surface the same limit inline before submit instead of after a 422.
+const MAX_LENGTH_FIELDS: Record<string, number> = {
+  f_name: 10,
+  l_name: 10,
+  shop_name: 10,
+};
+
 const FieldLabel = ({ htmlFor, children }) => (
   <label htmlFor={htmlFor} className="text-[12px] font-medium text-[#505050]">
     {children}
@@ -428,9 +437,13 @@ export default function BecomeSellerModal({ onClose }) {
       default:
         // Plain required text fields: non-empty check with a translated message.
         if (REQUIRED_FIELD_MESSAGES[name]) {
-          return String(values[name] ?? "").trim()
-            ? ""
-            : t(REQUIRED_FIELD_MESSAGES[name]);
+          const raw = String(values[name] ?? "");
+          if (!raw.trim()) return t(REQUIRED_FIELD_MESSAGES[name]);
+          // Enforce the backend's per-field character cap (raw length, matching
+          // how the server counts) so a 10-char overflow is caught before POST.
+          const max = MAX_LENGTH_FIELDS[name];
+          if (max && raw.length > max) return t("Must not exceed 10 characters");
+          return "";
         }
         return "";
     }

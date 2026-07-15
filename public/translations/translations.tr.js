@@ -932,6 +932,7 @@ const translations = {
   "Name is required": "İsim gereklidir",
   "Name must be at least 2 characters": "İsim en az 2 karakter olmalıdır",
   "Name must be less than 50 characters": "İsim 50 karakterden az olmalıdır",
+  "Must not exceed 10 characters": "10 karakteri geçmemelidir",
   "Email is required": "E-posta gereklidir",
   "Please enter a valid email address":
     "Lütfen geçerli bir e-posta adresi girin",

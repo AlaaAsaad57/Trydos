@@ -1024,6 +1024,7 @@ const translations = {
   "Name is required": "ناو پێویستە",
   "Name must be at least 2 characters": "ناو دەبێت بەلایەنی کەمەوە ٢ پیت بێت",
   "Name must be less than 50 characters": "ناو دەبێت کەمتر لە ٥٠ پیت بێت",
+  "Must not exceed 10 characters": "نابێت لە ١٠ پیت زیاتر بێت",
   "Email is required": "ئیمەیڵ پێویستە",
   "Please enter a valid email address":
     "تکایە ناونیشانی ئیمەیڵێکی دروست داخل بکە",
