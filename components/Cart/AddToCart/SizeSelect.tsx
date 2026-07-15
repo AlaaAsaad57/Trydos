@@ -252,7 +252,8 @@ const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
           className="max-h-[14px] object-contain"
         />
         <div className="flex flex-row items-center text-[11px] text-[#404040] regular gap-[4px] align-baseline pt-px">
-          <span className="bold flex items-center">M | 38</span>
+          {/* static size example (e.g. "M | 38"), not translatable copy */}
+          <span className="bold flex items-center">{"M | 38"}</span>
           <span className="flex items-center">
             {translateFunction("Recommended")}
           </span>

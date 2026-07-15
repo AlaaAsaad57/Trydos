@@ -424,7 +424,7 @@ function ChatVoiceCall({ token }) {
             flexDirection: "column",
           }}
         >
-          <span> Errors:{error?.message || translateFunction("None")}</span>
+          <span> {translateFunction("Errors")}:{error?.message || translateFunction("None")}</span>
         </div>
       )}
     </>

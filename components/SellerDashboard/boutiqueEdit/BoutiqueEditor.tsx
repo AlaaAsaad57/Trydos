@@ -23,6 +23,7 @@ import {
   buildFormFromEdit,
   buildUpdatePayload,
   checkBannerFile,
+  checkIconFile,
   emptyBoutiqueForm,
   extractUploadedNames,
   fileNameOf,
@@ -250,6 +251,11 @@ export default function BoutiqueEditor({
   /* ------------------------------ uploads ------------------------------- */
 
   const onUploadIcon = async (lang: LangCode, file: File) => {
+    const check = checkIconFile(file);
+    if (check.hardError) {
+      showErrorMessage(t(check.hardError));
+      return;
+    }
     setUploading((u) => ({ ...u, icon: true }));
     try {
       const url = await SellerDashboardService.uploadShopImage(file, ICON_FOLDER);

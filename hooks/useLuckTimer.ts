@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useAppStore } from "store";
-import { computeSecondsLeft, isRedeemed } from "utils/luck";
+import { computeSecondsLeft } from "utils/luck";
 
 interface UseLuckTimerOpts {
   isLuck: boolean;
@@ -37,9 +37,13 @@ export function useLuckTimer(
   // pause/resume). Keying the clock in state makes each tick a tracked change.
   const [now, setNow] = useState(() => Date.now());
 
-  // Start / rehydrate the window once, for luck products only.
+  // Start / rehydrate the window once, for luck products only. Already-redeemed
+  // products must still go through startLuck: it writes an expired timer for
+  // them, which is what turns luckActive off. Skipping the call here left
+  // `timer` undefined and luckActive stuck true for consumers fed an ungated
+  // is_luck (the footer price row kept the orange redeem price).
   useEffect(() => {
-    if (isLuck && id != null && !isRedeemed(id)) startLuck(id);
+    if (isLuck && id != null) startLuck(id);
   }, [id, isLuck, startLuck]);
 
   // Track tab visibility.

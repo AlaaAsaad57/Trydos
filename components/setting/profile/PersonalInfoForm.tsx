@@ -27,6 +27,11 @@ const getCountry = (val: string) => {
   return matches.length > 0 ? matches[0] : allCountries[0];
 };
 
+// Phone numbers are compared with the leading "+" stripped so that "+9639…"
+// and "9639…" count as the same value (used for both phones).
+const normalizePhone = (phone: unknown): string =>
+  String(phone ?? "").replace(/^\+/, "");
+
 function PersonalInfoForm({ initialData, isRtl, language, local }) {
   const { userProfile: clientUser, setLoginOpen } = useAppStore();
   const user = clientUser || initialData;
@@ -68,27 +73,48 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
   const [showValidation, setShowValidation] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Original, server-provided values — normalized the same way the form fields
+  // are seeded — so we can diff against them and send ONLY what the user changed.
+  const baseline = {
+    name: isGuestName(initialData?.name) ? "" : initialData?.name || "",
+    email: initialData?.email?.includes("@guest.com")
+      ? ""
+      : initialData?.email || "",
+    gender: initialData?.gender?.value || initialData?.gender,
+    phone: initialData?.phone === "0" ? "" : initialData?.phone || "",
+    alternative_phone:
+      initialData?.alternative_phone === 0
+        ? ""
+        : initialData?.alternative_phone || "",
+  };
+
+  const isPhoneEdited = () =>
+    normalizePhone(phoneInput.modifiedValue) !== normalizePhone(baseline.phone);
+
+  // Keep only the fields the user actually changed. Sending unchanged fields
+  // (e.g. an empty email or alternative phone) makes the backend validate — and
+  // reject — values the user never touched. Image is never editable here, so it
+  // is never sent.
+  const buildChangedFields = (payload) => {
+    const changed: any = {};
+    if ((payload.name || "") !== baseline.name) changed.name = payload.name;
+    if ((payload.email || "") !== baseline.email) changed.email = payload.email;
+    if (payload.gender !== baseline.gender) changed.gender = payload.gender;
+    if (isPhoneEdited()) changed.phone = payload.phone;
+    if (
+      normalizePhone(payload.alternative_phone) !==
+      normalizePhone(baseline.alternative_phone)
+    )
+      changed.alternative_phone = payload.alternative_phone;
+    if (payload.id_token) changed.id_token = payload.id_token;
+    return changed;
+  };
+
   const updateUserProfile = async (payload) => {
     try {
       setLoading(true);
-      let obj: any = { image: initialData?.image };
-      if (initialData?.phone !== payload.phone && isPhoneEdited())
-        obj = { ...obj, phone: payload.phone };
-      if (initialData?.name !== payload.name)
-        obj = { ...obj, name: payload.name };
-      if (initialData?.email !== payload.email)
-        obj = { ...obj, email: payload.email };
-      if (initialData?.gender !== payload.gender)
-        obj = { ...obj, gender: payload.gender };
-      if (initialData?.alternative_phone !== payload.alternative_phone)
-        obj = { ...obj, alternative_phone: payload.alternative_phone };
-      if (payload.id_token) {
-        obj = { ...obj, id_token: payload.id_token };
-      }
-
-      await auth.UpdateProfile({ ...obj }, initialData);
+      await auth.UpdateProfile(buildChangedFields(payload), initialData);
       setLoading(false);
-      //   goBack();
       window.location.href = `/${local}/settings/profile`;
     } catch (error) {
       LogError({
@@ -97,31 +123,15 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
       });
       setLoading(false);
       // Reset to initial values on error
-      phoneInput.setValue(
-        initialData?.phone === "0" ? "" : initialData?.phone || "",
-      );
-      alternativePhoneInput.setValue(
-        initialData?.alternative_phone === 0
-          ? ""
-          : initialData?.alternative_phone || "",
-      );
+      phoneInput.setValue(baseline.phone);
+      alternativePhoneInput.setValue(baseline.alternative_phone);
       setUserProfileData({
-        name: initialData?.name,
-        email: initialData?.email?.includes("@guest.com")
-          ? ""
-          : initialData?.email,
-        gender: initialData?.gender?.value || initialData?.gender,
+        name: baseline.name,
+        email: baseline.email,
+        gender: baseline.gender,
         image: initialData?.image,
       });
     }
-  };
-
-  const isPhoneEdited = () => {
-    const normalizePhone = (phone: string) => phone?.replace(/^\+/, "") || "";
-    return (
-      normalizePhone(phoneInput.modifiedValue) !==
-      normalizePhone(initialData?.phone === "0" ? "" : initialData?.phone)
-    );
   };
 
   const [isPhoneShouldChange, setIsPhoneShouldChange] = useState(false);

@@ -547,7 +547,10 @@ class AuthService {
           body: JSON.stringify({
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: this.ConfigurePhoto(userObj?.image, "story"),
+            photo_path: this.ConfigurePhoto(
+              userObj?.image ?? userProfile?.image,
+              "story",
+            ),
           }),
         });
         if (!res.success) {
@@ -557,7 +560,10 @@ class AuthService {
         const storiesUpdate = {
           name: userObj?.name ?? userProfile?.name,
           mobile_phone: userObj?.phone ?? userProfile?.phone,
-          photo_path: this.ConfigurePhoto(userObj?.image, "story"),
+          photo_path: this.ConfigurePhoto(
+            userObj?.image ?? userProfile?.image,
+            "story",
+          ),
         };
         loginSuccessStories(storiesUpdate);
         updateSecureUserData([
@@ -574,7 +580,10 @@ class AuthService {
           body: JSON.stringify({
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
+            photo_path: this.ConfigurePhoto(
+              userObj?.image ?? userProfile?.image,
+              "chat",
+            ),
           }),
         });
         if (!chat_update.success) {
@@ -584,19 +593,25 @@ class AuthService {
         const chatUpdate = {
           name: userObj?.name ?? userProfile?.name,
           mobile_phone: userObj?.phone ?? userProfile?.phone,
-          photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
+          photo_path: this.ConfigurePhoto(
+            userObj?.image ?? userProfile?.image,
+            "chat",
+          ),
         };
         loginSuccessChat(chatUpdate);
         updateSecureUserData([
           { name: COOKIE_NAMES.USER_CHAT, value: chatUpdate },
         ]);
       }
+      // Send only the fields the caller passed. `image` is added just when it
+      // actually changed — otherwise omitted so the backend doesn't validate it.
+      const marketBody: any = { ...userObj };
+      if (userObj?.image != null) {
+        marketBody.image = this.ConfigurePhoto(userObj.image, "market");
+      }
       let res = await fetchData({
         url: "/customer/update-profile",
-        body: JSON.stringify({
-          ...userObj,
-          image: this.ConfigurePhoto(userObj?.image, "market"),
-        }),
+        body: JSON.stringify(marketBody),
         reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
         method: "POST",
         server: "market",
@@ -610,7 +625,7 @@ class AuthService {
         tall: userObj?.tall ?? userProfile?.tall,
         name: userObj?.name ?? userProfile?.name,
         phone: userObj?.phone ?? userProfile?.phone,
-        image: this.getImageForCookie(userObj?.image),
+        image: this.getImageForCookie(userObj?.image ?? userProfile?.image),
       };
       editUserInfo(marketUpdate);
       updateSecureUserData([

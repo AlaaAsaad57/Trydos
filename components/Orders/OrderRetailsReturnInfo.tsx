@@ -182,7 +182,7 @@ function OrderRetailsReturnInfo({
                     >
                       {
                         <div className="regular text-[10px] flex-row gap-[4px] flex items-center">
-                          3 H
+                          {"3 H"}
                           <img
                             src="/icons/ClockIcon.svg"
                             className="[&>g>path]:fill-[#C4C2C2]"

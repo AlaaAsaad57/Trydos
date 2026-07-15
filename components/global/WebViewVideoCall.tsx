@@ -225,7 +225,7 @@ function WebViewVideoCall(props) {
           {minutes >= CALL_WARNING_MESSAGE_MINUTES && (
             <div className="call-warn">
               {translateFunction("Call End in")}{" "}
-              {CALL_END_DURATION_MINUTES - minutes} minutes
+              {CALL_END_DURATION_MINUTES - minutes} {translateFunction("minutes")}
             </div>
           )}
           {
@@ -554,7 +554,7 @@ function WebViewVideoCall(props) {
             flexDirection: "column",
           }}
         >
-          <span> Errors:{error?.message || translateFunction("None")}</span>
+          <span> {translateFunction("Errors")}:{error?.message || translateFunction("None")}</span>
         </div>
       )}
     </>

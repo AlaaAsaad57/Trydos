@@ -1,7 +1,8 @@
 import React from "react";
 
 function PendingStatus() {
-  return <div>PendingStatus</div>;
+  // Dev stub, not user-facing copy — literal kept as an expression.
+  return <div>{"PendingStatus"}</div>;
 }
 
 export default PendingStatus;

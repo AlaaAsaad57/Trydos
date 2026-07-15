@@ -5,6 +5,7 @@ import ProductPricesWrapper from "components/Server/product/ProductPrices/Produc
 import ProductVideosWrapper from "components/Server/product/ProductVideosWrapper";
 import { createPortal } from "react-dom";
 import React, { useState, useEffect } from "react";
+import { useAppStore } from "store";
 
 const ProductFooterClient = ({
   GlobalData,
@@ -20,6 +21,7 @@ const ProductFooterClient = ({
   shippingDays
 }) => {
   const [isMounted, setIsMounted] = useState(false);
+  const isNavigating = useAppStore((s) => s.isNavigating);
 
   useEffect(() => {
     setIsMounted(true);
@@ -29,15 +31,31 @@ const ProductFooterClient = ({
     return null;
   }
 
+  // The footer is portaled into document.body, so NavigationLoaderGate's
+  // display:none on the page slots never reaches it — it floated above the
+  // in-flow loader. Hide it under the gate's exact condition, keeping it
+  // mounted so its state survives the swap.
+  const hiddenForNavigation = !!isNavigating && !isNavigating.is_filter;
+
   return createPortal(
-    <div className="product-details-footer alternate-product-details-footer z-999999999">
+    <div
+      className="product-details-footer alternate-product-details-footer z-999999999"
+      style={hiddenForNavigation ? { display: "none" } : undefined}
+    >
       <ProductVideosWrapper globalPromise={GlobalData} language={language} />
 
       <div className="product-info-container p-0 h-[40px] overflow-hidden">
         <ProductPricesWrapper
           isRtl={isRtl}
           language={language}
-          qtyPricePromise={{ ...QtyPricesData, country_shipping_days: shippingDays }}
+          // redeemed_status folds the redemed_ids cookie into is_luck (same
+          // gate ProductFooterWrapper applies); the raw flag kept the orange
+          // luck price alive after the window expired.
+          qtyPricePromise={{
+            ...QtyPricesData,
+            is_luck: redeemed_status,
+            country_shipping_days: shippingDays,
+          }}
           currencyPromise={currency}
         />
 

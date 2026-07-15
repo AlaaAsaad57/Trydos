@@ -36,6 +36,9 @@ export const FALLBACK_LANGUAGES: Language[] = [
 export const RECOMMENDED_BANNER = { width: 1280, height: 750, label: "1280 × 750 (16:9)" };
 export const MAX_BANNER_MB = 10;
 const MAX_BANNER_BYTES = MAX_BANNER_MB * 1024 * 1024;
+/** Icon shares the same 10 MB ceiling as banners. */
+export const MAX_ICON_MB = 10;
+const MAX_ICON_BYTES = MAX_ICON_MB * 1024 * 1024;
 const MIN_BANNER_WIDTH = 600;
 const MIN_BANNER_RATIO = 1.5;
 const MAX_BANNER_RATIO = 1.8;
@@ -343,6 +346,16 @@ function readImageSize(
     };
     img.src = url;
   });
+}
+
+/** Hard-block (type/size) for an icon file. Icons have no dimension/ratio rules,
+ *  so this is synchronous — type and 10 MB size only. */
+export function checkIconFile(file: File): { hardError?: string } {
+  if (!file.type.startsWith("image/"))
+    return { hardError: "Please choose an image file." };
+  if (file.size > MAX_ICON_BYTES)
+    return { hardError: "Icon image must be 10 MB or smaller." };
+  return {};
 }
 
 /** Hard-block (size/type) vs warn (ratio/low-res) for a banner file (design §6). */

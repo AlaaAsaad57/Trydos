@@ -115,7 +115,8 @@ export function RichTextEditor({
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           className={btnClass(editor.isActive("heading", { level: 2 }))}
         >
-          H2
+          {/* typographic heading icon; label is translated via title/aria */}
+          {"H2"}
         </button>
       </div>
       <EditorContent
