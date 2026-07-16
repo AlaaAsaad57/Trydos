@@ -43,7 +43,7 @@
     ]
   },
   "dependencies": {
-    "@elastic/elasticsearch": "8",
+    "@elastic/elasticsearch": "9",
     "@google/generative-ai": "^0.21.0",
     "@react-google-maps/api": "^2.20.6",
     "@sentry/nextjs": "10",
