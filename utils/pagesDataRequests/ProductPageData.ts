@@ -1,4 +1,3 @@
-import { fetchProductDetails } from "serverRequests";
 import { GetRecommendationCountForProduct } from "serverRequests/product";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import {
@@ -12,31 +11,6 @@ import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 
 let client = elasticSearchClient;
-export const GetProductData = async (params: {
-  lang: string;
-  productId: string;
-}) => {
-  try {
-    let [country, language] = params.lang.split("-");
-    let productData = await fetchProductDetails(
-      params.productId,
-      language,
-      country,
-    );
-    if (!productData?.id) {
-      throw { message: "Couldnt Fetch Product" };
-    }
-    return {
-      product: productData,
-    };
-  } catch (error) {
-    LogServerError({
-      scenario: "GetProductData in ProductPageData",
-      error: error instanceof Error ? error.message : String(error),
-    });
-    throw error;
-  }
-};
 
 export const getProductDataFromElastic = async ({
   productId,

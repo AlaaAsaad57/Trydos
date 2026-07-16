@@ -1,11 +1,6 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { GetProductPriceQtyDetails } from "serverRequests/product";
-import { getProductFromCache, storeProduct } from "serverRequests/radis";
-import {
-  GetProductData,
-  getProductDataFromElastic,
-} from "utils/pagesDataRequests/ProductPageData";
 import { LogServerError } from "utils/serverErrorReporter";
 
 // Apply CORS headers to any response

@@ -27,28 +27,7 @@ export async function GetOrders({
   }
 }
 
-export async function getWallet({ language, country, offset = 1, limit = 10 }) {
-  try {
-    let res = await HandleAuthedFetch({
-      url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        `/customer/wallet/list?limit=${limit}&offset=${offset}`,
-      method: "GET",
-      headers: {
-        country,
-        language,
-        lang: language,
-      },
-    });
 
-    return res?.data?.data;
-  } catch (error) {
-    LogServerError({
-      error: error,
-      scenario: "Error In getWallet in serverRequest/settings",
-    });
-  }
-}
 
 export async function getOrderStatues({ language, country }) {
   try {
