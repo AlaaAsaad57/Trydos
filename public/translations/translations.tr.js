@@ -1910,6 +1910,8 @@ const translations = {
   "Reply to reviews and FAQ": "Yorumlara ve SSS'ye yanıt verin",
   "Report Ref. Number": "Rapor Ref. Numarası",
   "Required for pc / liter": "Adet / litre için gereklidir",
+  "Temporarily read-only": "Geçici olarak salt okunur",
+  "Must be a whole number between 1 and 100": "1 ile 100 arasında bir tam sayı olmalıdır",
   "Restricted Countries": "Kısıtlı Ülkeler",
   "Review your access in this shop": "Bu mağazadaki erişiminizi gözden geçirin",
   "Review your changes before saving.": "Kaydetmeden önce değişikliklerinizi gözden geçirin.",

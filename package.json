@@ -28,7 +28,8 @@
       "shell-quote": "^1.8.4",
       "postcss": "^8.5.10",
       "undici@6": "^6.27.0",
-      "ws@7": "^7.5.11"
+      "ws@7": "^7.5.11",
+      "uuid": "^11.1.1"
     },
     "onlyBuiltDependencies": [
       "@firebase/util",
@@ -91,7 +92,6 @@
     "sharp": "^0.34.2",
     "tailwindcss": "^4.1.18",
     "use-detect-keyboard-open": "^0.4.0",
-    "uuid": "^9.0.1",
     "xss": "^1.0.15",
     "zustand": "^5.0.3"
   },

@@ -24,7 +24,6 @@ import ProductSizeReviews from "components/Server/product/ProductSizeReviews";
 import ProductFaqSectionWrapper from "components/Server/product/ProductFAQSection/ProductFaqSectionWrapper";
 
 import { Suspense } from "react";
-import ProductPhotosSkeleton from "components/skeleton/product/ProductPhotosSkeleton";
 import ProductNameAndBrandSkeleton from "components/skeleton/product/ProductNameAndBrandSkeleton";
 import Skeleton from "react-loading-skeleton";
 import { createPortal } from "react-dom";
@@ -68,17 +67,13 @@ export default async function ProductPageContent({
           className="product-details-slider mt-[12px] relative h-[474px] max-h-[474px]"
           key={`key-${color ?? slug}`}
         >
-          <Suspense
-            fallback={<ProductPhotosSkeleton isRtl={isRtl} />}
+          <ProductPhotoSliderWrapper
             key={color}
-          >
-            <ProductPhotoSliderWrapper
-              color={color}
-              qtyPromise={QtyPricesData}
-              globalPromise={GlobalData}
-              language={language}
-            />
-          </Suspense>
+            color={color}
+            qtyPromise={QtyPricesData}
+            globalPromise={GlobalData}
+            language={language}
+          />
         </div>
 
         <Suspense fallback={<></>}>

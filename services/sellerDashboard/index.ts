@@ -825,11 +825,13 @@ class SellerDashboardService {
     });
   }
 
-  // GET /shop/products/create — CREATE_PRODUCT | SUPER_ADMIN
+  // GET /shop/products/lookups — CREATE_PRODUCT | SUPER_ADMIN
   // Returns the lookups needed to render a BLANK product form (no product yet).
+  // Datasets sit directly under `data` here, NOT nested under `data.lookups` like
+  // the edit endpoint — both are built from the same helper, only nesting differs.
   async getProductCreateForm(sellerId: string) {
     const res = await fetchData({
-      url: `/shop/products/create`,
+      url: `/shop/products/lookups`,
       method: "GET",
       server: "market-dashboard",
       reqTitle: REQUESTS_DATA.GET_PRODUCT_CREATE_FORM,
@@ -864,12 +866,13 @@ class SellerDashboardService {
     };
   }
 
-  // POST /shop/products/add — CREATE_PRODUCT | SUPER_ADMIN
-  // Same multipart body as update (buildUpdateFormData). Returns the new product
-  // in the standard envelope; on a requires-approval seller it is stored pending.
+  // POST /shop/products — CREATE_PRODUCT | SUPER_ADMIN
+  // Same multipart body as update (buildUpdateFormData) — both endpoints feed the
+  // same service layer. Returns `data.product_id`; on a requires-approval seller
+  // the product is stored pending. The product always starts with status = 0.
   async addProduct(sellerId: string, formData: FormData) {
     return fetchData({
-      url: `/shop/products/add`,
+      url: `/shop/products`,
       method: "POST",
       server: "market-dashboard",
       reqTitle: REQUESTS_DATA.ADD_PRODUCT,

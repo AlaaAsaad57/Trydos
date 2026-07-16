@@ -1902,6 +1902,8 @@ const translations = {
   "Reply to reviews and FAQ": "الرد على التقييمات والأسئلة الشائعة",
   "Report Ref. Number": "الرقم المرجعي للبلاغ",
   "Required for pc / liter": "مطلوب للقطعة / اللتر",
+  "Temporarily read-only": "للقراءة فقط مؤقتًا",
+  "Must be a whole number between 1 and 100": "يجب أن يكون رقمًا صحيحًا بين 1 و 100",
   "Restricted Countries": "الدول المحظورة",
   "Review your access in this shop": "راجع صلاحيتك في هذا المتجر",
   "Review your changes before saving.": "راجع تغييراتك قبل الحفظ.",
