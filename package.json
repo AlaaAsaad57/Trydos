@@ -46,7 +46,7 @@
     "@elastic/elasticsearch": "8",
     "@google/generative-ai": "^0.21.0",
     "@react-google-maps/api": "^2.20.6",
-    "@sentry/nextjs": "10",
+    "@sentry/nextjs": "^10.66.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@tiptap/extension-underline": "^3.27.3",
     "@tiptap/pm": "^3.27.3",
