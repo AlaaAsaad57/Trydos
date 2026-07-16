@@ -113,7 +113,7 @@
     "sass": "^1.83.4",
     "sass-loader": "^14.2.1",
     "style-loader": "^4.0.0",
-    "typescript": "^5.9.2",
+    "typescript": "^6.0.3",
     "webpack": "^5.97.1"
   }
 }
