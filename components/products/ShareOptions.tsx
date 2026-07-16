@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import ShareAvatar from "./ShareAvatar";
 import "styles/share-options.css";
 import {
@@ -30,6 +31,37 @@ function ShareOptions({ product }: any) {
     contacts,
     data,
   } = useAppStore();
+
+  // The Web Share API isn't available on every browser (e.g. Firefox
+  // desktop). Detect after mount to avoid a hydration mismatch, and only
+  // render the native "Share" button where it actually works — elsewhere
+  // the explicit network buttons below remain the fallback.
+  const [canNativeShare, setCanNativeShare] = useState(false);
+  useEffect(() => {
+    setCanNativeShare(
+      typeof navigator !== "undefined" && typeof navigator.share === "function",
+    );
+  }, []);
+
+  const nativeShare = async () => {
+    try {
+      await navigator.share({
+        title: product?.name,
+        text: product?.name,
+        url: generateUrlForSharing("native_share"),
+      });
+      // navigator.share resolves only on a successful share and rejects
+      // with AbortError when the user dismisses the sheet, so we count
+      // the share here rather than before opening it.
+      shareSocial("native_share");
+    } catch (err: any) {
+      if (err?.name === "AbortError") return; // user cancelled — not an error
+      LogError({
+        error: err,
+        scenario: "Error In nativeShare in ShareOptions",
+      });
+    }
+  };
 
   const shareSocial = async (appName) => {
     try {
@@ -91,6 +123,44 @@ function ShareOptions({ product }: any) {
     }?${searchParams.toString()}`;
   };
 
+const shareViaEmail = (e) => {
+  e?.preventDefault();
+
+  // 1. Fire your tracking synchronously
+  shareSocial("email");
+
+  const subject = product?.name || "Check this out";
+  const body = `${product?.name ?? ""}\n\n${generateUrlForSharing("email")}`;
+
+  // THE FIX: Check the actual User Agent, because desktops support navigator.share now
+  const isMobile =
+    typeof navigator !== "undefined" &&
+    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  // --- MOBILE ROUTE (Uses native mailto) ---
+  if (isMobile) {
+    window.location.href = `mailto:?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
+    return;
+  }
+
+  // --- DESKTOP ROUTE (Bypasses the "mailto" user gesture blocker entirely) ---
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(
+    subject
+  )}&body=${encodeURIComponent(body)}`;
+
+  // Create a genuine HTML anchor tag dynamically
+  const link = document.createElement("a");
+  link.href = gmailUrl;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+
+  // Append, click, and clean up
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
   const getContactsForSharing = () => {
     const currentUserId = getUserChat()?.id;
 
@@ -147,6 +217,7 @@ function ShareOptions({ product }: any) {
 
   return (
     <div className="share-options">
+     
       <div className={`share-avatar`}>
         <div className="share-image social shadow-none">
           <FacebookShareButton
@@ -219,23 +290,17 @@ function ShareOptions({ product }: any) {
       </div>
       <div className={`share-avatar`} data-cy="Whatsapp">
         <div className="share-image social shadow-none">
-          <a
-            onClick={() => {
-              // Sendevent({
-              //   event: GA_EVENT_NAMES.CLICK,
-              //   value: GA_CLICK_EVENT_VALUES.SHARE_WITH_EMAIL_BUTTON,
-              // });
-              shareSocial("email");
-            }}
-            href={`https://mail.google.com/mail/?view=cm&fs=1&su=Check%20this%20out&body=${
-              product?.name
-            } %0A ${generateUrlForSharing("email")}`}
-            target="_blank"
-          >
-            <EmailIcon size={70} borderRadius={20} />
-          </a>
+          <button
+  type="button"
+  className="cursor-pointer flex items-start bg-transparent border-none p-0 outline-none appearance-none"
+  onClick={(e) => {
+    shareViaEmail(e);
+  }}
+>
+  <EmailIcon size={70} borderRadius={20} />
+</button>
         </div>
-        <div className="share-name">Gmail</div>
+        <div className="share-name">{translateFunction("Email")}</div>
       </div>
       <div className={`share-avatar`}>
         <div
@@ -255,10 +320,37 @@ function ShareOptions({ product }: any) {
             }
           }}
         >
-          <img src="/icons/copyIcon.svg" />
+          <img src="/icons/copyIcon.svg" width={30} height={30} className="h-[30px] object-contain"/>
         </div>
-        <div className="share-name">Copy Link</div>
+        <div className="share-name">{translateFunction("Copy Link")}</div>
       </div>
+ {canNativeShare && (
+        <div className={`share-avatar`} data-cy="NativeShare">
+          <div
+            className="share-image social shadow-none flex justify-center items-center bg-[#f0f0f0]"
+            onClick={nativeShare}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#505050"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+          </div>
+          <div className="share-name">{translateFunction("More")}</div>
+        </div>
+      )}
       {getUserChat() &&
         user &&
         getContactsForSharing().map((key, i) => (

@@ -8,7 +8,16 @@ import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { useAppStore } from "store";
 
+// App design tokens (see docs/DESIGN-LANGUAGE.md)
+const PRIMARY = "#5b3fe0"; // primary action / selected state
+const TRACK_OFF = "#d9d9de"; // disabled/off surface
+
 const SettingsModal = ({ onClose, lang }) => {
+  const language = Array.isArray(lang) ? lang[0] : lang.split("-")[1];
+  const isRtl = language === "ar" || language === "ku";
+  // Local translate helper — every label went through this same call before.
+  const t = (key: string) => translateFunction(key, language);
+
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"notifications" | "preferences">(
     "notifications",
@@ -22,8 +31,9 @@ const SettingsModal = ({ onClose, lang }) => {
   const [loading, setLoading] = useState(true);
   const [loadingTopics, setLoadingTopics] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);
-  const [fbSettings, setFBSetting] = useState(null);
+  const [fbSettings, setFBSetting] = useState<any>(null);
   const [unsubscribedTopics, setUnsubscribedTopics] = useState<string[]>([]);
+  const [SelectValue, setSelectValue] = useState("");
 
   // Handle mounting and localStorage access
   useEffect(() => {
@@ -205,381 +215,284 @@ const SettingsModal = ({ onClose, lang }) => {
     }
   };
 
-  const handleOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).classList.contains("modal-overlay")) {
-      onClose();
-    }
-  };
-
+  // Functional update so back-to-back toggles never read a stale snapshot,
+  // and so reverting after a failed save restores the previous value cleanly.
   const changeNotificationPreferences = (payload) => {
-    setFBSetting({
-      ...fbSettings,
-      ...payload,
+    setFBSetting((prev) => ({ ...(prev || {}), ...payload }));
+  };
+
+  // Optimistically flip a channel, persist, and roll back on failure.
+  const togglePreference = async (
+    key: "email" | "firebase" | "whatsapp",
+    url: string,
+  ) => {
+    if (loading) return;
+    const previous = fbSettings?.[key] === 1 ? 1 : 0;
+    const next = previous === 1 ? 0 : 1;
+
+    changeNotificationPreferences({ [key]: next });
+    setLoading(true);
+    const ok = await home.EditNotificationSettings({
+      url,
+      body: { [key]: next },
     });
-  };
-
-  const changeSetting = async ({ url, body, past }) => {
-    if (!loading) {
-      setLoading(true);
-      try {
-        await home.EditNotificationSettings({ url, body });
-      } catch (error) {
-        LogError({
-          error: error,
-          scenario: "changeSetting in SettingModal",
-          url: url,
-        });
-        past();
-        setLoading(false);
-      }
-      setLoading(false);
+    if (!ok) {
+      // Save failed — put the toggle back where it was.
+      changeNotificationPreferences({ [key]: previous });
     }
+    setLoading(false);
   };
 
-  const [SelectValue, setSelectValue] = useState(
-    fbSettings?.notification_frequency || "",
+  // Same optimistic-with-rollback contract for the frequency select.
+  const changeFrequency = async (value: string) => {
+    if (loading) return;
+    const previous = SelectValue;
+
+    setSelectValue(value);
+    setLoading(true);
+    const ok = await home.EditNotificationSettings({
+      url: "update_notification_frequency",
+      body: { notification_frequency: value },
+    });
+    if (!ok) {
+      setSelectValue(previous);
+    }
+    setLoading(false);
+  };
+
+  const SectionLabel = ({ children, ...rest }: any) => (
+    <div
+      className="text-[12px] medium text-[#707070] px-1 mt-5 mb-2"
+      {...rest}
+    >
+      {children}
+    </div>
   );
+
+  const Toggle = ({ on, onClick, dataCy }: any) => (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      disabled={loading}
+      onClick={onClick}
+      data-cy={dataCy}
+      className={`relative h-[26px] w-[46px] shrink-0 rounded-full transition-colors duration-200 disabled:opacity-60 disabled:cursor-wait`}
+      style={{ backgroundColor: on ? PRIMARY : TRACK_OFF }}
+    >
+      <span
+        className={`absolute top-[3px] h-[20px] w-[20px] rounded-full bg-white shadow-sm transition-all duration-200 ${
+          on
+            ? "ltr:left-[23px] rtl:right-[23px]"
+            : "ltr:left-[3px] rtl:right-[3px]"
+        }`}
+      />
+    </button>
+  );
+
+  const tabBtn = (tab: "notifications" | "preferences") =>
+    `flex-1 h-[38px] px-2 whitespace-nowrap overflow-hidden text-ellipsis rounded-full text-[13px] transition-all duration-200 ${
+      activeTab === tab
+        ? "bg-white medium shadow-[0_3px_10px_rgba(0,0,0,0.1)]"
+        : "text-[#707070]"
+    }`;
 
   return (
     <div
-      className={`${
-        loading && "opacity-30 cursor-wait"
-      } bg-[#0000006a] flex justify-center items-start px-[20px] w-full pb-[200px]`}
-      onClick={handleOutsideClick}
+      dir={isRtl ? "rtl" : "ltr"}
+      className="w-full font-sans text-[#3c3c3c]"
     >
-      <div
-        className="modal-content bg-white rounded-lg shadow-lg w-full p-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Tabs */}
-        <div className="tabs flex justify-between border-b mb-4">
+      <div className="modal-content w-full bg-white rounded-[15px] shadow-[0_3px_10px_rgba(0,0,0,0.1)] p-4 mt-2">
+        {/* Segmented tabs */}
+        <div className="flex gap-1 bg-[#f2f2f2] rounded-full p-1 mb-1">
           <button
-            className={`tab ${
-              activeTab === "notifications"
-                ? "border-b-2 border-blue-500 text-blue-500"
-                : "text-gray-500"
-            } py-2 px-4`}
+            className={tabBtn("notifications")}
+            style={
+              activeTab === "notifications" ? { color: PRIMARY } : undefined
+            }
             onClick={() => handleTabChange("notifications")}
           >
-            {translateFunction(
-              "Notifications Settings",
-              Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-            )}
+            {t("Notifications Settings")}
           </button>
           <button
-            className={`tab ${
-              activeTab === "preferences"
-                ? "border-b-2 border-blue-500 text-blue-500"
-                : "text-gray-500"
-            } py-2 px-4`}
+            className={tabBtn("preferences")}
+            style={
+              activeTab === "preferences" ? { color: PRIMARY } : undefined
+            }
             onClick={() => handleTabChange("preferences")}
           >
-            {translateFunction(
-              "Notification Test",
-              Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-            )}
+            {t("Notification Test")}
           </button>
         </div>
 
         {/* Content */}
         <div className="tab-content">
           {activeTab === "notifications" && (
-            <div className="notifications-tab mt-2">
+            <div className="notifications-tab">
+              {/* Subscribed topics */}
               {topics?.length > 0 ? (
                 <>
-                  <span
-                    className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md"
-                    data-cy="Notifications-Can-Enabled"
-                  >
-                    {translateFunction(
-                      "Enabled Notifications Topic:",
-                      Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                    )}
-                  </span>
+                  <SectionLabel data-cy="Notifications-Can-Enabled">
+                    {t("Enabled Notifications Topic:")}
+                  </SectionLabel>
                   <ul
-                    className="space-y-2 max-h-[280px] overflow-scroll p-2"
+                    className="space-y-2 max-h-[240px] overflow-y-auto pr-1"
                     data-cy="Children-off-Notifications-Can-Enabled"
                   >
                     {topics.map((topic, index) => (
                       <li
                         key={index}
-                        className="flex justify-between items-center p-2 rounded-sm"
+                        className="flex justify-between items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[50px]"
                         data-cy="NotificationsItem-Can-Enabled"
                       >
                         <span
-                          className="text-gray-700"
+                          className="text-[14px] text-[#3c3c3c]"
                           data-cy="typeof-subscribing"
                         >
                           {formatTopicName(topic)}
                         </span>
                         <button
-                          className="text-red-500 hover:text-red-700"
+                          className="rounded-full bg-[#fdecec] text-[#f85555] text-[12px] medium px-3 py-[6px] transition-opacity disabled:opacity-50 disabled:cursor-wait"
                           data-cy="ButtonToEnabled-NotificationsItem"
                           disabled={loading}
                           onClick={() => handleUnsubscribe(topic)}
                         >
                           {loading
-                            ? translateFunction(
-                                "Unsubscribing...",
-                                Array.isArray(lang)
-                                  ? lang[0]
-                                  : lang.split("-")[1],
-                              )
-                            : translateFunction(
-                                "Unsubscribe",
-                                Array.isArray(lang)
-                                  ? lang[0]
-                                  : lang.split("-")[1],
-                              )}
+                            ? t("Unsubscribing...")
+                            : t("Unsubscribe")}
                         </button>
                       </li>
                     ))}
                   </ul>
                 </>
               ) : (
-                <p className="text-gray-500" data-cy="NoTopics-Subscribe">
+                <p
+                  className="text-center text-[#929191] text-[14px] py-6"
+                  data-cy="NoTopics-Subscribe"
+                >
                   {loadingTopics
-                    ? translateFunction(
-                        "Loading Topics...",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                      )
-                    : translateFunction(
-                        "No topics subscribed.",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                      )}
+                    ? t("Loading Topics...")
+                    : t("No topics subscribed.")}
                 </p>
               )}
 
               {/* Unsubscribed topics */}
               {unsubscribedTopics?.length > 0 && (
-                <div className="mt-4">
-                  <p
-                    className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md"
-                    data-cy="Notifications-Can-Disenabled"
-                  >
-                    {translateFunction(
-                      "Disabled Notifications Topic:",
-                      Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                    )}
-                  </p>
+                <div>
+                  <SectionLabel data-cy="Notifications-Can-Disenabled">
+                    {t("Disabled Notifications Topic:")}
+                  </SectionLabel>
                   <ul
-                    className="space-y-2 max-h-[280px] overflow-scroll"
+                    className="space-y-2 max-h-[240px] overflow-y-auto pr-1"
                     data-cy="Children-off-Notifications-Can-Disenabled"
                   >
                     {unsubscribedTopics.map((topic, index) => (
                       <li
                         key={index}
-                        className="flex justify-between items-center p-2 rounded-sm"
+                        className="flex justify-between items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[50px]"
                         data-cy="NotificationsItem-Can-Disenabled"
                       >
                         <span
-                          className="text-gray-700"
+                          className="text-[14px] text-[#3c3c3c]"
                           data-cy="typeof-unsubscribing"
                         >
                           {formatTopicName(topic)}
                         </span>
                         <button
-                          className="text-blue-500 hover:text-blue-700"
+                          className="rounded-full text-[12px] medium px-3 py-[6px] transition-opacity disabled:opacity-50 disabled:cursor-wait"
+                          style={{ backgroundColor: "#efecfc", color: PRIMARY }}
                           data-cy="ButtonToDisenabled-NotificationsItem"
                           disabled={loading}
                           onClick={() => handleSubscribe(topic)}
                         >
-                          {loading
-                            ? translateFunction(
-                                "Subscribing...",
-                                Array.isArray(lang)
-                                  ? lang[0]
-                                  : lang.split("-")[1],
-                              )
-                            : translateFunction(
-                                "Subscribe",
-                                Array.isArray(lang)
-                                  ? lang[0]
-                                  : lang.split("-")[1],
-                              )}
+                          {loading ? t("Subscribing...") : t("Subscribe")}
                         </button>
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
-              <div className="preferences-tab py-2 rounded-md mt-2">
-                <div className="flex-col w-full text-[#1d1d1d]">
-                  <div
-                    className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md"
-                    data-cy="notifications-subscription"
+
+              {/* Notification channels */}
+              <SectionLabel data-cy="notifications-subscription">
+                {t("notifications subscription:")}
+              </SectionLabel>
+              <div className="flex-col w-full space-y-2">
+                <div
+                  className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3"
+                  data-cy="notifications-subscription-item"
+                >
+                  <img
+                    src="/icons/mail.svg"
+                    className="h-[26px] w-[26px]"
+                    data-cy="mail-icon"
+                  />
+                  <span
+                    className="flex-1 text-[14px] text-[#3c3c3c]"
+                    data-cy="statement-mail"
                   >
-                    {translateFunction(
-                      "notifications subscription:",
-                      Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                    )}
-                  </div>
-                  <div
-                    className="flex-row my-1 items-center p-2 cursor-pointer bg-gray-100 rounded-md h-[50px]"
-                    data-cy="notifications-subscription-item"
-                    onClick={() => {
-                      if (fbSettings?.email === 0) {
-                        changeSetting({
-                          url: "update_email",
-                          body: { email: 1 },
-                          past: changeNotificationPreferences({ email: 0 }),
-                        });
-                        changeNotificationPreferences({ email: 1 });
-                      } else {
-                        changeSetting({
-                          url: "update_email",
-                          body: { email: 0 },
-                          past: changeNotificationPreferences({ email: 1 }),
-                        });
-                        changeNotificationPreferences({ email: 0 });
-                      }
-                    }}
+                    {t("Enable Email Notifications")}
+                  </span>
+                  <Toggle
+                    on={fbSettings?.email === 1}
+                    dataCy="checkbox-mail"
+                    onClick={() => togglePreference("email", "update_email")}
+                  />
+                </div>
+
+                <div className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3">
+                  <img
+                    src="/icons/FireBase.svg"
+                    className="h-[26px] w-[26px]"
+                  />
+                  <span className="flex-1 text-[14px] text-[#3c3c3c]">
+                    {t("Enable FireBase Notifications")}
+                  </span>
+                  <Toggle
+                    on={fbSettings?.firebase === 1}
+                    dataCy="checkbox-firebase"
+                    onClick={() =>
+                      togglePreference("firebase", "update_firebase")
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3">
+                  <img
+                    src="/icons/whatsappNotification.svg"
+                    className="h-[26px] w-[26px]"
+                  />
+                  <span className="flex-1 text-[14px] text-[#3c3c3c]">
+                    {t("Enable WhatsApp Notifications")}
+                  </span>
+                  <Toggle
+                    on={fbSettings?.whatsapp === 1}
+                    dataCy="checkbox-whatsapp"
+                    onClick={() =>
+                      togglePreference("whatsapp", "update_whatsapp")
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3">
+                  <img
+                    src="/icons/CalenderIcon.svg"
+                    className="h-[26px] w-[26px]"
+                  />
+                  <span className="flex-1 text-[14px] text-[#3c3c3c]">
+                    {t("notifications Receiving Preference:")}
+                  </span>
+                  <select
+                    className="rounded-full bg-white border border-[#e6e6e6] text-[13px] text-[#3c3c3c] px-3 py-[6px] outline-none focus:border-[#5b3fe0] disabled:opacity-60 disabled:cursor-wait"
+                    value={SelectValue}
+                    disabled={loading}
+                    onChange={(e) => changeFrequency(e.target.value)}
                   >
-                    <img
-                      src="/icons/mail.svg"
-                      className="h-[30px]"
-                      data-cy="mail-icon"
-                    />
-                    <span className="ml-2" data-cy="statement-mail">
-                      {translateFunction(
-                        "Enable Email Notifications",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                      )}
-                    </span>
-                    <input
-                      id="helper-checkbox"
-                      data-cy="checkbox-mail"
-                      checked={fbSettings?.email === 1}
-                      value=""
-                      onChange={() => {}}
-                      aria-describedby="helper-checkbox-text"
-                      type="checkbox"
-                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-xs"
-                    />
-                  </div>
-                  <div
-                    className="flex-row my-1 items-center p-2 cursor-pointer bg-gray-100 rounded-md h-[50px]"
-                    onClick={() => {
-                      if (fbSettings?.firebase === 0) {
-                        changeSetting({
-                          url: "update_firebase",
-                          body: { firebase: 1 },
-                          past: changeNotificationPreferences({ firebase: 0 }),
-                        });
-                        changeNotificationPreferences({ firebase: 1 });
-                      } else {
-                        changeSetting({
-                          url: "update_firebase",
-                          body: { firebase: 0 },
-                          past: changeNotificationPreferences({ firebase: 1 }),
-                        });
-                        changeNotificationPreferences({ firebase: 0 });
-                      }
-                    }}
-                  >
-                    <img src="/icons/FireBase.svg" className="h-[30px]" />
-                    <span className="ml-2">
-                      {translateFunction(
-                        "Enable FireBase Notifications",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                      )}
-                    </span>
-                    <input
-                      id="helper-checkbox"
-                      checked={fbSettings?.firebase === 1}
-                      value=""
-                      onChange={() => {}}
-                      aria-describedby="helper-checkbox-text"
-                      type="checkbox"
-                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-xs"
-                    />
-                  </div>
-                  <div
-                    className="flex-row my-1 items-center p-2 cursor-pointer bg-gray-100 rounded-md h-[50px]"
-                    onClick={() => {
-                      if (fbSettings?.whatsapp === 0) {
-                        changeSetting({
-                          url: "update_whatsapp",
-                          body: { whatsapp: 1 },
-                          past: changeNotificationPreferences({ whatsapp: 0 }),
-                        });
-                        changeNotificationPreferences({ whatsapp: 1 });
-                      } else {
-                        changeSetting({
-                          url: "update_whatsapp",
-                          body: { whatsapp: 0 },
-                          past: changeNotificationPreferences({ whatsapp: 1 }),
-                        });
-                        changeNotificationPreferences({ whatsapp: 0 });
-                      }
-                    }}
-                  >
-                    <img
-                      src="/icons/whatsappNotification.svg"
-                      className="h-[30px]"
-                    />
-                    <span className="ml-2">
-                      {translateFunction(
-                        "Enable WhatsApp Notifications",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                      )}
-                    </span>
-                    <input
-                      id="helper-checkbox"
-                      checked={fbSettings?.whatsapp === 1}
-                      onChange={() => {}}
-                      value=""
-                      aria-describedby="helper-checkbox-text"
-                      type="checkbox"
-                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-xs"
-                    />
-                  </div>
-                  <div className="flex-row items-center bg-gray-100 rounded-md p-3 h-[50px]">
-                    <img src="/icons/CalenderIcon.svg" />
-                    <div className="ml-3">
-                      {translateFunction(
-                        "notifications Receiving Preference:",
-                        Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                      )}
-                      <select
-                        className="ml-2"
-                        value={SelectValue}
-                        onChange={(e) => {
-                          changeSetting({
-                            url: "update_notification_frequency",
-                            body: { notification_frequency: e.target.value },
-                            past: setSelectValue(SelectValue),
-                          });
-                          setSelectValue(e.target.value);
-                        }}
-                      >
-                        <option value="">
-                          {translateFunction(
-                            "Select An Option",
-                            Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                          )}
-                        </option>
-                        <option value="daily">
-                          {translateFunction(
-                            "daily",
-                            Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                          )}
-                        </option>
-                        <option value="weekly">
-                          {translateFunction(
-                            "weekly",
-                            Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                          )}
-                        </option>
-                        <option value="monthly">
-                          {translateFunction(
-                            "monthly",
-                            Array.isArray(lang) ? lang[0] : lang.split("-")[1],
-                          )}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
+                    <option value="">{t("Select An Option")}</option>
+                    <option value="daily">{t("daily")}</option>
+                    <option value="weekly">{t("weekly")}</option>
+                    <option value="monthly">{t("monthly")}</option>
+                  </select>
                 </div>
               </div>
             </div>

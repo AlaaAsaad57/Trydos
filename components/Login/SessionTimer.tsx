@@ -7,6 +7,7 @@ import {
 } from "utils/sessionManager";
 import { COOKIE_NAMES, deleteCookie } from "utils/cookies/cookie-manager";
 import { clearAllUserData } from "utils/tinyUtils";
+import { translateFunction } from "utils/functions";
 
 interface SessionTimerProps {
   className?: string;
@@ -77,7 +78,7 @@ const SessionTimer = ({ className = "" }: SessionTimerProps) => {
       title="Simulated User Session Timer"
     >
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-xs text-gray-300">Session:</span>
+        <span className="text-xs text-gray-300">{translateFunction("Session:")}</span>
         <Timer
           onFinish={handleTimerFinish}
           minutes={remainingMinutes}

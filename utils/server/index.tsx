@@ -1,72 +1,87 @@
 import ar from "public/translations/translations.ar.js";
 import ku from "public/translations/translations.ku.js";
 import tr from "public/translations/translations.tr.js";
+import { getLocalizedCountryName } from "utils/countryData";
 const translations = { ar, ku, tr };
 export const getConfiguredImage = ({
   src,
   width = null,
   height,
   c_pad = false,
+  q = "auto:good",
 }) => {
+  if(!src) return "";
   if (typeof src === "string") {
     return src.replace(
       "/upload",
       `/upload/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`,
+      }/f_auto/q_${q}/fl_lossy/so_0`,
     );
   }
-  if (src?.file_path?.includes("cloudinary")) {
+  if (src?.file_path.includes("media_server")) {
     return src.file_path.replace(
-      "/upload/v1",
-      `/upload/v1/h_${height}${width ? `,w_${width}` : ""},${
+      "/upload/",
+      `/upload/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_auto:good/fl_lossy/so_0`,
+      }/f_auto/q_${q}/fl_lossy/so_0`,
     );
   } else return src?.file_path || src || "";
 };
 
 export const GetImageUrl = (url) => {
+  if(!url) return url;
+ 
   if (url?.file_path) {
-    if (url?.file_path?.includes("cloudinary")) {
+    if (url?.file_path?.includes("media_server")) {
       return url?.file_path;
     } else {
-      return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url?.file_path;
+      return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url?.file_path;
     }
   }
   if (!url || typeof url !== "string") return url;
   if (url && url?.includes("http")) return url;
-  return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url;
+  // Go returns a bare sub_path (e.g. "customers/profile/x.jpg") with no leading
+  // slash, whereas legacy Laravel returned a full URL / leading-slash path.
+  // Ensure exactly one slash between the media base and a relative path so both
+  // forms resolve correctly.
+  return (
+    process.env.NEXT_PUBLIC_BASE_MEDIA_URL + (url.startsWith("/") ? url : "/" + url)
+  );
 };
 
 export const configureImageForBoutique = (src) => {
+  if(!src) return "";
+  
   return src.replace(
     "/upload",
     `/upload/w_1356,c_pad,b_auto/f_auto/q_auto:best/fl_lossy/so_0`,
   );
 };
 
-/**
- * Returns a Cloudinary URL optimized for brand/icon images so they display
- * clearly with no clipping and no stretching. Uses c_limit so the image
- * fits inside the given dimensions, preserves aspect ratio, and never
- * upscales (small images stay sharp).
- * @param url - Image source: string (path or full URL) or { file_path: string }
- * @param options - Optional width/height in pixels (defaults: 60×30 for 2x display of 30×15)
- * @returns Optimized Cloudinary URL, or original URL if not Cloudinary
- */
+
+export const buildOgImageUrl = (rawUrl: string | null | undefined): string | null => {
+  if (!rawUrl || typeof rawUrl !== "string") return null;
+  const normalizedUrl = rawUrl?.replace("media_server.ramaaz.dev", "media.ramaaz.dev");
+  if (!normalizedUrl?.includes("/upload/")) return normalizedUrl;
+  return normalizedUrl.replace(
+    "/upload/",
+    "/upload/w_1200,h_630,c_pad/f_jpg/q_90/",
+  );
+};
+
 export const getBrandIconImageUrl = (
   url: string | { file_path?: string } | null | undefined,
   options?: { width?: number; height?: number },
 ): string => {
   const baseUrl = GetImageUrl(url);
   if (!baseUrl || typeof baseUrl !== "string") return baseUrl ?? "";
-  if (!baseUrl.includes("cloudinary") || !baseUrl.includes("/upload")) {
+  if (!baseUrl?.includes("media_server") || !baseUrl?.includes("/upload")) {
     return baseUrl;
   }
   const width = options?.width ?? 60;
   const height = options?.height ?? 30;
-  const transform = `w_${width},h_${height},c_limit,f_auto,q_auto:good`;
+  const transform = `w_${width},h_${height},c_fit,f_auto,q_auto:good`;
   return baseUrl.replace("/upload/", `/upload/${transform}/`);
 };
 
@@ -74,9 +89,29 @@ export function translateFunction(key: string, language: string) {
   return translations[language]?.[key] || key;
 }
 
+// Resolve a country ISO code (e.g. "TR") to its localized name in the given
+// language. Delegates to the shared resolver so behaviour (incl. ku → Sorani)
+// stays consistent everywhere.
+export function countryNameFromIso(iso?: string, language = "en"): string {
+  if (!iso) return null;
+  return getLocalizedCountryName(iso, language) || iso.toUpperCase();
+}
+
+// Build the localized "Made In <country>" label. Country name is localized and
+// inserted into a per-language template so word order stays correct (e.g. tr/ku
+// place the country first).
+export function madeInText(iso?: string, language = "en"): string {
+  const country = countryNameFromIso(iso, language);
+  if (!country) return null;
+  return translateFunction("Made In {country}", language).replace(
+    "{country}",
+    country,
+  );
+}
+
 function preciseMultiply(a, b) {
-  const aStr = a.toString();
-  const bStr = b.toString();
+  const aStr = a?.toString();
+  const bStr = b?.toString();
 
   // عدد الأرقام بعد الفاصلة في كل رقم
   const aDecimals = (aStr.split(".")[1] || "").length;
@@ -114,7 +149,7 @@ export const RoundPrice = ({
   let price_num = Number(num);
 
   // Currency conversion at the start
-  let rateVariable = rate;
+  let rateVariable = rate ?? 1;
   let deciaml_points = points;
   price_num = Number(toFixedUp(deciaml_points, price_num));
   let number = preciseMultiply(price_num, rateVariable);
@@ -153,6 +188,7 @@ export const getVideoUrl = (
     height?: number | string;
   },
 ): string => {
+  if(!input) return "";
   // Build transformation string
   let transformations = [];
   if (options?.height) {
@@ -173,8 +209,8 @@ export const getVideoUrl = (
 
   const transformStr = transformations.join(",");
 
-  // If input is a full Cloudinary URL, insert the transformation after '/upload/' and before '/v1/'
-  if (input.startsWith("http") && input.includes("/video/upload/")) {
+  
+  if (input.startsWith("http") && input?.includes("/video/upload/")) {
     return input.replace(
       /\/video\/upload\/(v\d+)?/,
       `/video/upload/${transformStr}/$1`,
@@ -182,8 +218,8 @@ export const getVideoUrl = (
   }
 
   // Otherwise, treat input as public ID and build the correct format
-  const cloudinaryBase = "https://res.cloudinary.com/dtcmozf4d/video/upload/";
-  const version = "v1";
+  const mediaBase = process.env.NEXT_PUBLIC_BASE_VIDEO_MEDIA_URL;
+  // const version = "v1";
   const folder = "product/videos";
 
   // Remove any leading slash and ensure .mp4 extension
@@ -192,7 +228,8 @@ export const getVideoUrl = (
     filename = `${filename}.mp4`;
   }
 
-  return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
+
+  return `${mediaBase}/${folder}/${filename}?${options.end ? "target=preview" : ""}`;
 };
 
 export const getUrlofProduct = (
@@ -255,7 +292,7 @@ export const parseFiltersFromParams = (
   while (currentIndex < cleanParams.length) {
     const filterType = cleanParams[currentIndex];
 
-    if (!filterOrder.includes(filterType)) {
+    if (!filterOrder?.includes(filterType)) {
       currentIndex++;
       continue;
     }
@@ -414,8 +451,14 @@ export function NormalizeSearchParamsForSearchRequest({
   return filters;
 }
 
+// Indexing is opt-in via NEXT_PUBLIC_ALLOW_INDEXING so only the real production
+// domain is crawlable. dev/preview deployments are themselves production Next
+// builds (NODE_ENV === "production"), so checking NODE_ENV alone would index them.
+export const isIndexingAllowed = () =>
+  process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
+
 export function getRobotsConfig(productionRobots) {
-  if (process.env.NODE_ENV !== "production") {
+  if (!isIndexingAllowed()) {
     return {
       index: false,
       follow: false,
@@ -429,44 +472,7 @@ export function getRobotsConfig(productionRobots) {
   return productionRobots;
 }
 
-export function generateCloudinaryUrl({
-  width,
-  height,
-  publicIds,
-  overlayText,
-}: {
-  width: number;
-  height: number;
-  publicIds: string[];
-  overlayText?: string;
-}) {
-  const baseUrl = `https://res.cloudinary.com/dtcmozf4d/image`;
 
-  // Keep full path including extension
-  const cleanPublicIds = publicIds.map((id) => id.replace(/^\//, ""));
-
-  // Base image (used directly in URL)
-  const baseImage = cleanPublicIds[0]; // must include .png
-
-  // Overlays (all except the first)
-  const overlayIds = cleanPublicIds;
-
-  const layerWidth = Math.floor(width / publicIds.length);
-
-  const layers = overlayIds.map((id, i) => {
-    const safeId = id.split(".")[0].replace(/\//g, ":"); // remove .png for overlay syntax
-    const x = i * layerWidth; // (i + 1) because base is at x=0
-    return `l_${safeId},w_${layerWidth},h_${height},c_fill,g_north_west,x_${x},y_0`;
-  });
-
-  const transform = [
-    `w_${width},h_${height}`,
-    `f_auto/q_auto:good/fl_lossy/so_0`,
-    ...layers,
-  ].join("/");
-
-  return `${baseUrl}/upload/${transform}/${baseImage}`;
-}
 
 export const HandleIsActive = ({ values, item }) => {
   return values?.includes(item);
@@ -502,21 +508,16 @@ export const buildParamsFromFilters = (
     "colors",
     "sizes",
     "prices",
-    "search",
   ];
 
   filterOrder.forEach((filterType) => {
     const values = filters[filterType];
     if (values && values.length > 0) {
       // Add filter type
-      const paramName = filterType === "search" ? "search" : filterType;
-      params.push(paramName);
+      params.push(filterType);
 
       // Add values
-      if (filterType === "search") {
-        // Search is a single value
-        params.push(encodeURIComponent(values[0]));
-      } else if (filterType === "colors") {
+      if (filterType === "colors") {
         // Colors should be hex without #
         const colorValues = values.map((color) =>
           color.startsWith("#") ? color.substring(1) : color,
@@ -642,9 +643,10 @@ export const formatTime = (timeString: string, language) => {
     translateFunction("November", language),
     translateFunction("December", language),
   ];
-  let date = !timeString?.includes("Z")
-    ? new Date(timeString + "Z")
-    : new Date(timeString);
+  const timeStr = typeof timeString === "string" ? timeString : String(timeString ?? "");
+  let date = !timeStr.includes("Z")
+    ? new Date(timeStr + "Z")
+    : new Date(timeStr);
   if (isNaN(date?.getTime())) {
     date = new Date(timeString + "Z");
   }
@@ -680,6 +682,23 @@ export const formatTime = (timeString: string, language) => {
 
   return `${day}/${month}/${year} | ${timeFormat}`;
 };
+
+// Server-side weekday name. Mirrors utils/tinyUtils.ShowDayStr but resolves the
+// translation synchronously via the server translateFunction (statically
+// imported translations), so it never falls back to English during RSC render.
+export const ShowDayStr = (index: number, language: string) => {
+  const days = [
+    translateFunction("Sunday", language),
+    translateFunction("Monday", language),
+    translateFunction("Tuesday", language),
+    translateFunction("Wednesday", language),
+    translateFunction("Thursday", language),
+    translateFunction("Friday", language),
+    translateFunction("Saturday", language),
+  ];
+  return days[index];
+};
+
 export function getThumb(url, isVideo) {
   if (url) {
     if (isVideo) {

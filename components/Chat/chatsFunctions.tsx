@@ -5,7 +5,6 @@ import { getUserChat, LogError, translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
-export const FILE_SERVER = process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
 export const getUser: any = () => {
   return useAppStore.getState().userChat;
 };

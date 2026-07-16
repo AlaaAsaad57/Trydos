@@ -173,7 +173,7 @@ const updateDataAndActiveChat = (
   ) {
     newActiveChat = updateFn(state.activeChat);
   }
-  console.log({ data: newData, activeChat: newActiveChat });
+
   return { data: newData, activeChat: newActiveChat };
 };
 
@@ -1058,7 +1058,7 @@ export const useChatStore = (set: any, get: any) => ({
       }
     } else {
       const Toast = async () => {
-        showErrorNotification("only 3 pinned chats allowed");
+        showErrorNotification(translate("only 3 pinned chats allowed"));
       };
       Toast();
     }

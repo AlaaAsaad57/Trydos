@@ -70,7 +70,7 @@ const CurrencyTestCard = () => {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/home/currency?lang=en&country=${country}`,
+        `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/home/currency`,
         {
           method: "GET",
           headers: {
@@ -78,7 +78,7 @@ const CurrencyTestCard = () => {
             country: country,
             lang: "en",
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -87,8 +87,8 @@ const CurrencyTestCard = () => {
 
       const data = await response.json();
 
-      if (data?.data?.currency) {
-        setCurrency(data.data.currency);
+      if (data?.data) {
+        setCurrency(data.data);
       } else {
         throw new Error("Invalid currency data received");
       }
@@ -245,7 +245,7 @@ const CurrencyTestCard = () => {
               <p className="text-sm text-blue-600 mt-2">
                 Original: {price} × Exchange Rate: {currency.exchange_rate} ={" "}
                 {(parseFloat(price) * currency.exchange_rate).toFixed(
-                  currency.decimal_digits
+                  currency.decimal_digits,
                 )}
               </p>
             )}

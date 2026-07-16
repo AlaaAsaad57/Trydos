@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SelectStory } from "store/homepage/actions";
 
 import StoryServiceClass from "services/story";
@@ -9,11 +9,39 @@ import { useAppStore } from "store";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import { GetProductStories } from "serverRequests/product";
-function ProductStories({ id, children, InitialStoriesData }) {
-  const { selectedStory } = useAppStore();
+import { GetProductStoriesData } from "serverRequests/product";
+
+// One story card, rendered from data (id, thumbnail, has_new) — replaces the
+// server-built JSX the stories action used to return.
+const renderStory = (story) => (
+  <div
+    key={story.id}
+    data-id={story.id}
+    className="product-story relative"
+    data-cy="Story"
+    style={{ boxShadow: "0 3px 3px rgba(0, 0, 0, 0.1)" }}
+  >
+    <svg
+      className="absolute top-0 left-0 z-40"
+      xmlns="http://www.w3.org/2000/svg"
+      width="111"
+      height="160"
+      viewBox="0 0 111 160"
+    >
+      <g fill="none" stroke={story.has_new ? "#513aaf" : "#D3D3D3"} strokeWidth="0.5">
+        <rect width="111" height="160" rx="15" stroke="none" />
+        <rect x="0.25" y="0.25" width="110.5" height="159.5" rx="14.75" fill="none" />
+      </g>
+    </svg>
+    <img width={111} height={160} src={story.thumb} />
+    <div className="inset-story-shadow absolute" />
+  </div>
+);
+
+function ProductStories({ id, initialStories, InitialStoriesData }) {
+  const { selectedStory, isProductPage, setStoryData } = useAppStore();
   let { lang } = useParams();
-  const [stories, setStories] = useState(children);
+  const [stories, setStories] = useState(initialStories);
   const [storiesData, setStoriesData] = useState(InitialStoriesData);
   const [page, setPage] = useState(2);
   const [loading, setLoading] = useState(false);
@@ -21,7 +49,9 @@ function ProductStories({ id, children, InitialStoriesData }) {
   const [hasEnd, setHasEnd] = useState(InitialStoriesData.length < 10);
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
-
+  useEffect(() => {
+    setStoryData(InitialStoriesData);
+  }, []);
   const setSelectStory = (e) => {
     SelectStory(e);
   };
@@ -31,13 +61,13 @@ function ProductStories({ id, children, InitialStoriesData }) {
       return;
     }
     setLoading(true);
-    const data = await GetProductStories({
+    const data = await GetProductStoriesData({
       page: page,
       productId: id,
     });
     setPage(page + 1);
-    setStoriesData({ ...storiesData, ...data?.data });
-    setStories([...stories, ...data.items]);
+    setStoriesData([...storiesData, ...(data?.data ?? [])]);
+    setStories([...stories, ...(data?.stories ?? [])]);
     setLoading(false);
     if (data.data?.length < 10) {
       setHasEnd(true);
@@ -70,7 +100,7 @@ function ProductStories({ id, children, InitialStoriesData }) {
   };
   return (
     <>
-      {selectedStory && selectedStory?.id && (
+      {selectedStory && selectedStory?.id && isProductPage && (
         <StoriesContainer stories={storiesData} selectedStory={selectedStory} />
       )}
       <div className={`stories-row flex-row w-full`} onClick={() => {}}>
@@ -84,7 +114,7 @@ function ProductStories({ id, children, InitialStoriesData }) {
             handleWrapperClick(e);
           }}
         >
-          {stories}
+          {stories?.map((story) => renderStory(story))}
         </HortiznalScrollBar>
         {!hasEnd && (
           <InView

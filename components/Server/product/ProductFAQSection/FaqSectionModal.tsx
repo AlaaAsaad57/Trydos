@@ -6,8 +6,8 @@ import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import { LogError, translateFunction } from "utils/functions";
 
-import { GetProductFaqQuestions } from "serverRequests/product";
 import auth from "services/auth";
+import FaqItemComponent from "./FaqItemComponent";
 import { FaqItemOptions } from "./FaqItemOptions";
 
 function FaqSectionModal({
@@ -23,6 +23,7 @@ function FaqSectionModal({
     BuyerCommentModalOption,
     setBuyerCommentModalOption,
     setShouldUpdateComment,
+    appendedFaqIds,
   } = useAppStore();
 
   const activeTabRef = useRef<any>(null);
@@ -34,21 +35,36 @@ function FaqSectionModal({
   const [loading, setLoading] = useState(false);
 
   const isRtl = language === "ar" || language === "ku";
+  // FAQ questions created this session in any widget, not already loaded here.
+  const appendedComments = (appendedFaqIds?.[String(productId)] || []).filter(
+    (aid: string) => !commentsData?.some((c: any) => c.id === aid),
+  );
 
-  // ✅ Stable loadMore function
+  // ✅ Stable loadMore function — fetches the FAQ-comments data page from the
+  // internal Next route (same-origin); renders items from data, never JSX.
   const loadMore = async () => {
     setLoading(true);
     try {
-      const data = await GetProductFaqQuestions({
-        language: language,
-        productId: productId,
-        userId: auth.UserID(),
-        filter: activeTabRef.current,
-        offset: OffsetRef.current,
-      });
-
-      setCommentsData((prev) => [...(prev as any), ...data.comments]);
-      OffsetRef.current = data.offset;
+      const params = new URLSearchParams({ product_id: String(productId) });
+      const userId = auth.UserID();
+      if (userId) params.set("user_id", String(userId));
+      if (activeTabRef.current && activeTabRef.current !== 0)
+        params.set("filter", String(activeTabRef.current));
+      if (OffsetRef.current)
+        params.set(
+          "offset",
+          encodeURIComponent(JSON.stringify(OffsetRef.current)),
+        );
+      const res = await fetch(
+        `/api/products/comments/fqa_comments?${params.toString()}`,
+        { headers: { language: language ?? "en" } },
+      );
+      const json = await res.json();
+      setCommentsData((prev) => [
+        ...(prev as any),
+        ...(json?.data?.fqa_comments ?? []),
+      ]);
+      OffsetRef.current = json?.data?.offset ?? null;
     } catch (err) {
       LogError({
         error: err,
@@ -58,18 +74,18 @@ function FaqSectionModal({
       setLoading(false);
     }
   };
-  // ✅ Handle filter toggle
+  // ✅ Handle filter toggle — always reset the list/cursor before (re)loading so
+  // switching filters replaces results instead of appending, and clicking the
+  // active filter deselects it (mirrors BuyersCommentModal).
   const handleFilter = async (id) => {
     if (loading) return;
-
-    if (activeTabRef.current === id || id === 0) {
-      // Unselect filter → restore original comments
+    setCommentsData([]);
+    OffsetRef.current = null;
+    if (activeTabRef.current === id) {
       activeTabRef.current = 0;
-      setCommentsData([]);
-      OffsetRef.current = null;
+    } else {
+      activeTabRef.current = id;
     }
-
-    activeTabRef.current = id;
     await loadMore();
   };
   useEffect(() => {
@@ -83,7 +99,7 @@ function FaqSectionModal({
     <>
       {ColorBottomSheet?.is_for_faq && (
         <BottomSheet
-          height={90}
+            height={80}
           isOpen={ColorBottomSheet?.is_for_faq}
           onClose={() => setColorBottomSheet(false)}
         >
@@ -161,7 +177,29 @@ function FaqSectionModal({
                     </div>
                   ))}
 
-                {!loading && commentsData}
+                {!loading &&
+                  appendedComments.map((aid: string) => (
+                    <FaqItemComponent
+                      key={aid}
+                      id={aid}
+                      comment={{ id: aid }}
+                      isRtl={isRtl}
+                      language={language}
+                      width={100}
+                    />
+                  ))}
+                {!loading &&
+                  commentsData?.map((comment: any) => (
+                    <FaqItemComponent
+                      key={comment.id}
+                      id={comment.id}
+                      comment={comment}
+                      isRtl={isRtl}
+                      language={language}
+                      seller_name={comment.seller_name}
+                      width={100}
+                    />
+                  ))}
 
                 {!loading && OffsetRef.current && (
                   <div
@@ -188,21 +226,21 @@ function FaqSectionModal({
             comment={BuyerCommentModalOption}
             deleteAction={async (id) => {
               setActionLoading(true);
-              let comment_id = await deleteComment(id);
-              setCommentsData(
-                commentsData.filter((node) => node.key !== comment_id),
-              );
+              const comment_id = await deleteComment(id);
+              if (comment_id)
+                setCommentsData((prev: any) =>
+                  prev.filter((c: any) => c.id !== comment_id),
+                );
               setActionLoading(false);
               setShouldUpdateComment({ fromComments: true });
             }}
             updateAction={async (comment) => {
               setActionLoading(true);
-              let { commentElement, id } = await editComment(comment);
-              setCommentsData(
-                commentsData?.map((node) =>
-                  node.key === id ? commentElement : node,
-                ),
-              );
+              const res = await editComment(comment);
+              if (res)
+                setCommentsData((prev: any) =>
+                  prev?.map((c: any) => (c.id === res.id ? res.comment : c)),
+                );
               setActionLoading(false);
             }}
             handleCloseModal={() => {

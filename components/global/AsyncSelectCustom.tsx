@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { GetImageUrl } from "utils/tinyUtils";
 import { pollinateInput } from "@/utils/tinyUtils";
+import { translateFunction } from "utils/functions";
 
 const AsyncSelectCustom = ({
   placeholder,
@@ -168,7 +169,7 @@ const AsyncSelectCustom = ({
             ))
           ) : (
             <div className="px-4 py-2 text-gray-500 regular">
-              {isLoading ? "Loading..." : "No options found"}
+              {isLoading ? translateFunction("Loading...") : translateFunction("No options found")}
             </div>
           )}
         </div>

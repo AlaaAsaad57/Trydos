@@ -163,7 +163,7 @@ const ProfilePicture = ({ photo, language, local }) => {
             </g>
           </svg>
 
-          <span className="ml-[8px]"> Add Photo</span>
+          <span className="ml-[8px]"> {translateFunction("Add Photo", language)}</span>
         </div>
         <span>
           <svg

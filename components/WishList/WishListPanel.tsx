@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import {
   getConfiguredImage,
   RoundPrice,
@@ -10,12 +10,20 @@ import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import { GetImageUrl } from "utils/tinyUtils";
 import { wishlistService, WishlistItem } from "services/wishlist";
-import { showSuccessNotification } from "@/store/notifications/reducer";
+import {
+  showSuccessNotification,
+  showErrorNotification,
+} from "@/store/notifications/reducer";
 
 const WishListPanel = ({ onClose }) => {
   const wishListRef = useRef<HTMLDivElement>(null);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   // Handle document scroll lock
   useEffect(() => {
     const originalStyle = window.getComputedStyle(document.body).overflow;
@@ -55,8 +63,11 @@ const WishListPanel = ({ onClose }) => {
     const loadWishlist = async () => {
       try {
         setLoading(true);
-        const items = await wishlistService.getWishlist();
-        setWishlistItems(items);
+        const result = await wishlistService.getWishlist(1);
+        setWishlistItems(result?.data ?? []);
+        setHasNext(result?.has_next);
+        setTotalPages(result?.total_pages);
+        setPage(1);
       } catch (error) {
         console.error("Error loading wishlist:", error);
       } finally {
@@ -66,17 +77,40 @@ const WishListPanel = ({ onClose }) => {
     loadWishlist();
   }, []);
 
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasNext) return;
+    const nextPage = page + 1;
+    try {
+      setLoadingMore(true);
+      const result = await wishlistService.getWishlist(nextPage);
+      setWishlistItems((prev) => [...prev, ...result.data]);
+      setHasNext(result.has_next);
+      setTotalPages(result.total_pages);
+      setPage(nextPage);
+    } catch (error) {
+      console.error("Error loading more wishlist items:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasNext, page]);
+
   const handleDeleteItem = async (e: React.MouseEvent, productId: string) => {
     e.preventDefault();
     e.stopPropagation();
     try {
       await wishlistService.removeFromWishlist(productId);
-      setWishlistItems((prev) => prev.filter((item) => item.id !== productId));
+      setWishlistItems((prev) =>
+        prev.filter((item) => Number(item.id) !== Number(productId)),
+      );
       showSuccessNotification(translateFunction("Removed from checklist"));
     } catch (error) {
-      console.error("Error removing from wishlist:", error);
+      console.error("Error removing from CheckList:", error);
+      showErrorNotification(
+        translateFunction("Failed to remove from checklist"),
+      );
     }
   };
+
   return (
     <div
       data-cy="wishList-card"
@@ -126,7 +160,7 @@ const WishListPanel = ({ onClose }) => {
             style={{ fontWeight: 600, fontSize: "16px", color: "#333" }}
             data-cy="wishList-statement"
           >
-            {translateFunction("Wishlist")}
+            {translateFunction("CheckList")}
           </span>
         </div>
         <button
@@ -184,13 +218,30 @@ const WishListPanel = ({ onClose }) => {
             <p className="text-sm">{translateFunction("Loading...")}</p>
           </div>
         ) : wishlistItems.length > 0 ? (
-          wishlistItems.map((item) => (
-            <WishListItem
-              item={item}
-              handleDeleteItem={handleDeleteItem}
-              close={onClose}
-            />
-          ))
+          <>
+            {wishlistItems.map((item) => (
+              <WishListItem
+                key={item.id}
+                item={item}
+                handleDeleteItem={handleDeleteItem}
+                close={onClose}
+              />
+            ))}
+            {hasNext && (
+              <div className="flex justify-center py-4">
+                <button
+                  data-cy="load-more-button"
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loadingMore
+                    ? translateFunction("Loading...")
+                    : translateFunction("Load more")}
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div
             data-cy="empty-container"
@@ -215,7 +266,7 @@ const WishListPanel = ({ onClose }) => {
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
             <p className="text-sm" data-cy="empty-statement">
-              {translateFunction("Your wishlist is empty")}
+              {translateFunction("Your CheckList is empty")}
             </p>
           </div>
         )}
@@ -226,7 +277,15 @@ const WishListPanel = ({ onClose }) => {
 
 export default WishListPanel;
 
-const WishListItem = ({ item, handleDeleteItem, close }) => {
+const WishListItem = ({
+  item,
+  handleDeleteItem,
+  close,
+}: {
+  item: WishlistItem;
+  handleDeleteItem: any;
+  close: () => void;
+}) => {
   const { language, currency } = useAppStore();
   const params = useParams();
   const lang = params.lang;
@@ -248,27 +307,26 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
             className="relative w-20 h-[90px] shrink-0"
             data-cy="wishlist-container-img"
           >
-            <Image
+            <img
               data-cy="wishlist-img"
               src={getConfiguredImage({
-                src: GetImageUrl(item.thumbnail),
+                src: GetImageUrl(item.image),
                 width: 100,
                 height: 100,
               })}
               alt={item.name}
-              fill
               className="object-cover rounded-md"
             />
           </div>
           <div className="flex-1" data-cy="wishlist-body-item">
             <div className="flex">
-              <Image
+              {/* <Image
                 alt="brand-icon"
                 className="max-w-[40px] max-h-[25px] w-auto object-contain h-full"
                 width={50}
                 height={50}
-                src={GetImageUrl(item.brand?.icon)}
-              />
+                src={GetImageUrl(item?.brand?.icon)}
+              /> */}
             </div>
             <div
               className="text-sm font-medium text-gray-900 hover:text-blue-600"
@@ -276,7 +334,7 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
             >
               {item.name}
             </div>
-            <div
+            {/* <div
               className="mt-1 flex items-center gap-2"
               data-cy="wishlist-item-price"
             >
@@ -285,7 +343,7 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
                   className="text-sm text-gray-500 line-through"
                   data-cy="wishlist-item-old-price"
                 >
-                  {currency.symbol}
+                  {currency?.symbol}
                   {RoundPrice({ num: item.price })}
                 </span>
               )}
@@ -317,7 +375,7 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
                   Sizes: {item.sizes.join(", ")}
                 </div>
               )}
-            </div>
+            </div> */}
           </div>
         </div>
         <button
@@ -373,27 +431,26 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
             className="relative w-20 h-[90px] shrink-0"
             data-cy="wishlist-container-img"
           >
-            <Image
+            <img
               data-cy="wishlist-img"
               src={getConfiguredImage({
-                src: GetImageUrl(item.thumbnail),
+                src: GetImageUrl(item.image),
                 width: 100,
                 height: 100,
               })}
               alt={item.name}
-              fill
               className="object-cover rounded-md"
             />
           </div>
           <div className="flex-1" data-cy="wishlist-body-item">
             <div className="flex">
-              <Image
+              {/* <Image
                 alt="brand-icon"
                 className="max-w-[40px] max-h-[25px] w-auto object-contain h-full"
                 width={50}
                 height={50}
                 src={item.brand?.icon?.file_path}
-              />
+              /> */}
             </div>
             <div
               className="text-sm font-medium text-gray-900 hover:text-blue-600"
@@ -401,7 +458,7 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
             >
               {item.name}
             </div>
-            <div
+            {/* <div
               className="mt-1 flex items-center gap-2"
               data-cy="wishlist-item-price"
             >
@@ -442,7 +499,7 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
                   Sizes: {item.sizes.join(", ")}
                 </div>
               )}
-            </div>
+            </div> */}
           </div>
         </NextLink>
         <button

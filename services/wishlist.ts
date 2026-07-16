@@ -1,135 +1,80 @@
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
+
 interface WishlistItem {
-  id: string;
+  id: number;
   name: string;
   slug: string;
-  thumbnail: string;
-  price: number;
-  offer_price: number;
-  colors: string[];
-  sizes: string[];
-  product_link: string;
-  added_at: Date;
-  images: any[];
-  brand: any;
+  image: string;
+}
+
+interface WishlistResponse {
+  data: WishlistItem[];
+  current_page: number;
+  page_size: number;
+  total_items: number;
+  total_pages: number;
+  has_next: boolean;
+  has_prev: boolean;
+}
+
+interface WishlistExistenceResponse {
+  data?: { is_exist: boolean };
 }
 
 class WishlistService {
-  private db: IDBDatabase | null = null;
-  private readonly DB_NAME = "trydos-wishlist";
-  private readonly STORE_NAME = "wishlist";
-  private readonly DB_VERSION = 1;
-
-  private async initDB(): Promise<IDBDatabase> {
-    if (this.db) return this.db;
-
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
-
-      request.onerror = () => {
-        reject(request.error);
-      };
-
-      request.onsuccess = () => {
-        this.db = request.result;
-        resolve(this.db);
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains(this.STORE_NAME)) {
-          const store = db.createObjectStore(this.STORE_NAME, {
-            keyPath: "id",
-          });
-          store.createIndex("added_at", "added_at");
-        }
-      };
+  async addToWishlist(productId: number): Promise<void> {
+    let res = await fetchData({
+      url: "/checklist",
+      method: "POST",
+      server: "market",
+      body: JSON.stringify({
+        product_id: productId,
+      }),
+      reqTitle: REQUESTS_DATA.ADD_CHECKLIST,
     });
-  }
 
-  async addToWishlist(product: Omit<WishlistItem, "added_at">): Promise<void> {
-    const db = await this.initDB();
-    const item: WishlistItem = {
-      ...product,
-      added_at: new Date(),
-    };
-
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([this.STORE_NAME], "readwrite");
-      const store = transaction.objectStore(this.STORE_NAME);
-      const request = store.put(item);
-
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    if (!res.success) {
+      throw new Error(res.message || "Failed to add product to wishlist");
+    }
   }
 
   async removeFromWishlist(productId: string): Promise<void> {
-    const db = await this.initDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([this.STORE_NAME], "readwrite");
-      const store = transaction.objectStore(this.STORE_NAME);
-      const request = store.delete(productId);
-
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+    let res = await fetchData({
+      url: `/checklist/${productId}`,
+      method: "DELETE",
+      server: "market",
+      reqTitle: REQUESTS_DATA.DEL_CHECKLIST,
     });
+
+    if (!res.success) {
+      throw new Error(res.message || "Failed to remove product from wishlist");
+    }
   }
 
-  async getWishlist(): Promise<WishlistItem[]> {
-    const db = await this.initDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([this.STORE_NAME], "readonly");
-      const store = transaction.objectStore(this.STORE_NAME);
-      const request = store.getAll();
-
-      request.onsuccess = () => {
-        const items = request.result as WishlistItem[];
-        const sorted = items.sort(
-          (a, b) =>
-            new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
-        );
-        resolve(sorted);
-      };
-      request.onerror = () => reject(request.error);
+  async getWishlist(page = 1): Promise<WishlistResponse> {
+    const data = await fetchData({
+      url: `/checklist?page=${page}&page_size=10`,
+      method: "GET",
+      server: "market",
+      reqTitle: REQUESTS_DATA.GET_CHECKLIST,
     });
+    return data?.data;
   }
 
   async isInWishlist(productId: string): Promise<boolean> {
-    const db = await this.initDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([this.STORE_NAME], "readonly");
-      const store = transaction.objectStore(this.STORE_NAME);
-      const request = store.get(productId);
-
-      request.onsuccess = () => {
-        resolve(!!request.result);
-      };
-      request.onerror = () => reject(request.error);
+    const data = await fetchData<WishlistExistenceResponse>({
+      url: `/checklist/product/${productId}/exist`,
+      method: "GET",
+      server: "market",
+      reqTitle: REQUESTS_DATA.GET_CHECKLIST,
+      noMessage: true,
     });
-  }
 
-  async clearWishlist(): Promise<void> {
-    const db = await this.initDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([this.STORE_NAME], "readwrite");
-      const store = transaction.objectStore(this.STORE_NAME);
-      const request = store.clear();
-
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  async getWishlistCount(): Promise<number> {
-    const db = await this.initDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([this.STORE_NAME], "readonly");
-      const store = transaction.objectStore(this.STORE_NAME);
-      const request = store.count();
-
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
+    if (data.data.is_exist) {
+      return true;
+    }
+    return false;
   }
 }
 

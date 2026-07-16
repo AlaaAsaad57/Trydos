@@ -76,6 +76,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const [loadingPin, setLoadingPin] = useState(false);
   const router = useRouter();
   const loginFunc = async (e) => {
+    setSuccess(false);
     setLoadingPin(true);
     await VerifyOtpHook({
       code: e,
@@ -109,6 +110,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         setLoadingPin(false);
       },
       successCallback: async (exists, name) => {
+        setSuccess(true);
         router.refresh();
         // Sendevent({
         //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
@@ -129,7 +131,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
 
   useEffect(() => {
     if (hasMobile) {
-      let phone = userData.phone;
+      let phone = userData?.phone;
       setInputValue(phone);
       setStepIndicator(4);
     }
@@ -163,6 +165,11 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
           setShowMobile={setShowMobile}
           setMessageMethod={(e: string) => setMessageMethod(e)}
           inputValue={inputValue}
+          // When the account already has a registered phone, this is the
+          // verify-your-phone flow — lock editing so the user can't swap the
+          // number before requesting the OTP. A fresh phone (hasMobile=false,
+          // entered via PhoneInput) stays editable, as does login (NewLoginWidget).
+          hideEdit={hasMobile}
         />
       )}
 

@@ -1,162 +1,292 @@
 "use client";
-import { useEffect, useState } from "react";
-import { DebounceInput } from "react-debounce-input/src";
-import { useRouter } from "next/navigation";
-import { buildParamsFromFilters, pollinateInput } from "utils/tinyUtils";
+
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAppStore } from "store";
-import { showSuccessNotification } from "store/notifications/reducer";
 import { LogError } from "utils/functions";
-function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
+import { GetSearchSuggestion } from "serverRequests/Search";
+import Spinner from "components/global/Spinner";
+
+const COMMIT_DEBOUNCE_MS = 1500;
+
+/**
+ * SearchBoutiquePage — the listing search box (listing search → ?search=
+ * refactor). Locally controlled (keeps focus/caret across the URL change),
+ * commits the query to ?search= via router.replace 1.5s after typing stops or
+ * immediately on Enter, and shows an in-input spinner (never a skeleton) from
+ * the first keystroke until results land. Collapses when empty & unfocused;
+ * expands on focus or when it holds a value (drives store.searchExpanded, which
+ * widens the options bar and hides the boutique logo). Keeps the inline
+ * ghost-suggestion (Tab / ArrowRight-at-end to accept).
+ */
+export default function SearchBoutiquePage({
+  serverSearch = "",
+  parsedFilters,
+  country,
+  language,
+  featured = false,
+  flashdeal = false,
+}: {
+  serverSearch?: string;
+  parsedFilters: any;
+  country: string;
+  language: string;
+  featured?: boolean;
+  flashdeal?: boolean;
+}) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  // Parse current filters from URL path
+  const setListingSearchLoading = useAppStore((s) => s.setListingSearchLoading);
+  const setSearchExpanded = useAppStore((s) => s.setSearchExpanded);
+  const searchLoading = useAppStore((s) => s.searchLoading);
 
-  const currentFilters = parsedFilters;
-  const [search, setSearch] = useState(
-    parsedFilters?.search_text?.[0] ?? parsedFilters?.search_text ?? "",
-  );
-  const [focuse, setFocus] = useState(
-    parsedFilters?.search_text?.[0]?.length ??
-      parsedFilters?.search_text?.length ??
-      false,
-  );
-  const onChange = (e) => {
-    setSearch(e.target.value);
-  };
-  const onKeyDown = (e) => {
-    try {
-      if (isAnalyzed?.colors?.length > 0 && parsedFilters?.colors?.length > 0) {
-        currentFilters.colors = currentFilters.colors?.filter(
-          (color) =>
-            !isAnalyzed.colors
-              ?.map((s) => s.toLowerCase())
-              .includes(color?.toLowerCase()),
-        );
-        if (currentFilters.colors?.length === 0) {
-          delete currentFilters.colors;
-        }
-      }
-      if (isAnalyzed?.sizes?.length > 0 && parsedFilters?.sizes?.length > 0) {
-        currentFilters.sizes = currentFilters.sizes?.filter(
-          (size) =>
-            !isAnalyzed.sizes
-              ?.map((s) => s.toLowerCase())
-              .includes(size?.toLowerCase()),
-        );
-        if (currentFilters.sizes?.length === 0) delete currentFilters.sizes;
-      }
-      const newFilters = { ...currentFilters };
-      if (e.target.value.length > 0) {
-        newFilters.search_text = [e.target.value];
-      } else {
-        delete newFilters.search_text;
-      }
+  const [value, setValue] = useState(serverSearch ?? "");
+  const [focused, setFocused] = useState(false);
+  const [suggestion, setSuggestion] = useState("");
 
-      const pathParams = buildParamsFromFilters({
-        ...newFilters,
-        search: newFilters.search_text,
-      });
+  const inputElRef = useRef<HTMLInputElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const commitTimerRef = useRef<any>(null);
+  const latestSuggestionRef = useRef(0);
+  const suggestionTimerRef = useRef<any>(null);
 
-      const newPath =
-        pathParams.length > 0
-          ? `/${lang}/filters/${pathParams.join("/")}`
-          : `/${lang}/filters`;
-      const { setIsNavigating } = useAppStore.getState();
-      setIsNavigating({
-        is_filter_search: true,
-        href: newPath,
-      });
-      router.push(newPath);
-    } catch (error) {
-      LogError({
-        error: error,
-        scenario:
-          "on Enter pressed in search bar in listing page - SearhcBoutique Component",
-        filters: currentFilters,
-      });
-    }
-  };
+  const expanded = focused || value.length > 0;
+
+  // Publish expand state (widens options bar + hides boutique logo).
   useEffect(() => {
-    if (search_text?.length > 0) {
-      document.querySelector<HTMLInputElement>("#searchIconBoutique")?.click();
-      document.querySelector<HTMLInputElement>("#filter-search")?.focus();
-    } else {
-      document.querySelector<HTMLInputElement>("#filter-search")?.blur();
+    setSearchExpanded(expanded);
+  }, [expanded, setSearchExpanded]);
+
+  // Mirror the committed ?search= into the box while NOT focused AND no commit is
+  // pending, so removing the search (chip ✕ / clear-all) empties the box. While
+  // focused (mid-typing) or with a queued commit, local state wins — never move
+  // the caret or blank an in-flight query before it commits.
+  useEffect(() => {
+    if (focused || commitTimerRef.current) return;
+    const committed = searchParams.get("search") || "";
+    setValue((prev) => (prev === committed ? prev : committed));
+  }, [searchParams, focused]);
+
+  // Commit the query to ?search= (shareable). replace = no history spam.
+  const commit = useCallback(
+    (next: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const trimmed = next.trim();
+      const current = params.get("search") || "";
+      if (trimmed.length > 0) params.set("search", trimmed);
+      else params.delete("search");
+
+      // No-op commit (value unchanged from the URL): nothing will refetch, so
+      // stop the spinner here — SortableGrid won't fire to clear it.
+      if (trimmed === current) {
+        setListingSearchLoading(false);
+        return;
+      }
+      const qs = params.toString();
+      // Spinner reflects the actual request being dispatched (not each keystroke):
+      // turn it on here, right before the refetch fires. Cleared when results land
+      // (ProductInfiniteScroll finally, incl. 0-results) or when SortableGrid falls
+      // back to the server grid.
+      setListingSearchLoading(true);
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [router, pathname, searchParams, setListingSearchLoading],
+  );
+
+  const scheduleCommit = useCallback(
+    (next: string) => {
+      if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = setTimeout(() => {
+        commitTimerRef.current = null;
+        commit(next);
+      }, COMMIT_DEBOUNCE_MS);
+    },
+    [commit],
+  );
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const next = e.target.value;
+    setValue(next);
+    // Spinner is driven by the request (see commit), not by typing — otherwise it
+    // shows during the whole debounce window before anything is actually called.
+    scheduleCommit(next);
+  };
+
+  const flushCommit = () => {
+    if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+    commitTimerRef.current = null;
+    commit(value);
+  };
+
+  // --- Inline completion (ghost text), scoped to the applied filters ---------
+  const fetchSuggestion = useCallback(async () => {
+    const requestId = ++latestSuggestionRef.current;
+    try {
+      const res = await GetSearchSuggestion({
+        language,
+        country,
+        search_text: value,
+        filters: {
+          categories: parsedFilters?.categories,
+          related_categories: parsedFilters?.related_categories,
+          brands: parsedFilters?.brands,
+          boutiques: parsedFilters?.boutiques,
+          colors: parsedFilters?.colors,
+          sizes: parsedFilters?.sizes,
+          tags_names: parsedFilters?.tags_names,
+          priceRange: parsedFilters?.prices,
+          featured: featured || undefined,
+          flashdeal: flashdeal || undefined,
+        },
+      });
+      if (requestId === latestSuggestionRef.current) {
+        setSuggestion(res?.suggestion || "");
+      }
+    } catch (error) {
+      if (requestId === latestSuggestionRef.current) {
+        setSuggestion("");
+        LogError({ error, scenario: "fetchSuggestion in SearchBoutiquePage" });
+      }
     }
-  }, []);
+  }, [language, country, value, parsedFilters, featured, flashdeal]);
+
+  useEffect(() => {
+    if (suggestionTimerRef.current) clearTimeout(suggestionTimerRef.current);
+    if (!value) {
+      setSuggestion("");
+      return;
+    }
+    suggestionTimerRef.current = setTimeout(fetchSuggestion, 600);
+    return () => clearTimeout(suggestionTimerRef.current);
+  }, [value, fetchSuggestion]);
+
+  const ghostSuffix =
+    value.length > 0 &&
+    suggestion.toLowerCase().startsWith(value.toLowerCase()) &&
+    suggestion.length > value.length
+      ? suggestion.slice(value.length)
+      : "";
+
+  // Glue the ghost overlay to the input box (position/size/font/dir) so the gray
+  // remainder starts exactly where typing ends, in both LTR and RTL.
+  useEffect(() => {
+    const input = inputElRef.current;
+    const overlay = overlayRef.current;
+    const container = containerRef.current;
+    if (!input || !overlay || !container) return;
+    const ir = input.getBoundingClientRect();
+    const cr = container.getBoundingClientRect();
+    const cs = getComputedStyle(input);
+    overlay.style.left = `${ir.left - cr.left}px`;
+    overlay.style.top = `${ir.top - cr.top}px`;
+    overlay.style.width = `${ir.width}px`;
+    overlay.style.height = `${ir.height}px`;
+    overlay.style.lineHeight = `${ir.height}px`;
+    overlay.style.paddingLeft = cs.paddingLeft;
+    overlay.style.paddingRight = cs.paddingRight;
+    overlay.style.fontFamily = cs.fontFamily;
+    overlay.style.fontSize = cs.fontSize;
+    overlay.style.fontWeight = cs.fontWeight;
+    overlay.style.fontStyle = cs.fontStyle;
+    overlay.style.letterSpacing = cs.letterSpacing;
+    overlay.style.direction = cs.direction;
+    overlay.style.textAlign = cs.textAlign;
+  });
+
+  const acceptSuggestion = () => {
+    if (!ghostSuffix) return;
+    const full = value + ghostSuffix;
+    setValue(full);
+    setSuggestion("");
+    // Spinner is driven by the request (see commit), not by accepting a suggestion.
+    scheduleCommit(full);
+    requestAnimationFrame(() => {
+      const input = inputElRef.current;
+      if (input) {
+        input.focus();
+        try {
+          input.setSelectionRange(full.length, full.length);
+        } catch {}
+      }
+    });
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (ghostSuffix) {
+      const el = e.target as HTMLInputElement;
+      const atEnd =
+        el.selectionStart === value.length && el.selectionEnd === value.length;
+      if (e.key === "Tab" || (e.key === "ArrowRight" && atEnd)) {
+        e.preventDefault();
+        acceptSuggestion();
+        return;
+      }
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      flushCommit();
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
+  const isOpen = focused || value.length > 0;
 
   return (
     <div
+      ref={containerRef}
       data-cy="searchIcon_boutiquePage"
       id="searchIconBoutique"
       className={`filter-option transition-all filter-search-option relative ${
-        (search?.length || focuse) &&
-        "w-[75%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
+        isOpen
+          ? "w-[75%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
+          : ""
       }`}
-      onClick={() => {
-        document.querySelector<HTMLInputElement>("#filter-search")?.focus();
-        if (
-          document.querySelector<HTMLInputElement>(".boutique-logo-container")
-        )
-          document.querySelector<HTMLInputElement>(
-            ".boutique-logo-container",
-          ).style.display = "none";
-      }}
+      onClick={() => inputElRef.current?.focus()}
     >
-      <DebounceInput
+      {/* Inline completion (ghost text) overlay. */}
+      <div
+        ref={overlayRef}
+        aria-hidden="true"
+        className="absolute z-[5] overflow-hidden whitespace-pre pointer-events-none"
+        style={{ boxSizing: "border-box" }}
+      >
+        {focused && ghostSuffix ? (
+          <>
+            <span className="text-transparent">{value}</span>
+            <span className="text-[#c4c2c2]">{ghostSuffix}</span>
+          </>
+        ) : null}
+      </div>
+
+      <input
+        ref={inputElRef}
         data-cy="inputFiled"
         id="filter-search"
-        debounceTimeout={600}
-        onFocus={() => {
-          document
-            .querySelector<HTMLInputElement>(".filter-bar-options")
-            .classList.add("w-full");
-          setFocus(true);
-        }}
-        value={pollinateInput(search_text)}
-        onBlur={() => {
-          setFocus(false);
-          if (search.length === 0) {
-            if (
-              document.querySelector<HTMLInputElement>(
-                ".boutique-logo-container",
-              )
-            ) {
-              document.querySelector<HTMLInputElement>(
-                ".boutique-logo-container",
-              ).style.display = "flex";
-            }
-
-            document
-              .querySelector<HTMLInputElement>(".filter-bar-options")
-              .classList.remove("w-full");
-          }
-        }}
-        onChange={(e) => {
-          if (e.target.value.length === 0) {
-            onKeyDown(e);
-          }
-          onChange(e);
-        }}
-        onKeyDown={(e: any) => {
-          //@ts-ignore
-          if (e.keyCode == 13) {
-            onKeyDown(e);
-            e.target.blur();
-          }
-        }}
+        value={value}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         className={`${
-          (search?.length || focuse) && "pl-[40px]"
-        } rounded-[15px]  w-0 h-full border-0 outline-hidden text-[#5d5d5d]`}
+          isOpen ? "pl-[40px]" : ""
+        } rounded-[15px] w-0 h-full border-0 outline-hidden text-[#5d5d5d]`}
       />
-      <img
-        src="/icons/searchIcon.svg"
+
+      {/* Search icon collapses to a spinner while a search is in flight. */}
+      <span
         className={`absolute z-10 ${
-          search?.length || focuse ? "top-[9px] left-[14px]" : "top-0 left-0"
+          isOpen ? "top-[9px] left-[14px]" : "top-0 left-0"
         }`}
-      />
+      >
+        {searchLoading ? (
+          <Spinner no className="" />
+        ) : (
+          <img src="/icons/searchIcon.svg" alt="" />
+        )}
+      </span>
     </div>
   );
 }
-
-export default SearchBoutiquePage;

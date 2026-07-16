@@ -1,11 +1,17 @@
 import { useAppStore } from "store";
-import { smartlookIdentify } from "utils/smartlook";
+import { posthogIdentify } from "utils/posthog";
 import { _isStoreLastJson, LogError, translateFunction } from "utils/functions";
-import { SEND_OTP } from "utils/endpointConfig";
+import { sendOtpAction } from "serverActions/sendOtp";
+import { lockNumber, recordSessionNumber } from "utils/otpLocks";
 
 import StoryService from "services/story";
 import home from "./home";
 import { GAevent, SetGAUser } from "utils/gtag";
+import {
+  ORDER_EVENTS,
+  resolveVerifyFlowSource,
+  trackOrder,
+} from "utils/orderFunnel";
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
@@ -14,7 +20,6 @@ import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 import { checkWallet } from "./wallet";
-import { normalize } from "path";
 
 // Helper to update user metadata in HttpOnly cookies via server route
 async function updateSecureUserData(
@@ -37,6 +42,27 @@ let normalizePhone = (phone: string) => {
   return phone.replaceAll("+", "");
 };
 class AuthService {
+  private async getServiceUsersFromCookies() {
+    try {
+      const response = await fetch("/api/auth/me", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        return { chatUser: null, storiesUser: null };
+      }
+
+      const data = await response.json();
+      return {
+        chatUser: data?.chatUser ?? null,
+        storiesUser: data?.storiesUser ?? null,
+      };
+    } catch (error) {
+      return { chatUser: null, storiesUser: null };
+    }
+  }
+
   async SendOtp(
     mobilePhone: string,
     is_via_whatsapp: number | string,
@@ -46,28 +72,31 @@ class AuthService {
     let msg = "";
     const { setVerificationId, setWrongNumber } = useAppStore.getState();
     try {
-      let response = await fetchData({
-        url: SEND_OTP,
-        method: "POST",
-        body: {
-          phone: `+${normalizePhone(mobilePhone)}`,
-          is_via_whatsapp: is_via_whatsapp,
-        },
-        server: "market",
-        reqTitle: REQUESTS_DATA.SEND_OTP,
+      // Routed through a Server Action (serverActions/sendOtp): the OTP endpoint
+      // never appears in the Network tab, and the Redis rate limit + same-origin
+      // checks run server-side before the backend is ever called.
+      const response = await sendOtpAction({
+        phone: mobilePhone,
+        isWhatsapp: is_via_whatsapp,
       });
 
       msg = response.message;
-      if (!response.success) {
-        throw new Error(response.message);
+
+      if (response.success && response.verificationId) {
+        setVerificationId(response.verificationId);
+        // Mirror the server lock client-side so the button stays disabled and
+        // the cooldown survives back/forward navigation.
+        lockNumber(mobilePhone, response.lockSeconds || 120);
+        recordSessionNumber(mobilePhone);
+        return response.verificationId;
       }
-      if (response.data?.verificationId) {
-        setVerificationId(response.data.verificationId);
-        return response.data.verificationId;
-      } else {
-        setWrongNumber(msg);
-        throw new Error(msg);
+
+      // Blocked by our limiter or rejected by the backend.
+      if (response.lockSeconds) {
+        lockNumber(mobilePhone, response.lockSeconds);
       }
+      setWrongNumber(msg || "Failed to send verification code");
+      throw new Error(msg || "Failed to send verification code");
     } catch (e) {
       LogServerError({
         error: e,
@@ -166,7 +195,8 @@ class AuthService {
         id: user.id,
         idToken: user.id_token,
         name: user.name,
-        image: user,
+        phone: user.phone,
+        image: user.image,
         already_exists: response.data.already_exists,
         is_verified: 1,
         is_phone_verified: 1,
@@ -191,7 +221,7 @@ class AuthService {
       setReAuthResult("success");
       setShouldAuthinticated(false);
       if (user) {
-        smartlookIdentify(user.id, {
+        posthogIdentify(user.id, {
           name: user.name,
           phone: user.mobilePhone,
         });
@@ -199,9 +229,9 @@ class AuthService {
       try {
         home.getNotificationPermissionStatus();
         home.getClientData();
-        if (window.location.pathname.includes("/seller")) {
-          window.location.reload();
-        }
+        // On /seller, do NOT reload: setReAuthResult("success") above lets the
+        // pending fetchData re-auth poll retry the original request so the seller
+        // continues in place (mirrors the chat/stories flow).
         // await this.CheckUserName();
       } catch (error) {}
       return [response.data.already_exists, user.name];
@@ -211,6 +241,14 @@ class AuthService {
       } else {
         loginFailed();
       }
+      // PostHog: OTP verification failed. Tag with the flow it was opened from so
+      // checkout-driven verification drop-off is separable from login elsewhere.
+      trackOrder(ORDER_EVENTS.VERIFY_OTP_FAILED, {
+        flow_source: resolveVerifyFlowSource(
+          useAppStore.getState().shouldAuthinticated,
+        ),
+        reason: e instanceof Error ? e.message : String(e),
+      });
       LogServerError({
         error: e,
         scenario: "Error In VerifyOtp in services/auth",
@@ -316,11 +354,11 @@ class AuthService {
   }
   async NotifyForProducts({ id, variant }) {
     if (!variant || variant?.includes("N/A"))
-      await home.subscribeToTopic({
+      await home.subscribeToTopicInventory({
         topic: `product_availability_${id}`,
       });
     else
-      await home.subscribeToTopic({
+      await home.subscribeToTopicInventory({
         topic: `product_availability_${id}`,
         variant: variant,
       });
@@ -330,6 +368,7 @@ class AuthService {
     return useAppStore.getState().userProfile;
   }
   async validateFCMToken() {
+   
     if (!localStorage.getItem("FBID")) return;
     try {
       let res = await fetchData({
@@ -337,7 +376,7 @@ class AuthService {
         url: "/firebase_device_tokens/validate_token",
         method: "POST",
         body: JSON.stringify({
-          firebase_token_id: localStorage.getItem("FBID"),
+          firebase_token_id: parseInt(localStorage.getItem("FBID")),
         }),
         reqTitle: REQUESTS_DATA.VALIDATE_FCM_TOKEN,
         noMessage: true,
@@ -437,6 +476,12 @@ class AuthService {
       wallet_done = false;
 
     try {
+      // --- Wallet profile update DISABLED (under development) ---
+      // The wallet `/users/me` PATCH is temporarily commented out. `wallet_done`
+      // stays false, so the wallet rollback block in the catch below is inert.
+      // NOTE: when re-enabling, fix `profilePictureURL` for Go's bare sub_path
+      // (needs a slash between the media base and "customers/profile/..").
+      /*
       // Update wallet user info
       const nameParts = (userObj?.name ?? userProfile?.name)?.split(" ") || [];
       const firstName = nameParts[0] || "";
@@ -451,7 +496,7 @@ class AuthService {
         userObj?.image ?? userProfile?.image,
       );
       const profilePictureURL = imagePath
-        ? `${process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL}${imagePath}`
+        ? `${process.env.NEXT_PUBLIC_BASE_MEDIA_URL}${imagePath}`
         : null;
 
       let wallet_update = await fetchData({
@@ -484,8 +529,16 @@ class AuthService {
       updateSecureUserData([
         { name: COOKIE_NAMES.WALLET_USER, value: walletUpdate },
       ]);
+      */
 
-      if (userStories?.id) {
+      const {
+        chatUser: chatUserFromCookies,
+        storiesUser: storiesUserFromCookies,
+      } = await this.getServiceUsersFromCookies();
+      const effectiveUserStories = userStories ?? storiesUserFromCookies;
+      const effectiveUserChat = userChat ?? chatUserFromCookies;
+
+      if (effectiveUserStories) {
         let res = await fetchData({
           url: "/api/v1/users/update",
           reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_STORIES,
@@ -494,7 +547,10 @@ class AuthService {
           body: JSON.stringify({
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: this.ConfigurePhoto(userObj?.image, "story"),
+            photo_path: this.ConfigurePhoto(
+              userObj?.image ?? userProfile?.image,
+              "story",
+            ),
           }),
         });
         if (!res.success) {
@@ -504,14 +560,18 @@ class AuthService {
         const storiesUpdate = {
           name: userObj?.name ?? userProfile?.name,
           mobile_phone: userObj?.phone ?? userProfile?.phone,
-          photo_path: this.ConfigurePhoto(userObj?.image, "story"),
+          photo_path: this.ConfigurePhoto(
+            userObj?.image ?? userProfile?.image,
+            "story",
+          ),
         };
         loginSuccessStories(storiesUpdate);
         updateSecureUserData([
           { name: COOKIE_NAMES.USER_STORIES, value: storiesUpdate },
         ]);
       }
-      if (userChat?.id) {
+
+      if (effectiveUserChat) {
         let chat_update = await fetchData({
           url: `/api/v1/users/${this.UserID()}`,
           reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_CHAT,
@@ -520,7 +580,10 @@ class AuthService {
           body: JSON.stringify({
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
+            photo_path: this.ConfigurePhoto(
+              userObj?.image ?? userProfile?.image,
+              "chat",
+            ),
           }),
         });
         if (!chat_update.success) {
@@ -530,19 +593,25 @@ class AuthService {
         const chatUpdate = {
           name: userObj?.name ?? userProfile?.name,
           mobile_phone: userObj?.phone ?? userProfile?.phone,
-          photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
+          photo_path: this.ConfigurePhoto(
+            userObj?.image ?? userProfile?.image,
+            "chat",
+          ),
         };
         loginSuccessChat(chatUpdate);
         updateSecureUserData([
           { name: COOKIE_NAMES.USER_CHAT, value: chatUpdate },
         ]);
       }
+      // Send only the fields the caller passed. `image` is added just when it
+      // actually changed — otherwise omitted so the backend doesn't validate it.
+      const marketBody: any = { ...userObj };
+      if (userObj?.image != null) {
+        marketBody.image = this.ConfigurePhoto(userObj.image, "market");
+      }
       let res = await fetchData({
         url: "/customer/update-profile",
-        body: JSON.stringify({
-          ...userObj,
-          image: this.ConfigurePhoto(userObj?.image, "market"),
-        }),
+        body: JSON.stringify(marketBody),
         reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
         method: "POST",
         server: "market",
@@ -556,7 +625,7 @@ class AuthService {
         tall: userObj?.tall ?? userProfile?.tall,
         name: userObj?.name ?? userProfile?.name,
         phone: userObj?.phone ?? userProfile?.phone,
-        image: this.getImageForCookie(userObj?.image),
+        image: this.getImageForCookie(userObj?.image ?? userProfile?.image),
       };
       editUserInfo(marketUpdate);
       updateSecureUserData([
@@ -706,24 +775,56 @@ class AuthService {
       return image;
     }
   }
-  async UpdateProfileImage(image) {
-    let formData = new FormData();
-    formData.append("image", image);
-    formData.append("path", "customers/profile");
 
+  async uploadToMediaServer(file: File) {
+    const MEDIA_SERVER_BASE_URL =
+      process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
+    const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
+    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+      throw new Error("Media server upload is not configured");
+    }
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", "customers/profile");
+
+    const uploadUrl = `${MEDIA_SERVER_BASE_URL}/upload`;
+
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      headers: {
+        "x-api-key": MEDIA_API_KEY,
+      },
+      body: form,
+    });
+
+    let data: any = null;
     try {
-      let response = await fetchData({
-        url: "/storage/storage-upload",
-        body: formData,
-        reqTitle: REQUESTS_DATA.UPDATE_PROFILE_IMAGE,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+    console.log(data);
+    if (!response.ok || !data?.url) {
+      return { error: data.error, data: null };
+    }
+
+    return {
+      url: data.url as string,
+      durationSeconds: data?.durationSeconds as number | undefined,
+    };
+  }
+  async UpdateProfileImage(image) {
+    try {
+      let response = await this.uploadToMediaServer(image);
+      if (!response.url) {
+        throw new Error("Image upload failed");
       }
-      return response.data;
+      // @ts-ignores
+      if (!response.success && response.error) {
+        throw new Error(response.error);
+      }
+      return { sub_path: response.url };
     } catch (err) {
       LogServerError({
         error: err,

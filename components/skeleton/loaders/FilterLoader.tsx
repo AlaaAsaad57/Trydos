@@ -1,6 +1,11 @@
 import React from "react";
 import ListingSkeleton from "../listing";
 
+/**
+ * In-flow listing loader. Rendered inside `.main-content` (below the persistent
+ * navbar), so it needs no fixed positioning and no measured `top` — the source of
+ * the "floats above the search bar / NaN top" bug that this removes.
+ */
 function FilterLoader({
   boutique,
   isForSearch,
@@ -8,19 +13,8 @@ function FilterLoader({
   boutique: any;
   isForSearch?: boolean;
 }) {
-  const getOffset = () => {
-    let element =
-      document?.querySelector?.(".boutique-header")?.clientHeight + 120;
-    return element;
-  };
   return (
-    <div
-      style={{
-        zIndex: "99999999999999",
-        top: `${getOffset()}px`,
-      }}
-      className="fixed max-w-[1365px] mx-auto flex-col bg-[#fafafa] min-h-screen flex    w-screen  overflow-hidden"
-    >
+    <div className="w-full flex-col flex bg-[#fafafa] overflow-hidden">
       <ListingSkeleton
         isForSearch={isForSearch}
         boutique={boutique?.name === "Search" ? null : boutique}

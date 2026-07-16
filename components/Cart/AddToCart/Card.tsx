@@ -1,3 +1,4 @@
+import { Skeleton } from "components/Server/Skeleton";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 
@@ -5,6 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { GetCountries } from "serverRequests/product";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
+import { countryNameFromIso } from "utils/server";
 import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
 
 function Card({
@@ -31,13 +33,13 @@ function Card({
   const isRtl = language === "ar" || language === "ku";
   const shippingDate = useMemo(() => {
     let date =
-      shippingDays + settings?.["starting-setting"]?.shipping_duration_days;
+      shippingDays + settings?.["starting_setting"]?.shipping_duration_days;
     if (date >= 0)
       return formatTimeForAddress(
         new Date(
           new Date().getTime() +
             Number(
-              (settings?.["starting-setting"]?.shipping_duration_days || 0) +
+              (settings?.["starting_setting"]?.shipping_duration_days || 0) +
                 shippingDays,
             ) *
               24 *
@@ -51,14 +53,14 @@ function Card({
 
   const shippingDay = useMemo(() => {
     let date =
-      shippingDays + settings?.["starting-setting"]?.shipping_duration_days;
+      shippingDays + settings?.["starting_setting"]?.shipping_duration_days;
 
     if (date >= 0)
       return ShowDayStr(
         new Date(
           new Date().getTime() +
             Number(
-              (settings?.["starting-setting"]?.shipping_duration_days || 0) +
+              (settings?.["starting_setting"]?.shipping_duration_days || 0) +
                 shippingDays,
             ) *
               24 *
@@ -134,7 +136,7 @@ function Card({
             </span>
             <span className={`${isRtl ? "dir-rtl" : ""} medium text-[#505050]`}>
               {(shippingDays || 0) +
-                (settings?.["starting-setting"]?.shipping_duration_days ??
+                (settings?.["starting_setting"]?.shipping_duration_days ??
                   0)}{" "}
               {translateFunction("Days", language)}
             </span>
@@ -188,11 +190,8 @@ function Card({
             >
               {translateFunction("At Your Address In", language)}
               <span>
-                {countries?.length &&
-                  translateFunction(
-                    countries?.find((s) => s.iso?.toLowerCase() === country)
-                      ?.name,
-                    language,
+                 { country?countryNameFromIso(country, language): (
+                    <Skeleton width="100%" height="100%" borderRadius={16} />
                   )}
               </span>
             </span>

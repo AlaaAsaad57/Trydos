@@ -1,11 +1,22 @@
 "use client";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { translateFunction } from "utils/functions";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { getConfiguredImage, translateFunction, LogError } from "utils/functions";
 import SellerDashboardService from "services/sellerDashboard";
 import home from "services/home";
+import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
+import BackBar from "components/setting/BackBar";
 
 // --- 1. Icons (Inline SVGs) ---
 const Icons = {
@@ -1274,6 +1285,28 @@ const getOrderStatusFromTab = (tab: OrderFilterTabLabel) => {
 
 // --- 3. Components ---
 
+// A1. Skeleton for a single order card
+const SellerOrderCardSkeleton = () => (
+  <div className="bg-[#F8F8F8] rounded-2xl p-4 w-full">
+    {/* Header row */}
+    <div className="flex justify-between items-center mb-4">
+      <Skeleton width={110} height={14} borderRadius={8} />
+      <Skeleton width={60} height={14} borderRadius={8} />
+    </div>
+    {/* Stats row */}
+    <div className="flex justify-between items-center mb-4">
+      <Skeleton width={90} height={14} borderRadius={8} />
+      <Skeleton width={120} height={14} borderRadius={8} />
+    </div>
+    {/* Image gallery */}
+    <div className="flex gap-2">
+      {[0, 1, 2].map((i) => (
+        <Skeleton key={i} width={91} height={125} borderRadius={15} />
+      ))}
+    </div>
+  </div>
+);
+
 // A. Order List Screen
 const OrderListScreen = ({
   orders,
@@ -1281,27 +1314,36 @@ const OrderListScreen = ({
   selectedTab,
   onSelectTab,
   isLoading,
+  sellerId,
+  setActiveTab
 }: {
   orders: any[];
   onSelectOrder: (order: any) => void;
   selectedTab: OrderFilterTabLabel;
   onSelectTab: (tab: OrderFilterTabLabel) => void;
   isLoading: boolean;
+  sellerId:string;
+  setActiveTab:(s:any)=>void
 }) => {
+  const { language } = useAppStore();
+  const { lang: local } = useParams();
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div className="flex flex-col h-full bg-white font-sans w-full">
       {/* Header */}
       <div className="bg-white sticky top-0 z-10 w-full">
-        <div className="flex items-center justify-between mb-4">
-          <button className="p-2">
-            <Icons.ChevronLeft />
-          </button>
-          <div className="text-[14px] font-medium text-[#1D1D1D] flex items-center gap-2">
-            <Icons.Bag className="text-red-500 fill-red-500 w-[23px] h-[18px]" />{" "}
-            {translateFunction("Orders")}
-          </div>
-          <div className="w-8" /> {/* Spacer */}
-        </div>
+        <BackBar
+        onBackIntercept={()=>{
+          setActiveTab("none")
+          return true
+        }}
+          isRtl={isRtl}
+          Icon={"/icons/OrderDetailsIcon.svg"}
+          local={local}
+          name={translateFunction("Orders", language)}
+          preivous_page={`/${local}/sellerProfile/sellerDashboard/${sellerId}`}
+          DataCy="seller-dashboard-screen-top"
+        />
 
         {/* Filters */}
         <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
@@ -1311,12 +1353,13 @@ const OrderListScreen = ({
           {ORDER_FILTER_TABS.map((tabItem) => (
             <button
               key={tabItem.label}
-              onClick={() => onSelectTab(tabItem.label)}
-              className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap ${
+              onClick={() => !isLoading && onSelectTab(tabItem.label)}
+              disabled={isLoading}
+              className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-opacity ${
                 selectedTab === tabItem.label
                   ? "bg-gray-800 text-white"
                   : "bg-[#F8F8F8] text-[#8D8D8D]"
-              }`}
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {tabItem.label}
             </button>
@@ -1328,12 +1371,7 @@ const OrderListScreen = ({
       <div className="p-2 flex-1 overflow-y-auto w-full">
         <div className="space-y-3">
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Spinner />
-              <span className="ml-3 text-[#3c3c3c]">
-                {translateFunction("Loading orders...")}
-              </span>
-            </div>
+            [0, 1, 2, 3].map((i) => <SellerOrderCardSkeleton key={i} />)
           ) : orders.length === 0 ? (
             <div className="flex items-center justify-center py-12">
               <p className="text-[#8D8D8D]">
@@ -1354,6 +1392,7 @@ const OrderListScreen = ({
                 <div
                   key={order.id || order.order_group_id}
                   onClick={() => onSelectOrder(order)}
+                  data-cy="order-shop-card"
                   className="bg-[#F8F8F8] rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform w-full"
                 >
                   {/* Card Header */}
@@ -1379,7 +1418,7 @@ const OrderListScreen = ({
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-1">
                       <Icons.Bell />
-                      <span className="font-medium text-[#1D1D1D] text-[12px]">
+                      <span className="font-medium text-[#1D1D1D] text-[12px]" data-cy="order-shop-status">
                         {formatStatusLabel(order.order_status)}
                       </span>
                       <div className="bg-gray-100 p-1 rounded-full">
@@ -1391,12 +1430,12 @@ const OrderListScreen = ({
                       <span className="font-bold text-[#505050] text-[12px]">
                         {itemCount}
                       </span>
-                      <span className="text-[#505050] text-[12px]">Item</span>
+                      <span className="text-[#505050] text-[12px]">{translateFunction("Item")}</span>
                       <span className="text-[#505050] text-[12px]">.</span>
                       <span className="font-bold text-[#505050] text-[12px]">
                         {order.order_amount ?? 0}
                       </span>
-                      <span className="text-[#505050] text-[12px]">USD</span>
+                      <span className="text-[#505050] text-[12px]">{translateFunction("USD")}</span>
                     </div>
                   </div>
 
@@ -1435,6 +1474,7 @@ const OrderListScreen = ({
               );
             })
           )}
+
         </div>
       </div>
     </div>
@@ -1533,7 +1573,7 @@ const OrderDetailScreen = ({
           <div className="bg-[#F4F4F4] px-3 py-2 rounded-[15px] flex flex-col justify-start h-[74px] items-start">
             <Icons.Bag2 className="w-[18px] h-[18px]" />
             <span className="text-[9px] text-[#8D8D8D] mt-[5px]">
-              Order Number
+              {translateFunction("Order Number")}
             </span>
             <span className="text-[12px] text-[#1D1D1D] font-bold">
               {order.id}
@@ -1542,7 +1582,7 @@ const OrderDetailScreen = ({
           <div className="bg-[#F4F4F4] px-3 py-2 rounded-[15px] flex flex-col justify-start h-[74px] items-start">
             <Icons.Clock className="w-[18px] h-[18px]" />
             <span className="text-[9px] text-[#8D8D8D] mt-[5px]">
-              Order Date
+              {translateFunction("Order Date")}
             </span>
             <span className="text-[12px] text-[#1D1D1D]">
               {formatCreatedAt(createdAt) || "N/A"}
@@ -1551,11 +1591,11 @@ const OrderDetailScreen = ({
           <div className="bg-[#F4F4F4] px-3 py-2 rounded-[15px] flex flex-col justify-start h-[74px] items-start">
             <Icons.FileText className="w-[18px] h-[18px]" />
             <span className="text-[9px] text-[#8D8D8D] mt-[5px]">
-              Order Invoice
+              {translateFunction("Order Invoice")}
             </span>
             <div className="text-[12px] text-[#1D1D1D] font-bold">
               {orderTotal}
-              <span className="font-semibold"> USD</span>
+              <span className="font-semibold"> {translateFunction("USD")}</span>
             </div>
           </div>
         </div>
@@ -1566,10 +1606,10 @@ const OrderDetailScreen = ({
             <div className="flex items-center">
               <Icons.ShoppingCart />
             </div>
-            <span className="text-[10px] text-[#8D8D8D]">Collect Type</span>
+            <span className="text-[10px] text-[#8D8D8D]">{translateFunction("Collect Type")}</span>
             <div className="flex">
               <div className="text-[12px] mr-[22px] text-[#1D1D1D]">
-                Collect
+                {translateFunction("Collect")}
               </div>
               <div className="flex flex-row gap-x-[8px]">
                 <Icons.CheckCircle className="w-[15px] h-[15px] text-[#000000]" />
@@ -1597,7 +1637,7 @@ const OrderDetailScreen = ({
               <Icons.Clock2Image />
             </div>
             <span className="text-[10px] text-[#8D8D8D]">
-              Duration To Do Action
+              {translateFunction("Duration To Do Action")}
             </span>
             <div className="text-[12px] text-[#388CFF]">
               {remainingMinutes > 0
@@ -1683,18 +1723,28 @@ const OrderDetailScreen = ({
           {items.map((item: any, idx: number) => {
             const productDetails = parseProductDetails(item);
             const productName =
-              productDetails?.name ||
+              item.product_name ||
+              productDetails?.product_name ||
               (item?.product_id
                 ? `Product #${item.product_id}`
                 : `Item #${item.id ?? idx + 1}`);
+            const brandImage = GetImageUrl(
+              getConfiguredImage({
+                src: item.brand_icon,
+                width: 100,
+                height: 100,
+              }),
+            );
             const image = getItemImage(item, productDetails);
             const variantColor = item.color || "";
             const variantSize = item.size || "";
             const unitPrice = Number(item.unit_price || 0);
+            const offerPrice = Number(item.offer_price || 0) ?? unitPrice;
             const qty = Number(item.qty || 0);
-            const itemTotalPrice = unitPrice * qty;
+            const itemTotalPrice = offerPrice * qty;
             const isConfirmed = Boolean(item?.is_confirm);
             const isPacked = Boolean(item?.is_packed);
+            const isCanceled=order.order_status === "canceled"||item.qty===0;
             const isWaiting = !isConfirmed;
             const isActionLoading =
               orderDetailActionLoading === String(item?.id);
@@ -1724,10 +1774,11 @@ const OrderDetailScreen = ({
                   )}
                   <div className="flex-1 pt-1">
                     <h3 className="font-bold text-gray-900 uppercase tracking-wide text-xs mb-[5px]">
-                      {productDetails?.brand?.name ||
-                        (productDetails?.brand_id
-                          ? `Brand #${productDetails.brand_id}`
-                          : translateFunction("Product"))}
+                      <img
+                        src={brandImage}
+                        alt="brand"
+                        className="w-auto h-[30px]"
+                      />
                     </h3>
                     <p className="text-sm text-gray-600 mb-[5px]">
                       {productName}
@@ -1736,20 +1787,20 @@ const OrderDetailScreen = ({
                     <div className="space-y-1">
                       <div className="flex flex-row items-center gap-10">
                         <div className="text-xs flex mb-[5px]">
-                          <span className="text-gray-400 mr-[5px]">Color:</span>{" "}
+                          <span className="text-gray-400 mr-[5px]">{translateFunction("Color:")}</span>{" "}
                           <span className="text-gray-700 font-medium">
                             {variantColor || translateFunction("N/A")}
                           </span>
                         </div>
                         <div className="text-xs flex mb-[5px]">
-                          <span className="text-gray-400 mr-[5px]">Size:</span>{" "}
+                          <span className="text-gray-400 mr-[5px]">{translateFunction("Size:")}</span>{" "}
                           <span className="text-gray-700 font-medium">
                             {variantSize || translateFunction("N/A")}
                           </span>
                         </div>
                       </div>
                       <div className="text-xs flex mb-[5px]">
-                        <span className="text-gray-400 mr-[5px]">ID:</span>{" "}
+                        <span className="text-gray-400 mr-[5px]">{translateFunction("ID:")}</span>{" "}
                         <span className="text-gray-700 font-medium">
                           {item?.product_id ?? item?.id ?? "N/A"}
                         </span>
@@ -1758,18 +1809,20 @@ const OrderDetailScreen = ({
 
                     <div className="flex justify-between items-end mb-[5px]">
                       <div className="text-xs text-[#8D8D8D]">
-                        Quantity:{" "}
+                        {translateFunction("Quantity:")}{" "}
                         <span className="text-gray-900 font-bold">{qty}</span>
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-[#1D1D1D] text-[12px]">
-                          {`${itemTotalPrice} / ${orderTotal}`}{" "}
+                          {qty > 1
+                            ? `${offerPrice} / ${itemTotalPrice}`
+                            : `${itemTotalPrice}`}{" "}
                         </span>
-                        <span className="text-[12px] text-[#1D1D1D]">USD</span>
+                        <span className="text-[12px] text-[#1D1D1D]">{translateFunction("USD")}</span>
                       </div>
                     </div>
                     <div className="text-xs text-[#8D8D8D]">
-                      Status:{" "}
+                      {translateFunction("Status:")}{" "}
                       <span className="text-[#505050]">{statusLabel}</span>
                     </div>
                   </div>
@@ -1779,16 +1832,16 @@ const OrderDetailScreen = ({
                   <div className="flex gap-3">
                     <button
                       onClick={() => onConfirmItem(order.id, item)}
-                      disabled={isActionLoading}
+                      disabled={isActionLoading||isCanceled}
                       className="flex-1 py-2.5 rounded-[10px] border border-[#388CFF] text-[#388CFF] bg-white font-medium text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isActionLoading
                         ? translateFunction("Updating...")
-                        : translateFunction("Confirm & Start Backing")}
+                        : translateFunction("Confirm & Start Packing")}
                     </button>
                     <button
                       onClick={() => onCancelItem(order.id, item)}
-                      disabled={isActionLoading}
+                     disabled={isActionLoading||isCanceled}
                       className="px-6 py-2.5 rounded-[10px] border border-[#FF9FA5] text-[#FF6B6B] bg-white font-medium text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {translateFunction("Cancel")}
@@ -1798,7 +1851,7 @@ const OrderDetailScreen = ({
                   <div className="flex gap-3">
                     <button
                       onClick={() => onPackItem(order.id, item)}
-                      disabled={isActionLoading}
+                      disabled={isActionLoading||isCanceled}
                       className="flex-1 py-2.5 rounded-[10px] border border-[#402CDD] text-[#402CDD] bg-[#EFEDFD] font-medium text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isActionLoading
@@ -1825,10 +1878,12 @@ export const RenderOrders = ({
   canViewOrders,
   sellerId,
   activeTab,
+  setActiveTab
 }: {
   canViewOrders: boolean;
   sellerId: string;
   activeTab: string;
+  setActiveTab:(s:any)=>void
 }) => {
   const [ordersLoading, setOrdersLoading] = useState<boolean>(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
@@ -1846,15 +1901,20 @@ export const RenderOrders = ({
   const [ordersMeta, setOrdersMeta] = useState<any>(null);
   const [ordersPage, setOrdersPage] = useState(1);
   const [screen, setScreen] = useState<"list" | "detail">("list");
-  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<
+    number | string | null
+  >(null);
   const [selectedOrderFilterTab, setSelectedOrderFilterTab] =
     useState<OrderFilterTabLabel>("All");
 
   const sellerOrders = useAppStore((state) => state.sellerOrders);
   const setSellerOrders = useAppStore((state) => state.setSellerOrders);
 
-  const shouldUpdateOrders = useAppStore((state) => state.shouldUpdateOrders);
+  const selectedOrder =
+    sellerOrders.find((o) => String(o.id) === String(selectedOrderId)) ?? null;
 
+  const shouldUpdateOrders = useAppStore((state) => state.shouldUpdateOrders);
+  const [hasMore, setHasMore] = useState<boolean>(false);
   const getSellerOrders = async (page: number = 1) => {
     try {
       setOrdersLoading(true);
@@ -1865,16 +1925,23 @@ export const RenderOrders = ({
         page,
         status,
       );
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to load orders");
+      }
       const orders = res.data?.orders || res.data || [];
       const normalizedOrders = Array.isArray(orders) ? orders : [];
       setSellerOrders(normalizedOrders);
       setOrdersMeta(res.data?.meta || null);
+      setHasMore(res.data?.meta?.has_more_pages || false);
       setOrderStatusOptions(
         res.data?.user_abilities?.change_order_status || [],
       );
       setOrdersPage(page);
     } catch (error: any) {
-      // console.error("Error fetching orders:", error);
+      LogError({
+        scenario: "SellerOrders.getSellerOrders",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setOrdersError(
         error?.message || translateFunction("Failed to load orders"),
       );
@@ -1888,10 +1955,13 @@ export const RenderOrders = ({
     try {
       setOrderActionLoading(String(orderId));
       setOrdersError(null);
-      await SellerDashboardService.updateOrderStatus(sellerId, {
+      const res = await SellerDashboardService.updateOrderStatus(sellerId, {
         id: Number(orderId),
         status,
       });
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to update order status");
+      }
       setSellerOrders((prev) =>
         prev.map((order) =>
           order.id === orderId
@@ -1900,7 +1970,10 @@ export const RenderOrders = ({
         ),
       );
     } catch (error: any) {
-      // console.error("Error updating order status:", error);
+      LogError({
+        scenario: "SellerOrders.handleChangeOrderStatus",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setOrdersError(
         error?.message || translateFunction("Failed to update order status"),
       );
@@ -1914,17 +1987,11 @@ export const RenderOrders = ({
     detailId: number | string,
     updateFn: (item: any) => any,
   ) => {
-    let updated = sellerOrders.map((order) =>
+    setSellerOrders(sellerOrders.map((order) =>
       order.id === orderId
         ? updateOrderDetailItem(order, detailId, updateFn)
         : order,
-    );
-    if (selectedOrder?.id === orderId) {
-      setSelectedOrder((current) =>
-        current ? updateOrderDetailItem(current, detailId, updateFn) : current,
-      );
-    }
-    setSellerOrders(updated);
+    ));
   };
 
   const syncOrderDetailCancel = (
@@ -1932,19 +1999,13 @@ export const RenderOrders = ({
     detailId: number | string,
     qty: number,
   ) => {
-    setSellerOrders((prev) => {
-      const next = prev.map((order) =>
+    setSellerOrders((prev) =>
+      prev.map((order) =>
         order.id === orderId
           ? applyCancelToOrderDetail(order, detailId, qty)
           : order,
-      );
-      if (selectedOrder?.id === orderId) {
-        setSelectedOrder((current) =>
-          current ? applyCancelToOrderDetail(current, detailId, qty) : current,
-        );
-      }
-      return next;
-    });
+      ),
+    );
   };
 
   const handleConfirmItem = async (orderId: number | string, item: any) => {
@@ -1953,15 +2014,24 @@ export const RenderOrders = ({
     try {
       setOrderDetailActionLoading(String(detailId));
       setOrdersError(null);
-      await SellerDashboardService.confirmOrderDetailStatus(sellerId, {
-        order_detail_id: Number(detailId),
-      });
+      const res = await SellerDashboardService.confirmOrderDetailStatus(
+        sellerId,
+        {
+          order_detail_id: Number(detailId),
+        },
+      );
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to confirm order item");
+      }
       syncOrderDetailUpdate(orderId, detailId, (current) => ({
         ...current,
         is_confirm: true,
       }));
     } catch (error: any) {
-      // console.error("Error confirming order detail:", error);
+      LogError({
+        scenario: "SellerOrders.handleConfirmItem",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setOrdersError(
         error?.message || translateFunction("Failed to confirm order item"),
       );
@@ -1976,16 +2046,22 @@ export const RenderOrders = ({
     try {
       setOrderDetailActionLoading(String(detailId));
       setOrdersError(null);
-      await SellerDashboardService.packOrderDetailStatus(sellerId, {
+      const res = await SellerDashboardService.packOrderDetailStatus(sellerId, {
         order_detail_id: Number(detailId),
       });
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to pack order item");
+      }
       syncOrderDetailUpdate(orderId, detailId, (current) => ({
         ...current,
         is_confirm: true,
         is_packed: true,
       }));
     } catch (error: any) {
-      // console.error("Error packing order detail:", error);
+      LogError({
+        scenario: "SellerOrders.handlePackItem",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setOrdersError(
         error?.message || translateFunction("Failed to pack order item"),
       );
@@ -2002,14 +2078,20 @@ export const RenderOrders = ({
     try {
       setOrderDetailActionLoading(String(detailId));
       setOrdersError(null);
-      await SellerDashboardService.cancelOrderDetail(sellerId, {
+      const res = await SellerDashboardService.cancelOrderDetail(sellerId, {
         detail_id: Number(detailId),
         order_id: Number(orderId),
         qty,
       });
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to cancel order item");
+      }
       syncOrderDetailCancel(orderId, detailId, qty);
     } catch (error: any) {
-      // console.error("Error cancelling order detail:", error);
+      LogError({
+        scenario: "SellerOrders.handleCancelItem",
+        error: error instanceof Error ? error.message : String(error),
+      });
       setOrdersError(
         error?.message || translateFunction("Failed to cancel order item"),
       );
@@ -2032,8 +2114,8 @@ export const RenderOrders = ({
     void home.subscribeToTopic({ topic: orderDetailTopic });
 
     return () => {
-      void home.UnsubscripeFromTopic({ topic: orderTopic });
-      void home.UnsubscripeFromTopic({ topic: orderDetailTopic });
+      // void home.UnsubscripeFromTopic({ topic: orderTopic });
+      // void home.UnsubscripeFromTopic({ topic: orderDetailTopic });
     };
   }, [activeTab, canViewOrders, sellerId, sellerOrders]);
 
@@ -2047,6 +2129,26 @@ export const RenderOrders = ({
       getSellerOrders(1);
     }
   }, [shouldUpdateOrders, activeTab, canViewOrders, sellerId]);
+
+  // Hooks must run on every render — keep them above the early returns below,
+  // otherwise a permission/error path renders fewer hooks than a prior render
+  // and React throws "Rendered fewer hooks than expected."
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const lastElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (ordersLoading) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          loadMoreOrders(ordersPage + 1);
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [ordersLoading, hasMore, ordersPage],
+  );
 
   if (!canViewOrders) {
     return (
@@ -2078,227 +2180,75 @@ export const RenderOrders = ({
       </div>
     );
   }
+  const loadMoreOrders = async (page) => {
+    if (!ordersLoading && hasMore) {
+      try {
+        setOrdersLoading(true);
+        setOrdersError(null);
+        const status = getOrderStatusFromTab(selectedOrderFilterTab);
+        const res = await SellerDashboardService.getSellerOrders(
+          sellerId,
+          page,
+          status,
+        );
+        if (!res?.success) {
+          throw new Error(res?.message || "Failed to load orders");
+        }
+        const orders = res.data?.orders || res.data || [];
+        const normalizedOrders = Array.isArray(orders) ? orders : [];
+        setSellerOrders([...sellerOrders, ...normalizedOrders]);
+        setOrdersMeta(res.data?.meta || null);
+        setHasMore(res.data?.meta?.has_more_pages || false);
+        setOrderStatusOptions(
+          res.data?.user_abilities?.change_order_status || [],
+        );
+        setOrdersPage(page);
+      } catch (error: any) {
+        LogError({
+          scenario: "SellerOrders.loadMoreOrders",
+          error: error instanceof Error ? error.message : String(error),
+        });
+        setOrdersError(
+          error?.message || translateFunction("Failed to load orders"),
+        );
+      } finally {
+        setOrdersLoading(false);
+      }
+    }
+  };
   return (
-    // <div className="space-y-6">
-    //   {sellerOrders.map((order: any) => {
-    //     const items = Array.isArray(order.details)
-    //       ? order.details.flatMap((group: any) =>
-    //           Array.isArray(group) ? group : [],
-    //         )
-    //       : [];
-
-    //     return (
-    //       <div
-    //         key={order.id || order.order_group_id}
-    //         className="border border-gray-200 rounded-[15px] bg-white p-5"
-    //       >
-    //         <div className="flex flex-col gap-4 border-b border-gray-100 pb-4 mb-4">
-    //           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-    //             <div className="space-y-1">
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Order ID: {order.id}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Group: {order.order_group_id}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Cart Group: {order.cart_group_id}
-    //               </p>
-    //             </div>
-    //             <div className="flex flex-wrap gap-2">
-    //               <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
-    //                 {order.order_status}
-    //               </span>
-    //               <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-100">
-    //                 {order.order_group_status}
-    //               </span>
-    //               <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-green-50 text-green-700 border border-green-100">
-    //                 {order.payment_method}
-    //               </span>
-    //               <span
-    //                 className={`px-3 py-1 rounded-full text-[11px] font-medium border ${
-    //                   order.payment_status === "paid"
-    //                     ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-    //                     : "bg-yellow-50 text-yellow-700 border-yellow-100"
-    //                 }`}
-    //               >
-    //                 {order.payment_status}
-    //               </span>
-    //             </div>
-    //           </div>
-
-    //           {orderStatusOptions.length > 0 && (
-    //             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gray-50 border border-gray-100 rounded-[12px] p-3">
-    //               <div className="flex items-center gap-2">
-    //                 <span className="text-[13px] font-semibold text-[#1d1d1d]">
-    //                   {translateFunction("Change status:")}
-    //                 </span>
-    //                 <select
-    //                   value={selectedOrderStatuses[String(order.id)] || ""}
-    //                   onChange={(e) =>
-    //                     setSelectedOrderStatuses((prev) => ({
-    //                       ...prev,
-    //                       [String(order.id)]: e.target.value,
-    //                     }))
-    //                   }
-    //                   className="px-3 py-2 border border-gray-300 rounded-lg text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-    //                 >
-    //                   <option value="">{translateFunction("Select")}</option>
-    //                   {orderStatusOptions.map((statusOption) => (
-    //                     <option key={statusOption} value={statusOption}>
-    //                       {formatPermissionName(statusOption)}
-    //                     </option>
-    //                   ))}
-    //                 </select>
-    //               </div>
-    //               <button
-    //                 onClick={() => handleChangeOrderStatus(order.id)}
-    //                 disabled={
-    //                   orderActionLoading === String(order.id) ||
-    //                   !selectedOrderStatuses[String(order.id)]
-    //                 }
-    //                 className="px-4 py-2 bg-blue-500 text-white rounded-lg text-[13px] font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-    //               >
-    //                 {orderActionLoading === String(order.id)
-    //                   ? translateFunction("Updating...")
-    //                   : translateFunction("Update")}
-    //               </button>
-    //             </div>
-    //           )}
-
-    //           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-[12px] p-4">
-    //             <div className="space-y-1">
-    //               <p className="text-[13px] text-[#1d1d1d] font-semibold">
-    //                 Amount: {order.order_amount}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Shipping: {order.shipping_cost}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Discount: {order.discount_amount}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Delivery: {order.delivery_type || "N/A"}
-    //               </p>
-    //             </div>
-    //             <div className="space-y-1">
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Shipping Type: {order.shipping_type || "N/A"}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Transaction: {order.transaction_ref}
-    //               </p>
-    //               <p className="text-[12px] text-[#8D8D8D]">
-    //                 Return Allowed: {order.can_return_order ? "Yes" : "No"}
-    //               </p>
-    //             </div>
-    //           </div>
-    //         </div>
-
-    //         <div className="bg-gray-50 rounded-[12px] border border-gray-100 p-4">
-    //           <h4 className="text-[14px] font-semibold text-[#1d1d1d] mb-3 flex items-center justify-between">
-    //             <span>{translateFunction("Items")}</span>
-    //             <span className="text-[12px] text-[#8D8D8D] bg-white px-2 py-1 rounded-full border border-gray-200">
-    //               {items.length}
-    //             </span>
-    //           </h4>
-    //           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-    //             {items.map((item: any) => {
-    //               const productDetails =
-    //                 typeof item.product_details === "string"
-    //                   ? (() => {
-    //                       try {
-    //                         return JSON.parse(item.product_details);
-    //                       } catch (_err) {
-    //                         return null;
-    //                       }
-    //                     })()
-    //                   : item.product_details || null;
-    //               const productName =
-    //                 productDetails?.name || `Product #${item.product_id}`;
-
-    //               return (
-    //                 <div
-    //                   key={item.id}
-    //                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-gray-200 bg-white p-3"
-    //                 >
-    //                   <div className="space-y-1">
-    //                     <p className="text-[14px] font-semibold text-[#1d1d1d]">
-    //                       {productName}
-    //                     </p>
-    //                     <p className="text-[12px] text-[#8D8D8D]">
-    //                       Variant: {item.variant || "N/A"}
-    //                     </p>
-    //                     <p className="text-[12px] text-[#8D8D8D]">
-    //                       Delivery: {item.delivery_status}
-    //                     </p>
-    //                   </div>
-    //                   <div className="text-right space-y-1">
-    //                     <p className="text-[13px] font-semibold text-[#1d1d1d]">
-    //                       Qty: {item.qty}
-    //                     </p>
-    //                     <p className="text-[12px] text-[#8D8D8D]">
-    //                       Price: {item.price}
-    //                     </p>
-    //                     <p className="text-[12px] text-[#8D8D8D]">
-    //                       Payment: {item.payment_status}
-    //                     </p>
-    //                   </div>
-    //                 </div>
-    //               );
-    //             })}
-    //           </div>
-    //         </div>
-    //       </div>
-    //     );
-    //   })}
-
-    //   {ordersMeta && ordersMeta.last_page > 1 && (
-    //     <div className="flex items-center justify-center gap-2">
-    //       <button
-    //         onClick={() => getSellerOrders(ordersPage - 1)}
-    //         disabled={ordersPage === 1 || ordersLoading}
-    //         className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-    //       >
-    //         Previous
-    //       </button>
-    //       <span className="text-[14px] text-[#8D8D8D]">
-    //         Page {ordersMeta.current_page} of {ordersMeta.last_page}
-    //       </span>
-    //       <button
-    //         onClick={() => getSellerOrders(ordersPage + 1)}
-    //         disabled={ordersPage >= ordersMeta.last_page || ordersLoading}
-    //         className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-    //       >
-    //         Next
-    //       </button>
-    //     </div>
-    //   )}
-    // </div>
     <div className="min-h-screen bg-white flex items-center justify-center">
       {/* Mobile Frame */}
       <div className="min-h-screen w-full bg-white rounded-[3rem] relative flex flex-col">
         {/* Screen Content */}
         <div className="flex-1relative bg-white w-full">
           {screen === "list" ? (
-            <OrderListScreen
-              orders={sellerOrders}
-              selectedTab={selectedOrderFilterTab}
-              isLoading={ordersLoading}
-              onSelectTab={(tab) => {
-                setSelectedOrderFilterTab(tab);
-                setScreen("list");
-                setSelectedOrder(null);
-              }}
-              onSelectOrder={(order) => {
-                setSelectedOrder(order);
-                setScreen("detail");
-              }}
-            />
+            <>
+              <OrderListScreen
+              sellerId={sellerId}
+              setActiveTab={setActiveTab}
+                orders={sellerOrders}
+                selectedTab={selectedOrderFilterTab}
+                isLoading={ordersLoading}
+                onSelectTab={(tab) => {
+                  setSelectedOrderFilterTab(tab);
+                  setScreen("list");
+                  setSelectedOrderId(null);
+                }}
+                onSelectOrder={(order) => {
+                  setSelectedOrderId(order?.id ?? null);
+                  setScreen("detail");
+                }}
+              />
+
+              {sellerId.length > 0 && !ordersLoading && (
+                <div ref={lastElementRef} className="h-4" />
+              )}
+            </>
           ) : (
             <OrderDetailScreen
               order={selectedOrder}
-              onBack={() => setScreen("list")}
+              onBack={() => { setScreen("list"); setSelectedOrderId(null); }}
               orderStatusOptions={orderStatusOptions}
               selectedOrderStatuses={selectedOrderStatuses}
               setSelectedOrderStatuses={setSelectedOrderStatuses}

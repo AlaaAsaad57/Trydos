@@ -9,7 +9,7 @@ import {
 } from "store/notifications/reducer";
 import { fetchData } from "./fetchData";
 import { InCall } from "store/chat/callActions";
-import { getUserChat, LogError, translateFunction } from "./functions";
+import { getCart, getUserChat, LogError, translateFunction } from "./functions";
 
 import chat from "services/chat";
 import { watchChannel as watchChannelAction } from "store/chat/actions";
@@ -17,7 +17,10 @@ import { watchChannel as watchChannelAction } from "store/chat/actions";
 import { REQUESTS_DATA } from "./Requests";
 
 import auth from "services/auth";
-import { MARKET_NOTIFICATION_RECEIVED_EVENT } from "./notificationEvents";
+import {
+  MARKET_NOTIFICATION_RECEIVED_EVENT,
+  OPEN_DELIVERY_CHAT_EVENT,
+} from "./notificationEvents";
 
 // --- Interfaces ---
 
@@ -87,9 +90,24 @@ class ForegroundNotificationHandler {
   }
 
   private handleServiceWorkerMessage(event: MessageEvent): void {
-    const message: ServiceWorkerMessage = event.data;
+    const message: any = event.data;
+    if (!message) return;
     if (message.type === "FCM_NOTIFICATION") {
       this.handleNotification(() => {}, message.payload);
+    } else if (message.type === "OPEN_DELIVERY_CHAT") {
+      // Sent by the service worker when it focused an already-open order tab.
+      // Re-broadcast as a window event the order page listens for.
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent(OPEN_DELIVERY_CHAT_EVENT, {
+            detail: {
+              order_group_id: message.order_group_id,
+              order_id: message.order_id,
+              chat_id: message.chat_id,
+            },
+          }),
+        );
+      }
     }
   }
 
@@ -111,7 +129,7 @@ class ForegroundNotificationHandler {
       const rawData = payload?.data || {};
       const body = safeParse(rawData.body);
       const data = safeParse(rawData?.data || "{}");
-      if (body.type === "greeting") {
+      if (body.type === "greeting" || body.showed_type==="greeting") {
         console.log("Hello from the foreground notification handler!");
         await new Promise((resolve) => setTimeout(resolve, 2000));
         auth.validateFCMToken();
@@ -138,7 +156,7 @@ class ForegroundNotificationHandler {
 
       switch (eventType) {
         case "InAnotherCallEvent":
-          showErrorNotification("User In Another Call", 3000);
+          showErrorNotification(translateFunction("User In Another Call"), 3000);
           break;
 
         case "RefuseCallEvent":
@@ -209,7 +227,7 @@ class ForegroundNotificationHandler {
     const { country, language, sellerOrders = [], setSellerOrders } = state;
     const lang = `${country?.toLowerCase()}-${language?.toLowerCase()}`;
     const type = data?.type || "";
-
+    const showed_type=data?.showed_type||"";
     // Helper for common market notifications
     const notify = (url?: string, extra?: any) => {
       showSuccessNotification(
@@ -260,6 +278,7 @@ class ForegroundNotificationHandler {
 
     // --- Existing notification logic for other types ---
     if (type.startsWith("order status changed")) {
+      state.setShouldUpdateOrders(state.shouldUpdateOrders + 1);
       if (type !== "order status changed") {
         const url = `/${lang}/settings/orders/${data?.order_group_id}`;
         notify(url, {
@@ -267,7 +286,7 @@ class ForegroundNotificationHandler {
           href: `/${lang}/settings/orders/${data?.order_group_id}`,
         });
       }
-    } else if (type.includes("product hurry up")) {
+    } else if (type.includes("product hurry up")||showed_type?.includes('product hurry up')) {
       notify(data?.product_id ? `/products/${data.product_id}` : undefined, {
         is_product: true,
       });
@@ -326,6 +345,11 @@ class ForegroundNotificationHandler {
    * Special logic for Order Placed which requires data fetching
    */
   private async handleOrderPlaced(data: any, lang: string, state: any) {
+    // The cart may have been purchased from another account/device, so refresh
+    // the cart from the server (cart_shipping) to clear the stale cart-item
+    // indicator.
+    getCart({ callback: null }).catch(() => {});
+
     try {
       const response = await fetchData({
         url: `/customer/order/getOrdersByOrderGroupID?order_group_id=${data.order_group_id}`,
@@ -382,9 +406,9 @@ class ForegroundNotificationHandler {
     const isPrivateCall = data?.is_private;
     const privateData = isPrivateCall
       ? {
-          name: "Deleivery Worker",
+          name: "Delivery Worker",
           photo_path: null,
-          channel_name: "Deleivery Worker",
+          channel_name: "Delivery Worker",
           isPrivate: true,
         }
       : {};
@@ -550,7 +574,7 @@ class ForegroundNotificationHandler {
         const deepLink = `/${country}-${language}/settings/orders/${orderGroupId}?order_id=${orderId}&chat_id=${chatId}&mid=${messageData?.id}`;
 
         showChatNotification(
-          "Deleivery Worker",
+          "Delivery Worker",
           displayPreview,
           channel?.id || messageData?.channel_id,
           channel,

@@ -7,12 +7,14 @@ import {
   translateFunction,
   WaitForCondition,
 } from "utils/functions";
-import { smartlookIdentify } from "utils/smartlook";
+import { posthogIdentify } from "utils/posthog";
 
 import {
   CUSTOMER_INFO_URL,
   FIREBASE_SETTINGS_URL,
+  LIKE_COMMENT_URL,
   STARTER_SETTINGS,
+  UNLIKE_COMMENT_URL,
 } from "utils/endpointConfig";
 import auth from "./auth";
 import LocalizationServiceClass from "./localization";
@@ -20,9 +22,14 @@ import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { isGuestName } from "utils/tinyUtils";
 import { COOKIE_NAMES, setCookie } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
+import {
+  trackSubscribedTopic,
+  untrackSubscribedTopic,
+} from "utils/fcmTopicTracker";
 class HomeService {
   async getClientData() {
     const { setSettings, initCart, language } = useAppStore.getState();
@@ -44,6 +51,7 @@ class HomeService {
       if (!response.success) {
         throw new Error(response.message);
       }
+    
       setSettings(response.data);
       sessionStorage.setItem("starttingSetting", JSON.stringify(response.data));
       await this.getCustomerInfo();
@@ -105,6 +113,14 @@ class HomeService {
         // @ts-ignore
         throw new Error(response_customer_Info.message);
       }
+      // Treat backend guest placeholder names ("guest"/"verified_guest") as
+      // "no name" so the UI prompts for a real name. Don't surface them as-is.
+      if (
+        response_customer_Info.data.customer_info &&
+        isGuestName(response_customer_Info.data.customer_info.name)
+      ) {
+        response_customer_Info.data.customer_info.name = "";
+      }
       // Update server-side HttpOnly cookie
       fetch("/api/auth/update-user", {
         method: "POST",
@@ -122,7 +138,8 @@ class HomeService {
       if (response_customer_Info.data.customer_info) {
         if (response_customer_Info.data.customer_info) {
           updateUserInfo(response_customer_Info.data.customer_info);
-
+         const { orderData,setOrderData } = useAppStore.getState();
+          setOrderData({agree:response_customer_Info.data.customer_info.is_approve_policies})
           // if (
           //   response_customer_Info.data.customer_info &&
           //   response_customer_Info.data.customer_info?.is_phone_verified !== 1
@@ -184,7 +201,7 @@ class HomeService {
           expired_at: repo.data.expires_at,
         });
         if (process.env.NODE_ENV === "production")
-          smartlookIdentify(repo.data.user.id, {
+          posthogIdentify(repo.data.user.id, {
             name: repo.data.user.name,
             phone: "guest",
           });
@@ -202,8 +219,32 @@ class HomeService {
   // new unified action
   async AllowNotifications() {
     try {
-      const { requestFirebaseNotificationPermission, onMessageListener } =
-        await import("utils/firebaseInitv1");
+      // Request the OS notification permission FIRST, synchronously, before any
+      // `await`/dynamic-import below. Browsers only surface the loud permission
+      // prompt while the originating click's *transient user activation* is
+      // still alive, and every `await` (including `import()`) ends that window.
+      // The old code only reached `requestPermission` (inside Firebase's
+      // `getToken`) after 3 dynamic imports + a service-worker registration, by
+      // which point the activation was gone — so stricter/slower Edge builds
+      // silently downgraded to the quiet "bell icon" UI and the user never saw
+      // a prompt. Invoking it here keeps the request inside the gesture.
+      if (
+        typeof Notification !== "undefined" &&
+        Notification.permission === "default"
+      ) {
+        await Notification.requestPermission();
+      }
+
+      const {
+        requestFirebaseNotificationPermission,
+        onMessageListener,
+        setupNetworkRecoveryHandler,
+      } = await import("utils/firebaseInitv1");
+
+      // Activate resilience handler before anything else so it is in place
+      // even if the token fetch below fails and we retry later.
+      setupNetworkRecoveryHandler();
+
       const fbtoken = await requestFirebaseNotificationPermission();
 
       if (fbtoken) {
@@ -226,6 +267,13 @@ class HomeService {
             });
         }
       }
+
+      // Return the token so callers can tell whether this device actually has a
+      // usable FCM registration. When the browser can't get a token
+      // (unsupported browser, no service worker, permission not granted) this is
+      // undefined — the caller must NOT then show a topic as subscribed, because
+      // the backend has no device to attach it to and it would silently vanish.
+      return fbtoken;
     } catch (error) {
       LogError(error);
       LogServerError({
@@ -311,7 +359,7 @@ class HomeService {
 
     if (userData && userData?.is_phone_verified === 1 && hasMarketToken) {
       if (process.env.NODE_ENV === "production")
-        smartlookIdentify(userData.id, {
+        posthogIdentify(userData.id, {
           name: userData.name,
           phone: userData.mobilePhone,
         });
@@ -326,8 +374,9 @@ class HomeService {
       if (userWallet) loginSuccessWallet({ ...userWallet });
     } else {
       if (userData) {
+        if (userStories) loginSuccessStories({ ...userStories });
         if (process.env.NODE_ENV === "production")
-          smartlookIdentify(userData.id, {
+          posthogIdentify(userData.id, {
             name: userData.name,
             phone: userData.mobilePhone,
           });
@@ -383,7 +432,7 @@ class HomeService {
       SetGAUser(repo.data?.user, isNewUser);
       if (repo.data?.user) {
         if (process.env.NODE_ENV === "production")
-          smartlookIdentify(repo.data.user.id, {
+          posthogIdentify(repo.data.user.id, {
             name: repo.data.user.name,
             phone: "guest",
           });
@@ -425,6 +474,9 @@ class HomeService {
         if (!response.ok || !result?.success) {
           throw new Error(result?.message || "Subscribe to topic failed");
         }
+
+        // Track so the network-recovery handler can re-subscribe if the token rotates
+        trackSubscribedTopic(topic);
       } catch (err) {
         LogServerError({
           error: err,
@@ -450,12 +502,48 @@ class HomeService {
       if (!response.ok || !result?.success) {
         throw new Error(result?.message || "Unsubscribe from topic failed");
       }
+
+      // Remove from tracker so network recovery won't re-subscribe it
+      untrackSubscribedTopic(topic);
     } catch (err) {
       LogServerError({
         error: err,
         scenario: "Error In UnsubscripeFromTopic in services/home",
       });
     }
+  }
+
+  async subscribeToTopicInventory({topic,variant=null}){
+   // Return the result so the caller can confirm the backend actually
+   // subscribed before painting the topic as enabled. `fetchData` never throws
+   // — it resolves to `{ success: false }` on failure — so swallowing the
+   // return value here is what let a failed subscribe still show as enabled.
+   return await fetchData({
+        url:'/firebase_device_tokens/subscribe_topic',
+        method:'POST',
+        body:{
+          topic:topic,
+          variant:variant
+        },
+        reqTitle:REQUESTS_DATA.STORE_FIREBASE_SUBSCRIBE_TOPIC,
+        server:'market',
+        // The caller owns the user-facing error toast (and rolls back the UI on
+        // failure); silence fetchData's own toast to avoid a duplicate.
+        noMessage:true
+      });
+  }
+   async UnsubscribeToTopicInventory({topic,variant=null}){
+      return await fetchData({
+        url:'/firebase_device_tokens/unsubscribe_topic',
+        method:'POST',
+        body:{
+          topic:topic,
+          variant:variant
+        },
+        reqTitle:REQUESTS_DATA.STORE_FIREBASE_UNSUBSCRIBE_TOPIC,
+        server:'market',
+        noMessage:true
+      });
   }
   async handleTopicsOnPageRefresh(token: string) {
     // Extract country and language from the URL
@@ -467,7 +555,7 @@ class HomeService {
       throw new Error("Invalid URL format for country-language pair");
     }
     const { getFirebaseSettings } = useAppStore.getState();
-    setCookie(COOKIE_NAMES.LOCAL, `${countryCode}-${languageCode}`);
+    setCookie(COOKIE_NAMES.LOCAL, `${countryCode?.toLowerCase()}-${languageCode?.toLowerCase()}`);
 
     if (!token) return;
 
@@ -718,6 +806,8 @@ class HomeService {
   }
 
   async EditNotificationSettings({ url, body }) {
+    // Returns true on success, false on failure so callers can revert
+    // optimistic UI updates when the request doesn't go through.
     try {
       const response = await fetchData({
         url: `/firebase_device_tokens/${url}`,
@@ -729,16 +819,18 @@ class HomeService {
       if (!response.success) {
         throw new Error(response.message);
       }
+      return true;
     } catch (error) {
       LogServerError({
         error: error,
         scenario: "Error In EditNotificationSettings in services/home",
       });
+      return false;
     }
   }
   async LikeComment({ comment_id, target_type, product_id }) {
     let resp = await fetchData({
-      url: "/public_comment/likes/like",
+      url: LIKE_COMMENT_URL,
       server: "comments",
       method: "POST",
       body: JSON.stringify({ target_id: comment_id, target_type, product_id }),
@@ -748,7 +840,7 @@ class HomeService {
   }
   async UnLikeComment({ comment_id, target_type, product_id }) {
     let resp = await fetchData({
-      url: "/public_comment/likes/unlike",
+      url: UNLIKE_COMMENT_URL,
       server: "comments",
       method: "DELETE",
       body: JSON.stringify({ target_id: comment_id, target_type, product_id }),

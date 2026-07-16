@@ -5,7 +5,7 @@ import CategoryNavMobile from "components/Home/CategoryNavMobile";
 export default async function MainCategoriesNavbar({
   lang,
   mainCategory,
-}): Promise<JSX.Element> {
+}) {
   const [country, language] = lang?.split("-");
   let responseData = await GetMainCategories({ language, country });
   let activeCategory = mainCategory;

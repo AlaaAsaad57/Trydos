@@ -11,6 +11,9 @@ import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import WalletPaymentModal from "./WalletPaymentModal";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const {
@@ -47,13 +50,31 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const Validate = () => {
     if (!orderData.agree) {
       shake("agree-valid-border");
+      trackOrder(ORDER_EVENTS.PLACE_ORDER_BLOCKED_TERMS_NOT_AGREED);
     }
   };
   const setAgree = async (e) => {
     if (loading || agreeLoading) return;
     setAgreeLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    if(e){
+    try{
+      await fetchData({
+        url:'/customer/approve-policies',
+        server:"market",
+        method:'GET',
+        reqTitle:REQUESTS_DATA.APPROVE_POLICY,
+        noMessage:true
+      });
+
+    }catch(e){
+      LogError({
+        error: e,
+        scenario: "error in agree to policy - setAgree - cart widget",
+      });
+    }
+  }
     setOrderData({ agree: e });
+    trackOrder(ORDER_EVENTS.TERMS_AGREED_TOGGLED, { agreed: !!e });
     setAgreeLoading(false);
   };
   const [loading, setLoading] = useState(false);
@@ -67,6 +88,9 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const VerifyCart = async () => {
     try {
       setLoading(true);
+      trackOrder(ORDER_EVENTS.PLACE_ORDER_CLICKED, {
+        has_wallet_payment: hasWalletPayment,
+      });
       let a = (
         await getCart({
           callback: ([data, res]) => {
@@ -80,9 +104,11 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
         showErrorNotification(
           translateFunction("Please Verify Your Phone Number"),
         );
+        trackOrder(ORDER_EVENTS.PLACE_ORDER_BLOCKED_PHONE_UNVERIFIED);
         return;
       }
       if (a.length === 0) {
+        trackOrder(ORDER_EVENTS.PLACE_ORDER_EMPTY_CART);
         backToCart();
         setLoading(false);
         return;
@@ -97,6 +123,9 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
       ) {
         setLoading(false);
         if (hasWalletPayment) {
+          trackOrder(ORDER_EVENTS.WALLET_MODAL_OPENED, {
+            wallet_balance: walletPaymentBalance,
+          });
           setShowWalletModal(true);
         } else {
           successOrder();
@@ -114,7 +143,9 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
           "Please Review Your Cart Some Products Not Available",
         ),
       );
-
+      trackOrder(ORDER_EVENTS.PLACE_ORDER_BLOCKED_CART_UNAVAILABLE, {
+        reason: error instanceof Error ? error.message : String(error),
+      });
       backToCart();
       setLoading(false);
     }
@@ -262,6 +293,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
           <div
             className="flex w-full"
             onClick={() => {
+              trackOrder(ORDER_EVENTS.ORDER_SUCCESS_DONE_CLICKED);
               setOrderData({
                 payment: [],
                 coupon: false,
@@ -279,7 +311,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
             }}
           >
             <a
-              href={window.location.pathname === `/${lang}` ? `` : `/${lang}`}
+              href={`/${lang}`}
               data-cy="back-to-home-page"
               onClick={() => {
                 setIsNavigating({ is_full_home: true });

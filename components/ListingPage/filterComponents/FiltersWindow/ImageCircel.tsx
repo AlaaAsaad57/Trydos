@@ -1,3 +1,4 @@
+"use client";
 import { getConfiguredImage, GetImageUrl } from "utils/server";
 
 function ImageCircel({

@@ -1,8 +1,11 @@
-import { translateFunction } from "utils/server";
-import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
+import {
+  countryNameFromIso,
+  translateFunction,
+  formatTime,
+  ShowDayStr,
+} from "utils/server";
 import Skeleton from "react-loading-skeleton";
 import ExpectedDeleiveryBanner from "components/products/ExpectedDeleiveryBanner";
-import { GetCountries } from "serverRequests/product";
 
 async function ProductExpectedDeleiveryWrapper({
   language,
@@ -10,15 +13,29 @@ async function ProductExpectedDeleiveryWrapper({
   country,
   StarttingSettingPromise,
 }) {
-  let [productData, starttingSetting, countries] = await Promise.all([
+  let [productData, starttingSetting] = await Promise.all([
     globalPromise,
     StarttingSettingPromise,
-    GetCountries({ country, language }),
+
   ]);
 
   const isRtl = language === "ar" || language === "ku";
+  // Guard against a missing `shipping_days` — without it the delivery estimate
+  // and "work days" count compute as NaN.
+  const productShippingDays = Number(productData?.shipping_days) || 0;
+  const deliveryOffsetDays =
+    Number(starttingSetting?.shipping_duration_days || 0) + productShippingDays;
+  const deliveryDate = new Date(
+    Date.now() + deliveryOffsetDays * 24 * 60 * 60 * 1000,
+  );
   return (
-    <ExpectedDeleiveryBanner country={country} language={language}>
+    <ExpectedDeleiveryBanner
+      country={country}
+      language={language}
+      product_id={productData?.id}
+      shipping_days={productShippingDays}
+      allow_return_in_days={productData?.allow_return_in_days}
+    >
       <img src="/icons/expectedDelevery.svg" className="w-[30px] h-[30px]" />
       <span className="flex-row gap-[12px] items-center">
         {translateFunction("Expected Delivery Date", language)}
@@ -56,56 +73,23 @@ async function ProductExpectedDeleiveryWrapper({
         </svg>
       </span>
       <span
-        className={`${
-          isRtl && "dir-rtl"
-        } w-max text-[#1D1D1D] text-[12px] regular mt-[3px] items-center flex  `}
+        className={`${isRtl && "dir-rtl"
+          } w-max text-[#1D1D1D] text-[12px] regular mt-[3px] items-center flex  `}
       >
         <span className="pr-[4px]">
-          {ShowDayStr(
-            new Date(
-              new Date().getTime() +
-                Number(
-                  (starttingSetting?.shipping_duration_days || 0) +
-                    productData?.shipping_days,
-                ) *
-                  24 *
-                  60 *
-                  60 *
-                  1000,
-            )?.getDay(),
-            language,
-          )}
+          {ShowDayStr(deliveryDate.getDay(), language)}
         </span>
         <span className="bold text-[#1D1D1D] text-[12px]  mx-px">
-          {formatTimeForAddress(
-            new Date(
-              new Date().getTime() +
-                Number(
-                  (starttingSetting?.shipping_duration_days || 0) +
-                    productData?.shipping_days,
-                ) *
-                  24 *
-                  60 *
-                  60 *
-                  1000,
-            ).toString(),
-            language,
-          )}
+          {formatTime(deliveryDate.toISOString(), language)}
         </span>{" "}
         |{" "}
-        {(starttingSetting?.shipping_duration_days || 0) +
-          productData?.shipping_days}{" "}
+        {deliveryOffsetDays}{" "}
         {translateFunction("Work Days", language)}{" "}
         {translateFunction("At Your Address In", language)}
         <span className="capitalize px-[3px]">
-          {countries?.length ? (
-            translateFunction(
-              countries?.find((s) => s.iso?.toLowerCase() === country)?.name,
-              language,
-            )
-          ) : (
-            <Skeleton width="100%" height="100%" borderRadius={16} />
-          )}
+          { country?countryNameFromIso(country, language): (
+                             <Skeleton width="100%" height="100%" borderRadius={16} />
+                           )}
         </span>
       </span>
     </ExpectedDeleiveryBanner>

@@ -5,16 +5,19 @@ import Order from "services/order";
 import Spinner from "components/global/Spinner";
 import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
 import OrderItemBanner from "../OrderItemBanner";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 function OrderCancelConfirmationWindow({
   order,
   close,
   isRtl,
   callback,
+  cancelReasons = [],
 }: {
   order: OrderInterface;
   close: () => void;
   isRtl: boolean;
   callback: () => Promise<any>;
+  cancelReasons?: string[];
 }) {
   const [loading, setLoading] = useState(false);
   const [agree, setAgree] = useState(false);
@@ -22,6 +25,13 @@ function OrderCancelConfirmationWindow({
     try {
       setLoading(true);
       await Order.CancelOrder({ order_id: order.id });
+      trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_CANCELLED, {
+        order_id: order.id,
+        order_value: order.order_amount,
+        order_status: order.order_status?.value,
+        payment_type: order.payment_method?.value,
+        cancel_reason: cancelReasons,
+      });
       await callback();
       setLoading(false);
       close();

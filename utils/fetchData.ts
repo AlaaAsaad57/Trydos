@@ -42,6 +42,42 @@ interface FetchDataParams {
 // ---------- Internal State ----------
 const requestCache = new Map<string, any>();
 const inflightRequests = new Map<string, Promise<any>>();
+
+// Aborted as a group the moment a logout starts, so every in-flight authed
+// request stops immediately instead of resolving a 401 mid-logout (which is
+// what used to let a late response resurrect the just-cleared session). The
+// page reloads right after logout, giving a fresh module instance with a fresh
+// controller — so there is no need to re-create it here.
+let logoutAbortController = new AbortController();
+
+/**
+ * Abort all in-flight `fetchData` requests because a logout has started.
+ * Call this AFTER any must-finish logout request (e.g. FCM token removal) and
+ * before clearing cookies. Bare `fetch` calls (the logout route itself) are
+ * unaffected — only `fetchData`-issued requests join this group.
+ */
+export const abortInFlightForLogout = () => {
+  try {
+    logoutAbortController.abort();
+  } catch {}
+};
+
+// Merge the caller's per-request signal with the logout-group signal so a fetch
+// aborts if EITHER fires. Done manually (not via `AbortSignal.any`) for broad
+// browser support.
+const withLogoutSignal = (signal?: AbortSignal): AbortSignal => {
+  const controller = new AbortController();
+  if (logoutAbortController.signal.aborted || signal?.aborted) {
+    controller.abort();
+    return controller.signal;
+  }
+  const onAbort = () => controller.abort();
+  logoutAbortController.signal.addEventListener("abort", onAbort, {
+    once: true,
+  });
+  signal?.addEventListener("abort", onAbort, { once: true });
+  return controller.signal;
+};
 const retryableStatusCodes = [502, 504, 429, 503];
 const ignoredMessages = [
   "Data Got!",
@@ -59,6 +95,11 @@ const ignoredMessages = [
   "Unauthorized",
   "The user aborted a request.",
   "Fetch is aborted",
+  "success",
+  "Policies Approved!",
+  "firebase device token stored successfully",
+  "Firebase settings retrieved successfully",
+  "Languages retrieved successfully"
 ];
 
 // ---------- Helper Functions ----------
@@ -66,7 +107,7 @@ const ignoredMessages = [
 // Servers that are on the same origin — direct fetch, cookies sent automatically
 const isLocalServer = (server: ServerType) => server === "local";
 
-// "upload story" goes to Cloudinary (cross-origin, no auth, no custom headers)
+
 const isUploadStory = (server: ServerType) => server === "upload story";
 
 const getLocale = () => {
@@ -99,6 +140,33 @@ const waitUntilRegisteringComplete = async (): Promise<void> => {
   } catch (err) {}
 };
 
+// When a user-facing re-auth (the "verify your number" widget) is already in
+// progress, wait for it to resolve instead of starting a parallel recovery.
+// Mirrors the poll used by the chat/stories 401 path: resolves `true` once the
+// user verifies (reAuthResult === "success"), `false` if the prompt is
+// cancelled/dismissed or after the same 5-minute safety timeout.
+const waitForReAuthSuccess = (): Promise<boolean> =>
+  new Promise((resolve) => {
+    const interval = setInterval(() => {
+      const state = useAppStore.getState();
+      if (state.reAuthResult === "success") {
+        clearInterval(interval);
+        resolve(true);
+      } else if (
+        !state.shouldAuthinticated ||
+        state.reAuthResult === "cancelled"
+      ) {
+        clearInterval(interval);
+        resolve(false);
+      }
+    }, 500);
+
+    setTimeout(() => {
+      clearInterval(interval);
+      resolve(false);
+    }, 300000); // 5 minutes timeout
+  });
+
 const handleUnauthorized = async (
   server: ServerType,
   options,
@@ -120,12 +188,52 @@ const handleUnauthorized = async (
           server === "market"
         ) {
           const { useAppStore } = await import("../store");
+          const { isRegisteringReady, shouldAuthinticated, reAuthResult } =
+            useAppStore.getState();
+
+          // A user-facing verification (the "verify your number" widget) is
+          // already in progress — typically triggered by a concurrent
+          // chat/stories/need_auth request on the same (expired) page load.
+          // Wait for it to finish and retry with the freshly issued token,
+          // instead of starting a parallel guest re-register (ExpiredUser),
+          // which would delete the just-verified MARKET token and force a
+          // second prompt at checkout. Scoped to market(-dashboard) so the
+          // /api/auth/login retry path (server === "local") is untouched.
+          if (
+            (server === "market" || server === "market-dashboard") &&
+            (shouldAuthinticated || reAuthResult === "pending")
+          ) {
+            return await waitForReAuthSuccess();
+          }
+
           // If a registration/expire is already in progress, wait for it
           // instead of starting another one
-          const { isRegisteringReady } = useAppStore.getState();
           if (!isRegisteringReady) {
             await waitUntilRegisteringComplete();
             return true;
+          }
+
+          // Seller dashboard: don't silently re-register as a guest and bounce.
+          // Register the guest (with the old user id, so closing the prompt
+          // still leaves a usable token), then surface the confirmMobile widget
+          // and wait for the seller to re-verify — mirroring the chat/stories
+          // 401 flow. On success the original request is retried with the fresh
+          // MARKET token; on cancel the widget redirects to home.
+          const isSeller =
+            !!options?.sellerId ||
+            (typeof window !== "undefined" &&
+              window.location.pathname.includes("/seller"));
+
+          if (isSeller) {
+            const authService = await import("../services/auth");
+            await authService.default.ExpiredUser();
+
+            const { setShouldAuthinticated, setReAuthResult } =
+              useAppStore.getState();
+            setReAuthResult("pending");
+            setShouldAuthinticated("seller");
+
+            return waitForReAuthSuccess();
           }
 
           const authService = await import("../services/auth");
@@ -242,6 +350,15 @@ export const fetchData = async <T = any>(
   }
 
   const cacheKey = generateCacheKey(params);
+  // Mutating writes are NOT idempotent: on a poor network the request can reach
+  // the backend and succeed while the response/ACK is lost (socket drop →
+  // "Failed to fetch", or a 502/504 from an edge proxy *after* the backend
+  // already processed it). Retrying then creates a duplicate (e.g. a review
+  // comment written twice in Elasticsearch). Never auto-retry these — the create
+  // endpoint has no idempotency key to dedupe on. GETs stay retryable.
+  const isMutatingMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(
+    String(method || "").toUpperCase(),
+  );
   let retryCount = 0;
   let status: number;
   let responseData: any;
@@ -268,13 +385,16 @@ export const fetchData = async <T = any>(
       const { country, language } = getLocale();
       let res: Response;
 
+      // Abort on the caller's signal OR when a logout begins.
+      const effectiveSignal = withLogoutSignal(signal);
+
       if (isUploadStory(server)) {
-        // ── UPLOAD STORY: cross-origin Cloudinary, no auth, no custom headers ──
+
         res = await fetch(url, {
           method,
           body: body && method !== "GET" ? (body as BodyInit) : undefined,
           credentials: "omit",
-          signal,
+          signal: effectiveSignal,
         });
       } else if (isLocalServer(server)) {
         // ── LOCAL: same-origin fetch, HttpOnly cookies sent automatically ──
@@ -291,16 +411,18 @@ export const fetchData = async <T = any>(
           headers: localHeaders,
           body: body && method !== "GET" ? (body as BodyInit) : undefined,
           credentials: "include",
-          signal,
+          signal: effectiveSignal,
         });
       } else {
+        const safeProxyUrl = encodeURI(url);
         // ── EXTERNAL: route through /api/proxy (token injected server-side) ──
         const proxyHeaders: Record<string, string> = {
           "x-proxy-server": server,
-          "x-proxy-url": url,
+          "x-proxy-url": safeProxyUrl,
           "x-proxy-method": method,
           "x-country": country,
           "x-language": language,
+          "x-need-decode":"true"
         };
 
         if (sellerId) {
@@ -324,16 +446,19 @@ export const fetchData = async <T = any>(
           headers: proxyHeaders,
           body: proxyBody,
           credentials: "include", // sends HttpOnly cookies to proxy
-          signal,
+          signal: effectiveSignal,
         });
       }
 
       status = res.status;
+
       try {
         responseData = await res.json();
       } catch (e) {}
-      // if user not linked to seller it should redirect to home page
-      if (status !== 200 && method === "GET") {
+      // if user not linked to seller it should redirect to home page.
+      // 401 is excluded: an expired token is handled by the re-auth flow below
+      // (confirmMobile widget), not by an immediate bounce to home.
+      if (status !== 200 && status !== 401 && method === "GET") {
         if (server === "market" && sellerId) {
           window.location.href = `/`;
         }
@@ -357,6 +482,7 @@ export const fetchData = async <T = any>(
           body,
           status,
           responseData,
+          sellerId,
         });
         if (shouldRetry) {
           retryActionIfUnAuth?.();
@@ -370,7 +496,7 @@ export const fetchData = async <T = any>(
         throw new Error(
           responseData?.message ??
             responseData?.data?.message ??
-            `Error fetching data for request ${reqTitle?.code}`,
+            `Error fetching data for request ${reqTitle?.code} : ${res.status} : ${res.statusText}`,
         );
       }
 
@@ -432,8 +558,9 @@ export const fetchData = async <T = any>(
     } catch (err: any) {
       retryCount++;
       if (
-        (err instanceof TypeError && err.message.includes("fetch")) ||
-        retryableStatusCodes.includes(status)
+        !isMutatingMethod &&
+        ((err instanceof TypeError && err.message.includes("fetch")) ||
+          retryableStatusCodes.includes(status))
       ) {
         if (retryCount < 3) {
           await new Promise((r) => setTimeout(r, 1000 * retryCount));

@@ -1,10 +1,6 @@
 "use server";
 
-import {
-  COOKIE_NAMES,
-  getCookieServer,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import { fetchServerData } from "./ServerFetch";
 import { LogServerError } from "utils/serverErrorReporter";
 
@@ -37,13 +33,15 @@ export async function fetchStoriesForUser(
   page: number = 1,
   userToken?: string,
 ): Promise<StoriesResponse> {
-  const STORIES_TOKEN = await getCookieServer<UserData>(
-    COOKIE_NAMES.USER_STORIES,
-  );
+  // Auth from the dedicated STORIES_TOKEN cookie (kept fresh on re-auth by
+  // /api/auth/update-user), consistent with the proxy. Fall back to a token
+  // passed by the caller (e.g. the chat StoriesList widget) if the cookie is absent.
+  const storiesToken =
+    (await getCookieServer<string>(COOKIE_NAMES.STORIES_TOKEN)) || userToken;
 
   let headers = {
-    ...(STORIES_TOKEN?.access_token && {
-      Authorization: `Bearer ${STORIES_TOKEN?.access_token ?? userToken}`,
+    ...(storiesToken && {
+      Authorization: `Bearer ${storiesToken}`,
     }),
     Accept: "application/json",
   };
@@ -101,7 +99,7 @@ export async function fetchStoriesForGuest(
       url: `${process.env.NEXT_PUBLIC_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
       method: "GET",
       tags: ["stories", "home"],
-      // revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
+     
       revalidate: 0,
       local: `${country}-${language}`,
       headers: headers,

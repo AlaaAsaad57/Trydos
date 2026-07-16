@@ -1,7 +1,6 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { expandView, normalizeView } from "utils/functions";
 
 import home from "services/home";
 
@@ -14,7 +13,7 @@ const CartContainer = dynamic(() => import("."), {
 });
 const OrdersPage = dynamic(() => import("./OrdersPage"), {
   ssr: false,
-  loading: () => <></>,
+  loading: () => <OrdersPageSkeleton />,
 });
 import { useAppStore } from "store";
 import {
@@ -27,10 +26,13 @@ import AddToCartComponent from "./AddToCart/AddToCartComponent";
 import { GA_GLOBAL_SCREEN, GA_EVENT_NAMES } from "utils/GAEvents";
 
 import { GAevent } from "utils/gtag";
+import { ORDER_EVENTS, startOrderAttempt, trackOrder } from "utils/orderFunnel";
 import auth from "services/auth";
 import { getCookie } from "utils/cookies/cookie-manager";
 import SearchParamUpdater from "components/global/ParamsUpdater";
+import { markBackClosing, takeSelfConsume } from "utils/popupHistory";
 import CartSkeleton from "components/skeleton/CartSkeleton";
+import OrdersPageSkeleton from "components/skeleton/OrdersPageSkeleton";
 
 const CartProvider = ({ language, country }) => {
   const {
@@ -43,7 +45,6 @@ const CartProvider = ({ language, country }) => {
     setAppCountry,
     setCurrency,
     setChatOpen,
-    filterEnabled,
     openPayIframe,
     payIframeURL,
     cart_enable: enable,
@@ -75,15 +76,37 @@ const CartProvider = ({ language, country }) => {
         });
       }
     }, 10);
-    window.addEventListener("popstate", (event) => {
+    const handlePopState = (event: PopStateEvent) => {
       if (event.state?.isPopup) {
-        let params = new URLSearchParams(searchParams);
+        // A popup closing via React state consumes its own history entry with
+        // history.back(); that lands here on the entry underneath. Leave any
+        // popup still open below it alone (e.g. the cart during checkout→login).
+        if (takeSelfConsume()) return;
+
+        // A real user back-press: tell the unmount cleanups it triggers not to
+        // history.back() again.
+        markBackClosing();
+
+        // Read the LIVE location, not the pathname/searchParams captured when
+        // this listener was registered. CartProvider lives in the persistent
+        // layout, so the closure would otherwise always point at the page the
+        // app first loaded (usually home) and yank the user there from any
+        // other route (e.g. /settings) when an orphaned `isPopup` history
+        // entry — pushed by a popup that was closed via React state instead of
+        // history.back() — is traversed.
+        const params = new URLSearchParams(window.location.search);
         params.delete("cart");
         params.delete("modal");
         params.delete("story");
         params.delete("search");
-        // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-        router.push(`${pathname}?${params.toString()}`, { shallow: true });
+        const query = params.toString();
+        router.push(
+          query
+            ? `${window.location.pathname}?${query}`
+            : window.location.pathname,
+          // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+          { shallow: true },
+        );
         setSelectedStory(null);
         enableCart(false);
         setLoginOpen(false);
@@ -95,18 +118,14 @@ const CartProvider = ({ language, country }) => {
         // @ts-ignore
         document.querySelector(`#search-element`)?.blur();
       }
-    });
-    window.addEventListener("scroll", function (e) {
-      if (!filterEnabled) {
-        if (window.scrollY > 80) {
-          expandView({ filter: false });
-        } else {
-          normalizeView();
-        }
-      }
-    });
+    };
+    window.addEventListener("popstate", handlePopState);
     setAppLanguage(language);
     setAppCountry(country);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, []);
 
   useEffect(() => {
@@ -220,6 +239,13 @@ const StepSlider = ({ enableCart }) => {
           item_variant: item.variant ?? "N/A",
         })),
       },
+    });
+    // Funnel anchor: mint the attempt id BEFORE the begin_checkout event so it
+    // carries the correlation id, then every later step shares it.
+    startOrderAttempt();
+    trackOrder(ORDER_EVENTS.BEGIN_CHECKOUT, {
+      value: total_cash,
+      item_count: cart.length,
     });
     setStep(1);
   };

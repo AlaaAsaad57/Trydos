@@ -16,6 +16,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import home from "services/home";
 import UPDATED_API_DATA from "migration.staging";
 import { LogServerError } from "utils/serverErrorReporter";
+import { trackPosthog, CHAT_EVENTS } from "utils/posthogEvents";
 
 class ChatService {
   private hasNewIncomingMessage(
@@ -135,6 +136,11 @@ class ChatService {
         throw new Error(res.message);
       }
       await this.getChats("share");
+      trackPosthog(CHAT_EVENTS.CHAT_PRODUCT_SHARED, {
+        product_id: product?.id,
+        product_slug: product?.slug,
+        receiver_user_id: userId,
+      });
       showSuccessNotification(
         translate("Product is Shared Successfully", language),
       );
@@ -213,8 +219,8 @@ class ChatService {
         throw new Error(response.message);
       }
       const allChannels = [
-        ...response.data.channels,
-        ...response.data.pinned_channels,
+        ...(response?.data?.channels ?? []),
+        ...(response?.data?.pinned_channels ?? []),
       ];
       await this.sendReceivedForChannelsWithNewMessages(allChannels);
       setChats(response.data.channels, response.data.pinned_channels);

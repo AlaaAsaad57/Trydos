@@ -54,7 +54,7 @@
 }
 .input-icons {
   position: absolute;
-  right: 38px;
+ 
   top: 10px;
   width: 60px;
   justify-content: space-between;
@@ -98,6 +98,7 @@
   cursor: pointer;
 }
 .search-container {
+  left:0px;
   max-width: 1365px;
   width: 100%;
   position: absolute;

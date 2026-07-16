@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getConfiguredImage } from "utils/server";
 import { GetImageUrl } from "utils/tinyUtils";
 
 interface UserAvatarProps {
@@ -32,7 +33,8 @@ function UserAvatar({ avatar, onClick, showIndicator }: UserAvatarProps) {
               alt="user-img"
               width={30}
               height={30}
-              src={GetImageUrl(avatar)}
+              unoptimized
+              src={getConfiguredImage({src:GetImageUrl(avatar),width:70,height:70})}
               quality={100}
               className="avatar-user-image object-cover object-center"
             />

@@ -15,6 +15,8 @@ const NotificationsPanel = dynamic(
 );
 import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
+
+const OtpStatsModal = dynamic(() => import("./OtpStatsModal"), { ssr: false });
 import auth from "services/auth";
 import { COOKIE_NAMES, deleteCookie } from "utils/cookies/cookie-manager";
 import { clearAllUserData } from "utils/tinyUtils";
@@ -30,7 +32,7 @@ interface MenuProps {
   setMenuOpen: (open: boolean) => void;
 }
 
-const MenuIcon = ({ children }) => (
+const MenuIcon = ({ children ,isRtl}) => (
   <svg
     width="20"
     height="20"
@@ -40,7 +42,7 @@ const MenuIcon = ({ children }) => (
     strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
-    style={{ marginRight: "8px" }}
+    style={isRtl?{marginLeft:'8px'}:{ marginRight: "8px" }}
   >
     {children}
   </svg>
@@ -63,7 +65,7 @@ const MenuItem = ({
   };
   const pathname = usePathname();
 
-  if (href && !pathname.includes(href)) {
+  if (href && pathname !== href) {
     return (
       <NextLink
         onClick={() => {
@@ -95,12 +97,13 @@ const MenuItem = ({
   );
 };
 
-const Menu = ({ user, setMenuOpen }) => {
+const Menu = ({ user, setMenuOpen ,isRtl}) => {
   const { setLoggingOut } = useAppStore();
   const userChat = useAppStore.getState().userChat;
   const userStories = useAppStore.getState().userStories;
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWishList, setShowWishList] = useState(false);
+  const [showOtpStats, setShowOtpStats] = useState(false);
   const { lang } = useParams();
   const [loading, setLoading] = useState(false);
 
@@ -179,10 +182,11 @@ const Menu = ({ user, setMenuOpen }) => {
         className=" w-full h-full fixed top-0 left-0 z-50"
       />
       <div
+   
         style={{
           position: "absolute",
           top: "50px",
-          right: "10px",
+          right:'10px',
           background: "#fff",
           boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
           borderRadius: "8px",
@@ -201,7 +205,7 @@ const Menu = ({ user, setMenuOpen }) => {
             }}
             href={`/${lang}/settings`}
             icon={
-              <MenuIcon>
+              <MenuIcon isRtl={isRtl}>
                 <circle cx="12" cy="12" r="3" />
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </MenuIcon>
@@ -217,14 +221,15 @@ const Menu = ({ user, setMenuOpen }) => {
               //   value: GA_CLICK_EVENT_VALUES.WISHLIST_BUTTON,
               // });
               setShowWishList(!showWishList);
+              // setMenuOpen(false);
             }}
             icon={
-              <MenuIcon>
+              <MenuIcon isRtl={isRtl}>
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </MenuIcon>
             }
           >
-            {translateFunction("Wishlist")}
+            {translateFunction("CheckList")}
           </MenuItem>
           <MenuItem
             dataCy="Notifications-Icon"
@@ -236,7 +241,7 @@ const Menu = ({ user, setMenuOpen }) => {
               setShowNotifications(!showNotifications);
             }}
             icon={
-              <MenuIcon data-cy="Notifications-svg">
+              <MenuIcon isRtl={isRtl} data-cy="Notifications-svg">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </MenuIcon>
@@ -254,7 +259,7 @@ const Menu = ({ user, setMenuOpen }) => {
             }}
             href={`/${lang}/compare`}
             icon={
-              <MenuIcon>
+              <MenuIcon isRtl={isRtl}>
                 <g id="Mask_Group_364" data-name="Mask Group 364">
                   <g
                     id="Group_3489"
@@ -343,7 +348,7 @@ const Menu = ({ user, setMenuOpen }) => {
               setMenuOpen(false);
             }}
             icon={
-              <MenuIcon>
+              <MenuIcon isRtl={isRtl}>
                 <svg
                   width="20"
                   height="20"
@@ -397,13 +402,28 @@ const Menu = ({ user, setMenuOpen }) => {
           >
             {translateFunction("Reset Redeemed Products")}
           </MenuItem>
+          <MenuItem
+            dataCy="show-otp-statics"
+            icon={
+              <MenuIcon isRtl={isRtl}>
+                <path d="M3 3v18h18" />
+                <rect x="7" y="11" width="3" height="6" />
+                <rect x="13" y="7" width="3" height="10" />
+              </MenuIcon>
+            }
+            onClick={() => {
+              setShowOtpStats(true);
+            }}
+          >
+            {translateFunction("Show OTP Statics")}
+          </MenuItem>
         </>
         {shouldShowLogout() && (
           <MenuItem
             dataCy="logout"
             onClick={handleLogout}
             icon={
-              <MenuIcon>
+              <MenuIcon isRtl={isRtl}>
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" y1="12" x2="9" y2="12" />
@@ -471,6 +491,10 @@ const Menu = ({ user, setMenuOpen }) => {
       )}
 
       {showWishList && <WishListPanel onClose={() => setShowWishList(false)} />}
+
+      {showOtpStats && (
+        <OtpStatsModal onClose={() => setShowOtpStats(false)} />
+      )}
     </>
   );
 };

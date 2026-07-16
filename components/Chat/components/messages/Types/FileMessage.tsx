@@ -1,6 +1,6 @@
 import React from "react";
 import { useAppStore } from "store";
-import { getUserChat } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
 import {
   DeleteMessage,
@@ -105,7 +105,7 @@ function FileMessage({
               style={{ width: "26px" }}
             />
             <div className="file-desc">
-              <div className="file-name">{"FILE"}</div>
+              <div className="file-name">{translateFunction("FILE")}</div>
               <div className="file-type"></div>
             </div>
             {mid ? (

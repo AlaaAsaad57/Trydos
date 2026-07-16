@@ -5,8 +5,8 @@ import { LogServerError } from "utils/serverErrorReporter";
 export async function GET(request: NextRequest) {
   try {
     const country = request.headers.get("country")?.trim() || "sy";
-    let language = request.headers.get("language")?.trim();
-    const lang = request.headers.get("lang")?.trim();
+    let language = request.headers.get("language")?.trim() || "en";
+    const lang = request.headers.get("lang")?.trim() || "en";
     language = language ?? lang ?? "en";
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "10");

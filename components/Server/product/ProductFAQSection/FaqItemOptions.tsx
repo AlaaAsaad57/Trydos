@@ -91,10 +91,10 @@ export const FaqItemOptions = ({
             {/* Header */}
             <div className="text-center">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {translateFunction("Rate Your Experience")}
+                {translateFunction("Edit Your Question")}
               </h3>
               <p className="text-sm text-gray-600">
-                {translateFunction("Share your thoughts about this product")}
+                {translateFunction("Update your question about this product")}
               </p>
             </div>
 
@@ -146,7 +146,7 @@ export const FaqItemOptions = ({
                     <Spinner />
                   </div>
                 ) : (
-                  translateFunction("Update Rating")
+                  translateFunction("Update Question")
                 )}
               </button>
             </div>

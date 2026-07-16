@@ -1,5 +1,6 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -26,8 +27,15 @@ export async function GET(request: NextRequest) {
       },
     );
   } catch (error) {
+    await LogServerError(
+      { error, scenario: "revalidateStories route failed", value },
+      "/api/revalidateStories",
+    );
     return NextResponse.json(
-      { revalidated: "false", error },
+      {
+        revalidated: "false",
+        error: error instanceof Error ? error.message : String(error),
+      },
       {
         headers: {
           "Access-Control-Allow-Origin": "*",

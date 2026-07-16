@@ -1,0 +1,1970 @@
+[
+  {
+    "key": "+(country_code)XXX",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "1 minutes video only",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Active",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Add",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Adding User...",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Allow Purchase",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Allow this product to be purchased?",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "An English (en) name is required to enable the product.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Are you sure you want to delete the selected images? This action cannot be undone.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Are you sure you want to delete this image? This action cannot be undone.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Assign each uploaded image to a color. Every color needs at least one image, and every image must be assigned.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Barcode",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Boutique",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Boutiques created for this shop will appear here.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Brand",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Browse and manage your catalogue",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Bulk-import products by template",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Cannot enable yet — resolve these first:",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Categories",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Change Banner",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Change Image",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Change media",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Change status",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Changes were submitted and are pending admin approval — they go live once approved.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Charge shipping per item ordered.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Check back later for comments from customers.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Choose a section to get started.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Collected",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Color Images",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Confirm & Save",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Confirm & Start Packing",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Confirm Upload",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Confirm changes",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Confirmed",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Copied!",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Copy URL",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Could not change status",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Country code must lead, e.g. AE = 971",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Country of Origin",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Cover",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Created At",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Current Stock",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Customers will be able to buy this product once it passes activation checks.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Dashboard Menu",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Delete Image",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Delete Reply",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Delete this reply?",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Deleting...",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Deselect",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Deselect all",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Disable",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Disable purchasing?",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Disabled",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Discount",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Discount Price",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Download",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Drop images here",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Edit shop name, contact & media",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Enter Dashboard",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Extra",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Extra price",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to add user",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to add user to shop",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to cancel order item",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to confirm order item",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to delete image",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to delete images",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to delete user",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to load boutiques",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to load images",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to load orders",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to load permissions",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to load product",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to load products",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to load roles",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to load uploaded files",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to load users",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to pack order item",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to update order status",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to update product",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Failed to update user role",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Flat",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Format: +(country_code)XXX (e.g., +9611234567)",
+    "langs": [
+      "ku"
+    ]
+  },
+  {
+    "key": "Gallery",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "General",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "ID",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Identity & classification of the product.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Images",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Inactive",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Item is packed once an order is placed.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "KB",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Keep",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Labels",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Labels & Tags",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Leave shop",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Link",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Linked product",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Loading files...",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Loading images...",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Loading product…",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Loading roles...",
+    "langs": [
+      "ku"
+    ]
+  },
+  {
+    "key": "Loading stories...",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Luck",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Luck Price",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "MB",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Manage team members and roles",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Max Allowed Qty",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Member",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Meta Description",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Meta Image",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Meta Title",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Model Number",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Multiply Shipping × Quantity",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Must be ≤ unit price",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Must stay unique across the marketplace",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "N/A",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Name / Phone",
+    "langs": [
+      "ku"
+    ]
+  },
+  {
+    "key": "New video ready",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Next",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No Image",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No banner yet",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No changes to save.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No comments found.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No description",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No files uploaded yet.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No image",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No images found",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No items",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No notes available.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No options available for the current selection.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No order selected",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No per-country surcharges.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No permissions assigned",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No remaining time",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No roles available",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No users found",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "No video attached.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Notes",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Optional. Upload a new product video or remove existing ones.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Origin & Countries",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Out of stock",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Packed",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Packed After Ordering",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Page",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Pending Approval",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Per-country Extra Price",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Percent",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Permissions",
+    "langs": [
+      "ku"
+    ]
+  },
+  {
+    "key": "Phone Number",
+    "langs": [
+      "ku"
+    ]
+  },
+  {
+    "key": "Photo or video, up to",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Pick a shop to open its dashboard.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Pick colors & sizes, then set price and stock for each combination.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Pieces / Unit",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Please fix the highlighted fields before saving.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Preparing your dashboard...",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Previous",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Prices are in your display currency; converted server-side.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Pricing & Stock",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Product Name",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Product updated successfully.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Products added to this shop will appear here.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Purchasable",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Purchase Price",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Questions",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Ratio 6:1",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Reactions",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Read only",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Ready To Collect",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Refresh",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Reply to FQA Comment",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Reply to reviews and FAQ",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Report Ref. Number",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Required for pc / liter",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Restricted Countries",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Review your access in this shop",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Review your changes before saving.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Reviews",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Role",
+    "langs": [
+      "ku"
+    ]
+  },
+  {
+    "key": "SEO / Meta",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "SKU",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Save Changes",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Saving...",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Saving…",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Searching roles...",
+    "langs": [
+      "ku"
+    ]
+  },
+  {
+    "key": "Select Files",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Select Folder",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Select a role",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Select all",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Select images to delete",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Seller Dashboard",
+    "langs": [
+      "ku"
+    ]
+  },
+  {
+    "key": "Seller Product ID",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Share photo & video stories",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Shares",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Shipping Days",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Shop Banner",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Shop Logo",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Shops you can manage will appear here.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Show notes",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Status",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Status updated.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Storefronts under this shop",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Sub-categories shown match the current parents (re-open the page after changing parents to load others).",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Tags",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Tax Type",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "The first image is the cover. Drag order with the arrows.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "The product is restricted to the selected countries.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "The product will be hidden from purchase until you re-enable it.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "These fields will be updated",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "This will remove your access to the shop dashboard. You can be re-invited later.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Title",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Track and fulfil customer orders",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Translations",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "USD",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Unit",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Unit Price",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Unnamed Boutique",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Unnamed Product",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Untitled Product",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Upload Failed Try Again",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Upload Video",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Upload and reuse product images",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Upload failed",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Upload images first.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Uploaded Excel Files",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Uploaded product images will appear here.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Uploading…",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Variants",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Video upload failed",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "View",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "View only",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Weight",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Welcome back",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "You don't have permission to view boutiques",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "You don't have permission to view or edit this product.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "You need order viewing permissions to see this section",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "You're viewing this product. Tap Edit to make changes.",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Your Shops",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Your role in this shop",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "Your shop",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "files selected",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "images",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "in stock",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "max 3",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "of",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "or choose files / folder",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "permissions",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "selected",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  },
+  {
+    "key": "this shop",
+    "langs": [
+      "ar",
+      "ku",
+      "tr"
+    ]
+  }
+]

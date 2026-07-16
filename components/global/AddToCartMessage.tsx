@@ -1,4 +1,5 @@
 import React from "react";
+import { useAppStore } from "store";
 import {
   showErrorNotification,
   showSuccessNotification,
@@ -87,10 +88,13 @@ const ErrorIcon = (
 
 const createToastElement = (message: string, type: "success" | "error") => {
   // Create container
+  const language = useAppStore.getState().language;
+  const isRtl = language === "ar" || language === "ku";
   const toast = document.createElement("div");
   toast.className = "toast-message";
   toast.setAttribute("role", "alert");
   toast.setAttribute("aria-live", "polite");
+  toast.setAttribute("dir", isRtl ? "rtl" : "ltr");
 
   // Create inner content
   const content = document.createElement("div");

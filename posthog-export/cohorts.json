@@ -1,0 +1,28 @@
+[
+  {
+    "_source_id": 153322,
+    "_starter": true,
+    "name": "Internal / Test users",
+    "description": "People who are internal team members or test users. Used for filtering out internal traffic from analytics.",
+    "is_static": false,
+    "filters": {
+      "properties": {
+        "type": "OR",
+        "values": [
+          {
+            "type": "AND",
+            "values": [
+              { "key": "$internal_or_test_user", "type": "person", "value": [true], "operator": "exact" }
+            ]
+          },
+          {
+            "type": "AND",
+            "values": [
+              { "key": "email", "type": "person", "value": "@ramaaz.com", "operator": "icontains" }
+            ]
+          }
+        ]
+      }
+    }
+  }
+]

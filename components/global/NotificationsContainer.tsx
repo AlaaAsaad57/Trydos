@@ -22,7 +22,10 @@ const NotificationsContainer = () => {
     setOrderLoading,
 
     isCallIncoming,
+    language,
   } = useAppStore();
+
+  const isRtl = language === "ar" || language === "ku";
 
   const handleDismiss = (id: string) => {
     setDismissingIds((prev) => new Set(prev).add(id));
@@ -129,12 +132,42 @@ const NotificationsContainer = () => {
             }
           }
           
+          @keyframes notificationSlideInRtl {
+            from {
+              transform: translateX(-100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+
+          @keyframes notificationSlideOutRtl {
+            from {
+              transform: translateX(0);
+              opacity: 1;
+            }
+            to {
+              transform: translateX(-100%);
+              opacity: 0;
+            }
+          }
+
           .notification-slide-in {
             animation: notificationSlideIn 0.3s ease-out forwards;
           }
-          
+
           .notification-slide-out {
             animation: notificationSlideOut 0.3s ease-out forwards;
+          }
+
+          .notification-slide-in-rtl {
+            animation: notificationSlideInRtl 0.3s ease-out forwards;
+          }
+
+          .notification-slide-out-rtl {
+            animation: notificationSlideOutRtl 0.3s ease-out forwards;
           }
         `,
         }}
@@ -150,8 +183,12 @@ const NotificationsContainer = () => {
             ${isChatNotification ? "min-h-[67px]" : "min-h-[67px]"}
             ${
               dismissingIds.has(notification.id)
-                ? "notification-slide-out"
-                : "notification-slide-in"
+                ? isRtl
+                  ? "notification-slide-out-rtl"
+                  : "notification-slide-out"
+                : isRtl
+                  ? "notification-slide-in-rtl"
+                  : "notification-slide-in"
             }
             ${
               notification.type === "success"
@@ -194,7 +231,7 @@ const NotificationsContainer = () => {
               {/* Sender Name */}
               <div className="flex items-center gap-2">
                 <p className="text-[15px] font-bold text-[#402CDD] truncate">
-                  {notification.chatData.senderName || "Unknown"}
+                  {notification.chatData.senderName || translateFunction("Unknown")}
                 </p>
                 <span className="text-[10px] text-[#676767] font-medium">
                   {translateFunction("now")}
@@ -217,7 +254,9 @@ const NotificationsContainer = () => {
                 e.stopPropagation();
                 handleDismiss(notification.id);
               }}
-              className="shrink-0 p-1 absolute right-[-30px] top-[-23px] rounded-md transition-colors"
+              className={`shrink-0 p-1 absolute ${
+                isRtl ? "left-[-30px]" : "right-[-30px]"
+              } top-[-23px] rounded-md transition-colors`}
               tabIndex={0}
               aria-label="Close notification"
             >
@@ -348,8 +387,10 @@ const NotificationsContainer = () => {
             <button
               onClick={() => handleDismiss(notification.id)}
               className={`
-                  shrink-0 p-1 absolute right-[-30px] top-[-23px] rounded-md transition-colors
-                  
+                  shrink-0 p-1 absolute ${
+                    isRtl ? "left-[-30px]" : "right-[-30px]"
+                  } top-[-23px] rounded-md transition-colors
+
                 `}
               tabIndex={0}
               aria-label="Close notification"
@@ -435,7 +476,9 @@ const NotificationsContainer = () => {
           return (
             <div
               key={notification?.id}
-              className="fixed  right-4 flex flex-col gap-3 pointer-events-none w-[90%]"
+              className={`fixed ${
+              isRtl ? "left-4" : "right-4"
+            } flex flex-col gap-3 pointer-events-none w-[90%]`}
               style={{
                 zIndex: `${index + 9999999999}`,
                 top: `16px`,
@@ -444,6 +487,7 @@ const NotificationsContainer = () => {
               <Link
                 key={notification.id}
                 href={notification.href}
+                dir={isRtl ? "rtl" : "ltr"}
                 className={notificationClasses}
                 onClick={() => {
                   handleDismiss(notification.id);
@@ -469,7 +513,9 @@ const NotificationsContainer = () => {
           return (
             <div
               key={notification?.id}
-              className="fixed  right-4 flex flex-col gap-3 pointer-events-none w-[90%]"
+              className={`fixed ${
+              isRtl ? "left-4" : "right-4"
+            } flex flex-col gap-3 pointer-events-none w-[90%]`}
               style={{
                 zIndex: `${index + 9999999999}`,
                 top: `16px`,
@@ -477,6 +523,7 @@ const NotificationsContainer = () => {
             >
               <div
                 key={notification.id}
+                dir={isRtl ? "rtl" : "ltr"}
                 className={notificationClasses}
                 onClick={() => handleChatNotificationClick(notification)}
                 onKeyDown={(e) => {
@@ -501,13 +548,19 @@ const NotificationsContainer = () => {
           <div
             key={notification?.id}
             onClick={() => handleDismiss(notification.id)}
-            className="fixed  right-4 flex flex-col gap-3 pointer-events-none w-[90%]"
+            className={`fixed ${
+              isRtl ? "left-4" : "right-4"
+            } flex flex-col gap-3 pointer-events-none w-[90%]`}
             style={{
               zIndex: `${index + 9999999999}`,
               top: `16px`,
             }}
           >
-            <div key={notification.id} className={notificationClasses}>
+            <div
+              key={notification.id}
+              dir={isRtl ? "rtl" : "ltr"}
+              className={notificationClasses}
+            >
               {notificationContent}
             </div>
           </div>

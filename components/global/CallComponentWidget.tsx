@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { translateFunction } from "utils/functions";
 interface CallComponentWidgetProps {
   data: any;
   type: string;
@@ -33,12 +34,14 @@ function CallComponentWidget({
           margin: "0 auto",
         }}
       ></div>
-      <span className="caller-name">Incoming {type} Call</span>
+      <span className="caller-name">
+        {translateFunction("Incoming")} {type} {translateFunction("Call")}
+      </span>
       <span className="caller-name" style={{ top: "400px" }}>
         {data?.is_private
           ? data?.is_private === "customer"
-            ? "Customer"
-            : "Deleivery Worker"
+            ? translateFunction("Customer")
+            : translateFunction("Delivery Worker")
           : userData.name || userData.phone}
       </span>
       <div

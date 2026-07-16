@@ -5,6 +5,8 @@ import Cube from "react-cube-navigation";
 export interface CubeCarouselProps {
   /** Currently active slide index */
   index: number;
+
+  enableGestures?: boolean;
   /** Called when user navigates to another slide */
   onChange: (newIndex: number) => void;
   /** Pixel width of every slide */
@@ -21,9 +23,17 @@ export interface CubeCarouselProps {
   renderItem: (index: number, active: boolean) => React.ReactNode;
 }
 
-const CubeCarousel = ({ lockScrolling = true, ...rest }) => {
+const CubeCarousel = ({
+  lockScrolling = true,
+  enableGestures = true,
+  ...rest
+}) => {
   return (
-    <Cube lockScrolling={lockScrolling} {...(rest as CubeCarouselProps)} />
+    <Cube
+      lockScrolling={lockScrolling}
+      enableGestures={enableGestures}
+      {...(rest as CubeCarouselProps)}
+    />
   );
 };
 

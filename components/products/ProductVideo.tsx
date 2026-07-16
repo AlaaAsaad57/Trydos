@@ -89,12 +89,14 @@ function ProductVideo({ videos = [], language }) {
                   className="embla__slide flex-[0_0_100%] min-w-0 relative h-full"
                 >
                   <video
-                    ref={(el) => (videoRefs.current[index] = el)}
+                    ref={(el) => {
+                      videoRefs.current[index] = el;
+                    }}
                     onClick={() => !expanded && setExpanded(true)}
                     src={getVideoUrl(vid, {
                       width: 700,
                       height: 900,
-                      end: expanded ? -1 : undefined,
+                      end: expanded ? null : 10,
                     })}
                     // We handle play/pause via useEffect, but keep these for initial load
                     loop

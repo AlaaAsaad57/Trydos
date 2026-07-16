@@ -15,11 +15,25 @@ type ProxiedServer =
 
 // ---------- Constants ----------
 
+// Raw TOKEN cookies (MARKET/DEVICE/CHAT/STORIES/wallet/comments JWTs).
 const SECURE_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict" as const,
   path: "/",
+  // Token cookie lifetime. Default 48h so the cookie does not outlive its JWT by
+  // ~a year (security review F1-04). Override with TOKEN_COOKIE_MAX_AGE (seconds).
+  // Applies only to raw token cookies (set via cookiesStore.set spreading this).
+  // SECURITY-REVIEW: token/cookie change — verify the 401→refresh/guest-register
+  // path bridges expiry before rollout.
+  maxAge: Number(process.env.TOKEN_COOKIE_MAX_AGE) || 60 * 60 * 48, // 48h
+};
+
+// USER-DATA cookies (USER_DATA/USER_CHAT/USER_STORIES/WALLET_USER JSON blobs).
+// Kept at 1 year by decision — these carry profile/session context, not the raw
+// short-lived JWT; used by setSecureCookieJSON below.
+const SECURE_USER_COOKIE_OPTIONS = {
+  ...SECURE_COOKIE_OPTIONS,
   maxAge: 60 * 60 * 24 * 365, // 1 year
 };
 
@@ -47,13 +61,65 @@ const SECURE_COOKIE_NAMES = [
   COOKIE_NAMES.WALLET_USER,
 ] as const;
 
-// ---------- Server URL Resolution ----------
+const GO_APIS = [
+  "/auth/register-guest",
+  "/home/currency",
+  "/web/home/startingSettings",
+  "/checklist",
+  "/firebase_device_tokens/validate_token",
+  "/firebase_device_tokens",
+  "/cart/add",
+  "/cart/update",
+  "/cart/remove",
+  "/cart/cart_shipping",
+  "/cart/cart_overview",
+  "/cart/convert_to_old",
+  "/old-cart/get_old_cart",
+  "/old-cart/hide",
+  '/firebase_device_tokens/subscribe_topic',
+  '/firebase_device_tokens/unsubscribe_topic',
+  "/firebase_device_tokens/my_firebase_settings",
+  "/firebase_device_tokens/change_country_language",
+  "/firebase_device_tokens/update_whatsapp",
+  "/firebase_device_tokens/update_email",
+  "/firebase_device_tokens/update_firebase",
+  "/firebase_device_tokens/update_notification_frequency",
+  "/web/get-colors-and-sizes",
+  "/web/notification_types",
+  "/web/notification_types/customer-notification-to-choose",
+  // ── Customer profile API migration (ClickUp 86ey26atu) ──
+  // These four customer operations moved from the Laravel "market" backend to
+  // the Go Store Gateway. Rollback: comment out (or remove) this block to route
+  // them back to NEXT_PUBLIC_BACKEND_URL (Laravel) — no caller change needed.
+  "/customer/info",
+  "/customer/update-profile",
+  "/customer/update-name",
+  "/customer/approve-policies",
+];
 
-function getServerBaseUrl(server: ProxiedServer): string {
+// Go endpoints whose URL carries a trailing dynamic segment (e.g. a product
+// slug), so the full path never `endsWith` a fixed string. Matched by prefix
+// instead. Keep the trailing slash so `/globalDetails/` can't match a sibling
+// like `/globalDetailsSomethingElse`.
+const GO_API_PREFIXES = [
+  "/web/product/globalDetails/",
+  "/web/product/qtyPriceDetails/",
+  "/web/product/product-meta/",
+];
+// ---------- Server URL Resolution ----------
+export const isFromGoApi = (url: string) =>{
+  let normalizedUrl=url.split('?')?.[0];
+  if(url.startsWith('/checklist')) return true;
+  if(GO_API_PREFIXES.some((prefix) => normalizedUrl.includes(prefix))) return true;
+ return GO_APIS.some((endpoint) => normalizedUrl.endsWith(endpoint))};
+function getServerBaseUrl(server: ProxiedServer, url: string): string {
+  console.log(url, isFromGoApi(url));
   switch (server) {
     case "market":
-    case "market-dashboard":
+    case "market-dashboard": {
+      if (isFromGoApi(url)) return process.env.NEXT_PUBLIC_GO_BACKEND_URL || "";
       return process.env.NEXT_PUBLIC_BACKEND_URL || "";
+    }
     case "elastic":
       return process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL || "";
     case "chat":
@@ -79,16 +145,10 @@ async function getTokenForServer(server: ProxiedServer): Promise<string> {
       return cookieStore.get(COOKIE_NAMES.WALLET_TOKEN)?.value || "";
     case "comments":
       return cookieStore.get(COOKIE_NAMES.USER_ID_HASH)?.value || "";
-    case "chat": {
-      // Prefer access_token from USER_CHAT (updated by loginChat re-auth)
-      // Fall back to standalone CHAT_TOKEN (set at initial login)
-      const chatUser = await getSecureCookie<any>(COOKIE_NAMES.USER_CHAT);
-      return (
-        chatUser?.access_token ||
-        cookieStore.get(COOKIE_NAMES.CHAT_TOKEN)?.value ||
-        ""
-      );
-    }
+    case "chat":
+      // Auth from the dedicated CHAT_TOKEN cookie (48h). It is refreshed on
+      // re-auth by /api/auth/update-user; USER_CHAT holds profile data only.
+      return cookieStore.get(COOKIE_NAMES.CHAT_TOKEN)?.value || "";
     case "market":
     case "market-dashboard":
       return (
@@ -96,16 +156,10 @@ async function getTokenForServer(server: ProxiedServer): Promise<string> {
         cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ||
         ""
       );
-    case "stories": {
-      // Prefer access_token from USER_STORIES (updated by loginStories re-auth)
-      // Fall back to standalone STORIES_TOKEN (set at initial login)
-      const storiesUser = await getSecureCookie<any>(COOKIE_NAMES.USER_STORIES);
-      return (
-        storiesUser?.access_token ||
-        cookieStore.get(COOKIE_NAMES.STORIES_TOKEN)?.value ||
-        ""
-      );
-    }
+    case "stories":
+      // Auth from the dedicated STORIES_TOKEN cookie (48h). Refreshed on re-auth
+      // by /api/auth/update-user; USER_STORIES holds profile data only.
+      return cookieStore.get(COOKIE_NAMES.STORIES_TOKEN)?.value || "";
     case "elastic":
       return "";
     default:
@@ -115,14 +169,23 @@ async function getTokenForServer(server: ProxiedServer): Promise<string> {
 
 // ---------- Secure Cookie Operations ----------
 
-async function setSecureCookie(name: string, value: string) {
+async function setSecureCookie(
+  name: string,
+  value: string,
+  options: typeof SECURE_COOKIE_OPTIONS = SECURE_COOKIE_OPTIONS,
+) {
   const cookieStore = await cookies();
-  cookieStore.set({ name, value, ...SECURE_COOKIE_OPTIONS });
+  cookieStore.set({ name, value, ...options });
 }
 
 async function setSecureCookieJSON(name: string, value: unknown) {
   const serialized = typeof value === "string" ? value : JSON.stringify(value);
-  await setSecureCookie(name, encodeURIComponent(serialized));
+  // User-data cookies stay 1 year (SECURE_USER_COOKIE_OPTIONS), not the 48h token TTL.
+  await setSecureCookie(
+    name,
+    encodeURIComponent(serialized),
+    SECURE_USER_COOKIE_OPTIONS,
+  );
 }
 
 async function deleteSecureCookie(name: string) {
@@ -157,7 +220,7 @@ async function getCurrentUser() {
     user: sanitizeUserData(userData),
     chatUser: sanitizeServiceUser(userChat),
     storiesUser: sanitizeServiceUser(userStories),
-    walletUser,
+    walletUser: sanitizeWalletUser(walletUser),
     isAuthenticated: Boolean(userData),
     hasDeviceToken: Boolean(cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value),
     hasMarketToken: Boolean(cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value),
@@ -174,6 +237,26 @@ function sanitizeUserData(data: any) {
 function sanitizeServiceUser(data: any) {
   if (!data) return null;
   const { access_token, token, ...safe } = data;
+  return safe;
+}
+
+// Strip internal / PII wallet fields before exposing walletUser to the client
+// (or persisting it in the WALLET_USER cookie). Denylist rather than allowlist:
+// keeps functional fields (id, names, phone, balance/currency) working while
+// removing the sensitive internals flagged in the security review — the only
+// live client read on this object is `id` (checkWallet). SECURITY-REVIEW: this
+// is a cookie/response-shape change; confirm no client feature needs these.
+function sanitizeWalletUser(data: any) {
+  if (!data) return null;
+  const {
+    email,
+    isBlocked,
+    isTwoFactorEnabled,
+    kycVerification,
+    kycStatus,
+    sessionId,
+    ...safe
+  } = data;
   return safe;
 }
 
@@ -270,6 +353,7 @@ export {
   maskToken,
   sanitizeUserData,
   sanitizeServiceUser,
+  sanitizeWalletUser,
   SECURE_COOKIE_OPTIONS,
   SECURE_COOKIE_NAMES,
   ALLOWED_SERVERS,

@@ -1,4 +1,3 @@
-import { fetchProductDetails } from "serverRequests";
 import { GetRecommendationCountForProduct } from "serverRequests/product";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import {
@@ -12,31 +11,6 @@ import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 
 let client = elasticSearchClient;
-export const GetProductData = async (params: {
-  lang: string;
-  productId: string;
-}) => {
-  try {
-    let [country, language] = params.lang.split("-");
-    let productData = await fetchProductDetails(
-      params.productId,
-      language,
-      country,
-    );
-    if (!productData?.id) {
-      throw { message: "Couldnt Fetch Product" };
-    }
-    return {
-      product: productData,
-    };
-  } catch (error) {
-    LogServerError({
-      scenario: "GetProductData in ProductPageData",
-      error: error instanceof Error ? error.message : String(error),
-    });
-    throw error;
-  }
-};
 
 export const getProductDataFromElastic = async ({
   productId,
@@ -156,9 +130,8 @@ export async function GetRatingCommentsFromElastic({
       { created_at: "desc" }, // newest first
       { comment_id: "desc" }, // tie-breaker for consistent pagination
     ],
-    collapse: {
-      field: "order_details_id",
-    },
+    // Backend guarantees one comment per order_details_id, so no collapse needed
+    // (collapse + search_after with a multi-field sort is rejected by ES).
     query: {
       bool: {
         must: [
@@ -224,6 +197,9 @@ export async function GetRatingCommentsForProduct({
       { created_at: "desc" }, // newest first
       { comment_id: "desc" }, // tie-breaker for consistent pagination
     ],
+    // Dedup is enforced by the backend (one comment per order_details_id), so no
+    // collapse is needed here. Collapse + search_after is also illegal with a
+    // multi-field sort, which was breaking pagination beyond the first page.
     query: {
       bool: {
         must: [
@@ -301,6 +277,10 @@ export async function GetRatingCommentsForProduct({
       },
       product_id: s.product_id,
       comment: s.text,
+      ownerId: s?.owner_id,
+      ownerType: s?.owner_type,
+      isOwner:
+        user_id && s?.user_id && String(s?.user_id) === String(user_id),
       variant: s.variant,
       created_at: s.created_at,
       true_size: s.aspects?.size?.fit_analysis?.correct ?? false,
@@ -406,6 +386,8 @@ export async function GetFQACommentsForProduct({
       },
       product_id: s.product_id,
       comment: s.text,
+      ownerId: s?.owner_id,
+      ownerType: s?.owner_type,
       created_at: s.created_at,
       has_reply: s.has_reply,
       good_quality_comment: s?.good_quality_comment,
@@ -416,6 +398,8 @@ export async function GetFQACommentsForProduct({
       is_liked: s?.is_liked,
       reply_total_likes: s?.reply_total_likes,
       reply_is_liked: s?.reply_is_liked,
+      isOwner:
+        user_id && s?.user_id && String(s?.user_id) === String(user_id),
     })),
     total: (response.hits.total as any)?.value,
     filters_key: filters_key,
@@ -427,8 +411,16 @@ async function GetFQACommentsForProductWithReactions({
   user_id,
   commentsResult,
 }) {
-  const commentIds = commentsResult.map((s) => s.id);
-  if (commentIds.length === 0) return commentsResult;
+  const temp = commentsResult.map((s) => s.id);
+  if (temp.length === 0) return commentsResult;
+  // Seller-reply reactions are stored under `${comment_id}-seller_reply`
+  // (see LikeButton `comment_id={comment.id + "-seller_reply"}`), so query
+  // both the comment id and its reply id to resolve reply likes correctly.
+  const commentIds: string[] = [];
+  temp.forEach((s) => {
+    commentIds.push(s);
+    commentIds.push(`${s}-seller_reply`);
+  });
 
   const reactionsQuery: any = {
     index: comments_interactions_index,
@@ -509,11 +501,11 @@ async function GetFQACommentsForProductWithReactions({
     is_liked: commentLikesMap[comment.id]?.is_liked || false,
     reply_total_likes:
       comment.has_reply && comment.seller_reply
-        ? replyLikesMap[comment.id]?.total_likes || 0
+        ? replyLikesMap[`${comment.id}-seller_reply`]?.total_likes || 0
         : 0,
     reply_is_liked:
       comment.has_reply && comment.seller_reply
-        ? replyLikesMap[comment.id]?.is_liked || false
+        ? replyLikesMap[`${comment.id}-seller_reply`]?.is_liked || false
         : false,
   }));
 }

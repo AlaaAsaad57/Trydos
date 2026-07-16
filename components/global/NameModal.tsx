@@ -60,7 +60,7 @@ function NameModal() {
             style={{ width: "20px", position: "absolute" }}
           />
           <label htmlFor="phone" className="hidden">
-            Name
+            {translateFunction("Name")}
           </label>
           <input
             data-cy="Input-Name"

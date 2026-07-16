@@ -9,8 +9,51 @@ import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { returnDetails } from "utils/types/OrderInterface";
 import { LogServerError } from "utils/serverErrorReporter";
 import { GetWalletBalanceForCountryCurrency } from "./wallet";
+import { WALLET_REAUTH_ON_401 } from "./wallet/reauthFlag";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
+import type { ReportPointSelection } from "utils/orderReportOptions";
+
+const MEDIA_SERVER_BASE_URL =
+  process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
+
 
 class OrderService {
+  async uploadToMediaServer(file: File, folder: string) {
+    if (!MEDIA_SERVER_BASE_URL) {
+      throw new Error("Media server upload is not configured");
+    }
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", folder);
+
+    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload`, {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.NEXT_PUBLIC_MEDIA_API_KEY,
+      },
+      body: form,
+    });
+
+    let data: any = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+    if (!response.ok || !data?.url) {
+      throw new Error("Media server upload failed");
+    }
+
+    return data.url as string;
+  }
+
+  getUploadSubPath(url: string) {
+    const cleanUrl = url.split("?")[0];
+    return cleanUrl.split("/").filter(Boolean).pop() ?? "";
+  }
+
   async PlaceOrder({
     payment_method,
     pay_by_wallet,
@@ -49,6 +92,9 @@ class OrderService {
         setOrderSuccess({ data: response.data });
         setOrderData({ data: response.data, success: true });
       } else {
+        // External payment gateway (crypto / card): user leaves the app — a
+        // major drop point worth isolating in the funnel.
+        trackOrder(ORDER_EVENTS.PAYMENT_REDIRECT_OPENED, { payment_method });
         setCryptoCardPayment(response.data[0]);
       }
 
@@ -57,6 +103,11 @@ class OrderService {
       LogServerError({
         error: error,
         scenario: "Error In PlaceOrder in services/order",
+      });
+      trackOrder(ORDER_EVENTS.ORDER_PLACE_FAILED, {
+        payment_method,
+        reason: error instanceof Error ? error.message : String(error),
+        stage: "PlaceOrder_service",
       });
       setOrderLoading(false);
     }
@@ -110,7 +161,8 @@ class OrderService {
     } catch (error) {}
 
     if (walletBalance && "status" in walletBalance) {
-      if (walletBalance.status === 401) {
+      // Temporarily disabled: don't prompt phone re-verification on wallet 401.
+      if (walletBalance.status === 401 && WALLET_REAUTH_ON_401) {
         setShouldAuthinticated(true);
       }
     }
@@ -230,13 +282,19 @@ class OrderService {
       await GetCartOreview();
 
       callback(response?.data?.id);
-
+      trackOrder(ORDER_EVENTS.ADDRESS_SAVED, {
+        country: body.country,
+        city: body.city,
+      });
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
       LogServerError({
         error: error,
         scenario: "Error In AddAddressList in services/order",
+      });
+      trackOrder(ORDER_EVENTS.ADDRESS_SAVE_FAILED, {
+        reason: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -373,6 +431,124 @@ class OrderService {
         error: error,
         scenario: "Error In CancelOrder in services/order",
       });
+      throw error;
+    }
+  }
+  // Toggles an order pack's visibility. `is_hidden` defaults to true so existing
+  // "Hide This Pack" callers are unchanged; the Hidden-Orders view passes false
+  // to restore a hidden pack (same endpoint, opposite flag).
+  async HideOrder({ order_id, is_hidden = true }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/${order_id}/visibility`,
+        reqTitle: REQUESTS_DATA.HIDE_ORDER,
+        method: "PATCH",
+        server: "market",
+        body: JSON.stringify({ is_hidden }),
+      });
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In HideOrder in services/order",
+      });
+      throw error;
+    }
+  }
+  // Toggles a single product line's visibility. `is_hidden` defaults to true so
+  // existing "Hide This Product" callers are unchanged; the Hidden-Orders view
+  // passes false to restore a hidden product (same endpoint, opposite flag).
+  async HideOrderDetail({ detail_id, is_hidden = true }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/detail/${detail_id}/visibility`,
+        reqTitle: REQUESTS_DATA.HIDE_ORDER_DETAIL,
+        method: "PATCH",
+        server: "market",
+        body: JSON.stringify({ is_hidden }),
+      });
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In HideOrderDetail in services/order",
+      });
+      throw error;
+    }
+  }
+  async ReportOrderItem({
+    order_id,
+    order_detail_id,
+    product_id,
+    order_group_id,
+    points,
+    note,
+    image,
+  }: {
+    order_id: number;
+    order_detail_id: number;
+    product_id: number;
+    order_group_id: string;
+    points: ReportPointSelection[];
+    note: string;
+    image?: File | null;
+  }) {
+    try {
+      // With a photo we submit multipart/form-data (the backend added an
+      // optional `image` field, see api-changelog §1); without one we keep the
+      // original JSON body so the no-image path is unchanged. `fetchData`
+      // detects a FormData body and lets the browser set the multipart
+      // boundary. Points use Laravel bracket notation to match the JSON shape.
+      let body: FormData | string;
+      if (image) {
+        const form = new FormData();
+        form.append("order_id", String(order_id));
+        form.append("order_detail_id", String(order_detail_id));
+        form.append("product_id", String(product_id));
+        form.append("order_group_id", order_group_id);
+        form.append("note", note);
+        points.forEach((p, i) => {
+          form.append(`points[${i}][point]`, p.point);
+          p.values.forEach((v) => form.append(`points[${i}][values][]`, v));
+        });
+        form.append("image", image);
+        body = form;
+      } else {
+        body = JSON.stringify({
+          order_id,
+          order_detail_id,
+          product_id,
+          order_group_id,
+          points,
+          note,
+        });
+      }
+      let response = await fetchData({
+        url: `/customer/order/report`,
+        reqTitle: REQUESTS_DATA.REPORT_ORDER_ITEM,
+        method: "POST",
+        server: "market",
+        body,
+      });
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      LogServerError({
+        error: error,
+        scenario: "Error In ReportOrderItem in services/order",
+      });
+      throw error;
     }
   }
   async CancelOrderItem({ order_id, qty, item_id }) {
@@ -394,6 +570,7 @@ class OrderService {
         error: error,
         scenario: "Error In CancelOrderItem in services/order",
       });
+      throw error;
     }
   }
   async changeOrderAddress({ order_id, address_id }) {
@@ -418,6 +595,7 @@ class OrderService {
         error: error,
         scenario: "Error In changeOrderAddress in services/order",
       });
+      throw error;
     }
   }
   async changeOrderItemVariant({
@@ -425,7 +603,6 @@ class OrderService {
     choice_1,
     order_detail_id,
     image,
-    product_variant_id,
   }) {
     try {
       let response = await fetchData({
@@ -560,23 +737,18 @@ class OrderService {
     }
   }
   async UploadImageForOrderReturn({ image }) {
-    let formData = new FormData();
-    formData.append("image", image);
-    formData.append("path", "return_request_products/");
-
     try {
-      let response = await fetchData({
-        url: "/storage/storage-upload",
-        body: formData,
-        reqTitle: REQUESTS_DATA.UPDATE_PROFILE_IMAGE,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
+      const uploadedUrl = await this.uploadToMediaServer(
+        image,
+        "return_request_products",
+      );
+      const subPath = this.getUploadSubPath(uploadedUrl);
+
+      if (!subPath) {
+        throw new Error("Invalid upload response");
       }
-      return response?.data;
+
+      return { sub_path: subPath };
     } catch (err) {
       LogServerError({
         error: err,
@@ -586,23 +758,18 @@ class OrderService {
     }
   }
   async UploadImageForRating({ image }) {
-    let formData = new FormData();
-    formData.append("image", image);
-    formData.append("path", "rating_orders/");
-
     try {
-      let response = await fetchData({
-        url: "/storage/storage-upload",
-        body: formData,
-        reqTitle: REQUESTS_DATA.UPDATE_PROFILE_IMAGE,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
+      const uploadedUrl = await this.uploadToMediaServer(
+        image,
+        "rating_orders",
+      );
+      const subPath = this.getUploadSubPath(uploadedUrl);
+
+      if (!subPath) {
+        throw new Error("Invalid upload response");
       }
-      return response?.data;
+
+      return { sub_path: subPath };
     } catch (err) {
       LogServerError({
         error: err,
@@ -678,6 +845,7 @@ class OrderService {
         error: error,
         scenario: "Error In ReturnProduct in services/order",
       });
+      throw new Error(error);
     }
   }
   async CancelReturn({ return_request_product_id }) {
@@ -745,24 +913,7 @@ class OrderService {
       throw error;
     }
   }
-  async ViewReturnRequest({ return_request_id }) {
-    try {
-      let response = await fetchData({
-        url: `/customer/order/return_requests/view?return_request_id=${return_request_id}`,
-        reqTitle: REQUESTS_DATA.VIEW_RETURN_PRODUCT,
-        method: "GET",
-        server: "market",
-      });
-      if (response?.success) return response.data;
-      else throw new Error();
-    } catch (error) {
-      LogServerError({
-        error: error,
-        scenario: "Error In ViewReturnRequest in services/order",
-      });
-      throw error;
-    }
-  }
+
   async CancelReturnRequest({ return_request_id }) {
     try {
       let response = await fetchData({

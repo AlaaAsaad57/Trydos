@@ -5,7 +5,8 @@ import Skeleton from "react-loading-skeleton";
 
 import { translateFunction } from "utils/functions";
 
-import { GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, isGuestName } from "utils/tinyUtils";
+import { isValidPhone } from "utils/phone";
 
 const options = [
   { name: "Settings", Icon: <></> },
@@ -16,14 +17,9 @@ const options = [
 ];
 function SettingsLoader() {
   const { userProfile } = useAppStore();
+  const isVerified = isValidPhone(userProfile?.phone);
   return (
-    <div
-      style={{
-        zIndex: "99999999999999",
-        top: "100px",
-      }}
-      className="fixed max-w-[1365px] mx-auto bg-[#fafafa] min-h-screen  flex-col    w-screen  overflow-hidden"
-    >
+    <div className="w-full flex-col bg-[#fafafa] overflow-hidden">
       {" "}
       <div className="w-full h-full flex-1 relative overflow-hidden min-h-screen">
         <div className="flex-col w-full pt-[20px] px-[12px]">
@@ -32,7 +28,7 @@ function SettingsLoader() {
               <div className="flex-row items-end">
                 <div className="flex-col mt-[5px]">
                   <span className="medium text-[#1D1D1D] text-[14px]">
-                    {userProfile?.name}
+                    {isGuestName(userProfile?.name) ? "" : userProfile?.name}
                   </span>
                   <span className="regular text-[#8D8D8D] text-[12px] mt-[2px]">
                     + {userProfile?.phone}
@@ -76,11 +72,7 @@ function SettingsLoader() {
                         data-name="Path 15413"
                         d="M15.332,7.332A.667.667,0,0,0,14.665,8a6.668,6.668,0,1,1-1.936-4.7.667.667,0,1,0,.945-.94A8,8,0,1,0,16,8a.667.667,0,0,0-.667-.667Z"
                         transform="translate(37.438 62.538)"
-                        fill={
-                          userProfile?.is_phone_verified === 1
-                            ? "#4cff79"
-                            : "none"
-                        }
+                        fill={isVerified ? "#4cff79" : "none"}
                         stroke="#707070"
                         strokeWidth="0.4"
                       />
@@ -88,7 +80,7 @@ function SettingsLoader() {
                   </svg>
                   <span
                     className={`text-[10px] regular ${
-                      userProfile?.is_phone_verified === 1
+                      isVerified
                         ? "text-[#1d1d1d]"
                         : "text-[#FF5F61] cursor-pointer"
                     } mt-[4px]`}

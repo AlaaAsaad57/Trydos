@@ -101,7 +101,8 @@ function VideoMessage({
         )}
         <img
           src="/icons/chat/play.svg"
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             setVid(message_files[0]?.file_path);
           }}
           className="play-vid-icon"
@@ -179,7 +180,7 @@ function VideoMessage({
         DeleteModal={DeleteModal}
         setDelete={(e) => setDelete(e)}
         deleteMessage={(e) => DeleteMessage(channel_id, id, e)}
-        copy={() => {}}
+        copy={() => { }}
         forward={() =>
           setForwardMessage({
             type,

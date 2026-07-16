@@ -11,6 +11,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { setLocaizationCookies } from "utils/cookies/cookie-manager";
 import BackBar from "components/setting/BackBar";
 import { GetCountries } from "serverRequests/product";
+import { countryNameFromIso } from "utils/server";
 function PersonalInfoCountries({
   local = "",
   isRtl = false,
@@ -341,7 +342,7 @@ function PersonalInfoCountries({
                     </span>
 
                     <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
-                      {translateFunction(country.name)}
+                      { countryNameFromIso(country.iso, language)}
                     </span>
                   </div>
                 );
@@ -375,7 +376,7 @@ function PersonalInfoCountries({
                   <div className="flex items-center">
                     <FlagIcon iso={selectedCountry?.iso} />
                     <span className="ml-2 text-sm ">
-                      {translateFunction(selectedCountry?.name)}
+                      {translateFunction(countryNameFromIso(selectedCountry?.iso,language))}
                     </span>
                   </div>
                 </div>
@@ -387,7 +388,7 @@ function PersonalInfoCountries({
                   <div className="flex items-center">
                     <FlagIcon iso={pendingCountry?.iso} />
                     <span className="ml-2 text-sm ">
-                      {translateFunction(pendingCountry?.name)}
+                      {translateFunction(countryNameFromIso(pendingCountry?.iso,language))}
                     </span>
                   </div>
                 </div>

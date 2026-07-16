@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getCart,
   LogError,
   RoundPrice,
   translateFunction,
 } from "utils/functions";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
@@ -39,6 +40,21 @@ function OrderButton({ close, toOrders }) {
   };
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Funnel: surface that the user actually saw a non-zero discount/savings in
+  // the cart total. Fire once per distinct discount value (avoid render spam).
+  const lastDiscountTracked = useRef<number | null>(null);
+  useEffect(() => {
+    if (total_discount > 0 && lastDiscountTracked.current !== total_discount) {
+      lastDiscountTracked.current = total_discount;
+      trackOrder(ORDER_EVENTS.DISCOUNT_TOTALS_SHOWN, {
+        total_discount,
+        sub_total,
+        total: getTotaPriceToShow(),
+        discount_pct:
+          sub_total > 0 ? Math.round((total_discount / sub_total) * 100) : 0,
+      });
+    }
+  }, [total_discount, sub_total]);
   const userData = useAppStore.getState().userProfile;
   const [option, setOption] = useState(false);
   const getTotaPriceToShow = () => {
@@ -529,7 +545,7 @@ function OrderButton({ close, toOrders }) {
                   </span>
                   <span
                     data-cy="Inclusive-text"
-                    className="medium text-[11px] text-[#8D8D8D]"
+                    className="medium text-[10px] text-[#8D8D8D] overflow-hidden text-ellipsis whitespace-nowrap"
                   >
                     {translate("All Inclusive Without Additions")}
                   </span>

@@ -46,7 +46,7 @@ function StoriesContainer({ selectedStory, stories }: any) {
         dir = (e.deltaY * 100) / window.innerHeight;
 
         document.querySelector<HTMLDivElement>(
-          ".fixed-layout"
+          ".fixed-layout",
         ).style.transform = `translateY(${dir}%)`;
         if (!isTop) setIsTop(e.dir);
       }
@@ -56,10 +56,10 @@ function StoriesContainer({ selectedStory, stories }: any) {
         if (isTop) {
           if (dir > 20) {
             document.querySelector<HTMLDivElement>(
-              ".fixed-layout"
+              ".fixed-layout",
             ).style.transition = "0.3s";
             document.querySelector<HTMLDivElement>(
-              ".fixed-layout"
+              ".fixed-layout",
             ).style.transform = `translateY(${100}%)`;
 
             setTimeout(() => {
@@ -67,10 +67,10 @@ function StoriesContainer({ selectedStory, stories }: any) {
             }, 150);
           } else {
             document.querySelector<HTMLDivElement>(
-              ".fixed-layout"
+              ".fixed-layout",
             ).style.transition = "0.3s";
             document.querySelector<HTMLDivElement>(
-              ".fixed-layout"
+              ".fixed-layout",
             ).style.transform = `translateY(${0}%)`;
           }
         }
@@ -96,6 +96,7 @@ function StoriesContainer({ selectedStory, stories }: any) {
       },
     });
   }, []);
+
   if (
     !storiesData ||
     storiesData?.length === 0 ||
@@ -114,12 +115,12 @@ function StoriesContainer({ selectedStory, stories }: any) {
       {...handlers}
       onPointerLeave={() => {
         document.querySelector<HTMLDivElement>(
-          ".fixed-layout"
+          ".fixed-layout",
         ).style.transform = `translateY(${0}%)`;
       }}
       onMouseLeave={() => {
         document.querySelector<HTMLDivElement>(
-          ".fixed-layout"
+          ".fixed-layout",
         ).style.transform = `translateY(${0}%)`;
       }}
       style={{
@@ -129,6 +130,7 @@ function StoriesContainer({ selectedStory, stories }: any) {
       <SearchParamUpdater searchKey="stories" searchValue="true" />
       <Cube
         index={cubeIndex}
+        enableGestures={isTop !== "Down"}
         onChange={(i) => {
           if (i > -1 && i < storiesData.length) {
             setCubeIndex(i);

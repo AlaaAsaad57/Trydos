@@ -48,7 +48,7 @@ function ChatImagePreviewBeforeSend({
             onClick={handleImagePreviewSend}
             className="px-6 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
           >
-            {translateFunction("Send") || "Send"}
+            {translateFunction("Send")}
           </button>
         </div>
       </div>

@@ -40,7 +40,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
 
   return (
     // Ensure the container has a stable height and hidden overflow
-    <div className="relative w-full h-[calc(100vh-102px)] overflow-hidden">
+    <div className="relative w-full h-[calc(100dvh-102px)] overflow-hidden">
       <AnimatePresence mode="popLayout" custom={direction} initial={false}>
         <motion.div
           key={pathname} // Crucial: must change on every route change

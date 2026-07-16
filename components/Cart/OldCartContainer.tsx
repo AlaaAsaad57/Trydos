@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import home from "services/home";
+import cartService from "services/cart";
 import { useAppStore } from "store";
 import {
   areProductsEqual,
+  getCart,
   getConfiguredImage,
   getOldCart,
   LogError,
@@ -10,11 +12,104 @@ import {
 } from "utils/functions";
 import { CartItemLink, QuantutyInput } from ".";
 import { GetImageUrl } from "utils/tinyUtils";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import Skeleton from "react-loading-skeleton";
 import Image from "next/image";
 
+// An Out-Of-Bag item stays "fresh" for 30 minutes after it was set aside; the
+// countdown is derived live from the item's `created_at`, not a static string.
+const OLD_CART_WINDOW_MS = 30 * 60 * 1000;
+
+// `created_at` arrives from the backend as a naive UTC ("+0 GMT") timestamp
+// with no timezone marker (e.g. "2026-07-05 10:00:00"), which browsers would
+// otherwise parse in the *local* zone — making every item look hours old (so
+// the window reads as already elapsed and the counter hides). Interpret a
+// timezone-less value as UTC; respect an explicit Z / ±HH:MM offset if present.
+const parseServerDateMs = (value) => {
+  if (value == null) return NaN;
+  if (typeof value !== "string") return new Date(value).getTime();
+  const s = value.trim();
+  const hasTimezone = /[zZ]$|[+-]\d{2}:?\d{2}$/.test(s);
+  if (hasTimezone) return new Date(s).getTime();
+  return new Date(`${s.replace(" ", "T")}Z`).getTime();
+};
+
+const getOldCartRemainingMs = (createdAt) => {
+  const createdMs = parseServerDateMs(createdAt);
+  if (Number.isNaN(createdMs)) return 0;
+  const remaining = OLD_CART_WINDOW_MS - (Date.now() - createdMs);
+  // Clamp to the window so a skewed device/server clock (a `created_at` that
+  // reads in the future) can't render an absurd countdown like "470:55".
+  return Math.min(OLD_CART_WINDOW_MS, Math.max(0, remaining));
+};
+
+const formatOldCartCountdown = (ms) => {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
+
+// Shows the live "-MM:SS" countdown while the 30-minute window is open, then
+// hides just the counter and keeps "Add Again?" clickable to re-add the item.
+const OldCartAddAgainLabel = ({ product, language, onAddAgain }) => {
+  const [remainingMs, setRemainingMs] = useState(() =>
+    getOldCartRemainingMs(product.created_at),
+  );
+  const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    setRemainingMs(getOldCartRemainingMs(product.created_at));
+    if (getOldCartRemainingMs(product.created_at) <= 0) return;
+    const interval = setInterval(() => {
+      const next = getOldCartRemainingMs(product.created_at);
+      setRemainingMs(next);
+      if (next <= 0) clearInterval(interval);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [product.created_at]);
+
+  const showCountdown = remainingMs > 0;
+
+  const handleAddAgainClick = async (e) => {
+    // The whole card is a product link — keep the tap here from navigating.
+    e.preventDefault();
+    e.stopPropagation();
+    if (adding) return;
+    setAdding(true);
+    try {
+      await onAddAgain(product);
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <span className="text-[#8D8D8D] bold text-[12px] ml-1">
+      {translateFunction("Out Of Bag!", language)}{" "}
+      <span className="regular">
+        {showCountdown && (
+          <>
+            {translateFunction("Time Running Out.", language)}{" "}
+            <span className="bold">-{formatOldCartCountdown(remainingMs)}</span>{" "}
+            |{" "}
+          </>
+        )}
+        <span
+          data-cy="old-cart-add-again"
+          className={`underline text-[#54b8ff] ${adding ? "opacity-50" : ""}`}
+          onClick={handleAddAgainClick}
+        >
+          {translateFunction("Add Again?", language)}
+        </span>
+      </span>
+    </span>
+  );
+};
+
 function OldCartContainer() {
-  const { cart, language, storeOldCart, oldCart, hideOldCart } = useAppStore();
+  const { cart, language, storeOldCart, oldCart, hideOldCart, initCart } =
+    useAppStore();
   const filteredOldCart =
     oldCart?.oldCart?.filter(
       (oldProduct) =>
@@ -28,7 +123,7 @@ function OldCartContainer() {
       try {
         const settingsObj = JSON.parse(settingsStr);
         shippingDurationDays =
-          parseInt(settingsObj?.["starting-setting"]?.shipping_duration_days) ||
+          parseInt(settingsObj?.["starting_setting"]?.shipping_duration_days) ||
           0;
       } catch (e) {
         shippingDurationDays = 0;
@@ -52,6 +147,39 @@ function OldCartContainer() {
   useEffect(() => {
     getInitialData();
   }, []);
+  // Bring an Out-Of-Bag item back into the active cart in one tap, then refresh
+  // both lists (once it's back in the cart it's filtered out of Out-Of-Bag).
+  const handleAddAgain = async (product) => {
+    try {
+      const succeeded = await cartService.AddToCart({
+        product_id: product.product_id ?? product.id,
+        color: product.variations?.color,
+        choice_1: product.variations?.Size,
+        product_variation_id: product.product_variation_id ?? null,
+        qty: parseInt(product.quantity) || 1,
+        image: product.image,
+        offer_price: product.offer_price,
+        type: product.product_variation_id,
+      });
+      if (!succeeded) return;
+      trackOrder(ORDER_EVENTS.OLD_CART_ITEM_RE_ADDED, {
+        product_id: product?.product_id ?? product.id,
+        item_name: product?.name,
+      });
+      await getCart({
+        callback: ([data]) => {
+          initCart(data ?? { cart: [] });
+        },
+      });
+      await getOldCart();
+    } catch (error) {
+      LogError({
+        error: error,
+        scenario: "Add Again from Out-Of-Bag widget",
+        id: product?.id,
+      });
+    }
+  };
   if (loading) {
     return (
       <div
@@ -175,10 +303,9 @@ function OldCartContainer() {
           data-cy="hideAll"
           className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
           onClick={() => {
-            // Sendevent({
-            //   event: GA_EVENT_NAMES.CLICK,
-            //   value: GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCTS_BUTTON,
-            // });
+            trackOrder(ORDER_EVENTS.OLD_CART_CLEARED, {
+              item_count: filteredOldCart?.length,
+            });
             home.hideOldCart({});
             storeOldCart([]);
           }}
@@ -227,7 +354,7 @@ function OldCartContainer() {
                     src={getConfiguredImage({
                       height: 150,
                       width: 150,
-                      src: GetImageUrl(product?.brand?.icon?.file_path),
+                      src: GetImageUrl(product?.brand?.icon?.file_path??product?.brand?.icon),
                     })}
                     height={10}
                     style={{
@@ -363,14 +490,11 @@ function OldCartContainer() {
                     data-cy="color-icon"
                   />
                 </span>
-                <span className="text-[#8D8D8D] bold text-[12px] ml-1">
-                  {translateFunction("Out Of Bag!", language)}{" "}
-                  <span className="regular">
-                    {translateFunction("Time Running Out.")}{" "}
-                    <span className="bold">-30:00</span> |{" "}
-                    {translateFunction("Add Again?")}
-                  </span>
-                </span>
+                <OldCartAddAgainLabel
+                  product={product}
+                  language={language}
+                  onAddAgain={handleAddAgain}
+                />
                 <span className="ml-auto">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -422,11 +546,10 @@ function OldCartContainer() {
               } absolute  top-[35px] hide-btn cursor-pointer z-40`}
               onClick={(e) => {
                 e.preventDefault();
-                // Sendevent({
-                //   event: GA_EVENT_NAMES.CLICK,
-                //   value:
-                //     GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCT_ITEM_BUTTON,
-                // });
+                trackOrder(ORDER_EVENTS.OLD_CART_ITEM_REMOVED, {
+                  product_id: product?.product_id ?? product.id,
+                  item_name: product?.name,
+                });
                 hideOldCart(product.id);
                 home.hideOldCart({ id: product.id });
               }}
@@ -443,10 +566,10 @@ function OldCartContainer() {
                 offer_price: product?.offer_price,
               }}
               updateData={async () => {}}
-              isCollectedAfterOrdering={false}
-              maxAllowed={product.max_allowed_qty}
+         
+             
               disabled={true}
-              isHurry={false}
+       
               value={product.quantity}
               max={product.available_quantity}
               setValue={() => {}}

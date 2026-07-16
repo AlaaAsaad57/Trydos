@@ -14,7 +14,6 @@ async function AuthNavContainer() {
       firstName: string;
       lastName: string;
       phone: string;
-      email: string;
     } | null>(COOKIE_NAMES.WALLET_USER),
   ]);
   return (

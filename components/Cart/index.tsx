@@ -19,6 +19,7 @@ import { useAppStore } from "store";
 import cartService from "services/cart";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import { EnableScroll } from "utils/tinyUtils";
 
 import { fetchData } from "utils/fetchData";
@@ -68,7 +69,7 @@ function CartContainer({ close, toOrders }) {
     setOrderData({
       payment: [],
       coupon: false,
-      agree: false,
+      
       coupon_number: "",
       loading: false,
       success: false,
@@ -97,6 +98,9 @@ function CartContainer({ close, toOrders }) {
           screen_name: GA_GLOBAL_SCREEN.CART_SCREEN,
           screen_path: window.location.pathname,
         },
+      });
+      trackOrder(ORDER_EVENTS.CART_VIEWED, {
+        item_count: data.cart.length,
       });
     }
   };
@@ -338,11 +342,6 @@ function CartContainer({ close, toOrders }) {
                           await updateDataForProduct(product.slug);
                         }}
                         product={product}
-                        maxAllowed={product.max_allowed_qty}
-                        isCollectedAfterOrdering={Boolean(
-                          product.packed_after_ordering,
-                        )}
-                        isHurry={true || product.have_hurry_up_notify}
                         disabled={false}
                         max={product.available_quantity}
                         setValue={() => {}}
@@ -463,10 +462,8 @@ export const QuantutyInput = ({
   id,
   disabled,
   updateData,
-  isHurry,
   product,
-  maxAllowed,
-  isCollectedAfterOrdering,
+
 }) => {
   const { initCart, settings, currency, removeFromCart } = useAppStore();
   const luckPrice = (product as any)?.luck_price;
@@ -489,40 +486,37 @@ export const QuantutyInput = ({
         )
       : 0;
   const [inputValue, setInputValue] = useState(parseInt(value));
+  const [isNarrowScreen, setIsNarrowScreen] = useState(false);
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (parseInt(value) === inputValue) return;
     setInputValue(parseInt(value));
   }, [value]);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 399px)");
+    const update = () => setIsNarrowScreen(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
-  const updateQuantity = async (quantity, bool) => {
-    try {
-      let a = await fetchData({
-        url: "/cart/update",
-        reqTitle: REQUESTS_DATA.UPDATE_CART_ITEM,
-        method: "POST",
-        server: "market",
-        body: JSON.stringify({ key: id, quantity: quantity }),
-      });
-      if (a.data.status === 0 && !a.success) {
-        throw new Error(a.data.message);
-      } else {
-        updateData();
-      }
-      updateData();
-    } catch (error) {
-      setLoading(false);
-      if (bool) {
-        setInputValue(inputValue);
-      } else {
-        setInputValue(inputValue);
-      }
+  const updateQuantity = async (quantity, previousValue) => {
+    // Single update path — go through the cart service (which syncs the store)
+    // instead of POSTing to /cart/update directly, so the operation isn't
+    // duplicated across two store-sync paths.
+    const succeeded = await cartService.UpdateCart({ cart_id: id, qty: quantity });
+    if (!succeeded) {
+      // Roll the optimistic +/- back to the value it held before this change.
+      setInputValue(previousValue);
       LogError({
-        error: error,
+        error: new Error("Cart quantity update rejected"),
         scenario: "Update Qty For Cart Item widget",
         id: id,
         quantity,
       });
+      return;
     }
+    updateData();
   };
 
   let { lang } = useParams();
@@ -532,16 +526,47 @@ export const QuantutyInput = ({
     return translateFunction(key, languageVariable);
   };
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
+  const oldPriceLabel = String(
+    RoundPrice({
+      num: product.price * product.quantity,
+      rate: currency?.exchange_rate,
+      points: currency?.decimal_digits,
+      language: languageVariable,
+    }),
+  );
+  const newPriceLabel = String(
+    RoundPrice({
+      num: currentUnitPrice * product.quantity,
+      rate: currency?.exchange_rate,
+      points: currency?.decimal_digits,
+      language: languageVariable,
+    }),
+  );
+  const currencyLabel = currency?.symbol ?? "";
+  // Shrink the price only when it's both on a very small screen AND the
+  // displayed price (old + new + currency) is long enough to crowd the row.
+  const priceStringLength = (
+    hasDiscount
+      ? `${oldPriceLabel}${newPriceLabel}${currencyLabel}`
+      : `${newPriceLabel}${currencyLabel}`
+  ).length;
+  const compactPrice = isNarrowScreen && priceStringLength > 10;
+  const priceFontClass = compactPrice ? "text-[13px]" : "text-[18px]";
+  const singlePriceFontClass = compactPrice ? "text-[12px]" : "text-[14px]";
   const decreaseQuantity = async (i) => {
     if (!loading) {
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.CLICK,
-      //   value: GA_CLICK_EVENT_VALUES.DECREASE_QUANTITY_BUTTON_FROM_CART,
-      // });
+      trackOrder(ORDER_EVENTS.CART_ITEM_QTY_DECREASED, {
+        product_id: product?.product_id ?? id,
+        item_name: product?.name,
+        variant: product?.variant,
+        from_qty: parseInt(i),
+        to_qty: parseInt(i) - 1,
+        unit_price: currentUnitPrice,
+      });
       setInputValue(parseInt(i) - 1);
       setLoading(true);
 
-      await updateQuantity(parseInt(i.toString()) - 1, false);
+      await updateQuantity(parseInt(i.toString()) - 1, parseInt(i.toString()));
       await getCart({
         callback: ([data, res]) => {
           initCart(data ?? { cart: [] });
@@ -550,13 +575,16 @@ export const QuantutyInput = ({
       setLoading(false);
     }
   };
-  const [loading, setLoading] = useState(false);
   const increaseQuantity = async (i) => {
     if (!loading) {
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.CLICK,
-      //   value: GA_CLICK_EVENT_VALUES.INCREASE_QUANTITY_BUTTON_FROM_CART,
-      // });
+      trackOrder(ORDER_EVENTS.CART_ITEM_QTY_INCREASED, {
+        product_id: product?.product_id ?? id,
+        item_name: product?.name,
+        variant: product?.variant,
+        from_qty: parseInt(i.toString()),
+        to_qty: parseInt(i.toString()) + 1,
+        unit_price: currentUnitPrice,
+      });
       setInputValue(parseInt(i.toString()) + 1);
       setLoading(true);
       GAevent({
@@ -583,7 +611,7 @@ export const QuantutyInput = ({
           screen_path: window.location.pathname,
         },
       });
-      await updateQuantity(parseInt(i.toString()) + 1, true);
+      await updateQuantity(parseInt(i.toString()) + 1, parseInt(i.toString()));
       await getCart({
         callback: ([data, res]) => {
           initCart(data ?? { cart: [] });
@@ -606,6 +634,11 @@ export const QuantutyInput = ({
   const ConvertToOldCart = async () => {
     try {
       setLoading(true);
+      trackOrder(ORDER_EVENTS.CART_ITEM_MOVED_TO_OLD, {
+        product_id: product?.product_id ?? id,
+        item_name: product?.name,
+        variant: product?.variant,
+      });
       await cartService.ConvertToOldCart({ cart_item: id });
       setLoading(false);
       removeFromCart(id);
@@ -625,9 +658,9 @@ export const QuantutyInput = ({
       data-cy="card-footer"
       className={`${
         isRtl ? "right-[137px] flex-row-reverse" : "left-[137px] flex-row"
-      } absolute flex-wrap ${"top-[125px]"}  items-center justify-between max-w-[calc(100%-152px)] w-full`}
+      } absolute flex-nowrap ${"top-[125px]"}  items-center justify-between gap-x-2 max-w-[calc(100%-152px)] w-full`}
     >
-      <div className="flex-col px-[10px]">
+      <div className="flex-col px-[4px] shrink-0">
         <div
           className={`${
             loading && "opacity-40"
@@ -715,7 +748,7 @@ export const QuantutyInput = ({
                   src={"/icons/CartMinusIcon.svg"}
                 />
               </div>
-              {!loading && (
+              {!loading && !disabled && (
                 <div
                   className="absolute h-[24px] flex items-center hide-btn right-[-20px] -top-px scale-125  cursor-pointer"
                   data-cy="DeleteIcon_CartPage"
@@ -737,15 +770,18 @@ export const QuantutyInput = ({
                 </div>
               )}
             </>
-          ) : (
+          ) : disabled ? null : (
             <div
               className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
               data-cy="DeleteIcon_CartPage"
               onClick={() => {
-                // Sendevent({
-                //   event: GA_EVENT_NAMES.CLICK,
-                //   value: GA_CLICK_EVENT_VALUES.REMOVE_PRODUCT_FROM_CART,
-                // });
+                trackOrder(ORDER_EVENTS.CART_ITEM_REMOVED, {
+                  product_id: product?.product_id ?? id,
+                  item_name: product?.name,
+                  variant: product?.variant,
+                  qty: parseInt(inputValue?.toString() ?? "0"),
+                  unit_price: currentUnitPrice,
+                });
                 deleteFunction();
               }}
             >
@@ -799,7 +835,7 @@ export const QuantutyInput = ({
         )}
       </div>
 
-      <div className="flex-col">
+      <div className="flex-col min-w-0">
         <div className={``} data-cy="oldNew-price-container">
           <div className="product-info-price" data-cy="oldNew-price-container2">
             {hasDiscount ? (
@@ -813,15 +849,10 @@ export const QuantutyInput = ({
                     data-cy="newOld-price"
                   >
                     <div
-                      className="product-old-price text-[18px] text-[#C4C2C2] regular"
+                      className={`product-old-price ${priceFontClass} text-[#C4C2C2] regular`}
                       data-cy="oldPrice-container"
                     >
-                      {RoundPrice({
-                        num: product.price * product.quantity,
-                        rate: currency?.exchange_rate,
-                        points: currency?.decimal_digits,
-                        language: languageVariable,
-                      })}
+                      {oldPriceLabel}
                       <svg
                         data-cy="oldPrice-svg"
                         className="bottom-3"
@@ -843,15 +874,10 @@ export const QuantutyInput = ({
                     <div
                       className={`${
                         (product as any)?.is_luck && "text-[#FF6200]"
-                      } product-new-price text-[18px] bold m-0`}
+                      } product-new-price ${priceFontClass} bold m-0`}
                       data-cy="new-price"
                     >
-                      {RoundPrice({
-                        num: currentUnitPrice * product.quantity,
-                        rate: currency?.exchange_rate,
-                        points: currency?.decimal_digits,
-                        language: languageVariable,
-                      })}
+                      {newPriceLabel}
                     </div>
                     <div
                       className="product-currency text-[8px] light text-[#1D1D1D] m-0"
@@ -882,13 +908,10 @@ export const QuantutyInput = ({
               </>
             ) : (
               <>
-                <div className="product-new-price text-[14px] light text-[#1D1D1D]">
-                  {RoundPrice({
-                    num: currentUnitPrice * product.quantity,
-                    rate: currency?.exchange_rate,
-                    points: currency?.decimal_digits,
-                    language: languageVariable,
-                  })}
+                <div
+                  className={`product-new-price ${singlePriceFontClass} light text-[#1D1D1D]`}
+                >
+                  {newPriceLabel}
                 </div>
               </>
             )}

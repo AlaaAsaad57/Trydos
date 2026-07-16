@@ -68,7 +68,7 @@ function ChatWindow({ close, setOpenContacts, open, setSearch, search }) {
           >
             <img src="/icons/chat/arrow.svg" />
           </div>
-          <div className="forward-text">Forward Message</div>
+          <div className="forward-text">{translateFunction("Forward Message")}</div>
         </div>
       ) : (
         <>

@@ -44,9 +44,8 @@ function ProductPricesWrapper({
 
   return (
     <div
-      className={`flex h-[40px] w-full relative items-end pb-[8px] overflow-hidden ${
-        isRtl ? "flex-row-reverse pr-[20px]" : "flex-row pl-[20px]"
-      }`}
+      className={`flex h-[40px] w-full relative items-end pb-[8px] overflow-hidden ${isRtl ? "flex-row-reverse pr-[20px]" : "flex-row pl-[20px]"
+        }`}
     >
       {/* 10% Client Logic: Only this component interacts with cookies */}
       <PricesRowClientLogic
@@ -102,6 +101,8 @@ function ProductPricesWrapper({
         languageVariable={language}
         shipping_cost={qtyPricePromise?.shipping_cost}
         shippingDays={qtyPricePromise?.shipping_days}
+        country_shipping_days={qtyPricePromise?.country_shipping_days}
+        allowReturnInDays={qtyPricePromise?.allow_return_in_days}
       />
 
       {/* Static Border */}

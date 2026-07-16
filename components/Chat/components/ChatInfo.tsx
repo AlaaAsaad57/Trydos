@@ -23,7 +23,7 @@ function ChatInfo({
   enableSearch,
 }) {
   const { deleteChat, language, updateChannelBlockStatus } = useAppStore();
-  const ref = useRef<any>();
+  const ref = useRef<any>(null);
   const otherUserId = activeChat?.channel_members?.filter(
     (user) => String(user.user_id) !== String(getUser()?.id),
   )?.[0]?.user?.id;
@@ -40,7 +40,7 @@ function ChatInfo({
         error: error,
         scenario: "handleCopyPhone in chat info - chat widget",
       });
-      showErrorNotification("Number copy failed");
+      showErrorNotification(translateFunction("Number copy failed"));
     }
   };
   const [showMedia, setMedia] = useState(false);

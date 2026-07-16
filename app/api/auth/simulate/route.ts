@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
     chatToken,
     storiesToken,
     walletToken,
+    userIdHash,
   } = body;
 
   if (userData !== undefined)
@@ -63,6 +64,12 @@ export async function POST(request: NextRequest) {
   if (walletToken !== undefined)
     await setSimulateCookie(COOKIE_NAMES.WALLET_TOKEN, walletToken);
   else await deleteSecureCookie(COOKIE_NAMES.WALLET_TOKEN);
+
+  // The comments/OTP identity token. The /simulateUser page already sends this;
+  // without it, comments/OTP-linked features won't work in a simulated session.
+  if (userIdHash !== undefined)
+    await setSimulateCookie(COOKIE_NAMES.USER_ID_HASH, userIdHash);
+  else await deleteSecureCookie(COOKIE_NAMES.USER_ID_HASH);
 
   return NextResponse.json({ success: true });
 }

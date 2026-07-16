@@ -8,8 +8,9 @@ import {
   GetWalletBalanceInCurrency,
   getCurrencies,
 } from "services/wallet";
+import { WALLET_REAUTH_ON_401 } from "services/wallet/reauthFlag";
 import { CurrenciesApi, GetWalletBalancesApi } from "services/wallet/types";
-import { RoundPrice } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 
 export default function CheckoutButton({ local = "gb-en" }) {
   const [showModal, setShowModal] = useState(false);
@@ -57,7 +58,8 @@ export default function CheckoutButton({ local = "gb-en" }) {
   const handleUnauthenticated = () => {
     enableCart(false);
     setShowModal(false);
-    setShouldAuthinticated(true);
+    // Temporarily disabled: don't prompt phone re-verification on wallet 401.
+    if (WALLET_REAUTH_ON_401) setShouldAuthinticated(true);
   };
 
   // Load currencies and wallet data when modal opens
@@ -136,12 +138,12 @@ export default function CheckoutButton({ local = "gb-en" }) {
 
   const handleCheckout = async () => {
     if (!cart[0]?.cart_group_id || !selectedCurrency || checkoutAmount <= 0) {
-      alert("Invalid cart data");
+      alert(translateFunction("Invalid cart data"));
       return;
     }
 
     if (checkoutAmount > availableBalance) {
-      alert("Insufficient balance in your wallet.");
+      alert(translateFunction("Insufficient balance in your wallet."));
       return;
     }
 
@@ -157,14 +159,14 @@ export default function CheckoutButton({ local = "gb-en" }) {
       });
 
       if (result) {
-        alert("Payment successful!");
+        alert(translateFunction("Payment successful!"));
         setShowModal(false);
         // Optionally refresh cart or redirect
         window.location.reload();
       }
     } catch (error) {
       console.error("Checkout failed:", error);
-      alert("Payment failed. Please try again.");
+      alert(translateFunction("Payment failed. Please try again."));
     } finally {
       setIsProcessing(false);
     }
@@ -214,7 +216,7 @@ export default function CheckoutButton({ local = "gb-en" }) {
             d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
           />
         </svg>
-        <span>Checkout</span>
+        <span>{translateFunction("Checkout")}</span>
       </button>
 
       {/* Modal */}
@@ -250,7 +252,7 @@ export default function CheckoutButton({ local = "gb-en" }) {
                   </svg>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800">
-                  Wallet Checkout
+                  {translateFunction("Wallet Checkout")}
                 </h2>
               </div>
               <button
@@ -284,7 +286,7 @@ export default function CheckoutButton({ local = "gb-en" }) {
                   {/* Currency Selection */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3">
-                      Select Payment Currency
+                      {translateFunction("Select Payment Currency")}
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {visibleCurrencies && (
@@ -316,12 +318,12 @@ export default function CheckoutButton({ local = "gb-en" }) {
                             }
                           </div>
                           <p className="text-xs text-gray-500 mb-1">
-                            Available
+                            {translateFunction("Available")}
                           </p>
                           <p className="text-lg font-bold text-gray-800">
                             {isLoadingData ? (
                               <span className="text-sm animate-pulse">
-                                Loading...
+                                {translateFunction("Loading...")}
                               </span>
                             ) : (
                               RoundPrice({
@@ -340,12 +342,12 @@ export default function CheckoutButton({ local = "gb-en" }) {
                   {selectedCurrency && (
                     <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-xl border border-purple-100">
                       <h3 className="text-sm font-semibold text-gray-700 uppercase mb-4">
-                        Payment Summary
+                        {translateFunction("Payment Summary")}
                       </h3>
 
                       <div className="space-y-3">
                         <div className="flex justify-between text-gray-600">
-                          <span>Cart Total:</span>
+                          <span>{translateFunction("Cart Total:")}</span>
                           <span className="font-medium">
                             {RoundPrice({
                               num: total,
@@ -357,7 +359,7 @@ export default function CheckoutButton({ local = "gb-en" }) {
                         </div>
 
                         <div className="flex justify-between text-gray-600">
-                          <span>Available Balance:</span>
+                          <span>{translateFunction("Available Balance:")}</span>
                           <span
                             className={`font-medium ${
                               availableBalance < checkoutAmount
@@ -377,7 +379,7 @@ export default function CheckoutButton({ local = "gb-en" }) {
                         <div className="border-t border-purple-200 pt-3 mt-3">
                           <div className="flex justify-between items-center">
                             <span className="text-lg font-bold text-gray-800">
-                              Amount to Pay:
+                              {translateFunction("Amount to Pay:")}
                             </span>
                             <span className="text-2xl font-bold text-purple-600">
                               {RoundPrice({
@@ -393,8 +395,10 @@ export default function CheckoutButton({ local = "gb-en" }) {
                         {availableBalance < checkoutAmount && (
                           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                             <p className="text-sm text-red-600 font-medium">
-                              ⚠️ Insufficient balance. Please add funds or
-                              select a different currency.
+                              ⚠️{" "}
+                              {translateFunction(
+                                "Insufficient balance. Please add funds or select a different currency.",
+                              )}
                             </p>
                           </div>
                         )}
@@ -413,7 +417,7 @@ export default function CheckoutButton({ local = "gb-en" }) {
                   className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
                   disabled={isProcessing}
                 >
-                  Cancel
+                  {translateFunction("Cancel")}
                 </button>
                 <button
                   onClick={handleCheckout}
@@ -429,7 +433,7 @@ export default function CheckoutButton({ local = "gb-en" }) {
                   {isProcessing ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Processing...</span>
+                      <span>{translateFunction("Processing...")}</span>
                     </>
                   ) : (
                     <>
@@ -446,7 +450,7 @@ export default function CheckoutButton({ local = "gb-en" }) {
                           d="M5 13l4 4L19 7"
                         />
                       </svg>
-                      <span>Confirm Payment</span>
+                      <span>{translateFunction("Confirm Payment")}</span>
                     </>
                   )}
                 </button>

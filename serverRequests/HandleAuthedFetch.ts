@@ -2,7 +2,7 @@
 import { cookies } from "next/headers";
 import { fetchServerData } from "./ServerFetch"; // Adjust path accordingly
 import { LogError } from "utils/functions";
-import { getCookieServer } from "utils/cookies/cookie-manager";
+import { getCookieServer, COOKIE_NAMES as CANONICAL_COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import {
   setSecureCookieJSON,
   SECURE_COOKIE_OPTIONS,
@@ -53,8 +53,14 @@ export const HandleAuthedFetch = async <T = any>(
   // 1. Initial Attempt
   let response = await fetchServerData<T>({ ...options, headers });
 
+  // Logout in progress: a logout just cleared the cookies and armed the guard.
+  // Do NOT re-register a guest or write any token/identity cookie here, or this
+  // late 401 would resurrect the session the user just logged out of. Return the
+  // 401 as-is; the post-logout reload registers a fresh guest normally.
+  const loggingOut = cookieStore?.get(CANONICAL_COOKIE_NAMES.LOGOUT_GUARD)?.value;
+
   // 2. If 401 Unauthorized, try to re-register/refresh token
-  if (response.status === 401) {
+  if (response.status === 401 && !loggingOut) {
     const user = await getCookieServer<UserData>(COOKIE_NAMES.USER_DATA);
 
     let requestBody = user?.id
@@ -65,7 +71,7 @@ export const HandleAuthedFetch = async <T = any>(
       // Internal helper to perform registration fetch
       const registerUser = async (body: any) => {
         return await fetchServerData({
-          url: process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
+          url: process.env.NEXT_PUBLIC_GO_BACKEND_URL + REGISTER_DEVICE_URL,
           body: JSON.stringify(body),
           method: "POST",
           headers: headers,

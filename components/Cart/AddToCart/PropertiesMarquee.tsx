@@ -5,20 +5,22 @@ import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { formatTimeForAddress } from "utils/tinyUtils";
 
-function PropertiesMarquee({ shipping_cost, languageVariable, shippingDays }) {
+function PropertiesMarquee({ shipping_cost, languageVariable, shippingDays, country_shipping_days = 0, allowReturnInDays = 0 }) {
+  // Backend signals "no returns" with 0 — hide the return badge entirely.
+  const canReturn = Number(allowReturnInDays) > 0;
   const { settings } = useAppStore();
   const marqueeRef = useRef(null);
 
   const shippingDate = useMemo(() => {
     const countryDays =
-      Number(settings?.["starting-setting"]?.shipping_duration_days) || 0;
+      Number(settings?.["starting_setting"]?.shipping_duration_days) || country_shipping_days || 0;
     const totalDays = Number(shippingDays || 0) + countryDays;
     if (totalDays <= 0) return null;
     return formatTimeForAddress(
       new Date(Date.now() + totalDays * 24 * 60 * 60 * 1000).toString(),
       languageVariable,
     );
-  }, [shippingDays, settings, languageVariable]);
+  }, [shippingDays, settings, languageVariable, country_shipping_days]);
   const requestRef = useRef(null);
   const directionRef = useRef(-1); // start moving left
   const positionRef = useRef(0);
@@ -102,15 +104,21 @@ function PropertiesMarquee({ shipping_cost, languageVariable, shippingDays }) {
             <span>{translateFunction("Free Shipping", languageVariable)}</span>
           </div>
         )}
-        <div className="product-prop-item m-0 flex-none">
-          <img
-            width={15}
-            height={15}
-            alt={translateFunction("truck", languageVariable)}
-            src="/icons/redtruck.svg"
-          />
-          <span>{translateFunction("Free Return", languageVariable)}</span>
-        </div>
+        {canReturn && (
+          <div className="product-prop-item m-0 flex-none">
+            <img
+              width={15}
+              height={15}
+              alt={translateFunction("truck", languageVariable)}
+              src="/icons/redtruck.svg"
+            />
+            <span>
+              {translateFunction("Free Return", languageVariable)}{" "}
+              <span className="medium">{Number(allowReturnInDays)}</span>{" "}
+              {translateFunction("Days", languageVariable)}
+            </span>
+          </div>
+        )}
         <div className="product-prop-item m-0 flex-none">
           <Image
             src={"/icons/DeleiverIcon.svg"}

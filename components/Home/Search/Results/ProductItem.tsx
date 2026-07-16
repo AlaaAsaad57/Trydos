@@ -6,11 +6,15 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
-import { useAppStore } from "store";
 
-function ProductItem({ product, onClick, index }) {
+function ProductItem({
+  product,
+  onClick,
+  index,
+  searchValue = "",
+  resultsProducts = [],
+}) {
   const { lang } = useParams();
-  const { value, searchResults } = useAppStore();
 
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -25,7 +29,7 @@ function ProductItem({ product, onClick, index }) {
           action: GA_EVENT_NAMES.SEARCH,
           params: {
             user_id_custom: auth.UserID(),
-            search_keyword: value,
+            search_keyword: searchValue,
             search_item_select: JSON.stringify({
               item_id: product?.product_id,
               item_name: product?.name,
@@ -33,11 +37,11 @@ function ProductItem({ product, onClick, index }) {
               category_id: product?.category?.id,
               position: index,
             }),
-            search_results_ids: searchResults.products
+            search_results_ids: resultsProducts
               ?.filter((s) => s.product_id !== product.product_id)
               ?.map((s) => s?.product_id)
               .join(","),
-            count_results_search: searchResults?.products?.length,
+            count_results_search: resultsProducts?.length,
             limit_results_search: 10,
             search_results_page: 1,
             screen_name: GA_GLOBAL_SCREEN.HOME_SCREEN,

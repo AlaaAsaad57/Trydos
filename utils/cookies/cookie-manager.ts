@@ -46,6 +46,26 @@ export const COOKIE_NAMES = {
   COUNTRY: "country",
   LANG: "lang",
   lANGUAGE: "language",
+  /**
+   * Durable, server-minted per-visitor id used to key the OTP session rate
+   * limit. Unlike the auth tokens / `User-Data` id, this is NEVER cleared or
+   * rotated by any code path (logout, guest re-register, token refresh), so the
+   * `otp:sid:*` counter can't be reset mid-session by forcing a token rotation.
+   * HttpOnly — the client can't read or tamper with it.
+   */
+  VISIT_ID: "VISIT-ID",
+  /**
+   * Short-lived, server-visible marker set the moment a logout starts and
+   * cleared on the very next top-level navigation (the post-logout reload, in
+   * `proxy.ts`). While present it tells every server-side 401 → guest
+   * re-register path (`HandleAuthedFetch`, `/api/auth/expire`,
+   * `/api/auth/register-device`) to NOT mint a fresh token or write any
+   * identity cookie. This is what stops an in-flight authed request that
+   * resolves a 401 *after* logout cleared the cookies from silently
+   * resurrecting the session (the "user still logged in after logout" bug).
+   * HttpOnly + short TTL backstop so it can never get stuck.
+   */
+  LOGOUT_GUARD: "LOGOUT-GUARD",
   USER_ID_HASH:
     "x7k9m2p4q8r1s5t3u6v2w9y4z7a1b5c8d2e6f9g3h7j1k4l8m2n5p9q3r6s1t4u7v2w5x8y1z4a7b2c5d8e1f4g7h2j5k8l1m4n7o2p5q8r1s4t7u2v5w8x1y4z7", // Random gibberish name
 } as const;
@@ -238,37 +258,13 @@ export function deleteCookie(name: string): void {
 }
 
 /**
- * Store hashed user ID in cookie
- * Usage: storeHashedUserId(response.user.id)
- */
-export function storeHashedUserId(userId: number | string): void {
-  setCookie(COOKIE_NAMES.USER_ID_HASH, userId, {
-    maxAge: 365 * 24 * 60 * 60, // 1 year
-    httpOnly: false,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-  });
-}
-
-/**
- * Get and decode hashed user ID from cookie
- * Returns the hashed user ID if found, null otherwise
- * Usage: const hashedUserId = getHashedUserId()
- */
-export function getHashedUserId(): string | null {
-  const hashedId = getCookie<string>(COOKIE_NAMES.USER_ID_HASH);
-
-  if (!hashedId) {
-    return null;
-  }
-
-  // Return the full hash string for comparison
-  return hashedId;
-}
-
-/**
  * Clear hashed user ID from cookie
  * Usage: clearHashedUserId() - typically called on logout
+ *
+ * Note: USER_ID_HASH is server-set and HttpOnly, so this client-side delete is a
+ * best-effort belt-and-suspenders; authoritative clearing happens server-side.
+ * (The former client-side setter/getter were removed — USER_ID_HASH must never
+ * be written non-HttpOnly from the client.)
  */
 export function clearHashedUserId(): void {
   deleteCookie(COOKIE_NAMES.USER_ID_HASH);
@@ -285,14 +281,14 @@ export function setLocaizationCookies(country: string, language: string): void {
     });
   }
   if (language) {
-    setCookie(COOKIE_NAMES.LANG, language, {
+    setCookie(COOKIE_NAMES.LANG, language?.toLowerCase(), {
       path: "/",
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 365 * 24 * 60 * 60, // 1 year
       httpOnly: false,
     });
-    setCookie(COOKIE_NAMES.lANGUAGE, language, {
+    setCookie(COOKIE_NAMES.lANGUAGE, language?.toLowerCase(), {
       path: "/",
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

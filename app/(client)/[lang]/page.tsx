@@ -82,7 +82,6 @@ async function HomePage({ params, searchParams }) {
     return (
       <>
         {/* <StructuredDataScript lang={lang} /> */}
-
         <div
           className={`${
             isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
@@ -93,13 +92,10 @@ async function HomePage({ params, searchParams }) {
             fallback={<MobileNavigationSkeleton />}
             key={`Navbar ${lang}`}
           >
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
             <MainCategoriesNavbar lang={lang} mainCategory={mainCategory} />
           </Suspense>
         </div>
-
         <Suspense fallback={<StoriesSkeleton />} key={`Stories ${lang}`}>
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
           <StoriesBarServer
             language={lang.split("-")[1]}
             country={lang.split("-")[0]}
@@ -110,7 +106,6 @@ async function HomePage({ params, searchParams }) {
           fallback={<FeaturedProductsSkeleton />}
           key={`Featured Products ${lang} ${mainCategory ?? "main"}`}
         >
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
           <FeaturedProductWrapper
             currency={currency}
             lang={lang}
@@ -121,7 +116,6 @@ async function HomePage({ params, searchParams }) {
           fallback={<FeaturedProductsSkeleton />}
           key={`FlashDeals ${lang} ${mainCategory ?? "main"}`}
         >
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
 
           <FlashProductWrapper
             currency={currency}
@@ -134,7 +128,6 @@ async function HomePage({ params, searchParams }) {
           fallback={<OfferListSkeleton />}
           key={`OfferList ${lang} ${mainCategory ?? "main"}`}
         >
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
           <BoutiquesListWrapper
             currency={currency}
             params={{ lang: lang }}

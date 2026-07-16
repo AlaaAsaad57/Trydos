@@ -11,6 +11,7 @@ import home from "services/home";
 
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import { GetCountries } from "serverRequests/product";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const { setCountries, cart, user } = useAppStore();
@@ -130,8 +131,8 @@ const CartItemSelect = () => {
         {openCart &&
           cart.map((s, i) => {
             return (
-              <div className="flex flex-col items-center">
-                <div className="flex relative h-[125px]" key={i} data-cy="Item">
+              <div className="flex flex-col items-center" key={i}>
+                <div className="flex relative h-[125px]" data-cy="Item">
                   <span
                     className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
                     data-cy="cart-item-quantity-label"
@@ -591,7 +592,7 @@ const DefaultAddress = ({
       }
     });
     shippingDay +=
-      Number(settings?.["starting-setting"]?.shipping_duration_days) || 0;
+      Number(settings?.["starting_setting"]?.shipping_duration_days) || 0;
     return formatTimeForAddress(
       new Date(
         new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000,
@@ -645,6 +646,11 @@ const DefaultAddress = ({
             quantity: item.quantity,
           })),
         },
+      });
+      trackOrder(ORDER_EVENTS.ADDRESS_SELECTED, {
+        address_id: defaultAddress.id,
+        shipping_tier: total_shipping_cost > 0 ? "Paid" : "Free",
+        shipping_cost: total_shipping_cost,
       });
     }
   }, []);

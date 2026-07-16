@@ -6,7 +6,8 @@ import PopupCountry from "utils/PopupCountry";
 import home from "services/home";
 
 import { LogError, translateFunction } from "utils/functions";
-import { smartlookInit, smartlookIdentify } from "utils/smartlook";
+import { installGlobalErrorListeners } from "utils/globalErrorListeners";
+import { posthogInit, posthogIdentify } from "utils/posthog";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import NotificationWidget from "components/global/NotificationWidget";
 import { useAppStore } from "store";
@@ -25,6 +26,12 @@ function Init() {
   // Initialize login check once
   useEffect(() => {
     HomeService.CheckLogin();
+  }, []);
+
+  // Capture uncaught client errors / promise rejections so they reach both
+  // Sentry and the backend mobile_error_log (and become simulatable). Idempotent.
+  useEffect(() => {
+    installGlobalErrorListeners();
   }, []);
 
   const getCountries = async () => {
@@ -104,23 +111,34 @@ function Init() {
     }
 
     try {
-      if (auth.UserID()) {
-        if (typeof Notification !== "undefined") initPageLoad();
-        smartlookInit(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
+      // Start the session recorder for EVERY visitor (guests included) —
+      // session-replay is meant to capture all traffic, not just logged-in
+      // users. init() guards against re-entry, so re-running it on auth
+      // changes is safe.
+      // Must await: posthogIdentify no-ops until init() has finished
+      // (it guards on _inited). For an already-logged-in user this effect
+      // runs init + identify back-to-back, so without awaiting, identify
+      // fires before init completes and the user stays an anonymous uuid.
+      void (async () => {
+        await posthogInit(process.env.NEXT_PUBLIC_POSTHOG_KEY);
 
-        const user = useAppStore.getState().userProfile;
+        if (auth.UserID()) {
+          if (typeof Notification !== "undefined") initPageLoad();
 
-        if (user) {
-          smartlookIdentify(user.id, {
-            name: user?.name || "Guest",
-            phone: user?.mobilePhone || "null",
-          });
+          const user = useAppStore.getState().userProfile;
+
+          if (user) {
+            posthogIdentify(user.id, {
+              name: user?.name || "Guest",
+              phone: user?.mobilePhone || "null",
+            });
+          }
         }
-      }
+      })();
     } catch (error) {
       LogError({
         error: error,
-        scenario: "Init SmartLook in Init",
+        scenario: "Init PostHog in Init",
       });
     }
   }, [auth.UserID()]);

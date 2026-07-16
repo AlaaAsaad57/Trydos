@@ -4,7 +4,7 @@ import { translateFunction } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import { useAppStore } from "store";
 import { DisableScroll } from "utils/tinyUtils";
-import { getCookie } from "utils/cookies/cookie-manager";
+import { isRedeemed } from "utils/luck";
 
 function AddToCartButton({ product }: { product: any }) {
   const { setSelectedProductForCart } = useAppStore();
@@ -16,11 +16,8 @@ function AddToCartButton({ product }: { product: any }) {
     return translateFunction(key, languageVariable);
   };
   const shoulShowRedeem = () => {
-    const redeemed_ids = getCookie<any[]>("redemed_ids") ?? [];
-    if (product?.is_luck) {
-      return !redeemed_ids.find((s) => s.id === product.product_id);
-    }
-    return false;
+    if (!product?.is_luck) return false;
+    return !isRedeemed(product.product_id);
   };
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
   const compare = (a: any) => {
@@ -41,20 +38,16 @@ function AddToCartButton({ product }: { product: any }) {
       } w-[80px] justify-center bottom-0  left-0 right-0 mx-auto rounded-t-[15px] bg-[#513AAF] text-[13px] medium text-white items-start pt-[11px] shadow-[inset_0px_3px_6px_rgb(255,255,255,0.5)]`}
       data-cy="addToCartButton"
       onClick={(e) => {
-        let seconds: any = 0;
         if (product) {
-          if (shoulShowRedeem()) {
-            seconds = document.querySelector<HTMLSpanElement>(
-              "#product-redeem-counter-label",
-            )?.innerText;
-          }
+          // Countdown continuity is handled by the shared luck store (keyed by
+          // product id); the sheet reads the same window, so no seconds hand-off.
           DisableScroll();
           setSelectedProductForCart({
             ...product,
             shouldUpdate: 0,
             fromProductPage: true,
             showRedeemPrice: shoulShowRedeem(),
-            seconds: Number(seconds),
+            seconds: 0,
             sync_color_images: product?.sync_color_images
               ?.slice()
               ?.sort((a, b) => compare(a.color_name)),

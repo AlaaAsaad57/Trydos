@@ -3,7 +3,6 @@ import { LogError, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import search from "services/search";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
 import { CameraWidget } from "components/global/CameraWidget";
 import { showErrorNotification } from "@/store/notifications/reducer";
@@ -91,12 +90,10 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
       // @ts-ignore
       const response = await result.json();
 
+      // Setting the search value drives the overlay's single GetSearchData
+      // path directly (see SD-06); no separate store-based search needed.
       setSearchValue(response.response);
       setLoading(false);
-      search.getSearchOptions({
-        noProducts: false,
-        lang: lang,
-      });
     } catch (error) {
       LogError({
         error: error,
@@ -145,7 +142,9 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     } else {
       setLoading(false);
       alert(
-        "please select supported image format (jpeg, png, jpg, webp, svg, avif)",
+        translateFunction(
+          "please select supported image format (jpeg, png, jpg, webp, svg, avif)",
+        ),
       );
       // @ts-ignore
       event.target.value = null;

@@ -5,8 +5,8 @@ import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import { LogError, translateFunction } from "utils/functions";
 
-import { GetProductBuyersComment } from "serverRequests/product";
 import auth from "services/auth";
+import { BuyersCommentItem } from "components/Server/product/ProductBuyersComment/BuyerCommentItem";
 import { RatingCommentOptions } from "components/Server/product/ProductBuyersComment/RatingCommentOptions";
 
 function BuyersCommentModal({
@@ -31,20 +31,31 @@ function BuyersCommentModal({
 
   const isRtl = language === "ar" || language === "ku";
 
-  // ✅ Stable loadMore function
+  // ✅ Stable loadMore function — fetches the buyers-comments data page from the
+  // internal Next route (same-origin); renders items from data, never JSX.
   const loadMore = async () => {
     setLoading(true);
     try {
-      const data = await GetProductBuyersComment({
-        language: language,
-        productId: productId,
-        userId: auth.UserID(),
-        filter: activeTabRef.current,
-        offset: OffsetRef.current,
-      });
-
-      setCommentsData((prev) => [...(prev as any), ...data.comments]);
-      OffsetRef.current = data.offset;
+      const params = new URLSearchParams({ product_id: String(productId) });
+      const userId = auth.UserID();
+      if (userId) params.set("user_id", String(userId));
+      if (activeTabRef.current && activeTabRef.current !== 0)
+        params.set("filter", String(activeTabRef.current));
+      if (OffsetRef.current)
+        params.set(
+          "offset",
+          encodeURIComponent(JSON.stringify(OffsetRef.current)),
+        );
+      const res = await fetch(
+        `/api/products/comments/buyers_comments?${params.toString()}`,
+        { headers: { language: language ?? "en" } },
+      );
+      const json = await res.json();
+      setCommentsData((prev) => [
+        ...(prev as any),
+        ...(json?.data?.buyers_comments ?? []),
+      ]);
+      OffsetRef.current = json?.data?.offset ?? null;
     } catch (err) {
       LogError({
         error: err,
@@ -80,7 +91,7 @@ function BuyersCommentModal({
     <>
       {ColorBottomSheet?.is_buyers_comments && (
         <BottomSheet
-          height={90}
+          height={80}
           isOpen={ColorBottomSheet?.is_buyers_comments}
           onClose={() => setColorBottomSheet(false)}
         >
@@ -154,7 +165,15 @@ function BuyersCommentModal({
                     </div>
                   ))}
 
-                {!loading && commentsData}
+                {!loading &&
+                  commentsData?.map((comment: any) => (
+                    <BuyersCommentItem
+                      key={comment.id}
+                      id={comment.id}
+                      comment={comment}
+                      language={language}
+                    />
+                  ))}
                 {!loading && OffsetRef.current && (
                   <div
                     className="w-full flex justify-center items-center"
@@ -180,20 +199,20 @@ function BuyersCommentModal({
             comment={BuyerCommentModalOption}
             deleteAction={async (id) => {
               setActionLoading(true);
-              let comment_id = await deleteComment(id);
-              setCommentsData(
-                commentsData.filter((node) => node.key !== comment_id),
-              );
+              const comment_id = await deleteComment(id);
+              if (comment_id)
+                setCommentsData((prev: any) =>
+                  prev.filter((c: any) => c.id !== comment_id),
+                );
               setActionLoading(false);
             }}
             updateAction={async (comment) => {
               setActionLoading(true);
-              let { commentElement, id } = await editComment(comment);
-              setCommentsData(
-                commentsData?.map((node) =>
-                  node.key === id ? commentElement : node,
-                ),
-              );
+              const res = await editComment(comment);
+              if (res)
+                setCommentsData((prev: any) =>
+                  prev?.map((c: any) => (c.id === res.id ? res.comment : c)),
+                );
               setActionLoading(false);
             }}
             handleCloseModal={() => {

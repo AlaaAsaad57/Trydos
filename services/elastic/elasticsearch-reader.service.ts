@@ -49,6 +49,7 @@ export class ElasticsearchReader {
     }
   }
 
+ 
   getRules(country) {
     const mustConditions: estypes.QueryDslQueryContainer[] = [
       { term: { status: 1 } },
@@ -214,7 +215,7 @@ export class ElasticsearchReader {
                     boutique_position: {
                       terms: {
                         field: "boutique_position",
-                        order: "desc",
+                        order: "asc",
                       },
                     },
                   },
@@ -372,6 +373,7 @@ export class ElasticsearchReader {
                                         _source: [
                                           "boutique_id",
                                           "thumbnail",
+                                          "images",
                                           "name",
                                         ],
                                       },
@@ -457,6 +459,20 @@ export class ElasticsearchReader {
             {};
           const catId = bucket.key;
 
+          // `thumbnail` is deprecated (null index-wide); fall back to the
+          // product's first image, matching the is_product mapping below.
+          let productImageThumbnail: string | null = null;
+          try {
+            const firstImage = thumbHit.images
+              ? JSON.parse(thumbHit.images)?.[0]
+              : null;
+            productImageThumbnail = firstImage
+              ? `/product/${firstImage}`
+              : null;
+          } catch {
+            productImageThumbnail = null;
+          }
+
           const orig = origMap[catId] ?? {
             num_available_product: 0,
             most_viewed_product_thumbnail: null,
@@ -486,7 +502,7 @@ export class ElasticsearchReader {
               origMap[catId] &&
               origMap[catId].most_viewed_product_thumbnail !== null
                 ? origMap[catId].most_viewed_product_thumbnail
-                : (thumbHit.thumbnail ?? null),
+                : (thumbHit.thumbnail ?? productImageThumbnail),
 
             most_viewed_product_name: thumbHit.name ?? null,
           });
@@ -521,6 +537,9 @@ export class ElasticsearchReader {
       // === Merge into boutiques (same as PHP) ===
       for (const boutique of customProducts) {
         const bid = boutique.boutique_id;
+        const position=boutique?.boutique_position;
+        if(position>=0)
+        boutique.boutique_position=position;
         boutique.mainCategoriesForProductIds = grouped[bid]?.main || [];
         boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
       }
@@ -581,6 +600,7 @@ export class ElasticsearchReader {
           boutique_id: boutique.boutique_id,
           id: cb.id,
           name: cb.name ?? null,
+          position:boutique.boutique_position,
           slug: cb.slug ?? null,
           description: cb.description ?? null,
           icon: cb.icon ?? null,

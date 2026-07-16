@@ -10,7 +10,7 @@ export async function GetColorAndSizes() {
       return cachedRes;
     }
     let res = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + "/web/get-colors-and-sizes",
+      process.env.NEXT_PUBLIC_GO_BACKEND_URL + "/web/get-colors-and-sizes",
       {
         next: {
           revalidate: 0,

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { fetchOrders } from "services/orders";
 import { useAppStore } from "store";
 import { LogError, translateFunction } from "utils/functions";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import {
   ModifiedOrderInterface,
   OrderInterface,
@@ -70,6 +71,16 @@ function OrdersListWrapper({ isRtl, language, order_group_statuses, local }) {
         setHasMore(
           rawOrders.length > 0 && currentPage * PAGE_LIMIT < totalAvailable,
         );
+
+        // Fire "history viewed" once per applied filter (first page only), not on
+        // every infinite-scroll page.
+        if (isReset) {
+          trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_HISTORY_VIEWED, {
+            status_filter: selectedStatus,
+            order_count: totalAvailable,
+            page: currentPage,
+          });
+        }
       } else {
         setHasMore(false);
       }
@@ -158,7 +169,14 @@ function OrdersListWrapper({ isRtl, language, order_group_statuses, local }) {
               <button
                 key={status.value}
                 disabled={loading}
-                onClick={() => setSelectedStatus(status.value)}
+                onClick={() => {
+                  if (status.value === selectedStatus) return;
+                  trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_HISTORY_FILTERED, {
+                    from_status: selectedStatus,
+                    to_status: status.value,
+                  });
+                  setSelectedStatus(status.value);
+                }}
                 className={`px-3 py-1 rounded-xl text-xs whitespace-nowrap transition-all ${
                   selectedStatus === status.value
                     ? "bg-blue-50 border border-blue-400 text-blue-600"

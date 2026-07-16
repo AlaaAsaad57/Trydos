@@ -7,6 +7,7 @@ import {
   setPreviousStory,
 } from "store/homepage/actions";
 import StoryViewer from "./StoryViewer";
+import ReportStoryModal from "./ReportStoryModal";
 import { useAppStore } from "store";
 import StoryServiceClass from "services/story";
 import {
@@ -14,15 +15,12 @@ import {
   showErrorNotification,
 } from "store/notifications/reducer";
 import { getUserStories, LogError, translateFunction } from "utils/functions";
-import { fetchStoriesForUser } from "serverRequests";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 import { ConfirmModal } from "components/global/ConfirmModal";
 function StoryHolder({ story, active, isPaused }) {
-  const { language, country, setStoryData, shouldAuthinticated } =
-    useAppStore();
-  const userStories = useAppStore.getState().userStories;
+  const { shouldAuthinticated, removeStory, userStories } = useAppStore();
   const [currentStoryId, setCurrentStoryId] = useState(
     userStories?.id !== story.id ? 0 : story?.stories?.length - 1,
   );
@@ -33,28 +31,40 @@ function StoryHolder({ story, active, isPaused }) {
   const user = getUserStories();
   // check if the user is the owner of the story
   const isOwner = user?.id === story?.id;
-
+  console.log(getUserStories(), "story holder user");
   const handleDeleteStory = async () => {
     setLoading(true);
     try {
       const storyId = story.stories[currentStoryId]?.id;
-      const response = await StoryServiceClass.deleteStory(storyId);
+      const deletedIndex = currentStoryId;
+      const totalStories = story.stories.length;
 
-      const userToken = user?.access_token;
-      const storiesResult = await fetchStoriesForUser(
-        language,
-        country,
-        1,
-        userToken,
-      );
-      setStoryData(storiesResult.data);
+      // Throws if the delete fails, so a failed request is no longer mistaken
+      // for a success (which previously left the story visible after a
+      // "deleted successfully" message).
+      await StoryServiceClass.deleteStory(storyId);
+
+      // Decide navigation BEFORE mutating the store. When this was the user's
+      // only story, move to the next user (still present in the store here);
+      // otherwise clamp to a valid index within the remaining stories.
+      if (totalStories <= 1) {
+        setCurrentStoryId(0);
+        setNextStory(story.id);
+      } else {
+        const nextIndex = Math.min(deletedIndex, totalStories - 2);
+        setCurrentStoryId(Math.max(0, nextIndex));
+      }
+
+      // Optimistically remove the deleted story from the store so the viewer
+      // and the stories bar update immediately and reliably — without
+      // depending on a potentially stale server refetch.
+      removeStory(story.id, storyId);
+
       setShowDeleteModal(false);
       setLoading(false);
-      setCurrentStoryId(0);
-      setNextStory(story.id);
+
       showSuccessNotification(
-        translateFunction(`${response?.message}`) ||
-          translateFunction("Story deleted successfully."),
+        translateFunction("Story deleted successfully."),
       );
     } catch (err: any) {
       LogError({
@@ -68,24 +78,6 @@ function StoryHolder({ story, active, isPaused }) {
       );
     }
   };
-  const handleReportStory = async () => {
-    setLoading(true);
-    try {
-      // Placeholder for future API call
-      // const storyId = story.stories[currentStoryId]?.id;
-      // await StoryServiceClass.reportStory(storyId);
-      showSuccessNotification(
-        translateFunction("Story reported successfully."),
-      );
-      setShowReportModal(false);
-    } catch (err) {
-      showErrorNotification(translateFunction("Failed to report story."));
-      setShowReportModal(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div
       className="story-holder relative w-full h-full flex items-center justify-center"
@@ -111,7 +103,7 @@ function StoryHolder({ story, active, isPaused }) {
               />
             </span>
           )}
-          {!isOwner && (
+          {!isOwner && userStories && (
             <span
               className="cursor-pointer pr-5"
               style={{
@@ -125,11 +117,22 @@ function StoryHolder({ story, active, isPaused }) {
                   setShowReportModal(true);
               }}
             >
-              <img
+              {/* Flag = universally understood "report" affordance; white
+                  stroke keeps it legible on the dark story container. */}
+              <svg
                 data-cy="report-story-icon"
-                src="/icons/ReportOrderItemIcon.svg"
-                className="w-[22px] h-[22px] fill-white"
-              />
+                className="w-[22px] h-[22px]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 21V4" />
+                <path d="M4 4h11l-1.5 3.5L15 11H4" fill="#ffffff" />
+              </svg>
             </span>
           )}
           <span
@@ -171,14 +174,11 @@ function StoryHolder({ story, active, isPaused }) {
         />
       )}
       {showReportModal && (
-        <ConfirmModal
-          onCancel={() => setShowReportModal(false)}
-          onConfirm={handleReportStory}
-          loading={loading}
-          type="Report"
-          showModal={showReportModal}
-          confirmMessage={"Are you sure you want to report this story?"}
-          confirmTilte={"Report Story"}
+        <ReportStoryModal
+          storyId={
+            story.stories[currentStoryId]?.id || story.stories[0]?.id
+          }
+          onClose={() => setShowReportModal(false)}
         />
       )}
       <StoryViewer

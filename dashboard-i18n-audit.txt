@@ -1,0 +1,1015 @@
+
+=== Scope: 15 files ===
+Unique translateFunction literals: 380
+Dynamic (non-literal) calls: 17
+
+=== MISSING KEYS (translateFunction wraps text but key absent) ===
+
+  "+(country_code)XXX"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1265
+
+  "1 minutes video only"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/StoriesTab.tsx:432
+
+  "Active"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:914, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1095
+
+  "Add"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:428, components/SellerDashboard/productEdit/sections.tsx:546
+
+  "Adding User..."
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1400
+
+  "Allow Purchase"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:406, components/SellerDashboard/productEdit/ProductEditor.tsx:633
+
+  "Allow this product to be purchased?"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:599
+
+  "An English (en) name is required to enable the product."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:716 (desc prop)
+
+  "Are you sure you want to delete the selected images? This action cannot be undone."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:655
+
+  "Are you sure you want to delete this image? This action cannot be undone."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:604
+
+  "Assign each uploaded image to a color. Every color needs at least one image, and every image must be assigned."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:661
+
+  "Barcode"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:280 (label prop), components/SellerDashboard/productEdit/sections.tsx:626
+
+  "Boutique"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:283 (label prop)
+
+  "Boutiques created for this shop will appear here."
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1040
+
+  "Brand"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:282 (label prop)
+
+  "Browse and manage your catalogue"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1672
+
+  "Bulk-import products by template"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1707
+
+  "Cannot enable yet — resolve these first:"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:610
+
+  "Categories"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:349 (title prop)
+
+  "Change Banner"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ShopInfo.tsx:440
+
+  "Change Image"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:483
+
+  "Change media"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/StoriesTab.tsx:618
+
+  "Change status"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1646
+
+  "Changes were submitted and are pending admin approval — they go live once approved."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:435
+
+  "Charge shipping per item ordered."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:291 (desc prop)
+
+  "Check back later for comments from customers."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/CommentsTab.tsx:252
+
+  "Choose a section to get started."
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1754
+
+  "Collected"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1707
+
+  "Color Images"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:660
+
+  "Confirm & Save"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:567
+
+  "Confirm & Start Packing"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1832
+
+  "Confirm Upload"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:528
+
+  "Confirm changes"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:537
+
+  "Confirmed"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1211, components/SellerDashboard/orders.tsx:1701
+
+  "Copied!"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:469
+
+  "Copy URL"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:470
+
+  "Could not change status"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:316
+
+  "Country code must lead, e.g. AE = 971"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ShopInfo.tsx:302
+
+  "Country of Origin"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:408 (label prop)
+
+  "Cover"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:520
+
+  "Created At"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:504
+
+  "Current Stock"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:306 (label prop)
+
+  "Customers will be able to buy this product once it passes activation checks."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:603
+
+  "Dashboard Menu"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:2067
+
+  "Delete Image"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:601
+
+  "Delete Reply"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/CommentsTab.tsx:388
+
+  "Delete this reply?"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/CommentsTab.tsx:203
+
+  "Deleting..."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/CommentsTab.tsx:387
+
+  "Deselect"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:434
+
+  "Deselect all"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:355
+
+  "Disable"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:406, components/SellerDashboard/productEdit/ProductEditor.tsx:633
+
+  "Disable purchasing?"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:599
+
+  "Disabled"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:381
+
+  "Discount"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:621
+
+  "Discount Price"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:303 (label prop)
+
+  "Download"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:543, components/SellerDashboard/ExcelUploadTab.tsx:546, components/SellerDashboard/ExcelUploadTab.tsx:550
+
+  "Drop images here"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:269
+
+  "Edit shop name, contact & media"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1735
+
+  "Enter Dashboard"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/page.tsx:214
+
+  "Extra"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:622
+
+  "Extra price"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:444
+
+  "Failed to add user"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:573
+
+  "Failed to add user to shop"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:581
+
+  "Failed to cancel order item"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:2086
+
+  "Failed to confirm order item"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:2026
+
+  "Failed to delete image"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:165, components/SellerDashboard/GalleryTab.tsx:179
+
+  "Failed to delete images"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:221, components/SellerDashboard/GalleryTab.tsx:231
+
+  "Failed to delete user"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:487
+
+  "Failed to load boutiques"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:347
+
+  "Failed to load images"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:89
+
+  "Failed to load orders"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1936, components/SellerDashboard/orders.tsx:2198
+
+  "Failed to load permissions"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:618
+
+  "Failed to load product"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:159
+
+  "Failed to load products"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:324
+
+  "Failed to load roles"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:383, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:421
+
+  "Failed to load uploaded files"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:157
+
+  "Failed to load users"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:465
+
+  "Failed to pack order item"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:2056
+
+  "Failed to update order status"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1968
+
+  "Failed to update product"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:274
+
+  "Failed to update user role"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:525
+
+  "Flat"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:313
+
+  "Format: +(country_code)XXX (e.g., +9611234567)"
+     missing in: ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1255
+
+  "Gallery"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1692, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1961
+
+  "General"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:276 (title prop)
+
+  "ID"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:502, components/SellerDashboard/productEdit/ProductEditor.tsx:390
+
+  "Identity & classification of the product."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:276 (desc prop)
+
+  "Images"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:512 (title prop)
+
+  "Inactive"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:915, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1096
+
+  "Item is packed once an order is placed."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:292 (desc prop)
+
+  "Keep"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:754
+
+  "Labels"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:365
+
+  "Labels & Tags"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:361 (title prop)
+
+  "Leave shop"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/page.tsx:219, app/(client)/[lang]/sellerProfile/page.tsx:220
+
+  "Link"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/StoriesTab.tsx:625
+
+  "Linked product"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/StoriesTab.tsx:658
+
+  "Loading files..."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:480
+
+  "Loading images..."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:327
+
+  "Loading product…"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:334
+
+  "Loading roles..."
+     missing in: ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1304, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1414, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1544
+
+  "Loading stories..."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/StoriesTab.tsx:992
+
+  "Luck"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:623
+
+  "Luck Price"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:305 (label prop)
+
+  "Manage team members and roles"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1721
+
+  "Max Allowed Qty"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:308 (label prop)
+
+  "Member"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/page.tsx:190, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:2109
+
+  "Meta Description"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:466 (label prop)
+
+  "Meta Image"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:469
+
+  "Meta Title"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:465 (label prop)
+
+  "Model Number"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:284 (label prop)
+
+  "Multiply Shipping × Quantity"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:291 (label prop)
+
+  "N/A"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1144, components/SellerDashboard/orders.tsx:1784, components/SellerDashboard/orders.tsx:1790
+
+  "Name / Phone"
+     missing in: ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1462
+
+  "New video ready"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:763
+
+  "Next"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/StoriesTab.tsx:1046, components/SellerDashboard/ui/index.tsx:418
+
+  "No Image"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:896, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1075
+
+  "No banner yet"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ShopInfo.tsx:425
+
+  "No changes to save."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:252
+
+  "No comments found."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/CommentsTab.tsx:251
+
+  "No description"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1114
+
+  "No files uploaded yet."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:494
+
+  "No image"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1457, components/SellerDashboard/orders.tsx:1764
+
+  "No images found"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:331
+
+  "No items"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1438
+
+  "No notes available."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:588
+
+  "No options available for the current selection."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:336
+
+  "No order selected"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1516
+
+  "No per-country surcharges."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:433
+
+  "No permissions assigned"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1180
+
+  "No remaining time"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1637
+
+  "No roles available"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1418
+
+  "No users found"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1454
+
+  "No video attached."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:743
+
+  "Notes"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:535, components/SellerDashboard/ExcelUploadTab.tsx:576
+
+  "Optional. Upload a new product video or remove existing ones."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:740 (desc prop)
+
+  "Origin & Countries"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:405 (title prop)
+
+  "Out of stock"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:951
+
+  "Packed"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1210, components/SellerDashboard/orders.tsx:1704, components/SellerDashboard/orders.tsx:1851
+
+  "Packed After Ordering"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:292 (label prop)
+
+  "Page"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/StoriesTab.tsx:1034, components/SellerDashboard/ui/index.tsx:409
+
+  "Pending Approval"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:385
+
+  "Per-country Extra Price"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:425
+
+  "Percent"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:313
+
+  "Permissions"
+     missing in: ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1727, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1919
+
+  "Phone Number"
+     missing in: ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1254
+
+  "Photo or video, up to"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/StoriesTab.tsx:602
+
+  "Pick a shop to open its dashboard."
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/page.tsx:108
+
+  "Pick colors & sizes, then set price and stock for each combination."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:584 (desc prop)
+
+  "Pieces / Unit"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:309 (label prop)
+
+  "Please fix the highlighted fields before saving."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:247
+
+  "Preparing your dashboard..."
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1743
+
+  "Previous"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/StoriesTab.tsx:1031, components/SellerDashboard/ui/index.tsx:406
+
+  "Prices are in your display currency; converted server-side."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:300 (desc prop)
+
+  "Pricing & Stock"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:300 (title prop)
+
+  "Product Name"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:278 (label prop)
+
+  "Product updated successfully."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:283
+
+  "Products added to this shop will appear here."
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:856
+
+  "Purchasable"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:381
+
+  "Purchase Price"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:304 (label prop)
+
+  "Questions"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:970
+
+  "Ratio 6:1"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ShopInfo.tsx:406
+
+  "Reactions"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:965
+
+  "Read only"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ShopInfo.tsx:264
+
+  "Ready To Collect"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:1857
+
+  "Refresh"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:475
+
+  "Reply to FQA Comment"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/CommentsTab.tsx:452
+
+  "Reply to reviews and FAQ"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1714
+
+  "Report Ref. Number"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:285 (label prop)
+
+  "Restricted Countries"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:412
+
+  "Review your access in this shop"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1728
+
+  "Review your changes before saving."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:468
+
+  "Reviews"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:975
+
+  "Role"
+     missing in: ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1271, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1464
+
+  "SEO / Meta"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:463 (title prop)
+
+  "SKU"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:625
+
+  "Save Changes"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ShopInfo.tsx:467, components/SellerDashboard/productEdit/ProductEditor.tsx:425, components/SellerDashboard/productEdit/ProductEditor.tsx:475
+
+  "Saving..."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ShopInfo.tsx:466
+
+  "Saving…"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:633
+
+  "Searching roles..."
+     missing in: ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1297, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1534
+
+  "Select Files"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:279
+
+  "Select Folder"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:285
+
+  "Select a role"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1366
+
+  "Select all"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:356
+
+  "Select images to delete"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:348
+
+  "Seller Dashboard"
+     missing in: ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1792, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1830, app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:2095
+
+  "Seller Product ID"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:279 (label prop)
+
+  "Share photo & video stories"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1700
+
+  "Shares"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:980
+
+  "Shipping Days"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:311 (label prop)
+
+  "Shop Banner"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ShopInfo.tsx:403
+
+  "Shop Logo"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ShopInfo.tsx:352
+
+  "Shops you can manage will appear here."
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/page.tsx:143
+
+  "Show notes"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:532
+
+  "Status"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:503
+
+  "Status updated."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:322
+
+  "Storefronts under this shop"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1679
+
+  "Sub-categories shown match the current parents (re-open the page after changing parents to load others)."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:349 (desc prop)
+
+  "Tags"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:381
+
+  "Tax Type"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:313 (label prop)
+
+  "The first image is the cover. Drag order with the arrows."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:512 (desc prop)
+
+  "The product is restricted to the selected countries."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:413
+
+  "The product will be hidden from purchase until you re-enable it."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:604
+
+  "These fields will be updated"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:540
+
+  "This will remove your access to the shop dashboard. You can be re-invited later."
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/page.tsx:252
+
+  "Title"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:501
+
+  "Track and fulfil customer orders"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1686
+
+  "Translations"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:716 (title prop)
+
+  "Unit"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:281 (label prop)
+
+  "Unit Price"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:302 (label prop)
+
+  "Unnamed Boutique"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1100
+
+  "Unnamed Product"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:926, components/SellerDashboard/StoriesTab.tsx:349
+
+  "Untitled Product"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:378
+
+  "Upload Failed Try Again"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/StoriesTab.tsx:500
+
+  "Upload Video"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:774
+
+  "Upload and reuse product images"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1693
+
+  "Upload failed"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:143
+
+  "Upload images first."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:671
+
+  "Uploaded Excel Files"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/ExcelUploadTab.tsx:465
+
+  "Uploaded product images will appear here."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:332
+
+  "Uploading…"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:542
+
+  "Variants"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:584 (title prop)
+
+  "Video upload failed"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:234
+
+  "View"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:460
+
+  "View only"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:416
+
+  "Weight"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:307 (label prop)
+
+  "Welcome back"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1751
+
+  "You don't have permission to view boutiques"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1023
+
+  "You don't have permission to view or edit this product."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:338
+
+  "You need order viewing permissions to see this section"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/orders.tsx:2131
+
+  "You're viewing this product. Tap Edit to make changes."
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/ProductEditor.tsx:443
+
+  "Your Shops"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/page.tsx:105
+
+  "Your role in this shop"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1161
+
+  "Your shop"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/CommentsTab.tsx:346
+
+  "files selected"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:531
+
+  "images"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:382, components/SellerDashboard/GalleryTab.tsx:652
+
+  "in stock"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:952
+
+  "max 3"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/productEdit/sections.tsx:366
+
+  "of"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/StoriesTab.tsx:1036
+
+  "or choose files / folder"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:272
+
+  "permissions"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/page.tsx:195
+
+  "selected"
+     missing in: ar, tr, ku
+     used at: components/SellerDashboard/GalleryTab.tsx:347
+
+  "this shop"
+     missing in: ar, tr, ku
+     used at: app/(client)/[lang]/sellerProfile/page.tsx:249
+
+=== SUMMARY ===
+  missing in all 3 (ar+tr+ku) : 234  (brand-new strings)
+  missing in ku only          : 8  (ku translation forgotten)
+  missing in some other subset : 0
+  by file (approx key count):
+    68	productEdit/sections.tsx
+    54	[sellerId]/page.tsx
+    30	productEdit/ProductEditor.tsx
+    25	SellerDashboard/GalleryTab.tsx
+    17	SellerDashboard/orders.tsx
+    13	SellerDashboard/ExcelUploadTab.tsx
+    10	SellerDashboard/StoriesTab.tsx
+    9	sellerProfile/page.tsx
+    8	SellerDashboard/ShopInfo.tsx
+    7	SellerDashboard/CommentsTab.tsx
+    2	ui/index.tsx
+
+=== HARDCODED hint props in sections.tsx (DashField renders raw) ===
+  components/SellerDashboard/productEdit/sections.tsx:279  hint="Must stay unique across the marketplace"
+  components/SellerDashboard/productEdit/sections.tsx:303  hint="Must be ≤ unit price"
+  components/SellerDashboard/productEdit/sections.tsx:307  hint="Required for pc / liter"
+
+=== DYNAMIC CALLS (cannot static-check; verify manually) ===
+  app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:165  translateFunction(permission       .replace(/_/g, " ")       .toLowerCase()       .re...)
+  app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx:1200  translateFunction(group.replace(/_/g, " ")...)
+  components/SellerDashboard/StoriesTab.tsx:413  translateFunction(`File size should not exceed ${MAX_FILE_SIZE_MB} MB`...)
+  components/SellerDashboard/productEdit/sections.tsx:33  translateFunction(s...)
+  components/SellerDashboard/productEdit/sections.tsx:57  translateFunction(title...)
+  components/SellerDashboard/productEdit/sections.tsx:58  translateFunction(desc...)
+  components/SellerDashboard/productEdit/sections.tsx:90  translateFunction(label...)
+  components/SellerDashboard/productEdit/sections.tsx:90  translateFunction(label...)
+  components/SellerDashboard/productEdit/sections.tsx:125  translateFunction(label...)
+  components/SellerDashboard/productEdit/sections.tsx:125  translateFunction(label...)
+  components/SellerDashboard/productEdit/sections.tsx:154  translateFunction(label...)
+  components/SellerDashboard/productEdit/sections.tsx:186  translateFunction(label...)
+  components/SellerDashboard/productEdit/sections.tsx:186  translateFunction(label...)
+  components/SellerDashboard/productEdit/sections.tsx:250  translateFunction(label...)
+  components/SellerDashboard/productEdit/sections.tsx:251  translateFunction(desc...)
+  components/SellerDashboard/productEdit/sections.tsx:334  translateFunction(title...)
+  components/SellerDashboard/productEdit/ProductEditor.tsx:44  translateFunction(s...)

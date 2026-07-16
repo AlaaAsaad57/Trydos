@@ -1,4 +1,4 @@
-import { translateFunction } from "utils/functions";
+import { translateFunction } from "utils/server";
 async function FreeShippingOption({ lang, qtyPricePromise }) {
   let productData = await qtyPricePromise;
   // @ts-ignore

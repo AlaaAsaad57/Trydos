@@ -10,6 +10,7 @@ import {
 } from "utils/functions";
 import { pollinateInput } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
 type CouponElementProps = {
   active: any;
@@ -48,9 +49,11 @@ const CouponElement = ({
     setLoading(true);
     setError("");
 
+    const couponCode = e ?? orderData.coupon_number;
+    trackOrder(ORDER_EVENTS.COUPON_APPLY_ATTEMPT, { coupon_code: couponCode });
     try {
       const response = await fetchData({
-        url: `/coupon/apply?code=${e ?? orderData.coupon_number}`,
+        url: `/coupon/apply?code=${encodeURIComponent(couponCode)}`,
         reqTitle: REQUESTS_DATA.APPLY_COUPON_REQUEST,
         method: "GET",
         server: "market",
@@ -71,6 +74,10 @@ const CouponElement = ({
       localStorage.removeItem("coupon-number");
 
       setCoupon(response?.data?.discount);
+      trackOrder(ORDER_EVENTS.COUPON_APPLY_SUCCEEDED, {
+        coupon_code: couponCode,
+        discount_value: response?.data?.discount,
+      });
     } catch (err) {
       LogError({
         error: err,
@@ -78,6 +85,10 @@ const CouponElement = ({
         coupon: e,
       });
       setError(err.message);
+      trackOrder(ORDER_EVENTS.COUPON_APPLY_FAILED, {
+        coupon_code: couponCode,
+        reason: err?.message,
+      });
     } finally {
       setLoading(false);
     }

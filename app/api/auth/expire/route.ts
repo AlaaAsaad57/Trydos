@@ -22,6 +22,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const oldUserId = body.old_user_id ?? null;
 
+    // Logout guard: if a logout just cleared the cookies, do NOT re-register a
+    // guest or write any token/identity cookie — that would resurrect the
+    // session. The logout already cleared everything; just acknowledge.
+    const guardStore = await cookies();
+    if (guardStore.get(COOKIE_NAMES.LOGOUT_GUARD)?.value) {
+      return NextResponse.json(
+        { expired: true, loggingOut: true },
+        { status: 200 },
+      );
+    }
+
     // 1. Clear stale tokens
     await Promise.all([
       deleteSecureCookie(COOKIE_NAMES.MARKET_TOKEN),
@@ -65,7 +76,7 @@ export async function POST(request: NextRequest) {
     const oldGuestUserId = oldUserId || userData?.id || null;
 
     let response = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_GUEST_URL,
+      process.env.NEXT_PUBLIC_GO_BACKEND_URL + REGISTER_GUEST_URL,
       {
         method: "POST",
         headers: {
@@ -73,6 +84,7 @@ export async function POST(request: NextRequest) {
           Accept: "application/json",
           country,
           language,
+          lang: language,
         },
         body: JSON.stringify({ old_guest_user_id: oldGuestUserId }),
         credentials: "omit",
@@ -83,7 +95,7 @@ export async function POST(request: NextRequest) {
 
     if (data.message === "The user does not exist." && oldGuestUserId) {
       response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_GUEST_URL,
+        process.env.NEXT_PUBLIC_GO_BACKEND_URL + REGISTER_GUEST_URL,
         {
           method: "POST",
           headers: {
@@ -91,6 +103,7 @@ export async function POST(request: NextRequest) {
             Accept: "application/json",
             country,
             language,
+            lang: language,
           },
           body: JSON.stringify({ old_guest_user_id: null }),
           credentials: "omit",

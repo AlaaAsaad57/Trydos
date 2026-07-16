@@ -68,6 +68,10 @@ export interface OrderInterface {
   can_update_address: boolean;
   can_cancele_order: boolean;
   can_change_variant: boolean;
+  // Whether the whole order pack is hidden from the shopper's visible history.
+  // Present on the getHiddenOrders response; `true` = the pack itself was hidden
+  // (CO-22), so the Hidden-Orders view dims the whole card and offers restore.
+  is_hidden?: boolean;
   details: Array<{
     id: number;
     order_id: number;
@@ -114,6 +118,14 @@ export interface OrderInterface {
     odoo_id: number;
     odoo_order_id: number;
     comments: any;
+    is_reported?: boolean;
+    // Days allowed to return this product after delivery. 1 => "24 Hours",
+    // >1 => "<n> Days". Display only — never gates whether return is allowed.
+    allow_return_in_days?: number | string;
+    // Whether this individual product line was hidden (CO-22 item-level hide).
+    // Present on the getHiddenOrders response so the Hidden-Orders view can dim
+    // the specific tile and offer a per-product restore.
+    is_hidden?: boolean;
   }>;
   checked_at: string;
 }

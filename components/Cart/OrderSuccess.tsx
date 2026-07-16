@@ -4,6 +4,11 @@ import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import {
+  ORDER_EVENTS,
+  trackOrder,
+  endOrderAttempt,
+} from "utils/orderFunnel";
 import auth from "services/auth";
 function OrderSuccess() {
   const { orderData, currency, total_shipping_cost, cart } = useAppStore();
@@ -65,7 +70,21 @@ function OrderSuccess() {
             transaction_id: orderData?.data[0]?.order_group_id,
           },
         });
+        trackOrder(ORDER_EVENTS.COUPON_USED, {
+          coupon_code: orderData.coupon_number,
+          coupon_discount_rate: orderData.coupon,
+          transaction_id: orderData?.data[0]?.order_group_id,
+        });
       }
+      // Funnel end — fire BEFORE clearing the attempt id so order_completed
+      // still carries it, then close the attempt.
+      trackOrder(ORDER_EVENTS.ORDER_COMPLETED, {
+        transaction_id: orderData?.data[0]?.order_group_id,
+        value: getTotalCash(),
+        shipping: total_shipping_cost,
+        coupon_code: orderData.coupon_number,
+      });
+      endOrderAttempt();
     }
   }, [orderData.success]);
   return (
