@@ -26,6 +26,20 @@ function ProductLoader({ product }) {
   const [country, languageVariable] = lang?.split("-");
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
 
+  // Must warm the exact URL the gallery renders: same first-image pick as
+  // ProductPhotoSliderWrapper's getImages() (sync-color set wins over raw
+  // images) and the same 500x700 transform, so the slider's first photo is
+  // already in the browser cache when the real page arrives.
+  const firstGalleryImage =
+    product?.sync_color_images?.[0]?.images?.[0] ??
+    product?.images?.[0] ??
+    product?.image;
+  const firstImageSrc = getConfiguredImage({
+    src: GetImageUrl(firstGalleryImage),
+    width: 500,
+    height: 700,
+  });
+
   return (
     <div className="w-full flex-col flex bg-[#fafafa] overflow-hidden">
       <div className="product-details-container w-full relative bg-[#ffffff] max-h-[calc(100vh-100px)]">
@@ -40,18 +54,18 @@ function ProductLoader({ product }) {
                 <div
                   className={`embla__slide gap-[4px] product-slider-images relative flex-row`}
                 >
-                  <Image
-                    className={`rounded-[15px] w-[320px] h-[464px]`}
-                    width={320}
-                    height={464}
-                    loading={"eager"}
-                    alt={product.name}
-                    src={getConfiguredImage({
-                      src: GetImageUrl(product?.images?.[0]),
-                      width: 500,
-                      height: 700,
-                    })}
-                  />
+                  {firstImageSrc ? (
+                    <Image
+                      className={`rounded-[15px] w-[320px] h-[464px]`}
+                      width={320}
+                      height={464}
+                      loading={"eager"}
+                      alt={product?.name || ""}
+                      src={firstImageSrc}
+                    />
+                  ) : (
+                    <Skeleton width={320} height={464} borderRadius={15} />
+                  )}
                   <Skeleton width={320} height={464} borderRadius={15} />
                   <Skeleton width={320} height={464} borderRadius={15} />
                 </div>
