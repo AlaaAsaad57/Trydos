@@ -124,45 +124,6 @@ interface ProductData {
   }>;
 }
 
-export async function fetchProductExtendedDetails(
-  slug: string,
-  language: string,
-  country: string,
-) {
-  try {
-    let response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`,
-      method: "GET",
-      revalidate: 0,
-      local: `${country}-${language}`,
-    });
-
-    if (response.isError) {
-      LogServerError(
-        {
-          request: `/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country} || ${response.status}`,
-          message: JSON.stringify(response),
-          language,
-          country,
-        },
-        `/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`,
-      );
-
-      throw response.error;
-    }
-    return response.data;
-  } catch (error) {
-    LogServerError({
-      slug,
-      language,
-      country,
-      error: error,
-      scenario:
-        "Error In fetchProductExtendedDetails in serverRequest/products",
-    });
-    throw error;
-  }
-}
 
 export async function getProductDataForAddToCart({
   language,

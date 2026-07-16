@@ -104,7 +104,10 @@ export default function BoutiqueEditor({
     (sellerPermissions || []).includes("SUPER_ADMIN");
   const canUpdate = has("UPDATE_BUTIKS");
   const canChangeStatus = has("CHANGE_BOUTIQUE_STATUS");
-  const canDelete = has("DELETE_BUTIKS");
+  // Boutique deletion is disabled for everyone for now, pending a product
+  // decision on how (and whether) sellers should be able to delete boutiques.
+  // Restore `has("DELETE_BUTIKS")` once that decision is made.
+  const canDelete = false;
 
   // Deep-link safety: hydrate permissions if context is empty.
   useEffect(() => {
