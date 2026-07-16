@@ -2,6 +2,22 @@ import { NextResponse, userAgent, type NextRequest } from "next/server";
 import { ipAddress } from "@vercel/functions";
 import { NextURL } from "next/dist/server/web/next-url";
 
+// ── STAGING GATE — main branch only ────────────────────────────────────────
+// Pre-launch, main serves nothing but the centered-logo page (app/page.tsx) at
+// "/". Every other path — pages, /api/*, server actions — 307s back to "/".
+// The redirect is deliberately temporary (307, never 308): a permanent redirect
+// would be cached by browsers and keep sending real users to the logo long
+// after launch.
+//
+// This gate and the narrowed `config.matcher` at the bottom of this file are
+// one unit — reverting this commit lifts both together and restores the full
+// storefront. Do not lift one without the other.
+const STAGING_GATE_ENABLED = process.env.STAGING_GATE !== "off";
+
+// The only path the gate serves. Static assets the logo page needs are handled
+// by the matcher below, which never invokes this function for them.
+const STAGING_GATE_ALLOWED_PATH = "/";
+
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
 const DEFAULT_LANGUAGE = "en";
@@ -264,6 +280,14 @@ const extractLocales=(u:string)=>{
 }
 // Main middleware function
 export async function proxy(request: NextRequest) {
+  // Staging gate — see STAGING_GATE_ENABLED above. Must stay the first thing
+  // this function does, so no locale/country/bot logic can run pre-launch.
+  if (STAGING_GATE_ENABLED) {
+    return request.nextUrl.pathname === STAGING_GATE_ALLOWED_PATH
+      ? NextResponse.next()
+      : NextResponse.redirect(new URL("/", request.url), 307);
+  }
+
   const ua = request.headers.get("user-agent") ?? "";
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
@@ -575,24 +599,31 @@ export async function proxy(request: NextRequest) {
   return NextResponse.redirect(url);
 }
 
+// STAGING GATE matcher (main branch only) — paired with STAGING_GATE_ENABLED.
+//
+// Deliberately far wider than the storefront matcher this replaces: the old one
+// excluded /api plus a long list of segments (api-test, requests-log,
+// callInProg, call_direct, endCall, simulateUser, testBoutique, noposter,
+// sentry-test, fcm-dashboard, backend-compare, selectCountry, ingest,
+// revalidate) — none of which invoked the proxy, so all of them stayed fully
+// live and served the real app. It also carried a `missing:` clause that let
+// server actions and RSC prefetches skip the proxy entirely. Both holes are
+// closed here: everything not listed below now hits the gate.
+//
+// Only what the logo page needs to render — plus crawler hygiene — is excluded:
+//   _next                        bundle + /_next/image for the logo
+//   icons                        image-optimizer source fetch for Logo.svg
+//   favicon.ico
+//   google210329fcef4fbcff.html  search-console verification
+//   robots.txt                   serves `disallow: /` (NEXT_PUBLIC_ALLOW_INDEXING unset)
+//
+// Sitemaps are intentionally NOT excluded — they 307 to "/" rather than
+// advertising product URLs that all redirect.
+//
+// Restoring the storefront: revert this commit — it returns the matcher and the
+// gate together. Reverting only one leaves the app running under the wrong matcher.
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    {
-      source:
-        "/((?!api|ingest|noposter|sentry-test|fcm-dashboard|requests-log|testBoutique|simulateUser|firebase-messaging-sw.js|google210329fcef4fbcff.html|robots.txt|robots.txt|robots|opengraph-image.png|default.mp3|wa.mp3|api-test|backend-compare|sitemap|manifest.json|error.png|assets|icons|fonts|translations|reports|images|styles|endCall|sitemap.xml|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
-      missing: [
-        { type: "header", key: "purpose", value: "prefetch" },
-        { type: "header", key: "next-router-prefetch" },
-        { type: "header", key: "next-action" },
-        { type: "header", key: "next-router-state-tree" },
-      ],
-    },
+    "/((?!_next|icons|favicon.ico|robots.txt|google210329fcef4fbcff.html).*)",
   ],
 };
