@@ -551,8 +551,8 @@ export function validate(form: ProductForm): Record<string, string> {
 
   if (!form.name.trim()) e.name = tx("Product name is required");
   if (!UNITS.includes(form.unit as any)) e.unit = tx("Select a valid unit");
-  if (!form.seller_product_id.trim())
-    e.seller_product_id = tx("Seller product ID is required");
+  // seller_product_id is optional server-side on both create and update; it is only
+  // checked for marketplace uniqueness when provided.
 
   const up = num(form.unit_price);
   const dp = num(form.discount_price);
@@ -574,6 +574,14 @@ export function validate(form: ProductForm): Record<string, string> {
 
   if (form.current_stock !== "" && (isNaN(num(form.current_stock)) || num(form.current_stock) < 0))
     e.current_stock = tx("Enter a valid stock");
+
+  // Create enforces integer 1..100 server-side; update does not yet, so the client
+  // check guards both. Empty is allowed — the payload defaults it to 1.
+  if (form.count_of_pieces !== "") {
+    const cop = num(form.count_of_pieces);
+    if (!Number.isInteger(cop) || cop < 1 || cop > 100)
+      e.count_of_pieces = tx("Must be a whole number between 1 and 100");
+  }
 
   if (form.labels.length > 3) e.labels = tx("At most 3 labels allowed");
 
@@ -632,9 +640,13 @@ export function buildUpdateFormData(form: ProductForm): FormData {
   set("description", sanitizeHtml(form.description));
   set("brand_id", form.brand_id);
   set("boutique_id", form.boutique_id);
-  if (form.label) set("label", form.label);
-  if (form.model_number) set("model_number", form.model_number);
-  if (form.report_ref_number) set("report_ref_number", form.report_ref_number);
+  // The seller-update DTO reads these three without a fallback, so the key must
+  // always be present — omitting one (as happens when the seller clears the field)
+  // errors the update. Empty string is the multipart stand-in for null.
+  // location_id is NOT in that set, so it stays conditional.
+  set("label", form.label);
+  set("model_number", form.model_number);
+  set("report_ref_number", form.report_ref_number);
   if (form.location_id) set("location_id", form.location_id);
 
   set("unit_price", form.unit_price);
@@ -647,8 +659,11 @@ export function buildUpdateFormData(form: ProductForm): FormData {
   set("count_of_pieces", form.count_of_pieces === "" ? "1" : form.count_of_pieces);
   set("shipping_cost", form.shipping_cost === "" ? "0" : form.shipping_cost);
   set("shipping_days", form.shipping_days === "" ? "0" : form.shipping_days);
-  set("tax", form.tax === "" ? "0" : form.tax);
-  set("tax_type", form.tax_type);
+  // tax / tax_type are deliberately NOT sent. The server has an operator-precedence
+  // bug: any truthy tax_type (including "percent") makes it treat `tax` as a flat
+  // amount and currency-convert it, so a 5% tax is stored as a converted flat 5.
+  // Omitting both leaves the server defaults (tax = 0, tax_type = "percent").
+  // Restore these once the backend precedence fix ships.
   if (form.multiply_qty) set("multiplyQTY", "on");
   if (form.packed_after_ordering) set("packed_after_ordering", "on");
 
@@ -737,8 +752,8 @@ const SCALARS: [keyof ProductForm, string][] = [
   ["count_of_pieces", "Pieces / Unit"],
   ["shipping_cost", "Shipping Cost"],
   ["shipping_days", "Shipping Days"],
-  ["tax", "Tax"],
-  ["tax_type", "Tax Type"],
+  // tax / tax_type are omitted from the payload (see buildUpdateFormData), so they
+  // must not appear in the diff — the confirm dialog would promise an unsent change.
   ["meta_title", "Meta Title"],
   ["meta_description", "Meta Description"],
   ["origin_country_iso", "Origin Country"],

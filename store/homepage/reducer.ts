@@ -1,6 +1,18 @@
-import { v4 as uuidv4 } from "uuid";
 import StoryServiceClass from "services/story";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
+
+// crypto.randomUUID is unavailable in non-secure contexts (e.g. LAN-IP dev over
+// http), and this runs at module scope — a throw here would break the store.
+const newSessionId = (): string => {
+  try {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+  } catch {
+    /* fall through */
+  }
+  return `s_${Date.now()}_${Math.floor(Math.random() * 1e9)}`;
+};
 
 interface Story {
   id: string | number;
@@ -57,7 +69,7 @@ const initialState: HomeState = {
   settings: null,
   loginOpen: false,
   boutiques: [],
-  session_id: uuidv4(),
+  session_id: newSessionId(),
   previous_event_button_name: null,
   activeRoute: null,
   showMessage: false,

@@ -1939,6 +1939,8 @@ const translations = {
   "Reply to reviews and FAQ": "وەڵامدانەوەی هەڵسەنگاندنەکان و FAQ",
   "Report Ref. Number": "ژمارەی ئاماژەی ڕاپۆرت",
   "Required for pc / liter": "پێویستە بۆ پارچە / لیتر",
+  "Temporarily read-only": "بۆ ماوەیەکی کاتی تەنها خوێندنەوە",
+  "Must be a whole number between 1 and 100": "دەبێت ژمارەیەکی تەواو بێت لە نێوان 1 و 100",
   "Restricted Countries": "وڵاتە سنووردارکراوەکان",
   "Review your access in this shop": "دەستڕاگەیشتنت لەم فرۆشگایە پێداچوونەوەی بۆ بکە",
   "Review your changes before saving.": "گۆڕانکارییەکانت پێداچوونەوەی بۆ بکە پێش پاشەکەوتکردن.",

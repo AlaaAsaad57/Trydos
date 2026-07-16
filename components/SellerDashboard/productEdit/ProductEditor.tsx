@@ -170,7 +170,9 @@ export default function ProductEditor({
     try {
       if (isCreate) {
         const res = await SellerDashboardService.getProductCreateForm(sellerId);
-        const lk = (res.data?.lookups || {}) as Lookups;
+        // Create lookups sit flat under `data`; the edit endpoint nests them
+        // under `data.lookups`. Same datasets, different nesting.
+        const lk = (res.data || {}) as Lookups;
         const built = emptyProductForm();
         baseLookups.current = lk;
         catCache.current = new Map();
@@ -677,7 +679,10 @@ export default function ProductEditor({
       <CountriesSection {...sectionProps} />
       <SeoSection {...sectionProps} />
       <TranslationsSection {...sectionProps} />
-      <VideosSection {...sectionProps} />
+      {/* The create endpoint ignores cloud_video / remove_videos and always stores
+          videos as null, so offering the upload here would silently drop it. Video
+          becomes available on the edit screen the seller is redirected to. */}
+      {!isCreate && <VideosSection {...sectionProps} />}
 
       {/* Sticky save bar in edit mode */}
       {editMode && (
