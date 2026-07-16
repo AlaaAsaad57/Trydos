@@ -84,12 +84,15 @@ function formatDeliveryAt(shippingDays: any, language: string) {
   }
 }
 
-// Build the exact mobile `/mobile/product/details` `data` object from the merged
-// Go payload. This is an allowlist — Go-only keys (variations, sizes,
-// max_allowed_qty, luck_price, offer_type, descriptors, allow_return_in_days,
-// views_count, origin_country_iso, brand.is_verified, the *_FromRedis/*_Time debug
-// fields) and the elastic enrichment keys are intentionally dropped so nothing
-// leaks that the mobile contract doesn't declare.
+// Build the mobile `/mobile/product/details` `data` object from the merged Go
+// payload. The legacy mobile-contract keys keep their reshaped form (images as
+// { file_path, ... } objects, label_names as a real array, colors keyed on
+// `color`, etc.). On top of that we now also surface the keys the web/Go
+// product-page response returns — Go product structure (variations, sizes,
+// max_allowed_qty, offer_type, descriptors, allow_return_in_days, views_count,
+// origin_country_iso), the elastic reviews/social/analytics block, and the
+// cache/debug telemetry — all sourced from data already fetched in this request
+// (no extra backend calls).
 function toMobileProductShape(merged: any, elastic: any, language: string) {
   const images = (merged.images || []).map(toImageObject).filter(Boolean);
   const brand = merged.brand
@@ -177,7 +180,41 @@ function toMobileProductShape(merged: any, elastic: any, language: string) {
     available_quantity: merged.available_quantity ?? 0,
     is_featured: merged.is_featured ?? false,
     count_of_pieces: merged.count_of_pieces ?? 1,
-    origin_country: merged.origin_country_iso ,
+    origin_country: merged.origin_country_iso,
+
+    // --- Parity block: keys the web/Go product-page response returns that the
+    // legacy mobile shape omitted. All sourced from data already fetched in this
+    // request (merged Go payload + elastic) — no additional backend calls.
+
+    // Go product structure (from qtyPriceDetails / globalDetails)
+    origin_country_iso: merged.origin_country_iso ?? null,
+    variations: merged.variations ?? [],
+    sizes: merged.sizes ?? [],
+    max_allowed_qty: merged.max_allowed_qty ?? 0,
+    offer_type: merged.offer_type ?? null,
+    descriptors: merged.descriptors ?? [],
+    allow_return_in_days: merged.allow_return_in_days ?? null,
+    views_count: merged.views_count ?? 0,
+
+    // Reviews / social / analytics (from getProductDataFromElastic)
+    shared_count: elastic?.shared_count ?? 0,
+    buyers_comment: elastic?.buyers_comment ?? null,
+    fqa_questions: elastic?.fqa_questions ?? null,
+    ratingDetails: elastic?.ratingDetails ?? [],
+    recommendation_stats: elastic?.recommendation_stats ?? [],
+    count_of_likes: elastic?.count_of_likes ?? 0,
+    is_liked: elastic?.is_liked ?? false,
+    total_views: elastic?.total_views ?? 0,
+    total_rating: elastic?.total_rating ?? 0,
+    size_analysis: elastic?.size_analysis ?? null,
+    good_quality_product: elastic?.good_quality_product ?? false,
+
+    // Cache/debug telemetry — mirrors the web response and confirms the
+    // no-cache read (both *FromRedis flags should be false here).
+    globalFromRedis: merged.globalFromRedis ?? null,
+    globalDataTime: merged.globalDataTime ?? null,
+    qtyPricesDataFromRedis: merged.qtyPricesDataFromRedis ?? null,
+    qtyPricesDataTime: merged.qtyPricesDataTime ?? null,
   };
 }
 
@@ -188,12 +225,17 @@ export async function GET(request: NextRequest, { params }) {
   let language = request.headers.get("language")?.trim();
   const lang = request.headers.get("lang")?.trim();
   language = language ?? lang ?? "en";
+  // Cache the product globalDetails + qtyPriceDetails in Redis exactly like the
+  // web product page (default: use the cache; `?no_cache=true` bypasses both).
+  // The reviews/social/analytics block is fetched from Elasticsearch further
+  // below and is never cached — it is always read fresh on every request.
   const noCache = request.nextUrl.searchParams.get("no_cache") === "true";
   let productDataVar;
   let GlobalData = GetGlobalProduct({
     slug: Params.slug,
     language: language,
     country: country,
+    noCache: noCache,
   });
   let QtyPricesData = GetProductPriceQtyDetails({
     slug: Params.slug,

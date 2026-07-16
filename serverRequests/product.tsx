@@ -151,23 +151,29 @@ export async function GetGlobalProduct({
   slug,
   country,
   language,
+  noCache = false,
 }): Promise<ProdutGlobalData> {
   try {
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
       country,
     )}`;
     let start = process.hrtime.bigint();
-    let productId = await GetFromRedis(slugKey);
-    let cacheKey = `product-id-${productId}-${country}-${language}`;
-    if (productId) {
-      let cachedProductData = await RedisGet(`${cacheKey}-global`);
-      if (cachedProductData) {
-        let end = process.hrtime.bigint();
-        return {
-          ...cachedProductData,
-          globalFromRedis: true,
-          globalDataTime: Number(end - start) / 1_000_000,
-        };
+    // When noCache is set the Redis read is skipped and the data is fetched
+    // fresh from the Go backend (the write-back below still keeps the cache warm
+    // for other consumers such as the web product page).
+    if (!noCache) {
+      let productId = await GetFromRedis(slugKey);
+      let cacheKey = `product-id-${productId}-${country}-${language}`;
+      if (productId) {
+        let cachedProductData = await RedisGet(`${cacheKey}-global`);
+        if (cachedProductData) {
+          let end = process.hrtime.bigint();
+          return {
+            ...cachedProductData,
+            globalFromRedis: true,
+            globalDataTime: Number(end - start) / 1_000_000,
+          };
+        }
       }
     }
     let freshGlobalData = await fetchServerData({
