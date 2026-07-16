@@ -212,8 +212,8 @@ importers:
         specifier: ^4.2.0
         version: 4.6.4
       less-loader:
-        specifier: ^12.2.0
-        version: 12.3.2(less@4.6.4)(webpack@5.106.2(postcss@8.5.14))
+        specifier: ^13.0.0
+        version: 13.0.0(less@4.6.4)(webpack@5.106.2(postcss@8.5.14))
       mkdocs:
         specifier: ^0.0.1
         version: 0.0.1
@@ -2058,6 +2058,9 @@ packages:
   '@types/jsonwebtoken@9.0.10':
     resolution: {integrity: sha512-asx5hIG9Qmf/1oStypjanR7iKTv0gXQ1Ov/jfrX6kS/EO0OFni8orbmGCn0672NHR3kXHwpAwR+B368ZGN/2rA==}
 
+  '@types/less@3.0.8':
+    resolution: {integrity: sha512-Gjm4+H9noDJgu5EdT3rUw5MhPBag46fiOy27BefvWkNL8mlZnKnCaVVVTLKj6RYXed9b62CPKnPav9govyQDzA==}
+
   '@types/long@4.0.2':
     resolution: {integrity: sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==}
 
@@ -3874,9 +3877,9 @@ packages:
     resolution: {integrity: sha512-MbjN408fEndfiQXbFQ1vnd+1NoLDsnQW41410oQBXiyXDMYH5z505juWa4KUE1LqxRC7DgOgZDbKLxHIwm27hA==}
     engines: {node: '>=0.10'}
 
-  less-loader@12.3.2:
-    resolution: {integrity: sha512-uLV5c702ff2jBvO7qewpkLRzkh/I9QW07ur2NKkv8TVTrtX2lrKjEbEU/LLXAn7cgpCIBbkfyUm4qYXCQs5/+w==}
-    engines: {node: '>= 18.12.0'}
+  less-loader@13.0.0:
+    resolution: {integrity: sha512-TIa8d6znKH634Mg+7OU3jevZT6KeOhh0amW+YeMPD0GM9buUn5Y7HvtyCR5pUDdLaFfqLA8AX5PTSIHMNSexEA==}
+    engines: {node: '>= 22.11.0'}
     peerDependencies:
       '@rspack/core': 0.x || ^1.0.0 || ^2.0.0-0
       less: ^3.5.0 || ^4.0.0
@@ -7608,6 +7611,8 @@ snapshots:
       '@types/ms': 2.1.0
       '@types/node': 24.12.4
 
+  '@types/less@3.0.8': {}
+
   '@types/long@4.0.2':
     optional: true
 
@@ -9743,8 +9748,9 @@ snapshots:
     dependencies:
       language-subtag-registry: 0.3.23
 
-  less-loader@12.3.2(less@4.6.4)(webpack@5.106.2(postcss@8.5.14)):
+  less-loader@13.0.0(less@4.6.4)(webpack@5.106.2(postcss@8.5.14)):
     dependencies:
+      '@types/less': 3.0.8
       less: 4.6.4
     optionalDependencies:
       webpack: 5.106.2(postcss@8.5.14)
