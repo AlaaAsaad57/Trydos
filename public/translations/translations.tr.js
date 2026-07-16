@@ -806,7 +806,7 @@ const translations = {
   "You Can Resend The Code After":
     "Kodu Şu Süre Sonra Yeniden Gönderebilirsiniz",
   "Resend Code": "Kodu Yeniden Gönder",
-  "Sorry, This Number Is Not Registered With Us":
+  "Sorry, This Number Is Not Registered With Us !":
     "Üzgünüz, Bu Numara Bizimle Kayıtlı Değil",
   "Register With Us In A Few Simple Steps":
     "Birkaç Basit Adımla Bizimle Kayıt Olun",
@@ -2309,6 +2309,24 @@ const translations = {
   // ---- i18n audit fixes ----
   "minutes": "dakika",
   "Errors": "Hatalar",
+  "Edit Shipping Address": "Teslimat Adresini Düzenle",
+  "Verify": "Doğrula",
+  "Change ": "Değiştir ",
+  "Found on a device — approve on your phone":
+    "Bir cihazda bulundu — telefonunuzdan onaylayın",
+  "Approved (demo)": "Onaylandı (demo)",
+  "Request declined": "İstek reddedildi",
+  "Code expired — reopen to refresh":
+    "Kodun süresi doldu — yenilemek için tekrar açın",
+  "Simulate scan (dev)": "Taramayı simüle et (geliştirici)",
+  "Too many verification requests, please try again later":
+    "Çok fazla doğrulama isteği, lütfen daha sonra tekrar deneyin",
+  "We Recommend That You Complete Your Profile To Make The Most Of The App’s Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
+    "Alışveriş, sohbet, hikayeler, tekliflerden yararlanma, ilgi alanları ve çok daha fazlası gibi uygulamanın özelliklerinden en iyi şekilde yararlanmak için profilinizi tamamlamanızı öneririz",
+  "Added to checklist": "Kontrol listesine eklendi",
+  "Removed From Compare": "Karşılaştırmadan kaldırıldı",
+  "please select one contact at least": "lütfen en az bir kişi seçin",
+  "Share": "Paylaş",
 };
 
 export default translations;

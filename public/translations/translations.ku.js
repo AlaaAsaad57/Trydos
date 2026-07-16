@@ -941,7 +941,7 @@ const translations = {
     "تکایە کۆدی پشتڕاستکردنەوەی کە بۆ تەلەفۆنەکەت ناردراوە بنووسە",
   "You Can Resend The Code After": "دەتوانیت کۆدەکە دووبارە بنێریتەوە دوای",
   "Resend Code": "دووبارە ناردنی کۆد",
-  "Sorry, This Number Is Not Registered With Us":
+  "Sorry, This Number Is Not Registered With Us !":
     "بەداخەوە، ئەم ژمارەیە لەگەڵمان تۆمار نەکراوە",
   "Register With Us In A Few Simple Steps":
     "لەگەڵمان تۆمار بکە بە چەند هەنگاوێکی سادە",
@@ -2329,6 +2329,24 @@ const translations = {
   // ---- i18n audit fixes ----
   "minutes": "خولەک",
   "Errors": "هەڵەکان",
+  "Edit Shipping Address": "دەستکاری ناونیشانی گەیاندن",
+  "Verify": "پشتڕاستکردنەوە",
+  "Change ": "گۆڕین ",
+  "Found on a device — approve on your phone":
+    "لە ئامێرێکدا دۆزرایەوە — لە مۆبایلەکەتەوە پەسەندی بکە",
+  "Approved (demo)": "پەسەندکرا (تاقیکاری)",
+  "Request declined": "داواکارییەکە ڕەتکرایەوە",
+  "Code expired — reopen to refresh":
+    "کۆد بەسەرچوو — بۆ نوێکردنەوە دووبارە بیکەرەوە",
+  "Simulate scan (dev)": "لاسایی سکان (تاقیکاری)",
+  "Too many verification requests, please try again later":
+    "داواکاری زۆری پشتڕاستکردنەوە، تکایە دواتر هەوڵ بدەرەوە",
+  "We Recommend That You Complete Your Profile To Make The Most Of The App’s Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
+    "پێشنیارت بۆ دەکەین پرۆفایلەکەت تەواو بکەیت بۆ ئەوەی زۆرترین سوود لە تایبەتمەندییەکانی ئەپەکە ببینیت، وەک بازاڕکردن، چات، چیرۆک، سوودوەرگرتن لە ئۆفەرەکان، بەرژەوەندییەکان و زۆر شتی تر",
+  "Added to checklist": "زیادکرا بۆ لیستەکە",
+  "Removed From Compare": "لە بەراوردکردن لابرا",
+  "please select one contact at least": "تکایە بەلایەنی کەم یەک کەس هەڵبژێرە",
+  "Share": "هاوبەشکردن",
 };
 
 export default translations;

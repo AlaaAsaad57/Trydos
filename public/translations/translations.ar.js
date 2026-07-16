@@ -953,7 +953,7 @@ const translations = {
     "ادخل رمز التحقق الذي ارسلناه لهاتفك",
   "You Can Resend The Code After": "يمكنك اعادة ارسال الرمز بعد ",
   "Resend Code": "اعادة ارسال الرمز",
-  "Sorry, This Number Is Not Registered With Us":
+  "Sorry, This Number Is Not Registered With Us !":
     "عذراً، لم نتمكن من العثور على حساب مرتبط بهذا الرقم",
   "Register With Us In A Few Simple Steps": "قم بالتسجيل ببضع خطوات بسيطة",
   "Please Enter The Correct Code Sent To Your Phone":
@@ -2278,6 +2278,24 @@ const translations = {
   // ---- i18n audit fixes ----
   "minutes": "دقائق",
   "Errors": "الأخطاء",
+  "Edit Shipping Address": "تعديل عنوان الشحن",
+  "Verify": "تحقق",
+  "Change ": "تغيير ",
+  "Found on a device — approve on your phone":
+    "تم العثور على جهاز — وافق من هاتفك",
+  "Approved (demo)": "تمت الموافقة (تجريبي)",
+  "Request declined": "تم رفض الطلب",
+  "Code expired — reopen to refresh":
+    "انتهت صلاحية الرمز — أعد الفتح للتحديث",
+  "Simulate scan (dev)": "محاكاة المسح (تجريبي)",
+  "Too many verification requests, please try again later":
+    "طلبات تحقق كثيرة جداً، يرجى المحاولة لاحقاً",
+  "We Recommend That You Complete Your Profile To Make The Most Of The App’s Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
+    "نوصيك بإكمال ملفك الشخصي للاستفادة القصوى من ميزات التطبيق، مثل التسوق والدردشة والقصص والاستفادة من العروض والاهتمامات وأكثر من ذلك بكثير",
+  "Added to checklist": "أُضيف إلى القائمة",
+  "Removed From Compare": "تمت الإزالة من المقارنة",
+  "please select one contact at least": "يرجى اختيار جهة اتصال واحدة على الأقل",
+  "Share": "مشاركة",
 };
 
 export default translations;
