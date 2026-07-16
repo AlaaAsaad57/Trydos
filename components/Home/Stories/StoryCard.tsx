@@ -14,12 +14,11 @@ export default function StoryCard({ Name, media, isVideo }) {
         className="relative w-[100px] h-[150px] rounded-[20px] flex"
         style={{ display: "flex" }}
       >
-        <Image
+        <img
           className="thumb-img object-contain object-center flex w-[100px] h-[150px] rounded-[20px] z-2"
           alt="story"
           width={100}
           height={160}
-          priority={true}
           loading="eager"
           //   onError={(e) => {
           //     e.currentTarget.src = pngErr.src;

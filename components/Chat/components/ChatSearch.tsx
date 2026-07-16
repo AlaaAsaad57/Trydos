@@ -2,7 +2,10 @@ import React, { useEffect } from "react";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 
-import { getMessagesBetweenMessage } from "store/chat/actions";
+import {
+  getMessagesBetweenMessage,
+  getMessagesBetweenTwoMessages,
+} from "store/chat/actions";
 
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
@@ -30,7 +33,7 @@ function ChatSearch({ close }) {
     if (value?.length > 0) {
       try {
         let response = await fetchData({
-          url: "/api/v2/elastic/channelSearch",
+          url: "/api/v1/channels/channelSearch",
           server: "chat",
           method: "POST",
           body: JSON.stringify({
@@ -66,17 +69,16 @@ function ChatSearch({ close }) {
             ).length > 0
           ) {
           } else
-            await getMessagesBetweenMessage({
-              first: activeChat?.id,
-              second:
-                parseInt(
-                  activeChat.messages[activeChat.messages.length - 1]?.id,
-                ) -
-                parseInt(
-                  response.data?.messages_ids?.[
-                    response?.data?.messages_ids?.length - 1
-                  ]?.toString(),
-                ),
+            await getMessagesBetweenTwoMessages({
+              first: parseInt(
+                activeChat.messages[activeChat.messages.length - 1]?.id,
+              ),
+              second: parseInt(
+                response.data?.messages_ids?.[
+                  response?.data?.messages_ids?.length - 1
+                ],
+              ),
+              channel_id: activeChat.id,
             });
           var numb = response.data.messages_ids[
             response.data.messages_ids.length - 1
@@ -132,11 +134,12 @@ function ChatSearch({ close }) {
       ) {
       } else {
         setChatSearchLoading(true);
-        await getMessagesBetweenMessage({
-          first: activeChat?.id,
-          second:
-            parseInt(activeChat.messages[activeChat.messages.length - 1]?.id) -
-            parseInt(nextMessageId),
+        await getMessagesBetweenTwoMessages({
+          first: parseInt(
+            activeChat.messages[activeChat.messages.length - 1]?.id,
+          ),
+          second: parseInt(nextMessageId),
+          channel_id: activeChat.id,
         });
       }
       setChatSearchId(nextMessageId);
@@ -173,11 +176,12 @@ function ChatSearch({ close }) {
       ) {
       } else {
         setChatSearchLoading(true);
-        await getMessagesBetweenMessage({
-          first: activeChat?.id,
-          second:
-            parseInt(activeChat.messages[activeChat.messages.length - 1]?.id) -
-            parseInt(prevMessageId),
+        await getMessagesBetweenTwoMessages({
+          first: parseInt(
+            activeChat.messages[activeChat.messages.length - 1]?.id,
+          ),
+          second: parseInt(prevMessageId),
+          channel_id: activeChat.id,
         });
       }
       setChatSearchId(prevMessageId);
@@ -217,8 +221,13 @@ function ChatSearch({ close }) {
       setQouted(null);
     }
   }, [searchChat.activeMessage]);
+  useEffect(() => {
+    return () => {
+      setChatSearchValue("");
+    };
+  }, []);
   return (
-    <div className=" z-99 absolute h-[50px] top-[48px] items-center left-0 w-full bg-[#fafafa] py-2 px-3 flex-row justify-between">
+    <div className=" z-999999 absolute h-[50px] top-[48px] items-center left-0 w-full bg-[#fafafa] py-2 px-3 flex-row justify-between">
       <div className="flex relative w-full">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -298,7 +307,8 @@ function ChatSearch({ close }) {
             searchChat.loading && "opacity-0"
           } ${
             searchChat.activeMessage ===
-              searchChat.messages[searchChat.messages.length - 1] && "opacity-5"
+              searchChat.messages[searchChat.messages.length - 1] &&
+            "opacity-50"
           }`}
           onClick={() => {
             if (
@@ -318,7 +328,7 @@ function ChatSearch({ close }) {
           className={`flex ml-1 cursor-pointer  ${
             searchChat.loading && "opacity-0"
           } ${
-            searchChat.activeMessage === searchChat.messages[0] && "opacity-5"
+            searchChat.activeMessage === searchChat.messages[0] && "opacity-50"
           }`}
           onClick={() => {
             if (

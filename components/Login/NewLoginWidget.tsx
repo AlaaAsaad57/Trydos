@@ -105,6 +105,7 @@ function NewLoginWidget() {
         },
       });
     }
+    setSuccess(false);
     setTimeout(() => {
       setStepIndicator(0);
     }, 1500);
@@ -186,6 +187,7 @@ function NewLoginWidget() {
   const router = useRouter();
   const loginFunc = async (e) => {
     setAttempts(attempts + 1);
+    setSuccess(false);
     setLoadingPin(true);
     await VerifyOtpHook({
       code: e,
@@ -234,6 +236,7 @@ function NewLoginWidget() {
         }
       },
       successCallback: (exists, name) => {
+        setSuccess(true);
         router.refresh();
         GAevent({
           action: GA_EVENT_NAMES.VERIFY_OTP,
@@ -634,7 +637,7 @@ function NewLoginWidget() {
                 user={Tempuser}
                 FinaliseLogin={() => FinaliseLogin()}
                 cancelLogin={() => {
-                  AuthService.cancelAuth();
+                  // AuthService.cancelAuth();
                 }}
                 close={() => {
                   setLoginOpenAction(false);
@@ -677,7 +680,7 @@ function NewLoginWidget() {
             data-testid="take-look-text"
             onClick={() => {
               laterTakeAlook(false);
-              AuthService.cancelAuth();
+              // AuthService.cancelAuth();
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
               //   value: GA_CLICK_EVENT_VALUES.SKIP_LOGIN_WIDGET,
@@ -696,7 +699,7 @@ function NewLoginWidget() {
             data-testid="login-close-icon"
             className="z-50"
             onClick={() => {
-              if (stepIndicator < 6) AuthService.cancelAuth();
+              // if (stepIndicator < 6) AuthService.cancelAuth();
               setLoginOpenAction(false);
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,

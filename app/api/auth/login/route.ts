@@ -9,11 +9,13 @@ import {
 } from "utils/fetch/Endpoints";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
+import { isGuestName } from "utils/tinyUtils";
 import {
   SECURE_COOKIE_OPTIONS,
   setSecureCookieJSON,
   sanitizeUserData,
   sanitizeServiceUser,
+  sanitizeWalletUser,
 } from "utils/server/tokenManager";
 
 // Helper to handle sub-service fetches safely
@@ -33,7 +35,7 @@ async function safeServiceLogin(url: string, body: any) {
       body: JSON.stringify(body),
       credentials: "omit",
     });
-
+    
     if (!response.ok) {
       const errorData = await response.json().catch((e) => {
         LogServerError(
@@ -46,6 +48,12 @@ async function safeServiceLogin(url: string, body: any) {
     }
 
     const data = await response.json();
+    // console.log({
+    //   url:url,
+    //   method:"POST",
+    //   body:JSON.stringify(body),
+    //   response:data
+    // })
     return { success: true, status: 200, data };
   } catch (err) {
     LogServerError({ error: err, type: "login api route", url, body });
@@ -83,24 +91,54 @@ export async function GET(request: NextRequest) {
 
     // 2. Primary OTP Verification (Critical Path)
     const otpUrl = `${
-      process.env.NEXT_PUBLIC_BACKEND_URL
+      // process.env.NEXT_PUBLIC_BACKEND_URL
+      process.env.NEXT_PUBLIC_GO_BACKEND_URL
     }${VERIFY_OTP_ENDPOINT}?verificationId=${verificationId}&otp=${otp}${
       name ? `&name=${name}` : ""
     }`;
-    const otpRes = await fetch(otpUrl, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${guest_token}`,
-        country,
-        language,
-      },
-      method: "POST",
-      body: JSON.stringify({ verificationId, otp, name }), // Send data in body for better security and consistency
-    });
+    let otpRes: Response;
+    let otp_response: any;
+    try {
+      otpRes = await fetch(otpUrl, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${guest_token}`,
+          country,
+          language,
+        },
+        method: "POST",
+        body: JSON.stringify({ verificationId, otp, name }), // Send data in body for better security and consistency
+      });
 
-    const otp_response = await otpRes.json();
+      otp_response = await otpRes.json();
+    } catch (error) {
+      // Transport/parse failure reaching the Go verify_otp_from_guest service.
+      // This is server-side and otherwise very hard to trace, so capture it to
+      // Sentry explicitly with the request context before falling through to the
+      // outer handler (which returns the generic 500).
+      await LogServerError(
+        {
+          scenario: "verify_otp_from_guest go service request failed",
+          error,
+          verificationId,
+          country,
+          language,
+        },
+        "/api/auth/login",
+      );
+      throw error;
+    }
+
     if (!otpRes.ok) {
-      LogServerError({ error: otp_response, type: "verify login api route" });
+      LogServerError(
+        {
+          scenario: "verify_otp_from_guest go service returned non-OK",
+          error: otp_response,
+          status: otpRes.status,
+          verificationId,
+        },
+        "/api/auth/login",
+      );
       return NextResponse.json(otp_response, { status: otpRes.status });
     }
 
@@ -109,6 +147,12 @@ export async function GET(request: NextRequest) {
       id_token: idToken,
       user: InventoryUser,
     } = otp_response.data;
+    console.log(otp_response);
+    // Treat backend guest placeholder names ("guest"/"verified_guest") as "no name"
+    // so the UI prompts the user to enter a real name. Don't surface them as-is.
+    if (InventoryUser && isGuestName(InventoryUser.name)) {
+      InventoryUser.name = "";
+    }
 
     // 3. Sub-service Logins (Resilient Path)
     const [chatRes, storiesRes, commentRes, walletRes] = await Promise.all([
@@ -126,6 +170,7 @@ export async function GET(request: NextRequest) {
         {
           otp_id_token: idToken,
           mobile_phone: InventoryUser.phone,
+          original_user_id: String(InventoryUser.id)
         },
       ),
       safeServiceLogin(
@@ -144,6 +189,7 @@ export async function GET(request: NextRequest) {
           firstName: String(name || InventoryUser.name)?.split(" ")?.[0] ?? "",
           lastName: String(name || InventoryUser.name)?.split(" ")?.[1] ?? "",
           email: String(InventoryUser.email) ?? "",
+          platform:"web"
         },
       ),
     ]);
@@ -157,17 +203,7 @@ export async function GET(request: NextRequest) {
         user_id: String(InventoryUser?.id),
         phone: String(InventoryUser.phone),
       });
-    console.log("Stories Login Response:", {
-      request: {
-        url:
-          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
-        body: {
-          otp_id_token: idToken,
-          mobile_phone: InventoryUser.phone,
-        },
-        response: JSON.stringify(storiesRes, null, 2),
-      },
-    });
+    
     if (!storiesRes.success)
       failures.push({
         endpoint: "STORIES",
@@ -187,6 +223,21 @@ export async function GET(request: NextRequest) {
         endpoint: "WALLET",
         ...walletRes,
       });
+    }
+    // Record any sub-service login failure so it reaches Sentry + mobile_error_log
+    // (previously these were only surfaced via console.log / the response body).
+    if (failures.length > 0) {
+      await LogServerError(
+        {
+          scenario: "login sub-service failure",
+          message: `Login sub-service(s) failed: ${failures
+            .map((f) => f.endpoint)
+            .join(", ")}`,
+          failures,
+          user_id: String(InventoryUser?.id),
+        },
+        "/api/auth/login",
+      );
     }
     // 5. Set token cookies as HttpOnly (tokens NEVER reach client JS)
     const tokensToSet = [
@@ -231,6 +282,7 @@ export async function GET(request: NextRequest) {
         is_verified: true,
         is_phone_verified: 1,
         expires_at: otp_response.data.expires_at,
+        story_user_id: storiesUserData?.id,
       }),
       chatUserData
         ? setSecureCookieJSON(COOKIE_NAMES.USER_CHAT, {
@@ -245,8 +297,12 @@ export async function GET(request: NextRequest) {
           })
         : Promise.resolve(),
       walletUserData
-        ? setSecureCookieJSON(COOKIE_NAMES.WALLET_USER, walletUserData)
+        ? setSecureCookieJSON(
+            COOKIE_NAMES.WALLET_USER,
+            sanitizeWalletUser(walletUserData),
+          )
         : Promise.resolve(),
+        
     ]);
 
     // 7. Return sanitized response (NO tokens in response body)
@@ -260,7 +316,8 @@ export async function GET(request: NextRequest) {
         ChatUser: sanitizeServiceUser(chatUserData),
         StoriesUser: sanitizeServiceUser(storiesUserData),
         is_failed: failures?.length > 0 ? failures : undefined,
-        WalletUser: walletUserData,
+        WalletUser: sanitizeWalletUser(walletUserData),
+        original_user_id: String(InventoryUser.id),
       },
       { status: 200 },
     );

@@ -7,6 +7,7 @@ import { useAppStore } from "store";
 import { useEffect, useState } from "react";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_PAYMENTS } from "utils/GAEvents";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import order from "services/order";
 function PaymentMethod() {
@@ -52,6 +53,10 @@ function PaymentMethod() {
           })),
         },
       });
+      trackOrder(ORDER_EVENTS.PAYMENT_METHOD_SELECTED, {
+        payment_type: GA_PAYMENTS.WALLET,
+        auto_selected: true,
+      });
       setOrderData({
         payment: [
           {
@@ -83,6 +88,9 @@ function PaymentMethod() {
           })),
         },
       });
+      trackOrder(ORDER_EVENTS.PAYMENT_METHOD_SELECTED, {
+        payment_type: GA_PAYMENTS.COD,
+      });
       setOrderData({
         payment: [
           {
@@ -113,6 +121,9 @@ function PaymentMethod() {
           })),
         },
       });
+      trackOrder(ORDER_EVENTS.PAYMENT_METHOD_SELECTED, {
+        payment_type: GA_PAYMENTS.CRYPTO,
+      });
       setOrderData({
         payment: [
           {
@@ -140,6 +151,9 @@ function PaymentMethod() {
           })),
         },
       });
+      trackOrder(ORDER_EVENTS.PAYMENT_METHOD_SELECTED, {
+        payment_type: GA_PAYMENTS.CREDIT,
+      });
       setOrderData({
         payment: [
           {
@@ -157,6 +171,7 @@ function PaymentMethod() {
     try {
       setWalletLoading(true);
       await order.GetWallet();
+      trackOrder(ORDER_EVENTS.WALLET_BALANCE_REFRESHED);
       setWalletLoading(false);
     } catch (error) {
       LogError({
@@ -299,12 +314,12 @@ function PaymentMethod() {
               if (item?.toLowerCase() === "trydos_wallet".toLowerCase()) {
                 return (
                   <div
+                    key={key}
                     className={`flex-row items-end gap-[8px] ${
                       isRtl ? "flex-row-reverse" : "flex-row"
                     }`}
                   >
                     <TryDosWalletInput
-                      key={key}
                       balance={wallet?.wallet_balance?.toFixed(
                         currency?.decimal_digits,
                       )}
@@ -442,7 +457,7 @@ const TryDosWalletInput = ({
   disabled = false,
 }) => {
   const { orderLoading, wallet, currency, settings, language } = useAppStore();
-  const points = settings["starting-setting"]?.decimal_point_settings || 0;
+  const points = settings["starting_setting"]?.decimal_point_settings || 0;
   const isRtl = language === "ar" || language === "ku";
 
   return (

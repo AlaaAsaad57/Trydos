@@ -391,7 +391,7 @@ function ChatVoiceCall({ token }) {
               }}
             >
               <img src="/icons/chat/endCall.svg" />
-              <span>End Call</span>
+              <span>{translateFunction("End Call")}</span>
             </div>
             <span />
           </div>
@@ -408,7 +408,7 @@ function ChatVoiceCall({ token }) {
               ) : callStatus ? (
                 <span>{callStatus}</span>
               ) : (
-                <span>Calling ...</span>
+                <span>{translateFunction("Calling ...")}</span>
               )}
             </div>
           )}
@@ -424,7 +424,7 @@ function ChatVoiceCall({ token }) {
             flexDirection: "column",
           }}
         >
-          <span> Errors:{error?.message || "None"}</span>
+          <span> {translateFunction("Errors")}:{error?.message || translateFunction("None")}</span>
         </div>
       )}
     </>

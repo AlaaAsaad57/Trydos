@@ -1,4 +1,7 @@
-import { GetSocialInfoForProduct } from "serverRequests/product";
+import {
+  GetSocialInfoForProduct,
+  GetProductGeneralData,
+} from "serverRequests/product";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import ProductFooterClient from "./ProductFooterClient";
 import ProductStructuredData from "serverRequests/meta/StructuredData/ProductStructuredData";
@@ -12,20 +15,26 @@ async function ProductFooter({
   Params,
   color,
   Size,
+  StarttingSettingPromise
 }) {
-  let [GlobalDataPromise, qtyPricePromise, currencyPromise] = await Promise.all(
-    [GlobalData, QtyPricesData, currency],
+  let [GlobalDataPromise, qtyPricePromise, currencyPromise, settingResponse] = await Promise.all(
+    [GlobalData, QtyPricesData, currency, StarttingSettingPromise],
   );
   let parsedUser = await getCookieServer<{ id: string }>(
     COOKIE_NAMES.USER_DATA,
   );
-  let socialData = await GetSocialInfoForProduct({
-    productId: GlobalDataPromise?.id,
-    userId: parsedUser?.id,
-  });
+  // Both depend only on the product id and are independent of each other, so fetch in parallel.
+  // ratingData feeds the Product JSON-LD (truthful aggregateRating, omitted when no reviews).
+  let [socialData, ratingData] = await Promise.all([
+    GetSocialInfoForProduct({
+      productId: GlobalDataPromise?.id,
+      userId: parsedUser?.id,
+    }),
+    GetProductGeneralData({ id: GlobalDataPromise?.id }),
+  ]);
   const isRedeemed = async () => {
     if (!qtyPricePromise?.is_luck) return false;
-    let redeemed: any = await getCookieServer<any[]>("redeemd_ids");
+    let redeemed: any = await getCookieServer<any[]>("redemed_ids");
     if (
       redeemed &&
       redeemed.find((s) => String(s.id) === String(qtyPricePromise.id))
@@ -47,9 +56,12 @@ async function ProductFooter({
           ...GlobalDataPromise,
           ...qtyPricePromise,
         }}
+        rating={ratingData?.final_rating}
+        reviewCount={ratingData?.total_buyers}
         size={Size}
       />
       <ProductFooterClient
+        shippingDays={settingResponse?.shipping_duration_days || 0}
         redeemed_status={redeemed_status}
         socialData={socialData}
         GlobalData={GlobalDataPromise}

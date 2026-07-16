@@ -32,3 +32,27 @@ export const fetchOrders = async (
     // Fallback to mock data if API is not available
   }
 };
+
+// Fetches every order the shopper has hidden — both fully-hidden packs
+// (`order.is_hidden`) and otherwise-visible packs that contain a hidden product
+// line (`detail.is_hidden`). Unlike `/order/list`, this endpoint returns a flat
+// `data: OrderInterface[]` (no pagination envelope), so we fetch it in one shot.
+export const fetchHiddenOrders = async (): Promise<any> => {
+  try {
+    const response = await fetchData({
+      url: `/customer/order/getHiddenOrders`,
+      reqTitle: REQUESTS_DATA.FETCH_HIDDEN_ORDERS,
+      method: "GET",
+      server: "market",
+    });
+    if (!response?.success) {
+      throw new Error(response?.message);
+    }
+    return response;
+  } catch (error) {
+    LogServerError({
+      error: error,
+      scenario: "Error In fetchHiddenOrders in services/orders",
+    });
+  }
+};

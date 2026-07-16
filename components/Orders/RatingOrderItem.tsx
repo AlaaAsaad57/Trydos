@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 
 import order from "services/order";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import storyService from "services/story";
@@ -51,6 +52,14 @@ function RatingOrderItem({
         owner_id: owner_id,
         owner_type: owner_type,
         images: images,
+      });
+      trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_RATED, {
+        product_id: productId,
+        order_detail_id: order_detail_id,
+        star_rating: e || rating,
+        has_comment: !!comment,
+        image_count: images?.length ?? 0,
+        is_edit: !!lastRatingId,
       });
       router.refresh();
       setRatedComplete(true);
@@ -228,119 +237,3 @@ function RatingOrderItem({
 }
 
 export default RatingOrderItem;
-
-const RatingUploadImages = ({
-  images,
-  setImages,
-  loading,
-  setLoading,
-}: {
-  images: string[];
-  setImages: (value: string[]) => void;
-  loading: boolean;
-  setLoading: (value: boolean) => void;
-}) => {
-  const UploadImage = async () => {
-    const input = document.querySelector<HTMLInputElement>(
-      "#rating-order-file-input",
-    );
-    input?.click();
-  };
-
-  const OnChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        setLoading(true);
-        const url = await storyService.UploadToCloudinary(file);
-        setImages([...images, url]);
-        setLoading(false);
-      }
-    } catch (error) {
-      LogError({
-        error: error,
-        scenario: "Error in UploadImage for Rating in RatingOrderItem",
-      });
-      setLoading(false);
-    }
-  };
-
-  const removeImage = (
-    e: React.MouseEvent<HTMLSpanElement | HTMLDivElement>,
-    img: string,
-  ) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (loading) return;
-    setImages(images.filter((im) => im !== img));
-  };
-
-  return (
-    <div
-      className="flex-col w-full items-center mt-[12px] cursor-pointer"
-      onClick={(e) => {
-        if ((e.target as HTMLElement).closest(".rating-order-image")) {
-          return;
-        }
-        UploadImage();
-      }}
-    >
-      <input
-        accept="image/*"
-        onChange={OnChange}
-        type="file"
-        className="absolute opacity-0"
-        hidden={true}
-        id="rating-order-file-input"
-      />
-      <div
-        className={`flex-row w-full items-center justify-start bg-[#F8F8F8] rounded-[12px] min-h-[80px] px-[16px] ${
-          images.length === 0 ? "justify-center border border-[#402CDD80]" : ""
-        }`}
-      >
-        {
-          <HortiznalScrollBar
-            id="comment-rating-images"
-            className={`${
-              images.length === 0 ? "justify-center" : "justify-start"
-            } flex-row gap-[6px] `}
-          >
-            {images.map((src, index) => (
-              <div
-                key={index}
-                className="flex-row items-center justify-center relative cursor-pointer rating-order-image"
-                onClick={(e) => {
-                  removeImage(e, src);
-                }}
-              >
-                <img
-                  className="rounded-[12px] object-cover h-[80px] w-[57px]"
-                  src={src}
-                  alt="rating-image"
-                />
-                <span
-                  className="absolute w-[57px] h-[80px] rounded-[12px]"
-                  style={{
-                    boxShadow: "inset 0px 3px 6px #ffffff80",
-                    border: "1px solid #ffffff80",
-                  }}
-                />
-              </div>
-            ))}
-            <div className="flex-col items-center justify-center bg-[#ededed] h-[80px] rounded-[12px] w-[57px]">
-              {loading ? (
-                <Spinner />
-              ) : (
-                <span className="text-[#402CDD] text-[8px] regular flex-col items-center">
-                  <img src="/icons/UploadImageOrder.svg" />
-                  {translateFunction("Add Photo")}
-                </span>
-              )}
-            </div>
-          </HortiznalScrollBar>
-        }
-        {}
-      </div>
-    </div>
-  );
-};

@@ -2,6 +2,7 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import StoriesPaginationWrapper from "components/Home/Stories/StoriesPaginationWrapper";
 import StoryElement from "components/Home/Stories/StoryElement";
+import { usePathname } from "node_modules/next/navigation";
 import { useEffect } from "react";
 import { useAppStore } from "store";
 
@@ -13,11 +14,11 @@ function StoriesWrapper({ next_page_url, isRtl, stories, userData }) {
     storiesRefreshing,
     setStoriesRefreshing,
   } = useAppStore();
-
+  const pathname = usePathname();
   useEffect(() => {
     setStoryData(stories);
     if (storiesRefreshing) setStoriesRefreshing(false);
-  }, [stories]);
+  }, [stories, pathname]);
   const storiesMap = storiesData?.length > 0 ? storiesData : stories;
   return (
     <HortiznalScrollBar

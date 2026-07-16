@@ -12,6 +12,38 @@ const getSafeNumber = (value: unknown) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 };
 
+/**
+ * Shared expected-delivery computation used by this card and by the inline
+ * order-details summary — keep the two callers on this single source so the
+ * date math can't drift apart.
+ */
+export const getExpectedDelivery = ({
+  productsShippingDays = [],
+  time,
+  shippingDurationDays,
+}: {
+  productsShippingDays?: Array<number | string | null | undefined>;
+  time?: string;
+  shippingDurationDays?: unknown;
+}) => {
+  const maxProductShippingDays = productsShippingDays.reduce(
+    (maxDays, currentDay) =>
+      Math.max(Number(maxDays), getSafeNumber(currentDay)),
+    0,
+  );
+
+  const expectedWorkDays =
+    Number(maxProductShippingDays) + getSafeNumber(shippingDurationDays);
+
+  const baseDate = time ? new Date(time) : new Date();
+  const safeBaseDate = Number.isNaN(baseDate.getTime()) ? new Date() : baseDate;
+  const expectedDate = new Date(
+    safeBaseDate.getTime() + expectedWorkDays * 24 * 60 * 60 * 1000,
+  );
+
+  return { expectedWorkDays, expectedDate };
+};
+
 function OrderExpectedDeliveryCard({
   status,
   time,
@@ -21,24 +53,11 @@ function OrderExpectedDeliveryCard({
   const isRtl = language === "ar" || language === "ku";
   const locale = language || "en-US";
 
-  const maxProductShippingDays = productsShippingDays.reduce(
-    (maxDays, currentDay) =>
-      Math.max(Number(maxDays), getSafeNumber(currentDay)),
-    0,
-  );
-
-  const shippingDurationFromSettings = getSafeNumber(
-    settings?.["starting-setting"]?.shipping_duration_days,
-  );
-
-  const expectedWorkDays =
-    Number(maxProductShippingDays) + shippingDurationFromSettings;
-
-  const baseDate = time ? new Date(time) : new Date();
-  const safeBaseDate = Number.isNaN(baseDate.getTime()) ? new Date() : baseDate;
-  const expectedDate = new Date(
-    safeBaseDate.getTime() + expectedWorkDays * 24 * 60 * 60 * 1000,
-  );
+  const { expectedWorkDays, expectedDate } = getExpectedDelivery({
+    productsShippingDays,
+    time,
+    shippingDurationDays: settings?.["starting_setting"]?.shipping_duration_days,
+  });
 
   const expectedWeekDay = expectedDate.toLocaleDateString(locale, {
     weekday: "long",

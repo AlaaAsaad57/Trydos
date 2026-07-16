@@ -27,13 +27,7 @@ function ProductLoader({ product }) {
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
 
   return (
-    <div
-      style={{
-        zIndex: "99999999999999",
-        top: "100px",
-      }}
-      className="fixed max-w-[1365px] mx-auto flex-col bg-[#fafafa] min-h-screen flex    w-screen  overflow-hidden"
-    >
+    <div className="w-full flex-col flex bg-[#fafafa] overflow-hidden">
       <div className="product-details-container w-full relative bg-[#ffffff] max-h-[calc(100vh-100px)]">
         <div className="product-details-slider mt-[12px] relative h-[474px] max-h-[474px]">
           <div className="embla flex flex-row">
@@ -114,8 +108,8 @@ function ProductLoader({ product }) {
 
               {/* Skeleton commenst */}
               <div className="w-full h-[228px] flex-row gap-[8px]">
-                {[1, 1, 1].map((s) => (
-                  <Skeleton borderRadius={12} width={"85%"} height={"100%"} />
+                {[1, 1, 1].map((s, i) => (
+                  <Skeleton key={i} borderRadius={12} width={"85%"} height={"100%"} />
                 ))}
               </div>
             </div>

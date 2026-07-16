@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { translateFunction } from "utils/functions";
 
 import order from "services/order";
 import { useAppStore } from "store";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
 export const GetAddressString = (location) => {
   if (!location) return "";
@@ -36,6 +38,13 @@ export const GetAddressString = (location) => {
 function AddressListContainer({ closeSelect, slideNext, Delete }) {
   const { addressLists, initAddressForm, updateAddress, setDefaultAddress } =
     useAppStore();
+
+  // The bottom sheet only mounts when the user opens the checkout address list.
+  useEffect(() => {
+    trackOrder(ORDER_EVENTS.ADDRESS_LIST_OPENED, {
+      address_count: addressLists?.length ?? 0,
+    });
+  }, []);
 
   return (
     <>
@@ -232,6 +241,9 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
               borderRadius: "15px",
             }}
             onClick={() => {
+              trackOrder(ORDER_EVENTS.ADDRESS_ADD_STARTED, {
+                source: "checkout_address_list",
+              });
               initAddressForm();
 
               closeSelect();

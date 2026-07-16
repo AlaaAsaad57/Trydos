@@ -64,7 +64,7 @@ interface DetailsState {
   BuyerCommentModalOption: any;
   shouldUpdateComment: any;
   selectedContactsForShare: [];
-  shouldUpdateComeentsCount: any;
+  shouldUpdateCommentsCount: any;
 }
 
 const initialState: DetailsState = {
@@ -137,7 +137,7 @@ const initialState: DetailsState = {
   sharesCount: null,
   ColorBottomSheet: false,
   selectedContactsForShare: [],
-  shouldUpdateComeentsCount: false,
+  shouldUpdateCommentsCount: false,
 };
 
 export const useDetailsStore = (set, get) => ({
@@ -146,7 +146,7 @@ export const useDetailsStore = (set, get) => ({
   setSelectedContactsForShare: (e) => set({ selectedContactsForShare: e }),
   setBuyerCommentModalOption: (e) => set({ BuyerCommentModalOption: e }),
   setShouldUpdateComment: (e) => set({ shouldUpdateComment: e }),
-  setShouldUpdateComeentsCount: (e) => set({ shouldUpdateComeentsCount: e }),
+  setShouldUpdateCommentsCount: (e) => set({ shouldUpdateCommentsCount: e }),
   setShareLoading: (loading: boolean) => set({ shareLoading: loading }),
   setColorBottomSheet: (colorBottomSheet: boolean | any) =>
     set({ ColorBottomSheet: colorBottomSheet }),

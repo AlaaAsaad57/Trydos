@@ -4,6 +4,7 @@ import { trydosTranslations } from "./constants-meta";
 import { getRobotsConfig } from "utils/server";
 import { mapLocaleToBCP47 } from "./StructuredData/utils";
 import { General_Site_Data } from "./StructuredData/Constants";
+import { buildAlternates } from "./buildAlternates";
 import { LogServerError } from "utils/serverErrorReporter";
 import { catalog_index } from "services/elastic/INDEXES";
 let client = elasticSearchComment;
@@ -15,9 +16,13 @@ export async function GetHomeMetaData({ local, category = null }) {
     ? `meta-obj-${category}-${lang}-${country}`
     : `meta-obj-home-${lang}-${country}`;
 
+  const baseUrl = General_Site_Data.url;
+
   // 1. Redis Cache Check
   const cachedMeta = await RedisGet(cacheKey);
-  if (cachedMeta) return cachedMeta;
+  // Reconstruct metadataBase as a URL instance — plain objects survive JSON round-trips but
+  // Next.js requires a real URL instance to resolve relative paths correctly.
+  if (cachedMeta) return { ...cachedMeta, metadataBase: new URL(baseUrl) };
 
   // 2. Parallel Data Fetch
   const categoriesMeta = await GetCatgoriesMetaData({
@@ -31,7 +36,6 @@ export async function GetHomeMetaData({ local, category = null }) {
   // 3. Build Content Strings
   let pageTitle = "";
   let pageDesc = "";
-  const baseUrl = General_Site_Data.url; // Ensure this is "https://trydos.com"
   const path = category ? `?mainCategory=${category}` : "";
   const fullUrl = `${baseUrl}/${country}-${lang}${path}`;
   const ogImageUrl = General_Site_Data.url + General_Site_Data.og; // Relative path like "/opengraph-image.png"
@@ -56,16 +60,7 @@ export async function GetHomeMetaData({ local, category = null }) {
       shortcut: "/favicon.ico",
       apple: "/favicon.ico",
     },
-    alternates: {
-      canonical: fullUrl,
-      languages: {
-        en: `${baseUrl}/${country}-en${path}`,
-        ar: `${baseUrl}/${country}-ar${path}`,
-        tr: `${baseUrl}/${country}-tr${path}`,
-        ku: `${baseUrl}/${country}-ku${path}`,
-        "x-default": `${baseUrl}/${country}-en${path}`,
-      },
-    },
+    alternates: buildAlternates(`${country}-${lang}`, path),
     robots: getRobotsConfig({
       index: true,
       follow: true,
@@ -98,12 +93,15 @@ export async function GetHomeMetaData({ local, category = null }) {
       title: "Trydos",
     },
     verification: {
-      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+      google: [
+      "iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE",
+      "t3AmV4IAkGgEHviuLtG_c1OI3Dlo7OlcM1TWPwx7OVk",
+    ]
     },
   };
 
-  // 5. Cache the final result
-  await RedisSet(cacheKey, JSON.stringify(metadataObject));
+  // 5. Cache the final result (RedisSet already JSON.stringifies internally — do NOT pre-stringify)
+  await RedisSet(cacheKey, metadataObject);
 
   return metadataObject;
 }

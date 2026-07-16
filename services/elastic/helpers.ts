@@ -1,5 +1,32 @@
-export function getSourceFields(): string[] {
-  return [
+import { search_log_index } from "./INDEXES";
+import { headers } from "next/headers";
+import { elasticSearchClient } from "./elasticsearch.config";
+
+interface PopularSearchBucket {
+  key: string;
+  doc_count: number;
+}
+
+export interface PopularSearchTerm {
+  term: string;
+  count: number;
+}
+
+// Fields excluded from the WEB `_source` payload to shrink ES hit size, but
+// still required by MOBILE API routes (source not in this repo) that read
+// them directly from the hit. See getSourceFields(full).
+const MOBILE_ONLY_SOURCE_FIELDS = [
+  "custom_products.details", // full description; product detail page reads details from the Go backend, not this ES hit — but mobile still reads it here
+  "custom_boutiques.banners", // web boutique page/aggregation fetch banners via their own separate _source specs
+  "custom_categories.flat_photo_path", // web category icon navbar/chip data comes from separate queries (GetMainCategories, aggregation top_hits, serverRequests/Search.tsx), not this per-product hit
+  "custom_categories.outline_photo_path",
+  "custom_categories.png_photo_path",
+  "custom_categories.fill_photo_path",
+  "custom_categories.banner_photo_path",
+];
+
+export function getSourceFields(full: boolean = false): string[] {
+  const baseFields = [
     "id",
     "status",
     "seller_status",
@@ -46,7 +73,6 @@ export function getSourceFields(): string[] {
     "custom_boutiques.id",
     "custom_boutiques.name",
     "custom_boutiques.slug",
-    "custom_boutiques.banners",
     "custom_boutiques.language_code",
     "custom_categories.id",
     "custom_categories.category_id",
@@ -55,21 +81,120 @@ export function getSourceFields(): string[] {
     // "custom_categories.description",
     // "custom_categories.bio",
     "custom_categories.language_code",
-    "custom_categories.flat_photo_path",
-    "custom_categories.outline_photo_path",
-    "custom_categories.png_photo_path",
-    "custom_categories.fill_photo_path",
-    "custom_categories.banner_photo_path",
     "custom_products.id",
     "custom_products.product_id",
     "custom_products.name",
     "custom_products.slug",
     "custom_products.status",
-    "custom_products.details",
     "custom_products.language_code",
     "custom_products.label_names",
   ];
+
+  return full ? [...baseFields, ...MOBILE_ONLY_SOURCE_FIELDS] : baseFields;
 }
+
+// ───────────────────────────────────────────────────────────────────────────
+// Listing sort (ticket: listing-sort — docs/superpowers/specs/2026-07-01-listing-sort-design.md)
+//
+// Map a user-facing `?sort=` key → an Elasticsearch sort array. Rules:
+//   • Every clause ALWAYS ends with `{ id: { order: "asc" } }` as the final
+//     tie-breaker — required for `search_after` cursor stability (ADR-009).
+//   • `missing: "_last"` keeps docs lacking the sort field at the end.
+//   • Unknown / absent keys fall back to RELEVANCE, byte-for-byte identical to
+//     the previous hardcoded default, so stale/malformed URLs degrade gracefully
+//     and the default listing behaviour is unchanged.
+// A-Z/Z-A sort on the localized product name: `custom_products.name.keyword` is
+// byte-order (raw UTF-8), filtered to the active locale's nested row so the
+// correct localized name is the sort key. True locale collation is deferred.
+//
+// Every field sort also carries `unmapped_type` so that if a field is absent
+// from the index mapping, Elasticsearch does NOT throw
+// ("No mapping found … to sort on") and 500 the listing — it treats the field
+// as unmapped, `missing:"_last"` applies, and results fall back to the `id`
+// tie-breaker. This is defensive: these fields are expected to be mapped, but an
+// unmet assumption degrades gracefully instead of breaking the page.
+//
+// Price sorts on the ROOT `offered_price` only. Per-country
+// `country_offer_prices` overrides are intentionally NOT applied to the sort key
+// — a CONFIRMED, locked decision (kept as-is), so a country-override product
+// orders by its base price and can sit "off" vs. its country-accurate card price
+// (e.g. country=sy: base offer 8, SY offer 28 → still sorts at 8).
+// Why sort can't mirror the country-aware price FILTER/FACET (which do it
+// script-free): filtering/aggregating over the nested `country_offer_prices` is
+// boolean/bucketed (override-else-base via two `should`/agg branches — see
+// buildCountryAwarePriceRangeCondition), but a sort needs ONE coalesced scalar
+// per doc, COALESCE(country_override, offered_price), which ES can't derive from
+// a nested value + a root value without either a query-time `_script` sort
+// (parses _source per matching doc; rejected on perf at ~100k) or a
+// backend-indexed flat effective-price field (needs Go indexer + mapping change).
+// See ADR-010 for the same nested/no-script rationale on the filter side.
+// ───────────────────────────────────────────────────────────────────────────
+
+// The sort-key vocabulary lives in the client-safe ./sortKeys module (this file
+// imports next/headers + the ES client, so a "use client" component must never
+// import it). Re-exported here for server callers already importing from helpers.
+export { LISTING_SORT_KEYS, type ListingSortKey } from "./sortKeys";
+
+const RELEVANCE_SORT: any[] = [
+  { _score: { order: "desc" } },
+  { id: { order: "asc" } },
+];
+
+export function buildSortClause(
+  sortKey: string | undefined | null,
+  languageCode: string,
+): any[] {
+  const tieBreaker = { id: { order: "asc" } };
+
+  switch (sortKey) {
+    case "best_selling":
+      return [
+        { orders_count: { order: "desc", missing: "_last", unmapped_type: "long" } },
+        tieBreaker,
+      ];
+    case "newest":
+      return [
+        { created_at: { order: "desc", missing: "_last", unmapped_type: "date" } },
+        tieBreaker,
+      ];
+    case "oldest":
+      return [
+        { created_at: { order: "asc", missing: "_last", unmapped_type: "date" } },
+        tieBreaker,
+      ];
+    case "price_asc":
+      return [
+        { offered_price: { order: "asc", missing: "_last", unmapped_type: "double" } },
+        tieBreaker,
+      ];
+    case "price_desc":
+      return [
+        { offered_price: { order: "desc", missing: "_last", unmapped_type: "double" } },
+        tieBreaker,
+      ];
+    case "name_asc":
+    case "name_desc":
+      return [
+        {
+          "custom_products.name.keyword": {
+            order: sortKey === "name_asc" ? "asc" : "desc",
+            missing: "_last",
+            unmapped_type: "keyword",
+            nested: {
+              path: "custom_products",
+              filter: {
+                term: { "custom_products.language_code": languageCode },
+              },
+            },
+          },
+        },
+        tieBreaker,
+      ];
+    default:
+      return [...RELEVANCE_SORT];
+  }
+}
+
 export interface ExtractFiltersResult {
   custom_products: CustomProduct[];
   prices: any;
@@ -222,20 +347,20 @@ export function extractFilters(
   const customProducts: CustomProduct[] = [];
 
   products?.forEach((product) => {
-    if (Array.isArray(product.custom_products)) {
-      product.custom_products.forEach((customProduct: any) => {
-        if (customProduct.language_code === languageCode) {
-          customProducts.push(
-            processCustomProduct(
-              product,
-              customProduct,
-              languageCode,
-              isFromBrowser,
-              country,
-            ),
-          );
-        }
-      });
+    if (product.custom_products && Array.isArray(product.custom_products)) {
+          const matchingCustomProduct = product.custom_products.find(
+        (cp: any) => cp.language_code === languageCode,
+      );
+    if (matchingCustomProduct) {
+        const processed = processCustomProduct(
+          product,
+          matchingCustomProduct,
+          languageCode,
+          isFromBrowser,
+          country,
+        );
+        customProducts.push(processed);
+      }
     }
   });
 
@@ -879,6 +1004,265 @@ function calculatePriceFilter(
     priceRanges,
   };
 }
+
+// ───────────────────────────────────────────────────────────────────────────
+// Global price-facet aggregations (ticket: price-filter-elastic-aggregations)
+//
+// Compute the slider bounds, the distribution histogram, and equal-count price
+// cards from ALL documents matching the active (non-price) filters — not just
+// the current page — using only indexed fields (no scripts). The country-aware
+// offer price lives in two indexed locations, so two populations are aggregated
+// separately and merged in code:
+//   P1 (override): nested `country_offer_prices[country].offer_price`
+//   P3 (base):     root `offered_price` for docs without a country entry
+// The price facet is self-excluding: callers pass the NON-price must/must_not so
+// the bounds/cards reflect every other filter but not the selected price range.
+// See ADR-010.
+// ───────────────────────────────────────────────────────────────────────────
+
+export const PRICE_CARD_COUNT = 5;
+// Resolution of the merged price histogram. Kept fairly fine so the dense region
+// of a skewed catalog (most products cheap, a few expensive) still resolves into
+// several buckets; equal-count card boundaries are then interpolated within a
+// bucket (see deriveEqualCountCards), so cards stay balanced regardless of skew.
+export const PRICE_HISTOGRAM_BUCKETS = 200;
+
+export function priceHistogramInterval(minPrice: number, maxPrice: number): number {
+  const span = maxPrice - minPrice;
+  if (!(span > 0)) return 1;
+  return span / PRICE_HISTOGRAM_BUCKETS;
+}
+
+function countryOverrideNestedQuery(countryIso: string) {
+  return {
+    nested: {
+      path: "country_offer_prices",
+      ignore_unmapped: true,
+      query: { term: { "country_offer_prices.country_iso": countryIso } },
+    },
+  };
+}
+
+// Phase 1 — merged min/max/count across both populations, wrapped in a filter
+// context that re-applies all NON-price conditions (self-excluding facet).
+export function buildPriceStatsAggregation(
+  nonPriceMust: any[],
+  nonPriceMustNot: any[],
+  country: string,
+): any {
+  const countryIso = String(country || "").trim().toUpperCase();
+  const aggs: Record<string, any> = {
+    base_stats: {
+      filter: countryIso
+        ? { bool: { must_not: [countryOverrideNestedQuery(countryIso)] } }
+        : { match_all: {} },
+      aggs: { stats: { stats: { field: "offered_price" } } },
+    },
+  };
+  if (countryIso) {
+    aggs.country_stats = {
+      nested: { path: "country_offer_prices" },
+      aggs: {
+        matched: {
+          filter: { term: { "country_offer_prices.country_iso": countryIso } },
+          aggs: {
+            stats: { stats: { field: "country_offer_prices.offer_price" } },
+          },
+        },
+      },
+    };
+  }
+  return {
+    filter: { bool: { must: nonPriceMust, must_not: nonPriceMustNot } },
+    aggs,
+  };
+}
+
+// Phase 2 — a fine fixed-interval histogram over both populations (shared
+// interval + offset so the two bucket sets align), each with min_doc_count:1.
+export function buildPriceHistogramAggregation(
+  nonPriceMust: any[],
+  nonPriceMustNot: any[],
+  country: string,
+  interval: number,
+  offset: number,
+): any {
+  const countryIso = String(country || "").trim().toUpperCase();
+  const safeInterval = interval > 0 ? interval : 1;
+  const aggs: Record<string, any> = {
+    base_hist: {
+      filter: countryIso
+        ? { bool: { must_not: [countryOverrideNestedQuery(countryIso)] } }
+        : { match_all: {} },
+      aggs: {
+        hist: {
+          histogram: {
+            field: "offered_price",
+            interval: safeInterval,
+            offset,
+            min_doc_count: 1,
+          },
+        },
+      },
+    },
+  };
+  if (countryIso) {
+    aggs.country_hist = {
+      nested: { path: "country_offer_prices" },
+      aggs: {
+        matched: {
+          filter: { term: { "country_offer_prices.country_iso": countryIso } },
+          aggs: {
+            hist: {
+              histogram: {
+                field: "country_offer_prices.offer_price",
+                interval: safeInterval,
+                offset,
+                min_doc_count: 1,
+              },
+            },
+          },
+        },
+      },
+    };
+  }
+  return {
+    filter: { bool: { must: nonPriceMust, must_not: nonPriceMustNot } },
+    aggs,
+  };
+}
+
+// Merge the two populations' stats into global { min_price, max_price, total }.
+export function mergePriceStats(priceFacetAgg: any): {
+  min_price: number;
+  max_price: number;
+  total: number;
+} {
+  const base = priceFacetAgg?.base_stats?.stats;
+  const country = priceFacetAgg?.country_stats?.matched?.stats;
+  const parts: { count: number; min: number; max: number }[] = [];
+  if (base && base.count > 0) parts.push(base);
+  if (country && country.count > 0) parts.push(country);
+  if (parts.length === 0) {
+    return { min_price: 0, max_price: 0, total: 0 };
+  }
+  return {
+    min_price: Math.min(...parts.map((p) => p.min)),
+    max_price: Math.max(...parts.map((p) => p.max)),
+    total: parts.reduce((sum, p) => sum + p.count, 0),
+  };
+}
+
+// Merge the two populations' histograms by aligned bucket key.
+export function mergePriceHistogram(
+  priceFacetHistAgg: any,
+  interval: number,
+): { min_price: number; max_price: number; count: number }[] {
+  const width = interval > 0 ? interval : 1;
+  const byKey = new Map<number, number>();
+  const add = (buckets: any[] = []) => {
+    for (const b of buckets) {
+      const key = Number(b.key);
+      byKey.set(key, (byKey.get(key) || 0) + (b.doc_count || 0));
+    }
+  };
+  add(priceFacetHistAgg?.base_hist?.hist?.buckets);
+  add(priceFacetHistAgg?.country_hist?.matched?.hist?.buckets);
+  return Array.from(byKey.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([key, count]) => ({
+      min_price: key,
+      max_price: key + width,
+      count,
+    }));
+}
+
+function priceRoundTo(value: number, decimals: number = 2): number {
+  const f = Math.pow(10, decimals);
+  return Math.round(value * f) / f;
+}
+
+// Count the histogram products overlapping [lo, hi], allocating each bucket's
+// count proportionally to the overlap (piecewise-uniform assumption).
+function countInPriceRange(
+  buckets: { min_price: number; max_price: number; count: number }[],
+  lo: number,
+  hi: number,
+): number {
+  let c = 0;
+  for (const b of buckets) {
+    const width = b.max_price - b.min_price;
+    if (width <= 0) {
+      if (b.min_price >= lo && b.min_price <= hi) c += b.count;
+      continue;
+    }
+    const overlapLo = Math.max(lo, b.min_price);
+    const overlapHi = Math.min(hi, b.max_price);
+    if (overlapHi <= overlapLo) continue;
+    c += b.count * ((overlapHi - overlapLo) / width);
+  }
+  return Math.round(c);
+}
+
+// Derive up to `cardCount` equal-count (quantile) cards from the merged
+// histogram. Boundaries are placed at the cumulative-count quantiles and
+// INTERPOLATED within a bucket (piecewise-uniform), so the cards stay balanced
+// even for highly skewed catalogs where most products fall in one wide bucket.
+// Every card holds ≥1 product (the histogram uses min_doc_count:1), so no empty
+// card is ever produced.
+export function deriveEqualCountCards(
+  histBuckets: { min_price: number; max_price: number; count: number }[],
+  cardCount: number = PRICE_CARD_COUNT,
+): PriceRange[] {
+  const buckets = histBuckets.filter((b) => b.count > 0);
+  if (!buckets.length) return [];
+  const total = buckets.reduce((s, b) => s + b.count, 0);
+  if (total <= 0) return [];
+
+  const globalMin = buckets[0].min_price;
+  const globalMax = buckets[buckets.length - 1].max_price;
+  const n = Math.max(1, Math.min(cardCount, Math.floor(total)));
+  if (n === 1) {
+    return [
+      { min_price: globalMin, max_price: globalMax, products_count: total },
+    ];
+  }
+
+  // Interior boundaries at cumulative thresholds total*k/n (k = 1..n-1),
+  // interpolated within the bucket that contains each threshold.
+  const boundaries: number[] = [globalMin];
+  let bi = 0;
+  let cumBefore = 0;
+  for (let k = 1; k < n; k++) {
+    const threshold = (total * k) / n;
+    while (
+      bi < buckets.length - 1 &&
+      cumBefore + buckets[bi].count < threshold
+    ) {
+      cumBefore += buckets[bi].count;
+      bi++;
+    }
+    const b = buckets[bi];
+    const within = b.count > 0 ? (threshold - cumBefore) / b.count : 0;
+    const price = b.min_price + within * (b.max_price - b.min_price);
+    boundaries.push(priceRoundTo(price));
+  }
+  boundaries.push(globalMax);
+
+  const cards: PriceRange[] = [];
+  for (let i = 0; i < boundaries.length - 1; i++) {
+    const lo = boundaries[i];
+    const hi = boundaries[i + 1];
+    if (hi <= lo) continue; // skip degenerate ranges after rounding
+    cards.push({
+      min_price: lo,
+      max_price: hi,
+      products_count: countInPriceRange(buckets, lo, hi),
+    });
+  }
+  return cards;
+}
+
 export function buildBaseConditions(filters: SearchFilters, country: string) {
   const categoriesFilterSlugs = [
     ...(filters.categories || []),
@@ -2424,3 +2808,150 @@ export const GenderEnum = {
   3: { label: "Other", shortLabel: "Other" },
   4: { label: "All Genders (Unisex)", shortLabel: "All" },
 };
+
+export async function logSearchTerm({
+  searchText,
+  userData,
+  productsCount,
+  client,
+}) {
+  // 1. Basic Cleaning & Validation
+  const cleanText = searchText.trim().toLowerCase();
+  console.log(
+    "Logging search term:",
+    cleanText,
+    "Products count:",
+    productsCount,
+    userData
+  );
+  // Mimicking the PHP logic: > 2 chars and not empty
+  if (!cleanText || cleanText.length <= 2 || productsCount === 0) return;
+
+  // 2. Blacklist Check (Placeholder for your logic)
+  const isBlacklisted = false; // Replace with your Blacklist service call
+  if (isBlacklisted) return;
+
+  try {
+    let requestIp = "";
+    let requestUserAgent = "";
+    try {
+      const requestHeaders = await headers();
+      const forwardedFor = requestHeaders.get("x-forwarded-for");
+      requestIp =
+        forwardedFor?.split(",")?.[0]?.trim() ||
+        requestHeaders.get("x-real-ip") ||
+        requestHeaders.get("cf-connecting-ip") ||
+        "";
+      requestUserAgent = requestHeaders.get("user-agent") || "";
+    } catch {
+      console.error("Error in Logging Search Term")
+    }
+
+    const userId = userData?.id ?? userData?.userId;
+    const ip = requestIp || userData?.ip || "";
+    const userAgent = requestUserAgent || userData?.userAgent || "";
+    console.log(userId,ip,userAgent)
+    // 3. Build the "Should" query for Deduplication
+    const should = [];
+    if (userId) {
+      should.push({ term: { user_id: userId } });
+    }
+    if (ip) {
+      should.push({ term: { ip } });
+    }
+    if (userAgent) {
+      should.push({ term: { user_agent: userAgent } });
+    }
+
+    const query: any = {
+      bool: {
+        must: [{ match: { "search_term.keyword": cleanText } }],
+      },
+    };
+
+    if (should.length) {
+      query.bool.should = should;
+      query.bool.minimum_should_match = 2;
+    }
+
+    // 4. Check if this search was already logged
+    const response = await client.search({
+      index: search_log_index,
+      body: { query },
+    });
+    console.log(JSON.stringify(response.hits.hits,null,2));
+    // 5. If no hits found, index the new log
+    if (response.hits.hits.length === 0) {
+      const formattedDate = new Date()
+        .toISOString()
+        .replace("T", " ") // Replace T with a space
+        .split(".")[0];
+      await client.index({
+        index: search_log_index,
+        body: {
+          search_term: cleanText,
+          user_id: userId,
+          ip,
+          user_agent: userAgent,
+          products_count: productsCount,
+          timestamp: formattedDate,
+        },
+      });
+      console.log("Search log saved.");
+    }
+  } catch (error) {
+    console.error("Failed to log search:", error.message);
+    throw error;
+  }
+}
+
+export async function getPopularSearchTerms(
+  limit: number = 10,
+): Promise<PopularSearchTerm[]> {
+  try {
+    const response = await elasticSearchClient.search({
+      index: search_log_index,
+      size: 0,
+      query: {
+        bool: {
+          must: [{ exists: { field: "search_term.keyword" } }],
+          must_not: [{ term: { "search_term.keyword": "" } }],
+        },
+      },
+      aggs: {
+        top_search_terms: {
+          terms: {
+            field: "search_term.keyword",
+            size: limit,
+            order: { _count: "desc" },
+          },
+        },
+      },
+    });
+
+    const buckets =
+      ((response.aggregations as any)?.top_search_terms?.buckets as
+        | PopularSearchBucket[]
+        | undefined) || [];
+
+    return buckets
+      .map((bucket) => {
+        const term =
+          typeof bucket.key === "string"
+            ? bucket.key.trim()
+            : String(bucket.key);
+        if (!term) {
+          return null;
+        }
+
+        return {
+          term,
+          count: bucket.doc_count,
+        };
+      })
+      .filter((term): term is PopularSearchTerm => Boolean(term));
+  } catch (error) {
+    console.error("Failed to fetch popular search terms:", error);
+    return [];
+  }
+}

@@ -10,6 +10,10 @@ import { ImageCropWidget } from "components/global/ImageCropWidget";
 import order from "services/order";
 import CustomPopup from "components/global/Popup";
 
+const MAX_IMAGES = 5;
+const MAX_IMAGE_SIZE_MB = 5;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+
 const UploadImageComponent = ({
   images,
   setImages,
@@ -50,12 +54,23 @@ const UploadImageComponent = ({
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = e.target.files?.[0];
-      if (file) {
-        setShowMenu(false);
-        setImageToCrop(file);
-        setShowCropWidget(true);
-        e.target.value = "";
+      e.target.value = "";
+      if (!file) return;
+      if (images.length >= MAX_IMAGES) {
+        showErrorNotification(
+          translateFunction("You Can Add Up To 5 Photos Only"),
+        );
+        return;
       }
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        showErrorNotification(
+          translateFunction("Each Photo Must Be 5 MB Or Less"),
+        );
+        return;
+      }
+      setShowMenu(false);
+      setImageToCrop(file);
+      setShowCropWidget(true);
     } catch (error) {
       showErrorNotification(
         translateFunction("Failed To Upload Image..Try Again"),
@@ -86,6 +101,13 @@ const UploadImageComponent = ({
   const uploadCroppedImage = async (croppedImageFile: File) => {
     setShowCropWidget(false);
     setCameraOpen(false);
+    if (images.length >= MAX_IMAGES) {
+      setImageToCrop(null);
+      showErrorNotification(
+        translateFunction("You Can Add Up To 5 Photos Only"),
+      );
+      return;
+    }
     try {
       setLoading(true);
       let data;
@@ -159,9 +181,9 @@ const UploadImageComponent = ({
     let url_file_path = isForRating
       ? "/rating_orders/"
       : "/return_request_products/";
-    if (img.includes(process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL)) return img;
+    if (img.includes(process.env.NEXT_PUBLIC_BASE_MEDIA_URL)) return img;
     else
-      return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url_file_path + img;
+      return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url_file_path + img;
   };
 
   const removeImage = async (e: React.MouseEvent, i: string) => {
@@ -382,6 +404,12 @@ const UploadImageComponent = ({
             border: images.length === 0 ? "1px solid #402CDD80" : "none",
           }}
           onClick={() => {
+            if (!showMenu && images.length >= MAX_IMAGES) {
+              showErrorNotification(
+                translateFunction("You Can Add Up To 5 Photos Only"),
+              );
+              return;
+            }
             setShowMenu(!showMenu);
           }}
           className={`${

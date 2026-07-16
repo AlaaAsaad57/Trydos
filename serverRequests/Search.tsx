@@ -1,6 +1,6 @@
 "use server";
 
-import AnalyzeSearchText from "services/elastic/analyzeSearchText";
+import AnalyzeSearchText from "services/elastic/analyzeSearchTextCerebras";
 
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import {
@@ -18,10 +18,126 @@ import {
   GroupAgeEnum,
   GenderEnum,
   PopulateCategories,
+  logSearchTerm,
 } from "services/elastic/helpers";
 import { catalog_index } from "services/elastic/INDEXES";
 import { LogServerError } from "utils/serverErrorReporter";
 let client = elasticSearchClient;
+
+// ------------------------------------------------------------------
+// Inline autocomplete (ghost text) suggestion.
+// Mirrors GetSearchData's visibility rules: reuses buildBaseConditions
+// (status / seller / country / not-deleted) so suggestions respect the
+// exact same conditions as the main search query, then layers a
+// name prefix match to find the best "starts-with" completion.
+// ------------------------------------------------------------------
+export async function GetSearchSuggestion({
+  language,
+  country,
+  search_text,
+  filters,
+}: {
+  language: string;
+  country: string;
+  search_text: string;
+  filters?: any;
+}) {
+  try {
+    const text = (search_text || "").trim();
+    if (!text) return { suggestion: "" };
+
+    // Respect the applied filters (category / brand / boutique / color / size /
+    // price) so the completion is scoped to what the user is actually browsing.
+    // Strip search_text out of the filter scope: buildBaseConditions would add
+    // a fuzzy text match for it, but we want a clean prefix completion instead
+    // (the match_phrase_prefix below), not fuzzy noise.
+    const { search_text: _omitSearchText, ...filterScope } = filters || {};
+    const { must, must_not } = buildBaseConditions(filterScope, country);
+
+    // "Starts-with" completion on the product name (case-insensitive via
+    // the standard/arabic analyzers used by GetSearchData).
+    const prefixCondition = {
+      nested: {
+        path: "custom_products",
+        query: {
+          bool: {
+            should: [
+              {
+                match_phrase_prefix: {
+                  "custom_products.name.exact": { query: text },
+                },
+              },
+              {
+                match_phrase_prefix: {
+                  "custom_products.name.arabic": { query: text },
+                },
+              },
+            ],
+            minimum_should_match: 1,
+          },
+        },
+        inner_hits: {
+          size: 5,
+          _source: ["custom_products.name", "custom_products.language_code"],
+        },
+      },
+    };
+
+    const response = await client.search({
+      index: catalog_index,
+      _source: false,
+      track_total_hits: false,
+      size: 8,
+      query: {
+        bool: { must: [...must, prefixCondition], must_not },
+      },
+      sort: [{ _score: { order: "desc" } }, { id: { order: "asc" } }],
+    });
+
+    const lowerText = text.toLowerCase();
+
+    // Flatten matched nested custom_products across the top product hits.
+    const candidates: { name: string; language_code: string }[] = [];
+    (response.hits.hits as any[])?.forEach((hit) => {
+      const inner = hit.inner_hits?.custom_products?.hits?.hits || [];
+      inner.forEach((nestedHit: any) => {
+        const src = nestedHit._source || {};
+        if (src.name) {
+          candidates.push({
+            name: src.name,
+            language_code: src.language_code,
+          });
+        }
+      });
+    });
+
+    // Keep only true "starts-with" completions (ES phrase_prefix can match
+    // the phrase mid-string; ghost text must begin with what the user typed).
+    const startsWith = candidates.filter((c) =>
+      c.name.toLowerCase().startsWith(lowerText),
+    );
+
+    // Language preference: requested language, then English, then anything
+    // (custom_* entries may exist in a single language only — see memory).
+    const pick =
+      startsWith.find((c) => c.language_code === language) ||
+      startsWith.find((c) => c.language_code === "en") ||
+      startsWith[0];
+
+    return { suggestion: pick?.name || "" };
+  } catch (error) {
+    LogServerError({
+      language,
+      country,
+      error: error,
+      error_text: `Search suggestion ${error}`,
+      filters: JSON.stringify({ search_text }),
+      scenario: "Error In GetSearchSuggestion in serverRequest/Search",
+    });
+    // Suggestions are best-effort; never break typing.
+    return { suggestion: "" };
+  }
+}
 
 export async function GetSearchData({
   language,
@@ -29,6 +145,7 @@ export async function GetSearchData({
   filters,
   noProducts,
   filters_offset,
+  userId,
 }) {
   let isAnalyzed: any = false;
   try {
@@ -283,7 +400,27 @@ export async function GetSearchData({
         ?.buckets || [],
       filters_offset,
     );
-
+    console.log(
+      filters.search_text,
+      "search term",
+      total_size,
+      "products count",
+    );
+    if (
+      filters?.search_text &&
+      filters.search_text.trim().length > 0 &&
+      total_size !== undefined &&
+      total_size > 0
+    ) {
+      logSearchTerm({
+        searchText: filters.search_text,
+        userData: {
+          id: userId,
+        },
+        productsCount: total_size,
+        client,
+      });
+    }
     return {
       total_size: total_size,
       products: normalizedProducts?.custom_products?.map((s) => ({

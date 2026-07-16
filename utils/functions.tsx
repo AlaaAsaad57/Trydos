@@ -3,11 +3,17 @@ import { useAppStore } from "store";
 import LocalizationServiceClass from "services/localization";
 
 import { fetchData } from "./fetchData";
-import { getCookie, setCookie, deleteCookie } from "./cookies/cookie-manager";
+import {
+  getCookie,
+  setCookie,
+  deleteCookie,
+  COOKIE_NAMES,
+} from "./cookies/cookie-manager";
 import { REQUESTS_DATA } from "./Requests";
 import { readStoredLastPaths } from "./history";
 import { getLastRequest } from "./requestLoggerClient";
 import { ReportError } from "./errorReported";
+import { posthogCaptureException } from "./posthog";
 import {
   extractPrimaryErrorMessage,
   serializeUnknownForErrorLog,
@@ -68,7 +74,13 @@ export const getUserChat = (): any => {
   else return {};
 };
 export const getUserStories = (): any => {
-  return useAppStore.getState().userStories;
+  let userCookie = getCookie<any>(COOKIE_NAMES.USER_DATA);
+  console.log(useAppStore.getState().userStories, userCookie);
+  if (useAppStore.getState().userStories)
+    return useAppStore.getState().userStories;
+  else {
+    return { id: userCookie?.story_user_id };
+  }
 };
 
 export const _isStoreLastJson = () => {
@@ -84,167 +96,14 @@ export const getConfiguredImage = ({ src, width, height, q, c_pad }: any) => {
       }/f_auto/q_auto:good/fl_lossy/so_0`,
     );
   }
-  if (src?.file_path?.includes("cloudinary")) {
+  if (src?.file_path?.includes("media_server")) {
     return src.file_path.replace(
-      "/upload/v1",
-      `/upload/v1/h_${height}${width ? `,w_${width}` : ""},${
+      "/upload/",
+      `/upload/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
       }/f_auto/q_auto:good/fl_lossy/so_0`,
     );
   } else return src?.file_path || src || "";
-};
-
-export const expandView = ({ filter }) => {
-  const { filterEnabled } = useAppStore.getState();
-
-  if (!filter && filterEnabled) {
-    return;
-  }
-  if (document.querySelector<HTMLElement>(".home-navbar")) {
-    document
-      .querySelector<HTMLElement>(".home-navbar")
-      .classList.add("animate-in");
-  }
-
-  if (document.querySelector<HTMLElement>(".filter-listing-bar")) {
-    document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
-      "fixed";
-    document
-      .querySelector<HTMLElement>(".filter-listing-bar")
-      .classList.remove("relative");
-    document.querySelector<HTMLElement>(
-      ".filter-listing-bar",
-    ).style.paddingRight = "5px";
-    document.querySelector<HTMLElement>(".filter-listing-bar").style.zIndex =
-      "999999";
-    document
-      .querySelector<HTMLElement>(".filter-listing-bar")
-      .classList.add("fixedAlign");
-    document.querySelector<HTMLElement>(".filter-listing-bar").style.left =
-      "0px";
-  }
-  if (document.querySelector<HTMLElement>(".boutique-header"))
-    document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
-      !filter ? "214px" : "118px";
-  if (
-    document.querySelector<HTMLElement>(".boutique-top-info .boutique-text")
-  ) {
-    document.querySelector<HTMLElement>(
-      ".boutique-top-info .boutique-text",
-    ).style.display = "none";
-    document
-      .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
-      .forEach((s: HTMLElement) => {
-        s.style.display = "none";
-        document.querySelector<HTMLElement>(".boutique-top-info").style.zIndex =
-          "999999";
-        document.querySelector<HTMLElement>(".boutique-top-info").style.width =
-          "auto";
-        document.querySelector<HTMLElement>(
-          ".boutique-top-info",
-        ).style.marginLeft = "60px";
-        document
-          .querySelector<HTMLElement>(".boutique-top-info")
-          .classList.add("move-anim");
-        document
-          .querySelector<HTMLElement>(".boutique-top-info")
-          .classList.add("items-end");
-        document
-          .querySelector<HTMLElement>(".boutique-top-info")
-          .classList.remove("items-center");
-      });
-  }
-  if (
-    document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container",
-    )
-  )
-    document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container",
-    ).style.maxHeight = "0px";
-};
-export const normalizeView = () => {
-  const { filterEnabled } = useAppStore.getState();
-  if (filterEnabled) {
-    return;
-  }
-  let filterBar = document.querySelector<HTMLElement>(".filter-listing-bar");
-  if (document.querySelector<HTMLElement>(".boutique-top-info")) {
-    document
-      .querySelector<HTMLElement>(".boutique-top-info")
-      ?.classList.remove("move-anim");
-  }
-
-  document
-    .querySelector<HTMLElement>(".home-navbar")
-    ?.classList.remove("animate-in");
-  if (filterBar) {
-    document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
-      "static";
-    document.querySelector<HTMLElement>(
-      ".filter-listing-bar",
-    ).style.paddingRight = "20px";
-    document.querySelector<HTMLElement>(".filter-listing-bar").style.top =
-      "initial";
-    document
-      .querySelector<HTMLElement>(".filter-listing-bar")
-      .classList.remove("fixedAlign");
-
-    document
-      .querySelector<HTMLElement>(".filter-listing-bar")
-      .classList.add("relative");
-  }
-  if (document.querySelector<HTMLElement>(".boutique-top-info")) {
-    if (
-      document.querySelector<HTMLElement>(".boutique-top-info .boutique-text")
-    ) {
-      document.querySelector<HTMLElement>(
-        ".boutique-top-info .boutique-text",
-      ).style.display = "flex";
-    }
-    document
-      .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
-      .forEach((s: HTMLElement) => {
-        s.style.display = "flex";
-      });
-    document.querySelector<HTMLElement>(".boutique-top-info").style.position =
-      "static";
-    document
-      .querySelector<HTMLElement>(".boutique-top-info")
-      .classList.add("items-center");
-    document
-      .querySelector<HTMLElement>(".boutique-top-info")
-      .classList.remove("items-end");
-
-    document.querySelector<HTMLElement>(".boutique-top-info").style.zIndex =
-      "1";
-    document.querySelector<HTMLElement>(".boutique-top-info").style.width =
-      "100%";
-    document.querySelector<HTMLElement>(".boutique-top-info").style.marginLeft =
-      "0px";
-    document.querySelector<HTMLElement>(".boutique-top-info").style.top =
-      "initial";
-    document.querySelector<HTMLElement>(".boutique-top-info").style.left =
-      "initial";
-    document
-      .querySelector<HTMLElement>(".boutique-top-info")
-      .classList.remove("move-anim");
-  }
-  if (document.querySelector<HTMLElement>(".boutique-header"))
-    document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
-      "0px";
-  if (
-    document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container",
-    )
-  ) {
-    document.querySelector<HTMLElement>(
-      ".boutique-photo-holder .offer-slider-container",
-    ).style.maxHeight = "342px";
-
-    document.querySelector<HTMLElement>(".boutique-photo-holder").style.height =
-      "auto";
-  }
 };
 
 function preciseMultiply(a, b) {
@@ -374,7 +233,22 @@ export const getOldCart = async () => {
       throw new Error(response.message);
     }
     const { storeOldCart } = useAppStore.getState();
-    storeOldCart(response.data?.original?.data);
+
+  const originalData = response?.data?.original?.data ?? response?.data;
+  const oldCart = originalData?.oldCart || []; // 1. Fallback to an empty array
+
+  // 2. Create a shallow copy using [...] before sorting
+  const sortedCart = [...oldCart].sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
+  // 3. Update the store safely
+  if (originalData) {
+    storeOldCart({
+      ...originalData,
+      oldCart: sortedCart
+    });
+  }
   } catch (error) {
     LogError({
       scenario: "Error in getOldCart in  functions",
@@ -398,6 +272,7 @@ export const getCart = async ({ callback }): Promise<CartApiInterface> => {
   if (!userId) return { cart: [] } as CartApiInterface;
   try {
     let response: any = await fetchData({
+      // url: "/cart",
       url: "/cart/cart_shipping",
       reqTitle: REQUESTS_DATA.CART_REQUEST,
       method: "GET",
@@ -442,6 +317,10 @@ export const GetCartOreview = async () => {
   }
 };
 export const LogError = async (error) => {
+  // LogError is frequently called un-awaited (fire-and-forget). Guard the whole
+  // body so a failure inside enrichment/reporting can never surface as an
+  // unhandled rejection (which the global listeners would then try to log).
+  try {
   if (typeof window !== "undefined") {
     let { LoggingOut } = useAppStore.getState();
     if (LoggingOut) return;
@@ -458,7 +337,6 @@ export const LogError = async (error) => {
   }
   const language = getCookie("language");
   const country = getCookie("country");
-  const userIP = getCookie("userIP");
   let serializedError = error;
   if (error instanceof Error) {
     serializedError = {
@@ -488,45 +366,62 @@ export const LogError = async (error) => {
     last_request,
     language,
     country,
-    userIP,
     timestamp: new Date().toISOString(),
     url: typeof window !== "undefined" ? window.location.href : undefined,
     user_agent:
       typeof navigator !== "undefined" ? navigator.userAgent : undefined,
   };
   ReportError(Error_Object);
+  // Mirror to PostHog error tracking so each exception links to its session
+  // replay. No-op until PostHog has initialised; never throws (best-effort).
+  posthogCaptureException(error, {
+    scenario: baseError?.scenario,
+    message,
+    url: Error_Object.url,
+    country,
+    language,
+  });
   await storeError(Error_Object);
+  } catch {
+    // ignore — error logging is best-effort and must never throw
+  }
 };
 export async function storeError(error) {
-  const safeError = serializeUnknownForErrorLog(error ?? {});
-  if (typeof window !== "undefined") {
-    await fetch("/api/internal/mobile-error-log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: safeError }),
-      credentials: "include",
-    });
-  } else {
-    await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store",
-      {
+  // The logging path must never throw or reject. A failed log POST that bubbled
+  // up would become an unhandled rejection — which the global error listeners
+  // would then try to log, risking a loop. Swallow every failure here.
+  try {
+    const safeError = serializeUnknownForErrorLog(error ?? {});
+    if (typeof window !== "undefined") {
+      await fetch("/api/internal/mobile-error-log", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          error_description: JSON.stringify({
-            platform: "\u{1F6D1}WEB\u{1F6D1}",
-            ...(typeof safeError === "object" &&
-            safeError !== null &&
-            !Array.isArray(safeError)
-              ? (safeError as Record<string, unknown>)
-              : { payload: safeError }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: safeError }),
+        credentials: "include",
+      }).catch(() => {});
+    } else {
+      await fetch(
+        process.env.NEXT_PUBLIC_GO_BACKEND_URL + "/mobile_error_log/store",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: JSON.stringify({
+            error_description: JSON.stringify({
+              platform: "\u{1F6D1}WEB\u{1F6D1}",
+              ...(typeof safeError === "object" &&
+              safeError !== null &&
+              !Array.isArray(safeError)
+                ? (safeError as Record<string, unknown>)
+                : { payload: safeError }),
+            }),
           }),
-          credentials: "omit",
-        }),
-      },
-    );
+        },
+      ).catch(() => {});
+    }
+  } catch {
+    // ignore — logging must be best-effort
   }
 }
 export const WaitForCondition = async () => {
@@ -545,44 +440,59 @@ export const WaitForCondition = async () => {
   });
 };
 
+// Compare membership lives in cookies (`f_p` / `s_p`), which don't emit change
+// events. Firing this lets interested components sync event-driven instead of
+// polling on a timer.
+export const COMPARE_CHANGED_EVENT = "compare-changed";
+const notifyCompareChanged = () => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(COMPARE_CHANGED_EVENT));
+  }
+};
+
 export const addToCompare = (slug: string) => {
   const f_p = getCookie<string>("f_p");
   const s_p = getCookie<string>("s_p");
 
+  let result: string;
   if (!f_p) {
     setCookie("f_p", slug);
-    return `?f_p=${slug}`;
+    result = `?f_p=${slug}`;
   } else if (!s_p) {
     setCookie("s_p", slug);
-    return `?f_p=${f_p}&s_p=${slug}`;
+    result = `?f_p=${f_p}&s_p=${slug}`;
   } else {
     // If both exist, replace the first one
     setCookie("f_p", slug);
-    return `?f_p=${slug}&s_p=${s_p}`;
+    result = `?f_p=${slug}&s_p=${s_p}`;
   }
+  notifyCompareChanged();
+  return result;
 };
 
 export const removeFromCompare = (slug: string) => {
   const f_p = getCookie<string>("f_p");
   const s_p = getCookie<string>("s_p");
 
+  let result: string | null;
   if (f_p === slug) {
     deleteCookie("f_p");
     if (s_p) {
       // Move s_p to f_p
       setCookie("f_p", s_p);
       deleteCookie("s_p");
-      return `?f_p=${s_p}`;
+      result = `?f_p=${s_p}`;
+    } else {
+      result = "";
     }
-    return "";
   } else if (s_p === slug) {
     deleteCookie("s_p");
-    if (f_p) {
-      return `?f_p=${f_p}`;
-    }
-    return "";
+    result = f_p ? `?f_p=${f_p}` : "";
+  } else {
+    result = null;
   }
-  return null;
+  notifyCompareChanged();
+  return result;
 };
 
 /**

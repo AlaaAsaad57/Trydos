@@ -5,7 +5,7 @@ import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { fetchStoriesForUser } from "serverRequests";
-import { getUserStories, LogError } from "utils/functions";
+import { getUserStories, LogError, translateFunction } from "utils/functions";
 import Skeleton from "react-loading-skeleton";
 import StoryServiceClass from "services/story";
 function StoriesList() {
@@ -120,7 +120,7 @@ function StoriesList() {
         {/* End of stories indicator */}
         {!hasMoreStories && storiesData.length > 0 && (
           <div className="flex justify-center items-center py-4 text-gray-500 text-sm">
-            No more stories
+            {translateFunction("No more stories")}
           </div>
         )}
       </div>

@@ -7,17 +7,17 @@ import GoToSellerDashBoard from "components/settings/GoToSellerDashBoard";
 import { Suspense } from "react";
 import Skeleton from "react-loading-skeleton";
 import { translateFunction } from "utils/server";
-import { getCountryNameByIso2 } from "utils/countryData";
-import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
+import { getLocalizedCountryName } from "utils/countryData";
+import { buildAlternates } from "serverRequests/meta/buildAlternates";
 import RouterRefresh from "components/global/RouterRefresh";
-import { getCurrency } from "serverRequests";
-import { GetOrders, getWallet } from "serverRequests/settings";
+
+import { GetOrders } from "serverRequests/settings";
 import {
   COOKIE_NAMES,
   getCookieServer,
   UserData,
 } from "utils/cookies/cookie-manager";
-import DummyAddDeposite from "components/settings/DummyAddDeposite";
+
 
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -28,9 +28,7 @@ export async function generateMetadata({ params }) {
       "Manage your account settings and preferences.",
       language,
     ),
-    alternates: {
-      canonical: `${General_Site_Data.url}/${Params.lang}/setting`,
-    },
+    alternates: buildAlternates(Params.lang, "/settings"),
   };
   return metadata;
 }
@@ -40,39 +38,59 @@ async function page({ params }) {
   let Params = await params;
   let [country, language] = Params?.lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
-  let SafeUserProfile = (await getCookieServer<UserData>(
-    COOKIE_NAMES.USER_DATA,
-  )) || { name: "", phone: "", is_phone_verified: 0 };
+  // Cookie read and the orders fetch are independent — run them together.
+  const [SafeUserProfileRaw, totalOrders] = await Promise.all([
+    getCookieServer<UserData>(COOKIE_NAMES.USER_DATA),
+    GetOrders({
+      page: 1,
+      pageSize: 1,
+    }),
+  ]);
+  let SafeUserProfile = SafeUserProfileRaw || {
+    name: "",
+    phone: "",
+    is_phone_verified: 0,
+  };
   const options = [
     {
       name: "Settings",
       Icon: `/icons/SettingsIcon.svg`,
       href: `/${Params?.lang}/settings/prefferences`,
     },
-    {
-      name: "Terms & Conditions",
-      Icon: `/icons/TermsIcon.svg`,
-      href: `/${Params?.lang}/settings/terms`,
-    },
+    // {
+    //   name: "Terms & Conditions",
+    //   Icon: `/icons/TermsIcon.svg`,
+    //   href: `/${Params?.lang}/terms-of-service`,
+    // },
     {
       name: "Legal Information",
       Icon: `/icons/LegalInfoIcon.svg`,
-      href: `/${Params?.lang}/settings/legalInfo`,
+      href: `#`,
     },
+    // {
+    //   name: "Contact Us",
+    //   Icon: `/icons/ContactInfoIcon.svg`,
+    //   href: `/${Params?.lang}/contact`,
+    // },
     {
       name: "About Us",
       Icon: `/icons/AboutIcon.svg`,
-      href: `/${Params?.lang}/settings/about`,
+      href: `#`,
     },
+    // {
+    //   name: "Compare",
+    //   Icon: `/icons/FilterInfoIcon.svg`,
+    //   href: `/${Params?.lang}/compare`,
+    // },
     {
       name: "Share App",
       Icon: `/icons/ShareAppIcon.svg`,
-      href: `/${Params?.lang}/settings/share`,
+      href: `#`,
     },
   ];
 
   let countryData = {
-    name: getCountryNameByIso2(country),
+    name: getLocalizedCountryName(country, language),
     iso: country,
   };
 
@@ -84,12 +102,6 @@ async function page({ params }) {
     if (iso === "tr") return "Turkish";
     if (iso === "ku") return "کوردی";
   };
-  let [totalOrders] = await Promise.all([
-    GetOrders({
-      page: 1,
-      pageSize: 1,
-    }),
-  ]);
   return (
     <div
       className="flex-col w-full pt-[20px] px-[12px] flex setting-screen"
@@ -118,8 +130,11 @@ async function page({ params }) {
           SafeUserProfile={SafeUserProfile}
         />
       </Suspense>
-      <GoToSellerDashBoard language={language} />
-      <DummyAddDeposite />
+      <GoToSellerDashBoard
+        language={language}
+        isAuthed={(SafeUserProfile?.phone?.length ?? 0) > 3}
+      />
+     
       <div
         className={`flex w-full ${
           isRtl ? "flex-row-reverse" : "flex-row"

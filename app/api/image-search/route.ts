@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     // Initialize Google Generative AI
     const genAI = new GoogleGenerativeAI(
-      process.env.NEXT_PUBLIC_GEMINI_API_KEY!,
+      process.env.GEMINI_API_KEY!,
     );
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
         type: "search image api route",
         url: request.url,
       },
-      "/api/auth/image-search",
+      "/api/image-search",
     );
     // Handle specific Google AI errors
     if (error.message?.includes("API_KEY")) {

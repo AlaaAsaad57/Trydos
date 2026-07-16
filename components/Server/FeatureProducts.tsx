@@ -1,8 +1,8 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
 
-import { translateFunction } from "utils/functions";
-import ProductWrapper from "../ServerWrapper/ProductWrapper";
+import { translateFunction } from "utils/server";
+import ProductCard from "components/products/ProductCard";
 
 function FeatureProducts({ lang, fetauredProductsData, currencyData }) {
   const [country, language] = lang.split("-");
@@ -32,7 +32,7 @@ function FeatureProducts({ lang, fetauredProductsData, currencyData }) {
           </svg>
         </span>
         <span className={`ml-[12px] ${isRtl ? " text-right pr-2" : " "}`}>
-          {translateFunction("Featured Products", lang.split("-")[1])}
+          {translateFunction("Featured Products", language)}
         </span>
       </NextLink>
       <HortiznalScrollBar
@@ -41,33 +41,13 @@ function FeatureProducts({ lang, fetauredProductsData, currencyData }) {
         dataCy="featured-products-container"
       >
         {featuredProducts?.data?.products?.map((product, key) => (
-          <ProductWrapper
+          <ProductCard
             key={product?.product_id ?? product?.id}
-            category_tree={product?.categories?.map((s) => s.name)}
-            labels={product?.label_names}
-            color={product?.sync_color_images?.[0]?.color_name}
-            InitialProductData={{ ...product, id: product?.product_id }}
-            country={country}
-            images={product?.sync_color_images?.[0]?.images ?? product?.images}
-            videos={product?.videos}
-            name={product.name}
-            slug={product.slug}
-            Sliders={false}
-            brand={{
-              name: product.brand.name,
-              icon: product.brand.icon?.file_path ?? product?.brand,
-              is_verified: product.brand.is_verified,
-            }}
-            luck_price={product.luck_price}
+            product={product}
             currency={currency}
-            endDate={product.flash_deal_end_date}
-            flash_deal_price={product.flash_deal_price}
-            id={product?.product_id ?? product?.id}
-            is_flashDeal={product.flash_deal_end_date}
-            is_luck={product.is_luck}
+            country={country}
             language={language}
-            offer_price={product.offer_price}
-            price={product.price}
+            sliders={false}
           />
         ))}
         {featuredProducts?.data?.products?.length > 8 && (

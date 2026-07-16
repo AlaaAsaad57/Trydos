@@ -1,260 +1,340 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import Image from "next/image";
-import { showErrorNotification } from "store/notifications/reducer";
+import UploadVideo from "components/Home/UploadVideo";
+import { useStopwatch } from "react-timer-hook";
 import { translateFunction } from "utils/functions";
 
-const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
-  const webcamTypeRef = useRef({
-    width: 430,
-    height: 400,
-    facingMode: { ideal: "user" },
+interface WebcamCaptureProps {
+  imageFile: React.MutableRefObject<string | null>;
+  close: () => void;
+  send: (file: string | File) => void;
+}
+
+const WebcamCapture = ({ imageFile, close, send }: WebcamCaptureProps) => {
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [vidUrl, setVidUrl] = useState<string | null>(null);
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  const [capturing, setCapturing] = useState(false);
+  const [activeTab, setActiveTab] = useState<"photo" | "video">("photo");
+  const [switchCameraDisabled, setSwitchCameraDisabled] = useState(false);
+  const [micError, setMicError] = useState(false);
+  const [useAudio, setUseAudio] = useState(false);
+
+  const webcamRef = useRef<Webcam>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+  const [webcamConstraints, setWebcamConstraints] = useState({
+    width: 1280,
+    height: 720,
+    facingMode: "user" as string | { exact: string },
   });
-  const webcamRef = useRef(null);
-  const streamRef = useRef(null);
-  const capture = () => {
-    imageFile.current = webcamRef.current?.getScreenshot();
+
+  const { seconds, minutes, start, pause, reset } = useStopwatch({ autoStart: false });
+
+  // Test microphone permission/availability
+  const checkMicrophone = async () => {
+    try {
+      const testStream = await navigator?.mediaDevices?.getUserMedia({ audio: true });
+      testStream?.getTracks().forEach((track) => track.stop());
+      setMicError(false);
+      setUseAudio(true);
+    } catch (err) {
+      setMicError(true);
+      setUseAudio(false);
+    }
   };
 
-  const onUserMedia = (stream) => {
-    streamRef.current = stream;
+  useEffect(() => {
+    if (activeTab === "video") {
+      checkMicrophone();
+    } else {
+      setUseAudio(false);
+      setMicError(false);
+    }
+  }, [activeTab]);
+
+  // Check if device has multiple cameras
+  const checkCameraDevices = async () => {
+    try {
+      const devices = await navigator?.mediaDevices?.enumerateDevices();
+      const videoDevices = devices?.filter((dev) => dev?.kind === "videoinput");
+      setSwitchCameraDisabled(videoDevices ? videoDevices.length <= 1 : true);
+    } catch (err) {
+      setSwitchCameraDisabled(true);
+    }
   };
-  const stopStream = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => {
-        track.stop();
+
+  useEffect(() => {
+    checkCameraDevices();
+  }, []);
+
+  // Handle Photo Capture
+  const capturePhoto = () => {
+    const screenshot = webcamRef.current?.getScreenshot();
+    if (screenshot) {
+      setPhotoPreview(screenshot);
+    }
+  };
+
+  // Start Video Recording
+  const handleStartCapture = useCallback(() => {
+    if (!webcamRef.current?.stream) return;
+
+    reset();
+    start();
+    setCapturing(true);
+    setRecordedChunks([]);
+
+    const stream = webcamRef.current.stream;
+    const options = { mimeType: "video/webm" };
+
+    const recorder = new MediaRecorder(stream, options);
+    mediaRecorderRef.current = recorder;
+
+    recorder.addEventListener("dataavailable", ({ data }) => {
+      if (data.size > 0) {
+        setRecordedChunks((prev) => [...prev, data]);
+        const blob = new Blob([data], { type: "video/webm" });
+        const localUrl = URL.createObjectURL(blob);
+        setVidUrl(localUrl);
+      }
+    });
+
+    recorder.start();
+  }, [webcamRef, start, reset]);
+
+  // Stop Video Recording
+  const handleStopCapture = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    pause();
+    setCapturing(false);
+  }, [pause]);
+
+  // Max video length of 1 minute (60 seconds)
+  useEffect(() => {
+    if (capturing && (minutes > 0 || seconds >= 59)) {
+      handleStopCapture();
+    }
+  }, [seconds, minutes, capturing, handleStopCapture]);
+
+  // Share/Upload Video
+  const handleShareVideo = useCallback(() => {
+    if (recordedChunks.length) {
+      const blob = new Blob(recordedChunks, { type: "video/webm" });
+      const videoFile = new File([blob], `video-chat-${Date.now()}.webm`, {
+        type: "video/webm",
       });
-      streamRef.current = null;
+      
+      send(videoFile);
+      close();
     }
-  };
-  const stopAllStreams = () => {
-    // stop internal webcam stream
-    if (webcamRef.current?.stream) {
-      webcamRef.current.stream.getTracks().forEach((t) => t.stop());
-    }
+  }, [recordedChunks, send, close]);
 
-    // stop your own stored stream
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
+  // Share/Send Photo
+  const handleSharePhoto = () => {
+    if (photoPreview) {
+      send(photoPreview);
+      setPhotoPreview(null);
+      close();
     }
   };
-  useEffect(() => {
-    return () => stopAllStreams();
-  }, []);
-  const [twoCameras, setTwoCameras] = useState(false);
-  const hasTwoCameras = async () => {
-    const devices = await navigator?.mediaDevices?.enumerateDevices();
 
-    return devices?.filter((dev) => dev?.kind === "videoinput").length >= 2;
+  // Toggle Front/Back Camera
+  const toggleCamera = () => {
+    setWebcamConstraints((prev) => ({
+      ...prev,
+      facingMode: prev.facingMode === "user" ? "environment" : "user",
+    }));
   };
-  useEffect(() => {
-    hasTwoCameras().then(setTwoCameras);
-  }, []);
 
   return (
-    <>
-      {imageFile.current && imageFile.current !== "null" ? (
-        <>
-          <Image
-            loading="eager"
-            fill
-            sizes="100vw"
-            className="max-w-[400px] h-auto m-auto z-9999999999"
-            alt="imgs"
-            src={imageFile.current}
-          />
-          <div className="fixed bottom-[50px] left-[10px] w-full flex items-center justify-around z-99999999999">
-            <button className="w-[50px] opacity-0 h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]">
-              <svg
-                version="1.1"
-                id="Layer_1"
-                xmlns="http://www.w3.org/2000/svg"
-                xmlnsXlink="http://www.w3.org/1999/xlink"
-                x="0px"
-                y="0px"
-                width="122.879px"
-                height="93.242px"
-                viewBox="0 0 122.879 93.242"
-                enableBackground="new 0 0 122.879 93.242"
-                xmlSpace="preserve"
-              >
-                <g>
-                  <path
-                    fillRule="evenodd"
-                    fill="#555"
-                    clipRule="evenodd"
-                    d="M51.933,0.036h31.521l7.185,12.79h14.794c0.786,0,1.428,0.662,1.428,1.429v35.003 c5.257,1.931,9.185,4.161,11.755,6.539c2.808,2.599,4.234,5.514,4.264,8.602c0.03,3.092-1.35,6.024-4.156,8.649 c-4.786,4.479-14.429,8.444-28.976,10.897c-1.671,0.277-3.223-1.036-3.467-2.935s0.911-3.662,2.582-3.94 c13.403-2.26,22.011-5.655,25.986-9.375c1.301-1.216,1.942-2.312,1.934-3.242c-0.009-0.936-0.684-2.043-2.017-3.276 c-1.765-1.633-4.401-3.2-7.905-4.633v7.618c0,0.766-0.66,1.428-1.428,1.428H19.506c-0.767,0-1.429-0.643-1.429-1.428v-8.5 c-5.576,1.91-9.059,4.052-10.86,6.261c-1.003,1.23-1.261,2.413-0.937,3.497c0.472,1.573,1.877,3.242,3.958,4.875 c7.076,5.552,20.555,9.51,33.239,8.611l-2.744-2.146c-1.311-1.023-1.544-2.917-0.52-4.228c1.024-1.312,2.917-1.544,4.229-0.521 l8.878,6.942c1.311,1.024,1.544,2.917,0.52,4.229c-0.132,0.17-0.279,0.32-0.438,0.454l-9.882,8.837 c-1.239,1.109-3.143,1.003-4.252-0.236c-1.108-1.238-1.003-3.143,0.236-4.251l2.28-2.039C28.4,86.376,14.414,81.996,6.771,76 c-3.146-2.468-5.364-5.305-6.277-8.353c-1.06-3.537-0.466-7.092,2.251-10.425c2.599-3.188,7.505-6.194,15.332-8.696V14.255 c0-0.786,0.642-1.429,1.429-1.429h6.652v-4.59h8.22v4.59h8.928c1.858-3.667,3.715-7.335,5.574-11 C50.01-0.411,49.389,0.036,51.933,0.036L51.933,0.036z M97.607,19.144c2.353,0,4.261,1.909,4.261,4.262s-1.908,4.262-4.261,4.262 s-4.262-1.909-4.262-4.262S95.255,19.144,97.607,19.144L97.607,19.144L97.607,19.144z M66.229,24.113 c7.134,0,12.919,5.785,12.919,12.918s-5.785,12.917-12.919,12.917c-7.135,0-12.92-5.785-12.92-12.917 C53.31,29.898,59.094,24.113,66.229,24.113L66.229,24.113z M66.229,15.696c11.782,0,21.336,9.555,21.336,21.335 s-9.554,21.336-21.336,21.336c-11.781,0-21.335-9.556-21.335-21.336S54.448,15.696,66.229,15.696L66.229,15.696z"
-                  />
-                </g>
-              </svg>
-            </button>
+    <div className="fixed inset-0 w-screen h-screen bg-neutral-950 flex flex-col justify-between items-center z-[9999999999]">
+      {/* Background Dimmer/Blur Overlay */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm -z-10" />
 
-            <button
-              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-              onClick={() => {
-                send(imageFile.current);
-                imageFile.current = null;
-              }}
-            >
-              <img src="/icons/chat/sharechat.svg" />
-            </button>
-            <button
-              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-              onClick={() => (imageFile.current = null)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="17.828"
-                height="17.829"
-                viewBox="0 0 17.828 17.829"
-              >
-                <g
-                  id="Group_10676"
-                  data-name="Group 10676"
-                  transform="translate(-67.032 -2460.283)"
-                >
-                  <line
-                    id="Line_879"
-                    data-name="Line 879"
-                    y2="21.213"
-                    transform="translate(83.447 2461.697) rotate(45)"
-                    fill="none"
-                    stroke="#555"
-                    strokeLinecap="round"
-                    strokeWidth="2"
-                  />
-                  <line
-                    id="Line_880"
-                    data-name="Line 880"
-                    y2="21.213"
-                    transform="translate(83.447 2476.697) rotate(135)"
-                    fill="none"
-                    stroke="#555"
-                    strokeLinecap="round"
-                    strokeWidth="2"
-                  />
-                </g>
-              </svg>
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <Webcam
-            className="cameraInput"
-            audio={false}
-            style={{
-              height: "100%",
-              width: "100%",
-              zIndex: 9999999999,
-            }}
-            height={800}
-            onUserMedia={onUserMedia}
-            ref={webcamRef}
-            screenshotFormat="image/webp"
-            width={430}
-            videoConstraints={webcamTypeRef.current}
-          />
-          <div className="fixed bottom-[50px] xs:bottom-[80px] left-[10px] w-full flex items-center justify-around z-99999999999">
-            {twoCameras ? (
-              <button
-                className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-                onClick={() => {
-                  if (!twoCameras) {
-                    showErrorNotification(
-                      translateFunction("this device has only one camera"),
-                    );
-                    return;
-                  }
-                  webcamTypeRef.current = {
-                    width: 430,
-                    height: 400,
-                    // @ts-ignore
-                    facingMode: { exact: "environment", ideal: "environment" },
-                  };
-                }}
-              >
-                <svg
-                  version="1.1"
-                  id="Layer_1"
-                  xmlns="http://www.w3.org/2000/svg"
-                  xmlnsXlink="http://www.w3.org/1999/xlink"
-                  x="0px"
-                  y="0px"
-                  width="30px"
-                  height="30px"
-                  viewBox="0 0 122.879 93.242"
-                  enableBackground="new 0 0 122.879 93.242"
-                  xmlSpace="preserve"
-                >
-                  <g>
-                    <path
-                      fillRule="evenodd"
-                      fill="#555"
-                      clipRule="evenodd"
-                      d="M51.933,0.036h31.521l7.185,12.79h14.794c0.786,0,1.428,0.662,1.428,1.429v35.003 c5.257,1.931,9.185,4.161,11.755,6.539c2.808,2.599,4.234,5.514,4.264,8.602c0.03,3.092-1.35,6.024-4.156,8.649 c-4.786,4.479-14.429,8.444-28.976,10.897c-1.671,0.277-3.223-1.036-3.467-2.935s0.911-3.662,2.582-3.94 c13.403-2.26,22.011-5.655,25.986-9.375c1.301-1.216,1.942-2.312,1.934-3.242c-0.009-0.936-0.684-2.043-2.017-3.276 c-1.765-1.633-4.401-3.2-7.905-4.633v7.618c0,0.766-0.66,1.428-1.428,1.428H19.506c-0.767,0-1.429-0.643-1.429-1.428v-8.5 c-5.576,1.91-9.059,4.052-10.86,6.261c-1.003,1.23-1.261,2.413-0.937,3.497c0.472,1.573,1.877,3.242,3.958,4.875 c7.076,5.552,20.555,9.51,33.239,8.611l-2.744-2.146c-1.311-1.023-1.544-2.917-0.52-4.228c1.024-1.312,2.917-1.544,4.229-0.521 l8.878,6.942c1.311,1.024,1.544,2.917,0.52,4.229c-0.132,0.17-0.279,0.32-0.438,0.454l-9.882,8.837 c-1.239,1.109-3.143,1.003-4.252-0.236c-1.108-1.238-1.003-3.143,0.236-4.251l2.28-2.039C28.4,86.376,14.414,81.996,6.771,76 c-3.146-2.468-5.364-5.305-6.277-8.353c-1.06-3.537-0.466-7.092,2.251-10.425c2.599-3.188,7.505-6.194,15.332-8.696V14.255 c0-0.786,0.642-1.429,1.429-1.429h6.652v-4.59h8.22v4.59h8.928c1.858-3.667,3.715-7.335,5.574-11 C50.01-0.411,49.389,0.036,51.933,0.036L51.933,0.036z M97.607,19.144c2.353,0,4.261,1.909,4.261,4.262s-1.908,4.262-4.261,4.262 s-4.262-1.909-4.262-4.262S95.255,19.144,97.607,19.144L97.607,19.144L97.607,19.144z M66.229,24.113 c7.134,0,12.919,5.785,12.919,12.918s-5.785,12.917-12.919,12.917c-7.135,0-12.92-5.785-12.92-12.917 C53.31,29.898,59.094,24.113,66.229,24.113L66.229,24.113z M66.229,15.696c11.782,0,21.336,9.555,21.336,21.335 s-9.554,21.336-21.336,21.336c-11.781,0-21.335-9.556-21.335-21.336S54.448,15.696,66.229,15.696L66.229,15.696z"
-                    />
-                  </g>
-                </svg>
-              </button>
-            ) : (
-              <span></span>
-            )}
-
-            <button
-              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-              onClick={capture}
-            >
-              <img src="/icons/image.svg" className="scale-150" />
-            </button>
-            <button
-              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
-              onClick={() => {
-                stopStream(); // Stop stream BEFORE closing
-                imageFile.current = null;
-                stopAllStreams();
+      {/* Modern Header / Tab Controller */}
+      <div className="w-full max-w-full px-6 pt-6 z-10 block gap-4">
+        <div className="cursor-pointer flex flex-grow justify-between items-center text-white">
+          <button
+            onClick={() => {
+              if (photoPreview) setPhotoPreview(null);
+              else if (vidUrl) {
+                setVidUrl(null);
+                setRecordedChunks([]);
+              } else {
                 close();
-              }}
+              }
+            }}
+            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-all active:scale-95 flex items-center justify-center backdrop-blur-md border border-white/10"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          
+          <span className="font-semibold text-lg tracking-wide text-white/90">
+            {photoPreview ? translateFunction("Preview Photo") : vidUrl ? translateFunction("Preview Video") :""}
+          </span>
+
+          <div className="w-10 h-10" /> {/* Spacer */}
+        </div>
+
+        {!photoPreview && !vidUrl && (
+          <div className="cursor-pointer flex mt-[5px] bg-neutral-900/80 p-1 rounded-full border border-white/5 backdrop-blur-md">
+            <button
+              onClick={() => setActiveTab("photo")}
+              className={`cursor-pointer flex-1 text-center py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+                activeTab === "photo"
+                  ? "bg-white text-black shadow-md"
+                  : "text-white/60 hover:text-white"
+              }`}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="17.828"
-                height="17.829"
-                viewBox="0 0 17.828 17.829"
-              >
-                <g
-                  id="Group_10676"
-                  data-name="Group 10676"
-                  transform="translate(-67.032 -2460.283)"
-                >
-                  <line
-                    id="Line_879"
-                    data-name="Line 879"
-                    y2="21.213"
-                    transform="translate(83.447 2461.697) rotate(45)"
-                    fill="none"
-                    stroke="#555"
-                    strokeLinecap="round"
-                    strokeWidth="2"
-                  />
-                  <line
-                    id="Line_880"
-                    data-name="Line 880"
-                    y2="21.213"
-                    transform="translate(83.447 2476.697) rotate(135)"
-                    fill="none"
-                    stroke="#555"
-                    strokeLinecap="round"
-                    strokeWidth="2"
-                  />
-                </g>
-              </svg>
+              {translateFunction("Photo")}
+            </button>
+            <button
+              onClick={() => setActiveTab("video")}
+              className={`cursor-pointer flex-1 text-center py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+                activeTab === "video"
+                  ? "bg-white text-black shadow-md"
+                  : "text-white/60 hover:text-white"
+              }`}
+            >
+              {translateFunction("Video")}
             </button>
           </div>
-        </>
-      )}
-    </>
+        )}
+      </div>
+
+      {/* Main Viewfinder / Media Container */}
+      <div className="flex-1 w-full max-w-full relative flex items-center justify-center overflow-hidden my-4 px-4">
+        <div className="w-full h-full rounded-[2rem] overflow-hidden border border-white/10 bg-neutral-900 shadow-2xl relative flex items-center justify-center">
+          {photoPreview ? (
+            <Image
+              src={photoPreview}
+              alt="Photo Preview"
+              fill
+              className="object-cover"
+              loading="eager"
+            />
+          ) : vidUrl ? (
+            <div className="w-full h-full flex items-center justify-center bg-black">
+              <UploadVideo vidUrl={vidUrl} />
+            </div>
+          ) : (
+            <Webcam
+              key={`${activeTab}-${useAudio}`}
+              audio={useAudio}
+              muted={true}
+              ref={webcamRef}
+              screenshotFormat="image/webp"
+              videoConstraints={webcamConstraints}
+              className="w-full h-full object-cover"
+            />
+          )}
+
+          {/* Microphone Warning Flag */}
+          {activeTab === "video" && micError && (
+            <div className="absolute top-6 left-6 right-6 bg-red-600/90 text-white rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-2 shadow-lg backdrop-blur-md border border-red-500/25 z-[999999]">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>{translateFunction("Microphone not detected or permission denied")}</span>
+            </div>
+          )}
+
+          {/* Video Recording Timer Overlay */}
+          {capturing && (
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-red-600/90 text-white font-mono px-4 py-1.5 rounded-full text-sm font-semibold tracking-wider flex items-center gap-2 shadow-lg animate-pulse z-[999999]">
+              <span className="w-2.5 h-2.5 rounded-full bg-white block" />
+              {`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Premium Controls Panel */}
+      <div className="w-full max-w-full px-6 pb-8 z-10 flex flex-col items-center">
+        <div className="w-full flex justify-around items-center bg-neutral-900/60 backdrop-blur-xl border border-white/10 py-5 px-6 rounded-3xl shadow-xl">
+          {/* Left Action: Toggle/Flip Camera (Only if camera mode is active) */}
+          {!photoPreview && !vidUrl ? (
+            <button
+              onClick={toggleCamera}
+              disabled={switchCameraDisabled}
+              className={`cursor-pointer p-3 rounded-full transition-all duration-200 ${
+                switchCameraDisabled
+                  ? "opacity-30 cursor-not-allowed"
+                  : "bg-white/10 hover:bg-white/20 active:scale-95"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2z" />
+              </svg>
+            </button>
+          ) : (
+            <div className="w-12 h-12" /> // spacer
+          )}
+
+          {/* Center Action: Capture / Record / Share */}
+          {photoPreview ? (
+            <button
+              onClick={handleSharePhoto}
+              className="cursor-pointer w-16 h-16 rounded-full bg-blue-500 hover:bg-blue-600 active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-blue-500/30"
+            >
+              <img src="/icons/chat/sharechat.svg" className="w-8 h-8 brightness-200 filter" alt="Share" />
+            </button>
+          ) : vidUrl ? (
+            <button
+              onClick={handleShareVideo}
+              className="cursor-pointer w-16 h-16 rounded-full bg-blue-500 hover:bg-blue-600 active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-blue-500/30"
+            >
+              <img src="/icons/chat/sharechat.svg" className="w-8 h-8 brightness-200 filter" alt="Share" />
+            </button>
+          ) : activeTab === "photo" ? (
+            <button
+              onClick={capturePhoto}
+              className="cursor-pointer w-20 h-20 rounded-full border-4 border-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
+            >
+              <div className="w-16 h-16 rounded-full bg-white" />
+            </button>
+          ) : (
+            // Video Record Button (Capturing vs Idle)
+            <button
+              onClick={capturing ? handleStopCapture : handleStartCapture}
+              className="cursor-pointer w-20 h-20 rounded-full border-4 border-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
+            >
+              {capturing ? (
+                <div className="w-8 h-8 rounded bg-red-600 transition-all duration-200" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-red-600 transition-all duration-200" />
+              )}
+            </button>
+          )}
+
+          {/* Right Action: Close/Discard */}
+          <button
+            onClick={() => {
+              if (photoPreview) setPhotoPreview(null);
+              else if (vidUrl) {
+                setVidUrl(null);
+                setRecordedChunks([]);
+              } else {
+                close();
+              }
+            }}
+            className="cursor-pointer p-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-white"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
+
 export default WebcamCapture;
+

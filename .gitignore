@@ -6,6 +6,9 @@
 .pnp.js
 .cursor
 req.json
+# generated localization scan reports
+hardcoded-text-report.json
+hardcoded-text-report.md
 # testing
 /coverage/*
 /site/*
@@ -18,8 +21,9 @@ req.json
 /cypress/screenshots
 /public/reports/videos/*
 /public/reports/*
-.env.development
 .env.production
+# secrets
+vercel-secrets.json
 # next.js
 /.next/
 /out/
@@ -43,9 +47,37 @@ package-lock.json
 # vercel
 .vercel
 
+# Claude Code local settings (personal, may contain tokens — never commit)
+.claude/settings.local.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+graphify-out/
+
+scripts/*
+# Engineering Workflow v1 helpers must be shared with the team (exceptions to scripts/* above)
+!scripts/clickup_intake.py
+!scripts/github_publish.py
+
+# Local design references (XD exports) - not for repo
+xd-designs-for-inspreation/
+
+Tickets/
+
+.env
+
+.env.development
+
+opt/
+vercel-usage.txt
+docs/clickup-workflow-guide-ar.md
+_specs/inputs/OrderProductHideEndpoints.md
+price-filter-es-implementation.md
+
+# Security assessment HAR captures contain live tokens/cookies — never commit.
+security-check/*.har

@@ -1,5 +1,5 @@
 import BottomSheet from "components/global/BottomSheet";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
@@ -8,24 +8,40 @@ import { useParams } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
 import ThinSepartor from "components/global/ThinSepartor";
 import { GetCountries } from "serverRequests/product";
-function ExpectedDeleiveryModal() {
-  const [countriesData, setCountries] = useState([]);
+import {
+  DeliveredOrder,
+  GetProductDeliveryTimes,
+} from "services/products";
+import { countryNameFromIso } from "utils/server";
+import { PRODUCT_EVENTS, trackPosthog } from "utils/posthogEvents";
+function ExpectedDeleiveryModal({
+  product_id,
+  shipping_days,
+  allow_return_in_days = 0,
+}: {
+  product_id?: number | string;
+  shipping_days: number;
+  allow_return_in_days?: number;
+}) {
+  // Backend signals "no returns" with 0 — hide the return sections entirely.
+  const canReturn = Number(allow_return_in_days) > 0;
+ 
   const { lang } = useParams();
   const [country, language] = (lang as string)?.split("-");
-  const { ColorBottomSheet, setColorBottomSheet, settings, SelectedProduct } =
-    useAppStore();
+  const { ColorBottomSheet, setColorBottomSheet, settings } = useAppStore();
+
   const getCountries = async () => {
     try {
       if (sessionStorage.getItem(`countries-${country}-${language}`)) {
         let data = sessionStorage.getItem(`countries-${country}-${language}`);
-        setCountries(JSON.parse(data));
+        
       } else {
         const data = await GetCountries({ country, language });
         sessionStorage.setItem(
           `countries-${country}-${language}`,
           JSON.stringify(data),
         );
-        setCountries(data);
+        
       }
     } catch (error) {}
   };
@@ -33,24 +49,57 @@ function ExpectedDeleiveryModal() {
     getCountries();
   }, []);
 
-  const rating_arr = [
-    { value: 1, days: 1 },
-    { value: 3, days: 2 },
-    { value: 70, days: 3 },
-    { value: 18, days: 4 },
-    { value: 1, days: 5 },
-    { value: 1, days: 6 },
-    { value: 1, days: 7 },
-    { value: 1, days: 8 },
-    { value: 1, days: 9 },
-    { value: 1, days: 10 },
-  ];
+  const isOpen = ColorBottomSheet && ColorBottomSheet?.is_for_deleviery;
+  const [deliveredOrders, setDeliveredOrders] = useState<DeliveredOrder[]>([]);
+  const [loadingTimes, setLoadingTimes] = useState(false);
+  const fetchedRef = useRef(false);
+
+  // Fetch the delivery distribution lazily — only once, when the sheet first
+  // opens and we have a product id.
+  useEffect(() => {
+    if (!isOpen || !product_id || fetchedRef.current) return;
+    fetchedRef.current = true;
+    // Fire once when the delivery-statistics sheet first opens for this product.
+    trackPosthog(PRODUCT_EVENTS.DELIVERY_STATS_VIEWED, {
+      product_id,
+      expected_days:
+        (settings?.["starting_setting"]?.shipping_duration_days || 0) +
+        shipping_days,
+    });
+    setLoadingTimes(true);
+    GetProductDeliveryTimes({ productId: product_id })
+      .then((data) => setDeliveredOrders(data || []))
+      .finally(() => setLoadingTimes(false));
+  }, [isOpen, product_id]);
+
+  // Build a fixed 1..10 day distribution. We always show 10 rows: day 0 is
+  // bucketed into day 1, and anything beyond 10 days collapses into day 10.
+  // Each bar's `value` is that bucket's share of all delivered orders (percent).
+  const totalOrders = deliveredOrders.reduce(
+    (sum, o) => sum + (Number(o?.orders_count) || 0),
+    0,
+  );
+  const ordersByDay = new Map<number, number>();
+  deliveredOrders.forEach((o) => {
+    // Clamp the raw day count into the 1..10 range before bucketing.
+    const day = Math.min(10, Math.max(1, Number(o?.days_count) || 0));
+    ordersByDay.set(day, (ordersByDay.get(day) || 0) + (Number(o?.orders_count) || 0));
+  });
+  const rating_arr = Array.from({ length: 10 }, (_, i) => {
+    const day = i + 1;
+    const orders = ordersByDay.get(day) || 0;
+    return {
+      days: day,
+      value: totalOrders > 0 ? Math.round((orders / totalOrders) * 100) : 0,
+    };
+  });
+
   const isRtl = language === "ar" || language === "ku";
   return (
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_for_deleviery && (
         <BottomSheet
-          height={90}
+          height={80}
           isOpen={ColorBottomSheet?.is_for_deleviery}
           onClose={() => {
             setColorBottomSheet(false);
@@ -78,9 +127,8 @@ function ExpectedDeleiveryModal() {
                     new Date(
                       new Date().getTime() +
                         Number(
-                          (settings?.["starting-setting"]
-                            ?.shipping_duration_days || 0) +
-                            SelectedProduct?.shipping_days,
+                          (settings?.["starting_setting"]
+                            ?.shipping_duration_days || 0) + shipping_days,
                         ) *
                           24 *
                           60 *
@@ -95,9 +143,8 @@ function ExpectedDeleiveryModal() {
                     new Date(
                       new Date().getTime() +
                         Number(
-                          (settings?.["starting-setting"]
-                            ?.shipping_duration_days || 0) +
-                            SelectedProduct?.shipping_days,
+                          (settings?.["starting_setting"]
+                            ?.shipping_duration_days || 0) + shipping_days,
                         ) *
                           24 *
                           60 *
@@ -108,16 +155,13 @@ function ExpectedDeleiveryModal() {
                 </span>{" "}
                 |
                 <span className="bold px-[3px]">
-                  {(settings?.["starting-setting"]?.shipping_duration_days ||
-                    0) + SelectedProduct?.shipping_days}{" "}
+                  {(settings?.["starting_setting"]?.shipping_duration_days ||
+                    0) + shipping_days}{" "}
                   {translateFunction("Work Days")}{" "}
                 </span>
                 {translateFunction("At Your Address In", language)}
                 <span className="capitalize px-[3px]">
-                  {countriesData?.length ? (
-                    countriesData?.find((s) => s.iso?.toLowerCase() === country)
-                      ?.name
-                  ) : (
+                  { country?countryNameFromIso(country, language): (
                     <Skeleton width="100%" height="100%" borderRadius={16} />
                   )}
                 </span>
@@ -136,26 +180,41 @@ function ExpectedDeleiveryModal() {
                   "Based On The Previous Delivery Statistics Below To Your Area, We Conclude That The Expected Delivery Time For Your Product Is",
                 )}
                 <span className="bold px-[3px]">
-                  {(settings?.["starting-setting"]?.shipping_duration_days ||
-                    0) + SelectedProduct?.shipping_days}
+                  {(settings?.["starting_setting"]?.shipping_duration_days ||
+                    0) + shipping_days}
                   <span className="px-[3px]">{translateFunction("Days")}</span>
                 </span>
               </div>
               <div className="flex-col w-full gap-[6px]">
-                {rating_arr.map((s, i) => (
-                  <ReviewProgress key={i} title={s.days} value={s.value} />
-                ))}
+                {loadingTimes
+                  ? Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton
+                        key={i}
+                        width="100%"
+                        height={14}
+                        borderRadius={5}
+                      />
+                    ))
+                  : rating_arr.map((s, i) => (
+                      <ReviewProgress key={i} title={s.days>=10?`+${s.days}`:s.days} value={s.value} />
+                    ))}
               </div>
             </div>
             <ThinSepartor className="py-[11px]   w-full" />
             <div className="flex-col gap-[8px]">
-              <img src="/icons/DelevieryGurantee.svg" />
+              <img
+                src="/icons/DelevieryGurantee.svg"
+                className="w-[30px] h-[30px]"
+              />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Delivery Guarantee", language)}
                 </span>
                 <span className="flex gap-[4px] mt-[5px]">
-                  <img src="/icons/RefundIcon.svg" />
+                  <img
+                    src="/icons/RefundIcon.svg"
+                    className="w-[30px] h-[30px]"
+                  />
                   <p>
                     <span>{translateFunction("Get a")}</span>
                     <span className="text-[#388CFF] medium px-[4px]">25%</span>
@@ -171,9 +230,8 @@ function ExpectedDeleiveryModal() {
                       new Date(
                         new Date().getTime() +
                           Number(
-                            (settings?.["starting-setting"]
-                              ?.shipping_duration_days || 0) +
-                              SelectedProduct?.shipping_days,
+                            (settings?.["starting_setting"]
+                              ?.shipping_duration_days || 0) + shipping_days,
                           ) *
                             24 *
                             60 *
@@ -187,9 +245,8 @@ function ExpectedDeleiveryModal() {
                       new Date(
                         new Date().getTime() +
                           Number(
-                            (settings?.["starting-setting"]
-                              ?.shipping_duration_days || 0) +
-                              SelectedProduct?.shipping_days,
+                            (settings?.["starting_setting"]
+                              ?.shipping_duration_days || 0) + shipping_days,
                           ) *
                             24 *
                             60 *
@@ -205,7 +262,10 @@ function ExpectedDeleiveryModal() {
               </div>
             </div>
             <div className="flex-col gap-[8px] mt-[10px]">
-              <img src="/icons/GreenBigTruck.svg" />
+              <img
+                src="/icons/GreenBigTruck.svg"
+                className="w-[30px] h-[30px]"
+              />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Free Shipping", language)}
@@ -218,51 +278,63 @@ function ExpectedDeleiveryModal() {
                 </span>
               </div>
             </div>
-            <div className="flex-col gap-[8px] mt-[10px]">
-              <img src="/icons/ReturnGurantee.svg" />
-              <div className="flex-col">
-                <span className="bold">
-                  {translateFunction("Delivery Guarantee", language)}
-                </span>
-                <span>
-                  {translateFunction("within", language)}
-                  <span className="px-[3px] bold">
-                    {(settings?.["starting-setting"]?.shipping_duration_days ||
-                      0) + SelectedProduct?.shipping_days}
-                  </span>
-                  <span>
-                    {translateFunction(
-                      "Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back",
-                      language,
-                    )}
-                  </span>
-                </span>
-                <span className="flex gap-[4px] mt-[5px]">
-                  <img src="/icons/RefundIcon.svg" />
-                  <p>
-                    <span>{translateFunction("Get a")}</span>
-                    <span className="text-[#388CFF] medium px-[4px]">
-                      {translateFunction("Full", language)}
+            {canReturn && (
+              <>
+                <div className="flex-col gap-[8px] mt-[10px]">
+                  <img
+                    src="/icons/ReturnGurantee.svg"
+                    className="w-[30px] h-[30px]"
+                  />
+                  <div className="flex-col">
+                    <span className="bold">
+                      {translateFunction("Return Guarantee", language)}
                     </span>
-                    {translateFunction("Product Price When Returned")}
-                  </p>
-                </span>
-              </div>
-            </div>
-            <div className="flex-col gap-[8px] mt-[10px]">
-              <img src="/icons/RedBigTruck.svg" />
-              <div className="flex-col">
-                <span className="bold">
-                  {translateFunction("Free Return", language)}
-                </span>
-                <span>
-                  {translateFunction(
-                    "Return Is Completely Free Without Any Extras",
-                    language,
-                  )}
-                </span>
-              </div>
-            </div>
+                    <span>
+                      {translateFunction("within", language)}
+                      <span className="px-[3px] bold">
+                        {Number(allow_return_in_days)}
+                      </span>
+                      <span>
+                        {translateFunction(
+                          "Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back",
+                          language,
+                        )}
+                      </span>
+                    </span>
+                    <span className="flex gap-[4px] mt-[5px]">
+                      <img
+                        src="/icons/RefundIcon.svg"
+                        className="w-[30px] h-[30px]"
+                      />
+                      <p>
+                        <span>{translateFunction("Get a")}</span>
+                        <span className="text-[#388CFF] medium px-[4px]">
+                          {translateFunction("Full", language)}
+                        </span>
+                        {translateFunction("Product Price When Returned")}
+                      </p>
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-col gap-[8px] mt-[10px]">
+                  <img
+                    src="/icons/RedBigTruck.svg"
+                    className="w-[30px] h-[30px]"
+                  />
+                  <div className="flex-col">
+                    <span className="bold">
+                      {translateFunction("Free Return", language)}
+                    </span>
+                    <span>
+                      {translateFunction(
+                        "Return Is Completely Free Without Any Extras",
+                        language,
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </BottomSheet>
       )}

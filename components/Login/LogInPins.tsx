@@ -3,10 +3,10 @@ import { translateFunction } from "utils/functions";
 import Timer from "./Timer";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { useParams } from "next/navigation";
-import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { getNumberLockRemaining } from "utils/otpLocks";
 
 function LogInPins({
   setPin,
@@ -138,6 +138,9 @@ function LogInPins({
   const [attempts, setAttempts] = useState(1);
   const ResendFunction = async () => {
     if (loading) return;
+    // Still within the per-number cooldown (e.g. user navigated back and
+    // returned) — keep the resend locked; the server would reject it anyway.
+    if (getNumberLockRemaining(inputValue) > 0) return;
 
     setAttempts(attempts + 1);
     setLoading(true);
@@ -420,26 +423,48 @@ function LogInPins({
               )}
             </span>
             {!expired ? (
-              <span className={`blue-text`} id="text-wrap-element">
-                <Timer
-                  minutes={2}
-                  onFinish={() => {
-                    // Sendevent({
-                    //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-                    //   value:
-                    //     GA_PROGRAMMING_EVENT_VALUES.TIMER_HAS_EXPIRED_EVENT,
-                    // });
-                    GAevent({
-                      action: GA_EVENT_NAMES.TIMER_EXPIRED,
-                      params: {
-                        method: MessageMethod === "WA" ? "whatsapp" : "sms",
-                        mission_name: operation,
-                      },
-                    });
-                    setDisabled(true);
-                  }}
-                />
-              </span>
+              <>
+                <span className={`blue-text`} id="text-wrap-element">
+                  <Timer
+                    minutes={1}
+                    onFinish={() => {
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                      //   value:
+                      //     GA_PROGRAMMING_EVENT_VALUES.TIMER_HAS_EXPIRED_EVENT,
+                      // });
+                      GAevent({
+                        action: GA_EVENT_NAMES.TIMER_EXPIRED,
+                        params: {
+                          method: MessageMethod === "WA" ? "whatsapp" : "sms",
+                          mission_name: operation,
+                        },
+                      });
+                      setDisabled(true);
+                    }}
+                  />
+                </span>
+                {/* While the verify request is in flight (outcome not yet
+                    known) show a subtle spinner beside the timer to signal
+                    pending — matches the pins' fade window and disappears the
+                    moment success/failure resolves. */}
+                {loadingPin && !successLogin && !failedLogin && (
+                  <span
+                    aria-hidden="true"
+                    className="animate-spin"
+                    style={{
+                      display: "inline-block",
+                      width: 12,
+                      height: 12,
+                      border: "2px solid #4d84ff",
+                      borderBottomColor: "transparent",
+                      borderRadius: "9999px",
+                      marginInlineStart: 6,
+                      verticalAlign: "middle",
+                    }}
+                  />
+                )}
+              </>
             ) : (
               <>
                 <span
@@ -451,7 +476,7 @@ function LogInPins({
                   {translate("Resend Code", language)}
                 </span>
                 <span className="blue-text" style={{ color: "#5d5d5d" }}>
-                  OR
+                  {translateFunction("OR")}
                 </span>
                 <span
                   className="blue-text"
@@ -494,38 +519,47 @@ function LogInPins({
       <div
         data-testid="pin-inputs-container"
         className="pin-inputs-container w-full"
-        style={{ marginTop: "0px" }}
+        style={{
+          marginTop: "0px",
+          // While the verify request is in flight we keep the pins on screen
+          // (instead of swapping in a spinner) so the success/failure styling
+          // can show once it resolves; a subtle fade + shrink signals "pending"
+          // and blocks re-entry. Once the outcome is known (success or failure)
+          // we snap back to full opacity so that styling reads clearly, even
+          // though the parent keeps loadingPin true briefly to animate the
+          // transition to the next step.
+          opacity: loadingPin && !successLogin && !failedLogin ? 0.6 : 1,
+          transform:
+            loadingPin && !successLogin && !failedLogin
+              ? "scale(0.97)"
+              : "scale(1)",
+          transition: "opacity .2s ease, transform .2s ease",
+          pointerEvents: loadingPin ? "none" : "auto",
+        }}
       >
-        {loadingPin ? (
-          <div className="flex justify-center items-center w-full">
-            <Spinner />
-          </div>
-        ) : (
-          <>
-            <div className="pin-border-container" style={{ zIndex: "1" }}>
-              {Array(6)
+        <div className="pin-border-container" style={{ zIndex: "1" }}>
+          {Array(6)
                 .fill(1)
                 .map((e, index) => (
                   <div
                     key={index}
-                    className={
-                      "pin-border-element" +
-                      " " +
-                      (expired && "input-expired ") +
-                      (Tempuser && user && !forChanging && " input-success ") +
-                      " " +
-                      ((wrongNumber || failedLogin) &&
-                        !Tempuser &&
-                        "input-failed")
-                    }
+                    className={[
+                      "pin-border-element",
+                      expired && "input-expired",
+                      successLogin && !forChanging && "input-success",
+                      (wrongNumber || failedLogin) && "input-failed",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                     style={{
-                      backgroundColor: wrongNumber
-                        ? "#fff5f5"
-                        : Tempuser && !forChanging
-                        ? "#F4FFF4"
-                        : pin[index] || disabled
-                        ? "#f5f5f5"
-                        : "#fafafa",
+                      backgroundColor:
+                        wrongNumber || failedLogin
+                          ? "#fff5f5"
+                          : successLogin && !forChanging
+                          ? "#F4FFF4"
+                          : pin[index] || disabled
+                          ? "#f5f5f5"
+                          : "#fafafa",
                       borderRadius: "15px",
                     }}
                     onClick={() => {
@@ -580,14 +614,12 @@ function LogInPins({
                 onChange={(value) => {
                   setPin(value);
                 }}
-                disabled={disabled}
+                disabled={disabled || loadingPin}
                 onComplete={(value) => Submit(value)}
                 // onComplete={(value, index) => setPin(value)}
                 autoSelect={true}
               />
             )}
-          </>
-        )}
       </div>
       <input className="opacity-0" disabled />
       {wrongNumber && (
@@ -656,6 +688,9 @@ const PinInputContainer: React.FC<PinInputProps> = ({
     }
 
     if (newVals.every((v) => v !== "")) {
+      // Drop focus once the code is complete so the pending/success styling
+      // reads clearly and the mobile keyboard closes while the API resolves.
+      inputsRef.current[index]?.blur();
       onComplete?.(joined);
     }
   };
@@ -689,7 +724,9 @@ const PinInputContainer: React.FC<PinInputProps> = ({
           autoFocus={i === 0}
           key={i}
           className="pin-input outline-hidden text-[#707070] text-[20px]  flex items-center justify-center light "
-          ref={(el) => (inputsRef.current[i] = el)}
+          ref={(el) => {
+            inputsRef.current[i] = el;
+          }}
           type="text"
           inputMode="numeric"
           maxLength={1}

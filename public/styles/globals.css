@@ -2,6 +2,15 @@
 
 @config '../../tailwind.config.js';
 
+:root {
+  --listing-navbar-h: 98px;
+}
+
+.home-navbar {
+  position: sticky;
+  top: 0;
+}
+
 /*
   The default border color has changed to `currentcolor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
@@ -36,9 +45,6 @@ img {
 }
 .comments-extended {
   max-height: 200px;
-}
-.filter-listing-bar.fixedAlign {
-  top: 98px !important;
 }
 .featured-products-container::-webkit-scrollbar {
   display: none;
@@ -110,7 +116,7 @@ img {
 
 .embla__slide {
   flex: 0 0 var(--slide-size);
-  min-width: 94.64%;
+  min-width: var(--slide-size, 94.64%);
   padding-left: var(--slide-spacing);
 }
 
@@ -155,7 +161,6 @@ p {
 
 .absolute {
   position: absolute;
-  will-change: transform;
 }
 
 .relative {
@@ -425,7 +430,7 @@ body {
   min-height: 100%;
   justify-content: space-around;
   height: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 input[type="search"]::-webkit-search-cancel-button {
@@ -827,30 +832,6 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-.home-navbar.animate-in {
-  animation-name: animate-in;
-  animation-duration: 0.5s;
-  animation-timing-function: ease-in;
-  animation-fill-mode: forwards;
-}
-
-@keyframes animate-in {
-  0% {
-    position: fixed;
-    top: -66px;
-    opacity: 0.5;
-    z-index: 999999999;
-    padding: 40px 30px;
-  }
-
-  100% {
-    position: fixed;
-    top: 0px;
-    opacity: 1;
-    z-index: 999999999;
-    background: #fafafa;
-  }
-}
 .marquee-slide {
   animation: sidescroll 15s alternate infinite;
   animation-timing-function: linear;
@@ -1060,4 +1041,13 @@ svg {
 .setting-screen > div,
 .setting-screen > button {
   flex-shrink: 0;
+}
+
+.camera-video{
+   z-index: 999999999;
+    width: auto;
+    height: 76vh;
+    justify-self: center;
+    align-self: center;
+    margin-top: 60px;
 }

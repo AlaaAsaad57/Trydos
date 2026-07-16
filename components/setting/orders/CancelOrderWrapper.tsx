@@ -11,7 +11,9 @@ function CancelOrderWrapper({
 }: {
   order: OrderInterface;
   isRtl: boolean;
-  setShouldConfirmCancel: (e: boolean) => void;
+  // Passes the selected reasons up so the confirmation step can attach them to
+  // the `order_cancelled` analytics event (truthy array also opens the window).
+  setShouldConfirmCancel: (e: boolean | string[]) => void;
 }) {
   const { currency, language } = useAppStore();
   let options = [
@@ -104,8 +106,8 @@ function CancelOrderWrapper({
             selectedOptions?.length > 0 ? "bg-[#FF5F61]" : "bg-[#D3D3D3]"
           } rounded-[20px] text-white text-[14px] medium h-[50px] flex-row w-full items-center justify-center mt-[20px]`}
           onClick={() => {
-            if (selectedOptions) {
-              setShouldConfirmCancel(true);
+            if (selectedOptions?.length > 0) {
+              setShouldConfirmCancel(selectedOptions);
             } else {
               showErrorNotification(
                 translateFunction(

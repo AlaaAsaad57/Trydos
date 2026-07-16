@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
 import Logo from "../components/Home/Logo";
-import { LogError } from "../utils/functions";
+import { LogError, translateFunction } from "../utils/functions";
 import AuthService from "../services/auth";
 
 import {
@@ -66,17 +66,18 @@ export default function GlobalError({ error, reset }) {
             {/* Error Content */}
             <div className="text-center max-w-md mx-auto mb-8">
               <h1 className="text-3xl font-bold text-gray-800 mb-4">
-                Connection Lost
+                {translateFunction("Connection Lost")}
               </h1>
               <div className="bg-white rounded-lg shadow-lg p-6 border border-red-100">
                 <p className="text-gray-600 mb-4 leading-relaxed">
-                  We are having trouble connecting to our servers. This might be
-                  due to:
+                  {translateFunction(
+                    "We are having trouble connecting to our servers. This might be due to:"
+                  )}
                 </p>
                 <ul className="text-sm text-gray-500 mb-4 list-disc list-inside space-y-1">
-                  <li>Network connectivity issues</li>
-                  <li>Temporary server maintenance</li>
-                  <li>Slow internet connection</li>
+                  <li>{translateFunction("Network connectivity issues")}</li>
+                  <li>{translateFunction("Temporary server maintenance")}</li>
+                  <li>{translateFunction("Slow internet connection")}</li>
                 </ul>
                 <div className="bg-red-50 rounded-md p-3 mb-4">
                   <p className="text-red-700 text-sm font-medium">
@@ -107,7 +108,7 @@ export default function GlobalError({ error, reset }) {
                     d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                   />
                 </svg>
-                Reload Page
+                {translateFunction("Reload Page")}
               </button>
               <button
                 className="px-8 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center justify-center gap-2 min-w-[200px]"
@@ -126,7 +127,7 @@ export default function GlobalError({ error, reset }) {
                     d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                   />
                 </svg>
-                Go Home
+                {translateFunction("Go Home")}
               </button>
             </div>
           </div>
@@ -151,12 +152,13 @@ export default function GlobalError({ error, reset }) {
           {/* Error Content */}
           <div className="text-center max-w-md mx-auto mb-8">
             <h1 className="text-3xl font-bold text-gray-800 mb-4">
-              Oops! Something went wrong
+              {translateFunction("Oops! Something went wrong")}
             </h1>
             <div className="bg-white rounded-lg shadow-lg p-6 border border-red-100">
               <p className="text-gray-600 mb-4">
-                We encountered an unexpected error. Dont worry, our team has
-                been notified and is working on it.
+                {translateFunction(
+                  "We encountered an unexpected error. Dont worry, our team has been notified and is working on it."
+                )}
               </p>
               <div className="bg-red-50 rounded-md p-3 mb-4">
                 <p className="text-red-700 text-sm font-medium">
@@ -164,7 +166,7 @@ export default function GlobalError({ error, reset }) {
                 </p>
               </div>
               <p className="text-xs text-gray-500">
-                Error ID: {Sentry.lastEventId() || "—"}
+                {translateFunction("Error ID:")} {Sentry.lastEventId() || "—"}
               </p>
             </div>
           </div>
@@ -188,7 +190,7 @@ export default function GlobalError({ error, reset }) {
                   d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 />
               </svg>
-              Try Again
+              {translateFunction("Try Again")}
             </button>
             <button
               className="px-8 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center justify-center gap-2 min-w-[200px]"
@@ -207,7 +209,7 @@ export default function GlobalError({ error, reset }) {
                   d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                 />
               </svg>
-              Go Home
+              {translateFunction("Go Home")}
             </button>
           </div>
         </div>

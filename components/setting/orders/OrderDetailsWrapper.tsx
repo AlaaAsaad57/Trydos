@@ -1,6 +1,6 @@
 "use client";
 import ChatWidget from "components/Chat/ChatWidget";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import BackBar from "../BackBar";
 import OrderDetailsSkeleton from "components/skeleton/loaders/OrderDetailsSkeleton";
 import {
@@ -9,8 +9,13 @@ import {
   OrderNumberCard,
 } from "components/settings/cards";
 import OrderStatusCard from "components/settings/cards/OrderStatusCard";
-import OrderExpectedDeliveryCard from "components/settings/cards/OrderExpectedDeliveryCard";
+import OrderExpectedDeliveryCard, {
+  getExpectedDelivery,
+} from "components/settings/cards/OrderExpectedDeliveryCard";
 import OrderAddressCard from "components/settings/cards/OrderAddressCard";
+// Used by the (currently commented-out) order-message block below; kept imported
+// so re-enabling that block renders sanitized HTML by default. Tree-shaken while unused.
+import { sanitizeHtml } from "utils/sanitizeHtml";
 import RateOrderButton from "components/settings/cards/RateOrderButton";
 import OrderItemsList from "components/settings/cards/OrderItemsList";
 import {
@@ -34,9 +39,11 @@ import {
   returnDetails,
 } from "utils/types/OrderInterface";
 import Order from "services/order";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import OrderChatIcon from "components/settings/OrderChatIcon";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { OPEN_DELIVERY_CHAT_EVENT } from "utils/notificationEvents";
 import auth from "services/auth";
 import OrderOptionsMenu from "./OrderOptionsMenu";
 import OrderItemOptions from "./OrderItemOptions";
@@ -57,6 +64,10 @@ function OrderDetailsWrapper({
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInfo, setChatInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Set when the order group can't be resolved — a failed request (null) or an
+  // empty `data: []` (e.g. opening the details URL with an invalid/foreign
+  // order_group_id). Drives the "wrong path" empty state below.
+  const [notFound, setNotFound] = useState(false);
   const [orderData, setOrderData] = useState<OrderInterface[]>([]);
   const [ActivePack, setActivePack] = useState<OrderInterface>(null);
   const [returnData, setReturnData] = useState<returnDetails | null>(null);
@@ -68,6 +79,14 @@ function OrderDetailsWrapper({
   >(null);
   const [showOrderOptions, setShowOrderOption] =
     useState<OrderInterface | null>(null);
+  // Tracks the post-hide navigation to the orders list. router.replace is wrapped
+  // in this transition so `isNavigatingAway` stays true until the orders-list
+  // route has finished fetching/rendering — that's the ~2s gap we cover with an
+  // overlay so the user gets immediate feedback instead of a frozen page.
+  const [isNavigatingAway, startNavigation] = useTransition();
+  // getOrderDetails re-runs on every post-action refresh; only count the first
+  // load as a "details viewed".
+  const hasTrackedView = useRef(false);
   const {
     setShouldUpdateOrders,
     shouldUpdateOrders,
@@ -81,26 +100,48 @@ function OrderDetailsWrapper({
 
   const getOrderDetails = async () => {
     setLoading(true);
+    setNotFound(false);
     try {
       let data: OrderInterface[] = await Order.getOrderDetails(order_group_id);
+
+      // A failed request returns null and an unknown/foreign order_group_id
+      // returns an empty array — neither is a viewable order, so surface the
+      // "wrong path" empty state instead of trying to render null data.
+      if (!Array.isArray(data) || data.length === 0) {
+        setNotFound(true);
+        setOrderData([]);
+        setActivePack(null);
+        setShouldUpdateOrders(0);
+        setLoading(false);
+        return;
+      }
+
+      // Ratings and return-details both depend only on `data`, not on each other —
+      // fire them together. Each is guarded by its own condition (null when not
+      // needed) so we never issue a fetch that isn't required.
       let shouldGetRatingValues = data.find(
         (order) => order?.order_status?.value === "delivered",
       );
-      if (shouldGetRatingValues) {
-        let order_ids = data.flatMap((order) => order.details.map((d) => d.id));
-        let order_ratings: any = await fetchData({
-          url: "/api/products/comments/order_rating",
-          method: "POST",
-          body: JSON.stringify({
-            order_detail_ids: order_ids,
-            user_id: auth.UserID(),
-          }),
-          server: "local",
-          reqTitle: REQUESTS_DATA.GET_ORDER_RATING,
-        });
-        let order_rating_data = order_ratings.data?.comments ?? [];
-        setRatingDetails(order_rating_data);
-      }
+      const ratingsPromise = shouldGetRatingValues
+        ? fetchData({
+            url: "/api/products/comments/order_rating",
+            method: "POST",
+            body: JSON.stringify({
+              order_detail_ids: data.flatMap((order) =>
+                order.details.map((d) => d.id),
+              ),
+              user_id: auth.UserID(),
+            }),
+            server: "local",
+            reqTitle: REQUESTS_DATA.GET_ORDER_RATING,
+          })
+        : null;
+      const returnPromise = data.filter((s) => s.return_request_id)?.length
+        ? Order.GetReturnDetailsForOrderGroup({
+            order_group_id: order_group_id,
+          })
+        : null;
+
       let order_item = data?.find(
         (order) =>
           String(order.id) === String(order_chat_id) ||
@@ -114,30 +155,34 @@ function OrderDetailsWrapper({
 
       setActivePack(active_order);
 
-      let returnRequests;
-
-      if (data.filter((s) => s.return_request_id)?.length) {
-        returnRequests = await Order.GetReturnDetailsForOrderGroup({
-          order_group_id: order_group_id,
+      if (!hasTrackedView.current && active_order) {
+        hasTrackedView.current = true;
+        trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_DETAILS_VIEWED, {
+          order_id: active_order.id,
+          order_group_id: active_order.order_group_id,
+          order_status: active_order.order_status?.value,
+          item_count: active_order.details?.length,
         });
+      }
+
+      const [order_ratings, returnRequests]: [any, any] = await Promise.all([
+        ratingsPromise,
+        returnPromise,
+      ]);
+
+      if (order_ratings) {
+        let order_rating_data = order_ratings.data?.comments ?? [];
+        setRatingDetails(order_rating_data);
+      }
+
+      if (returnRequests) {
         setReturnData(returnRequests);
       }
 
-      if (
-        order_chat_id &&
-        (order_item?.order_status?.value === "out_for_delivery" ||
-          returnRequests?.return_requests_data?.find(
-            (return_item) =>
-              String(return_item.order_id) === String(order_id) ||
-              String(order_item?.return_request_id) === String(order_chat_id),
-          )?.status?.value === "out_for_return")
-      ) {
-        safeGetChatWithShipping({
-          is_return: order_item?.return_request_id,
-          order_id: order_item?.return_request_id,
-          parent_order_id: order_item?.id,
-        });
-      }
+      openShippingChatForChatId(order_chat_id, {
+        orderData: data,
+        returnData: returnRequests,
+      });
       setShouldUpdateOrders(0);
     } catch (error) {
       LogError({
@@ -201,6 +246,19 @@ function OrderDetailsWrapper({
     // This replaces the URL with just the path, effectively deleting params
     router.replace(pathname);
   };
+
+  // Hiding an order — or hiding the last product, which empties the order —
+  // removes it from the list, so we leave the details page for the orders list
+  // rather than re-fetching a now-hidden/empty order. We deliberately do NOT bump
+  // `shouldUpdateOrders`: it's a global signal that would (a) make this
+  // still-mounted page re-fetch the now-hidden order and show its skeleton, and
+  // (b) trigger RouterRefresh's router.refresh() on the current route, fighting
+  // this navigation. The list already refetches on mount, so it lands fresh.
+  const leaveForOrdersList = () => {
+    startNavigation(() => {
+      router.replace(`/${local}/settings/orders`);
+    });
+  };
   const shouldShowChatIcon = (pack) => {
     // Out for Delivery
     if (pack && pack?.order_status?.value === "out_for_delivery")
@@ -255,7 +313,7 @@ function OrderDetailsWrapper({
               ? s
               : {
                   ...s,
-                  user: { ...s.user, name: "Deleivery Worker", phone: "" },
+                  user: { ...s.user, name: "Delivery Worker", phone: "" },
                 },
           ),
           messages:
@@ -280,11 +338,11 @@ function OrderDetailsWrapper({
             },
             {
               user_id: response?.data?.recipient?.id,
-              name: "Deleivery Worker",
+              name: "Delivery Worker",
               phone: "",
               user: {
                 id: response?.data.recipient?.id,
-                name: "Deleivery Worker",
+                name: "Delivery Worker",
                 phone: "",
               },
             },
@@ -325,6 +383,49 @@ function OrderDetailsWrapper({
       is_return,
     });
   };
+
+  // Shared chat-open logic used both on mount (with freshly-fetched data) and
+  // when an open tab is asked to show the chat via OPEN_DELIVERY_CHAT_EVENT
+  // (reading current state). The status gate is unchanged: open only for
+  // out_for_delivery / out_for_return.
+  const openShippingChatForChatId = (chatId, source?) => {
+    if (!chatId) return;
+    const data = source?.orderData ?? orderData;
+    const returns = source?.returnData ?? returnData;
+    const order_item = data?.find(
+      (order) =>
+        String(order.id) === String(chatId) ||
+        String(order.return_request_id) === String(chatId),
+    );
+    if (!order_item) return;
+    const isOutForDelivery =
+      order_item?.order_status?.value === "out_for_delivery";
+    const isOutForReturn =
+      returns?.return_requests_data?.find(
+        (return_item) =>
+          String(return_item.order_id) === String(order_id) ||
+          String(order_item?.return_request_id) === String(chatId),
+      )?.status?.value === "out_for_return";
+    if (isOutForDelivery || isOutForReturn) {
+      safeGetChatWithShipping({
+        order_id: order_item?.return_request_id ?? order_item?.id,
+        parent_order_id: order_item?.id,
+        is_return: order_item?.return_request_id,
+      });
+    }
+  };
+
+  // When the service worker focuses this already-open tab for a delivery-worker
+  // message, open the chat in place (no reload).
+  useEffect(() => {
+    const handler = (e) => {
+      const detail = e?.detail || {};
+      if (String(detail.order_group_id) !== String(order_group_id)) return;
+      openShippingChatForChatId(detail.chat_id);
+    };
+    window.addEventListener(OPEN_DELIVERY_CHAT_EVENT, handler);
+    return () => window.removeEventListener(OPEN_DELIVERY_CHAT_EVENT, handler);
+  }, [orderData, returnData, order_id, order_group_id]);
   const ShowChats = () => {
     if (shouldShowChatIcon(ActivePack) && ActivePack?.order_status) {
       let arr = [];
@@ -349,8 +450,44 @@ function OrderDetailsWrapper({
       });
     }
   };
+  
+
+const IsThereADescriptionMessage = () => {
+  let descriptions = [];
+  if(!returnData) return descriptions;
+  returnData?.return_requests_data?.forEach((item) => {
+    if (!item || typeof item !== "object") return;
+
+    Object.entries(item).forEach(([key, value]) => {
+      if (
+        key.toLowerCase().includes("description") &&
+        typeof value === "string"
+      ) {
+        descriptions.push(value);
+      }
+    });
+  });
+
+  return descriptions;
+};
+const isNotDraft=()=>{
+
+  let ActiveOrder=returnData?.return_requests_data?.find((s)=>s.order_id===ActivePack.id);
+  if(!ActiveOrder)
+  return false;
+    let bool=  ActiveOrder?.status?.name?.includes("draft");
+    return !bool;
+  
+}
   return (
     <>
+      {isNavigatingAway &&
+        createPortal(
+          <div className="fixed inset-0 z-999999999 flex items-center justify-center bg-white/70">
+            <Spinner className="w-[40px] h-[40px]" />
+          </div>,
+          document.body,
+        )}
       {shouldShowConfirmReturn &&
         createPortal(
           <>
@@ -395,6 +532,10 @@ function OrderDetailsWrapper({
           close={() => {
             setShowOrderOption(null);
           }}
+          onHidden={() => {
+            setShowOrderOption(null);
+            leaveForOrdersList();
+          }}
         />
       )}
       {selectedOrderItem && (
@@ -409,6 +550,7 @@ function OrderDetailsWrapper({
           returnDetails={returnData}
           setActivePack={setActivePack}
           update={async () => await getOrderDetails()}
+          onOrderEmptied={leaveForOrdersList}
         />
       )}
       <div
@@ -422,12 +564,26 @@ function OrderDetailsWrapper({
           name={translateFunction("Orders Details", language)}
           Icon={"/icons/OrderDetailsIcon.svg"}
           options={() => {
+
             if (ActivePack) setShowOrderOption(ActivePack);
+          }}
+          onBackIntercept={() => {
+            if (isExpanded) {
+              setIsExpanded(false);
+              return true;
+            }
+            return false;
           }}
           preivous_page={`/${local}/settings/orders`}
         />
         {loading ? (
           <OrderDetailsSkeleton />
+        ) : notFound ? (
+          <OrderNotFoundState
+            local={local}
+            language={language}
+            isRtl={isRtl}
+          />
         ) : (
           <>
             <div className="flex flex-col max-h-full overflow-y-auto">
@@ -536,6 +692,29 @@ function OrderDetailsWrapper({
                   isExpanded={isExpanded}
                   items={ActivePack?.details || []}
                 />
+               {/* {isNotDraft()&& isExpanded&&IsThereADescriptionMessage()?.length>0? 
+               <div className="p-2 flex flex-col items-center gap-3">
+              {IsThereADescriptionMessage().map((message, index) => (
+                <div
+                  key={index}
+                  className="w-full max-w-md rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 text-amber-500">
+                      ⚠️
+                    </div>
+                    <div>
+
+                      <p className="text-sm text-amber-700">
+                       <div dangerouslySetInnerHTML={{__html:sanitizeHtml(message)}}>
+
+                       </div>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>:<></>} */}
                 {isExpanded && (
                   <OrderExpandedDetails
                     orderData={orderData}
@@ -558,6 +737,76 @@ function OrderDetailsWrapper({
 
 export default OrderDetailsWrapper;
 
+// Shown when the order group can't be resolved (failed request or empty
+// `data: []`) — e.g. a user lands on the details URL with an invalid or
+// foreign order_group_id. Communicates the wrong path and routes back to the
+// orders list.
+const OrderNotFoundState = ({
+  local,
+  language,
+  isRtl,
+}: {
+  local: string;
+  language: string;
+  isRtl: boolean;
+}) => {
+  const router = useRouter();
+  // Wrap the navigation so the button can show a spinner until the orders-list
+  // route has finished fetching/rendering, instead of looking unresponsive.
+  const [isNavigating, startNavigation] = useTransition();
+  return (
+    <div
+      className="flex flex-col items-center justify-center w-full flex-1 min-h-[60vh] px-[24px] py-[40px] text-center"
+      style={{ direction: isRtl ? "rtl" : "ltr" }}
+      data-cy="order-not-found"
+    >
+      <div className="flex items-center justify-center w-[120px] h-[120px] rounded-full bg-[#F0F0F0] mb-[24px]">
+        <svg
+          className="w-[56px] h-[56px] text-[#C4C2C2]"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.4}
+            d="M20.5 7.27 12 12m0 0L3.5 7.27M12 12v9.5M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.6}
+            d="m15.5 8.5 5 5m0-5-5 5"
+          />
+        </svg>
+      </div>
+      <span className="text-[#1D1D1D] text-[18px] medium mb-[8px]">
+        {translateFunction("Order Not Found", language)}
+      </span>
+      <p className="text-[#8D8D8D] text-[13px] regular max-w-[320px] mb-[24px]">
+        {translateFunction(
+          "This order doesn't exist or the link is incorrect.",
+          language,
+        )}
+      </p>
+      <button
+        type="button"
+        disabled={isNavigating}
+        onClick={() => {
+          startNavigation(() => {
+            router.replace(`/${local}/settings/orders`);
+          });
+        }}
+        className="flex mt-4 items-center justify-center gap-[8px] bg-[#1D1D1D] text-white text-[14px] medium rounded-full px-[28px] h-[48px] min-w-[200px] disabled:opacity-80"
+      >
+        {translateFunction("Go to My Orders", language)}
+        {isNavigating && <Spinner className="w-[16px] h-[16px] fill-white" />}
+      </button>
+    </div>
+  );
+};
+
 const OrderExpandedDetails = ({
   order,
   orderData,
@@ -577,28 +826,13 @@ const OrderExpandedDetails = ({
 }) => {
   const { currency, user, settings } = useAppStore();
 
-  const getSafeNumber = (value: unknown) => {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-  };
-
-  const orderMaxShippingDays = (order?.details || []).reduce(
-    (maxDays, detail) =>
-      Math.max(maxDays, getSafeNumber(detail?.product_details?.shipping_days)),
-    0,
-  );
-
-  const shippingDurationFromSettings = getSafeNumber(
-    settings?.["starting-setting"]?.shipping_duration_days,
-  );
-
-  const expectedWorkDays = orderMaxShippingDays + shippingDurationFromSettings;
-
-  const baseDate = order?.created_at ? new Date(order.created_at) : new Date();
-  const safeBaseDate = Number.isNaN(baseDate.getTime()) ? new Date() : baseDate;
-  const expectedDate = new Date(
-    safeBaseDate.getTime() + expectedWorkDays * 24 * 60 * 60 * 1000,
-  );
+  const { expectedWorkDays, expectedDate } = getExpectedDelivery({
+    productsShippingDays: (order?.details || []).map(
+      (detail) => detail?.product_details?.shipping_days,
+    ),
+    time: order?.created_at,
+    shippingDurationDays: settings?.["starting_setting"]?.shipping_duration_days,
+  });
 
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {
@@ -677,6 +911,7 @@ const OrderExpandedDetails = ({
   // @ts-ignore
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
       className="bg-white mt-[20px] rounded-[10px] w-full h-auto p-[12px] flex-col flex items-start"
@@ -932,6 +1167,23 @@ const ProductCard = ({
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
 
+  // A returned item (whose return request is past the "draft" stage) should
+  // surface the returned quantity beside its "Item: qty" line. Draft returns
+  // are still being composed by the user and aren't shown — same draft check
+  // used in OrderItemReturnConfirmationWindow.
+  const productReturnInfo = getProductWithReturn(product);
+  const returnRequestStatus = returnDetails?.return_requests_data?.find(
+    (s) => s.order_id === order.id,
+  )?.status;
+  const returnedQty = Number(
+    productReturnInfo?.return_request_product_quantity,
+  );
+  const showReturnedQty =
+    productReturnInfo?.already_return &&
+    !!returnRequestStatus?.value &&
+    !returnRequestStatus?.name?.toLowerCase()?.includes("draft") &&
+    returnedQty > 0;
+
   return (
     <>
       <div className={`relative w-full flex-col`}>
@@ -1023,13 +1275,18 @@ const ProductCard = ({
                 </span>
               </div>
 
-              <div className="flex-row mx-[40px]">
+              <div className="flex-row items-center mx-[40px]">
                 <span className="text-[10px] regular">
                   {translateFunction("Item")}:
                 </span>
                 <span className="text-[#505050] text-[10px] medium mx-[2px]">
                   {product?.qty?.toFixed(1)}
                 </span>
+                {showReturnedQty && (
+                  <span className="bg-[#FFF3C4] text-[#946C00] text-[9px] medium rounded-[6px] px-[5px] py-[1px] mx-[4px] whitespace-nowrap">
+                    {translateFunction("Returned")}: {returnedQty}
+                  </span>
+                )}
               </div>
             </div>
             <div className="flex-row justify-between w-full">
@@ -1109,11 +1366,15 @@ const ProductCard = ({
               <span className="text-[#1D1D1D] light text-[10px] ">
                 {currency?.symbol}
               </span>
-              {product.qty === 0 /*|| product.is_returned*/ && (
-                <div className="text-[#388CFF] text-[10px] regular mx-[7px]">
-                  {translateFunction("Back to your wallet")}
-                </div>
-              )}
+              {product.qty === 0 /*|| product.is_returned*/ &&
+                // COD orders are never paid up-front, so a cancellation has
+                // nothing to refund to the wallet — hide the badge for them.
+                order?.payment_method?.value?.toLowerCase() !==
+                  "cash_on_delivery" && (
+                  <div className="text-[#388CFF] text-[10px] regular mx-[7px]">
+                    {translateFunction("Back to your wallet")}
+                  </div>
+                )}
             </div>
           </div>
         </NextLink>

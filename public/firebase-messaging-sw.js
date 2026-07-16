@@ -1,19 +1,19 @@
 // Force update - increment this version when you want to force update
-const CACHE_VERSION = "v1.0.5";
-const BASE_CLOUDINARY_URL =
-  "https://res.cloudinary.com/dtcmozf4d/image/upload/v1";
+const CACHE_VERSION = "v1.0.7";
+const BASE_MEDIA_URL =
+  "https://media_server.ramaaz.dev/image/upload";
 // Get image url function
 const GetImageUrl = (url) => {
   if (url?.file_path) {
-    if (url?.file_path?.includes("cloudinary")) {
+    if (url?.file_path?.includes("media_server")) {
       return url?.file_path;
     } else {
-      return BASE_CLOUDINARY_URL + url?.file_path;
+      return BASE_MEDIA_URL + url?.file_path;
     }
   }
   if (!url || typeof url !== "string") return url;
   if (url && url?.includes("http")) return url;
-  return BASE_CLOUDINARY_URL + url;
+  return BASE_MEDIA_URL + url;
 };
 // Skip waiting and claim clients immediately
 self.addEventListener("install", (event) => {
@@ -40,10 +40,10 @@ self.addEventListener("activate", (event) => {
 });
 
 importScripts(
-  "https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js",
+  "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js",
 );
 importScripts(
-  "https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js",
+  "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js",
 );
 
 const firebaseConfig = {
@@ -72,14 +72,46 @@ const messaging = firebase.messaging();
 // Base origin for this service worker's scope (works per-branch/domain)
 const BASE_ORIGIN = self.location.origin;
 
-// Helper to build absolute URLs on this origin
-const buildUrl = (path) => {
-  if (!path) return BASE_ORIGIN;
-  if (typeof path !== "string") return BASE_ORIGIN;
+// Read the active locale ("<country>-<language>", e.g. "gb-en") from the
+// non-HttpOnly cookies the client persists (see proxy.ts -> setLocaleCookies).
+// Service workers have no `document`, so we use the Cookie Store API, which is
+// only available on Chromium. On browsers without it (Firefox/Safari) we return
+// "" and let proxy.ts inject the locale via a redirect on navigation — the App
+// Router routes are all locale-scoped (`app/(client)/[lang]/...`), so a bare
+// path like `/settings/orders/1` is redirected to `/gb-en/settings/orders/1`.
+async function getLocalePrefix() {
+  try {
+    if (typeof self.cookieStore !== "undefined") {
+      const [countryCookie, langCookie, languageCookie] = await Promise.all([
+        self.cookieStore.get("country"),
+        self.cookieStore.get("lang"),
+        self.cookieStore.get("language"),
+      ]);
+      const country = countryCookie && countryCookie.value;
+      const language =
+        (langCookie && langCookie.value) ||
+        (languageCookie && languageCookie.value);
+      if (country && language) {
+        return `/${country.toLowerCase()}-${language.toLowerCase()}`;
+      }
+    }
+  } catch (e) {
+    // Ignore — fall back to an unprefixed path and let proxy.ts redirect.
+  }
+  return "";
+}
+
+// Helper to build absolute URLs on this origin. `localePrefix` is the
+// "/<country>-<language>" segment (may be "" when unknown — proxy.ts then adds
+// it on navigation). For app routes pass the prefix so the click lands on the
+// correct locale-scoped page without an extra redirect hop.
+const buildUrl = (path, localePrefix = "") => {
+  const prefix = localePrefix || "";
+  if (!path || typeof path !== "string") return BASE_ORIGIN + prefix;
   if (/^https?:\/\//i.test(path)) return path; // already absolute
-  if (path.startsWith("/")) return BASE_ORIGIN + path;
-  if (path.startsWith("?")) return BASE_ORIGIN + "/" + path;
-  return BASE_ORIGIN + "/" + path;
+  if (path.startsWith("?")) return BASE_ORIGIN + prefix + path;
+  if (path.startsWith("/")) return BASE_ORIGIN + prefix + path;
+  return BASE_ORIGIN + prefix + "/" + path;
 };
 
 // Function to check if any client tabs are open
@@ -116,6 +148,10 @@ async function sendToForeground(payload) {
 
 messaging.onBackgroundMessage(async function (payload) {
   try {
+    // Resolve the active locale once so every notification URL points at the
+    // correct locale-scoped App Router route (e.g. /gb-en/settings/orders/1).
+    const localePrefix = await getLocalePrefix();
+
     // Check if any tabs are open
     const sentToForeground = await sendToForeground(payload);
 
@@ -132,6 +168,7 @@ messaging.onBackgroundMessage(async function (payload) {
               `filters/boutiques/${
                 JSON.parse(payload?.data.body)?.boutique_slug
               }`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -150,6 +187,7 @@ messaging.onBackgroundMessage(async function (payload) {
               `filters/categories/${
                 JSON.parse(payload?.data.body).category_slug
               }`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -162,7 +200,7 @@ messaging.onBackgroundMessage(async function (payload) {
         notificationOptions = {
           body: JSON.parse(payload.data.body)?.description,
           data: {
-            url: buildUrl(`?cart=true`),
+            url: buildUrl(`?cart=true`, localePrefix),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -178,6 +216,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url: buildUrl(
               `products/${JSON.parse(payload.data.body).product_slug}`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -191,7 +230,7 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body).description,
           image: JSON.parse(payload.data.body).image,
           data: {
-            url: buildUrl(`?cart=true`),
+            url: buildUrl(`?cart=true`, localePrefix),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -206,6 +245,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url: buildUrl(
               `products/${JSON.parse(payload.data.body).product_slug}`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -222,6 +262,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url: buildUrl(
               `products/${JSON.parse(payload.data.body).product_slug}`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -238,6 +279,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url: buildUrl(
               `products/${JSON.parse(payload.data.body).product_slug}`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -256,6 +298,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url: buildUrl(
               `products/${JSON.parse(payload.data.body).product_slug}`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -270,7 +313,7 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body)?.description,
           // image: JSON.parse(payload.data.body)?.image,
           data: {
-            url: buildUrl(`setting?tab=Orders`),
+            url: buildUrl(`settings/orders`, localePrefix),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -287,9 +330,10 @@ messaging.onBackgroundMessage(async function (payload) {
           // image: JSON.parse(payload.data.body)?.image,
           data: {
             url: buildUrl(
-              `setting?tab=Orders&id=${
+              `settings/orders/${
                 JSON.parse(payload.data.body).order_group_id
               }`,
+              localePrefix,
             ),
           }, // The URL which we are going to use later
         };
@@ -362,18 +406,24 @@ messaging.onBackgroundMessage(async function (payload) {
         // the original behavior (no grouping).
       }
       if (JSON.parse(payload.data.data)?.is_private) {
-        notificationTitle = "Deleivery Worker";
+        const privateData = JSON.parse(payload.data.data);
+        const orderGroupId = privateData?.order_group_id;
+        const orderId = privateData?.parent_order_id ?? privateData?.order_id;
+        const chatId = privateData?.order_id;
+        notificationTitle = "Delivery Worker";
         notificationOptions = {
-          body: "there is new message from Deleivery Worker",
+          body: "there is new message from Delivery Worker",
           data: {
             url: buildUrl(
-              `setting?tab=Orders&id=${
-                JSON.parse(payload?.data.data)?.order_group_id
-              }&order_id_chat=${
-                JSON.parse(payload?.data?.data).parent_order_id ??
-                JSON.parse(payload?.data?.data).order_id
-              }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}`,
+              `settings/orders/${orderGroupId}?order_id=${orderId}&chat_id=${chatId}`,
+              localePrefix,
             ),
+            // Markers consumed by the notificationclick handler to reuse an
+            // already-open tab on this order's page instead of opening a new one.
+            reuseTab: true,
+            order_group_id: orderGroupId,
+            order_id: orderId,
+            chat_id: chatId,
           },
         };
       } else if (
@@ -497,6 +547,48 @@ messaging.onBackgroundMessage(async function (payload) {
   }
 });
 
+// Reuse an already-open tab that is on this order's detail page and ask it to
+// open the delivery-worker chat in place (no reload). Falls back to opening a
+// new tab when no matching tab exists.
+async function focusOrOpenOrderTab(notificationData, targetUrl) {
+  const baseUrl = self.location.origin;
+  const groupId = notificationData.order_group_id;
+  try {
+    const windowClients = await clients.matchAll({
+      type: "window",
+      includeUncontrolled: true,
+    });
+    // matchAll returns window clients most-recently-focused first, so the first
+    // match is the tab the user used most recently.
+    const match = windowClients.find((client) => {
+      if (!client.url.startsWith(baseUrl) || groupId == null) return false;
+      try {
+        const path = new URL(client.url).pathname;
+        return path.endsWith(`/settings/orders/${groupId}`);
+      } catch (e) {
+        return false;
+      }
+    });
+    if (match) {
+      if ("focus" in match) {
+        await match.focus();
+      }
+      match.postMessage({
+        type: "OPEN_DELIVERY_CHAT",
+        order_group_id: notificationData.order_group_id,
+        order_id: notificationData.order_id,
+        chat_id: notificationData.chat_id,
+      });
+      return;
+    }
+  } catch (e) {
+    // Fall through to opening a new tab.
+  }
+  if (clients.openWindow) {
+    await clients.openWindow(targetUrl);
+  }
+}
+
 // Notification click handler - works for background notifications only
 self.addEventListener("notificationclick", function (event) {
   const baseUrl = self.location.origin;
@@ -505,7 +597,12 @@ self.addEventListener("notificationclick", function (event) {
   event.notification.close();
   // Only open the link by default if this is NOT a call notification
   if (!notificationData.callType) {
-    clients.openWindow(targetUrl); // Android needs explicit close.
+    if (notificationData.reuseTab) {
+      // Delivery-worker chat: reuse an open order tab, else open a new one.
+      event.waitUntil(focusOrOpenOrderTab(notificationData, targetUrl));
+    } else {
+      clients.openWindow(targetUrl); // Android needs explicit close.
+    }
   }
   switch (event.action) {
     case "open_url":

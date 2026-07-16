@@ -2,7 +2,6 @@ import "styles/globals.css";
 import "styles/home.css";
 
 import localFont from "next/font/local";
-import dynamic from "next/dynamic";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
@@ -10,23 +9,40 @@ import CartProvider from "components/Cart/CartProvider";
 import Init from "components/Home/Init";
 import AuthNavContainer from "components/Home/AuthNavContainer";
 import NavbarClient from "components/Home/NavbarClient";
-import PageLoadingIndicator from "hooks/PageLoadingIndicator";
+import NavigationLoaderSafetyNet from "components/global/NavigationLoaderSafetyNet";
 import Organaization from "serverRequests/meta/StructuredData/Organaization";
 import Website from "serverRequests/meta/StructuredData/Website";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
-// remove dynamic and use direct import
-// Non-critical layout components — loaded after hydration
+import { mapLocaleToBCP47 } from "serverRequests/meta/StructuredData/utils";
 import PathTracker from "components/PathTracker";
-import SessionChecker from "components/SessionChecker";
 import ModalSlot from "components/ModalRoute/ModalSlot";
-import VersionChecker from "components/global/VersionChecker";
-import SessionTimer from "components/Login/SessionTimer";
-import NotificationsContainer from "components/global/NotificationsContainer";
+import {
+  OverlayVisibilityProvider,
+  MainContent,
+} from "components/ModalRoute/OverlayVisibility";
+import NavigationLoaderGate from "components/global/NavigationLoaderGate";
+// Non-critical, render-null / post-hydration client components — code-split and
+// loaded after hydration (ssr:false) to trim main-thread hydration cost.
+import DeferredLayoutClients from "components/global/DeferredLayoutClients";
 
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
   metadataBase: new URL(General_Site_Data.url),
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+  },
+  verification: {
+    google: [
+      "iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE",
+      "t3AmV4IAkGgEHviuLtG_c1OI3Dlo7OlcM1TWPwx7OVk",
+    ],
+  },
+  other: {
+    google: "notranslate",
+  },
 };
 export const viewport = {
   width: "device-width",
@@ -83,11 +99,16 @@ export default async function RootLayout({ params, children, modal }) {
         quicksand_medium.variable,
         quicksand_bold.variable,
         quicksand_semibold.variable,
-        "overflow-x-hidden",
+        "overflow-x-clip",
       ].join(" ")}
-      lang={lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
+      lang={mapLocaleToBCP47(lang)}
+      translate="no"
+      // dir={language === "ar" || language === "ku" ? "rtl" : "ltr"}
     >
-      <head>
+      <body
+        className={`${language === "ar" || language === "ku" ? "text-rtl" : ""} notranslate`}
+        translate="no"
+      >
         <Organaization local={lang} />
         <Website local={lang} />
         <Script
@@ -108,16 +129,6 @@ export default async function RootLayout({ params, children, modal }) {
             `,
           }}
         />
-        <meta
-          name="google-site-verification"
-          content="iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE"
-        />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <meta name="google" content="notranslate" />
-      </head>
-
-      <body className={lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <SpeedInsights />
         <div className="site-container items-center">
           <div className="home-navbar z-999999996 duration-1000 max-w-[1365px] min-h-[98px]  px-[20px] pt-[52px] bg-white flex-row items-start w-full justify-start">
@@ -133,27 +144,22 @@ export default async function RootLayout({ params, children, modal }) {
                 />
               </div>
             </a>
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
             <AuthNavContainer />
           </div>
-          <div
-            className="w-full flex-col main-content max-w-[1365px]"
-            style={{ display: "flex" }}
-          >
-            {children}
-          </div>
-          <ModalSlot>{modal}</ModalSlot>
+          <OverlayVisibilityProvider>
+            <NavigationLoaderGate>
+              <MainContent>{children}</MainContent>
+              <ModalSlot>{modal}</ModalSlot>
+            </NavigationLoaderGate>
+          </OverlayVisibilityProvider>
         </div>
         <Init />
 
-        <VersionChecker />
         <NavbarClient />
         <CartProvider language={language} country={country} />
-        <NotificationsContainer />
         <PathTracker />
-        <SessionChecker />
-        <SessionTimer />
-        <PageLoadingIndicator />
+        <NavigationLoaderSafetyNet />
+        <DeferredLayoutClients />
         <svg className="opacity-0 absolute" width={0} height={0}>
           <defs>
             <linearGradient

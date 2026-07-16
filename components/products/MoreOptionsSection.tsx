@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import home from "services/home";
 import {
   addToCompare,
+  COMPARE_CHANGED_EVENT,
   LogError,
   removeFromCompare,
   translateFunction,
@@ -22,6 +23,7 @@ import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
 import { wishlistService } from "services/wishlist";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
+
 function MoreOptionsSection({ product }) {
   const {
     disableNotification,
@@ -62,23 +64,49 @@ function MoreOptionsSection({ product }) {
   const AddedToCompare = () => {
     return addedToCompare;
   };
-  const enableNotificationTopic = async (payload, type) => {
-    try {
-      await home.AllowNotifications();
 
-      if (!loading) {
-        setLoading(true);
-        if (
-          firebaseSettings?.subscribed_topics.some((s) => s.topic === payload)
-        ) {
-          disableNotification(payload);
-          await home.UnsubscripeFromTopic({ topic: payload });
-        } else {
-          send_GA_EVENT(type);
-          enableNotification(payload);
-          await home.subscribeToTopic({ topic: payload });
+  
+  const enableNotificationTopic = async (payload, type) => {
+    if (loading) return;
+    try {
+      setLoading(true);
+      // Returns the FCM token, or undefined when this device can't register for
+      // push (unsupported browser, no service worker, permission not granted).
+      const fbtoken = await home.AllowNotifications();
+
+      const isCurrentlyEnabled = firebaseSettings?.subscribed_topics?.some(
+        (s) => s.topic === payload,
+      );
+
+      if (isCurrentlyEnabled) {
+        const res = await home.UnsubscribeToTopicInventory({ topic: payload });
+        // `fetchData` resolves to `{ success: false }` on failure instead of
+        // throwing, so check it explicitly. Only reflect the change locally
+        // once the backend confirms it — otherwise the UI would show a state
+        // the next page load (GetFireBaseSettings) silently undoes.
+        if (res?.success === false) {
+          throw new Error(res?.message);
         }
-        setLoading(false);
+        disableNotification(payload);
+      } else {
+        // No usable token → the backend has no device to subscribe, so the
+        // topic would fail to persist and reappear as "off" on revisit. Refuse
+        // instead of showing a green check that isn't real.
+        if (!fbtoken) {
+          throw new Error(
+            translateFunction(
+              "Notification Is Not Enabled! please Allow Notification Access",
+            ),
+          );
+        }
+        const res = await home.subscribeToTopicInventory({ topic: payload });
+        if (res?.success === false) {
+          throw new Error(res?.message);
+        }
+        // Paint the topic green only after the backend confirms the
+        // subscription, so the check mark matches what a revisit will show.
+        send_GA_EVENT(type);
+        enableNotification(payload);
       }
     } catch (error) {
       LogError({
@@ -91,6 +119,8 @@ function MoreOptionsSection({ product }) {
             "Notification Is Not Enabled! please Allow Notification Access",
           ),
       );
+    } finally {
+      setLoading(false);
     }
   };
   const checkIfTopicEnabled = (topic) => {
@@ -124,6 +154,46 @@ function MoreOptionsSection({ product }) {
     checkWishlistStatus();
   }, [product?.id]);
 
+  const toggleWishlist = async () => {
+    if (wishlistLoading || !product?.id) return;
+
+    setWishlistLoading(true);
+
+    try {
+      const productId = String(product.id);
+      const currentlyInWishlist = await wishlistService.isInWishlist(productId);
+
+      if (currentlyInWishlist) {
+        await wishlistService.removeFromWishlist(productId);
+        setIsInWishlist(false);
+        showSuccessNotification(translate("Removed from checklist", language));
+      } else {
+        await wishlistService.addToWishlist(Number(productId));
+        setIsInWishlist(true);
+        showSuccessNotification(translate("Added to checklist", language));
+
+        // Only the "add" is a favourite event — firing on remove inflated the metric.
+        GAevent({
+          action: GA_EVENT_NAMES.ADD_TO_FAV,
+          params: {
+            user_id_custom: auth.UserID(),
+            item_id: product?.id,
+            item_name: product?.name,
+            brand: product?.brand?.name,
+            brand_id: product?.brand?.id,
+            category: product?.category?.name,
+            category_id: product?.category?.id,
+            price: product?.price,
+          },
+        });
+      }
+    } catch (error) {
+      showErrorNotification(translate("Failed to update checklist", language));
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
   useEffect(() => {
     const checkCompareStatus = () => {
       const f_p = getCookie<string>("f_p");
@@ -132,12 +202,12 @@ function MoreOptionsSection({ product }) {
       setAddedToCompare(isAdded);
     };
     checkCompareStatus();
-    // Check periodically for cookie changes (cookies don't have storage events)
-    const interval = setInterval(checkCompareStatus, 500);
-    // Also check on focus
+    // Cookies don't emit change events, so sync on the compare-changed event
+    // (fired by add/removeFromCompare) and on window focus — no timer polling.
+    window.addEventListener(COMPARE_CHANGED_EVENT, checkCompareStatus);
     window.addEventListener("focus", checkCompareStatus);
     return () => {
-      clearInterval(interval);
+      window.removeEventListener(COMPARE_CHANGED_EVENT, checkCompareStatus);
       window.removeEventListener("focus", checkCompareStatus);
     };
   }, [product?.slug]);
@@ -250,9 +320,9 @@ function MoreOptionsSection({ product }) {
               NotificationsType?.map((type) => (
                 <div
                   key={type.topic}
-                  className={`button-option ${
+                  className={`button-option  ${
                     checkIfTopicEnabled(`${type.topic}_${product?.id}`) &&
-                    "bg-green-300"
+                    "bg-green-300 px-[16px]"
                   }`}
                   onClick={async () => {
                     enableNotificationTopic(
@@ -276,58 +346,7 @@ function MoreOptionsSection({ product }) {
             isInWishlist ? "bg-green-300" : ""
           }`}
           data-cy="add-checkList"
-          onClick={async () => {
-            if (wishlistLoading) return;
-            setWishlistLoading(true);
-            try {
-              const productId = String(product?.id);
-
-              if (isInWishlist) {
-                await wishlistService.removeFromWishlist(productId);
-                setIsInWishlist(false);
-                showSuccessNotification(
-                  translate("Removed from checklist", language),
-                );
-              } else {
-                await wishlistService.addToWishlist({
-                  id: productId,
-                  name: product?.name,
-                  brand: product?.brand,
-                  slug: product?.slug,
-                  thumbnail: product?.image,
-                  price: product?.price,
-                  offer_price: product?.offer_price,
-                  colors: [],
-                  sizes: [],
-                  product_link: `/${lang}/products/${product?.slug}`,
-                  images: [product?.image],
-                });
-                setIsInWishlist(true);
-                showSuccessNotification(
-                  translate("Added to checklist", language),
-                );
-              }
-              GAevent({
-                action: GA_EVENT_NAMES.ADD_TO_FAV,
-                params: {
-                  user_id_custom: auth.UserID(),
-                  item_id: product?.id,
-                  item_name: product?.name,
-                  brand: product?.brand?.name,
-                  brand_id: product?.brand?.id,
-                  category: product?.category?.name,
-                  category_id: product?.category?.id,
-                  price: product?.price,
-                },
-              });
-            } catch (error) {
-              showErrorNotification(
-                translate("Failed to update checklist", language),
-              );
-            } finally {
-              setWishlistLoading(false);
-            }
-          }}
+          onClick={toggleWishlist}
         >
           <svg
             data-cy="add-checkList-svg"
@@ -481,14 +500,26 @@ function MoreOptionsSection({ product }) {
                 translate("Removed From Compare", language),
               );
             } else {
+              const f_p = getCookie<string>("f_p");
+              const s_p = getCookie<string>("s_p");
+              // Both slots are taken by other products → addToCompare replaces
+              // the first one. Tell the shopper instead of overwriting silently.
+              const willReplaceFirst =
+                !!f_p &&
+                !!s_p &&
+                f_p !== product?.slug &&
+                s_p !== product?.slug;
               setAddedToCompare(true);
               addToCompare(product?.slug);
               showSuccessNotification(
                 translate(
-                  "Added To Compare! Click To Go To Compare Page",
+                  willReplaceFirst
+                    ? "Compare was full — replaced the first product. Click To Go To Compare Page"
+                    : "Added To Compare! Click To Go To Compare Page",
                   language,
                 ),
                 5000,
+                `/${lang}/compare`,
               );
             }
           }}

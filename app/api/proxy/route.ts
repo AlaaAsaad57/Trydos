@@ -5,14 +5,17 @@ import {
   buildProxyHeaders,
   logSecureRequest,
   getTokenForServer,
+  isFromGoApi,
 } from "utils/server/tokenManager";
+import { SEND_OTP } from "utils/endpointConfig";
 import { LogServerError } from "utils/serverErrorReporter";
 
 export async function POST(request: NextRequest) {
   try {
     // 1. Read proxy metadata from headers
     const server = request.headers.get("x-proxy-server") || "";
-    const targetUrl = request.headers.get("x-proxy-url") || "";
+    let targetUrl = request.headers.get("x-proxy-url") || "";
+    let need_decode = request.headers.get("x-need-decode") || "";
     const method = request.headers.get("x-proxy-method") || "GET";
     const country = request.headers.get("x-country") || "sy";
     const language = request.headers.get("x-language") || "en";
@@ -34,7 +37,24 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Build the full URL and headers (token injected from HttpOnly cookie)
-    const fullUrl = getServerBaseUrl(server) + targetUrl;
+
+    if(need_decode==="true"){
+      targetUrl = decodeURI(targetUrl);
+    }
+
+    // OTP send must NEVER go through the generic proxy. It runs exclusively via
+    // the sendOtpAction Server Action, which enforces the Redis rate limit
+    // (per-session / per-IP / per-number cooldown) before the backend is ever
+    // called. Blocking it here stops anyone using the proxy as an open relay to
+    // reach the OTP endpoint directly and bypass that limiter.
+    if (targetUrl.includes(SEND_OTP)) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    let fullUrl = getServerBaseUrl(server, targetUrl) + targetUrl;
     const headers = await buildProxyHeaders(
       server,
       country,
@@ -109,6 +129,7 @@ export async function POST(request: NextRequest) {
         status: backendResponse.status,
         headers: {
           "Cache-Control": "no-store",
+           "IS-FROM-GO":`${isFromGoApi(targetUrl)}`
         },
       });
     }
@@ -119,6 +140,8 @@ export async function POST(request: NextRequest) {
       status: backendResponse.status,
       headers: {
         "Content-Type": responseContentType,
+        "IS-FROM-GO":`${isFromGoApi(targetUrl)}`,
+        "fullUrl":''
       },
     });
   } catch (error) {

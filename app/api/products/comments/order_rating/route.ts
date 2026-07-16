@@ -32,7 +32,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         data: data,
-
         code: 200,
       },
       { status: 200, headers },

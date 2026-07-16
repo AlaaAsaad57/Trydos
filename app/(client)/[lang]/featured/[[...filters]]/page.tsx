@@ -1,26 +1,34 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
+import ListingSkeleton from "components/skeleton/listing";
 import "styles/listing-components.css";
-import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
-import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
+import ListingBarActions from "components/Server/ListingBarActions";
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
 import { parseFiltersFromParams } from "utils/server";
 import { generateMetadataForListing } from "serverRequests/meta/listing";
+import { permanentRedirect } from "next/navigation";
+import { buildSearchRedirectTarget } from "utils/listing/searchPathRedirect";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
+import ListingBarOptions from "components/Listing/ListingBarOptions";
 export const dynamicParams = true;
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
+  const sp = (await searchParams) ?? {};
+  const search = typeof sp.search === "string" ? sp.search : undefined;
   // Fetch your main product categories
   try {
     const metadata = await generateMetadataForListing({
       params,
+      routeBase: "featured",
+      searchText: search,
     });
 
     return metadata;
@@ -41,7 +49,7 @@ async function getCurrency(country, language) {
       return { ...cachedCurrency, redis: true };
     } else {
       let currencyData = await fetchCurrency(language, country);
-      let currency = { ...currencyData.data.currency };
+      let currency = { ...currencyData.data };
       StoreCurrency(country, currency);
       return { ...currency, redis: false };
     }
@@ -52,20 +60,41 @@ async function getCurrency(country, language) {
     );
   }
 }
-export default async function Page({ params }) {
+export default async function Page({ params, searchParams }) {
   let Params = await params;
+  const sp = (await searchParams) ?? {};
+
+  const legacy = buildSearchRedirectTarget(
+    Params.lang,
+    "featured",
+    Params.filters,
+    sp,
+  );
+  if (legacy) permanentRedirect(legacy);
 
   try {
+    const sort = typeof sp.sort === "string" ? sp.sort : undefined;
+    const search = typeof sp.search === "string" ? sp.search : undefined;
     let parsedFilters = parseFiltersFromParams(Params.filters || []);
     const [country, language] = Params.lang.split("-");
     let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
+    const effectiveSearch =
+      (search && search.length > 0
+        ? search
+        : parsedFilters.search_text?.[0]) ?? "";
 
     if (parsedFilters.prices) {
       parsedFilters = {
         ...parsedFilters,
-        prices: parsedFilters.prices?.map((s) =>
-          s.split("-").map((d) => Number(d)),
-        )?.[0],
+        // Price cards encode the range as one dash token ("min-max"), but once a
+        // numeric [min,max] array round-trips through buildParamsFromFilters (any
+        // other filter click) it re-encodes comma-joined ("min,max") and re-parses
+        // into two elements. Accept BOTH delimiters and keep every bound so the
+        // range never collapses to [min,min] → empty results.
+        prices: parsedFilters.prices
+          .flatMap((s) => String(s).split("-"))
+          .map((d) => Number(d))
+          .filter((d) => !isNaN(d)),
       };
     }
 
@@ -78,9 +107,10 @@ export default async function Page({ params }) {
           // priceRange:parsedFilters.prices?.map((s)=>s.split('-').map((d)=>Number(d))),
           featured: true,
           flashdeal: false,
-          search_text: parsedFilters.search_text?.[0],
+          search_text: effectiveSearch || undefined,
         },
         limit: 10,
+        sort,
       }),
       getCurrency(country, language),
     ];
@@ -89,16 +119,22 @@ export default async function Page({ params }) {
 
     return (
       <>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <FilterWidgetServer
-          isFeatured={true}
-          isFlashDeal={false}
-          currencyPromise={currency}
-          language={language}
-          country={country}
-          parsedFilters={{ ...parsedFilters, featured: true, flashdeal: false }}
-          filtersPromise={filtersData}
-        />
+        <Suspense fallback={<></>} key={`FilterWidget ${Params.lang}`}>
+          <FilterWidgetServer
+            isFeatured={true}
+            isFlashDeal={false}
+            currencyPromise={currency}
+            language={language}
+            country={country}
+            parsedFilters={{
+              ...parsedFilters,
+              featured: true,
+              flashdeal: false,
+            }}
+            filtersPromise={filtersData}
+            serverSearch={effectiveSearch}
+          />
+        </Suspense>
         <div
           data-cy="filter_listing_bar"
           className={`filter-listing-bar z-99999999 relative ${
@@ -121,56 +157,60 @@ export default async function Page({ params }) {
               className={`${isRtl && "rotate-180"}`}
             />
           </NextLink>
-          {/** TODO: classname edit when serach active w-full */}
-          <div
-            data-cy="filter_bar_options"
-            className={`filter-bar-options w-[170px] justify-between ${
-              isRtl ? "flex-row-reverse flex" : "flex-row flex"
-            }  align-center ${
-              parsedFilters?.search_text?.length > 0 && "w-full"
-            }`}
-          >
-            {/* @ts-expect-error Async Server Component is valid in Next*/}
-            <ListingSearchContainer
-              country={country}
-              language={language}
+          <ListingBarOptions serverSearch={effectiveSearch} isRtl={isRtl}>
+            <Suspense fallback={<></>}>
+              <ListingSearchContainer
+                country={country}
+                language={language}
+                featured={true}
+                filtersPromise={filtersData}
+                parsedFilters={parsedFilters}
+                serverSearch={effectiveSearch}
+              />
+            </Suspense>
+            <ListingBarActions
               filtersPromise={filtersData}
-              parsedFilters={parsedFilters}
+              language={language}
+              isRtl={isRtl}
             />
-            <div
-              data-cy="filter_option_loseSearchInput"
-              className="filter-option"
-            >
-              <img src="/icons/sortIcon.svg" data-cy="closeSearchInput" />
-            </div>
-            <FilterBoutiquePageButton key={"filter-button"} />
-            <ShareBoutiquePageButton />
-          </div>
+          </ListingBarOptions>
         </div>
 
         <div
           data-cy="boutique_header"
           className={`boutique-header ${"flex-col"} align-center`}
         >
-          {/* @ts-expect-error Async Server Component is valid in Next  */}
-          <FilterListContainer
-            filtersPromis={filtersData}
-            currencyPromise={currency}
-            Params={Params}
-            parsedFilters={parsedFilters}
-          />
+          <Suspense
+            fallback={<ListingSkeleton justFilters />}
+            key={`FilterList ${Params.lang}`}
+          >
+            <FilterListContainer
+              filtersPromis={filtersData}
+              currencyPromise={currency}
+              Params={Params}
+              parsedFilters={parsedFilters}
+              serverSearch={effectiveSearch}
+              isFeatured={true}
+            />
+          </Suspense>
         </div>
-        {/* @ts-expect-error Async Server Component is valid in Next  */}
-        <ProductListConainer
-          isFlashDeals={false}
-          isFeatured={true}
-          Params={Params}
-          boutiquePromise={() => {}}
-          currencyPromise={currency}
-          filtersDataPromise={filtersData}
-          parsedFilters={parsedFilters}
-          language={language}
-        />
+        <Suspense
+          fallback={<ListingSkeleton forProducts={true} />}
+          key={`ProductList ${Params.lang} ${sort ?? "relevance"}`}
+        >
+          <ProductListConainer
+            isFlashDeals={false}
+            isFeatured={true}
+            Params={Params}
+            boutiquePromise={() => {}}
+            currencyPromise={currency}
+            filtersDataPromise={filtersData}
+            parsedFilters={parsedFilters}
+            language={language}
+            sort={sort}
+            serverSearch={effectiveSearch}
+          />
+        </Suspense>
       </>
     );
   } catch (error) {

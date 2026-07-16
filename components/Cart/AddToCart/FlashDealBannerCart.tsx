@@ -94,7 +94,7 @@ function FlashDealBannerCart({ end_data }) {
       </span>
       {timeLeft?.days >= 0 && (
         <span className="whitespace-nowrap ">
-          | {timeLeft?.days?.toString()?.padStart(2, "0")} d |
+          {`| ${timeLeft?.days?.toString()?.padStart(2, "0")} d |`}
         </span>
       )}
       {(timeLeft?.hours >= 0 ||

@@ -1,29 +1,54 @@
-import Script from "next/script";
 import { General_Site_Data } from "./Constants";
 import { GetImageUrl } from "utils/tinyUtils";
 import { mapCurrencyToSymbol } from "./utils";
 import { RoundPrice } from "utils/functions";
+import { stripHtml } from "utils/server";
 
-function ProductStructuredData({ product, local, currency, color, size }) {
+function ProductStructuredData({
+  product,
+  local,
+  currency,
+  color,
+  size,
+  rating,
+  reviewCount,
+}) {
   const [country, language] = local.split("-");
+
+  // Real product description (HTML stripped). Fall back to category names only when
+  // the product has no description text.
+  const description =
+    stripHtml(product?.details ?? product?.description ?? "") ||
+    `${product?.categories?.map((s) => s.name).join("-") ?? ""}`;
+
+  const sku =
+    product?.variations?.find((v) => v?.sku)?.sku ?? product?.sku ?? undefined;
+  const inStock = (product?.available_quantity ?? 0) > 0;
+
   let payload: any = {
     // "@type": "ProductGroup",
     "@type": "Product",
     name: product?.name,
     // variesBy: ["https://schema.org/size"],
-    description: `${product?.categories?.map((s) => s.name).join("-")}`,
+    description,
     url: `${General_Site_Data.url}/${local}/products/${product?.slug}`,
     brand: {
       "@type": "Brand",
       name: product?.brand?.name,
     },
     image: product?.images?.map((im) => GetImageUrl(im?.file_path ?? im)),
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.94",
-      reviewCount: "500",
-    },
   };
+
+  if (sku) payload.sku = sku;
+
+  // Only emit aggregateRating with REAL data — never fabricate ratings (Google policy).
+  if (Number(reviewCount) > 0 && Number(rating) > 0) {
+    payload.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: String(rating),
+      reviewCount: String(reviewCount),
+    };
+  }
   if (color && product?.colors?.find((s) => s.option === color)?.name) {
     payload = {
       ...payload,
@@ -37,14 +62,20 @@ function ProductStructuredData({ product, local, currency, color, size }) {
       "@type": "Offer",
       priceCurrency: mapCurrencyToSymbol(country),
       url: `${General_Site_Data.url}/${local}/products/${product?.slug}`,
+      // schema.org price must be a plain number (no K/M abbreviation, grouping,
+      // or currency symbols) — returnNumber bypasses RoundPrice's display
+      // formatting. See Google "Invalid price format" SDTT error.
       price: RoundPrice({
         num: product?.offer_price ?? product?.price,
         language: language,
         points: currency.decimal_digits,
         rate: currency.exchange_rate,
+        returnNumber: true,
       }),
       itemCondition: "https://schema.org/NewCondition",
-      availability: "https://schema.org/InStock",
+      availability: inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
     },
   };
   let jsonLd: any = {
@@ -63,7 +94,7 @@ function ProductStructuredData({ product, local, currency, color, size }) {
             "@type": "ListItem",
             position: 2,
             name: product.name,
-            item: `${General_Site_Data.url}/${local}/${product.slug}`,
+            item: `${General_Site_Data.url}/${local}/products/${product.slug}`,
           },
         ],
       },
@@ -71,8 +102,11 @@ function ProductStructuredData({ product, local, currency, color, size }) {
     ],
   };
 
+  // Plain <script> so the JSON-LD is server-rendered into the initial HTML.
+  // next/script's <Script> uses the afterInteractive strategy and injects
+  // client-side, leaving the schema out of the SSR markup that crawlers read.
   return (
-    <Script
+    <script
       id={`product-${product.slug}-schema`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

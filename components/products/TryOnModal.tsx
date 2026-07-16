@@ -180,8 +180,8 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
                 id="try-on-product-images"
               >
                 {typeof isModalOpen !== "boolean" &&
-                  isModalOpen?.images?.map((s) => (
-                    <div className="flex-row  relative">
+                  isModalOpen?.images?.map((s, i) => (
+                    <div className="flex-row  relative" key={i}>
                       <div
                         className="absolute top-0 z-10 right-0 w-full h-full "
                         style={{

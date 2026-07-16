@@ -41,6 +41,8 @@ function MediaMessagePreview({ setImgs, setVid, vid, imgs }) {
         <video
           src={vid}
           controls
+          autoPlay
+          playsInline
           className="object-contain h-full w-auto bg-[#0000005d] z-999999"
         >
           <source src={vid} />

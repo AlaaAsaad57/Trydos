@@ -1,15 +1,20 @@
 import React from "react";
-import OfferListSkeleton from "../OfferList";
+import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
+import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
+import OfferListSkeleton from "components/skeleton/OfferList";
 
+/**
+ * In-flow home loader. Because the loader now hides the page `children` (rather
+ * than overlaying only the lower area at top:350px), it renders the full
+ * above-the-fold: stories → featured rows → offer list. The site navbar stays
+ * visible (it lives in the layout, outside `children`).
+ */
 function HomeLoader() {
   return (
-    <div
-      style={{
-        zIndex: "99999999999999",
-        top: "350px",
-      }}
-      className="fixed max-w-[1365px] mx-auto bg-[#fafafa] min-h-screen  flex    w-screen  overflow-hidden"
-    >
+    <div className="w-full flex-col flex bg-[#fafafa] overflow-hidden">
+      <StoriesSkeleton />
+      <FeaturedProductsSkeleton />
+      <FeaturedProductsSkeleton />
       <OfferListSkeleton />
     </div>
   );

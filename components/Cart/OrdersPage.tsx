@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   getCart,
@@ -24,6 +24,8 @@ import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import home from "services/home";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import { isGuestName } from "utils/tinyUtils";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
 const DeleteIcon = () => {
   return (
@@ -123,6 +125,12 @@ function OrdersPage({ setStep, close }) {
   };
 
   const [orderStep, setOrderStep] = useState(0);
+  // Funnel: user reached the shipping/payment screen.
+  useEffect(() => {
+    trackOrder(ORDER_EVENTS.CHECKOUT_ADDRESS_SCREEN_VIEWED, {
+      has_saved_address: (addressDetails?.id ?? null) != null,
+    });
+  }, []);
   const [AddressListsOpen, openAddressList] = useState(false);
   const [openSelect, setOpenSelect] = useState(false);
   const colseSelect = () => {
@@ -149,6 +157,7 @@ function OrdersPage({ setStep, close }) {
               ? "card"
               : "crypto";
         setLoading(true);
+        trackOrder(ORDER_EVENTS.ORDER_SUBMIT_ATTEMPT, { payment_method });
         await order.PlaceOrder({
           payment_method,
           pay_by_wallet: false,
@@ -159,6 +168,10 @@ function OrdersPage({ setStep, close }) {
       LogError({
         error: error,
         scenario: "create  order function - cart widget",
+      });
+      trackOrder(ORDER_EVENTS.ORDER_PLACE_FAILED, {
+        reason: error instanceof Error ? error.message : String(error),
+        stage: "place_order_setOrderSuccess",
       });
       getCart({
         callback: ([data, res]) => {
@@ -490,7 +503,7 @@ function OrdersPage({ setStep, close }) {
                 setOpenSelect={() => {
                   setOpenSelect(true);
                 }}
-                userName={user?.name === "verified_guest" ? "" : null}
+                userName={isGuestName(user?.name) ? "" : null}
                 slidePrev={(value) => {
                   setOrderStep(0);
                 }}
@@ -714,6 +727,9 @@ export const DeleteModalComponent = ({
               // });
               slidePrev();
               closeModal();
+              trackOrder(ORDER_EVENTS.ADDRESS_DELETED, {
+                address_id: deletedAddress.id,
+              });
               order.DeleteAddressList({ address: deletedAddress.id });
               deleteAddress(deletedAddress.id);
             }}
@@ -795,6 +811,10 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
       showErrorNotification(
         translateFunction("Your Balance Not meet purchase value"),
       );
+      trackOrder(ORDER_EVENTS.CHECKOUT_BLOCKED_BALANCE_INSUFFICIENT, {
+        balance: totalBalance(),
+        required: getTotalPrice(),
+      });
     }
     if (
       addressLists.length === 0 ||
@@ -802,9 +822,11 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     ) {
       showErrorNotification(translateFunction("Please Select an Address"));
       shake("address-valid-border");
+      trackOrder(ORDER_EVENTS.CHECKOUT_BLOCKED_ADDRESS_MISSING);
     }
     if (orderData.payment?.length === 0) {
       shake("payment-valid-border");
+      trackOrder(ORDER_EVENTS.CHECKOUT_BLOCKED_PAYMENT_MISSING);
     }
   };
   const getTotalPrice = () => {
@@ -818,6 +840,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
 
   const VerifyCart = async () => {
     setLoading(true);
+    trackOrder(ORDER_EVENTS.CHECKOUT_CONFIRM_CLICKED);
     let a = (
       await getCart({
         callback: ([data, res]) => {
@@ -832,10 +855,12 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
       showErrorNotification(
         translateFunction("Please Verify Your Phone Number"),
       );
-
+      // KEY drop signal: user blocked at checkout because phone isn't verified.
+      trackOrder(ORDER_EVENTS.CHECKOUT_BLOCKED_PHONE_UNVERIFIED);
       return null;
     }
     if (a.length === 0) {
+      trackOrder(ORDER_EVENTS.CHECKOUT_EMPTY_CART);
       setPrev();
     }
     if (
@@ -853,7 +878,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
           "Please Review Your Cart Some Products Not Available",
         ),
       );
-
+      trackOrder(ORDER_EVENTS.CHECKOUT_BLOCKED_CART_UNAVAILABLE);
       setPrev();
     }
     setLoading(false);

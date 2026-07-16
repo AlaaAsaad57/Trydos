@@ -3,7 +3,7 @@ import RecomendedProducts from "components/Server/RecomendedProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import { Suspense } from "react";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
-import ProductWrapper from "./ProductWrapper";
+import ProductCard from "components/products/ProductCard";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { translateFunction } from "utils/server";
 import { GetHomeBoutiques, GetRecommedndedProducts } from "serverRequests/home";
@@ -37,7 +37,6 @@ export async function BoutiquesListWrapper({
       >
         {!mainCategory ? (
           <Suspense fallback={<FeaturedProductsSkeleton />}>
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
             <RecomendedProductWrapper
               lang={params.lang}
               currency={currencyData}
@@ -54,7 +53,7 @@ export async function BoutiquesListWrapper({
 async function RecomendedProductWrapper({
   lang,
   currency: currencyData,
-}): Promise<JSX.Element> {
+}) {
   const [country, language] = lang.split("-");
   const userId = ((await getCookieServer(COOKIE_NAMES.USER_DATA)) as any)?.id;
   let [response, currency] = await Promise.all([
@@ -116,43 +115,24 @@ async function RecomendedProductWrapper({
         dataCy="recomended-products-container"
       >
         {productsData?.map((product, key) => (
-          <ProductWrapper
+          <ProductCard
+            key={product?.product_id ?? product?.id}
+            product={product}
+            currency={currency}
+            country={country}
+            language={language}
+            sliders={false}
             fromRecomended={{
               user_id_custom: userId,
               select_item_recommended: product.product_id ?? product?.id,
             }}
-            key={product?.product_id ?? product?.id}
-            category_tree={product?.categories?.map((s) => s.name)}
-            labels={product?.label_names}
-            color={product?.sync_color_images?.[0]?.color_name}
-            InitialProductData={{ ...product, id: product?.product_id }}
-            country={country}
-            images={product?.sync_color_images?.[0]?.images ?? product?.images}
-            videos={product?.videos}
-            name={product.name}
-            slug={product.slug}
-            Sliders={false}
-            brand={{
-              name: product.brand.name,
-              icon: product.brand.icon?.file_path ?? product?.brand,
-              is_verified: product.brand.is_verified,
-            }}
-            luck_price={product.luck_price}
-            currency={currency}
-            endDate={product.flash_deal_end_date}
-            flash_deal_price={product.flash_deal_price}
-            id={product?.product_id ?? product?.id}
-            is_flashDeal={product.flash_deal_end_date}
-            is_luck={product.is_luck}
-            language={language}
-            offer_price={product.offer_price}
-            price={product.price}
           />
         ))}
         <RecomendedProducts
           userId={userId}
           InitialOffset={response.offset}
           lang={lang}
+          currency={currency}
         />
       </HortiznalScrollBar>
     </div>

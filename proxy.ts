@@ -1,11 +1,32 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, userAgent, type NextRequest } from "next/server";
 import { ipAddress } from "@vercel/functions";
-import { checkRateLimit, sendSecurityAlert } from "serverRequests/radis";
+import { NextURL } from "next/dist/server/web/next-url";
+
+// ── STAGING GATE — main branch only ────────────────────────────────────────
+// Pre-launch, main serves nothing but the centered-logo page (app/page.tsx) at
+// "/". Every other path — pages, /api/*, server actions — 307s back to "/".
+// The redirect is deliberately temporary (307, never 308): a permanent redirect
+// would be cached by browsers and keep sending real users to the logo long
+// after launch.
+//
+// This gate and the narrowed `config.matcher` at the bottom of this file are
+// one unit — reverting this commit lifts both together and restores the full
+// storefront. Do not lift one without the other.
+const STAGING_GATE_ENABLED = process.env.STAGING_GATE !== "off";
+
+// The only path the gate serves. Static assets the logo page needs are handled
+// by the matcher below, which never invokes this function for them.
+const STAGING_GATE_ALLOWED_PATH = "/";
 
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
 const DEFAULT_LANGUAGE = "en";
 const DEFAULT_COUNTRY = "gb";
+
+// Mirror of COOKIE_NAMES.LOGOUT_GUARD. Declared as a literal (not imported) so
+// this Edge middleware never pulls in cookie-manager, which depends on the
+// Node-only `jsonwebtoken`. Keep this string in sync with that constant.
+const LOGOUT_GUARD_COOKIE = "LOGOUT-GUARD";
 
 // Cookie options
 const COOKIE_OPTIONS = {
@@ -13,7 +34,9 @@ const COOKIE_OPTIONS = {
   httpOnly: false,
   secure: true,
   sameSite: "lax" as const,
-  maxAge: 360 * 7 * 24 * 60 * 60,
+  // Non-token cookies (locale, referer, userIP). Default 1 year; override with
+  // DEFAULT_COOKIE_MAX_AGE (seconds). Was ~6.9y (360*7 days) — now a sane 1y.
+  maxAge: Number(process.env.DEFAULT_COOKIE_MAX_AGE) || 365 * 24 * 60 * 60, // 1y
 };
 
 // Types
@@ -108,9 +131,9 @@ function parseUrlLocale(pathname: string): LocaleInfo | null {
   const parts = pathname.split("/")[1]?.toLowerCase()?.split("-");
   if (parts?.length === 2) {
     return {
-      country: parts[0],
-      language: parts[1],
-      locale: `${parts[0]}-${parts[1]}`,
+      country: parts[0]?.toLowerCase(),
+      language: parts[1]?.toLowerCase(),
+      locale: `${parts[0]}-${parts[1]}`?.toLowerCase(),
     };
   }
   return null;
@@ -180,12 +203,14 @@ function createRedirectResponse(url: URL, redirectCount: number): NextResponse {
 }
 let countriesCache: { data: any[]; expiry: number } | null = null;
 const COUNTRIES_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in-memory
+let countriesInflight = false;
 
-async function getCountriesForMiddleware({ language, country }) {
-  // Simple in-memory cache (lives per edge isolate)
-  if (countriesCache && Date.now() < countriesCache.expiry) {
-    return countriesCache.data;
-  }
+// Fire-and-forget refresh of the in-memory countries cache. Never awaited on the
+// request path, so it cannot block a navigation. A killed post-response promise
+// just retries on the next request (self-healing); intentionally no waitUntil.
+async function refreshCountries({ language, country }) {
+  if (countriesInflight) return;
+  countriesInflight = true;
 
   try {
     const res = await fetch(
@@ -200,19 +225,32 @@ async function getCountriesForMiddleware({ language, country }) {
       },
     );
 
-    if (!res.ok) return getCachedCountries(); // fallback to hardcoded
+    if (!res.ok) return; // keep existing cache / hardcoded fallback
 
     const json = await res.json();
     const countries = json?.data?.countries || [];
 
-    countriesCache = {
-      data: countries.map((s) => s.iso),
-      expiry: Date.now() + COUNTRIES_CACHE_TTL,
-    };
-    return countries?.map((s) => s.iso);
+    if (countries.length) {
+      countriesCache = {
+        data: countries.map((s) => s.iso),
+        expiry: Date.now() + COUNTRIES_CACHE_TTL,
+      };
+    }
   } catch {
-    return getCachedCountries(); // fallback to hardcoded
+    // swallow — fallback stays in effect, refresh retries next request
+  } finally {
+    countriesInflight = false;
   }
+}
+
+// Synchronous: serves cached-or-hardcoded countries instantly and triggers a
+// background refresh when the cache is stale/empty. Never blocks the request.
+function getCountriesForMiddleware({ language, country }): string[] {
+  const isFresh = countriesCache && Date.now() < countriesCache.expiry;
+  if (!isFresh) {
+    void refreshCountries({ language, country });
+  }
+  return countriesCache?.data ?? getCachedCountries();
 }
 function getCleanPathname(
   pathname: string,
@@ -225,67 +263,124 @@ function getCleanPathname(
 }
 function getClientIp(req: NextRequest): string {
   const ip = ipAddress(req);
+
   if (ip) return ip;
   return "0.0.0.0"; // fallback, should not happen on Vercel
 }
+
+const normalizeUrl=(url:NextURL):NextURL=>{
+ url.pathname=url.pathname.toLowerCase();
+ return url
+}
+const extractLocales=(u:string)=>{
+   const parts = u.split("/")[1]?.split("-");
+   if(parts.length===2){
+    return `${parts[0]}-${parts[1]}`
+   }
+}
 // Main middleware function
 export async function proxy(request: NextRequest) {
-  if (request.url !== request.nextUrl.origin + "/")
-    return NextResponse.redirect(new URL("/", request.url));
-  else return NextResponse.next();
-  const META_CRAWLERS = [
-    "facebookexternalhit",
-    "FacebookBot",
-    "meta-externalagent",
-    "Facebot",
-    "InstagramBot",
-    "meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)",
-  ];
+  // Staging gate — see STAGING_GATE_ENABLED above. Must stay the first thing
+  // this function does, so no locale/country/bot logic can run pre-launch.
+  if (STAGING_GATE_ENABLED) {
+    return request.nextUrl.pathname === STAGING_GATE_ALLOWED_PATH
+      ? NextResponse.next()
+      : NextResponse.redirect(new URL("/", request.url), 307);
+  }
 
   const ua = request.headers.get("user-agent") ?? "";
-  const isMetaCrawler = META_CRAWLERS.some((bot) =>
-    ua.toLowerCase().includes(bot.toLowerCase()),
-  );
-  if (isMetaCrawler) {
-    return new NextResponse(null, { status: 403 });
-  }
-  const ip = getClientIp(request);
-  // 1️⃣ Rate limiting
-  if (ip && ip !== "0.0.0.0") {
-    const allowed = await checkRateLimit(ip, 50, 60);
-    if (!allowed) {
-      await sendSecurityAlert(
-        `🚨 IP ${ip} exceeded rate limit. Path: ${request.nextUrl.pathname}`,
-      );
-      return new NextResponse("Too many requests", { status: 429 });
-    }
+  const url = request.nextUrl.clone();
+  const pathname = url.pathname;
+  const urlLocale = parseUrlLocale(pathname);
+
+  // Sitemaps bypass ALL locale/country logic. The matcher only excludes these
+  // when they're the first path segment, so locale-prefixed routes like
+  // /lb-en/sitemap.xml still hit the proxy and get a changed-country redirect —
+  // crawlers must receive the raw XML, never a popup redirect.
+  // (robots.txt is handled separately below.)
+  if (/\/sitemap[\w-]*\.xml$/i.test(pathname)) {
+    return NextResponse.next();
   }
 
   const userIP = request.cookies.get("userIP")?.value;
 
   const isBotAgent = isBot(request.headers.get("user-agent"));
-  const url = request.nextUrl.clone();
-  const pathname = url.pathname;
-  const urlLocale = parseUrlLocale(pathname);
-  let coutries = await getCountriesForMiddleware({
+
+  let coutries = getCountriesForMiddleware({
     language: "en",
     country: getGeoCountry(request) ?? "sy",
   });
   const allSupportedCountries = getAllSupportedCountries(coutries);
 
   const supportedLocales = buildSupportedLocales(allSupportedCountries);
-  const response = NextResponse.next();
-  if (ip && ip !== userIP) {
-    response.cookies.set("userIP", ip, {
-      ...COOKIE_OPTIONS,
-      httpOnly: false,
-    });
+  const hasUppercase = extractLocales(url.pathname) !== extractLocales(url.pathname)?.toLowerCase();
+  const response = hasUppercase 
+    ? NextResponse.redirect(normalizeUrl(url), 308) 
+    : NextResponse.next();
+
+
+  // End of the logout window. The logout route armed LOGOUT-GUARD so that any
+  // in-flight 401 couldn't resurrect the cleared session; this top-level
+  // navigation IS the post-logout reload, so drop the marker now and let the
+  // fresh page register a guest normally again. Only cleared on a real page
+  // render (NextResponse.next) — redirect hops below intentionally keep the
+  // guard so protection holds until the reload actually lands. (The matcher
+  // excludes /api, so the follow-up /api/auth/register-device is never blocked.)
+  if (request.cookies.get(LOGOUT_GUARD_COOKIE)?.value) {
+    response.cookies.delete(LOGOUT_GUARD_COOKIE);
+  }
+  if (isBotAgent) {
+    if (urlLocale && supportedLocales.has(urlLocale.locale)) {
+      return response;
+    }
+
+    const preferredLanguage = getPreferredLanguage(request);
+    const defaultLocale = urlLocale
+      ? buildLocale(urlLocale.country, urlLocale.language)
+      : buildLocale(DEFAULT_COUNTRY, preferredLanguage);
+
+    // Preserve full path, prefix with locale
+    const cleanPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
+    url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname}`;
+    return NextResponse.redirect(url, 308);
+  }
+  const ip = getClientIp(request);
+  // console.log(
+  //   `Incoming request: ${pathname} from IP: ${ip}, User-Agent: ${ua}`,
+  // );
+  if (!isBotAgent) {
+    if (ip && ip !== userIP) {
+      // HttpOnly: userIP is PII and must not be readable by page JS. Server code
+      // still reads it via getCookieServer (serverErrorReporter); client error
+      // reports get the IP from Sentry ingestion (sendDefaultPii), not this cookie.
+      response.cookies.set("userIP", ip, {
+        ...COOKIE_OPTIONS,
+        httpOnly: true,
+      });
+    }
   }
   // Handle referer and UTM tracking
   const referer = request.headers.get("referer");
   const utm_source = url.searchParams.get("utm_source");
+  const mediaUrl=process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL;
+ if (mediaUrl) {
+    // We only need to preconnect to the base domain origin, not the full subpaths
+    response.headers.append(
+      'Link',
+      `<${mediaUrl}>; rel="preconnect"; crossorigin`
+    );
+    response.headers.append(
+      'Link',
+      '<https://www.googletagmanager.com>; rel="preconnect"'
+    );
 
-  if (referer || utm_source) {
+    response.headers.append(
+      'Link',
+      '<https://www.google-analytics.com>; rel="dns-prefetch"'
+    );
+  }
+
+  if (!isBotAgent && (referer || utm_source)) {
     if (utm_source) {
       response.cookies.set("referer", referer, {
         ...COOKIE_OPTIONS,
@@ -304,21 +399,6 @@ export async function proxy(request: NextRequest) {
     }
   }
   // Bot handling
-  if (isBotAgent) {
-    if (urlLocale && supportedLocales.has(urlLocale.locale)) {
-      return response;
-    }
-
-    const preferredLanguage = getPreferredLanguage(request);
-    const defaultLocale = urlLocale
-      ? buildLocale(urlLocale.country, urlLocale.language)
-      : buildLocale(DEFAULT_COUNTRY, preferredLanguage);
-
-    // Preserve full path, prefix with locale
-    const cleanPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
-    url.pathname = `/${defaultLocale}${cleanPathname}`;
-    return NextResponse.redirect(url, 308);
-  }
 
   // Handle robots.txt requests
   if (pathname?.includes("/robots.txt") || pathname?.includes("/robots")) {
@@ -326,10 +406,10 @@ export async function proxy(request: NextRequest) {
   }
 
   // Get and validate cookie values
-  const countryFromCookies = request.cookies.get("country")?.value;
+  const countryFromCookies = request.cookies.get("country")?.value?.toLowerCase();
   const langFromCookies =
-    request.cookies.get("lang")?.value ||
-    request.cookies.get("language")?.value;
+    request.cookies.get("lang")?.value?.toLowerCase() ||
+    request.cookies.get("language")?.value?.toLowerCase();
   const cookieValidation = validateCookieValues(
     countryFromCookies,
     langFromCookies,
@@ -368,7 +448,7 @@ export async function proxy(request: NextRequest) {
         ? pathname
         : `/${pathname}`;
 
-    url.pathname = `/${defaultLocale}${cleanPathname}`;
+    url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname}`;
     url.searchParams.delete("cart");
     url.searchParams.set("no-country", "true");
     return NextResponse.redirect(url);
@@ -378,8 +458,8 @@ export async function proxy(request: NextRequest) {
   if (urlLocale && supportedLocales.has(urlLocale.locale)) {
     // Validate URL locale against supported countries
     const urlLocaleValidation = validateLocalePair(
-      urlLocale.country,
-      urlLocale.language,
+      urlLocale.country?.toLowerCase(),
+      urlLocale.language?.toLowerCase(),
       allSupportedCountries,
     );
 
@@ -398,11 +478,11 @@ export async function proxy(request: NextRequest) {
         if (urlLocale.country === "gb" && cKey !== "gb") {
           const targetLocale = buildLocale(cKey!, lKey!);
           const cleanPath = getCleanPathname(pathname, urlLocale);
-          url.pathname = `/${targetLocale}${cleanPath === "/" ? "" : cleanPath}`;
+          url.pathname = `/${targetLocale?.toLowerCase()}${cleanPath === "/" ? "" : cleanPath}`;
 
           const res = createRedirectResponse(url, redirectCount);
           // IMPORTANT: You must attach cookies to the redirect response
-          setLocaleCookies(res, cKey!, lKey!);
+          setLocaleCookies(res, cKey!.toLowerCase(), lKey!.toLowerCase());
           return res;
         }
       }
@@ -437,6 +517,8 @@ export async function proxy(request: NextRequest) {
             "changed-country",
             `${urlLocale.country},${cookieCountry}`,
           );
+          let parts=url.pathname.split('/');
+          let normalizedPart=parts[1];
           return createRedirectResponse(url, redirectCount);
         }
       }
@@ -472,14 +554,14 @@ export async function proxy(request: NextRequest) {
       cookieValidation.language,
     );
     const cleanPath = getCleanPathname(pathname, urlLocale);
-    url.pathname = `/${targetLocale}${cleanPath === "/" ? "" : cleanPath}`;
+    url.pathname = `/${targetLocale?.toLowerCase()}${cleanPath === "/" ? "" : cleanPath}`;
 
     const redirectResponse = NextResponse.redirect(url);
     // نقل الكوكيز الصالحة للـ Response الجديد لضمان عدم ضياعها
     setLocaleCookies(
       redirectResponse,
-      cookieValidation.country,
-      cookieValidation.language,
+      cookieValidation.country?.toLowerCase(),
+      cookieValidation.language?.toLowerCase(),
     );
     return redirectResponse;
   }
@@ -498,8 +580,8 @@ export async function proxy(request: NextRequest) {
     geoValidation.country &&
     geoValidation.language
   ) {
-    const locale = buildLocale(geoValidation.country, geoValidation.language);
-    url.pathname = `/${locale}${pathname.startsWith("/") ? pathname : "/" + pathname}`;
+    const locale = buildLocale(geoValidation.country?.toLowerCase(), geoValidation.language?.toLowerCase());
+    url.pathname = `/${locale?.toLowerCase()}${pathname.startsWith("/") ? pathname : "/" + pathname}`;
     return NextResponse.redirect(url);
   }
 
@@ -511,30 +593,37 @@ export async function proxy(request: NextRequest) {
       ? pathname
       : `/${pathname}`;
 
-  url.pathname = `/${defaultLocale}${cleanPathname === "/" ? "" : cleanPathname}`;
+  url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname === "/" ? "" : cleanPathname}`;
   url.searchParams.delete("cart");
   url.searchParams.set("no-country", "true");
   return NextResponse.redirect(url);
 }
 
+// STAGING GATE matcher (main branch only) — paired with STAGING_GATE_ENABLED.
+//
+// Deliberately far wider than the storefront matcher this replaces: the old one
+// excluded /api plus a long list of segments (api-test, requests-log,
+// callInProg, call_direct, endCall, simulateUser, testBoutique, noposter,
+// sentry-test, fcm-dashboard, backend-compare, selectCountry, ingest,
+// revalidate) — none of which invoked the proxy, so all of them stayed fully
+// live and served the real app. It also carried a `missing:` clause that let
+// server actions and RSC prefetches skip the proxy entirely. Both holes are
+// closed here: everything not listed below now hits the gate.
+//
+// Only what the logo page needs to render — plus crawler hygiene — is excluded:
+//   _next                        bundle + /_next/image for the logo
+//   icons                        image-optimizer source fetch for Logo.svg
+//   favicon.ico
+//   google210329fcef4fbcff.html  search-console verification
+//   robots.txt                   serves `disallow: /` (NEXT_PUBLIC_ALLOW_INDEXING unset)
+//
+// Sitemaps are intentionally NOT excluded — they 307 to "/" rather than
+// advertising product URLs that all redirect.
+//
+// Restoring the storefront: revert this commit — it returns the matcher and the
+// gate together. Reverting only one leaves the app running under the wrong matcher.
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    {
-      source:
-        "/((?!api|noposter|sentry-test|requests-log|testBoutique|simulateUser|firebase-messaging-sw.js|google210329fcef4fbcff.html|robots.txt|robots.txt|robots|opengraph-image.png|default.mp3|wa.mp3|api-test|sitemap|manifest.json|error.png|assets|icons|fonts|translations|reports|images|styles|endCall|sitemap.xml|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
-      missing: [
-        { type: "header", key: "purpose", value: "prefetch" },
-        { type: "header", key: "next-router-prefetch" },
-        { type: "header", key: "next-action" },
-        { type: "header", key: "next-router-state-tree" },
-      ],
-    },
+    "/((?!_next|icons|favicon.ico|robots.txt|google210329fcef4fbcff.html).*)",
   ],
 };

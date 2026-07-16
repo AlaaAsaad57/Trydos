@@ -11,12 +11,14 @@ function OrdersLinkCard({ isRtl, user, local, language, totalOrders }) {
 
   const isNotLogeedIn = () => {
     let userData = userObj || user;
+    if (!userData) return true;
     return (
       userData.phone === "0" ||
       userData.phone === 0 ||
-      !userData?.phone ||
-      !userData ||
-      userData?.phone?.length < 3
+      userData.phone === null ||
+      userData.phone === undefined ||
+      String(userData.phone).trim() === "" ||
+      String(userData.phone).length < 3
     );
   };
   const pathname = usePathname();

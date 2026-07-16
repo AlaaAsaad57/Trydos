@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { translateFunction } from "utils/functions";
 function SearchTrending({ trending, clearAll, setValue }) {
   const [openMenu, setOpen] = useState(false);
   const { lang } = useParams();
@@ -19,7 +20,7 @@ function SearchTrending({ trending, clearAll, setValue }) {
       >
         <img src="/icons/SearchTrendingicon.svg" />
         {openMenu && (
-          <span className="filter-label-search">Popular Search</span>
+          <span className="filter-label-search">{translateFunction("Popular Search")}</span>
         )}
       </div>
 
@@ -56,7 +57,7 @@ function SearchTrending({ trending, clearAll, setValue }) {
             clearAll();
           }}
         >
-          Clear All
+          {translateFunction("Clear All")}
         </span>
       )}
       {openMenu && (

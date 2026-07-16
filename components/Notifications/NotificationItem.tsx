@@ -4,6 +4,7 @@ import NextLink from "components/global/NextLink";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { useAppStore } from "store";
+import { sanitizeHtml } from "utils/sanitizeHtml";
 
 const NotificationItem = ({ notification, onClose, closeWindow }) => {
   const { lang } = useParams();
@@ -77,7 +78,7 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
               className="mt-1 text-sm text-gray-500"
               data-cy="tester-not-know"
               dangerouslySetInnerHTML={{
-                __html: parsedDescription.boutique_description,
+                __html: sanitizeHtml(parsedDescription.boutique_description),
               }}
             />
           )}

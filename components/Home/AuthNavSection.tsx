@@ -2,7 +2,7 @@
 
 import { LogError, translateFunction } from "utils/functions";
 import UserAvatar from "./UserAvatar";
-import { ChatConroller } from "utils/tinyUtils";
+import { ChatConroller, isGuestName } from "utils/tinyUtils";
 import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
@@ -110,10 +110,14 @@ function AuthNavSection({
         style={{ marginRight: "12px", marginLeft: "0px" }}
       >
         {translate("Hello", language)}{" "}
-        {(userData?.name || userData?.name) && <span>,</span>}{" "}
-        <span className={`${language + "-light"}`} data-cy="NavUserName">
-          {userData?.name}
-        </span>
+        {userData?.name && !isGuestName(userData?.name) && (
+          <>
+            <span>,</span>{" "}
+            <span className={`${language + "-light"}`} data-cy="NavUserName">
+              {userData?.name}
+            </span>
+          </>
+        )}
       </div>
       <UserAvatar
         showIndicator={Boolean(showNotificaionCircle.length)}

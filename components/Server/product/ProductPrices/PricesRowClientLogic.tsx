@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { getCookie } from "utils/cookies/cookie-manager";
+import React from "react";
+import { useLuckTimer } from "hooks/useLuckTimer";
 
 export default function PricesRowClientLogic({
   id,
@@ -9,25 +9,11 @@ export default function PricesRowClientLogic({
   currencySymbol,
   prices,
 }) {
-  const [hasBeenRedeemed, setHasBeenRedeemed] = useState(false);
+  const { luckActive } = useLuckTimer(id, {
+    isLuck: Boolean(is_luck_active),
+  });
 
-  useEffect(() => {
-    if (!is_luck_active) return;
-
-    const checkCookie = () => {
-      const redeemed_ids = getCookie<any>("redemed_ids") || [];
-      const found = redeemed_ids.some((s) => s.id === id);
-      if (found !== hasBeenRedeemed) {
-        setHasBeenRedeemed(found);
-      }
-    };
-
-    checkCookie(); // Initial check
-    const interval = setInterval(checkCookie, 1000); // Check every second
-    return () => clearInterval(interval);
-  }, [id, is_luck_active, hasBeenRedeemed]);
-
-  const showRedeemUI = is_luck_active && !hasBeenRedeemed;
+  const showRedeemUI = luckActive;
 
   if (showRedeemUI) {
     return (

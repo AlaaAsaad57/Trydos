@@ -44,21 +44,21 @@ export async function POST(request: NextRequest) {
       cookiesSnapshot,
     };
 
-    await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store",
+    let res=await fetch(
+      process.env.NEXT_PUBLIC_GO_BACKEND_URL + "/mobile_error_log/store",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Type": "application/json",
+          "accept":"application/json"
         },
-        body: new URLSearchParams({
-          error_description: JSON.stringify(enrichedError),
-          credentials: "omit",
-        }),
+        body: JSON.stringify({error_description: JSON.stringify(enrichedError)}),
       },
     );
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true },{headers:{
+      'IS-FROM-GO':'true'
+    }});
   } catch (err) {
     console.error("mobile-error-log route error:", err);
     return NextResponse.json({ success: false }, { status: 500 });

@@ -1,14 +1,15 @@
-import { getCountryNameByIso2 } from "utils/countryData";
+import { getLocalizedCountryName } from "utils/countryData";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 import { CartApiInterface } from "utils/types/cart";
 
 const getCountry = () => {
-  const countryParam =
+  const localeSegment =
     typeof window !== "undefined" &&
-    window.location.pathname.split("/")[1].split("-")[0];
-  if (countryParam) {
+    window.location.pathname.split("/")[1].split("-");
+  if (localeSegment) {
+    const [countryParam, language] = localeSegment;
     let country = {
-      name: getCountryNameByIso2(countryParam),
+      name: getLocalizedCountryName(countryParam, language),
       code: countryParam,
     };
     return country;
@@ -123,8 +124,13 @@ export const useCartStore = (set, get) => ({
 
   // Seller dashboard orders sync for notifications
   sellerOrders: [],
-  setSellerOrders: (orders) =>
-    set({ sellerOrders: Array.isArray(orders) ? orders : [] }),
+  setSellerOrders: (orders) => {
+    if (typeof orders === "function") {
+      set((state) => ({ sellerOrders: orders(state.sellerOrders) }));
+    } else {
+      set({ sellerOrders: Array.isArray(orders) ? orders : [] });
+    }
+  },
 
   LoggingOut: false,
   setLastPathname: (e) => {

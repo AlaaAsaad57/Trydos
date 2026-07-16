@@ -2,30 +2,37 @@ import ConfirmMobile from "components/Cart/ConfirmMobile";
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
 import { ChatConroller, DisableScroll, EnableScroll } from "utils/tinyUtils";
-import { showSuccessNotification } from "store/notifications/reducer";
+import {
+  ORDER_EVENTS,
+  resolveVerifyFlowSource,
+  trackOrder,
+} from "utils/orderFunnel";
 import { createPortal } from "react-dom";
 
 function ConfirmMobilePhoneWidget() {
-  const { setShouldAuthinticated, shouldAuthinticated, setAddStory, openChat } =
-    useAppStore();
+  const {
+    setShouldAuthinticated,
+    shouldAuthinticated,
+    setAddStory,
+    openChat,
+    setReAuthResult,
+  } = useAppStore();
+  // Capture the source the verify widget was opened from once, at mount — the
+  // store marker is cleared to `false` the moment verification succeeds.
+  const flowSourceRef = React.useRef(
+    resolveVerifyFlowSource(shouldAuthinticated),
+  );
   useEffect(() => {
     DisableScroll();
+    trackOrder(ORDER_EVENTS.VERIFY_FLOW_OPENED, {
+      flow_source: flowSourceRef.current,
+    });
 
     return () => {
       EnableScroll();
     };
   }, []);
   const userData = useAppStore.getState().userProfile;
-  const copyInitialData = async () => {
-    let last_verify_date = localStorage.getItem("LAST-VERIFY");
-    let last_unauthorized_request = localStorage.getItem(
-      "last_unauthorized_request",
-    );
-    await navigator.clipboard.writeText(
-      JSON.stringify({ last_verify_date, last_unauthorized_request }, null, 2),
-    );
-    showSuccessNotification("copy reason of  verification success!");
-  };
 
   return (
     <>
@@ -36,7 +43,18 @@ function ConfirmMobilePhoneWidget() {
           <div className="w-auto  min-h-[200px] min-w-[350px]  h-auto p-[23px] flex-col items-end justify-center bg-[#f8f8f8] fixed rounded-[10px]  z-[9999999999999999] left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <div
               onClick={() => {
+                // Seller re-auth: the guest token was already re-registered when
+                // the widget opened, so a dismissal just sends the seller home
+                // instead of clearing tokens and reloading the dashboard.
+                const isSeller =
+                  shouldAuthinticated === "seller" ||
+                  window.location.pathname.includes("/seller");
+                setReAuthResult("cancelled");
                 setShouldAuthinticated(false);
+                if (isSeller) {
+                  window.location.href = "/";
+                  return;
+                }
                 // Clear sub-service tokens via server route
                 fetch("/api/auth/clear-tokens", {
                   method: "POST",
@@ -46,7 +64,6 @@ function ConfirmMobilePhoneWidget() {
                   }),
                   credentials: "include",
                 });
-                copyInitialData();
                 window.location.reload();
               }}
               className="flex-row cursor-pointer justify-end items-center p-[10px] z-99999999999 rounded-full  bg-[#0000004d]"
@@ -86,13 +103,6 @@ function ConfirmMobilePhoneWidget() {
               </svg>
             </div>
 
-            <button
-              onClick={copyInitialData}
-              className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded font-medium"
-            >
-              Copy Data
-            </button>
-
             <ConfirmMobile
               closeWindow={() => {
                 setShouldAuthinticated(false);
@@ -106,6 +116,14 @@ function ConfirmMobilePhoneWidget() {
               goToOrders={() => {
                 // equal to success flag when goToOrders trigrred then it means the verification success
 
+                // Verification succeeded; if this flow was opened from the
+                // checkout gate, the user is being returned to checkout.
+                if (flowSourceRef.current === "checkout") {
+                  trackOrder(
+                    ORDER_EVENTS.VERIFY_COMPLETED_RETURNED_TO_CHECKOUT,
+                    { flow_source: flowSourceRef.current },
+                  );
+                }
                 if (shouldAuthinticated === "open Story") {
                   setAddStory(true);
                 }

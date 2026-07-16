@@ -14,6 +14,7 @@ const BackBar = ({
   validateFunction = null,
   Save = null,
   preivous_page = null,
+  onBackIntercept = null,
 }) => {
   const [, language] = local.split("-");
   const { lastPathname } = useAppStore();
@@ -23,6 +24,9 @@ const BackBar = ({
 
   const handleBack = () => {
     if (loading) return;
+    // Let the parent handle the back action first (e.g. collapse an
+    // expanded area). If it returns true, skip the default navigation.
+    if (onBackIntercept && onBackIntercept()) return;
     let element = document.querySelector(".setting-screen");
     if (element) {
       element.classList.add("loading-page-class");

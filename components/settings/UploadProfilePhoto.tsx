@@ -9,10 +9,22 @@ import { LogError, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import BackBar from "components/setting/BackBar";
 import { useRouter } from "next/navigation";
+import { useAppStore } from "store";
 
 function UploadProfilePhoto({ local, isRtl, userProfile }) {
+  const { userProfile: clientUser, setLoginOpen } = useAppStore();
+  const user = clientUser || userProfile;
+
+  const isNotLoggedIn = !user || 
+    user.phone === "0" || 
+    user.phone === 0 || 
+    user.phone === null || 
+    user.phone === undefined || 
+    String(user.phone).trim() === "" ||
+    String(user.phone).length < 3;
+
   const [, language] = local.split("-");
-  const [file, setFile] = useState(GetImageUrl(userProfile?.image));
+  const [file, setFile] = useState(GetImageUrl(user?.image));
   const [isDragged, setIsDragged] = useState(false);
   const [isUploading, setIsUploading] = useState(null);
   const openCamera = () => {
@@ -119,6 +131,10 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
   };
   const router = useRouter();
   const UploadFile = async () => {
+    if (isNotLoggedIn) {
+      setLoginOpen(true);
+      return;
+    }
     setIsUploading(true);
     try {
       // Simulate file upload delay
@@ -133,13 +149,13 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
 
         res = await auth.UpdateProfileImage(UploadedFile);
       } else {
-        res = { sub_path: userProfile?.image };
+        res = { sub_path: user?.image };
       }
       await auth.UpdateProfile(
         {
           image: file ? res.sub_path : null,
         },
-        userProfile,
+        user,
       );
       // setFile(res.data.image);
 
@@ -160,9 +176,18 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
   };
   const editorRef = useRef<typeof AvatarEditor>(null);
 
+  const handleFormClick = (e: React.MouseEvent) => {
+    if (isNotLoggedIn) {
+      e.preventDefault();
+      e.stopPropagation();
+      setLoginOpen(true);
+    }
+  };
+
   return (
     <div
-      className="flex-col w-full flex setting-screen "
+      onClickCapture={handleFormClick}
+      className={`flex-col w-full flex setting-screen ${isNotLoggedIn ? "opacity-65" : ""}`}
       key="profile-photo-setting-page"
     >
       <BackBar

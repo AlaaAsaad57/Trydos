@@ -1,12 +1,12 @@
 import ProductStories from "components/products/ProductStories";
-import { GetProductStories } from "serverRequests/product";
+import { GetProductStoriesData } from "serverRequests/product";
 
 import { translateFunction } from "utils/server";
 
 async function ProductStoriesWrapper({ globalPromise, language }) {
   let [product] = await Promise.all([globalPromise]);
 
-  let stories = await GetProductStories({ page: 1, productId: product?.id });
+  let stories = await GetProductStoriesData({ page: 1, productId: product?.id });
   if (stories.data.length === 0) return <></>;
   const isRtl = language === "ar" || language === "ku";
 
@@ -57,9 +57,11 @@ async function ProductStoriesWrapper({ globalPromise, language }) {
           </svg>
         </div>
       </div>
-      <ProductStories id={product?.id} InitialStoriesData={stories.data}>
-        {stories.items}
-      </ProductStories>
+      <ProductStories
+        id={product?.id}
+        InitialStoriesData={stories.data}
+        initialStories={stories.stories}
+      />
     </div>
   );
 }

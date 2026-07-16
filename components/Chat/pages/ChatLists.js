@@ -55,7 +55,7 @@ function ChatLists(props) {
 
   const getSortedChats = () => {
     return [...chats]
-      .filter((s) => !s.isPrivate || s.channel_name !== "Deleivery Worker")
+      .filter((s) => !s.isPrivate || s.channel_name !== "Delivery Worker")
       .sort((a, b) => {
         // 1. Find the newest timestamp in Chat A
         const newestA =
@@ -183,7 +183,7 @@ function ChatLists(props) {
             <>
               {chats
                 .filter(
-                  (s) => !s.isPrivate || s.channel_name !== "Deleivery Worker",
+                  (s) => !s.isPrivate || s.channel_name !== "Delivery Worker",
                 )
                 .filter(
                   (chat) =>

@@ -7,6 +7,7 @@ import { pollinateInput, sanitizePhone } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
 import { allCountries } from "country-telephone-data";
 import { showErrorNotification } from "store/notifications/reducer";
+import { getLocalizedCountryName } from "utils/countryData";
 // --- Utilities ---
 
 /**
@@ -186,7 +187,7 @@ function ChatContactsUpload() {
             <SyncIcon spinning={isUploading} />
             <span className="font-medium">
               {isUploading
-                ? "Syncing..."
+                ? translateFunction("Syncing...")
                 : translateFunction("Get from your contacts")}
             </span>
           </button>
@@ -204,7 +205,7 @@ function ChatContactsUpload() {
       ) : (
         <div className="w-full p-4 rounded-md bg-white border border-gray-200 shadow-xs">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-gray-700">Add a new contact</h3>
+            <h3 className="font-semibold text-gray-700">{translateFunction("Add a new contact")}</h3>
             <button onClick={() => setShowAddForm(false)}>
               <CloseIcon />
             </button>
@@ -213,7 +214,7 @@ function ChatContactsUpload() {
           <div className="space-y-4">
             <div>
               <label className="text-xs font-bold text-gray-500 uppercase">
-                Contact Name
+                {translateFunction("Contact Name")}
               </label>
               <input
                 type="text"
@@ -226,7 +227,7 @@ function ChatContactsUpload() {
 
             <div>
               <label className="text-xs font-bold text-gray-500 uppercase">
-                Phone Number
+                {translateFunction("Phone Number")}
               </label>
               <PhoneInput
                 dialCode={dialCode}
@@ -239,7 +240,7 @@ function ChatContactsUpload() {
               {conflictingName && (
                 <div className="flex items-center gap-1 mt-1 text-orange-600">
                   <p className="text-xs">
-                    Already saved as <strong>{conflictingName}</strong>
+                    {translateFunction("Already saved as")} <strong>{conflictingName}</strong>
                   </p>
                 </div>
               )}
@@ -256,7 +257,7 @@ function ChatContactsUpload() {
               }
               className="w-full p-3 bg-[#8fc3ff] hover:bg-[#7eb2ef] text-white font-bold rounded-md disabled:bg-gray-200"
             >
-              {isUploading ? "Adding..." : "Confirm Add"}
+              {isUploading ? translateFunction("Adding...") : translateFunction("Confirm Add")}
             </button>
           </div>
         </div>
@@ -314,6 +315,9 @@ const PhoneInput = ({
   onPhoneChange,
   hasConflict,
 }) => {
+
+  const {language}=useAppStore();
+  
   // Find country for the flag
 
   const activeCountry =
@@ -342,7 +346,7 @@ const PhoneInput = ({
               key={`${country.iso2}-${country.dialCode}`}
               value={`+${country.dialCode}`}
             >
-              +{country.dialCode} ({country.name})
+              +{country.dialCode} ({getLocalizedCountryName(country.iso2,language)})
             </option>
           ))}
         </select>

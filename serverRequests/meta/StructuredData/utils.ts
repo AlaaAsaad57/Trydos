@@ -20,6 +20,13 @@ const localeMap: Record<string, string> = {
   "lb-en": "en-LB",
   "lb-tr": "tr-LB",
   "lb-ku": "ku-LB",
+
+  // gb is the default country (see proxy.ts) — map it so the fallback locale resolves
+  // to a real BCP47 tag instead of warning and defaulting to en-US.
+  "gb-ar": "ar-GB",
+  "gb-en": "en-GB",
+  "gb-tr": "tr-GB",
+  "gb-ku": "ku-GB",
 };
 
 export function mapLocaleToBCP47(locale: string): string {
@@ -45,8 +52,9 @@ export function mapCurrencyToSymbol(countryIso: string): string {
   // Convert input to lowercase to ensure the lookup is case-insensitive
   const code = countryIso.toLowerCase();
 
-  // Return the symbol if found, otherwise return the original code or an empty string
-  return currencyMap[code] || "$";
+  // schema.org priceCurrency requires an ISO 4217 code, never a symbol.
+  // Fall back to USD (same as the gb default) for unmapped countries.
+  return currencyMap[code] || "USD";
 }
 
 export const getTitleAndTargetofListing = ({
@@ -98,21 +106,16 @@ export const buildParamsFromFilters = (
     "colors",
     "sizes",
     "prices",
-    "search",
   ];
 
   filterOrder.forEach((filterType) => {
     const values = filters[filterType];
     if (values && values.length > 0) {
       // Add filter type
-      const paramName = filterType === "search" ? "search" : filterType;
-      params.push(paramName);
+      params.push(filterType);
 
       // Add values
-      if (filterType === "search") {
-        // Search is a single value
-        params.push(encodeURIComponent(values[0]));
-      } else if (filterType === "colors") {
+      if (filterType === "colors") {
         // Colors should be hex without #
         const colorValues = values.map((color) =>
           color.startsWith("#") ? color.substring(1) : color,

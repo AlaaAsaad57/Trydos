@@ -5,7 +5,6 @@ import "styles/search.css";
 import {
   getConfiguredImage,
   LogError,
-  normalizeView,
   onClickSearchHistory,
   translateFunction,
 } from "utils/functions";
@@ -16,7 +15,7 @@ import {
   EnableScroll,
   GetImageUrl,
 } from "utils/tinyUtils";
-import { GetSearchData } from "serverRequests/Search";
+import { GetSearchData, GetSearchSuggestion } from "serverRequests/Search";
 import SearchHistory from "./SearchHistory";
 import SearchTrending from "./SearchTrending";
 import ProductItem from "./Results/ProductItem";
@@ -33,9 +32,10 @@ import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "store";
 import { showSuccessNotification } from "store/notifications/reducer";
 import Image from "next/image";
+import auth from "services/auth";
 
 function SearchIcon({ language, country }) {
-  const { setIsNavigating } = useAppStore();
+  const { setIsNavigating, setEnableSearch } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
   // UI States
@@ -43,6 +43,9 @@ function SearchIcon({ language, country }) {
   const [loading, setLoading] = useState(false);
   const [focus, setFocus] = useState(false);
   const [value, setValue] = useState("");
+
+  // Inline completion (ghost text) suggestion — full suggested product name
+  const [suggestion, setSuggestion] = useState("");
 
   // Data States
   const [trending, setTrending] = useState([]);
@@ -81,6 +84,19 @@ function SearchIcon({ language, country }) {
   // Refs for handling Race Conditions and Debouncing
   const latestRequestRef = useRef(0);
   const debounceTimeoutRef = useRef(null);
+
+  // Separate race-condition + debounce refs for the suggestion query so it
+  // can't clobber a stale ghost over newer input.
+  const latestSuggestionRef = useRef(0);
+  const suggestionTimeoutRef = useRef(null);
+
+  // Mirror the local open/close state into the store's `enable_search` flag so
+  // the rest of the header (category scroll arrows in Navbar, top user-nav) can
+  // enter/leave "search mode". Covers every close path (clear, close icon,
+  // result navigation) via the single local source of truth.
+  useEffect(() => {
+    setEnableSearch(searchEnabled);
+  }, [searchEnabled]);
 
   // --- Initial Data Load (Trending & History) ---
   useEffect(() => {
@@ -148,6 +164,7 @@ function SearchIcon({ language, country }) {
           filters: { ...normalizeFilters(appliedFilters), search_text: value },
           noProducts: isInitial, // We usually want products on search
           filters_offset: 1,
+          userId: auth.UserID(),
           // Assuming server action accepts query text
         });
         if (value?.length > 0 && res.isAnalyzed) {
@@ -220,6 +237,65 @@ function SearchIcon({ language, country }) {
     return () => clearTimeout(debounceTimeoutRef.current);
   }, [value, appliedFilters, searchEnabled, performSearch]);
 
+  // --- Inline completion (ghost text) — same conditions as the main query ---
+  const fetchSuggestion = useCallback(async () => {
+    const requestId = ++latestSuggestionRef.current;
+    try {
+      const res = await GetSearchSuggestion({
+        language,
+        country,
+        search_text: value,
+        // Scope the completion to the active filters, same as the main search.
+        filters: normalizeFilters(appliedFilters),
+      });
+      // Race condition: only apply the latest request's result
+      if (requestId === latestSuggestionRef.current) {
+        setSuggestion(res?.suggestion || "");
+      }
+    } catch (error) {
+      if (requestId === latestSuggestionRef.current) {
+        setSuggestion("");
+        LogError({ error, scenario: "fetchSuggestion in SearchIcon" });
+      }
+    }
+  }, [language, country, value, appliedFilters]);
+
+  useEffect(() => {
+    if (!searchEnabled) return;
+
+    if (suggestionTimeoutRef.current)
+      clearTimeout(suggestionTimeoutRef.current);
+
+    // Mirror the main query's gate: only fire when the user has typed text.
+    if (value.length === 0) {
+      setSuggestion("");
+      return;
+    }
+
+    // Same 1500ms debounce as the main search query.
+    suggestionTimeoutRef.current = setTimeout(() => {
+      fetchSuggestion();
+    }, 1500);
+
+    return () => clearTimeout(suggestionTimeoutRef.current);
+  }, [value, searchEnabled, fetchSuggestion]);
+
+  // Visible ghost remainder: only when the suggestion truly extends the typed
+  // text (case-insensitive starts-with), otherwise nothing is shown.
+  const ghostSuffix =
+    value.length > 0 &&
+    suggestion.toLowerCase().startsWith(value.toLowerCase()) &&
+    suggestion.length > value.length
+      ? suggestion.slice(value.length)
+      : "";
+
+  const acceptSuggestion = () => {
+    if (!ghostSuffix) return false;
+    setValue(value + ghostSuffix);
+    setSuggestion("");
+    return true;
+  };
+
   // --- Pagination Logic (Load More) ---
   const handleLoadMore = async (type) => {
     // type: 'brands' | 'categories' | 'boutiques'
@@ -238,6 +314,7 @@ function SearchIcon({ language, country }) {
         filters: { ...appliedFilters, search_text: value },
         noProducts: true,
         filters_offset: nextOffset,
+        userId: auth.UserID(),
         // type: type, // Optimization: Tell server we only want this specific type if supported
       });
 
@@ -274,6 +351,7 @@ function SearchIcon({ language, country }) {
     setSearchEnabled(false);
     EnableScroll();
     setValue("");
+    setSuggestion("");
     setFocus(false);
     setResults({
       categories: [],
@@ -287,17 +365,32 @@ function SearchIcon({ language, country }) {
   const { lang } = useParams();
   const router = useRouter();
   const handleKeyDown = (e) => {
+    // Accept inline completion with Tab, or ArrowRight when caret is at the end
+    if (ghostSuffix) {
+      const atEnd =
+        e.target.selectionStart === value.length &&
+        e.target.selectionEnd === value.length;
+      if (e.key === "Tab" || (e.key === "ArrowRight" && atEnd)) {
+        e.preventDefault();
+        acceptSuggestion();
+        return;
+      }
+    }
     if (e.key === "Enter") {
-      let pathParams = buildParamsFromFilters({
+      const pathParams = buildParamsFromFilters({
         categories: appliedFilters?.categories?.map((s) => s.slug),
         brands: appliedFilters?.brands?.map((s) => s.slug),
         boutiques: appliedFilters?.boutiques?.map((s) => s.slug),
-        search: [value],
+        // search is a query param now — not a path segment
       });
-      setIsNavigating({
-        is_boutique: true,
-      });
-      router.push(`/${lang}/filters/${pathParams.join("/")}`);
+      const base = `/${lang}/filters${
+        pathParams.length ? `/${pathParams.join("/")}` : ""
+      }`;
+      const url = value?.trim()
+        ? `${base}?search=${encodeURIComponent(value.trim())}`
+        : base;
+      setIsNavigating({ is_boutique: true });
+      router.push(url);
     }
   };
   return (
@@ -310,7 +403,6 @@ function SearchIcon({ language, country }) {
         onClick={() => {
           if (!searchEnabled) {
             DisableScroll();
-            // normalizeView();
             setSearchEnabled(true);
           }
         }}
@@ -318,12 +410,27 @@ function SearchIcon({ language, country }) {
         <img
           src="/icons/Search.svg"
           id="search-icon"
-          className={`absolute duration-[0.4s] ml-[10px] z-50 ${
+          className={`absolute duration-[0.4s] mx-[10px] z-50 ${
             focus && "black-fill"
           }`}
         />
         <div className="search-component-container flex-row">
           <div className={`search-input-parent ${focus && "focuse"}`}>
+            {/* Inline completion (ghost text) overlay — sits behind the
+                transparent input; typed portion is invisible (occupies width),
+                the remainder renders as gray ghost text. */}
+            {ghostSuffix && (
+              <div
+                className="absolute inset-0 z-[4] flex items-center overflow-hidden whitespace-pre pl-[43px] pr-[70px] text-[18px] [font-family:var(--Quicksand-Light)] pointer-events-none"
+                aria-hidden="true"
+                dir={isRtl ? "rtl" : "ltr"}
+              >
+                <span className="whitespace-pre text-transparent">{value}</span>
+                <span className="whitespace-pre text-[#c4c2c2]">
+                  {ghostSuffix}
+                </span>
+              </div>
+            )}
             <input
               maxLength={90}
               data-cy="inputField"
@@ -344,7 +451,7 @@ function SearchIcon({ language, country }) {
           {searchEnabled && (
             <>
               {focus || value.length > 0 ? (
-                <div className="input-icons flex-row close-search-icon">
+                <div className={`input-icons right-[38px] flex-row close-search-icon`}>
                   <img
                     src="/icons/SearchCloseIcon.svg"
                     data-cy="SearchInputCloseIcon"
@@ -358,7 +465,7 @@ function SearchIcon({ language, country }) {
                   />
                 </div>
               ) : (
-                <div className="input-icons flex-row h-full">
+                <div className={`input-icons right-[38px] flex-row h-full`}>
                   <SearchImage
                     setSearchValue={(e) => {
                       if (e) setValue(e);
@@ -517,17 +624,21 @@ const SearchContainer = ({
   };
   const { lang } = useParams();
   const pageUrl = () => {
-    let pathParams = buildParamsFromFilters({
+    const pathParams = buildParamsFromFilters({
       categories: applied_filter?.categories?.map((s) => s.slug),
       brands: applied_filter?.brands?.map((s) => s.slug),
       boutiques: applied_filter?.boutiques?.map((s) => s.slug),
-      search: [value],
     });
-    return `/${lang}/filters/${pathParams.join("/")}`;
+    const base = `/${lang}/filters${
+      pathParams.length ? `/${pathParams.join("/")}` : ""
+    }`;
+    return value?.trim()
+      ? `${base}?search=${encodeURIComponent(value.trim())}`
+      : base;
   };
   return (
     <div
-      className="search-container pt-[12px] max-h-full"
+      className="search-container pt-[12px] max-h-full mx-auto left-0 right-0"
       data-cy="searchContainer"
     >
       {/* 1. Empty State: History & Trending */}
@@ -573,6 +684,8 @@ const SearchContainer = ({
               <ProductItem
                 product={product}
                 index={index + 1}
+                searchValue={value}
+                resultsProducts={products}
                 key={product?.product_id || index}
                 onClick={(e) => {
                   onClickSearchHistory(value);

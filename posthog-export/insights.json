@@ -1,0 +1,585 @@
+[
+  {
+    "_source_short_id": "PvSqbafm",
+    "_dashboard": null,
+    "_starter": false,
+    "name": "OTP abuse — repeat senders by IP (5days)",
+    "description": "Raw client IPs with more than one OTP send attempt in the last 5 days, backed by the server-side otp_send_attempt event (utils/server/otpTelemetry.ts). 'blocked' = hit the Redis limiter (strongest abuse signal). EMPTY until the otp_send_attempt event is deployed to production. Copy the top 'ip' values into the Vercel Firewall to block.",
+    "favorited": true,
+    "tags": [],
+    "query": {
+      "kind": "DataVisualizationNode",
+      "source": {
+        "kind": "HogQLQuery",
+        "query": "SELECT properties.ip AS ip, count() AS total_attempts, countIf(properties.outcome = 'blocked') AS blocked, countIf(properties.outcome = 'sent') AS sent, countIf(properties.outcome = 'failed') AS failed, uniqExact(distinct_id) AS sessions, max(timestamp) AS last_seen FROM events WHERE event = 'otp_send_attempt' AND timestamp > now() - INTERVAL 5 DAY GROUP BY ip HAVING blocked > 1 ORDER BY blocked DESC, total_attempts DESC LIMIT 100"
+      },
+      "display": "ActionsTable",
+      "chartSettings": {
+        "xAxis": { "column": "last_seen" },
+        "yAxis": [
+          { "column": "total_attempts", "settings": { "formatting": { "prefix": "", "suffix": "" } } },
+          { "column": "blocked", "settings": { "formatting": { "prefix": "", "suffix": "" } } },
+          { "column": "sent", "settings": { "formatting": { "prefix": "", "suffix": "" } } },
+          { "column": "failed", "settings": { "formatting": { "prefix": "", "suffix": "" } } },
+          { "column": "sessions", "settings": { "formatting": { "prefix": "", "suffix": "" } } }
+        ]
+      },
+      "tableSettings": {
+        "columns": [
+          { "column": "ip", "settings": { "formatting": { "prefix": "", "suffix": "" } } },
+          { "column": "total_attempts", "settings": { "formatting": { "prefix": "", "suffix": "" } } },
+          { "column": "blocked", "settings": { "formatting": { "prefix": "", "suffix": "" } } },
+          { "column": "sent", "settings": { "formatting": { "prefix": "", "suffix": "" } } },
+          { "column": "failed", "settings": { "formatting": { "prefix": "", "suffix": "" } } },
+          { "column": "sessions", "settings": { "formatting": { "prefix": "", "suffix": "" } } },
+          { "column": "last_seen", "settings": { "formatting": { "prefix": "", "suffix": "" } } }
+        ]
+      }
+    }
+  },
+  {
+    "_source_short_id": "uud6msiQ",
+    "_dashboard": null,
+    "_starter": false,
+    "name": "OTP abuse — repeat senders by session (7d)",
+    "description": "Sessions that requested OTP more than once in the last 7 days, with geo context. Client send_otp/resend_otp carry no raw IP (PostHog discards it at ingestion), so this groups by session_id + geoip. For raw IPs to blocklist, see the 'by IP' insight backed by the server-side otp_send_attempt event.",
+    "favorited": true,
+    "tags": [],
+    "query": {
+      "kind": "DataVisualizationNode",
+      "source": {
+        "kind": "HogQLQuery",
+        "query": "SELECT properties.session_id AS session_id, properties.$geoip_city_name AS city, properties.$geoip_country_name AS country, count() AS otp_sends, min(timestamp) AS first_send, max(timestamp) AS last_send FROM events WHERE event IN ('send_otp','resend_otp') AND timestamp > now() - INTERVAL 7 DAY GROUP BY session_id, city, country HAVING otp_sends > 1 ORDER BY otp_sends DESC LIMIT 100"
+      },
+      "display": "ActionsTable"
+    }
+  },
+  {
+    "_source_short_id": "SFI4fywc",
+    "_dashboard": null,
+    "_starter": false,
+    "name": "Trend example · Add-to-cart vs Orders completed (daily)",
+    "description": "Example TRENDS insight: daily count of add_to_cart vs order_completed over the last 30 days. Shows commerce volume over time and the gap between carts started and orders finished. Tip: add a trendsFilter formula A/B (×100) to plot the cart→order conversion rate, or break down by country_name / source.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "TrendsQuery",
+        "series": [
+          { "kind": "EventsNode", "math": "total", "name": "Add to cart", "event": "add_to_cart" },
+          { "kind": "EventsNode", "math": "total", "name": "Orders completed", "event": "order_completed" }
+        ],
+        "interval": "day",
+        "dateRange": { "date_from": "-30d", "explicitDate": false },
+        "properties": [],
+        "trendsFilter": {
+          "display": "ActionsLineGraph",
+          "showLegend": true,
+          "hideWeekends": false,
+          "yAxisScaleType": "linear",
+          "showAnnotations": true,
+          "showMultipleYAxes": false,
+          "showValuesOnSeries": false,
+          "smoothingIntervals": 1,
+          "showPercentStackView": false,
+          "stackBreakdownValues": false,
+          "aggregationAxisFormat": "numeric",
+          "resultCustomizationBy": "value",
+          "excludeBoxPlotOutliers": true,
+          "showAlertThresholdLines": false
+        },
+        "filterTestAccounts": false,
+        "version": 2
+      }
+    }
+  },
+  {
+    "_source_short_id": "We23VGLc",
+    "_dashboard": null,
+    "_starter": false,
+    "name": "Checkout · Create-order conversion funnel",
+    "description": "Primary purchase-conversion funnel: pageview → add_to_cart → view_cart → begin_checkout → address → payment → confirm → submit → place_order → order_completed. Spec: docs/posthog-order-funnel.md. NOTE: order_submit_attempt sits before place_order_clicked (reverse of canonical) — swap if exact drop-off attribution matters.",
+    "favorited": true,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "FunnelsQuery",
+        "tags": { "productKey": "product_analytics" },
+        "series": [
+          { "kind": "EventsNode", "name": "Pageview", "event": "$pageview" },
+          { "kind": "EventsNode", "name": "add_to_cart", "event": "add_to_cart" },
+          { "kind": "EventsNode", "name": "view_cart", "event": "view_cart" },
+          { "kind": "EventsNode", "name": "order_begin_checkout", "event": "order_begin_checkout" },
+          { "kind": "EventsNode", "name": "address_selected", "event": "address_selected" },
+          { "kind": "EventsNode", "name": "payment_method_selected", "event": "payment_method_selected" },
+          { "kind": "EventsNode", "name": "checkout_confirm_clicked", "event": "checkout_confirm_clicked" },
+          { "kind": "EventsNode", "name": "order_submit_attempt", "event": "order_submit_attempt" },
+          { "kind": "EventsNode", "name": "place_order_clicked", "event": "place_order_clicked" },
+          { "kind": "EventsNode", "name": "order_completed", "event": "order_completed" }
+        ],
+        "funnelsFilter": { "funnelVizType": "steps" }
+      }
+    }
+  },
+  {
+    "_source_short_id": "FOX3HItD",
+    "_dashboard": null,
+    "_starter": false,
+    "name": "Engagement · Share / notify → return funnel",
+    "description": "Engagement-to-return funnel: pageview → (share_content OR enable_product_notifications, grouped OR step) → $pageleave → return pageview. Gauges whether sharing a product or enabling restock/price notifications relates to users coming back. Step 2 is an OR GroupNode.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "FunnelsQuery",
+        "tags": { "productKey": "product_analytics" },
+        "series": [
+          { "kind": "EventsNode", "name": "Pageview", "event": "$pageview" },
+          {
+            "kind": "GroupNode",
+            "name": "share_content, enable_product_notifications",
+            "nodes": [
+              { "kind": "EventsNode", "name": "share_content", "event": "share_content" },
+              { "kind": "EventsNode", "name": "enable_product_notifications", "event": "enable_product_notifications" }
+            ],
+            "operator": "OR"
+          },
+          { "kind": "EventsNode", "name": "$pageleave", "event": "$pageleave" },
+          { "kind": "EventsNode", "name": "Pageview", "event": "$pageview" }
+        ],
+        "funnelsFilter": {
+          "funnelVizType": "steps",
+          "resultCustomizations": {
+            "{\"breakdown_value\":\"Baseline\"}": { "color": "preset-5", "assignmentBy": "value" }
+          }
+        }
+      }
+    }
+  },
+  {
+    "_source_short_id": "6OdD2IZm",
+    "_dashboard": null,
+    "_starter": false,
+    "name": "Product discovery · Browse funnel",
+    "description": "How shoppers move through product discovery before adding to cart: pageview → view_item_list → view_item → view_time_product → view_image. Surfaces where browsing attention leaks between the listing, product page, dwell time, and image views.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "FunnelsQuery",
+        "tags": { "productKey": "product_analytics" },
+        "series": [
+          { "kind": "EventsNode", "name": "Pageview", "event": "$pageview" },
+          { "kind": "EventsNode", "name": "view_item_list", "event": "view_item_list" },
+          { "kind": "EventsNode", "name": "view_item", "event": "view_item" },
+          { "kind": "EventsNode", "name": "view_time_product", "event": "view_time_product" },
+          { "kind": "EventsNode", "name": "view_image", "event": "view_image" }
+        ],
+        "funnelsFilter": { "funnelVizType": "steps" }
+      }
+    }
+  },
+  {
+    "_source_short_id": "QHPWr8pr",
+    "_dashboard": "Engagement → Conversion Funnels (Stories & Chat)",
+    "_starter": false,
+    "name": "D · Chat engagement depth (open → msg 1 → 2 → 3)",
+    "description": "Lurkers vs real conversations: chat_opened → chat_message_sent ×3 (repeated step = sent ≥3 messages). Source: funnels/chat-stories-funnels.md §D. Populates once chat events ship to prod.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "FunnelsQuery",
+        "series": [
+          { "kind": "EventsNode", "event": "chat_opened" },
+          { "kind": "EventsNode", "event": "chat_message_sent", "custom_name": "1st message" },
+          { "kind": "EventsNode", "event": "chat_message_sent", "custom_name": "2nd message" },
+          { "kind": "EventsNode", "event": "chat_message_sent", "custom_name": "3rd message" }
+        ],
+        "dateRange": { "date_from": "-90d", "explicitDate": false },
+        "properties": [],
+        "funnelsFilter": {
+          "layout": "vertical",
+          "exclusions": [],
+          "showLegend": false,
+          "funnelVizType": "steps",
+          "funnelOrderType": "ordered",
+          "showAnnotations": true,
+          "showValuesOnSeries": false,
+          "funnelStepReference": "total",
+          "funnelWindowInterval": 7,
+          "breakdownAttributionType": "first_touch",
+          "funnelWindowIntervalUnit": "day",
+          "hideIncompleteConversionWindowPeriods": false
+        },
+        "filterTestAccounts": false
+      }
+    }
+  },
+  {
+    "_source_short_id": "HlqM7Fkg",
+    "_dashboard": "Engagement → Conversion Funnels (Stories & Chat)",
+    "_starter": false,
+    "name": "C · Story creation (seller upload funnel)",
+    "description": "Of sellers who reach the story screen, how many actually post? screen_view_event[screen_name=story_screen] → story_uploaded. Suggested breakdown in UI: media_type (image/video). Source: funnels/chat-stories-funnels.md §C. Populates once story_uploaded ships to prod.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "FunnelsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "screen_view_event",
+            "properties": [
+              { "key": "screen_name", "type": "event", "value": "story_screen", "operator": "exact" }
+            ],
+            "custom_name": "Story screen viewed"
+          },
+          { "kind": "EventsNode", "event": "story_uploaded" }
+        ],
+        "dateRange": { "date_from": "-90d", "explicitDate": false },
+        "properties": [],
+        "funnelsFilter": {
+          "layout": "vertical",
+          "exclusions": [],
+          "showLegend": false,
+          "funnelVizType": "steps",
+          "funnelOrderType": "ordered",
+          "showAnnotations": true,
+          "showValuesOnSeries": false,
+          "funnelStepReference": "total",
+          "funnelWindowInterval": 1,
+          "breakdownAttributionType": "first_touch",
+          "funnelWindowIntervalUnit": "day",
+          "hideIncompleteConversionWindowPeriods": false
+        },
+        "filterTestAccounts": false
+      }
+    }
+  },
+  {
+    "_source_short_id": "OteeGGFL",
+    "_dashboard": "Engagement → Conversion Funnels (Stories & Chat)",
+    "_starter": false,
+    "name": "B2 · Chat product share → Purchase",
+    "description": "Stronger commerce-intent chat variant: chat_product_shared → view_item → add_to_cart → order_completed. Source: funnels/chat-stories-funnels.md §B. Populates once chat events ship to prod.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "FunnelsQuery",
+        "series": [
+          { "kind": "EventsNode", "event": "chat_product_shared" },
+          { "kind": "EventsNode", "event": "view_item" },
+          { "kind": "EventsNode", "event": "add_to_cart" },
+          { "kind": "EventsNode", "event": "order_completed" }
+        ],
+        "dateRange": { "date_from": "-90d", "explicitDate": false },
+        "properties": [],
+        "funnelsFilter": {
+          "layout": "vertical",
+          "exclusions": [],
+          "showLegend": false,
+          "funnelVizType": "steps",
+          "funnelOrderType": "ordered",
+          "showAnnotations": true,
+          "showValuesOnSeries": false,
+          "funnelStepReference": "total",
+          "funnelWindowInterval": 14,
+          "breakdownAttributionType": "first_touch",
+          "funnelWindowIntervalUnit": "day",
+          "hideIncompleteConversionWindowPeriods": false
+        },
+        "filterTestAccounts": false
+      }
+    }
+  },
+  {
+    "_source_short_id": "WldKkpg3",
+    "_dashboard": "Engagement → Conversion Funnels (Stories & Chat)",
+    "_starter": false,
+    "name": "B1 · Chat → Purchase (engagement to order)",
+    "description": "Do buyers who talk to sellers convert better? chat_opened → chat_message_sent → order_completed. Suggested breakdown in UI: is_order_chat (pre-sale vs post-order support). Source: funnels/chat-stories-funnels.md §B. Populates once chat events ship to prod.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "FunnelsQuery",
+        "series": [
+          { "kind": "EventsNode", "event": "chat_opened" },
+          { "kind": "EventsNode", "event": "chat_message_sent" },
+          { "kind": "EventsNode", "event": "order_completed" }
+        ],
+        "dateRange": { "date_from": "-90d", "explicitDate": false },
+        "properties": [],
+        "funnelsFilter": {
+          "layout": "vertical",
+          "exclusions": [],
+          "showLegend": false,
+          "funnelVizType": "steps",
+          "funnelOrderType": "ordered",
+          "showAnnotations": true,
+          "showValuesOnSeries": false,
+          "funnelStepReference": "total",
+          "funnelWindowInterval": 14,
+          "breakdownAttributionType": "first_touch",
+          "funnelWindowIntervalUnit": "day",
+          "hideIncompleteConversionWindowPeriods": false
+        },
+        "filterTestAccounts": false
+      }
+    }
+  },
+  {
+    "_source_short_id": "5YRJuZ0Z",
+    "_dashboard": "Engagement → Conversion Funnels (Stories & Chat)",
+    "_starter": false,
+    "name": "A · Stories → Purchase (shoppable story funnel)",
+    "description": "Do shoppable stories drive sales, and where do they leak? view_story → story_product_clicked → view_item → add_to_cart → order_completed. Suggested breakdowns in UI: seller_user_id, story_type. Source: funnels/chat-stories-funnels.md §A. Populates once chat/stories events ship to prod.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "FunnelsQuery",
+        "series": [
+          { "kind": "EventsNode", "event": "view_story" },
+          { "kind": "EventsNode", "event": "story_product_clicked" },
+          { "kind": "EventsNode", "event": "view_item" },
+          { "kind": "EventsNode", "event": "add_to_cart" },
+          { "kind": "EventsNode", "event": "order_completed" }
+        ],
+        "dateRange": { "date_from": "-90d", "explicitDate": false },
+        "properties": [],
+        "funnelsFilter": {
+          "layout": "vertical",
+          "exclusions": [],
+          "showLegend": false,
+          "funnelVizType": "steps",
+          "funnelOrderType": "ordered",
+          "showAnnotations": true,
+          "showValuesOnSeries": false,
+          "funnelStepReference": "total",
+          "funnelWindowInterval": 7,
+          "breakdownAttributionType": "first_touch",
+          "funnelWindowIntervalUnit": "day",
+          "hideIncompleteConversionWindowPeriods": false
+        },
+        "filterTestAccounts": false
+      }
+    }
+  },
+  {
+    "_source_short_id": "K2ZEnm1d",
+    "_dashboard": "My App Dashboard",
+    "_starter": true,
+    "name": "Daily active users (DAUs)",
+    "description": "Shows the number of unique users that view a page or screen in your app every day.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "GroupNode",
+            "math": "dau",
+            "name": "Pageview or screen",
+            "nodes": [
+              { "kind": "EventsNode", "name": "$pageview", "event": "$pageview" },
+              { "kind": "EventsNode", "name": "$screen", "event": "$screen" }
+            ],
+            "operator": "OR"
+          }
+        ],
+        "interval": "day",
+        "dateRange": { "date_from": "-30d", "explicitDate": false },
+        "properties": [],
+        "trendsFilter": {
+          "display": "ActionsLineGraph",
+          "showLegend": false,
+          "yAxisScaleType": "linear",
+          "showValuesOnSeries": false,
+          "smoothingIntervals": 1,
+          "showPercentStackView": false,
+          "aggregationAxisFormat": "numeric",
+          "showAlertThresholdLines": false
+        },
+        "breakdownFilter": { "breakdown_type": "event" },
+        "filterTestAccounts": false,
+        "version": 2
+      }
+    }
+  },
+  {
+    "_source_short_id": "HqgqKVDd",
+    "_dashboard": "My App Dashboard",
+    "_starter": true,
+    "name": "Weekly active users (WAUs)",
+    "description": "Shows the number of unique users that view a page or screen in your app every week.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "GroupNode",
+            "math": "dau",
+            "name": "Pageview or screen",
+            "nodes": [
+              { "kind": "EventsNode", "name": "$pageview", "event": "$pageview" },
+              { "kind": "EventsNode", "name": "$screen", "event": "$screen" }
+            ],
+            "operator": "OR"
+          }
+        ],
+        "interval": "week",
+        "dateRange": { "date_from": "-90d", "explicitDate": false },
+        "properties": [],
+        "trendsFilter": {
+          "display": "ActionsLineGraph",
+          "showLegend": false,
+          "yAxisScaleType": "linear",
+          "showValuesOnSeries": false,
+          "smoothingIntervals": 1,
+          "showPercentStackView": false,
+          "aggregationAxisFormat": "numeric",
+          "showAlertThresholdLines": false
+        },
+        "breakdownFilter": { "breakdown_type": "event" },
+        "filterTestAccounts": false,
+        "version": 2
+      }
+    }
+  },
+  {
+    "_source_short_id": "DwJHMZN1",
+    "_dashboard": "My App Dashboard",
+    "_starter": true,
+    "name": "Growth accounting",
+    "description": "How many of your users are new, returning, resurrecting, or dormant each week based on pageviews.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "LifecycleQuery",
+        "series": [
+          { "kind": "EventsNode", "name": "$pageview", "event": "$pageview" }
+        ],
+        "interval": "week",
+        "dateRange": { "date_from": "-30d", "explicitDate": false },
+        "properties": [],
+        "lifecycleFilter": { "showLegend": false },
+        "filterTestAccounts": false
+      }
+    }
+  },
+  {
+    "_source_short_id": "TAWzrPQq",
+    "_dashboard": "My App Dashboard",
+    "_starter": true,
+    "name": "Retention",
+    "description": "Weekly retention of your users based on pageviews.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "RetentionQuery",
+        "dateRange": { "date_from": "-7d", "explicitDate": false },
+        "properties": [],
+        "retentionFilter": {
+          "period": "Week",
+          "targetEntity": { "id": "$pageview", "type": "events" },
+          "retentionType": "retention_first_time",
+          "totalIntervals": 11,
+          "returningEntity": { "id": "$pageview", "type": "events" }
+        },
+        "filterTestAccounts": false,
+        "version": 2
+      }
+    }
+  },
+  {
+    "_source_short_id": "Rovs1uoU",
+    "_dashboard": "My App Dashboard",
+    "_starter": true,
+    "name": "Referring domain (last 14 days)",
+    "description": "Shows the most common referring domains for your users over the past 14 days. Pageviews only.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "TrendsQuery",
+        "series": [
+          { "kind": "EventsNode", "math": "dau", "name": "$pageview", "event": "$pageview" }
+        ],
+        "interval": "day",
+        "dateRange": { "date_from": "-14d", "explicitDate": false },
+        "properties": [],
+        "trendsFilter": {
+          "display": "ActionsBarValue",
+          "showLegend": false,
+          "yAxisScaleType": "linear",
+          "showValuesOnSeries": false,
+          "smoothingIntervals": 1,
+          "showPercentStackView": false,
+          "aggregationAxisFormat": "numeric",
+          "showAlertThresholdLines": false
+        },
+        "breakdownFilter": { "breakdown": "$referring_domain", "breakdown_type": "event" },
+        "filterTestAccounts": false,
+        "version": 2
+      }
+    }
+  },
+  {
+    "_source_short_id": "eyBliwUQ",
+    "_dashboard": "My App Dashboard",
+    "_starter": true,
+    "name": "Pageview funnel, by browser",
+    "description": "This example funnel shows how many of your users have completed 3 page views, broken down by browser. Pageviews only.",
+    "favorited": false,
+    "tags": [],
+    "query": {
+      "kind": "InsightVizNode",
+      "source": {
+        "kind": "FunnelsQuery",
+        "series": [
+          { "kind": "EventsNode", "name": "$pageview", "event": "$pageview", "custom_name": "First page view" },
+          { "kind": "EventsNode", "name": "$pageview", "event": "$pageview", "custom_name": "Second page view" },
+          { "kind": "EventsNode", "name": "$pageview", "event": "$pageview", "custom_name": "Third page view" }
+        ],
+        "interval": "day",
+        "dateRange": { "date_from": "-7d", "explicitDate": false },
+        "properties": [],
+        "funnelsFilter": {
+          "layout": "horizontal",
+          "exclusions": [],
+          "funnelVizType": "steps",
+          "funnelOrderType": "ordered",
+          "funnelStepReference": "total",
+          "funnelWindowInterval": 14,
+          "breakdownAttributionType": "first_touch",
+          "funnelWindowIntervalUnit": "day"
+        },
+        "breakdownFilter": { "breakdown": "$browser", "breakdown_type": "event" },
+        "filterTestAccounts": false
+      }
+    }
+  }
+]

@@ -5,8 +5,9 @@ import { GetProductMeta } from "serverRequests/product";
 import { redirect } from "next/navigation";
 import { LogServerError } from "utils/serverErrorReporter";
 import ProductPageContent from "components/Product/ProductPageContent";
+import { Metadata } from "next";
 
-export async function generateMetadata({ params, searchParams }) {
+export async function generateMetadata({ params, searchParams }): Promise<Metadata>{
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
   let [country, language] = Params.lang.split("-");
   try {
@@ -25,6 +26,8 @@ export async function generateMetadata({ params, searchParams }) {
     RedisSet(`${Params.productId}-${Params.lang}`, JSON.stringify(metaData));
 
     return metaData;
+
+
   } catch (error) {
     LogServerError(
       {

@@ -29,7 +29,7 @@ export const GA_EVENT_NAMES = {
   ADD_ADDRESS: "add_shipping_info",
   PURCHASE: "purchase",
   VIEW_ITEMS_LIST: "view_item_list",
-  ITEM_VARIANT_EXCHANGE: "item_variant _exchange",
+  ITEM_VARIANT_EXCHANGE: "item_variant_exchange",
   SEARCH: "search",
   VIEW_STORY: "view_story",
   LIKE_ITEM: "like_item",

@@ -11,8 +11,9 @@ import { useParams, useSearchParams } from "next/navigation";
 import auth from "services/auth";
 import home from "services/home";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
-import { GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, DetectScreen } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import {
   showErrorNotification,
   showSuccessNotification,
@@ -25,7 +26,8 @@ import ColorSelect from "./ColorSelect";
 import SizeSelect from "./SizeSelect";
 import PricesRow from "./PricesRow";
 import ExtraInfoArea from "./ExtraInfoArea";
-import { getCookie, setCookie } from "utils/cookies/cookie-manager";
+import { useLuckTimer } from "hooks/useLuckTimer";
+import { isRedeemed } from "utils/luck";
 import AddToCartButton from "./Button";
 import NotifyButton from "./NotifyButton";
 
@@ -258,13 +260,7 @@ function AddToCartComponent({ product, slug, color }) {
   const isComponentActiveRef = useRef(true);
   const shouldShowLuck = () => {
     if (!product.is_luck) return false;
-    let redeemed_products_ids = getCookie<any[]>("redemed_ids");
-    if (redeemed_products_ids) {
-      return !redeemed_products_ids.find(
-        (s) => s.id === (product?.product_id ?? product?.id),
-      );
-    }
-    return true;
+    return !isRedeemed(product?.product_id ?? product?.id);
   };
   const searchParams = useSearchParams();
   const [sizeFromUrl, colorFromUrl] = [
@@ -287,35 +283,10 @@ function AddToCartComponent({ product, slug, color }) {
     ...product,
     is_luck: shouldShowLuck(),
   });
-  const configureRedeemedProducts = (id) => {
-    let redeemed_products_ids = getCookie<any>("redemed_ids");
-
-    if (redeemed_products_ids) {
-      let parsed_redeemed_products_ids = redeemed_products_ids
-        ? redeemed_products_ids
-        : [];
-      if (!parsed_redeemed_products_ids?.find((s) => s.id === id)) {
-        let MAX_ARRAY_LENGTH =
-          parseInt(process.env.NEXT_PUBLIC_MAX_ARRAY_LENGTH) || 5;
-        if (parsed_redeemed_products_ids.length < MAX_ARRAY_LENGTH)
-          setCookie("redemed_ids", [
-            ...parsed_redeemed_products_ids,
-            { id: id, showingDate: new Date().toISOString() },
-          ]);
-        else
-          setCookie("redemed_ids", [
-            ...parsed_redeemed_products_ids.slice(1, MAX_ARRAY_LENGTH),
-            { id: id, showingDate: new Date().toISOString() },
-          ]);
-      } else {
-        return;
-      }
-    } else {
-      setCookie("redemed_ids", [
-        { id: id, showingDate: new Date().toISOString() },
-      ]);
-    }
-  };
+  const { luckActive, secondsLeft } = useLuckTimer(
+    ProductData?.id ?? ProductData?.product_id,
+    { isLuck: Boolean(ProductData?.is_luck) },
+  );
 
   const initialDefaults = resolveDefaultSelection({
     productData: ProductData,
@@ -326,6 +297,10 @@ function AddToCartComponent({ product, slug, color }) {
   });
   const [selectedColor, setSelectedColor] = useState(initialDefaults.color);
   const [selectedSize, setSelectedSize] = useState(initialDefaults.size);
+  // Track whether the user actively changed color/size before adding to cart
+  // (PostHog add_to_cart enrichment). Reset when the product changes.
+  const colorChangedRef = useRef(false);
+  const sizeChangedRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
 
@@ -343,12 +318,7 @@ function AddToCartComponent({ product, slug, color }) {
           initCart(data ?? { cart: [] });
         },
       });
-      // fetchData({
-      //   method: "GET",
-      //   url: `/api/mobile/product/details/${slug}`,
-      //   reqTitle: { reqTitle: "", code: 100 },
-      //   server: "local",
-      // });
+
       let data = await getProductDataForAddToCart({
         language: languageVariable,
         country: country,
@@ -399,6 +369,9 @@ function AddToCartComponent({ product, slug, color }) {
       });
       setSelectedColor(defaults.color);
       setSelectedSize(defaults.size);
+      // New product loaded → selections are defaults, not user-changed yet.
+      colorChangedRef.current = false;
+      sizeChangedRef.current = false;
 
       if (
         product &&
@@ -566,6 +539,20 @@ function AddToCartComponent({ product, slug, color }) {
   useEffect(() => {
     abortControllerRef.current = new AbortController();
     isComponentActiveRef.current = true;
+    // Denominator for the add-to-cart funnel: fires once per widget open. Paired
+    // with `add_to_cart_buy_clicked` (the tap) and `order_add_to_cart` (success),
+    // it surfaces users who open the sheet but never add the item.
+    trackOrder(ORDER_EVENTS.ADD_TO_CART_WIDGET_OPENED, {
+      product_id: product?.product_id ?? product?.id,
+      item_name: product?.name,
+      brand: product?.brand?.name,
+      category: product?.categories?.[0]?.name,
+      is_luck: Boolean(product?.is_luck),
+      is_flash_deal: Boolean(
+        product?.flash_deal_end_date || product?.flash_deal_details,
+      ),
+      source: DetectScreen(),
+    });
     if (
       document.querySelector<HTMLElement>(".alternate-product-details-footer")
     )
@@ -607,7 +594,7 @@ function AddToCartComponent({ product, slug, color }) {
     let response = await fetchData({
       method: "GET",
       server: "market",
-      url: `/web/product/qtyPriceDetails/${slug}`,
+      url: `/web/product/qtyPriceDetails/${slug}?need_decode=true`,
 
       reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS,
       signal: abortControllerRef.current?.signal,
@@ -656,7 +643,7 @@ function AddToCartComponent({ product, slug, color }) {
   };
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
   const GetFinalPriceOfProduct = () => {
-    if (ProductData?.is_luck && shouldShowLuck()) {
+    if (luckActive) {
       return ProductData?.luck_price;
     }
     return ProductData?.offer_price;
@@ -675,7 +662,7 @@ function AddToCartComponent({ product, slug, color }) {
       return vColor === colorVariant?.color_name;
     });
     if (!variant) return false;
-    if (ProductData?.is_luck && shouldShowLuck()) {
+    if (luckActive) {
       return Math.round(
         ((GetFinalPriceOfProduct() - variant?.luck_price) * 100) /
           GetFinalPriceOfProduct(),
@@ -747,7 +734,7 @@ function AddToCartComponent({ product, slug, color }) {
               : getSelectedVariantQty()?.offer_price
           }
           price={getSelectedVariantQty()?.price}
-          luck_price={shouldShowLuck() && getSelectedVariantQty()?.luck_price}
+          luck_price={luckActive && getSelectedVariantQty()?.luck_price}
           shippingDays={ProductData?.shipping_days}
           shouldShowOrangeBorder={
             ProductData.is_luck ||
@@ -787,6 +774,7 @@ function AddToCartComponent({ product, slug, color }) {
                     selectedSize?.option ?? selectedSize?.name ?? selectedSize,
                 },
               });
+              colorChangedRef.current = true;
               setSelectedColor(e);
             }}
           />
@@ -819,6 +807,7 @@ function AddToCartComponent({ product, slug, color }) {
                   selected_size: e?.option ?? e?.name ?? e,
                 },
               });
+              sizeChangedRef.current = true;
               setSelectedSize(e);
             }}
             sizes={sizeOptions}
@@ -858,13 +847,12 @@ function AddToCartComponent({ product, slug, color }) {
           }
           price={getSelectedVariantQty()?.price}
           id={ProductData?.id}
-          luck_price={
-            shouldShowLuck() &&
-            ProductData?.is_luck &&
-            getSelectedVariantQty()?.luck_price
-          }
+          luck_price={luckActive && getSelectedVariantQty()?.luck_price}
           shipping_cost={product?.shipping_cost}
           shipping_days={ProductData?.shipping_days ?? product?.shipping_days}
+          allow_return_in_days={
+            ProductData?.allow_return_in_days ?? product?.allow_return_in_days
+          }
         />
         <ExtraInfoArea
           colors={ProductData?.sync_color_images}
@@ -874,17 +862,11 @@ function AddToCartComponent({ product, slug, color }) {
           selected_size={selectedSize}
           isQtyEmpty={getSelectedVariantQty()?.qty === 0}
           product={ProductData}
-          isLuck={ProductData?.is_luck && shouldShowLuck()}
+          isLuck={ProductData?.is_luck}
+          luckActive={luckActive}
+          secondsLeft={secondsLeft}
           flashDeal={ProductData?.flash_deal_end_date}
           id={ProductData?.id}
-          LuckEnd={() => {
-            configureRedeemedProducts(ProductData?.id);
-            setProductData({ ...ProductData, is_luck: false });
-            let element = document.querySelector(".product-redeem-counter");
-            if (element) {
-              element.classList.add("hidden");
-            }
-          }}
           isInCart={localCart?.find((s) => s.id === ProductData?.id)}
         />
         {shouldShowNotifyButton() ? (
@@ -927,7 +909,6 @@ function AddToCartComponent({ product, slug, color }) {
           />
         ) : (
           <AddToCartButton
-            key={ProductData?.is_luck}
             reachedMaxQty={() => reachedMaxQty()}
             fullQty={localCart.filter((s) => s.id === product?.id)?.length}
             colors={ProductData?.sync_color_images}
@@ -941,20 +922,11 @@ function AddToCartComponent({ product, slug, color }) {
               if (ProductData.packed_after_ordering === 0)
                 await updateQuantity({ isLocal, variantId, operation });
             }}
-            expireLuck={() => {
-              setProductData({
-                ...ProductData,
-                is_luck: false,
-              });
-              configureRedeemedProducts(ProductData?.id);
-              let element = document.querySelector(".product-redeem-counter");
-              if (element) {
-                element.classList.add("hidden");
-              }
-            }}
             loading={requestLoading}
             setLoading={setRequestLoading}
             selectedVariant={getSelectedVariantQty()}
+            colorChanged={colorChangedRef.current}
+            sizeChanged={sizeChangedRef.current}
           />
         )}
       </div>

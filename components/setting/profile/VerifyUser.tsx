@@ -4,23 +4,26 @@ import { translateFunction } from "utils/functions";
 import { createPortal } from "react-dom";
 import { ConfirmationModal } from "components/settings/PersonalInfo";
 import { useAppStore } from "store";
+import { isValidPhone } from "utils/phone";
 
-function VerifyUser({ is_phone_verified: serverVerified, phone: serverPhone }) {
+function VerifyUser({ phone: serverPhone }) {
   const { setLoginOpen, userProfile, user } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Prefer live client state from store, fall back to server-rendered prop
-  const is_phone_verified =
-    userProfile?.is_phone_verified ?? user?.is_phone_verified ?? serverVerified;
   const phone = userProfile?.phone ?? user?.phone ?? serverPhone;
+
+  // Treat the user as verified when they have a valid phone on record, regardless
+  // of `is_phone_verified` (which register-guest resets to 0 for the same user).
+  const isVerified = isValidPhone(phone);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const handleOpenModal = () => {
-    if (is_phone_verified === 0) {
+    if (!isVerified) {
       if (phone && phone !== "0") setIsModalOpen(true);
       else setLoginOpen(true);
     }
@@ -32,7 +35,7 @@ function VerifyUser({ is_phone_verified: serverVerified, phone: serverPhone }) {
       onClick={handleOpenModal}
     >
       {/* SVG Icon */}
-      {is_phone_verified === 1 ? (
+      {isVerified ? (
         <img
           src="/icons/settings/VerifiedUserIcon.svg"
           className="w-[16px] h-[16px]"
@@ -47,10 +50,10 @@ function VerifyUser({ is_phone_verified: serverVerified, phone: serverPhone }) {
       {/* Label */}
       <span
         className={`text-[10px] regular mt-[4px] ${
-          is_phone_verified === 1 ? "text-[#1d1d1d]" : "text-[#FF5F61]"
+          isVerified ? "text-[#1d1d1d]" : "text-[#FF5F61]"
         }`}
       >
-        {is_phone_verified === 1
+        {isVerified
           ? translateFunction("Verified")
           : translateFunction("Verify Now")}
       </span>

@@ -1,0 +1,1053 @@
+{
+        "added_by": {
+          "type": "text"
+        },
+        "attributes": {
+          "type": "text"
+        },
+        "available_size": {
+          "type": "text"
+        },
+        "available_size_as_json": {
+          "type": "nested",
+          "properties": {
+            "size": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "boutique": {
+          "type": "nested",
+          "properties": {
+            "added_by_id": {
+              "type": "integer"
+            },
+            "added_by_type": {
+              "type": "integer"
+            },
+            "countries_iso": {
+              "type": "nested",
+              "properties": {
+                "iso": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "id": {
+              "type": "long"
+            },
+            "name": {
+              "type": "text"
+            },
+            "position": {
+              "type": "integer"
+            },
+            "seller_id": {
+              "type": "integer"
+            },
+            "status": {
+              "type": "integer"
+            }
+          }
+        },
+        "boutique_id": {
+          "type": "long",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "boutique_position": {
+          "type": "integer"
+        },
+        "brand": {
+          "type": "nested",
+          "properties": {
+            "countries_iso": {
+              "type": "nested",
+              "properties": {
+                "iso": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "id": {
+              "type": "long"
+            },
+            "is_verified": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "text"
+            },
+            "status": {
+              "type": "integer"
+            }
+          }
+        },
+        "brand_id": {
+          "type": "long",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "carts_count": {
+          "type": "long"
+        },
+        "categories": {
+          "type": "nested",
+          "properties": {
+            "countries_iso": {
+              "type": "nested",
+              "properties": {
+                "iso": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "gender": {
+              "type": "long"
+            },
+            "group_age": {
+              "type": "integer"
+            },
+            "id": {
+              "type": "long"
+            },
+            "most_viewed_product_thumbnail": {
+              "properties": {
+                "file_path": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "original_height": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "original_width": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                }
+              }
+            },
+            "name": {
+              "type": "text"
+            },
+            "num_available_product": {
+              "type": "integer"
+            },
+            "parent_id": {
+              "type": "long"
+            },
+            "position": {
+              "type": "long"
+            },
+            "status": {
+              "type": "integer"
+            },
+            "thumbnail": {
+              "properties": {
+                "file_path": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "original_height": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "original_width": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "category_ids": {
+          "type": "nested",
+          "properties": {
+            "id": {
+              "type": "long"
+            },
+            "position": {
+              "type": "integer"
+            }
+          }
+        },
+        "colors": {
+          "type": "nested",
+          "properties": {
+            "color": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "id": {
+              "type": "long"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "comments_count": {
+          "type": "long"
+        },
+        "countries_iso": {
+          "type": "nested",
+          "properties": {
+            "iso": {
+              "type": "keyword"
+            }
+          }
+        },
+        "country_offer_prices": {
+          "type": "nested",
+          "properties": {
+            "country_iso": {
+              "type": "keyword"
+            },
+            "extra_price": {
+              "type": "double"
+            },
+            "offer_price": {
+              "type": "double"
+            }
+          }
+        },
+        "created_at": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+        },
+        "current_stock": {
+          "type": "scaled_float",
+          "scaling_factor": 1000
+        },
+        "custom_boutiques": {
+          "type": "nested",
+          "properties": {
+            "added_by_id": {
+              "type": "long"
+            },
+            "added_by_type": {
+              "type": "long"
+            },
+            "banners": {
+              "type": "nested",
+              "properties": {
+                "deleted_at": {
+                  "type": "date",
+                  "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+                },
+                "file_path": {
+                  "type": "text"
+                },
+                "original_height": {
+                  "type": "keyword"
+                },
+                "original_width": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "bio": {
+              "type": "text"
+            },
+            "boutique_id": {
+              "type": "long",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "country_iso": {
+              "type": "text"
+            },
+            "created_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            },
+            "deleted_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            },
+            "description": {
+              "type": "text"
+            },
+            "icon": {
+              "properties": {
+                "file_path": {
+                  "type": "text"
+                },
+                "original_height": {
+                  "type": "keyword"
+                },
+                "original_width": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "id": {
+              "type": "long",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "language_code": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "name": {
+              "type": "text",
+              "fields": {
+                "arabic": {
+                  "type": "text",
+                  "analyzer": "arabic"
+                },
+                "english": {
+                  "type": "text",
+                  "analyzer": "english_edge_ngram_analyzer",
+                  "search_analyzer": "standard"
+                },
+                "exact": {
+                  "type": "text",
+                  "analyzer": "standard"
+                },
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              },
+              "analyzer": "edge_ngram_analyzer"
+            },
+            "slug": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "updated_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            }
+          }
+        },
+        "custom_brands": {
+          "type": "nested",
+          "properties": {
+            "added_by_id": {
+              "type": "long"
+            },
+            "added_by_type": {
+              "type": "long"
+            },
+            "brand_id": {
+              "type": "long",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "country_iso": {
+              "type": "text"
+            },
+            "created_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            },
+            "deleted_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            },
+            "icon": {
+              "properties": {
+                "file_path": {
+                  "type": "text"
+                },
+                "original_height": {
+                  "type": "keyword"
+                },
+                "original_width": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "id": {
+              "type": "long",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "image": {
+              "type": "text"
+            },
+            "language_code": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "name": {
+              "type": "text",
+              "fields": {
+                "arabic": {
+                  "type": "text",
+                  "analyzer": "arabic"
+                },
+                "english": {
+                  "type": "text",
+                  "analyzer": "english_edge_ngram_analyzer",
+                  "search_analyzer": "standard"
+                },
+                "exact": {
+                  "type": "text",
+                  "analyzer": "standard"
+                },
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              },
+              "analyzer": "edge_ngram_analyzer"
+            },
+            "similar_words": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "slug": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "updated_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            }
+          }
+        },
+        "custom_categories": {
+          "type": "nested",
+          "properties": {
+            "added_by_id": {
+              "type": "long"
+            },
+            "added_by_type": {
+              "type": "long"
+            },
+            "banner_photo_path": {
+              "properties": {
+                "file_path": {
+                  "type": "text"
+                },
+                "original_height": {
+                  "type": "keyword"
+                },
+                "original_width": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "bio": {
+              "type": "text"
+            },
+            "category_id": {
+              "type": "long",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "country_iso": {
+              "type": "text"
+            },
+            "created_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            },
+            "deleted_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            },
+            "description": {
+              "type": "text"
+            },
+            "fill_photo_path": {
+              "properties": {
+                "file_path": {
+                  "type": "text"
+                },
+                "original_height": {
+                  "type": "keyword"
+                },
+                "original_width": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "flat_photo_path": {
+              "properties": {
+                "file_path": {
+                  "type": "text"
+                },
+                "original_height": {
+                  "type": "keyword"
+                },
+                "original_width": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "icon": {
+              "type": "text"
+            },
+            "id": {
+              "type": "long",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "language_code": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "name": {
+              "type": "text",
+              "fields": {
+                "arabic": {
+                  "type": "text",
+                  "analyzer": "arabic"
+                },
+                "english": {
+                  "type": "text",
+                  "analyzer": "english_edge_ngram_analyzer",
+                  "search_analyzer": "standard"
+                },
+                "exact": {
+                  "type": "text",
+                  "analyzer": "standard"
+                },
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              },
+              "analyzer": "edge_ngram_analyzer"
+            },
+            "outline_photo_path": {
+              "properties": {
+                "file_path": {
+                  "type": "text"
+                },
+                "original_height": {
+                  "type": "keyword"
+                },
+                "original_width": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "png_photo_path": {
+              "properties": {
+                "file_path": {
+                  "type": "text"
+                },
+                "original_height": {
+                  "type": "keyword"
+                },
+                "original_width": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "position": {
+              "type": "integer"
+            },
+            "similar_words": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "slug": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "status": {
+              "type": "long"
+            },
+            "updated_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            }
+          }
+        },
+        "custom_products": {
+          "type": "nested",
+          "properties": {
+            "added_by": {
+              "type": "long"
+            },
+            "country_iso": {
+              "type": "text"
+            },
+            "created_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            },
+            "deleted_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            },
+            "descriptors_names": {
+              "type": "text",
+              "fields": {
+                "arabic": {
+                  "type": "text",
+                  "analyzer": "arabic"
+                },
+                "english": {
+                  "type": "text",
+                  "analyzer": "english_edge_ngram_analyzer",
+                  "search_analyzer": "standard"
+                },
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              },
+              "analyzer": "edge_ngram_analyzer"
+            },
+            "details": {
+              "type": "text",
+              "fields": {
+                "arabic": {
+                  "type": "text",
+                  "analyzer": "arabic"
+                }
+              },
+              "analyzer": "edge_ngram_analyzer"
+            },
+            "id": {
+              "type": "long",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "is_has_to_translate_with_AI": {
+              "type": "long"
+            },
+            "label_names": {
+              "type": "text",
+              "fields": {
+                "arabic": {
+                  "type": "text",
+                  "analyzer": "arabic"
+                },
+                "english": {
+                  "type": "text",
+                  "analyzer": "english_edge_ngram_analyzer",
+                  "search_analyzer": "standard"
+                },
+                "exact": {
+                  "type": "text",
+                  "analyzer": "standard"
+                },
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              },
+              "analyzer": "edge_ngram_analyzer",
+              "search_analyzer": "standard"
+            },
+            "language_code": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text",
+              "fields": {
+                "arabic": {
+                  "type": "text",
+                  "analyzer": "arabic"
+                },
+                "english": {
+                  "type": "text",
+                  "analyzer": "english_edge_ngram_analyzer",
+                  "search_analyzer": "standard"
+                },
+                "exact": {
+                  "type": "text",
+                  "analyzer": "standard"
+                },
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              },
+              "analyzer": "edge_ngram_analyzer",
+              "search_analyzer": "arabic_search"
+            },
+            "old_slugs": {
+              "type": "text",
+              "analyzer": "edge_ngram_analyzer"
+            },
+            "product_id": {
+              "type": "long",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "similar_words": {
+              "type": "text",
+              "fields": {
+                "arabic": {
+                  "type": "text",
+                  "analyzer": "arabic"
+                },
+                "english": {
+                  "type": "text",
+                  "analyzer": "english_edge_ngram_analyzer",
+                  "search_analyzer": "standard"
+                },
+                "exact": {
+                  "type": "text",
+                  "analyzer": "standard"
+                },
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              },
+              "analyzer": "edge_ngram_analyzer",
+              "search_analyzer": "standard"
+            },
+            "slug": {
+              "type": "text",
+              "fields": {
+                "arabic": {
+                  "type": "text",
+                  "analyzer": "arabic"
+                },
+                "english": {
+                  "type": "text",
+                  "analyzer": "english_edge_ngram_analyzer",
+                  "search_analyzer": "standard"
+                },
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              },
+              "analyzer": "edge_ngram_analyzer"
+            },
+            "status": {
+              "type": "integer"
+            },
+            "tags_names": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "updated_at": {
+              "type": "date",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+            }
+          }
+        },
+        "deleted_at": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+        },
+        "details": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "discount": {
+          "type": "text"
+        },
+        "discount_type": {
+          "type": "text"
+        },
+        "end_date": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss || MM/dd/yyyy"
+        },
+        "extra_price_for_country": {
+          "properties": {
+            "country_iso": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "extra_price": {
+              "type": "long"
+            }
+          }
+        },
+        "featured": {
+          "type": "integer"
+        },
+        "flash_deal_discount": {
+          "type": "double"
+        },
+        "flash_deal_max_allowed_quantity": {
+          "type": "integer"
+        },
+        "flash_deal_price": {
+          "type": "long"
+        },
+        "flash_deal_status": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "long",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "images": {
+          "type": "text"
+        },
+        "name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "offered_price": {
+          "type": "double"
+        },
+        "orders_count": {
+          "type": "long"
+        },
+        "purchase_price": {
+          "type": "double"
+        },
+        "redeem_discount_rate": {
+          "type": "double"
+        },
+        "redeem_price": {
+          "type": "double"
+        },
+        "seller_status": {
+          "type": "keyword"
+        },
+        "similar_words_colors": {
+          "type": "text",
+          "fields": {
+            "arabic": {
+              "type": "text",
+              "analyzer": "arabic"
+            },
+            "english": {
+              "type": "text",
+              "analyzer": "english_edge_ngram_analyzer",
+              "search_analyzer": "standard"
+            },
+            "exact": {
+              "type": "text",
+              "analyzer": "standard"
+            },
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          },
+          "analyzer": "edge_ngram_analyzer",
+          "search_analyzer": "standard"
+        },
+        "similar_words_sizes": {
+          "type": "text",
+          "fields": {
+            "arabic": {
+              "type": "text",
+              "analyzer": "arabic"
+            },
+            "english": {
+              "type": "text",
+              "analyzer": "english_edge_ngram_analyzer",
+              "search_analyzer": "standard"
+            },
+            "exact": {
+              "type": "text",
+              "analyzer": "standard"
+            },
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          },
+          "analyzer": "edge_ngram_analyzer",
+          "search_analyzer": "standard"
+        },
+        "start_date": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss || MM/dd/yyyy"
+        },
+        "status": {
+          "type": "keyword"
+        },
+        "sync_color_images": {
+          "type": "text"
+        },
+        "tags_ids": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "tags_names": {
+          "type": "keyword"
+        },
+        "text_colors": {
+          "type": "text"
+        },
+        "thumbnail": {
+          "properties": {
+            "file_path": {
+              "type": "text"
+            },
+            "original_height": {
+              "type": "keyword"
+            },
+            "original_width": {
+              "type": "keyword"
+            }
+          }
+        },
+        "unit": {
+          "type": "text"
+        },
+        "unit_price": {
+          "type": "double"
+        },
+        "updated_at": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'||yyyy-MM-dd'T'HH:mm:ss"
+        },
+        "user_id": {
+          "type": "long"
+        },
+        "variation": {
+          "type": "nested",
+          "properties": {
+            "price": {
+              "type": "double"
+            },
+            "type": {
+              "type": "text"
+            }
+          }
+        },
+        "videos": {
+          "type": "text"
+        }
+      }

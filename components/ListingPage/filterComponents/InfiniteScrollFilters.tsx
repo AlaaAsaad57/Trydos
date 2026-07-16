@@ -1,5 +1,6 @@
 "use client";
 import Spinner from "components/global/Spinner";
+import FilterItem from "components/ListingPage/FilterItem";
 import React from "react";
 import { GetNextPageFilters } from "serverRequests/listing";
 import { LogError } from "utils/functions";
@@ -12,11 +13,12 @@ function InfiniteScrollFilters({
   language,
   params,
   currency,
+  isRtl,
+  baseUrlOfFiltersPage,
+  isUsingParsedFilters,
 }) {
   const [loading, setLoading] = React.useState(false);
-  const [filterItems, setFilterItems] = React.useState([
-    <React.Fragment key={0}></React.Fragment>,
-  ]);
+  const [filterItems, setFilterItems] = React.useState<any[]>([]);
   const [hasEnd, setHasEnd] = React.useState(false);
   const [offset, setOffset] = React.useState(1);
   const getNextFilters = async () => {
@@ -53,7 +55,7 @@ function InfiniteScrollFilters({
       }
 
       if (filter_response?.length) {
-        setFilterItems([...filterItems, ...filter_response]);
+        setFilterItems((prev) => [...prev, ...filter_response]);
       } else {
         setHasEnd(true);
       }
@@ -68,7 +70,25 @@ function InfiniteScrollFilters({
   };
   return (
     <>
-      {filterItems}
+      {filterItems.map((item) => (
+        <FilterItem
+          key={
+            item?.id ??
+            item?.slug ??
+            (item?.min_price !== undefined
+              ? `${item.min_price}-${item.max_price}`
+              : item)
+          }
+          term={term}
+          item={item}
+          isRtl={isRtl}
+          params={params}
+          filterParams={filters}
+          isUsingParsedFilters={true}
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage}
+          currency={currency}
+        />
+      ))}
       {loading ? (
         <>
           <div className="category-circle flex-col align-center">

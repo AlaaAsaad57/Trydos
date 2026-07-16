@@ -324,10 +324,10 @@ const OptionsSkeleton = () => {
     <>
       {Array.from({ length: 7 }).map((s, i) => (
         <div
+          key={i}
           className={`px-[12px] w-[70px] max-w-[70px] regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px]  `}
         >
           <Skeleton
-            key={i}
             width={70}
             height={40}
             borderRadius={12}

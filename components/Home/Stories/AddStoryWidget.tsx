@@ -16,11 +16,13 @@ import {
   showSuccessNotification,
 } from "store/notifications/reducer";
 import { getUserStories, LogError, translateFunction } from "utils/functions";
+import { trackPosthog, STORY_EVENTS } from "utils/posthogEvents";
 import StoryServiceClass from "services/story";
 import { DisableScroll, EnableScroll, pollinateInput } from "@/utils/tinyUtils";
 import Spinner from "components/global/Spinner";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import { fetchStoriesForUser } from "serverRequests";
+import { ImageCropWidget } from "components/global/ImageCropWidget";
 
 // Icons
 const CameraIcon = () => (
@@ -163,6 +165,8 @@ export default function AddStoryWidget() {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [imageToEdit, setImageToEdit] = useState<File | null>(null);
+  const [showImageEditor, setShowImageEditor] = useState(false);
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const {
@@ -266,7 +270,11 @@ export default function AddStoryWidget() {
         router.refresh();
 
         setStoryData(storiesData.data);
-        showSuccessNotification("Story Uploaded");
+        trackPosthog(STORY_EVENTS.STORY_UPLOADED, {
+          media_type: "video",
+          has_link: !!link,
+        });
+        showSuccessNotification(translateFunction("Story Uploaded"));
         setPreview(null);
         setFile(null);
         setSelectedFile(null);
@@ -309,7 +317,11 @@ export default function AddStoryWidget() {
         setStoriesRefreshing(true);
         router.refresh();
         setStoryData(storiesData.data);
-        showSuccessNotification("Story Uploaded");
+        trackPosthog(STORY_EVENTS.STORY_UPLOADED, {
+          media_type: "image",
+          has_link: !!link,
+        });
+        showSuccessNotification(translateFunction("Story Uploaded"));
         setPreview(null);
         setFile(null);
         setSelectedFile(null);
@@ -317,12 +329,16 @@ export default function AddStoryWidget() {
         setLink("");
         onClose();
       }
+      setTimeout(() => {
+        setStoriesRefreshing(false);
+      }, 6000);
     } catch (error) {
+      setStoriesRefreshing(false);
       LogError({
         error: error,
         scenario: "Upload Image Story",
       });
-      showErrorNotification("Error Uploading Story");
+      showErrorNotification(translateFunction("Error Uploading Story"));
     }
   };
   const selectMedia = async ({ imageFile, link }) => {
@@ -352,6 +368,12 @@ export default function AddStoryWidget() {
     }
 
     if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+      if (file.type.startsWith("image/")) {
+        setImageToEdit(file);
+        setShowImageEditor(true);
+        return;
+      }
+
       setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -360,6 +382,29 @@ export default function AddStoryWidget() {
       reader.readAsDataURL(file);
     }
   };
+
+  const handleEditedImageSave = (editedImage: File) => {
+    setSelectedFile(editedImage);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+      setShowImageEditor(false);
+      setImageToEdit(null);
+    };
+    reader.readAsDataURL(editedImage);
+  };
+
+  const closeImageEditor = () => {
+    setShowImageEditor(false);
+    setImageToEdit(null);
+    const fileInput = document.querySelector<HTMLInputElement>(
+      "#stories-input-holder",
+    );
+    if (fileInput) {
+      fileInput.value = "";
+    }
+  };
+
   const onClose = () => {
     setLoading(false);
     setIsSelected(null);
@@ -368,9 +413,12 @@ export default function AddStoryWidget() {
     setLink("");
     setLinkError(null);
     setOpenCamera(false);
+    setShowImageEditor(false);
+    setImageToEdit(null);
     setSelectedFile(null);
     setPreview(null);
     setAddStory(null);
+    setStoriesRefreshing(false);
   };
   const handleCameraClick = async () => {
     if (cameraPermissions === "revoked") {
@@ -456,6 +504,13 @@ export default function AddStoryWidget() {
   if (!addStoryEnable) return <></>;
   return (
     <>
+      {showImageEditor && imageToEdit && (
+        <ImageCropWidget
+          image={imageToEdit}
+          onSave={handleEditedImageSave}
+          onClose={closeImageEditor}
+        />
+      )}
       <SearchParamUpdater searchKey="StoryModal" searchValue="true" />
       {OpenCamera && (
         <NewStoryModal
@@ -468,8 +523,9 @@ export default function AddStoryWidget() {
             // @ts-ignore
             handleFileSelect({ target: { files: [a] } });
           }}
-          HandleUploadedVideo={(e) => {
-            //   HandleUploadedVideo({ target: { files: [a] } });
+          HandleUploadedVideo={(videoFile) => {
+            // Convert to a pseudo ChangeEvent target structure expected by handleFileSelect
+            handleFileSelect({ target: { files: [videoFile] } } as any);
           }}
           close={() => {
             setOpenCamera(false);
@@ -598,7 +654,6 @@ export default function AddStoryWidget() {
           id="stories-input-holder"
           type="file"
           accept=".jpg,.jpeg,.png,.gif,.mp4,.mov,.3gp,.avi"
-          
           onChange={(e) => {
             handleFileSelect(e);
           }}

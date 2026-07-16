@@ -18,27 +18,24 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
   const isRtl = language === "ar" || language === "ku";
 
   try {
-    // Get user token from cookies if available
-    const STORIES_TOKEN = await getCookieServer<UserData>(
+    // Profile blob (USER_STORIES) for display; auth from the dedicated
+    // STORIES_TOKEN cookie, consistent with the proxy and fetchStoriesForUser.
+    const userData = await getCookieServer<UserData>(
       COOKIE_NAMES.USER_STORIES,
+    );
+    const storiesToken = await getCookieServer<string>(
+      COOKIE_NAMES.STORIES_TOKEN,
     );
     let storiesData, next_page_url;
 
     // Fetch stories data
-    if (STORIES_TOKEN?.access_token) {
-      storiesData = await fetchStoriesForUser(
-        language,
-        country,
-        1,
-        STORIES_TOKEN?.access_token,
-      );
+    if (storiesToken) {
+      storiesData = await fetchStoriesForUser(language, country, 1, storiesToken);
     } else {
       storiesData = await fetchStoriesForGuest(language, country, 1);
     }
     next_page_url = storiesData.next_page_url;
     storiesData = storiesData.data;
-
-    let userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
     return (
       <>
         {/* Adding Widget */}

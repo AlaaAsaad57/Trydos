@@ -1,4 +1,6 @@
+"use client";
 import React from "react";
+import { useAppStore } from "store";
 import NextLink from "components/global/NextLink";
 import {
   GetImageUrl,
@@ -10,7 +12,7 @@ import InfiniteScrollFilters from "components/ListingPage/filterComponents/Infin
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
-import { getConfiguredImage, RoundPrice } from "utils/functions";
+import { getConfiguredImage, RoundPrice } from "utils/server";
 
 import FilterItem from "components/ListingPage/FilterItem";
 
@@ -22,12 +24,24 @@ function FilterList({
   isFeatured,
   isFlashDeals,
   itemsLength,
+  searchText = "",
 }: any) {
   // Use parsedFilters if available, otherwise use searchParams for backward compatibility
   const filterParams = parsedFilters;
   const isUsingParsedFilters = Boolean(parsedFilters);
+  // "Load more filters" (InfiniteScrollFilters → GetNextPageFilters) must page
+  // within the active search. buildParamsFromFilters/getFilterStateForItem ignore
+  // search_text, and FilterItem reads the live query itself, so adding it here only
+  // scopes the paging fetch — it does not affect chip hrefs or active state.
+  const filterParamsForPaging = searchText
+    ? { ...parsedFilters, search_text: searchText }
+    : parsedFilters;
   const language = params.lang.split("-")?.[1];
   const isRtl = language === "ar" || language === "ku";
+  // While a filter re-navigation is in flight, keep the real filter chrome on
+  // screen but dim it and make it non-interactive — the grid below swaps to
+  // skeletons (SortableGrid). Cleared when the new listing arrives.
+  const isFilterPending = useAppStore((s) => !!s.isNavigating?.is_filter);
   const parseFiltersFunction = () => {
     if (filterParams?.Search)
       return { ...filterParams, Search: parsedFilters?.search };
@@ -35,7 +49,14 @@ function FilterList({
   };
 
   return (
-    <>
+    <div
+      className="w-full flex-col"
+      style={{
+        opacity: isFilterPending ? 0.45 : 1,
+        pointerEvents: isFilterPending ? "none" : "auto",
+        transition: "opacity 0.2s ease",
+      }}
+    >
       {/* Related Categories Section */}
 
       {/* ...existing code... */}
@@ -60,8 +81,8 @@ function FilterList({
             id="filter-list-row-container"
             className={`$${
               isRtl
-                ? "flex-row-reverse flex mr-11.25"
-                : "flex-row flex ml-11.25"
+                ? "flex-row-reverse flex mr-[45px]"
+                : "flex-row flex ml-[45px]"
             }  items-center pr-5   justify-start align-start filter-container overflow-auto scroll-smooth`}
           >
             {(Object.keys(filters) as any)
@@ -76,6 +97,7 @@ function FilterList({
                 if (
                   filter !== "search_text" &&
                   filter !== "boutiques" &&
+                  filter !== "related_categories" &&
                   filters[filter] &&
                   filters[filter]?.length > 0
                 )
@@ -87,7 +109,7 @@ function FilterList({
                       isRtl={isRtl}
                       params={params}
                       currency={currency}
-                      filterParams={filterParams}
+                      filterParams={filterParamsForPaging}
                       isUsingParsedFilters={isUsingParsedFilters}
                       items={filters[filter]}
                       key={filter}
@@ -104,8 +126,9 @@ function FilterList({
         filterParams={parseFiltersFunction()}
         isUsingParsedFilters={isUsingParsedFilters}
         filters={filters}
+        searchText={searchText}
       />
-    </>
+    </div>
   );
 }
 
@@ -116,6 +139,7 @@ interface ActiveFiltersBarProps {
   isUsingParsedFilters: boolean;
   filters: any;
   params: any;
+  searchText?: string;
 }
 
 const ActiveFiltersBar = ({
@@ -124,46 +148,66 @@ const ActiveFiltersBar = ({
   isUsingParsedFilters,
   filters,
   params,
+  searchText = "",
 }: ActiveFiltersBarProps) => {
+  // The search chip is display-only, like the other active-filter chips. There is
+  // no per-chip remove: the leading "clear all" reset (getResetUrl) clears every
+  // applied filter INCLUDING the search (it navigates to a clean path with no
+  // ?search=).
   let activeFilters: any = {};
 
   if (isUsingParsedFilters) {
     // Handle new parsedFilters format
     activeFilters = Object.keys(filterParams).reduce((acc, key) => {
-      return {
-        ...acc,
-        [key]:
-          key === "Search"
-            ? filterParams[key][0] // Get first element for search text
-            : filterParams[key], // Array is already parsed
-      };
+      acc[key] =
+        key === "Search"
+          ? filterParams[key][0] // Get first element for search text
+          : filterParams[key]; // Array is already parsed
+      return acc;
     }, {});
   } else {
     // Handle old searchParams format
     activeFilters = Object.keys(filterParams).reduce((acc, key) => {
-      return {
-        ...acc,
-        [key]:
-          key === "Search"
-            ? filterParams[key]
-            : JSON.parse(decodeURIComponent(filterParams[key])),
-      };
+      acc[key] =
+        key === "Search"
+          ? filterParams[key]
+          : JSON.parse(decodeURIComponent(filterParams[key]));
+      return acc;
     }, {});
   }
 
-  const getItemData = ({ value, arr, key, isCategory = false }) => {
-    let selected_filters_array = Array.isArray(arr) ? [...arr] : [];
-    if (isCategory) {
-      selected_filters_array.forEach((category) => {
-        category?.childes?.map((child_category) => {
-          selected_filters_array.push(child_category);
-          child_category?.childes?.map((child_child) => {
-            selected_filters_array.push(child_child);
-          });
-        });
-      });
+  // Flatten the category tree (self + children + grandchildren) once per
+  // render instead of re-flattening it on every getItemData({isCategory:true})
+  // call (previously ~7x per active category).
+  const categoryBySlug = new Map<string, any>();
+  (filters?.categories ?? []).forEach((category) => {
+    if (category?.slug !== undefined && !categoryBySlug.has(category.slug)) {
+      categoryBySlug.set(category.slug, category);
     }
+    category?.childes?.forEach((child_category) => {
+      if (
+        child_category?.slug !== undefined &&
+        !categoryBySlug.has(child_category.slug)
+      ) {
+        categoryBySlug.set(child_category.slug, child_category);
+      }
+      child_category?.childes?.forEach((child_child) => {
+        if (
+          child_child?.slug !== undefined &&
+          !categoryBySlug.has(child_child.slug)
+        ) {
+          categoryBySlug.set(child_child.slug, child_child);
+        }
+      });
+    });
+  });
+
+  const getItemData = ({ value, arr, key, isCategory = false }) => {
     try {
+      if (isCategory) {
+        return categoryBySlug.get(value);
+      }
+      const selected_filters_array = Array.isArray(arr) ? arr : [];
       if (key)
         return selected_filters_array.find((item) => item[key] === value);
       else return selected_filters_array.find((item) => item === value);
@@ -341,7 +385,10 @@ const ActiveFiltersBar = ({
     );
   };
 
-  if (activeFilters && Object.keys?.(activeFilters)?.length === 0) return <></>;
+  const hasAnyActiveFilter = Object.keys(activeFilters).some(
+    (key) => activeFilters[key]?.length > 0,
+  );
+  if (!hasAnyActiveFilter && !(searchText?.length > 0)) return <></>;
 
   // Check if only one boutique is selected and no other filters
   const hasOnlyOneBoutique = activeFilters?.boutiques?.length === 1;
@@ -350,10 +397,12 @@ const ActiveFiltersBar = ({
   ).length;
 
   // If only one boutique and no other filters, don't show ActiveFiltersBar
-  if (hasOnlyOneBoutique && otherFiltersCount === 0) {
+  if (hasOnlyOneBoutique && otherFiltersCount === 0 && !(searchText?.length > 0)) {
     return <></>;
   }
 
+  // Global clear-all: getResetUrl() returns a clean PATH with no query string, so
+  // it inherently drops ?search= (Req 2). Never append the active query here.
   // Determine reset URL based on boutique filters
   const getResetUrl = () => {
     if (activeFilters?.boutiques?.length === 1) {
@@ -585,6 +634,7 @@ const ActiveFiltersBar = ({
                     {RoundPrice({
                       num: activeFilters?.prices?.[0],
                       rate: currency?.exchange_rate,
+                      points:currency?.decimal_digits,
                       language: language,
                     })}
                   </span>
@@ -593,6 +643,7 @@ const ActiveFiltersBar = ({
                     {RoundPrice({
                       num: activeFilters?.prices?.[1],
                       rate: currency?.exchange_rate,
+                      points: currency?.decimal_digits,
                       language: language,
                     })}
                   </span>
@@ -620,16 +671,14 @@ const ActiveFiltersBar = ({
           ))}
         </>
       )}
-      {activeFilters?.search_text?.length > 0 && (
+      {searchText?.length > 0 && (
         <>
           <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           <span>
             <img src="/icons/Search.svg" className="scale-75" />
           </span>
-          <div className="category-title filter-bar-main-title  text-[#5d5d5d]">
-            {typeof activeFilters?.search_text?.[0] === "string"
-              ? pollinateInput(activeFilters?.search_text?.[0])
-              : ""}
+          <div className="category-title filter-bar-main-title text-[#5d5d5d]">
+            {typeof searchText === "string" ? pollinateInput(searchText) : ""}
           </div>
         </>
       )}
@@ -733,6 +782,9 @@ const FilterItemsRow = ({
             filters={filterParams}
             country={country}
             language={language}
+            isRtl={isRtl}
+            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+            isUsingParsedFilters={isUsingParsedFilters}
             // key={JSON.stringify(filterParams)}
           />
         )}

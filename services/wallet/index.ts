@@ -411,7 +411,7 @@ export async function GetWalletBalanceInCurrency({
     local: local,
     url:
       process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
-      `/wallets/my/balances/${currencyId}?${params.toString()}`,
+      `/wallets/my/balances/${currencyId}?${params?.toString()}`,
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -428,58 +428,7 @@ export async function GetWalletBalanceInCurrency({
   );
 }
 
-export async function GetJournalEntries({
-  local = "gb-en",
-  handleUnauthenticated = () => {},
-}: {
-  local?: string;
-  handleUnauthenticated?: () => void;
-}) {
-  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
-  let response: FetchResponse<GetJournalEntriesApi> = await fetchServerData({
-    method: "GET",
-    local: local,
-    url:
-      process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
-      `/wallets/my/journal-entries`,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
 
-  return processResponse<GetJournalEntriesApi>(
-    response,
-    handleUnauthenticated,
-    {
-      scenario: "GetJournalEntries in wallet system",
-      userId: "server",
-    },
-  );
-}
-
-export async function GetTransactions({
-  local = "gb-en",
-  handleUnauthenticated = () => {},
-}: {
-  local?: string;
-  handleUnauthenticated?: () => void;
-}) {
-  let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
-  let response: FetchResponse<GetTransactionsApi> = await fetchServerData({
-    method: "GET",
-    local: local,
-    url:
-      process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/wallets/my/transactions`,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return processResponse<GetTransactionsApi>(response, handleUnauthenticated, {
-    scenario: "get transactions",
-    userId: "server",
-  });
-}
 
 export async function CheckoutOrder({
   cartId,
@@ -534,37 +483,10 @@ export async function CheckoutOrder({
         "X-Timestamp": timestamp,
       },
     });
-    console.log({
-      url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/merchant/checkout`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "X-Merchant-Api-Key": process.env.WALLET_PUBLIC_API_KEY,
-        "X-Signature": signature,
-        "X-Timestamp": timestamp,
-      },
-      message: message,
-      digest: digest,
-      body: checkoutPayload,
-      timestamp: timestamp,
-      signature: signature,
-      response: response,
-    });
     if (!response.success) {
-      return {
-        url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/merchant/checkout`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "X-Merchant-Api-Key": process.env.WALLET_PUBLIC_API_KEY,
-          "X-Signature": signature,
-          "X-Timestamp": timestamp,
-        },
-        message: message,
-        digest: digest,
-        body: checkoutPayload,
-        timestamp: timestamp,
-        signature: signature,
-        response: response,
-      };
+      // Do NOT return request headers/token/signature to the client (or log them).
+      // A minimal, non-sensitive failure sentinel is all the UI needs.
+      return { paymentFailed: true };
     }
     return processResponse<CheckoutOrderApi>(response, handleUnauthenticated, {
       scenario: "CheckoutOrder in wallet system",
@@ -586,10 +508,10 @@ export async function GetWalletBalanceForCountryCurrency({ country }) {
     getCurrency(country, "en"),
     getCurrencies({ local: `${country}-en` }),
   ]);
-  if (!currency) {
+  if (!currency||!currencies) {
     throw new Error("Currency not found for country: " + country);
   }
-  let selected_currency = currencies.items.find(
+  let selected_currency = currencies?.items?.find(
     (c) => c.symbol === currency.code,
   );
   let balances = await GetWalletBalanceInCurrency({

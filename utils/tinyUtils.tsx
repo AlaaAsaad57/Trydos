@@ -1,7 +1,8 @@
 import { useAppStore } from "store";
 import { LogError, translateFunction } from "./functions";
+import { posthogReset } from "./posthog";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
-import { fetchData } from "./fetchData";
+import { fetchData, abortInFlightForLogout } from "./fetchData";
 import Image from "next/image";
 import { REQUESTS_DATA } from "./Requests";
 
@@ -15,7 +16,14 @@ export const ChatConroller = (payload) => {
   } catch (error) {}
 };
 export const clearAllUserData = async () => {
+  // Stop every in-flight authed request NOW so none of them can resolve a 401
+  // mid-logout and trigger a re-register. Runs after FCM-token removal (done
+  // earlier in handleLogout) and does not affect this bare logout fetch.
+  abortInFlightForLogout();
   await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+  // Break the PostHog identity link so the next guest session isn't stitched
+  // onto the user who just logged out (fresh anonymous distinct_id + session).
+  posthogReset();
   sessionStorage.clear();
   localStorage.clear();
   document.cookie = "";
@@ -23,7 +31,7 @@ export const clearAllUserData = async () => {
 export const getCurrency = async ({ callback }) => {
   try {
     let response = await fetchData({
-      url: "/mobile/home/currency",
+      url: "/home/currency",
       reqTitle: REQUESTS_DATA.CURRENCY_REQUEST,
       method: "GET",
       server: "market",
@@ -32,8 +40,8 @@ export const getCurrency = async ({ callback }) => {
     if (!response.success) {
       throw new Error(response.message);
     }
-    callback({ currency: response.data?.currency, res: {} });
-    return response.data?.currency;
+    callback({ currency: response.data, res: {} });
+    return response.data;
   } catch (err) {
     LogError({
       scenario: "getCurrency in ProductPageData",
@@ -43,10 +51,42 @@ export const getCurrency = async ({ callback }) => {
     return null;
   }
 };
-export const FlagIcon = ({ iso }) => {
+
+export const VALID_ISO=[
+  "AF", "AL", "DZ", "AS", "AD", "AO", "AI", "AQ", "AG", "AR", 
+  "AM", "AW", "AU", "AT", "AZ", "BS", "BH", "BD", "BB", "BY", 
+  "BE", "BZ", "BJ", "BM", "BT", "BO", "BQ", "BA", "BW", "BV", 
+  "BR", "IO", "BN", "BG", "BF", "BI", "CV", "KH", "CM", "CA", 
+  "KY", "CF", "TD", "CL", "CN", "CX", "CC", "CO", "KM", "CD", 
+  "CG", "CK", "CR", "HR", "CU", "CW", "CY", "CZ", "CI", "DK", 
+  "DJ", "DM", "DO", "EC", "EG", "SV", "GQ", "ER", "EE", "SZ", 
+  "ET", "FK", "FO", "FJ", "FI", "FR", "GF", "PF", "TF", "GA", 
+  "GM", "GE", "DE", "GH", "GI", "GR", "GL", "GD", "GP", "GU", 
+  "GT", "GG", "GN", "GW", "GY", "HT", "HM", "VA", "HN", "HK", 
+  "HU", "IS", "IN", "ID", "IR", "IQ", "IE", "IM", "IL", "IT", 
+  "JM", "JP", "JE", "JO", "KZ", "KE", "KI", "KP", "KR", "KW", 
+  "KG", "LA", "LV", "LB", "LS", "LR", "LY", "LI", "LT", "LU", 
+  "MO", "MG", "MW", "MY", "MV", "ML", "MT", "MH", "MQ", "MR", 
+  "MU", "YT", "MX", "FM", "MD", "MC", "MN", "ME", "MS", "MA", 
+  "MZ", "MM", "NA", "NR", "NP", "NL", "NC", "NZ", "NI", "NE", 
+  "NG", "NU", "NF", "MP", "NO", "OM", "PK", "PW", "PS", "PA", 
+  "PG", "PY", "PE", "PH", "PN", "PL", "PT", "PR", "QA", "MK", 
+  "RO", "RU", "RW", "RE", "BL", "SH", "KN", "LC", "MF", "PM", 
+  "VC", "WS", "SM", "ST", "SA", "SN", "RS", "SC", "SL", "SG", 
+  "SX", "SK", "SI", "SB", "SO", "ZA", "GS", "SS", "ES", "LK", 
+  "SD", "SR", "SJ", "SE", "CH", "SY", "TW", "TJ", "TZ", "TH", 
+  "TL", "TG", "TK", "TO", "TT", "TN", "TR", "TM", "TC", "TV", 
+  "UG", "UA", "AE", "GB", "UM", "US", "UY", "UZ", "VU", "VE", 
+  "VN", "VG", "VI", "WF", "EH", "YE", "ZM", "ZW", "AX"
+]
+export const FlagIcon = ({ iso ,isFromProductPage=false}) => {
+  if(!VALID_ISO.includes(iso?.toUpperCase())) return <></>
   if (iso.toLowerCase() === "sy")
     return (
       <Image
+        style={isFromProductPage?{
+          maxHeight:'14px'
+        }:{}}
         src="/icons/flag/sy.svg"
         alt={translateFunction("sy") || "sy"}
         width={25}
@@ -56,6 +96,9 @@ export const FlagIcon = ({ iso }) => {
 
   return (
     <Image
+       style={isFromProductPage?{
+          maxHeight:'14px'
+        }:{}}
       src={`/icons/flag/${iso?.toLowerCase()}.svg`}
       alt={translateFunction(iso) || "iso"}
       width={25}
@@ -208,22 +251,23 @@ export const GetAddressString = (location) => {
 };
 export const GetImageUrl = (url) => {
   if (url?.file_path) {
-    if (url?.file_path?.includes("cloudinary")) {
+    if (url?.file_path?.includes("media_server")) {
       return url?.file_path;
     } else {
-      return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url?.file_path;
+      return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url?.file_path;
     }
   }
   if (!url || typeof url !== "string") return url;
   if (url && url?.includes("http")) return url;
-  return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url;
+  // Go returns a bare sub_path (e.g. "customers/profile/x.jpg") with no leading
+  // slash, whereas legacy Laravel returned a full URL / leading-slash path.
+  // Ensure exactly one slash between the media base and a relative path so both
+  // forms resolve correctly.
+  return (
+    process.env.NEXT_PUBLIC_BASE_MEDIA_URL + (url.startsWith("/") ? url : "/" + url)
+  );
 };
-/**
- * Get the best Cloudinary video URL with optional clip segment and size.
- * @param input - Cloudinary video URL or public ID (e.g., 'folder/video.mp4' or full URL)
- * @param options - Optional: { start?: number (seconds), end?: number (seconds), width?: number, height?: number }
- * @returns Cloudinary video URL with best quality, size, and optional clip
- */
+
 export const getVideoUrl = (
   input: string,
   options?: {
@@ -253,7 +297,6 @@ export const getVideoUrl = (
 
   const transformStr = transformations.join(",");
 
-  // If input is a full Cloudinary URL, insert the transformation after '/upload/' and before '/v1/'
   if (input.startsWith("http") && input.includes("/video/upload/")) {
     return input.replace(
       /\/video\/upload\/(v\d+)?/,
@@ -261,9 +304,8 @@ export const getVideoUrl = (
     );
   }
 
-  // Otherwise, treat input as public ID and build the correct format
-  const cloudinaryBase = "https://res.cloudinary.com/dtcmozf4d/video/upload/";
-  const version = "v1";
+  const mediaBase = process.env.NEXT_PUBLIC_BASE_VIDEO_MEDIA_URL;
+  // const version = "v1";
   const folder = "product/videos";
 
   // Remove any leading slash and ensure .mp4 extension
@@ -272,7 +314,8 @@ export const getVideoUrl = (
     filename = `${filename}.mp4`;
   }
 
-  return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
+
+  return `${mediaBase}${transformStr}/${folder}/${filename}`;
 };
 export const ShowNotificationSign = ({
   order_group_id = null,
@@ -301,21 +344,16 @@ export const buildParamsFromFilters = (
     "colors",
     "sizes",
     "prices",
-    "search",
   ];
 
   filterOrder.forEach((filterType) => {
     const values = filters[filterType];
     if (values && values.length > 0) {
       // Add filter type
-      const paramName = filterType === "search" ? "search" : filterType;
-      params.push(paramName);
+      params.push(filterType);
 
       // Add values
-      if (filterType === "search") {
-        // Search is a single value
-        params.push(encodeURIComponent(values[0]));
-      } else if (filterType === "colors") {
+      if (filterType === "colors") {
         // Colors should be hex without #
         const colorValues = values.map((color) =>
           color.startsWith("#") ? color.substring(1) : color,
@@ -697,3 +735,10 @@ export const sanitizePhone = (value: string) => {
   // Re-add a single + if the input originally started with one
   return hasPlus ? "+" + cleaned : cleaned;
 };
+
+export const isGuestName = (name?: string): boolean => {
+  if (!name) return false;
+  const lower = name.toLowerCase().trim();
+  return lower === "guest" || lower === "verified_guest" || lower === "verfied_guest";
+};
+

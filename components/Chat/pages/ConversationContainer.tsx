@@ -20,7 +20,6 @@ import ChatSearch from "../components/ChatSearch";
 import { dataURLtoFile, upload, getUser } from "../chatsFunctions";
 import {
   GetChatDetails,
-  getMessagesBetweenMessage,
   getMessagesBetweenTwoMessages,
   getPage,
   SendMessage,
@@ -36,6 +35,7 @@ import CustomPopup from "components/global/Popup";
 import ChatImagePreviewBeforeSend from "../components/ChatImagePreviewBeforeSend";
 import MediaMessagePreview from "../components/MediaMessagePreview";
 import { Message } from "utils/types/chat";
+import { trackPosthog, CHAT_EVENTS } from "utils/posthogEvents";
 
 /* -------------------------- Dynamic Components --------------------------- */
 
@@ -353,6 +353,12 @@ function ConversationContainer({
       });
       // @ts-ignore – original util returns promise
       SendMessage(sendPayload, false, isPrivate);
+      trackPosthog(CHAT_EVENTS.CHAT_MESSAGE_SENT, {
+        conversation_id: activeChat?.id,
+        message_type: type,
+        is_order_chat: !!isPrivate,
+        is_reply: !!replyMessage,
+      });
     } catch (err) {
       LogError({
         error: err,
@@ -398,6 +404,12 @@ function ConversationContainer({
         false,
         isPrivate,
       );
+      trackPosthog(CHAT_EVENTS.CHAT_MESSAGE_SENT, {
+        conversation_id: activeChat?.id,
+        message_type: "TextMessage",
+        is_order_chat: !!isPrivate,
+        is_reply: !!replyMessage,
+      });
     } catch (error) {
       LogError({
         error: error,
@@ -870,8 +882,17 @@ function ConversationContainer({
               imgs,
               close: () => enableCamera(false),
               save: setImgs,
-              send: (d: string) => {
-                sendCameraImg(d);
+              send: (d: string | File) => {
+                if (typeof d === "string") {
+                  sendCameraImg(d);
+                } else if (d instanceof File) {
+                  if (d.type.includes("video")) {
+                    const midLocal = "m" + Math.random().toString().replace(".", "");
+                    handleMediaMessage(d, "VideoMessage", midLocal);
+                  } else {
+                    setPendingImageFile(d);
+                  }
+                }
                 enableCamera(false);
               },
             } as any;
@@ -1107,7 +1128,7 @@ function ConversationContainer({
                     />
                     <div className="input-chat-container">
                       <label htmlFor="type" className="hidden">
-                        Type
+                        {translateFunction("Type")}
                       </label>
                       <input
                         id="type"

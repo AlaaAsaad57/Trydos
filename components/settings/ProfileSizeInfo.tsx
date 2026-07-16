@@ -22,9 +22,7 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
   };
 
   const [userProfileData, setUserProfileData] = useState({
-    email: initialData?.email,
-    name: initialData?.name,
-    image: initialData?.image,
+   
     tall: initialData?.tall,
     weight: initialData?.weight,
   });

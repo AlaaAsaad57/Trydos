@@ -9,18 +9,18 @@ function BoutiqueLoader({ boutique, isForSearch = false }) {
   const isRtl = language === "ar" || language === "ku";
 
   return (
-    <div
-      style={{
-        zIndex: "99999999999999",
-        top: isForSearch ? "150px" : "100px",
-      }}
-      className="fixed max-w-[1365px] mx-auto flex-col bg-[#fafafa] min-h-screen flex    w-screen  overflow-hidden"
-    >
+    <div className="w-full flex-col flex bg-[#fafafa] overflow-hidden">
       <div
         data-cy="filter_listing_bar"
-        className={`filter-listing-bar z-99999999 relative ${
+        // The real bar is `position: sticky` with a high z-index so it pins under
+        // the navbar while the grid scrolls. In a static loading skeleton that only
+        // makes the white bar float OVER the filter circles when the page isn't at
+        // scroll 0. Force plain in-flow positioning (inline style beats the CSS
+        // class) so the skeleton can never overlap the rows beneath it.
+        style={{ position: "relative", top: "auto", zIndex: 1 }}
+        className={`filter-listing-bar ${
           isRtl ? "flex-row-reverse flex" : "flex-row flex"
-        } align-center left-0 right-0 mx-auto w-full h-[50px] max-w-[1365px] pl-[15px] pr-[20px] justify-between bg-white z-10`}
+        } align-center left-0 right-0 mx-auto w-full h-[50px] max-w-[1365px] pl-[15px] pr-[20px] justify-between bg-white`}
       >
         <span></span>
 

@@ -29,14 +29,19 @@ export default function ChatWidget({
   }, []);
   useEffect(() => {
     return () => {
-      const cleanupUrl = new URL(window.location.href);
-
-      // Remove the query param
-      cleanupUrl.searchParams.delete("chat_id");
-      const { isNavigating } = useAppStore.getState();
       setTimeout(() => {
-        if (!isNavigating)
-          window.history.pushState({}, "", cleanupUrl.toString());
+        const { isNavigating } = useAppStore.getState();
+        if (isNavigating) return;
+
+        // Read the location at FIRE time, not at cleanup time — otherwise a
+        // navigation during the 600ms delay would let this re-push the stale
+        // (pre-navigation) URL and, via Next's patched history.pushState,
+        // soft-navigate the user back. Only act if the param is still present.
+        const cleanupUrl = new URL(window.location.href);
+        if (!cleanupUrl.searchParams.has("chat_id")) return;
+
+        cleanupUrl.searchParams.delete("chat_id");
+        window.history.pushState({}, "", cleanupUrl.toString());
       }, 600);
     };
   }, []);

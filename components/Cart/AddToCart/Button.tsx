@@ -9,6 +9,7 @@ import { getCart, LogError, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { DetectScreen } from "utils/tinyUtils";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
 function AddToCartButton({
   colors,
@@ -24,9 +25,47 @@ function AddToCartButton({
   product,
   reachedMaxQty,
   initialLoading,
-  expireLuck,
+  colorChanged,
+  sizeChanged,
 }) {
   const { localCart, currency } = useAppStore();
+  // Enriched add-to-cart context for PostHog: which variant the user picked,
+  // whether they changed color/size, the deal type, and the source surface
+  // (home / product / search-filter / boutique — via DetectScreen).
+  const addToCartProps = (quantity: number, productVariationId: any) => {
+    const offer = product?.is_luck
+      ? selectedVariant?.luck_price
+      : selectedVariant?.offer_price;
+    const original = product?.price ?? selectedVariant?.price;
+    return {
+      product_id: id,
+      item_name: product?.name,
+      brand: product?.brand?.name,
+      brand_id: product?.brand?.id,
+      category: product?.categories?.[0]?.name,
+      category_id: product?.categories?.[0]?.id,
+      variant: productVariationId,
+      quantity,
+      price: offer,
+      original_price: original,
+      has_discount:
+        typeof original === "number" &&
+        typeof offer === "number" &&
+        original > offer,
+      is_flash_deal: Boolean(
+        product?.flash_deal_end_date || product?.flash_deal_details,
+      ),
+      is_luck: Boolean(product?.is_luck),
+      color_changed: Boolean(colorChanged),
+      size_changed: Boolean(sizeChanged),
+      selected_color:
+        selectedColor?.color_option ??
+        selectedColor?.color_name ??
+        selectedColor,
+      selected_size: selectedSize?.option ?? selectedSize?.name ?? selectedSize,
+      source: DetectScreen(),
+    };
+  };
   const IsValid = () => {
     let color_valid = false,
       size_valid = false;
@@ -42,6 +81,35 @@ function AddToCartButton({
   };
 
   const canAddMore = () => IsValid() && !reachedMaxQty();
+
+  // Numerator-of-intent for the add-to-cart funnel: fires on every tap of the
+  // "Add To Bag" button (before validation), so taps that fail because no
+  // size/color was picked, or max qty was hit, are still captured. Outcome is
+  // recorded in props (is_valid / reached_max / already_in_cart).
+  const trackBuyClicked = () => {
+    const productVariationId =
+      selectedVariant?.product_variation_id ??
+      selectedVariant?.id ??
+      selectedVariant?.variation_id ??
+      null;
+    trackOrder(ORDER_EVENTS.ADD_TO_CART_BUY_CLICKED, {
+      product_id: id,
+      item_name: product?.name,
+      brand: product?.brand?.name,
+      category: product?.categories?.[0]?.name,
+      variant: productVariationId,
+      selected_color:
+        selectedColor?.color_option ??
+        selectedColor?.color_name ??
+        selectedColor,
+      selected_size: selectedSize?.option ?? selectedSize?.name ?? selectedSize,
+      is_valid: IsValid(),
+      reached_max: reachedMaxQty(),
+      already_in_cart: Boolean(isVariantInCart({ exact: false })),
+      is_luck: Boolean(product?.is_luck),
+      source: DetectScreen(),
+    });
+  };
 
   const Validate = () => {
     if (reachedMaxQty()) {
@@ -182,6 +250,13 @@ function AddToCartButton({
             screen_path: window.location.pathname,
           },
         });
+        trackOrder(
+          ORDER_EVENTS.ADD_TO_CART,
+          addToCartProps(
+            (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
+            productVariationId,
+          ),
+        );
 
         animateText("Added To Your Bag");
         await updateQuantity(
@@ -217,7 +292,7 @@ function AddToCartButton({
             ? selectedVariant?.luck_price
             : selectedVariant?.offer_price,
         });
-        expireLuck();
+        if (product?.is_luck) useAppStore.getState().expireLuck(id);
 
         if (val) {
           GAevent({
@@ -245,6 +320,7 @@ function AddToCartButton({
               screen_path: window.location.pathname,
             },
           });
+          trackOrder(ORDER_EVENTS.ADD_TO_CART, addToCartProps(1, productVariationId));
           animateText("Added To Your Bag");
           await updateQuantity(true, productVariationId, "add");
           await getCart({
@@ -313,6 +389,14 @@ function AddToCartButton({
             ],
           },
         });
+        trackOrder(ORDER_EVENTS.CART_ITEM_REMOVED, {
+          product_id: product?.id,
+          item_name: product?.name,
+          variant: variant?.product_variation_id ?? variant?.id,
+          qty: 1,
+          unit_price: variant?.offer_price,
+          source: DetectScreen(),
+        });
         await getCart({
           callback: () => {},
         });
@@ -341,6 +425,7 @@ function AddToCartButton({
       <div
         onClick={(e) => {
           if ((e.target as any).closest(".minuse-qty-icon")) return false;
+          trackBuyClicked();
           let val = Validate();
           if (!val) return;
           if (!loading && !initialLoading) {

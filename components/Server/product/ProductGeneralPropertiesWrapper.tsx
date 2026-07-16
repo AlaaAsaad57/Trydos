@@ -1,16 +1,19 @@
 import ProductGeneralProperties from "components/products/ProductGeneralProperties";
 import { Suspense } from "react";
 import ProductRating from "./ProductRating";
-import { translateFunction } from "utils/server";
+import { madeInText, translateFunction } from "utils/server";
 import ProductViews from "components/products/ProductViews";
 import { GetProductGeneralData } from "serverRequests/product";
-import { FlagIcon } from "utils/tinyUtils";
+import { FlagIcon, VALID_ISO } from "utils/tinyUtils";
 
 async function ProductGeneralPropertiesWrapper({ globalData, language }) {
   let productGlobalData = await globalData;
   let product = await GetProductGeneralData({
     id: productGlobalData?.id,
   });
+  if(!productGlobalData?.id) return <></>;
+  const originIso = productGlobalData?.origin_country_iso;
+  const originText = madeInText(originIso, language);
   const TotalBuyers = () => {
     let total = 0;
     product?.ratingDetails?.map((s) => (total += s.count));
@@ -70,12 +73,12 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
           </>
         )}
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-        <div className="flex-row items-center product-property-row">
-          <FlagIcon iso={"tr"} />
-          <span className="mx-1">
-            {translateFunction("Made In Turkey", language)}
-          </span>
-        </div>
+       {originIso&&VALID_ISO.includes(originIso?.toUpperCase())&& <div className="flex-row items-center product-property-row" style={{
+        direction:language==='ar'||language==='ku'?'rtl':"ltr"
+       }}>
+          <FlagIcon iso={originIso?.toUpperCase()} isFromProductPage={true} />
+          <span className="mx-1">{originText}</span>
+        </div>}
       </ProductGeneralProperties>
     </Suspense>
   );

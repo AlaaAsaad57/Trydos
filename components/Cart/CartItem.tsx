@@ -16,7 +16,7 @@ function CartItem({ product, index }) {
           const settingsObj = JSON.parse(settingsStr);
           shippingDurationDays =
             parseInt(
-              settingsObj?.["starting-setting"]?.shipping_duration_days,
+              settingsObj?.["starting_setting"]?.shipping_duration_days,
             ) || 0;
           return shippingDurationDays;
         } catch (e) {

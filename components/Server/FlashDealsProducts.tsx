@@ -1,8 +1,8 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
-import { translateFunction } from "utils/functions";
+import { translateFunction } from "utils/server";
 
-import ProductWrapper from "components/ServerWrapper/ProductWrapper";
+import ProductCard from "components/products/ProductCard";
 
 function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
   const [country, language] = lang.split("-");
@@ -39,7 +39,7 @@ function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
           </svg>
         </span>
         <span className={`ml-[12px] ${isRtl ? "pr-2" : " "}`}>
-          {translateFunction("Flash Deals", lang.split("-")[1])}
+          {translateFunction("Flash Deals",language)}
         </span>
       </NextLink>
       <HortiznalScrollBar
@@ -48,33 +48,13 @@ function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
         dataCy="flashdeals-products-container"
       >
         {flashDealsProducts?.data?.products?.map((product, key) => (
-          <ProductWrapper
+          <ProductCard
             key={product?.product_id ?? product?.id}
-            category_tree={product?.categories?.map((s) => s.name)}
-            labels={product?.label_names}
-            InitialProductData={{ ...product, id: product?.product_id }}
-            country={country}
-            color={product?.sync_color_images?.[0]?.color_name}
-            images={product?.sync_color_images?.[0]?.images ?? product?.images}
-            videos={product?.videos}
-            name={product.name}
-            slug={product.slug}
-            Sliders={false}
-            brand={{
-              name: product.brand.name,
-              icon: product.brand.icon?.file_path ?? product?.brand,
-              is_verified: product.brand.is_verified,
-            }}
-            luck_price={product.luck_price}
+            product={product}
             currency={currency}
-            endDate={product.flash_deal_end_date}
-            flash_deal_price={product.flash_deal_price}
-            id={product.id}
-            is_flashDeal={product.flash_deal_end_date}
-            is_luck={product.is_luck}
+            country={country}
             language={language}
-            offer_price={product.offer_price}
-            price={product.price}
+            sliders={false}
           />
         ))}
         {flashDealsProducts?.data?.products?.length > 8 && (

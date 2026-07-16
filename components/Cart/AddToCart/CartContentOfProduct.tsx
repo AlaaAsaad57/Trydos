@@ -143,7 +143,7 @@ export default CartContentOfProduct;
 const ProductImageCircle = ({ image }) => {
   return (
     <div className="w-[13px] h-[13px] rounded-full relative">
-      <Image
+      <img
         src={GetImageUrl(
           getConfiguredImage({ src: image, width: 20, height: 20, q: 100 }),
         )}

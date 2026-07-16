@@ -1,5 +1,5 @@
 import React from "react";
-import { translateFunction } from "utils/functions";
+import { translateFunction } from "utils/server";
 
 function ProductImageIndicator({ language }) {
   return (

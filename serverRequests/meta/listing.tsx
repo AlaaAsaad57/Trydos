@@ -1,13 +1,15 @@
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import {
-  getConfiguredImage,
+  buildOgImageUrl,
   GetImageUrl,
   parseFiltersFromParams,
 } from "utils/server";
 import { trydosTranslations } from "./constants-meta";
 import { General_Site_Data } from "./StructuredData/Constants";
+import { buildAlternates } from "./buildAlternates";
 import { LogServerError } from "utils/serverErrorReporter";
 import { catalog_index } from "services/elastic/INDEXES";
+import { RedisGet, RedisSet } from "serverRequests/radis";
 
 const getMetadataLabels = async ({ parsedFilters, language }) => {
   const shouldQueries = [];
@@ -37,7 +39,7 @@ const getMetadataLabels = async ({ parsedFilters, language }) => {
       buildNestedShould("colors", "color", parsedFilters.colors),
     );
 
-  if (shouldQueries.length === 0) return { labels: {}, banner: null };
+  if (shouldQueries.length === 0) return { labels: {}, banner: null, categoryImage: null };
 
   try {
     const response: any = await client.search({
@@ -106,7 +108,15 @@ const getMetadataLabels = async ({ parsedFilters, language }) => {
               },
               aggs: {
                 top: {
-                  top_hits: { size: 1, _source: ["custom_categories.name"] },
+                  top_hits: {
+                    size: 1,
+                    _source: [
+                      "custom_categories.name",
+                      "custom_categories.flat_photo_path",
+                      "custom_categories.fill_photo_path",
+                      "custom_categories.outline_photo_path",
+                    ],
+                  },
                 },
               },
             },
@@ -180,6 +190,12 @@ const getMetadataLabels = async ({ parsedFilters, language }) => {
         description: bData?.description,
       },
       banner: bData?.banners?.[0]?.file_path || null,
+      // Category image, used as the OG fallback for category-only listings (no boutique banner).
+      categoryImage:
+        cData?.flat_photo_path ||
+        cData?.fill_photo_path ||
+        cData?.outline_photo_path ||
+        null,
     };
   } catch (error) {
     LogServerError({
@@ -187,29 +203,44 @@ const getMetadataLabels = async ({ parsedFilters, language }) => {
       error: error,
       scenario: "Error In getMetadataLabels in serverRequest/listing",
     });
-    return { labels: {}, banner: null };
+    return { labels: {}, banner: null, categoryImage: null };
   }
 };
 
-export async function generateMetadataForListing({ params }) {
+export async function generateMetadataForListing({
+  params,
+  routeBase = "filters",
+  searchText,
+}) {
   const { lang, filters: filterParams } = await params;
   const [country, language] = lang.split("-");
 
-  // جلب الترجمات الثابتة (مثل اسم الموقع)
+  // routeBase keeps the canonical/OG URL on the page's own path — this builder is shared
+  // by /filters, /featured and /flashDeals, so it must not hardcode "/filters".
+  const cacheKey = `meta-listing-${routeBase}-${lang}-${
+    filterParams?.join("-") || "none"
+  }-${searchText || "nosearch"}`;
+  const cached = await RedisGet(cacheKey);
+  if (cached) return cached;
+
   const t = trydosTranslations[language] || trydosTranslations.en;
 
   // تحويل المصفوفة إلى Object (يحتوي على الـ slugs والأسعار الخام)
   const parsedFilters = parseFiltersFromParams(filterParams || []);
 
   // جلب الأسماء المترجمة والبانر من Elasticsearch (استعلام الـ Aggs الخفيف)
-  const { labels, banner } = await getMetadataLabels({
+  const { labels, banner, categoryImage } = await getMetadataLabels({
     parsedFilters,
     language,
   });
 
   // بناء أجزاء العنوان بترتيب منطقي للـ SEO
   const titleParts = [
-    parsedFilters.search_text?.[0] ? `"${parsedFilters.search_text[0]}"` : null,
+    searchText
+      ? `"${searchText}"`
+      : parsedFilters.search_text?.[0]
+        ? `"${parsedFilters.search_text[0]}"`
+        : null,
     labels.boutique,
     labels.brand,
     labels.category,
@@ -232,34 +263,43 @@ export async function generateMetadataForListing({ params }) {
     ? labels.description.replace(/<[^>]*>/g, "").substring(0, 160)
     : t.listingDesc(finalTitle.split("|")[0].trim());
 
-  // بناء رابط صورة الـ OpenGraph (يفضل استخدام رابط الـ CDN الكامل)
-  const ogImage = banner
-    ? getConfiguredImage({ src: GetImageUrl(banner), width: 1200, height: 630 })
+  // Prefer the boutique banner, then the category image, before the static brand fallback.
+  const rawImageSource = banner ?? categoryImage;
+  const rawBannerUrl = rawImageSource ? GetImageUrl(rawImageSource) : null;
+  const ogImageUrl = rawBannerUrl
+    ? buildOgImageUrl(rawBannerUrl)
     : `${General_Site_Data.url}/opengraph-image.png`;
+  const ogImageMeta = rawBannerUrl
+    ? { url: ogImageUrl, width: 1200, height: 630, type: "image/jpeg" }
+    : { url: ogImageUrl, width: 1200, height: 630, type: "image/png" };
 
-  const currentUrl = `${General_Site_Data.url}/${lang}/filters/${
+  const currentUrl = `${General_Site_Data.url}/${lang}/${routeBase}/${
     filterParams?.join("/") || ""
   }`;
 
-  return {
+  const result = {
     title: finalTitle,
     description: cleanDescription,
-    alternates: {
-      canonical: currentUrl,
-    },
+    alternates: buildAlternates(
+      lang,
+      `/${routeBase}/${filterParams?.join("/") || ""}`,
+    ),
     openGraph: {
       title: finalTitle,
       description: cleanDescription,
       url: currentUrl,
       siteName: t.siteName,
-      images: [{ url: ogImage }],
+      images: [ogImageMeta],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: finalTitle,
       description: cleanDescription,
-      images: [ogImage],
+      images: [ogImageUrl],
     },
   };
+
+  await RedisSet(cacheKey, result, 300);
+  return result;
 }

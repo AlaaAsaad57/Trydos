@@ -1,6 +1,6 @@
 import React from "react";
 import ChatPhoto from "../../ChatPhoto";
-import { getUserChat } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 
 function RepliedFileMessage({ deleted_by_user_id, onClick, channel_member }) {
@@ -37,7 +37,7 @@ function RepliedFileMessage({ deleted_by_user_id, onClick, channel_member }) {
         </div>
         {deleted_by_user_id ? (
           <span className="message-body-text-content">
-            this message was deleted
+            {translateFunction("this message was deleted")}
           </span>
         ) : (
           <>
@@ -48,7 +48,7 @@ function RepliedFileMessage({ deleted_by_user_id, onClick, channel_member }) {
               height={20}
               src={"/icons/chat/output.png"}
             />{" "}
-            File
+            {translateFunction("File")}
           </>
         )}
       </div>

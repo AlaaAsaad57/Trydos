@@ -1,6 +1,5 @@
 "use client";
 import { useEffect } from "react";
-const Chat = dynamic(() => import("./ChatWindowModal"), { ssr: false });
 import { ChatConroller } from "utils/tinyUtils";
 import { SSRDetect } from "utils/functions";
 
@@ -9,6 +8,13 @@ import { useAppStore } from "store";
 import chat from "services/chat";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { trackPosthog, CHAT_EVENTS } from "utils/posthogEvents";
+import LandingPage from "components/Home/LandingPage";
+
+const Chat = dynamic(() => import("./ChatWindowModal"), {
+  ssr: false,
+  loading: () => <LandingPage afterLoad={true} />,
+});
 
 function ChatModal() {
   const { callInProgress, chatVar } = useAppStore();
@@ -26,6 +32,11 @@ function ChatModal() {
       },
     });
   }, []);
+  // PostHog-only: fire whenever the chat opens (chatVar → true) so it can anchor
+  // the chat → purchase / retention funnels. New event, no GA counterpart.
+  useEffect(() => {
+    if (chatVar) trackPosthog(CHAT_EVENTS.CHAT_OPENED);
+  }, [chatVar]);
   return (
     <>
       {chatVar && SSRDetect() && (

@@ -3,10 +3,8 @@ import { translateFunction } from "utils/server";
 
 import ProductBuyersCommentList from "./ProductBuyersCommentList";
 
-import {
-  GetProductBuyersComment,
-  GetRecommendationCountForProduct,
-} from "serverRequests/product";
+import { GetRecommendationCountForProduct } from "serverRequests/product";
+import { GetRatingCommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
 import { getCookieServer, COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
@@ -17,15 +15,16 @@ async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
     COOKIE_NAMES.USER_DATA,
   );
   let [buyersComments, recommendation_stats] = await Promise.all([
-    GetProductBuyersComment({
-      productId: productId,
+    GetRatingCommentsForProduct({
+      product_id: productId,
+      user_id: parsedUser?.id,
       language,
-      userId: parsedUser?.id,
+      pageSize: 5,
     }),
     GetRecommendationCountForProduct({ product_id: productId }),
   ]);
   const isRtl = language === "ar" || language === "ku";
-  if (buyersComments.comments.length === 0) return <></>;
+  if (buyersComments.buyers_comments.length === 0) return <></>;
   return (
     <>
       <div className={`w-full flex-col mt-[12px]`}>
@@ -74,15 +73,14 @@ async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
           </div>
         </BuyersCommentTopBar>
         <ProductBuyersCommentList
+          comments={buyersComments.buyers_comments}
           filterKeys={buyersComments.filters_key}
           recommendation_stats={recommendation_stats.stats}
           language={language}
           productId={productId}
-          offset={buyersComments.offset}
+          offset={buyersComments.searchAfter}
           loadMoreString={translateFunction("Load More", language)}
-        >
-          {buyersComments.comments}
-        </ProductBuyersCommentList>
+        />
       </div>
     </>
   );

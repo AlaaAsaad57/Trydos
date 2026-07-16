@@ -38,6 +38,9 @@ interface SearchTerm {
   count?: number;
 }
 
+/** Maximum URLs per sitemap file (sitemap protocol hard limit) */
+const SITEMAP_PAGE_SIZE = 50_000;
+
 /**
  * Get all active countries and languages from Elasticsearch for sitemap generation
  */
@@ -337,12 +340,6 @@ function getStaticPages(): StaticPage[] {
       change_frequency: "monthly",
       last_modified: 60,
     },
-    {
-      path: "/help",
-      priority: 0.4,
-      change_frequency: "weekly",
-      last_modified: 7,
-    },
   ];
 
   const pages: StaticPage[] = [];
@@ -399,9 +396,6 @@ export async function generateStaticPagesSitemapUrls(): Promise<SitemapUrl[]> {
  */
 async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
   try {
-    console.log(
-      `[getTopSearchTerms] Starting search terms query with limit: ${limit}`,
-    );
 
     // First, get the most used search terms (following PHP pattern)
     const searchQuery = {
@@ -425,57 +419,40 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
       },
     };
 
-    console.log(
-      "[getTopSearchTerms] Elasticsearch query params:",
-      JSON.stringify(searchQuery, null, 2),
-    );
+  
 
     const response = await elasticSearchClient.search(searchQuery);
 
-    console.log(
-      "[getTopSearchTerms] Raw Elasticsearch response:",
-      JSON.stringify(response, null, 2),
-    );
+
 
     const topTerms: SearchTerm[] = [];
 
     // Process results
     const buckets =
       (response.aggregations as any)?.top_search_terms?.buckets || [];
-    console.log(
-      `[getTopSearchTerms] Found ${buckets.length} buckets in response`,
-    );
 
     if (buckets.length === 0) {
-      console.log(
-        "[getTopSearchTerms] No buckets found - checking if index exists and has data",
-      );
+
 
       // Check if index exists
       try {
         const indexExists = await elasticSearchClient.indices.exists({
           index: search_log_index,
         });
-        console.log("[getTopSearchTerms] Index exists check:", indexExists);
+      
 
         if (indexExists) {
           // Get index stats to see if there's any data
           const indexStats = await elasticSearchClient.indices.stats({
             index: search_log_index,
           });
-          console.log(
-            "[getTopSearchTerms] Index stats:",
-            JSON.stringify(indexStats, null, 2),
-          );
+
 
           // Try a simple count query to see total documents
           const countResponse = await elasticSearchClient.count({
             index: search_log_index,
           });
-          console.log(
-            "[getTopSearchTerms] Total documents in index:",
-            countResponse.count,
-          );
+
 
           // Try a query without the range filter to see if any documents exist
           const simpleQuery = {
@@ -492,10 +469,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
           };
 
           const simpleResponse = await elasticSearchClient.search(simpleQuery);
-          console.log(
-            "[getTopSearchTerms] Simple query response:",
-            JSON.stringify(simpleResponse, null, 2),
-          );
+
         }
       } catch (error) {
         console.error("[getTopSearchTerms] Error checking index:", error);
@@ -504,13 +478,11 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
 
     for (const bucket of buckets) {
       let term = bucket.key;
-      console.log(
-        `[getTopSearchTerms] Processing term: "${term}" with count: ${bucket.doc_count}`,
-      );
+
 
       // Skip invalid terms
       if (typeof term !== "string" || !term.trim()) {
-        console.log(`[getTopSearchTerms] Skipping invalid term: "${term}"`);
+       
         continue;
       }
 
@@ -519,9 +491,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
 
       // For each search term, get the most common country and language used with it
       const termDetails = await getMostCommonCountryAndLanguageForTerm(term);
-      console.log(
-        `[getTopSearchTerms] Term "${term}" - country: ${termDetails.country_iso}, language: ${termDetails.language_code}`,
-      );
+
 
       topTerms.push({
         term: term,
@@ -531,9 +501,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
       });
     }
 
-    console.log(
-      `[getTopSearchTerms] Final result: ${topTerms.length} valid search terms`,
-    );
+
     return topTerms;
   } catch (error) {
     console.error("Error fetching top search terms:", error);
@@ -643,8 +611,8 @@ export async function generateSearchTermsSitemapUrls(): Promise<SitemapUrl[]> {
       countryIso = defaultCountry;
     }
 
-    // Create URL: {baseUrl}/{country}-{language}/filters/search/{encodedTerm}
-    const url = `${baseUrl}/${countryIso}-${languageCode}/filters/search/${encodedTerm}`;
+    // Create URL: {baseUrl}/{country}-{language}/filters?search={encodedTerm}
+    const url = `${baseUrl}/${countryIso}-${languageCode}/filters?search=${encodedTerm}`;
 
     sitemapUrls.push({
       loc: url,
@@ -706,8 +674,10 @@ export async function generateSearchTermsSitemapXML(): Promise<string> {
 /**
  * Generate XML sitemap string for products
  */
-export async function generateProductSitemapXML(): Promise<string> {
-  const urls = await generateProductSitemapUrls();
+export async function generateProductSitemapXML(page = 0): Promise<string> {
+  const allUrls = await generateProductSitemapUrls();
+  const start = page * SITEMAP_PAGE_SIZE;
+  const urls = allUrls.slice(start, start + SITEMAP_PAGE_SIZE);
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
@@ -722,7 +692,6 @@ export async function generateProductSitemapXML(): Promise<string> {
   }
 
   xml += "</urlset>";
-
   return xml;
 }
 
@@ -1169,7 +1138,27 @@ export async function generateLocaleSpecificSitemapUrls(
     console.error(`Error fetching products for ${country}-${language}:`, error);
   }
 
-  // 4. Search terms for this locale
+  // 4. Boutiques for this locale
+  try {
+    const boutiques = await getBoutiquesForSitemap();
+    const currentDate = new Date().toISOString().split("T")[0];
+
+    for (const { slug } of boutiques) {
+      sitemapUrls.push({
+        loc: `${baseUrl}/${country}-${language}/filters/boutiques/${slug}`,
+        lastmod: currentDate,
+        changefreq: "weekly",
+        priority: 0.7,
+      });
+    }
+  } catch (error) {
+    console.error(
+      `Error fetching boutiques for ${country}-${language}:`,
+      error,
+    );
+  }
+
+  // 5. Search terms for this locale
   try {
     const searchTerms = await getTopSearchTerms(100);
 
@@ -1198,6 +1187,194 @@ export async function generateLocaleSpecificSitemapUrls(
   return sitemapUrls;
 }
 
+/**
+ * Fetch all unique boutique slugs from Elasticsearch using the same composite
+ * aggregation pattern as getBoutiques (only slug is needed for sitemap).
+ */
+async function getBoutiquesForSitemap(): Promise<{ slug: string }[]> {
+  const { must, must_not } = buildSitemapBaseConditions();
+  const seenSlugs = new Set<string>();
+  const boutiques: { slug: string }[] = [];
+  const pageSize = 1000;
+  let afterKey: Record<string, any> | null = null;
+
+  try {
+    do {
+      const compositeAgg: any = {
+        size: pageSize,
+        sources: [
+          {
+            boutique_position: {
+              terms: { field: "boutique_position", order: "desc" },
+            },
+          },
+          { boutique_id: { terms: { field: "boutique_id", order: "asc" } } },
+        ],
+      };
+
+      if (afterKey) {
+        compositeAgg.after = afterKey;
+      }
+
+      const response = await elasticSearchClient.search({
+        index: catalog_index,
+        size: 0,
+        query: { bool: { must, must_not } },
+        aggs: {
+          boutiques_composite: {
+            composite: compositeAgg,
+            aggs: {
+              boutique_data: {
+                top_hits: {
+                  size: 1,
+                  _source: { includes: ["custom_boutiques.slug"] },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const buckets =
+        (response.aggregations as any)?.boutiques_composite?.buckets ?? [];
+
+      for (const bucket of buckets) {
+        const source = bucket.boutique_data?.hits?.hits?.[0]?._source;
+        const customBoutiques = source?.custom_boutiques;
+        if (!customBoutiques) continue;
+
+        const entries = Array.isArray(customBoutiques)
+          ? customBoutiques
+          : [customBoutiques];
+
+        for (const cb of entries) {
+          if (cb?.slug && !seenSlugs.has(cb.slug)) {
+            seenSlugs.add(cb.slug);
+            boutiques.push({ slug: cb.slug });
+          }
+        }
+      }
+
+      afterKey =
+        (response.aggregations as any)?.boutiques_composite?.after_key ?? null;
+    } while (afterKey);
+
+    return boutiques;
+  } catch (error) {
+    console.error("Error fetching boutiques for sitemap:", error);
+    throw error;
+  }
+}
+
+/**
+ * Generate boutique sitemap URLs for all country-language combinations.
+ * URL pattern: {baseUrl}/{country}-{language}/filters/boutiques/{slug}
+ */
+export async function generateBoutiqueSitemapUrls(): Promise<SitemapUrl[]> {
+  const baseUrl = General_Site_Data.url;
+  const [boutiques, locales] = await Promise.all([
+    getBoutiquesForSitemap(),
+    getHomeSitemapLocales(),
+  ]);
+
+  const currentDate = new Date().toISOString().split("T")[0];
+  const sitemapUrls: SitemapUrl[] = [];
+
+  for (const { slug } of boutiques) {
+    for (const country of locales.countries) {
+      for (const language of locales.languages) {
+        sitemapUrls.push({
+          loc: `${baseUrl}/${country}-${language}/filters/boutiques/${slug}`,
+          lastmod: currentDate,
+          changefreq: "weekly",
+          priority: 0.7,
+        });
+      }
+    }
+  }
+
+  return sitemapUrls;
+}
+
+/**
+ * Returns the number of paginated product sitemap files needed.
+ * Uses a cardinality aggregation (fast, no full fetch).
+ */
+export async function getProductSitemapPageCount(): Promise<number> {
+  const [slugResult, locales] = await Promise.all([
+    elasticSearchClient.search({
+      index: catalog_index,
+      size: 0,
+      query: buildProductBaseQuery(),
+      aggs: {
+        unique_slugs: {
+          nested: { path: "custom_products" },
+          aggs: {
+            count: { cardinality: { field: "custom_products.slug.keyword" } },
+          },
+        },
+      },
+    }),
+    getHomeSitemapLocales(),
+  ]);
+
+  const slugCount =
+    (slugResult.aggregations as any)?.unique_slugs?.count?.value ?? 0;
+  const localeCount = locales.countries.length * locales.languages.length;
+  return Math.max(1, Math.ceil((slugCount * localeCount) / SITEMAP_PAGE_SIZE));
+}
+
+/**
+ * Returns the number of paginated boutique sitemap files needed.
+ * Uses a cardinality aggregation (fast, no full fetch).
+ */
+export async function getBoutiqueSitemapPageCount(): Promise<number> {
+  const { must, must_not } = buildSitemapBaseConditions();
+  const [boutiqueResult, locales] = await Promise.all([
+    elasticSearchClient.search({
+      index: catalog_index,
+      size: 0,
+      query: { bool: { must, must_not } },
+      aggs: {
+        unique_boutiques: { cardinality: { field: "boutique_id" } },
+      },
+    }),
+    getHomeSitemapLocales(),
+  ]);
+
+  const boutiqueCount =
+    (boutiqueResult.aggregations as any)?.unique_boutiques?.value ?? 0;
+  const localeCount = locales.countries.length * locales.languages.length;
+  return Math.max(
+    1,
+    Math.ceil((boutiqueCount * localeCount) / SITEMAP_PAGE_SIZE),
+  );
+}
+
+/**
+ * Generate XML sitemap string for boutiques (paginated).
+ */
+export async function generateBoutiqueSitemapXML(page = 0): Promise<string> {
+  const allUrls = await generateBoutiqueSitemapUrls();
+  const start = page * SITEMAP_PAGE_SIZE;
+  const urls = allUrls.slice(start, start + SITEMAP_PAGE_SIZE);
+
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+  for (const url of urls) {
+    xml += "  <url>\n";
+    xml += `    <loc>${url.loc}</loc>\n`;
+    xml += `    <lastmod>${url.lastmod}</lastmod>\n`;
+    xml += `    <changefreq>${url.changefreq}</changefreq>\n`;
+    xml += `    <priority>${url.priority}</priority>\n`;
+    xml += "  </url>\n";
+  }
+
+  xml += "</urlset>";
+  return xml;
+}
+
 export async function generateLocaleSpecificSitemapXML(
   country: string,
   language: string,
@@ -1223,16 +1400,38 @@ export async function generateLocaleSpecificSitemapXML(
 export async function generateLocaleSitemapIndexXML(): Promise<string> {
   const baseUrl = General_Site_Data.url;
   const now = new Date().toISOString();
-  const combinations = await getAllCountryLanguageCombinations();
-  console.log("combinations :", combinations);
+
+  const [combinations, productPageCount, boutiquePageCount] = await Promise.all(
+    [
+      getAllCountryLanguageCombinations(),
+      getProductSitemapPageCount(),
+      getBoutiqueSitemapPageCount(),
+    ],
+  );
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
+  // Locale-specific sitemaps (/{country}-{language}/sitemap.xml)
   for (const { country, language } of combinations) {
-    const sitemapUrl = `${baseUrl}/${country}-${language}/sitemap.xml`;
     xml += "  <sitemap>\n";
-    xml += `    <loc>${sitemapUrl}</loc>\n`;
+    xml += `    <loc>${baseUrl}/${country}-${language}/sitemap.xml</loc>\n`;
+    xml += `    <lastmod>${now}</lastmod>\n`;
+    xml += "  </sitemap>\n";
+  }
+
+  // Paginated product sitemaps
+  for (let i = 0; i < productPageCount; i++) {
+    xml += "  <sitemap>\n";
+    xml += `    <loc>${baseUrl}/sitemap-products.xml?page=${i}</loc>\n`;
+    xml += `    <lastmod>${now}</lastmod>\n`;
+    xml += "  </sitemap>\n";
+  }
+
+  // Paginated boutique sitemaps
+  for (let i = 0; i < boutiquePageCount; i++) {
+    xml += "  <sitemap>\n";
+    xml += `    <loc>${baseUrl}/sitemap-boutiques.xml?page=${i}</loc>\n`;
     xml += `    <lastmod>${now}</lastmod>\n`;
     xml += "  </sitemap>\n";
   }

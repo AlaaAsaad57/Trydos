@@ -5,6 +5,7 @@ import { getCookieServer } from "utils/cookies/cookie-manager";
 import { getTitleAndTargetofListing } from "serverRequests/meta/StructuredData/utils";
 import ListingBreadcrumbList from "serverRequests/meta/StructuredData/ListingBreadcrumbList";
 import ClientLogger from "components/global/ClientLogger";
+import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
 
 async function ProductListConainer({
   currencyPromise,
@@ -15,6 +16,8 @@ async function ProductListConainer({
   isFlashDeals = false,
   isFeatured = false,
   language,
+  sort = undefined,
+  serverSearch = "",
 }) {
   let [filtersData, currency, boutique] = await Promise.all([
     filtersDataPromise,
@@ -22,73 +25,21 @@ async function ProductListConainer({
     boutiquePromise,
   ]);
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = filtersData.products.map((product) => {
-    if (product?.is_luck) {
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        flash_deal_price: product.flash_deal_price,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        luck_price: product.luck_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        product_id: product.product_id,
-        is_luck:
-          product.luck_price &&
-          !redeemed_ids.find((s) => s.id === product.product_id),
-      };
-    } else
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        flash_deal_price: product.flash_deal_price,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        luck_price: product.luck_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        product_id: product.product_id,
-      };
-  });
+  let productsData = filtersData.products.map((product) =>
+    normalizeListingProduct(product, redeemed_ids),
+  );
   let parsedFiltersVar = {
     ...parsedFilters,
+    // search_text drives client pagination (GetProducts page 2+) and sort/search
+    // refetches. Prefer the analyzed name so multi-word queries stay consistent
+    // across pages; fall back to the raw ?search= (serverSearch) so SINGLE-word
+    // queries — which skip LLM analysis — and analysis failures still keep the
+    // search on later pages instead of paging the whole category unscoped. Path
+    // search_text is the last resort (empty since search moved to ?search=).
     search_text:
-      filtersData?.isAnalyzed?.name ?? parsedFilters?.search_text?.[0],
+      filtersData?.isAnalyzed?.name ||
+      serverSearch ||
+      parsedFilters?.search_text?.[0],
   };
   let { path, title } = getTitleAndTargetofListing({
     filters: parsedFilters,
@@ -98,7 +49,7 @@ async function ProductListConainer({
 
   return (
     <Suspense
-      key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
+      key={`Suspense-product-list-${JSON.stringify(parsedFilters)}-${sort ?? "relevance"}`}
       fallback={<ListingSkeleton forProducts={true} />}
     >
       <ClientLogger
@@ -120,12 +71,15 @@ async function ProductListConainer({
         boutique={boutique?.name}
         products={productsData ?? []}
         offset={filtersData?.offset}
+        pit_id={filtersData?.pit_id ?? null}
         currency={currency}
-        key={`product-list-${JSON.stringify(parsedFilters)}`}
+        key={`product-list-${JSON.stringify(parsedFilters)}-${sort ?? "relevance"}`}
         parsedFilters={parsedFiltersVar}
         params={Params}
         isFeatured={isFeatured}
         isFlashDeals={isFlashDeals}
+        sort={sort}
+        serverSearch={serverSearch}
         target={path}
         title={title}
       />

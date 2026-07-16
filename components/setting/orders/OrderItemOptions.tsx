@@ -15,7 +15,9 @@ import { ModifyOrderItemModal } from "./confirmations/ChangeOrderItemConfirmWind
 import OrderItemCancelConfirmationWindow from "./confirmations/CancelOrderItemConfirmationWindow";
 import CancelOrderItemWrapper from "./CancelOrderItemWrapper";
 import ReturnOrderItemWrapper from "./ReturnOrderItemWrapper";
-
+import ReportOrderItemWrapper from "./ReportOrderItemWrapper";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
+import { ConfirmModal } from "components/global/ConfirmModal";
 import { createPortal } from "react-dom";
 function OrderItemOptions({
   orderItem,
@@ -28,6 +30,7 @@ function OrderItemOptions({
   shouldShowConfirmReturn,
   setShouldConfirmReturn,
   orderData,
+  onOrderEmptied,
 }: {
   orderItem: OrderInterface["details"][0];
   parentOrder: OrderInterface;
@@ -39,6 +42,9 @@ function OrderItemOptions({
   shouldShowConfirmReturn: boolean;
   setShouldConfirmReturn: (e: boolean) => void;
   orderData: OrderInterface[];
+  // Called instead of update() when hiding the last product empties the order,
+  // so the parent can leave for the orders list (same as Hide This Pack).
+  onOrderEmptied?: () => void;
 }) {
   const [canceled, setCanceled] = useState(false);
   const [ShouldConfirmCancel, setShouldConfirmCancel] = useState(false);
@@ -46,6 +52,60 @@ function OrderItemOptions({
   const [selectedScreen, setSelectedScreen] = useState("options");
   const [ShowConfirmChangeOrder, setShowConfirmChangeOrder] =
     useState<any>(false);
+  const [showHideConfirm, setShowHideConfirm] = useState(false);
+  const [hiding, setHiding] = useState(false);
+  // Hiding the only remaining product leaves an empty order, so the backend
+  // hides the whole order (pack).
+  const isLastProductInOrder = (parentOrder?.details?.length ?? 0) <= 1;
+  // Whether the order group still has sibling packs that survive this hide.
+  // `orderData` is every pack in the group; drop the pack we're emptying.
+  const hasOtherPacksInGroup =
+    (orderData ?? []).filter(
+      (p) => String(p.id) !== String(parentOrder?.id),
+    ).length > 0;
+  // Leave for the orders list ONLY when emptying this pack empties the WHOLE
+  // group (single-order group). When siblings remain we stay on the details
+  // page and let the refetch re-select a surviving pack (setActivePack).
+  const shouldLeaveAfterHide = isLastProductInOrder && !hasOtherPacksInGroup;
+  // Return window from the item's `allow_return_in_days` (string|number).
+  // 1 => "24 Hours", anything greater => "<n> Days". Display only — never gates.
+  const allowReturnInDays = Number(orderItem?.allow_return_in_days);
+  const returnWindowText =
+    allowReturnInDays === 1
+      ? `24 ${translateFunction("Hours")}`
+      : `${allowReturnInDays} ${translateFunction("Days")}`;
+  const handleHideProduct = async () => {
+    try {
+      setHiding(true);
+      await Order.HideOrderDetail({ detail_id: orderItem.id });
+      setHiding(false);
+      setShowHideConfirm(false);
+      close();
+      if (shouldLeaveAfterHide) {
+        onOrderEmptied?.();
+      } else {
+        // Multi-pack group (or not the last product): refetch and stay.
+        // getOrderDetails drops the now-hidden pack and re-selects a remaining
+        // one via its `?? data[0]` fallback, keeping the user on this page.
+        await update();
+      }
+    } catch (error) {
+      setHiding(false);
+      LogError({
+        error: error,
+        scenario: "Error In handleHideProduct in OrderItemOptions",
+      });
+    }
+  };
+
+  React.useEffect(() => {
+    trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_OPTIONS_OPENED, {
+      order_id: parentOrder?.id,
+      item_id: orderItem?.id,
+      product_id: orderItem?.product_id,
+      order_status: parentOrder?.order_status?.value,
+    });
+  }, []);
 
   const ShouldShowCahngeColor = () => {
     if (parentOrder?.order_status?.value === "delivered") return false;
@@ -56,16 +116,27 @@ function OrderItemOptions({
   const canCancelProduct = () => {
     return parentOrder?.can_cancele_order && orderItem.qty > 0;
   };
+  const isDelivered = () => parentOrder?.order_status?.value === "delivered";
+  // Is *this product* already part of the order's return request?
+  const isProductAlreadyReturned = () =>
+    !!returnDetails?.return_requests_data
+      ?.find((s) => s.order_id === parentOrder?.id)
+      ?.order_details?.find((s) => s.detail_id === orderItem?.id)
+      ?.already_return;
   const shouldShowRetutn = () => {
     if (parentOrder?.order_status?.value !== "delivered") return false;
     if (orderItem.qty === 0) return false;
-    if (
-      returnDetails?.return_requests_data
-        ?.find((s) => s.order_id === parentOrder?.id)
-        ?.order_details?.find((s) => s.detail_id === orderItem?.id)
-        ?.already_return
-    ) {
+    // Editing a product that's already in the request: only while the whole
+    // request is still editable.
+    if (isProductAlreadyReturned()) {
       return parentOrder?.edit_return_request;
+    }
+    // Adding a not-yet-returned product. Each order has a single return
+    // request; if one already exists and is locked (e.g. already confirmed /
+    // return_to_location), no more products can be added to it even though this
+    // product itself is still returnable (can_return_order stays true).
+    if (parentOrder?.order_has_return_request && !parentOrder?.edit_return_request) {
+      return false;
     }
     return parentOrder.can_return_order;
   };
@@ -249,11 +320,7 @@ function OrderItemOptions({
                         isRtl ? " text-right pr-2" : " "
                       }`}
                     >
-                      {returnDetails?.return_requests_data
-                        ?.find((s) => s.order_id === parentOrder?.id)
-                        ?.order_details?.find(
-                          (s) => s.detail_id === orderItem?.id,
-                        )?.already_return
+                      {isProductAlreadyReturned()
                         ? translateFunction(
                             "Update Return Request For This Product",
                           )
@@ -266,7 +333,7 @@ function OrderItemOptions({
                     >
                       {translateFunction("Return This Product In")}
                       <span className="bold text-[12px] text-[#8D8D8D]  mx-[2px]">
-                        24 {translateFunction("Hours")}
+                        {returnWindowText}
                       </span>
                       {translateFunction("And Back Your Money")}
                     </p>
@@ -274,42 +341,79 @@ function OrderItemOptions({
                 )}
               </div>
             )}
+            {isDelivered() &&
+              (orderItem?.is_reported ? (
+                <div
+                  className={`mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                    isRtl ? "flex-row-reverse" : " "
+                  }`}
+                >
+                  <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                    <img src="/icons/ReportOrderItemIcon.svg" />
+                  </div>
+                  <div className="flex-col ml-[15px]">
+                    <span
+                      className={`regular text-[14px] text-[#1D1D1D] medium ${
+                        isRtl ? " text-right pr-2" : " "
+                      }`}
+                    >
+                      {translateFunction("We received your report")}
+                    </span>
+                    <span
+                      className={`regular text-[12px] text-[#8D8D8D] ${
+                        isRtl ? "pr-2 " : " "
+                      }`}
+                    >
+                      {translateFunction("Thanks for your thoughts")}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => {
+                    trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_REPORTED, {
+                      order_id: parentOrder?.id,
+                      item_id: orderItem?.id,
+                      product_id: orderItem?.product_id,
+                    });
+                    setSelectedScreen("report");
+                  }}
+                  className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                    isRtl ? "flex-row-reverse" : " "
+                  }`}
+                >
+                  <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                    <img src="/icons/ReportOrderItemIcon.svg" />
+                  </div>
+                  <div className="flex-col ml-[15px]">
+                    <span
+                      className={`regular text-[14px] text-[#1D1D1D] medium ${
+                        isRtl ? " text-right pr-2" : " "
+                      }`}
+                    >
+                      {translateFunction("Report This Product")}
+                    </span>
+                    <span
+                      className={`regular text-[12px] text-[#8D8D8D] ${
+                        isRtl ? "pr-2 " : " "
+                      }`}
+                    >
+                      {translateFunction(
+                        "Delivery Time, Delivery Man, Delivery Car",
+                      )}
+                    </span>
+                  </div>
+                </div>
+              ))}
             {
               <div
                 onClick={() => {
-                  setSelectedScreen("report");
-                }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
-                  isRtl ? "flex-row-reverse" : " "
-                }`}
-              >
-                <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                  <img src="/icons/ReportOrderItemIcon.svg" />
-                </div>
-                <div className="flex-col ml-[15px]">
-                  <span
-                    className={`regular text-[14px] text-[#1D1D1D] medium ${
-                      isRtl ? " text-right pr-2" : " "
-                    }`}
-                  >
-                    {translateFunction("Report This Product")}
-                  </span>
-                  <span
-                    className={`regular text-[12px] text-[#8D8D8D] ${
-                      isRtl ? "pr-2 " : " "
-                    }`}
-                  >
-                    {translateFunction(
-                      "Delivery Time, Delivery Man, Delivery Car",
-                    )}
-                  </span>
-                </div>
-              </div>
-            }
-            {
-              <div
-                onClick={() => {
-                  setSelectedScreen("hide");
+                  trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_ITEM_HIDDEN, {
+                    order_id: parentOrder?.id,
+                    item_id: orderItem?.id,
+                    product_id: orderItem?.product_id,
+                  });
+                  setShowHideConfirm(true);
                 }}
                 className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
                   isRtl ? "flex-row-reverse" : " "
@@ -426,6 +530,23 @@ function OrderItemOptions({
     }
   };
 
+  // The report screen is its own draggable BottomSheet (grabber drag-to-dismiss,
+  // scrim-tap close), so it renders standalone rather than inside the options'
+  // white container — otherwise we'd nest a full-screen sheet inside a sheet.
+  if (selectedScreen === "report") {
+    return createPortal(
+      <ReportOrderItemWrapper
+        item={orderItem}
+        parentOrder={parentOrder}
+        isRtl={isRtl}
+        backToMain={() => setSelectedScreen("options")}
+        close={close}
+        update={update}
+      />,
+      document.body,
+    );
+  }
+
   return createPortal(
     <>
       <div
@@ -439,6 +560,22 @@ function OrderItemOptions({
       </div>
 
       {renderConfirmation()}
+      {showHideConfirm && (
+        <ConfirmModal
+          showModal={showHideConfirm}
+          loading={hiding}
+          type={"Delete"}
+          confirmTilte={"Hide This Product"}
+          confirmMessage={
+            isLastProductInOrder
+              ? "This is the only product in this order, so hiding it will hide the whole order."
+              : "Are you sure you want to hide this product?"
+          }
+          onCancel={() => setShowHideConfirm(false)}
+          onConfirm={handleHideProduct}
+          dataCy="confirm-hide-product"
+        />
+      )}
     </>,
     document.body,
   );

@@ -10,7 +10,7 @@ import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
 function ProductDetailsSlider({ images, productGA, resetLoader = true }: any) {
-  const { setIsNavigating } = useAppStore();
+  const { setIsNavigating, setIsProductPage } = useAppStore();
   const [imageShow, showImage] = useState(-1);
   const [emblaRef1, emblaApi] = useEmblaCarousel({
     startIndex: 0,
@@ -21,6 +21,7 @@ function ProductDetailsSlider({ images, productGA, resetLoader = true }: any) {
 
   useEffect(() => {
     let elements;
+    setIsNavigating(true);
     if (resetLoader) {
       EnableScroll();
       setIsNavigating(null);

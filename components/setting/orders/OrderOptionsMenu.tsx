@@ -6,25 +6,60 @@ import { translateFunction } from "utils/functions";
 import ChangeAddressWidget from "components/Orders/ChangeAddressWidget";
 import CancelOrderWrapper from "./CancelOrderWrapper";
 import OrderCancelConfirmationWindow from "./confirmations/OrderCancelConfirmationWindow";
+import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import { createPortal } from "react-dom";
+import { ConfirmModal } from "components/global/ConfirmModal";
+import Order from "services/order";
+import { LogError } from "utils/functions";
 
 function OrderOptionsMenu({
   order,
   close,
   update,
   isRtl,
+  onHidden,
 }: {
   order: OrderInterface;
   close: () => void;
   update?: () => Promise<any>;
   isRtl: boolean;
+  onHidden?: () => void;
 }) {
   const [canceled, setCanceled] = useState(false);
-  const [ShouldConfirmCancel, setShouldConfirmCancel] = useState(false);
+  const [showHideConfirm, setShowHideConfirm] = useState(false);
+  const [hiding, setHiding] = useState(false);
+  const handleHideOrder = async () => {
+    try {
+      setHiding(true);
+      await Order.HideOrder({ order_id: order.id });
+      setHiding(false);
+      setShowHideConfirm(false);
+      close();
+      // Hiding an order removes it from the list, so leave the details page and
+      // refresh the orders list rather than re-fetching a now-hidden order.
+      onHidden?.();
+    } catch (error) {
+      setHiding(false);
+      LogError({
+        error: error,
+        scenario: "Error In handleHideOrder in OrderOptionsMenu",
+      });
+    }
+  };
+  const [ShouldConfirmCancel, setShouldConfirmCancel] = useState<
+    boolean | string[]
+  >(false);
   const shouldShowChangeAddress = () => {
     return order.can_update_address;
   };
   const [selectedScreen, setSelectedScreen] = useState("options");
+  React.useEffect(() => {
+    trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_OPTIONS_OPENED, {
+      order_id: order?.id,
+      order_group_id: order?.order_group_id,
+      order_status: order?.order_status?.value,
+    });
+  }, []);
   const renderScreen = () => {
     if (selectedScreen === "options") {
       return (
@@ -82,7 +117,11 @@ function OrderOptionsMenu({
                 {
                   <div
                     onClick={() => {
-                      // setScreen("changeAddress");
+                      trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_PACK_HIDDEN, {
+                        order_id: order?.id,
+                        order_group_id: order?.order_group_id,
+                      });
+                      setShowHideConfirm(true);
                     }}
                     className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
                       isRtl ? "flex-row-reverse" : " "
@@ -199,6 +238,9 @@ function OrderOptionsMenu({
         <OrderCancelConfirmationWindow
           isRtl={isRtl}
           callback={async () => await update()}
+          cancelReasons={
+            Array.isArray(ShouldConfirmCancel) ? ShouldConfirmCancel : []
+          }
           order={order}
           close={() => {
             setCanceled(false);
@@ -219,6 +261,18 @@ function OrderOptionsMenu({
       />
       {renderScreen()}
       {renderConfirmation()}
+      {showHideConfirm && (
+        <ConfirmModal
+          showModal={showHideConfirm}
+          loading={hiding}
+          type={"Delete"}
+          confirmTilte={"Hide This Pack"}
+          confirmMessage={"Are you sure you want to hide this order?"}
+          onCancel={() => setShowHideConfirm(false)}
+          onConfirm={handleHideOrder}
+          dataCy="confirm-hide-order"
+        />
+      )}
     </>,
     document.body
   );

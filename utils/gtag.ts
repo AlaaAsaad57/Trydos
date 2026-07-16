@@ -1,6 +1,7 @@
 import { useAppStore } from "store";
 import { DetectScreen } from "./tinyUtils";
 import { LogError } from "./functions";
+import { posthogCapture } from "./posthog";
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID; // replace with your ID
 let countries = [
   { name: "Syria", iso: "sy" },
@@ -63,6 +64,12 @@ export const GAevent = ({
       screen_path: window.location.pathname,
       ...params,
     };
+    // Fan the same event out to PostHog so funnels / paths / retention run off
+    // the existing GA taxonomy (no new call sites). Global props come from the
+    // shared globalProps() so this stream and the posthog-only trackPosthog()
+    // wrapper stay identical. Call params override the globals (e.g. an explicit
+    // screen_name on screen_view_event wins), matching the previous ordering.
+    posthogCapture(action, { ...globalProps(), ...params });
     if (process.env.NEXT_PUBLIC_ANALYTICS_LOG === "true") {
       console.log(`🟡🟡  window?.gtag?.("event", ${action}, {
         debug_mode: true,
@@ -87,6 +94,25 @@ export const GAevent = ({
       error: error instanceof Error ? error.message : String(error),
     });
   }
+};
+// The lean global-property block attached to every PostHog event — shared by the
+// GAevent fan-out above and the posthog-only trackPosthog() wrapper
+// (utils/posthogEvents.ts) so both streams carry identical context. No GA-only
+// debug fields here (event_id / timestamp_now / debug_mode stay on the gtag call).
+export const globalProps = (): Record<string, unknown> => {
+  const { session_id } = useAppStore.getState();
+  return {
+    screen_name: DetectScreen(),
+    screen_path:
+      typeof window !== "undefined" ? window.location.pathname : undefined,
+    country_name: country?.name,
+    device_language: language?.name,
+    device_type: getDeviceCategory(),
+    operating_system: getOperatingSystem(),
+    session_id,
+    platform_source: "WEB",
+    ...getUserParam(),
+  };
 };
 const getUserParam = () => {
   const userData = useAppStore.getState().userProfile as any;

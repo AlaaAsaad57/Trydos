@@ -31,7 +31,7 @@ export async function getCurrency(country, language) {
       };
     } else {
       let currencyData = await fetchCurrency(language, country);
-      let currency = { ...currencyData.data.currency };
+      let currency = { ...currencyData.data };
       let end = process.hrtime.bigint();
       StoreCurrency(country, currency);
       return {
@@ -55,7 +55,7 @@ export async function fetchCurrency(
   let response;
   try {
     response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/home/currency?lang=${language}&country=${country}`,
+      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/home/currency?lang=${language}&country=${country}`,
       method: "GET",
       revalidate: 0,
       local: `${country}-${language}`,

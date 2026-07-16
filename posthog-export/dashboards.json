@@ -1,0 +1,31 @@
+[
+  {
+    "_source_id": 746757,
+    "_starter": false,
+    "name": "Engagement → Conversion Funnels (Stories & Chat)",
+    "description": "Funnels answering: do stories/chat users convert and engage more? Built from funnels/chat-stories-funnels.md (A–D). Chat/stories events (view_story, story_product_clicked, chat_opened, chat_message_sent, chat_product_shared, story_uploaded) are wired in code but no-op outside production — tiles populate once a prod build ships them. The create-order funnel lives in the order-funnel insight.",
+    "pinned": false,
+    "tiles": [
+      { "insight_source_short_id": "QHPWr8pr", "order": 0 },
+      { "insight_source_short_id": "HlqM7Fkg", "order": 1 },
+      { "insight_source_short_id": "OteeGGFL", "order": 2 },
+      { "insight_source_short_id": "WldKkpg3", "order": 3 },
+      { "insight_source_short_id": "5YRJuZ0Z", "order": 4 }
+    ]
+  },
+  {
+    "_source_id": 742666,
+    "_starter": true,
+    "name": "My App Dashboard",
+    "description": "A starter view of how people use your app: how many visit, whether they come back, where traffic comes from, and how they move through your pages.",
+    "pinned": true,
+    "tiles": [
+      { "insight_source_short_id": "K2ZEnm1d", "order": 0, "layouts": { "sm": { "h": 5, "w": 6, "x": 0, "y": 0, "minH": 5, "minW": 3 }, "xs": { "h": 5, "w": 1, "x": 0, "y": 0, "minH": 5, "minW": 3 } } },
+      { "insight_source_short_id": "HqgqKVDd", "order": 1, "layouts": { "sm": { "h": 5, "w": 6, "x": 6, "y": 0, "minH": 5, "minW": 3 }, "xs": { "h": 5, "w": 1, "x": 0, "y": 5, "minH": 5, "minW": 3 } } },
+      { "insight_source_short_id": "DwJHMZN1", "order": 2, "layouts": { "sm": { "h": 5, "w": 6, "x": 0, "y": 5, "minH": 5, "minW": 3 }, "xs": { "h": 5, "w": 1, "x": 0, "y": 15, "minH": 5, "minW": 3 } } },
+      { "insight_source_short_id": "TAWzrPQq", "order": 3, "layouts": { "sm": { "h": 5, "w": 6, "x": 6, "y": 5, "minH": 5, "minW": 3 }, "xs": { "h": 5, "w": 1, "x": 0, "y": 10, "minH": 5, "minW": 3 } } },
+      { "insight_source_short_id": "Rovs1uoU", "order": 4, "layouts": { "sm": { "h": 5, "w": 6, "x": 0, "y": 10, "minH": 5, "minW": 3 }, "xs": { "h": 5, "w": 1, "x": 0, "y": 20, "minH": 5, "minW": 3 } } },
+      { "insight_source_short_id": "eyBliwUQ", "order": 5, "layouts": { "sm": { "h": 5, "w": 6, "x": 6, "y": 10, "minH": 5, "minW": 3 }, "xs": { "h": 5, "w": 1, "x": 0, "y": 25, "minH": 5, "minW": 3 } } }
+    ]
+  }
+]

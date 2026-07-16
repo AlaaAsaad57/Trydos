@@ -1,20 +1,24 @@
 "use server";
 
-import { generateCloudinaryUrl, getThumb, stripHtml } from "utils/server";
+import {
+  getThumb,
+  stripHtml,
+  buildOgImageUrl,
+  GetImageUrl,
+} from "utils/server";
 import { GetFromRedis, RedisGet, RedisSet } from "./radis";
 import { fetchServerData } from "./ServerFetch";
 import { Metadata } from "next";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
-import { BuyersCommentItem } from "components/Server/product/ProductBuyersComment/BuyerCommentItem";
 import { cookies } from "next/headers";
 import {
   COOKIE_NAMES,
   getCookieServer,
   UserData,
 } from "utils/cookies/cookie-manager";
-import FaqItemComponent from "components/Server/product/ProductFAQSection/FaqItemComponent";
 import { LogServerError } from "utils/serverErrorReporter";
 import { General_Site_Data } from "./meta/StructuredData/Constants";
+import { buildAlternates } from "./meta/buildAlternates";
 import {
   comments_index,
   comments_interactions_index,
@@ -62,6 +66,7 @@ interface ProdutGlobalData {
   flash_deal_max_allowed_quantity: any;
   shipping_days: number;
   is_featured: boolean;
+  origin_country_iso: string;
   globalFromRedis: boolean;
 }
 
@@ -88,6 +93,7 @@ interface QtyProductData {
   shipping_cost_multiply_with_quantity: boolean;
   shipping_cost: number;
   shipping_days: number;
+  allow_return_in_days: number;
   price: number;
   is_luck: boolean;
   luck_price: number;
@@ -145,27 +151,33 @@ export async function GetGlobalProduct({
   slug,
   country,
   language,
+  noCache = false,
 }): Promise<ProdutGlobalData> {
   try {
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
       country,
     )}`;
     let start = process.hrtime.bigint();
-    let productId = await GetFromRedis(slugKey);
-    let cacheKey = `product-id-${productId}-${country}-${language}`;
-    if (productId) {
-      let cachedProductData = await RedisGet(`${cacheKey}-global`);
-      if (cachedProductData) {
-        let end = process.hrtime.bigint();
-        return {
-          ...cachedProductData,
-          globalFromRedis: true,
-          globalDataTime: Number(end - start) / 1_000_000,
-        };
+    // When noCache is set the Redis read is skipped and the data is fetched
+    // fresh from the Go backend (the write-back below still keeps the cache warm
+    // for other consumers such as the web product page).
+    if (!noCache) {
+      let productId = await GetFromRedis(slugKey);
+      let cacheKey = `product-id-${productId}-${country}-${language}`;
+      if (productId) {
+        let cachedProductData = await RedisGet(`${cacheKey}-global`);
+        if (cachedProductData) {
+          let end = process.hrtime.bigint();
+          return {
+            ...cachedProductData,
+            globalFromRedis: true,
+            globalDataTime: Number(end - start) / 1_000_000,
+          };
+        }
       }
     }
     let freshGlobalData = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/globalDetails/${slug}`,
+      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/globalDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -228,7 +240,7 @@ export async function GetProductPriceQtyDetails({
       }
     }
     let freshQtyPricesData = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
+      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -268,13 +280,13 @@ export async function GetProductMeta({
   searchParams,
 }) {
   try {
-    let cacheKey = `product-meta-${slug}-${language}-${country}`;
+    let cacheKey = `product-meta-v2-${slug}-${language}-${country}`;
     let cachedMeta = await RedisGet(cacheKey);
     if (cachedMeta) {
       return { ...cachedMeta, metaFromRedis: true };
     }
     let freshMeta = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/product-meta/${slug}?lang=${language}`,
+      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/product-meta/${slug}?lang=${language}`,
       method: "GET",
       local: `${country}-${language}`,
     });
@@ -290,44 +302,53 @@ export async function GetProductMeta({
     if (searchParams.size) {
       title += ` |  ${searchParams.size}`;
     }
-    let image = product?.images
-      ? generateCloudinaryUrl({
-          publicIds: product?.images.map((s) => `${s.images}`),
-          width: 1200,
-          height: 630,
-        })
-      : null;
+    // Some backend product names are a single word ("milk"), which makes a bare
+    // SERP title that Google pads with the site name. Append brand/category for
+    // context when they exist.
+    const titleContext = [product?.brand, product?.category]
+      .filter(Boolean)
+      .join(" | ");
+    if (titleContext) {
+      title += ` | ${titleContext}`;
+    }
+    const firstImagePath = product?.images?.[0]?.images ?? product?.images?.[0];
+
+    const image = firstImagePath ? buildOgImageUrl(GetImageUrl(firstImagePath)) : null;
+    const fallbackImageUrl = `${General_Site_Data.url}/opengraph-image.png`;
+    const ogImages = image
+      ? [{ url: image, width: 1200, height: 630, type: "image/jpeg" }]
+      : [{ url: fallbackImageUrl, width: 1200, height: 630, type: "image/png" }];
+    // Several products store only the name in `details`, yielding a one-word meta
+    // description. Google ignores those and scrapes on-page boilerplate (e.g. the
+    // returns badge) instead. Fall back to a product-context sentence so the
+    // snippet is always meaningful. Real descriptions (>= 60 chars) win.
+    const rawDescription = stripHtml(product?.details);
+    const description =
+      rawDescription.length >= 60
+        ? rawDescription
+        : `Shop ${product?.name}` +
+          `${product?.brand ? ` by ${product.brand}` : ""}` +
+          `${product?.category ? ` in ${product.category}` : ""}` +
+          ` on Trydos — secure checkout, fast delivery and easy returns.`;
     let data: Metadata = {
       title: title,
-      description: stripHtml(product?.details),
-      alternates: {
-        canonical: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
-        languages: {
-          en: `${General_Site_Data.url}/${country}-en/products/${slug}`,
-          tr: `${General_Site_Data.url}/${country}-tr/products/${slug}`,
-          ar: `${General_Site_Data.url}/${country}-ar/products/${slug}`,
-        },
-      },
+      description,
+      alternates: buildAlternates(
+        `${country}-${language}`,
+        `/products/${slug}`,
+      ),
       openGraph: {
         title: title,
-        description: stripHtml(product?.details),
+        description,
         url: `${General_Site_Data.url}/${country}-${language}/products/${slug}`,
         siteName: "Trydos",
-        images: [
-          {
-            url: image,
-            width: 1200,
-            height: 630,
-            alt: "",
-          },
-        ],
-        type: "website",
+        images: ogImages,
       },
       twitter: {
         card: "summary_large_image",
         title: title,
-        description: stripHtml(product?.details),
-        images: [image],
+        description,
+        images: [image ?? fallbackImageUrl],
       },
       keywords: [
         product?.name,
@@ -369,7 +390,7 @@ export async function GetProductGeneralData({ id }) {
       LogServerError({
         error: error,
         id: id,
-        scenario: "Error In getProductGeneralQuery in serverRequest/product",
+        scenario: `Error In getProductGeneralQuery in serverRequest/product id=${id}`,
       });
       return {
         _source: {
@@ -391,9 +412,28 @@ export async function GetProductGeneralData({ id }) {
       });
       return (res._source as any)?.view_count ?? 0;
     } catch (error) {
+      // A 404 just means this product has no view-count doc yet — not an error.
+      const statusCode = (error as any)?.statusCode ?? (error as any)?.meta?.statusCode;
+      if (statusCode !== 404) {
+        LogServerError(
+          { error, type: "getProductViewsQuery (elastic) failed", productId },
+          "/",
+        );
+      }
       return 0;
     }
   };
+  if (!id)
+    return {
+      product_id: id,
+      final_rating: null,
+      total_views: 0,
+      ratingDetails: [],
+      size_analysis: null,
+      good_quality_product: false,
+      recommendation_stats: { stats: [] },
+      total_buyers: 0,
+    };
   try {
     let [source, recommendation_stats, views] = await Promise.all([
       getProductGeneralQuery(),
@@ -500,300 +540,10 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
   };
 };
 
-export async function GetProductBuyersComment({
-  language,
-  productId,
-  offset = null,
-  filter = null,
-  pageSize = 5,
-  userId,
-}) {
-  let commentsData = [];
-  let query: any = {
-    index: comments_index,
-    size: pageSize,
-    sort: [
-      { created_at: "desc" }, // newest first
-      { comment_id: "desc" }, // tie-breaker for consistent pagination
-    ],
-    query: {
-      bool: {
-        must: [
-          { term: { product_id: String(productId) } },
-          { exists: { field: "rating" } },
-          { exists: { field: "order_details_id" } },
-        ],
-        must_not: [{ term: { status: "deleted" } }],
-      },
-    },
-    aggs: {
-      unique_aspects: {
-        terms: {
-          field: `discussed_aspects_${language}`,
-          size: 1000, // adjust if you have more aspects
-        },
-      },
-    },
-  };
-
-  if (filter && typeof filter === "string" && filter.trim() !== "") {
-    if (filter !== "recommend")
-      query.query.bool.must.push({
-        bool: {
-          should: [
-            { term: { discussed_aspects_en: filter } },
-            { term: { discussed_aspects_ar: filter } },
-            { term: { discussed_aspects_tr: filter } },
-            { term: { discussed_aspects_ku: filter } },
-          ],
-          minimum_should_match: 1, // at least one should match
-        },
-      });
-    else {
-      query.query.bool.must.push({
-        term: { recommendation: true },
-      });
-    }
-  }
-
-  if (offset) {
-    query = {
-      ...query,
-      search_after: typeof offset === "string" ? JSON.parse(offset) : offset,
-    };
-  }
-  const response = await client.search(query);
-
-  let results = response.hits.hits.map((hit) => ({
-    id: hit._id,
-    ...((hit?._source as {}) ?? {}),
-  }));
-
-  const nextSearchAfter =
-    results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
-  if (results?.length > 0)
-    results = await GetFQACommentsForProductWithReactions({
-      user_id: userId,
-      commentsResult: results,
-    });
-  const filters_key = (
-    (response.aggregations?.unique_aspects as any)?.buckets || []
-  ).map((bucket: any, index) => {
-    return bucket?.key;
-  });
-
-  commentsData = results?.map((s: any) => ({
-    id: s.id,
-    customer: {
-      id: s.user_id,
-      name: s.user_name,
-      image: s.user_avatar,
-    },
-    product_id: s.product_id,
-    comment: s.text,
-    ownerId: s?.owner_id,
-    ownerType: s?.owner_type,
-    variant: s.variant,
-    isOwner: userId && s?.user_id && String(s?.user_id) === String(userId),
-    created_at: s.created_at,
-    true_size: s.aspects?.size?.fit_analysis?.correct ?? false,
-    good_quality_comment: s?.good_quality_comment ?? false,
-    comments_images_customer: s?.comments_images_customer ?? [],
-    star_rating: s.rating,
-    order_details_id: s.order_details_id,
-    recommendation: s?.recommendation,
-    total_likes: s?.total_likes,
-    is_liked: s?.is_liked,
-  }));
-  return {
-    comments: commentsData?.map((comment, i) => {
-      return (
-        <BuyersCommentItem
-          id={comment.id}
-          key={comment.id}
-          comment={comment}
-          language={language}
-        />
-      );
-    }),
-    offset: nextSearchAfter,
-    filters_key: filters_key,
-  };
-}
-
-export async function GetFQACommentsForProductWithReactions({
-  user_id,
-  commentsResult,
-}) {
-  let commentIds = [];
-  let temp = commentsResult.map((s) => s.id);
-
-  if (temp.length === 0) return commentsResult;
-  temp.map((s) => {
-    commentIds.push(s);
-    commentIds.push(`${s}-seller_reply`);
-  });
-
-  const reactionsQuery: any = {
-    index: comments_interactions_index,
-    size: 0,
-    query: {
-      bool: {
-        must: [
-          { terms: { target_id: commentIds } },
-          { term: { status: "active" } },
-          { terms: { target_type: ["comment", "seller_reply"] } },
-        ],
-      },
-    },
-    aggs: {
-      reactions_by_type: {
-        terms: {
-          field: "target_type",
-          size: 2,
-        },
-        aggs: {
-          reactions_by_target: {
-            terms: {
-              field: "target_id",
-              size: commentIds.length,
-            },
-            aggs: user_id
-              ? {
-                  user_like: {
-                    filter: {
-                      bool: {
-                        must: [
-                          { term: { user_id: user_id } },
-                          { term: { status: "active" } },
-                        ],
-                      },
-                    },
-                  },
-                }
-              : {},
-          },
-        },
-      },
-    },
-  };
-
-  const reactionsRes = await client.search(reactionsQuery);
-  const commentLikesMap: Record<
-    string,
-    { total_likes: number; is_liked: boolean }
-  > = {};
-
-  const replyLikesMap: Record<
-    string,
-    { total_likes: number; is_liked: boolean }
-  > = {};
-
-  const buckets =
-    // @ts-ignore
-    reactionsRes.aggregations.reactions_by_type.buckets;
-
-  for (const typeBucket of buckets) {
-    const isReply = typeBucket.key === "seller_reply";
-
-    for (const bucket of typeBucket.reactions_by_target.buckets) {
-      const map = isReply ? replyLikesMap : commentLikesMap;
-
-      map[bucket.key] = {
-        total_likes: bucket.doc_count,
-        is_liked: bucket.user_like ? bucket.user_like.doc_count > 0 : false,
-      };
-    }
-  }
-
-  return commentsResult.map((comment) => ({
-    ...comment,
-    total_likes: commentLikesMap[comment.id]?.total_likes || 0,
-    is_liked: commentLikesMap[comment.id]?.is_liked || false,
-    reply_total_likes:
-      comment.has_reply && comment.seller_reply
-        ? replyLikesMap[`${comment.id}-seller_reply`]?.total_likes || 0
-        : 0,
-    reply_is_liked:
-      comment.has_reply && comment.seller_reply
-        ? replyLikesMap[`${comment.id}-seller_reply`]?.is_liked || false
-        : false,
-  }));
-}
-
-async function GetBuyerComment({ id }) {
-  const userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_DATA);
-  let userId = userData?.id;
-  let query: any = {
-    index: comments_index,
-    size: 1,
-    sort: [
-      { created_at: "desc" }, // newest first
-      { comment_id: "desc" }, // tie-breaker for consistent pagination
-    ],
-    query: {
-      bool: {
-        must: [{ term: { comment_id: id } }],
-      },
-    },
-  };
-
-  const response = await client.search(query);
-
-  let results: any = response.hits.hits.map((hit) => ({
-    id: hit._id,
-    ...((hit?._source as {}) ?? {}),
-  }));
-  results = await GetFQACommentsForProductWithReactions({
-    user_id: userId,
-    commentsResult: results,
-  });
-  let comment = {
-    id: results?.[0].id,
-    customer: {
-      id: results?.[0].user_id,
-      name: results?.[0].user_name,
-      image: results?.[0]?.user_avatar,
-    },
-    product_id: results?.[0].product_id,
-    comment: results?.[0].text,
-    ownerId: results?.[0]?.owner_id,
-    ownerType: results?.[0]?.owner_type,
-    variant: results?.[0].variant,
-    isOwner:
-      userId &&
-      results?.[0]?.user_id &&
-      String(results?.[0]?.user_id) === String(userId),
-    created_at: results?.[0].created_at,
-    true_size: results?.[0].aspects?.size?.fit_analysis?.correct ?? false,
-    good_quality_comment: results?.[0]?.good_quality_comment ?? false,
-    comments_images_customer: results?.[0]?.comments_images_customer ?? [],
-    star_rating: results?.[0].rating,
-    order_details_id: results?.[0].order_details_id,
-    recommendation: results?.[0]?.recommendation,
-    total_likes: results?.[0]?.total_likes,
-    is_liked: results?.[0]?.is_liked,
-  };
-  return comment;
-}
-export async function UpdateBuyerComment({ language, id }) {
-  let comment = await GetBuyerComment({ id: id });
-
-  return {
-    comment: (
-      <BuyersCommentItem
-        id={id}
-        key={id}
-        comment={comment}
-        language={language}
-      />
-    ),
-    success: true,
-    status: 200,
-  };
-}
-
-export async function GetProductStories({ page, productId }) {
+// Data-returning twin of GetProductStories: returns the raw story payload plus
+// a normalized `stories` list (id, thumbnail, has_new) so the client renders
+// the card/border itself instead of receiving server JSX.
+export async function GetProductStoriesData({ page, productId }) {
   let cookiesStore = await cookies();
   let storiesToken = cookiesStore.get("USER-STORIES")?.value;
   let headers = {};
@@ -808,297 +558,22 @@ export async function GetProductStories({ page, productId }) {
     method: "GET",
     headers: headers,
   });
-  const getStoryBorder = (story) => {
-    // has new story
-    if (story.stories.filter((s) => s.is_seen === false)?.length > 0) {
-      return (
-        <svg
-          className="absolute top-0 left-0 z-40"
-          xmlns="http://www.w3.org/2000/svg"
-          width="111"
-          height="160"
-          viewBox="0 0 111 160"
-        >
-          <g
-            id="Rectangle_6484"
-            data-name="Rectangle 6484"
-            fill="none"
-            stroke="#513aaf"
-            strokeWidth="0.5"
-          >
-            <rect width="111" height="160" rx="15" stroke="none" />
-            <rect
-              x="0.25"
-              y="0.25"
-              width="110.5"
-              height="159.5"
-              rx="14.75"
-              fill="none"
-            />
-          </g>
-        </svg>
-      );
-    } else {
-      return (
-        <svg
-          className="absolute top-0 left-0 z-40"
-          xmlns="http://www.w3.org/2000/svg"
-          width="111"
-          height="160"
-          viewBox="0 0 111 160"
-        >
-          <g
-            id="Rectangle_6484"
-            data-name="Rectangle 6484"
-            fill="none"
-            stroke="#D3D3D3"
-            strokeWidth="0.5"
-          >
-            <rect width="111" height="160" rx="15" stroke="none" />
-            <rect
-              x="0.25"
-              y="0.25"
-              width="110.5"
-              height="159.5"
-              rx="14.75"
-              fill="none"
-            />
-          </g>
-        </svg>
-      );
-    }
-  };
 
   if (!response.data) {
-    return {
-      data: [],
-      items: [],
-    };
+    return { data: [], stories: [] };
   }
+
+  const rawStories = response.data.data.data;
   return {
-    data: response.data.data.data,
-    items: response.data.data?.data?.map((story, index) => (
-      <div
-        key={index}
-        data-id={story.id}
-        className="product-story relative"
-        data-cy="Story"
-        style={{
-          boxShadow: "0 3px 3px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        {getStoryBorder(story)}
-        <img
-          width={111}
-          height={160}
-          src={getThumb(
-            // @ts-ignore
-            story.stories[0]?.full_video_path ||
-              // @ts-ignore
-              story.stories[0]?.photo_path,
-            // @ts-ignore
-            Boolean(story.stories[0]?.full_video_path),
-          )}
-        />
-        <div className="inset-story-shadow absolute" />
-      </div>
-    )),
-  };
-}
-
-export async function GetProductFaqQuestions({
-  language,
-  productId,
-  offset = null,
-  filter = null,
-  pageSize = 5,
-  userId,
-  width = 90,
-  isFromComments = false,
-}) {
-  let query: any = {
-    index: comments_index,
-    size: pageSize,
-    sort: [
-      { created_at: "desc" }, // newest first
-      { comment_id: "desc" }, // tie-breaker for consistent pagination
-    ],
-    query: {
-      bool: {
-        must: [{ term: { product_id: String(productId) } }],
-        must_not: [
-          { term: { status: "deleted" } },
-          {
-            exists: {
-              field: "order_details_id",
-            },
-          },
-        ],
-      },
-    },
-    aggs: {
-      unique_aspects: {
-        terms: {
-          field: `discussed_aspects_${language}`,
-          size: 1000, // adjust if you have more aspects
-        },
-      },
-    },
-  };
-  if (filter && typeof filter === "string" && filter?.trim() !== "") {
-    query.query.bool.must.push({
-      bool: {
-        should: [
-          { term: { discussed_aspects_en: filter } },
-          { term: { discussed_aspects_ar: filter } },
-          { term: { discussed_aspects_tr: filter } },
-          { term: { discussed_aspects_ku: filter } },
-        ],
-        minimum_should_match: 1, // at least one should match
-      },
-    });
-  }
-
-  if (offset) {
-    query = {
-      ...query,
-      search_after: typeof offset === "string" ? JSON.parse(offset) : offset,
-    };
-  }
-
-  let response = await client.search(query);
-  let results = response.hits.hits.map((hit) => ({
-    id: hit._id,
-    ...((hit?._source as {}) ?? {}),
-  }));
-
-  const nextSearchAfter =
-    results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
-  if (results?.length > 0)
-    results = await GetFQACommentsForProductWithReactions({
-      user_id: userId,
-      commentsResult: results,
-    });
-  const filters_key = (
-    (response.aggregations?.unique_aspects as any)?.buckets || []
-  ).map((bucket: any, index) => {
-    return bucket?.key;
-  });
-  let comments = {
-    fqa_comments: results?.map((s: any) => ({
-      id: s.id,
-      customer: {
-        id: s.user_id,
-        name: s.user_name,
-        image: s.user_avatar,
-      },
-      product_id: s.product_id,
-      comment: s.text,
-      created_at: s.created_at,
-      has_reply: s.has_reply,
-      good_quality_comment: s?.good_quality_comment,
-      seller_reply: s.seller_reply,
-      seller_name: s.seller_name,
-      reply_created_at: s.reply_created_at,
-      total_likes: s?.total_likes,
-      is_liked: s?.is_liked,
-      reply_total_likes: s?.reply_total_likes,
-      reply_is_liked: s?.reply_is_liked,
-      isOwner: userId && s?.user_id && String(s?.user_id) === String(userId),
+    data: rawStories,
+    stories: rawStories?.map((story) => ({
+      id: story.id,
+      has_new: story.stories?.filter((s) => s.is_seen === false)?.length > 0,
+      thumb: getThumb(
+        story.stories?.[0]?.full_video_path || story.stories?.[0]?.photo_path,
+        Boolean(story.stories?.[0]?.full_video_path),
+      ),
     })),
-    total: (response.hits.total as any)?.value,
-    filters_key: filters_key,
-    searchAfter: nextSearchAfter,
-  };
-
-  return {
-    comments: comments.fqa_comments.map((com) => (
-      <FaqItemComponent
-        isFromComments={isFromComments}
-        key={com.id}
-        comment={com}
-        id={com.id}
-        isRtl={language === "ar" || language === "ku"}
-        language={language}
-        seller_name={com.seller_name}
-        width={width}
-      />
-    )),
-    offset: comments.searchAfter,
-    filters_key: filters_key,
-    total: (response.hits.total as any)?.value,
-  };
-}
-async function GetFaqItem({ id }) {
-  let query: any = {
-    index: comments_index,
-    size: 1,
-    query: {
-      bool: {
-        must: [{ term: { comment_id: String(id) } }],
-        must_not: [{ term: { status: "deleted" } }],
-      },
-    },
-  };
-
-  let response = await client.search(query);
-  let results: any = response.hits.hits.map((hit) => ({
-    id: hit._id,
-    ...((hit?._source as {}) ?? {}),
-  }));
-
-  const userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_DATA);
-  let userId = userData?.id;
-
-  if (results?.length > 0)
-    results = await GetFQACommentsForProductWithReactions({
-      user_id: userId,
-      commentsResult: results,
-    });
-  let comment = {
-    id: results?.[0]?.id,
-    customer: {
-      id: results?.[0]?.user_id,
-      name: results?.[0]?.user_name,
-      image: results?.[0]?.user_avatar,
-    },
-    product_id: results?.[0]?.product_id,
-    comment: results?.[0]?.text,
-    created_at: results?.[0]?.created_at,
-    has_reply: results?.[0]?.has_reply,
-    good_quality_comment: results?.[0]?.good_quality_comment,
-    seller_reply: results?.[0]?.seller_reply,
-    seller_name: results?.[0]?.seller_name,
-    reply_created_at: results?.[0]?.reply_created_at,
-    total_likes: results?.[0]?.total_likes,
-    isOwner:
-      userId &&
-      results?.[0]?.user_id &&
-      String(results?.[0]?.user_id) === String(userId),
-    is_liked: results?.[0]?.is_liked,
-    reply_total_likes: results?.[0]?.reply_total_likes,
-    reply_is_liked: results?.[0]?.reply_is_liked,
-  };
-  return comment;
-}
-
-export async function GetFaqItemElement({ id, language, width = 90 }) {
-  let comment = await GetFaqItem({ id: id });
-
-  return {
-    comment: (
-      <FaqItemComponent
-        key={comment.id}
-        comment={comment}
-        id={comment.id}
-        isRtl={language === "ar" || language === "ku"}
-        language={language}
-        seller_name={comment.seller_name}
-        width={width}
-      />
-    ),
-    success: true,
-    status: 200,
   };
 }
 

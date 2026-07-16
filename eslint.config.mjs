@@ -1,0 +1,108 @@
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
+import i18next from "eslint-plugin-i18next";
+import translateKeyExists from "./eslint-rules/translate-key-exists.js";
+
+// Local plugin holding Trydos-specific i18n rules.
+const local = { rules: { "translate-key-exists": translateKeyExists } };
+
+const eslintConfig = [
+  {
+    ignores: [
+      ".next/**",
+      "out/**",
+      "build/**",
+      "node_modules/**",
+      "next-env.d.ts",
+    ],
+  },
+  ...nextCoreWebVitals,
+  // ---------------------------------------------------------------------------
+  // i18n enforcement (see CLAUDE.md "Internationalization"):
+  //   Problem A — no hardcoded user-visible text            -> warn  (burn down)
+  //   Problem B — every translate key exists in ar/tr/ku    -> error (precise)
+  // Only lint the app's own source; config/scripts/rules are exempt below.
+  // ---------------------------------------------------------------------------
+  {
+    files: [
+      "app/**/*.{ts,tsx}",
+      "components/**/*.{ts,tsx}",
+      "services/**/*.{ts,tsx}",
+      "utils/**/*.{ts,tsx}",
+      "store/**/*.{ts,tsx}",
+    ],
+    plugins: { i18next, local },
+    rules: {
+      // Problem B: used key must exist in all three translation files.
+      "local/translate-key-exists": "error",
+
+      // Problem A: flag literal user-visible strings that were never wrapped.
+      "i18next/no-literal-string": [
+        "warn",
+        {
+          // Only JSX text + the user-visible attributes; ignore className etc.
+          mode: "jsx-text-only",
+          "jsx-attributes": {
+            include: ["placeholder", "title", "alt", "aria-label", "label"],
+          },
+          // Strings already going through the translate surface are fine.
+          callees: {
+            exclude: ["translateFunction", "t", "LogError", "LogServerError"],
+          },
+          // Not translatable copy — excluded so the rule stays signal, not noise.
+          // (Avoid \p{...}: the plugin compiles these without the `u` flag, so
+          // Unicode property escapes silently fail — use explicit classes.)
+          words: {
+            exclude: [
+              "^[^A-Za-z]+$", // symbols/numbers/punctuation only: •, |, +, 13:00
+              "^[A-Za-z]$", // single-letter typographic icons: B, I, U, Q, A, X
+              "^(IN|CM)$", // measurement unit abbreviations
+              "^trydos$", // brand name
+              "^(Facebook|WhatsApp|Telegram|Twitter / X)$", // social brand names
+            ],
+          },
+        },
+      ],
+    },
+  },
+  // Internal dev / test / debug pages are never shown to real users, so their
+  // copy is intentionally not translated. Disable the hardcoded-string check
+  // there (Problem B key-existence still applies everywhere).
+  {
+    files: [
+      "app/(client)/api-test/**/*.{ts,tsx}",
+      "app/simulateUser/**/*.{ts,tsx}",
+      "app/(client)/requests-log/**/*.{ts,tsx}",
+      "components/global/NotificationsTest.tsx",
+      "components/global/WebviewCall.tsx",
+      "components/Home/OtpStatsModal.tsx",
+    ],
+    rules: { "i18next/no-literal-string": "off" },
+  },
+  {
+    files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"],
+    rules: {
+      // Permissive config — see CLAUDE.md / copilot-instructions.md.
+      "react/react-in-jsx-scope": "off",
+      "react/display-name": "off",
+      "react/no-unescaped-entities": "off",
+      "@next/next/no-img-element": "off",
+      "@next/next/no-html-link-for-pages": "off",
+      "jsx-a11y/alt-text": "off",
+      // React Compiler handles dependency arrays automatically.
+      "react-hooks/exhaustive-deps": "off",
+      "react-hooks/rules-of-hooks": "warn",
+      // react-hooks v7 bundles React Compiler diagnostic rules. React Compiler
+      // is already enabled (next.config.ts), so these are advisory bailout hints,
+      // not correctness errors — kept off to match this repo's permissive policy.
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/error-boundaries": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/refs": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/static-components": "off",
+      "react-hooks/preserve-manual-memoization": "off",
+    },
+  },
+];
+
+export default eslintConfig;

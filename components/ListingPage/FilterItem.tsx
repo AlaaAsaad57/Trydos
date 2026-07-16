@@ -1,16 +1,21 @@
+"use client";
+
 import NextLink from "components/global/NextLink";
 import React from "react";
 
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import {
   getConfiguredImage,
   RoundPrice,
   GetImageUrl,
-  buildParamsFromFilters,
-  FilterParams,
   FilterItemProps,
   FilterState,
 } from "utils/server";
+import {
+  getFilterStateForItem,
+  getFilterStateForItemLegacy,
+} from "utils/listing/filterItemState";
 
 const FilterItem = ({
   term,
@@ -22,6 +27,10 @@ const FilterItem = ({
   baseUrlOfFiltersPage,
   isRtl = false,
 }: FilterItemProps) => {
+  // Live query string (?search=/?sort=) so filter links keep the active search
+  // instead of clearing it when a filter is toggled.
+  const searchParams = useSearchParams();
+  const activeQueryString = searchParams.toString();
   // Helper function to get filter state with proper typing
   const getFilterState = (
     itemValue: string,
@@ -36,6 +45,7 @@ const FilterItem = ({
         parentValue,
         params.lang,
         baseUrlOfFiltersPage,
+        activeQueryString,
       );
     } else {
       // For backward compatibility with searchParams
@@ -79,6 +89,8 @@ const FilterItem = ({
       });
       return sub_index > 0;
     };
+
+    const showSub = shouldShowSubCategories();
 
     return (
       <>
@@ -146,26 +158,19 @@ const FilterItem = ({
         {item.childes?.length > 0 && (
           <div
             className={`categories-sub-circles relative ${
-              shouldShowSubCategories() ? "no-transform" : "ml-0"
+              showSub ? "no-transform" : "ml-0"
             } z-0`}
             style={{
-              minWidth: shouldShowSubCategories()
+              minWidth: showSub
                 ? "max-content"
                 : `${(item?.childes?.length * 10) / 2}px`,
-              right: isRtl
-                ? "initial"
-                : shouldShowSubCategories()
-                  ? "0px"
-                  : "40px",
+              right: isRtl ? "initial" : showSub ? "0px" : "40px",
 
-              left: isRtl
-                ? shouldShowSubCategories()
-                  ? "0px"
-                  : "40px"
-                : "initial",
+              left: isRtl ? (showSub ? "0px" : "40px") : "initial",
             }}
           >
             {item.childes.map((s, index) => {
+              const sub = getSubCategoryUrl(s.slug);
               return (
                 <React.Fragment key={s.slug}>
                   <NextLink
@@ -173,22 +178,20 @@ const FilterItem = ({
                     data={{
                       is_filter: true,
                     }}
-                    href={getSubCategoryUrl(s.slug)?.href}
+                    href={sub?.href}
                     className={`sub-circle`}
                     key={s.slug}
                     style={{
-                      position: shouldShowSubCategories()
-                        ? "relative"
-                        : "absolute",
-                      left: shouldShowSubCategories() ? "0" : `${index * 8}px`,
-                      zIndex: shouldShowSubCategories() ? "auto" : 100 - index,
-                      transform: shouldShowSubCategories()
+                      position: showSub ? "relative" : "absolute",
+                      left: showSub ? "0" : `${index * 8}px`,
+                      zIndex: showSub ? "auto" : 100 - index,
+                      transform: showSub
                         ? "none"
                         : `scale(${1 - index * 0.05})`,
                       transition: "all 0.5s ease",
                     }}
                   >
-                    {getSubCategoryUrl(s.slug)?.isFiltered && (
+                    {sub?.isFiltered && (
                       <img
                         src="/icons/ActiveCategoryIcon.svg"
                         className="active-category-icon min-w-[30px] w-[30px] h-[30px] z-50"
@@ -215,11 +218,7 @@ const FilterItem = ({
                         id="Ellipse_283"
                         data-name="Ellipse 283"
                         fill="none"
-                        stroke={
-                          getSubCategoryUrl(s.slug)?.isFiltered
-                            ? "#FF5F61"
-                            : "#fff"
-                        }
+                        stroke={sub?.isFiltered ? "#FF5F61" : "#fff"}
                         strokeWidth="0.5"
                       >
                         <circle cx="25" cy="25" r="25" stroke="none" />
@@ -243,7 +242,7 @@ const FilterItem = ({
                         height: 100,
                       })}
                     />
-                    {shouldShowSubCategories() && (
+                    {showSub && (
                       <div className="category-text-container flex-col align-center max-w-[50px]">
                         <span className="category-title">{s.name}</span>
                         {/* <span className="category-typo">1100</span> */}
@@ -253,16 +252,15 @@ const FilterItem = ({
                   {s.childes?.length > 0 && (
                     <div
                       className={`categories-sub-circles ${
-                        shouldShowSubCategories() && "no-transform ml-[10px]"
+                        showSub && "no-transform ml-[10px]"
                       } z-0`}
                       style={{
-                        minWidth: shouldShowSubCategories()
-                          ? "max-content"
-                          : "10px",
+                        minWidth: showSub ? "max-content" : "10px",
                       }}
                     >
-                      {shouldShowSubCategories() &&
+                      {showSub &&
                         s.childes.map((sub_s, index) => {
+                          const gsub = getSubCategoryUrl(sub_s.slug, s.slug);
                           return (
                             <NextLink
                               ignoreConditionCase={true}
@@ -270,14 +268,13 @@ const FilterItem = ({
                               data={{
                                 is_filter: true,
                               }}
-                              href={getSubCategoryUrl(sub_s.slug, s.slug)?.href}
+                              href={gsub?.href}
                               className="sub-circle w-[40px] h-[40px]"
                               style={{
                                 zIndex: 4 - index,
                               }}
                             >
-                              {getSubCategoryUrl(sub_s.slug, s.slug)
-                                ?.isFiltered && (
+                              {gsub?.isFiltered && (
                                 <img
                                   src="/icons/ActiveCategoryIcon.svg"
                                   className="active-category-icon min-w-[30px] w-[30px] h-[30px] z-50"
@@ -304,12 +301,7 @@ const FilterItem = ({
                                   id="Ellipse_283"
                                   data-name="Ellipse 283"
                                   fill="none"
-                                  stroke={
-                                    getSubCategoryUrl(sub_s.slug, s.slug)
-                                      ?.isFiltered
-                                      ? "#FF5F61"
-                                      : "#fff"
-                                  }
+                                  stroke={gsub?.isFiltered ? "#FF5F61" : "#fff"}
                                   strokeWidth="0.5"
                                 >
                                   <circle
@@ -342,7 +334,7 @@ const FilterItem = ({
                                   height: 100,
                                 })}
                               />
-                              {shouldShowSubCategories() && (
+                              {showSub && (
                                 <div className="category-text-container flex-col align-center mt-2 max-w-[50px]">
                                   <span className="category-title">
                                     {sub_s.name}
@@ -608,171 +600,3 @@ const FilterItem = ({
   }
 };
 export default FilterItem;
-function getFilterStateForItem(
-  parsedFilters: FilterParams,
-  itemValue: string,
-  filterKey: string,
-  parentValue?: string[],
-  lang?: string,
-  baseUrlOfFiltersPage?: string,
-): FilterState {
-  let currentValues: any[] = [];
-
-  // Extract the filter value - it's already parsed as an array
-  const filterRawValue = parsedFilters[filterKey];
-  if (filterRawValue && Array.isArray(filterRawValue)) {
-    currentValues = filterRawValue;
-  }
-
-  // Check if item is currently filtered
-  let isFiltered = false;
-  if (filterKey === "colors") {
-    // For colors, check both with and without # prefix
-    const colorWithHash = itemValue.startsWith("#")
-      ? itemValue
-      : `#${itemValue}`;
-    const colorWithoutHash = itemValue.startsWith("#")
-      ? itemValue.substring(1)
-      : itemValue;
-    isFiltered =
-      currentValues.includes(colorWithHash) ||
-      currentValues.includes(colorWithoutHash);
-  } else {
-    isFiltered =
-      Array.isArray(currentValues) && currentValues.includes(itemValue);
-  }
-
-  // Create new filters object
-  const newFilters = { ...parsedFilters };
-
-  // Special handling for prices - only allow one value at a time
-  if (filterKey === "prices") {
-    if (isFiltered) {
-      delete newFilters[filterKey]; // Remove filter
-    } else {
-      newFilters[filterKey] = [itemValue]; // Set new value
-    }
-  } else if (filterKey === "colors") {
-    // Special handling for colors - ensure we store with # prefix
-    const colorValue = itemValue.startsWith("#") ? itemValue : `#${itemValue}`;
-
-    if (!newFilters[filterKey]) {
-      newFilters[filterKey] = [];
-    }
-
-    if (isFiltered) {
-      // Remove both possible formats
-      newFilters[filterKey] = newFilters[filterKey].filter(
-        (val) => val !== colorValue && val !== itemValue,
-      );
-      if (newFilters[filterKey].length === 0) {
-        delete newFilters[filterKey];
-      }
-    } else {
-      newFilters[filterKey] = [...(newFilters[filterKey] || []), colorValue];
-    }
-  } else {
-    // For other filters, toggle the value
-    if (!newFilters[filterKey]) {
-      newFilters[filterKey] = [];
-    }
-
-    if (isFiltered) {
-      newFilters[filterKey] = newFilters[filterKey].filter(
-        (val) => val !== itemValue,
-      );
-      if (newFilters[filterKey].length === 0) {
-        delete newFilters[filterKey];
-      }
-    } else {
-      // Remove parent values if specified
-      if (parentValue) {
-        newFilters[filterKey] = newFilters[filterKey].filter(
-          (val) => !parentValue.includes(val),
-        );
-      }
-      newFilters[filterKey] = [...(newFilters[filterKey] || []), itemValue];
-    }
-  }
-
-  // Build URL path using utility function
-  const pathParams = buildParamsFromFilters(newFilters);
-  const basePath = lang
-    ? `/${lang}${baseUrlOfFiltersPage}`
-    : baseUrlOfFiltersPage;
-  const href =
-    pathParams.length > 0 ? `${basePath}/${pathParams.join("/")}` : basePath;
-
-  return {
-    isFiltered,
-    href,
-  };
-}
-function getFilterStateForItemLegacy(
-  searchParams: URLSearchParams | any,
-  itemValue: string,
-  filterKey: string,
-  parentValue?: string[],
-  lang?: string,
-): FilterState {
-  // Convert to URLSearchParams if it's an object
-  const params =
-    searchParams instanceof URLSearchParams
-      ? searchParams
-      : new URLSearchParams();
-
-  let currentValues: any[] = [];
-
-  // Extract and decode the filter value
-  const filterRawValue = params.get
-    ? params.get(filterKey)
-    : searchParams[filterKey];
-  if (filterRawValue) {
-    try {
-      currentValues =
-        typeof filterRawValue === "string"
-          ? JSON.parse(decodeURIComponent(filterRawValue))
-          : filterRawValue;
-    } catch (e) {
-      console.error("Error parsing filter values:", e);
-      currentValues = [];
-    }
-  }
-
-  // Check if item is currently filtered
-  const isFiltered =
-    Array.isArray(currentValues) && currentValues.includes(itemValue);
-
-  // For legacy mode, return search params format
-  const newParams = new URLSearchParams(
-    params.toString ? params.toString() : "",
-  );
-
-  // Handle filter updates the old way
-  if (filterKey === "prices") {
-    const newValues = isFiltered ? [] : [itemValue];
-    if (newValues.length > 0) {
-      newParams.set(filterKey, encodeURIComponent(JSON.stringify(newValues)));
-    } else {
-      newParams.delete(filterKey);
-    }
-  } else {
-    const newValues = isFiltered
-      ? currentValues.filter((val) => val !== itemValue)
-      : [
-          ...currentValues?.filter((val) => !parentValue?.includes(val)),
-          itemValue,
-        ];
-
-    if (newValues.length > 0) {
-      newParams.set(filterKey, encodeURIComponent(JSON.stringify(newValues)));
-    } else {
-      newParams.delete(filterKey);
-    }
-  }
-
-  return {
-    isFiltered,
-    href: `?${newParams.toString()}`,
-  };
-}

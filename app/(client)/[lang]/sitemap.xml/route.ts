@@ -4,7 +4,10 @@ import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(request: NextRequest, { params }) {
   const Params = await params;
+  // return new NextResponse("Temporary stopped by developer", {
+  //   status: 200,
 
+  // });
   try {
     const lang = Params.lang;
 
