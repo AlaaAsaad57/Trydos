@@ -4,7 +4,18 @@ import { translateFunction } from "utils/functions";
 import { getLocalizedCountryName } from "utils/countryData";
 import LocalizationServiceClass from "services/localization";
 import { DashButton, DashIcon, Segmented } from "components/SellerDashboard/ui";
-import { RichTextEditor } from "components/SellerDashboard/ui/RichTextEditor";
+import dynamic from "next/dynamic";
+import RichTextEditorSkeleton from "components/skeleton/RichTextEditorSkeleton";
+
+// Lazy: TipTap (+ prosemirror) is ~150KB min; only the description field
+// needs it, so it loads when the form renders instead of with the page.
+const RichTextEditor = dynamic(
+  () =>
+    import("components/SellerDashboard/ui/RichTextEditor").then(
+      (m) => m.RichTextEditor,
+    ),
+  { ssr: false, loading: () => <RichTextEditorSkeleton /> },
+);
 import { Section, Chip, CopyFrom, FieldShell, dashInputClass } from "./controls";
 import {
   RECOMMENDED_BANNER,
