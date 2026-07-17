@@ -1,5 +1,5 @@
 "use client";
-import { getConfiguredImage, GetImageUrl } from "utils/server";
+import { getConfiguredImage, GetImageUrl } from "utils/server/helpers";
 
 function ImageCircel({
   term,

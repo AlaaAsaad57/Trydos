@@ -11,7 +11,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { setLocaizationCookies } from "utils/cookies/cookie-manager";
 import BackBar from "components/setting/BackBar";
 import { GetCountries } from "serverRequests/product";
-import { countryNameFromIso } from "utils/server";
+import { countryNameFromIso } from "utils/server/country";
 function PersonalInfoCountries({
   local = "",
   isRtl = false,

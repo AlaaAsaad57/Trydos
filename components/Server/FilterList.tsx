@@ -7,12 +7,12 @@ import {
   buildParamsFromFilters,
   FilterParams,
   pollinateInput,
-} from "utils/server";
+} from "utils/server/helpers";
 import InfiniteScrollFilters from "components/ListingPage/filterComponents/InfiniteScrollFilters";
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
-import { getConfiguredImage, RoundPrice } from "utils/server";
+import { getConfiguredImage, RoundPrice } from "utils/server/helpers";
 
 import FilterItem from "components/ListingPage/FilterItem";
 

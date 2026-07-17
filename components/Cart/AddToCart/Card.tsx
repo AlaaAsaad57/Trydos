@@ -6,7 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { GetCountries } from "serverRequests/product";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
-import { countryNameFromIso } from "utils/server";
+import { countryNameFromIso } from "utils/server/country";
 import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
 
 function Card({

@@ -1,7 +1,7 @@
 "use client";
 import NextLink from "components/global/NextLink";
 
-import { translateFunction } from "utils/server";
+import { translateFunction } from "utils/functions";
 import OrderNotified from "./OrderNotified";
 import { useAppStore } from "store";
 import { usePathname } from "node_modules/next/navigation";

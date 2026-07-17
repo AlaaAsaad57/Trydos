@@ -11,7 +11,7 @@ import {
   GetImageUrl,
   FilterItemProps,
   FilterState,
-} from "utils/server";
+} from "utils/server/helpers";
 import {
   getFilterStateForItem,
   getFilterStateForItemLegacy,

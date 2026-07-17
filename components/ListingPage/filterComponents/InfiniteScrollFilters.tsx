@@ -3,8 +3,7 @@ import Spinner from "components/global/Spinner";
 import FilterItem from "components/ListingPage/FilterItem";
 import React from "react";
 import { GetNextPageFilters } from "serverRequests/listing";
-import { LogError } from "utils/functions";
-import { translateFunction } from "utils/server";
+import { LogError, translateFunction } from "utils/functions";
 
 function InfiniteScrollFilters({
   term,

@@ -8,7 +8,7 @@ import {
   RoundPrice,
   getVideoUrl,
   getUrlofProduct,
-} from "utils/server";
+} from "utils/server/helpers";
 import ProductPhotosWrapper from "components/ServerWrapper/ProductWrapper/ProductPhotosWrapper";
 import NextLink from "components/global/NextLink";
 

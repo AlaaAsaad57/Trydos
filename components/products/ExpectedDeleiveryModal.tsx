@@ -12,7 +12,7 @@ import {
   DeliveredOrder,
   GetProductDeliveryTimes,
 } from "services/products";
-import { countryNameFromIso } from "utils/server";
+import { countryNameFromIso } from "utils/server/country";
 import { PRODUCT_EVENTS, trackPosthog } from "utils/posthogEvents";
 function ExpectedDeleiveryModal({
   product_id,
