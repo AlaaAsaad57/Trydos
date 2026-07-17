@@ -22,6 +22,7 @@ import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { fetchAuthMe } from "utils/authMe";
 import { isGuestName } from "utils/tinyUtils";
 import { COOKIE_NAMES, setCookie } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -334,21 +335,15 @@ class HomeService {
     let hasDeviceToken = false;
     let hasMarketToken = false;
 
-    try {
-      const meResponse = await fetch("/api/auth/me", {
-        credentials: "include",
-        method: "POST",
-      });
-      if (meResponse.ok) {
-        const meData = await meResponse.json();
-        userData = meData.user;
-        userChat = meData.chatUser;
-        userStories = meData.storiesUser;
-        userWallet = meData.walletUser;
-        hasDeviceToken = meData.hasDeviceToken;
-        hasMarketToken = meData.hasMarketToken;
-      }
-    } catch (_) {}
+    const meData = await fetchAuthMe();
+    if (meData) {
+      userData = meData.user;
+      userChat = meData.chatUser;
+      userStories = meData.storiesUser;
+      userWallet = meData.walletUser;
+      hasDeviceToken = meData.hasDeviceToken;
+      hasMarketToken = meData.hasMarketToken;
+    }
 
     if (userData) {
       editUserInfo(userData);

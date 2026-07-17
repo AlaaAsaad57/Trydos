@@ -15,6 +15,7 @@ import {
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { fetchAuthMe } from "utils/authMe";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -43,24 +44,11 @@ let normalizePhone = (phone: string) => {
 };
 class AuthService {
   private async getServiceUsersFromCookies() {
-    try {
-      const response = await fetch("/api/auth/me", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        return { chatUser: null, storiesUser: null };
-      }
-
-      const data = await response.json();
-      return {
-        chatUser: data?.chatUser ?? null,
-        storiesUser: data?.storiesUser ?? null,
-      };
-    } catch (error) {
-      return { chatUser: null, storiesUser: null };
-    }
+    const data = await fetchAuthMe();
+    return {
+      chatUser: data?.chatUser ?? null,
+      storiesUser: data?.storiesUser ?? null,
+    };
   }
 
   async SendOtp(
