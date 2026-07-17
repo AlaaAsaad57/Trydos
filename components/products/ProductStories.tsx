@@ -47,7 +47,9 @@ const renderStory = (story) => (
 );
 
 function ProductStories({ id, initialStories, InitialStoriesData }) {
-  const { selectedStory, isProductPage, setStoryData } = useAppStore();
+  const selectedStory = useAppStore((s) => s.selectedStory);
+  const isProductPage = useAppStore((s) => s.isProductPage);
+  const setStoryData = useAppStore((s) => s.setStoryData);
   let { lang } = useParams();
   const [stories, setStories] = useState(initialStories);
   const [storiesData, setStoriesData] = useState(InitialStoriesData);

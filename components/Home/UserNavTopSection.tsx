@@ -128,16 +128,14 @@ function UserNavTopSection({
     }
   };
 
-  const {
-    enableCart,
-    disableAddToCartOption,
-    language,
-    enable_search,
-    localCart,
-    loginOpen,
-    setLoginOpen: openLogin,
-    setShouldAuthinticated,
-  } = useAppStore();
+  // Per-field selectors: mounted in the navbar on every page.
+  const enableCart = useAppStore((s) => s.enableCart);
+  const disableAddToCartOption = useAppStore((s) => s.disableAddToCartOption);
+  const language = useAppStore((s) => s.language);
+  const localCart = useAppStore((s) => s.localCart);
+  const loginOpen = useAppStore((s) => s.loginOpen);
+  const openLogin = useAppStore((s) => s.setLoginOpen);
+  const setShouldAuthinticated = useAppStore((s) => s.setShouldAuthinticated);
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];

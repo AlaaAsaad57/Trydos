@@ -17,8 +17,12 @@ const StoriesContainer = dynamic(() => import("./Stories/NewStories"), {
 });
 
 function NavbarClient() {
-  const { shouldAuthinticated, selectedStory, LoggingOut, isProductPage } =
-    useAppStore();
+  // Per-field selectors: this component is mounted on every page, so a
+  // whole-store subscription would re-render it on any store write.
+  const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
+  const selectedStory = useAppStore((s) => s.selectedStory);
+  const LoggingOut = useAppStore((s) => s.LoggingOut);
+  const isProductPage = useAppStore((s) => s.isProductPage);
   const { lang } = useParams();
 
   return (
