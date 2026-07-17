@@ -6,7 +6,7 @@ import {
   getCookieServer,
   UserData,
 } from "utils/cookies/cookie-manager";
-import AddStoryWidget from "components/Home/Stories/AddStoryWidget";
+import AddStoryWidget from "components/Home/Stories/AddStoryWidgetLazy";
 import StoriesWrapper from "components/clientWrapper/StoriesWrapper";
 
 interface StoriesBarServerProps {

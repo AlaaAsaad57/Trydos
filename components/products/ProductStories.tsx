@@ -3,8 +3,16 @@ import React, { useEffect, useState } from "react";
 import { SelectStory } from "store/homepage/actions";
 
 import StoryServiceClass from "services/story";
-import StoriesContainer from "components/Home/Stories/NewStories";
+import dynamic from "next/dynamic";
+import StoryViewerSkeleton from "components/skeleton/StoryViewerSkeleton";
 import { useParams } from "next/navigation";
+
+// Lazy for the same reason as NavbarClient: keeps the cube-carousel/gesture
+// stack out of the product-page bundle until a story is opened.
+const StoriesContainer = dynamic(
+  () => import("components/Home/Stories/NewStories"),
+  { ssr: false, loading: () => <StoryViewerSkeleton /> },
+);
 import { useAppStore } from "store";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
