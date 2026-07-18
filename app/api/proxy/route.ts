@@ -42,19 +42,90 @@ export async function POST(request: NextRequest) {
       targetUrl = decodeURI(targetUrl);
     }
 
+    // The upstream URL is built by concatenation (getServerBaseUrl + targetUrl),
+    // and several base URLs (wallet, stories, elastic, chat, comments) are bare
+    // hosts with no path component. A target that does not begin with a single
+    // "/" can therefore rewrite the host rather than the path — e.g.
+    // "@evil.tld/x" yields "https://<wallet-host>@evil.tld/x", which resolves to
+    // evil.tld and would carry the injected Bearer token off-site. Require an
+    // on-host absolute path. "//" is protocol-relative and "/\" is normalized to
+    // "//" by some URL parsers; both escape the host the same way.
+    if (
+      !targetUrl.startsWith("/") ||
+      targetUrl.startsWith("//") ||
+      targetUrl.startsWith("/\\")
+    ) {
+      return NextResponse.json(
+        { error: "Invalid target URL" },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    // The string checks above stop the host from being rewritten, but they say
+    // nothing about the *path*: "/../.." is a single leading slash, yet the URL
+    // parser resolves it upwards, escaping the base path. The market bases carry
+    // an "/api/v1" prefix, so "/../../x" would reach https://<host>/x — still on
+    // the backend host, but outside the API surface, carrying the injected
+    // Bearer token. Parse the URL the same way fetch() will, then require it to
+    // stay on the base's origin AND under the base's path.
+    const baseUrlString = getServerBaseUrl(server, targetUrl);
+    if (!baseUrlString) {
+      // Missing env var — fail as a proxy error, as it did before this check.
+      throw new Error(`Missing base URL for server: ${server}`);
+    }
+
+    let resolvedUrl: URL;
+    let baseUrl: URL;
+    try {
+      resolvedUrl = new URL(baseUrlString + targetUrl);
+      baseUrl = new URL(baseUrlString);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid target URL" },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    const basePathPrefix = baseUrl.pathname.replace(/\/+$/, "") + "/";
+    if (
+      resolvedUrl.origin !== baseUrl.origin ||
+      !resolvedUrl.pathname.startsWith(basePathPrefix)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid target URL" },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
     // OTP send must NEVER go through the generic proxy. It runs exclusively via
     // the sendOtpAction Server Action, which enforces the Redis rate limit
     // (per-session / per-IP / per-number cooldown) before the backend is ever
     // called. Blocking it here stops anyone using the proxy as an open relay to
     // reach the OTP endpoint directly and bypass that limiter.
-    if (targetUrl.includes(SEND_OTP)) {
+    //
+    // Match on the *decoded* resolved path, not the raw header: a backend router
+    // decodes percent-escapes before routing, so "/auth/phone/send%5Fotp" reaches
+    // send_otp while sailing past a raw substring match. Decoding here fails
+    // closed — an over-broad match only blocks a request that must not be
+    // proxied anyway.
+    let decodedPath = resolvedUrl.pathname;
+    try {
+      decodedPath = decodeURIComponent(resolvedUrl.pathname);
+    } catch {
+      // Malformed escape sequence — keep the undecoded path for the check.
+    }
+
+    if (targetUrl.includes(SEND_OTP) || decodedPath.includes(SEND_OTP)) {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403, headers: { "Cache-Control": "no-store" } },
       );
     }
 
-    let fullUrl = getServerBaseUrl(server, targetUrl) + targetUrl;
+    // Use the parsed URL rather than re-concatenating: forwarding the exact
+    // string we validated removes any chance of a parser differential between
+    // this check and fetch().
+    let fullUrl = resolvedUrl.href;
     const headers = await buildProxyHeaders(
       server,
       country,
