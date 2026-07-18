@@ -551,7 +551,9 @@ export function CountriesSection({ form, patch, lookups, disabled }: SectionProp
             <div className="space-y-2.5">
               {form.extra_price_for_country.map((e, i) => (
                 <div key={i} className="flex items-center gap-2.5">
-                  <select value={e.country_iso} disabled={disabled} onChange={(ev) => setExtra(i, "country_iso", ev.target.value)} className={`${dashInputClass} flex-1`}>
+                  <select value={e.country_iso} disabled={disabled} onChange={(ev) => setExtra(i, "country_iso", ev.target.value)} className={`${dashInputClass} flex-1`} style={{
+                    minWidth:'120px'
+                  }}>
                     <option value="">{t("Country")}</option>
                     {countries.map((c) => (
                       <option key={c.iso} value={c.iso}>{getLocalizedCountryName(c.iso, language)}</option>

@@ -746,10 +746,10 @@ export default function ProductEditor({
 
 function Scrim({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[999999999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/45" onClick={onClose} />
       <div
-        className="relative bg-white rounded-[20px] z-10 w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden"
+        className="relative bg-white rounded-[20px] z-10 w-full max-w-[400px] max-h-[85vh] flex flex-col overflow-hidden"
         style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
       >
         {children}

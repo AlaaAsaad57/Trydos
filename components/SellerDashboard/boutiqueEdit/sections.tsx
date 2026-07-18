@@ -212,7 +212,7 @@ export function TranslationsSection(props: SectionProps) {
                 />
                 <DashButton
                   variant="secondary"
-                  size="sm"
+                
                   icon="upload"
                   loading={uploading.icon}
                   onClick={() => iconRef.current?.click()}
