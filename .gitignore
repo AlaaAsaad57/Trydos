@@ -81,3 +81,8 @@ price-filter-es-implementation.md
 
 # Security assessment HAR captures contain live tokens/cookies — never commit.
 security-check/*.har
+
+# Captured request payloads contain live seller data (boutique ids, prices,
+# purchase-price margins, barcodes) and would carry auth headers if re-captured
+# with them — never commit. Keep captures in a scratchpad outside the repo.
+*-payload.txt

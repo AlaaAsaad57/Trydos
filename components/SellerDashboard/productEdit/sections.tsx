@@ -290,7 +290,7 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
         <Txt label="Seller Product ID" value={form.seller_product_id} error={errors.seller_product_id} hint={t("Must stay unique across the marketplace")} disabled={disabled} onChange={(v) => patch({ seller_product_id: v })} />
         <Txt label="Barcode" value={form.barcode} disabled={disabled} onChange={(v) => patch({ barcode: v })} />
         <Select label="Unit" value={form.unit} required error={errors.unit} disabled={disabled} onChange={(v) => patch({ unit: v })} options={UNITS.map((u) => ({ value: u, label: u }))} />
-        <Select label="Brand" value={form.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.name }))} />
+        <Select label="Brand" value={form.brand_id} required error={errors.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.name }))} />
         <Select label="Boutique" value={form.boutique_id} disabled={disabled} onChange={(v) => patch({ boutique_id: v })} options={(lookups.boutiques || []).map((b) => ({ value: String(b.id), label: b.name }))} />
         <Txt label="Model Number" value={form.model_number} disabled={disabled} onChange={(v) => patch({ model_number: v })} />
         <Txt label="Report Ref. Number" value={form.report_ref_number} disabled={disabled} onChange={(v) => patch({ report_ref_number: v })} />

@@ -2167,6 +2167,7 @@ const translations = {
   "Product created successfully.": "بەرهەم بە سەرکەوتوویی دروستکرا.",
   "Product Images": "وێنەکانی بەرهەم",
   "Product name is required": "ناوی بەرهەم پێویستە",
+  "Brand is required": "مارکە پێویستە",
   "Qty": "بڕ",
   "Remove": "لابردن",
   "removed": "لابراو",

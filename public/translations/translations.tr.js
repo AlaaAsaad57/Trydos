@@ -2135,6 +2135,7 @@ const translations = {
   "Product created successfully.": "Ürün başarıyla oluşturuldu.",
   "Product Images": "Ürün Resimleri",
   "Product name is required": "Ürün adı gereklidir",
+  "Brand is required": "Marka gereklidir",
   "Qty": "Adet",
   "Remove": "Kaldır",
   "removed": "kaldırıldı",
