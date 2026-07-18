@@ -1,7 +1,7 @@
 ---
 description: Validate AC coverage and implementation evidence (read-only), author verify.md, then close the ticket on PASSED or block it on FAILED. Does not modify implementation files and creates no commit; does nothing on precondition failure.
 argument-hint: <slug>
-allowed-tools: Read, Grep, Glob, Bash, Write
+allowed-tools: Read, Grep, Glob, Bash, Write, AskUserQuestion
 ---
 
 # /verify
@@ -29,10 +29,9 @@ Authoritative references (apply, do not reinvent):
 ## Step 1 — Validate preconditions (abort on ERROR, writing nothing — VF-8)
 
 Read `_specs/<slug>/ticket.md`, `spec.md`, `plan.md`, `implement.md`; then apply:
-- **RA-1 / RA-3** — the invoker must be the `reviewer` role, and (separation of duties)
-  must **not** be the author of the implementation under review — **unless** this is
-  a `standard` ticket and `separation_of_duties.allow_self_review.standard: true`.
-  Otherwise abort.
+- **RA-1** — this gate is run by the ticket **owner** themselves (self-review is
+  expected; ADR-011). No distinct reviewer is required; there is **no** RA-3
+  separation-of-duties check.
 - **TS-1 / TS-2 / TS-3** — `ticket.md` exists, valid; read current `state`.
 - **CMD-1 / ST-2** — state must be `implemented`. Otherwise abort.
 - **VF-2 (coverage input)** — `spec.md` has acceptance criteria with stable
@@ -45,16 +44,31 @@ Read `_specs/<slug>/ticket.md`, `spec.md`, `plan.md`, `implement.md`; then apply
 
 If any check fails, stop and report the rule code + message. **Make no writes.**
 
+## Step 1b — Comprehension check (CG-1..CG-4)
+
+Before validating, the owner must show they understand what was built:
+1. Generate **2–3 multiple-choice questions derived from `implement.md`/`spec.md`**
+   (what changed, which acceptance criteria it satisfies, how to roll it back, its
+   runtime impact) — specific, not generic (CG-2). Each question offers **at least 4
+   candidate answers** drawn from the artifact: one correct plus ≥3 plausible distractors.
+2. Ask them via `AskUserQuestion`; the owner selects an option per question.
+3. Record, under the **verify** section of `_specs/<slug>/comprehension.md`
+   (create it from the template if absent; do **not** overwrite the `review`
+   section): each question, its options, the selected answer, and whether it was correct.
+4. **Pass = 100% correct (CG-4).** If **any** answer is wrong, record **no** PASSED
+   and leave `ticket.md` unchanged (atomic); report the missed questions and stop —
+   the owner re-reads and re-runs `/verify`. Proceed only when every answer is correct.
+
 ## Step 2 — Verify (read-only)
 
-On the ticket's branch (`ticket/<slug>`), validate every `AC-n` at the depth
-required by `ticket.md > mode` (VF-4 / MO-6): `standard` → every AC; `high_risk`
-→ every AC **plus a rollback rehearsal**. (`fast`/smoke is deferred — not in v1.)
+On the ticket's branch (`ticket/<slug>`), validate **every** `AC-n` at depth
+`all-ac` (VF-4 / MO-6) — every acceptance criterion mapped to a result. There is
+no risk tier and no rollback-rehearsal tier (ADR-011).
 
 **Validation-profile resolution (config-driven; VP-1..VP-5).** If `plan.md`'s
 Validation strategy names a validation profile:
 - Resolve **profile → required checks → commands**: for each required check whose
-  `depth` ≤ the mode's tier, look up its `command` and `pass_when` from
+  `depth` ≤ `all-ac`, look up its `command` and `pass_when` from
   `project-config.yaml > validation_checks`. The command is **never** hardcoded
   here (VP-4) — it comes only from configuration.
 - **Execute** each resolved command locally (VP-3: deterministic,
@@ -72,16 +86,15 @@ For **each** `AC-n` in `spec.md`, record a result (pass/fail), mapping each
 executed check to the AC(s) it covers. Do **not** edit any implementation file.
 Determine the protected-path impact statement (yes/no) (VF-9 / TR-3).
 
-Outcome = **PASSED** iff every AC result passes (and, for high_risk, rollback
-rehearsal succeeds); otherwise **FAILED**.
+Outcome = **PASSED** iff every AC result passes; otherwise **FAILED**.
 
 ## Step 3 — Write verify.md (VF-1)
 
 Write `_specs/<slug>/verify.md` from `_specs/_templates/verify.md`: front-matter
 (`ticket`, `stage: verify`, `mode`, `status: complete`, `owner: developer`,
 `updated: <today>`, `links`) + the AC→test→result table (VF-2), commands run with
-output, the protected-path impact review (VF-9), and the sign-off with
-the outcome and approver(s) (`high_risk` requires the second approver recorded).
+output, the protected-path & runtime impact review (VF-9), and the sign-off with
+the outcome and the owner's self sign-off.
 When a validation profile was used, record the resolved **profile id** and, per
 executed check, the **command**, **exit code**, a bounded **output summary**, the
 **result**, and the `AC-n` it maps to.
@@ -116,7 +129,7 @@ executed check, the **command**, **exit code**, a bounded **output summary**, th
 ## Postconditions — validate AFTER
 
 - **VF-1** verify.md written · **VF-2** every AC mapped to a result · **VF-3**
-  evidence checked · **VF-4** depth matches mode · **VF-9 / TR-3** protected-path
+  evidence checked · **VF-4** depth = all-ac · **CG-1** comprehension recorded · **VF-9 / TR-3** protected-path
   statement present.
 - PASSED: **VF-5 / CL-1 / TS-4 / CMD-2** state = `closed`.
 - FAILED: **VF-6 / TS-4** state = `implementation-in-progress`, `status: blocked`.

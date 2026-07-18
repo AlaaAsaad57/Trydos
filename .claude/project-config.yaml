@@ -1,7 +1,7 @@
 # Canonical workflow configuration for Engineering Workflow v1.
-# This file is the SINGLE source of truth for stages, the state machine, modes,
-# closure, and decisions. All other docs describe/reference it and must not
-# contradict it. (`workflow.yml` has been retired in favour of this file.)
+# This file is the SINGLE source of truth for stages, the state machine, the
+# single workflow form + comprehension gate, closure, and decisions. All other
+# docs describe/reference it and must not contradict it. (`workflow.yml` retired.)
 
 project:
   name: Trydos
@@ -45,34 +45,63 @@ lifecycle:
   artifact_status: [not_started, in_progress, blocked, complete]
 
 # ---------------------------------------------------------------------------
-# Execution modes. v1 supports `standard` and `high_risk` only (lowercase
-# identifiers; STANDARD/HIGH_RISK in prose are display labels). `fast` mode is
-# DEFERRED (not in v1) — `/start-ticket` rejects it. Same lifecycle, different
-# depth. The review gate is required in ALL modes.
+# Single uniform workflow form (ADR-011). There are NO execution modes and NO
+# risk tiers: every ticket runs the same seven stages with the same safeguards.
+# A single OWNER carries the ticket end to end and runs its own gates
+# (self-review is expected) — there is no separate reviewer and no separation of
+# duties. Gate integrity comes from the COMPREHENSION check (comprehension_gates),
+# not a second person. `standard`/`high_risk`/`fast` are gone; the `mode`
+# front-matter field is a legacy single value (`mode: standard`).
 # ---------------------------------------------------------------------------
-modes:
-  # fast: DEFERRED to a future version — intentionally omitted from v1.
-  standard:
-    description: Default lifecycle for normal work; all seven stages.
-    stages: [intake, research, spec, plan, review, implement, verify]
-    criteria: Normal feature/fix work with bounded blast radius.
-    approvals: 1            # one reviewer
-    adr_required: false
-    verification: all-ac    # every acceptance criterion mapped to a result
-  high_risk:
-    description: Protected-runtime, irreversible, or wide-blast-radius work.
-    stages: [intake, research, spec, plan, review, implement, verify]
-    criteria: Touches any path in `protected_paths` (auth/proxy/checkout/store core), is irreversible, or has broad blast radius.
-    approvals: 2            # reviewer + second approver (workflow_owner eligible)
-    adr_required: true
-    verification: all-ac+rollback   # every AC plus a rollback rehearsal
+workflow_form:
+  legacy_mode_value: standard   # the sole legal `mode:` value in artifact front-matter
+  stages: [intake, research, spec, plan, review, implement, verify]
+  owner_runs_own_gates: true    # the ticket owner runs /review and /verify themselves
+  approvals: 1                  # a single self-approval by the owner
+  adr_required: false           # ADRs optional (record notable decisions if useful)
+  verification: all-ac          # every acceptance criterion mapped to a result
+  review_gate: always           # /review + /verify are mandatory steps, never skipped
 
 # ---------------------------------------------------------------------------
-# Protected runtime paths (Trydos adaptation of the original `observability/**`
-# guardrail). These are the high-blast-radius areas of the storefront: any
-# ticket whose plan touches one of these MUST run in `mode: high_risk` (MO-3),
-# may only be modified at an approved /implement (GU-2/IM-5), and must carry a
-# protected-path impact statement at /verify (VF-9/TR-3).
+# Comprehension gate (ADR-011) — the control that replaces a second reviewer.
+# At every gate the owner must answer questions generated FROM the artifact under
+# review; the gate cannot record its decision until a comprehension record exists
+# with the questions answered. Enforced by CG-1..CG-4 (validation-model.md).
+# ---------------------------------------------------------------------------
+comprehension_gates:
+  enabled: true
+  required: always              # every gate, every ticket — no exceptions
+  stages: [review, verify]      # the decision gates that ask before deciding
+  questions: 3                  # 2–3 questions derived from the artifact under review
+  options_min: 4                # each question offers ≥4 answers (1 correct + ≥3 distractors)
+  pass_threshold: 1.0           # 100% correct required; any wrong answer blocks the gate
+  record: _specs/<ticket>/comprehension.md
+  ai_graded: false              # optional: AI scores answers vs the artifact (off by default)
+
+# ---------------------------------------------------------------------------
+# Advisory review panel (ADR-012) — AI reviewer lenses that assist the single
+# owner at /review. Each lens is a read-only subagent (.claude/agents/) that
+# reviews plan.md + spec.md and returns findings. ADVISORY: findings inform the
+# owner but never block APPROVED — the owner still decides, and the comprehension
+# gate remains the integrity control (ADR-011). Enforced by RP-1..RP-4.
+# ---------------------------------------------------------------------------
+review_panel:
+  enabled: true
+  advisory: true                # findings inform the owner; a lens NEVER blocks the decision
+  stage: review                 # runs inside /review only, before the comprehension gate
+  lenses:                       # one read-only subagent per lens, run in parallel
+    - senior                    # .claude/agents/senior-reviewer.md
+    - security                  # .claude/agents/security-reviewer.md
+    - performance               # .claude/agents/performance-reviewer.md
+  record: _specs/<ticket>/review.md   # findings recorded in the "Panel Findings" section
+
+# ---------------------------------------------------------------------------
+# Protected runtime paths (Trydos adaptation of the upstream `observability/**`
+# guardrail). These are the high-blast-radius areas of the storefront. Under the
+# single workflow form (ADR-011) they carry NO risk tier and NO extra approval:
+# they may only be modified inside an approved /implement, when explicitly listed
+# in `plan.md` "Files to change" (GU-2/IM-5), and must carry a protected-path
+# impact statement at /verify (VF-9/TR-3).
 #
 # Wherever the rules or commands say `observability/**`, read it as "any path
 # matching protected_paths below". Globs are matched from the repo root.
@@ -86,8 +115,8 @@ protected_paths:
   - "services/cart.ts"            # cart mutations
   - "services/order.ts"           # checkout / order placement
   - "services/orders.ts"          # order lifecycle
-  - "store/index.ts"             # combined Zustand store root
-  - "next.config.ts"             # build/runtime config, image allowlist, headers
+  - "store/index.ts"              # combined Zustand store root
+  - "next.config.ts"              # build/runtime config, image allowlist, headers
 
 # ---------------------------------------------------------------------------
 # Single closure strategy: there is no /close command. A ticket moves
@@ -119,9 +148,9 @@ roles:
       participate in every ticket.
   reviewer:
     description: >-
-      Per-ticket gate authority for /review and /verify. Any qualified team
-      member who is NOT the ticket's author (separation of duties). Need not be
-      an Engineering Manager.
+      The actor at a review gate (/review, /verify). Under the single-owner model
+      (ADR-011) this is normally the ticket OWNER running their own gate
+      (self-review); a distinct reviewer is not required.
   developer:
     description: Implements approved plans and authors ticket artifacts.
   ai_agent:
@@ -129,25 +158,20 @@ roles:
   # Legacy: earlier artifacts recorded `em` as the gate/governance actor. `em`
   # now maps to `reviewer` (per-ticket gate) and `workflow_owner` (governance).
 
-# Role authority & separation of duties (validation: RA-1..RA-3; workflow-rules.md).
+# Role authority (single-owner; separation of duties removed — validation: RA-1..RA-3).
 role_authority:
-  gate_commands: [review, verify]                       # invocable by role `reviewer`
+  gate_commands: [review, verify]     # run by the ticket owner themselves (self-review) — no distinct reviewer required
   author_commands: [start-ticket, research, spec, plan, implement]   # developer/ai_agent
   delivery_commands: [publish-pr]     # additive (wf-004/ADR-007); developer/ai_agent. Delivery only — orthogonal to the state machine, never a gate, performs no state transition.
   governance_owner: workflow_owner    # owns evolution/escalation; not a per-ticket gate
 separation_of_duties:
-  enabled: true
+  enabled: false
   rule: >-
-    The `reviewer` invoking a review gate (/review, /verify) must not be the author
-    of the plan/implementation under review. All recorded actors (owner, history
-    `by`) must be defined roles.
-  # Exception (opt-in, off by default). For `standard` (low-risk) tickets ONLY,
-  # the author may also serve as the `reviewer` gate actor when self-review is
-  # explicitly enabled below. `high_risk` ALWAYS requires a distinct second
-  # actor and can never self-review.
-  allow_self_review:
-    standard: false      # set true to permit author == reviewer on standard tickets
-    high_risk: false     # MUST stay false — high_risk never self-reviews
+    Single-owner model (ADR-011): there is NO separation of duties. The ticket
+    owner authors the work AND runs its /review and /verify gates themselves
+    (self-review is expected). The comprehension gate (comprehension_gates) is the
+    control against rubber-stamping — not a distinct reviewer. All recorded actors
+    (owner, history `by`) must still be defined roles.
 
 features:
   clickup: true
@@ -172,6 +196,7 @@ validation_checks:
     description: TypeScript compiles with no type errors.
     command: "pnpm exec tsc --noEmit"
     pass_when: exit-zero          # exit-zero | exit-code:<n>
+    # output_contains: "<substring>"   # optional additional pass condition
   lint:
     description: ESLint passes (Next.js lint).
     command: "pnpm lint"
@@ -191,10 +216,10 @@ validation_profiles:
     description: Type safety + lint for normal Trydos changes.
     requires:
       - check: typecheck
-        depth: all-ac             # smoke | all-ac | rollback (reuse MO-6 tiers)
+        depth: all-ac             # verification depth (MO-6): all-ac for every ticket
       - check: lint
         depth: all-ac
-  # Full gate for protected-path / high_risk changes.
+  # Fuller gate for high-blast-radius changes (protected_paths, build-affecting work).
   full-build:
     description: Type safety + lint + production build for high-blast-radius changes.
     requires:
@@ -203,4 +228,4 @@ validation_profiles:
       - check: lint
         depth: all-ac
       - check: build
-        depth: rollback
+        depth: all-ac

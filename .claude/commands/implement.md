@@ -40,8 +40,8 @@ present); then apply:
   Any other state → block.
 - **IM-2** — `plan.md` complete (PL-1..PL-5) with an explicit, **unambiguous**
   "Files to change" list.
-- **IM-5 / GU-2** — if any planned file is under a `protected_paths` entry, require
-  `ticket.md > mode` = `high_risk`; else block.
+- **IM-5 / GU-2** — `protected_paths` may be changed only when listed in the
+  approved `plan.md` "Files to change"; else block (CLAUDE.md hard-stop).
 - Branch checks:
   - *Initial (IM-3 / GU-4):* `develop` clean AND no `ticket/<slug>` branch exists.
   - *Resume (IM-3a):* the `ticket/<slug>` branch **already exists** and is the
@@ -53,7 +53,7 @@ changes, no state change.**
 
 ## Step 2 — Branch / enter (path-specific)
 
-- **Initial:** create and check out `ticket/<slug>` from clean `main` (IM-3, the
+- **Initial:** create and check out `ticket/<slug>` from clean `develop` (IM-3, the
   only branch-creation point). Update `ticket.md`: `state:
   implementation-in-progress`, `updated_at: <today>`; append:
   ```yaml
@@ -109,9 +109,9 @@ append:
 
 ## Postconditions — validate AFTER
 
-- **IM-3** initial branch from clean main (or **IM-3a** resume used the existing
+- **IM-3** initial branch from clean develop (or **IM-3a** resume used the existing
   branch, no second branch) · **IM-4** changes confined to planned files · **IM-5**
-  protected paths only if high_risk · **IM-6** implement.md complete · **IM-9** no
+  protected paths only if in the approved plan · **IM-6** implement.md complete · **IM-9** no
   commit, no push.
 - Completed: **IM-7 / TS-4 / CMD-2** state = `implemented` with all planned work
   done and validation recorded.
@@ -123,7 +123,7 @@ append:
 - Do **not** run unless state ∈ {`approved`, `implementation-in-progress`} (IM-1).
 - Do **not** create a second branch on resume (IM-3a).
 - Do **not** modify files not listed in `plan.md` (IM-4 — no silent edits).
-- Do **not** modify a `protected_paths` entry unless mode = `high_risk` (IM-5/GU-2).
+- Do **not** modify `protected_paths` unless it is listed in the approved `plan.md` (IM-5/GU-2).
 - Do **not** set `implemented` unless all planned work is complete + validation
   recorded (IM-7).
 - Do **not** commit or push (IM-9 — `/publish-pr` owns the single publishable

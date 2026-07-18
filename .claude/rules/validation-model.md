@@ -3,7 +3,7 @@
 > **One validation model for the whole workflow.** Every command MUST run the
 > relevant rules below and MUST NOT invent its own validation logic. This model
 > is **derived from** (never contradicts) the canonical sources:
-> `.claude/project-config.yaml` (state machine, modes, closure),
+> `.claude/project-config.yaml` (state machine, single workflow form + comprehension gate, closure),
 > `.claude/rules/workflow-rules.md` (gates/guardrails), and
 > `.claude/docs/command-architecture.md` (command contracts).
 >
@@ -26,7 +26,7 @@
 |------|----------|-----------|
 | FM-1 | ERROR | All keys present: `ticket, stage, mode, status, owner, updated, links`. |
 | FM-2 | ERROR | `stage` ∈ canonical stages **and** equals the artifact's own stage. |
-| FM-3 | ERROR | `mode` ∈ {`standard`, `high_risk`} in v1. `fast` is deferred and must be rejected (e.g. at `/start-ticket`). |
+| FM-3 | ERROR | `mode` == `standard` — the sole legal value (the single workflow form; ADR-011). `high_risk` and `fast` are invalid and must be rejected (e.g. at `/start-ticket`). (Legacy already-closed tickets carrying `high_risk` are historical and out of scope — not rewritten.) |
 | FM-4 | ERROR | `status` ∈ {`not_started`, `in_progress`, `blocked`, `complete`}. |
 | FM-5 | ERROR | `ticket` matches slug pattern `^[A-Za-z0-9][A-Za-z0-9._-]*$`. |
 | FM-6 | WARN  | `updated` is an ISO date `YYYY-MM-DD`. |
@@ -53,15 +53,20 @@
 | ST-4 | ERROR | No transition originates from `closed` (terminal). |
 | ST-5 | ERROR | `implementation-in-progress` is reachable only from `approved` (initial implementation) or from `implemented` / `verified` (rework after a failed `/verify`). No other source. |
 
-### MO — Modes
+### MO — Workflow form (single, uniform)
+> No execution modes and no risk tiers (ADR-011): one uniform workflow form for
+> every ticket, with the same safeguards. A single owner runs their own gates
+> (self-review); the comprehension gate (CG-*) is the integrity control.
+> Canonical: `project-config.yaml > workflow_form`.
+
 | Code | Severity | Condition |
 |------|----------|-----------|
-| MO-1 | ERROR | The command's stage ∈ `modes[mode].stages`. **v1 supports `standard` and `high_risk` only** (all seven stages); `fast` is deferred — `/start-ticket` rejects `mode: fast`. |
-| MO-2 | — | *Reserved.* Fast-mode eligibility checks are deferred with fast mode; not evaluated in v1. |
-| MO-3 | ERROR | Any change touching a `protected_paths` entry requires `mode: high_risk`. |
-| MO-4 | ERROR | Approval count satisfied before `/implement`: `modes[mode].approvals` (standard = 1, high_risk = 2), read from `review.md > Approvals`. |
-| MO-5 | ERROR | `high_risk` requires an ADR referenced in `review.md > ADR reference`, recorded at `/review` APPROVED (RV-6). |
-| MO-6 | ERROR | Verification depth matches `modes[mode].verification` (`smoke` / `all-ac` / `all-ac+rollback`). |
+| MO-1 | ERROR | The single workflow form includes **all seven stages for every ticket** — there are no modes and no risk tiers. `mode` is a legacy single value (`standard`); `high_risk`/`fast` are invalid values (ADR-011). Every stage is valid for every ticket. |
+| MO-2 | — | *Removed.* (Former fast-mode eligibility; fast mode is gone — ADR-011.) |
+| MO-3 | — | *Removed.* (Former risk classification; there are no risk tiers — every change is treated the same, ADR-011.) |
+| MO-4 | ERROR | Approval count before `/implement` is **1** (`workflow_form.approvals`) — a single self-approval by the owner, read from `review.md > Approvals`. |
+| MO-5 | — | *Removed.* (No mandatory-ADR tier; ADRs are optional for every ticket — ADR-011.) |
+| MO-6 | ERROR | Verification depth is **`all-ac` for every ticket** (`workflow_form.verification`): every acceptance criterion mapped to a result. No rollback-rehearsal tier (ADR-011). |
 
 ### CMD — Command pre/postconditions
 The authoritative pre/postconditions are in `command-architecture.md §1`. The
@@ -76,7 +81,7 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 | Code | Severity | Condition |
 |------|----------|-----------|
 | GU-1 | ERROR | Non-mutating stages (`research`, `spec`, `plan`, `review`) produced no diff outside `_specs/<ticket>/`. |
-| GU-2 | ERROR | No modification of a `protected_paths` entry unless `mode: high_risk` and approved at the review gate. |
+| GU-2 | ERROR | `protected_paths` runtime is modified **only** inside an approved `/implement` stage on the ticket branch (listed in `plan.md`; CLAUDE.md hard-stop). There is no risk tier — the comprehension gate and this hard-stop are the only guards (ADR-011). |
 | GU-3 | ERROR | A command writes only inside `_specs/<ticket>/` (and, for `/implement`, the approved files on branch `ticket/<slug>`). |
 | GU-4 | ERROR | Branches are created only by the implementation-entry command (after state = `approved`), named `ticket/<slug>`, from clean `develop`. `/start-ticket` must NOT create a branch, and no branch may exist for a not-yet-approved ticket. |
 
@@ -125,8 +130,8 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 | RV-2 | ERROR | Decision ∈ {`APPROVED`, `CHANGES_REQUESTED`, `REJECTED`}. |
 | RV-3 | ERROR | `APPROVED` requires `plan.md` satisfies PL-1..PL-5 and plan↔REQ/AC traceability. |
 | RV-4 | ERROR | `APPROVED` updates `ticket.md` to `approved` (TS-4): `spec-complete → plan-complete → approved`, bump `updated_at`, append history (`plan-validated`, `plan-approved`). |
-| RV-5 | ERROR | `high_risk` + `APPROVED` requires two approvers recorded in `review.md > Approvals`. |
-| RV-6 | ERROR | `high_risk` + `APPROVED` requires an ADR reference in `review.md > ADR reference`. |
+| RV-5 | — | *Removed.* (No two-approver tier; a single self-approval by the owner — ADR-011. Integrity comes from the comprehension gate, CG-*.) |
+| RV-6 | — | *Removed.* (No mandatory-ADR tier; ADRs optional — ADR-011.) |
 | RV-7 | ERROR | `CHANGES_REQUESTED` and `REJECTED` must **not** advance to `approved`. `CHANGES_REQUESTED` keeps `state = spec-complete`; `REJECTED` advances to `closed` (RV-10). |
 | RV-8 | ERROR | **Atomicity:** if required validation fails, nothing is written (neither `review.md` nor `ticket.md`). |
 | RV-9 | ERROR | `/review` never creates a branch and performs no implementation. |
@@ -137,13 +142,13 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 |------|----------|-----------|
 | IM-1 | ERROR | Precondition (entry path): *initial* state = `approved` AND `review.md` Decision = APPROVED; OR *resume* state = `implementation-in-progress`. Any other state blocks. |
 | IM-2 | ERROR | `plan.md` complete (PL-1..PL-5) with an explicit, unambiguous "Files to change" list. |
-| IM-3 | ERROR | *Initial path:* branch `ticket/<slug>` is created here (GU-4), from clean `main`, only after approval; no pre-existing branch. |
+| IM-3 | ERROR | *Initial path:* branch `ticket/<slug>` is created here (GU-4), from clean `develop`, only after approval; no pre-existing branch. |
 | IM-3a | ERROR | *Resume path:* the `ticket/<slug>` branch already exists and is checked out; `/implement` must **not** create a second branch. |
 | IM-4 | ERROR | Changes are confined to files listed in `plan.md` "Files to change". **No unrelated file is modified** (no silent scope creep). |
-| IM-5 | ERROR | A `protected_paths` entry is modified only if `ticket.md > mode` = `high_risk` (else GU-2 blocks). |
+| IM-5 | ERROR | `protected_paths` is modified only when listed in the approved `plan.md` "Files to change" and only inside the `/implement` stage (GU-2). No risk tier is required (ADR-011). |
 | IM-6 | ERROR | `implement.md` records files changed, deviations, and validation run. **No commit is created at `/implement`** (IM-9); commit SHAs are therefore not recorded here — committing is the delivery boundary's job (PB-8). |
 | IM-7 | ERROR | `state = implemented` requires **all** planned work complete and validation recorded. On completion update `ticket.md` (TS-4), bump `updated_at`, append history: *initial* `implementation-started` then `implementation-completed`; *resume* `implementation-resumed` then `implementation-completed`. |
-| IM-8 | ERROR | **Block on unsafe/unclear:** ambiguous plan, scope creep, dirty `main`, branch collision/mismatch, or a `protected_paths` entry without `high_risk` → make NO changes and report. |
+| IM-8 | ERROR | **Block on unsafe/unclear:** ambiguous plan, scope creep, dirty `develop`, branch collision/mismatch, or `protected_paths` not listed in the approved `plan.md` → make NO changes and report. |
 | IM-9 | ERROR | `/implement` creates **no commit** and never pushes; changes remain as uncommitted working-tree edits on the local `ticket/<slug>` branch (the single publishable commit is created later by `/publish-pr`, PB-8). It never advances past `implemented`. |
 | IM-10 | ERROR | **Blocked is valid but not complete:** if work cannot continue, keep `state = implementation-in-progress`, set `status: blocked`, and `implement.md` records blocking reason + partial changes + recommended next action + whether plan revision is required. Do **not** set `implemented`. |
 
@@ -154,7 +159,7 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 | VF-2 | ERROR | **AC coverage:** every acceptance criterion (`AC-n`) in `spec.md` is mapped to an executed result in `verify.md` (TR-2). |
 | VF-3 | ERROR | **Implementation evidence:** `implement.md` records the changed files (and any validation run); `PASSED` requires every AC result to pass. Because `/implement` creates no commit (IM-9), commit SHAs are **not** required evidence — the absence of a commit is expected, not a failure. |
 | VF-10 | ERROR | `/verify` creates **no commit** (AC-6); validation is read-only and committing is exclusively the delivery boundary's job (PB-8). |
-| VF-4 | ERROR | Verification depth matches `ticket.md > mode` (MO-6): `smoke` / `all-ac` / `all-ac` + rollback rehearsal (high_risk). |
+| VF-4 | ERROR | Verification depth is **`all-ac`** for every ticket (MO-6): every AC mapped to a result. No risk tiers, no rollback-rehearsal tier (ADR-011). |
 | VF-5 | ERROR | **PASSED closes (TS-4):** `implemented → verified → closed`, bump `updated_at`, append history (`verification-passed`, `ticket-closed`). |
 | VF-6 | ERROR | **FAILED blocks (TS-4):** `implemented → implementation-in-progress`, `status: blocked`, append history (`verification-failed`); ticket is **not** closed; failures documented in `verify.md`. |
 | VF-7 | ERROR | `/verify` does **not** modify implementation files; writes are confined to `verify.md` + `ticket.md` (validation is read-only). |
@@ -186,12 +191,39 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 | VP-4 | ERROR | **Separation of concepts:** profiles reference only check-ids; commands exist **only** in `validation_checks`. A profile carrying a command string is invalid. |
 | VP-5 | ERROR | **Backward compatibility:** when no profile is referenced, `/verify` runs no profile-execution path and behaves exactly as before (config-driven execution is opt-in). |
 
-### RA — Role authority & separation of duties
+### RA — Role authority (single-owner; separation of duties removed)
 | Code | Severity | Condition |
 |------|----------|-----------|
-| RA-1 | ERROR | Gate commands (`/review`, `/verify`) may be invoked **only** by role `reviewer` (`project-config.yaml > role_authority.gate_commands`); author commands by `developer`/`ai_agent`. The workflow never requires Engineering Manager participation per ticket. |
+| RA-1 | ERROR | Gate commands (`/review`, `/verify`) are run by the **ticket owner** themselves (self-review; `project-config.yaml > role_authority.gate_commands`). No distinct reviewer is required (ADR-011). The workflow never requires Engineering Manager participation. |
 | RA-2 | ERROR | Every recorded actor (`owner`, history `by`) ∈ defined roles {`workflow_owner`, `reviewer`, `developer`, `ai_agent`} (or a named person mapped to one). Legacy `em` maps to `reviewer` (gate) / `workflow_owner` (governance). |
-| RA-3 | ERROR | With `separation_of_duties.enabled`, the `reviewer` actor at `/review` and `/verify` must **not** be the author of the plan/implementation under review (no self-approval) — **except** that for `mode: standard` tickets self-review is permitted when `separation_of_duties.allow_self_review.standard: true`. `high_risk` always requires a distinct actor and never self-reviews. |
+| RA-3 | — | *Removed.* (No separation of duties — the owner runs their own gates, ADR-011. The anti-rubber-stamp control is the comprehension gate, CG-1..CG-4.) |
+
+### CG — Comprehension gate (`/review`, `/verify`; every gate — ADR-011)
+> The single-owner model has no distinct reviewer, so gate integrity comes from a
+> comprehension check: the owner answers questions generated FROM the artifact
+> under review before the gate records its decision. Canonical:
+> `project-config.yaml > comprehension_gates`.
+
+| Code | Severity | Condition |
+|------|----------|-----------|
+| CG-1 | ERROR | A gate (`/review`, `/verify`) may not record its decision (APPROVED / PASSED) until `_specs/<ticket>/comprehension.md` exists with **all** questions for this stage answered (≥ `comprehension_gates.questions`, non-empty answers). |
+| CG-2 | ERROR | The questions are **derived from the artifact under review** (`/review`: `plan.md` + `spec.md`; `/verify`: `implement.md` + `spec.md`) — specific to its acceptance criteria / files / rollback / risks, not generic. Each is **multiple-choice** with **at least 4** candidate answers (one correct + ≥3 plausible distractors) drawn from the artifact (`comprehension_gates.options_min`); the selected answer and its correctness are recorded. |
+| CG-3 | ERROR | The comprehension gate is **required at every gate for every ticket** (`comprehension_gates.required: always`); it is the control that replaces a distinct reviewer. `comprehension.md` writes are confined to `_specs/<ticket>/` (GU-3). |
+| CG-4 | ERROR | **Pass threshold = 100% (`comprehension_gates.pass_threshold: 1.0`).** The gate records APPROVED / PASSED **only if every answer is correct**. Any incorrect answer blocks the gate: it records no decision and does not advance `ticket.md` (atomic, like RV-8 / VF-8); it reports the missed questions, and the owner re-reads the artifact and re-runs. |
+
+### RP — Advisory review panel (`/review`; ADR-012)
+> AI reviewer lenses (senior / security / performance) that **assist** the single
+> owner at `/review`. They inform the decision; they never make it. This does
+> **not** reintroduce separation of duties (ADR-011) — the panel is advisory and
+> the comprehension gate (CG-*) remains the integrity control. Canonical:
+> `project-config.yaml > review_panel`. Applies only when `review_panel.enabled`.
+
+| Code | Severity | Condition |
+|------|----------|-----------|
+| RP-1 | ERROR | When `review_panel.enabled`, `/review` dispatches **every** lens in `review_panel.lenses` (each a read-only subagent under `.claude/agents/`) and records their findings in the **Panel Findings** section of `review.md`. When disabled, `/review` runs no panel path (opt-in; behaves exactly as before). |
+| RP-2 | ERROR | **Advisory (`review_panel.advisory: true`):** a panel finding **never** blocks or forces a decision. APPROVED is gated only by the comprehension check (CG-*) and RV-3 — never by panel output. A `major` finding is surfaced, not enforced. |
+| RP-3 | ERROR | Panel subagents are **read-only**: they may read `plan.md`/`spec.md` (and referenced context) but produce **no** working-tree change outside `review.md` (reinforces GU-1). |
+| RP-4 | ERROR | **Ordering:** the panel runs only **after** Step 1 validation passes and **before** the comprehension check (Step 1a → Step 1b). It is never run on a plan that failed validation, and never gates or precedes validation. |
 
 ### TR — Traceability
 | Code | Severity | Condition |
@@ -244,19 +276,20 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 Every command except `/start-ticket` begins by reading `ticket.md` (TS-1..TS-3)
 and ends by writing the transition to `ticket.md` (TS-4). `/start-ticket`
 **creates** `ticket.md` with `state: draft`. All commands enforce **RA-1/RA-2**
-(role authorization); the review gates `/review` and `/verify` additionally enforce
-**RA-3** (separation of duties). Every command additionally emits next-step
-guidance at completion (**NS-1..NS-4**), so it is not repeated per row below.
+(role authorization). The review gates `/review` and `/verify` additionally run
+the **comprehension gate (CG-1..CG-4)** before recording a decision. Every command
+additionally emits next-step guidance at completion (**NS-1..NS-4**), so it is not
+repeated per row below.
 
 | Command        | Precondition rules                          | Postcondition rules                     |
 |----------------|---------------------------------------------|-----------------------------------------|
 | `/start-ticket`| FM-3, FM-5, CMD-3, GU-4, MO-1, CU-1..CU-5 (if `clickup_id`) | TS-2/3/4, FM-1..FM-8, ST-1, CMD-2 |
 | `/research`    | TS-1/2/3, FM-*, ST-1, ST-2, MO-1, CMD-1, RS-7, RS-8 | RS-1..RS-6, TS-4, FM-*, GU-1, GU-3, CMD-2 (state → ready-for-research) |
 | `/spec`        | TS-1/2/3, FM-*, ST-1, ST-2, MO-1, CMD-1, SP-7 (RS-1..RS-5), SP-8 | SP-1..SP-6, TR-1, TS-4, FM-*, GU-1, GU-3, CMD-2 (state → research-complete) |
-| `/plan`        | TS-1/2/3, FM-*, ST-1, ST-2, MO-1/2, CMD-1, PL-7, PL-8, VP-1/VP-4 (if a profile is named) | PL-1..PL-6, PL-9, PL-10 (revision), TS-4, FM-*, GU-1, GU-3, CMD-2 (state stays/→ spec-complete) |
-| `/review`      | TS-1/2/3, FM-*, ST-1, ST-2, CMD-1, RV-2, RV-8 | RV-1, RV-3..RV-7, RV-9, RV-10, TS-4 (APPROVED → approved; REJECTED → closed), FM-*, GU-1, GU-3, CMD-2 |
+| `/plan`        | TS-1/2/3, FM-*, ST-1, ST-2, MO-1, CMD-1, PL-7, PL-8, VP-1/VP-4 (if a profile is named) | PL-1..PL-6, PL-9, PL-10 (revision), TS-4, FM-*, GU-1, GU-3, CMD-2 (state stays/→ spec-complete) |
+| `/review`      | TS-1/2/3, FM-*, ST-1, ST-2, CMD-1, RV-2, RV-8, RP-4, CG-1..CG-4 | RP-1..RP-3 (if `review_panel.enabled`), RV-1, RV-3, RV-4, RV-7, RV-9, RV-10, TS-4 (APPROVED → approved; REJECTED → closed), FM-*, GU-1, GU-3, CMD-2 |
 | `/implement`   | TS-1/2/3, FM-*, ST-2, ST-5, MO-4, CMD-1, IM-1, IM-2, IM-8 | IM-3 or IM-3a, IM-4, IM-5, IM-6, IM-9, then IM-7 (complete → `implemented`) **or** IM-10 (blocked → `implementation-in-progress` + `status: blocked`), TS-4, FM-*, GU-2, GU-3, CMD-2 |
-| `/verify`      | TS-1/2/3, FM-*, ST-2, MO-6, CMD-1, VF-8, VP-1 (if a profile is named) | VF-1..VF-4, VF-7, VF-9, VF-10, VP-2..VP-5 (if a profile is named), then VF-5 (PASSED → closed) or VF-6 (FAILED → implementation-in-progress + blocked), TR-2, TR-3, CL-1, TS-4, FM-*, GU-3, CMD-2 |
+| `/verify`      | TS-1/2/3, FM-*, ST-2, MO-6, CMD-1, VF-8, CG-1..CG-4, VP-1 (if a profile is named) | VF-1..VF-4, VF-7, VF-9, VF-10, VP-2..VP-5 (if a profile is named), then VF-5 (PASSED → closed) or VF-6 (FAILED → implementation-in-progress + blocked), TR-2, TR-3, CL-1, TS-4, FM-*, GU-3, CMD-2 |
 | `/publish-pr`  | TS-1/2/3, RA-1/RA-2, PB-1, PB-2, PB-6 | PB-3, PB-4, PB-5, PB-7, PB-8, PB-9, GU-3 (the publishable commit stages the implemented source + `_specs/<slug>/`; the only workflow **state** write remains `ticket.md > links.github`, plus the `origin` push); **no** TS-4 transition |
 
 ## Error code conventions
@@ -268,4 +301,4 @@ guidance at completion (**NS-1..NS-4**), so it is not repeated per row below.
 ## Out of scope (this phase)
 
 - No validator implementation, scripts, hooks, or commands.
-- No changes to protected runtime paths.
+- No changes to `protected_paths` runtime files.

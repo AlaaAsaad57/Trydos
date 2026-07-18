@@ -5,15 +5,22 @@
 > developer implements against in a later phase — it should require **no further
 > architectural decisions** to implement.
 
-> **v1 scope:** modes are **`standard` and `high_risk` only**. `fast` mode is
-> deferred to a future version — `/start-ticket` rejects `mode: fast`, and no
-> command implements the fast path. References to FAST below describe the
-> deferred design, not v1 behavior.
+> **Superseded re: modes & reviewers (ADR-011).** The execution modes below
+> (STANDARD / HIGH_RISK / FAST) and the separate-reviewer model are **removed**.
+> There is now **one uniform workflow form** for every ticket, run by a **single
+> owner** who executes their own `/review` and `/verify` gates (self-review). Gate
+> integrity comes from a **comprehension check** (the owner answers questions
+> generated from the artifact under review), not a second person — see
+> `project-config.yaml > workflow_form` / `> comprehension_gates`. There are no
+> risk tiers: 1 self-approval, ADR optional, `all-ac` verification for every
+> ticket. Wherever this document says "mode", STANDARD, HIGH_RISK, "reviewer (not
+> the author)", two approvers, or rollback rehearsal, read the single-owner form +
+> comprehension gate. §4 is rewritten accordingly; `project-config.yaml` is canonical.
 
 All commands operate on a single ticket workspace `_specs/<ticket>/` and the
 front-matter defined in `.claude/rules/workflow-rules.md`. Non-mutating commands
 (`/research`, `/spec`, `/plan`, `/review`) must not edit source or
-a `protected_paths` entry. Every command updates the ticket's canonical state (§2) and
+`protected_paths`. Every command updates the ticket's canonical state (§2) and
 the touched artifact's `status` front-matter.
 
 **State ownership (ADR-003):** the ticket's workflow state is owned solely by
@@ -31,11 +38,11 @@ Conventions: "ticket state" = `ticket.md > state` (the canonical state machine,
 to each artifact. `<ticket>` = slug.
 
 ### /start-ticket
-- **Purpose:** Create the ticket workspace, author `intake.md`, set mode,
-  initialize state. **Does not create a branch** (see §3).
-- **Inputs:** `id/slug`, `title`, `goal`, `mode` (STANDARD|HIGH_RISK; FAST
-  rejected in v1), optional `links` (ClickUp/GitHub), optional `clickup_id`
-  (read-only ClickUp intake — see below).
+- **Purpose:** Create the ticket workspace, author `intake.md`, set the single
+  form's `mode: standard`, initialize state. **Does not create a branch** (see §3).
+- **Inputs:** `id/slug`, `title`, `goal`, optional `links` (ClickUp/GitHub),
+  optional `clickup_id` (read-only ClickUp intake — see below). **No `mode`
+  input** — the single workflow form is always written as `mode: standard`.
 - **Outputs:** `_specs/<ticket>/` dir; `ticket.md` (the state record, `state:
   draft`, with an initial state-history row); `intake.md` (front-matter filled).
 - **ClickUp intake (optional, read-only — CU-1..CU-5):** if `clickup_id` is given,
@@ -52,8 +59,9 @@ to each artifact. `<ticket>` = slug.
   CU-1 (token set) and CU-2 (fetch succeeds).
 - **Postconditions:** workspace + `ticket.md` + `intake.md` exist; state =
   `draft` (→ `ready-for-research` once intake `READY`). No branch is created.
-- **Stop conditions:** slug collision; dirty base; invalid mode; request targets
-  a `protected_paths` entry without `HIGH_RISK` + review-gate context.
+- **Stop conditions:** slug collision; dirty base; invalid `mode` (only
+  `standard` is legal); request targets `protected_paths` outside an approved
+  implement stage.
 - **State transitions:** ∅ → `draft` only. The `draft → ready-for-research`
   transition is owned by `/research` (after intake is marked `READY`), not here.
 
@@ -65,7 +73,7 @@ to each artifact. `<ticket>` = slug.
   commands, risks, open questions); (2) `ticket.md` updated — `state:
   ready-for-research`, bumped `updated_at`, **appended state-history entry**.
 - **Preconditions:** `ticket.md` exists; state = `draft`; `intake.md` Readiness
-  Status = `READY`; mode ∈ {STANDARD, HIGH_RISK}.
+  Status = `READY`. (Single workflow form — no mode gate.)
 - **Postconditions:** `research.md` complete (RS-1..RS-5); `ticket.md > state` =
   `ready-for-research` with a new history row.
 - **Stop conditions / failure:** `ticket.md` missing; state ≠ `draft`; intake
@@ -86,7 +94,7 @@ to each artifact. `<ticket>` = slug.
   `updated_at`, **appended state-history entry**; (2) `spec.md` with
   requirements, AC IDs, and AC→requirement mapping.
 - **Preconditions:** `ticket.md` exists; state = `ready-for-research`;
-  `research.md` present and complete (RS-1..RS-5); mode ∈ {STANDARD, HIGH_RISK}.
+  `research.md` present and complete (RS-1..RS-5). (Single form — no mode gate.)
 - **Postconditions:** `ticket.md > state` = `research-complete` with a new
   history row; `spec.md` complete (SP-1..SP-5, TR-1).
 - **Stop conditions / failure:** `research.md` missing or incomplete; state ≠
@@ -107,8 +115,8 @@ to each artifact. `<ticket>` = slug.
   Validation strategy **may** name one validation profile
   (`project-config.yaml > validation_profiles`) by id; commands are never written
   into `plan.md` (they live in `validation_checks`). See VP-1..VP-5 / ADR-006.
-- **Preconditions (STANDARD/HIGH_RISK):** `ticket.md` exists; `spec.md` complete
-  (SP-1..SP-5, TR-1); and **one** entry mode:
+- **Preconditions:** `ticket.md` exists; `spec.md` complete
+  (SP-1..SP-5, TR-1); and **one** entry path:
   - *Initial:* state = `research-complete`; or
   - *Revision:* state = `spec-complete` and `review.md` Decision =
     `CHANGES_REQUESTED`.
@@ -121,16 +129,23 @@ to each artifact. `<ticket>` = slug.
   (history `spec-validated`). *Revision:* stays `spec-complete` (history
   `plan-revised`; resets `status: blocked → active`). The
   `spec-complete → plan-complete → approved` transitions are owned by `/review`.
-- **FAST mode — deferred (not in v1):** the fast edge `ready-for-research →
-  plan-complete` (no `spec.md`) is not part of v1; `fast` tickets cannot be
-  created (`/start-ticket` rejects `mode: fast`).
+- **No fast path (ADR-011):** there is a single workflow form; no stage is
+  skipped and no `spec.md`-skipping edge exists.
 
 ### /review  (review gate)
-- **Purpose:** A reviewer validates the plan, records the decision in `review.md`, and —
-  only when APPROVED — advances `spec-complete → plan-complete → approved`. Does
-  not create branches and does not implement anything.
+- **Purpose:** The owner validates the plan (self-review) after a comprehension
+  check, records the decision in `review.md`, and — only when APPROVED — advances
+  `spec-complete → plan-complete → approved`. Does not create branches and does
+  not implement anything.
 - **Inputs:** `<ticket>`, decision (`APPROVED | CHANGES_REQUESTED | REJECTED`),
-  rationale; for `high_risk`: two approver names + ADR reference.
+  rationale. A comprehension check (questions from `plan.md`/`spec.md`) is required
+  before the decision is recorded (CG-1..CG-4).
+- **Advisory review panel (ADR-012, opt-in `review_panel.enabled`):** after
+  validation and before the comprehension check, read-only lenses
+  (senior / security / performance, `.claude/agents/`) review `plan.md`/`spec.md`
+  in parallel; findings are recorded in `review.md` and inform the owner.
+  **Advisory only — never blocks or decides** (RP-1..RP-4). The comprehension gate
+  remains the integrity control; the panel does not reintroduce separation of duties.
 - **Outputs:** `review.md` with decision + follow-ups; on APPROVED, `ticket.md`
   updated (`state: approved`, bumped `updated_at`, history appended).
 - **Preconditions:** `ticket.md` exists; state = `spec-complete`; `plan.md`
@@ -139,14 +154,14 @@ to each artifact. `<ticket>` = slug.
   `review.md` is overwritten with the new decision.
 - **Postconditions:**
   - APPROVED → `ticket.md > state` = `approved` (history: `plan-validated` then
-    `plan-approved`); for `high_risk`, `review.md` records two approvers + ADR.
+    `plan-approved`); `review.md` records the owner's single self-approval.
   - CHANGES_REQUESTED → `review.md` written; state stays `spec-complete` (no
     approval); `status: blocked` optional.
   - REJECTED → `review.md` written with reasons; `ticket.md` advances
     `spec-complete → closed` (terminal, history `plan-rejected`). No `/close`
     command needed.
 - **Stop conditions / failure:** state ≠ `spec-complete`; `plan.md` missing or
-  incomplete; `high_risk` missing two approvals or ADR reference. **On any
+  incomplete; comprehension check not completed (CG-1). **On any
   required-validation failure, write nothing** (atomic). Never creates a branch.
 - **State transitions (owned by `/review`):** APPROVED: `spec-complete` →
   `plan-complete` → `approved`. REJECTED: `spec-complete` → `closed` (terminal).
@@ -159,13 +174,13 @@ to each artifact. `<ticket>` = slug.
   `implementation-in-progress`).
 - **Inputs:** `<ticket>`.
 - **Outputs:** branch `ticket/<slug>` (created on the *initial* path only, from
-  clean `main`); code/doc changes confined to `plan.md`'s "Files to change",
+  clean `develop`); code/doc changes confined to `plan.md`'s "Files to change",
   applied to the working tree on that branch (**no commit, no push** — the commit
   is created later by `/publish-pr`, the single git delivery boundary);
   `implement.md` (files changed, deviations, validation).
 - **Preconditions (entry path):**
   - *Initial:* state = `approved` AND `review.md` Decision = APPROVED; no existing
-    `ticket/<slug>` branch; `main` clean.
+    `ticket/<slug>` branch; `develop` clean.
   - *Resume:* state = `implementation-in-progress`; the `ticket/<slug>` branch
     already exists and is checked out.
   - Both: `plan.md` complete (PL-1..PL-5) with an explicit, unambiguous
@@ -182,9 +197,9 @@ to each artifact. `<ticket>` = slug.
   ticket is then recoverable by re-running `/implement` (resume) or revising via
   `/plan`.
 - **Stop / block conditions (do NOT mutate):** state ∉ {`approved`,
-  `implementation-in-progress`}; (initial) review not APPROVED / `main` dirty /
+  `implementation-in-progress`}; (initial) review not APPROVED / `develop` dirty /
   branch exists; (resume) expected branch missing or not checked out; `plan.md`
-  ambiguous; a `protected_paths` entry while mode ≠ `high_risk`.
+  ambiguous; `protected_paths` not listed in the approved `plan.md`.
 - **Guarantees:** never creates a second branch on resume; never modifies files
   not listed in `plan.md`; **never commits**; never pushes; never advances past
   `implemented`.
@@ -201,8 +216,9 @@ to each artifact. `<ticket>` = slug.
   impact statement, sign-off); `ticket.md` updated per outcome.
 - **Preconditions:** `ticket.md` exists; state = `implemented`; `spec.md` has AC
   IDs (TR-1); `implement.md` present with evidence (files + commits, IM-6).
-- **Verification depth (MO-6):** `all-ac` (standard) / `all-ac` + rollback
-  rehearsal (high_risk). (`smoke` is reserved for the deferred fast mode.)
+- **Verification depth (MO-6):** `all-ac` for every ticket — every AC mapped to a
+  result (no risk tiers, no rollback rehearsal). A comprehension check (questions
+  from `implement.md`/`spec.md`) is required before PASSED (CG-1..CG-4).
 - **Validation profiles (config-driven; VP-1..VP-5 / ADR-006):** if `plan.md`
   names a profile, `/verify` resolves **profile → checks → commands** from
   `project-config.yaml`, executes them locally (deterministic, non-interactive,
@@ -269,7 +285,7 @@ non-terminal state. The ticket states are:
 | State                        | Allowed next states                                                       | Forbidden (examples)                              |
 |------------------------------|---------------------------------------------------------------------------|---------------------------------------------------|
 | `draft`                      | `ready-for-research`, `closed`                                            | anything past research; `approved`, `implemented` |
-| `ready-for-research`         | `research-complete`, `closed`                                            | `approved`, `implemented`, `verified`, `plan-complete` (fast deferred) |
+| `ready-for-research`         | `research-complete`, `closed`                                            | `approved`, `implemented`, `verified`, `plan-complete` |
 | `research-complete`          | `spec-complete`, `research-complete` (re-run), `closed`                   | `approved`, `implemented`                          |
 | `spec-complete`              | `plan-complete`, `research-complete` (back), `closed`                     | `approved` (skips plan), `implemented`            |
 | `plan-complete`              | `approved`, `plan-complete`/`spec-complete` (changes), `closed` (reject)  | `implementation-in-progress` (skips approval)     |
@@ -300,9 +316,9 @@ Key invariant: the only path into `implementation-in-progress` is from
   - `/start-ticket` creating a branch (workspace setup is branch-free).
   - Any branch creation while the ticket is **not READY** / before state `approved`.
   - A branch for that slug already exists (collision).
-  - Base `main` is dirty (uncommitted changes) at branch-creation time.
-  - Branching to modify a `protected_paths` entry unless the ticket is `HIGH_RISK` with
-    explicit review-gate context.
+  - Base `develop` is dirty (uncommitted changes) at branch-creation time.
+  - Branching to modify `protected_paths` unless it is listed in the approved
+    `plan.md` (review-gate approved).
 - **Rationale:** The non-mutating stages (`intake → research → spec → plan →
   review`) only produce documentation and need no isolated branch. Deferring
   branch creation until `approved` means no branch ever exists for a ticket that
@@ -311,20 +327,27 @@ Key invariant: the only path into `implementation-in-progress` is from
 
 ---
 
-## 4. Workflow mode behavior
+## 4. Single workflow form + comprehension gate (ADR-011)
 
-**v1 modes: `standard` and `high_risk` only.** `fast` is deferred (shown for
-reference; not selectable in v1).
+**There are no execution modes and no risk tiers.** Every ticket runs the **one
+uniform workflow form** (all seven stages, both gates), carried by a **single
+owner**. The owner runs their own `/review` and `/verify` (self-review); there is
+no separate reviewer and no separation of duties. Gate integrity comes from a
+**comprehension check**: at each gate the owner must answer 2–3 questions
+generated from the artifact under review before the gate records its decision.
+Canonical: `project-config.yaml > workflow_form` / `> comprehension_gates`.
 
-| Aspect            | STANDARD                       | HIGH_RISK                                            | FAST *(deferred)* |
-|-------------------|--------------------------------|------------------------------------------------------|-------------------|
-| Required commands | all 7                          | all 7                                                | start-ticket, plan, review, implement, verify |
-| Approval          | `/review` (one reviewer)       | `/review` **+ second approver** required             | `/review` required |
-| Verification      | every AC mapped to a result    | every AC + **rollback rehearsal** + mandatory ADR    | smoke check |
-| ADR               | optional (record if notable)   | **mandatory**                                        | optional |
-| Eligibility       | normal work                    | protected-path changes, irreversible or wide-blast-radius work | single-file/docs, reversible |
+| Aspect         | Every ticket (uniform)                                            |
+|----------------|------------------------------------------------------------------|
+| Stages         | all 7                                                            |
+| Who runs gates | the ticket **owner** (self-review) — no distinct reviewer        |
+| Gate control   | **comprehension check** (questions from the artifact; CG-1..CG-4) |
+| Approval       | 1 self-approval by the owner                                     |
+| Verification   | `all-ac` — every AC mapped to a result                          |
+| ADR            | optional (record if notable)                                    |
 
-In all modes the `/review` gate is mandatory and never skipped.
+The `/review` and `/verify` gates are mandatory and never skipped, and neither may
+record its decision until the comprehension questions are answered.
 
 ---
 
@@ -378,10 +401,11 @@ The items previously flagged here have been reconciled — this document and
 1. **State machine — RESOLVED.** `project-config.yaml > lifecycle` now defines
    this exact 10-state machine (with `blocked` as an orthogonal flag) as the
    single source of truth. §2 here mirrors it.
-2. **Modes — RESOLVED.** `project-config.yaml > modes` defines `standard` and
-   `high_risk` (v1) with approvals/ADR/verification fields matching §4 here.
-   `fast` is deferred (not in v1). Identifiers are lowercase; STANDARD/HIGH_RISK
-   are display labels.
+2. **Modes & reviewers — REMOVED (ADR-011).** No execution modes, no risk tiers,
+   no separate reviewer. `project-config.yaml > workflow_form` defines the single
+   uniform form and `> comprehension_gates` the gate control (the owner answers
+   questions from the artifact); §4 here mirrors them. `standard`/`high_risk`/
+   `fast` are gone — the `mode` field is a legacy single value `standard`.
 3. **Closure — RESOLVED.** One closure strategy: no `/close` command; the reviewer
    transitions `verified → closed` at `/verify` sign-off
    (`project-config.yaml > closure`).

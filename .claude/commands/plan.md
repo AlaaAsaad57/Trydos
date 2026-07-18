@@ -37,8 +37,9 @@ Authoritative references (apply, do not reinvent):
 Read `_specs/<slug>/ticket.md`, `spec.md`, and (if present) `review.md`; then
 apply:
 - **TS-1 / TS-2 / TS-3** — `ticket.md` exists, valid; read current `state` here.
-- **MO-1** — STANDARD/HIGH_RISK only. `fast` is not supported in v1 — abort if
-  `mode: fast` (`MO-1 ERROR: fast mode is not supported in v1`).
+- **MO-1** — the single workflow form has no modes; abort if `ticket.md > mode`
+  is anything other than `standard` (`MO-1 ERROR: only the single workflow form
+  is supported — ADR-011`).
 - **PL-7 (entry mode)** — exactly one of:
   - *Initial:* `state == research-complete`; or
   - *Revision:* `state == spec-complete` **and** `review.md` exists with
@@ -56,7 +57,7 @@ If any ERROR fires, stop and report the rule code + message. **Make no writes.**
 ## Step 2 — Write plan.md
 
 Read `_specs/_templates/plan.md` and write `_specs/<slug>/plan.md` (overwrites on
-revision): front-matter (`ticket`, `stage: plan`, `mode`, `status: complete`,
+revision): front-matter (`ticket`, `stage: plan`, `mode: standard`, `status: complete`,
 `owner: developer`, `updated: <today>`, `links`) and every section — Approach,
 Steps, Files to change, Validation strategy, Rollback, Out of scope — grounded in
 `spec.md`'s acceptance criteria. **On revision, explicitly address the
@@ -105,7 +106,7 @@ free-form validation behavior (VP-5).
 - Do **not** approve implementation or advance to `approved` / `plan-complete`
   (PL-9; those are the `/review` gate).
 - Do **not** create a git branch (PL-9 / GU-4).
-- Do **not** modify source code or any protected runtime path.
+- Do **not** modify source code or any `protected_paths` runtime file.
 - Do **not** create any other artifact.
 - Do **not** perform a partial write: if Step 1 fails, nothing is written (PL-8).
 
@@ -121,8 +122,7 @@ Emit the next-step block (`command-architecture.md §6`):
 
 - **Current state:** `spec-complete`
 - **Next command:** `/review <slug> <APPROVED|CHANGES_REQUESTED|REJECTED> "<rationale>"`
-- **Required actions:** the gate must be run by a **reviewer who is not the
-  author** of this plan/spec (RA-3), unless self-review is enabled for `standard`
-  tickets.
+- **Required actions:** none — the ticket **owner** runs `/review` themselves
+  (self-review) and answers the comprehension questions at the gate (CG-1).
 - **Optional actions:** revise via `/plan <slug>` again before review if needed.
 - **Terminal?** no

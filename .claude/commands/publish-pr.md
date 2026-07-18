@@ -55,7 +55,7 @@ If any ERROR fires, stop and report the rule code + message. Make no changes.
 4. **Invoke the helper** (the only `git`/`gh` home):
    ```
    python scripts/github_publish.py --branch ticket/<slug> \
-       --title "<generated title>" --body-file <body-file> --base main \
+       --title "<generated title>" --body-file <body-file> --base develop \
        --commit-message "<generated commit message>"
    ```
    As the single git delivery boundary, the helper **stages the working-tree
@@ -93,7 +93,7 @@ If any ERROR fires, stop and report the rule code + message. Make no changes.
 - Do **not** merge, auto-merge, manage reviewers/labels, or delete branches
   (out of scope; ADR-007).
 - Do **not** embed `git`/`gh` logic here — it lives only in the helper.
-- Do **not** modify any protected runtime path or any of the existing
+- Do **not** modify any `protected_paths` runtime file or any of the existing
   seven command contracts (AC-8).
 - Do **not** perform a partial write: if a precondition fails or the helper exits
   non-zero, `ticket.md` is left unchanged (PB-5 / AC-9).

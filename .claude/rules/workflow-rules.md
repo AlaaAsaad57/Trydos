@@ -1,8 +1,8 @@
 # Workflow Rules — Engineering Workflow v1
 
-Defines each stage, its gates, and the cross-cutting guardrails. Stages, modes,
-lifecycle states, and decision tracking are canonical in
-`.claude/project-config.yaml`.
+Defines each stage, its gates, and the cross-cutting guardrails. Stages, the
+single workflow form + comprehension gate, lifecycle states, and decision
+tracking are canonical in `.claude/project-config.yaml`.
 
 ## Stage definitions, entry & exit criteria
 
@@ -28,9 +28,9 @@ lifecycle states, and decision tracking are canonical in
 - **Exit:** `plan.md` has approach, steps, files to change, validation, rollback.
 
 ### 5. review  (review gate)
-- **Definition:** A reviewer (not the author) reviews spec + plan before any implementation.
+- **Definition:** The owner reviews spec + plan (self-review) with a comprehension check before any implementation.
 - **Entry:** Spec and plan complete.
-- **Exit:** Reviewer records `APPROVED`. `CHANGES_REQUESTED`/`REJECTED` returns to spec/plan.
+- **Exit:** Owner records `APPROVED` after the comprehension check. `CHANGES_REQUESTED`/`REJECTED` returns to spec/plan.
 
 ### 6. implement
 - **Definition:** Apply the change per the approved plan only.
@@ -43,26 +43,33 @@ lifecycle states, and decision tracking are canonical in
 ### 7. verify  (review gate)
 - **Definition:** Validate the change and review runtime impact.
 - **Entry:** Implementation complete.
-- **Exit:** `verify.md` shows passing checks; a reviewer signs off; ticket
-  `verified` → `closed` (see closure strategy below).
+- **Exit:** `verify.md` shows passing checks; the owner signs off after the
+  comprehension check; ticket `verified` → `closed` (see closure strategy below).
 
-## Execution modes
+## Single workflow form (single owner + comprehension gate)
 
-v1 has **two** modes sharing the same lifecycle and gates; they differ only in
-depth. The **canonical definitions** (stages, approvals, ADR/verification
-requirements) live in `project-config.yaml > modes` — this section only
-summarizes them.
+There are **no execution modes and no risk tiers** (ADR-011). Every ticket runs
+the **one uniform workflow form**: all seven stages and both gates, carried by a
+**single owner**. Canonical: `project-config.yaml > workflow_form` and
+`> comprehension_gates` — this section only summarizes them. (`standard`,
+`high_risk`, and `fast` are removed; the `mode:` front-matter field is a legacy
+single value, `standard`.)
 
-- **standard** — all seven stages. Default for normal work. 1 approval (one reviewer).
-- **high_risk** — all seven stages for protected-runtime-path, irreversible, or
-  wide-blast-radius work. **2 approvals** (reviewer + second approver; the
-  Workflow Owner is eligible as the second), **mandatory ADR**, verification
-  includes a rollback rehearsal.
-- **fast** — **deferred (not in v1).** `/start-ticket` rejects `mode: fast`.
+- **Single owner:** one person authors the ticket **and** runs its `/review` and
+  `/verify` gates themselves (self-review is expected). There is no separate
+  reviewer and no separation of duties.
+- **Comprehension gate = the control.** In place of a second person, each gate
+  requires the owner to answer 2–3 questions generated **from the artifact under
+  review** (`plan.md`/`spec.md` at `/review`; `implement.md`/`spec.md` at
+  `/verify`) before it may record its decision — this is what guards against
+  rubber-stamping (CG-1..CG-4).
+- **Uniform safeguards (every ticket):** all seven stages, **1 self-approval** by
+  the owner, `adr_required: false` (ADRs optional), verification `all-ac` (every
+  acceptance criterion mapped to a result). No risk classification, no second
+  approver, no rollback-rehearsal tier.
 
-The `review` gate is **never** skipped in any mode. The mode is declared in
-each artifact's front-matter (`mode:`). Choosing a lighter mode than the work
-warrants is a guardrail violation.
+The `/review` and `/verify` gates are **never** skipped, and neither may record
+its decision until the comprehension questions are answered.
 
 ## Lifecycle states
 
@@ -72,12 +79,10 @@ in `project-config.yaml > lifecycle`. This is the single source of truth:
 `draft → ready-for-research → research-complete → spec-complete → plan-complete
 → approved → implementation-in-progress → implemented → verified → closed`
 
-- (Fast mode's `ready-for-research → plan-complete` shortcut is deferred — not
-  part of v1.)
 - `blocked` is **not** a state; it is an orthogonal flag carried in artifact
   front-matter (`status: blocked`). A stage may not advance while its artifact
   status is `blocked`.
-- The only path into `implementation-in-progress` is from `approved` — no mode
+- The only path into `implementation-in-progress` is from `approved` — nothing
   bypasses the review gate.
 - `closed` is terminal: no reopen; open a new ticket.
 
@@ -107,28 +112,26 @@ The ticket's workflow state has exactly one owner (see
 - Commands **must never** infer state from artifact existence or content. They
   read `ticket.md`, validate the transition, then update `ticket.md`.
 
-## Role authority & separation of duties
+## Role authority (single-owner model)
 
 (Canonical: `project-config.yaml > role_authority` / `separation_of_duties`;
 validation: RA-1..RA-3.)
 
 - **Roles:** `workflow_owner` (governance — workflow evolution, governance
   decisions, escalations, cross-project issues; **not** a per-ticket gate),
-  `reviewer` (per-ticket gate authority for `/review` and `/verify`; any
-  qualified team member who is not the author — need not be an Engineering
-  Manager), `developer`/`ai_agent` (authors). Legacy `em` maps to `reviewer`
-  (gate) / `workflow_owner` (governance).
-- The gates `/review` and `/verify` may be invoked **only** by the `reviewer`
-  role (RA-1). Authoring commands are run by `developer`/`ai_agent`. **The
+  `reviewer` (the gate actor at `/review` and `/verify` — normally the ticket
+  **owner** running their own gate, self-review; ADR-011), `developer`/`ai_agent`
+  (authors/owners). Legacy `em` maps to `reviewer` (gate) / `workflow_owner`
+  (governance).
+- The gates `/review` and `/verify` are run by the ticket **owner** themselves
+  (self-review; RA-1). Authoring commands are run by `developer`/`ai_agent`. **The
   workflow never requires Engineering Manager participation on a ticket.**
 - Every recorded actor (`owner`, history `by`) must be a defined role (RA-2).
-- **Separation of duties:** the `reviewer` approving at a gate must **not** be the
-  author of the plan/implementation under review — no self-approval (RA-3). This
-  makes concrete the prohibition in CLAUDE.md.
-  - **Standard-mode exception (opt-in, off by default):** for `standard`
-    (low-risk) tickets only, self-review may be permitted when
-    `project-config.yaml > separation_of_duties.allow_self_review.standard: true`.
-    `high_risk` always requires a distinct second actor and can never self-review.
+- **No separation of duties (single-owner model, ADR-011):** the ticket owner
+  authors the work **and** runs its `/review` and `/verify` gates themselves —
+  self-review is expected, not forbidden. The control against rubber-stamping is
+  the **comprehension gate** (CG-1..CG-4), not a distinct reviewer. There is no
+  second approver.
 
 ## Traceability
 
@@ -148,8 +151,8 @@ validation: RA-1..RA-3.)
 
 - No stage may begin before the previous stage's exit criteria are met.
 - Research/spec/plan/review are **non-mutating** — no source or config edits.
-- Protected runtime paths (`protected_paths`) are never modified by
-  workflow tooling or governance work.
+- Protected runtime paths (`protected_paths` in `project-config.yaml`) are never
+  modified by workflow tooling or governance work.
 - Each stage writes only inside its own `_specs/<ticket>/` folder.
 - No workflow commands are created except where a phase explicitly authorizes it.
 

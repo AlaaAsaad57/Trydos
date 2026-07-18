@@ -30,8 +30,9 @@ Read `_specs/<slug>/ticket.md`, `intake.md`, and `research.md`, then apply:
 - **TS-1 / TS-2 / TS-3** — `ticket.md` exists, valid; read current `state` here.
 - **CMD-1 / ST-2** — `state` must be `ready-for-research` (the only legal source
   for the `→ research-complete` transition). Otherwise abort.
-- **MO-1** — `spec` is valid only in `standard`/`high_risk`. If `mode` is `fast`,
-  abort: `MO-1 ERROR: fast mode is not supported in v1`.
+- **MO-1** — the single workflow form has no modes; `spec` always applies.
+  `ticket.md > mode` must be the sole legal value `standard`; abort on any other
+  (`MO-1 ERROR: only the single workflow form is supported — ADR-011`).
 - **SP-7** — `research.md` exists and satisfies **RS-1..RS-5** (relevant dirs,
   config files, affected services + validation commands, risks, open questions).
   If missing/incomplete, abort and tell the user to run `/research`.
@@ -81,7 +82,7 @@ Update `_specs/<slug>/ticket.md` (the single state write):
   or code (SP-4). That is `/plan`'s job.
 - Do **not** advance state beyond `research-complete` (the
   `research-complete → spec-complete` transition is owned by a later stage).
-- Do **not** modify source code or any protected runtime path.
+- Do **not** modify source code or any `protected_paths` runtime file.
 - Do **not** create any other artifact or a branch.
 - Do **not** perform a partial write: if Step 1 fails, nothing is written (SP-8).
 

@@ -12,7 +12,7 @@ state `draft → ready-for-research` (appending a history entry).
 
 **Atomic:** validate everything first. If any check fails, write **nothing** —
 neither `research.md` nor `ticket.md`. Repository investigation never mutates
-source or a `protected_paths` entry.
+source or `protected_paths`.
 
 Authoritative references (apply, do not reinvent):
 - Command contract: `.claude/docs/command-architecture.md` (`/research`)
@@ -32,9 +32,9 @@ Read `_specs/<slug>/ticket.md` and `intake.md`, then apply:
   Status must be `READY` (the legal source for the `→ ready-for-research`
   transition). If `state` is already `ready-for-research`, skip the transition
   and only refresh `research.md` (idempotent re-run). Otherwise abort.
-- **MO-1** — `research` is valid only in `standard`/`high_risk`. If `ticket.md >
-  mode` is `fast`, abort: `MO-1 ERROR: fast mode is not supported in v1`
-  (fast should already have been rejected at `/start-ticket`).
+- **MO-1** — the single workflow form has no modes; `research` always applies.
+  `ticket.md > mode` must be the sole legal value `standard`; abort on any other
+  (`MO-1 ERROR: only the single workflow form is supported — ADR-011`).
 
 If any ERROR fires, stop and report the rule code + message. **Make no writes.**
 
@@ -42,7 +42,7 @@ If any ERROR fires, stop and report the rule code + message. **Make no writes.**
 
 Investigate using **Read / Grep / Glob only** (no mutation, no shell side
 effects). From the ticket goal in `intake.md`, gather: relevant directories;
-relevant config files (read `protected_paths` entries only to understand them, never
+relevant config files (read `protected_paths` only to understand it, never
 modify); possibly affected services; available test/validation commands (list,
 do not run); risks/unknowns; open questions.
 
@@ -82,7 +82,7 @@ duplicate entry.)
 
 - Do **not** advance state beyond `ready-for-research` (the `ready-for-research →
   research-complete` transition is owned by `/spec`).
-- Do **not** modify source code or any protected runtime path.
+- Do **not** modify source code or any `protected_paths` runtime file.
 - Do **not** run validation/test commands — only discover and list them.
 - Do **not** create any other artifact or a branch.
 - Do **not** perform a partial write: if Step 1 fails, nothing is written (RS-8).
