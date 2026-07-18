@@ -9,7 +9,7 @@ created_at: 2026-07-18
 updated_at: 2026-07-18
 links:
   clickup:
-  github:
+  github: https://github.com/AlaaAsaad57998/Trydos/pull/75
 ---
 
 # Ticket Record — seller-product-create-validation-fields
