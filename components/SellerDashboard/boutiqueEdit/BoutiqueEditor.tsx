@@ -15,6 +15,7 @@ import {
   InlineAlert,
 } from "components/SellerDashboard/ui";
 import {
+  AvailabilitySection,
   CountriesSection,
   TranslationsSection,
   type SectionProps,
@@ -666,6 +667,7 @@ export default function BoutiqueEditor({
       </div>
 
       {/* Sections */}
+      <AvailabilitySection {...sectionProps} />
       <TranslationsSection {...sectionProps} />
       <CountriesSection {...sectionProps} />
 

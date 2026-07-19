@@ -2015,6 +2015,7 @@ const translations = {
   Web: "الويب",
   Mobile: "الجوال",
   "Web + Mobile": "الويب والجوال",
+  "Choose where this boutique is available.": "اختر أين يكون هذا المتجر متاحًا.",
   "Boutique icon": "أيقونة المتجر",
   "Upload icon": "رفع أيقونة",
   "Available in countries": "متاح في الدول",
