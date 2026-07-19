@@ -2127,6 +2127,7 @@ const translations = {
   "Product created successfully.": "تم إنشاء المنتج بنجاح.",
   "Product Images": "صور المنتج",
   "Product name is required": "اسم المنتج مطلوب",
+  "Brand is required": "العلامة التجارية مطلوبة",
   "Qty": "الكمية",
   "Remove": "إزالة",
   "removed": "مُزال",

@@ -19,6 +19,19 @@ const tx = (s: string) => translateFunction(s);
 
 export const UNITS = ["pc", "kg", "gms", "l"] as const;
 
+/**
+ * Base language of a product's `custom_data` rows, sent as `default_language_code`.
+ *
+ * Deliberately typed as the literal `"en"` (not `string`) so it can never be
+ * widened into caller-supplied data that would be echoed into a backend payload.
+ *
+ * This is a product-content contract value and is intentionally NOT derived from
+ * the storefront i18n default in `proxy.ts`: that one is the request-scoped,
+ * user-facing UI language and legitimately varies per visitor. Coupling them
+ * would let a locale change silently alter stored product data.
+ */
+export const DEFAULT_LANGUAGE_CODE: "en" = "en";
+
 /* --------------------------------- types --------------------------------- */
 
 export interface ColorLookup {
@@ -551,6 +564,10 @@ export function validate(form: ProductForm): Record<string, string> {
 
   if (!form.name.trim()) e.name = tx("Product name is required");
   if (!UNITS.includes(form.unit as any)) e.unit = tx("Select a valid unit");
+  // Required on BOTH create and update. Client-side this is UX only — it stops the
+  // empty case before a request is made; it confers no security property, and the
+  // server still owns brand validity/authorization (spec E-5).
+  if (!form.brand_id) e.brand_id = tx("Brand is required");
   // seller_product_id is optional server-side on both create and update; it is only
   // checked for marketplace uniqueness when provided.
 
@@ -618,8 +635,14 @@ export function validate(form: ProductForm): Record<string, string> {
     }
   }
 
-  // An English translation is required to (later) enable the product.
-  if (!form.translations.some((t) => t.language_code === "en" && t.name.trim()))
+  // An English translation is required to (later) enable the product. Reads the
+  // same constant the payload emits as `default_language_code`, so the declared
+  // base language and the row this check requires cannot drift apart.
+  if (
+    !form.translations.some(
+      (t) => t.language_code === DEFAULT_LANGUAGE_CODE && t.name.trim(),
+    )
+  )
     e.translations = tx("An English (en) name is required");
 
   return e;
@@ -634,6 +657,9 @@ export function buildUpdateFormData(form: ProductForm): FormData {
   };
 
   set("name", form.name);
+  // Base language of the custom_data rows. Required by the create DTO; derived,
+  // never seller-chosen, so it lives here rather than in ProductForm.
+  set("default_language_code", DEFAULT_LANGUAGE_CODE);
   set("unit", form.unit);
   set("barcode", form.barcode);
   set("seller_product_id", form.seller_product_id);
@@ -664,8 +690,18 @@ export function buildUpdateFormData(form: ProductForm): FormData {
   // amount and currency-convert it, so a 5% tax is stored as a converted flat 5.
   // Omitting both leaves the server defaults (tax = 0, tax_type = "percent").
   // Restore these once the backend precedence fix ships.
-  if (form.multiply_qty) set("multiplyQTY", "on");
-  if (form.packed_after_ordering) set("packed_after_ordering", "on");
+  // Always present, always an explicit boolean — the create DTO rejects a missing
+  // key ("must be true or false"), so the previous "send 'on' / omit to disable"
+  // encoding is gone. `set` stringifies, so these go on the wire as "true"/"false".
+  //
+  // RISK (spec E-1 / AC-8): the server was documented to treat any truthy string
+  // for multiplyQTY as "enable" — under which "false" would also read as enable
+  // and a flag the seller switched off would be stored as on. This builder feeds
+  // BOTH create and update, so that would hit every existing seller's edit path.
+  // If AC-8 fails, the fix is server-side; do NOT reinstate the omit pattern,
+  // which would re-break product creation.
+  set("multiplyQTY", form.multiply_qty);
+  set("packed_after_ordering", form.packed_after_ordering);
 
   set("meta_title", form.meta_title);
   set("meta_description", form.meta_description);
