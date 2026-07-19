@@ -2023,6 +2023,7 @@ const translations = {
   Web: "Web",
   Mobile: "Mobil",
   "Web + Mobile": "Web + Mobil",
+  "Choose where this boutique is available.": "Bu butiğin nerede kullanılabilir olacağını seçin.",
   "Boutique icon": "Butik simgesi",
   "Upload icon": "Simge yükle",
   "Available in countries": "Ülkelerde kullanılabilir",

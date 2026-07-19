@@ -2055,6 +2055,7 @@ const translations = {
   Web: "وێب",
   Mobile: "مۆبایل",
   "Web + Mobile": "وێب + مۆبایل",
+  "Choose where this boutique is available.": "هەڵبژێرە ئەم بۆتیکە لە کوێ بەردەست بێت.",
   "Boutique icon": "ئایکۆنی بۆتیک",
   "Upload icon": "بارکردنی ئایکۆن",
   "Available in countries": "بەردەستە لە وڵاتاندا",

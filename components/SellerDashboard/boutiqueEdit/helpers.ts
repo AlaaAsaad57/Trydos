@@ -12,8 +12,31 @@ export type LangCode = string;
 /** The default language whose content seeds boutique_global_data. */
 export const DEFAULT_LANG: LangCode = "en";
 
-/** availability is fixed to 3 (Web + Mobile) — the selector was removed. */
-export const FIXED_AVAILABILITY = 3;
+/** Default availability (Web + Mobile) — used on create and as the fallback
+ *  when the stored/looked-up value is unknown. The user picks the real value
+ *  in the availability select. */
+export const DEFAULT_AVAILABILITY = 3;
+
+/** Local translation key per availability value — backend `label` strings
+ *  ("WebMobile") are never rendered. Options whose value is not in this map
+ *  are not offered. */
+export const AVAILABILITY_LABEL_KEYS: Record<number, string> = {
+  1: "Web",
+  2: "Mobile",
+  3: "Web + Mobile",
+};
+
+/** Fallback options when the lookups response carries no availabilities. */
+export const FALLBACK_AVAILABILITIES: AvailabilityOption[] = [
+  { value: 1, label: "Web" },
+  { value: 2, label: "Mobile" },
+  { value: 3, label: "WebMobile" },
+];
+
+export interface AvailabilityOption {
+  value: number;
+  label: string;
+}
 
 export interface Language {
   code: LangCode;
@@ -50,6 +73,7 @@ export interface CountryOption {
 
 export interface BoutiqueLookups {
   countries: CountryOption[];
+  availabilities?: AvailabilityOption[];
 }
 
 export interface BannerItem {
@@ -75,6 +99,7 @@ export interface BoutiqueForm {
   related_product_ids: (number | string)[]; // preserved untouched (deferred feature)
   translations: Record<LangCode, TranslationForm>;
   status: number; // 0 inactive / 1 active — staged; applied via change-status on save
+  availability: number; // 1 Web · 2 Mobile · 3 Web+Mobile — user-picked
 }
 
 /** Fields that can be copied from one language into another. */
@@ -199,6 +224,7 @@ export function emptyBoutiqueForm(languages: Language[]): BoutiqueForm {
     related_product_ids: [],
     translations,
     status: 0,
+    availability: DEFAULT_AVAILABILITY,
   };
 }
 
@@ -241,6 +267,10 @@ export function buildFormFromEdit(boutique: any, languages: Language[]): Boutiqu
       : [],
     translations,
     status: Number(boutique?.status ?? 0),
+    availability:
+      Number(boutique?.availability) in AVAILABILITY_LABEL_KEYS
+        ? Number(boutique.availability)
+        : DEFAULT_AVAILABILITY,
   };
 }
 
@@ -294,7 +324,7 @@ export function buildUpdatePayload(
   return {
     boutique_global_data: {
       name: base.name,
-      availability: FIXED_AVAILABILITY,
+      availability: form.availability,
       description: sanitizeHtml(base.description),
       bio: base.bio,
       icon: base.icon,
