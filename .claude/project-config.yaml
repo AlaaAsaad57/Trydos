@@ -119,6 +119,25 @@ protected_paths:
   - "next.config.ts"              # build/runtime config, image allowlist, headers
 
 # ---------------------------------------------------------------------------
+# Gate notifications (ADR-013) — a deterministic Telegram notice on every gate
+# decision, sent by a local PostToolUse hook (.claude/hooks/notify_gate.py) that
+# fires when comprehension.md is written. REUSES the existing Alertmanager
+# Telegram bot; token/chat come from a local config file or env on the dev
+# machine and are NEVER committed. The hook never edits a protected_paths file
+# and never changes workflow state (one-way, workflow -> Telegram). Enforced by
+# NT-1..NT-3.
+# ---------------------------------------------------------------------------
+notifications:
+  enabled: true
+  channel: telegram             # telegram first; email (reuse mail.ramaaz.com) added later
+  enforcement: warn             # warn (fail-open) | block (fail-closed via hook exit 2)
+  trigger: _specs/<ticket>/comprehension.md   # PostToolUse(Write) on this path
+  # Delivery config: shared file .claude/notifications.json (gitignored — holds the
+  # bot token; copy from notifications.example.json). Env overrides it, higher
+  # priority (never committed): WF_TELEGRAM_BOT_TOKEN / _CHAT_ID / _TOPIC_ID,
+  # WF_NOTIFY_ENFORCEMENT, WF_NOTIFY_DRYRUN. The token reuses the Alertmanager bot.
+
+# ---------------------------------------------------------------------------
 # Single closure strategy: there is no /close command. A ticket moves
 # verified -> closed at /verify sign-off, performed by the reviewer.
 # ---------------------------------------------------------------------------

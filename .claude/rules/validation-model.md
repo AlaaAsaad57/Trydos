@@ -225,6 +225,21 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 | RP-3 | ERROR | Panel subagents are **read-only**: they may read `plan.md`/`spec.md` (and referenced context) but produce **no** working-tree change outside `review.md` (reinforces GU-1). |
 | RP-4 | ERROR | **Ordering:** the panel runs only **after** Step 1 validation passes and **before** the comprehension check (Step 1a → Step 1b). It is never run on a plan that failed validation, and never gates or precedes validation. |
 
+### NT — Gate notifications (local hook; ADR-013)
+> A deterministic notice on every gate decision, delivered by a local PostToolUse
+> hook (`.claude/hooks/notify_gate.py`) that fires when `comprehension.md` is
+> written. Reuses the existing Alertmanager Telegram bot (token/chat via a
+> gitignored local config file or env, never committed). Delivery is the
+> **harness's** job (hook), not the AI's memory — the same I/O-isolation pattern as
+> ClickUp/GitHub (ADR-005/007). Canonical: `project-config.yaml > notifications`.
+> Applies only when `notifications.enabled`.
+
+| Code | Severity | Condition |
+|------|----------|-----------|
+| NT-1 | ERROR | Delivery is performed **only** by the local hook; **no command embeds the delivery HTTP** (I/O isolation). Commands write the artifact; the harness runs the hook. |
+| NT-2 | ERROR | The hook is **one-way** (workflow → channel): it reads artifacts + config/env and sends. It **never** writes `ticket.md`, changes workflow state, or edits a `protected_paths` file (reuses the bot via credentials only — mirrors PB-4). |
+| NT-3 | ERROR | Delivery failure behaves per `notifications.enforcement`: `warn` (default) logs and the gate **completes** (hook exit 0); `block` **fails** the gate (hook exit 2). Unconfigured (no token/chat) is always fail-open — missing credentials must never freeze a gate. |
+
 ### TR — Traceability
 | Code | Severity | Condition |
 |------|----------|-----------|

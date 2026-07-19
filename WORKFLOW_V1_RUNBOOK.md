@@ -1,5 +1,18 @@
 # Workflow V1 — Operational Runbook
 
+> ⚠️ **Superseded (ADR-011).** This runbook still describes two execution modes
+> (`standard`/`high_risk`), mode selection, and a distinct reviewer / separation
+> of duties. All of that is **removed**: there is now **one uniform workflow form**
+> run by a **single owner** who executes their own `/review` and `/verify`
+> (self-review). Gate integrity comes from a **comprehension check** (the owner
+> answers questions generated from the artifact under review), not a second
+> person. No risk tiers: 1 self-approval, ADR optional, `all-ac` verification for
+> every ticket. Wherever this runbook says a "mode", `standard`, `high_risk`, "a
+> reviewer who is not the author", two approvers, or a rollback rehearsal, read the
+> single-owner form + comprehension gate. Canonical:
+> `.claude/project-config.yaml > workflow_form` / `> comprehension_gates`. (Full
+> text reconciliation pending.)
+
 > **Status:** production / stable. Documents the workflow **exactly as it exists
 > today** (validated by WF-PILOT-001, WF-PILOT-002, WF-PILOT-003, WF-004, and
 > WF-005, all closed/PASSED).

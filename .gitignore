@@ -86,3 +86,9 @@ security-check/*.har
 # purchase-price margins, barcodes) and would carry auth headers if re-captured
 # with them — never commit. Keep captures in a scratchpad outside the repo.
 *-payload.txt
+SECURITY-register-guest.md
+
+# Local gate-notification config — holds the Telegram bot token (secret).
+# Keep it local; never commit the secret. Copy .claude/notifications.example.json
+# to .claude/notifications.json and fill in botToken, or supply WF_TELEGRAM_* env.
+.claude/notifications.json
