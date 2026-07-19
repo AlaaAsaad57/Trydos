@@ -9,7 +9,7 @@ created_at: 2026-07-19
 updated_at: 2026-07-19  # bumped: implemented → verified → closed
 links:                   # OPTIONAL delivery links — metadata only, NOT workflow state
   clickup:
-  github:
+  github: https://github.com/AlaaAsaad57998/Trydos/pull/76
 ---
 
 # Ticket Record — boutique-availability-select
