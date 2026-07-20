@@ -2330,6 +2330,13 @@ const translations = {
   "Added to checklist": "Kontrol listesine eklendi",
   "Removed From Compare": "Karşılaştırmadan kaldırıldı",
   "please select one contact at least": "lütfen en az bir kişi seçin",
+  "Boutique is required": "Butik gereklidir",
+  "Select at least one category": "En az bir kategori seçin",
+  "Description is required": "Açıklama gereklidir",
+  "Please check this field": "Lütfen bu alanı kontrol edin",
+  "Check the product images and their order": "Ürün görsellerini ve sıralamasını kontrol edin",
+  "Every color needs at least one image, and every image must be assigned": "Her renk en az bir görsel gerektirir ve her görsel bir renge atanmalıdır",
+  "Attributes are not editable yet. This section is a preview and nothing here is saved.": "Özellikler henüz düzenlenemiyor. Bu bölüm bir önizlemedir ve burada hiçbir şey kaydedilmez.",
   "Share": "Paylaş",
 };
 

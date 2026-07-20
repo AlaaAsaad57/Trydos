@@ -2299,6 +2299,13 @@ const translations = {
   "Added to checklist": "أُضيف إلى القائمة",
   "Removed From Compare": "تمت الإزالة من المقارنة",
   "please select one contact at least": "يرجى اختيار جهة اتصال واحدة على الأقل",
+  "Boutique is required": "المتجر مطلوب",
+  "Select at least one category": "اختر فئة واحدة على الأقل",
+  "Description is required": "الوصف مطلوب",
+  "Please check this field": "يرجى مراجعة هذا الحقل",
+  "Check the product images and their order": "تحقق من صور المنتج وترتيبها",
+  "Every color needs at least one image, and every image must be assigned": "كل لون يحتاج صورة واحدة على الأقل، ويجب تعيين كل صورة للون",
+  "Attributes are not editable yet. This section is a preview and nothing here is saved.": "الخصائص غير قابلة للتعديل بعد. هذا القسم للعرض فقط ولا يتم حفظ أي شيء هنا.",
   "Share": "مشاركة",
 };
 

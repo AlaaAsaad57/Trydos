@@ -92,3 +92,14 @@ SECURITY-register-guest.md
 # Keep it local; never commit the secret. Copy .claude/notifications.example.json
 # to .claude/notifications.json and fill in botToken, or supply WF_TELEGRAM_* env.
 .claude/notifications.json
+
+# Backend body-contract working docs. These describe the shop-product create/update
+# request contract by reading BACKEND SOURCE, and record unpatched backend defects
+# (boutique ownership not checked, client-controllable `id` on create, no barcode
+# uniqueness on update, approval-queue bypass) with exact backend file:line
+# citations. THIS REPOSITORY IS PUBLIC — committing them would publish a working
+# exploitation guide for a live system. Keep them local; share via the backend
+# team's own channel, never via this repo.
+docs/api-requirements/shop-product-body-contract.md
+docs/api-requirements/shop-product-body-payloads.txt
+docs/api-requirements/seller-product-body-alignment-roadmap.md

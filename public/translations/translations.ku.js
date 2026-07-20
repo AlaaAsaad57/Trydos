@@ -2350,6 +2350,13 @@ const translations = {
   "Added to checklist": "زیادکرا بۆ لیستەکە",
   "Removed From Compare": "لە بەراوردکردن لابرا",
   "please select one contact at least": "تکایە بەلایەنی کەم یەک کەس هەڵبژێرە",
+  "Boutique is required": "بوتیک پێویستە",
+  "Select at least one category": "لانیکەم یەک پۆل هەڵبژێرە",
+  "Description is required": "وەسف پێویستە",
+  "Please check this field": "تکایە ئەم خانەیە بپشکنە",
+  "Check the product images and their order": "وێنەکانی بەرهەم و ڕیزبەندییەکەیان بپشکنە",
+  "Every color needs at least one image, and every image must be assigned": "هەر ڕەنگێک پێویستی بە لانیکەم یەک وێنەیە، و دەبێت هەموو وێنەیەک دیاری بکرێت",
+  "Attributes are not editable yet. This section is a preview and nothing here is saved.": "تایبەتمەندییەکان هێشتا ناتوانرێت دەستکاری بکرێن. ئەم بەشە پێشبینینێکە و هیچ شتێک لێرە پاشەکەوت ناکرێت.",
   "Share": "هاوبەشکردن",
 };
 

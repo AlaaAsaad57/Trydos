@@ -233,7 +233,9 @@ function Chip({
   children,
 }: {
   active: boolean;
-  onClick: () => void;
+  /** Optional: a permanently non-interactive chip (e.g. the read-only
+   *  Attributes section) has no handler at all. */
+  onClick?: () => void;
   disabled?: boolean;
   children: React.ReactNode;
 }) {
@@ -302,13 +304,14 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
         <Txt label="Barcode" value={form.barcode} disabled={disabled} onChange={(v) => patch({ barcode: v })} />
         <Select label="Unit" value={form.unit} required error={errors.unit} disabled={disabled} onChange={(v) => patch({ unit: v })} options={UNITS.map((u) => ({ value: u, label: u }))} />
         <Select label="Brand" value={form.brand_id} required error={errors.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.name }))} />
-        <Select label="Boutique" value={form.boutique_id} disabled={disabled} onChange={(v) => patch({ boutique_id: v })} options={(lookups.boutiques || []).map((b) => ({ value: String(b.id), label: b.name }))} />
+        <Select label="Boutique" value={form.boutique_id} error={errors.boutique_id} disabled={disabled} onChange={(v) => patch({ boutique_id: v })} options={(lookups.boutiques || []).map((b) => ({ value: String(b.id), label: b.name }))} />
         <Txt label="Model Number" value={form.model_number} disabled={disabled} onChange={(v) => patch({ model_number: v })} />
         <Txt label="Report Ref. Number" value={form.report_ref_number} disabled={disabled} onChange={(v) => patch({ report_ref_number: v })} />
       </Grid>
       <div className="mt-5">
         <DashField label={t("Description")}>
           <RichTextEditor value={form.description} disabled={disabled} onChange={(v) => patch({ description: v })} />
+          {errors.description && <p className="text-[12px] text-[#f85555] mt-1.5">{errors.description}</p>}
         </DashField>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-5">
@@ -333,10 +336,11 @@ export function PricingSection({ form, patch, errors, disabled }: SectionProps) 
         <Num label="Pieces / Unit" value={form.count_of_pieces} error={errors.count_of_pieces} hint={t("Must be a whole number between 1 and 100")} disabled={disabled} step="1" onChange={(v) => patch({ count_of_pieces: v })} />
         <Num label="Shipping Cost" value={form.shipping_cost} disabled={disabled} onChange={(v) => patch({ shipping_cost: v })} />
         <Num label="Shipping Days" value={form.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
-        {/* Tax is locked until the backend tax_type precedence fix ships: the payload
-            omits both fields, so anything typed here would be silently discarded. */}
-        <Num label="Tax" value={form.tax} disabled hint={t("Temporarily read-only")} onChange={(v) => patch({ tax: v })} />
-        <Select label="Tax Type" value={form.tax_type} disabled onChange={(v) => patch({ tax_type: v })} options={[{ value: "percent", label: t("Percent") }, { value: "flat", label: t("Flat") }]} />
+        {/* Tax is editable again: the payload now sends both keys. The precedence
+            bug these inputs were locked for does not exist — contract §1b shows
+            only tax_type == 'flat' currency-converts. */}
+        <Num label="Tax" value={form.tax} error={errors.tax} disabled={disabled} onChange={(v) => patch({ tax: v })} />
+        <Select label="Tax Type" value={form.tax_type} disabled={disabled} onChange={(v) => patch({ tax_type: v })} options={[{ value: "percent", label: t("Percent") }, { value: "flat", label: t("Flat") }]} />
       </div>
     </Section>
   );
@@ -349,7 +353,7 @@ function toggleStr(arr: string[], v: string): string[] {
   return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 }
 
-export function CategoriesSection({ form, patch, lookups, disabled, busy }: SectionProps) {
+export function CategoriesSection({ form, patch, errors, lookups, disabled, busy }: SectionProps) {
   const group = (
     title: string,
     items: { id: number; name: string }[],
@@ -386,6 +390,7 @@ export function CategoriesSection({ form, patch, lookups, disabled, busy }: Sect
           </div>
         )}
         <div className={`space-y-5 ${busy ? "opacity-60 pointer-events-none" : ""}`}>
+          {errors.category_id && <p className="text-[12px] text-[#f85555]">{errors.category_id}</p>}
           {group("Main Categories", lookups.parent_categories || [], form.category_id, "category_id")}
           {group("Sub Categories", lookups.sub_categories || [], form.sub_category_id, "sub_category_id")}
           {group("Sub-sub Categories", lookups.sub_sub_categories || [], form.sub_sub_category_id, "sub_sub_category_id")}
@@ -402,22 +407,21 @@ export function CategoriesSection({ form, patch, lookups, disabled, busy }: Sect
  * a number. Groups with no renderable descriptors, and descriptors with no input
  * (a string_choice with no options), are dropped — never shown.
  */
-export function DescriptorsSection({ form, patch, disabled, busy, lookups }: SectionProps) {
+export function DescriptorsSection({ form, busy, lookups }: SectionProps) {
   const groups = renderableDescriptorGroups(lookups.descriptor_groups || []);
 
-  const setVal = (id: number, value: string) => {
-    const next = { ...form.descriptor_values };
-    if (value === "") delete next[id];
-    else next[id] = value;
-    patch({ descriptor_values: next });
-  };
-  // Single value per string_choice descriptor: re-clicking the active option clears it.
-  const toggleChoice = (id: number, opt: string) =>
-    setVal(id, form.descriptor_values[id] === opt ? "" : opt);
+  // Attributes are PARKED: values are never sent (the create/update endpoints do
+  // not read them) and the edit response returns none, so there is nothing to
+  // prefill either. The section stays visible as a placeholder for the eventual
+  // feature, but every control is permanently non-interactive — regardless of
+  // edit mode — so it cannot imply a persistence it does not have.
 
   return (
     <Section icon="permissions" title="Attributes" desc="Set attribute values for the selected categories. All optional.">
       <div className="relative">
+        <p className="text-[12px] text-[#8e8e8e] mb-4">
+          {t("Attributes are not editable yet. This section is a preview and nothing here is saved.")}
+        </p>
         {busy && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 rounded-[12px]">
             <span className="text-[12px] medium text-[#5d5d5d]">{t("Loading…")}</span>
@@ -441,14 +445,14 @@ export function DescriptorsSection({ form, patch, disabled, busy, lookups }: Sec
                             type="number"
                             step="any"
                             value={value}
-                            disabled={disabled || busy}
-                            onChange={(e) => setVal(d.id, e.target.value)}
-                            className={`${dashInputClass} max-w-[220px] ${disabled ? "opacity-70" : ""}`}
+                            disabled
+                            readOnly
+                            className={`${dashInputClass} max-w-[220px] opacity-70`}
                           />
                         ) : (
                           <div className="flex flex-wrap gap-2">
                             {parseDescriptorOptions(d.options).map((opt) => (
-                              <Chip key={opt} active={value === opt} disabled={disabled || busy} onClick={() => toggleChoice(d.id, opt)}>
+                              <Chip key={opt} active={value === opt} disabled>
                                 {opt}
                               </Chip>
                             ))}

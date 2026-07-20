@@ -16,7 +16,26 @@
 
 ---
 
-## 1. BLOCKER — `tax` / `tax_type` omit-on-**update** semantics
+## 1. ~~BLOCKER~~ — RESOLVED 2026-07-20 — `tax` / `tax_type` omit-on-**update** semantics
+
+> **RESOLVED. No backend answer needed; nothing here is outstanding.**
+>
+> The code-verified body contract settled this by reading the DTO directly:
+> **only `tax_type == 'flat'` currency-converts the value; anything else behaves
+> as percent** (`ProductDTO.php:225-228,599-602`). Server defaults are `tax = 0`,
+> `tax_type = 'percent'`.
+>
+> There is therefore **no operator-precedence bug**, and the omit-on-update
+> question below is moot — we no longer omit. As of the
+> `seller-product-editor-contract-alignment` change the editor **sends both keys
+> on every save**, with `tax_type` constrained to exactly `'flat'` or
+> `'percent'`, and the Tax inputs are editable again. Q-A and Q-B below need no
+> reply.
+>
+> The original text is kept for history. **It is stale — do not action it.**
+
+<details>
+<summary>Original blocker text (superseded)</summary>
 
 **We need an explicit answer before our change can merge.**
 
@@ -49,6 +68,8 @@ near, we would rather wait and keep sending both fields than risk (b).
 > **Context:** the website seller dashboard presumably posts the same fields, so
 > this bug predates our editor and existing catalog data is already shaped by
 > it. We do not want to diverge from the web dashboard unilaterally.
+
+</details>
 
 ---
 

@@ -28,6 +28,7 @@ import {
   fileName,
   ImageItem,
   Lookups,
+  mapServerErrors,
   ProductForm,
   validate,
 } from "./helpers";
@@ -419,7 +420,10 @@ export default function ProductEditor({
 
   const startSave = () => {
     if (!form || !initial) return;
-    const errs = validate(form);
+    // isCreate gates the three checks the backend enforces only at create
+    // (boutique, category, description) — applying them on edit would block
+    // saving an existing product that legitimately has one of them empty.
+    const errs = validate(form, isCreate);
     setErrors(errs);
     if (Object.keys(errs).length > 0) {
       showErrorMessage(t("Please fix the highlighted fields before saving."));
@@ -433,6 +437,25 @@ export default function ProductEditor({
     setConfirm(diff);
   };
 
+  /** A rejected save. The backend's structured errors are mapped onto the form's
+   *  own fields; nothing the backend wrote is ever rendered — a 422 body reaches
+   *  us verbatim through the proxy and can carry raw PHP text, SQL or hostnames.
+   *  Every message shown here is one of our own translated constants. */
+  const handleSaveRejection = (res: any, fallback: string) => {
+    const { errors: mapped, attributed } = mapServerErrors(res);
+    setErrors(mapped);
+    setConfirm(null);
+    LogError({
+      scenario: "ProductEditor.saveRejected",
+      error: res?.message ?? "rejected",
+      detailed: res?.detailed_error,
+      productId: productId ?? "new",
+    });
+    showErrorMessage(
+      attributed ? t("Please fix the highlighted fields before saving.") : fallback,
+    );
+  };
+
   const confirmSave = async () => {
     if (!form) return;
     setSaving(true);
@@ -442,11 +465,8 @@ export default function ProductEditor({
       if (isCreate) {
         const res = await SellerDashboardService.addProduct(sellerId, fd);
         if (!res?.success) {
-          const detail =
-            Array.isArray(res?.detailed_error) && res.detailed_error.length
-              ? res.detailed_error.map((d: any) => d.message).join(" • ")
-              : "";
-          throw new Error(detail || res?.message || t("Failed to create product"));
+          handleSaveRejection(res, t("Failed to create product"));
+          return;
         }
         setConfirm(null);
         showSuccessMessage(t("Product created successfully."));
@@ -464,11 +484,8 @@ export default function ProductEditor({
         fd,
       );
       if (!res?.success) {
-        const detail =
-          Array.isArray(res?.detailed_error) && res.detailed_error.length
-            ? res.detailed_error.map((d: any) => d.message).join(" • ")
-            : "";
-        throw new Error(detail || res?.message || t("Failed to update product"));
+        handleSaveRejection(res, t("Failed to update product"));
+        return;
       }
       // success
       setConfirm(null);
