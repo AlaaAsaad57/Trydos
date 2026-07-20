@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { GetImageUrl } from "utils/server";
+import { GetImageUrl } from "utils/server/helpers";
 
 // Compact store logo that lives inside the sticky bar and crossfades in when the
 // header is collapsed (visibility is driven purely by CSS via [data-collapsed]).

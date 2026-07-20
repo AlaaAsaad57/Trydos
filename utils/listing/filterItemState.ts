@@ -1,4 +1,4 @@
-import { buildParamsFromFilters, FilterParams, FilterState } from "utils/server";
+import { buildParamsFromFilters, FilterParams, FilterState } from "utils/server/helpers";
 
 export function getFilterStateForItem(
   parsedFilters: FilterParams,

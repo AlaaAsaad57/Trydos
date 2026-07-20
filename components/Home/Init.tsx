@@ -16,8 +16,12 @@ import auth from "services/auth";
 
 function Init() {
   const { lang } = useParams();
-  const { isNotificationModal, setNotificationModal, userProfile } =
-    useAppStore();
+  const isNotificationModal = useAppStore((s) => s.isNotificationModal);
+  const setNotificationModal = useAppStore((s) => s.setNotificationModal);
+  // Reactive user id so the posthog/FCM effect re-runs on login/logout.
+  // Previously this relied on the whole-store subscription re-rendering Init
+  // so the `auth.UserID()` in the dep array got re-evaluated.
+  const userId = useAppStore((s) => s.userProfile?.id || s.user?.id);
   // @ts-ignore
   const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
@@ -141,7 +145,7 @@ function Init() {
         scenario: "Init PostHog in Init",
       });
     }
-  }, [auth.UserID()]);
+  }, [userId]);
   const initPageLoad = async () => {
     const permission = Notification.permission;
 

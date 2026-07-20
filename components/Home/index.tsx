@@ -15,7 +15,13 @@ export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { nameModal } = useAppStore();
+  // Selectors (not getState() at render): the name-modal condition must
+  // re-evaluate when CheckLogin seeds userChat/userStories after boot, and a
+  // narrowed subscription no longer re-renders this component on every write.
+  const nameModal = useAppStore((s) => s.nameModal);
+  const userName = useAppStore((s) => s.userProfile?.name);
+  const userChatId = useAppStore((s) => s.userChat?.id);
+  const userStoriesId = useAppStore((s) => s.userStories?.id);
   useEffect(() => {
     deleteCookie("last-page");
     const { setIsNavigating, setIsProductPage } = useAppStore.getState();
@@ -44,21 +50,10 @@ export default function Home() {
     }
   };
 
-  const getNameModalOpen = () => {
-    if (typeof window === "undefined") {
-      return false;
-    } else {
-      const user = useAppStore.getState().userProfile;
-      const userChat = useAppStore.getState().userChat;
-      const userStories = useAppStore.getState().userStories;
-      let name = user?.name;
-      return (
-        userChat?.id &&
-        userStories?.id &&
-        (!name || name?.length === 0) &&
-        nameModal
-      );
-    }
-  };
-  return <>{getNameModalOpen() && <NameModal />}</>;
+  const nameModalOpen =
+    userChatId &&
+    userStoriesId &&
+    (!userName || userName?.length === 0) &&
+    nameModal;
+  return <>{nameModalOpen && <NameModal />}</>;
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { UserData } from "utils/cookies/cookie-manager";
+import { fetchAuthMe } from "utils/authMe";
 
 export const useUserData = ({
   initialUserData,
@@ -40,19 +41,16 @@ export const useUserData = ({
       !userStoriesStore ||
       !userWalletStore
     ) {
-      fetch("/api/auth/me", { credentials: "include", method: "POST" })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data) {
-            setServerData({
-              userData: data.user ?? null,
-              userChat: data.chatUser ?? null,
-              userStories: data.storiesUser ?? null,
-              userWallet: data.walletUser ?? null,
-            });
-          }
-        })
-        .catch(() => {});
+      fetchAuthMe().then((data) => {
+        if (data) {
+          setServerData({
+            userData: data.user ?? null,
+            userChat: data.chatUser ?? null,
+            userStories: data.storiesUser ?? null,
+            userWallet: data.walletUser ?? null,
+          });
+        }
+      });
     }
   }, [userMarketStore, userChatStore, userStoriesStore, userWalletStore]);
 

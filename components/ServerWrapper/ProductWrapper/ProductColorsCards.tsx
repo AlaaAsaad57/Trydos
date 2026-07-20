@@ -9,7 +9,7 @@ import {
   GetImageUrl,
   getUrlofProduct,
   RoundPrice,
-} from "utils/server";
+} from "utils/server/helpers";
 import { RenderPrice } from "./RenderPrice";
 import { OldPrice } from "./OldPrice";
 import ProductButtonWrapper from "./ProductButtonWrapper";

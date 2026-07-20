@@ -1,12 +1,9 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import {
-  convertTextToXFormat,
-  formatTime,
-  GetImageUrl,
-  translateFunction,
-} from "utils/server";
+import { convertTextToXFormat, GetImageUrl } from "utils/server/helpers";
+import { formatTime } from "utils/tinyUtils";
+import { translateFunction } from "utils/functions";
 import profilePng from "public/images/profileNo.png";
 import { useAppStore } from "store";
 import { LikeButton } from "../LikeButtton";
@@ -94,7 +91,7 @@ function FaqItemComponent({
               left: isRtl ? "10px" : "initial",
             }}
           >
-            {formatTime(c?.created_at, language)}
+            {formatTime(c?.created_at)}
           </div>
           <div
             id={`comment-${c.id}-text`}
@@ -159,7 +156,7 @@ function FaqItemComponent({
                   left: isRtl ? "10px" : "initial",
                 }}
               >
-                {formatTime(c?.reply_created_at, language)}
+                {formatTime(c?.reply_created_at)}
               </div>
               <div
                 id={`comment-${c.id}-reply-text`}

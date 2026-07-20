@@ -6,7 +6,7 @@ import FiltersRowContainer from "./FiltersRowContainer";
 import CategoryImageCircel from "./CategoryImageCircel";
 import ImageCircel from "./ImageCircel";
 import { EnableScroll } from "utils/tinyUtils";
-import { HandleIsActive } from "utils/server";
+import { HandleIsActive } from "utils/server/helpers";
 
 import { GetFilters } from "serverRequests/listing";
 import { PriceSliderComponent } from "./PriceSliderComponent";

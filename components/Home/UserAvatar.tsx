@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getConfiguredImage } from "utils/server";
+import { getConfiguredImage } from "utils/server/helpers";
 import { GetImageUrl } from "utils/tinyUtils";
 
 interface UserAvatarProps {

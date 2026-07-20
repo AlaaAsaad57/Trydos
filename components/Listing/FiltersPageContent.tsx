@@ -6,7 +6,7 @@ import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
-import { parseFiltersFromParams } from "utils/server";
+import { parseFiltersFromParams } from "utils/server/helpers";
 import { dedupeRequest } from "serverRequests/requestDedup";
 import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";

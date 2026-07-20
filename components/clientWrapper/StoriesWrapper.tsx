@@ -7,13 +7,13 @@ import { useEffect } from "react";
 import { useAppStore } from "store";
 
 function StoriesWrapper({ next_page_url, isRtl, stories, userData }) {
-  const {
-    setStoryData,
-    storiesData,
-    loginOpen,
-    storiesRefreshing,
-    setStoriesRefreshing,
-  } = useAppStore();
+  // Per-field selectors: mounted on the home page; avoids re-rendering the
+  // whole stories bar on unrelated store writes.
+  const setStoryData = useAppStore((s) => s.setStoryData);
+  const storiesData = useAppStore((s) => s.storiesData);
+  const loginOpen = useAppStore((s) => s.loginOpen);
+  const storiesRefreshing = useAppStore((s) => s.storiesRefreshing);
+  const setStoriesRefreshing = useAppStore((s) => s.setStoriesRefreshing);
   const pathname = usePathname();
   useEffect(() => {
     setStoryData(stories);

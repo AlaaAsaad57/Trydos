@@ -1,7 +1,15 @@
 import CommentSection from "./CommentSection";
-import ShareSection from "./ShareSection";
 import MoreOptionsSection from "./MoreOptionsSection";
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import ShareSectionSkeleton from "components/skeleton/ShareSectionSkeleton";
+
+// Lazy: the share sheet pulls react-share; it only renders when the user
+// opens the "shares" option, so keep it out of the product-page bundle.
+const ShareSection = dynamic(() => import("./ShareSection"), {
+  ssr: false,
+  loading: () => <ShareSectionSkeleton />,
+});
 // ...other imports
 
 function ExtendedAreaInfo({ option, active, product_data }) {

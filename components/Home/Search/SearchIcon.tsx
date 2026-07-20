@@ -23,8 +23,20 @@ import Spinner from "components/global/Spinner";
 import BrandItem from "./Results/BrandItem";
 import CategoryItem from "./Results/CategoryItem";
 import BoutiqueItem from "./Results/BoutiqueItem";
-import SearchVoice from "./SearchVoice";
-import SearchImage from "./SearchImage";
+import dynamic from "next/dynamic";
+import IconSkeleton from "components/skeleton/IconSkeleton";
+
+// Lazy: SearchImage drags react-webcam + react-image-crop and SearchVoice the
+// recorder stack; both only render once the search overlay is open, so a
+// static import would ship them in every page that mounts the search bar.
+const SearchVoice = dynamic(() => import("./SearchVoice"), {
+  ssr: false,
+  loading: () => <IconSkeleton />,
+});
+const SearchImage = dynamic(() => import("./SearchImage"), {
+  ssr: false,
+  loading: () => <IconSkeleton />,
+});
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ActiveSearchFilterBar from "./ActiveSearchFilterBar";
 import NextLink from "components/global/NextLink";

@@ -12,18 +12,11 @@ import CallComponent from "components/Chat/components/CallComponent";
 const NotificationsContainer = () => {
   const { notifications, removeNotification } = useNotificationStore();
   const [dismissingIds, setDismissingIds] = useState<Set<string>>(new Set());
-  const {
-    data: chatData,
-    openChat,
-    setChatOpen,
-    setMain,
-    setIsNavigating,
-
-    setOrderLoading,
-
-    isCallIncoming,
-    language,
-  } = useAppStore();
+  // Only these two need to be reactive; the chat fields/actions are read
+  // inside the click handler via getState() (fresher at click time, and no
+  // re-render on every chat/store write for this always-mounted component).
+  const isCallIncoming = useAppStore((s) => s.isCallIncoming);
+  const language = useAppStore((s) => s.language);
 
   const isRtl = language === "ar" || language === "ku";
 
@@ -40,6 +33,14 @@ const NotificationsContainer = () => {
   };
 
   const handleChatNotificationClick = (notification: any) => {
+    const {
+      data: chatData,
+      openChat,
+      setChatOpen,
+      setMain,
+      setIsNavigating,
+      setOrderLoading,
+    } = useAppStore.getState();
     handleDismiss(notification.id);
     if (notification?.chatData?.isPrivate) {
       setOrderLoading(true);

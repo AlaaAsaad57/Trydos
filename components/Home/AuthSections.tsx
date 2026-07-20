@@ -18,7 +18,10 @@ const NewLoginWidget = dynamic(
   }
 );
 function AuthSections() {
-  const { loginOpen, chatVar: chatOpen, call } = useAppStore();
+  // Per-field selectors: mounted on every page via NavbarClient.
+  const loginOpen = useAppStore((s) => s.loginOpen);
+  const chatOpen = useAppStore((s) => s.chatVar);
+  const call = useAppStore((s) => s.call);
 
   return (
     <>
