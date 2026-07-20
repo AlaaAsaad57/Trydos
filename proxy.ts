@@ -198,7 +198,7 @@ async function refreshCountries({ language, country }) {
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries`,
+      `${process.env.BACKEND_URL}/countries`,
       {
         method: "GET",
         headers: {
@@ -586,7 +586,7 @@ export const config = {
      */
     {
       source:
-        "/((?!api|ingest|noposter|sentry-test|fcm-dashboard|requests-log|testBoutique|simulateUser|firebase-messaging-sw.js|google210329fcef4fbcff.html|robots.txt|robots.txt|robots|opengraph-image.png|default.mp3|wa.mp3|api-test|backend-compare|sitemap|manifest.json|error.png|assets|icons|fonts|translations|reports|images|styles|endCall|sitemap.xml|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
+        "/((?!api|ingest|noposter|sentry-test|fcm-dashboard|testBoutique|simulateUser|firebase-messaging-sw.js|google210329fcef4fbcff.html|robots.txt|robots.txt|robots|opengraph-image.png|default.mp3|wa.mp3|backend-compare|sitemap|manifest.json|error.png|assets|icons|fonts|translations|reports|images|styles|endCall|sitemap.xml|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
       missing: [
         { type: "header", key: "purpose", value: "prefetch" },
         { type: "header", key: "next-router-prefetch" },

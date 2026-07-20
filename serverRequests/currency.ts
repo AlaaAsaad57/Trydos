@@ -55,7 +55,7 @@ export async function fetchCurrency(
   let response;
   try {
     response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/home/currency?lang=${language}&country=${country}`,
+      url: `${process.env.GO_BACKEND_URL}/home/currency?lang=${language}&country=${country}`,
       method: "GET",
       revalidate: 0,
       local: `${country}-${language}`,

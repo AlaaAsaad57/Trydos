@@ -1,4 +1,5 @@
 import { fetchData } from "utils/fetchData";
+import { toServiceToken } from "utils/serviceTokens";
 import { REQUESTS_DATA } from "utils/Requests";
 
 const MEDIA_SERVER_BASE_URL =
@@ -671,7 +672,7 @@ class SellerDashboardService {
     const res = await fetch("/api/proxy", {
       method: "POST",
       headers: {
-        "x-proxy-server": "market-dashboard",
+        "x-proxy-server": toServiceToken("market-dashboard"),
         "x-proxy-url": encodeURI(targetUrl),
         "x-proxy-method": "GET",
         "x-country": country || "sy",

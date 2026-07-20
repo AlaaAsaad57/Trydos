@@ -11,7 +11,7 @@ export async function GetOrders({
   try {
     let res = await HandleAuthedFetch({
       url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
+        process.env.BACKEND_URL +
         `/customer/order/list?offset=${page}&limit=${pageSize}${
           selectedStatus ? `&order_group_status=${selectedStatus}` : ""
         }`,
@@ -54,7 +54,7 @@ export async function getOrderStatues({ language, country }) {
 export async function GetSellerShops(local?: string) {
   try {
     const res = await HandleAuthedFetch({
-      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/shop/auth/permissions",
+      url: process.env.BACKEND_URL + "/shop/auth/permissions",
       method: "GET",
       ...(local ? { local } : {}),
     });

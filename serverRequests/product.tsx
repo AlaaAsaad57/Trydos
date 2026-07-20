@@ -134,7 +134,7 @@ export async function GetCountries({ language, country }) {
   }
 
   let response = await fetchServerData({
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/countries",
+    url: process.env.BACKEND_URL + "/countries",
     headers: { lang: language, country: country },
     local: `${country}-${language}`,
     method: "GET",
@@ -177,7 +177,7 @@ export async function GetGlobalProduct({
       }
     }
     let freshGlobalData = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/globalDetails/${slug}`,
+      url: `${process.env.GO_BACKEND_URL}/web/product/globalDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -240,7 +240,7 @@ export async function GetProductPriceQtyDetails({
       }
     }
     let freshQtyPricesData = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
+      url: `${process.env.GO_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -286,7 +286,7 @@ export async function GetProductMeta({
       return { ...cachedMeta, metaFromRedis: true };
     }
     let freshMeta = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/product-meta/${slug}?lang=${language}`,
+      url: `${process.env.GO_BACKEND_URL}/web/product/product-meta/${slug}?lang=${language}`,
       method: "GET",
       local: `${country}-${language}`,
     });
@@ -553,7 +553,7 @@ export async function GetProductStoriesData({ page, productId }) {
 
   let response = await fetchServerData({
     url:
-      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
+      process.env.STORIES_BACKEND_URL +
       `/api/v1/stories/product_stories/${productId}?page=${page}`,
     method: "GET",
     headers: headers,
