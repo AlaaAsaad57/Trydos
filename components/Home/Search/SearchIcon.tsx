@@ -449,7 +449,7 @@ function SearchIcon({ language, country }) {
               onKeyDown={handleKeyDown}
               id="search-element"
               disabled={!searchEnabled}
-              className="search-input"
+              className={`${searchEnabled&& 'bg-[#f8f8f8]'} search-input`}
               placeholder={translateFunction("Search", language?.split("-")[1])}
               onFocus={() => setFocus(true)}
               onBlur={() => {
