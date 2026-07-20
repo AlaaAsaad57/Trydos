@@ -90,7 +90,7 @@ const GO_APIS = [
   // ── Customer profile API migration (ClickUp 86ey26atu) ──
   // These four customer operations moved from the Laravel "market" backend to
   // the Go Store Gateway. Rollback: comment out (or remove) this block to route
-  // them back to NEXT_PUBLIC_BACKEND_URL (Laravel) — no caller change needed.
+  // them back to BACKEND_URL (Laravel) — no caller change needed.
   "/customer/info",
   "/customer/update-profile",
   "/customer/update-name",
@@ -113,23 +113,23 @@ export const isFromGoApi = (url: string) =>{
   if(GO_API_PREFIXES.some((prefix) => normalizedUrl.includes(prefix))) return true;
  return GO_APIS.some((endpoint) => normalizedUrl.endsWith(endpoint))};
 function getServerBaseUrl(server: ProxiedServer, url: string): string {
-  console.log(url, isFromGoApi(url));
+
   switch (server) {
     case "market":
     case "market-dashboard": {
-      if (isFromGoApi(url)) return process.env.NEXT_PUBLIC_GO_BACKEND_URL || "";
-      return process.env.NEXT_PUBLIC_BACKEND_URL || "";
+      if (isFromGoApi(url)) return process.env.GO_BACKEND_URL || "";
+      return process.env.BACKEND_URL || "";
     }
     case "elastic":
-      return process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL || "";
+      return process.env.ELASTIC_BACKEND_URL || "";
     case "chat":
       return process.env.NEXT_PUBLIC_CHAT_BACKEND_URL || "";
     case "stories":
-      return process.env.NEXT_PUBLIC_STORIES_BACKEND_URL || "";
+      return process.env.STORIES_BACKEND_URL || "";
     case "comments":
-      return process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL || "";
+      return process.env.COMMENT_BACKEND_URL || "";
     case "wallet":
-      return process.env.NEXT_PUBLIC_WALLET_BACKEND_URL || "";
+      return process.env.WALLET_BACKEND_URL || "";
     default:
       throw new Error(`Unknown server type: ${server}`);
   }

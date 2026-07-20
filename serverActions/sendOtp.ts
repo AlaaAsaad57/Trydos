@@ -114,7 +114,7 @@ export async function sendOtpAction(input: {
     const local = cookieStore.get(COOKIE_NAMES.LOCAL)?.value || "gb-en";
 
     const res = await HandleAuthedFetch({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}${SEND_OTP}`,
+      url: `${process.env.BACKEND_URL}${SEND_OTP}`,
       method: "POST",
       local,
       headers: { "Content-Type": "application/json" },

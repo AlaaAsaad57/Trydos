@@ -1,6 +1,5 @@
 import { COOKIE_NAMES, getCookieServer } from "./cookies/cookie-manager";
 import { ReportError } from "./errorReported";
-import { storeError } from "./functions";
 import { readStoredLastPaths } from "./history";
 
 export const LogServerError = async (error?: unknown, pagePath?: string) => {
@@ -67,8 +66,21 @@ export const LogServerError = async (error?: unknown, pagePath?: string) => {
     };
 
     ReportError(Error_Object);
-    await storeError(Error_Object);
+    await storeErrorServer(Error_Object);
   } catch (error) {
     console.error("Failed to log server error:", error);
   }
 };
+
+// Server-side error-log POST, loaded lazily from a server-only module so the
+// backend base-URL reference never enters the client bundle — this file is
+// imported by client code (services/home.ts is "use client").
+async function storeErrorServer(error: unknown) {
+  if (typeof window !== "undefined") return;
+  try {
+    const { postServerErrorLog } = await import("./server/mobileErrorLog");
+    await postServerErrorLog(error);
+  } catch {
+    // ignore - logging must be best-effort
+  }
+}

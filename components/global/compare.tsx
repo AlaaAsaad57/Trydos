@@ -11,6 +11,7 @@ import {
 import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
 import { sanitizeHtml } from "utils/sanitizeHtml";
+import { fetchData } from "utils/fetchData";
 
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
@@ -158,32 +159,31 @@ const ComparePage = ({ showInstantLoading = true }) => {
       let QTY_URL = "/web/product/qtyPriceDetails";
       // globalDetails and qtyPriceDetails are independent (both keyed by slug) —
       // fetch them in parallel instead of one after the other.
-      const country = lang.toString().split("-")[0];
+      //
+      // Routed through fetchData (server: "market") rather than calling the
+      // backend host directly: both paths are Go-gateway endpoints, so
+      // isFromGoApi resolves them to the Go backend, and no backend hostname
+      // reaches the client bundle. Only globalDetails is cached — qtyPriceDetails
+      // carries live price and stock, and the request cache has no TTL.
       const language = lang.toString().split("-")[1];
-      const headers = {
-        country,
-        lang: language,
-      };
-      const [res, res1] = await Promise.all([
-        fetch(
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-            DETAILS_URL +
-            `/${slug}?lang=${language}`,
-          { method: "GET", headers, credentials: "omit" },
-        ),
-        fetch(
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-            QTY_URL +
-            `/${slug}?lang=${language}`,
-          { method: "GET", headers, credentials: "omit" },
-        ),
-      ]);
-      if (!res.ok) throw new Error("Product not found");
-      if (!res1.ok) throw new Error("Product not found");
       const [globalDetails, QtyDetails] = await Promise.all([
-        res.json(),
-        res1.json(),
+        fetchData<any>({
+          url: `${DETAILS_URL}/${slug}?lang=${language}`,
+          method: "GET",
+          server: "market",
+          useCached: true,
+          reqTitle: { reqTitle: "compare global details", code: 0 },
+        }),
+        fetchData<any>({
+          url: `${QTY_URL}/${slug}?lang=${language}`,
+          method: "GET",
+          server: "market",
+          reqTitle: { reqTitle: "compare qty price details", code: 0 },
+        }),
       ]);
+      if (!globalDetails?.success || !QtyDetails?.success) {
+        throw new Error("Product not found");
+      }
       return { ...globalDetails.data, ...QtyDetails.data };
     } catch (error) {
       LogError({

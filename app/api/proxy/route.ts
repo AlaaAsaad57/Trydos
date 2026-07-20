@@ -8,12 +8,18 @@ import {
   isFromGoApi,
 } from "utils/server/tokenManager";
 import { SEND_OTP } from "utils/endpointConfig";
+import { fromServiceToken } from "utils/serviceTokens";
 import { LogServerError } from "utils/serverErrorReporter";
 
 export async function POST(request: NextRequest) {
   try {
     // 1. Read proxy metadata from headers
-    const server = request.headers.get("x-proxy-server") || "";
+    // The wire value is an opaque token; map it back to the internal service
+    // name before any validation runs, so the allowlist, token lookup and
+    // logging below all continue to work with readable names.
+    const server = fromServiceToken(
+      request.headers.get("x-proxy-server") || "",
+    );
     let targetUrl = request.headers.get("x-proxy-url") || "";
     let need_decode = request.headers.get("x-need-decode") || "";
     const method = request.headers.get("x-proxy-method") || "GET";
@@ -23,9 +29,12 @@ export async function POST(request: NextRequest) {
 
     // 2. Validate server type (prevent arbitrary URL access)
     if (!isAllowedServer(server)) {
+      // Deliberately identical to the generic failure below: an unrecognised
+      // identifier and a recognised one whose upstream call fails must be
+      // indistinguishable, so the mapping cannot be recovered by probing.
       return NextResponse.json(
-        { error: "Invalid server type" },
-        { status: 400 },
+        { message: "Proxy request failed" },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
       );
     }
 
@@ -200,7 +209,6 @@ export async function POST(request: NextRequest) {
         status: backendResponse.status,
         headers: {
           "Cache-Control": "no-store",
-           "IS-FROM-GO":`${isFromGoApi(targetUrl)}`
         },
       });
     }
@@ -211,12 +219,13 @@ export async function POST(request: NextRequest) {
       status: backendResponse.status,
       headers: {
         "Content-Type": responseContentType,
-        "IS-FROM-GO":`${isFromGoApi(targetUrl)}`,
-        "fullUrl":''
+        "Cache-Control": "no-store",
       },
     });
   } catch (error) {
-    const server = request.headers.get("x-proxy-server") || "unknown";
+    const server =
+      fromServiceToken(request.headers.get("x-proxy-server") || "") ||
+      "unknown";
     const targetUrl = request.headers.get("x-proxy-url") || "unknown";
 
     await logSecureRequest({

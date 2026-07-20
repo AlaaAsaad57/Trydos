@@ -344,56 +344,6 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
             {translateFunction("Compare")}
           </MenuItem>
           <MenuItem
-            onClick={() => {
-              setMenuOpen(false);
-            }}
-            icon={
-              <MenuIcon isRtl={isRtl}>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-label="Request Log"
-                  role="img"
-                  className="w-5 h-5"
-                >
-                  <rect
-                    x="3"
-                    y="4"
-                    width="14"
-                    height="12"
-                    rx="2"
-                    stroke="#404040"
-                    strokeWidth="1"
-                    fill="none"
-                  />
-                  <rect
-                    x="6"
-                    y="7"
-                    width="8"
-                    height="2"
-                    rx="1"
-                    fill="#8e8e8e"
-                  />
-                  <rect
-                    x="6"
-                    y="11"
-                    width="5"
-                    height="2"
-                    rx="1"
-                    fill="#8e8e8e"
-                  />
-                </svg>
-              </MenuIcon>
-            }
-          >
-            <a href="/requests-log" target="_blank" className="text-[12px]">
-              {translateFunction("Request Log")}
-            </a>
-          </MenuItem>
-          <MenuItem
             icon={<></>}
             onClick={() => {
               setMenuOpen(false);

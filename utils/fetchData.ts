@@ -9,8 +9,8 @@ import {
 } from "store/notifications/reducer";
 import auth from "../services/auth";
 import { COOKIE_NAMES, getCookie } from "./cookies/cookie-manager";
-import { logRequest } from "./requestLoggerClient";
 import { useAppStore } from "../store";
+import { toServiceToken } from "./serviceTokens";
 
 // ---------- Types ----------
 type ServerType =
@@ -417,7 +417,7 @@ export const fetchData = async <T = any>(
         const safeProxyUrl = encodeURI(url);
         // ── EXTERNAL: route through /api/proxy (token injected server-side) ──
         const proxyHeaders: Record<string, string> = {
-          "x-proxy-server": server,
+          "x-proxy-server": toServiceToken(server),
           "x-proxy-url": safeProxyUrl,
           "x-proxy-method": method,
           "x-country": country,
@@ -464,17 +464,6 @@ export const fetchData = async <T = any>(
         }
       }
       if (status === 401 && !isRetryAfterUnauthorized) {
-        logRequest({
-          url,
-          title: reqTitle.reqTitle,
-          status,
-          attempts: retryCount + 1,
-          response: responseData,
-          userId: String(auth.UserID?.() ?? ""),
-          method,
-          body: body?.toString(),
-          timestamp: Date.now(),
-        });
 
         const shouldRetry = await handleUnauthorized(server, {
           url,
@@ -542,17 +531,6 @@ export const fetchData = async <T = any>(
         requestCache.set(cacheKey, responseData);
       }
 
-      logRequest({
-        url,
-        title: reqTitle.reqTitle,
-        status,
-        attempts: retryCount + 1,
-        response: responseData,
-        userId: String(auth.UserID?.() ?? ""),
-        method,
-        body: body?.toString(),
-        timestamp: Date.now(),
-      });
 
       return { ...(responseData || {}), success: true };
     } catch (err: any) {
@@ -591,17 +569,6 @@ export const fetchData = async <T = any>(
         !message.includes("signal is aborted without reason") &&
         !message.includes("Fetch is aborted")
       ) {
-        logRequest({
-          url,
-          title: reqTitle.reqTitle,
-          status: status || 0,
-          attempts: retryCount,
-          response: undefined,
-          userId: String(auth.UserID?.() ?? ""),
-          method,
-          body: body?.toString(),
-          timestamp: Date.now(),
-        });
         const { country, language } = getLocale();
         if (
           (url.includes("cart/update") ||

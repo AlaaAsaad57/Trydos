@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const requestBody = { old_guest_user_id: oldGuestUserId };
 
     let response = await fetch(
-      process.env.NEXT_PUBLIC_GO_BACKEND_URL + REGISTER_DEVICE_URL,
+      process.env.GO_BACKEND_URL + REGISTER_DEVICE_URL,
       {
         method: "POST",
         headers: {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     // Retry without old_guest_user_id if user not found
     if (data.message === "The user does not exist." && oldGuestUserId) {
       response = await fetch(
-        process.env.NEXT_PUBLIC_GO_BACKEND_URL + REGISTER_DEVICE_URL,
+        process.env.GO_BACKEND_URL + REGISTER_DEVICE_URL,
         {
           method: "POST",
           headers: {
@@ -78,9 +78,7 @@ export async function POST(request: NextRequest) {
         error: data,
         type: "register-device route error",
       });
-      return NextResponse.json(data, { status: response.status ,headers:{
-        "IS-FROM-GO":`${isFromGoApi(REGISTER_DEVICE_URL)}`
-      }});
+      return NextResponse.json(data, { status: response.status });
     }
 
     // Set device token as HttpOnly cookie
@@ -112,7 +110,7 @@ export async function POST(request: NextRequest) {
         },
       },
       { status: 200 ,headers:{
-        "IS-FROM-GO":`${isFromGoApi(REGISTER_DEVICE_URL)}`
+     
       }},
     );
   } catch (error) {
@@ -120,7 +118,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { message: "Registration failed" },
       { status: 500 ,headers:{
-        "IS-FROM-GO":`${isFromGoApi(REGISTER_DEVICE_URL)}`
+        
       }},
     );
   }

@@ -91,8 +91,8 @@ export async function GET(request: NextRequest) {
 
     // 2. Primary OTP Verification (Critical Path)
     const otpUrl = `${
-      // process.env.NEXT_PUBLIC_BACKEND_URL
-      process.env.NEXT_PUBLIC_GO_BACKEND_URL
+      // process.env.BACKEND_URL
+      process.env.GO_BACKEND_URL
     }${VERIFY_OTP_ENDPOINT}?verificationId=${verificationId}&otp=${otp}${
       name ? `&name=${name}` : ""
     }`;
@@ -166,7 +166,7 @@ export async function GET(request: NextRequest) {
         },
       ),
       safeServiceLogin(
-        process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
+        process.env.STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
         {
           otp_id_token: idToken,
           mobile_phone: InventoryUser.phone,
@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
         },
       ),
       safeServiceLogin(
-        process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL + LOG_IN_COMMENTS_ENDPOINT,
+        process.env.COMMENT_BACKEND_URL + LOG_IN_COMMENTS_ENDPOINT,
         {
           user_id: String(InventoryUser.id),
           phone: String(InventoryUser.phone),
@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
         },
       ),
       safeServiceLogin(
-        process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + LOG_IN_WALLET_ENDPOINT,
+        process.env.WALLET_BACKEND_URL + LOG_IN_WALLET_ENDPOINT,
         {
           otp_id_token: idToken,
           mobile_phone: InventoryUser.phone,

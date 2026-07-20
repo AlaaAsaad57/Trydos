@@ -5,7 +5,7 @@ async function LanguagesPage({ params }) {
   let Params = await params;
   let [country, language] = Params?.lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/languages`, {
+  const res = await fetch(`${process.env.BACKEND_URL}/languages`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

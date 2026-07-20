@@ -11,7 +11,6 @@ import {
 } from "./cookies/cookie-manager";
 import { REQUESTS_DATA } from "./Requests";
 import { readStoredLastPaths } from "./history";
-import { getLastRequest } from "./requestLoggerClient";
 import { ReportError } from "./errorReported";
 import { posthogCaptureException } from "./posthog";
 import {
@@ -325,16 +324,10 @@ export const LogError = async (error) => {
     let { LoggingOut } = useAppStore.getState();
     if (LoggingOut) return;
   }
-  let last_request;
   const userData = useAppStore.getState().userProfile;
   const userChat = useAppStore.getState().userChat;
   const userStories = useAppStore.getState().userStories;
   const last_paths = await readStoredLastPaths();
-  if (typeof window !== "undefined") {
-    last_request = await getLastRequest();
-  } else {
-    last_request = "server...cannot access localstorage";
-  }
   const language = getCookie("language");
   const country = getCookie("country");
   let serializedError = error;
@@ -363,7 +356,6 @@ export const LogError = async (error) => {
     userData,
     userStories,
     last_paths,
-    last_request,
     language,
     country,
     timestamp: new Date().toISOString(),
@@ -391,35 +383,17 @@ export async function storeError(error) {
   // up would become an unhandled rejection — which the global error listeners
   // would then try to log, risking a loop. Swallow every failure here.
   try {
+    // Browser-only. The server-side path lives in utils/serverErrorReporter.ts
+    // (storeErrorServer) so the Go gateway address is never inlined into the
+    // client bundle — this module is imported by many client components.
+    if (typeof window === "undefined") return;
     const safeError = serializeUnknownForErrorLog(error ?? {});
-    if (typeof window !== "undefined") {
-      await fetch("/api/internal/mobile-error-log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: safeError }),
-        credentials: "include",
-      }).catch(() => {});
-    } else {
-      await fetch(
-        process.env.NEXT_PUBLIC_GO_BACKEND_URL + "/mobile_error_log/store",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: JSON.stringify({
-            error_description: JSON.stringify({
-              platform: "\u{1F6D1}WEB\u{1F6D1}",
-              ...(typeof safeError === "object" &&
-              safeError !== null &&
-              !Array.isArray(safeError)
-                ? (safeError as Record<string, unknown>)
-                : { payload: safeError }),
-            }),
-          }),
-        },
-      ).catch(() => {});
-    }
+    await fetch("/api/internal/mobile-error-log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: safeError }),
+      credentials: "include",
+    }).catch(() => {});
   } catch {
     // ignore — logging must be best-effort
   }

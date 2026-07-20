@@ -676,7 +676,7 @@ class AuthService {
           previousUserObj?.image ?? userProfile?.image,
         );
         const prevProfilePictureURL = prevImagePath
-          ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${prevImagePath}`
+          ? `${process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL}${prevImagePath}`
           : null;
 
         try {

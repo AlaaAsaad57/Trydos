@@ -137,7 +137,7 @@ export async function getProductDataForAddToCart({
     "";
   let [globalData, pricesData, notificationsSettings] = await Promise.all([
     fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/globalDetails/${slug}`,
+      url: `${process.env.GO_BACKEND_URL}/web/product/globalDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -146,7 +146,7 @@ export async function getProductDataForAddToCart({
       },
     }),
     fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
+      url: `${process.env.GO_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -169,8 +169,8 @@ export async function getProductDataForAddToCart({
     // Requires the user token (MARKET-TOKEN → DEVICE-TOKEN) so the notify flags
     // are resolved per user. Migrated from Laravel to the Go backend.
     fetchServerData({
-      // url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/likesDetails/${slug}`,
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/likesDetails/${slug}`,
+      // url: `${process.env.BACKEND_URL}/web/product/likesDetails/${slug}`,
+      url: `${process.env.GO_BACKEND_URL}/web/product/likesDetails/${slug}`,
       headers: {
         Authorization: `Bearer ${token}`,
         language: language,
