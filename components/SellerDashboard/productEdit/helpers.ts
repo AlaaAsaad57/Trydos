@@ -129,7 +129,6 @@ export interface Lookups {
 export interface VariantRow {
   price: string;
   discount: string;
-  extra: string;
   luck: string;
   qty: string;
   sku: string;
@@ -190,8 +189,8 @@ export interface ProductForm {
   shipping_days: string;
   tax: string;
   tax_type: string;
-  multiply_qty: boolean;
-  packed_after_ordering: boolean;
+  multiply_qty: number;
+  packed_after_ordering: number;
   meta_title: string;
   meta_description: string;
   meta_image: string; // filename for payload
@@ -218,6 +217,7 @@ export interface ProductForm {
   variations: Record<string, VariantRow>;
   colorImages: Record<string, string[]>; // color code -> ordered filenames
   translations: Translation[];
+  default_language_code?: string;
 }
 
 export interface VariantCombo {
@@ -244,7 +244,6 @@ const num = (v: string | number): number => {
 export const emptyVariantRow = (): VariantRow => ({
   price: "",
   discount: "",
-  extra: "",
   luck: "",
   qty: "",
   sku: "",
@@ -279,8 +278,8 @@ export function emptyProductForm(): ProductForm {
     shipping_days: "",
     tax: "",
     tax_type: "percent",
-    multiply_qty: false,
-    packed_after_ordering: false,
+    multiply_qty: 0,
+    packed_after_ordering: 0,
     meta_title: "",
     meta_description: "",
     meta_image: "",
@@ -304,6 +303,7 @@ export function emptyProductForm(): ProductForm {
     variations: {},
     colorImages: {},
     translations: [],
+    default_language_code: "en",
   };
 }
 
@@ -466,7 +466,6 @@ export function buildFormFromEdit(
     variations[key] = {
       price: numStr(v.unit_price),
       discount: numStr(v.discount_price),
-      extra: numStr(v.extra_price),
       luck: numStr(v.luck_price),
       qty: numStr(v.quantity),
       sku: v.sku ?? "",
@@ -489,7 +488,7 @@ export function buildFormFromEdit(
     url: typeof u === "string" ? u : u?.file_path || "",
   }));
 
-  const translations: Translation[] = (product.translations || []).map(
+  const rawTranslations: Translation[] = (product.translations || []).map(
     (t: any) => ({
       // Carried so the update can echo it back as custom_data[i][id]; without it
       // every save targets id = null (contract §1h/§4).
@@ -499,6 +498,7 @@ export function buildFormFromEdit(
       description: t.details ?? t.description ?? "",
     }),
   );
+  const translations = dedupeTranslations(rawTranslations);
 
   const sel = product.selected_categories || {};
 
@@ -526,8 +526,8 @@ export function buildFormFromEdit(
     shipping_days: numStr(product.shipping_days),
     tax: numStr(product.tax),
     tax_type: product.tax_type ?? "percent",
-    multiply_qty: !!product.multiply_qty,
-    packed_after_ordering: !!product.packed_after_ordering,
+    multiply_qty: product.multiply_qty?1:0,
+    packed_after_ordering: product.packed_after_ordering?1:0,
     meta_title: product.meta_title ?? "",
     meta_description: product.meta_description ?? "",
     meta_image: fileName(product.meta_image),
@@ -563,8 +563,27 @@ export function buildFormFromEdit(
   };
 }
 
-const numStr = (v: any): string =>
-  v === null || v === undefined || v === "" ? "" : String(v);
+export function dedupeTranslations(translations: Translation[]): Translation[] {
+  const seen = new Set<string>();
+  const out: Translation[] = [];
+  for (const t of translations || []) {
+    const lang = (t.language_code || "").trim().toLowerCase();
+    if (!lang || seen.has(lang)) continue;
+    seen.add(lang);
+    out.push(t);
+  }
+  return out;
+}
+
+export function cleanNumberString(v: any): string {
+  if (v === null || v === undefined || v === "") return "";
+  const s = String(v).trim().replace(/,/g, ".");
+  const m = s.match(/\d+(?:\.\d+)?/);
+  if (!m) return "";
+  return m[0];
+}
+
+const numStr = (v: any): string => cleanNumberString(v);
 const idStr = (v: any): string =>
   v === null || v === undefined ? "" : String(v);
 
@@ -636,41 +655,77 @@ export function validate(
     }
   }
 
-  // Each active variant needs a qty + sku.
-  for (const c of combos(form)) {
+  // Validate variants for quantity, non-negative values, and SKU uniqueness.
+  const activeCombos = combos(form);
+  const skuMap = new Map<string, string[]>();
+
+  for (const c of activeCombos) {
     const r = form.variations[c.key];
     if (!r || r.qty === "" || isNaN(num(r.qty))) {
       e.variations = tx("Every variant needs a quantity");
       break;
     }
-    if (!r.sku.trim()) {
+    if (num(r.qty) < 0) {
+      e.variations = tx("Variant quantity cannot be negative");
+      break;
+    }
+    if (r.price !== "" && (isNaN(num(r.price)) || num(r.price) < 0)) {
+      e.variations = tx("Variant price cannot be negative");
+      break;
+    }
+    if (r.discount !== "" && (isNaN(num(r.discount)) || num(r.discount) < 0)) {
+      e.variations = tx("Variant discount price cannot be negative");
+      break;
+    }
+    if (r.luck !== "" && (isNaN(num(r.luck)) || num(r.luck) < 0)) {
+      e.variations = tx("Variant luck price cannot be negative");
+      break;
+    }
+    const cleanSku = (r.sku || "").trim();
+    if (!cleanSku) {
       e.variations = tx("Every variant needs an SKU");
       break;
     }
+    const keyLower = cleanSku.toLowerCase();
+    if (!skuMap.has(keyLower)) {
+      skuMap.set(keyLower, []);
+    }
+    skuMap.get(keyLower)!.push(c.key);
   }
 
-  // An English translation is required to (later) enable the product. Reads the
-  // same constant the payload emits as `default_language_code`, so the declared
-  // base language and the row this check requires cannot drift apart.
-  if (
-    !form.translations.some(
-      (t) => t.language_code === DEFAULT_LANGUAGE_CODE && t.name.trim(),
-    )
-  )
-    e.translations = tx("An English (en) name is required");
+  let hasDuplicateSku = false;
+  skuMap.forEach((keys) => {
+    if (keys.length > 1) {
+      hasDuplicateSku = true;
+      keys.forEach((key) => {
+        e[`variation_sku_${key}`] = tx("SKU must be unique within the product");
+      });
+    }
+  });
+  if (hasDuplicateSku && !e.variations) {
+    e.variations = tx("Variation SKUs must be unique within the product");
+  }
 
-  // CREATE-ONLY. The backend requires these three at create
-  // (boutique_id required|exists, category_id required|array|min:1,
-  // description required|string — contract §1a) but validates none of them on
-  // update. validate() is shared by both paths, so applying them to edit would
-  // block saving an existing product that legitimately has, say, an empty
-  // description — a regression on data we did not create.
+  if (isCreate) {
+    const defaultLang = form.default_language_code || DEFAULT_LANGUAGE_CODE;
+    const defaultTr = form.translations.find((t) => t.language_code === defaultLang);
+    const nameVal = (defaultTr?.name || form.name || "").trim();
+    if (!nameVal) {
+      e.translations = `${tx("Product name is required for")} ${defaultLang.toUpperCase()}`;
+    }
+  } else {
+    if (
+      !form.translations.some(
+        (t) => t.language_code === DEFAULT_LANGUAGE_CODE && t.name.trim(),
+      )
+    )
+      e.translations = tx("An English (en) name is required");
+  }
+
   if (isCreate) {
     if (!form.boutique_id) e.boutique_id = tx("Boutique is required");
     if (!form.category_id.length)
       e.category_id = tx("Select at least one category");
-    // Rich text: an "empty" editor still yields markup like <p></p> or <p><br></p>,
-    // so strip tags and entities before deciding it is blank.
     const descText = form.description
       .replace(/<[^>]*>/g, "")
       .replace(/&nbsp;/g, " ")
@@ -683,9 +738,6 @@ export function validate(
 
 /* --------------------------- server error mapping ------------------------- */
 
-/** The four service-assert failures the backend reports WITHOUT a field code
- *  (contract §3.2). Matched on a stable substring rather than the full string:
- *  the request carries a language header, so the wording can shift. */
 const ASSERT_MESSAGE_FIELDS: [string, string][] = [
   ["at least one product image", "images"],
   ["every color must have at least one image", "colorImages"],
@@ -693,19 +745,27 @@ const ASSERT_MESSAGE_FIELDS: [string, string][] = [
   ["ordered by priority", "images"],
 ];
 
-/** Form fields a backend error code may be attributed to. Anything outside this
- *  allowlist is DROPPED, never mapped: the code is backend-chosen and the proxy
- *  forwards backend bodies verbatim, so an unknown key must not become a form
- *  key and backend text must never be rendered. */
 const ERROR_CODE_FIELDS = new Set([
-  "name", "unit", "barcode", "seller_product_id", "description", "brand_id",
-  "boutique_id", "label", "model_number", "report_ref_number", "location_id",
-  "unit_price", "discount_price", "purchase_price", "luck_price",
-  "current_stock", "weight", "max_allowed_qty", "count_of_pieces",
-  "shipping_cost", "shipping_days", "meta_title", "meta_description",
-  "origin_country_iso", "category_id", "sub_category_id", "sub_sub_category_id",
-  "labels", "tags_ids", "countries_iso", "extra_price_for_country",
-  "images", "sync_color_images", "cloud_video", "default_language_code",
+  "name",
+  "unit",
+  "brand_id",
+  "boutique_id",
+  "unit_price",
+  "discount_price",
+  "purchase_price",
+  "luck_price",
+  "weight",
+  "count_of_pieces",
+  "shipping_cost",
+  "shipping_days",
+  "tax",
+  "tax_type",
+  "category_id",
+  "description",
+  "images",
+  "colorImages",
+  "variations",
+  "translations",
 ]);
 
 /** Map a rejected save's response body onto the editor's `errors` shape.
@@ -749,16 +809,16 @@ export function mapServerErrors(res: any): {
 
 /* ---------------------------- update payload ----------------------------- */
 
-export function buildUpdateFormData(form: ProductForm): FormData {
+export function buildUpdateFormData(form: ProductForm, isCreate = false): FormData {
   const fd = new FormData();
   const set = (k: string, v: any) => {
     if (v !== undefined && v !== null) fd.append(k, String(v));
   };
 
   set("name", form.name);
-  // Base language of the custom_data rows. Required by the create DTO; derived,
-  // never seller-chosen, so it lives here rather than in ProductForm.
-  set("default_language_code", DEFAULT_LANGUAGE_CODE);
+  if (isCreate) {
+    set("default_language_code", form.default_language_code || DEFAULT_LANGUAGE_CODE);
+  }
   set("unit", form.unit);
   set("barcode", form.barcode);
   set("seller_product_id", form.seller_product_id);
@@ -804,7 +864,7 @@ export function buildUpdateFormData(form: ProductForm): FormData {
   // 1/0/true/false/"1"/"0" and the value is parsed with FILTER_VALIDATE_BOOL,
   // which reads "true"/"false" correctly. Do NOT reinstate the omit pattern —
   // §2.2 makes key presence load-bearing on update.
-  set("multiplyQTY", form.multiply_qty);
+  set("multiplyQTY", form.multiply_qty?1:0);
 
   // packed_after_ordering is NOT a boolean on the wire. The DTO enables the flag
   // only on the literal string 'on' (contract §1c, §4); any other value stores 0.
@@ -859,24 +919,35 @@ export function buildUpdateFormData(form: ProductForm): FormData {
     const r = form.variations[c.key] || emptyVariantRow();
     fd.append(`price_${c.key}`, r.price || form.unit_price || "0");
     fd.append(`price_${c.key}_discount`, r.discount || "0");
-    fd.append(`price_${c.key}_extra`, r.extra || "0");
     fd.append(`price_${c.key}_luck`, r.luck || "0");
     fd.append(`qty_${c.key}`, r.qty || "0");
     fd.append(`sku_${c.key}`, r.sku || "");
     fd.append(`barcode_${c.key}`, r.barcode || "");
   });
 
-  form.translations.forEach((t, i) => {
-    // The backend matches translation rows with updateOrCreate(['id' => …])
-    // (contract §1h/§4), so an entry sent without its id targets id = null and
-    // writes the wrong row. Sent only when the edit response supplied one —
-    // on create there is no row yet and none must be invented.
-    if (t.id !== undefined && t.id !== null && t.id !== "")
-      fd.append(`custom_data[${i}][id]`, String(t.id));
-    fd.append(`custom_data[${i}][language_code]`, t.language_code);
-    fd.append(`custom_data[${i}][name]`, t.name || "");
-    fd.append(`custom_data[${i}][description]`, sanitizeHtml(t.description || ""));
-  });
+  if (isCreate) {
+    const langCode = form.default_language_code || DEFAULT_LANGUAGE_CODE;
+    const targetTr = form.translations.find((t) => t.language_code === langCode) || {
+      language_code: langCode,
+      name: form.name || "",
+      description: form.description || "",
+    };
+    fd.append(`custom_data[0][language_code]`, targetTr.language_code);
+    fd.append(`custom_data[0][name]`, targetTr.name || form.name || "");
+    fd.append(`custom_data[0][description]`, sanitizeHtml(targetTr.description || form.description || ""));
+  } else {
+    dedupeTranslations(form.translations).forEach((t, i) => {
+      // The backend matches translation rows with updateOrCreate(['id' => …])
+      // (contract §1h/§4), so an entry sent without its id targets id = null and
+      // writes the wrong row. Sent only when the edit response supplied one —
+      // on create there is no row yet and none must be invented.
+      if (t.id !== undefined && t.id !== null && t.id !== "")
+        fd.append(`custom_data[${i}][id]`, String(t.id));
+      fd.append(`custom_data[${i}][language_code]`, t.language_code);
+      fd.append(`custom_data[${i}][name]`, t.name || "");
+      fd.append(`custom_data[${i}][description]`, sanitizeHtml(t.description || ""));
+    });
+  }
 
   if (form.cloud_video) set("cloud_video", form.cloud_video);
   form.remove_videos.forEach((v) => fd.append("remove_videos[]", v));

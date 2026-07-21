@@ -2307,6 +2307,19 @@ const translations = {
   "Every color needs at least one image, and every image must be assigned": "كل لون يحتاج صورة واحدة على الأقل، ويجب تعيين كل صورة للون",
   "Attributes are not editable yet. This section is a preview and nothing here is saved.": "الخصائص غير قابلة للتعديل بعد. هذا القسم للعرض فقط ولا يتم حفظ أي شيء هنا.",
   "Share": "مشاركة",
+  "SKU must be unique within the product": "يجب أن يكون رمز SKU فريداً ضمن المنتج",
+  "SKU must be unique": "رمز SKU يجب أن يكون فريداً",
+  "Variation SKUs must be unique within the product": "يجب أن تكون رموز SKU للخيارات فريدة ضمن المنتج",
+  "Save Draft": "حفظ كمسودة",
+  "Load Draft": "تحميل المسودة",
+  "Draft saved successfully.": "تم حفظ المسودة بنجاح.",
+  "No saved draft found.": "لم يتم العثور على مسودة محفوظة.",
+  "Draft loaded successfully.": "تم تحميل المسودة بنجاح.",
+  "Must be 0 or greater": "يجب أن تكون القيمة 0 أو أكبر",
+  "Auto-calculated from variations": "محسوب تلقائياً من الخيارات",
+  "Default Language": "اللغة الافتراضية",
+  "Select default language": "اختر اللغة الافتراضية",
+  "Select the primary language for this product. You can enter details for this language now and other languages will be translated automatically.": "اختر اللغة الأساسية لهذا المنتج. يمكنك إدخال التفاصيل بهذه اللغة الآن وسيتم ترجمة اللغات الأخرى تلقائياً.",
 };
 
 export default translations;

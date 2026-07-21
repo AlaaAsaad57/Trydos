@@ -403,7 +403,7 @@ export default function ProductEditor({
   const onUploadVideo = async (file: File) => {
     setUploading((u) => ({ ...u, video: true }));
     try {
-      const url = await SellerDashboardService.uploadShopImage(file, "product");
+      const url = await SellerDashboardService.uploadShopImage(file, "product/videos");
       const name = fileName(url);
       if (!name) throw new Error("Upload returned no file");
       patch({ cloud_video: name });
@@ -415,6 +415,8 @@ export default function ProductEditor({
       setUploading((u) => ({ ...u, video: false }));
     }
   };
+
+
 
   /* -------------------------------- save ---------------------------------- */
 
@@ -461,7 +463,7 @@ export default function ProductEditor({
     setSaving(true);
     setApprovalNote(false);
     try {
-      const fd = buildUpdateFormData(form);
+      const fd = buildUpdateFormData(form, isCreate);
       if (isCreate) {
         const res = await SellerDashboardService.addProduct(sellerId, fd);
         if (!res?.success) {
@@ -509,6 +511,78 @@ export default function ProductEditor({
     setForm(initial);
     setErrors({});
     setEditMode(false);
+  };
+
+  /* ------------------------------ draft save/load ------------------------- */
+
+  const getDraftKey = () => `trydos_product_editor_draft_${sellerId}_${productId || "new"}`;
+
+  const handleSaveDraft = () => {
+    if (!form || typeof window === "undefined") return;
+    try {
+      const dataStr = JSON.stringify(form);
+      const primaryKey = getDraftKey();
+      const genericKey = `trydos_product_editor_draft_${sellerId}`;
+      localStorage.setItem(primaryKey, dataStr);
+      localStorage.setItem(genericKey, dataStr);
+      showSuccessMessage(t("Draft saved successfully."));
+    } catch (e) {
+      showErrorMessage(t("Failed to save draft."));
+    }
+  };
+
+  const handleLoadDraft = () => {
+    if (!form || typeof window === "undefined") return;
+    try {
+      const primaryKey = getDraftKey();
+      const genericKey = `trydos_product_editor_draft_${sellerId}`;
+      const savedStr =
+        localStorage.getItem(primaryKey) ||
+        localStorage.getItem(genericKey) ||
+        localStorage.getItem("trydos_product_editor_draft");
+      if (!savedStr) {
+        showErrorMessage(t("No saved draft found."));
+        return;
+      }
+      const draftData = JSON.parse(savedStr);
+      if (!draftData || typeof draftData !== "object") {
+        showErrorMessage(t("No saved draft found."));
+        return;
+      }
+      const merged: ProductForm = {
+        ...emptyProductForm(),
+        ...draftData,
+        category_id: Array.isArray(draftData.category_id) ? draftData.category_id : [],
+        sub_category_id: Array.isArray(draftData.sub_category_id) ? draftData.sub_category_id : [],
+        sub_sub_category_id: Array.isArray(draftData.sub_sub_category_id) ? draftData.sub_sub_category_id : [],
+        labels: Array.isArray(draftData.labels) ? draftData.labels : [],
+        tags_ids: Array.isArray(draftData.tags_ids) ? draftData.tags_ids : [],
+        descriptor_values:
+          draftData.descriptor_values && typeof draftData.descriptor_values === "object"
+            ? draftData.descriptor_values
+            : {},
+        countries_iso: Array.isArray(draftData.countries_iso) ? draftData.countries_iso : [],
+        extra_price_for_country: Array.isArray(draftData.extra_price_for_country)
+          ? draftData.extra_price_for_country
+          : [],
+        images: Array.isArray(draftData.images) ? draftData.images : [],
+        colors: Array.isArray(draftData.colors) ? draftData.colors : [],
+        sizes: Array.isArray(draftData.sizes) ? draftData.sizes : [],
+        variations:
+          draftData.variations && typeof draftData.variations === "object"
+            ? draftData.variations
+            : {},
+        colorImages:
+          draftData.colorImages && typeof draftData.colorImages === "object"
+            ? draftData.colorImages
+            : {},
+        translations: Array.isArray(draftData.translations) ? draftData.translations : [],
+      };
+      setForm(merged);
+      showSuccessMessage(t("Draft loaded successfully."));
+    } catch (e) {
+      showErrorMessage(t("Failed to load draft."));
+    }
   };
 
   /* --------------------------- change status ------------------------------ */
@@ -569,6 +643,7 @@ export default function ProductEditor({
     sellerId,
     canUseGallery: has("READ_PRODUCT_IMAGES"),
     busy: catLoading,
+    isCreate,
   };
 
   const cover = form.images[0]?.url || listProduct?.images?.[0];
@@ -618,12 +693,28 @@ export default function ProductEditor({
               <>
                 <DashButton
                   variant="ghost"
-                  size="sm"
+                 
                   onClick={() =>
                     router.push(`/${local}/sellerProfile/sellerDashboard/${sellerId}`)
                   }
                 >
                   {t("Cancel")}
+                </DashButton>
+                <DashButton
+                  variant="secondary"
+                 
+                  icon="download"
+                  onClick={handleSaveDraft}
+                >
+                  {t("Save Draft")}
+                </DashButton>
+                <DashButton
+                  variant="secondary"
+                 
+                  icon="upload"
+                  onClick={handleLoadDraft}
+                >
+                  {t("Load Draft")}
                 </DashButton>
                 <DashButton icon="check" onClick={startSave}>
                   {t("Create Product")}
@@ -634,7 +725,7 @@ export default function ProductEditor({
                 {canChangeStatus && (
                   <DashButton
                     variant={status === 1 ? "danger" : "secondary"}
-                    size="sm"
+                  
                     icon={status === 1 ? "lock" : "check"}
                     onClick={() => {
                       setStatusBlockers([]);
@@ -656,9 +747,25 @@ export default function ProductEditor({
                   )
                 ) : (
                   <>
-                    <DashButton variant="ghost" size="sm" onClick={cancelEdit}>
+                    <DashButton variant="ghost"  onClick={cancelEdit}>
                       {t("Cancel")}
                     </DashButton>
+                    {/* <DashButton
+                      variant="secondary"
+                      
+                      icon="download"
+                      onClick={handleSaveDraft}
+                    >
+                      {t("Save Draft")}
+                    </DashButton>
+                    <DashButton
+                      variant="secondary"
+                      
+                      icon="upload"
+                      onClick={handleLoadDraft}
+                    >
+                      {t("Load Draft")}
+                    </DashButton> */}
                     <DashButton icon="check" onClick={startSave}>
                       {t("Save Changes")}
                     </DashButton>
@@ -687,6 +794,8 @@ export default function ProductEditor({
 
       {/* Sections */}
       <CoreSection {...sectionProps} />
+      <SeoSection {...sectionProps} />
+      <TranslationsSection {...sectionProps} />
       <PricingSection {...sectionProps} />
       <VariantsSection {...sectionProps} />
       <MediaSection {...sectionProps} />
@@ -694,8 +803,6 @@ export default function ProductEditor({
       <DescriptorsSection {...sectionProps} />
       <ClassificationSection {...sectionProps} />
       <CountriesSection {...sectionProps} />
-      <SeoSection {...sectionProps} />
-      <TranslationsSection {...sectionProps} />
       {/* The create endpoint ignores cloud_video / remove_videos and always stores
           videos as null, so offering the upload here would silently drop it. Video
           becomes available on the edit screen the seller is redirected to. */}
@@ -714,7 +821,7 @@ export default function ProductEditor({
             <div className="flex items-center gap-2.5">
               <DashButton
                 variant="ghost"
-                size="sm"
+                
                 onClick={
                   isCreate
                     ? () =>
@@ -726,6 +833,22 @@ export default function ProductEditor({
               >
                 {t("Cancel")}
               </DashButton>
+              {/* <DashButton
+                variant="secondary"
+                
+                icon="download"
+                onClick={handleSaveDraft}
+              >
+                {t("Save Draft")}
+              </DashButton>
+              <DashButton
+                variant="secondary"
+                
+                icon="upload"
+                onClick={handleLoadDraft}
+              >
+                {t("Load Draft")}
+              </DashButton> */}
               <DashButton icon="check" onClick={startSave}>
                 {isCreate ? t("Create Product") : t("Save Changes")}
               </DashButton>
@@ -800,7 +923,7 @@ function ConfirmDialog({
             : `${t("These fields will be updated")} (${diff.length}).`}
         </p>
       </div>
-      <div className="p-5 overflow-auto space-y-2.5">
+      <div className="p-5 overflow-auto space-y-2.5 w-full">
         {diff.map((d, i) => (
           <div
             key={i}
@@ -819,11 +942,11 @@ function ConfirmDialog({
           </div>
         ))}
       </div>
-      <div className="p-4 border-t border-[#ededed] flex gap-3">
+      <div className="p-4 border-t border-[#ededed] flex gap-3 w-full">
         <DashButton variant="ghost" fullWidth onClick={onCancel} disabled={saving}>
           {t("Cancel")}
         </DashButton>
-        <DashButton icon="check" fullWidth loading={saving} onClick={onConfirm}>
+        <DashButton icon="check" fullWidth className="min-w-[165px]" loading={saving} onClick={onConfirm}>
           {t("Confirm & Save")}
         </DashButton>
       </div>
@@ -880,13 +1003,14 @@ function StatusDialog({
         )}
 
         <div className="flex gap-3">
-          <DashButton variant="ghost" fullWidth onClick={onCancel} disabled={saving}>
+          <DashButton variant="ghost"  onClick={onCancel} disabled={saving}>
             {t("Cancel")}
           </DashButton>
           <button
             onClick={onConfirm}
+            
             disabled={saving}
-            className={`flex-1 h-[44px] rounded-[12px] text-white medium text-[14px] disabled:opacity-50 active:scale-[0.98] ${
+            className={`flex-1 w-full min-w-[100px] h-[44px] rounded-[12px] text-white medium text-[14px] disabled:opacity-50 active:scale-[0.98] ${
               enabling ? "bg-[#2ea84f] hover:bg-[#279247]" : "bg-[#f85555] hover:bg-[#e84444]"
             }`}
           >

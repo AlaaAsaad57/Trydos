@@ -50,6 +50,7 @@ export interface SectionProps {
   sellerId: string;
   canUseGallery?: boolean;
   busy?: boolean;
+  isCreate?: boolean;
 }
 
 const t = (s: string) => translateFunction(s);
@@ -147,10 +148,15 @@ function Num({
     <DashField label={required ? `${t(label)} *` : t(label)} error={error} hint={hint}>
       <input
         type="number"
+        min="0"
         step={step}
         value={value}
         disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          const val = e.target.value;
+          if (val && parseFloat(val) < 0) return;
+          onChange(val);
+        }}
         className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
           disabled ? "opacity-70" : ""
         }`}
@@ -315,14 +321,15 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
         </DashField>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-5">
-        <Toggle label="Multiply Shipping × Quantity" desc="Charge shipping per item ordered." value={form.multiply_qty} disabled={disabled} onChange={(v) => patch({ multiply_qty: v })} />
-        <Toggle label="Packed After Ordering" desc="Item is packed once an order is placed." value={form.packed_after_ordering} disabled={disabled} onChange={(v) => patch({ packed_after_ordering: v })} />
+        <Toggle label="Multiply Shipping × Quantity" desc="Charge shipping per item ordered." value={Boolean(form.multiply_qty)} disabled={disabled} onChange={(v) => patch({ multiply_qty: v ? 1 : 0 })} />
+        <Toggle label="Packed After Ordering" desc="Item is packed once an order is placed." value={Boolean(form.packed_after_ordering)} disabled={disabled} onChange={(v) => patch({ packed_after_ordering: v ? 1 : 0 })} />
       </div>
     </Section>
   );
 }
 
 export function PricingSection({ form, patch, errors, disabled }: SectionProps) {
+  const hasVariants = combos(form).length > 0;
   return (
     <Section icon="orders" title="Pricing & Stock" desc="Prices are in your display currency; converted server-side.">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -330,7 +337,14 @@ export function PricingSection({ form, patch, errors, disabled }: SectionProps) 
         <Num label="Discount Price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} onChange={(v) => patch({ discount_price: v })} />
         <Num label="Purchase Price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} onChange={(v) => patch({ purchase_price: v })} />
         <Num label="Luck Price" value={form.luck_price} disabled={disabled} onChange={(v) => patch({ luck_price: v })} />
-        <Num label="Current Stock" value={form.current_stock} error={errors.current_stock} disabled={disabled} onChange={(v) => patch({ current_stock: v })} />
+        <Num
+          label="Current Stock"
+          value={form.current_stock}
+          error={errors.current_stock}
+          hint={hasVariants ? t("Auto-calculated from variations") : undefined}
+          disabled={disabled || hasVariants}
+          onChange={(v) => patch({ current_stock: v })}
+        />
         <Num label="Weight" value={form.weight} error={errors.weight} hint={t("Required for pc / liter")} disabled={disabled} onChange={(v) => patch({ weight: v })} />
         <Num label="Max Allowed Qty" value={form.max_allowed_qty} disabled={disabled} onChange={(v) => patch({ max_allowed_qty: v })} />
         <Num label="Pieces / Unit" value={form.count_of_pieces} error={errors.count_of_pieces} hint={t("Must be a whole number between 1 and 100")} disabled={disabled} step="1" onChange={(v) => patch({ count_of_pieces: v })} />
@@ -427,7 +441,7 @@ export function DescriptorsSection({ form, busy, lookups }: SectionProps) {
             <span className="text-[12px] medium text-[#5d5d5d]">{t("Loading…")}</span>
           </div>
         )}
-        <div className={`space-y-4 ${busy ? "opacity-60 pointer-events-none" : ""}`}>
+        {/* <div className={`space-y-4 ${busy ? "opacity-60 pointer-events-none" : ""}`}>
           {groups.length === 0 ? (
             <p className="text-[12px] text-[#b8b8b8]">{t("Select a category to see its attributes.")}</p>
           ) : (
@@ -465,7 +479,7 @@ export function DescriptorsSection({ form, busy, lookups }: SectionProps) {
               </div>
             ))
           )}
-        </div>
+        </div> */}
       </div>
     </Section>
   );
@@ -810,6 +824,21 @@ export function VariantsSection({ form, patch, errors, lookups, disabled }: Sect
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comboKeys, disabled]);
 
+  // Sync product-level current_stock with the sum of variation quantities when variations exist
+  useEffect(() => {
+    if (disabled || cmb.length === 0) return;
+    let totalStock = 0;
+    for (const c of cmb) {
+      const q = parseFloat(form.variations[c.key]?.qty || "0");
+      if (!isNaN(q) && q > 0) totalStock += q;
+    }
+    const newStockStr = String(totalStock);
+    if (form.current_stock !== newStockStr) {
+      patch({ current_stock: newStockStr });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comboKeys, form.variations, disabled]);
+
   const setVariant = (key: string, field: keyof VariantRow, value: string) => {
     const row = form.variations[key] || emptyVariantRow();
     patch({ variations: { ...form.variations, [key]: { ...row, [field]: value } } });
@@ -873,48 +902,84 @@ export function VariantsSection({ form, patch, errors, lookups, disabled }: Sect
 
         {errors.variations && <p className="text-[12px] text-[#f85555]">{errors.variations}</p>}
 
-        {cmb.length > 0 && (
-          <div className="overflow-x-auto -mx-1 px-1">
-            <table className="w-full min-w-[640px] text-left border-separate border-spacing-y-1.5">
-              <thead>
-                <tr className="text-[11px] semibold text-[#8e8e8e]">
-                  <th className="py-1 pr-3">{t("Variant")}</th>
-                  <th className="py-1 px-2">{t("Price")}</th>
-                  <th className="py-1 px-2">{t("Discount")}</th>
-                  <th className="py-1 px-2">{t("Extra")}</th>
-                  <th className="py-1 px-2">{t("Luck")}</th>
-                  <th className="py-1 px-2">{t("Qty")}</th>
-                  <th className="py-1 px-2">{t("SKU")}</th>
-                  <th className="py-1 px-2">{t("Barcode")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cmb.map((c) => {
-                  const r = form.variations[c.key] || emptyVariantRow();
-                  const cell = (field: keyof VariantRow, w: string, type = "number") => (
-                    <td className="px-1">
-                      <input type={type} step="any" value={r[field]} disabled={disabled} onChange={(e) => setVariant(c.key, field, e.target.value)} className={`${w} h-[38px] px-2.5 bg-[#f8f8f8] border border-[#ededed] rounded-[10px] text-[13px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white`} />
-                    </td>
-                  );
-                  return (
-                    <tr key={c.key}>
-                      <td className="pr-3 text-[12px] medium text-[#3c3c3c] whitespace-nowrap">
-                        {[c.colorName, c.sizeName].filter(Boolean).join(" · ")}
-                      </td>
-                      {cell("price", "w-[88px]")}
-                      {cell("discount", "w-[88px]")}
-                      {cell("extra", "w-[80px]")}
-                      {cell("luck", "w-[80px]")}
-                      {cell("qty", "w-[70px]")}
-                      {cell("sku", "w-[110px]", "text")}
-                      {cell("barcode", "w-[110px]", "text")}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {cmb.length > 0 && (() => {
+          const skuCounts: Record<string, number> = {};
+          cmb.forEach((c) => {
+            const s = (form.variations[c.key]?.sku || "").trim().toLowerCase();
+            if (s) {
+              skuCounts[s] = (skuCounts[s] || 0) + 1;
+            }
+          });
+
+          return (
+            <div className="overflow-x-auto -mx-1 px-1">
+              <table className="w-full min-w-[640px] text-left border-separate border-spacing-y-1.5">
+                <thead>
+                  <tr className="text-[11px] semibold text-[#8e8e8e]">
+                    <th className="py-1 pr-3">{t("Variant")}</th>
+                    <th className="py-1 px-2">{t("Price")}</th>
+                    <th className="py-1 px-2">{t("Discount")}</th>
+                    <th className="py-1 px-2">{t("Luck")}</th>
+                    <th className="py-1 px-2">{t("Qty")}</th>
+                    <th className="py-1 px-2">{t("SKU")}</th>
+                    <th className="py-1 px-2">{t("Barcode")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cmb.map((c) => {
+                    const r = form.variations[c.key] || emptyVariantRow();
+                    const skuVal = (r.sku || "").trim().toLowerCase();
+                    const isDuplicateSku = Boolean(skuVal && (skuCounts[skuVal] || 0) > 1);
+                    const skuErrMsg = errors[`variation_sku_${c.key}`] || (isDuplicateSku ? t("SKU must be unique") : null);
+
+                    const cell = (field: keyof VariantRow, w: string, type = "number") => {
+                      const isSku = field === "sku";
+                      const hasErr = isSku && skuErrMsg;
+                      return (
+                        <td className="px-1 align-top">
+                          <input
+                            type={type}
+                            min={type === "number" ? "0" : undefined}
+                            step="any"
+                            value={r[field]}
+                            disabled={disabled}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (type === "number" && val && parseFloat(val) < 0) return;
+                              setVariant(c.key, field, val);
+                            }}
+                            className={`${w} h-[38px] px-2.5 bg-[#f8f8f8] border ${
+                              hasErr ? "border-[#f85555] bg-[#fff8f8]" : "border-[#ededed]"
+                            } rounded-[10px] text-[13px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white`}
+                          />
+                          {hasErr && (
+                            <span className="text-[11px] text-[#f85555] block mt-0.5 leading-tight whitespace-nowrap">
+                              {skuErrMsg}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    };
+
+                    return (
+                      <tr key={c.key}>
+                        <td className="pr-3 text-[12px] medium text-[#3c3c3c] whitespace-nowrap align-top pt-2">
+                          {[c.colorName, c.sizeName].filter(Boolean).join(" · ")}
+                        </td>
+                        {cell("price", "w-[88px]")}
+                        {cell("discount", "w-[88px]")}
+                        {cell("luck", "w-[80px]")}
+                        {cell("qty", "w-[70px]")}
+                        {cell("sku", "w-[110px]", "text")}
+                        {cell("barcode", "w-[110px]", "text")}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
 
         {/* Color → image assignment (sync_color_images) */}
         {form.colors.length > 0 && (
@@ -966,7 +1031,9 @@ const LANGS = [
   { code: "ku", label: "Kurdî" },
 ];
 
-export function TranslationsSection({ form, patch, errors, disabled }: SectionProps) {
+export function TranslationsSection({ form, patch, errors, disabled, isCreate }: SectionProps) {
+  const defaultLang = form.default_language_code || "en";
+
   const setTr = (code: string, field: "name" | "description", v: string) => {
     const exists = form.translations.some((t2) => t2.language_code === code);
     const next = exists
@@ -974,6 +1041,75 @@ export function TranslationsSection({ form, patch, errors, disabled }: SectionPr
       : [...form.translations, { language_code: code, name: "", description: "", [field]: v }];
     patch({ translations: next });
   };
+
+  const handleDefaultLangChange = (newCode: string) => {
+    const existing = form.translations.find((t2) => t2.language_code === newCode) || {
+      language_code: newCode,
+      name: form.name || "",
+      description: form.description || "",
+    };
+    patch({
+      default_language_code: newCode,
+      translations: [{ ...existing, language_code: newCode }],
+    });
+  };
+
+  if (isCreate) {
+    const curLangObj = LANGS.find((l) => l.code === defaultLang) || LANGS[0];
+    const tr = form.translations.find((x) => x.language_code === defaultLang) || { name: form.name || "", description: form.description || "" };
+
+    return (
+      <Section
+        icon="comments"
+        title="Translations"
+        desc="Select default language for product creation. Other languages will be translated automatically."
+      >
+        {errors.translations && <p className="text-[12px] text-[#f85555] mb-3">{errors.translations}</p>}
+        <div className="space-y-5">
+          <div className="rounded-[12px] border border-[#ededed] p-4 bg-[#f8f8f8]">
+            <Select
+              label="Default Language"
+              value={defaultLang}
+              disabled={disabled}
+              onChange={handleDefaultLangChange}
+              options={LANGS.map((l) => ({ value: l.code, label: `${l.label} (${l.code})` }))}
+            />
+            <p className="text-[12px] text-[#8e8e8e] mt-2">
+              {t("Select the primary language for this product. You can enter details for this language now and other languages will be translated automatically.")}
+            </p>
+          </div>
+
+          <div className="rounded-[12px] border border-[#ededed] p-4">
+            <p className="text-[13px] semibold text-[#3c3c3c] mb-3">
+              {curLangObj.label} <span className="text-[#8e8e8e] regular text-[11px]">({curLangObj.code})</span>
+            </p>
+            <Grid>
+              <Txt
+                label="Name"
+                value={tr.name}
+                disabled={disabled}
+                required
+                onChange={(v) => {
+                  setTr(defaultLang, "name", v);
+                  if (!form.name) patch({ name: v });
+                }}
+              />
+              <Txt
+                label="Description"
+                value={tr.description}
+                disabled={disabled}
+                onChange={(v) => {
+                  setTr(defaultLang, "description", v);
+                  if (!form.description) patch({ description: v });
+                }}
+              />
+            </Grid>
+          </div>
+        </div>
+      </Section>
+    );
+  }
+
   return (
     <Section icon="comments" title="Translations" desc="An English (en) name is required to enable the product.">
       {errors.translations && <p className="text-[12px] text-[#f85555] mb-3">{errors.translations}</p>}

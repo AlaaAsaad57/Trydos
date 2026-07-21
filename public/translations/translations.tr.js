@@ -2338,6 +2338,19 @@ const translations = {
   "Every color needs at least one image, and every image must be assigned": "Her renk en az bir görsel gerektirir ve her görsel bir renge atanmalıdır",
   "Attributes are not editable yet. This section is a preview and nothing here is saved.": "Özellikler henüz düzenlenemiyor. Bu bölüm bir önizlemedir ve burada hiçbir şey kaydedilmez.",
   "Share": "Paylaş",
+  "SKU must be unique within the product": "SKU aynı ürün içinde benzersiz olmalıdır",
+  "SKU must be unique": "SKU benzersiz olmalıdır",
+  "Variation SKUs must be unique within the product": "Varyant SKU'ları ürün içinde benzersiz olmalıdır",
+  "Save Draft": "Taslak Kaydet",
+  "Load Draft": "Taslak Yükle",
+  "Draft saved successfully.": "Taslak başarıyla kaydedildi.",
+  "No saved draft found.": "Kaydedilmiş taslak bulunamadı.",
+  "Draft loaded successfully.": "Taslak başarıyla yüklendi.",
+  "Must be 0 or greater": "0 veya daha büyük olmalıdır",
+  "Auto-calculated from variations": "Varyantlardan otomatik hesaplanır",
+  "Default Language": "Varsayılan Dil",
+  "Select default language": "Varsayılan dili seçin",
+  "Select the primary language for this product. You can enter details for this language now and other languages will be translated automatically.": "Bu ürün için birincil dili seçin. Şimdi bu dil için ayrıntıları girebilirsiniz, diğer diller otomatik olarak çevrilecektir.",
 };
 
 export default translations;

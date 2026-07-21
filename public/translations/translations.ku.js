@@ -2358,6 +2358,19 @@ const translations = {
   "Every color needs at least one image, and every image must be assigned": "هەر ڕەنگێک پێویستی بە لانیکەم یەک وێنەیە، و دەبێت هەموو وێنەیەک دیاری بکرێت",
   "Attributes are not editable yet. This section is a preview and nothing here is saved.": "تایبەتمەندییەکان هێشتا ناتوانرێت دەستکاری بکرێن. ئەم بەشە پێشبینینێکە و هیچ شتێک لێرە پاشەکەوت ناکرێت.",
   "Share": "هاوبەشکردن",
+  "SKU must be unique within the product": "پێویستە کۆدی SKU بێوێنە بێت لە هەمان بەرهەمدا",
+  "SKU must be unique": "پێویستە کۆدی SKU بێوێنە بێت",
+  "Variation SKUs must be unique within the product": "پێویستە کۆدەکانی SKU بۆ جۆرەکان بێوێنە بن لە هەمان بەرهەمدا",
+  "Save Draft": "پاشەکەوتکردنی ڕەشنووس",
+  "Load Draft": "بارکردنی ڕەشنووس",
+  "Draft saved successfully.": "ڕەشنووس بە سەرکەوتوویی پاشەکەوتکرا.",
+  "No saved draft found.": "هیچ ڕەشنووسێکی پاشەکەوتکراو نەدۆزرایەوە.",
+  "Draft loaded successfully.": "ڕەشنووس بە سەرکەوتوویی بارکرا.",
+  "Must be 0 or greater": "پێویستە ٠ یاخود گەورەتر بێت",
+  "Auto-calculated from variations": "بەم شێوەیە خۆکارانە لە جۆرەکانەوە هەژمار دەکرێت",
+  "Default Language": "زمانی سەرەکی",
+  "Select default language": "زمانی سەرەکی هەڵبژێرە",
+  "Select the primary language for this product. You can enter details for this language now and other languages will be translated automatically.": "زمانی سەرەکی بۆ ئەم بەرهەمە هەڵبژێرە. دەتوانیت ئێستا زانیارییەکان بەم زمانە بنووسیت و زمانەکانی تر خۆکارانە وەردەگێڕدرێن.",
 };
 
 export default translations;
