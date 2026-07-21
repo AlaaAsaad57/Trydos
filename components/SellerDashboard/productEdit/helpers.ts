@@ -163,6 +163,20 @@ export interface Translation {
   language_code: string;
   name: string;
   description: string;
+  similar_words: string[];
+}
+
+export function parseSimilarWords(raw: any): string[] {
+  if (Array.isArray(raw)) return raw.map(String).filter(Boolean);
+  if (typeof raw === "string" && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean);
+    } catch {
+      return raw.split(",").map((s) => s.trim()).filter(Boolean);
+    }
+  }
+  return [];
 }
 
 export interface ProductForm {
@@ -496,6 +510,7 @@ export function buildFormFromEdit(
       language_code: t.language_code,
       name: t.name ?? "",
       description: t.details ?? t.description ?? "",
+      similar_words: parseSimilarWords(t.similar_words),
     }),
   );
   const translations = dedupeTranslations(rawTranslations);
@@ -931,10 +946,14 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
       language_code: langCode,
       name: form.name || "",
       description: form.description || "",
+      similar_words: [],
     };
     fd.append(`custom_data[0][language_code]`, targetTr.language_code);
     fd.append(`custom_data[0][name]`, targetTr.name || form.name || "");
     fd.append(`custom_data[0][description]`, sanitizeHtml(targetTr.description || form.description || ""));
+    (targetTr.similar_words || []).forEach((w) => {
+      if (w && w.trim()) fd.append(`custom_data[0][similar_words][]`, w.trim());
+    });
   } else {
     dedupeTranslations(form.translations).forEach((t, i) => {
       // The backend matches translation rows with updateOrCreate(['id' => …])
@@ -946,6 +965,9 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
       fd.append(`custom_data[${i}][language_code]`, t.language_code);
       fd.append(`custom_data[${i}][name]`, t.name || "");
       fd.append(`custom_data[${i}][description]`, sanitizeHtml(t.description || ""));
+      (t.similar_words || []).forEach((w) => {
+        if (w && w.trim()) fd.append(`custom_data[${i}][similar_words][]`, w.trim());
+      });
     });
   }
 
@@ -953,6 +975,34 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
   form.remove_videos.forEach((v) => fd.append("remove_videos[]", v));
 
   return fd;
+}
+
+/* -------------------------- smooth scroll error --------------------------- */
+
+export function scrollToFirstError(errs: Record<string, string>) {
+  if (typeof window === "undefined" || !errs) return;
+  const keys = Object.keys(errs);
+  if (!keys.length) return;
+
+  const firstKey = keys[0];
+
+  setTimeout(() => {
+    let target =
+      document.querySelector(`[data-field="${firstKey}"]`) ||
+      document.getElementById(`field_${firstKey}`) ||
+      document.getElementById(`section_${firstKey}`) ||
+      document.getElementById(firstKey);
+
+    if (!target) {
+      target =
+        document.querySelector(`.border-\\[\\#f85555\\]`) ||
+        document.querySelector(`.text-\\[\\#f85555\\]`);
+    }
+
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, 100);
 }
 
 /* ------------------------------ change diff ------------------------------ */

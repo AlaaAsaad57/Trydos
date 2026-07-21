@@ -30,6 +30,7 @@ import {
   Lookups,
   mapServerErrors,
   ProductForm,
+  scrollToFirstError,
   validate,
 } from "./helpers";
 import {
@@ -429,6 +430,7 @@ export default function ProductEditor({
     setErrors(errs);
     if (Object.keys(errs).length > 0) {
       showErrorMessage(t("Please fix the highlighted fields before saving."));
+      scrollToFirstError(errs);
       return;
     }
     const diff = buildDiff(initial, form, lookups as Lookups);
@@ -447,6 +449,9 @@ export default function ProductEditor({
     const { errors: mapped, attributed } = mapServerErrors(res);
     setErrors(mapped);
     setConfirm(null);
+    if (attributed && Object.keys(mapped).length > 0) {
+      scrollToFirstError(mapped);
+    }
     LogError({
       scenario: "ProductEditor.saveRejected",
       error: res?.message ?? "rejected",

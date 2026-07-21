@@ -99,6 +99,7 @@ function Txt({
   disabled,
   placeholder,
   required,
+  fieldKey,
 }: {
   label: string;
   value: string;
@@ -108,20 +109,23 @@ function Txt({
   disabled?: boolean;
   placeholder?: string;
   required?: boolean;
+  fieldKey?: string;
 }) {
   return (
-    <DashField label={required ? `${t(label)} *` : t(label)} error={error} hint={hint}>
-      <input
-        type="text"
-        value={value}
-        disabled={disabled}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
-          disabled ? "opacity-70" : ""
-        }`}
-      />
-    </DashField>
+    <div data-field={fieldKey}>
+      <DashField label={required ? `${t(label)} *` : t(label)} error={error} hint={hint}>
+        <input
+          type="text"
+          value={value}
+          disabled={disabled}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
+            disabled ? "opacity-70" : ""
+          }`}
+        />
+      </DashField>
+    </div>
   );
 }
 
@@ -134,6 +138,7 @@ function Num({
   disabled,
   required,
   step = "any",
+  fieldKey,
 }: {
   label: string;
   value: string;
@@ -143,25 +148,28 @@ function Num({
   disabled?: boolean;
   required?: boolean;
   step?: string;
+  fieldKey?: string;
 }) {
   return (
-    <DashField label={required ? `${t(label)} *` : t(label)} error={error} hint={hint}>
-      <input
-        type="number"
-        min="0"
-        step={step}
-        value={value}
-        disabled={disabled}
-        onChange={(e) => {
-          const val = e.target.value;
-          if (val && parseFloat(val) < 0) return;
-          onChange(val);
-        }}
-        className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
-          disabled ? "opacity-70" : ""
-        }`}
-      />
-    </DashField>
+    <div data-field={fieldKey}>
+      <DashField label={required ? `${t(label)} *` : t(label)} error={error} hint={hint}>
+        <input
+          type="number"
+          min="0"
+          step={step}
+          value={value}
+          disabled={disabled}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val && parseFloat(val) < 0) return;
+            onChange(val);
+          }}
+          className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
+            disabled ? "opacity-70" : ""
+          }`}
+        />
+      </DashField>
+    </div>
   );
 }
 
@@ -171,25 +179,29 @@ function Area({
   onChange,
   disabled,
   rows = 4,
+  fieldKey,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
   rows?: number;
+  fieldKey?: string;
 }) {
   return (
-    <DashField label={t(label)}>
-      <textarea
-        rows={rows}
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${dashInputClass} h-auto py-3 leading-relaxed ${
-          disabled ? "opacity-70" : ""
-        }`}
-      />
-    </DashField>
+    <div data-field={fieldKey}>
+      <DashField label={t(label)}>
+        <textarea
+          rows={rows}
+          value={value}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.value)}
+          className={`${dashInputClass} h-auto py-3 leading-relaxed ${
+            disabled ? "opacity-70" : ""
+          }`}
+        />
+      </DashField>
+    </div>
   );
 }
 
@@ -201,6 +213,7 @@ function Select({
   disabled,
   error,
   required,
+  fieldKey,
 }: {
   label: string;
   value: string;
@@ -209,25 +222,28 @@ function Select({
   disabled?: boolean;
   error?: string;
   required?: boolean;
+  fieldKey?: string;
 }) {
   return (
-    <DashField label={required ? `${t(label)} *` : t(label)} error={error}>
-      <select
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
-          disabled ? "opacity-70" : ""
-        }`}
-      >
-        <option value="">{t("Select")}</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </DashField>
+    <div data-field={fieldKey}>
+      <DashField label={required ? `${t(label)} *` : t(label)} error={error}>
+        <select
+          value={value}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.value)}
+          className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
+            disabled ? "opacity-70" : ""
+          }`}
+        >
+          <option value="">{t("Select")}</option>
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </DashField>
+    </div>
   );
 }
 
@@ -305,16 +321,16 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
   return (
     <Section icon="products" title="General" desc="Identity & classification of the product.">
       <Grid>
-        <Txt label="Product Name" value={form.name} required error={errors.name} disabled={disabled} onChange={(v) => patch({ name: v })} />
-        <Txt label="Seller Product ID" value={form.seller_product_id} error={errors.seller_product_id} hint={t("Must stay unique across the marketplace")} disabled={disabled} onChange={(v) => patch({ seller_product_id: v })} />
-        <Txt label="Barcode" value={form.barcode} disabled={disabled} onChange={(v) => patch({ barcode: v })} />
-        <Select label="Unit" value={form.unit} required error={errors.unit} disabled={disabled} onChange={(v) => patch({ unit: v })} options={UNITS.map((u) => ({ value: u, label: u }))} />
-        <Select label="Brand" value={form.brand_id} required error={errors.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.name }))} />
-        <Select label="Boutique" value={form.boutique_id} error={errors.boutique_id} disabled={disabled} onChange={(v) => patch({ boutique_id: v })} options={(lookups.boutiques || []).map((b) => ({ value: String(b.id), label: b.name }))} />
-        <Txt label="Model Number" value={form.model_number} disabled={disabled} onChange={(v) => patch({ model_number: v })} />
-        <Txt label="Report Ref. Number" value={form.report_ref_number} disabled={disabled} onChange={(v) => patch({ report_ref_number: v })} />
+        <Txt label="Product Name" fieldKey="name" value={form.name} required error={errors.name} disabled={disabled} onChange={(v) => patch({ name: v })} />
+        <Txt label="Seller Product ID" fieldKey="seller_product_id" value={form.seller_product_id} error={errors.seller_product_id} hint={t("Must stay unique across the marketplace")} disabled={disabled} onChange={(v) => patch({ seller_product_id: v })} />
+        <Txt label="Barcode" fieldKey="barcode" value={form.barcode} disabled={disabled} onChange={(v) => patch({ barcode: v })} />
+        <Select label="Unit" fieldKey="unit" value={form.unit} required error={errors.unit} disabled={disabled} onChange={(v) => patch({ unit: v })} options={UNITS.map((u) => ({ value: u, label: u }))} />
+        <Select label="Brand" fieldKey="brand_id" value={form.brand_id} required error={errors.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.name }))} />
+        <Select label="Boutique" fieldKey="boutique_id" value={form.boutique_id} error={errors.boutique_id} disabled={disabled} onChange={(v) => patch({ boutique_id: v })} options={(lookups.boutiques || []).map((b) => ({ value: String(b.id), label: b.name }))} />
+        <Txt label="Model Number" fieldKey="model_number" value={form.model_number} disabled={disabled} onChange={(v) => patch({ model_number: v })} />
+        <Txt label="Report Ref. Number" fieldKey="report_ref_number" value={form.report_ref_number} disabled={disabled} onChange={(v) => patch({ report_ref_number: v })} />
       </Grid>
-      <div className="mt-5">
+      <div className="mt-5" data-field="description">
         <DashField label={t("Description")}>
           <RichTextEditor value={form.description} disabled={disabled} onChange={(v) => patch({ description: v })} />
           {errors.description && <p className="text-[12px] text-[#f85555] mt-1.5">{errors.description}</p>}
@@ -333,12 +349,13 @@ export function PricingSection({ form, patch, errors, disabled }: SectionProps) 
   return (
     <Section icon="orders" title="Pricing & Stock" desc="Prices are in your display currency; converted server-side.">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <Num label="Unit Price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} onChange={(v) => patch({ unit_price: v })} />
-        <Num label="Discount Price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} onChange={(v) => patch({ discount_price: v })} />
-        <Num label="Purchase Price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} onChange={(v) => patch({ purchase_price: v })} />
-        <Num label="Luck Price" value={form.luck_price} disabled={disabled} onChange={(v) => patch({ luck_price: v })} />
+        <Num label="Unit Price" fieldKey="unit_price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} onChange={(v) => patch({ unit_price: v })} />
+        <Num label="Discount Price" fieldKey="discount_price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} onChange={(v) => patch({ discount_price: v })} />
+        <Num label="Purchase Price" fieldKey="purchase_price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} onChange={(v) => patch({ purchase_price: v })} />
+        <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} disabled={disabled} onChange={(v) => patch({ luck_price: v })} />
         <Num
           label="Current Stock"
+          fieldKey="current_stock"
           value={form.current_stock}
           error={errors.current_stock}
           hint={hasVariants ? t("Auto-calculated from variations") : undefined}
@@ -397,7 +414,7 @@ export function CategoriesSection({ form, patch, errors, lookups, disabled, busy
   };
   return (
     <Section icon="boutiques" title="Categories" desc="Sub-categories shown match the current parents (re-open the page after changing parents to load others).">
-      <div className="relative">
+      <div className="relative" data-field="category_id">
         {busy && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 rounded-[12px]">
             <span className="text-[12px] medium text-[#5d5d5d]">{t("Loading…")}</span>
@@ -865,7 +882,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled }: Sect
 
   return (
     <Section icon="permissions" title="Variants" desc="Pick colors & sizes, then set price and stock for each combination.">
-      <div className="space-y-5">
+      <div className="space-y-5" data-field="variations">
         <div>
           <p className="text-[13px] medium text-[#505050] mb-2">{t("Colors")}</p>
           {shownColors.length === 0 ? (
@@ -1031,14 +1048,93 @@ const LANGS = [
   { code: "ku", label: "Kurdî" },
 ];
 
+function SimilarWordsInput({
+  words = [],
+  disabled = false,
+  onChange,
+}: {
+  words: string[];
+  disabled?: boolean;
+  onChange: (words: string[]) => void;
+}) {
+  const [inputValue, setInputValue] = useState("");
+
+  const handleAdd = () => {
+    const trimmed = inputValue.trim();
+    if (!trimmed) return;
+    if (!words.includes(trimmed)) {
+      onChange([...words, trimmed]);
+    }
+    setInputValue("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAdd();
+    }
+  };
+
+  const handleRemove = (index: number) => {
+    onChange(words.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="mt-3" data-field="similar_words">
+      <p className="text-[13px] medium text-[#505050] mb-1.5">{t("Similar Words")}</p>
+      <div className="flex flex-wrap items-center gap-2 p-2.5 bg-[#f8f8f8] border border-[#ededed] rounded-[12px] min-h-[44px]">
+        {words.map((w, idx) => (
+          <span
+            key={idx}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#ededed] text-[#3c3c3c] text-[12px] medium shadow-sm"
+          >
+            {w}
+            {!disabled && (
+              <button
+                type="button"
+                onClick={() => handleRemove(idx)}
+                className="w-4 h-4 rounded-full hover:bg-[#f4f4f4] flex items-center justify-center text-[#8e8e8e] hover:text-[#f85555] transition-colors text-[10px]"
+              >
+                ✕
+              </button>
+            )}
+          </span>
+        ))}
+        {!disabled && (
+          <div className="flex items-center gap-1.5 flex-1 min-w-[180px]">
+            <input
+              type="text"
+              value={inputValue}
+              disabled={disabled}
+              placeholder={t("Type a word and press Enter")}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="flex-1 bg-transparent text-[13px] text-[#3c3c3c] outline-none px-1 h-[30px]"
+            />
+            {inputValue.trim() && (
+              <button
+                type="button"
+                onClick={handleAdd}
+                className="px-2.5 h-[28px] rounded-[8px] bg-[#5d5d5d] text-white text-[11px] medium hover:bg-[#4a4a4a] transition-colors"
+              >
+                {t("Add")}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function TranslationsSection({ form, patch, errors, disabled, isCreate }: SectionProps) {
   const defaultLang = form.default_language_code || "en";
 
-  const setTr = (code: string, field: "name" | "description", v: string) => {
+  const setTr = (code: string, field: "name" | "description" | "similar_words", v: any) => {
     const exists = form.translations.some((t2) => t2.language_code === code);
     const next = exists
       ? form.translations.map((t2) => (t2.language_code === code ? { ...t2, [field]: v } : t2))
-      : [...form.translations, { language_code: code, name: "", description: "", [field]: v }];
+      : [...form.translations, { language_code: code, name: "", description: "", similar_words: [], [field]: v }];
     patch({ translations: next });
   };
 
@@ -1047,6 +1143,7 @@ export function TranslationsSection({ form, patch, errors, disabled, isCreate }:
       language_code: newCode,
       name: form.name || "",
       description: form.description || "",
+      similar_words: [],
     };
     patch({
       default_language_code: newCode,
@@ -1056,7 +1153,11 @@ export function TranslationsSection({ form, patch, errors, disabled, isCreate }:
 
   if (isCreate) {
     const curLangObj = LANGS.find((l) => l.code === defaultLang) || LANGS[0];
-    const tr = form.translations.find((x) => x.language_code === defaultLang) || { name: form.name || "", description: form.description || "" };
+    const tr = form.translations.find((x) => x.language_code === defaultLang) || {
+      name: form.name || "",
+      description: form.description || "",
+      similar_words: [],
+    };
 
     return (
       <Section
@@ -1065,7 +1166,7 @@ export function TranslationsSection({ form, patch, errors, disabled, isCreate }:
         desc="Select default language for product creation. Other languages will be translated automatically."
       >
         {errors.translations && <p className="text-[12px] text-[#f85555] mb-3">{errors.translations}</p>}
-        <div className="space-y-5">
+        <div className="space-y-5" data-field="translations">
           <div className="rounded-[12px] border border-[#ededed] p-4 bg-[#f8f8f8]">
             <Select
               label="Default Language"
@@ -1104,6 +1205,11 @@ export function TranslationsSection({ form, patch, errors, disabled, isCreate }:
                 }}
               />
             </Grid>
+            <SimilarWordsInput
+              words={tr.similar_words || []}
+              disabled={disabled}
+              onChange={(words) => setTr(defaultLang, "similar_words", words)}
+            />
           </div>
         </div>
       </Section>
@@ -1113,9 +1219,13 @@ export function TranslationsSection({ form, patch, errors, disabled, isCreate }:
   return (
     <Section icon="comments" title="Translations" desc="An English (en) name is required to enable the product.">
       {errors.translations && <p className="text-[12px] text-[#f85555] mb-3">{errors.translations}</p>}
-      <div className="space-y-5">
+      <div className="space-y-5" data-field="translations">
         {LANGS.map((l) => {
-          const tr = form.translations.find((x) => x.language_code === l.code) || { name: "", description: "" };
+          const tr = form.translations.find((x) => x.language_code === l.code) || {
+            name: "",
+            description: "",
+            similar_words: [],
+          };
           return (
             <div key={l.code} className="rounded-[12px] border border-[#ededed] p-4">
               <p className="text-[13px] semibold text-[#3c3c3c] mb-3">{l.label} <span className="text-[#8e8e8e] regular text-[11px]">({l.code})</span></p>
@@ -1123,6 +1233,11 @@ export function TranslationsSection({ form, patch, errors, disabled, isCreate }:
                 <Txt label="Name" value={tr.name} disabled={disabled} onChange={(v) => setTr(l.code, "name", v)} required={l.code === "en"} />
                 <Txt label="Description" value={tr.description} disabled={disabled} onChange={(v) => setTr(l.code, "description", v)} />
               </Grid>
+              <SimilarWordsInput
+                words={tr.similar_words || []}
+                disabled={disabled}
+                onChange={(words) => setTr(l.code, "similar_words", words)}
+              />
             </div>
           );
         })}

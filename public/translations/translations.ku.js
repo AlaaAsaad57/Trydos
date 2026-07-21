@@ -2371,6 +2371,9 @@ const translations = {
   "Default Language": "زمانی سەرەکی",
   "Select default language": "زمانی سەرەکی هەڵبژێرە",
   "Select the primary language for this product. You can enter details for this language now and other languages will be translated automatically.": "زمانی سەرەکی بۆ ئەم بەرهەمە هەڵبژێرە. دەتوانیت ئێستا زانیارییەکان بەم زمانە بنووسیت و زمانەکانی تر خۆکارانە وەردەگێڕدرێن.",
+  "Similar Words": "وشە هاوشێوەکان",
+  "Type a word and press Enter": "وشەیەک بنووسە و داگری Enter",
+  "Add": "زیادکردن",
 };
 
 export default translations;

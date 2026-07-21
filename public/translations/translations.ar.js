@@ -2320,6 +2320,9 @@ const translations = {
   "Default Language": "اللغة الافتراضية",
   "Select default language": "اختر اللغة الافتراضية",
   "Select the primary language for this product. You can enter details for this language now and other languages will be translated automatically.": "اختر اللغة الأساسية لهذا المنتج. يمكنك إدخال التفاصيل بهذه اللغة الآن وسيتم ترجمة اللغات الأخرى تلقائياً.",
+  "Similar Words": "الكلمات المشابهة",
+  "Type a word and press Enter": "اكتب كلمة واضغط على Enter",
+  "Add": "إضافة",
 };
 
 export default translations;

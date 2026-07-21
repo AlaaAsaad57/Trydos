@@ -2351,6 +2351,9 @@ const translations = {
   "Default Language": "Varsayılan Dil",
   "Select default language": "Varsayılan dili seçin",
   "Select the primary language for this product. You can enter details for this language now and other languages will be translated automatically.": "Bu ürün için birincil dili seçin. Şimdi bu dil için ayrıntıları girebilirsiniz, diğer diller otomatik olarak çevrilecektir.",
+  "Similar Words": "Benzer Kelimeler",
+  "Type a word and press Enter": "Bir kelime yazın ve Enter'a basın",
+  "Add": "Ekle",
 };
 
 export default translations;
