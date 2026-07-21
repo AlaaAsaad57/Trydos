@@ -1139,14 +1139,23 @@ export function buildDiff(
 
   const trChanged = current.translations.filter((t) => {
     const o = initial.translations.find((x) => x.language_code === t.language_code);
-    return !o || o.name !== t.name || o.description !== t.description;
+    if (!o) return true;
+    if (o.name !== t.name || o.description !== t.description) return true;
+    const oSim = (o.similar_words || []).join("|");
+    const tSim = (t.similar_words || []).join("|");
+    return oSim !== tSim;
   });
-  if (trChanged.length || initial.translations.length !== current.translations.length)
-    push(
-      tx("Translations"),
-      `${initial.translations.length} ${tx("language(s)")}`,
-      `${current.translations.length} ${tx("language(s)")}`,
-    );
+
+  const langCountDiffers = initial.translations.length !== current.translations.length;
+  const defaultLangDiffers = initial.default_language_code !== current.default_language_code;
+
+  if (trChanged.length > 0 || langCountDiffers || defaultLangDiffers) {
+    out.push({
+      label: tx("Translations"),
+      from: tx("original"),
+      to: tx("updated"),
+    });
+  }
 
   if (current.cloud_video)
     out.push({ label: tx("Video"), from: "—", to: tx("new upload") });

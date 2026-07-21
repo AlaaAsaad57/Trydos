@@ -1180,23 +1180,22 @@ export function TranslationsSection({ form, patch, errors, disabled, isCreate }:
             </p>
           </div>
 
-          <div className="rounded-[12px] border border-[#ededed] p-4">
-            <p className="text-[13px] semibold text-[#3c3c3c] mb-3">
+          <div className="rounded-[12px] border border-[#ededed] p-4 space-y-4">
+            <p className="text-[13px] semibold text-[#3c3c3c]">
               {curLangObj.label} <span className="text-[#8e8e8e] regular text-[11px]">({curLangObj.code})</span>
             </p>
-            <Grid>
-              <Txt
-                label="Name"
-                value={tr.name}
-                disabled={disabled}
-                required
-                onChange={(v) => {
-                  setTr(defaultLang, "name", v);
-                  if (!form.name) patch({ name: v });
-                }}
-              />
-              <Txt
-                label="Description"
+            <Txt
+              label="Name"
+              value={tr.name}
+              disabled={disabled}
+              required
+              onChange={(v) => {
+                setTr(defaultLang, "name", v);
+                if (!form.name) patch({ name: v });
+              }}
+            />
+            <DashField label={t("Description")}>
+              <RichTextEditor
                 value={tr.description}
                 disabled={disabled}
                 onChange={(v) => {
@@ -1204,7 +1203,7 @@ export function TranslationsSection({ form, patch, errors, disabled, isCreate }:
                   if (!form.description) patch({ description: v });
                 }}
               />
-            </Grid>
+            </DashField>
             <SimilarWordsInput
               words={tr.similar_words || []}
               disabled={disabled}
@@ -1227,12 +1226,16 @@ export function TranslationsSection({ form, patch, errors, disabled, isCreate }:
             similar_words: [],
           };
           return (
-            <div key={l.code} className="rounded-[12px] border border-[#ededed] p-4">
-              <p className="text-[13px] semibold text-[#3c3c3c] mb-3">{l.label} <span className="text-[#8e8e8e] regular text-[11px]">({l.code})</span></p>
-              <Grid>
-                <Txt label="Name" value={tr.name} disabled={disabled} onChange={(v) => setTr(l.code, "name", v)} required={l.code === "en"} />
-                <Txt label="Description" value={tr.description} disabled={disabled} onChange={(v) => setTr(l.code, "description", v)} />
-              </Grid>
+            <div key={l.code} className="rounded-[12px] border border-[#ededed] p-4 space-y-4">
+              <p className="text-[13px] semibold text-[#3c3c3c]">{l.label} <span className="text-[#8e8e8e] regular text-[11px]">({l.code})</span></p>
+              <Txt label="Name" value={tr.name} disabled={disabled} onChange={(v) => setTr(l.code, "name", v)} required={l.code === "en"} />
+              <DashField label={t("Description")}>
+                <RichTextEditor
+                  value={tr.description}
+                  disabled={disabled}
+                  onChange={(v) => setTr(l.code, "description", v)}
+                />
+              </DashField>
               <SimilarWordsInput
                 words={tr.similar_words || []}
                 disabled={disabled}
