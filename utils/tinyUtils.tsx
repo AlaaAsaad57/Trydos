@@ -279,21 +279,7 @@ export const getVideoUrl = (
 ): string => {
   // Build transformation string
   let transformations = [];
-  if (options?.height) {
-    transformations.push(`h_${options.height}`);
-  }
-  const width = options?.width ?? 720;
-  transformations.push(`w_${width}`, "c_limit");
-  transformations.push("f_auto");
-  transformations.push("q_auto:best");
-  transformations.push("vc_auto");
-  // Default to 5s-15s if not provided
-  const start = options?.start ?? 1;
-  const end = options?.end ?? 10;
-  if (end !== -1) {
-    transformations.push(`so_${start}`);
-    transformations.push(`eo_${end}`);
-  }
+ 
 
   const transformStr = transformations.join(",");
 
