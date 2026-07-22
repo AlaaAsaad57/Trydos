@@ -9,7 +9,7 @@ created_at: 2026-07-22
 updated_at: 2026-07-22
 links:                   # OPTIONAL delivery links — metadata only, NOT workflow state
   clickup:
-  github:
+  github: https://github.com/AlaaAsaad57998/Trydos/pull/79
 ---
 
 # Ticket Record — user-based-go-laravel-routing

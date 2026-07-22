@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """PostToolUse hook — deterministic gate notification to Telegram.
 
-Fires after every Write; no-ops unless the written path is
+Fires after every Write/Edit; no-ops unless the touched path is
 `_specs/<slug>/comprehension.md` (the moment a review/verify gate reaches a
-decision). Reuses the EXISTING Alertmanager Telegram bot — configured in the
+decision — /review Writes the file, /verify Edits the existing one). Reuses the EXISTING Alertmanager Telegram bot — configured in the
 shared file `.claude/notifications.json`, with env overrides for compatibility.
 This hook:
 
@@ -164,7 +164,7 @@ def main() -> int:
     except (json.JSONDecodeError, ValueError):
         return 0  # not a hook payload we understand — never block
 
-    if event.get("tool_name") != "Write":
+    if event.get("tool_name") not in ("Write", "Edit"):
         return 0
     file_path = (event.get("tool_input") or {}).get("file_path", "")
     if not should_fire(file_path):
