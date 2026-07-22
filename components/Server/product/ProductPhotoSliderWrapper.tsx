@@ -1,6 +1,7 @@
 import ProductImageIndicator from "components/products/ProductImageIndicator";
-import ProductImagesSlider from "components/products/ProductImageSlider";
+import ActiveColorSlider from "components/products/ActiveColorSlider";
 import VirtualTryOn from "components/products/VirtualTryOn";
+import { getColorImageGroups } from "./colorImageGroups";
 
 import Image from "next/image";
 import { getCookieServer } from "utils/cookies/cookie-manager";
@@ -38,24 +39,6 @@ async function ProductPhotoSliderWrapper({
   qtyPromiseData = { ...qtyPromiseData, is_luck: redeemed_status };
 
   //   utils
-  const getImages = (productData, color): { images: any[] } => {
-    if (color && color.length > 0 && productData?.sync_color_images) {
-      const matchingColor = productData?.sync_color_images?.find(
-        (s) => s.color_option === color || s.color_name === color,
-      );
-      if (matchingColor) {
-        return matchingColor;
-      } else {
-        return productData?.sync_color_images[0];
-      }
-    } else if (
-      productData?.sync_color_images &&
-      productData?.sync_color_images[0]?.images?.length > 0
-    ) {
-      return productData?.sync_color_images[0];
-    }
-    return productData;
-  };
   const isFlashDeal = () => {
     let endDate = globalDetails.flash_deal_end_date;
     let isFlash: any = false;
@@ -285,6 +268,69 @@ async function ProductPhotoSliderWrapper({
   };
   // utils end
 
+  // Slides for every color are rendered server-side; ActiveColorSlider mounts
+  // only the set matching the live `?color` param (query-only navigations
+  // reuse the stale RSC payload, so this selection must happen on the client).
+  const renderSlides = (images) =>
+    images?.map((img, i) => (
+      <div
+        key={i}
+        className={`${i === 0 ? "z-99999999" : "z-88"} relative flex`}
+      >
+        <div
+          className={`${getRoundedClass(
+            i,
+            images?.length,
+          )} embla__slide product-slider-images relative`}
+          key={img?.file_path}
+        >
+          {getImageBorder(i, images?.length)}
+          <Image
+            className={`${getRoundedClass(i, images?.length)} w-[320px] h-[464px]`}
+            width={320}
+            height={464}
+            priority={i === 0}
+            loading={"eager"}
+            alt={globalDetails.name}
+            src={getConfiguredImage({
+              src: GetImageUrl(img),
+              width: 500,
+              height: 700,
+            })}
+          />
+          <ProductImageIndicator language={language} />
+        </div>
+        {i === 0 && (
+          <>
+            {globalDetails?.categories?.[0]?.icon && (
+              <VirtualTryOn
+                language={language}
+                product={{
+                  id: globalDetails?.id,
+                  slug: globalDetails?.slug,
+                  images: images,
+                }}
+              />
+            )}
+
+            {qtyPromiseData?.isFlash && (
+              <FlashDealBanner
+                initial={qtyPromiseData?.isFlash}
+                language={language}
+                end_data={globalDetails.flash_deal_end_date}
+              />
+            )}
+            {qtyPromiseData?.is_luck && (
+              <ProductRedeemCounter
+                language={language}
+                product_id={qtyPromiseData.id}
+              />
+            )}
+          </>
+        )}
+      </div>
+    ));
+
   return (
     <>
       <ClientLogger
@@ -299,8 +345,9 @@ async function ProductPhotoSliderWrapper({
           },
         }}
       />
-      <ProductImagesSlider
+      <ActiveColorSlider
         language={language}
+        serverColor={color}
         productGA={{
           item_id: globalDetails?.id,
           item_name: globalDetails?.name,
@@ -310,72 +357,11 @@ async function ProductPhotoSliderWrapper({
           category_id: globalDetails?.categories?.[0]?.id,
           price: qtyPromiseData?.offer_price,
         }}
-      >
-        {getImages(globalDetails, color)?.images?.map((img, i) => (
-          <div
-            key={i}
-            className={`${i === 0 ? "z-99999999" : "z-88"} relative flex`}
-          >
-            <div
-              className={`${getRoundedClass(
-                i,
-                getImages(globalDetails, color)?.images?.length,
-              )} embla__slide product-slider-images relative`}
-              key={img?.file_path}
-            >
-              {getImageBorder(
-                i,
-                getImages(globalDetails, color)?.images?.length,
-              )}
-              <Image
-                className={`${getRoundedClass(
-                  i,
-                  getImages(globalDetails, color)?.images?.length,
-                )} w-[320px] h-[464px]`}
-                width={320}
-                height={464}
-                priority={i === 0}
-                loading={"eager"}
-                alt={globalDetails.name}
-                src={getConfiguredImage({
-                  src: GetImageUrl(img),
-                  width: 500,
-                  height: 700,
-                })}
-              />
-              <ProductImageIndicator language={language} />
-            </div>
-            {i === 0 && (
-              <>
-                {globalDetails?.categories?.[0]?.icon && (
-                  <VirtualTryOn
-                    language={language}
-                    product={{
-                      id: globalDetails?.id,
-                      slug: globalDetails?.slug,
-                      images: getImages(globalDetails, color)?.images,
-                    }}
-                  />
-                )}
-
-                {qtyPromiseData?.isFlash && (
-                  <FlashDealBanner
-                    initial={qtyPromiseData?.isFlash}
-                    language={language}
-                    end_data={globalDetails.flash_deal_end_date}
-                  />
-                )}
-                {qtyPromiseData?.is_luck && (
-                  <ProductRedeemCounter
-                    language={language}
-                    product_id={qtyPromiseData.id}
-                  />
-                )}
-              </>
-            )}
-          </div>
-        ))}
-      </ProductImagesSlider>
+        slidesByColor={getColorImageGroups(globalDetails).map((group) => ({
+          keys: group.keys,
+          slides: renderSlides(group.images),
+        }))}
+      />
     </>
   );
 }
