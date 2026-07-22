@@ -2362,6 +2362,8 @@ const translations = {
   "Similar Words": "Benzer Kelimeler",
   "Type a word and press Enter": "Bir kelime yazın ve Enter'a basın",
   "Add": "Ekle",
+  "Attribute": "Öznitelik",
+  "Product updated, but attributes failed to save.": "Ürün güncellendi ancak öznitelikler kaydedilemedi.",
 };
 
 export default translations;

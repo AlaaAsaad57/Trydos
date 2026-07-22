@@ -32,6 +32,7 @@ import {
   ImageItem,
   parseDescriptorOptions,
   renderableDescriptorGroups,
+  descriptorIconUrl,
 } from "./helpers";
 import GalleryPickerModal, { PickedImage } from "./GalleryPickerModal";
 
@@ -51,6 +52,8 @@ export interface SectionProps {
   canUseGallery?: boolean;
   busy?: boolean;
   isCreate?: boolean;
+  /** Shop currency code (e.g. "SYP") overlaid on money inputs; "" = no overlay. */
+  currency?: string;
 }
 
 const t = (s: string) => translateFunction(s);
@@ -139,6 +142,7 @@ function Num({
   required,
   step = "any",
   fieldKey,
+  suffix,
 }: {
   label: string;
   value: string;
@@ -149,25 +153,34 @@ function Num({
   required?: boolean;
   step?: string;
   fieldKey?: string;
+  /** Static overlay at the input's inline end (e.g. a currency code). */
+  suffix?: string;
 }) {
   return (
     <div data-field={fieldKey}>
       <DashField label={required ? `${t(label)} *` : t(label)} error={error} hint={hint}>
-        <input
-          type="number"
-          min="0"
-          step={step}
-          value={value}
-          disabled={disabled}
-          onChange={(e) => {
-            const val = e.target.value;
-            if (val && parseFloat(val) < 0) return;
-            onChange(val);
-          }}
-          className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
-            disabled ? "opacity-70" : ""
-          }`}
-        />
+        <div className="relative">
+          <input
+            type="number"
+            min="0"
+            step={step}
+            value={value}
+            disabled={disabled}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val && parseFloat(val) < 0) return;
+              onChange(val);
+            }}
+            className={`${dashInputClass} ${suffix ? "pe-14" : ""} ${
+              error ? "border-[#f85555]" : ""
+            } ${disabled ? "opacity-70" : ""}`}
+          />
+          {suffix && (
+            <span className="absolute end-4 top-1/2 -translate-y-1/2 text-[12px] semibold text-[#8e8e8e] pointer-events-none">
+              {suffix}
+            </span>
+          )}
+        </div>
       </DashField>
     </div>
   );
@@ -344,15 +357,15 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
   );
 }
 
-export function PricingSection({ form, patch, errors, disabled }: SectionProps) {
+export function PricingSection({ form, patch, errors, disabled, currency }: SectionProps) {
   const hasVariants = combos(form).length > 0;
   return (
     <Section icon="orders" title="Pricing & Stock" desc="Prices are in your display currency; converted server-side.">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <Num label="Unit Price" fieldKey="unit_price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} onChange={(v) => patch({ unit_price: v })} />
-        <Num label="Discount Price" fieldKey="discount_price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} onChange={(v) => patch({ discount_price: v })} />
-        <Num label="Purchase Price" fieldKey="purchase_price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} onChange={(v) => patch({ purchase_price: v })} />
-        <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} disabled={disabled} onChange={(v) => patch({ luck_price: v })} />
+        <Num label="Unit Price" fieldKey="unit_price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ unit_price: v })} />
+        <Num label="Discount Price" fieldKey="discount_price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} suffix={currency} onChange={(v) => patch({ discount_price: v })} />
+        <Num label="Purchase Price" fieldKey="purchase_price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ purchase_price: v })} />
+        <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ luck_price: v })} />
         <Num
           label="Current Stock"
           fieldKey="current_stock"
@@ -365,13 +378,10 @@ export function PricingSection({ form, patch, errors, disabled }: SectionProps) 
         <Num label="Weight" value={form.weight} error={errors.weight} hint={t("Required for pc / liter")} disabled={disabled} onChange={(v) => patch({ weight: v })} />
         <Num label="Max Allowed Qty" value={form.max_allowed_qty} disabled={disabled} onChange={(v) => patch({ max_allowed_qty: v })} />
         <Num label="Pieces / Unit" value={form.count_of_pieces} error={errors.count_of_pieces} hint={t("Must be a whole number between 1 and 100")} disabled={disabled} step="1" onChange={(v) => patch({ count_of_pieces: v })} />
-        <Num label="Shipping Cost" value={form.shipping_cost} disabled={disabled} onChange={(v) => patch({ shipping_cost: v })} />
+        <Num label="Shipping Cost" value={form.shipping_cost} disabled={disabled} suffix={currency} onChange={(v) => patch({ shipping_cost: v })} />
         <Num label="Shipping Days" value={form.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
-        {/* Tax is editable again: the payload now sends both keys. The precedence
-            bug these inputs were locked for does not exist — contract §1b shows
-            only tax_type == 'flat' currency-converts. */}
-        <Num label="Tax" value={form.tax} error={errors.tax} disabled={disabled} onChange={(v) => patch({ tax: v })} />
-        <Select label="Tax Type" value={form.tax_type} disabled={disabled} onChange={(v) => patch({ tax_type: v })} options={[{ value: "percent", label: t("Percent") }, { value: "flat", label: t("Flat") }]} />
+        {/* Tax inputs are hidden for now — the payload always sends tax=0 /
+            tax_type=flat (see buildUpdateFormData). */}
       </div>
     </Section>
   );
@@ -438,52 +448,102 @@ export function CategoriesSection({ form, patch, errors, lookups, disabled, busy
  * a number. Groups with no renderable descriptors, and descriptors with no input
  * (a string_choice with no options), are dropped — never shown.
  */
-export function DescriptorsSection({ form, busy, lookups }: SectionProps) {
+/** Group / descriptor icon: the media-server file when the lookup carries one,
+ *  a muted tag placeholder otherwise (icons are decorative — empty alt). */
+function DescriptorIcon({
+  icon,
+  kind,
+  size,
+}: {
+  icon?: string;
+  kind: "group" | "descriptor";
+  size: number;
+}) {
+  const url = descriptorIconUrl(icon, kind);
+  return url ? (
+    <img
+      src={url}
+      alt=""
+      width={size}
+      height={size}
+      className="object-contain shrink-0"
+    />
+  ) : (
+    <span className="text-[#b8b8b8] shrink-0">
+      <DashIcon name="boutiques" size={size - 2} />
+    </span>
+  );
+}
+
+export function DescriptorsSection({ form, patch, disabled, busy, lookups }: SectionProps) {
   const groups = renderableDescriptorGroups(lookups.descriptor_groups || []);
 
-  // Attributes are PARKED: values are never sent (the create/update endpoints do
-  // not read them) and the edit response returns none, so there is nothing to
-  // prefill either. The section stays visible as a placeholder for the eventual
-  // feature, but every control is permanently non-interactive — regardless of
-  // edit mode — so it cannot imply a persistence it does not have.
+  // Values live as a flat descriptor_id -> value map; group ids are re-derived
+  // from lookups when the save flow builds the sync payload. Blank ≡ absent —
+  // clearing an input removes the key so full-replace semantics stay honest.
+  const setValue = (id: number, value: string) => {
+    const next = { ...form.descriptor_values };
+    if (value === "") delete next[id];
+    else next[id] = value;
+    patch({ descriptor_values: next });
+  };
 
   return (
     <Section icon="permissions" title="Attributes" desc="Set attribute values for the selected categories. All optional.">
       <div className="relative">
-        <p className="text-[12px] text-[#8e8e8e] mb-4">
-          {t("Attributes are not editable yet. This section is a preview and nothing here is saved.")}
-        </p>
         {busy && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 rounded-[12px]">
             <span className="text-[12px] medium text-[#5d5d5d]">{t("Loading…")}</span>
           </div>
         )}
-        {/* <div className={`space-y-4 ${busy ? "opacity-60 pointer-events-none" : ""}`}>
+        <div className={`space-y-4 ${busy ? "opacity-60 pointer-events-none" : ""}`}>
           {groups.length === 0 ? (
             <p className="text-[12px] text-[#b8b8b8]">{t("Select a category to see its attributes.")}</p>
           ) : (
             groups.map((g) => (
               <div key={g.id} className="rounded-[12px] border border-[#ededed] p-4">
-                <p className="text-[13px] semibold text-[#3c3c3c] mb-3">{g.name}</p>
+                <div className="flex items-center gap-2 mb-3">
+                  <DescriptorIcon icon={g.icon} kind="group" size={20} />
+                  <p className="text-[13px] semibold text-[#3c3c3c]">{g.name}</p>
+                </div>
                 <div className="space-y-4">
                   {g.descriptors.map((d) => {
                     const value = form.descriptor_values[d.id] ?? "";
                     return (
                       <div key={d.id}>
-                        <p className="text-[12px] medium text-[#505050] mb-1.5">{d.name}</p>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <DescriptorIcon icon={d.icon} kind="descriptor" size={16} />
+                          <p className="text-[12px] medium text-[#505050]">{d.name}</p>
+                        </div>
                         {d.type === "numeric" ? (
                           <input
                             type="number"
                             step="any"
                             value={value}
-                            disabled
-                            readOnly
-                            className={`${dashInputClass} max-w-[220px] opacity-70`}
+                            disabled={disabled}
+                            onChange={(e) => setValue(d.id, e.target.value)}
+                            className={`${dashInputClass} max-w-[220px] ${disabled ? "opacity-70" : ""}`}
                           />
+                        ) : disabled ? (
+                          // Read mode: show only the chosen option (mirrors the
+                          // Labels & Tags read-mode pattern).
+                          value ? (
+                            <div className="flex flex-wrap gap-2">
+                              <Chip active disabled>
+                                {value}
+                              </Chip>
+                            </div>
+                          ) : (
+                            <p className="text-[12px] text-[#b8b8b8]">{t("None")}</p>
+                          )
                         ) : (
                           <div className="flex flex-wrap gap-2">
                             {parseDescriptorOptions(d.options).map((opt) => (
-                              <Chip key={opt} active={value === opt} disabled>
+                              <Chip
+                                key={opt}
+                                active={value === opt}
+                                onClick={() => setValue(d.id, value === opt ? "" : opt)}
+                              >
                                 {opt}
                               </Chip>
                             ))}
@@ -496,7 +556,7 @@ export function DescriptorsSection({ form, busy, lookups }: SectionProps) {
               </div>
             ))
           )}
-        </div> */}
+        </div>
       </div>
     </Section>
   );
@@ -553,7 +613,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
   );
 }
 
-export function CountriesSection({ form, patch, lookups, disabled }: SectionProps) {
+export function CountriesSection({ form, patch, lookups, disabled, currency }: SectionProps) {
   const countries = lookups.countries || [];
   const language = LocalizationServiceClass.GetAppLanguage();
   const addExtra = () => patch({ extra_price_for_country: [...form.extra_price_for_country, { country_iso: "", extra_price: "" }] });
@@ -605,7 +665,14 @@ export function CountriesSection({ form, patch, lookups, disabled }: SectionProp
                       <option key={c.iso} value={c.iso}>{getLocalizedCountryName(c.iso, language)}</option>
                     ))}
                   </select>
-                  <input type="number" step="any" value={e.extra_price} disabled={disabled} placeholder={t("Extra price")} onChange={(ev) => setExtra(i, "extra_price", ev.target.value)} className={`${dashInputClass} w-[130px]`} />
+                  <div className="relative shrink-0">
+                    <input type="number" step="any" value={e.extra_price} disabled={disabled} placeholder={t("Extra price")} onChange={(ev) => setExtra(i, "extra_price", ev.target.value)} className={`${dashInputClass} w-[130px] ${currency ? "pe-12" : ""}`} />
+                    {currency && (
+                      <span className="absolute end-3 top-1/2 -translate-y-1/2 text-[11px] semibold text-[#8e8e8e] pointer-events-none">
+                        {currency}
+                      </span>
+                    )}
+                  </div>
                   {!disabled && (
                     <button type="button" onClick={() => removeExtra(i)} className="shrink-0 w-[44px] h-[44px] rounded-[12px] bg-[#fff1f1] text-[#f85555] flex items-center justify-center hover:bg-[#ffe6e6]">
                       <DashIcon name="trash" size={17} />
@@ -818,7 +885,7 @@ export function MediaSection({ form, patch, errors, disabled, onUploadImages, up
   );
 }
 
-export function VariantsSection({ form, patch, errors, lookups, disabled }: SectionProps) {
+export function VariantsSection({ form, patch, errors, lookups, disabled, currency }: SectionProps) {
   const cmb = combos(form);
 
   // Read mode shows only the chosen colors/sizes; edit mode shows the full picker.
@@ -952,8 +1019,14 @@ export function VariantsSection({ form, patch, errors, lookups, disabled }: Sect
                     const cell = (field: keyof VariantRow, w: string, type = "number") => {
                       const isSku = field === "sku";
                       const hasErr = isSku && skuErrMsg;
+                      // Money cells get the shop-currency overlay (compact, narrow cells).
+                      const suffix =
+                        currency && (field === "price" || field === "discount" || field === "luck")
+                          ? currency
+                          : "";
                       return (
                         <td className="px-1 align-top">
+                          <div className="relative w-fit">
                           <input
                             type={type}
                             min={type === "number" ? "0" : undefined}
@@ -965,10 +1038,16 @@ export function VariantsSection({ form, patch, errors, lookups, disabled }: Sect
                               if (type === "number" && val && parseFloat(val) < 0) return;
                               setVariant(c.key, field, val);
                             }}
-                            className={`${w} h-[38px] px-2.5 bg-[#f8f8f8] border ${
+                            className={`${w} h-[38px] px-2.5 ${suffix ? "pe-8" : ""} bg-[#f8f8f8] border ${
                               hasErr ? "border-[#f85555] bg-[#fff8f8]" : "border-[#ededed]"
                             } rounded-[10px] text-[13px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white`}
                           />
+                          {suffix && (
+                            <span className="absolute end-1.5 top-1/2 -translate-y-1/2 text-[10px] semibold text-[#8e8e8e] pointer-events-none">
+                              {suffix}
+                            </span>
+                          )}
+                          </div>
                           {hasErr && (
                             <span className="text-[11px] text-[#f85555] block mt-0.5 leading-tight whitespace-nowrap">
                               {skuErrMsg}

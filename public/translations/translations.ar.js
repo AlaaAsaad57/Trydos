@@ -2331,6 +2331,8 @@ const translations = {
   "Similar Words": "الكلمات المشابهة",
   "Type a word and press Enter": "اكتب كلمة واضغط على Enter",
   "Add": "إضافة",
+  "Attribute": "الخاصية",
+  "Product updated, but attributes failed to save.": "تم تحديث المنتج، لكن تعذّر حفظ الخصائص.",
 };
 
 export default translations;

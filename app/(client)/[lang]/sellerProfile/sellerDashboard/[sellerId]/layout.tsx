@@ -1,6 +1,7 @@
 import React from "react";
 import { redirect } from "next/navigation";
 import { getSellerShopsCached } from "serverRequests/settings/sellerShopsGuard";
+import ShopInfoLoader from "components/SellerDashboard/ShopInfoLoader";
 
 async function layout({
   children,
@@ -27,7 +28,13 @@ async function layout({
     redirect(`/${lang}`);
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {/* Dashboard-wide shop info (currency) — fetched once per shop. */}
+      <ShopInfoLoader sellerId={sellerId} />
+      {children}
+    </>
+  );
 }
 
 export default layout;

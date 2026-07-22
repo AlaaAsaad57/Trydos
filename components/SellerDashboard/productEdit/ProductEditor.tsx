@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useSellerProfile } from "../../../app/(client)/[lang]/sellerProfile/SellerProfileContext";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, LogError } from "utils/functions";
+import { useAppStore } from "store";
 import {
   showErrorMessage,
   showSuccessMessage,
@@ -18,6 +19,7 @@ import {
   InlineAlert,
 } from "components/SellerDashboard/ui";
 import {
+  buildDescriptorSyncPayload,
   buildDiff,
   buildFormFromEdit,
   buildUpdateFormData,
@@ -30,6 +32,7 @@ import {
   Lookups,
   mapServerErrors,
   ProductForm,
+  sameDescriptorValues,
   scrollToFirstError,
   validate,
 } from "./helpers";
@@ -85,6 +88,14 @@ export default function ProductEditor({
   const isCreate = mode === "create";
   const { sellerProducts, sellerPermissions, setSellerPermissions } =
     useSellerProfile();
+
+  // Shop currency (fetched dashboard-wide by ShopInfoLoader). Only trusted when
+  // it belongs to THIS shop — otherwise the inputs render without an overlay.
+  const dashboardShopInfo = useAppStore((s) => s.dashboardShopInfo);
+  const currency =
+    dashboardShopInfo?.sellerId === sellerId
+      ? dashboardShopInfo.currency.code
+      : "";
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -192,7 +203,9 @@ export default function ProductEditor({
       const product = res.data?.product;
       const lk = (res.data?.lookups || {}) as Lookups;
       if (!product) throw new Error("Product not found");
-      const built = buildFormFromEdit(product, lk);
+      // Saved descriptor values sit beside product/lookups on the edit
+      // response (data.descriptor_values[] — product-descriptors-edit.md).
+      const built = buildFormFromEdit(product, lk, res.data?.descriptor_values);
       baseLookups.current = lk;
       catCache.current = new Map();
       setLookups(lk);
@@ -494,14 +507,52 @@ export default function ProductEditor({
         handleSaveRejection(res, t("Failed to update product"));
         return;
       }
+      // Descriptors persist through their own full-replace endpoint (same
+      // UPDATE_PRODUCT permission as this save). Synced only when they actually
+      // changed, so an ordinary field edit can never touch the stored set.
+      let savedForm = form;
+      let descriptorsOk = true;
+      if (
+        !sameDescriptorValues(
+          initial?.descriptor_values || {},
+          form.descriptor_values,
+        )
+      ) {
+        const dres = await SellerDashboardService.syncProductDescriptors(
+          sellerId,
+          productId as string,
+          buildDescriptorSyncPayload(
+            form.descriptor_values,
+            lookups?.descriptor_groups || [],
+          ),
+        );
+        if (!dres?.success) {
+          // Product fields saved but attributes did not — roll the form back to
+          // the stored set so the page never shows an unsaved value as saved.
+          descriptorsOk = false;
+          savedForm = {
+            ...form,
+            descriptor_values: initial?.descriptor_values || {},
+          };
+          setForm(savedForm);
+          LogError({
+            scenario: "ProductEditor.syncDescriptors",
+            error: dres?.message ?? "rejected",
+            detailed: dres?.detailed_error,
+            productId,
+          });
+          showErrorMessage(t("Product updated, but attributes failed to save."));
+        }
+      }
       // success
       setConfirm(null);
-      setInitial(form);
+      setInitial(savedForm);
       setEditMode(false);
       setErrors({});
       const requiresApproval = !!res.data?.requires_approval;
       setApprovalNote(requiresApproval);
-      if (!requiresApproval) showSuccessMessage(t("Product updated successfully."));
+      if (!requiresApproval && descriptorsOk)
+        showSuccessMessage(t("Product updated successfully."));
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : String(e);
       LogError({ scenario: "ProductEditor.update", error: msg, productId: productId ?? "new" });
@@ -649,6 +700,7 @@ export default function ProductEditor({
     canUseGallery: has("READ_PRODUCT_IMAGES"),
     busy: catLoading,
     isCreate,
+    currency,
   };
 
   const cover = form.images[0]?.url || listProduct?.images?.[0];
@@ -805,7 +857,10 @@ export default function ProductEditor({
       <VariantsSection {...sectionProps} />
       <MediaSection {...sectionProps} />
       <CategoriesSection {...sectionProps} />
-      <DescriptorsSection {...sectionProps} />
+      {/* Attributes sync through their own edit-flow endpoint (needs a product
+          id + UPDATE_PRODUCT), so create never shows the section — the seller
+          adds them from the edit screen after creation, like videos. */}
+      {!isCreate && <DescriptorsSection {...sectionProps} />}
       <ClassificationSection {...sectionProps} />
       <CountriesSection {...sectionProps} />
       {/* The create endpoint ignores cloud_video / remove_videos and always stores

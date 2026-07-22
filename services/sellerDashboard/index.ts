@@ -867,6 +867,28 @@ class SellerDashboardService {
     };
   }
 
+  // POST /shop/products/{id}/descriptors — UPDATE_PRODUCT | SUPER_ADMIN
+  // Full-replace sync (product-descriptors-edit.md): the body's
+  // {descriptor_group_id: {descriptor_id: value}} map becomes the product's
+  // COMPLETE new descriptor set — anything stored but not sent is deleted, and
+  // {} clears all. Validation is all-or-nothing; a 422 lists every problem in
+  // detailed_error. Edit flow only — create has no product id to sync against.
+  async syncProductDescriptors(
+    sellerId: string,
+    productId: string | number,
+    descriptors: Record<string, Record<string, string>>,
+  ) {
+    return fetchData({
+      url: `/shop/products/${productId}/descriptors`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.SYNC_PRODUCT_DESCRIPTORS,
+      body: JSON.stringify({ descriptors }),
+      sellerId,
+      noMessage: true,
+    });
+  }
+
   // POST /shop/products — CREATE_PRODUCT | SUPER_ADMIN
   // Same multipart body as update (buildUpdateFormData) — both endpoints feed the
   // same service layer. Returns `data.product_id`; on a requires-approval seller
