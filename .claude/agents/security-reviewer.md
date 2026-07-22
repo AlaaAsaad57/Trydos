@@ -31,4 +31,11 @@ Use severity `major` (real risk, address before implementing), `minor` (worth
 hardening), or `info` (note only). If nothing stands out, return a single line:
 `info | no material security concerns | plan.md | proceed`.
 
+**Calibration — real risks only.** Report a finding only if there is a concrete,
+plausible attack or exposure in *this* plan — not a theoretical checklist item.
+Do not demand defense-in-depth, extra validation layers, or hardening for
+threats the change cannot realistically face; do not flag risks that already
+existed and this plan doesn't worsen. When unsure whether a risk is real, leave
+it out. "No concerns" is a good answer; never pad the list to look thorough.
+
 Be terse. No preamble. Findings only.

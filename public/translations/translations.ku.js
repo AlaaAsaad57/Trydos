@@ -2382,6 +2382,8 @@ const translations = {
   "Similar Words": "وشە هاوشێوەکان",
   "Type a word and press Enter": "وشەیەک بنووسە و داگری Enter",
   "Add": "زیادکردن",
+  "Attribute": "تایبەتمەندی",
+  "Product updated, but attributes failed to save.": "بەرهەم نوێکرایەوە، بەڵام تایبەتمەندییەکان پاشەکەوت نەکران.",
 };
 
 export default translations;

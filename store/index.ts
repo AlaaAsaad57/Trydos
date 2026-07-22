@@ -34,6 +34,18 @@ type AppState = ReturnType<typeof useAuthStore> &
     checkCameraPermissions: () => Promise<void>;
     sellerOrders: any[];
     setSellerOrders: (orders: any[] | ((prev: any[]) => any[])) => void;
+    // Seller-dashboard shop info (GET /shop/info), keyed by sellerId so a
+    // shop switch never shows a stale currency.
+    dashboardShopInfo: {
+      sellerId: string;
+      currency: { code: string; name: string };
+    } | null;
+    setDashboardShopInfo: (
+      info: {
+        sellerId: string;
+        currency: { code: string; name: string };
+      } | null
+    ) => void;
   };
 
 // Create the combined store with hydration support
@@ -49,6 +61,10 @@ export const useAppStore = create<AppState>()(
       ...useSearchStore(set, get),
       ...useCartStore(set, get),
       ...useLuckStore(set, get),
+
+      dashboardShopInfo: null,
+      setDashboardShopInfo: (value: any) =>
+        set({ dashboardShopInfo: value }, false, "setDashboardShopInfo"),
 
       cameraPermissions: "asked",
       setCameraPermissions: (value: any) => set({ cameraPermissions: value }),

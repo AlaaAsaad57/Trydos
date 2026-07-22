@@ -16,6 +16,14 @@ and owns success-closure.
 Its only writes are `verify.md` and `ticket.md`. (Committing is exclusively the
 job of `/publish-pr`, the single git delivery boundary — PB-8 / ADR-008.)
 
+**Signal over noise — do not over-react or over-engineer.** Verify against the
+spec's acceptance criteria, nothing more. FAIL only for a real defect: an AC
+that demonstrably does not hold, a genuine bug, or a planned change that is
+missing. Do not fail (or clutter `verify.md` with) style preferences,
+hypothetical edge cases outside the ACs, or improvements the spec never asked
+for — out-of-scope observations are at most a one-line note, never a failure.
+A clean PASSED with no caveats is a valid, good outcome.
+
 Authoritative references (apply, do not reinvent):
 - Command contract: `.claude/docs/command-architecture.md` (`/verify`)
 - **Validation: `.claude/rules/validation-model.md` — apply rule codes only; no
@@ -55,6 +63,9 @@ Before validating, the owner must show they understand what was built:
 3. Record, under the **verify** section of `_specs/<slug>/comprehension.md`
    (create it from the template if absent; do **not** overwrite the `review`
    section): each question, its options, the selected answer, and whether it was correct.
+   In the same edit, set the front-matter `stage: verify` and bump `updated:` —
+   `stage` is "the gate that last updated this record" and the gate-notification
+   hook reads it to name the gate in the Telegram notice.
 4. **Pass = 100% correct (CG-4).** If **any** answer is wrong, record **no** PASSED
    and leave `ticket.md` unchanged (atomic); report the missed questions and stop —
    the owner re-reads and re-runs `/verify`. Proceed only when every answer is correct.

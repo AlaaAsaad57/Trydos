@@ -96,6 +96,21 @@ export function parseDescriptorOptions(raw: string | string[] | undefined | null
   }
 }
 
+/** Descriptor icons arrive as bare media filenames (e.g.
+ *  "i1j2xltuht2paphse33h.svg"); the media server hosts them under a fixed
+ *  per-kind folder. Returns "" when there is no icon (caller shows a
+ *  placeholder), and passes through an already-absolute URL untouched. */
+export function descriptorIconUrl(
+  icon: string | undefined | null,
+  kind: "group" | "descriptor",
+): string {
+  if (!icon || typeof icon !== "string") return "";
+  if (icon.startsWith("http")) return icon;
+  const folder =
+    kind === "group" ? "descriptors/descriptor_groups" : "descriptors/descriptors";
+  return `${process.env.NEXT_PUBLIC_BASE_MEDIA_URL}/${folder}/${icon}`;
+}
+
 /** A descriptor is renderable in the editor when the seller can supply a value:
  *  numeric always (free number input); string_choice only if it has options. */
 export function descriptorHasInput(d: DescriptorLookup): boolean {
@@ -109,6 +124,57 @@ export function renderableDescriptorGroups(groups: DescriptorGroup[]): Descripto
   return (groups || [])
     .map((g) => ({ ...g, descriptors: (g.descriptors || []).filter(descriptorHasInput) }))
     .filter((g) => g.descriptors.length > 0);
+}
+
+/** Edit-response `descriptor_values[]` rows
+ *  ({descriptor_group_id, descriptor_id, value}) -> the form's flat
+ *  descriptor_id -> value map. Group ids are re-derived from lookups on save. */
+export function flattenDescriptorValues(
+  rows: any[] | undefined | null,
+): Record<number, string> {
+  const out: Record<number, string> = {};
+  for (const r of rows || []) {
+    const id = Number(r?.descriptor_id);
+    if (!Number.isFinite(id) || id <= 0) continue;
+    const v = r?.value;
+    // "null"/null mean "no value" on the wire (product-descriptors-edit.md).
+    if (v === null || v === undefined || v === "" || v === "null") continue;
+    out[id] = String(v);
+  }
+  return out;
+}
+
+/** Form state -> the sync endpoint's {descriptor_group_id: {descriptor_id:
+ *  value}} map-of-maps (product-descriptors-edit.md). Full-replace semantics:
+ *  the returned map IS the product's complete new set, so blank values are
+ *  simply omitted — omission deletes them server-side. */
+export function buildDescriptorSyncPayload(
+  values: Record<number, string>,
+  groups: DescriptorGroup[],
+): Record<string, Record<string, string>> {
+  const out: Record<string, Record<string, string>> = {};
+  for (const g of groups || []) {
+    for (const d of g.descriptors || []) {
+      const v = values?.[d.id];
+      if (v === undefined || String(v).trim() === "") continue;
+      (out[String(g.id)] ||= {})[String(d.id)] = String(v);
+    }
+  }
+  return out;
+}
+
+/** Equality over the *effective* descriptor set (blank ≡ absent), so an
+ *  untouched section never triggers a sync — and a save where nothing changed
+ *  can never full-replace (i.e. wipe) the stored set by accident. */
+export function sameDescriptorValues(
+  a: Record<number, string>,
+  b: Record<number, string>,
+): boolean {
+  const norm = (m: Record<number, string>) =>
+    Object.entries(m || {}).filter(([, v]) => String(v ?? "").trim() !== "");
+  const ea = norm(a);
+  const mb = new Map(norm(b));
+  return ea.length === mb.size && ea.every(([k, v]) => mb.get(k) === v);
 }
 
 export interface Lookups {
@@ -421,6 +487,7 @@ export function buildSyncColorImages(form: ProductForm) {
 export function buildFormFromEdit(
   product: any,
   lookups: Lookups,
+  descriptorRows?: any[],
 ): ProductForm {
   const colorByCode = new Map(
     (lookups.colors || []).map((c) => [String(c.code).toUpperCase(), c]),
@@ -554,9 +621,10 @@ export function buildFormFromEdit(
     sub_sub_category_id: [...(sel.sub_sub || [])],
     labels: [...(product.labels || [])],
     tags_ids: [...(product.tags_ids || [])],
-    // The edit response returns no saved descriptor values, so edit mode starts
-    // empty (see docs follow-up: backend needs a selected-descriptors field).
-    descriptor_values: {},
+    // Saved values arrive as a flat sibling list on the edit response
+    // (data.descriptor_values[] — product-descriptors-edit.md), not on the
+    // product object, so the caller passes them alongside.
+    descriptor_values: flattenDescriptorValues(descriptorRows),
     countries_iso: [...(product.restricted_countries_iso || [])],
     extra_price_for_country: (product.extra_price_for_country || []).map(
       (e: any) => ({
@@ -773,8 +841,8 @@ const ERROR_CODE_FIELDS = new Set([
   "count_of_pieces",
   "shipping_cost",
   "shipping_days",
-  "tax",
-  "tax_type",
+  // tax / tax_type removed: their inputs are hidden, so a server error keyed to
+  // them would highlight nothing — it falls through to the general message.
   "category_id",
   "description",
   "images",
@@ -864,13 +932,12 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
   set("count_of_pieces", form.count_of_pieces === "" ? "1" : form.count_of_pieces);
   set("shipping_cost", form.shipping_cost === "" ? "0" : form.shipping_cost);
   set("shipping_days", form.shipping_days === "" ? "0" : form.shipping_days);
-  // tax / tax_type ARE sent. An earlier comment here claimed a server
-  // operator-precedence bug made any truthy tax_type currency-convert `tax` as a
-  // flat amount; the code-verified contract §1b (DTO:225-228,599-602) disproves
-  // it — only tax_type == 'flat' converts, anything else behaves as percent.
-  // tax_type must therefore be exactly 'flat' or 'percent'.
-  set("tax", form.tax === "" ? "0" : form.tax);
-  set("tax_type", form.tax_type === "flat" ? "flat" : "percent");
+  // Tax inputs are hidden from the form for now — always send a fixed zero flat
+  // tax (tax_type must be exactly 'flat' or 'percent'; only 'flat' currency-
+  // converts, contract §1b). The ProductForm fields still exist/hydrate, they
+  // are just never user-edited or sent.
+  set("tax", "0");
+  set("tax_type", "flat");
 
   // Always present, always an explicit boolean — the create DTO rejects a missing
   // key ("must be true or false"), so the previous "send 'on' / omit to disable"
@@ -903,13 +970,10 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
 
   form.labels.forEach((id) => fd.append("labels[]", String(id)));
   form.tags_ids.forEach((id) => fd.append("tags_ids[]", String(id)));
-  // descriptor_values is deliberately NOT sent, and this is a product decision
-  // rather than missing knowledge: the contract documents both the create/update
-  // behaviour (`descriptors` is never read — §1i) and the dedicated endpoint
-  // (POST /shop/products/{id}/descriptors). Descriptors are PARKED — the section
-  // renders read-only and the endpoint stays unused until the feature is revived.
-  // The edit response also returns no saved values, so there is no read path to
-  // prefill from. Nothing about descriptors reaches the payload or the save diff.
+  // descriptor_values is deliberately NOT sent here: the create/update endpoints
+  // never read a `descriptors` key (contract §1i). Descriptors persist through
+  // their own full-replace endpoint (POST /shop/products/{id}/descriptors —
+  // product-descriptors-edit.md), which the edit save flow calls separately.
 
   form.countries_iso.forEach((iso) => fd.append("countries_iso[]", iso));
   fd.append(
@@ -1027,10 +1091,9 @@ const SCALARS: [keyof ProductForm, string][] = [
   ["count_of_pieces", "Pieces / Unit"],
   ["shipping_cost", "Shipping Cost"],
   ["shipping_days", "Shipping Days"],
-  // tax / tax_type are sent again (see buildUpdateFormData), so they belong in the
-  // diff — payload and confirm dialog must stay in step.
-  ["tax", "Tax"],
-  ["tax_type", "Tax Type"],
+  // tax / tax_type are NOT diffed: the inputs are hidden and the payload always
+  // sends the forced 0/flat (see buildUpdateFormData), so a stored non-zero tax
+  // would otherwise show as a phantom change on every save.
   ["meta_title", "Meta Title"],
   ["meta_description", "Meta Description"],
   ["origin_country_iso", "Origin Country"],
@@ -1095,9 +1158,25 @@ export function buildDiff(
     cnt("Labels", initial.labels, current.labels);
   if (!eqArr(initial.tags_ids, current.tags_ids))
     cnt("Tags", initial.tags_ids, current.tags_ids);
-  // Descriptors are intentionally absent from the diff: they are never sent
-  // (see buildUpdateFormData) and the section is read-only, so showing them here
-  // would tell the seller a change is about to be saved when none is.
+  // Descriptors: one row per changed attribute, named from the (merged) lookups.
+  // They persist through their own sync endpoint but ride the same Save action,
+  // so they belong in the same confirm diff.
+  const descName = new Map(
+    (lookups.descriptor_groups || [])
+      .flatMap((g) => g.descriptors || [])
+      .map((d) => [d.id, d.name]),
+  );
+  const descIds = new Set([
+    ...Object.keys(initial.descriptor_values || {}),
+    ...Object.keys(current.descriptor_values || {}),
+  ]);
+  for (const id of descIds) {
+    push(
+      `${tx("Attribute")}: ${descName.get(Number(id)) || `#${id}`}`,
+      initial.descriptor_values?.[Number(id)],
+      current.descriptor_values?.[Number(id)],
+    );
+  }
   if (!eqArr(initial.countries_iso, current.countries_iso))
     cnt("Restricted Countries", initial.countries_iso, current.countries_iso);
 
