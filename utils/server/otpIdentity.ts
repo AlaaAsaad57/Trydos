@@ -81,7 +81,6 @@ export interface OtpIdentity {
   /** True when a guest had to be registered to obtain a user id. */
   registeredGuest: boolean;
   hasMarketToken: boolean;
-  hasDeviceToken: boolean;
   /** The durable visit id the session key is derived from (debug only). */
   visitId: string;
   /** True when this request had to mint a fresh visit id. */
@@ -139,7 +138,7 @@ async function readUserId(): Promise<string | null> {
 /**
  * Register a guest to obtain a durable user id when none exists yet (rare — a
  * user id is normally present after the very first request). Persists the fresh
- * `DEVICE-TOKEN` / `User-Data` cookies (best effort; only succeeds in a Server
+ * `MARKET-TOKEN` / `User-Data` cookies (best effort; only succeeds in a Server
  * Action / Route Handler) and returns the new user id, or null on failure.
  */
 async function registerGuestForOtp(): Promise<string | null> {
@@ -148,9 +147,7 @@ async function registerGuestForOtp(): Promise<string | null> {
     const local = cookieStore.get(COOKIE_NAMES.LOCAL)?.value || "gb-en";
     const [country, language] = local.split("-");
     const existing = await getCookieServer<any>(COOKIE_NAMES.USER_DATA);
-    const token =
-      cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ??
-      cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value;
+    const token = cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value;
 
     const call = (body: Record<string, unknown>) =>
       fetch(process.env.GO_BACKEND_URL + REGISTER_GUEST_URL, {
@@ -184,7 +181,7 @@ async function registerGuestForOtp(): Promise<string | null> {
     try {
       if (data?.data?.token) {
         cookieStore.set({
-          name: COOKIE_NAMES.DEVICE_TOKEN,
+          name: COOKIE_NAMES.MARKET_TOKEN,
           value: data.data.token,
           ...SECURE_COOKIE_OPTIONS,
         });
@@ -214,7 +211,7 @@ async function registerGuestForOtp(): Promise<string | null> {
  *
  * The session key (`sid`) is derived from the durable VISIT-ID cookie, not the
  * auth token OR the user-data id. Both of those rotate within a single session
- * (a guest re-register on 401 mints a fresh `DEVICE-TOKEN`; the brand-new-guest
+ * (a guest re-register on 401 mints a fresh `MARKET-TOKEN`; the brand-new-guest
  * retry path mints a fresh user id), which would reset the per-session OTP
  * counter and hand an attacker a free way to bypass the cap. The visit id is
  * minted once and never cleared by any code path, so it can't be rotated away.
@@ -237,7 +234,6 @@ export async function resolveOtpIdentity(
   }
 
   const marketToken = cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value;
-  const deviceToken = cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value;
 
   const rawIp =
     hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -255,7 +251,6 @@ export async function resolveOtpIdentity(
     hasUserId: Boolean(userId),
     registeredGuest,
     hasMarketToken: Boolean(marketToken),
-    hasDeviceToken: Boolean(deviceToken),
     visitId,
     mintedVisitId,
   };

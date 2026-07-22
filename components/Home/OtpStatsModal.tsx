@@ -176,10 +176,7 @@ function OtpStatsModal({ onClose }: { onClose: () => void }) {
               <Row k="Session key" v={data.identity.sid} />
               <Row
                 k="Tokens"
-                v={
-                  (data.identity.hasMarketToken ? "MARKET " : "") +
-                    (data.identity.hasDeviceToken ? "DEVICE" : "") || "none (anon)"
-                }
+                v={data.identity.hasMarketToken ? "MARKET" : "none (anon)"}
               />
             </div>
 

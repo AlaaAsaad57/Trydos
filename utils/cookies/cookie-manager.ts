@@ -36,6 +36,11 @@ export const COOKIE_NAMES = {
   LOCAL: "local",
   WALLET_USER: "WALLET_USER",
   WALLET_TOKEN: "rdb_at",
+  /**
+   * LEGACY — the guest JWT now lives in MARKET_TOKEN (single auth cookie).
+   * Never read or set this; it remains listed only so logout/cleanup paths can
+   * purge the stale cookie from browsers that still carry it.
+   */
   DEVICE_TOKEN: "DEVICE-TOKEN",
   USER_DATA: "User-Data",
   MARKET_TOKEN: "MARKET-TOKEN",

@@ -27,7 +27,7 @@ host is chosen at request time by `isFromGoApi(url)` in
 | false | `NEXT_PUBLIC_BACKEND_URL` | **Laravel** monolith |
 
 Client calls route via `/api/proxy`; server calls (`serverRequests/*`) build the
-full URL directly. Token: `MARKET-TOKEN` → falls back to `DEVICE-TOKEN` (guest);
+full URL directly. Token: `MARKET-TOKEN` (single auth cookie — guest or logged-in);
 on 401 a guest is auto-registered against Go `/auth/register-guest` and retried.
 `market-dashboard` **never resolves to Go**.
 
@@ -44,8 +44,8 @@ Channel legend: `market` = client `fetchData`; `market·srv` = server-side
 | 2 | Boot/settings | `/web/home/startingSettings` | GET | market·srv | **Go** | serverRequests/index.tsx · `GetStarttingSetting` | Starting-settings bundle (order_group_statuses) |
 | 3 | Boot/settings | `/web/home/startingSettings?language=…` | GET | market | **Go** | services/home.ts · `getClientData` | Starter/home settings |
 | 4 | Boot/settings | `/web/home/startingSettings` | GET | market | **Go** | settings/PersonalInfoCountries.tsx · `changeCountry` | Starter settings after country switch |
-| 5 | Boot/settings | `/home/currency?lang=…&country=…` | GET | market·srv | **Go** | serverRequests/currency.ts · `fetchCurrency` | Currency / exchange-rate (Redis-cached) |
-| 6 | Boot/settings | `/home/currency` | GET | market | **Go** | utils/tinyUtils.tsx · `getCurrency` | Active currency + exchange rate |
+| 5 | Boot/settings | `/mobile/home/currency?lang=…&country=…` | GET | market·srv | **Go** | serverRequests/currency.ts · `fetchCurrency` | Currency / exchange-rate (Redis-cached) |
+| 6 | Boot/settings | `/mobile/home/currency` | GET | market | **Go** | utils/tinyUtils.tsx · `getCurrency` | Active currency + exchange rate |
 | 7 | Boot/settings | `/countries` | GET | market·srv | Laravel | serverRequests/product.tsx · `GetCountries` | Country list (Redis-cached) |
 | 8 | Boot/settings | `/customer/info` | GET | market | **Go** | services/home.ts · `getCustomerInfo` | Fetch customer info |
 | 9 | Notifications | `/firebase_device_tokens` | POST | market | **Go** | utils/firebaseInitv1.tsx · `registerFcmToken` | Register FCM device token |

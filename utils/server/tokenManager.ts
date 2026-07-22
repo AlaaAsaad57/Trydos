@@ -47,7 +47,10 @@ const ALLOWED_SERVERS: ProxiedServer[] = [
   "market-dashboard",
 ];
 
-// All cookie names that hold sensitive tokens — must be HttpOnly
+// All cookie names that hold sensitive tokens — must be HttpOnly.
+// DEVICE_TOKEN is legacy (guest JWTs now live in MARKET_TOKEN); it stays in
+// this list ONLY so logout still purges the stale cookie from old browsers —
+// nothing reads or sets it anymore.
 const SECURE_COOKIE_NAMES = [
   COOKIE_NAMES.MARKET_TOKEN,
   COOKIE_NAMES.DEVICE_TOKEN,
@@ -63,7 +66,7 @@ const SECURE_COOKIE_NAMES = [
 
 const GO_APIS = [
   "/auth/register-guest",
-  "/home/currency",
+  "/mobile/home/currency",
   "/web/home/startingSettings",
   "/checklist",
   "/firebase_device_tokens/validate_token",
@@ -112,11 +115,75 @@ export const isFromGoApi = (url: string) =>{
   if(url.startsWith('/checklist')) return true;
   if(GO_API_PREFIXES.some((prefix) => normalizedUrl.includes(prefix))) return true;
  return GO_APIS.some((endpoint) => normalizedUrl.endsWith(endpoint))};
-function getServerBaseUrl(server: ProxiedServer, url: string): string {
+
+// ---------- Verified-user routing (market only) ----------
+
+// "Verified" = the User-Data profile carries a valid phone. Placeholder values
+// written by guest flows are explicitly NOT valid. Single source of truth for
+// the whole app — never re-implement this check at a call site.
+export const hasValidPhone = (userData: any): boolean => {
+  const phone = userData?.phone;
+  if (phone === undefined || phone === null || phone === 0 || phone === "0")
+    return false;
+  return String(phone).trim() !== "";
+};
+
+// Evaluated fresh on EVERY request from the current User-Data cookie — no
+// caching, no session stickiness. The whole read (including cookies()) sits
+// inside the try/catch so contexts without request cookies (build/static
+// render) and malformed cookies fail open to guest routing instead of
+// throwing. Routing is a load-steering decision, never an authorization
+// decision — authz stays with the backends' JWT checks.
+export async function isVerifiedMarketUser(): Promise<boolean> {
+  try {
+    const userData = await getSecureCookie<any>(COOKIE_NAMES.USER_DATA);
+    return hasValidPhone(userData);
+  } catch {
+    return false;
+  }
+}
+
+// Base URL for the server-side market fetchers that used to hardcode
+// GO_BACKEND_URL. Deliberately does NOT consult isFromGoApi: likesDetails is
+// hardcoded-to-Go today while NOT allow-listed, so consulting the list would
+// flip guests to Laravel and change guest behavior. Verified → Laravel;
+// guest/tokenless → Go (exactly today's behavior).
+export async function getMarketFetchBase(): Promise<string> {
+  const verified = await isVerifiedMarketUser();
+  if (process.env.NODE_ENV !== "production")
+    console.log("[MarketRouting]", {
+      source: "server-fetch",
+      verified,
+      backend: verified ? "laravel" : "go",
+    });
+  if (verified) return process.env.BACKEND_URL || "";
+  return process.env.GO_BACKEND_URL || "";
+}
+
+async function getServerBaseUrl(
+  server: ProxiedServer,
+  url: string,
+): Promise<string> {
 
   switch (server) {
-    case "market":
+    case "market": {
+      // Verified users (valid phone in User-Data) are served ENTIRELY by
+      // Laravel — the Go allow-list is bypassed for them. Guests/tokenless
+      // visitors keep the URL-only routing below.
+      const verified = await isVerifiedMarketUser();
+      const useGo = !verified && isFromGoApi(url);
+      if (process.env.NODE_ENV !== "production")
+        console.log("[MarketRouting]", {
+          source: "proxy",
+          url,
+          verified,
+          backend: useGo ? "go" : "laravel",
+        });
+      if (useGo) return process.env.GO_BACKEND_URL || "";
+      return process.env.BACKEND_URL || "";
+    }
     case "market-dashboard": {
+      // URL-only routing, unchanged — the user-based rule is market-only.
       if (isFromGoApi(url)) return process.env.GO_BACKEND_URL || "";
       return process.env.BACKEND_URL || "";
     }
@@ -151,11 +218,9 @@ async function getTokenForServer(server: ProxiedServer): Promise<string> {
       return cookieStore.get(COOKIE_NAMES.CHAT_TOKEN)?.value || "";
     case "market":
     case "market-dashboard":
-      return (
-        cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ||
-        cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ||
-        ""
-      );
+      // Single auth cookie: MARKET_TOKEN holds the guest OR logged-in JWT.
+      // DEVICE_TOKEN is legacy and is never read (kept only in the cleanup lists).
+      return cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value || "";
     case "stories":
       // Auth from the dedicated STORIES_TOKEN cookie (48h). Refreshed on re-auth
       // by /api/auth/update-user; USER_STORIES holds profile data only.
@@ -222,7 +287,6 @@ async function getCurrentUser() {
     storiesUser: sanitizeServiceUser(userStories),
     walletUser: sanitizeWalletUser(walletUser),
     isAuthenticated: Boolean(userData),
-    hasDeviceToken: Boolean(cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value),
     hasMarketToken: Boolean(cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value),
   };
 }

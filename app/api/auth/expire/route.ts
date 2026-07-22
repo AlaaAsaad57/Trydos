@@ -15,7 +15,7 @@ const REGISTER_GUEST_URL = "/auth/register-guest";
  * Handles market token expiration:
  * 1. Clears stale tokens (MARKET_TOKEN, CHAT_TOKEN, STORIES_TOKEN)
  * 2. Marks chat/stories users as needing re-auth
- * 3. Re-registers as guest via backend, sets DEVICE_TOKEN cookie in this response
+ * 3. Re-registers as guest via backend, sets the fresh guest MARKET_TOKEN cookie in this response
  */
 export async function POST(request: NextRequest) {
   try {
@@ -120,11 +120,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Set DEVICE_TOKEN and USER_DATA in this response — client receives them
+    // 4. Set the guest MARKET_TOKEN and USER_DATA in this response — client receives them
     const cookieStore = await cookies();
     if (data.data?.token) {
       cookieStore.set({
-        name: COOKIE_NAMES.DEVICE_TOKEN,
+        name: COOKIE_NAMES.MARKET_TOKEN,
         value: data.data.token,
         ...SECURE_COOKIE_OPTIONS,
       });

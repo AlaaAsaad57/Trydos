@@ -332,7 +332,6 @@ class HomeService {
     let userChat: any = null;
     let userStories: any = null;
     let userWallet: any = null;
-    let hasDeviceToken = false;
     let hasMarketToken = false;
 
     const meData = await fetchAuthMe();
@@ -341,7 +340,6 @@ class HomeService {
       userChat = meData.chatUser;
       userStories = meData.storiesUser;
       userWallet = meData.walletUser;
-      hasDeviceToken = meData.hasDeviceToken;
       hasMarketToken = meData.hasMarketToken;
     }
 
@@ -350,7 +348,9 @@ class HomeService {
       SetGAUser(userData, false);
     }
 
-    if (!hasDeviceToken) await this.RegisterDevice();
+    // MARKET_TOKEN is the single auth cookie (guest or logged-in) — register a
+    // guest only when no token exists at all.
+    if (!hasMarketToken) await this.RegisterDevice();
 
     if (userData && userData?.is_phone_verified === 1 && hasMarketToken) {
       if (process.env.NODE_ENV === "production")

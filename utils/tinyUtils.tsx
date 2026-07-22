@@ -31,7 +31,7 @@ export const clearAllUserData = async () => {
 export const getCurrency = async ({ callback }) => {
   try {
     let response = await fetchData({
-      url: "/home/currency",
+      url: "/mobile/home/currency",
       reqTitle: REQUESTS_DATA.CURRENCY_REQUEST,
       method: "GET",
       server: "market",
@@ -40,8 +40,12 @@ export const getCurrency = async ({ callback }) => {
     if (!response.success) {
       throw new Error(response.message);
     }
-    callback({ currency: response.data, res: {} });
-    return response.data;
+    // /mobile/home/currency nests the fields under data.currency (legacy
+    // /home/currency returned them flat) — unwrap to the flat shape the store
+    // consumers read (currency?.exchange_rate, currency?.symbol, ...).
+    const currency = response.data?.currency ?? response.data;
+    callback({ currency, res: {} });
+    return currency;
   } catch (err) {
     LogError({
       scenario: "getCurrency in ProductPageData",

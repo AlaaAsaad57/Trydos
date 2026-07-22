@@ -81,11 +81,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(data, { status: response.status });
     }
 
-    // Set device token as HttpOnly cookie
+    // Set the guest token as the single MARKET_TOKEN HttpOnly cookie
     const cookieStore = await cookies();
     if (data.data?.token) {
       cookieStore.set({
-        name: COOKIE_NAMES.DEVICE_TOKEN,
+        name: COOKIE_NAMES.MARKET_TOKEN,
         value: data.data.token,
         ...SECURE_COOKIE_OPTIONS,
       });

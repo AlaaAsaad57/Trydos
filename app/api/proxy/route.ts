@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     // the backend host, but outside the API surface, carrying the injected
     // Bearer token. Parse the URL the same way fetch() will, then require it to
     // stay on the base's origin AND under the base's path.
-    const baseUrlString = getServerBaseUrl(server, targetUrl);
+    const baseUrlString = await getServerBaseUrl(server, targetUrl);
     if (!baseUrlString) {
       // Missing env var — fail as a proxy error, as it did before this check.
       throw new Error(`Missing base URL for server: ${server}`);

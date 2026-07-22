@@ -72,10 +72,7 @@ export async function GET(request: NextRequest) {
       request.headers.get("lang")?.trim() ||
       "en";
     const cookiesStore = await cookies();
-    const guest_token =
-      cookiesStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ||
-      cookiesStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ||
-      "";
+    const guest_token = cookiesStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value || "";
 
     const { searchParams } = request.nextUrl;
     const verificationId = searchParams.get("verificationId");

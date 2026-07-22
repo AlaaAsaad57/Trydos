@@ -15,7 +15,6 @@ export interface OtpStatsResult extends OtpStats {
     userId: string | null;
     hasUserId: boolean;
     hasMarketToken: boolean;
-    hasDeviceToken: boolean;
     visitId: string;
   };
 }
@@ -33,7 +32,6 @@ export async function otpStatsAction(): Promise<OtpStatsResult> {
       userId: id.userId,
       hasUserId: id.hasUserId,
       hasMarketToken: id.hasMarketToken,
-      hasDeviceToken: id.hasDeviceToken,
       visitId: id.visitId,
     },
   };

@@ -8,7 +8,6 @@ export type AuthMeResponse = {
   chatUser: any;
   storiesUser: any;
   walletUser: any;
-  hasDeviceToken: boolean;
   hasMarketToken: boolean;
 } | null;
 

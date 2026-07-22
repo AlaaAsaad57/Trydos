@@ -17,6 +17,10 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
+// Safe here: this is a "use server" module — client imports get action
+// proxies, so tokenManager's next/headers never enters the client bundle
+// (same as this file's own next/headers import above).
+import { getMarketFetchBase } from "utils/server/tokenManager";
 import { General_Site_Data } from "./meta/StructuredData/Constants";
 import { buildAlternates } from "./meta/buildAlternates";
 import {
@@ -177,7 +181,8 @@ export async function GetGlobalProduct({
       }
     }
     let freshGlobalData = await fetchServerData({
-      url: `${process.env.GO_BACKEND_URL}/web/product/globalDetails/${slug}`,
+      // Verified users → Laravel, guests → Go (user-based routing)
+      url: `${await getMarketFetchBase()}/web/product/globalDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -240,7 +245,7 @@ export async function GetProductPriceQtyDetails({
       }
     }
     let freshQtyPricesData = await fetchServerData({
-      url: `${process.env.GO_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
+      url: `${await getMarketFetchBase()}/web/product/qtyPriceDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -286,7 +291,7 @@ export async function GetProductMeta({
       return { ...cachedMeta, metaFromRedis: true };
     }
     let freshMeta = await fetchServerData({
-      url: `${process.env.GO_BACKEND_URL}/web/product/product-meta/${slug}?lang=${language}`,
+      url: `${await getMarketFetchBase()}/web/product/product-meta/${slug}?lang=${language}`,
       method: "GET",
       local: `${country}-${language}`,
     });

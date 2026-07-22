@@ -1,7 +1,8 @@
-import ProductDetailsSlider from "components/products/ProductDetailsSlider";
+import ActiveColorDetailsSlider from "components/products/ActiveColorDetailsSlider";
 import { getCookieServer, COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import React, { Suspense } from "react";
 import { GetSocialInfoForProduct } from "serverRequests/product";
+import { getColorImageGroups } from "./colorImageGroups";
 
 async function ProductExtendedSliderWrapper({
   globalPromise,
@@ -22,8 +23,8 @@ async function ProductExtendedSliderWrapper({
   });
   return (
     <Suspense fallback={<></>}>
-      <ProductDetailsSlider
-        key={color}
+      <ActiveColorDetailsSlider
+        serverColor={color}
         resetLoader={true}
         productGA={{
           item_id: globalDetails.id,
@@ -37,13 +38,9 @@ async function ProductExtendedSliderWrapper({
           likes_count: socialData.total_likes,
           boutique_id: globalDetails?.boutique_id,
         }}
-        images={
-          globalDetails?.sync_color_images?.find(
-            (s) => s.color_option === color || s?.color_name === color,
-          )?.images ??
-          globalDetails?.sync_color_images?.[0]?.images ??
-          globalDetails?.images
-        }
+        // same groups as the main slider — the zoom overlay maps clicks to
+        // slides by index, so the two image lists must stay identical
+        imagesByColor={getColorImageGroups(globalDetails)}
       />
     </Suspense>
   );
