@@ -115,11 +115,60 @@ export const isFromGoApi = (url: string) =>{
   if(url.startsWith('/checklist')) return true;
   if(GO_API_PREFIXES.some((prefix) => normalizedUrl.includes(prefix))) return true;
  return GO_APIS.some((endpoint) => normalizedUrl.endsWith(endpoint))};
-function getServerBaseUrl(server: ProxiedServer, url: string): string {
+
+// ---------- Verified-user routing (market only) ----------
+
+// "Verified" = the User-Data profile carries a valid phone. Placeholder values
+// written by guest flows are explicitly NOT valid. Single source of truth for
+// the whole app — never re-implement this check at a call site.
+export const hasValidPhone = (userData: any): boolean => {
+  const phone = userData?.phone;
+  if (phone === undefined || phone === null || phone === 0 || phone === "0")
+    return false;
+  return String(phone).trim() !== "";
+};
+
+// Evaluated fresh on EVERY request from the current User-Data cookie — no
+// caching, no session stickiness. The whole read (including cookies()) sits
+// inside the try/catch so contexts without request cookies (build/static
+// render) and malformed cookies fail open to guest routing instead of
+// throwing. Routing is a load-steering decision, never an authorization
+// decision — authz stays with the backends' JWT checks.
+export async function isVerifiedMarketUser(): Promise<boolean> {
+  try {
+    const userData = await getSecureCookie<any>(COOKIE_NAMES.USER_DATA);
+    return hasValidPhone(userData);
+  } catch {
+    return false;
+  }
+}
+
+// Base URL for the server-side market fetchers that used to hardcode
+// GO_BACKEND_URL. Deliberately does NOT consult isFromGoApi: likesDetails is
+// hardcoded-to-Go today while NOT allow-listed, so consulting the list would
+// flip guests to Laravel and change guest behavior. Verified → Laravel;
+// guest/tokenless → Go (exactly today's behavior).
+export async function getMarketFetchBase(): Promise<string> {
+  if (await isVerifiedMarketUser()) return process.env.BACKEND_URL || "";
+  return process.env.GO_BACKEND_URL || "";
+}
+
+async function getServerBaseUrl(
+  server: ProxiedServer,
+  url: string,
+): Promise<string> {
 
   switch (server) {
-    case "market":
+    case "market": {
+      // Verified users (valid phone in User-Data) are served ENTIRELY by
+      // Laravel — the Go allow-list is bypassed for them. Guests/tokenless
+      // visitors keep the URL-only routing below.
+      if (await isVerifiedMarketUser()) return process.env.BACKEND_URL || "";
+      if (isFromGoApi(url)) return process.env.GO_BACKEND_URL || "";
+      return process.env.BACKEND_URL || "";
+    }
     case "market-dashboard": {
+      // URL-only routing, unchanged — the user-based rule is market-only.
       if (isFromGoApi(url)) return process.env.GO_BACKEND_URL || "";
       return process.env.BACKEND_URL || "";
     }

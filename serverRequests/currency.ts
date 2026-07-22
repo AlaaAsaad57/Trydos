@@ -3,6 +3,9 @@
 import { fetchServerData } from "./ServerFetch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
+// Safe here: "use server" module — client imports get action proxies, so
+// tokenManager's next/headers never enters the client bundle graph.
+import { getMarketFetchBase } from "utils/server/tokenManager";
 interface CurrencyResponse {
   [key: string]: any;
 }
@@ -54,8 +57,9 @@ export async function fetchCurrency(
 ): Promise<CurrencyResponse> {
   let response;
   try {
+    // Verified users → Laravel, guests → Go (user-based routing)
     response = await fetchServerData({
-      url: `${process.env.GO_BACKEND_URL}/home/currency?lang=${language}&country=${country}`,
+      url: `${await getMarketFetchBase()}/home/currency?lang=${language}&country=${country}`,
       method: "GET",
       revalidate: 0,
       local: `${country}-${language}`,

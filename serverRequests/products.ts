@@ -4,6 +4,17 @@ import { fetchServerData } from "./ServerFetch";
 
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { cookies } from "next/headers";
+import { getMarketFetchBase } from "utils/server/tokenManager";
+
+// Server-action wrapper for the user-aware market base (verified → Laravel,
+// guest → Go). Exists so NON-"use server" siblings (index.tsx,
+// analyticsUtility.ts) can use the routing without importing tokenManager
+// (which pulls next/headers) into the client bundle graph — importing a
+// "use server" module from client-reachable code yields an action proxy,
+// never the module body.
+export async function resolveMarketFetchBase(): Promise<string> {
+  return getMarketFetchBase();
+}
 // import { getProductFromCache, storeProduct } from "./radis";
 
 interface ProductData {
@@ -132,9 +143,11 @@ export async function getProductDataForAddToCart({
 }): Promise<ProductData> {
   let cookiesStore = await cookies();
   let token = cookiesStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value || "";
+  // Verified users → Laravel, guests → Go (user-based routing; one read per request)
+  const marketBase = await getMarketFetchBase();
   let [globalData, pricesData, notificationsSettings] = await Promise.all([
     fetchServerData({
-      url: `${process.env.GO_BACKEND_URL}/web/product/globalDetails/${slug}`,
+      url: `${marketBase}/web/product/globalDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -143,7 +156,7 @@ export async function getProductDataForAddToCart({
       },
     }),
     fetchServerData({
-      url: `${process.env.GO_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
+      url: `${marketBase}/web/product/qtyPriceDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -167,7 +180,7 @@ export async function getProductDataForAddToCart({
     // are resolved per user. Migrated from Laravel to the Go backend.
     fetchServerData({
       // url: `${process.env.BACKEND_URL}/web/product/likesDetails/${slug}`,
-      url: `${process.env.GO_BACKEND_URL}/web/product/likesDetails/${slug}`,
+      url: `${marketBase}/web/product/likesDetails/${slug}`,
       headers: {
         Authorization: `Bearer ${token}`,
         language: language,
