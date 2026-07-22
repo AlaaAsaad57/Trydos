@@ -16,6 +16,14 @@ and owns success-closure.
 Its only writes are `verify.md` and `ticket.md`. (Committing is exclusively the
 job of `/publish-pr`, the single git delivery boundary — PB-8 / ADR-008.)
 
+**Signal over noise — do not over-react or over-engineer.** Verify against the
+spec's acceptance criteria, nothing more. FAIL only for a real defect: an AC
+that demonstrably does not hold, a genuine bug, or a planned change that is
+missing. Do not fail (or clutter `verify.md` with) style preferences,
+hypothetical edge cases outside the ACs, or improvements the spec never asked
+for — out-of-scope observations are at most a one-line note, never a failure.
+A clean PASSED with no caveats is a valid, good outcome.
+
 Authoritative references (apply, do not reinvent):
 - Command contract: `.claude/docs/command-architecture.md` (`/verify`)
 - **Validation: `.claude/rules/validation-model.md` — apply rule codes only; no

@@ -28,4 +28,11 @@ Use severity `major` (likely measurable impact), `minor` (worth watching), or
 `info` (note only). If nothing stands out, return a single line:
 `info | no material performance concerns | plan.md | proceed`.
 
+**Calibration — measurable impact only.** Report a finding only if the impact is
+plausible at this app's real scale and on a path that actually runs hot. Do not
+flag micro-optimizations, one-off/startup costs, or premature
+caching/batching/tuning the spec never asked for — simple code that is fast
+enough is the goal. When unsure whether the impact is real, leave it out. "No
+concerns" is a good answer; never pad the list to look thorough.
+
 Be terse. No preamble. Findings only.

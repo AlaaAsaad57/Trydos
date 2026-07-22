@@ -476,7 +476,21 @@ function DescriptorIcon({
 }
 
 export function DescriptorsSection({ form, patch, disabled, busy, lookups }: SectionProps) {
-  const groups = renderableDescriptorGroups(lookups.descriptor_groups || []);
+  const allGroups = renderableDescriptorGroups(lookups.descriptor_groups || []);
+
+  // Read mode shows only descriptors that carry a value (mirrors the Labels &
+  // Tags read-mode pattern); edit mode shows every descriptor so values can be
+  // set. Groups left with no valued descriptors are dropped in read mode.
+  const groups = disabled
+    ? allGroups
+        .map((g) => ({
+          ...g,
+          descriptors: g.descriptors.filter(
+            (d) => (form.descriptor_values[d.id] ?? "") !== ""
+          ),
+        }))
+        .filter((g) => g.descriptors.length > 0)
+    : allGroups;
 
   // Values live as a flat descriptor_id -> value map; group ids are re-derived
   // from lookups when the save flow builds the sync payload. Blank ≡ absent —
@@ -498,7 +512,9 @@ export function DescriptorsSection({ form, patch, disabled, busy, lookups }: Sec
         )}
         <div className={`space-y-4 ${busy ? "opacity-60 pointer-events-none" : ""}`}>
           {groups.length === 0 ? (
-            <p className="text-[12px] text-[#b8b8b8]">{t("Select a category to see its attributes.")}</p>
+            <p className="text-[12px] text-[#b8b8b8]">
+              {disabled ? t("None") : t("Select a category to see its attributes.")}
+            </p>
           ) : (
             groups.map((g) => (
               <div key={g.id} className="rounded-[12px] border border-[#ededed] p-4">

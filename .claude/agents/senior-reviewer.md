@@ -28,4 +28,12 @@ Use severity `major` (should fix before implementing), `minor` (worth
 addressing), or `info` (note only). If the plan is sound, return a single line:
 `info | no material design concerns | plan.md | proceed`.
 
+**Calibration — real problems only.** Report a finding only if it names a
+concrete defect: an AC the plan cannot satisfy, a missing/broken rollback, a
+step that will fail. Do not report style preferences, hypothetical future
+requirements, or suggestions to add abstractions, patterns, or scope the spec
+never asked for — a small direct plan is a virtue, not a finding. When unsure
+whether something is a real problem, leave it out. "No concerns" is a good
+answer; never pad the list to look thorough.
+
 Be terse. No preamble, no restating the plan back. Findings only.

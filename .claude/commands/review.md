@@ -12,6 +12,14 @@ The review gate for ticket `<slug>`. Validate the plan, record the decision in
 
 **This command does NOT create a branch and does NOT implement anything.**
 
+**Signal over noise — do not over-react or over-engineer.** Report only real
+risks, actual bugs, and genuine gaps (an AC with no covering step, a missing
+rollback, a protected-path touch not listed in the plan). Do not pad the review
+with hypothetical edge cases, style preferences, "could also add…" scope
+suggestions, or demands for abstractions/tests/hardening the spec never asked
+for. A short review with zero findings is a valid, good outcome — never invent
+findings to appear thorough.
+
 **Atomic:** validate first. If a required check fails, write **nothing** —
 neither `review.md` nor `ticket.md`.
 
