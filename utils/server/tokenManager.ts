@@ -66,7 +66,7 @@ const SECURE_COOKIE_NAMES = [
 
 const GO_APIS = [
   "/auth/register-guest",
-  "/home/currency",
+  "/mobile/home/currency",
   "/web/home/startingSettings",
   "/checklist",
   "/firebase_device_tokens/validate_token",
@@ -149,7 +149,14 @@ export async function isVerifiedMarketUser(): Promise<boolean> {
 // flip guests to Laravel and change guest behavior. Verified → Laravel;
 // guest/tokenless → Go (exactly today's behavior).
 export async function getMarketFetchBase(): Promise<string> {
-  if (await isVerifiedMarketUser()) return process.env.BACKEND_URL || "";
+  const verified = await isVerifiedMarketUser();
+  if (process.env.NODE_ENV !== "production")
+    console.log("[MarketRouting]", {
+      source: "server-fetch",
+      verified,
+      backend: verified ? "laravel" : "go",
+    });
+  if (verified) return process.env.BACKEND_URL || "";
   return process.env.GO_BACKEND_URL || "";
 }
 
@@ -163,8 +170,16 @@ async function getServerBaseUrl(
       // Verified users (valid phone in User-Data) are served ENTIRELY by
       // Laravel — the Go allow-list is bypassed for them. Guests/tokenless
       // visitors keep the URL-only routing below.
-      if (await isVerifiedMarketUser()) return process.env.BACKEND_URL || "";
-      if (isFromGoApi(url)) return process.env.GO_BACKEND_URL || "";
+      const verified = await isVerifiedMarketUser();
+      const useGo = !verified && isFromGoApi(url);
+      if (process.env.NODE_ENV !== "production")
+        console.log("[MarketRouting]", {
+          source: "proxy",
+          url,
+          verified,
+          backend: useGo ? "go" : "laravel",
+        });
+      if (useGo) return process.env.GO_BACKEND_URL || "";
       return process.env.BACKEND_URL || "";
     }
     case "market-dashboard": {

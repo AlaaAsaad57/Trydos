@@ -59,7 +59,7 @@ export async function fetchCurrency(
   try {
     // Verified users → Laravel, guests → Go (user-based routing)
     response = await fetchServerData({
-      url: `${await getMarketFetchBase()}/home/currency?lang=${language}&country=${country}`,
+      url: `${await getMarketFetchBase()}/mobile/home/currency?lang=${language}&country=${country}`,
       method: "GET",
       revalidate: 0,
       local: `${country}-${language}`,
