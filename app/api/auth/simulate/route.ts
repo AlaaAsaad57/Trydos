@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
     userChat,
     userStories,
     marketToken,
-    deviceToken,
     chatToken,
     storiesToken,
     walletToken,
@@ -49,9 +48,6 @@ export async function POST(request: NextRequest) {
   if (marketToken !== undefined)
     await setSimulateCookie(COOKIE_NAMES.MARKET_TOKEN, marketToken);
   else await deleteSecureCookie(COOKIE_NAMES.MARKET_TOKEN);
-
-  if (deviceToken !== undefined)
-    await setSimulateCookie(COOKIE_NAMES.DEVICE_TOKEN, deviceToken);
 
   if (chatToken !== undefined)
     await setSimulateCookie(COOKIE_NAMES.CHAT_TOKEN, chatToken);

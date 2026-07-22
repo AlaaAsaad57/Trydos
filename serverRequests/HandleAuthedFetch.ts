@@ -16,7 +16,6 @@ interface UserData {
 
 const COOKIE_NAMES = {
   USER_DATA: "User-Data",
-  DEVICE_TOKEN: "DEVICE-TOKEN",
   MARKET_TOKEN: "MARKET-TOKEN",
 };
 interface FetchOptions {
@@ -39,9 +38,7 @@ export const HandleAuthedFetch = async <T = any>(
   options: FetchOptions,
 ): Promise<any> => {
   const cookieStore = await cookies();
-  let token =
-    cookieStore?.get(COOKIE_NAMES?.MARKET_TOKEN)?.value ??
-    cookieStore?.get(COOKIE_NAMES.DEVICE_TOKEN)?.value;
+  let token = cookieStore?.get(COOKIE_NAMES?.MARKET_TOKEN)?.value;
 
   let headers = {
     ...(options?.headers ?? {}),
@@ -93,7 +90,7 @@ export const HandleAuthedFetch = async <T = any>(
         try {
           const cookieStoreInner = await cookies();
           cookieStoreInner.set({
-            name: COOKIE_NAMES.DEVICE_TOKEN,
+            name: COOKIE_NAMES.MARKET_TOKEN,
             value: repo.data.token,
             ...SECURE_COOKIE_OPTIONS,
           });

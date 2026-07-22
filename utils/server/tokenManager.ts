@@ -47,7 +47,10 @@ const ALLOWED_SERVERS: ProxiedServer[] = [
   "market-dashboard",
 ];
 
-// All cookie names that hold sensitive tokens — must be HttpOnly
+// All cookie names that hold sensitive tokens — must be HttpOnly.
+// DEVICE_TOKEN is legacy (guest JWTs now live in MARKET_TOKEN); it stays in
+// this list ONLY so logout still purges the stale cookie from old browsers —
+// nothing reads or sets it anymore.
 const SECURE_COOKIE_NAMES = [
   COOKIE_NAMES.MARKET_TOKEN,
   COOKIE_NAMES.DEVICE_TOKEN,
@@ -151,11 +154,9 @@ async function getTokenForServer(server: ProxiedServer): Promise<string> {
       return cookieStore.get(COOKIE_NAMES.CHAT_TOKEN)?.value || "";
     case "market":
     case "market-dashboard":
-      return (
-        cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ||
-        cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ||
-        ""
-      );
+      // Single auth cookie: MARKET_TOKEN holds the guest OR logged-in JWT.
+      // DEVICE_TOKEN is legacy and is never read (kept only in the cleanup lists).
+      return cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value || "";
     case "stories":
       // Auth from the dedicated STORIES_TOKEN cookie (48h). Refreshed on re-auth
       // by /api/auth/update-user; USER_STORIES holds profile data only.
@@ -222,7 +223,6 @@ async function getCurrentUser() {
     storiesUser: sanitizeServiceUser(userStories),
     walletUser: sanitizeWalletUser(walletUser),
     isAuthenticated: Boolean(userData),
-    hasDeviceToken: Boolean(cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value),
     hasMarketToken: Boolean(cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value),
   };
 }

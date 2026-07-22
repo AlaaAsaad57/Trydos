@@ -39,7 +39,7 @@ Next.js 16 renames `middleware.ts` → **`proxy.ts`**. This single file runs on 
 - Sitemaps are generated dynamically (`app/sitemap-*.xml`, `robots.ts`).
 
 ### Data fetching — three distinct paths (do not mix)
-1. **Server components / server actions → `serverRequests/HandleAuthedFetch.ts`**. Reads the auth token from cookies (`MARKET-TOKEN`, falling back to `DEVICE-TOKEN`), and on a 401 auto-registers a guest token (`/auth/register-guest`) and retries. Cookie writes silently no-op during pure render (only allowed in Server Actions / Route Handlers). Wraps `fetchServerData` (`serverRequests/ServerFetch.tsx`).
+1. **Server components / server actions → `serverRequests/HandleAuthedFetch.ts`**. Reads the auth token from the `MARKET-TOKEN` cookie (single auth cookie for guest AND logged-in), and on a 401 auto-registers a guest token (`/auth/register-guest`) and retries. Cookie writes silently no-op during pure render (only allowed in Server Actions / Route Handlers). Wraps `fetchServerData` (`serverRequests/ServerFetch.tsx`).
 2. **Client-side (services, handlers) → `utils/fetchData.ts`** with the `{ url, method, body, server, reqTitle }` shape.
 3. **Bare `fetch`** only for internal API routes you control (e.g. `/api/auth/update-user`), where token injection isn't needed.
 
@@ -55,7 +55,7 @@ Domain modules (`auth.ts`, `cart.ts`, `chat.ts`, `search.ts`, `order(s).ts`, `el
 Rate limiting and abuse/DDoS protection run at the platform edge via **Vercel Firewall** (rules configured in the Vercel dashboard), before functions are invoked. There is no in-code rate-limiter wrapper. If a specific endpoint needs business-logic limits (auth, OTP, checkout), use an edge-compatible limiter such as Upstash `@upstash/ratelimit` — never `ioredis` in middleware (it can't run on the Edge runtime).
 
 ### Auth & tokens
-JWTs live **only** in HttpOnly cookies — `MARKET-TOKEN` (logged-in), `DEVICE-TOKEN` (guest), `User-Data` (profile JSON). Read server-side via `utils/cookies/cookie-manager` / `next/headers`. Never put tokens in localStorage or expose them to client components.
+JWTs live **only** in HttpOnly cookies — `MARKET-TOKEN` (the single auth cookie, guest or logged-in) and `User-Data` (profile JSON). `DEVICE-TOKEN` is legacy: never read or set it (it survives only in logout-cleanup lists). Read server-side via `utils/cookies/cookie-manager` / `next/headers`. Never put tokens in localStorage or expose them to client components.
 
 ### Error reporting & analytics
 `LogError` / `LogServerError` route to **Sentry** (config in `sentry.*.config.ts`, `instrumentation*.ts`). Analytics via `utils/gtag.ts` (Google Analytics) and PostHog (`utils/posthog.ts`) for session replay + product analytics.

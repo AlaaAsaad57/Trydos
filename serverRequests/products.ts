@@ -131,10 +131,7 @@ export async function getProductDataForAddToCart({
   slug,
 }): Promise<ProductData> {
   let cookiesStore = await cookies();
-  let token =
-    cookiesStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ||
-    cookiesStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ||
-    "";
+  let token = cookiesStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value || "";
   let [globalData, pricesData, notificationsSettings] = await Promise.all([
     fetchServerData({
       url: `${process.env.GO_BACKEND_URL}/web/product/globalDetails/${slug}`,
@@ -166,7 +163,7 @@ export async function getProductDataForAddToCart({
     //     is_liked,        // ignored
     //     count_of_likes,  // ignored
     //   }
-    // Requires the user token (MARKET-TOKEN → DEVICE-TOKEN) so the notify flags
+    // Requires the user token (MARKET-TOKEN) so the notify flags
     // are resolved per user. Migrated from Laravel to the Go backend.
     fetchServerData({
       // url: `${process.env.BACKEND_URL}/web/product/likesDetails/${slug}`,

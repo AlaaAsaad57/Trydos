@@ -13,8 +13,6 @@ export async function POST(request: NextRequest) {
 
     const marketToken =
       cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ?? null;
-    const deviceToken =
-      cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ?? null;
     const chatToken = cookieStore.get(COOKIE_NAMES.CHAT_TOKEN)?.value ?? null;
     const storiesToken =
       cookieStore.get(COOKIE_NAMES.STORIES_TOKEN)?.value ?? null;
@@ -36,7 +34,6 @@ export async function POST(request: NextRequest) {
         ? errorPayload
         : { message: String(errorPayload) }),
       marketToken,
-      deviceToken,
       chatToken,
       storiesToken,
       walletToken,

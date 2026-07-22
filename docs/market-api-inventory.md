@@ -27,7 +27,7 @@ host is chosen at request time by `isFromGoApi(url)` in
 | false | `NEXT_PUBLIC_BACKEND_URL` | **Laravel** monolith |
 
 Client calls route via `/api/proxy`; server calls (`serverRequests/*`) build the
-full URL directly. Token: `MARKET-TOKEN` → falls back to `DEVICE-TOKEN` (guest);
+full URL directly. Token: `MARKET-TOKEN` (single auth cookie — guest or logged-in);
 on 401 a guest is auto-registered against Go `/auth/register-guest` and retried.
 `market-dashboard` **never resolves to Go**.
 
