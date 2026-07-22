@@ -69,7 +69,11 @@ export async function fetchCurrency(
       throw response?.error ?? `Currency Error: ${response.status}`;
     }
 
-    return response.data;
+    // /mobile/home/currency nests the fields under data.currency; the legacy
+    // /home/currency returned them flat in data. Flatten so callers can keep
+    // spreading `currencyData.data` (exchange_rate, symbol, ...) unchanged.
+    const body = response.data;
+    return { ...body, data: body?.data?.currency ?? body?.data };
   } catch (error) {
     LogServerError({
       error: `Currency Error: ${response.status}`,
