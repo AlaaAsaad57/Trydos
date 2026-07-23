@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     };
 
     let res=await fetch(
-      process.env.GO_BACKEND_URL + "/mobile_error_log/store",
+      process.env.BACKEND_URL /* TEMP TEST: was GO_BACKEND_URL — revert after testing */ + "/mobile_error_log/store",
       {
         method: "POST",
         headers: {

@@ -88,8 +88,9 @@ export async function GET(request: NextRequest) {
 
     // 2. Primary OTP Verification (Critical Path)
     const otpUrl = `${
-      // process.env.BACKEND_URL
-      process.env.GO_BACKEND_URL
+      // TEMP TEST: was GO_BACKEND_URL — revert after testing.
+      process.env.BACKEND_URL
+      // process.env.GO_BACKEND_URL
     }${VERIFY_OTP_ENDPOINT}?verificationId=${verificationId}&otp=${otp}${
       name ? `&name=${name}` : ""
     }`;

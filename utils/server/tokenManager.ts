@@ -154,10 +154,12 @@ export async function getMarketFetchBase(): Promise<string> {
     console.log("[MarketRouting]", {
       source: "server-fetch",
       verified,
-      backend: verified ? "laravel" : "go",
+      backend: "laravel (forced)", // TEMP TEST — was: verified ? "laravel" : "go"
     });
-  if (verified) return process.env.BACKEND_URL || "";
-  return process.env.GO_BACKEND_URL || "";
+  // TEMP TEST: force ALL market traffic to Laravel — revert after testing.
+  return process.env.BACKEND_URL || "";
+  // if (verified) return process.env.BACKEND_URL || "";
+  // return process.env.GO_BACKEND_URL || "";
 }
 
 async function getServerBaseUrl(
@@ -171,7 +173,8 @@ async function getServerBaseUrl(
       // Laravel — the Go allow-list is bypassed for them. Guests/tokenless
       // visitors keep the URL-only routing below.
       const verified = await isVerifiedMarketUser();
-      const useGo = !verified && isFromGoApi(url);
+      // TEMP TEST: force ALL market traffic to Laravel — revert after testing.
+      const useGo = false;
       if (process.env.NODE_ENV !== "production")
         console.log("[MarketRouting]", {
           source: "proxy",
@@ -183,8 +186,8 @@ async function getServerBaseUrl(
       return process.env.BACKEND_URL || "";
     }
     case "market-dashboard": {
-      // URL-only routing, unchanged — the user-based rule is market-only.
-      if (isFromGoApi(url)) return process.env.GO_BACKEND_URL || "";
+      // TEMP TEST: force ALL dashboard traffic to Laravel — revert after testing.
+      // if (isFromGoApi(url)) return process.env.GO_BACKEND_URL || "";
       return process.env.BACKEND_URL || "";
     }
     case "elastic":

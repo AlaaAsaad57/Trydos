@@ -68,7 +68,7 @@ export const HandleAuthedFetch = async <T = any>(
       // Internal helper to perform registration fetch
       const registerUser = async (body: any) => {
         return await fetchServerData({
-          url: process.env.GO_BACKEND_URL + REGISTER_DEVICE_URL,
+          url: process.env.BACKEND_URL /* TEMP TEST: was GO_BACKEND_URL — revert after testing */ + REGISTER_DEVICE_URL,
           body: JSON.stringify(body),
           method: "POST",
           headers: headers,

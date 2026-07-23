@@ -150,7 +150,7 @@ async function registerGuestForOtp(): Promise<string | null> {
     const token = cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value;
 
     const call = (body: Record<string, unknown>) =>
-      fetch(process.env.GO_BACKEND_URL + REGISTER_GUEST_URL, {
+      fetch(process.env.BACKEND_URL /* TEMP TEST: was GO_BACKEND_URL — revert after testing */ + REGISTER_GUEST_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
