@@ -64,6 +64,15 @@ export interface NamedLookup {
   id: number;
   name: string;
 }
+export interface LocationLookup {
+  id: number;
+  name: string;
+  address: string;
+}
+
+/** Display format for a location everywhere it is user-visible: "name - address". */
+export const locationLabel = (l: LocationLookup): string =>
+  [l.name, l.address].filter(Boolean).join(" - ");
 export type DescriptorType = "string_choice" | "numeric";
 export interface DescriptorLookup {
   id: number;
@@ -188,6 +197,7 @@ export interface Lookups {
   countries: CountryLookup[];
   labels: LabelLookup[];
   tags: NamedLookup[];
+  locations: LocationLookup[];
   descriptor_groups: DescriptorGroup[];
   units: string[];
 }
@@ -199,6 +209,9 @@ export interface VariantRow {
   qty: string;
   sku: string;
   barcode: string;
+  /** Optional per-variant location id ("" = none), mirroring the product-level
+   *  location_id semantics — sent only when set. */
+  location_id: string;
 }
 
 export interface ImageItem {
@@ -328,6 +341,7 @@ export const emptyVariantRow = (): VariantRow => ({
   qty: "",
   sku: "",
   barcode: "",
+  location_id: "",
 });
 
 /** A blank ProductForm for the create flow. Defaults are chosen to satisfy the
@@ -551,6 +565,7 @@ export function buildFormFromEdit(
       qty: numStr(v.quantity),
       sku: v.sku ?? "",
       barcode: v.barcode ?? "",
+      location_id: idStr(v.location_id),
     };
   }
 
@@ -1002,6 +1017,8 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
     fd.append(`qty_${c.key}`, r.qty || "0");
     fd.append(`sku_${c.key}`, r.sku || "");
     fd.append(`barcode_${c.key}`, r.barcode || "");
+    // Optional, like the product-level location_id — key omitted when unset.
+    if (r.location_id) fd.append(`location_id_${c.key}`, r.location_id);
   });
 
   if (isCreate) {
@@ -1080,7 +1097,8 @@ const SCALARS: [keyof ProductForm, string][] = [
   ["label", "Label"],
   ["model_number", "Model Number"],
   ["report_ref_number", "Report Ref."],
-  ["location_id", "Location"],
+  // location_id is NOT diffed here: it resolves through the locations lookup to
+  // its "name - address" label in buildDiff, like brand/boutique.
   ["unit_price", "Unit Price"],
   ["discount_price", "Discount Price"],
   ["purchase_price", "Purchase Price"],
@@ -1133,6 +1151,16 @@ export function buildDiff(
       label: tx("Boutique"),
       from: boutiqueName(initial.boutique_id),
       to: boutiqueName(current.boutique_id),
+    });
+  const locationName = (id: string) => {
+    const l = (lookups.locations || []).find((x) => String(x.id) === id);
+    return l ? locationLabel(l) : id || "—";
+  };
+  if (initial.location_id !== current.location_id)
+    out.push({
+      label: tx("Location"),
+      from: locationName(initial.location_id),
+      to: locationName(current.location_id),
     });
 
   push(

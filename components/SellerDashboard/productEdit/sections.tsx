@@ -33,6 +33,7 @@ import {
   parseDescriptorOptions,
   renderableDescriptorGroups,
   descriptorIconUrl,
+  locationLabel,
 } from "./helpers";
 import GalleryPickerModal, { PickedImage } from "./GalleryPickerModal";
 
@@ -340,6 +341,7 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
         <Select label="Unit" fieldKey="unit" value={form.unit} required error={errors.unit} disabled={disabled} onChange={(v) => patch({ unit: v })} options={UNITS.map((u) => ({ value: u, label: u }))} />
         <Select label="Brand" fieldKey="brand_id" value={form.brand_id} required error={errors.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.name }))} />
         <Select label="Boutique" fieldKey="boutique_id" value={form.boutique_id} error={errors.boutique_id} disabled={disabled} onChange={(v) => patch({ boutique_id: v })} options={(lookups.boutiques || []).map((b) => ({ value: String(b.id), label: b.name }))} />
+        <Select label="Location" fieldKey="location_id" value={form.location_id} disabled={disabled} onChange={(v) => patch({ location_id: v })} options={(lookups.locations || []).map((l) => ({ value: String(l.id), label: locationLabel(l) }))} />
         <Txt label="Model Number" fieldKey="model_number" value={form.model_number} disabled={disabled} onChange={(v) => patch({ model_number: v })} />
         <Txt label="Report Ref. Number" fieldKey="report_ref_number" value={form.report_ref_number} disabled={disabled} onChange={(v) => patch({ report_ref_number: v })} />
       </Grid>
@@ -1013,7 +1015,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
 
           return (
             <div className="overflow-x-auto -mx-1 px-1">
-              <table className="w-full min-w-[640px] text-left border-separate border-spacing-y-1.5">
+              <table className="w-full min-w-[800px] text-left border-separate border-spacing-y-1.5">
                 <thead>
                   <tr className="text-[11px] semibold text-[#8e8e8e]">
                     <th className="py-1 pr-3">{t("Variant")}</th>
@@ -1023,6 +1025,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                     <th className="py-1 px-2">{t("Qty")}</th>
                     <th className="py-1 px-2">{t("SKU")}</th>
                     <th className="py-1 px-2">{t("Barcode")}</th>
+                    <th className="py-1 px-2">{t("Location")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1084,6 +1087,21 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                         {cell("qty", "w-[70px]")}
                         {cell("sku", "w-[110px]", "text")}
                         {cell("barcode", "w-[110px]", "text")}
+                        <td className="px-1 align-top">
+                          <select
+                            value={r.location_id}
+                            disabled={disabled}
+                            onChange={(e) => setVariant(c.key, "location_id", e.target.value)}
+                            className="w-[150px] h-[38px] px-2 bg-[#f8f8f8] border border-[#ededed] rounded-[10px] text-[13px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white disabled:opacity-70"
+                          >
+                            <option value="">{t("Select")}</option>
+                            {(lookups.locations || []).map((l) => (
+                              <option key={l.id} value={String(l.id)}>
+                                {locationLabel(l)}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
                       </tr>
                     );
                   })}
