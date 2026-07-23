@@ -104,3 +104,4 @@ docs/api-requirements/shop-product-body-contract.md
 docs/api-requirements/shop-product-body-payloads.txt
 docs/api-requirements/seller-product-body-alignment-roadmap.md
 Guest-Authentication-&-Token-Renewal.md
+go-refresh-api-contract.md
