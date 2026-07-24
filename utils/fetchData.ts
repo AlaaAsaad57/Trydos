@@ -170,6 +170,7 @@ const waitForReAuthSuccess = (): Promise<boolean> =>
 const handleUnauthorized = async (
   server: ServerType,
   options,
+  authAttempt = 0,
 ): Promise<boolean> => {
   const { LoggingOut } = useAppStore.getState();
   if (LoggingOut) return false;
@@ -213,21 +214,41 @@ const handleUnauthorized = async (
             return true;
           }
 
+          // Refresh-first (Go auth contract): only on the FIRST 401 of this
+          // request. Go-eligibility is decided server-side by
+          // /api/auth/refresh with the same routing helpers the proxy uses.
+          // refreshed → retry with the rotated token; eligible-but-failed →
+          // the retry doubles as the jar-retry (the browser jar may already
+          // carry a concurrent winner's Set-Cookie). Today's flow (expire /
+          // seller widget) runs only on the NEXT 401 (attempt 1) or when the
+          // request was Laravel-served ({eligible: false} — FR-8).
+          if (
+            (server === "market" || server === "market-dashboard") &&
+            authAttempt === 0
+          ) {
+            const authService = await import("../services/auth");
+            const refresh = await authService.default.RefreshSession(
+              options?.url,
+              server,
+            );
+            if (refresh.eligible) return true;
+          }
+
           // Seller dashboard: don't silently re-register as a guest and bounce.
-          // Register the guest (with the old user id, so closing the prompt
-          // still leaves a usable token), then surface the confirmMobile widget
-          // and wait for the seller to re-verify — mirroring the chat/stories
-          // 401 flow. On success the original request is retried with the fresh
-          // MARKET token; on cancel the widget redirects to home.
+          // Register the guest (so closing the prompt still leaves a usable
+          // token), then surface the confirmMobile widget and wait for the
+          // seller to re-verify — mirroring the chat/stories 401 flow. On
+          // success the original request is retried with the fresh MARKET
+          // token; on cancel the widget redirects to home.
           const isSeller =
             !!options?.sellerId ||
             (typeof window !== "undefined" &&
               window.location.pathname.includes("/seller"));
 
-          if (isSeller) {
-            const authService = await import("../services/auth");
-            await authService.default.ExpiredUser();
+          const authService = await import("../services/auth");
+          const outcome = await authService.default.ExpiredUser();
 
+          if (isSeller) {
             const { setShouldAuthinticated, setReAuthResult } =
               useAppStore.getState();
             setReAuthResult("pending");
@@ -236,8 +257,12 @@ const handleUnauthorized = async (
             return waitForReAuthSuccess();
           }
 
-          const authService = await import("../services/auth");
-          await authService.default.ExpiredUser();
+          // The session that just died belonged to a phone-verified shopper:
+          // ExpiredUser already armed the re-verify prompt, so wait for the OTP
+          // and retry the original request against their restored account
+          // instead of silently continuing as the freshly registered guest.
+          if (outcome?.wasVerified) return waitForReAuthSuccess();
+
           return true;
         }
         return false;
@@ -327,10 +352,15 @@ const raceWithSignal = <T>(
 };
 
 // ---------- Main Function ----------
+// authAttempt: bounded 401-recovery counter (cap 2). Refresh is attempted only
+// on the first 401; attempt 1 = post-refresh retry (or jar-retry when the
+// refresh failed — the browser jar may carry a concurrent winner's rotation);
+// attempt 2 = post-expire retry; a 401 on attempt 2 surfaces the error.
 export const fetchData = async <T = any>(
   params: FetchDataParams,
-  isRetryAfterUnauthorized = false,
+  authAttempt = 0,
 ): Promise<T> => {
+  const isRetryAfterUnauthorized = authAttempt > 0;
   const {
     url,
     method,
@@ -463,19 +493,23 @@ export const fetchData = async <T = any>(
           window.location.href = `/`;
         }
       }
-      if (status === 401 && !isRetryAfterUnauthorized) {
+      if (status === 401 && authAttempt < 2) {
 
-        const shouldRetry = await handleUnauthorized(server, {
-          url,
+        const shouldRetry = await handleUnauthorized(
           server,
-          body,
-          status,
-          responseData,
-          sellerId,
-        });
+          {
+            url,
+            server,
+            body,
+            status,
+            responseData,
+            sellerId,
+          },
+          authAttempt,
+        );
         if (shouldRetry) {
           retryActionIfUnAuth?.();
-          return fetchData<T>(params, true);
+          return fetchData<T>(params, authAttempt + 1);
         }
 
         throw new Error("Authentication required");

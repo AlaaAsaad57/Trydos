@@ -105,3 +105,8 @@ docs/api-requirements/shop-product-body-payloads.txt
 docs/api-requirements/seller-product-body-alignment-roadmap.md
 Guest-Authentication-&-Token-Renewal.md
 go-refresh-api-contract.md
+# Same class: the core backend's auth contract (endpoint shapes, token TTLs and
+# server-side config names) plus the implementation plan that quotes it. Keep
+# local; share through the backend team's own channel, never via this repo.
+laravel-refresh-flow.md
+laravel-refresh-plan.md

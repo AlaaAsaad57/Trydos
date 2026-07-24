@@ -29,6 +29,16 @@ const SECURE_COOKIE_OPTIONS = {
   maxAge: Number(process.env.TOKEN_COOKIE_MAX_AGE) || 60 * 60 * 48, // 48h
 };
 
+// MARKET_REFRESH_TOKEN cookie (single-use rotating refresh token, Go auth
+// contract). Deliberately NOT the 48h token TTL: the refresh token is valid
+// ~30 days server-side and the cookie is re-set on every rotation, so its
+// lifetime renews with each use — storage must never expire before the token
+// it holds. SameSite=strict blocks cross-site rotation triggers.
+const REFRESH_COOKIE_OPTIONS = {
+  ...SECURE_COOKIE_OPTIONS,
+  maxAge: 60 * 60 * 24 * 30, // 30 days — matches REFRESH_TOKEN_EXPIRE_DAYS
+};
+
 // USER-DATA cookies (USER_DATA/USER_CHAT/USER_STORIES/WALLET_USER JSON blobs).
 // Kept at 1 year by decision — these carry profile/session context, not the raw
 // short-lived JWT; used by setSecureCookieJSON below.
@@ -53,6 +63,7 @@ const ALLOWED_SERVERS: ProxiedServer[] = [
 // nothing reads or sets it anymore.
 const SECURE_COOKIE_NAMES = [
   COOKIE_NAMES.MARKET_TOKEN,
+  COOKIE_NAMES.MARKET_REFRESH_TOKEN,
   COOKIE_NAMES.DEVICE_TOKEN,
   COOKIE_NAMES.CHAT_TOKEN,
   COOKIE_NAMES.STORIES_TOKEN,
@@ -154,12 +165,10 @@ export async function getMarketFetchBase(): Promise<string> {
     console.log("[MarketRouting]", {
       source: "server-fetch",
       verified,
-      backend: "laravel (forced)", // TEMP TEST — was: verified ? "laravel" : "go"
+      backend: verified ? "laravel" : "go",
     });
-  // TEMP TEST: force ALL market traffic to Laravel — revert after testing.
-  return process.env.BACKEND_URL || "";
-  // if (verified) return process.env.BACKEND_URL || "";
-  // return process.env.GO_BACKEND_URL || "";
+  if (verified) return process.env.BACKEND_URL || "";
+  return process.env.GO_BACKEND_URL || "";
 }
 
 async function getServerBaseUrl(
@@ -173,8 +182,7 @@ async function getServerBaseUrl(
       // Laravel — the Go allow-list is bypassed for them. Guests/tokenless
       // visitors keep the URL-only routing below.
       const verified = await isVerifiedMarketUser();
-      // TEMP TEST: force ALL market traffic to Laravel — revert after testing.
-      const useGo = false;
+      const useGo = !verified && isFromGoApi(url);
       if (process.env.NODE_ENV !== "production")
         console.log("[MarketRouting]", {
           source: "proxy",
@@ -186,8 +194,8 @@ async function getServerBaseUrl(
       return process.env.BACKEND_URL || "";
     }
     case "market-dashboard": {
-      // TEMP TEST: force ALL dashboard traffic to Laravel — revert after testing.
-      // if (isFromGoApi(url)) return process.env.GO_BACKEND_URL || "";
+      // URL-only routing, unchanged — the user-based rule is market-only.
+      if (isFromGoApi(url)) return process.env.GO_BACKEND_URL || "";
       return process.env.BACKEND_URL || "";
     }
     case "elastic":
@@ -422,6 +430,7 @@ export {
   sanitizeServiceUser,
   sanitizeWalletUser,
   SECURE_COOKIE_OPTIONS,
+  REFRESH_COOKIE_OPTIONS,
   SECURE_COOKIE_NAMES,
   ALLOWED_SERVERS,
 };

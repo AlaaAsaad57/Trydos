@@ -15,7 +15,7 @@ import { serializeUnknownForErrorLog } from "../errorSerialization";
 export async function postServerErrorLog(error: unknown) {
   try {
     const safeError = serializeUnknownForErrorLog(error ?? {});
-    await fetch(process.env.BACKEND_URL /* TEMP TEST: was GO_BACKEND_URL — revert after testing */ + "/mobile_error_log/store", {
+    await fetch(process.env.GO_BACKEND_URL + "/mobile_error_log/store", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: JSON.stringify({

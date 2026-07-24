@@ -161,7 +161,7 @@ class HomeService {
     }
   }
 
-  async registerForExpire(id?: number) {
+  async registerForExpire() {
     const {
       isRegisteringReady,
       setIsRegisteringReady,
@@ -173,12 +173,14 @@ class HomeService {
     if (!isRegisteringReady) return;
 
     setIsRegisteringReady(false);
-    const userId = id || auth.UserID();
 
     try {
       const [country, lang] = (
         window.location.pathname.split("/")[1] || ""
       ).split("-");
+      // Bodyless per the Go contract — register-guest only creates brand-new
+      // guests; old_guest_user_id no longer exists (session continuity is the
+      // refresh token's job now).
       const response = await fetch("/api/auth/register-device", {
         method: "POST",
         headers: {
@@ -186,7 +188,6 @@ class HomeService {
           "x-country": country || "sy",
           "x-language": lang || "en",
         },
-        body: JSON.stringify({ old_guest_user_id: userId || null }),
         credentials: "include",
       });
 
@@ -318,7 +319,14 @@ class HomeService {
     }
   }
 
-  async CheckLogin() {
+  /**
+   * App-load auth bootstrap. Returns `true` when the proactive refresh
+   * rotated the session (expired access token exchanged via the refresh
+   * cookie) — the caller (components/Home/Init.tsx) then runs
+   * `router.refresh()` to refetch server-rendered content (self-heal for
+   * expired-session page loads).
+   */
+  async CheckLogin(): Promise<boolean> {
     const {
       loginSuccess,
       loginSuccessChat,
@@ -326,6 +334,18 @@ class HomeService {
       loginSuccessWallet,
       editUserInfo,
     } = useAppStore.getState();
+
+    // Proactive refresh (Go auth contract): a fast server-side no-op while
+    // the access token is valid; when it has expired and a refresh cookie
+    // exists, the pair is rotated BEFORE anything reads the session — the
+    // same-account continuity path (no guest re-register). Failures fall
+    // through to the normal bootstrap below (RegisterDevice handles the
+    // no-session case).
+    let sessionRefreshed = false;
+    try {
+      const refresh = await auth.RefreshSession();
+      sessionRefreshed = refresh?.refreshed === true;
+    } catch {}
 
     // Fetch user data from HttpOnly cookies via server route
     let userData: any = null;
@@ -386,6 +406,7 @@ class HomeService {
       }
     }
     // auth.CheckUserName();
+    return sessionRefreshed;
   }
 
   async RegisterDevice() {
@@ -402,6 +423,8 @@ class HomeService {
       const [country, lang] = (
         window.location.pathname.split("/")[1] || ""
       ).split("-");
+      // Bodyless per the Go contract — no old_guest_user_id (see
+      // registerForExpire above).
       const response = await fetch("/api/auth/register-device", {
         method: "POST",
         headers: {
@@ -409,7 +432,6 @@ class HomeService {
           "x-country": country || "sy",
           "x-language": lang || "en",
         },
-        body: JSON.stringify({ old_guest_user_id: userId || null }),
         credentials: "include",
       });
 

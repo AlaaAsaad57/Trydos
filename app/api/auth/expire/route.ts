@@ -7,21 +7,34 @@ import {
   getSecureCookie,
   setSecureCookieJSON,
   SECURE_COOKIE_OPTIONS,
+  REFRESH_COOKIE_OPTIONS,
+  isVerifiedMarketUser,
 } from "utils/server/tokenManager";
+import { refreshMarketSession } from "utils/server/authRefresh";
 
 const REGISTER_GUEST_URL = "/auth/register-guest";
 
 /**
  * Handles market token expiration:
- * 1. Clears stale tokens (MARKET_TOKEN, CHAT_TOKEN, STORIES_TOKEN)
+ * 0. LAST-CHANCE refresh: if a refresh cookie exists, try the Go exchange
+ *    first — a race loser arriving here with the winner's valid rotated
+ *    cookie renews instead of destroying the session ({renewed: true}; no
+ *    nuke, no chat/stories re-auth flags, no verification downgrade). The
+ *    helper itself skips verified/Laravel-routed sessions (FR-8) and the
+ *    logout guard. Only a genuinely dead/absent token reaches the nuke.
+ * 1. Clears stale tokens (MARKET_TOKEN, MARKET_REFRESH_TOKEN, CHAT_TOKEN,
+ *    STORIES_TOKEN)
  * 2. Marks chat/stories users as needing re-auth
- * 3. Re-registers as guest via backend, sets the fresh guest MARKET_TOKEN cookie in this response
+ * 3. Re-registers as guest via backend (bodyless — the re-issue-by-id path no
+ *    longer exists), sets the fresh guest token pair in this response
+ *
+ * The response carries `wasVerified` — whether the session being nuked belonged
+ * to a phone-verified shopper. Captured BEFORE step 1, because step 3 overwrites
+ * User-Data with the fresh guest. The client uses it to prompt an immediate
+ * re-verification instead of silently downgrading them to an anonymous guest.
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json().catch(() => ({}));
-    const oldUserId = body.old_user_id ?? null;
-
     // Logout guard: if a logout just cleared the cookies, do NOT re-register a
     // guest or write any token/identity cookie — that would resurrect the
     // session. The logout already cleared everything; just acknowledge.
@@ -33,9 +46,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Clear stale tokens
+    // 0. Last-chance refresh before any session nuke (round-1 follow-up 2).
+    if (guardStore.get(COOKIE_NAMES.MARKET_REFRESH_TOKEN)?.value) {
+      const outcome = await refreshMarketSession();
+      if (outcome.status === "refreshed") {
+        // Renewed cookies are on this response; the session survives intact.
+        return NextResponse.json(
+          { renewed: true, expired: false },
+          { status: 200 },
+        );
+      }
+      // invalid / ineligible / unavailable → fall through to the nuke path.
+    }
+
+    // Snapshot the identity BEFORE the nuke — after step 1/3 the User-Data
+    // cookie describes the fresh guest, so this is the last point where the
+    // outgoing session's verified status can be read.
+    const wasVerified = await isVerifiedMarketUser();
+
+    // 1. Clear stale tokens (incl. the dead refresh cookie — deleted only
+    // here, after the last-chance attempt above failed)
     await Promise.all([
       deleteSecureCookie(COOKIE_NAMES.MARKET_TOKEN),
+      deleteSecureCookie(COOKIE_NAMES.MARKET_REFRESH_TOKEN),
       deleteSecureCookie(COOKIE_NAMES.CHAT_TOKEN),
       deleteSecureCookie(COOKIE_NAMES.STORIES_TOKEN),
     ]);
@@ -70,13 +103,15 @@ export async function POST(request: NextRequest) {
     ]);
 
     // 3. Re-register as guest — call backend directly so we can set cookies
-    // in this response (internal fetch to register-device loses Set-Cookie)
+    // in this response (internal fetch to register-device loses Set-Cookie).
+    // Bodyless per the Go contract: no old_guest_user_id (the re-issue-by-id
+    // path — the old account-takeover hole — no longer exists), so there is
+    // also no "user does not exist" retry.
     const country = request.headers.get("x-country")?.trim() || "sy";
     const language = request.headers.get("x-language")?.trim() || "en";
-    const oldGuestUserId = oldUserId || userData?.id || null;
 
-    let response = await fetch(
-      process.env.BACKEND_URL /* TEMP TEST: was GO_BACKEND_URL — revert after testing */ + REGISTER_GUEST_URL,
+    const response = await fetch(
+      process.env.GO_BACKEND_URL + REGISTER_GUEST_URL,
       {
         method: "POST",
         headers: {
@@ -86,47 +121,35 @@ export async function POST(request: NextRequest) {
           language,
           lang: language,
         },
-        body: JSON.stringify({ old_guest_user_id: oldGuestUserId }),
         credentials: "omit",
       },
     );
 
-    let data = await response.json();
-
-    if (data.message === "The user does not exist." && oldGuestUserId) {
-      response = await fetch(
-        process.env.BACKEND_URL /* TEMP TEST: was GO_BACKEND_URL — revert after testing */ + REGISTER_GUEST_URL,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            country,
-            language,
-            lang: language,
-          },
-          body: JSON.stringify({ old_guest_user_id: null }),
-          credentials: "omit",
-        },
-      );
-      data = await response.json();
-    }
+    const data = await response.json();
 
     if (!response.ok) {
       LogServerError({ error: data, type: "auth/expire route error" });
       return NextResponse.json(
-        { ...data, expired: true },
+        { ...data, expired: true, wasVerified },
         { status: response.status },
       );
     }
 
-    // 4. Set the guest MARKET_TOKEN and USER_DATA in this response — client receives them
+    // 4. Set the guest token pair and USER_DATA in this response — client
+    // receives the cookies, never the token values
     const cookieStore = await cookies();
     if (data.data?.token) {
       cookieStore.set({
         name: COOKIE_NAMES.MARKET_TOKEN,
         value: data.data.token,
         ...SECURE_COOKIE_OPTIONS,
+      });
+    }
+    if (data.data?.refresh_token) {
+      cookieStore.set({
+        name: COOKIE_NAMES.MARKET_REFRESH_TOKEN,
+        value: data.data.refresh_token,
+        ...REFRESH_COOKIE_OPTIONS,
       });
     }
     if (data.data?.user) {
@@ -139,8 +162,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         ...data,
-        data: { ...data.data, token: undefined },
+        data: { ...data.data, token: undefined, refresh_token: undefined },
         expired: true,
+        wasVerified,
       },
       { status: 200 },
     );
