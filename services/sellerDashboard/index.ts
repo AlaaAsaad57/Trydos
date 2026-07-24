@@ -1033,6 +1033,122 @@ class SellerDashboardService {
     });
   }
 
+  // ---------- Shop Locations ----------
+  // Seller-owned warehouses / pickup points (see the Shop Locations contract).
+  // All scoped to X-Seller-ID via the sellerId arg — another shop's location id
+  // behaves exactly like a nonexistent one (404), so existence never leaks.
+  // There is NO delete endpoint: a location can only be deactivated.
+
+  // GET /shop/locations — READ_LOCATIONS | SUPER_ADMIN
+  // Newest first, page size from the business `pagination_limit` setting.
+  // `status` (1 = active, 0 = inactive) and `country_id` are optional filters;
+  // status is checked against null/undefined rather than falsiness so that the
+  // legitimate `status=0` filter isn't silently dropped.
+  async getShopLocations(
+    sellerId: string,
+    filters: {
+      status?: 0 | 1 | null;
+      countryId?: string | number | null;
+      page?: number;
+    } = {},
+  ) {
+    const params = new URLSearchParams();
+    if (filters.status !== undefined && filters.status !== null)
+      params.set("status", String(filters.status));
+    if (filters.countryId) params.set("country_id", String(filters.countryId));
+    if (filters.page && filters.page > 1) params.set("page", String(filters.page));
+    const qs = params.toString();
+    return fetchData({
+      url: `/shop/locations${qs ? `?${qs}` : ""}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SHOP_LOCATIONS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/locations/lookups — CREATE_LOCATION | SUPER_ADMIN
+  // Reference data for the create form: the active countries that have an active
+  // shipping method (same source as the boutique lookups). NOTE the permission —
+  // a READ-only user gets 403 here, so never use this to build a *filter* list.
+  async getShopLocationLookups(sellerId: string) {
+    return fetchData({
+      url: `/shop/locations/lookups`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SHOP_LOCATION_LOOKUPS,
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // POST /shop/locations — CREATE_LOCATION | SUPER_ADMIN
+  // The owning shop always comes from X-Seller-ID; any owner field in the body is
+  // ignored. New locations start active (status: 1). `name` is unique per shop
+  // per country — a duplicate returns 422 with detailed_error[].code = "name".
+  async addShopLocation(sellerId: string, payload: Record<string, unknown>) {
+    return fetchData({
+      url: `/shop/locations`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.ADD_SHOP_LOCATION,
+      body: JSON.stringify(payload),
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // GET /shop/locations/{id}/edit — READ_LOCATIONS | UPDATE_LOCATION | SUPER_ADMIN
+  // One call renders the edit form: { location, lookups: { countries } }.
+  async getShopLocationForEdit(sellerId: string, locationId: string | number) {
+    return fetchData({
+      url: `/shop/locations/${locationId}/edit`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SHOP_LOCATION_FOR_EDIT,
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // POST /shop/locations/{id}/update — UPDATE_LOCATION | SUPER_ADMIN
+  // Same payload/rules as create (the unique-name rule ignores this location).
+  // `status` CANNOT be changed here — use changeShopLocationStatus.
+  async updateShopLocation(
+    sellerId: string,
+    locationId: string | number,
+    payload: Record<string, unknown>,
+  ) {
+    return fetchData({
+      url: `/shop/locations/${locationId}/update`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.UPDATE_SHOP_LOCATION,
+      body: JSON.stringify(payload),
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // POST /shop/locations/{id}/change-status — CHANGE_LOCATION_STATUS | SUPER_ADMIN
+  // Success `data` = { status }. Deactivating does NOT detach the location from
+  // products that reference it.
+  async changeShopLocationStatus(
+    sellerId: string,
+    locationId: string | number,
+    status: 0 | 1,
+  ) {
+    return fetchData({
+      url: `/shop/locations/${locationId}/change-status`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.CHANGE_SHOP_LOCATION_STATUS,
+      body: JSON.stringify({ status }),
+      sellerId,
+      noMessage: true,
+    });
+  }
+
   // GET /languages — public language list (drives the boutique translation tabs).
   // Response shape is normalized client-side via helpers.mapLanguages. Cached.
   async getLanguages() {

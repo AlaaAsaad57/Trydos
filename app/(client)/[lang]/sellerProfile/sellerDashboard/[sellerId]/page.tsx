@@ -20,6 +20,7 @@ import GalleryTab from "components/SellerDashboard/GalleryTab";
 import StoriesTab from "components/SellerDashboard/StoriesTab";
 import CommentsTab from "components/SellerDashboard/CommentsTab";
 import ExcelUploadTab from "components/SellerDashboard/ExcelUploadTab";
+import LocationsTab from "components/SellerDashboard/locations/LocationsTab";
 import BackBar from "components/setting/BackBar";
 import ShopInfo from "components/SellerDashboard/ShopInfo";
 import { ConfirmModal } from "components/global/ConfirmModal";
@@ -42,6 +43,7 @@ import {
 type TabType =
   | "products"
   | "boutiques"
+  | "locations"
   | "permissions"
   | "users"
   | "orders"
@@ -65,6 +67,12 @@ const PERMISSION_GROUPS = {
     "UPDATE_BUTIKS",
     "DELETE_BUTIKS",
     "CHANGE_BOUTIQUE_STATUS",
+  ],
+  LOCATIONS: [
+    "READ_LOCATIONS",
+    "CREATE_LOCATION",
+    "UPDATE_LOCATION",
+    "CHANGE_LOCATION_STATUS",
   ],
   CATEGORIES: [
     "READ_CATEGORIES",
@@ -208,6 +216,7 @@ function SellerDashBoard() {
   const VALID_TABS: TabType[] = [
     "products",
     "boutiques",
+    "locations",
     "permissions",
     "users",
     "orders",
@@ -315,6 +324,15 @@ function SellerDashBoard() {
     hasPermission(p),
   );
   const canViewBoutiques = PERMISSION_GROUPS.BOUTIQUES.some((p: string) =>
+    hasPermission(p),
+  );
+  // Locations (warehouses / pickup points). The tab appears when the user holds
+  // any location permission; each action is then gated on its own.
+  const canReadLocations = hasPermission("READ_LOCATIONS");
+  const canCreateLocation = hasPermission("CREATE_LOCATION");
+  const canUpdateLocation = hasPermission("UPDATE_LOCATION");
+  const canChangeLocationStatus = hasPermission("CHANGE_LOCATION_STATUS");
+  const canViewLocations = PERMISSION_GROUPS.LOCATIONS.some((p: string) =>
     hasPermission(p),
   );
   const canViewPermissions = [
@@ -1809,6 +1827,13 @@ function SellerDashBoard() {
       show: canViewBoutiques,
     },
     {
+      tab: "locations",
+      icon: "location",
+      label: translateFunction("Locations"),
+      desc: translateFunction("Warehouses and pickup points for this shop"),
+      show: canViewLocations,
+    },
+    {
       tab: "orders",
       icon: "orders",
       label: translateFunction("Orders"),
@@ -2012,6 +2037,28 @@ function SellerDashBoard() {
                     {loadingSideBar ? <Spinner /> : sellerBoutiques?.length}
                   </span>
                   {activeTab === "boutiques" && (
+                    <span className="ml-auto text-[#5d5d5d]">
+                      <DashIcon name="check" size={16} />
+                    </span>
+                  )}
+                </button>
+              )}
+
+              {canViewLocations && (
+                <button
+                  onClick={() => {
+                    changeTab("locations");
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                    activeTab === "locations"
+                      ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
+                      : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
+                  }`}
+                >
+                  <DashIcon name="location" size={20} />
+                  <span>{translateFunction("Locations")}</span>
+                  {activeTab === "locations" && (
                     <span className="ml-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
@@ -2262,6 +2309,16 @@ function SellerDashBoard() {
         {activeTab === "none" && renderHome()}
         {activeTab === "products" && renderProducts()}
         {activeTab === "boutiques" && renderBoutiques()}
+        {activeTab === "locations" && (
+          <LocationsTab
+            sellerId={sellerId}
+            language={language}
+            canRead={canReadLocations}
+            canCreate={canCreateLocation}
+            canUpdate={canUpdateLocation}
+            canChangeStatus={canChangeLocationStatus}
+          />
+        )}
         {activeTab === "permissions" && renderPermissions()}
         {activeTab === "users" && renderUsers()}
         {activeTab === "orders" && (

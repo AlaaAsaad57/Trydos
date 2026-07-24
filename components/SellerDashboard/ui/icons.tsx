@@ -44,7 +44,8 @@ export type IconName =
   | "play"
   | "refresh"
   | "heart"
-  | "share";
+  | "share"
+  | "location";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   products: (
@@ -250,6 +251,12 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <circle cx="18" cy="19" r="3" />
       <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
       <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+    </>
+  ),
+  location: (
+    <>
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
+      <circle cx="12" cy="10" r="3" />
     </>
   ),
 };

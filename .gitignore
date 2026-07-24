@@ -110,3 +110,8 @@ go-refresh-api-contract.md
 # local; share through the backend team's own channel, never via this repo.
 laravel-refresh-flow.md
 laravel-refresh-plan.md
+
+# Same class: the shop-locations backend contract (endpoint shapes, permission
+# names and the seller-scoping rules). Keep local; share through the backend
+# team's own channel, never via this repo.
+seller-dashboard-locations-api-contract.md
