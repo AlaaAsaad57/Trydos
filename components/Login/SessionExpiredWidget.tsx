@@ -29,9 +29,9 @@ function SessionExpiredWidget() {
 
   const handleLogin = useCallback(() => {
     // reAuthResult stays "pending" — the OTP widget owns the outcome now.
-    // "expired-login" makes a DISMISSAL of that widget hard-reload at once
-    // (success keeps the normal finalise path — never reload on success);
-    // "seller" keeps its seller semantics (cancel redirects home).
+    // Dismissing that widget hard-reloads (seller routes redirect home
+    // instead; success keeps the normal finalise path — never reload on
+    // success).
     setShouldAuthinticated(isSeller ? "seller" : "expired-login");
   }, [setShouldAuthinticated, isSeller]);
 
@@ -97,7 +97,7 @@ function SessionExpiredWidget() {
         <div className="mt-7 w-full flex items-center gap-3 sm:flex-col">
           <button
             onClick={handleLogin}
-            className="flex-1 sm:w-full inline-flex items-center justify-center rounded-2xl px-4 py-3 text-base font-semibold text-[#1d1d1d] bg-[#ff6464] hover:brightness-105 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
+            className="flex-1 sm:w-full inline-flex  items-center justify-center rounded-2xl px-4 py-3 text-base font-semibold text-white bg-[#ff6464] hover:brightness-105 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
             aria-label={translateFunction("Login", language)}
           >
             {translateFunction("Login", language)}

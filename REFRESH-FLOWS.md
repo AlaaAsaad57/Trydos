@@ -160,7 +160,7 @@ flowchart TD
     D -->|Continue as guest| F[Reload as the fresh guest]
     D2 -->|dismissed| F
     G["{expired: true, wasVerified: false}"] --> H[Silent guest continuity —<br/>guests never see a prompt]
-    I[Seller dashboard route] --> J["Same session-expired prompt —<br/>Login → OTP with seller semantics<br/>(cancel redirects home) ·<br/>'Continue as guest' → storefront home<br/>(a guest can't stay on the dashboard)"]
+    I[Seller dashboard route] --> J["Same session-expired prompt —<br/>Login → OTP (dismissal → storefront home) ·<br/>'Continue as guest' → storefront home<br/>(a guest can't stay on the dashboard)"]
 ```
 
 The product rule behind all of it: **a verified shopper is never silently downgraded
