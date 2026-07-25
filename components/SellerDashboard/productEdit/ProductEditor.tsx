@@ -89,13 +89,24 @@ export default function ProductEditor({
   const { sellerProducts, sellerPermissions, setSellerPermissions } =
     useSellerProfile();
 
-  // Shop currency (fetched dashboard-wide by ShopInfoLoader). Only trusted when
-  // it belongs to THIS shop — otherwise the inputs render without an overlay.
+  // Shop info (fetched dashboard-wide by ShopInfoLoader). Only trusted when it
+  // belongs to THIS shop — otherwise the inputs render without an overlay.
   const dashboardShopInfo = useAppStore((s) => s.dashboardShopInfo);
-  const currency =
-    dashboardShopInfo?.sellerId === sellerId
-      ? dashboardShopInfo.currency.code
-      : "";
+  const setDashboardShopInfo = useAppStore((s) => s.setDashboardShopInfo);
+  const shopInfo =
+    dashboardShopInfo?.sellerId === sellerId ? dashboardShopInfo : null;
+  const currency = shopInfo?.currency.code ?? "";
+
+  // Create-path approval gating. `shopInfo === null` means the loader has not
+  // settled yet (NOT a failure); `available: false` means it settled but the
+  // standing is unknown. Both are create-only — editing an existing product is
+  // never affected by shop info in any way.
+  const shopInfoPending = isCreate && shopInfo === null;
+  const shopInfoUnavailable = isCreate && shopInfo !== null && !shopInfo.available;
+  // Restrict ONLY on a usable record that explicitly says the seller is not
+  // approved. Never on the edit path, never on an unknown standing.
+  const pricesLocked =
+    isCreate && !!shopInfo?.available && !shopInfo.newProductsApproval;
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -107,6 +118,8 @@ export default function ProductEditor({
   const [productMeta, setProductMeta] = useState<{
     requires_approval?: boolean;
     request_status?: number;
+    /** Live product has a submitted update awaiting an admin decision. */
+    is_product_updated_and_need_approval?: boolean;
   }>({});
 
   const [editMode, setEditMode] = useState(false);
@@ -212,7 +225,11 @@ export default function ProductEditor({
       setForm(built);
       setInitial(built);
       setStatus(Number(product.status ?? 0));
-      setProductMeta({ request_status: product.request_status });
+      setProductMeta({
+        request_status: product.request_status,
+        is_product_updated_and_need_approval:
+          !!product.is_product_updated_and_need_approval,
+      });
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : String(e);
       LogError({ scenario: "ProductEditor.load", error: msg, productId: productId ?? "new" });
@@ -439,7 +456,7 @@ export default function ProductEditor({
     // isCreate gates the three checks the backend enforces only at create
     // (boutique, category, description) — applying them on edit would block
     // saving an existing product that legitimately has one of them empty.
-    const errs = validate(form, isCreate);
+    const errs = validate(form, isCreate, pricesLocked);
     setErrors(errs);
     if (Object.keys(errs).length > 0) {
       showErrorMessage(t("Please fix the highlighted fields before saving."));
@@ -675,11 +692,30 @@ export default function ProductEditor({
 
   /* ------------------------------- render --------------------------------- */
 
-  if (loading) return <LoadingState label={t("Loading product…")} />;
+  // Create waits for the seller's approval standing before rendering any price
+  // input, so the unrestricted form is never shown and then withdrawn.
+  if (loading || shopInfoPending)
+    return <LoadingState label={t("Loading product…")} />;
   if (denied)
     return (
       <AccessDenied
         message={t("You don't have permission to view or edit this product.")}
+      />
+    );
+  // Standing settled but unusable: fail the same way a failed product load
+  // fails. Retry clears the record so ShopInfoLoader's sellerId guard stops
+  // matching and GET /shop/info is re-issued exactly once — the loader never
+  // retries by itself, by design (that would re-fetch on every render).
+  if (shopInfoUnavailable)
+    return (
+      <ErrorState
+        message={t(
+          "Couldn't load your shop details. Product creation is unavailable until they load.",
+        )}
+        onRetry={() => {
+          setDashboardShopInfo(null);
+          load();
+        }}
       />
     );
   if (loadError)
@@ -692,6 +728,7 @@ export default function ProductEditor({
     errors,
     lookups,
     disabled: !editMode,
+    pricesLocked,
     onUploadImages,
     onUploadMeta,
     onUploadVideo,
@@ -731,11 +768,15 @@ export default function ProductEditor({
                   {status === 1 ? t("Purchasable") : t("Disabled")}
                 </StatusPill>
               )}
-              {!isCreate && productMeta.request_status === 0 && (
-                <span className="px-2.5 py-1 rounded-full text-[10px] semibold bg-[#fbf6e6] text-[#b8860b]">
-                  {t("Pending Approval")}
-                </span>
-              )}
+              {/* Suppressed while a pending update exists — that state gets its
+                  own banner and the pill would contradict it. */}
+              {!isCreate &&
+                productMeta.request_status === 0 &&
+                !productMeta.is_product_updated_and_need_approval && (
+                  <span className="px-2.5 py-1 rounded-full text-[10px] semibold bg-[#fbf6e6] text-[#b8860b]">
+                    {t("Pending Approval")}
+                  </span>
+                )}
             </div>
             <p className="text-[12px] text-[#8e8e8e] mt-0.5">
               {isCreate
@@ -832,6 +873,31 @@ export default function ProductEditor({
             )}
           </div>
         </div>
+
+        {/* Persistent approval banners (survive reload, unlike approvalNote
+            below which only marks the transient post-save moment). The pending
+            banner wins: it implies an already-approved product, so the two
+            states are mutually exclusive and it takes precedence if both. */}
+        {!isCreate && productMeta.is_product_updated_and_need_approval && (
+          <div className="mt-4">
+            <InlineAlert tone="warning">
+              {t(
+                "This product has pending changes awaiting admin approval. The form below shows your submitted changes; the live product still shows the previous values until approval.",
+              )}
+            </InlineAlert>
+          </div>
+        )}
+        {!isCreate &&
+          !productMeta.is_product_updated_and_need_approval &&
+          productMeta.request_status === 2 && (
+            <div className="mt-4">
+              <InlineAlert tone="warning">
+                {t(
+                  "Your last changes to this product were denied. The live product still shows the previous values.",
+                )}
+              </InlineAlert>
+            </div>
+          )}
 
         {approvalNote && (
           <div className="mt-4">

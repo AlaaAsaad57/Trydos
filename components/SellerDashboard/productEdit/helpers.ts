@@ -690,6 +690,13 @@ const idStr = (v: any): string =>
 export function validate(
   form: ProductForm,
   isCreate = false,
+  /**
+   * Creating a product as a seller who is not approved for new products: the
+   * only price they may enter is purchase_price, so the unit/discount rules are
+   * skipped — the backend drops them on this path too. Purchase price is still
+   * validated. There is no product-level luck-price rule to skip.
+   */
+  pricesLocked = false,
 ): Record<string, string> {
   const e: Record<string, string> = {};
 
@@ -704,12 +711,14 @@ export function validate(
 
   const up = num(form.unit_price);
   const dp = num(form.discount_price);
-  if (form.unit_price === "" || isNaN(up) || up < 0)
-    e.unit_price = tx("Enter a valid unit price");
-  if (form.discount_price !== "") {
-    if (isNaN(dp) || dp < 0) e.discount_price = tx("Enter a valid discount price");
-    else if (!isNaN(up) && dp > up)
-      e.discount_price = tx("Discount must be ≤ unit price");
+  if (!pricesLocked) {
+    if (form.unit_price === "" || isNaN(up) || up < 0)
+      e.unit_price = tx("Enter a valid unit price");
+    if (form.discount_price !== "") {
+      if (isNaN(dp) || dp < 0) e.discount_price = tx("Enter a valid discount price");
+      else if (!isNaN(up) && dp > up)
+        e.discount_price = tx("Discount must be ≤ unit price");
+    }
   }
   if (form.purchase_price !== "" && (isNaN(num(form.purchase_price)) || num(form.purchase_price) < 0))
     e.purchase_price = tx("Enter a valid purchase price");
@@ -932,7 +941,9 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
   set("report_ref_number", form.report_ref_number);
   if (form.location_id) set("location_id", form.location_id);
 
-  set("unit_price", form.unit_price);
+  // Coalesced like its three neighbours below: a restricted create leaves this
+  // input locked and empty, and the key must still be sent (never stripped).
+  set("unit_price", form.unit_price === "" ? "0" : form.unit_price);
   set("discount_price", form.discount_price === "" ? "0" : form.discount_price);
   set("purchase_price", form.purchase_price === "" ? "0" : form.purchase_price);
   // Key-required on update for approval-enabled sellers (contract §2.2): the DTO

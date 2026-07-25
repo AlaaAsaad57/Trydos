@@ -1,4 +1,7 @@
 const translations = {
+  "This product has pending changes awaiting admin approval. The form below shows your submitted changes; the live product still shows the previous values until approval.": "يحتوي هذا المنتج على تغييرات معلّقة بانتظار موافقة الإدارة. يعرض النموذج أدناه التغييرات التي أرسلتها، بينما يستمر المنتج المنشور في عرض القيم السابقة حتى تتم الموافقة.",
+  "Your last changes to this product were denied. The live product still shows the previous values.": "تم رفض آخر تغييرات أجريتها على هذا المنتج. لا يزال المنتج المنشور يعرض القيم السابقة.",
+  "Couldn't load your shop details. Product creation is unavailable until they load.": "تعذّر تحميل بيانات متجرك. لا يمكن إنشاء منتج حتى يتم تحميلها.",
   "Bold": "عريض",
   "Italic": "مائل",
   "Underline": "تسطير",
