@@ -79,11 +79,16 @@ understand the plan before deciding:
 1. Generate **2–3 multiple-choice questions derived from `plan.md`/`spec.md`** (the
    acceptance criteria, the "Files to change", the rollback, the risks) — specific,
    not generic (CG-2). Each question offers **at least 4 candidate answers** drawn
-   from the artifact: one correct plus ≥3 plausible distractors.
+   from the artifact: one correct plus ≥3 plausible distractors. **Sort each
+   question's options alphabetically** — the correct answer's position must carry
+   no signal (never habitually first).
 2. Ask them via `AskUserQuestion`; the owner selects an option per question.
 3. Record, under the **review** section of `_specs/<slug>/comprehension.md`
    (create it from `_specs/_templates/comprehension.md` if absent): each question,
-   its options, the owner's selected answer, and whether it was correct.
+   its options, the owner's selected answer, and whether it was correct. Set the
+   front-matter (read by the notification hook — ADR-013): `stage: review`,
+   `result: passed|failed`, `score: <correct>/<total>`, and `decision:` = the
+   gate decision when the quiz passed, `none` when it failed.
 4. **Pass = 100% correct (CG-4).** If **any** answer is wrong, record **no**
    decision and leave `ticket.md` unchanged (atomic); report which questions were
    missed and stop — the owner re-reads the plan and re-runs `/review`. Proceed to

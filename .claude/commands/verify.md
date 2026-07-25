@@ -52,24 +52,6 @@ Read `_specs/<slug>/ticket.md`, `spec.md`, `plan.md`, `implement.md`; then apply
 
 If any check fails, stop and report the rule code + message. **Make no writes.**
 
-## Step 1b — Comprehension check (CG-1..CG-4)
-
-Before validating, the owner must show they understand what was built:
-1. Generate **2–3 multiple-choice questions derived from `implement.md`/`spec.md`**
-   (what changed, which acceptance criteria it satisfies, how to roll it back, its
-   runtime impact) — specific, not generic (CG-2). Each question offers **at least 4
-   candidate answers** drawn from the artifact: one correct plus ≥3 plausible distractors.
-2. Ask them via `AskUserQuestion`; the owner selects an option per question.
-3. Record, under the **verify** section of `_specs/<slug>/comprehension.md`
-   (create it from the template if absent; do **not** overwrite the `review`
-   section): each question, its options, the selected answer, and whether it was correct.
-   In the same edit, set the front-matter `stage: verify` and bump `updated:` —
-   `stage` is "the gate that last updated this record" and the gate-notification
-   hook reads it to name the gate in the Telegram notice.
-4. **Pass = 100% correct (CG-4).** If **any** answer is wrong, record **no** PASSED
-   and leave `ticket.md` unchanged (atomic); report the missed questions and stop —
-   the owner re-reads and re-runs `/verify`. Proceed only when every answer is correct.
-
 ## Step 2 — Verify (read-only)
 
 On the ticket's branch (`ticket/<slug>`), validate **every** `AC-n` at depth
@@ -98,6 +80,28 @@ executed check to the AC(s) it covers. Do **not** edit any implementation file.
 Determine the protected-path impact statement (yes/no) (VF-9 / TR-3).
 
 Outcome = **PASSED** iff every AC result passes; otherwise **FAILED**.
+
+## Step 2b — Comprehension check (CG-1..CG-4)
+
+The outcome is now known but **nothing is written yet**. Before recording it,
+the owner must show they understand what was built:
+1. Generate **2–3 multiple-choice questions derived from `implement.md`/`spec.md`**
+   (what changed, which acceptance criteria it satisfies, how to roll it back, its
+   runtime impact) — specific, not generic (CG-2). Each question offers **at least 4
+   candidate answers** drawn from the artifact: one correct plus ≥3 plausible
+   distractors. **Sort each question's options alphabetically** — the correct
+   answer's position must carry no signal (never habitually first).
+2. Ask them via `AskUserQuestion`; the owner selects an option per question.
+3. Record, under the **verify** section of `_specs/<slug>/comprehension.md`
+   (create it from the template if absent; do **not** overwrite the `review`
+   section): each question, its options, the selected answer, and whether it was
+   correct. Set the front-matter (read by the notification hook — ADR-013):
+   `stage: verify`, `result: passed|failed`, `score: <correct>/<total>`, and
+   `decision:` = the Step 2 outcome (`PASSED`/`FAILED`) when the quiz passed,
+   `none` when it failed.
+4. **Pass = 100% correct (CG-4).** If **any** answer is wrong, record **no** PASSED
+   and leave `ticket.md` unchanged (atomic); report the missed questions and stop —
+   the owner re-reads and re-runs `/verify`. Proceed only when every answer is correct.
 
 ## Step 3 — Write verify.md (VF-1)
 

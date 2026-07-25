@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 """PostToolUse hook — deterministic gate notification to Telegram.
 
-Fires after every Write/Edit; no-ops unless the touched path is
-`_specs/<slug>/comprehension.md` (the moment a review/verify gate reaches a
-decision — /review Writes the file, /verify Edits the existing one). Reuses the EXISTING Alertmanager Telegram bot — configured in the
-shared file `.claude/notifications.json`, with env overrides for compatibility.
-This hook:
+Fires after every Write **or Edit**; no-ops unless the touched path is
+`_specs/<slug>/comprehension.md` (the moment a review/verify gate completes its
+comprehension check). Edit matters: at `/verify` the file already exists (the
+review section was written first), so the second gate reaches it via Edit —
+matching Write alone silently drops every /verify notification.
+
+Message content comes from the comprehension.md front-matter written by the gate
+(`result`, `score`, `decision`) — NOT from `ticket.md`, whose state is still
+pre-transition at hook time (CG-1: the comprehension record precedes the
+decision write). Records without those fields fall back to the legacy
+state-based message. Reuses the EXISTING Alertmanager Telegram bot — configured
+in the shared file `.claude/notifications.json`, with env overrides for
+compatibility. This hook:
 
   - NEVER edits any `protected_paths` runtime file (it only calls the public
     Telegram API).
@@ -83,18 +91,36 @@ def git_actor() -> str:
     return f"{name} <{email}>".strip() if (name or email) else "unknown"
 
 
+def outcome_line(fm: dict):
+    """(icon, summary) from the comprehension front-matter; None → legacy record."""
+    decision = (fm.get("decision") or "").strip().upper()
+    score = (fm.get("score") or "").strip()
+    if (fm.get("result") or "").strip().lower() == "failed":
+        return "🚫", f"Quiz FAILED ({score or '?'}) — gate blocked, no decision recorded"
+    if decision and decision != "NONE":
+        icon = {"CHANGES_REQUESTED": "⚠️", "REJECTED": "❌", "FAILED": "❌"}.get(decision, "✅")
+        return icon, f"Decision: {decision}" + (f" · Quiz {score}" if score else "")
+    return None
+
+
 def build_message(comprehension_path) -> str:
     slug_dir = comprehension_path.parent
     fm = read_frontmatter(comprehension_path.read_text(encoding="utf-8"))
     ticket = fm.get("ticket") or slug_dir.name
     stage = fm.get("stage", "gate")
-    state = _field(slug_dir / "ticket.md", "state", "unknown")
-    status = _field(slug_dir / "ticket.md", "status", "")
-    icon = "⚠️" if status == "blocked" or state == "implementation-in-progress" else "✅"
+    outcome = outcome_line(fm)
+    if outcome is None:
+        # Legacy record (no result/decision fields): ticket.md state — NB it is
+        # pre-transition at hook time, hence the new fields above are preferred.
+        state = _field(slug_dir / "ticket.md", "state", "unknown")
+        status = _field(slug_dir / "ticket.md", "status", "")
+        icon = "⚠️" if status == "blocked" or state == "implementation-in-progress" else "✅"
+        outcome = (icon, f"State: {state}" + (" (blocked)" if status == "blocked" else ""))
+    icon, summary = outcome
     when = datetime.now().strftime("%Y-%m-%d %H:%M")
     lines = [
         f"{icon} Gate: /{stage} — {ticket}",
-        f"State: {state}" + (f" (blocked)" if status == "blocked" else ""),
+        summary,
         f"Owner: {git_actor()}",
         f"When: {when}",
     ]
@@ -220,6 +246,17 @@ def _selftest() -> int:
     assert resolve_settings({"telegram": {"enabled": False}}, {})["enabled"] is False
     r3 = resolve_settings({}, {"WF_TELEGRAM_BOT_TOKEN": "t", "WF_TELEGRAM_CHAT_ID": "-9"})
     assert r3["enabled"] and r3["token"] == "t" and r3["chat"] == "-9", r3
+
+    # outcome line from the new front-matter fields (decision-aware messages)
+    assert outcome_line({"result": "passed", "score": "3/3", "decision": "APPROVED"}) == (
+        "✅", "Decision: APPROVED · Quiz 3/3")
+    assert outcome_line({"result": "passed", "score": "3/3", "decision": "FAILED"}) == (
+        "❌", "Decision: FAILED · Quiz 3/3")
+    assert outcome_line({"result": "passed", "decision": "CHANGES_REQUESTED"}) == (
+        "⚠️", "Decision: CHANGES_REQUESTED")
+    assert outcome_line({"result": "failed", "score": "1/3", "decision": "none"}) == (
+        "🚫", "Quiz FAILED (1/3) — gate blocked, no decision recorded")
+    assert outcome_line({}) is None  # legacy record falls back to state-based line
 
     print("notify_gate selftest: OK")
     return 0

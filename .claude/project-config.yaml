@@ -131,7 +131,7 @@ notifications:
   enabled: true
   channel: telegram             # telegram first; email (reuse mail.ramaaz.com) added later
   enforcement: warn             # warn (fail-open) | block (fail-closed via hook exit 2)
-  trigger: _specs/<ticket>/comprehension.md   # PostToolUse(Write) on this path
+  trigger: _specs/<ticket>/comprehension.md   # PostToolUse(Write|Edit) on this path — Edit included: the 2nd gate updates an existing file
   # Delivery config: shared file .claude/notifications.json (gitignored — holds the
   # bot token; copy from notifications.example.json). Env overrides it, higher
   # priority (never committed): WF_TELEGRAM_BOT_TOKEN / _CHAT_ID / _TOPIC_ID,
