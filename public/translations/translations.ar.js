@@ -740,6 +740,9 @@ const translations = {
   "Shopping Bag": "سلة التسوق",
   "your session has expired please login again or continue as guest":
     "لقد انتهت جلستك، يرجى تسجيل الدخول مرة أخرى أو الاستمرار كضيف",
+  "Your session has expired": "لقد انتهت جلستك",
+  "Please login again to get back to your account, or continue browsing as a guest.":
+    "يرجى تسجيل الدخول مرة أخرى للعودة إلى حسابك، أو الاستمرار في التصفح كضيف.",
   "enter number of pieces you want to return":
     "ادخل عدد القطع التي ترغب بإرجاعها",
   "Please Select The Appropriate": "الرجاء اختيار",

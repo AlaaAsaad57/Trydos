@@ -692,6 +692,9 @@ const translations = {
   "Please verify the number first.": "Lütfen önce numarayı doğrulayın.",
   "your session has expired please login again or continue as guest":
     "oturumunuz sona erdi, lütfen tekrar giriş yapın veya misafir olarak devam edin",
+  "Your session has expired": "Oturumunuz sona erdi",
+  "Please login again to get back to your account, or continue browsing as a guest.":
+    "Hesabınıza geri dönmek için lütfen tekrar giriş yapın veya misafir olarak gezinmeye devam edin.",
   "Continue as Guest": "Misafir Olarak Devam Et",
   "Enter Your Phone Number To Complete Order":
     "Siparişi Tamamlamak İçin Telefon Numaranızı Girin",

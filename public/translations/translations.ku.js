@@ -732,6 +732,9 @@ const translations = {
   "Shopping Bag": "سەبەتەی کڕین",
   "your session has expired please login again or continue as guest":
     "دانیشتنەکەت کۆتایی هاتووە، تکایە دووبارە بچۆ ژوورەوە یان وەک میوان بەردەوام ببە",
+  "Your session has expired": "دانیشتنەکەت کۆتایی هاتووە",
+  "Please login again to get back to your account, or continue browsing as a guest.":
+    "تکایە دووبارە بچۆ ژوورەوە بۆ گەڕانەوە بۆ هەژمارەکەت، یان وەک میوان بەردەوام بە لە گەڕان.",
   "Agree & Change": "ڕازی دەبم و گۆڕین دەکەم",
   "Please Select The Appropriate": "تکایە گونجاوەکە هەڵبژێرە",
   "Enter Your Phone Number To Complete Order":

@@ -17,7 +17,6 @@ import {
   sanitizeUserData,
   sanitizeServiceUser,
   sanitizeWalletUser,
-  getMarketFetchBase,
 } from "utils/server/tokenManager";
 
 // Helper to handle sub-service fetches safely
@@ -89,15 +88,11 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. Primary OTP Verification (Critical Path)
-    // Routed by user type like every other market call (getMarketFetchBase):
-    // a guest verifying for the first time is Go-served; an already-verified
-    // shopper re-verifying their phone is Laravel-served. Both backends expose
-    // the same endpoint — POST with a JSON body {verificationId, otp} + Bearer
-    // auth (no query params) — and both return a fresh token pair on promote
-    // and on merge.
-    const otpBase = await getMarketFetchBase();
-    const isLaravelVerify = otpBase === process.env.BACKEND_URL;
-    const otpUrl = `${otpBase}${VERIFY_OTP_ENDPOINT}`;
+    // Always served by the core backend — for first-time guest verification
+    // AND re-verification alike (product decision; do NOT route this call by
+    // user type). POST with a JSON body {verificationId, otp} + Bearer auth
+    // (no query params); returns a fresh token pair on promote and on merge.
+    const otpUrl = `${process.env.BACKEND_URL}${VERIFY_OTP_ENDPOINT}`;
     let otpRes: Response;
     let otp_response: any;
     try {
@@ -115,23 +110,20 @@ export async function GET(request: NextRequest) {
         body: JSON.stringify({
           verificationId,
           otp,
-          // `name` goes to Laravel only — Go's contract dropped the field, so
-          // sending it there risks a strict-decode rejection. It is used for
-          // the sub-service logins below regardless of the backend.
-          ...(isLaravelVerify && name ? { name } : {}),
+          ...(name ? { name } : {}),
         }),
       });
 
       otp_response = await otpRes.json();
     } catch (error) {
-      // Transport/parse failure reaching the Go verify_otp_from_guest service.
+      // Transport/parse failure reaching the verify_otp_from_guest service.
       // This is server-side and otherwise very hard to trace, so capture it to
       // Sentry explicitly with the request context before falling through to the
       // outer handler (which returns the generic 500).
       await LogServerError(
         {
           scenario: "verify_otp_from_guest service request failed",
-          backend: isLaravelVerify ? "laravel" : "go",
+          backend: "core",
           error,
           verificationId,
           country,
@@ -146,7 +138,7 @@ export async function GET(request: NextRequest) {
       LogServerError(
         {
           scenario: "verify_otp_from_guest service returned non-OK",
-          backend: isLaravelVerify ? "laravel" : "go",
+          backend: "core",
           error: otp_response,
           status: otpRes.status,
           verificationId,

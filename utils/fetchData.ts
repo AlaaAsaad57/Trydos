@@ -235,11 +235,12 @@ const handleUnauthorized = async (
           }
 
           // Seller dashboard: don't silently re-register as a guest and bounce.
-          // Register the guest (so closing the prompt still leaves a usable
-          // token), then surface the confirmMobile widget and wait for the
-          // seller to re-verify — mirroring the chat/stories 401 flow. On
-          // success the original request is retried with the fresh MARKET
-          // token; on cancel the widget redirects to home.
+          // Register the guest (so dismissing still leaves a usable token),
+          // then show the session-expired "please login again" prompt and wait.
+          // Its Login button re-arms the marker as "seller" (the OTP widget's
+          // seller semantics: cancel redirects home instead of reloading); on
+          // OTP success the original request retries with the fresh MARKET
+          // token. "Continue as Guest" sends the seller to the storefront home.
           const isSeller =
             !!options?.sellerId ||
             (typeof window !== "undefined" &&
@@ -252,15 +253,16 @@ const handleUnauthorized = async (
             const { setShouldAuthinticated, setReAuthResult } =
               useAppStore.getState();
             setReAuthResult("pending");
-            setShouldAuthinticated("seller");
+            setShouldAuthinticated("expired");
 
             return waitForReAuthSuccess();
           }
 
           // The session that just died belonged to a phone-verified shopper:
-          // ExpiredUser already armed the re-verify prompt, so wait for the OTP
-          // and retry the original request against their restored account
-          // instead of silently continuing as the freshly registered guest.
+          // ExpiredUser already armed the session-expired "please login again"
+          // prompt, so wait for them to log back in (prompt → OTP) and retry
+          // the original request against their restored account instead of
+          // silently continuing as the freshly registered guest.
           if (outcome?.wasVerified) return waitForReAuthSuccess();
 
           return true;

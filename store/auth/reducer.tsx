@@ -19,7 +19,11 @@ interface AuthState {
   failedLogin: boolean;
   attempts: number;
   wrongNumber: string;
-  shouldAuthinticated: boolean | "open Story" | "open chat" | "seller";
+  // "expired" shows the session-expired "please login again" prompt
+  // (SessionExpiredWidget); every other truthy value opens the phone-verify
+  // widget directly. Kept on the same marker so in-flight 401 handlers
+  // (waitForReAuthSuccess) keep waiting through prompt → OTP → success.
+  shouldAuthinticated: boolean | "open Story" | "open chat" | "seller" | "expired";
   reAuthResult: ReAuthResult;
   verficationID: string | null;
   firebaseSettings: FirebaseSettings;

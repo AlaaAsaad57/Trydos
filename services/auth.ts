@@ -516,12 +516,13 @@ class AuthService {
       this.cancelAuth(true);
 
       // A verified shopper is never left silently downgraded to an anonymous
-      // guest: arm the re-verify prompt right away so one OTP puts them back in
-      // their real account (and its cart). The guest token minted above keeps
-      // the app usable while the widget is open. Guests keep the silent path.
+      // guest: arm the session-expired prompt ("please login again", styled
+      // like the notification-allowance widget) so they choose between logging
+      // back into their real account (opens the OTP widget) or continuing as
+      // the fresh guest minted above. Guests keep the silent path.
       if (wasVerified) {
         setReAuthResult("pending");
-        setShouldAuthinticated(true);
+        setShouldAuthinticated("expired");
       } else {
         setReAuthResult("cancelled");
       }
