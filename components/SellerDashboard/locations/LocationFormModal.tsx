@@ -233,13 +233,13 @@ export default function LocationFormModal({
   const readOnly = !canSubmit;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[999999999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/45" onClick={onClose} />
       <div
         className="relative bg-white rounded-[20px] z-10 w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden"
         style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
       >
-        <div className="p-5 border-b border-[#ededed] flex items-center justify-between gap-3">
+        <div className="p-5 border-b border-[#ededed] w-full flex items-center justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-[16px] bold text-[#3c3c3c]">
               {isEdit ? t("Edit Location") : t("Add Location")}
@@ -263,8 +263,8 @@ export default function LocationFormModal({
             <Spinner />
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
-            <div className="p-5 overflow-auto space-y-5">
+          <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1 w-full">
+            <div className="p-5 overflow-auto space-y-5 w-full">
               {formError && <InlineAlert tone="error">{formError}</InlineAlert>}
               {readOnly && (
                 <div className="flex items-center gap-1.5 text-[12px] text-[#8e8e8e]">
@@ -364,7 +364,7 @@ export default function LocationFormModal({
               </div>
             </div>
 
-            <div className="p-5 border-t border-[#ededed] flex items-center justify-end gap-3">
+            <div className="p-5 border-t border-[#ededed] flex items-center w-full justify-end gap-3">
               <DashButton type="button" variant="ghost" onClick={onClose}>
                 {t("Cancel")}
               </DashButton>

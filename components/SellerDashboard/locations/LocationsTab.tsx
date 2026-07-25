@@ -229,7 +229,7 @@ export default function LocationsTab({
                 key={location.id}
                 className="bg-white rounded-[16px] border border-[#ededed] p-4 flex flex-col gap-3 hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-shadow"
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 w-full">
                   <span className="w-11 h-11 shrink-0 rounded-[12px] bg-[#5d5d5d]/10 text-[#5d5d5d] flex items-center justify-center">
                     <DashIcon name="location" size={20} />
                   </span>
