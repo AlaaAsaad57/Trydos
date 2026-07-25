@@ -6,7 +6,7 @@ import AuthService from "services/auth";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
-import SearchParamUpdater from "components/global/ParamsUpdater";
+
 import { useRouter } from "next/navigation";
 import { LogError } from "utils/functions";
 
@@ -140,7 +140,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
 
   return (
     <div>
-      <SearchParamUpdater searchKey="confirmPhone" searchValue="true" />
+      
       {stepIndicator === 3 && (!hasMobile || showMobile) && (
         <PhoneInput
           isForCart={true}

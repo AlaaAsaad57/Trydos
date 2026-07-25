@@ -161,7 +161,7 @@ class HomeService {
     }
   }
 
-  async registerForExpire(id?: number) {
+  async registerForExpire() {
     const {
       isRegisteringReady,
       setIsRegisteringReady,
@@ -173,12 +173,14 @@ class HomeService {
     if (!isRegisteringReady) return;
 
     setIsRegisteringReady(false);
-    const userId = id || auth.UserID();
 
     try {
       const [country, lang] = (
         window.location.pathname.split("/")[1] || ""
       ).split("-");
+      // Bodyless per the Go contract — register-guest only creates brand-new
+      // guests; old_guest_user_id no longer exists (session continuity is the
+      // refresh token's job now).
       const response = await fetch("/api/auth/register-device", {
         method: "POST",
         headers: {
@@ -186,7 +188,6 @@ class HomeService {
           "x-country": country || "sy",
           "x-language": lang || "en",
         },
-        body: JSON.stringify({ old_guest_user_id: userId || null }),
         credentials: "include",
       });
 
@@ -318,7 +319,14 @@ class HomeService {
     }
   }
 
-  async CheckLogin() {
+  /**
+   * App-load auth bootstrap. Refresh is REACTIVE-ONLY: no proactive
+   * expiry-based exchange runs here — local token expiry (JWT exp /
+   * expired_at) is ignored entirely, and the pair is rotated exclusively by
+   * the 401 recovery path in fetchData / HandleAuthedFetch. Always returns
+   * `false` (nothing rotated at boot).
+   */
+  async CheckLogin(): Promise<boolean> {
     const {
       loginSuccess,
       loginSuccessChat,
@@ -326,6 +334,8 @@ class HomeService {
       loginSuccessWallet,
       editUserInfo,
     } = useAppStore.getState();
+
+    const sessionRefreshed = false;
 
     // Fetch user data from HttpOnly cookies via server route
     let userData: any = null;
@@ -386,6 +396,7 @@ class HomeService {
       }
     }
     // auth.CheckUserName();
+    return sessionRefreshed;
   }
 
   async RegisterDevice() {
@@ -402,6 +413,8 @@ class HomeService {
       const [country, lang] = (
         window.location.pathname.split("/")[1] || ""
       ).split("-");
+      // Bodyless per the Go contract — no old_guest_user_id (see
+      // registerForExpire above).
       const response = await fetch("/api/auth/register-device", {
         method: "POST",
         headers: {
@@ -409,7 +422,6 @@ class HomeService {
           "x-country": country || "sy",
           "x-language": lang || "en",
         },
-        body: JSON.stringify({ old_guest_user_id: userId || null }),
         credentials: "include",
       });
 

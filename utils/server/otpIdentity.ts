@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import {
   SECURE_COOKIE_OPTIONS,
+  REFRESH_COOKIE_OPTIONS,
   setSecureCookieJSON,
 } from "utils/server/tokenManager";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -149,29 +150,21 @@ async function registerGuestForOtp(): Promise<string | null> {
     const existing = await getCookieServer<any>(COOKIE_NAMES.USER_DATA);
     const token = cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value;
 
-    const call = (body: Record<string, unknown>) =>
-      fetch(process.env.BACKEND_URL /* TEMP TEST: was GO_BACKEND_URL — revert after testing */ + REGISTER_GUEST_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          country: country || "gb",
-          language: language || "en",
-          lang: language || "en",
-        },
-        body: JSON.stringify(body),
-        credentials: "omit",
-      });
-
-    let res = await call({ old_guest_user_id: existing?.id ?? null });
-    let data = await res.json().catch(() => ({}));
-
-    // Backend rejects a stale guest id — retry as a brand-new guest.
-    if (data?.message === "The user does not exist." && existing?.id) {
-      res = await call({ old_guest_user_id: null });
-      data = await res.json().catch(() => ({}));
-    }
+    // Bodyless per the Go contract: register-guest only creates brand-new
+    // guests — no old_guest_user_id, no "user does not exist" retry.
+    const res = await fetch(process.env.GO_BACKEND_URL + REGISTER_GUEST_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        country: country || "gb",
+        language: language || "en",
+        lang: language || "en",
+      },
+      credentials: "omit",
+    });
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
       LogServerError({ error: data, type: "otp register-guest failed" });
@@ -184,6 +177,13 @@ async function registerGuestForOtp(): Promise<string | null> {
           name: COOKIE_NAMES.MARKET_TOKEN,
           value: data.data.token,
           ...SECURE_COOKIE_OPTIONS,
+        });
+      }
+      if (data?.data?.refresh_token) {
+        cookieStore.set({
+          name: COOKIE_NAMES.MARKET_REFRESH_TOKEN,
+          value: data.data.refresh_token,
+          ...REFRESH_COOKIE_OPTIONS,
         });
       }
       if (data?.data?.user) {

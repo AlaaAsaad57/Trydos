@@ -185,7 +185,7 @@ approval must produce the exact same result as a normal OTP login.
 
 `app/api/auth/login/route.ts` (a web-side Next route) does, on OTP verify:
 
-1. Calls Go `POST /auth/phone/verify_otp_from_guest` → gets back
+1. Calls the core backend's `POST /auth/phone/verify_otp_from_guest` → gets back
    **`{ token, id_token, user, already_exists, expires_at }`**.
    - `token` → market/inventory session (`MARKET-TOKEN` cookie)
    - **`id_token` (the `otp_id_token`)** → the master credential the other services trust

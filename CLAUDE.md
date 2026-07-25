@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Trydos — a multilingual e-commerce / live-shopping storefront. Next.js 16 (App Router) + React 19 + TypeScript + Zustand 5 + TailwindCSS 4, deployed on Vercel with a separate Go backend (`NEXT_PUBLIC_GO_BACKEND_URL`).
+Trydos — a multilingual e-commerce / live-shopping storefront. Next.js 16 (App Router) + React 19 + TypeScript + Zustand 5 + TailwindCSS 4, deployed on Vercel against two separate backends: the **core** backend (`BACKEND_URL`) and the **gateway** (`GO_BACKEND_URL` — pending rename, see "Stack-agnostic naming").
 
 `.github/copilot-instructions.md` is the authoritative coding-standards document for this repo (security checklist, fetch patterns, store rules, breakpoints, "no automated tests" policy). Read it before non-trivial work — the notes below complement, not replace, it.
 
@@ -89,6 +89,23 @@ The app has **4 languages**: `en` is the source (the English string *is* the key
 - **Never deduplicate keys.** Each distinct English string is its own key with one entry per file; don't merge distinct strings under a shared key, and don't drop an existing key to avoid a near-duplicate. A repeated word still gets wrapped at every call site.
 - **Interpolation:** translate the static sentence and interpolate the dynamic value — e.g. `` `${t("Missing")}: ${name}` `` — never build a key by string concatenation.
 - Keep the three files **key-parallel**: a key added to one must be added to the other two in the same edit.
+
+## Stack-agnostic naming — never encode the backing technology
+
+**Never name or store anything after the technology that happens to implement it.** No `go`, `laravel`, `nest`, `next`, `django`, `rails`, `symfony`, `express`, … in any name or persisted value. Name things after the **role they play in the product**, not the stack behind them — a service that gets rewritten in another language must not force a rename (or, worse, keep a name that now lies).
+
+Applies to: env vars, identifiers (constants, functions, types, object keys), cookie/storage keys, file and directory names, ticket/branch names, HTTP header and query names, API request/response fields, telemetry and log payloads, and error messages.
+
+```
+✗ GO_BACKEND_URL, GO_APIS, isFromGoApi, isLaravelVerify, { backend: "laravel" }
+✓ GATEWAY_BACKEND_URL, GATEWAY_APIS, isGatewayApi, isCoreVerify, { backend: "core" }
+```
+
+Two backends serve this app; refer to them by role — the **gateway** (guest/allow-listed traffic) and the **core** backend (`BACKEND_URL`, verified-user traffic). Use those words in code, comments, docs, and tickets.
+
+**Exempt** (framework-mandated, not our choice): imports from `next/*`, the `NEXT_PUBLIC_` env prefix Next.js requires, config files a tool dictates by name (`next.config.ts`), and dependency names in `package.json`. Everything we control is in scope.
+
+**Why it is also a security rule:** advertising the server stack to the browser hands an attacker a free head start on which CVEs to try. Nothing that reaches the client — response bodies, headers, error text, bundle identifiers, public env values — may name the backend technology.
 
 ## Security note
 

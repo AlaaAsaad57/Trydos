@@ -740,6 +740,9 @@ const translations = {
   "Shopping Bag": "سلة التسوق",
   "your session has expired please login again or continue as guest":
     "لقد انتهت جلستك، يرجى تسجيل الدخول مرة أخرى أو الاستمرار كضيف",
+  "Your session has expired": "لقد انتهت جلستك",
+  "Please login again to get back to your account, or continue browsing as a guest.":
+    "يرجى تسجيل الدخول مرة أخرى للعودة إلى حسابك، أو الاستمرار في التصفح كضيف.",
   "enter number of pieces you want to return":
     "ادخل عدد القطع التي ترغب بإرجاعها",
   "Please Select The Appropriate": "الرجاء اختيار",
@@ -2333,6 +2336,37 @@ const translations = {
   "Add": "إضافة",
   "Attribute": "الخاصية",
   "Product updated, but attributes failed to save.": "تم تحديث المنتج، لكن تعذّر حفظ الخصائص.",
+  // Seller dashboard — Locations section
+  "Locations": "المواقع",
+  "Add Location": "إضافة موقع",
+  "Edit Location": "تعديل الموقع",
+  "Address": "العنوان",
+  "Latitude": "خط العرض",
+  "Longitude": "خط الطول",
+  "No locations found": "لا توجد مواقع",
+  "Locations added to this shop will appear here.": "ستظهر هنا المواقع المضافة إلى هذا المتجر.",
+  "Add your first location": "أضف موقعك الأول",
+  "Warehouses and pickup points for this shop": "المستودعات ونقاط الاستلام لهذا المتجر",
+  "You don't have permission to view locations": "ليس لديك صلاحية لعرض المواقع",
+  "Failed to load locations": "تعذّر تحميل المواقع",
+  "Failed to save location": "تعذّر حفظ الموقع",
+  "Failed to change location status": "تعذّر تغيير حالة الموقع",
+  "Location created successfully": "تم إنشاء الموقع بنجاح",
+  "Location updated successfully": "تم تحديث الموقع بنجاح",
+  "Status changed successfully": "تم تغيير الحالة بنجاح",
+  "Pick the position on the map": "حدد الموقع على الخريطة",
+  "Use my current location": "استخدم موقعي الحالي",
+  "Location name": "اسم الموقع",
+  "All statuses": "كل الحالات",
+  "All countries": "كل الدول",
+  "Deactivate": "إلغاء التفعيل",
+  "Activate": "تفعيل",
+  "Name is required": "الاسم مطلوب",
+  "Country is required": "الدولة مطلوبة",
+  "Latitude must be between -90 and 90": "يجب أن يكون خط العرض بين -90 و 90",
+  "Longitude must be between -180 and 180": "يجب أن يكون خط الطول بين -180 و 180",
+  "Map is unavailable": "الخريطة غير متاحة",
+  "Coordinates are optional": "الإحداثيات اختيارية",
 };
 
 export default translations;

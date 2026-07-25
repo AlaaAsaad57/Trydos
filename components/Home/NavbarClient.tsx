@@ -5,6 +5,7 @@ import AuthSections from "./AuthSections";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import ConfirmMobilePhoneWidget from "components/Login/ConfirmMobilePhoneWidget";
+import SessionExpiredWidget from "components/Login/SessionExpiredWidget";
 import dynamic from "next/dynamic";
 import StoryViewerSkeleton from "components/skeleton/StoryViewerSkeleton";
 
@@ -30,7 +31,15 @@ function NavbarClient() {
       <InitFunction init={lang} />
 
       <AuthSections />
-      {shouldAuthinticated && !LoggingOut && <ConfirmMobilePhoneWidget />}
+      {/* "expired" = the session-expired "please login again" prompt; its
+          Login button re-arms the marker as `true`, which swaps in the
+          phone-verify widget below. */}
+      {shouldAuthinticated === "expired" && !LoggingOut && (
+        <SessionExpiredWidget />
+      )}
+      {shouldAuthinticated && shouldAuthinticated !== "expired" && !LoggingOut && (
+        <ConfirmMobilePhoneWidget />
+      )}
       {selectedStory?.id && !isProductPage && (
         <StoriesContainer selectedStory={selectedStory} />
       )}

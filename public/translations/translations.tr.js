@@ -692,6 +692,9 @@ const translations = {
   "Please verify the number first.": "Lütfen önce numarayı doğrulayın.",
   "your session has expired please login again or continue as guest":
     "oturumunuz sona erdi, lütfen tekrar giriş yapın veya misafir olarak devam edin",
+  "Your session has expired": "Oturumunuz sona erdi",
+  "Please login again to get back to your account, or continue browsing as a guest.":
+    "Hesabınıza geri dönmek için lütfen tekrar giriş yapın veya misafir olarak gezinmeye devam edin.",
   "Continue as Guest": "Misafir Olarak Devam Et",
   "Enter Your Phone Number To Complete Order":
     "Siparişi Tamamlamak İçin Telefon Numaranızı Girin",
@@ -2364,6 +2367,37 @@ const translations = {
   "Add": "Ekle",
   "Attribute": "Öznitelik",
   "Product updated, but attributes failed to save.": "Ürün güncellendi ancak öznitelikler kaydedilemedi.",
+  // Seller dashboard — Locations section
+  "Locations": "Konumlar",
+  "Add Location": "Konum Ekle",
+  "Edit Location": "Konumu Düzenle",
+  "Address": "Adres",
+  "Latitude": "Enlem",
+  "Longitude": "Boylam",
+  "No locations found": "Konum bulunamadı",
+  "Locations added to this shop will appear here.": "Bu mağazaya eklenen konumlar burada görünecek.",
+  "Add your first location": "İlk konumunuzu ekleyin",
+  "Warehouses and pickup points for this shop": "Bu mağazanın depoları ve teslim alma noktaları",
+  "You don't have permission to view locations": "Konumları görüntüleme yetkiniz yok",
+  "Failed to load locations": "Konumlar yüklenemedi",
+  "Failed to save location": "Konum kaydedilemedi",
+  "Failed to change location status": "Konum durumu değiştirilemedi",
+  "Location created successfully": "Konum başarıyla oluşturuldu",
+  "Location updated successfully": "Konum başarıyla güncellendi",
+  "Status changed successfully": "Durum başarıyla değiştirildi",
+  "Pick the position on the map": "Konumu haritadan seçin",
+  "Use my current location": "Mevcut konumumu kullan",
+  "Location name": "Konum adı",
+  "All statuses": "Tüm durumlar",
+  "All countries": "Tüm ülkeler",
+  "Deactivate": "Devre dışı bırak",
+  "Activate": "Etkinleştir",
+  "Name is required": "Ad gereklidir",
+  "Country is required": "Ülke gereklidir",
+  "Latitude must be between -90 and 90": "Enlem -90 ile 90 arasında olmalıdır",
+  "Longitude must be between -180 and 180": "Boylam -180 ile 180 arasında olmalıdır",
+  "Map is unavailable": "Harita kullanılamıyor",
+  "Coordinates are optional": "Koordinatlar isteğe bağlıdır",
 };
 
 export default translations;
