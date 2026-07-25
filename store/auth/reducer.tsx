@@ -20,10 +20,19 @@ interface AuthState {
   attempts: number;
   wrongNumber: string;
   // "expired" shows the session-expired "please login again" prompt
-  // (SessionExpiredWidget); every other truthy value opens the phone-verify
-  // widget directly. Kept on the same marker so in-flight 401 handlers
-  // (waitForReAuthSuccess) keep waiting through prompt → OTP → success.
-  shouldAuthinticated: boolean | "open Story" | "open chat" | "seller" | "expired";
+  // (SessionExpiredWidget); "expired-login" is the phone-verify widget opened
+  // FROM that prompt (dismissal hard-reloads immediately; success keeps the
+  // normal finalise/soft-refresh path — never reload on success). Every other
+  // truthy value opens the phone-verify widget directly. Kept on the same
+  // marker so in-flight 401 handlers (waitForReAuthSuccess) keep waiting
+  // through prompt → OTP → success.
+  shouldAuthinticated:
+    | boolean
+    | "open Story"
+    | "open chat"
+    | "seller"
+    | "expired"
+    | "expired-login";
   reAuthResult: ReAuthResult;
   verficationID: string | null;
   firebaseSettings: FirebaseSettings;

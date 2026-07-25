@@ -55,6 +55,13 @@ function ConfirmMobilePhoneWidget() {
                   window.location.href = "/";
                   return;
                 }
+                // Opened from the session-expired prompt: /api/auth/expire
+                // already cleared the chat/stories tokens, so reload right away
+                // — nothing left to tear down.
+                if (shouldAuthinticated === "expired-login") {
+                  window.location.reload();
+                  return;
+                }
                 // Clear sub-service tokens via server route
                 fetch("/api/auth/clear-tokens", {
                   method: "POST",

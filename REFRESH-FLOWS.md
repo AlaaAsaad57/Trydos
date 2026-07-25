@@ -156,7 +156,7 @@ flowchart TD
     A["{renewed: true}"] --> B["Release expire-waiters only —<br/>never releases an armed OTP wait"]
     C["{expired: true, wasVerified: true}"] --> D["Session-expired prompt (SessionExpiredWidget,<br/>styled like the notification-allowance widget):<br/>'please login again' vs 'continue as guest'<br/>original request parks in<br/>waitForReAuthSuccess (5-min cap)"]
     D -->|Login| D2["Phone re-verify widget (OTP)"]
-    D2 -->|OTP success| E[Back in the verified account + cart<br/>parked request retries and succeeds]
+    D2 -->|OTP success| E[Back in the verified account + cart<br/>parked request retries and succeeds<br/>no reload]
     D -->|Continue as guest| F[Reload as the fresh guest]
     D2 -->|dismissed| F
     G["{expired: true, wasVerified: false}"] --> H[Silent guest continuity —<br/>guests never see a prompt]
