@@ -249,6 +249,13 @@ const handleUnauthorized = async (
           const authService = await import("../services/auth");
           const outcome = await authService.default.ExpiredUser();
 
+          // Expire's last-chance refresh renewed the session (a race loser
+          // carrying the winner's rotated cookie — e.g. the boot refresh and a
+          // parallel 401 recovery sharing one exchange): the session is alive,
+          // so just retry with the renewed cookie. Never nuke/prompt here —
+          // this is what bounced sellers to home on dashboard load.
+          if (outcome?.renewed) return true;
+
           if (isSeller) {
             const { setShouldAuthinticated, setReAuthResult } =
               useAppStore.getState();
@@ -489,9 +496,15 @@ export const fetchData = async <T = any>(
       } catch (e) {}
       // if user not linked to seller it should redirect to home page.
       // 401 is excluded: an expired token is handled by the re-auth flow below
-      // (confirmMobile widget), not by an immediate bounce to home.
+      // (confirmMobile widget), not by an immediate bounce to home. Also held
+      // back while a re-auth is in progress: mid-recovery a sibling request can
+      // briefly 403 against the transitional token — bouncing home then would
+      // kill the session-expired prompt before the user can answer it.
       if (status !== 200 && status !== 401 && method === "GET") {
-        if (server === "market" && sellerId) {
+        const { shouldAuthinticated, reAuthResult } = useAppStore.getState();
+        const reAuthInProgress =
+          Boolean(shouldAuthinticated) || reAuthResult === "pending";
+        if (server === "market" && sellerId && !reAuthInProgress) {
           window.location.href = `/`;
         }
       }

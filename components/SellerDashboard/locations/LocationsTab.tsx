@@ -49,7 +49,6 @@ export default function LocationsTab({
   const [meta, setMeta] = useState<LocationsMeta | null>(null);
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<StatusFilter>("all");
-  const [countryId, setCountryId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -67,7 +66,6 @@ export default function LocationsTab({
     try {
       const res: any = await SellerDashboardService.getShopLocations(sellerId, {
         status: status === "all" ? null : (Number(status) as 0 | 1),
-        countryId: countryId || null,
         page: targetPage,
       });
       if (!res?.success) {
@@ -89,7 +87,7 @@ export default function LocationsTab({
   // Filters reset to page 1; the page control passes its own target.
   useEffect(() => {
     load(1);
-  }, [sellerId, status, countryId]);
+  }, [sellerId, status]);
 
   const handleToggleStatus = async (location: ShopLocation) => {
     if (!canChangeStatus || togglingId !== null) return;
@@ -126,20 +124,6 @@ export default function LocationsTab({
     showSuccessMessage(message);
     load(page);
   };
-
-  // Country filter options come from the locations already loaded — NOT from
-  // /shop/locations/lookups, which is CREATE_LOCATION-gated and would 403 for a
-  // read-only user. Only countries that actually have a location are filterable
-  // anyway, so nothing useful is lost.
-  const countryOptions = (() => {
-    const seen = new Map<number, string>();
-    locations.forEach((l) => {
-      if (l.country?.id != null && !seen.has(l.country.id)) {
-        seen.set(l.country.id, l.country.nicename || l.country.name || String(l.country.id));
-      }
-    });
-    return [...seen.entries()].map(([id, name]) => ({ id, name }));
-  })();
 
   if (!canRead) {
     return (
@@ -179,21 +163,6 @@ export default function LocationsTab({
           <option value="1">{t("Active")}</option>
           <option value="0">{t("Inactive")}</option>
         </select>
-        {countryOptions.length > 1 && (
-          <select
-            value={countryId}
-            onChange={(e) => setCountryId(e.target.value)}
-            aria-label={t("All countries")}
-            className={filterSelectClass}
-          >
-            <option value="">{t("All countries")}</option>
-            {countryOptions.map((c) => (
-              <option key={c.id} value={String(c.id)}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        )}
       </div>
 
       {actionError && (
@@ -213,7 +182,7 @@ export default function LocationsTab({
             title={t("No locations found")}
             subtitle={t("Locations added to this shop will appear here.")}
           />
-          {canCreate && status === "all" && !countryId && (
+          {canCreate && status === "all" && (
             <div className="flex justify-center mt-4">
               <DashButton icon="plus" onClick={() => setEditing(null)}>
                 {t("Add your first location")}
