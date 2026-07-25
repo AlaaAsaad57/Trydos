@@ -9,7 +9,7 @@ created_at: 2026-07-25   # YYYY-MM-DD
 updated_at: 2026-07-25   # YYYY-MM-DD (bumped on every state change)
 links:                   # OPTIONAL delivery links — metadata only, NOT workflow state
   clickup:               # ClickUp task URL (seeded at intake if a clickup_id was given)
-  github:                # PR URL (set by /publish-pr after publishing; never drives state)
+  github: https://github.com/AlaaAsaad57998/Trydos/pull/82   # PR URL (set by /publish-pr after publishing; never drives state)
 ---
 
 # Ticket Record — seller-product-approval-gating
