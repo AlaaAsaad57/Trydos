@@ -42,36 +42,45 @@ function ConfirmMobilePhoneWidget() {
 
           <div className="w-auto  min-h-[200px] min-w-[350px]  h-auto p-[23px] flex-col items-end justify-center bg-[#f8f8f8] fixed rounded-[10px]  z-[9999999999999999] left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <div
-              onClick={() => {
+              onClick={(e) => {
                 // Dismissal without verifying: seller routes redirect home (a
                 // guest can't use the dashboard); every other flow/route
                 // reloads so the page re-renders against whatever token is
                 // currently stored — never against stale client state.
+                // The navigation is the one guaranteed step: every bit of
+                // teardown is best-effort and must never prevent it (a store
+                // write can re-render subscribers synchronously — a throw
+                // there would otherwise kill this handler before the reload).
+                e.stopPropagation();
                 const isSeller =
                   shouldAuthinticated === "seller" ||
                   window.location.pathname.includes("/seller");
-                setReAuthResult("cancelled");
-                setShouldAuthinticated(false);
+                // Clear sub-service tokens via server route. keepalive lets
+                // the request survive the navigation below. Skipped when
+                // opened from the session-expired prompt — /api/auth/expire
+                // already cleared them.
+                if (shouldAuthinticated !== "expired-login") {
+                  try {
+                    fetch("/api/auth/clear-tokens", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        tokens: ["CHAT-TOKEN", "STORIES-TOKEN"],
+                      }),
+                      credentials: "include",
+                      keepalive: true,
+                    });
+                  } catch {}
+                }
+                try {
+                  setReAuthResult("cancelled");
+                  setShouldAuthinticated(false);
+                } catch {}
                 if (isSeller) {
                   window.location.href = "/";
-                  return;
-                }
-                // Opened from the session-expired prompt: /api/auth/expire
-                // already cleared the chat/stories tokens — reload right away.
-                if (shouldAuthinticated === "expired-login") {
+                } else {
                   window.location.reload();
-                  return;
                 }
-                // Clear sub-service tokens via server route
-                fetch("/api/auth/clear-tokens", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    tokens: ["CHAT-TOKEN", "STORIES-TOKEN"],
-                  }),
-                  credentials: "include",
-                });
-                window.location.reload();
               }}
               className="flex-row cursor-pointer justify-end items-center p-[10px] z-99999999999 rounded-full  bg-[#0000004d]"
             >
