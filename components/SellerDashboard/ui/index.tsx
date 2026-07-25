@@ -355,22 +355,26 @@ export function AccessDenied({ message }: { message?: string }) {
 }
 
 /* ----------------------------------------------------------------------- */
-/* Inline alert banners (success / error)                                  */
+/* Inline alert banners (success / warning / error)                         */
 /* ----------------------------------------------------------------------- */
+const INLINE_ALERT_TONES = {
+  success: "bg-[#eaf7ef] text-[#2ea84f] border-[#bfe6cc]",
+  // Amber — must read as neither a success nor a hard error. Reuses the `alert`
+  // glyph; the icon set has no dedicated warning shape.
+  warning: "bg-[#fbf6e6] text-[#b8860b] border-[#efe1b4]",
+  error: "bg-[#fff1f1] text-[#f85555] border-[#ffd9d9]",
+} as const;
+
 export function InlineAlert({
   tone = "error",
   children,
 }: {
-  tone?: "error" | "success";
+  tone?: keyof typeof INLINE_ALERT_TONES;
   children: React.ReactNode;
 }) {
-  const cls =
-    tone === "success"
-      ? "bg-[#eaf7ef] text-[#2ea84f] border-[#bfe6cc]"
-      : "bg-[#fff1f1] text-[#f85555] border-[#ffd9d9]";
   return (
     <div
-      className={`flex items-center gap-2 mb-4 p-3 rounded-[12px] border text-[13px] ${cls}`}
+      className={`flex items-center gap-2 mb-4 p-3 rounded-[12px] border text-[13px] ${INLINE_ALERT_TONES[tone]}`}
     >
       <DashIcon name={tone === "success" ? "check" : "alert"} size={16} />
       <span>{children}</span>

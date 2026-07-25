@@ -55,6 +55,13 @@ export interface SectionProps {
   isCreate?: boolean;
   /** Shop currency code (e.g. "SYP") overlaid on money inputs; "" = no overlay. */
   currency?: string;
+  /**
+   * Creating a product as a seller who is not approved for new products: every
+   * price except Purchase Price is locked. Narrower than `disabled`, which means
+   * "view mode" and covers the whole form. Optional and false by default, so
+   * sections used elsewhere are unaffected.
+   */
+  pricesLocked?: boolean;
 }
 
 const t = (s: string) => translateFunction(s);
@@ -359,15 +366,19 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
   );
 }
 
-export function PricingSection({ form, patch, errors, disabled, currency }: SectionProps) {
+export function PricingSection({ form, patch, errors, disabled, currency, pricesLocked }: SectionProps) {
   const hasVariants = combos(form).length > 0;
+  // Every price except Purchase Price is locked for an unapproved seller on
+  // create; non-price fields below (stock, weight, qty, pieces, shipping days)
+  // stay editable.
+  const priceDisabled = disabled || !!pricesLocked;
   return (
     <Section icon="orders" title="Pricing & Stock" desc="Prices are in your display currency; converted server-side.">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <Num label="Unit Price" fieldKey="unit_price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ unit_price: v })} />
-        <Num label="Discount Price" fieldKey="discount_price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} suffix={currency} onChange={(v) => patch({ discount_price: v })} />
+        <Num label="Unit Price" fieldKey="unit_price" value={form.unit_price} required={!pricesLocked} error={errors.unit_price} disabled={priceDisabled} suffix={currency} onChange={(v) => patch({ unit_price: v })} />
+        <Num label="Discount Price" fieldKey="discount_price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={priceDisabled} suffix={currency} onChange={(v) => patch({ discount_price: v })} />
         <Num label="Purchase Price" fieldKey="purchase_price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ purchase_price: v })} />
-        <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ luck_price: v })} />
+        <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} disabled={priceDisabled} suffix={currency} onChange={(v) => patch({ luck_price: v })} />
         <Num
           label="Current Stock"
           fieldKey="current_stock"
@@ -380,7 +391,7 @@ export function PricingSection({ form, patch, errors, disabled, currency }: Sect
         <Num label="Weight" value={form.weight} error={errors.weight} hint={t("Required for pc / liter")} disabled={disabled} onChange={(v) => patch({ weight: v })} />
         <Num label="Max Allowed Qty" value={form.max_allowed_qty} disabled={disabled} onChange={(v) => patch({ max_allowed_qty: v })} />
         <Num label="Pieces / Unit" value={form.count_of_pieces} error={errors.count_of_pieces} hint={t("Must be a whole number between 1 and 100")} disabled={disabled} step="1" onChange={(v) => patch({ count_of_pieces: v })} />
-        <Num label="Shipping Cost" value={form.shipping_cost} disabled={disabled} suffix={currency} onChange={(v) => patch({ shipping_cost: v })} />
+        <Num label="Shipping Cost" value={form.shipping_cost} disabled={priceDisabled} suffix={currency} onChange={(v) => patch({ shipping_cost: v })} />
         <Num label="Shipping Days" value={form.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
         {/* Tax inputs are hidden for now — the payload always sends tax=0 /
             tax_type=flat (see buildUpdateFormData). */}
@@ -631,7 +642,11 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
   );
 }
 
-export function CountriesSection({ form, patch, lookups, disabled, currency }: SectionProps) {
+export function CountriesSection({ form, patch, lookups, disabled, currency, pricesLocked }: SectionProps) {
+  // Per-country surcharge is a price: locked for an unapproved seller on create.
+  // The add/remove controls are HIDDEN rather than disabled, so no row can be
+  // created that the seller is unable to fill.
+  const extraPriceDisabled = disabled || !!pricesLocked;
   const countries = lookups.countries || [];
   const language = LocalizationServiceClass.GetAppLanguage();
   const addExtra = () => patch({ extra_price_for_country: [...form.extra_price_for_country, { country_iso: "", extra_price: "" }] });
@@ -663,7 +678,7 @@ export function CountriesSection({ form, patch, lookups, disabled, currency }: S
         <div>
           <div className="flex items-center justify-between mb-2.5">
             <p className="text-[13px] medium text-[#505050]">{t("Per-country Extra Price")}</p>
-            {!disabled && (
+            {!extraPriceDisabled && (
               <DashButton type="button" variant="secondary" size="sm" icon="plus" onClick={addExtra}>
                 {t("Add")}
               </DashButton>
@@ -675,7 +690,7 @@ export function CountriesSection({ form, patch, lookups, disabled, currency }: S
             <div className="space-y-2.5">
               {form.extra_price_for_country.map((e, i) => (
                 <div key={i} className="flex items-center gap-2.5">
-                  <select value={e.country_iso} disabled={disabled} onChange={(ev) => setExtra(i, "country_iso", ev.target.value)} className={`${dashInputClass} flex-1`} style={{
+                  <select value={e.country_iso} disabled={extraPriceDisabled} onChange={(ev) => setExtra(i, "country_iso", ev.target.value)} className={`${dashInputClass} flex-1`} style={{
                     minWidth:'120px'
                   }}>
                     <option value="">{t("Country")}</option>
@@ -684,14 +699,14 @@ export function CountriesSection({ form, patch, lookups, disabled, currency }: S
                     ))}
                   </select>
                   <div className="relative shrink-0">
-                    <input type="number" step="any" value={e.extra_price} disabled={disabled} placeholder={t("Extra price")} onChange={(ev) => setExtra(i, "extra_price", ev.target.value)} className={`${dashInputClass} w-[130px] ${currency ? "pe-12" : ""}`} />
+                    <input type="number" step="any" value={e.extra_price} disabled={extraPriceDisabled} placeholder={t("Extra price")} onChange={(ev) => setExtra(i, "extra_price", ev.target.value)} className={`${dashInputClass} w-[130px] ${currency ? "pe-12" : ""}`} />
                     {currency && (
                       <span className="absolute end-3 top-1/2 -translate-y-1/2 text-[11px] semibold text-[#8e8e8e] pointer-events-none">
                         {currency}
                       </span>
                     )}
                   </div>
-                  {!disabled && (
+                  {!extraPriceDisabled && (
                     <button type="button" onClick={() => removeExtra(i)} className="shrink-0 w-[44px] h-[44px] rounded-[12px] bg-[#fff1f1] text-[#f85555] flex items-center justify-center hover:bg-[#ffe6e6]">
                       <DashIcon name="trash" size={17} />
                     </button>
@@ -903,7 +918,7 @@ export function MediaSection({ form, patch, errors, disabled, onUploadImages, up
   );
 }
 
-export function VariantsSection({ form, patch, errors, lookups, disabled, currency }: SectionProps) {
+export function VariantsSection({ form, patch, errors, lookups, disabled, currency, pricesLocked }: SectionProps) {
   const cmb = combos(form);
 
   // Read mode shows only the chosen colors/sizes; edit mode shows the full picker.
@@ -1038,11 +1053,13 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                     const cell = (field: keyof VariantRow, w: string, type = "number") => {
                       const isSku = field === "sku";
                       const hasErr = isSku && skuErrMsg;
+                      const isMoney =
+                        field === "price" || field === "discount" || field === "luck";
                       // Money cells get the shop-currency overlay (compact, narrow cells).
-                      const suffix =
-                        currency && (field === "price" || field === "discount" || field === "luck")
-                          ? currency
-                          : "";
+                      const suffix = currency && isMoney ? currency : "";
+                      // Only the three money columns lock for an unapproved
+                      // seller on create; qty/sku/barcode/location stay editable.
+                      const cellDisabled = disabled || (!!pricesLocked && isMoney);
                       return (
                         <td className="px-1 align-top">
                           <div className="relative w-fit">
@@ -1051,7 +1068,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                             min={type === "number" ? "0" : undefined}
                             step="any"
                             value={r[field]}
-                            disabled={disabled}
+                            disabled={cellDisabled}
                             onChange={(e) => {
                               const val = e.target.value;
                               if (type === "number" && val && parseFloat(val) < 0) return;
