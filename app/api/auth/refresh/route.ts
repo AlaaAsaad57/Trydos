@@ -1,22 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
-import {
-  refreshMarketSession,
-  isMarketAccessTokenExpired,
-} from "utils/server/authRefresh";
+import { refreshMarketSession } from "utils/server/authRefresh";
 
 /**
  * Internal refresh endpoint (Go + Laravel auth contracts).
  *
- * Two callers:
- * - Reactive: `fetchData`'s 401 handler POSTs the failed request's
- *   `{url, server}`. Every market 401 is eligible regardless of which backend
- *   served it — which backend performs the exchange is decided inside
+ * Single caller (refresh is REACTIVE-ONLY):
+ * - `fetchData`'s 401 handler POSTs the failed request's `{url, server}`.
+ *   Every market 401 is eligible regardless of which backend served it —
+ *   which backend performs the exchange is decided inside
  *   `refreshMarketSession` by user type (verified → Laravel, guest → Go),
  *   so there is no client-side routing duplication and no backend-tag header.
- * - Proactive: `CheckLogin()` calls with no body on app load; while the
- *   access token is still valid this is a fast local no-op.
+ * - A bodyless call (the retired proactive path) is always a no-op: local
+ *   token expiry (JWT exp / expired_at) is never used to trigger an exchange.
  *
  * Success sets the rotated cookies on this response and returns
  * `{refreshed: true}` — NO token material ever appears in the body (AC-2).
@@ -52,12 +49,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ eligible: false }, { status: 200 });
       }
     } else {
-      // Proactive on-load call: cheap no-op while the access token is valid
-      // (local JWT-exp check — no upstream request).
-      const token = cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value;
-      if (token && !isMarketAccessTokenExpired(token)) {
-        return NextResponse.json({ refreshed: false }, { status: 200 });
-      }
+      // Bodyless call (the retired proactive path): refresh is REACTIVE-ONLY.
+      // Local token expiry (JWT exp / expired_at) is deliberately ignored —
+      // the pair is exchanged exclusively after a real 401. Always a no-op.
+      return NextResponse.json({ refreshed: false }, { status: 200 });
     }
 
     const outcome = await refreshMarketSession();

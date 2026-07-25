@@ -64,8 +64,8 @@ const REFRESH_BACKENDS = {
     // The absent `user` is deliberate — doRefresh only writes User-Data when
     // the response carries one, so a rotation can never downgrade a verified
     // shopper's profile. Dates are `dd/mm/yyyy HH:MM:SS` here vs RFC3339 on
-    // Go; harmless, `expires_at` is only stored, never parsed (expiry
-    // decisions read the JWT `exp` claim — see isMarketAccessTokenExpired).
+    // Go; harmless, `expires_at` is only stored, never parsed — token expiry
+    // never drives a refresh (reactive-only: exchanges happen on a real 401).
     parse: (json: any) => ({
       token: json?.data?.token as string | undefined,
       refreshToken: json?.data?.refresh_token as string | undefined,
@@ -74,28 +74,6 @@ const REFRESH_BACKENDS = {
     }),
   },
 } as const;
-
-/**
- * Local access-token expiry check (no upstream call): decodes the JWT `exp`
- * claim without verification — this is a routing/no-op decision, never an
- * authorization decision (authz stays with the backends). A 60s skew treats
- * about-to-expire tokens as expired so the proactive path refreshes early.
- */
-export function isMarketAccessTokenExpired(token: string | undefined): boolean {
-  if (!token) return true;
-  try {
-    const payload = token.split(".")[1];
-    const decoded = JSON.parse(
-      Buffer.from(payload, "base64url").toString("utf8"),
-    );
-    if (typeof decoded?.exp !== "number") return false;
-    return decoded.exp * 1000 <= Date.now() + 60_000;
-  } catch {
-    // Unparseable token: treat as expired — the exchange (or its fallback)
-    // will settle the session either way.
-    return true;
-  }
-}
 
 // Module-scope single-flight: parallel 401s inside one server instance share
 // one exchange instead of burning the single-use token N times (NFR-1).

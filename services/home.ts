@@ -320,11 +320,11 @@ class HomeService {
   }
 
   /**
-   * App-load auth bootstrap. Returns `true` when the proactive refresh
-   * rotated the session (expired access token exchanged via the refresh
-   * cookie) — the caller (components/Home/Init.tsx) then runs
-   * `router.refresh()` to refetch server-rendered content (self-heal for
-   * expired-session page loads).
+   * App-load auth bootstrap. Refresh is REACTIVE-ONLY: no proactive
+   * expiry-based exchange runs here — local token expiry (JWT exp /
+   * expired_at) is ignored entirely, and the pair is rotated exclusively by
+   * the 401 recovery path in fetchData / HandleAuthedFetch. Always returns
+   * `false` (nothing rotated at boot).
    */
   async CheckLogin(): Promise<boolean> {
     const {
@@ -335,17 +335,7 @@ class HomeService {
       editUserInfo,
     } = useAppStore.getState();
 
-    // Proactive refresh (Go auth contract): a fast server-side no-op while
-    // the access token is valid; when it has expired and a refresh cookie
-    // exists, the pair is rotated BEFORE anything reads the session — the
-    // same-account continuity path (no guest re-register). Failures fall
-    // through to the normal bootstrap below (RegisterDevice handles the
-    // no-session case).
-    let sessionRefreshed = false;
-    try {
-      const refresh = await auth.RefreshSession();
-      sessionRefreshed = refresh?.refreshed === true;
-    } catch {}
+    const sessionRefreshed = false;
 
     // Fetch user data from HttpOnly cookies via server route
     let userData: any = null;

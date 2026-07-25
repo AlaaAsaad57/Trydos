@@ -209,6 +209,14 @@ function SellerDashBoard() {
   const searchParams = useSearchParams();
   const { setIsNavigating, setLastPathname } = useAppStore();
 
+  // Shop currency (fetched dashboard-wide by ShopInfoLoader). Only trusted when
+  // it belongs to THIS shop — product cards render no label otherwise.
+  const dashboardShopInfo = useAppStore((s) => s.dashboardShopInfo);
+  const shopCurrency =
+    dashboardShopInfo?.sellerId === sellerId
+      ? dashboardShopInfo.currency.code
+      : "";
+
   // The active section lives in the URL (`?tab=`) rather than local state so
   // that opening a product/boutique detail and pressing back restores the exact
   // list the seller was on — browser history round-trips the query. Absent /
@@ -1039,9 +1047,11 @@ function SellerDashBoard() {
                   product.unit_price !== null ? (
                     <p className="text-[16px] bold text-[#3c3c3c] leading-none">
                       {Number(product.unit_price).toFixed(2)}
-                      <span className="text-[10px] text-[#8e8e8e] ml-1 regular">
-                        {translateFunction("USD")}
-                      </span>
+                      {shopCurrency && (
+                        <span className="text-[10px] text-[#8e8e8e] ml-1 regular">
+                          {shopCurrency}
+                        </span>
+                      )}
                     </p>
                   ) : (
                     <span />
