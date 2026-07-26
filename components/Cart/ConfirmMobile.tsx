@@ -7,7 +7,6 @@ import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
 
-import { useRouter } from "next/navigation";
 import { LogError } from "utils/functions";
 
 function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
@@ -74,7 +73,6 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   };
   const [failedLogin, setFailed] = useState(false);
   const [loadingPin, setLoadingPin] = useState(false);
-  const router = useRouter();
   const loginFunc = async (e) => {
     setSuccess(false);
     setLoadingPin(true);
@@ -111,7 +109,13 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
       },
       successCallback: async (exists, name) => {
         setSuccess(true);
-        router.refresh();
+        // No refresh/reload on success: VerifyOtp already re-synced the client
+        // state (store login*, reAuthResult "success") and the parked 401
+        // request retries itself with the fresh token. Re-fetching the whole
+        // RSC tree here only made the page visibly reload right after the
+        // widget closed. Reloading stays exclusive to the X dismiss, where the
+        // user leaves without a token (ConfirmMobilePhoneWidget /
+        // SessionExpiredWidget).
         // Sendevent({
         //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
 
@@ -119,7 +123,6 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         // });
 
         await FinaliseLogin();
-        router.refresh();
         setTimeout(() => {
           setLoadingPin(false);
           closeWindow();
