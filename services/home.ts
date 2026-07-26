@@ -22,6 +22,7 @@ import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { normaliseStartingSettings } from "utils/startingSettings";
 import { fetchAuthMe } from "utils/authMe";
 import { isGuestName } from "utils/tinyUtils";
 import { COOKIE_NAMES, setCookie } from "utils/cookies/cookie-manager";
@@ -53,8 +54,12 @@ class HomeService {
         throw new Error(response.message);
       }
     
-      setSettings(response.data);
-      sessionStorage.setItem("starttingSetting", JSON.stringify(response.data));
+      // Envelope-preserving: keeps the response envelope and replaces only the
+      // settings entry, so every existing `settings["starting_setting"]` reader
+      // is unaffected regardless of which backend served the request.
+      const settings = normaliseStartingSettings(response.data);
+      setSettings(settings);
+      sessionStorage.setItem("starttingSetting", JSON.stringify(settings));
       await this.getCustomerInfo();
 
       getCart({

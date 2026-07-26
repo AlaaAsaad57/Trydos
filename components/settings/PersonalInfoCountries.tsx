@@ -7,6 +7,7 @@ import { FlagIcon } from "utils/tinyUtils";
 import Spinner from "components/global/Spinner";
 import { fetchData } from "utils/fetchData"; // Make sure this is imported
 import { STARTER_SETTINGS } from "utils/endpointConfig";
+import { normaliseStartingSettings } from "utils/startingSettings";
 import { REQUESTS_DATA } from "utils/Requests";
 import { setLocaizationCookies } from "utils/cookies/cookie-manager";
 import BackBar from "components/setting/BackBar";
@@ -81,8 +82,11 @@ function PersonalInfoCountries({
       if (!response.success) {
         throw new Error(response.message);
       }
-      sessionStorage.setItem("starttingSetting", JSON.stringify(response.data));
-      setSettings(response.data);
+      // Same envelope-preserving normalisation as the boot service — this is the
+      // third writer of the store and the session cache.
+      const settings = normaliseStartingSettings(response.data);
+      sessionStorage.setItem("starttingSetting", JSON.stringify(settings));
+      setSettings(settings);
       if (hideTopBar) {
         window.location.href =
           window.location.origin +

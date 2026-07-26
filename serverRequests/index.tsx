@@ -4,6 +4,7 @@ import { fetchServerData } from "./ServerFetch";
 // resolveMarketFetchBase comes from the "use server" products module, so the
 // client graph only ever sees an action proxy.
 import { resolveMarketFetchBase } from "./products";
+import { resolveStartingSetting } from "utils/startingSettings";
 
 export * from "./products";
 export * from "./currency";
@@ -21,5 +22,8 @@ export async function GetStarttingSetting({ language, country }) {
     method: "GET",
   });
 
-  return response?.data?.data?.["starting_setting"];
+  // Both backends' envelope shapes are accepted; returns the inner settings
+  // object exactly as before (callers such as getOrderStatues read other fields
+  // off this result).
+  return resolveStartingSetting(response?.data?.data);
 }

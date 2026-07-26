@@ -108,7 +108,7 @@ const OldCartAddAgainLabel = ({ product, language, onAddAgain }) => {
 };
 
 function OldCartContainer() {
-  const { cart, language, storeOldCart, oldCart, hideOldCart, initCart } =
+  const { cart, language, storeOldCart, oldCart, hideOldCart, initCart, settings } =
     useAppStore();
   const filteredOldCart =
     oldCart?.oldCart?.filter(
@@ -116,20 +116,9 @@ function OldCartContainer() {
         !cart.some((cartProduct) => areProductsEqual(oldProduct, cartProduct)),
     ) || [];
 
-  let shippingDurationDays = 0;
-  if (sessionStorage.getItem("starttingSetting")) {
-    const settingsStr = sessionStorage.getItem("starttingSetting");
-    if (settingsStr) {
-      try {
-        const settingsObj = JSON.parse(settingsStr);
-        shippingDurationDays =
-          parseInt(settingsObj?.["starting_setting"]?.shipping_duration_days) ||
-          0;
-      } catch (e) {
-        shippingDurationDays = 0;
-      }
-    }
-  }
+  // Read from the store rather than re-parsing the session cache during render.
+  const shippingDurationDays =
+    Number(settings?.["starting_setting"]?.shipping_duration_days) || 0;
   const [loading, setLoading] = useState(false);
   const getInitialData = async () => {
     try {
@@ -436,7 +425,8 @@ function OldCartContainer() {
                     </span>
                   </span>
                 </div>
-                {product.shipping_days && (
+                {(Number(product.shipping_days) || 0) + shippingDurationDays >
+                  0 && (
                   <div className="flex-row whitespace-nowrap items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                     <Image
                       src={"/icons/DeleiveryIcon.svg"}
@@ -454,7 +444,8 @@ function OldCartContainer() {
                     >
                       {translateFunction("Shipping")}{" "}
                       <span className="regular whitespace-nowrap">
-                        {product.shipping_days + shippingDurationDays}{" "}
+                        {(Number(product.shipping_days) || 0) +
+                          shippingDurationDays}{" "}
                         {translateFunction("Days")}{" "}
                         <span className="ml-1 underline">
                           {translateFunction("Details")}
