@@ -299,8 +299,23 @@ const handleUnauthorized = async (
         });
 
         const { useAppStore } = await import("../store");
-        const { setShouldAuthinticated, setReAuthResult } =
-          useAppStore.getState();
+        const {
+          setShouldAuthinticated,
+          setReAuthResult,
+          shouldAuthinticated: armedFlow,
+          reAuthResult: armedResult,
+        } = useAppStore.getState();
+
+        // A user-facing re-auth already owns the screen — the session-expired
+        // "please login again" prompt ("expired") or the verify widget opened by
+        // another flow. Arming the marker here would overwrite it, swapping the
+        // prompt for the OTP widget while the user is still choosing (and
+        // losing flow markers like "open chat"/"seller"). Wait for whatever is
+        // armed to resolve and retry with the token it produces — the same
+        // guard the market path above uses.
+        if (armedFlow || armedResult === "pending") {
+          return await waitForReAuthSuccess();
+        }
 
         setReAuthResult("pending");
         setShouldAuthinticated(true);

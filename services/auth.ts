@@ -474,12 +474,13 @@ class AuthService {
   }
 
   private async _doExpire(noReq: boolean): Promise<ExpireOutcome> {
-    const {
-      setReAuthResult,
-      setIsRegisteringReady,
-      setShouldAuthinticated,
-      shouldAuthinticated,
-    } = useAppStore.getState();
+    const { setReAuthResult, setIsRegisteringReady, setShouldAuthinticated } =
+      useAppStore.getState();
+
+    // Read at the point of use, never here: the expire request below is awaited,
+    // and a concurrent 401 (chat/stories) can arm a re-auth flow in the
+    // meantime — a marker captured now would be stale by the time it is read.
+    const armedFlow = () => useAppStore.getState().shouldAuthinticated;
 
     setIsRegisteringReady(false);
     let wasVerified = false;
@@ -505,7 +506,7 @@ class AuthService {
         // never release an armed phone re-verification wait without an OTP.
         const repo = await response.json().catch(() => ({}));
         if (repo?.renewed === true) {
-          if (!shouldAuthinticated) setReAuthResult("success");
+          if (!armedFlow()) setReAuthResult("success");
           return { renewed: true, wasVerified: false };
         }
         // The nuked session belonged to a phone-verified shopper (captured
@@ -520,10 +521,17 @@ class AuthService {
       // like the notification-allowance widget) so they choose between logging
       // back into their real account (opens the OTP widget) or continuing as
       // the fresh guest minted above. Guests keep the silent path.
-      if (wasVerified) {
+      //
+      // Unless a re-auth is already on screen: a concurrent chat/stories 401 can
+      // arm the verify widget while the expire request above is in flight, and
+      // swapping it for this prompt would yank the OTP form away mid-entry.
+      // That armed flow re-authenticates the user anyway and owns the outcome
+      // (its own `reAuthResult`), so leave it — same rule the 401 handlers
+      // follow: whoever armed first keeps the screen until it resolves.
+      if (wasVerified && !armedFlow()) {
         setReAuthResult("pending");
         setShouldAuthinticated("expired");
-      } else {
+      } else if (!wasVerified) {
         setReAuthResult("cancelled");
       }
 
