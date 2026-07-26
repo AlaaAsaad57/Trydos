@@ -129,7 +129,20 @@ export const requestFirebaseNotificationPermission = async () => {
   ) {
     should_register_fcm = true;
 
-    await deleteToken(messaging); // Delete old token
+    // Best-effort. When Google has already dropped this registration — e.g. a
+    // logout whose local cleanup was cut short by the reload, leaving Firebase's
+    // IndexedDB record behind — the DELETE answers 404 and throws. Letting that
+    // propagate would abort the whole permission flow and surface
+    // "Notification Is Not Enabled" on every retry, so swallow and continue to
+    // `getToken` below.
+    try {
+      await deleteToken(messaging); // Delete old token
+    } catch (err) {
+      LogError({
+        scenario: "deleteToken in requestFirebaseNotificationPermission",
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
   const serviceWorkerRegistration = await getActiveServiceWorkerRegistration();
 

@@ -59,16 +59,10 @@ function AlreadyRegistered({
     clearSimulatedUserSession();
     clearHashedUserId();
     setLoading(true);
-    clearAllUserData();
-
-    const { getFirebaseMessaging } = await import("utils/firebaseInitv1");
-    const { deleteToken } = await import("firebase/messaging");
-    try {
-      const messaging = await getFirebaseMessaging();
-      if (messaging) await deleteToken(messaging);
-      clearAllUserData();
-    } catch (error) {}
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Tears down push delivery and detaches the device itself now, so the
+    // Firebase `deleteToken` round trip (and the 2s wait that used to cover it)
+    // is gone — this returns as soon as the cookies are cleared.
+    await clearAllUserData();
     window.location.reload();
   };
   if (active)

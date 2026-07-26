@@ -87,17 +87,12 @@ const performVersionUpdate = async (): Promise<void> => {
 
     // Clear all storage
     clearAllStorage();
+    // Also tears down push delivery and detaches the device, so the Firebase
+    // `deleteToken` round trip that used to follow (unbounded — it could hold a
+    // version update open for tens of seconds) is no longer needed.
     await clearAllUserData();
     // Set new version cookie
     setVersionCookie(currentVersion);
-    try {
-      const { getFirebaseMessaging } = await import("utils/firebaseInitv1");
-      const { deleteToken } = await import("firebase/messaging");
-      const messaging = await getFirebaseMessaging();
-      if (messaging) await deleteToken(messaging);
-    } catch (e) {
-      /* swallow */
-    }
     // Reload the page
     if (typeof window !== "undefined") {
       window.location.reload();

@@ -398,8 +398,12 @@ export const fetchData = async <T = any>(
     sellerId,
   } = params;
   const { useAppStore } = await import("../store");
+  // Once a logout has started no authed request may go out — a late 401 would
+  // trigger a re-register and resurrect the session. The FCM detach used to be
+  // exempt here because it had to run before the cookies were cleared; it now
+  // runs server-side inside /api/auth/logout, so nothing is exempt anymore.
   const { LoggingOut } = useAppStore.getState();
-  if (LoggingOut && url !== "/api/v1/firebase_tokens/remove-token") {
+  if (LoggingOut) {
     return {} as T;
   }
 

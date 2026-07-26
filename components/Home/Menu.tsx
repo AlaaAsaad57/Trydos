@@ -21,9 +21,6 @@ import dynamic from "next/dynamic";
 
 import { useAppStore } from "store";
 
-import { fetchData } from "utils/fetchData";
-import { REQUESTS_DATA } from "utils/Requests";
-
 interface MenuProps {
   user: any;
   setMenuOpen: (open: boolean) => void;
@@ -105,42 +102,18 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
     setLoggingOut(true);
     setLoading(true);
 
-    // 1. Remove FCM token FIRST (while cookies still have valid tokens)
-    try {
-      if (localStorage.getItem("FB-DEVICE-TOKEN")) {
-        await fetchData({
-          method: "POST",
-          url: "/api/v1/firebase_tokens/remove-token",
-          server: "chat",
-          reqTitle: REQUESTS_DATA.REOMVE_FCM,
-          noMessage: true,
-          body: JSON.stringify({
-            token: localStorage.getItem("FB-DEVICE-TOKEN"),
-          }),
-        });
-      }
-    } catch (e) {
-      /* swallow — we're logging out anyway */
-    }
-
-    // 2. Delete firebase token locally
-    try {
-      const { getFirebaseMessaging } = await import("utils/firebaseInitv1");
-      const { deleteToken } = await import("firebase/messaging");
-      const messaging = await getFirebaseMessaging();
-      if (messaging) await deleteToken(messaging);
-    } catch (e) {
-      /* swallow */
-    }
-
-    // 3. NOW clear all data (cookies, storage, store)
+    // 1. Clear cookies, storage and store, and tear down push delivery to this
+    //    device. Everything remote is either same-origin (the cookie deletes) or
+    //    off the critical path (the account-side FCM detach, which
+    //    /api/auth/logout runs after responding) — so no backend can slow this
+    //    down. See `clearAllUserData`.
     await clearAllUserData();
 
-    // 4. Reset store auth state explicitly
+    // 2. Reset store auth state explicitly
     const { cancelAuth } = useAppStore.getState();
     cancelAuth(); // pass NO argument — full reset, not "expired"
 
-    // 5. Reload immediately — no need for 2s delay
+    // 3. Reload immediately — no need for 2s delay
     if (
       window.location.pathname.includes("/seller") ||
       window.location.pathname.includes("/settings")

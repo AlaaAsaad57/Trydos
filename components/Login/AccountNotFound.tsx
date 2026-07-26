@@ -60,13 +60,9 @@ function AccountNotFound({
     clearSimulatedUserSession();
     clearHashedUserId();
     setLoading(true);
+    // Push teardown + account-side detach happen inside, so the Firebase
+    // `deleteToken` round trip that used to follow is no longer needed.
     await clearAllUserData();
-    try {
-      const { getFirebaseMessaging } = await import("utils/firebaseInitv1");
-      const { deleteToken } = await import("firebase/messaging");
-      const messaging = await getFirebaseMessaging();
-      if (messaging) await deleteToken(messaging);
-    } catch (error) {}
     const { cancelAuth } = useAppStore.getState();
     cancelAuth();
     window.location.reload();
