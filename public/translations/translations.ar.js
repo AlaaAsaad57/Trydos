@@ -2330,6 +2330,7 @@ const translations = {
   "Variant discount price cannot be negative": "لا يمكن أن يكون سعر خصم الخيار سالباً",
   "Variant luck price cannot be negative": "لا يمكن أن يكون سعر الحظ للخيار سالباً",
   "Product name is required for": "اسم المنتج مطلوب للغة",
+  "Description is required for": "الوصف مطلوب للغة",
   "original": "الأصلي",
   "Must be 0 or greater": "يجب أن تكون القيمة 0 أو أكبر",
   "Auto-calculated from variations": "محسوب تلقائياً من الخيارات",

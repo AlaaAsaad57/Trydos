@@ -2361,6 +2361,7 @@ const translations = {
   "Variant discount price cannot be negative": "Varyant indirim fiyatı negatif olamaz",
   "Variant luck price cannot be negative": "Varyant şans fiyatı negatif olamaz",
   "Product name is required for": "Ürün adı şu dil için gereklidir:",
+  "Description is required for": "Açıklama şu dil için gereklidir:",
   "original": "orijinal",
   "Must be 0 or greater": "0 veya daha büyük olmalıdır",
   "Auto-calculated from variations": "Varyantlardan otomatik hesaplanır",

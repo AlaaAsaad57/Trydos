@@ -839,6 +839,28 @@ export function validate(
       )
     )
       e.translations = tx("An English (en) name is required");
+
+    // A language is either filled in or left alone: entering only one of
+    // name/description leaves a half-written translation row. Both blank is
+    // valid (untouched language); similar_words plays no part in the pairing.
+    if (!e.translations) {
+      for (const t of form.translations) {
+        const hasName = !!(t.name || "").trim();
+        const hasDesc = !!(t.description || "")
+          .replace(/<[^>]*>/g, "")
+          .replace(/&nbsp;/g, " ")
+          .trim();
+        const code = t.language_code.toUpperCase();
+        if (hasName && !hasDesc) {
+          e.translations = `${tx("Description is required for")} ${code}`;
+          break;
+        }
+        if (!hasName && hasDesc) {
+          e.translations = `${tx("Product name is required for")} ${code}`;
+          break;
+        }
+      }
+    }
   }
 
   if (isCreate) {

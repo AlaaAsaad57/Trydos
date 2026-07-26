@@ -2381,6 +2381,7 @@ const translations = {
   "Variant discount price cannot be negative": "نرخی داشکاندنی جۆر ناکرێت نەرێنی بێت",
   "Variant luck price cannot be negative": "نرخی بەختی جۆر ناکرێت نەرێنی بێت",
   "Product name is required for": "ناوی بەرهەم پێویستە بۆ",
+  "Description is required for": "وەسف پێویستە بۆ",
   "original": "ڕەسەن",
   "Must be 0 or greater": "پێویستە ٠ یاخود گەورەتر بێت",
   "Auto-calculated from variations": "بەم شێوەیە خۆکارانە لە جۆرەکانەوە هەژمار دەکرێت",
