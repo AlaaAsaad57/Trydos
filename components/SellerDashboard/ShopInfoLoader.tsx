@@ -25,8 +25,23 @@ import { useAppStore, type DashboardShopInfo } from "store";
  * would re-fetch on every render, because writing the record re-triggers the
  * effect that wrote it. Recovery is an explicit user action that clears the
  * record (see ProductEditor's create-path retry).
+ *
+ * `GET /shop/info` is protected by READ_SHOP_INFO, so it is NEVER issued when
+ * the shop's permission list says the user does not hold it — that call would
+ * only ever return 403. The record is still written (with `permitted: false`)
+ * so consumers can tell the truth ("you need this permission") instead of
+ * waiting forever or offering a retry that cannot succeed.
+ * `canReadShopInfo: null` means the permission list itself was unavailable
+ * (transient guard failure) — unknown must not lock a legitimate seller out, so
+ * the fetch proceeds exactly as before and the backend decides.
  */
-export default function ShopInfoLoader({ sellerId }: { sellerId: string }) {
+export default function ShopInfoLoader({
+  sellerId,
+  canReadShopInfo,
+}: {
+  sellerId: string;
+  canReadShopInfo: boolean | null;
+}) {
   const dashboardShopInfo = useAppStore((s) => s.dashboardShopInfo);
   const setDashboardShopInfo = useAppStore((s) => s.setDashboardShopInfo);
 
@@ -34,14 +49,21 @@ export default function ShopInfoLoader({ sellerId }: { sellerId: string }) {
     if (!sellerId || dashboardShopInfo?.sellerId === sellerId) return;
     let cancelled = false;
 
-    const unavailable = (): DashboardShopInfo => ({
+    const unavailable = (permitted = true): DashboardShopInfo => ({
       sellerId,
       currency: { code: "", name: "" },
       // Unknown standing must never restrict — the create path gates on
       // `available` and shows its error state instead.
       newProductsApproval: true,
       available: false,
+      permitted,
     });
+
+    // No READ_SHOP_INFO → do not call the endpoint at all.
+    if (canReadShopInfo === false) {
+      setDashboardShopInfo(unavailable(false));
+      return;
+    }
 
     SellerDashboardService.getShopInfo(sellerId)
       .then((res: any) => {
@@ -62,6 +84,7 @@ export default function ShopInfoLoader({ sellerId }: { sellerId: string }) {
               ? true
               : Boolean(Number(rawApproval)),
           available: true,
+          permitted: true,
         });
       })
       .catch((error: any) => {
@@ -75,7 +98,7 @@ export default function ShopInfoLoader({ sellerId }: { sellerId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [sellerId, dashboardShopInfo, setDashboardShopInfo]);
+  }, [sellerId, canReadShopInfo, dashboardShopInfo, setDashboardShopInfo]);
 
   return null;
 }

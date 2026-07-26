@@ -3,32 +3,6 @@ import { GetStarttingSetting } from "serverRequests";
 import { HandleAuthedFetch } from "serverRequests/HandleAuthedFetch";
 import { LogServerError } from "utils/serverErrorReporter";
 
-export async function GetOrders({
-  page = 1,
-  pageSize = 10,
-  selectedStatus = null,
-}) {
-  try {
-    let res = await HandleAuthedFetch({
-      url:
-        process.env.BACKEND_URL +
-        `/customer/order/list?offset=${page}&limit=${pageSize}${
-          selectedStatus ? `&order_group_status=${selectedStatus}` : ""
-        }`,
-    });
-    return res?.data;
-  } catch (error) {
-    console.log("Error fetching orders:", error);
-    LogServerError({
-      error: error,
-      scenario: "Error In GetOrders in serverRequest/settings",
-    });
-    return null;
-  }
-}
-
-
-
 export async function getOrderStatues({ language, country }) {
   try {
     let res = await GetStarttingSetting({ language, country });

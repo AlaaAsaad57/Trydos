@@ -25,6 +25,12 @@ export type DashboardShopInfo = {
   newProductsApproval: boolean;
   /** false when the request did not succeed — the standing is unknown. */
   available: boolean;
+  /**
+   * false when the user lacks READ_SHOP_INFO for this shop, so GET /shop/info
+   * was never issued. Distinguishes "we couldn't load it" (retryable) from
+   * "you are not allowed to load it" (permanent — say so instead of retrying).
+   */
+  permitted: boolean;
 };
 
 // Create a type that combines all store states
@@ -55,6 +61,7 @@ type AppState = ReturnType<typeof useAuthStore> &
     // consumers reading `currency.code` need no null handling.
     // `newProductsApproval` is false ONLY when the backend explicitly says so; an
     // absent field means the backend does not gate this seller, never a restriction.
+    // `permitted: false` means READ_SHOP_INFO is missing and no request was made.
     dashboardShopInfo: DashboardShopInfo | null;
     setDashboardShopInfo: (info: DashboardShopInfo | null) => void;
   };

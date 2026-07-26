@@ -2,6 +2,7 @@ const translations = {
   "This product has pending changes awaiting admin approval. The form below shows your submitted changes; the live product still shows the previous values until approval.": "Ev berhem guhertinên li benda erêkirina rêveberiyê hene. Forma jêrîn guhertinên ku te şandine nîşan dide; berhema zindî heta erêkirinê hîn nirxên berê nîşan dide.",
   "Your last changes to this product were denied. The live product still shows the previous values.": "Guhertinên te yên dawî yên li ser vê berhemê hatin redkirin. Berhema zindî hîn jî nirxên berê nîşan dide.",
   "Couldn't load your shop details. Product creation is unavailable until they load.": "Agahiyên dikana te nehatin barkirin. Heta ku ew bar bibin, çêkirina berhemê ne gengaz e.",
+  "Adding a product needs permission to view shop info. Ask a shop admin to grant you that permission, then try again.": "Ji bo zêdekirina berhemekê destûra dîtina agahiyên dikanê pêwîst e. Ji rêveberê dikanê bixwaze ku vê destûrê bide te, paşê dîsa biceribîne.",
   "Bold": "Stûr",
   "Italic": "Xwar",
   "Underline": "Binxêz",

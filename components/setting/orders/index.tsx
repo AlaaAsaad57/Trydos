@@ -5,9 +5,12 @@ import { translateFunction } from "utils/functions";
 import OrderNotified from "./OrderNotified";
 import { useAppStore } from "store";
 import { usePathname } from "node_modules/next/navigation";
+import { useEffect, useState } from "react";
+import { fetchOrdersCount } from "services/orders";
 
-function OrdersLinkCard({ isRtl, user, local, language, totalOrders }) {
+function OrdersLinkCard({ isRtl, user, local, language }) {
   const { setLoginOpen, userProfile: userObj } = useAppStore();
+  const [ordersCount, setOrdersCount] = useState<number | null>(null);
 
   const isNotLogeedIn = () => {
     let userData = userObj || user;
@@ -22,6 +25,25 @@ function OrdersLinkCard({ isRtl, user, local, language, totalOrders }) {
     );
   };
   const pathname = usePathname();
+  const isLoggedIn = !isNotLogeedIn();
+
+  // The count is fetched from the browser (proxy injects the token) instead of
+  // on the server, so the settings page renders without waiting on the orders
+  // API. Guests have no orders to count — skip the request entirely.
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setOrdersCount(null);
+      return;
+    }
+    let cancelled = false;
+    fetchOrdersCount().then((count) => {
+      if (!cancelled && count !== null) setOrdersCount(count);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn]);
+
   return (
     <div
       className="w-1/2 flex"
@@ -46,7 +68,7 @@ function OrdersLinkCard({ isRtl, user, local, language, totalOrders }) {
           {translateFunction("Orders", language)}
         </span>
         <span className="text-[#8D8D8D] text-[12px] regular">
-          {totalOrders?.data?.total_order_group ?? 0}{" "}
+          {ordersCount ?? 0}{" "}
           {translateFunction("Action", language)}
         </span>
       </NextLink>

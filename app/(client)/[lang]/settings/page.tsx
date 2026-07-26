@@ -11,7 +11,6 @@ import { getLocalizedCountryName } from "utils/countryData";
 import { buildAlternates } from "serverRequests/meta/buildAlternates";
 import RouterRefresh from "components/global/RouterRefresh";
 
-import { GetOrders } from "serverRequests/settings";
 import {
   COOKIE_NAMES,
   getCookieServer,
@@ -38,14 +37,11 @@ async function page({ params }) {
   let Params = await params;
   let [country, language] = Params?.lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
-  // Cookie read and the orders fetch are independent — run them together.
-  const [SafeUserProfileRaw, totalOrders] = await Promise.all([
-    getCookieServer<UserData>(COOKIE_NAMES.USER_DATA),
-    GetOrders({
-      page: 1,
-      pageSize: 1,
-    }),
-  ]);
+  // The orders count is fetched client-side by <OrdersLinkCard>, so the page
+  // itself only needs the cached profile cookie.
+  const SafeUserProfileRaw = await getCookieServer<UserData>(
+    COOKIE_NAMES.USER_DATA,
+  );
   let SafeUserProfile = SafeUserProfileRaw || {
     name: "",
     phone: "",
@@ -142,7 +138,6 @@ async function page({ params }) {
       >
         {/* @ts-ignore */}
         <OrdersLinkCard
-          totalOrders={totalOrders}
           isRtl={isRtl}
           language={language}
           local={Params?.lang}

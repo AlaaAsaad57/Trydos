@@ -102,7 +102,12 @@ export default function ProductEditor({
   // standing is unknown. Both are create-only — editing an existing product is
   // never affected by shop info in any way.
   const shopInfoPending = isCreate && shopInfo === null;
-  const shopInfoUnavailable = isCreate && shopInfo !== null && !shopInfo.available;
+  // Missing READ_SHOP_INFO: the loader never issued the request and never will,
+  // so this is a permission problem, not a load failure — say so plainly rather
+  // than offering a retry that cannot succeed.
+  const shopInfoForbidden = isCreate && shopInfo !== null && !shopInfo.permitted;
+  const shopInfoUnavailable =
+    isCreate && shopInfo !== null && shopInfo.permitted && !shopInfo.available;
   // Restrict ONLY on a usable record that explicitly says the seller is not
   // approved. Never on the edit path, never on an unknown standing.
   const pricesLocked =
@@ -700,6 +705,14 @@ export default function ProductEditor({
     return (
       <AccessDenied
         message={t("You don't have permission to view or edit this product.")}
+      />
+    );
+  if (shopInfoForbidden)
+    return (
+      <AccessDenied
+        message={t(
+          "Adding a product needs permission to view shop info. Ask a shop admin to grant you that permission, then try again.",
+        )}
       />
     );
   // Standing settled but unusable: fail the same way a failed product load

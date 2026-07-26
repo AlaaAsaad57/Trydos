@@ -2,6 +2,7 @@ const translations = {
   "This product has pending changes awaiting admin approval. The form below shows your submitted changes; the live product still shows the previous values until approval.": "Bu üründe yönetici onayı bekleyen değişiklikler var. Aşağıdaki form gönderdiğiniz değişiklikleri gösterir; yayındaki ürün onaylanana kadar önceki değerleri göstermeye devam eder.",
   "Your last changes to this product were denied. The live product still shows the previous values.": "Bu üründe yaptığınız son değişiklikler reddedildi. Yayındaki ürün hâlâ önceki değerleri gösteriyor.",
   "Couldn't load your shop details. Product creation is unavailable until they load.": "Mağaza bilgileriniz yüklenemedi. Bilgiler yüklenene kadar ürün oluşturulamaz.",
+  "Adding a product needs permission to view shop info. Ask a shop admin to grant you that permission, then try again.": "Ürün eklemek için mağaza bilgilerini görüntüleme izni gerekir. Bir mağaza yöneticisinden bu izni vermesini isteyin, sonra tekrar deneyin.",
   "Bold": "Kalın",
   "Italic": "İtalik",
   "Underline": "Altı çizili",
