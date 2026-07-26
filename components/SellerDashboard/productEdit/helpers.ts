@@ -414,6 +414,7 @@ export function emptyProductForm(): ProductForm {
  */
 export function seedVariantDefaults(
   form: ProductForm,
+  isCreate = false,
 ): Record<string, VariantRow> {
   let changed = false;
   const next: Record<string, VariantRow> = { ...form.variations };
@@ -422,8 +423,19 @@ export function seedVariantDefaults(
     const price = base.price === "" ? form.unit_price : base.price;
     const discount = base.discount === "" ? form.discount_price : base.discount;
     const luck = base.luck === "" ? form.luck_price : base.luck;
-    if (price !== base.price || discount !== base.discount || luck !== base.luck) {
-      next[c.key] = { ...base, price, discount, luck };
+    // On create only, an unfilled SKU defaults to the combo key itself —
+    // "AntiqueWhite-42EU" / "AntiqueWhite" / "42EU" (see variantKey). Never on
+    // edit: an existing variant whose SKU is genuinely empty is the seller's
+    // data, not ours to fill. A filled SKU is never touched in either mode, and
+    // the key is unique per combo so this cannot create a duplicate.
+    const sku = isCreate && base.sku === "" ? c.key : base.sku;
+    if (
+      price !== base.price ||
+      discount !== base.discount ||
+      luck !== base.luck ||
+      sku !== base.sku
+    ) {
+      next[c.key] = { ...base, price, discount, luck, sku };
       changed = true;
     }
   }

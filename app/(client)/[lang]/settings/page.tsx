@@ -49,6 +49,11 @@ async function page({ params }) {
   };
   const options = [
     {
+      name: "My Checklist",
+      Icon: `/icons/Heart.svg`,
+      href: `/${Params?.lang}/settings/checklist`,
+    },
+    {
       name: "Settings",
       Icon: `/icons/SettingsIcon.svg`,
       href: `/${Params?.lang}/settings/prefferences`,

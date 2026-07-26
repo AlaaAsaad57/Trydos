@@ -813,6 +813,7 @@ const translations = {
   "Follow Comments": "شخص ما يعلق",
   Offers: "تحدث عروض",
   "Add To My Checklist": "إضافة إلى المفضلة",
+  "My Checklist": "قائمتي",
   "Add To Compare": "إضافة إلى المقارنة",
   Recommended: "مقترح",
   "For You": "لك",

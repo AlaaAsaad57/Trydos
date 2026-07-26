@@ -57,9 +57,10 @@ export interface SectionProps {
   currency?: string;
   /**
    * Creating a product as a seller who is not approved for new products: every
-   * price except Purchase Price is locked. Narrower than `disabled`, which means
-   * "view mode" and covers the whole form. Optional and false by default, so
-   * sections used elsewhere are unaffected.
+   * price except Purchase Price is hidden (not merely disabled — an input the
+   * seller cannot fill is noise). Narrower than `disabled`, which means "view
+   * mode" and covers the whole form. Optional and false by default, so sections
+   * used elsewhere are unaffected.
    */
   pricesLocked?: boolean;
 }
@@ -368,17 +369,24 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
 
 export function PricingSection({ form, patch, errors, disabled, currency, pricesLocked }: SectionProps) {
   const hasVariants = combos(form).length > 0;
-  // Every price except Purchase Price is locked for an unapproved seller on
-  // create; non-price fields below (stock, weight, qty, pieces, shipping days)
-  // stay editable.
-  const priceDisabled = disabled || !!pricesLocked;
+  // Every price except Purchase Price is hidden for an unapproved seller on
+  // create — an input that cannot be filled is noise, so it is not rendered at
+  // all rather than shown greyed out. Non-price fields below (stock, weight,
+  // qty, pieces, shipping days) stay editable. The payload is unaffected:
+  // buildUpdateFormData sends "0" for every omitted price key.
   return (
     <Section icon="orders" title="Pricing & Stock" desc="Prices are in your display currency; converted server-side.">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <Num label="Unit Price" fieldKey="unit_price" value={form.unit_price} required={!pricesLocked} error={errors.unit_price} disabled={priceDisabled} suffix={currency} onChange={(v) => patch({ unit_price: v })} />
-        <Num label="Discount Price" fieldKey="discount_price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={priceDisabled} suffix={currency} onChange={(v) => patch({ discount_price: v })} />
+        {!pricesLocked && (
+          <Num label="Unit Price" fieldKey="unit_price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ unit_price: v })} />
+        )}
+        {!pricesLocked && (
+          <Num label="Discount Price" fieldKey="discount_price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} suffix={currency} onChange={(v) => patch({ discount_price: v })} />
+        )}
         <Num label="Purchase Price" fieldKey="purchase_price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ purchase_price: v })} />
-        <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} disabled={priceDisabled} suffix={currency} onChange={(v) => patch({ luck_price: v })} />
+        {!pricesLocked && (
+          <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ luck_price: v })} />
+        )}
         <Num
           label="Current Stock"
           fieldKey="current_stock"
@@ -391,7 +399,9 @@ export function PricingSection({ form, patch, errors, disabled, currency, prices
         <Num label="Weight" value={form.weight} error={errors.weight} hint={t("Required for pc / liter")} disabled={disabled} onChange={(v) => patch({ weight: v })} />
         <Num label="Max Allowed Qty" value={form.max_allowed_qty} disabled={disabled} onChange={(v) => patch({ max_allowed_qty: v })} />
         <Num label="Pieces / Unit" value={form.count_of_pieces} error={errors.count_of_pieces} hint={t("Must be a whole number between 1 and 100")} disabled={disabled} step="1" onChange={(v) => patch({ count_of_pieces: v })} />
-        <Num label="Shipping Cost" value={form.shipping_cost} disabled={priceDisabled} suffix={currency} onChange={(v) => patch({ shipping_cost: v })} />
+        {!pricesLocked && (
+          <Num label="Shipping Cost" value={form.shipping_cost} disabled={disabled} suffix={currency} onChange={(v) => patch({ shipping_cost: v })} />
+        )}
         <Num label="Shipping Days" value={form.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
         {/* Tax inputs are hidden for now — the payload always sends tax=0 /
             tax_type=flat (see buildUpdateFormData). */}
@@ -643,10 +653,9 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
 }
 
 export function CountriesSection({ form, patch, lookups, disabled, currency, pricesLocked }: SectionProps) {
-  // Per-country surcharge is a price: locked for an unapproved seller on create.
-  // The add/remove controls are HIDDEN rather than disabled, so no row can be
-  // created that the seller is unable to fill.
-  const extraPriceDisabled = disabled || !!pricesLocked;
+  // Per-country surcharge is a price: an unapproved seller cannot set one on
+  // create, so the whole block is hidden rather than rendered greyed out.
+  const extraPriceDisabled = disabled;
   const countries = lookups.countries || [];
   const language = LocalizationServiceClass.GetAppLanguage();
   const addExtra = () => patch({ extra_price_for_country: [...form.extra_price_for_country, { country_iso: "", extra_price: "" }] });
@@ -675,6 +684,7 @@ export function CountriesSection({ form, patch, lookups, disabled, currency, pri
           </div>
         </div>
 
+        {!pricesLocked && (
         <div>
           <div className="flex items-center justify-between mb-2.5">
             <p className="text-[13px] medium text-[#505050]">{t("Per-country Extra Price")}</p>
@@ -716,6 +726,7 @@ export function CountriesSection({ form, patch, lookups, disabled, currency, pri
             </div>
           )}
         </div>
+        )}
       </div>
     </Section>
   );
@@ -918,7 +929,7 @@ export function MediaSection({ form, patch, errors, disabled, onUploadImages, up
   );
 }
 
-export function VariantsSection({ form, patch, errors, lookups, disabled, currency, pricesLocked }: SectionProps) {
+export function VariantsSection({ form, patch, errors, lookups, disabled, currency, pricesLocked, isCreate }: SectionProps) {
   const cmb = combos(form);
 
   // Read mode shows only the chosen colors/sizes; edit mode shows the full picker.
@@ -930,16 +941,17 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
     : lookups.sizes || [];
 
   // Auto-fill empty variant prices from the product-level defaults so the seller
-  // sees what each variant will cost. Keyed on the SET of combo keys (+ edit
-  // mode), not on field values: it fires on entering edit mode and whenever a
-  // color/size is added, but never re-fills a field the seller cleared.
+  // sees what each variant will cost, plus (create only) a default SKU per
+  // combo. Keyed on the SET of combo keys (+ edit mode), not on field values: it
+  // fires on entering edit mode and whenever a color/size is added, but never
+  // re-fills a field the seller cleared.
   const comboKeys = cmb.map((c) => c.key).join("|");
   useEffect(() => {
     if (disabled) return;
-    const seeded = seedVariantDefaults(form);
+    const seeded = seedVariantDefaults(form, isCreate);
     if (seeded !== form.variations) patch({ variations: seeded });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [comboKeys, disabled]);
+  }, [comboKeys, disabled, isCreate]);
 
   // Sync product-level current_stock with the sum of variation quantities when variations exist
   useEffect(() => {
@@ -1034,9 +1046,13 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                 <thead>
                   <tr className="text-[11px] semibold text-[#8e8e8e]">
                     <th className="py-1 pr-3">{t("Variant")}</th>
-                    <th className="py-1 px-2">{t("Price")}</th>
-                    <th className="py-1 px-2">{t("Discount")}</th>
-                    <th className="py-1 px-2">{t("Luck")}</th>
+                    {!pricesLocked && (
+                      <>
+                        <th className="py-1 px-2">{t("Price")}</th>
+                        <th className="py-1 px-2">{t("Discount")}</th>
+                        <th className="py-1 px-2">{t("Luck")}</th>
+                      </>
+                    )}
                     <th className="py-1 px-2">{t("Qty")}</th>
                     <th className="py-1 px-2">{t("SKU")}</th>
                     <th className="py-1 px-2">{t("Barcode")}</th>
@@ -1057,9 +1073,10 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                         field === "price" || field === "discount" || field === "luck";
                       // Money cells get the shop-currency overlay (compact, narrow cells).
                       const suffix = currency && isMoney ? currency : "";
-                      // Only the three money columns lock for an unapproved
-                      // seller on create; qty/sku/barcode/location stay editable.
-                      const cellDisabled = disabled || (!!pricesLocked && isMoney);
+                      // The three money columns are not rendered at all for an
+                      // unapproved seller on create (see below); qty/sku/
+                      // barcode/location stay editable.
+                      const cellDisabled = disabled;
                       return (
                         <td className="px-1 align-top">
                           <div className="relative w-fit">
@@ -1098,9 +1115,13 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                         <td className="pr-3 text-[12px] medium text-[#3c3c3c] whitespace-nowrap align-top pt-2">
                           {[c.colorName, c.sizeName].filter(Boolean).join(" · ")}
                         </td>
-                        {cell("price", "w-[88px]")}
-                        {cell("discount", "w-[88px]")}
-                        {cell("luck", "w-[80px]")}
+                        {!pricesLocked && (
+                          <>
+                            {cell("price", "w-[88px]")}
+                            {cell("discount", "w-[88px]")}
+                            {cell("luck", "w-[80px]")}
+                          </>
+                        )}
                         {cell("qty", "w-[70px]")}
                         {cell("sku", "w-[110px]", "text")}
                         {cell("barcode", "w-[110px]", "text")}

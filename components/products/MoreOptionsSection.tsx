@@ -344,10 +344,19 @@ function MoreOptionsSection({ product }) {
         <div
           className={`px-[20px] more-options-button ${
             isInWishlist ? "bg-green-300" : ""
-          }`}
+          } ${wishlistLoading ? "opacity-60 cursor-wait" : ""}`}
           data-cy="add-checkList"
+          aria-busy={wishlistLoading}
           onClick={toggleWishlist}
         >
+          {wishlistLoading ? (
+            <span
+              data-cy="add-checkList-spinner"
+              className="w-[25px] h-[25px] flex-row items-center justify-center"
+            >
+              <Spinner />
+            </span>
+          ) : (
           <svg
             data-cy="add-checkList-svg"
             xmlns="http://www.w3.org/2000/svg"
@@ -482,6 +491,7 @@ function MoreOptionsSection({ product }) {
               </g>
             </g>
           </svg>
+          )}
 
           <span data-cy="add-checkList-text">
             {translate("Add To My Checklist", language)}

@@ -802,6 +802,7 @@ const translations = {
   "Follow Comments": "کەسێک تێبینی دەکات",
   Offers: "پێشکەشکردنەکان",
   "Add To My Checklist": "زیادکردن بۆ لیستی من",
+  "My Checklist": "لیستی من",
   "Add To Compare": "زیادکردن بۆ بەراوردکردن",
   Recommended: "پێشنیارکراو",
   "For You": "بۆ تۆ",

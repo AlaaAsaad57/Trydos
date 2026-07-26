@@ -34,9 +34,15 @@ export async function GetSellerShops(local?: string) {
     });
     const status = res?.status ?? 0;
     const shops = Array.isArray(res?.data?.data) ? res.data.data : [];
-    // The backend actually answered (200) or explicitly rejected the identity
-    // (401/403) → the "does this user own shops?" question is answered.
-    const conclusive = status === 200 || status === 401 || status === 403;
+    // Conclusive = the backend actually answered (200) or knows the identity and
+    // explicitly denies it (403). A 401 is NOT conclusive: this runs during a
+    // Server Component render, where `HandleAuthedFetch` cannot persist a
+    // rotated token (its cookie-writability probe throws) and therefore returns
+    // the 401 *without attempting a refresh*. Counting that as "owns no shops"
+    // bounced legitimate sellers home the moment their access token expired.
+    // Falling through instead lets client-side recovery — refresh → retry, or
+    // the seller re-auth prompt in `fetchData` — run as intended.
+    const conclusive = status === 200 || status === 403;
     return { shops, hasShops: shops.length > 0, conclusive };
   } catch (error) {
     LogServerError({

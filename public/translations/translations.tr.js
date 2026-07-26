@@ -588,6 +588,7 @@ const translations = {
   "More Options": "Daha Fazla Seçenek",
   "Notify Me About The Product When": "Bu Ürün Hakkında Bildirim Al",
   "Add To My Checklist": "Bu Ürünü Listeme Ekle",
+  "My Checklist": "Listem",
   "Add To Compare": "Bu Ürünü Karşılaştırmaya Ekle",
   "Before Stock Out": "Stok Bitmeden Önce",
   "Change In Price": "Fiyat Değişti",
