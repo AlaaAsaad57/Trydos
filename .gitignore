@@ -63,6 +63,11 @@ scripts/*
 # Engineering Workflow v1 helpers must be shared with the team (exceptions to scripts/* above)
 !scripts/clickup_intake.py
 !scripts/github_publish.py
+# Trello -> ClickUp backlog migration helpers (used by the migrate-trello-batch skill)
+!scripts/workflow_env.py
+!scripts/trello_fetch.py
+!scripts/trello_move_card.py
+!scripts/clickup_create_task.py
 
 # Local design references (XD exports) - not for repo
 xd-designs-for-inspreation/
