@@ -49,20 +49,20 @@ async function page({ params }) {
   };
   const options = [
     {
+      name: "Settings",
+      Icon: `/icons/SettingsIcon.svg`,
+      href: `/${Params?.lang}/settings/prefferences`,
+    },
+    {
       name: "My Checklist",
       Icon: `/icons/Heart.svg`,
       href: `/${Params?.lang}/settings/checklist`,
     },
     {
-      name: "Settings",
-      Icon: `/icons/SettingsIcon.svg`,
-      href: `/${Params?.lang}/settings/prefferences`,
+      name: "Terms & Conditions",
+      Icon: `/icons/TermsIcon.svg`,
+      href: `/${Params?.lang}/terms-of-service`,
     },
-    // {
-    //   name: "Terms & Conditions",
-    //   Icon: `/icons/TermsIcon.svg`,
-    //   href: `/${Params?.lang}/terms-of-service`,
-    // },
     {
       name: "Legal Information",
       Icon: `/icons/LegalInfoIcon.svg`,
