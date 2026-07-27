@@ -768,7 +768,7 @@ const translations = {
   "Hurry Up!": "أسرع!",
   "Quantity Running Out. ": "الكمية تنفذ.",
   "Time Running Out. ": "الوقت ينفذ.",
-  "Confirm And Continue": "الموافقة والمتابعة",
+  "Confirm & Continue": "ناكيد & المتابعة",
   items: "عناصر",
   Size: "حجم",
   "color,": "لون, ",

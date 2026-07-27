@@ -639,7 +639,7 @@ const translations = {
   paid: "Ödendi",
   unpaid: "Ödenmedi",
   Buy: "Satın Al",
-  "Confirm And Continue": "Onayla ve Devam Et",
+  "Confirm & Continue": "Onayla ve Devam Et",
   Saved: "Kaydedildi",
   Shipping: "Kargo",
   "Please log in first": "Lütfen önce giriş yapın",

@@ -667,7 +667,7 @@ function OrderButton({ close, toOrders }) {
                           className="text-[#FEFEFE] text-[18px] medium "
                         >
                           {translate(
-                            "Confirm And Continue",
+                            "Confirm & Continue",
                             LocalizationServiceClass.GetAppLanguage(),
                           )}
                         </span>

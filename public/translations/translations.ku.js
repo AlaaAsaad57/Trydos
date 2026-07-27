@@ -758,7 +758,7 @@ const translations = {
   "Hurry Up!": "خێرابکە!",
   "Quantity Running Out.": "کەمیەتەکە کەمدەکات.",
   "Time Running Out.": "کات کەمدەکات.",
-  "Confirm And Continue": "پشتڕاستکردنەوە و بەردەوامبوون",
+  "Confirm & Continue": "پشتڕاستکردنەوە و بەردەوامبوون",
   items: "شتەکان",
   Size: "قەبارە",
   "color,": "ڕەنگ،",
