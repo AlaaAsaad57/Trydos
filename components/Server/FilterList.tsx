@@ -79,9 +79,9 @@ function FilterList({
           />
           <HortiznalScrollBar
             id="filter-list-row-container"
-            className={`$${
+            className={`${
               isRtl
-                ? "flex-row-reverse flex mr-[45px]"
+                ? "[direction:rtl] flex-row flex mr-[45px]"
                 : "flex-row flex ml-[45px]"
             }  items-center pr-5   justify-start align-start filter-container overflow-auto scroll-smooth`}
           >
