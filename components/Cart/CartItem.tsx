@@ -1,31 +1,18 @@
 import Timer from "components/Login/Timer";
 import FlashDealBanner from "components/products/FlashDealBanner";
-import React, { useCallback } from "react";
+import React from "react";
 import { useAppStore } from "store";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import Image from "next/image";
 function CartItem({ product, index }) {
-  const { language } = useAppStore();
-  const getShippingDay = useCallback(() => {
-    let shippingDurationDays = 0;
-    if (sessionStorage.getItem("starttingSetting")) {
-      const settingsStr = sessionStorage.getItem("starttingSetting");
-      if (settingsStr) {
-        try {
-          const settingsObj = JSON.parse(settingsStr);
-          shippingDurationDays =
-            parseInt(
-              settingsObj?.["starting_setting"]?.shipping_duration_days,
-            ) || 0;
-          return shippingDurationDays;
-        } catch (e) {
-          shippingDurationDays = 0;
-          return shippingDurationDays;
-        }
-      }
-    }
-  }, []);
+  const { language, settings } = useAppStore();
+  // Read from the store rather than re-parsing the session cache on every
+  // render. Both operands are coerced: the previous accessor returned
+  // `undefined` when the cache was cold, making the sum NaN and hiding the row.
+  const totalShippingDays =
+    (Number(product.shipping_days) || 0) +
+    (Number(settings?.["starting_setting"]?.shipping_duration_days) || 0);
   const isRtl = language === "ar" || language === "ku";
   const variation = Array.isArray(product?.variations)
     ? (product.variations[0] ?? {})
@@ -175,7 +162,7 @@ function CartItem({ product, index }) {
             </span>
           </span>
         </div>
-        {product.shipping_days + getShippingDay() > 0 ? (
+        {totalShippingDays > 0 ? (
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
@@ -198,8 +185,7 @@ function CartItem({ product, index }) {
             >
               {translateFunction("Shipping")}:{" "}
               <span className="regular whitespace-nowrap" data-cy="days-number">
-                {product.shipping_days + getShippingDay()}{" "}
-                {translateFunction("Days")}{" "}
+                {totalShippingDays} {translateFunction("Days")}{" "}
                 <span className="ml-1 underline" data-cy="days-text">
                   {translateFunction("Details")}
                 </span>
