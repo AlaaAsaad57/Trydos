@@ -104,3 +104,24 @@ command appends one entry for the transition it performs.
 Each entry's fields: `state` (the state after the event), `event` (what
 happened, e.g. `ticket-created`, `intake-ready`, `approved`), `by` (actor:
 `ai_agent` | `em` | `developer` | name), `timestamp` (`YYYY-MM-DD`).
+
+## Amendments (post-closure)
+
+Changes to this ticket's behaviour made **after** it reached `closed`. `closed`
+is terminal: none of these reopen the ticket, none appends a state-history entry,
+and `state` above stays `closed`. They are recorded here so the artifacts do not
+describe behaviour the code no longer has.
+
+| ID | Date | Summary | Recorded in |
+|----|------|---------|-------------|
+| A1 | 2026-07-27 | The shop-info gates (still resolving / permission missing / read failed) now apply on the **edit** path as well as create — the editor withholds its form and states the cause instead of loading silently. The new-products approval price restriction stays create-only. | `spec.md`, `implement.md`, `verify.md` — each under "Amendment A1" |
+
+**A1 supersedes two originally-verified behaviours:** that a failed shop-info
+read leaves the edit screen loading normally with no message, and that a missing
+shop-info permission leaves the edit screen unblocked. Both now block.
+
+> **Process note.** Under `workflow-rules.md` the correct home for a behaviour
+> change after closure is a **new ticket**, not an amendment to a terminal one.
+> These amendments were recorded by explicit owner instruction on 2026-07-27 to
+> keep the artifacts truthful; they ran no `/review` or `/verify` gate and no
+> comprehension check. Treat them as a corrected record, not as gated work.

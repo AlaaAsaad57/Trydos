@@ -18,6 +18,10 @@ Entry path: **initial** (from `state: approved`). Branch
 `ticket/seller-product-approval-gating` created from clean `develop` (IM-3).
 All 19 planned steps applied; no step deferred.
 
+> **See also: Amendment A1** at the end of this file — a post-closure change made
+> on 2026-07-27 that extends the shop-info gates to the edit path. The record
+> below describes the original implementation and is not rewritten.
+
 ## Changes made
 
 **Resolution model (Steps 1–5)**
@@ -156,3 +160,51 @@ manual run across the four seller states (approved/unapproved × create/edit) an
 the three resolution outcomes (unresolved / unavailable / resolved). In
 particular AC-10 must record what price the created product actually came back
 with, per `review.md > Required Follow-up Actions #1`.
+
+---
+
+## Amendment A1 — edit path also blocks on unresolved shop info (2026-07-27)
+
+> **Post-closure change**, made by owner decision after the ticket reached
+> `closed`. Recorded here for traceability; the original record above is
+> unchanged. Requirements and criteria: `spec.md > Amendment A1`
+> (REQ-11..REQ-13, AC-16..AC-18, AC-12′, AC-13′).
+
+### Files changed
+
+- `components/SellerDashboard/productEdit/ProductEditor.tsx` — dropped the
+  `isCreate &&` conjunct from the three shop-info gates (`shopInfoPending`,
+  `shopInfoForbidden`, `shopInfoUnavailable`) so each is live on both paths, and
+  branched the two blocking messages on `isCreate` so the copy names the path the
+  seller is on. **`pricesLocked` deliberately keeps its `isCreate` conjunct** —
+  the approval restriction stays create-only (REQ-13).
+- `components/SellerDashboard/ShopInfoLoader.tsx` — **comments only, no logic.**
+  Three comments still said "create path" and would have been wrong. The loader
+  already recorded a settled outcome on every branch, which is exactly what the
+  edit path needed, so nothing behavioural changed here.
+- `public/translations/translations.{ar,tr,ku}.js` — two new keys added before
+  use: the edit-path variants of the permission and load-failure messages.
+
+No file outside this list was touched. No `protected_paths` file was modified —
+`store/index.ts` was **not** changed by this amendment (the slice already carried
+`permitted` and `available`).
+
+### Validation run
+
+| Check | Command | Exit | Result |
+|---|---|---|---|
+| typecheck | `pnpm exec tsc --noEmit` | 0 | **pass** — no output |
+| i18n parity | `pnpm lint:i18n-parity` | 0 | **pass** — `✓ i18n parity OK — 2051 keys present in all three files.` |
+| lint (scoped) | `pnpm exec eslint` on both changed components | 0 | **pass** — 0 errors; 4 warnings, all pre-existing unused `eslint-disable` directives untouched by this change |
+
+`pnpm build` was **not** re-run for this amendment; the original ticket ran the
+full `full-build` profile and this change alters two conditions and adds two
+translation keys, touching no build-affecting config.
+
+### Evidence caveat — carried forward, unchanged
+
+As with the original ticket, **no criterion was exercised against a running
+application.** AC-16..AC-18 are recorded on static code inspection only.
+Reproducing them needs a seller who holds `UPDATE_PRODUCT` but not
+`READ_SHOP_INFO` (AC-16) and an induced `GET /shop/info` failure (AC-17) — neither
+available from this workspace.

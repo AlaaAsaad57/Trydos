@@ -182,3 +182,53 @@ Neither blocks planning; both are UX choices the plan may settle.
 - Reconciling the pending-versus-live content divergence described in Edge Cases.
 - Any change to how prices are handled on the update path.
 - Any per-variant purchase price, which the product model does not carry.
+
+---
+
+## Amendment A1 — edit path also blocks on unresolved shop info (2026-07-27)
+
+> **Post-closure amendment.** The ticket is `closed` and terminal; nothing above
+> this line is rewritten. This section records a behaviour change made after
+> closure, by owner decision on 2026-07-27, and states which criteria above it
+> supersedes. It does **not** reopen the ticket or add a state transition.
+
+### What changed and why
+
+As specified and verified, the shop-info gates were create-only: on the edit
+path a failed or forbidden shop-info read was silent — the editor rendered in
+full, the seller was told nothing, and the only effect was a missing currency
+label. The owner judged that dishonest: prices are the substance of the editor
+and are meaningless without the shop's currency, so a seller editing against an
+unresolved shop is worse off than one who is told why they cannot proceed.
+
+### Amended requirements
+
+- **REQ-11 — Editor blocks on an unresolved shop, on both paths.** When the
+  seller's shop details cannot be resolved, the product editor does not render
+  its form on **either** path. It states the cause instead. This replaces the
+  create-only scope of REQ-9.
+- **REQ-12 — The two causes stay distinguishable.** A missing shop-info
+  permission reads as a permission problem and offers **no** retry, because the
+  request can never succeed. A failed read reads as a load failure and offers a
+  retry. Copy names the path the seller is on (adding vs opening a product).
+- **REQ-13 — Approval restriction stays create-only.** The new-products approval
+  price restriction is unchanged and continues to apply on create only; it has no
+  meaning for a product that already exists. REQ-5..REQ-8 stand as written.
+
+### Amended acceptance criteria
+
+| ID    | Acceptance criterion | Maps to | Supersedes |
+|-------|----------------------|---------|------------|
+| AC-16 | Opening an existing product while the shop-info permission is missing: no shop-info request is made, the form does not render, and the screen states that the permission is needed and to ask a shop admin. No retry is offered. | REQ-11, REQ-12 | — |
+| AC-17 | Opening an existing product after a failed shop-info read: the form does not render, the screen states the shop details could not be loaded, and a retry is offered that re-issues the request once. | REQ-11, REQ-12 | — |
+| AC-18 | While the shop is still resolving, the edit screen shows its loading state and never renders a form that is subsequently withdrawn. | REQ-11 | — |
+| AC-12′ | Editing an existing product: once the editor renders, every price input is editable for every seller, approved or not. | REQ-8, REQ-13 | AC-12 (narrowed: now conditional on the editor rendering at all) |
+| AC-13′ | The undeterminable-standing failure applies on **both** paths, not create only. | REQ-11 | AC-13 (widened from create-only) |
+
+### Known consequence, accepted by the owner
+
+A seller holding `UPDATE_PRODUCT` but not `READ_SHOP_INFO` can no longer open the
+product editor at all. This is a wider block than the failure strictly requires
+and was flagged before the change was made; the owner accepted it in exchange for
+never letting a seller edit prices against an unknown shop. Whether those two
+permissions are granted together in practice is worth confirming operationally.

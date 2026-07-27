@@ -10,11 +10,11 @@ import { useAppStore, type DashboardShopInfo } from "store";
  * boutiques, …) can read it without refetching.
  *
  * It always records a SETTLED outcome for the requested sellerId — success or
- * not — because the product create screen must tell "still loading" apart from
- * "could not be determined". A null slice therefore means only "not resolved
- * yet". Currency consumers are unaffected: `currency` is always written (empty
- * when unavailable), so a failed fetch still degrades to no currency overlay
- * exactly as before.
+ * not — because the product editor (both create and edit) must tell "still
+ * loading" apart from "could not be determined": it blocks on the latter. A
+ * null slice therefore means only "not resolved yet". Other currency consumers
+ * are unaffected: `currency` is always written (empty when unavailable), so a
+ * failed fetch still degrades to no currency overlay exactly as before.
  *
  * `fetchData` does not throw on a failed request — it resolves with
  * `success: false` — so failure is detected in the `.then` branch. The `.catch`
@@ -24,7 +24,7 @@ import { useAppStore, type DashboardShopInfo } from "store";
  * current sellerId, failure records included. Skipping failure records instead
  * would re-fetch on every render, because writing the record re-triggers the
  * effect that wrote it. Recovery is an explicit user action that clears the
- * record (see ProductEditor's create-path retry).
+ * record (see ProductEditor's retry).
  *
  * `GET /shop/info` is protected by READ_SHOP_INFO, so it is NEVER issued when
  * the shop's permission list says the user does not hold it — that call would
@@ -52,7 +52,7 @@ export default function ShopInfoLoader({
     const unavailable = (permitted = true): DashboardShopInfo => ({
       sellerId,
       currency: { code: "", name: "" },
-      // Unknown standing must never restrict — the create path gates on
+      // Unknown standing must never restrict — the editor gates on
       // `available` and shows its error state instead.
       newProductsApproval: true,
       available: false,

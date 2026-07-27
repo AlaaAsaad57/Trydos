@@ -163,3 +163,59 @@ live backend.
     actually present on the edit response (backend PR #385).
   - Out of scope and still outstanding from earlier stages: the code-verified API
     contract artifacts still need re-verification against the new backend source.
+
+---
+
+## Amendment A1 — edit path also blocks on unresolved shop info (2026-07-27)
+
+> **Post-closure amendment.** The sign-off above stands as recorded and is not
+> rewritten. This section records results for the criteria added by
+> `spec.md > Amendment A1` after the ticket closed. No state transition is
+> performed; the ticket remains `closed`.
+
+### Two results above are now superseded
+
+The behaviour these two rows describe was **deliberately reversed** on
+2026-07-27. They were correct when written; they no longer describe the code.
+
+| Row | What it recorded | Status now |
+|-----|------------------|------------|
+| AC-12 | "Edit path: all price inputs editable for every seller — `pricesLocked` is conjoined with `isCreate`, so unconditionally false on edit." | **Still true, but narrowed.** `pricesLocked` is unchanged. What changed is that the editor may now decline to render at all on the edit path; once it renders, this row holds exactly as recorded. See AC-12′. |
+| AC-13 | "**Create** with undeterminable standing fails like a failed product load." | **Widened to both paths.** The same failure now applies on edit. See AC-13′. |
+
+Two behaviours the original ticket verified as correct are, as of this
+amendment, **no longer the intended behaviour**: that a failed shop-info read
+leaves the edit screen loading normally with no message, and that a missing
+shop-info permission leaves the edit screen unblocked. Both now block.
+
+### Results for the amended criteria
+
+Evidence is **static** unless marked otherwise — same basis and same caveat as
+the original sign-off. No criterion below was exercised against a running app.
+
+| AC ID | Check / test case | Evidence | Result |
+|-------|-------------------|----------|--------|
+| AC-16 | Missing shop-info permission on edit: no request issued, form withheld, permission message shown, no retry. Traced — the loader's `canReadShopInfo === false` branch still returns before any fetch and records `permitted: false`; `shopInfoForbidden` lost its `isCreate` conjunct so it now fires on edit and renders `AccessDenied`, which has no retry affordance by construction. | static | pass |
+| AC-17 | Failed shop-info read on edit: form withheld, load-failure message, retry re-issues once. Traced — `shopInfoUnavailable` fires on edit and renders `ErrorState` whose `onRetry` clears the store record, so the loader's `sellerId` guard stops matching and the request is re-issued exactly once. | static | pass |
+| AC-18 | Edit screen shows its loading state while the shop resolves and never withdraws a rendered form. Traced — `shopInfoPending` is folded into the existing `loading \|\| …` early return; the loader writes a settled record on every branch, so this cannot hang. | static | pass |
+| AC-12′ | Once the edit form renders, every price input is editable for every seller. Traced — `pricesLocked` retains its `isCreate` conjunct and is untouched by this amendment. | static | pass |
+| AC-13′ | The undeterminable-standing failure applies on both paths. Traced — the `isCreate &&` prefix was removed from all three gates. | static | pass |
+| AC-14 (re-checked) | The two new strings resolve in all four languages. **Executed:** `pnpm lint:i18n-parity` → 2051 keys parity-clean; scoped eslint reports no unresolved i18n key. | **executed** | pass |
+
+### Protected-path impact — this amendment
+
+- **Were any `protected_paths` files changed by this amendment? — NO.**
+  `store/index.ts` was not touched; the slice already carried `permitted` and
+  `available` from the original ticket. No auth, cookie, proxy, server-request,
+  cart, order or build-config path was touched.
+
+### Amendment sign-off
+
+- Outcome: **amendment applied and statically validated**
+- Ticket state: **unchanged — `closed`** (terminal; no reopen, no transition)
+- Owner decision, 2026-07-27. The wider-than-necessary block on sellers holding
+  `UPDATE_PRODUCT` without `READ_SHOP_INFO` was flagged before the change and
+  accepted — see `spec.md > Amendment A1 > Known consequence`.
+- **No comprehension gate was run** for this amendment: it is not a `/verify`
+  invocation and records no state transition, so CG-1..CG-4 do not apply. If this
+  behaviour is ever to be re-gated properly, it needs its own ticket.

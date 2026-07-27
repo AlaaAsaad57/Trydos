@@ -97,17 +97,19 @@ export default function ProductEditor({
     dashboardShopInfo?.sellerId === sellerId ? dashboardShopInfo : null;
   const currency = shopInfo?.currency.code ?? "";
 
-  // Create-path approval gating. `shopInfo === null` means the loader has not
-  // settled yet (NOT a failure); `available: false` means it settled but the
-  // standing is unknown. Both are create-only — editing an existing product is
-  // never affected by shop info in any way.
-  const shopInfoPending = isCreate && shopInfo === null;
+  // Shop-info gating, applied to BOTH paths. Prices are the substance of this
+  // screen and they are meaningless without the shop's currency, so the editor
+  // never renders on an unresolved shop — it says why instead of quietly
+  // letting the seller edit against an unknown shop.
+  // `shopInfo === null` means the loader has not settled yet (NOT a failure);
+  // `available: false` means it settled but the shop could not be read.
+  const shopInfoPending = shopInfo === null;
   // Missing READ_SHOP_INFO: the loader never issued the request and never will,
   // so this is a permission problem, not a load failure — say so plainly rather
   // than offering a retry that cannot succeed.
-  const shopInfoForbidden = isCreate && shopInfo !== null && !shopInfo.permitted;
+  const shopInfoForbidden = shopInfo !== null && !shopInfo.permitted;
   const shopInfoUnavailable =
-    isCreate && shopInfo !== null && shopInfo.permitted && !shopInfo.available;
+    shopInfo !== null && shopInfo.permitted && !shopInfo.available;
   // Restrict ONLY on a usable record that explicitly says the seller is not
   // approved. Never on the edit path, never on an unknown standing.
   const pricesLocked =
@@ -697,8 +699,8 @@ export default function ProductEditor({
 
   /* ------------------------------- render --------------------------------- */
 
-  // Create waits for the seller's approval standing before rendering any price
-  // input, so the unrestricted form is never shown and then withdrawn.
+  // Both paths wait for shop info before rendering any price input, so a form
+  // is never shown and then withdrawn once the shop resolves.
   if (loading || shopInfoPending)
     return <LoadingState label={t("Loading product…")} />;
   if (denied)
@@ -710,21 +712,33 @@ export default function ProductEditor({
   if (shopInfoForbidden)
     return (
       <AccessDenied
-        message={t(
-          "Adding a product needs permission to view shop info. Ask a shop admin to grant you that permission, then try again.",
-        )}
+        message={
+          isCreate
+            ? t(
+                "Adding a product needs permission to view shop info. Ask a shop admin to grant you that permission, then try again.",
+              )
+            : t(
+                "Opening a product needs permission to view shop info. Ask a shop admin to grant you that permission, then try again.",
+              )
+        }
       />
     );
-  // Standing settled but unusable: fail the same way a failed product load
-  // fails. Retry clears the record so ShopInfoLoader's sellerId guard stops
-  // matching and GET /shop/info is re-issued exactly once — the loader never
-  // retries by itself, by design (that would re-fetch on every render).
+  // Shop settled but unusable: fail the same way a failed product load fails.
+  // Retry clears the record so ShopInfoLoader's sellerId guard stops matching
+  // and GET /shop/info is re-issued exactly once — the loader never retries by
+  // itself, by design (that would re-fetch on every render).
   if (shopInfoUnavailable)
     return (
       <ErrorState
-        message={t(
-          "Couldn't load your shop details. Product creation is unavailable until they load.",
-        )}
+        message={
+          isCreate
+            ? t(
+                "Couldn't load your shop details. Product creation is unavailable until they load.",
+              )
+            : t(
+                "Couldn't load your shop details. Editing this product is unavailable until they load.",
+              )
+        }
         onRetry={() => {
           setDashboardShopInfo(null);
           load();
