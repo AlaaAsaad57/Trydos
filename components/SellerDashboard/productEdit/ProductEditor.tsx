@@ -811,9 +811,9 @@ export default function ProductEditor({
                 >
                   {t("Cancel")}
                 </DashButton>
-                <DashButton
+                {/* <DashButton
                   variant="secondary"
-                 
+
                   icon="download"
                   onClick={handleSaveDraft}
                 >
@@ -821,12 +821,12 @@ export default function ProductEditor({
                 </DashButton>
                 <DashButton
                   variant="secondary"
-                 
+
                   icon="upload"
                   onClick={handleLoadDraft}
                 >
                   {t("Load Draft")}
-                </DashButton>
+                </DashButton> */}
                 <DashButton icon="check" onClick={startSave}>
                   {t("Create Product")}
                 </DashButton>
