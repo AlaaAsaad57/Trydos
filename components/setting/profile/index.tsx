@@ -130,8 +130,8 @@ function Profile({ isRtl, language, local, SafeUserProfile }) {
         >
           {isInvalidImage(user?.image) ? (
             <img
-              className="w-full h-full object-cover p-2"
-              src="/icons/userIcon.svg"
+              className="w-full h-full object-contain p-2"
+              src="/icons/ProfilePlaceHolder.svg"
               alt="user profile placeholder"
             />
           ) : (
