@@ -5,7 +5,7 @@
 | **Feature ID** | CO-22 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/setting/orders/OrderItemOptions.tsx`, `components/setting/orders/OrderOptionsMenu.tsx`, `services/order.ts` |
 
 ---
@@ -42,7 +42,7 @@ Any shopper who wants to declutter their order history.
 |------|-------|
 | Hide item | `PATCH /customer/order/detail/{detail_id}/visibility` — `{ is_hidden: true }` (`HideOrderDetail`) |
 | Hide pack | `PATCH /customer/order/{order_id}/visibility` — `{ is_hidden: true }` (`HideOrder`) |
-| Backend | **Legacy backend** |
+| Backend | **Core backend** |
 
 ## Technical reference
 

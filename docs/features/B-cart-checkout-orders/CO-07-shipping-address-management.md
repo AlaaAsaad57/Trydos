@@ -5,7 +5,7 @@
 | **Feature ID** | CO-07 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-05 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/ShippingAddressContainer.tsx`, `components/Cart/AddressListContainer.tsx`, `components/Cart/AddAddressForm.tsx`, `services/order.ts`, `store/Cart/reducer.ts` |
 
 ---
@@ -31,6 +31,10 @@ Any shopper placing an order. Guests can add an address too (they're also prompt
 
 - **Choosing / setting default.** The address list shows every saved address; tapping one sets it as
   default (server-side), and the checkout uses the default (`is_default === 1`) address.
+- **The checkout prompt adapts.** When no address is selected yet, the shipping step reads *"Please
+  Enter Shipping Address To Receive Your Bag"*; once a default address exists it changes to
+  *"Shipment Will Be Sent To The Address Below"*, so a shopper isn't asked for something they've
+  already given.
 - **Adding.** The form collects an address title (e.g. "Home"), a detailed address + note, the
   region (CO-08), a map pin (CO-08), and contact details (name, phone, optional alternative phone).
   Phone is sanitised; required fields (detail, title, region, contact name, phone ≥ 5 chars) shake
@@ -51,7 +55,7 @@ Any shopper placing an order. Guests can add an address too (they're also prompt
 | Delete | `POST /customer/address/delete?address_id=…` — `order.DeleteAddressList` |
 | Set default | `POST /customer/address/set-default` — `{ address_id }` — `order.SetDefault` |
 | Used at checkout | `POST /customer/order/checkout…?address_id={defaultId}` — `order.PlaceOrder` |
-| Backend | **Legacy backend** (`NEXT_PUBLIC_BACKEND_URL`) — `/customer/address/*` is not on the Go allow-list; token injected via `/api/proxy` |
+| Backend | **Core backend** — `/customer/address/*` is not on the gateway allow-list, so every shopper is served by the core backend; token injected via `/api/proxy` |
 
 ## Technical reference
 

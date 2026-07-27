@@ -5,7 +5,7 @@
 | **Feature ID** | CO-01 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/AddToCart/AddToCartComponent.tsx`, `components/Cart/AddToCart/Button.tsx`, `services/cart.ts`, `store/Cart/reducer.ts` |
 
 ---
@@ -53,7 +53,7 @@ Any shopper, including guests — no login step is required to add an item to th
 | Add to cart | `POST /cart/add` — `cartService.AddToCart` |
 | Request body | `{ product_id, id, image (filename only), quantity, product_variation_id, is_luck }` |
 | Success shape | `data.status === 1` + `data.id_cart` (used as the local cart line id) |
-| Backend | **Go backend** (`NEXT_PUBLIC_GO_BACKEND_URL`) — `/cart/add` is on the Go allow-list, market token injected server-side |
+| Backend | `/cart/add` is on the **gateway** allow-list, so guests are served by the gateway; **verified shoppers are served entirely by the core backend**. Auth token injected server-side |
 
 ## Technical reference
 

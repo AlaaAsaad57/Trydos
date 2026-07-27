@@ -5,7 +5,7 @@
 | **Feature ID** | CO-11 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/PlaceOrderButtons.tsx`, `components/Cart/OrdersPage.tsx`, `components/Cart/PlaceOrderWidget.tsx`, `services/order.ts` |
 
 ---
@@ -50,7 +50,7 @@ Any shopper completing a purchase.
 | Place order | `POST /customer/order/checkout/{payment_method}?order_note=…&address_id=…&pay_by_wallet=…` — `order.PlaceOrder` |
 | Policies consent | `POST /customer/approve-policies` — `setAgree` |
 | Re-validate cart | `GET /cart/cart_shipping` — `getCart` |
-| Backend | Checkout & policies → **legacy backend** (`NEXT_PUBLIC_BACKEND_URL`); cart read → Go backend |
+| Backend | Checkout & policies → **core backend** (not on the gateway allow-list). The cart read follows the market routing rule: gateway for guests, core backend for verified shoppers |
 
 ## Technical reference
 

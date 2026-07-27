@@ -5,7 +5,7 @@
 | **Feature ID** | CO-12 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/ModalIframe.tsx`, `components/Cart/CartProvider.tsx`, `services/order.ts`, `store/Cart/reducer.ts` |
 
 ---
@@ -43,7 +43,7 @@ Shoppers who chose **card** or **crypto** at checkout (CO-10).
 | Item | Value |
 |------|-------|
 | Gateway URL | From the checkout response `data[0].url` (CO-11) — external provider's hosted page |
-| Confirm order created | `GET /customer/order/getOrdersByCartGroupID?cart_group_id=…` — **legacy backend** |
+| Confirm order created | `GET /customer/order/getOrdersByCartGroupID?cart_group_id=…` — **core backend** |
 | Store | `store/Cart/reducer.ts` — `openPayIframe`, `payIframeURL`, `setCryptoCardPayment` |
 
 ## Technical reference

@@ -5,7 +5,7 @@
 | **Feature ID** | CO-14 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/OrderSuccess.tsx`, `components/Cart/PlaceOrderWidget.tsx`, `components/Cart/PlaceOrderButtons.tsx`, `store/Cart/reducer.ts` |
 
 ---
@@ -52,7 +52,7 @@ Any shopper who has just completed checkout.
 | Order data | From the checkout response held in `orderData.data` (standard) or after wallet conversion — **no id-based re-fetch** |
 | Wallet path | Polls `GET /customer/order/getOrdersByCartGroupID` until converted, then sets success |
 | Store | `store/Cart/reducer.ts` — `orderData` (`data`, `payment`, `coupon`, `success`), `currency`, `total_shipping_cost`, `addressLists`, `cart` |
-| Backend | Order lookup (wallet path) → legacy backend |
+| Backend | Order lookup (wallet path) → core backend |
 
 ## Technical reference
 

@@ -35,7 +35,7 @@ reply needs `EDIT_REPLY`; deleting a reply needs `DELETE_REPLY`.
   de-duplicated per order-detail so double-writes don't double-count.
 - **Security (verified):** the tab's permission flags are **UX-only**. Every read/reply/edit/delete
   runs through a **server action** that re-verifies the seller's identity and membership against the
-  Go backend (`/shop/auth/permissions`) from the HttpOnly token, injects an owner filter so a forged
+  dashboard backend (`/shop/auth/permissions`) from the HttpOnly token, injects an owner filter so a forged
   shop ID matches nothing, checks the specific permission, and rate-limits writes. Permissions are
   cached briefly in Redis.
 

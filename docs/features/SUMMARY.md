@@ -1,7 +1,7 @@
 # Trydos — Feature Summary at a Glance
 
-**Source:** distilled from [`docs/features/README.md`](README.md) (full 200-feature inventory).
-**Last updated:** 2026-07-12 · reconciled against `README.md`; reflects `develop` plus the SL-02 post-leave wiring landed on branch `ticket/migrate-customer-api-to-go`.
+**Source:** distilled from [`docs/features/README.md`](README.md) (full 201-feature inventory).
+**Last updated:** 2026-07-27 · reconciled against `README.md`; reflects `develop`.
 
 Three buckets only: **what's done**, **what's left to do**, **what's a placeholder to fill**.
 
@@ -19,18 +19,18 @@ Anything 🟡 Partial or ⚪ Placeholder counts as **not done**.
 | E. Chat & Calls | 25 | 25 | 0 | 0 | 0 | **100%** ¹ |
 | F. Stories | 7 | 6 | 1 | 0 | 0 | **86%** |
 | G. Notifications | 10 | 9 | 0 | 0 | 1 | **100%** |
-| H. Seller Dashboard | 14 | 11 | 3 | 0 | 0 | **79%** |
+| H. Seller Dashboard | 15 | 12 | 3 | 0 | 0 | **80%** |
 | I. Platform & Foundations | 46 | 45 | 0 | 1 | 0 | **98%** |
-| **Total** | **200** | **176** | **13** | **9** | **2** | **🟩 89% complete** |
+| **Total** | **201** | **177** | **13** | **9** | **2** | **🟩 89% complete** |
 
 ¹ All 25 chat feature IDs are Live, so E counts as 100% (matching `README.md`). A cluster of inert
 chat sub-controls (Edit message, Category/Reminder, Archive — see the placeholder list below) still
 needs to be finished or removed, but these are sub-controls of shipped features, not standalone
 feature IDs, so they are tracked as line-items below without docking a chat feature.
 
-**Overall: ~89% of the app is fully done** (178 of 200 features). The remaining ~11% is 13 partials
+**Overall: ~89% of the app is fully done** (179 of 201 features). The remaining ~11% is 13 partials
 + 9 placeholders, concentrated in **Payments/Wallet (C, 17%)** — an external package not yet
-installed — with the next-biggest gaps in the **seller dashboard (H, 79%)** and **accounts (D, 80%,
+installed — with the next-biggest gaps in the **seller dashboard (H, 80%)** and **accounts (D, 80%,
 mostly the legal pages)**.
 
 ---
@@ -45,7 +45,7 @@ Whole domains shipped and working:
 - **Chat & calls (E)** — 1-to-1 voice/video (Agora), call history, delivery-worker calls, time limits; full messaging (rich types, voice notes, camera, reply, delete, typing, presence, receipts, pin/mute/delete, search, contacts sync, shared media, order chat).
 - **Stories (F)** — view, post customer story, seller/admin stories, shoppable, delete, report.
 - **Notifications (G)** — FCM push, foreground handling, toasts, notification center + bell, preferences, topic subscribe, chat/order/marketing push.
-- **Seller dashboard (H)** — shop picker, product management, activate/allow-purchase, shop info/branding, image gallery, seller stories, comments/reviews mgmt, bulk Excel upload, team/roles.
+- **Seller dashboard (H)** — shop picker, product management (browse **and add**), activate/allow-purchase, **locations** (warehouses / pickup points), shop info/branding, image gallery, seller stories, comments/reviews mgmt, bulk Excel upload, team/roles.
 - **Platform (I)** — 4 languages + RTL, multi-country + currency, on-demand translations, full SEO (sitemaps, robots, canonical/hreflang, structured data), bot detection, GA4 + PostHog + Sentry, PWA + web push, sharing/deep links, security headers, image optimization.
 
 ---
@@ -64,8 +64,8 @@ Whole domains shipped and working:
 | PW-04 | Pay order with wallet | Swap the **dummy test widget** for the real external RDB widget; allow failed payment to retry in place. |
 | AC-06 | Privacy / terms consent | Wire the dead "Terms" link + add a Privacy link to real pages; ideally persist consent server-side. |
 | AC-09 | QR-code login | Replace the local **mock** with real backend endpoints and mint a real session on approval. |
-| SL-04 | Product editing | Functional today; "partial" only because it's slated for the planned AI-driven editor. Ship as-is or deliver AI editor. |
-| SL-06 | Boutiques management | Build create/edit/delete/status actions (write permissions exist, tab is read-only) — or rename to a viewer. |
+| SL-04 | Product editing (add & edit) | Functional today; "partial" only because it's slated for the planned AI-driven editor. Ship as-is or deliver AI editor. |
+| SL-06 | Boutiques management | Decide whether sellers may **delete** a boutique and switch the hardcoded `canDelete = false` on; create / edit / activate all work. |
 | SL-07 | Orders & fulfillment | Finish whole-order status change (commented out); build or hide payment/refund/shipping/tracking actions. |
 
 ---

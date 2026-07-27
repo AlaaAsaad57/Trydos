@@ -5,7 +5,7 @@
 | **Feature ID** | SD-16 |
 | **Domain** | A · Shopping & Product Discovery |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Listing/ListingSortControl.tsx`, `services/elastic/sortKeys.ts`, `services/elastic/helpers.ts`, `components/Server/SortableGrid.tsx` |
 
 ---
@@ -60,7 +60,7 @@ Shoppers who want results in a particular order (cheapest first, newest first, e
 |------|-------|
 | Sort widget | `components/Listing/ListingSortControl.tsx` (opens a `BottomSheet`) |
 | The 7 keys | `best_selling, newest, oldest, price_asc, price_desc, name_asc, name_desc` (+ implicit `relevance`) |
-| Engine mapping | best_selling→`orders_count`; newest/oldest→`created_at`; price→root `offered_price`; name→`custom_products.name.keyword`; default→`_score` |
+| Engine mapping | best_selling→`orders_count`; newest/oldest→`created_at`; price→root `offered_price`; name→lower-cased `custom_products.name.keyword` (script sort, filtered to the active language); default→`_score` |
 | Stable ordering | every sort appends a tie-breaker on `id` (needed for cursor pagination) |
 | Accent colour | `PRIMARY = "#FF6464"` |
 | Confirm / Reset | `data-cy="sort_confirm"` / `data-cy="sort_clear"` |
@@ -82,8 +82,11 @@ Shoppers who want results in a particular order (cheapest first, newest first, e
   either a slow per-request price computation or a new backend-indexed price field; both were
   weighed and **deliberately deferred**. See the sort design spec and `ADR-010` for the full
   rationale.
-- **Name sort is raw byte order**, not true language-aware alphabetical ordering — noted as
-  deferred in the code.
+- **Name sort is now case-insensitive.** It used to be raw byte order, which sorted every
+  capitalised name ahead of every lower-case one and split a mixed-case catalogue into two blocks;
+  the name is now lower-cased at query time so A–Z reads as a shopper expects. True language-aware
+  (ICU) collation is still deferred, and the per-document script cost means the index-side approach
+  should be revisited if the catalogue approaches ~100k products.
 
 ## Related features
 

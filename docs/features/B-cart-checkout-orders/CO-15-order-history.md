@@ -5,7 +5,7 @@
 | **Feature ID** | CO-15 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `app/(client)/[lang]/settings/orders/page.tsx`, `components/setting/orders/OrdersListWrapper.tsx`, `components/Orders/OrderItem.tsx`, `services/orders.ts` |
 
 ---
@@ -48,7 +48,7 @@ Any signed-in shopper reviewing their orders.
 | Order list | `GET /customer/order/list?offset={page}&limit={pageSize}[&order_group_status={status}]` (`services/orders.ts` → `fetchOrders`) |
 | Status tabs | Server action `getOrderStatues` → `GET /web/home/startingSettings` (`order_group_statuses`) |
 | Order count | `GET /customer/order/list` with `pageSize:1` (settings landing prefetch) → `store.totalOrders` |
-| Backend | Order list → **legacy backend**; status list (`/web/home/startingSettings`) → **Go backend** (on the allow-list) |
+| Backend | Order list → **core backend** (not on the gateway allow-list). The status list (`/web/home/startingSettings`) is allow-listed, so guests read it from the gateway and verified shoppers from the core backend |
 
 ## Technical reference
 

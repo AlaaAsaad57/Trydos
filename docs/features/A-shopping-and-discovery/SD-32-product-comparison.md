@@ -5,7 +5,7 @@
 | **Feature ID** | SD-32 |
 | **Domain** | A · Shopping & Product Discovery |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `utils/functions.tsx`, `components/global/compare.tsx`, `app/(client)/[lang]/compare/page.tsx`, `components/products/MoreOptionsSection.tsx` |
 
 ---
@@ -53,7 +53,7 @@ account is involved.
 | Item | Value |
 |------|-------|
 | Compare list storage | Browser cookies `f_p` / `s_p` (product slugs) — **client-only, no backend persistence** |
-| Product detail (display) | `GET /web/product/globalDetails/{slug}` + `GET /web/product/qtyPriceDetails/{slug}` (parallel, `credentials: "omit"`) |
+| Product detail (display) | `GET /web/product/globalDetails/{slug}` + `GET /web/product/qtyPriceDetails/{slug}` — fetched in parallel through the app's own request layer (`server: "market"`), **not** by calling a backend host from the browser. `globalDetails` is cached; `qtyPriceDetails` never is, because it carries live price and stock |
 | On-page product search | `/api/products/searchInCatalog` |
 | Store usage | Zustand only for `currency` + navigation flag — **not** for compare membership |
 

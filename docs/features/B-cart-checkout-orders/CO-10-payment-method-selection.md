@@ -5,7 +5,7 @@
 | **Feature ID** | CO-10 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/PaymentMethod.tsx`, `components/Cart/PlaceOrderWidget.tsx`, `store/Cart/reducer.ts`, `utils/functions.tsx` |
 
 ---
@@ -34,6 +34,8 @@ Any shopper at checkout.
 - **Effect on the total.** Cash on Delivery uses the **cash total** (`total_cash`) and shows the COD
   fee; wallet/card/crypto use the standard `total`. The place-order button's displayed amount
   switches accordingly.
+- **Presentation.** Cash on Delivery has its own icon (it used to reuse the wallet icon), and in
+  Arabic / Kurdish the icon and its label swap sides so the row reads correctly right-to-left.
 - **Wallet auto-selection & gating.** If the wallet balance (converted to the shopper's currency)
   **fully covers the total**, wallet is auto-selected and all other methods are disabled. If the
   wallet is insufficient, the wallet option is disabled and removed from the selection (see CO-13 —
@@ -44,7 +46,7 @@ Any shopper at checkout.
 | Item | Value |
 |------|-------|
 | Available methods | `available_payment_method[]` inside the cart payload — `GET /cart/cart_shipping` / `GET /cart/cart_overview` (`getCart` / `GetCartOreview`) |
-| Backend | Cart reads → **Go backend** (`cart_shipping`) / **legacy backend** (`cart_overview`) |
+| Backend | Cart reads follow the market routing rule: both cart paths are on the **gateway** allow-list for guests, while **verified shoppers are served entirely by the core backend** |
 | Method submitted | On place-order, id → string map (`0→cash_on_delivery`, `2→card`, else `crypto`; `1`=wallet handled separately) — `services/order.ts` |
 
 ## Technical reference

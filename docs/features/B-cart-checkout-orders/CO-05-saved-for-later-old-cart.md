@@ -5,7 +5,7 @@
 | **Feature ID** | CO-05 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-05 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/OldCartContainer.tsx`, `components/Cart/index.tsx`, `services/cart.ts`, `services/home.ts`, `store/Cart/reducer.ts` |
 
 ---
@@ -52,7 +52,7 @@ Any shopper who wants to park an item without losing it — e.g. deciding on it 
 | Load list | `GET /old-cart/get_old_cart` — `getOldCart()` (sorted newest first, by `created_at`) |
 | Add Again (re-add) | `POST /cart/add` (`cartService.AddToCart`), then `getCart()` + `getOldCart()` refresh |
 | Hide / Hide All | `POST /old-cart/hide` — `{ id }` (or empty to clear all) — `home.hideOldCart` |
-| Backend | `/old-cart/get_old_cart` & `/old-cart/hide` → **Go backend**; `/cart/convert_to_old` → **legacy backend** (not on the Go allow-list) |
+| Backend | `/old-cart/get_old_cart`, `/old-cart/hide` and `/cart/convert_to_old` are all on the **gateway** allow-list for guests; **verified shoppers are served entirely by the core backend** |
 
 ## Technical reference
 

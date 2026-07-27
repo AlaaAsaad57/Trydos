@@ -5,7 +5,7 @@
 | **Feature ID** | CO-17 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟡 Partial -- the cancel reason now not sent to the backend (UI only) |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/setting/orders/OrderOptionsMenu.tsx`, `components/setting/orders/CancelOrderWrapper.tsx`, `components/setting/orders/confirmations/OrderCancelConfirmationWindow.tsx`, `services/order.ts` |
 
 ---
@@ -42,7 +42,7 @@ Any shopper with an order the backend still marks as cancellable.
 |------|-------|
 | Cancel order | `POST /customer/order/cancel` — body `{ order_id }` (`Order.CancelOrder`) |
 | Eligibility flag | `order.can_cancele_order` (from the order payload) |
-| Backend | **Legacy backend** (not on the Go allow-list) |
+| Backend | **Core backend** (not on the gateway allow-list) |
 
 ## Technical reference
 

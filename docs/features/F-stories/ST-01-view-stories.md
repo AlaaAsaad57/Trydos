@@ -5,7 +5,7 @@
 | **Feature ID** | ST-01 |
 | **Domain** | F · Stories |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Home/Stories/StoryViewer.tsx`, `components/Home/Stories/StoryHolder.tsx`, `components/Home/Stories/NewStories.tsx`, `services/story.ts` |
 
 ---
@@ -59,7 +59,7 @@ Any shopper or guest — viewing is open to everyone (though a guest's view is n
 
 | Item | Value |
 |------|-------|
-| Player | `components/Home/Stories/StoryViewer.tsx` |
+| Player | `components/Home/Stories/StoryViewer.tsx` — **lazy-loaded**: the player is only downloaded when a shopper opens a story, and a shape-matched skeleton (`components/skeleton/StoryViewerSkeleton.tsx`) stands in while it arrives |
 | Per-user holder | `components/Home/Stories/StoryHolder.tsx` |
 | Carousel / dismiss | `components/Home/Stories/NewStories.tsx` (`StoriesContainer`, `Cube`, `react-swipeable`) |
 | Bar (server) | `components/Server/StoriesBarServer.tsx` → `StoriesWrapper` → `StoryElement` |

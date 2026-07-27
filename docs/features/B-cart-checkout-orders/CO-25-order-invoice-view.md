@@ -5,7 +5,7 @@
 | **Feature ID** | CO-25 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live|
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/setting/orders/OrderInvoice.tsx`, `components/settings/cards/OrderInvoiceCard.tsx`, `components/setting/orders/OrderDetailsWrapper.tsx` |
 
 ---
@@ -49,7 +49,7 @@ Any signed-in shopper reviewing what an order cost.
 | Detail invoice figures | Same order payload as CO-16 — `GET /customer/order/getOrdersByOrderGroupID?order_group_id=…` |
 | List-card figures | Order-list payload — `GET /customer/order/list` (CO-15) |
 | Currency | From the store (`currency.symbol`, `currency.exchange_rate`) |
-| Backend | **Legacy backend** |
+| Backend | **Core backend** |
 
 ## Technical reference
 

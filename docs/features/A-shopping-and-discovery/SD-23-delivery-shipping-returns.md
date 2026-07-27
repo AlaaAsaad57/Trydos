@@ -5,8 +5,8 @@
 | **Feature ID** | SD-23 |
 | **Domain** | A · Shopping & Product Discovery |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
-| **Source of truth** | `components/Server/product/ProductExpectedDeleiveryWrapper.tsx`, `components/products/ExpectedDeleiveryModal.tsx`, `components/products/FreeShippingOption.tsx`, `components/products/FreeReturnBadge.tsx` |
+| **Last verified** | 2026-07-27 (against `develop`) |
+| **Source of truth** | `components/Server/product/ProductExpectedDeleiveryWrapper.tsx`, `components/products/ExpectedDeleiveryModal.tsx`, `components/products/FreeShippingOption.tsx`, `components/products/FreeReturnBadge.tsx`, `utils/startingSettings.ts` |
 
 ---
 
@@ -28,6 +28,11 @@ Every shopper checking when an item will arrive and whether shipping/returns are
 
 - **Estimated delivery date** is calculated as *today + (platform shipping days + this product's
   shipping days)*. It shows the weekday and date, plus a total "work days" count.
+- **The same estimate now applies to signed-in shoppers.** The two backends return the platform
+  settings under slightly different key names; the app only ever read the guest spelling, so for
+  **verified shoppers the platform half of the estimate silently counted as 0 days** — the date shown
+  was too early, on the product page, in the cart and in the saved-for-later list alike. Both
+  spellings are now accepted, so every shopper sees the same, correct estimate.
 - **Delivery detail sheet.** Tapping the banner opens a bottom sheet that recomputes the same
   estimate and, on open, lazily loads a **historical delivery distribution** for that product
   (how many past orders arrived in 1…10 days, as percentages). It also lists platform promises:
@@ -42,7 +47,7 @@ Every shopper checking when an item will arrive and whether shipping/returns are
 | Item | Value |
 |------|-------|
 | Delivery estimate | client-side date math: `today + (shipping_duration_days + product.shipping_days)` days |
-| Platform shipping days | `GetStarttingSetting` → Go backend `/web/home/startingSettings` (`shipping_duration_days`) |
+| Platform shipping days | `GetStarttingSetting` → `/web/home/startingSettings` (`shipping_duration_days`), read through `resolveStartingSetting` which accepts both the core (`starting-setting`) and gateway (`starting_setting`) envelope keys |
 | Product shipping days / cost / return window | `GetProductPriceQtyDetails` (`shipping_days`, `shipping_cost`, `allow_return_in_days`) |
 | Historical delivery times | `GetProductDeliveryTimes({ productId })` → market backend `/web/product/delivery_times/<id>` (sheet only) |
 
@@ -62,9 +67,10 @@ Every shopper checking when an item will arrive and whether shipping/returns are
 
 ## Known gaps / notes
 
-No dedicated gaps found.
+- The dual-key workaround for the platform settings envelope is **temporary**: the core spelling is
+  the accepted contract, and the fallback can be deleted once the gateway aligns to it.
 
 ## Related features
 
-SD-19 (Product page) · CO-08 (Region affects delivery) · CO-26…CO-28 (Returns flow the badge
-promises).
+SD-19 (Product page) · CO-05 (Saved-for-later — same estimate) · CO-08 (Region affects delivery) ·
+CO-26…CO-28 (Returns flow the badge promises).

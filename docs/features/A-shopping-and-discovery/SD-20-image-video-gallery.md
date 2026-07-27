@@ -5,8 +5,8 @@
 | **Feature ID** | SD-20 |
 | **Domain** | A · Shopping & Product Discovery |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
-| **Source of truth** | `components/Server/product/ProductPhotoSliderWrapper.tsx`, `components/products/ProductDetailsSlider.tsx`, `components/products/ProductVideo.tsx` |
+| **Last verified** | 2026-07-27 (against `develop`) |
+| **Source of truth** | `components/Server/product/ProductPhotoSliderWrapper.tsx`, `components/Server/product/colorImageGroups.ts`, `components/products/ActiveColorSlider.tsx`, `components/products/ActiveColorDetailsSlider.tsx`, `components/products/ProductDetailsSlider.tsx`, `components/products/ProductVideo.tsx` |
 
 ---
 
@@ -27,8 +27,10 @@ Every shopper viewing a product.
 
 - **Swipeable image strip.** A horizontal carousel (Embla) of the product's photos, direction-
   aware for RTL. The first image loads eagerly for speed; the rest lazily.
-- **Colour-aware.** The images shown match the selected colour — the gallery picks that colour's
-  image set (falling back to the first colour, then the product's own images).
+- **Colour-aware, and instant.** The images shown match the selected colour. **Every** colour's slides
+  are rendered by the server up front; picking a colour (SD-21) swaps to that set on the spot —
+  no page reload and no waiting — with the carousel jumping back to the first slide. If the colour in
+  the URL matches nothing, the first colour's set is shown.
 - **Tap to zoom.** Tapping an image opens a fullscreen viewer (a separate carousel) at full
   quality, closable with an X.
 - **Overlays on the first image.** The opening image can carry a **flash-deal frame + countdown**,
@@ -52,8 +54,9 @@ Every shopper viewing a product.
 
 | Item | Value |
 |------|-------|
-| Main slider | `components/Server/product/ProductPhotoSliderWrapper.tsx` → `components/products/ProductImageSlider.tsx` |
-| Fullscreen zoom | `components/Server/product/ProductExtendedSliderWrapper.tsx` → `components/products/ProductDetailsSlider.tsx` |
+| Main slider | `ProductPhotoSliderWrapper.tsx` → `ActiveColorSlider.tsx` → `components/products/ProductImageSlider.tsx` |
+| Fullscreen zoom | `ProductExtendedSliderWrapper.tsx` → `ActiveColorDetailsSlider.tsx` → `components/products/ProductDetailsSlider.tsx` |
+| Per-colour slide sets | `components/Server/product/colorImageGroups.ts` (built server-side, one group per colour) |
 | Video | `components/Server/product/ProductVideosWrapper.tsx` → `components/products/ProductVideo.tsx` |
 | Carousel library | `embla-carousel-react` (RTL-aware) |
 | First-image overlays | `VirtualTryOn` (SD-24), `FlashDealBanner`, `ProductRedeemCounter` |

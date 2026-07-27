@@ -5,7 +5,7 @@
 | **Feature ID** | CO-03 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/CartProvider.tsx`, `components/Cart/index.tsx`, `components/Cart/CartItem.tsx`, `components/Cart/OrderButton.tsx`, `store/Cart/reducer.ts` |
 
 ---
@@ -34,7 +34,8 @@ Any shopper — guest or logged-in — reviewing what they've added before buyin
   background scrolling.
 - **Loads on open.** When the bag opens it fetches the current cart and rebuilds the totals.
 - **Each line item shows:** product image, brand icon, name (truncated to ~50 chars), the chosen
-  **colour** and **size**, a pieces count, the shipping-days estimate, an out-of-stock badge when
+  **colour** and **size**, a pieces count, the shipping-days estimate (which now correctly includes
+  the platform's own shipping duration for signed-in shoppers too — see SD-23), an out-of-stock badge when
   relevant, and a "hurry up" urgency banner.
 - **Totals sheet** (`OrderButton`): an expandable summary showing item count, normal price, total
   discount %, gift, shipping, and the final total (struck-through original vs. offer price). The
@@ -50,7 +51,7 @@ Any shopper — guest or logged-in — reviewing what they've added before buyin
 | Main cart + shipping | `GET /cart/cart_shipping` — `getCart()` (`utils/functions.tsx`) → `initCart()` |
 | Totals preview | `GET /cart/cart_overview` — `GetCartOreview()` |
 | Response shape | `CartApiInterface` (totals + `cart: CartItemInterface[]`) — `utils/types/cart.tsx` |
-| Backend | `/cart/cart_shipping` → **Go backend**; `/cart/cart_overview` → **legacy backend** (not on the Go allow-list) |
+| Backend | Both `/cart/cart_shipping` and `/cart/cart_overview` are on the **gateway** allow-list for guests; **verified shoppers are served entirely by the core backend** |
 
 ## Technical reference
 

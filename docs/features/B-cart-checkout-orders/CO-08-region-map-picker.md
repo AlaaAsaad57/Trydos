@@ -5,7 +5,7 @@
 | **Feature ID** | CO-08 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟡 Partial — Need an API key for google map |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/SelectRegion.tsx`, `components/Cart/Map.tsx`, `components/Cart/MapElement.tsx`, `services/order.ts`, `serverRequests/product.tsx` |
 
 ---
@@ -49,7 +49,7 @@ Any shopper entering or refining a delivery address.
 | Province starter list | `GET /api/addresses/get-provinces-by-iso` |
 | Country boundary polygon | `GET /api/addresses/CountryBoundaryByIso/{ISO}` |
 | Country coordinates | `GET /countries` — `GetCountries` (Redis + `sessionStorage` cached) |
-| Backend | Region/boundary calls → **Elasticsearch backend** (`NEXT_PUBLIC_ELASTIC_BACKEND_URL`); countries → legacy backend. (These `/api/addresses/*` are backend paths, not Next.js route handlers.) |
+| Backend | Region/boundary calls → **Elasticsearch backend** (`NEXT_PUBLIC_ELASTIC_BACKEND_URL`); countries → core backend. (These `/api/addresses/*` are backend paths, not Next.js route handlers.) |
 
 ## Technical reference
 
