@@ -199,6 +199,19 @@ export async function POST(request: NextRequest) {
       status: backendResponse.status,
     });
 
+    // 6b. Which of the two market backends answered, so the routing decision can
+    // be read straight off the response instead of from a server log. Role names
+    // only, never the backing technology (CLAUDE.md "Stack-agnostic naming").
+    // Storefront traffic only — the seller dashboard routes by endpoint alone,
+    // with no user-type branch to observe.
+    const marketBackendHeader: Record<string, string> = {};
+    if (server === "market") {
+      if (baseUrlString === process.env.GO_BACKEND_URL)
+        marketBackendHeader["x-market-backend"] = "gateway";
+      else if (baseUrlString === process.env.BACKEND_URL)
+        marketBackendHeader["x-market-backend"] = "core";
+    }
+
     // 7. Forward the response back to the client
     const responseContentType =
       backendResponse.headers.get("content-type") || "";
@@ -209,6 +222,7 @@ export async function POST(request: NextRequest) {
         status: backendResponse.status,
         headers: {
           "Cache-Control": "no-store",
+          ...marketBackendHeader,
         },
       });
     }
@@ -220,6 +234,7 @@ export async function POST(request: NextRequest) {
       headers: {
         "Content-Type": responseContentType,
         "Cache-Control": "no-store",
+        ...marketBackendHeader,
       },
     });
   } catch (error) {
