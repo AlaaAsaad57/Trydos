@@ -16,7 +16,16 @@ function ConfirmMobilePhoneWidget() {
     setAddStory,
     openChat,
     setReAuthResult,
+    expiredSessionPhone,
+    setExpiredSessionPhone,
   } = useAppStore();
+  // Phone preserved when /api/auth/expire nuked the previous session — the
+  // fresh guest profile no longer carries it. Only the session-expired
+  // re-login markers may use it, so every other flow keeps asking for a phone.
+  const savedExpiredPhone =
+    shouldAuthinticated === "expired-login" || shouldAuthinticated === "seller"
+      ? expiredSessionPhone
+      : null;
   // Capture the source the verify widget was opened from once, at mount — the
   // store marker is cleared to `false` the moment verification succeeds.
   const flowSourceRef = React.useRef(
@@ -125,10 +134,12 @@ function ConfirmMobilePhoneWidget() {
               }}
               // @ts-ignore
               hasMobile={
-                userData?.phone !== null &&
-                (userData as any)?.phone !== 0 &&
-                userData?.phone !== "0"
+                (userData?.phone !== null &&
+                  (userData as any)?.phone !== 0 &&
+                  userData?.phone !== "0") ||
+                !!savedExpiredPhone
               }
+              presetPhone={savedExpiredPhone}
               goToOrders={() => {
                 // equal to success flag when goToOrders trigrred then it means the verification success
 
@@ -145,6 +156,9 @@ function ConfirmMobilePhoneWidget() {
                 }
                 if (shouldAuthinticated === "open chat") {
                   ChatConroller(true);
+                }
+                if (savedExpiredPhone) {
+                  setExpiredSessionPhone(null);
                 }
                 setShouldAuthinticated(false);
               }}

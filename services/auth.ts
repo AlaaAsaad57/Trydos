@@ -514,6 +514,11 @@ class AuthService {
         wasVerified = repo?.wasVerified === true;
       }
 
+      // Preserve the outgoing shopper's phone before anything can lose it —
+      // cancelAuth(true) keeps the profile, but a later guest customer-info
+      // sync overwrites userProfile before the user reaches the verify widget.
+      const expiredPhone = useAppStore.getState().userProfile?.phone;
+
       this.cancelAuth(true);
 
       // A verified shopper is never left silently downgraded to an anonymous
@@ -529,6 +534,11 @@ class AuthService {
       // (its own `reAuthResult`), so leave it — same rule the 401 handlers
       // follow: whoever armed first keeps the screen until it resolves.
       if (wasVerified && !armedFlow()) {
+        if (expiredPhone && expiredPhone !== "0") {
+          useAppStore
+            .getState()
+            .setExpiredSessionPhone(String(expiredPhone));
+        }
         setReAuthResult("pending");
         setShouldAuthinticated("expired");
       } else if (!wasVerified) {

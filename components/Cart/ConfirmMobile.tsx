@@ -9,7 +9,7 @@ import { useAppStore } from "store";
 
 import { LogError } from "utils/functions";
 
-function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
+function ConfirmMobile({ closeWindow, hasMobile, goToOrders, presetPhone = null }) {
   const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
   const [stepIndicator, setStepIndicator] = useState(3);
   const [inputValue, setInputValue] = useState("");
@@ -135,6 +135,11 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   useEffect(() => {
     if (hasMobile) {
       let phone = userData?.phone;
+      // Expired-session re-login: the fresh guest profile carries no phone —
+      // fall back to the one preserved from the nuked session.
+      if ((!phone || phone === "0") && presetPhone) {
+        phone = presetPhone;
+      }
       setInputValue(phone);
       setStepIndicator(4);
     }

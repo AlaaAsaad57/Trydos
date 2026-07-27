@@ -34,6 +34,11 @@ interface AuthState {
     | "expired"
     | "expired-login";
   reAuthResult: ReAuthResult;
+  // Phone of the shopper whose session /api/auth/expire nuked. Lets the
+  // re-login verify widget skip phone entry (straight to OTP method) even
+  // after the fresh guest profile overwrites userProfile. In-memory only —
+  // survives exactly as long as the tab session.
+  expiredSessionPhone: string | null;
   verficationID: string | null;
   firebaseSettings: FirebaseSettings;
   userProfile: any | null;
@@ -56,6 +61,7 @@ interface AuthState {
   setTempUser: (user: User) => void;
   updateName: (name: string) => void;
   setReAuthResult: (result: ReAuthResult) => void;
+  setExpiredSessionPhone: (phone: string | null) => void;
 }
 
 export const useAuthStore = (set, get) => ({
@@ -68,6 +74,7 @@ export const useAuthStore = (set, get) => ({
   failedLogin: false,
   shouldAuthinticated: null,
   reAuthResult: null,
+  expiredSessionPhone: null,
   attempts: 4,
   wrongNumber: "",
 
@@ -88,6 +95,7 @@ export const useAuthStore = (set, get) => ({
   setIsActiveAddress: (isActive) => set({ isActiveAddress: isActive }),
   setShouldAuthinticated: (shouldAuthinticated) => set({ shouldAuthinticated }),
   setReAuthResult: (reAuthResult) => set({ reAuthResult }),
+  setExpiredSessionPhone: (expiredSessionPhone) => set({ expiredSessionPhone }),
   updateUserIsVerified: (user_obj) =>
     set((state) => ({
       userProfile: { ...(state.userProfile ?? {}), ...user_obj },
