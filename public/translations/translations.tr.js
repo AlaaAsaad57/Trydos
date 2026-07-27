@@ -689,6 +689,8 @@ const translations = {
   "Show Address List": "Adres Listesini Göster",
   "Please Enter Shipping Address To Receive Your Bag":
     "Çantanızı Alabilmeniz İçin Lütfen Teslimat Adresinizi Girin",
+  "Shipment Will Be Sent To The Address Below":
+    "Gönderi Aşağıdaki Adrese Gönderilecektir",
   "Your Shopping Bag": "Alışveriş Çantanız",
   "Shopping Bag": "Alışveriş Çantası",
   "Name Should be atleast 8 characters": "İsim En Az 8 Karakter Olmalıdır",

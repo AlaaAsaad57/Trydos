@@ -616,6 +616,8 @@ const translations = {
   "Product Not available": "المنتج غير متوفر",
   "Please Enter Shipping Address To Receive Your Bag":
     "الرجاء ادخال عنوان التوصيل لاستلام المشتريات",
+  "Shipment Will Be Sent To The Address Below":
+    "سيتم إرسال الشحنة إلى العنوان أدناه",
   "Your Shopping Bag": "سلة التسوق",
   Compare: "مقارنة",
   "Added To Compare! Click To Go To Compare Page":

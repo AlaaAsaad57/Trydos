@@ -186,6 +186,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
 
   // @ts-ignore
   const language = lang.split("-")[1];
+  const hasSelectedAddress = addressLists?.some((s) => s.is_default === 1);
 
   return (
     <div
@@ -316,7 +317,9 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
         }`}
       >
         {translateFunction(
-          "Please Enter Shipping Address To Receive Your Bag",
+          hasSelectedAddress
+            ? "Shipment Will Be Sent To The Address Below"
+            : "Please Enter Shipping Address To Receive Your Bag",
           language,
         )}
       </div>

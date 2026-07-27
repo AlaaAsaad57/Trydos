@@ -607,6 +607,8 @@ const translations = {
   "Product Not available": "بەرهەم بەردەست نییە",
   "Please Enter Shipping Address To Receive Your Bag":
     "تکایە ناونیشانی گەیاندن داخڵ بکە بۆ وەرگرتنی سەگەکانت",
+  "Shipment Will Be Sent To The Address Below":
+    "گەیاندنەکە بۆ ئەو ناونیشانەی خوارەوە دەنێردرێت",
   "Your Shopping Bag": "سەگەی کڕینت",
   Compare: "پێوانین",
   "Added To Compare! Click To Go To Compare Page":
