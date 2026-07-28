@@ -49,7 +49,10 @@ function BoutiqueHeader({ boutique }) {
 }
 const BouqiuePhotoSlider = ({ banners }) => {
   return (
-    <div data-cy="boutique_photo_holder" className="boutique-photo-holder w-full min-w-[100vw]">
+    <div data-cy="boutique_photo_holder" className="boutique-photo-holder w-full" style={{
+      minWidth:'min(100vw, 1365px)',
+      maxWidth:'1365px'
+    }}>
       <div
         data-cy="banners_length-1"
         className={`${
