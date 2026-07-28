@@ -1,5 +1,5 @@
 import ProductPageContent from "components/Product/ProductPageContent";
-import ProductNotFoundRedirect from "components/Product/ProductNotFoundRedirect";
+import NotFoundRedirect from "components/global/NotFoundRedirect";
 import { GetProductMeta } from "serverRequests/product";
 
 export const runtime = "nodejs";
@@ -12,7 +12,7 @@ export default async function InterceptedProductPage({ params, searchParams }) {
   // Awaited before anything renders so a missing product never paints the empty
   // shell (NaN prices, blank slider) inside the modal. The full-page route does
   // the same check and redirects on the server; this slot cannot — see
-  // ProductNotFoundRedirect for why — so it hands the redirect to the client.
+  // NotFoundRedirect for why — so it hands the redirect to the client.
   const metaData = await GetProductMeta({
     country,
     language,
@@ -25,7 +25,7 @@ export default async function InterceptedProductPage({ params, searchParams }) {
   // @ts-ignore
   if (metaData?.productNotFound) {
     return (
-      <ProductNotFoundRedirect
+      <NotFoundRedirect
         href={`/${country}-${language}?message=product_not_found`}
       />
     );
