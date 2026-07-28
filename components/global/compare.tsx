@@ -394,9 +394,9 @@ const ComparePage = ({ showInstantLoading = true }) => {
         <div className="flex gap-2">
           {product.colors?.map((colorObj) => (
             <div
-              key={colorObj.color}
+              key={colorObj.option ?? colorObj.code}
               className="w-6 h-6 rounded-full border regular"
-              style={{ backgroundColor: colorObj.color }}
+              style={{ backgroundColor: colorObj.code }}
               title={colorObj.name}
             />
           ))}
@@ -409,11 +409,8 @@ const ComparePage = ({ showInstantLoading = true }) => {
       render: (product: any) => (
         <div className="flex gap-2">
           {product.sizes?.map((size) => (
-            <span
-              key={size.name}
-              className="px-2 py-1 bg-gray-100 rounded-sm regular"
-            >
-              {size.name}
+            <span key={size} className="px-2 py-1 bg-gray-100 rounded-sm regular">
+              {size}
             </span>
           )) || "-"}
         </div>
