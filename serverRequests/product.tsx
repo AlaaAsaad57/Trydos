@@ -295,6 +295,13 @@ export async function GetProductMeta({
       method: "GET",
       local: `${country}-${language}`,
     });
+    // A 404 is definitive — the product does not exist. Reported separately from
+    // the catch-all below so callers can redirect on "gone" while a transient
+    // failure (timeout, 5xx, Redis) still renders the product page instead of
+    // bouncing the user off a product that is actually fine.
+    if (freshMeta?.status === 404) {
+      return { productNotFound: true };
+    }
     if (freshMeta?.error) {
       throw new Error(freshMeta?.error);
     }

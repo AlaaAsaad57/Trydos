@@ -18,6 +18,16 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
       searchParams: SearchParams,
     });
 
+    // Missing product: the redirect is owned by the page component below, not
+    // here. Metadata is streamed in Next 16 — it resolves after the 200 shell
+    // has already been flushed, so a redirect thrown from this function only
+    // ever lands as a failed boundary in the RSC stream and never navigates the
+    // browser. Emit empty metadata and let the page issue the real 307.
+    // @ts-ignore
+    if (metaData?.productNotFound) {
+      return {};
+    }
+
     // @ts-ignore
     if (metaData?.error || !metaData) {
       // @ts-ignore
@@ -39,12 +49,32 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
       },
       `/${country}-${language}/featured`,
     );
-    redirect(`/${country}-${language}?message=product_not_found`);
+    return {};
   }
 }
 
 export default async function Page({ params, searchParams }) {
   const [Params, SearchParams] = await Promise.all([params, searchParams]);
+  const [country, language] = Params.lang.split("-");
+
+  // Awaited on purpose: the page component is the last point that still blocks
+  // the response, so it is the only place a not-found redirect can produce a
+  // real 307. Same URL as generateMetadata's call, so Next's request
+  // memoization collapses the two into one backend hit.
+  const metaData = await GetProductMeta({
+    country,
+    language,
+    slug: Params.productId,
+    searchParams: SearchParams || {},
+  });
+
+  // Only a definitive 404 redirects — a transient failure returns undefined and
+  // must still render the page.
+  // @ts-ignore
+  if (metaData?.productNotFound) {
+    redirect(`/${country}-${language}?message=product_not_found`);
+  }
+
   return (
     // @ts-ignore
     <ProductPageContent params={Params} searchParams={SearchParams || {}} />
