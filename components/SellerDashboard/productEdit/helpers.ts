@@ -419,16 +419,18 @@ export function seedVariantDefaults(
   let changed = false;
   const next: Record<string, VariantRow> = { ...form.variations };
   for (const c of combos(form)) {
-    const base = next[c.key] || emptyVariantRow();
+    const existing = next[c.key];
+    const base = existing || emptyVariantRow();
     const price = base.price === "" ? form.unit_price : base.price;
     const discount = base.discount === "" ? form.discount_price : base.discount;
     const luck = base.luck === "" ? form.luck_price : base.luck;
-    // On create only, an unfilled SKU defaults to the combo key itself —
-    // "AntiqueWhite-42EU" / "AntiqueWhite" / "42EU" (see variantKey). Never on
-    // edit: an existing variant whose SKU is genuinely empty is the seller's
-    // data, not ours to fill. A filled SKU is never touched in either mode, and
-    // the key is unique per combo so this cannot create a duplicate.
-    const sku = isCreate && base.sku === "" ? c.key : base.sku;
+    // An unfilled SKU defaults to the combo key itself — "AntiqueWhite-42EU" /
+    // "AntiqueWhite" / "42EU" (see variantKey). This applies to every combo on
+    // create, and on edit to combos that are NEW (a color/size just added, so
+    // no row exists yet). A variant loaded from the product whose SKU is
+    // genuinely empty is the seller's data, not ours to fill. A filled SKU is
+    // never touched, and the key is unique per combo so this cannot duplicate.
+    const sku = base.sku === "" && (isCreate || !existing) ? c.key : base.sku;
     if (
       price !== base.price ||
       discount !== base.discount ||
@@ -687,7 +689,10 @@ export function dedupeTranslations(translations: Translation[]): Translation[] {
 
 export function cleanNumberString(v: any): string {
   if (v === null || v === undefined || v === "") return "";
-  const s = String(v).trim().replace(/,/g, ".");
+  // Prices can arrive already formatted ("1,000 SP"): the comma is a thousands
+  // separator, never a decimal point, so it is stripped — not turned into "."
+  // (which read 1,000 back as 1.000).
+  const s = String(v).trim().replace(/,/g, "");
   const m = s.match(/\d+(?:\.\d+)?/);
   if (!m) return "";
   return m[0];

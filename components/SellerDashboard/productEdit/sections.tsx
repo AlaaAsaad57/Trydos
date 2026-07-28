@@ -941,7 +941,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
     : lookups.sizes || [];
 
   // Auto-fill empty variant prices from the product-level defaults so the seller
-  // sees what each variant will cost, plus (create only) a default SKU per
+  // sees what each variant will cost, plus a default SKU for every newly added
   // combo. Keyed on the SET of combo keys (+ edit mode), not on field values: it
   // fires on entering edit mode and whenever a color/size is added, but never
   // re-fills a field the seller cleared.
