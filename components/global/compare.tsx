@@ -633,7 +633,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
           <div className="mt-8 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 shadow-md">
             <div className="min-w-full">
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-gray-800 regular">
+                <table dir={isRtl?`rtl`:'ltr'} className="w-full border-collapse text-gray-800 regular">
                   <tbody>
                     {compareFields.map(({ key, label, render }) => (
                       <tr
