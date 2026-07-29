@@ -15,17 +15,20 @@ tracking are canonical in `.claude/project-config.yaml`.
 - **Definition:** Read-only investigation of repo, configs, and impact.
 - **Entry:** Intake complete.
 - **Exit:** `research.md` lists relevant directories, config files, affected
-  services, validation commands, risks. **No code changed.**
+  services, validation commands, risks, and open questions with `OQ-n` IDs
+  (ADR-015). **No code changed.**
 
 ### 3. spec
 - **Definition:** Define acceptance criteria and test cases.
 - **Entry:** Research complete.
-- **Exit:** Acceptance criteria + test cases exist and are unambiguous.
+- **Exit:** Acceptance criteria + test cases exist and are unambiguous, and every
+  `OQ-n` from research is answered or deferred to `/plan` with its ID (SP-9).
 
 ### 4. plan
 - **Definition:** Decide the approach and concrete steps.
 - **Entry:** Spec complete.
-- **Exit:** `plan.md` has approach, steps, files to change, validation, rollback.
+- **Exit:** `plan.md` has approach, steps, files to change, validation, rollback,
+  integration surface, and an answer for every `OQ-n` the spec deferred (PL-12).
 
 ### 5. review  (review gate)
 - **Definition:** The owner reviews spec + plan (self-review) with a comprehension check before any implementation.
@@ -59,10 +62,14 @@ single value, `standard`.)
   `/verify` gates themselves (self-review is expected). There is no separate
   reviewer and no separation of duties.
 - **Comprehension gate = the control.** In place of a second person, each gate
-  requires the owner to answer 2–3 questions generated **from the artifact under
+  requires the owner to answer questions generated **from the artifact under
   review** (`plan.md`/`spec.md` at `/review`; `implement.md`/`spec.md` at
   `/verify`) before it may record its decision — this is what guards against
-  rubber-stamping (CG-1..CG-4).
+  rubber-stamping (CG-1..CG-6). **At least 3 questions — a floor, not a fixed
+  count** (ADR-014): always **≥1 on the integration / cross-flow axis** (CG-5,
+  sourced from the plan's `Integration surface`), plus **one per `major` advisory
+  panel finding** at `/review` (CG-6). The panel still never blocks — the owner may
+  dismiss a finding, but only after showing they understood it.
 - **Uniform safeguards (every ticket):** all seven stages, **1 self-approval** by
   the owner, `adr_required: false` (ADRs optional), verification `all-ac` (every
   acceptance criterion mapped to a result). No risk classification, no second
@@ -130,7 +137,7 @@ validation: RA-1..RA-3.)
 - **No separation of duties (single-owner model, ADR-011):** the ticket owner
   authors the work **and** runs its `/review` and `/verify` gates themselves —
   self-review is expected, not forbidden. The control against rubber-stamping is
-  the **comprehension gate** (CG-1..CG-4), not a distinct reviewer. There is no
+  the **comprehension gate** (CG-1..CG-6), not a distinct reviewer. There is no
   second approver.
 
 ## Traceability

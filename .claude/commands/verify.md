@@ -81,24 +81,40 @@ Determine the protected-path impact statement (yes/no) (VF-9 / TR-3).
 
 Outcome = **PASSED** iff every AC result passes; otherwise **FAILED**.
 
-## Step 2b — Comprehension check (CG-1..CG-4)
+## Step 2b — Comprehension check (CG-1..CG-5)
 
 The outcome is now known but **nothing is written yet**. Before recording it,
 the owner must show they understand what was built:
-1. Generate **2–3 multiple-choice questions derived from `implement.md`/`spec.md`**
+1. Generate multiple-choice questions **derived from `implement.md`/`spec.md`**
    (what changed, which acceptance criteria it satisfies, how to roll it back, its
    runtime impact) — specific, not generic (CG-2). Each question offers **at least 4
    candidate answers** drawn from the artifact: one correct plus ≥3 plausible
    distractors. **Sort each question's options alphabetically** — the correct
    answer's position must carry no signal (never habitually first).
+   **Write every question, option, and recorded answer in English** — the
+   conversation language never changes the gate language (CLAUDE.md).
+
+   **How many (CG-1):** `comprehension_gates.questions_min` (3) is a **floor, not
+   a fixed count** — ask more when the change warrants it. CG-6 does not apply
+   here (no panel at `/verify` — ADR-012). Mandatory on top of the floor:
+   - **CG-5 — integration question (≥1, counts toward the floor):** on what the
+     *implemented* change actually touches outside itself — which other component
+     or use-case flow shares the files, config, interface, metric, or path that
+     changed; whether the plan's declared **Integration surface** turned out to be
+     complete; and what a rollback would drag with it. Source: `implement.md`
+     (files changed + deviations), `spec.md`, and `plan.md > Integration surface`.
+     A deviation from the declared surface is the strongest question available —
+     prefer it.
 2. Ask them via `AskUserQuestion`; the owner selects an option per question.
 3. Record, under the **verify** section of `_specs/<slug>/comprehension.md`
    (create it from the template if absent; do **not** overwrite the `review`
-   section): each question, its options, the selected answer, and whether it was
-   correct. Set the front-matter (read by the notification hook — ADR-013):
-   `stage: verify`, `result: passed|failed`, `score: <correct>/<total>`, and
+   section): each question, its options, its **source** (`implement.md` /
+   `AC-n` / `plan.md > Integration surface`), the selected answer, and whether it
+   was correct. Set the front-matter (read by the notification hook — ADR-013):
+   `stage: verify`, `result: passed|failed`, `score: <correct>/<total>`,
    `decision:` = the Step 2 outcome (`PASSED`/`FAILED`) when the quiz passed,
-   `none` when it failed.
+   `none` when it failed, and `missed:` = the missed questions + axis on a failed
+   quiz (e.g. `Q3 (integration)`), empty when passed.
 4. **Pass = 100% correct (CG-4).** If **any** answer is wrong, record **no** PASSED
    and leave `ticket.md` unchanged (atomic); report the missed questions and stop —
    the owner re-reads and re-runs `/verify`. Proceed only when every answer is correct.
@@ -144,7 +160,7 @@ executed check, the **command**, **exit code**, a bounded **output summary**, th
 ## Postconditions — validate AFTER
 
 - **VF-1** verify.md written · **VF-2** every AC mapped to a result · **VF-3**
-  evidence checked · **VF-4** depth = all-ac · **CG-1** comprehension recorded · **VF-9 / TR-3** protected-path
+  evidence checked · **VF-4** depth = all-ac · **CG-1** comprehension recorded at ≥ the floor · **CG-5** an integration question was asked · **VF-9 / TR-3** protected-path
   statement present.
 - PASSED: **VF-5 / CL-1 / TS-4 / CMD-2** state = `closed`.
 - FAILED: **VF-6 / TS-4** state = `implementation-in-progress`, `status: blocked`.

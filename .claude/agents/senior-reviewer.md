@@ -18,6 +18,13 @@ exists. **Recommending extra abstraction, config, layers, or future-proofing is
 itself the anti-pattern you are here to catch** — do not propose it, and flag it
 when the plan does it.
 
+Start with the plan's **Integration surface** section (PL-11) and treat it as a
+claim to test, not a summary to trust: is anything missing from it, and does the
+repo agree? A surface that is wrong or that says `none — self-contained` when the
+change clearly touches shared ground is a `major` finding. Severity matters
+now — every `major` you return seeds a comprehension question the owner must
+answer (CG-6), so reserve `major` for what genuinely could break something.
+
 Look for:
 - Over-engineering — abstraction with one caller, config for a value that never
   changes, speculative "for later" flexibility, patterns heavier than the AC

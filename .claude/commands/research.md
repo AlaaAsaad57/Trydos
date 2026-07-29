@@ -46,6 +46,11 @@ relevant config files (read `protected_paths` only to understand it, never
 modify); possibly affected services; available test/validation commands (list,
 do not run); risks/unknowns; open questions.
 
+Give every open question a stable ID — `OQ-1`, `OQ-2`, … (RS-5, ADR-015). These
+IDs are what `/spec` must answer (SP-9) and, when deferred, `/plan` (PL-12), so a
+question raised here cannot be lost. Ask them here even when the answer looks
+obvious — an answer given in chat is not recorded anywhere and does not carry.
+
 Read `_specs/_templates/research.md` and write `_specs/<slug>/research.md`:
 - Front-matter: `ticket: <slug>`, `stage: research`, `mode: <ticket.md mode>`,
   `status: complete`, `owner: ai_agent`, `updated: <today YYYY-MM-DD>`, `links`
@@ -71,7 +76,8 @@ duplicate entry.)
 ## Postconditions — validate AFTER writing
 
 - **RS-1..RS-5** — `research.md` contains relevant directories, config files,
-  affected services + validation commands, risks, and open questions.
+  affected services + validation commands, risks, and open questions **with
+  `OQ-n` IDs**.
 - **RS-6 / TS-4** — `ticket.md` updated once: `state = ready-for-research`,
   `updated_at` bumped, history appended.
 - **CMD-2** — postcondition state = `ready-for-research`.

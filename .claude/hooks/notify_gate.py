@@ -8,12 +8,13 @@ review section was written first), so the second gate reaches it via Edit —
 matching Write alone silently drops every /verify notification.
 
 Message content comes from the comprehension.md front-matter written by the gate
-(`result`, `score`, `decision`) — NOT from `ticket.md`, whose state is still
-pre-transition at hook time (CG-1: the comprehension record precedes the
-decision write). Records without those fields fall back to the legacy
-state-based message. Reuses the EXISTING Alertmanager Telegram bot — configured
-in the shared file `.claude/notifications.json`, with env overrides for
-compatibility. This hook:
+(`result`, `score`, `decision`, `missed`) — NOT from `ticket.md`, whose state is
+still pre-transition at hook time (CG-1: the comprehension record precedes the
+decision write); only the ticket **title** is read from it. Records without those
+fields fall back to the legacy state-based message. Every message ends with the
+next legal command (the NS-1..NS-4 guidance, delivered to the phone too). Reuses
+the EXISTING Alertmanager Telegram bot — configured in the shared file
+`.claude/notifications.json`, with env overrides for compatibility. This hook:
 
   - NEVER edits any `protected_paths` runtime file (it only calls the public
     Telegram API).
@@ -41,8 +42,17 @@ import re
 import subprocess
 import sys
 import urllib.request
-from datetime import datetime
 from pathlib import Path, PurePosixPath
+
+# Next legal command per (stage, decision) — mirrors the §2 state machine
+# (presentation only, NS-5: it never owns or changes state).
+NEXT_COMMAND = {
+    ("review", "APPROVED"): "/implement",
+    ("review", "CHANGES_REQUESTED"): "/plan (revision — address the follow-ups)",
+    ("review", "REJECTED"): "none — ticket closed (terminal)",
+    ("verify", "PASSED"): "/publish-pr",
+    ("verify", "FAILED"): "/implement (resume — ticket blocked)",
+}
 
 
 def should_fire(file_path: str) -> bool:
@@ -80,6 +90,7 @@ def _field(path, key, default=""):
 
 
 def git_actor() -> str:
+    """The person driving the workflow — git user.name, falling back to email."""
     def cfg(k):
         try:
             return subprocess.run(
@@ -87,19 +98,21 @@ def git_actor() -> str:
             ).stdout.strip()
         except (OSError, subprocess.SubprocessError):
             return ""
-    name, email = cfg("user.name"), cfg("user.email")
-    return f"{name} <{email}>".strip() if (name or email) else "unknown"
+    return cfg("user.name") or cfg("user.email") or "unknown"
 
 
 def outcome_line(fm: dict):
-    """(icon, summary) from the comprehension front-matter; None → legacy record."""
+    """(icon, summary, next) from the comprehension front-matter; None → legacy record."""
+    stage = (fm.get("stage") or "gate").strip()
     decision = (fm.get("decision") or "").strip().upper()
     score = (fm.get("score") or "").strip()
     if (fm.get("result") or "").strip().lower() == "failed":
-        return "🚫", f"Quiz FAILED ({score or '?'}) — gate blocked, no decision recorded"
+        return ("🚫", f"quiz FAILED {score or '?'} — no decision recorded",
+                f"re-read the artifact, re-run /{stage}")
     if decision and decision != "NONE":
         icon = {"CHANGES_REQUESTED": "⚠️", "REJECTED": "❌", "FAILED": "❌"}.get(decision, "✅")
-        return icon, f"Decision: {decision}" + (f" · Quiz {score}" if score else "")
+        summary = decision + (f" (quiz {score})" if score else "")
+        return icon, summary, NEXT_COMMAND.get((stage, decision), "")
     return None
 
 
@@ -115,15 +128,16 @@ def build_message(comprehension_path) -> str:
         state = _field(slug_dir / "ticket.md", "state", "unknown")
         status = _field(slug_dir / "ticket.md", "status", "")
         icon = "⚠️" if status == "blocked" or state == "implementation-in-progress" else "✅"
-        outcome = (icon, f"State: {state}" + (" (blocked)" if status == "blocked" else ""))
-    icon, summary = outcome
-    when = datetime.now().strftime("%Y-%m-%d %H:%M")
-    lines = [
-        f"{icon} Gate: /{stage} — {ticket}",
-        summary,
-        f"Owner: {git_actor()}",
-        f"When: {when}",
-    ]
+        outcome = (icon, f"state: {state}" + (" (blocked)" if status == "blocked" else ""), "")
+    icon, summary, nxt = outcome
+    # ponytail: no timestamp line — Telegram stamps every message itself.
+    lines = [f"{icon} /{stage} — {ticket} · {summary}"]
+    for extra in (_field(slug_dir / "ticket.md", "title"),
+                  f"Owner: {git_actor()}",
+                  f"Missed: {fm['missed']}" if (fm.get("missed") or "").strip() else "",
+                  f"Next: {nxt}" if nxt else ""):
+        if extra:
+            lines.append(extra)
     return "\n".join(lines)
 
 def load_notification_config() -> dict:
@@ -231,6 +245,22 @@ def _selftest() -> int:
     fm = read_frontmatter("---\nticket: wf-006\nstage: review\n---\nbody")
     assert fm["ticket"] == "wf-006" and fm["stage"] == "review", fm
 
+    # outcome line from the new front-matter fields (decision + next-step aware)
+    assert outcome_line({"stage": "review", "result": "passed", "score": "3/3",
+                         "decision": "APPROVED"}) == ("✅", "APPROVED (quiz 3/3)", "/implement")
+    assert outcome_line({"stage": "verify", "result": "passed", "score": "4/4",
+                         "decision": "PASSED"}) == ("✅", "PASSED (quiz 4/4)", "/publish-pr")
+    assert outcome_line({"stage": "verify", "result": "passed", "score": "4/4",
+                         "decision": "FAILED"})[:2] == ("❌", "FAILED (quiz 4/4)")
+    assert outcome_line({"stage": "review", "result": "passed",
+                         "decision": "CHANGES_REQUESTED"})[:2] == ("⚠️", "CHANGES_REQUESTED")
+    assert outcome_line({"stage": "review", "result": "failed", "score": "1/3",
+                         "decision": "none"}) == (
+        "🚫", "quiz FAILED 1/3 — no decision recorded",
+        "re-read the artifact, re-run /review")
+    assert outcome_line({}) is None  # legacy record falls back to state-based line
+    assert git_actor()  # the acting person is always named, even unconfigured
+
     # config/env resolution (new)
     r = resolve_settings(
         {"telegram": {"enabled": True, "botToken": "j", "chatId": "-1", "topicId": 18}, "enforcement": "block"}, {}
@@ -246,17 +276,6 @@ def _selftest() -> int:
     assert resolve_settings({"telegram": {"enabled": False}}, {})["enabled"] is False
     r3 = resolve_settings({}, {"WF_TELEGRAM_BOT_TOKEN": "t", "WF_TELEGRAM_CHAT_ID": "-9"})
     assert r3["enabled"] and r3["token"] == "t" and r3["chat"] == "-9", r3
-
-    # outcome line from the new front-matter fields (decision-aware messages)
-    assert outcome_line({"result": "passed", "score": "3/3", "decision": "APPROVED"}) == (
-        "✅", "Decision: APPROVED · Quiz 3/3")
-    assert outcome_line({"result": "passed", "score": "3/3", "decision": "FAILED"}) == (
-        "❌", "Decision: FAILED · Quiz 3/3")
-    assert outcome_line({"result": "passed", "decision": "CHANGES_REQUESTED"}) == (
-        "⚠️", "Decision: CHANGES_REQUESTED")
-    assert outcome_line({"result": "failed", "score": "1/3", "decision": "none"}) == (
-        "🚫", "Quiz FAILED (1/3) — gate blocked, no decision recorded")
-    assert outcome_line({}) is None  # legacy record falls back to state-based line
 
     print("notify_gate selftest: OK")
     return 0

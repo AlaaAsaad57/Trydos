@@ -74,8 +74,9 @@ to each artifact. `<ticket>` = slug.
   ready-for-research`, bumped `updated_at`, **appended state-history entry**.
 - **Preconditions:** `ticket.md` exists; state = `draft`; `intake.md` Readiness
   Status = `READY`. (Single workflow form — no mode gate.)
-- **Postconditions:** `research.md` complete (RS-1..RS-5); `ticket.md > state` =
-  `ready-for-research` with a new history row.
+- **Postconditions:** `research.md` complete (RS-1..RS-5 — open questions carry
+  `OQ-n` IDs; ADR-015); `ticket.md > state` = `ready-for-research` with a new
+  history row.
 - **Stop conditions / failure:** `ticket.md` missing; state ≠ `draft`; intake
   not `READY`. **On any validation failure,
   write nothing** — neither `research.md` nor `ticket.md` is touched (atomic).
@@ -96,7 +97,8 @@ to each artifact. `<ticket>` = slug.
 - **Preconditions:** `ticket.md` exists; state = `ready-for-research`;
   `research.md` present and complete (RS-1..RS-5). (Single form — no mode gate.)
 - **Postconditions:** `ticket.md > state` = `research-complete` with a new
-  history row; `spec.md` complete (SP-1..SP-5, TR-1).
+  history row; `spec.md` complete (SP-1..SP-5, TR-1, **SP-9** — every `OQ-n` from
+  `research.md` answered or deferred with its ID; ADR-015).
 - **Stop conditions / failure:** `research.md` missing or incomplete; state ≠
   `ready-for-research`; any file
   name/code in spec (SP-4). **On any validation failure, write nothing** —
@@ -121,7 +123,9 @@ to each artifact. `<ticket>` = slug.
   - *Revision:* state = `spec-complete` and `review.md` Decision =
     `CHANGES_REQUESTED`.
 - **Postconditions:** `ticket.md > state` = `spec-complete` with a new history
-  row; `plan.md` complete (PL-1..PL-5). No approval, no branch.
+  row; `plan.md` complete (PL-1..PL-5 **+ PL-11**, the required
+  **Integration surface**; ADR-014 — **+ PL-12**, every `OQ-n` deferred by
+  `spec.md` answered; ADR-015). No approval, no branch.
 - **Stop conditions / failure:** neither entry mode matched; `spec.md` missing or
   incomplete. **On any validation failure, write nothing** — neither `ticket.md`
   nor `plan.md` (atomic).
@@ -138,8 +142,10 @@ to each artifact. `<ticket>` = slug.
   `spec-complete → plan-complete → approved`. Does not create branches and does
   not implement anything.
 - **Inputs:** `<ticket>`, decision (`APPROVED | CHANGES_REQUESTED | REJECTED`),
-  rationale. A comprehension check (questions from `plan.md`/`spec.md`) is required
-  before the decision is recorded (CG-1..CG-4).
+  rationale. A comprehension check is required before the decision is recorded
+  (CG-1..CG-6): ≥3 questions from `plan.md`/`spec.md` (a floor, not a fixed
+  count), **≥1 on the integration / cross-flow axis** sourced from the plan's
+  `Integration surface` (CG-5), **plus one per `major` panel finding** (CG-6).
 - **Advisory review panel (ADR-012, opt-in `review_panel.enabled`):** after
   validation and before the comprehension check, read-only lenses
   (senior / security / performance, `.claude/agents/`) review `plan.md`/`spec.md`
@@ -217,8 +223,9 @@ to each artifact. `<ticket>` = slug.
 - **Preconditions:** `ticket.md` exists; state = `implemented`; `spec.md` has AC
   IDs (TR-1); `implement.md` present with evidence (files + commits, IM-6).
 - **Verification depth (MO-6):** `all-ac` for every ticket — every AC mapped to a
-  result (no risk tiers, no rollback rehearsal). A comprehension check (questions
-  from `implement.md`/`spec.md`) is required before PASSED (CG-1..CG-4).
+  result (no risk tiers, no rollback rehearsal). A comprehension check (≥3
+  questions from `implement.md`/`spec.md`, ≥1 of them on the integration /
+  cross-flow axis) is required before PASSED (CG-1..CG-5; CG-6 n/a — no panel here).
 - **Validation profiles (config-driven; VP-1..VP-5 / ADR-006):** if `plan.md`
   names a profile, `/verify` resolves **profile → checks → commands** from
   `project-config.yaml`, executes them locally (deterministic, non-interactive,
@@ -333,15 +340,18 @@ Key invariant: the only path into `implementation-in-progress` is from
 uniform workflow form** (all seven stages, both gates), carried by a **single
 owner**. The owner runs their own `/review` and `/verify` (self-review); there is
 no separate reviewer and no separation of duties. Gate integrity comes from a
-**comprehension check**: at each gate the owner must answer 2–3 questions
-generated from the artifact under review before the gate records its decision.
+**comprehension check**: at each gate the owner must answer questions generated
+from the artifact under review before the gate records its decision — **at least
+3, a floor and not a fixed count** (ADR-014), always including **≥1 on the
+integration / cross-flow axis** (CG-5) plus **one per `major` panel finding** at
+`/review` (CG-6).
 Canonical: `project-config.yaml > workflow_form` / `> comprehension_gates`.
 
 | Aspect         | Every ticket (uniform)                                            |
 |----------------|------------------------------------------------------------------|
 | Stages         | all 7                                                            |
 | Who runs gates | the ticket **owner** (self-review) — no distinct reviewer        |
-| Gate control   | **comprehension check** (questions from the artifact; CG-1..CG-4) |
+| Gate control   | **comprehension check** (≥3 questions from the artifact, ≥1 on integration; CG-1..CG-6) |
 | Approval       | 1 self-approval by the owner                                     |
 | Verification   | `all-ac` — every AC mapped to a result                          |
 | ADR            | optional (record if notable)                                    |

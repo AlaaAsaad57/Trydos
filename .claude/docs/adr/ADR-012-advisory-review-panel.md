@@ -1,6 +1,8 @@
 # ADR 012: Advisory AI review panel at the /review gate
 
-- **Status:** accepted
+- **Status:** accepted — alternative #3 amended by
+  [ADR-014](./ADR-014-integration-aware-comprehension.md) (a `major` finding now
+  seeds a comprehension question; the panel still never blocks or decides)
 - **Date:** 2026-07-17
 - **Ticket:** — (Workflow Owner governance directive; applied directly to the governance corpus)
 - **Deciders:** Workflow Owner

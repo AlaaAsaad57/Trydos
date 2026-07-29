@@ -59,9 +59,27 @@ If any ERROR fires, stop and report the rule code + message. **Make no writes.**
 Read `_specs/_templates/plan.md` and write `_specs/<slug>/plan.md` (overwrites on
 revision): front-matter (`ticket`, `stage: plan`, `mode: standard`, `status: complete`,
 `owner: developer`, `updated: <today>`, `links`) and every section — Approach,
-Steps, Files to change, Validation strategy, Rollback, Out of scope — grounded in
-`spec.md`'s acceptance criteria. **On revision, explicitly address the
-`Required Follow-up Actions` from `review.md`.**
+Steps, Files to change, **Integration surface**, Validation strategy, Rollback,
+Out of scope — grounded in `spec.md`'s acceptance criteria. **On revision,
+explicitly address the `Required Follow-up Actions` from `review.md`.**
+
+The **Integration surface** (PL-11, ADR-014) is not optional and not a summary of
+the steps. Investigate (read-only) and state: which components / services /
+shared config this change touches beyond its own files; who *else* reads or
+depends on them (another ticket's flow, a dashboard, an alert, a metric label, an
+env var, a port, a path, an interface); where this ticket's flow **overlaps
+another use case in the same code**; any ordering or lockstep dependency; and
+what breaks if that is wrong. `none — self-contained` is allowed **only** with the
+reason stated. `/review` draws its mandatory integration question from this
+section (CG-5) — a vague section produces a vague gate.
+
+Every `OQ-n` that `spec.md > Open Questions` deferred must be **answered here**
+(PL-12, ADR-015), naming the ID in the section that carries the answer — Approach,
+Files to change, Integration surface, or Out of scope. After `/plan` no `OQ-n` is
+still open; `/review` checks this before it may record APPROVED (RV-3). A question
+about `protected_paths` is answered by listing the exact paths under **Files to
+change** — that listing, once APPROVED, is the only thing that makes editing them
+legal at `/implement` (GU-2 / IM-5). Nobody's verbal "yes" grants that.
 
 The **Validation strategy** may optionally name **one** validation profile
 (`Validation profile: <profile-id>`) defined in
@@ -93,7 +111,9 @@ free-form validation behavior (VP-5).
 
 ## Postconditions — validate AFTER writing
 
-- **PL-1..PL-5** plan.md content present (and follow-ups addressed on revision).
+- **PL-1..PL-5 + PL-11** plan.md content present, incl. the Integration surface
+  (and follow-ups addressed on revision) · **PL-12** every `OQ-n` deferred by
+  `spec.md` answered, with its ID named.
 - **PL-6 / TS-4** `ticket.md` updated once; `state = spec-complete`; history
   appended (`spec-validated` initial, or `plan-revised` on revision).
 - **PL-9** no approval; no branch.

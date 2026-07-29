@@ -48,8 +48,20 @@ Read `_specs/_templates/spec.md` and write `_specs/<slug>/spec.md`:
 - Fill every section from `intake.md` (goal/user story) and `research.md`
   (constraints/edge cases/open questions): Feature Name, Business Goal, User
   Story, Functional Requirements, Non-Functional Requirements, Constraints, Edge
-  Cases, Open Questions, **Acceptance Criteria Mapping** (each criterion gets a
-  stable ID `AC-1`, `AC-2`, … mapped to a requirement), Out of Scope.
+  Cases, **Research Questions Resolved**, Open Questions, **Acceptance Criteria
+  Mapping** (each criterion gets a stable ID `AC-1`, `AC-2`, … mapped to a
+  requirement), Out of Scope.
+
+**Research Questions Resolved** (SP-9, ADR-015) is not optional. Every `OQ-n` in
+`research.md` gets a row — either *answered* (the answer plus where it lands: a
+requirement, an `AC-n`, a constraint, or Out of Scope) or *deferred* (the answer
+needs the approach, so it is repeated under Open Questions with the same ID and
+`/plan` answers it — PL-12). If the owner answered a question in conversation,
+write that answer down here; **the conversation is not an artifact** and the next
+command cannot see it (ADR-003). Keep the answer at spec level — the scope
+decision, not the file paths or the approach (SP-4). Example: an `OQ-n` asking
+whether `protected_paths` is touched is answered by putting that behavior in
+scope (`/plan` then names the files) or by declaring it Out of Scope.
 
 ## Step 3 — Advance ticket state (TS-4)
 
@@ -69,7 +81,8 @@ Update `_specs/<slug>/ticket.md` (the single state write):
 - **SP-1** Business Goal + User Story · **SP-2** Functional + Non-Functional
   Requirements (+ Constraints) · **SP-3 / TR-1** stable `AC-n` IDs mapped to
   requirements · **SP-4** no implementation detail (no file paths/code/steps) ·
-  **SP-5** Out of Scope.
+  **SP-5** Out of Scope · **SP-9** every `OQ-n` from `research.md` answered or
+  deferred with its ID.
 - **SP-6 / TS-4** `ticket.md` updated once: `state = research-complete`,
   `updated_at` bumped, history appended.
 - **CMD-2** postcondition state = `research-complete`.
@@ -80,6 +93,9 @@ Update `_specs/<slug>/ticket.md` (the single state write):
 
 - Do **not** introduce implementation planning: no approach, steps, file names,
   or code (SP-4). That is `/plan`'s job.
+- Do **not** drop an `OQ-n`, and do **not** treat a chat answer as the resolution
+  (SP-9). Every ID is answered here or deferred here — an ID that appears nowhere
+  in `spec.md` aborts the command.
 - Do **not** advance state beyond `research-complete` (the
   `research-complete → spec-complete` transition is owned by a later stage).
 - Do **not** modify source code or any `protected_paths` runtime file.

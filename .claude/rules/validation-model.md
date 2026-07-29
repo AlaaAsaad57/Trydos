@@ -92,7 +92,7 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 | RS-2 | ERROR | `research.md` lists relevant config files. |
 | RS-3 | ERROR | `research.md` lists possibly affected services and available test/validation commands. |
 | RS-4 | ERROR | `research.md` documents risks/unknowns. |
-| RS-5 | ERROR | `research.md` documents open questions. |
+| RS-5 | ERROR | `research.md` documents open questions, each with a stable ID (`OQ-n`) — the IDs `spec.md` answers under SP-9 (ADR-015). Tickets closed before ADR-015 keep their un-numbered lists; they are not rewritten. |
 | RS-6 | ERROR | On success `/research` updates `ticket.md` exactly once (TS-4): `state draft → ready-for-research`, bump `updated_at`, append a state-history entry. Writes confined to `ticket.md` + `research.md`; repository investigation stays read-only. |
 | RS-7 | ERROR | Precondition: state = `draft` and `intake.md` Readiness Status = `READY`. |
 | RS-8 | ERROR | **Atomicity:** on any precondition/validation failure, `/research` writes nothing — neither `ticket.md` nor `research.md`. |
@@ -108,6 +108,7 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 | SP-6 | ERROR | On success `/spec` updates `ticket.md` exactly once (TS-4): `state → research-complete`, bump `updated_at`, append a state-history entry. Writes confined to `ticket.md` + `spec.md`. |
 | SP-7 | ERROR | Precondition: `research.md` exists and satisfies RS-1..RS-5, and state = `ready-for-research`, before `/spec` proceeds. |
 | SP-8 | ERROR | **Atomicity:** on any precondition/validation failure, `/spec` writes nothing — neither `ticket.md` nor `spec.md`. |
+| SP-9 | ERROR | **Every `OQ-n` in `research.md` is resolved in `spec.md`** (ADR-015), under **Research Questions Resolved**, as either: *answered* — the answer plus where it lands (a requirement, an `AC-n`, a constraint, or Out of Scope); or *deferred* — the answer needs the approach, so it is repeated under `spec.md > Open Questions` with the same ID for `/plan` to answer (PL-12). An `OQ-n` that appears nowhere in `spec.md` is an ERROR. **An answer given in conversation is not a resolution** — only the artifact counts (ADR-003). Recording the answer is not implementation detail and does not breach SP-4: state the scope decision, never the file paths or the approach. |
 
 ### PL — Plan artifact (`/plan`)
 | Code | Severity | Condition |
@@ -122,13 +123,15 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 | PL-8 | ERROR | **Atomicity:** on any precondition/validation failure, `/plan` writes nothing — neither `ticket.md` nor `plan.md`. |
 | PL-9 | ERROR | `/plan` does **not** approve implementation (no `→ approved`) and does **not** create a branch. |
 | PL-10 | ERROR | Revision re-run must address `review.md > Required Follow-up Actions` in the rewritten `plan.md`. |
+| PL-11 | ERROR | `plan.md` declares an **Integration surface** (ADR-014): the components / flows / shared config this change touches, who else depends on them, where this ticket's flow overlaps another use case, and what breaks if that is wrong. `none — self-contained` is a valid answer only when stated explicitly with its reason. This is the artifact source CG-5 draws its integration question from. |
+| PL-12 | ERROR | **Every `OQ-n` deferred by `spec.md > Open Questions` is answered in `plan.md`** (ADR-015), naming the ID, in the section that carries the answer (Approach, Files to change, Integration surface, or Out of scope). After `/plan`, no `OQ-n` is still open — that is what RV-3 checks before APPROVED. |
 
 ### RV — Review artifact (`/review`, review gate)
 | Code | Severity | Condition |
 |------|----------|-----------|
 | RV-1 | ERROR | `review.md` exists (written for every decision). |
 | RV-2 | ERROR | Decision ∈ {`APPROVED`, `CHANGES_REQUESTED`, `REJECTED`}. |
-| RV-3 | ERROR | `APPROVED` requires `plan.md` satisfies PL-1..PL-5 and plan↔REQ/AC traceability. |
+| RV-3 | ERROR | `APPROVED` requires `plan.md` satisfies PL-1..PL-5 **+ PL-11** (Integration surface; ADR-014) **+ PL-12** (no `OQ-n` left open; ADR-015) and plan↔REQ/AC traceability. |
 | RV-4 | ERROR | `APPROVED` updates `ticket.md` to `approved` (TS-4): `spec-complete → plan-complete → approved`, bump `updated_at`, append history (`plan-validated`, `plan-approved`). |
 | RV-5 | — | *Removed.* (No two-approver tier; a single self-approval by the owner — ADR-011. Integrity comes from the comprehension gate, CG-*.) |
 | RV-6 | — | *Removed.* (No mandatory-ADR tier; ADRs optional — ADR-011.) |
@@ -196,20 +199,23 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 |------|----------|-----------|
 | RA-1 | ERROR | Gate commands (`/review`, `/verify`) are run by the **ticket owner** themselves (self-review; `project-config.yaml > role_authority.gate_commands`). No distinct reviewer is required (ADR-011). The workflow never requires Engineering Manager participation. |
 | RA-2 | ERROR | Every recorded actor (`owner`, history `by`) ∈ defined roles {`workflow_owner`, `reviewer`, `developer`, `ai_agent`} (or a named person mapped to one). Legacy `em` maps to `reviewer` (gate) / `workflow_owner` (governance). |
-| RA-3 | — | *Removed.* (No separation of duties — the owner runs their own gates, ADR-011. The anti-rubber-stamp control is the comprehension gate, CG-1..CG-4.) |
+| RA-3 | — | *Removed.* (No separation of duties — the owner runs their own gates, ADR-011. The anti-rubber-stamp control is the comprehension gate, CG-1..CG-6.) |
 
-### CG — Comprehension gate (`/review`, `/verify`; every gate — ADR-011)
+### CG — Comprehension gate (`/review`, `/verify`; every gate — ADR-011, ADR-014)
 > The single-owner model has no distinct reviewer, so gate integrity comes from a
 > comprehension check: the owner answers questions generated FROM the artifact
-> under review before the gate records its decision. Canonical:
-> `project-config.yaml > comprehension_gates`.
+> under review before the gate records its decision. It is the **only** control
+> that blocks a gate — so it must cover the risky axes, not just the artifact-local
+> ones (ADR-014). Canonical: `project-config.yaml > comprehension_gates`.
 
 | Code | Severity | Condition |
 |------|----------|-----------|
-| CG-1 | ERROR | A gate (`/review`, `/verify`) may not record its decision (APPROVED / PASSED) until `_specs/<ticket>/comprehension.md` exists with **all** questions for this stage answered (≥ `comprehension_gates.questions`, non-empty answers). |
-| CG-2 | ERROR | The questions are **derived from the artifact under review** (`/review`: `plan.md` + `spec.md`; `/verify`: `implement.md` + `spec.md`) — specific to its acceptance criteria / files / rollback / risks, not generic. Each is **multiple-choice** with **at least 4** candidate answers (one correct + ≥3 plausible distractors) drawn from the artifact (`comprehension_gates.options_min`); the selected answer and its correctness are recorded. |
+| CG-1 | ERROR | A gate (`/review`, `/verify`) may not record its decision (APPROVED / PASSED) until `_specs/<ticket>/comprehension.md` exists with **all** questions for this stage answered (non-empty answers). The count is a **floor, not a fixed number**: ≥ `comprehension_gates.questions_min`, plus any question required by CG-5/CG-6. Asking more than the floor is always valid; asking fewer is an ERROR. |
+| CG-2 | ERROR | The questions are **derived from the artifact under review** (`/review`: `plan.md` + `spec.md`; `/verify`: `implement.md` + `spec.md`) — specific to its acceptance criteria / files / **integration surface** / rollback / risks, not generic. Each is **multiple-choice** with **at least 4** candidate answers (one correct + ≥3 plausible distractors) drawn from the artifact (`comprehension_gates.options_min`); the selected answer, its **source** (artifact section, `AC-n`, or panel finding), and its correctness are recorded. |
 | CG-3 | ERROR | The comprehension gate is **required at every gate for every ticket** (`comprehension_gates.required: always`); it is the control that replaces a distinct reviewer. `comprehension.md` writes are confined to `_specs/<ticket>/` (GU-3). |
 | CG-4 | ERROR | **Pass threshold = 100% (`comprehension_gates.pass_threshold: 1.0`).** The gate records APPROVED / PASSED **only if every answer is correct**. Any incorrect answer blocks the gate: it records no decision and does not advance `ticket.md` (atomic, like RV-8 / VF-8); it reports the missed questions, and the owner re-reads the artifact and re-runs. |
+| CG-5 | ERROR | **Integration question is mandatory (`comprehension_gates.integration_question: required`; ADR-014).** At least one question per gate is on the **integration / cross-flow axis** — what this change touches outside itself, which other component or use-case flow shares that code / config / interface, ordering or lockstep dependencies, and what breaks if the assumption is wrong. Source: at `/review` `plan.md > Integration surface` (PL-11) + `spec.md` (+ panel findings); at `/verify` `implement.md` + `spec.md` + the plan's Integration surface. A plan that declares `none — self-contained` is still questioned on *why* it is self-contained. This question counts toward the CG-1 floor. |
+| CG-6 | ERROR | **Panel-seeded questions (ADR-014).** When the panel ran (RP-1), **every** finding at severity `comprehension_gates.panel_question_severity` (`major`) seeds **one additional** question **above** the CG-1 floor, recorded with that finding as its source. `minor`/`info` seed nothing. This does **not** give a lens a veto (RP-2): the owner may still dismiss the finding in `review.md` — they must first demonstrate they understood it. What blocks is a wrong answer, never the finding itself. |
 
 ### RP — Advisory review panel (`/review`; ADR-012)
 > AI reviewer lenses (senior / security / performance) that **assist** the single
@@ -221,7 +227,7 @@ validator enforces them as state checks (mapping in "Invocation map" below).
 | Code | Severity | Condition |
 |------|----------|-----------|
 | RP-1 | ERROR | When `review_panel.enabled`, `/review` dispatches **every** lens in `review_panel.lenses` (each a read-only subagent under `.claude/agents/`) and records their findings in the **Panel Findings** section of `review.md`. When disabled, `/review` runs no panel path (opt-in; behaves exactly as before). |
-| RP-2 | ERROR | **Advisory (`review_panel.advisory: true`):** a panel finding **never** blocks or forces a decision. APPROVED is gated only by the comprehension check (CG-*) and RV-3 — never by panel output. A `major` finding is surfaced, not enforced. |
+| RP-2 | ERROR | **Advisory (`review_panel.advisory: true`):** a panel finding **never** blocks or forces a decision. APPROVED is gated only by the comprehension check (CG-*) and RV-3 — never by panel output. A `major` finding is surfaced, not enforced; per CG-6 it also **seeds a comprehension question**, which obliges the owner to understand it, not to act on it — dismissing it in `review.md` remains legal. No lens holds a veto (ADR-014 does not change this). |
 | RP-3 | ERROR | Panel subagents are **read-only**: they may read `plan.md`/`spec.md` (and referenced context) but produce **no** working-tree change outside `review.md` (reinforces GU-1). |
 | RP-4 | ERROR | **Ordering:** the panel runs only **after** Step 1 validation passes and **before** the comprehension check (Step 1a → Step 1b). It is never run on a plan that failed validation, and never gates or precedes validation. |
 
@@ -292,7 +298,8 @@ Every command except `/start-ticket` begins by reading `ticket.md` (TS-1..TS-3)
 and ends by writing the transition to `ticket.md` (TS-4). `/start-ticket`
 **creates** `ticket.md` with `state: draft`. All commands enforce **RA-1/RA-2**
 (role authorization). The review gates `/review` and `/verify` additionally run
-the **comprehension gate (CG-1..CG-4)** before recording a decision. Every command
+the **comprehension gate (CG-1..CG-6)** before recording a decision (CG-6 applies
+only where the panel ran — `/review`). Every command
 additionally emits next-step guidance at completion (**NS-1..NS-4**), so it is not
 repeated per row below.
 
@@ -300,11 +307,11 @@ repeated per row below.
 |----------------|---------------------------------------------|-----------------------------------------|
 | `/start-ticket`| FM-3, FM-5, CMD-3, GU-4, MO-1, CU-1..CU-5 (if `clickup_id`) | TS-2/3/4, FM-1..FM-8, ST-1, CMD-2 |
 | `/research`    | TS-1/2/3, FM-*, ST-1, ST-2, MO-1, CMD-1, RS-7, RS-8 | RS-1..RS-6, TS-4, FM-*, GU-1, GU-3, CMD-2 (state → ready-for-research) |
-| `/spec`        | TS-1/2/3, FM-*, ST-1, ST-2, MO-1, CMD-1, SP-7 (RS-1..RS-5), SP-8 | SP-1..SP-6, TR-1, TS-4, FM-*, GU-1, GU-3, CMD-2 (state → research-complete) |
-| `/plan`        | TS-1/2/3, FM-*, ST-1, ST-2, MO-1, CMD-1, PL-7, PL-8, VP-1/VP-4 (if a profile is named) | PL-1..PL-6, PL-9, PL-10 (revision), TS-4, FM-*, GU-1, GU-3, CMD-2 (state stays/→ spec-complete) |
-| `/review`      | TS-1/2/3, FM-*, ST-1, ST-2, CMD-1, RV-2, RV-8, RP-4, CG-1..CG-4 | RP-1..RP-3 (if `review_panel.enabled`), RV-1, RV-3, RV-4, RV-7, RV-9, RV-10, TS-4 (APPROVED → approved; REJECTED → closed), FM-*, GU-1, GU-3, CMD-2 |
+| `/spec`        | TS-1/2/3, FM-*, ST-1, ST-2, MO-1, CMD-1, SP-7 (RS-1..RS-5), SP-8 | SP-1..SP-6, SP-9, TR-1, TS-4, FM-*, GU-1, GU-3, CMD-2 (state → research-complete) |
+| `/plan`        | TS-1/2/3, FM-*, ST-1, ST-2, MO-1, CMD-1, PL-7, PL-8, VP-1/VP-4 (if a profile is named) | PL-1..PL-6, PL-9, PL-10 (revision), PL-11, PL-12, TS-4, FM-*, GU-1, GU-3, CMD-2 (state stays/→ spec-complete) |
+| `/review`      | TS-1/2/3, FM-*, ST-1, ST-2, CMD-1, RV-2, RV-8, RP-4, CG-1..CG-6 | RP-1..RP-3 (if `review_panel.enabled`), RV-1, RV-3, RV-4, RV-7, RV-9, RV-10, TS-4 (APPROVED → approved; REJECTED → closed), FM-*, GU-1, GU-3, CMD-2 |
 | `/implement`   | TS-1/2/3, FM-*, ST-2, ST-5, MO-4, CMD-1, IM-1, IM-2, IM-8 | IM-3 or IM-3a, IM-4, IM-5, IM-6, IM-9, then IM-7 (complete → `implemented`) **or** IM-10 (blocked → `implementation-in-progress` + `status: blocked`), TS-4, FM-*, GU-2, GU-3, CMD-2 |
-| `/verify`      | TS-1/2/3, FM-*, ST-2, MO-6, CMD-1, VF-8, CG-1..CG-4, VP-1 (if a profile is named) | VF-1..VF-4, VF-7, VF-9, VF-10, VP-2..VP-5 (if a profile is named), then VF-5 (PASSED → closed) or VF-6 (FAILED → implementation-in-progress + blocked), TR-2, TR-3, CL-1, TS-4, FM-*, GU-3, CMD-2 |
+| `/verify`      | TS-1/2/3, FM-*, ST-2, MO-6, CMD-1, VF-8, CG-1..CG-5 (CG-6 n/a — no panel at `/verify`), VP-1 (if a profile is named) | VF-1..VF-4, VF-7, VF-9, VF-10, VP-2..VP-5 (if a profile is named), then VF-5 (PASSED → closed) or VF-6 (FAILED → implementation-in-progress + blocked), TR-2, TR-3, CL-1, TS-4, FM-*, GU-3, CMD-2 |
 | `/publish-pr`  | TS-1/2/3, RA-1/RA-2, PB-1, PB-2, PB-6 | PB-3, PB-4, PB-5, PB-7, PB-8, PB-9, GU-3 (the publishable commit stages the implemented source + `_specs/<slug>/`; the only workflow **state** write remains `ticket.md > links.github`, plus the `origin` push); **no** TS-4 transition |
 
 ## Error code conventions

@@ -1,6 +1,8 @@
 # ADR 011: Single-owner workflow with a comprehension gate (remove modes, risk tiers, and separation of duties)
 
-- **Status:** accepted
+- **Status:** accepted — question count amended by
+  [ADR-014](./ADR-014-integration-aware-comprehension.md) (the "2–3 questions"
+  below is now a **floor of 3**, with a mandatory integration question)
 - **Date:** 2026-07-16
 - **Ticket:** — (Workflow Owner governance directive; applied directly to the governance corpus)
 - **Deciders:** Workflow Owner

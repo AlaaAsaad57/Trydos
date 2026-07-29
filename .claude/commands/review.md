@@ -46,8 +46,10 @@ Read `_specs/<slug>/ticket.md`, `spec.md`, `plan.md`, then apply:
 - **CMD-1 / ST-2** — `state` must be `spec-complete`. Otherwise abort.
 - **RV-2** — decision is one of the three allowed values.
 - For **APPROVED** only:
-  - **RV-3** — `plan.md` exists and satisfies **PL-1..PL-5** with plan↔REQ/AC
-    traceability. Otherwise abort.
+  - **RV-3** — `plan.md` exists and satisfies **PL-1..PL-5 + PL-11** (an explicit
+    **Integration surface**; ADR-014) **+ PL-12** (no `OQ-n` from `research.md` is
+    still open — each is answered in `spec.md` or `plan.md`; ADR-015) with
+    plan↔REQ/AC traceability. Otherwise abort.
 
 If a required check fails, stop and report the rule code + message. **Make no writes.**
 
@@ -69,26 +71,48 @@ Runs only after Step 1 passes and **before** the comprehension check (RP-4). If
    `major` finding does not force CHANGES_REQUESTED — it is surfaced for the
    owner to weigh. APPROVED remains the owner's call and is gated only by the
    comprehension check (CG-*), never by panel output.
+5. **But a `major` finding is not free to ignore (CG-6, ADR-014):** each one seeds
+   an extra comprehension question in Step 1b. The owner may still dismiss it —
+   after demonstrating they understood it. Carry the `major` findings forward.
 
 Surface the findings to the owner before Step 1b so they inform the decision.
 
-## Step 1b — Comprehension check (CG-1..CG-4)
+## Step 1b — Comprehension check (CG-1..CG-6)
 
 The single-owner gate has no second reviewer, so the owner must show they
 understand the plan before deciding:
-1. Generate **2–3 multiple-choice questions derived from `plan.md`/`spec.md`** (the
-   acceptance criteria, the "Files to change", the rollback, the risks) — specific,
-   not generic (CG-2). Each question offers **at least 4 candidate answers** drawn
-   from the artifact: one correct plus ≥3 plausible distractors. **Sort each
-   question's options alphabetically** — the correct answer's position must carry
-   no signal (never habitually first).
+1. Generate multiple-choice questions **derived from `plan.md`/`spec.md`** (the
+   acceptance criteria, the "Files to change", the **Integration surface**, the
+   rollback, the risks) — specific, not generic (CG-2). Each question offers
+   **at least 4 candidate answers** drawn from the artifact: one correct plus ≥3
+   plausible distractors. **Sort each question's options alphabetically** — the
+   correct answer's position must carry no signal (never habitually first).
+   **Write every question, option, and recorded answer in English** — the
+   conversation language never changes the gate language (CLAUDE.md).
+
+   **How many (CG-1):** `comprehension_gates.questions_min` (3) is a **floor, not
+   a fixed count** — ask more whenever the plan warrants it. On top of the floor:
+   - **CG-5 — mandatory integration question (≥1, counts toward the floor):** on
+     the cross-component / cross-flow axis — what this change touches outside
+     itself, which other component or use-case flow shares that code, config,
+     interface, metric, or file path, ordering / lockstep dependencies, and what
+     breaks if the assumption is wrong. Source it from `plan.md > Integration
+     surface` (PL-11) and the Step 1a findings. If the plan declares
+     `none — self-contained`, ask *why* it is self-contained.
+   - **CG-6 — one extra question per `major` panel finding, above the floor.**
+     Two `major` findings ⇒ at least 5 questions; `minor`/`info` seed none. This
+     is **not** a veto (RP-2): the owner may still dismiss the finding in
+     `review.md` — they must first show they understood it.
 2. Ask them via `AskUserQuestion`; the owner selects an option per question.
 3. Record, under the **review** section of `_specs/<slug>/comprehension.md`
    (create it from `_specs/_templates/comprehension.md` if absent): each question,
-   its options, the owner's selected answer, and whether it was correct. Set the
+   its options, its **source** (`plan.md` section / `AC-n` / `panel:<lens>`), the
+   owner's selected answer, and whether it was correct. Set the
    front-matter (read by the notification hook — ADR-013): `stage: review`,
-   `result: passed|failed`, `score: <correct>/<total>`, and `decision:` = the
-   gate decision when the quiz passed, `none` when it failed.
+   `result: passed|failed`, `score: <correct>/<total>`, `decision:` = the
+   gate decision when the quiz passed, `none` when it failed, and `missed:` =
+   the missed questions + axis on a failed quiz (e.g. `Q2 (integration)`), empty
+   when passed.
 4. **Pass = 100% correct (CG-4).** If **any** answer is wrong, record **no**
    decision and leave `ticket.md` unchanged (atomic); report which questions were
    missed and stop — the owner re-reads the plan and re-runs `/review`. Proceed to
@@ -145,7 +169,9 @@ revisit the work, open a new ticket.
 - **RV-1** `review.md` written. **RV-2** decision valid.
 - **RP-1** advisory panel ran (if enabled) and its findings are recorded in
   `review.md`; **RP-2** no decision was gated on panel output.
-- APPROVED: **RV-3** plan validated · **CG-1** comprehension recorded · **RV-4 /
+- APPROVED: **RV-3** plan validated (incl. **PL-11** + **PL-12**) · **CG-1** comprehension
+  recorded at ≥ the floor · **CG-5** an integration question was asked · **CG-6**
+  one question per `major` panel finding · **RV-4 /
   TS-4** `state = approved` with `plan-validated` + `plan-approved` history ·
   **CMD-2** state = `approved`.
 - CHANGES_REQUESTED: **RV-7** state still `spec-complete`.
@@ -160,6 +186,8 @@ revisit the work, open a new ticket.
 - Do **not** advance to `approved` for CHANGES_REQUESTED or REJECTED (RV-7).
 - Do **not** create a git branch (RV-9 / GU-4) or perform any implementation.
 - Do **not** record any decision before the comprehension check is complete (CG-1).
+- Do **not** treat `questions_min` as a cap (CG-1), skip the integration question
+  (CG-5), or drop a `major` finding's seeded question (CG-6).
 - Do **not** let the advisory panel block or decide: it never gates APPROVED and
   never runs before Step 1 validation (RP-2 / RP-4). Panel subagents are
   read-only — they must produce no diff outside `review.md` (RP-3 / GU-1).

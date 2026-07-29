@@ -63,16 +63,19 @@ workflow_form:
   review_gate: always           # /review + /verify are mandatory steps, never skipped
 
 # ---------------------------------------------------------------------------
-# Comprehension gate (ADR-011) — the control that replaces a second reviewer.
-# At every gate the owner must answer questions generated FROM the artifact under
-# review; the gate cannot record its decision until a comprehension record exists
-# with the questions answered. Enforced by CG-1..CG-4 (validation-model.md).
+# Comprehension gate (ADR-011, ADR-014) — the control that replaces a second
+# reviewer, and the ONLY control that blocks a gate. At every gate the owner must
+# answer questions generated FROM the artifact under review; the gate cannot
+# record its decision until a comprehension record exists with the questions
+# answered. Enforced by CG-1..CG-6 (validation-model.md).
 # ---------------------------------------------------------------------------
 comprehension_gates:
   enabled: true
   required: always              # every gate, every ticket — no exceptions
   stages: [review, verify]      # the decision gates that ask before deciding
-  questions: 3                  # 2–3 questions derived from the artifact under review
+  questions_min: 3              # FLOOR, not a fixed count (ADR-014) — ask more when the artifact warrants it
+  integration_question: required  # ≥1 question per gate on the integration / cross-flow axis (CG-5)
+  panel_question_severity: major  # each `major` panel finding seeds 1 EXTRA question above the floor (CG-6)
   options_min: 4                # each question offers ≥4 answers (1 correct + ≥3 distractors)
   pass_threshold: 1.0           # 100% correct required; any wrong answer blocks the gate
   record: _specs/<ticket>/comprehension.md
@@ -84,6 +87,8 @@ comprehension_gates:
 # reviews plan.md + spec.md and returns findings. ADVISORY: findings inform the
 # owner but never block APPROVED — the owner still decides, and the comprehension
 # gate remains the integrity control (ADR-011). Enforced by RP-1..RP-4.
+# ADR-014: a `major` finding additionally SEEDS a comprehension question (CG-6) —
+# the owner must show they understood it, but may still dismiss it. Still no veto.
 # ---------------------------------------------------------------------------
 review_panel:
   enabled: true
