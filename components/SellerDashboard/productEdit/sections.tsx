@@ -1042,21 +1042,28 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
 
           return (
             <div className="overflow-x-auto -mx-1 px-1">
-              <table className="w-full min-w-[800px] text-left border-separate border-spacing-y-1.5">
+              {/* Content-sized, never stretched: every cell holds a fixed-width
+                  input, so forcing a width would spread the slack unevenly over
+                  the columns (worst with the wider ar/ku headers, and worst of
+                  all when `pricesLocked` removes three columns) and pull each
+                  label off its input. The wrapper scrolls instead. */}
+              <table className="w-auto text-left border-separate border-spacing-y-1.5">
                 <thead>
                   <tr className="text-[11px] semibold text-[#8e8e8e]">
+                    {/* Horizontal padding matches the body cells (`px-1`) so each
+                        label lines up with the input under it. */}
                     <th className="py-1 pr-3">{t("Variant")}</th>
                     {!pricesLocked && (
                       <>
-                        <th className="py-1 px-2">{t("Price")}</th>
-                        <th className="py-1 px-2">{t("Discount")}</th>
-                        <th className="py-1 px-2">{t("Luck")}</th>
+                        <th className="py-1 px-1">{t("Price")}</th>
+                        <th className="py-1 px-1">{t("Discount")}</th>
+                        <th className="py-1 px-1">{t("Luck")}</th>
                       </>
                     )}
-                    <th className="py-1 px-2">{t("Qty")}</th>
-                    <th className="py-1 px-2">{t("SKU")}</th>
-                    <th className="py-1 px-2">{t("Barcode")}</th>
-                    <th className="py-1 px-2">{t("Location")}</th>
+                    <th className="py-1 px-1">{t("Qty")}</th>
+                    <th className="py-1 px-1">{t("SKU")}</th>
+                    <th className="py-1 px-1">{t("Barcode")}</th>
+                    <th className="py-1 px-1">{t("Location")}</th>
                   </tr>
                 </thead>
                 <tbody>
