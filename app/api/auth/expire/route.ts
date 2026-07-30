@@ -19,12 +19,22 @@ const REGISTER_GUEST_URL = "/auth/register-guest";
  * 0. LAST-CHANCE refresh: if a refresh cookie exists, try the Go exchange
  *    first — a race loser arriving here with the winner's valid rotated
  *    cookie renews instead of destroying the session ({renewed: true}; no
- *    nuke, no chat/stories re-auth flags, no verification downgrade). The
+ *    nuke — every sub-service credential survives, no verification downgrade,
+ *    which is why steps 1-2 only ever see a truly dead session). The
  *    helper itself skips verified/Laravel-routed sessions (FR-8) and the
  *    logout guard. Only a genuinely dead/absent token reaches the nuke.
- * 1. Clears stale tokens (MARKET_TOKEN, MARKET_REFRESH_TOKEN, CHAT_TOKEN,
- *    STORIES_TOKEN)
- * 2. Marks chat/stories users as needing re-auth
+ * 1. Clears the whole dead session: the market token pair AND every
+ *    sub-service credential and profile blob — chat, stories, wallet, comments
+ *    (the comments token lives in USER_ID_HASH). Reaching this point means the
+ *    session is genuinely dead (step 0 above already renewed anything that
+ *    could still be saved), and step 3 turns this browser into a brand-new
+ *    guest — so nothing from the old shopper may survive. Leaving the wallet
+ *    (`rdb_at`) or comments token behind let the fresh guest keep calling those
+ *    two backends as the previous user.
+ * 2. Downgrades User-Data to unverified. This matters for the early return
+ *    below: if register-guest fails, step 4 never runs, and without the
+ *    downgrade the dead session would still look phone-verified (which also
+ *    decides market routing).
  * 3. Re-registers as guest via backend (bodyless — the re-issue-by-id path no
  *    longer exists), sets the fresh guest token pair in this response
  *
@@ -64,43 +74,39 @@ export async function POST(request: NextRequest) {
     // outgoing session's verified status can be read.
     const wasVerified = await isVerifiedMarketUser();
 
-    // 1. Clear stale tokens (incl. the dead refresh cookie — deleted only
-    // here, after the last-chance attempt above failed)
+    // 1. Clear the dead session — the market token pair (incl. the refresh
+    // cookie, deleted only here, after the last-chance attempt above failed)
+    // and every sub-service credential + profile blob. The shopper becomes a
+    // brand-new guest in step 3, so chat, stories, wallet and comments must all
+    // start from nothing; a leftover token there would still authenticate as
+    // the old user. Re-verifying goes through /api/auth/login, which logs the
+    // four sub-services back in and re-mints all of these.
     await Promise.all([
       deleteSecureCookie(COOKIE_NAMES.MARKET_TOKEN),
       deleteSecureCookie(COOKIE_NAMES.MARKET_REFRESH_TOKEN),
       deleteSecureCookie(COOKIE_NAMES.CHAT_TOKEN),
       deleteSecureCookie(COOKIE_NAMES.STORIES_TOKEN),
+      deleteSecureCookie(COOKIE_NAMES.WALLET_TOKEN),
+      // The comments backend's token — stored under this deliberately opaque
+      // cookie name (see COOKIE_NAMES.USER_ID_HASH).
+      deleteSecureCookie(COOKIE_NAMES.USER_ID_HASH),
+      deleteSecureCookie(COOKIE_NAMES.USER_CHAT),
+      deleteSecureCookie(COOKIE_NAMES.USER_STORIES),
+      deleteSecureCookie(COOKIE_NAMES.WALLET_USER),
     ]);
 
-    // 2. Mark chat/stories users as needing re-auth
-    const [userChat, userStories, userData] = await Promise.all([
-      getSecureCookie<any>(COOKIE_NAMES.USER_CHAT),
-      getSecureCookie<any>(COOKIE_NAMES.USER_STORIES),
-      getSecureCookie<any>(COOKIE_NAMES.USER_DATA),
-    ]);
-
-    await Promise.all([
-      userChat?.id
-        ? setSecureCookieJSON(COOKIE_NAMES.USER_CHAT, {
-            ...userChat,
-            need_auth: true,
-          })
-        : Promise.resolve(),
-      userStories?.id
-        ? setSecureCookieJSON(COOKIE_NAMES.USER_STORIES, {
-            ...userStories,
-            need_auth: true,
-          })
-        : Promise.resolve(),
-      userData
-        ? setSecureCookieJSON(COOKIE_NAMES.USER_DATA, {
-            ...userData,
-            is_phone_verified: 0,
-            is_verified: false,
-          })
-        : Promise.resolve(),
-    ]);
+    // 2. Downgrade User-Data to unverified. Step 4 replaces it with the fresh
+    // guest, but only when register-guest succeeds — on the failure return
+    // below this write is the only thing stopping a dead session from still
+    // reading as phone-verified.
+    const userData = await getSecureCookie<any>(COOKIE_NAMES.USER_DATA);
+    if (userData) {
+      await setSecureCookieJSON(COOKIE_NAMES.USER_DATA, {
+        ...userData,
+        is_phone_verified: 0,
+        is_verified: false,
+      });
+    }
 
     // 3. Re-register as guest — call backend directly so we can set cookies
     // in this response (internal fetch to register-device loses Set-Cookie).

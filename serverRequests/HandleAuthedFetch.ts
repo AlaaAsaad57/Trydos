@@ -8,6 +8,7 @@ import {
   SECURE_COOKIE_OPTIONS,
   REFRESH_COOKIE_OPTIONS,
   isVerifiedMarketUser,
+  deleteSecureCookie,
 } from "utils/server/tokenManager";
 import { refreshMarketSession } from "utils/server/authRefresh";
 
@@ -16,6 +17,22 @@ const COOKIE_NAMES = {
   MARKET_TOKEN: "MARKET-TOKEN",
   MARKET_REFRESH_TOKEN: "MARKET-REFRESH-TOKEN",
 };
+
+// Every credential and profile blob that belongs to a sub-service identity:
+// chat, stories, wallet, and comments (whose token lives in USER_ID_HASH).
+// The register-guest fallback below replaces the shopper with a brand-new
+// guest, so none of these may survive — a leftover token keeps authenticating
+// that backend as the previous user. `/api/auth/login` re-mints all of them
+// when the shopper re-verifies.
+const SUB_SERVICE_COOKIES = [
+  CANONICAL_COOKIE_NAMES.CHAT_TOKEN,
+  CANONICAL_COOKIE_NAMES.STORIES_TOKEN,
+  CANONICAL_COOKIE_NAMES.WALLET_TOKEN,
+  CANONICAL_COOKIE_NAMES.USER_ID_HASH,
+  CANONICAL_COOKIE_NAMES.USER_CHAT,
+  CANONICAL_COOKIE_NAMES.USER_STORIES,
+  CANONICAL_COOKIE_NAMES.WALLET_USER,
+];
 interface FetchOptions {
   url: string;
   revalidate?: number;
@@ -128,6 +145,11 @@ export const HandleAuthedFetch = async <T = any>(
       const repo = regResponse.data;
 
       if (repo?.data?.token) {
+        // A fresh guest exists, so the previous identity is gone: clear its
+        // sub-service cookies alongside the new pair. Gated on the token so a
+        // failed registration never strips a session that is still working.
+        await Promise.all(SUB_SERVICE_COOKIES.map(deleteSecureCookie));
+
         // Persist the fresh guest pair — probe above guarantees writability.
         cookieStore.set({
           name: COOKIE_NAMES.MARKET_TOKEN,

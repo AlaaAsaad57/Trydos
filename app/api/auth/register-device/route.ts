@@ -8,7 +8,23 @@ import {
   setSecureCookieJSON,
   getSecureCookie,
   getTokenForServer,
+  deleteSecureCookie,
 } from "utils/server/tokenManager";
+
+// Every credential and profile blob that belongs to a sub-service identity:
+// chat, stories, wallet, and comments (whose token lives in USER_ID_HASH).
+// Registering a brand-new guest replaces whoever was here, so none of these may
+// survive — a leftover token keeps authenticating that backend as the previous
+// user. `/api/auth/login` re-mints all of them when the shopper re-verifies.
+const SUB_SERVICE_COOKIES = [
+  COOKIE_NAMES.CHAT_TOKEN,
+  COOKIE_NAMES.STORIES_TOKEN,
+  COOKIE_NAMES.WALLET_TOKEN,
+  COOKIE_NAMES.USER_ID_HASH,
+  COOKIE_NAMES.USER_CHAT,
+  COOKIE_NAMES.USER_STORIES,
+  COOKIE_NAMES.WALLET_USER,
+];
 
 const REGISTER_DEVICE_URL = "/auth/register-guest";
 
@@ -62,6 +78,12 @@ export async function POST(request: NextRequest) {
     // cookie + rotating MARKET_REFRESH_TOKEN)
     const cookieStore = await cookies();
     if (data.data?.token) {
+      // A fresh guest exists, so the previous identity is gone: clear its
+      // sub-service cookies in the same response that installs the new token.
+      // Gated on the token so a registration that returned 200 without one
+      // never strips a session that is still working.
+      await Promise.all(SUB_SERVICE_COOKIES.map(deleteSecureCookie));
+
       cookieStore.set({
         name: COOKIE_NAMES.MARKET_TOKEN,
         value: data.data.token,

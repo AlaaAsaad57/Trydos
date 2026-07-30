@@ -141,10 +141,10 @@ flowchart TD
     B -->|yes| Z["{loggingOut: true} — do nothing"]
     B -->|no| C{Refresh cookie still present?}
     C -->|yes| D["LAST-CHANCE refreshMarketSession()<br/>rescues race losers carrying<br/>the winner's rotated cookie"]
-    D -->|refreshed| E["{renewed: true} — session survives intact<br/>no nuke, no downgrade, no re-auth flags"]
+    D -->|refreshed| E["{renewed: true} — session survives intact<br/>no nuke, no downgrade, every sub-service token kept"]
     D -->|failed| F
     C -->|no| F["Snapshot wasVerified from User-Data<br/>(before anything is overwritten)"]
-    F --> G["NUKE: delete MARKET-TOKEN, MARKET-REFRESH-TOKEN,<br/>chat + stories tokens · flag chat/stories need_auth ·<br/>downgrade User-Data to unverified"]
+    F --> G["NUKE: delete MARKET-TOKEN, MARKET-REFRESH-TOKEN<br/>and every sub-service cookie — chat, stories,<br/>wallet, comments tokens + their user blobs ·<br/>downgrade User-Data to unverified"]
     G --> H["Register fresh guest on the gateway<br/>set new pair — app stays usable"]
     H --> I["Respond {expired: true, wasVerified}"]
 ```
@@ -183,6 +183,13 @@ to an anonymous guest** — one OTP puts them back into their real account.
    HttpOnly `Set-Cookie`; responses carry only booleans.
 5. **Logout wins.** The logout guard short-circuits every flow — nothing resurrects a
    session the user just ended.
+6. **A fresh guest inherits nothing.** All three guest re-register paths — `/expire`,
+   `/api/auth/register-device`, and the `HandleAuthedFetch` fallback — delete every
+   sub-service cookie (chat, stories, wallet, and comments, whose token lives in
+   `USER_ID_HASH`) in the same response that installs the new token. Otherwise the new
+   guest keeps calling those backends as the previous shopper. Each path clears them
+   only once a fresh token actually exists, so a failed registration never strips a
+   working session. `/api/auth/login` re-mints all of them on re-verify.
 6. **Backend routing is one rule.** Verified → core, guest → gateway — decided inside
    the shared helper only (same rule as `getMarketFetchBase`), never re-implemented
    by callers.
