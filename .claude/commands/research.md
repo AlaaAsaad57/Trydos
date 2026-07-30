@@ -1,111 +1,126 @@
 ---
-description: Investigate the repo (read-only), author research.md, and advance the ticket draft → ready-for-research. Atomic — nothing is written on validation failure.
+description: Look through the repo (read-only), write research.md, and move the ticket from draft to ready-for-research. All or nothing — nothing is written if a check fails.
 argument-hint: <slug>
 allowed-tools: Read, Grep, Glob, Write
 ---
 
 # /research
 
-For ticket `<slug>`: validate the ticket is ready, perform **read-only**
-repository discovery, write `_specs/<slug>/research.md`, and advance the ticket
-state `draft → ready-for-research` (appending a history entry).
+For ticket `<slug>`: check that the ticket is ready, look through the repository
+**without changing anything**, write `_specs/<slug>/research.md`, and move the
+ticket state from `draft` to `ready-for-research` (adding one history entry).
 
-**Atomic:** validate everything first. If any check fails, write **nothing** —
-neither `research.md` nor `ticket.md`. Repository investigation never mutates
-source or `protected_paths`.
+**All or nothing:** run every check first. If any check fails, write **nothing** —
+not `research.md` and not `ticket.md`. Looking through the repo never changes
+source code or any `protected_paths` file.
 
-Authoritative references (apply, do not reinvent):
-- Command contract: `.claude/docs/command-architecture.md` (`/research`)
-- **Validation: `.claude/rules/validation-model.md` — apply rule codes only; no
-  custom validation logic.**
-- State ownership: `.claude/rules/workflow-rules.md` + ADR-003.
+**Write in plain English.** Everything this command produces — every section of
+`research.md`, the wording of each `OQ-n` question, and the report it prints —
+must be easy to read: short sentences, everyday words, no jargon where a plain
+word works. Keep exact technical names (rule codes, state names, file paths,
+front-matter keys) as they are. See
+`.claude/rules/workflow-rules.md > Plain language`.
+
+Rules to follow (use them; do not make up your own):
+- What this command must do: `.claude/docs/command-architecture.md` (`/research`)
+- **Checks: `.claude/rules/validation-model.md` — use its rule codes. Do NOT
+  write checks of your own.**
+- Who owns the state: `.claude/rules/workflow-rules.md` + ADR-003.
 
 ## Inputs
 
-- `slug` (required) — workspace `_specs/<slug>/`. If missing, ask once.
+- `slug` (required) — the workspace `_specs/<slug>/`. If it is missing, ask once.
 
-## Step 1 — Validate (abort on any ERROR, writing nothing — RS-8)
+## Step 1 — Check (stop on any ERROR and write nothing — RS-8)
 
-Read `_specs/<slug>/ticket.md` and `intake.md`, then apply:
-- **TS-1 / TS-2 / TS-3** — `ticket.md` exists, valid; read current `state` here.
-- **RS-7 / CMD-1 / ST-2** — `state` must be `draft` **and** `intake.md` Readiness
-  Status must be `READY` (the legal source for the `→ ready-for-research`
-  transition). If `state` is already `ready-for-research`, skip the transition
-  and only refresh `research.md` (idempotent re-run). Otherwise abort.
-- **MO-1** — the single workflow form has no modes; `research` always applies.
-  `ticket.md > mode` must be the sole legal value `standard`; abort on any other
-  (`MO-1 ERROR: only the single workflow form is supported — ADR-011`).
+Read `_specs/<slug>/ticket.md` and `intake.md`, then use:
+- **TS-1 / TS-2 / TS-3** — `ticket.md` exists and is valid; read the current
+  `state` from it.
+- **RS-7 / CMD-1 / ST-2** — `state` must be `draft` **and** the Readiness Status
+  in `intake.md` must be `READY` (that is the only thing that allows the move to
+  `ready-for-research`). If `state` is already `ready-for-research`, skip the
+  state change and only rewrite `research.md` — running the command again is
+  safe. In any other case, stop.
+- **MO-1** — the single workflow form has no modes, so `research` always applies.
+  `ticket.md > mode` must be the one legal value `standard`; stop on anything
+  else (`MO-1 ERROR: only the single workflow form is supported — ADR-011`).
 
-If any ERROR fires, stop and report the rule code + message. **Make no writes.**
+If any ERROR fires, stop and report the rule code and the message. **Write nothing.**
 
-## Step 2 — Discover (read-only) and write research.md
+## Step 2 — Look through the repo (read-only) and write research.md
 
-Investigate using **Read / Grep / Glob only** (no mutation, no shell side
-effects). From the ticket goal in `intake.md`, gather: relevant directories;
-relevant config files (read `protected_paths` only to understand it, never
-modify); possibly affected services; available test/validation commands (list,
-do not run); risks/unknowns; open questions.
+Investigate with **Read, Grep, and Glob only** (change nothing, run no shell
+commands with side effects). Starting from the ticket goal in `intake.md`,
+collect: the directories that matter; the config files that matter (read
+`protected_paths` only to understand it, never change it); the services that
+might be affected; the test and validation commands that exist (list them, do not
+run them); risks and unknowns; and open questions.
 
-Give every open question a stable ID — `OQ-1`, `OQ-2`, … (RS-5, ADR-015). These
-IDs are what `/spec` must answer (SP-9) and, when deferred, `/plan` (PL-12), so a
-question raised here cannot be lost. Ask them here even when the answer looks
-obvious — an answer given in chat is not recorded anywhere and does not carry.
+Give every open question its own id — `OQ-1`, `OQ-2`, … (RS-5, ADR-015). These
+ids are what `/spec` has to answer (SP-9) and, when the answer is pushed back,
+what `/plan` has to answer (PL-12) — so a question raised here cannot get lost.
+Ask them here even when the answer looks obvious: an answer given in chat is not
+written down anywhere and does not carry over.
 
 Read `_specs/_templates/research.md` and write `_specs/<slug>/research.md`:
 - Front-matter: `ticket: <slug>`, `stage: research`, `mode: <ticket.md mode>`,
-  `status: complete`, `owner: ai_agent`, `updated: <today YYYY-MM-DD>`, `links`
-  mirrored from `ticket.md`.
-- Fill every section (RS-1..RS-5); leave the "Notes" read-only assertions intact.
+  `status: complete`, `owner: ai_agent`, `updated: <today YYYY-MM-DD>`, and
+  `links` copied from `ticket.md`.
+- Fill in every section (RS-1..RS-5). Leave the read-only statements in the
+  "Notes" section as they are.
 
-## Step 3 — Advance ticket state (TS-4)
+## Step 3 — Move the ticket state (TS-4)
 
-Only when entering from `state: draft`, update `_specs/<slug>/ticket.md` (the
-single state write):
+Only when you started from `state: draft`, update `_specs/<slug>/ticket.md` (the
+one place the state is written):
 - `state: ready-for-research`
 - `updated_at: <today>`
-- Append one state-history entry:
+- Add one state-history entry:
   ```yaml
   - state: ready-for-research
     event: research-started
     by: ai_agent
     timestamp: <today>
   ```
-(On an idempotent re-run already at `ready-for-research`, do not append a
-duplicate entry.)
+(When you re-run the command and the state is already `ready-for-research`, do
+not add a second entry.)
 
-## Postconditions — validate AFTER writing
+## Checks after you write
 
-- **RS-1..RS-5** — `research.md` contains relevant directories, config files,
-  affected services + validation commands, risks, and open questions **with
-  `OQ-n` IDs**.
+- **RS-1..RS-5** — `research.md` lists the directories, the config files, the
+  affected services and validation commands, the risks, and the open questions
+  **with `OQ-n` ids**.
 - **RS-6 / TS-4** — `ticket.md` updated once: `state = ready-for-research`,
-  `updated_at` bumped, history appended.
-- **CMD-2** — postcondition state = `ready-for-research`.
-- **FM-1..FM-8** — `research.md` front-matter valid; `mode` agrees with `ticket.md`.
-- **GU-1 / GU-3** — writes confined to `research.md` + `ticket.md`; repo read-only.
+  `updated_at` refreshed, one history entry added.
+- **CMD-2** — the state after this command is `ready-for-research`.
+- **FM-1..FM-8** — the front-matter of `research.md` is valid, and `mode` matches
+  `ticket.md`.
+- **GU-1 / GU-3** — you wrote only `research.md` and `ticket.md`; the rest of the
+  repo was only read.
 
 ## MUST NOT
 
-- Do **not** advance state beyond `ready-for-research` (the `ready-for-research →
-  research-complete` transition is owned by `/spec`).
-- Do **not** modify source code or any `protected_paths` runtime file.
-- Do **not** run validation/test commands — only discover and list them.
-- Do **not** create any other artifact or a branch.
-- Do **not** perform a partial write: if Step 1 fails, nothing is written (RS-8).
+- Do **not** move the state past `ready-for-research` (the step from
+  `ready-for-research` to `research-complete` belongs to `/spec`).
+- Do **not** change source code or any `protected_paths` file.
+- Do **not** run validation or test commands — only find them and list them.
+- Do **not** create any other file, and do **not** create a branch.
+- Do **not** write only part of the work: if Step 1 fails, nothing is written
+  (RS-8).
 
 ## Report
 
-State that `_specs/<slug>/research.md` was created (read-only discovery), that
-`ticket.md` advanced `draft → ready-for-research` (history appended), and the
-next step: run `/spec`.
+Say that `_specs/<slug>/research.md` was created (from read-only investigation),
+that `ticket.md` moved from `draft` to `ready-for-research` (history entry
+added), and what comes next: run `/spec`.
 
 ## Next step (NS-1..NS-4)
 
-Emit the next-step block (`command-architecture.md §6`):
+Print the next-step block (`command-architecture.md §6`):
 
 - **Current state:** `ready-for-research`
 - **Next command:** `/spec <slug>`
 - **Required actions:** none
-- **Optional actions:** re-run `/research <slug>` to refresh `research.md`
-  (idempotent — no re-transition).
+- **Optional actions:** run `/research <slug>` again to refresh `research.md`
+  (safe to repeat — the state does not move a second time).
 - **Terminal?** no
