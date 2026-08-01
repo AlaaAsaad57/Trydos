@@ -9,6 +9,7 @@ import { fetchData } from "utils/fetchData";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 import { REQUESTS_DATA } from "utils/Requests";
+import { GetTicket } from "utils/UploadUtils";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
@@ -112,12 +113,13 @@ class StoryService {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server upload is not configured");
     }
-
+    let IsVideo=file.type.startsWith("video/");
+     let ticket=await GetTicket("stories",IsVideo,1);
     const form = new FormData();
     form.append("file", file);
     form.append("folder", "stories");
 
-    const uploadUrl = file.type.startsWith("video/")
+    const uploadUrl = IsVideo
       ? `${MEDIA_SERVER_BASE_URL}/upload?story=true`
       : `${MEDIA_SERVER_BASE_URL}/upload`;
 
@@ -125,6 +127,7 @@ class StoryService {
       method: "POST",
       headers: {
         "x-api-key": MEDIA_API_KEY,
+        "X-Upload-Ticket": ticket,
       },
       body: form,
     });

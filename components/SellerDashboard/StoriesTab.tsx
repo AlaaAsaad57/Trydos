@@ -20,6 +20,7 @@ import {
   LoadingState,
   dashInputClass,
 } from "components/SellerDashboard/ui";
+import { GetTicket } from "utils/UploadUtils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -473,6 +474,7 @@ function UploadStoryModal({
     }
     try {
       setUploading(true);
+ 
       const { url, durationSeconds } =
         await SellerDashboardService.uploadStoryToMediaServer(selectedFile);
       const filePath = process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL + url;

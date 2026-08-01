@@ -1,6 +1,7 @@
 import { fetchData } from "utils/fetchData";
 import { toServiceToken } from "utils/serviceTokens";
 import { REQUESTS_DATA } from "utils/Requests";
+import { GetTicket } from "utils/UploadUtils";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
@@ -331,15 +332,17 @@ class SellerDashboardService {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server upload is not configured");
     }
+    let IsVideo=file.type.startsWith("video/");
+     let ticket=await GetTicket("stories",IsVideo,1);
     const form = new FormData();
     form.append("file", file);
     form.append("folder", "stories");
-    const uploadUrl = file.type.startsWith("video/")
-      ? `${MEDIA_SERVER_BASE_URL}/upload?story=true`
-      : `${MEDIA_SERVER_BASE_URL}/upload`;
+    const uploadUrl = IsVideo
+      ? `${MEDIA_SERVER_BASE_URL}/gated/upload?story=true`
+      : `${MEDIA_SERVER_BASE_URL}/gated/upload`;
     const response = await fetch(uploadUrl, {
       method: "POST",
-      headers: { "x-api-key": MEDIA_API_KEY },
+      headers: { "x-api-key": MEDIA_API_KEY ,"X-Upload-Ticket":ticket},
       body: form,
     });
     let data: any = null;
@@ -436,13 +439,14 @@ class SellerDashboardService {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server is not configured");
     }
+    let ticket=await GetTicket(folder,false,files.length);
     const form = new FormData();
     form.append("folder", folder);
     files.forEach((file) => form.append("files", file));
 
-    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload/bulk`, {
+    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/gated/upload/bulk`, {
       method: "POST",
-      headers: { "x-api-key": MEDIA_API_KEY },
+      headers: { "x-api-key": MEDIA_API_KEY ,"X-Upload-Ticket":ticket},
       body: form,
     });
 
@@ -575,13 +579,17 @@ class SellerDashboardService {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server upload is not configured");
     }
+    let ticket=await GetTicket(folder,false,1);
     const form = new FormData();
     form.append("file", file);
     form.append("folder", folder);
 
-    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload`, {
+    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/gated/upload`, {
       method: "POST",
-      headers: { "x-api-key": MEDIA_API_KEY },
+      headers: {
+        "x-api-key": MEDIA_API_KEY,
+        "X-Upload-Ticket": ticket,
+      },
       body: form,
     });
 
@@ -741,16 +749,16 @@ class SellerDashboardService {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server upload is not configured");
     }
-
+    let ticket=await GetTicket(folder,false,1);
     // folder must be in the query string — it's read before the file streams.
     const form = new FormData();
     form.append("file", file);
 
     const response = await fetch(
-      `${MEDIA_SERVER_BASE_URL}/upload/excel?folder=${encodeURIComponent(folder)}`,
+      `${MEDIA_SERVER_BASE_URL}/gated/upload/excel?folder=${encodeURIComponent(folder)}`,
       {
         method: "POST",
-        headers: { "x-api-key": MEDIA_API_KEY },
+        headers: { "x-api-key": MEDIA_API_KEY, "X-Upload-Ticket": ticket },
         body: form,
       },
     );

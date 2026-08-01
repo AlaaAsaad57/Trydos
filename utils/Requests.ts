@@ -285,4 +285,5 @@ export const REQUESTS_DATA = {
   ADD_PRODUCT: { reqTitle: "ADD_PRODUCT", code: 189 },
   GET_CATEGORY_LOOKUPS: { reqTitle: "GET_CATEGORY_LOOKUPS", code: 190 },
   SYNC_PRODUCT_DESCRIPTORS: { reqTitle: "SYNC_PRODUCT_DESCRIPTORS", code: 191 },
+  GET_TICKET: { reqTitle: "GET_TICKET", code: 192 },
 };

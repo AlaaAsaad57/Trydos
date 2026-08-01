@@ -13,7 +13,7 @@ import { useAppStore } from "../store";
 import { toServiceToken } from "./serviceTokens";
 
 // ---------- Types ----------
-type ServerType =
+export type ServerType =
   | "chat"
   | "market"
   | "stories"
@@ -25,6 +25,7 @@ type ServerType =
   | "market-dashboard";
 
 type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+const LOCAL_AUTEHD_ROUTES = ["/api/auth/login", "/api/ticket"];
 
 interface FetchDataParams {
   url: string;
@@ -184,7 +185,7 @@ const handleUnauthorized = async (
       case "market-dashboard":
       case "local":
         if (
-          (server === "local" && options?.url.includes("/api/auth/login")) ||
+          (server === "local" && LOCAL_AUTEHD_ROUTES.includes(options.url)) ||
           server === "market-dashboard" ||
           server === "market"
         ) {
