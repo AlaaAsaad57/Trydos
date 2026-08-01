@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useSellerProfile } from "../../../app/(client)/[lang]/sellerProfile/SellerProfileContext";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, LogError } from "utils/functions";
+import { FlagIcon } from "utils/tinyUtils";
 import { useAppStore } from "store";
 import {
   showErrorMessage,
@@ -23,18 +24,24 @@ import {
   buildDiff,
   buildFormFromEdit,
   buildUpdateFormData,
+  CategoryDiffItem,
   CategoryLookup,
+  CountryDiffItem,
+  DescriptorDiffItem,
   DescriptorGroup,
   DiffEntry,
   emptyProductForm,
   fileName,
   ImageItem,
+  ListDiffItem,
   Lookups,
   mapServerErrors,
   ProductForm,
   sameDescriptorValues,
   scrollToFirstError,
+  TranslationDiffItem,
   validate,
+  VariantDiffItem,
 } from "./helpers";
 import {
   CoreSection,
@@ -1040,16 +1047,296 @@ export default function ProductEditor({
 
 /* ------------------------------- dialogs --------------------------------- */
 
-function Scrim({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+function Scrim({
+  children,
+  onClose,
+  maxWidth = "max-w-[720px]",
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  maxWidth?: string;
+}) {
   return (
     <div className="fixed inset-0 z-[999999999] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/45" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} />
       <div
-        className="relative bg-white rounded-[20px] z-10 w-full max-w-[400px] max-h-[85vh] flex flex-col overflow-hidden"
-        style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
+        className={`relative bg-white rounded-[20px] z-10 w-full ${maxWidth} max-h-[88vh] flex flex-col overflow-hidden transition-all duration-200`}
+        style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.2)" }}
       >
         {children}
       </div>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status?: "added" | "removed" | "modified" | "changed" | string }) {
+  if (status === "added") {
+    return (
+      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#eaf7ef] text-[#2ea84f] border border-[#bce8c9]">
+        {t("Added")}
+      </span>
+    );
+  }
+  if (status === "removed") {
+    return (
+      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#fff1f1] text-[#f85555] border border-[#ffd1d1]">
+        {t("Removed")}
+      </span>
+    );
+  }
+  if (status === "modified" || status === "changed") {
+    return (
+      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#edf5ff] text-[#2b7fff] border border-[#cbe1ff]">
+        {t("Updated")}
+      </span>
+    );
+  }
+  return null;
+}
+
+function TranslationsDiffView({ details }: { details: TranslationDiffItem[] }) {
+  return (
+    <div className="space-y-3 mt-2.5 pt-2.5 border-t border-[#e5e7eb]">
+      {details.map((tr, idx) => (
+        <div key={idx} className="bg-white rounded-[10px] p-3 border border-[#e5e7eb] space-y-2 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#3c3c3c]" />
+              <span className="text-[13px] font-bold text-[#3c3c3c]">{tr.langName}</span>
+            </div>
+            <StatusBadge status={tr.status} />
+          </div>
+          <div className="space-y-1.5 pl-3">
+            {tr.changes.map((c, i) => (
+              <div key={i} className="flex flex-wrap items-center gap-2 text-[12px] bg-[#f9fafb] p-2 rounded-[8px] border border-[#f3f4f6]">
+                <span className="font-medium text-[#6b7280] min-w-[110px]">{c.fieldLabel}:</span>
+                <span className="text-[#9ca3af] line-through max-w-[200px] truncate">{c.from}</span>
+                <DashIcon name="chevronRight" size={12} className="text-[#9ca3af]" />
+                <span className="font-semibold text-[#111827] flex-1 min-w-[120px]">{c.to}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function VariantsDiffView({ details }: { details: VariantDiffItem[] }) {
+  return (
+    <div className="space-y-3 mt-2.5 pt-2.5 border-t border-[#e5e7eb]">
+      {details.map((v, idx) => (
+        <div key={idx} className="bg-white rounded-[10px] p-3 border border-[#e5e7eb] space-y-2 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {v.colorCode && (
+                <span
+                  className="w-4 h-4 rounded-full border border-black/10 shadow-sm shrink-0"
+                  style={{ backgroundColor: v.colorCode }}
+                />
+              )}
+              <span className="text-[13px] font-bold text-[#3c3c3c]">{v.title}</span>
+            </div>
+            <StatusBadge status={v.status} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-1">
+            {v.changes.map((c, i) => (
+              <div key={i} className="flex items-center justify-between gap-2 text-[12px] bg-[#f9fafb] p-2 rounded-[8px] border border-[#f3f4f6]">
+                <span className="font-medium text-[#6b7280]">{c.fieldLabel}:</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[#9ca3af] line-through">{c.from}</span>
+                  <DashIcon name="chevronRight" size={12} className="text-[#9ca3af]" />
+                  <span className="font-bold text-[#111827]">{c.to}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ImagesDiffView({ details }: { details: DiffEntry["imageDetails"] }) {
+  if (!details) return null;
+  const { added, removed, newList } = details;
+
+  return (
+    <div className="space-y-3 mt-2.5 pt-2.5 border-t border-[#e5e7eb]">
+      {added.length > 0 && (
+        <div className="space-y-1.5">
+          <span className="text-[11px] font-semibold text-[#2ea84f] uppercase tracking-wider">{t("New Images Added")} ({added.length})</span>
+          <div className="flex flex-wrap gap-2">
+            {added.map((img, i) => (
+              <div key={i} className="relative w-14 h-14 rounded-[8px] overflow-hidden border border-[#bce8c9] bg-white group shadow-2xs">
+                <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                <div className="absolute top-0 right-0 bg-[#2ea84f] text-white p-0.5 rounded-bl text-[9px]">
+                  <DashIcon name="check" size={10} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {removed.length > 0 && (
+        <div className="space-y-1.5">
+          <span className="text-[11px] font-semibold text-[#f85555] uppercase tracking-wider">{t("Removed Images")} ({removed.length})</span>
+          <div className="flex flex-wrap gap-2">
+            {removed.map((img, i) => (
+              <div key={i} className="relative w-14 h-14 rounded-[8px] overflow-hidden border border-[#ffd1d1] bg-white opacity-70">
+                <img src={img.url} alt={img.name} className="w-full h-full object-cover grayscale" />
+                <div className="absolute top-0 right-0 bg-[#f85555] text-white p-0.5 rounded-bl text-[9px]">
+                  <DashIcon name="close" size={10} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-1.5">
+        <span className="text-[11px] font-semibold text-[#6b7280] uppercase tracking-wider">{t("Updated Gallery Preview")} ({newList.length})</span>
+        <div className="flex flex-wrap gap-2">
+          {newList.map((img, i) => (
+            <div key={i} className="w-12 h-12 rounded-[6px] overflow-hidden border border-[#e5e7eb] bg-white shadow-2xs">
+              <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ColorsDiffView({ details }: { details: DiffEntry["colorDetails"] }) {
+  if (!details) return null;
+  const { oldList, newList } = details;
+
+  return (
+    <div className="space-y-3 mt-2.5 pt-2.5 border-t border-[#e5e7eb]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="bg-[#f9fafb] p-2.5 rounded-[10px] border border-[#f3f4f6] space-y-1.5">
+          <span className="text-[11px] font-semibold text-[#6b7280]">{t("Original Colors")} ({oldList.length})</span>
+          <div className="flex flex-wrap gap-1.5">
+            {oldList.map((c, i) => (
+              <div key={i} className="flex items-center gap-1.5 px-2 py-1 bg-white rounded-[6px] border border-[#e5e7eb] text-[11px]">
+                <span className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: c.code }} />
+                <span className="font-medium text-[#374151]">{c.translatedName || c.name}</span>
+              </div>
+            ))}
+            {oldList.length === 0 && <span className="text-[11px] text-[#9ca3af] italic">{t("None")}</span>}
+          </div>
+        </div>
+
+        <div className="bg-[#f9fafb] p-2.5 rounded-[10px] border border-[#f3f4f6] space-y-1.5">
+          <span className="text-[11px] font-semibold text-[#111827]">{t("New Selection")} ({newList.length})</span>
+          <div className="flex flex-wrap gap-1.5">
+            {newList.map((c, i) => (
+              <div key={i} className="flex items-center gap-1.5 px-2 py-1 bg-white rounded-[6px] border border-[#2ea84f]/40 text-[11px]">
+                <span className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: c.code }} />
+                <span className="font-semibold text-[#111827]">{c.translatedName || c.name}</span>
+              </div>
+            ))}
+            {newList.length === 0 && <span className="text-[11px] text-[#9ca3af] italic">{t("None")}</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CountriesDiffView({ details }: { details: CountryDiffItem[] }) {
+  if (!details || details.length === 0) return null;
+
+  return (
+    <div className="space-y-2 mt-2.5 pt-2.5 border-t border-[#e5e7eb]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {details.map((c, idx) => (
+          <div key={idx} className="flex items-center justify-between p-2 rounded-[8px] bg-white border border-[#e5e7eb] text-[12px] shadow-2xs">
+            <div className="flex items-center gap-2">
+              <FlagIcon iso={c.iso} />
+              <span className="font-semibold text-[#374151]">{c.name}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {c.oldExtraPrice !== undefined && c.extraPrice !== undefined ? (
+                <div className="flex items-center gap-1 text-[11px]">
+                  <span className="text-[#9ca3af] line-through">{c.oldExtraPrice}</span>
+                  <DashIcon name="chevronRight" size={11} />
+                  <span className="font-bold text-[#111827]">{c.extraPrice}</span>
+                </div>
+              ) : c.extraPrice !== undefined ? (
+                <span className="font-bold text-[#2ea84f]">+{c.extraPrice}</span>
+              ) : null}
+              <StatusBadge status={c.status} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CategoriesDiffView({ details }: { details: CategoryDiffItem[] }) {
+  if (!details || details.length === 0) return null;
+
+  return (
+    <div className="space-y-3 mt-2.5 pt-2.5 border-t border-[#e5e7eb]">
+      {details.map((cat, idx) => (
+        <div key={idx} className="bg-white p-2.5 rounded-[8px] border border-[#e5e7eb] space-y-1.5 shadow-2xs">
+          <span className="text-[12px] font-bold text-[#374151]">{cat.groupLabel}</span>
+          <div className="flex flex-wrap gap-1.5">
+            {cat.added.map((name, i) => (
+              <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#eaf7ef] text-[#2ea84f] border border-[#bce8c9]">
+                + {name}
+              </span>
+            ))}
+            {cat.removed.map((name, i) => (
+              <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#fff1f1] text-[#f85555] border border-[#ffd1d1] line-through">
+                - {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DescriptorsDiffView({ details }: { details: DescriptorDiffItem[] }) {
+  if (!details || details.length === 0) return null;
+
+  return (
+    <div className="space-y-2 mt-2.5 pt-2.5 border-t border-[#e5e7eb]">
+      {details.map((d, idx) => (
+        <div key={idx} className="flex items-center justify-between p-2 rounded-[8px] bg-white border border-[#e5e7eb] text-[12px] shadow-2xs">
+          <span className="font-medium text-[#4b5563]">{d.name}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[#9ca3af] line-through max-w-[120px] truncate">{d.from}</span>
+            <DashIcon name="chevronRight" size={12} className="text-[#9ca3af]" />
+            <span className="font-semibold text-[#111827] max-w-[160px] truncate">{d.to}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ListDiffView({ details }: { details: ListDiffItem }) {
+  if (!details) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-2.5 pt-2.5 border-t border-[#e5e7eb]">
+      {details.added.map((name, i) => (
+        <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#eaf7ef] text-[#2ea84f] border border-[#bce8c9]">
+          + {name}
+        </span>
+      ))}
+      {details.removed.map((name, i) => (
+        <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#fff1f1] text-[#f85555] border border-[#ffd1d1] line-through">
+          - {name}
+        </span>
+      ))}
     </div>
   );
 }
@@ -1067,38 +1354,140 @@ function ConfirmDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const [expandedKeys, setExpandedKeys] = useState<Record<string, boolean>>({});
+
+  const toggleExpand = (key: string) => {
+    setExpandedKeys((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
-    <Scrim onClose={onCancel}>
-      <div className="p-5 border-b border-[#ededed]">
-        <h3 className="text-[16px] bold text-[#3c3c3c]">
+    <Scrim onClose={onCancel} maxWidth="max-w-[720px]">
+      <div className="p-5 border-b border-[#ededed] bg-[#fafafa]">
+        <h3 className="text-[16px] font-bold text-[#111827]">
           {create ? t("Confirm new product") : t("Confirm changes")}
         </h3>
-        <p className="text-[12px] text-[#8e8e8e] mt-0.5">
+        <p className="text-[12px] text-[#6b7280] mt-0.5">
           {create
-            ? `${t("These details will be saved")} (${diff.length}).`
-            : `${t("These fields will be updated")} (${diff.length}).`}
+            ? `${t("These details will be saved")} (${diff.length} ${t("item(s)")}).`
+            : `${t("These fields will be updated")} (${diff.length} ${t("item(s)")}).`}
         </p>
       </div>
-      <div className="p-5 overflow-auto space-y-2.5 w-full">
-        {diff.map((d, i) => (
-          <div
-            key={i}
-            className="flex items-start gap-3 p-3 rounded-[12px] bg-[#f8f8f8] border border-[#ededed]"
-          >
-            <span className="text-[12px] medium text-[#505050] w-[40%] shrink-0">
-              {d.label}
-            </span>
-            <span className="text-[12px] text-[#b8b8b8] line-through truncate max-w-[28%]">
-              {d.from}
-            </span>
-            <DashIcon name="chevronRight" size={13} />
-            <span className="text-[12px] semibold text-[#3c3c3c] truncate flex-1">
-              {d.to}
-            </span>
-          </div>
-        ))}
+      <div className="p-5 overflow-y-auto space-y-3 w-full max-h-[60vh]">
+        {diff.map((d, i) => {
+          const key = d.key || `diff-${i}`;
+          const isExpandable =
+            d.type === "translations" ||
+            d.type === "variants" ||
+            d.type === "image" ||
+            d.type === "color" ||
+            d.type === "country" ||
+            d.type === "categories" ||
+            d.type === "descriptors" ||
+            d.type === "list";
+
+          const isExpanded = !!expandedKeys[key];
+
+          return (
+            <div
+              key={key}
+              className="p-3.5 rounded-[14px] bg-[#f9fafb] border border-[#e5e7eb] shadow-2xs transition-all duration-150"
+            >
+              <div
+                className={`flex items-center justify-between gap-3 ${
+                  isExpandable ? "cursor-pointer select-none" : ""
+                }`}
+                onClick={isExpandable ? () => toggleExpand(key) : undefined}
+              >
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-[13px] font-semibold text-[#1f2937]">
+                    {d.label}
+                  </span>
+                  {d.type === "translations" && d.translationsDetails && (
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#edf5ff] text-[#2b7fff] border border-[#cbe1ff]">
+                      {d.translationsDetails.length} {t("languages")}
+                    </span>
+                  )}
+                  {d.type === "variants" && d.variantsDetails && (
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#f3e8ff] text-[#7e22ce] border border-[#e9d5ff]">
+                      {d.variantsDetails.length} {t("variants")}
+                    </span>
+                  )}
+                  {d.type === "image" && d.imageDetails && (
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#eaf7ef] text-[#2ea84f] border border-[#bce8c9]">
+                      {d.to}
+                    </span>
+                  )}
+                  {d.type === "color" && d.colorDetails && (
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#fff8eb] text-[#d97706] border border-[#fef3c7]">
+                      {d.colorDetails.newList.length} {t("colors")}
+                    </span>
+                  )}
+                  {d.type === "country" && d.countryDetails && (
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#f3f4f6] text-[#374151] border border-[#e5e7eb]">
+                      {d.countryDetails.length} {t("countries")}
+                    </span>
+                  )}
+                </div>
+
+                {!isExpandable && d.from !== undefined && d.to !== undefined && (
+                  <div className="flex items-center gap-2 text-[12px] shrink-0">
+                    <span className="text-[#9ca3af] line-through max-w-[120px] truncate">
+                      {d.from}
+                    </span>
+                    <DashIcon name="chevronRight" size={12} className="text-[#9ca3af]" />
+                    <span className="font-bold text-[#111827] max-w-[160px] truncate">
+                      {d.to}
+                    </span>
+                  </div>
+                )}
+
+                {isExpandable && (
+                  <button
+                    type="button"
+                    className="p-1 rounded-full hover:bg-black/5 text-[#6b7280] transition-colors"
+                  >
+                    <DashIcon
+                      name={isExpanded ? "chevronDown" : "chevronRight"}
+                      size={16}
+                    />
+                  </button>
+                )}
+              </div>
+
+              {/* Nested Expandable Views */}
+              {isExpandable && isExpanded && (
+                <>
+                  {d.type === "translations" && d.translationsDetails && (
+                    <TranslationsDiffView details={d.translationsDetails} />
+                  )}
+                  {d.type === "variants" && d.variantsDetails && (
+                    <VariantsDiffView details={d.variantsDetails} />
+                  )}
+                  {d.type === "image" && d.imageDetails && (
+                    <ImagesDiffView details={d.imageDetails} />
+                  )}
+                  {d.type === "color" && d.colorDetails && (
+                    <ColorsDiffView details={d.colorDetails} />
+                  )}
+                  {d.type === "country" && d.countryDetails && (
+                    <CountriesDiffView details={d.countryDetails} />
+                  )}
+                  {d.type === "categories" && d.categoryDetails && (
+                    <CategoriesDiffView details={d.categoryDetails} />
+                  )}
+                  {d.type === "descriptors" && d.descriptorDetails && (
+                    <DescriptorsDiffView details={d.descriptorDetails} />
+                  )}
+                  {d.type === "list" && d.listDetails && (
+                    <ListDiffView details={d.listDetails} />
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
-      <div className="p-4 border-t border-[#ededed] flex gap-3 w-full">
+      <div className="p-4 border-t border-[#ededed] bg-[#fafafa] flex gap-3 w-full">
         <DashButton variant="ghost" fullWidth onClick={onCancel} disabled={saving}>
           {t("Cancel")}
         </DashButton>

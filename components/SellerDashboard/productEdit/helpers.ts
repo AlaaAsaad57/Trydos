@@ -342,10 +342,109 @@ export interface VariantCombo {
   sizeName?: string;
 }
 
-export interface DiffEntry {
-  label: string;
+export type DiffType =
+  | "text"
+  | "image"
+  | "color"
+  | "country"
+  | "variants"
+  | "translations"
+  | "categories"
+  | "descriptors"
+  | "list";
+
+export interface ColorDiffItem {
+  code: string;
+  name: string;
+  translatedName?: string;
+  status?: "added" | "removed" | "kept";
+}
+
+export interface CountryDiffItem {
+  iso: string;
+  name: string;
+  extraPrice?: string;
+  oldExtraPrice?: string;
+  status?: "added" | "removed" | "changed" | "kept";
+}
+
+export interface ImageDiffItem {
+  name: string;
+  url: string;
+  status?: "added" | "removed" | "kept";
+}
+
+export interface VariantFieldDiff {
+  fieldLabel: string;
   from: string;
   to: string;
+}
+
+export interface VariantDiffItem {
+  key: string;
+  title: string;
+  colorCode?: string;
+  colorName?: string;
+  sizeName?: string;
+  status: "added" | "removed" | "modified";
+  changes: VariantFieldDiff[];
+}
+
+export interface TranslationFieldDiff {
+  fieldLabel: string;
+  from: string;
+  to: string;
+}
+
+export interface TranslationDiffItem {
+  langCode: string;
+  langName: string;
+  status: "added" | "removed" | "modified";
+  changes: TranslationFieldDiff[];
+}
+
+export interface CategoryDiffItem {
+  groupLabel: string;
+  added: string[];
+  removed: string[];
+}
+
+export interface DescriptorDiffItem {
+  descriptorId: number;
+  name: string;
+  from: string;
+  to: string;
+}
+
+export interface ListDiffItem {
+  added: string[];
+  removed: string[];
+}
+
+export interface DiffEntry {
+  key: string;
+  label: string;
+  from?: string;
+  to?: string;
+  type?: DiffType;
+  imageDetails?: {
+    oldList: ImageDiffItem[];
+    newList: ImageDiffItem[];
+    added: ImageDiffItem[];
+    removed: ImageDiffItem[];
+  };
+  colorDetails?: {
+    oldList: ColorDiffItem[];
+    newList: ColorDiffItem[];
+    added: ColorDiffItem[];
+    removed: ColorDiffItem[];
+  };
+  countryDetails?: CountryDiffItem[];
+  variantsDetails?: VariantDiffItem[];
+  translationsDetails?: TranslationDiffItem[];
+  categoryDetails?: CategoryDiffItem[];
+  descriptorDetails?: DescriptorDiffItem[];
+  listDetails?: ListDiffItem;
 }
 
 /* -------------------------------- helpers -------------------------------- */
@@ -1224,156 +1323,634 @@ export function buildDiff(
   lookups: Lookups,
 ): DiffEntry[] {
   const out: DiffEntry[] = [];
-  const push = (label: string, from: any, to: any) => {
+  const push = (key: string, label: string, from: any, to: any) => {
     const f = String(from ?? "");
     const t = String(to ?? "");
-    if (f !== t) out.push({ label, from: trunc(f), to: trunc(t) });
+    if (f !== t) out.push({ key, label, from: trunc(f), to: trunc(t), type: "text" });
   };
 
-  for (const [key, label] of SCALARS) {
-    push(tx(label), initial[key], current[key]);
-  }
-
   const brandName = (id: string) => {
-    const b = lookups.brands.find((b) => String(b.id) === id);
+    const b = (lookups.brands || []).find((b) => String(b.id) === id);
     return b ? (b.translated_name ?? b.name) : id || "—";
   };
   const boutiqueName = (id: string) => {
-    const b = lookups.boutiques.find((b) => String(b.id) === id);
+    const b = (lookups.boutiques || []).find((b) => String(b.id) === id);
     return b ? (b.translated_name ?? b.name) : id || "—";
   };
-  if (initial.brand_id !== current.brand_id)
-    out.push({
-      label: tx("Brand"),
-      from: brandName(initial.brand_id),
-      to: brandName(current.brand_id),
-    });
-  if (initial.boutique_id !== current.boutique_id)
-    out.push({
-      label: tx("Boutique"),
-      from: boutiqueName(initial.boutique_id),
-      to: boutiqueName(current.boutique_id),
-    });
   const locationName = (id: string) => {
     const l = (lookups.locations || []).find((x) => String(x.id) === id);
     return l ? locationLabel(l) : id || "—";
   };
-  if (initial.location_id !== current.location_id)
+  const countryName = (iso: string) => {
+    if (!iso) return "—";
+    const c = (lookups.countries || []).find(
+      (x) => x.iso.toLowerCase() === iso.toLowerCase()
+    );
+    return c ? c.nicename : iso.toUpperCase();
+  };
+
+  // 1. Scalar Text/Numeric Fields (excluding origin_country_iso which is handled below with flag)
+  for (const [key, label] of SCALARS) {
+    if (key === "origin_country_iso") continue;
+    push(String(key), tx(label), initial[key], current[key]);
+  }
+
+  // 2. Brand, Boutique, Location
+  if (initial.brand_id !== current.brand_id) {
     out.push({
+      key: "brand_id",
+      label: tx("Brand"),
+      from: brandName(initial.brand_id),
+      to: brandName(current.brand_id),
+      type: "text",
+    });
+  }
+  if (initial.boutique_id !== current.boutique_id) {
+    out.push({
+      key: "boutique_id",
+      label: tx("Boutique"),
+      from: boutiqueName(initial.boutique_id),
+      to: boutiqueName(current.boutique_id),
+      type: "text",
+    });
+  }
+  if (initial.location_id !== current.location_id) {
+    out.push({
+      key: "location_id",
       label: tx("Location"),
       from: locationName(initial.location_id),
       to: locationName(current.location_id),
+      type: "text",
     });
+  }
 
-  push(
-    tx("Multiply Shipping × Qty"),
-    initial.multiply_qty ? tx("On") : tx("Off"),
-    current.multiply_qty ? tx("On") : tx("Off"),
-  );
-  push(
-    tx("Packed After Ordering"),
-    initial.packed_after_ordering ? tx("On") : tx("Off"),
-    current.packed_after_ordering ? tx("On") : tx("Off"),
-  );
+  // 3. Flags / Switches
+  if (initial.multiply_qty !== current.multiply_qty) {
+    out.push({
+      key: "multiply_qty",
+      label: tx("Multiply Shipping × Qty"),
+      from: initial.multiply_qty ? tx("On") : tx("Off"),
+      to: current.multiply_qty ? tx("On") : tx("Off"),
+      type: "text",
+    });
+  }
+  if (initial.packed_after_ordering !== current.packed_after_ordering) {
+    out.push({
+      key: "packed_after_ordering",
+      label: tx("Packed After Ordering"),
+      from: initial.packed_after_ordering ? tx("On") : tx("Off"),
+      to: current.packed_after_ordering ? tx("On") : tx("Off"),
+      type: "text",
+    });
+  }
 
-  const cnt = (label: string, a: any[], b: any[]) =>
-    push(tx(label), `${a.length} ${tx("item(s)")}`, `${b.length} ${tx("item(s)")}`);
-  if (!eqArr(initial.category_id, current.category_id))
-    cnt("Main Categories", initial.category_id, current.category_id);
-  if (!eqArr(initial.sub_category_id, current.sub_category_id))
-    cnt("Sub Categories", initial.sub_category_id, current.sub_category_id);
-  if (!eqArr(initial.sub_sub_category_id, current.sub_sub_category_id))
-    cnt("Sub-sub Categories", initial.sub_sub_category_id, current.sub_sub_category_id);
-  if (!eqArr(initial.labels, current.labels))
-    cnt("Labels", initial.labels, current.labels);
-  if (!eqArr(initial.tags_ids, current.tags_ids))
-    cnt("Tags", initial.tags_ids, current.tags_ids);
-  // Descriptors: one row per changed attribute, named from the (merged) lookups.
-  // They persist through their own sync endpoint but ride the same Save action,
-  // so they belong in the same confirm diff.
+  // 4. Origin Country (with Flag)
+  if (initial.origin_country_iso !== current.origin_country_iso) {
+    const oldIso = initial.origin_country_iso;
+    const newIso = current.origin_country_iso;
+    const countryDetails: CountryDiffItem[] = [];
+    if (oldIso) {
+      countryDetails.push({ iso: oldIso, name: countryName(oldIso), status: "removed" });
+    }
+    if (newIso) {
+      countryDetails.push({ iso: newIso, name: countryName(newIso), status: "added" });
+    }
+    if (countryDetails.length > 0) {
+      out.push({
+        key: "origin_country_iso",
+        label: tx("Origin Country"),
+        type: "country",
+        countryDetails,
+      });
+    }
+  }
+
+  // 5. Restricted Countries (with Flags)
+  if (!eqArr(initial.countries_iso, current.countries_iso)) {
+    const initialSet = new Set(initial.countries_iso);
+    const currentSet = new Set(current.countries_iso);
+    const countryDetails: CountryDiffItem[] = [];
+
+    for (const iso of current.countries_iso) {
+      if (!initialSet.has(iso)) {
+        countryDetails.push({ iso, name: countryName(iso), status: "added" });
+      }
+    }
+    for (const iso of initial.countries_iso) {
+      if (!currentSet.has(iso)) {
+        countryDetails.push({ iso, name: countryName(iso), status: "removed" });
+      }
+    }
+
+    if (countryDetails.length > 0) {
+      out.push({
+        key: "countries_iso",
+        label: tx("Restricted Countries"),
+        type: "country",
+        countryDetails,
+      });
+    }
+  }
+
+  // 6. Per-country Extra Price (with Flags)
+  if (
+    JSON.stringify(initial.extra_price_for_country) !==
+    JSON.stringify(current.extra_price_for_country)
+  ) {
+    const oldMap = new Map(
+      (initial.extra_price_for_country || []).map((x) => [
+        x.country_iso.toUpperCase(),
+        x.extra_price,
+      ])
+    );
+    const newMap = new Map(
+      (current.extra_price_for_country || []).map((x) => [
+        x.country_iso.toUpperCase(),
+        x.extra_price,
+      ])
+    );
+    const allIsos = Array.from(new Set([...oldMap.keys(), ...newMap.keys()]));
+    const countryDetails: CountryDiffItem[] = [];
+
+    for (const iso of allIsos) {
+      const oldPrice = oldMap.get(iso);
+      const newPrice = newMap.get(iso);
+      if (oldPrice === undefined && newPrice !== undefined) {
+        countryDetails.push({
+          iso,
+          name: countryName(iso),
+          extraPrice: newPrice,
+          status: "added",
+        });
+      } else if (oldPrice !== undefined && newPrice === undefined) {
+        countryDetails.push({
+          iso,
+          name: countryName(iso),
+          oldExtraPrice: oldPrice,
+          status: "removed",
+        });
+      } else if (oldPrice !== newPrice) {
+        countryDetails.push({
+          iso,
+          name: countryName(iso),
+          oldExtraPrice: oldPrice,
+          extraPrice: newPrice,
+          status: "changed",
+        });
+      }
+    }
+
+    if (countryDetails.length > 0) {
+      out.push({
+        key: "extra_price_for_country",
+        label: tx("Per-country Extra Price"),
+        type: "country",
+        countryDetails,
+      });
+    }
+  }
+
+  // 7. Product Images (Old vs New previews)
+  const initialImageNames = initial.images.map((i) => i.name).join("|");
+  const currentImageNames = current.images.map((i) => i.name).join("|");
+
+  if (initialImageNames !== currentImageNames) {
+    const oldMap = new Map(initial.images.map((i) => [i.name, i.url]));
+    const newMap = new Map(current.images.map((i) => [i.name, i.url]));
+
+    const oldList: ImageDiffItem[] = initial.images.map((i) => ({
+      name: i.name,
+      url: i.url,
+    }));
+    const newList: ImageDiffItem[] = current.images.map((i) => ({
+      name: i.name,
+      url: i.url,
+    }));
+
+    const added: ImageDiffItem[] = current.images
+      .filter((i) => !oldMap.has(i.name))
+      .map((i) => ({ name: i.name, url: i.url, status: "added" }));
+
+    const removed: ImageDiffItem[] = initial.images
+      .filter((i) => !newMap.has(i.name))
+      .map((i) => ({ name: i.name, url: i.url, status: "removed" }));
+
+    out.push({
+      key: "images",
+      label: tx("Product Images"),
+      type: "image",
+      from: `${initial.images.length} ${tx("image(s)")}`,
+      to: `${current.images.length} ${tx("image(s)")}`,
+      imageDetails: { oldList, newList, added, removed },
+    });
+  }
+
+  if (initial.meta_image !== current.meta_image) {
+    push("meta_image", tx("Meta Image"), initial.meta_image, current.meta_image);
+  }
+
+  // 8. Colors (with colored circle & translated_name label)
+  const initialColorCodes = initial.colors.map((c) => c.code).sort().join("|");
+  const currentColorCodes = current.colors.map((c) => c.code).sort().join("|");
+
+  if (initialColorCodes !== currentColorCodes) {
+    const oldMap = new Map(initial.colors.map((c) => [c.code, c]));
+    const newMap = new Map(current.colors.map((c) => [c.code, c]));
+
+    const oldList: ColorDiffItem[] = initial.colors.map((c) => ({
+      code: c.code,
+      name: c.name,
+      translatedName: c.translated_name,
+    }));
+    const newList: ColorDiffItem[] = current.colors.map((c) => ({
+      code: c.code,
+      name: c.name,
+      translatedName: c.translated_name,
+    }));
+
+    const added: ColorDiffItem[] = current.colors
+      .filter((c) => !oldMap.has(c.code))
+      .map((c) => ({
+        code: c.code,
+        name: c.name,
+        translatedName: c.translated_name,
+        status: "added",
+      }));
+
+    const removed: ColorDiffItem[] = initial.colors
+      .filter((c) => !newMap.has(c.code))
+      .map((c) => ({
+        code: c.code,
+        name: c.name,
+        translatedName: c.translated_name,
+        status: "removed",
+      }));
+
+    out.push({
+      key: "colors",
+      label: tx("Colors"),
+      type: "color",
+      from: initial.colors.map((c) => c.translated_name || c.name).join(", ") || "—",
+      to: current.colors.map((c) => c.translated_name || c.name).join(", ") || "—",
+      colorDetails: { oldList, newList, added, removed },
+    });
+  }
+
+  // 9. Sizes
+  if (!eqArr(initial.sizes.map((s) => s.id), current.sizes.map((s) => s.id))) {
+    out.push({
+      key: "sizes",
+      label: tx("Sizes"),
+      type: "text",
+      from: initial.sizes.map((s) => s.name).join(", ") || "—",
+      to: current.sizes.map((s) => s.name).join(", ") || "—",
+    });
+  }
+
+  // 10. Categories (Granular Main, Sub, Sub-sub)
+  const categoryLookupMap = (items: CategoryLookup[]) =>
+    new Map(items.map((c) => [c.id, c.translated_name || c.name]));
+
+  const mainCatMap = categoryLookupMap(lookups.parent_categories || []);
+  const subCatMap = categoryLookupMap(lookups.sub_categories || []);
+  const subSubCatMap = categoryLookupMap(lookups.sub_sub_categories || []);
+
+  const buildCategoryDiffGroup = (
+    groupName: string,
+    initialIds: number[],
+    currentIds: number[],
+    lookupMap: Map<number, string>
+  ): CategoryDiffItem | null => {
+    if (eqArr(initialIds, currentIds)) return null;
+    const initialSet = new Set(initialIds);
+    const currentSet = new Set(currentIds);
+
+    const added = currentIds
+      .filter((id) => !initialSet.has(id))
+      .map((id) => lookupMap.get(id) || `#${id}`);
+    const removed = initialIds
+      .filter((id) => !currentSet.has(id))
+      .map((id) => lookupMap.get(id) || `#${id}`);
+
+    return { groupLabel: groupName, added, removed };
+  };
+
+  const categoryDetails: CategoryDiffItem[] = [];
+  const mainDiff = buildCategoryDiffGroup(tx("Main Categories"), initial.category_id, current.category_id, mainCatMap);
+  if (mainDiff) categoryDetails.push(mainDiff);
+
+  const subDiff = buildCategoryDiffGroup(tx("Sub Categories"), initial.sub_category_id, current.sub_category_id, subCatMap);
+  if (subDiff) categoryDetails.push(subDiff);
+
+  const subSubDiff = buildCategoryDiffGroup(tx("Sub-sub Categories"), initial.sub_sub_category_id, current.sub_sub_category_id, subSubCatMap);
+  if (subSubDiff) categoryDetails.push(subSubDiff);
+
+  if (categoryDetails.length > 0) {
+    out.push({
+      key: "categories",
+      label: tx("Categories"),
+      type: "categories",
+      categoryDetails,
+    });
+  }
+
+  // 11. Labels & Tags
+  if (!eqArr(initial.labels, current.labels)) {
+    const labelMap = new Map(
+      (lookups.labels || []).map((l) => [l.id, l.translated_label || l.label])
+    );
+    const initialSet = new Set(initial.labels);
+    const currentSet = new Set(current.labels);
+    const added = current.labels.filter((id) => !initialSet.has(id)).map((id) => labelMap.get(id) || `#${id}`);
+    const removed = initial.labels.filter((id) => !currentSet.has(id)).map((id) => labelMap.get(id) || `#${id}`);
+
+    out.push({
+      key: "labels",
+      label: tx("Labels"),
+      type: "list",
+      listDetails: { added, removed },
+    });
+  }
+
+  if (!eqArr(initial.tags_ids, current.tags_ids)) {
+    const tagMap = new Map(
+      (lookups.tags || []).map((t) => [t.id, t.translated_name || t.name])
+    );
+    const initialSet = new Set(initial.tags_ids);
+    const currentSet = new Set(current.tags_ids);
+    const added = current.tags_ids.filter((id) => !initialSet.has(id)).map((id) => tagMap.get(id) || `#${id}`);
+    const removed = initial.tags_ids.filter((id) => !currentSet.has(id)).map((id) => tagMap.get(id) || `#${id}`);
+
+    out.push({
+      key: "tags_ids",
+      label: tx("Tags"),
+      type: "list",
+      listDetails: { added, removed },
+    });
+  }
+
+  // 12. Descriptors / Attributes
   const descName = new Map(
     (lookups.descriptor_groups || [])
       .flatMap((g) => g.descriptors || [])
-      .map((d) => [d.id, d.name]),
+      .map((d) => [d.id, d.name])
   );
   const descIds = new Set([
-    ...Object.keys(initial.descriptor_values || {}),
-    ...Object.keys(current.descriptor_values || {}),
+    ...Object.keys(initial.descriptor_values || {}).map(Number),
+    ...Object.keys(current.descriptor_values || {}).map(Number),
   ]);
+  const descriptorDetails: DescriptorDiffItem[] = [];
+
   for (const id of descIds) {
-    push(
-      `${tx("Attribute")}: ${descName.get(Number(id)) || `#${id}`}`,
-      initial.descriptor_values?.[Number(id)],
-      current.descriptor_values?.[Number(id)],
-    );
+    const oldVal = String(initial.descriptor_values?.[id] ?? "");
+    const newVal = String(current.descriptor_values?.[id] ?? "");
+    if (oldVal !== newVal) {
+      descriptorDetails.push({
+        descriptorId: id,
+        name: descName.get(id) || `#${id}`,
+        from: oldVal || "—",
+        to: newVal || "—",
+      });
+    }
   }
-  if (!eqArr(initial.countries_iso, current.countries_iso))
-    cnt("Restricted Countries", initial.countries_iso, current.countries_iso);
 
-  if (JSON.stringify(initial.extra_price_for_country) !== JSON.stringify(current.extra_price_for_country))
-    cnt(
-      "Per-country Extra Price",
-      initial.extra_price_for_country,
-      current.extra_price_for_country,
-    );
-
-  if (initial.images.map((i) => i.name).join() !== current.images.map((i) => i.name).join())
-    push(tx("Product Images"), `${initial.images.length} ${tx("image(s)")}`, `${current.images.length} ${tx("image(s)")}`);
-
-  if (initial.meta_image !== current.meta_image)
-    push(tx("Meta Image"), initial.meta_image, current.meta_image);
-
-  if (!eqArr(initial.colors.map((c) => c.code), current.colors.map((c) => c.code)))
-    push(
-      tx("Colors"),
-      initial.colors.map((c) => c.name).join(", ") || "—",
-      current.colors.map((c) => c.name).join(", ") || "—",
-    );
-  if (!eqArr(initial.sizes.map((s) => s.id), current.sizes.map((s) => s.id)))
-    push(
-      tx("Sizes"),
-      initial.sizes.map((s) => s.name).join(", ") || "—",
-      current.sizes.map((s) => s.name).join(", ") || "—",
-    );
-
-  if (JSON.stringify(initial.variations) !== JSON.stringify(current.variations))
+  if (descriptorDetails.length > 0) {
     out.push({
-      label: tx("Variant Pricing / Stock"),
+      key: "descriptors",
+      label: tx("Attributes / Descriptors"),
+      type: "descriptors",
+      descriptorDetails,
+    });
+  }
+
+  // 13. Variant Pricing & Stock (Granular Field Level)
+  const initialCombos = combos(initial);
+  const currentCombos = combos(current);
+  const allComboKeys = Array.from(
+    new Set([
+      ...initialCombos.map((c) => c.key),
+      ...currentCombos.map((c) => c.key),
+      ...Object.keys(initial.variations || {}),
+      ...Object.keys(current.variations || {}),
+    ])
+  );
+
+  const comboMap = new Map<string, VariantCombo>();
+  initialCombos.forEach((c) => comboMap.set(c.key, c));
+  currentCombos.forEach((c) => comboMap.set(c.key, c));
+
+  const variantsDetails: VariantDiffItem[] = [];
+
+  for (const key of allComboKeys) {
+    const oldRow = initial.variations?.[key];
+    const newRow = current.variations?.[key];
+    const cb = comboMap.get(key);
+
+    const titleParts: string[] = [];
+    if (cb?.colorName) titleParts.push(cb.colorName);
+    if (cb?.sizeName) titleParts.push(cb.sizeName);
+    const title = titleParts.join(" / ") || key;
+
+    if (!oldRow && newRow) {
+      variantsDetails.push({
+        key,
+        title,
+        colorCode: cb?.colorCode,
+        colorName: cb?.colorName,
+        sizeName: cb?.sizeName,
+        status: "added",
+        changes: [
+          { fieldLabel: tx("Price"), from: "—", to: newRow.price || "0" },
+          { fieldLabel: tx("Stock"), from: "—", to: newRow.qty || "0" },
+          ...(newRow.discount ? [{ fieldLabel: tx("Discount Price"), from: "—", to: newRow.discount }] : []),
+          ...(newRow.luck ? [{ fieldLabel: tx("Luck Price"), from: "—", to: newRow.luck }] : []),
+          ...(newRow.sku ? [{ fieldLabel: tx("SKU"), from: "—", to: newRow.sku }] : []),
+          ...(newRow.barcode ? [{ fieldLabel: tx("Barcode"), from: "—", to: newRow.barcode }] : []),
+        ],
+      });
+    } else if (oldRow && !newRow) {
+      variantsDetails.push({
+        key,
+        title,
+        colorCode: cb?.colorCode,
+        colorName: cb?.colorName,
+        sizeName: cb?.sizeName,
+        status: "removed",
+        changes: [
+          { fieldLabel: tx("Price"), from: oldRow.price || "0", to: "—" },
+          { fieldLabel: tx("Stock"), from: oldRow.qty || "0", to: "—" },
+        ],
+      });
+    } else if (oldRow && newRow) {
+      const changes: VariantFieldDiff[] = [];
+      if (oldRow.price !== newRow.price) {
+        changes.push({ fieldLabel: tx("Price"), from: oldRow.price || "—", to: newRow.price || "—" });
+      }
+      if (oldRow.discount !== newRow.discount) {
+        changes.push({ fieldLabel: tx("Discount Price"), from: oldRow.discount || "—", to: newRow.discount || "—" });
+      }
+      if (oldRow.luck !== newRow.luck) {
+        changes.push({ fieldLabel: tx("Luck Price"), from: oldRow.luck || "—", to: newRow.luck || "—" });
+      }
+      if (oldRow.qty !== newRow.qty) {
+        changes.push({ fieldLabel: tx("Stock Qty"), from: oldRow.qty || "—", to: newRow.qty || "—" });
+      }
+      if (oldRow.sku !== newRow.sku) {
+        changes.push({ fieldLabel: tx("SKU"), from: oldRow.sku || "—", to: newRow.sku || "—" });
+      }
+      if (oldRow.barcode !== newRow.barcode) {
+        changes.push({ fieldLabel: tx("Barcode"), from: oldRow.barcode || "—", to: newRow.barcode || "—" });
+      }
+      if (oldRow.location_id !== newRow.location_id) {
+        changes.push({
+          fieldLabel: tx("Location"),
+          from: locationName(oldRow.location_id),
+          to: locationName(newRow.location_id),
+        });
+      }
+
+      if (changes.length > 0) {
+        variantsDetails.push({
+          key,
+          title,
+          colorCode: cb?.colorCode,
+          colorName: cb?.colorName,
+          sizeName: cb?.sizeName,
+          status: "modified",
+          changes,
+        });
+      }
+    }
+  }
+
+  if (variantsDetails.length > 0) {
+    out.push({
+      key: "variations",
+      label: tx("Variant Pricing & Stock"),
+      type: "variants",
+      variantsDetails,
+    });
+  }
+
+  // 14. Color → Image Assignment
+  if (JSON.stringify(initial.colorImages) !== JSON.stringify(current.colorImages)) {
+    out.push({
+      key: "colorImages",
+      label: tx("Color → Image Assignment"),
       from: tx("edited"),
-      to: `${combos(current).length} ${tx("variant(s)")}`,
-    });
-
-  if (JSON.stringify(initial.colorImages) !== JSON.stringify(current.colorImages))
-    out.push({ label: tx("Color → Image Assignment"), from: tx("edited"), to: tx("updated") });
-
-  const trChanged = current.translations.filter((t) => {
-    const o = initial.translations.find((x) => x.language_code === t.language_code);
-    if (!o) return true;
-    if (o.name !== t.name || o.description !== t.description) return true;
-    const oSim = (o.similar_words || []).join("|");
-    const tSim = (t.similar_words || []).join("|");
-    return oSim !== tSim;
-  });
-
-  const langCountDiffers = initial.translations.length !== current.translations.length;
-  const defaultLangDiffers = initial.default_language_code !== current.default_language_code;
-
-  if (trChanged.length > 0 || langCountDiffers || defaultLangDiffers) {
-    out.push({
-      label: tx("Translations"),
-      from: tx("original"),
       to: tx("updated"),
+      type: "text",
     });
   }
 
-  if (current.cloud_video)
-    out.push({ label: tx("Video"), from: "—", to: tx("new upload") });
-  if (current.remove_videos.length)
-    out.push({
-      label: tx("Video"),
-      from: `${current.remove_videos.length} ${tx("removed")}`,
-      to: "—",
+  // 15. Translations (Granular Language & Field Level)
+  const LANG_DISPLAY: Record<string, string> = {
+    en: "English (en)",
+    ar: "العربية (ar)",
+    ku: "كوردی (ku)",
+    tr: "Türkçe (tr)",
+  };
+
+  const allLangs = Array.from(
+    new Set([
+      ...initial.translations.map((t) => t.language_code),
+      ...current.translations.map((t) => t.language_code),
+    ])
+  );
+
+  const translationsDetails: TranslationDiffItem[] = [];
+
+  for (const langCode of allLangs) {
+    const oldTr = initial.translations.find((t) => t.language_code === langCode);
+    const newTr = current.translations.find((t) => t.language_code === langCode);
+    const langName = LANG_DISPLAY[langCode] || langCode.toUpperCase();
+
+    if (!oldTr && newTr) {
+      translationsDetails.push({
+        langCode,
+        langName,
+        status: "added",
+        changes: [
+          { fieldLabel: tx("Product Name"), from: "—", to: newTr.name || "—" },
+          ...(newTr.description ? [{ fieldLabel: tx("Description"), from: "—", to: newTr.description }] : []),
+          ...(newTr.similar_words?.length ? [{ fieldLabel: tx("Keywords"), from: "—", to: newTr.similar_words.join(", ") }] : []),
+        ],
+      });
+    } else if (oldTr && !newTr) {
+      translationsDetails.push({
+        langCode,
+        langName,
+        status: "removed",
+        changes: [{ fieldLabel: tx("Product Name"), from: oldTr.name || "—", to: "—" }],
+      });
+    } else if (oldTr && newTr) {
+      const changes: TranslationFieldDiff[] = [];
+      if (oldTr.name !== newTr.name) {
+        changes.push({ fieldLabel: tx("Product Name"), from: oldTr.name || "—", to: newTr.name || "—" });
+      }
+      if (oldTr.description !== newTr.description) {
+        changes.push({ fieldLabel: tx("Description"), from: oldTr.description || "—", to: newTr.description || "—" });
+      }
+      const oldSim = (oldTr.similar_words || []).join(", ");
+      const newSim = (newTr.similar_words || []).join(", ");
+      if (oldSim !== newSim) {
+        changes.push({ fieldLabel: tx("Keywords / Search Terms"), from: oldSim || "—", to: newSim || "—" });
+      }
+
+      if (changes.length > 0) {
+        translationsDetails.push({
+          langCode,
+          langName,
+          status: "modified",
+          changes,
+        });
+      }
+    }
+  }
+
+  if (initial.default_language_code !== current.default_language_code) {
+    translationsDetails.push({
+      langCode: current.default_language_code || "default",
+      langName: tx("Default Language"),
+      status: "modified",
+      changes: [
+        {
+          fieldLabel: tx("Default Language Code"),
+          from: initial.default_language_code || "—",
+          to: current.default_language_code || "—",
+        },
+      ],
     });
+  }
+
+  if (translationsDetails.length > 0) {
+    out.push({
+      key: "translations",
+      label: tx("Translations"),
+      type: "translations",
+      translationsDetails,
+    });
+  }
+
+  // 16. Videos
+  if (current.cloud_video) {
+    out.push({
+      key: "cloud_video",
+      label: tx("Video"),
+      from: "—",
+      to: tx("New video file uploaded"),
+      type: "text",
+    });
+  }
+  if (current.remove_videos.length > 0) {
+    out.push({
+      key: "remove_videos",
+      label: tx("Removed Videos"),
+      from: `${current.remove_videos.length} ${tx("video(s)")}`,
+      to: tx("Removed"),
+      type: "text",
+    });
+  }
 
   return out;
 }
