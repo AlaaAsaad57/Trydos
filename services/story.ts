@@ -120,8 +120,8 @@ class StoryService {
     form.append("folder", "stories");
 
     const uploadUrl = IsVideo
-      ? `${MEDIA_SERVER_BASE_URL}/upload?story=true`
-      : `${MEDIA_SERVER_BASE_URL}/upload`;
+      ? `${MEDIA_SERVER_BASE_URL}/gated/upload?story=true`
+      : `${MEDIA_SERVER_BASE_URL}/gated/upload`;
 
     const response = await fetch(uploadUrl, {
       method: "POST",

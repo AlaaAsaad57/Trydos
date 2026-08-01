@@ -601,7 +601,7 @@ export const fetchData = async <T = any>(
       }
 
 
-      return { ...(responseData || {}), success: true };
+      return { ...(responseData || {}), success: true, httpStatus: status };
     } catch (err: any) {
       retryCount++;
       if (
@@ -646,7 +646,7 @@ export const fetchData = async <T = any>(
             reqTitle.reqTitle.includes("apply coupon")) &&
           status === 200
         ) {
-          return { ...(responseData || {}), success: false };
+          return { ...(responseData || {}), success: false, httpStatus: status };
         }
         LogError({
           ...errorObj,
@@ -663,7 +663,7 @@ export const fetchData = async <T = any>(
         });
       }
 
-      return { ...(responseData || {}), success: false };
+      return { ...(responseData || {}), success: false, httpStatus: status };
     }
   };
 
