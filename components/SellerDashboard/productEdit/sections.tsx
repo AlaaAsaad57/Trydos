@@ -246,24 +246,115 @@ function Select({
   required?: boolean;
   fieldKey?: string;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const selectedOption = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+        setQuery("");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    }
+  }, [isOpen]);
+
+  const filteredOptions = options.filter((o) =>
+    (o.label || "").toLowerCase().includes(query.toLowerCase().trim())
+  );
+
   return (
-    <div data-field={fieldKey}>
+    <div data-field={fieldKey} ref={containerRef} className="relative">
       <DashField label={required ? `${t(label)} *` : t(label)} error={error}>
-        <select
-          value={value}
-          disabled={disabled}
-          onChange={(e) => onChange(e.target.value)}
-          className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${
-            disabled ? "opacity-70" : ""
-          }`}
+        <div
+          tabIndex={disabled ? -1 : 0}
+          onClick={() => {
+            if (!disabled) setIsOpen((prev) => !prev);
+          }}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && !disabled) {
+              e.preventDefault();
+              setIsOpen((prev) => !prev);
+            }
+          }}
+          className={`${dashInputClass} flex items-center justify-between cursor-pointer select-none ${
+            error ? "border-[#f85555]" : ""
+          } ${disabled ? "opacity-70 cursor-not-allowed" : ""}`}
         >
-          <option value="">{t("Select")}</option>
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          <span className={`truncate text-[13px] ${selectedOption ? "text-[#3c3c3c] medium" : "text-[#8e8e8e]"}`}>
+            {selectedOption ? selectedOption.label : t("Select")}
+          </span>
+          <span className={`text-[#8e8e8e] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}>
+            <DashIcon name="chevronDown" size={14} />
+          </span>
+        </div>
+
+        {isOpen && !disabled && (
+          <div
+            className="absolute left-0 right-0 top-full z-50 mt-1.5 bg-white rounded-[12px] border border-[#ededed] shadow-lg p-2 space-y-1.5"
+            style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.14)" }}
+          >
+            <div className="relative">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t("Search...")}
+                className="w-full h-[34px] px-3 py-1 bg-[#f8f8f8] border border-[#ededed] rounded-[8px] text-[12px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+            <div className="max-h-48 overflow-y-auto space-y-0.5 custom-scrollbar">
+              <div
+                onClick={() => {
+                  onChange("");
+                  setIsOpen(false);
+                  setQuery("");
+                }}
+                className={`px-3 py-2 rounded-[8px] text-[12px] cursor-pointer transition-colors ${
+                  value === "" ? "bg-[#f4f4f4] text-[#5d5d5d] font-semibold" : "text-[#8e8e8e] hover:bg-[#f8f8f8]"
+                }`}
+              >
+                {t("Select")}
+              </div>
+              {filteredOptions.length === 0 ? (
+                <div className="px-3 py-2 text-[12px] text-[#b8b8b8] text-center">
+                  {t("No options found")}
+                </div>
+              ) : (
+                filteredOptions.map((o) => (
+                  <div
+                    key={o.value}
+                    onClick={() => {
+                      onChange(o.value);
+                      setIsOpen(false);
+                      setQuery("");
+                    }}
+                    className={`px-3 py-2 rounded-[8px] text-[12px] cursor-pointer transition-colors ${
+                      value === o.value
+                        ? "bg-[#5d5d5d]/[0.08] text-[#3c3c3c] font-medium"
+                        : "text-[#3c3c3c] hover:bg-[#f4f4f4]"
+                    }`}
+                  >
+                    {o.label}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </DashField>
     </div>
   );
@@ -418,23 +509,56 @@ function toggleStr(arr: string[], v: string): string[] {
 }
 
 export function CategoriesSection({ form, patch, errors, lookups, disabled, busy }: SectionProps) {
+  const [mainCatQuery, setMainCatQuery] = useState("");
+  const [subCatQuery, setSubCatQuery] = useState("");
+  const [subSubCatQuery, setSubSubCatQuery] = useState("");
+
   const group = (
     title: string,
     items: { id: number; name: string; translated_name?: string }[],
     selected: number[],
     key: keyof ProductForm,
+    searchQuery: string,
+    onSearchChange: (q: string) => void,
   ) => {
     // Read mode shows only the chosen values; edit mode shows the full picker.
-    const shown = disabled ? items.filter((c) => selected.includes(c.id)) : items;
+    const baseItems = disabled ? items.filter((c) => selected.includes(c.id)) : items;
+    const shown = disabled
+      ? baseItems
+      : baseItems.filter((c) => {
+          if (!searchQuery.trim()) return true;
+          const q = searchQuery.toLowerCase().trim();
+          const name = (c.name || "").toLowerCase();
+          const trans = (c.translated_name || "").toLowerCase();
+          return name.includes(q) || trans.includes(q);
+        });
+
     return (
       <div>
-        <p className="text-[13px] medium text-[#505050] mb-2">{t(title)}</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+          <p className="text-[13px] medium text-[#505050]">{t(title)}</p>
+          {!disabled && items.length > 0 && (
+            <div className="relative max-w-[200px] w-full">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder={t("Search...")}
+                className="w-full h-[28px] px-2.5 bg-[#f8f8f8] border border-[#ededed] rounded-[8px] text-[12px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white"
+              />
+            </div>
+          )}
+        </div>
         {shown.length === 0 ? (
           <p className="text-[12px] text-[#b8b8b8]">
-            {disabled ? t("None") : t("No options available for the current selection.")}
+            {disabled
+              ? t("None")
+              : searchQuery
+              ? t("No matching options.")
+              : t("No options available for the current selection.")}
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 max-h-[220px] overflow-auto p-0.5 custom-scrollbar">
             {shown.map((c) => (
               <Chip key={c.id} active={selected.includes(c.id)} disabled={disabled || busy} onClick={() => patch({ [key]: toggleId(selected, c.id) } as any)}>
                 {c.translated_name ?? c.name}
@@ -455,9 +579,9 @@ export function CategoriesSection({ form, patch, errors, lookups, disabled, busy
         )}
         <div className={`space-y-5 ${busy ? "opacity-60 pointer-events-none" : ""}`}>
           {errors.category_id && <p className="text-[12px] text-[#f85555]">{errors.category_id}</p>}
-          {group("Main Categories", lookups.parent_categories || [], form.category_id, "category_id")}
-          {group("Sub Categories", lookups.sub_categories || [], form.sub_category_id, "sub_category_id")}
-          {group("Sub-sub Categories", lookups.sub_sub_categories || [], form.sub_sub_category_id, "sub_sub_category_id")}
+          {group("Main Categories", lookups.parent_categories || [], form.category_id, "category_id", mainCatQuery, setMainCatQuery)}
+          {group("Sub Categories", lookups.sub_categories || [], form.sub_category_id, "sub_category_id", subCatQuery, setSubCatQuery)}
+          {group("Sub-sub Categories", lookups.sub_sub_categories || [], form.sub_sub_category_id, "sub_sub_category_id", subSubCatQuery, setSubSubCatQuery)}
         </div>
       </div>
     </Section>
@@ -602,25 +726,62 @@ export function DescriptorsSection({ form, patch, disabled, busy, lookups }: Sec
 }
 
 export function ClassificationSection({ form, patch, errors, lookups, disabled }: SectionProps) {
-  // Read mode shows only the chosen labels/tags; edit mode shows the full picker.
-  const shownLabels = disabled
+  const [labelQuery, setLabelQuery] = useState("");
+  const [tagQuery, setTagQuery] = useState("");
+
+  const baseLabels = disabled
     ? (lookups.labels || []).filter((l) => form.labels.includes(l.id))
     : lookups.labels || [];
-  const shownTags = disabled
+  const shownLabels = disabled
+    ? baseLabels
+    : baseLabels.filter((l) => {
+        if (!labelQuery.trim()) return true;
+        const q = labelQuery.toLowerCase().trim();
+        const label = (l.label || "").toLowerCase();
+        const trans = (l.translated_label || "").toLowerCase();
+        return label.includes(q) || trans.includes(q);
+      });
+
+  const baseTags = disabled
     ? (lookups.tags || []).filter((tg) => form.tags_ids.includes(tg.id))
     : lookups.tags || [];
+  const shownTags = disabled
+    ? baseTags
+    : baseTags.filter((tg) => {
+        if (!tagQuery.trim()) return true;
+        const q = tagQuery.toLowerCase().trim();
+        const name = (tg.name || "").toLowerCase();
+        const trans = (tg.translated_name || "").toLowerCase();
+        return name.includes(q) || trans.includes(q);
+      });
+
   return (
     <Section icon="permissions" title="Labels & Tags">
       <div className="space-y-5">
         <div>
-          <p className="text-[13px] medium text-[#505050] mb-2">
-            {t("Labels")}{" "}
-            {!disabled && <span className="text-[#8e8e8e] regular">({t("max 3")})</span>}
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+            <p className="text-[13px] medium text-[#505050]">
+              {t("Labels")}{" "}
+              {!disabled && <span className="text-[#8e8e8e] regular">({t("max 3")})</span>}
+            </p>
+            {!disabled && (lookups.labels || []).length > 0 && (
+              <div className="relative max-w-[200px] w-full">
+                <input
+                  type="text"
+                  value={labelQuery}
+                  onChange={(e) => setLabelQuery(e.target.value)}
+                  placeholder={t("Search...")}
+                  className="w-full h-[28px] px-2.5 bg-[#f8f8f8] border border-[#ededed] rounded-[8px] text-[12px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white"
+                />
+              </div>
+            )}
+          </div>
           {shownLabels.length === 0 ? (
-            <p className="text-[12px] text-[#b8b8b8]">{t("None")}</p>
+            <p className="text-[12px] text-[#b8b8b8]">
+              {disabled ? t("None") : labelQuery ? t("No matching options.") : t("None")}
+            </p>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 max-h-[180px] overflow-auto p-0.5 custom-scrollbar">
               {shownLabels.map((l) => {
                 const active = form.labels.includes(l.id);
                 return (
@@ -634,11 +795,26 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
           {errors.labels && <p className="text-[12px] text-[#f85555] mt-1.5">{errors.labels}</p>}
         </div>
         <div>
-          <p className="text-[13px] medium text-[#505050] mb-2">{t("Tags")}</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+            <p className="text-[13px] medium text-[#505050]">{t("Tags")}</p>
+            {!disabled && (lookups.tags || []).length > 0 && (
+              <div className="relative max-w-[200px] w-full">
+                <input
+                  type="text"
+                  value={tagQuery}
+                  onChange={(e) => setTagQuery(e.target.value)}
+                  placeholder={t("Search...")}
+                  className="w-full h-[28px] px-2.5 bg-[#f8f8f8] border border-[#ededed] rounded-[8px] text-[12px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white"
+                />
+              </div>
+            )}
+          </div>
           {shownTags.length === 0 ? (
-            <p className="text-[12px] text-[#b8b8b8]">{t("None")}</p>
+            <p className="text-[12px] text-[#b8b8b8]">
+              {disabled ? t("None") : tagQuery ? t("No matching options.") : t("None")}
+            </p>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 max-h-[180px] overflow-auto p-0.5 custom-scrollbar">
               {shownTags.map((tg) => (
                 <Chip key={tg.id} active={form.tags_ids.includes(tg.id)} disabled={disabled} onClick={() => patch({ tags_ids: toggleId(form.tags_ids, tg.id) })}>
                   {tg.translated_name ?? tg.name}
@@ -931,14 +1107,35 @@ export function MediaSection({ form, patch, errors, disabled, onUploadImages, up
 
 export function VariantsSection({ form, patch, errors, lookups, disabled, currency, pricesLocked, isCreate }: SectionProps) {
   const cmb = combos(form);
+  const [colorQuery, setColorQuery] = useState("");
+  const [sizeQuery, setSizeQuery] = useState("");
 
   // Read mode shows only the chosen colors/sizes; edit mode shows the full picker.
-  const shownColors = disabled
+  const baseColors = disabled
     ? (lookups.colors || []).filter((c) => form.colors.some((x) => x.code === c.code))
     : lookups.colors || [];
-  const shownSizes = disabled
+  const shownColors = disabled
+    ? baseColors
+    : baseColors.filter((c) => {
+        if (!colorQuery.trim()) return true;
+        const q = colorQuery.toLowerCase().trim();
+        const name = (c.name || "").toLowerCase();
+        const trans = (c.translated_name || "").toLowerCase();
+        const code = (c.code || "").toLowerCase();
+        return name.includes(q) || trans.includes(q) || code.includes(q);
+      });
+
+  const baseSizes = disabled
     ? (lookups.sizes || []).filter((s) => form.sizes.some((x) => x.id === s.id))
     : lookups.sizes || [];
+  const shownSizes = disabled
+    ? baseSizes
+    : baseSizes.filter((s) => {
+        if (!sizeQuery.trim()) return true;
+        const q = sizeQuery.toLowerCase().trim();
+        const name = (s.name || "").toLowerCase();
+        return name.includes(q);
+      });
 
   // Auto-fill empty variant prices from the product-level defaults so the seller
   // sees what each variant will cost, plus a default SKU for every newly added
@@ -996,11 +1193,26 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
     <Section icon="permissions" title="Variants" desc="Pick colors & sizes, then set price and stock for each combination.">
       <div className="space-y-5" data-field="variations">
         <div>
-          <p className="text-[13px] medium text-[#505050] mb-2">{t("Colors")}</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+            <p className="text-[13px] medium text-[#505050]">{t("Colors")}</p>
+            {!disabled && (lookups.colors || []).length > 0 && (
+              <div className="relative max-w-[200px] w-full">
+                <input
+                  type="text"
+                  value={colorQuery}
+                  onChange={(e) => setColorQuery(e.target.value)}
+                  placeholder={t("Search...")}
+                  className="w-full h-[28px] px-2.5 bg-[#f8f8f8] border border-[#ededed] rounded-[8px] text-[12px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white"
+                />
+              </div>
+            )}
+          </div>
           {shownColors.length === 0 ? (
-            <p className="text-[12px] text-[#b8b8b8]">{t("None")}</p>
+            <p className="text-[12px] text-[#b8b8b8]">
+              {disabled ? t("None") : colorQuery ? t("No matching options.") : t("None")}
+            </p>
           ) : (
-            <div className="flex flex-wrap gap-2 max-h-[160px] overflow-auto p-0.5">
+            <div className="flex flex-wrap gap-2 max-h-[160px] overflow-auto p-0.5 custom-scrollbar">
               {shownColors.map((c) => {
                 const active = form.colors.some((x) => x.code === c.code);
                 return (
@@ -1015,11 +1227,26 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
         </div>
 
         <div>
-          <p className="text-[13px] medium text-[#505050] mb-2">{t("Sizes")}</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+            <p className="text-[13px] medium text-[#505050]">{t("Sizes")}</p>
+            {!disabled && (lookups.sizes || []).length > 0 && (
+              <div className="relative max-w-[200px] w-full">
+                <input
+                  type="text"
+                  value={sizeQuery}
+                  onChange={(e) => setSizeQuery(e.target.value)}
+                  placeholder={t("Search...")}
+                  className="w-full h-[28px] px-2.5 bg-[#f8f8f8] border border-[#ededed] rounded-[8px] text-[12px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white"
+                />
+              </div>
+            )}
+          </div>
           {shownSizes.length === 0 ? (
-            <p className="text-[12px] text-[#b8b8b8]">{t("None")}</p>
+            <p className="text-[12px] text-[#b8b8b8]">
+              {disabled ? t("None") : sizeQuery ? t("No matching options.") : t("None")}
+            </p>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 max-h-[160px] overflow-auto p-0.5 custom-scrollbar">
               {shownSizes.map((s) => (
                 <Chip key={s.id} active={form.sizes.some((x) => x.id === s.id)} disabled={disabled} onClick={() => toggleSize(s)}>
                   {s.name}
