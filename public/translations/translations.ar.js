@@ -1700,6 +1700,8 @@ const translations = {
   "Error:": "خطأ:",
   "Go Back": "العودة",
   "Search": "بحث",
+  "Search...": "بحث...",
+  "No matching options.": "لا توجد خيارات مطابقة.",
   "Forward Message": "إعادة توجيه الرسالة",
   "No more stories": "لا مزيد من القصص",
   "Name": "الاسم",

@@ -1708,6 +1708,8 @@ const translations = {
   "Error:": "Hata:",
   "Go Back": "Geri Dön",
   "Search": "Ara",
+  "Search...": "Ara...",
+  "No matching options.": "Eşleşen seçenek bulunamadı.",
   "Forward Message": "Mesajı İlet",
   "No more stories": "Başka hikaye yok",
   "Name": "İsim",

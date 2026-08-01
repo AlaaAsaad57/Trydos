@@ -36,6 +36,7 @@ import {
   renderableDescriptorGroups,
   descriptorIconUrl,
   locationLabel,
+  getColorFromLookup,
 } from "./helpers";
 import GalleryPickerModal, { PickedImage } from "./GalleryPickerModal";
 
@@ -539,7 +540,7 @@ export function CategoriesSection({ form, patch, errors, lookups, disabled, busy
 
     return (
       <div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+        <div className="flex  sm:flex-row sm:items-center justify-between gap-2 mb-2">
           <p className="text-[13px] medium text-[#505050]">{t(title)}</p>
           {!disabled && items.length > 0 && (
             <div className="relative max-w-[200px] w-full">
@@ -554,7 +555,7 @@ export function CategoriesSection({ form, patch, errors, lookups, disabled, busy
           )}
         </div>
         {shown.length === 0 ? (
-          <p className="text-[12px] text-[#b8b8b8]">
+          <p className="text-[12px] text-[#b8b8b8] text-center">
             {disabled
               ? t("None")
               : searchQuery
@@ -763,7 +764,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
     <Section icon="permissions" title="Labels & Tags">
       <div className="space-y-5">
         <div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+          <div className="flex  sm:flex-row sm:items-center justify-between gap-2 mb-2">
             <p className="text-[13px] medium text-[#505050]">
               {t("Labels")}{" "}
               {!disabled && <span className="text-[#8e8e8e] regular">({t("max 3")})</span>}
@@ -781,7 +782,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
             )}
           </div>
           {shownLabels.length === 0 ? (
-            <p className="text-[12px] text-[#b8b8b8]">
+            <p className="text-[12px] text-[#b8b8b8] text-center">
               {disabled ? t("None") : labelQuery ? t("No matching options.") : t("None")}
             </p>
           ) : (
@@ -799,7 +800,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
           {errors.labels && <p className="text-[12px] text-[#f85555] mt-1.5">{errors.labels}</p>}
         </div>
         <div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+          <div className="flex  sm:flex-row sm:items-center justify-between gap-2 mb-2">
             <p className="text-[13px] medium text-[#505050]">{t("Tags")}</p>
             {!disabled && (lookups.tags || []).length > 0 && (
               <div className="relative max-w-[200px] w-full">
@@ -814,7 +815,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
             )}
           </div>
           {shownTags.length === 0 ? (
-            <p className="text-[12px] text-[#b8b8b8]">
+            <p className="text-[12px] text-[#b8b8b8] text-center">
               {disabled ? t("None") : tagQuery ? t("No matching options.") : t("None")}
             </p>
           ) : (
@@ -1216,7 +1217,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
     <Section icon="permissions" title="Variants" desc="Pick colors & sizes, then set price and stock for each combination.">
       <div className="space-y-5" data-field="variations">
         <div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+          <div className="flex  sm:flex-row sm:items-center justify-between gap-2 mb-2">
             <p className="text-[13px] medium text-[#505050]">{t("Colors")}</p>
             {!disabled && (lookups.colors || []).length > 0 && (
               <div className="relative max-w-[200px] w-full">
@@ -1231,7 +1232,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
             )}
           </div>
           {shownColors.length === 0 ? (
-            <p className="text-[12px] text-[#b8b8b8]">
+            <p className="text-[12px] text-[#b8b8b8] text-center">
               {disabled ? t("None") : colorQuery ? t("No matching options.") : t("None")}
             </p>
           ) : (
@@ -1250,7 +1251,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
         </div>
 
         <div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+          <div className="flex  sm:flex-row sm:items-center justify-between gap-2 mb-2">
             <p className="text-[13px] medium text-[#505050]">{t("Sizes")}</p>
             {!disabled && (lookups.sizes || []).length > 0 && (
               <div className="relative max-w-[200px] w-full">
@@ -1265,7 +1266,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
             )}
           </div>
           {shownSizes.length === 0 ? (
-            <p className="text-[12px] text-[#b8b8b8]">
+            <p className="text-[12px] text-[#b8b8b8] text-center">
               {disabled ? t("None") : sizeQuery ? t("No matching options.") : t("None")}
             </p>
           ) : (
@@ -1413,12 +1414,15 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
             <p className="text-[12px] text-[#8e8e8e] mb-3">{t("Assign each uploaded image to a color. Every color needs at least one image, and every image must be assigned.")}</p>
             {errors.colorImages && <p className="text-[12px] text-[#f85555] mb-3">{errors.colorImages}</p>}
             <div className="space-y-4">
-              {form.colors.map((c) => (
-                <div key={c.code} className="rounded-[12px] border border-[#ededed] p-3">
-                  <div className="flex items-center gap-2 mb-2.5">
-                    <span className="w-4 h-4 rounded-full border border-black/10" style={{ background: c.code }} />
-                    <span className="text-[13px] medium text-[#3c3c3c]">{c.translated_name ?? c.name}</span>
-                  </div>
+              {form.colors.map((c) => {
+                const lookupColor = getColorFromLookup(c.code, lookups, c);
+                const colorName = lookupColor.translated_name ?? lookupColor.name;
+                return (
+                  <div key={c.code} className="rounded-[12px] border border-[#ededed] p-3">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <span className="w-4 h-4 rounded-full border border-black/10" style={{ background: c.code }} />
+                      <span className="text-[13px] medium text-[#3c3c3c]">{colorName}</span>
+                    </div>
                   {form.images.length === 0 ? (
                     <p className="text-[12px] text-[#b8b8b8]">{t("Upload images first.")}</p>
                   ) : (
@@ -1440,7 +1444,8 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                     </div>
                   )}
                 </div>
-              ))}
+              );
+            })}
             </div>
           </div>
         )}

@@ -1732,6 +1732,8 @@ const translations = {
   "Error:": "هەڵە:",
   "Go Back": "گەڕانەوە",
   "Search": "گەڕان",
+  "Search...": "گەڕان...",
+  "No matching options.": "هیچ هەڵبژاردنێکی گونجاو نەدۆزرایەوە.",
   "Forward Message": "ناردنەوەی پەیام",
   "No more stories": "ستۆری زیاتر نییە",
   "Name": "ناو",

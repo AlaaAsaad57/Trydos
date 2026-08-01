@@ -77,6 +77,22 @@ export interface LocationLookup {
 /** Display format for a location everywhere it is user-visible: "name - address". */
 export const locationLabel = (l: LocationLookup): string =>
   [l.name, l.address].filter(Boolean).join(" - ");
+
+/** Resolves a color entity from lookups by color code (case-insensitive).
+ *  Never depends solely on product form data — falls back to provided fallback or code. */
+export function getColorFromLookup(
+  code: string,
+  lookups: Lookups,
+  fallback?: SelColor,
+): { code: string; name: string; translated_name?: string } {
+  const codeUpper = String(code || "").toUpperCase();
+  const found = (lookups?.colors || []).find(
+    (c) => String(c.code || "").toUpperCase() === codeUpper,
+  );
+  if (found) return found;
+  if (fallback) return fallback;
+  return { code, name: code };
+}
 export type DescriptorType = "string_choice" | "numeric";
 export interface DescriptorLookup {
   id: number;
