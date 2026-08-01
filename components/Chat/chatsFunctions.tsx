@@ -2,8 +2,6 @@ import { useAppStore } from "store";
 
 import { SendMessage } from "store/chat/actions";
 import { getUserChat, LogError, translateFunction } from "utils/functions";
-import { fetchData } from "utils/fetchData";
-import { REQUESTS_DATA } from "utils/Requests";
 import { GetTicket } from "utils/UploadUtils";
 
 export const getUser: any = () => {
