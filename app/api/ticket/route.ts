@@ -15,8 +15,12 @@ export async function POST(request: NextRequest) {
     let TicketResponse =await fetch(process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL+'/gated/ticket',{
         headers:{
             authorization: `Bearer ${authToken || authTokenFromCookies?.value}`,
+            "Content-Type": "application/json",
+            
         },
+        method: "POST",
         body: JSON.stringify({folder,story,count}),
+        cache: "no-store",
     });
     if(!TicketResponse.ok){
         let JsonResponse=await TicketResponse.json();

@@ -521,7 +521,7 @@ const uploadFile = async (file_name, file) => {
   let formData = new FormData();
   formData.append("file", file);
   formData.append("file_name", file_name);
-    let ticket=await GetTicket("chat",false,1);
+  let ticket=await GetTicket("chat",false,1);
   try {
     let response = await fetch( process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL+"/gated/chat/upload_file",{
      headers:{"X-Upload-Ticket":ticket},
@@ -529,12 +529,13 @@ const uploadFile = async (file_name, file) => {
       body: formData,
   
     });
-    // @ts-ignore
-    if (!response.success) {
+
+    if (!response.ok) {
       let JsonResponse=await response.json();
       throw new Error(JsonResponse?.message);
     }
      let JsonResponse=await response.json();
+     if(!JsonResponse?.isSuccessful) throw new Error(JsonResponse?.message??'Failed to upload file');
     return JsonResponse;
   } catch (err) {
     LogError({
