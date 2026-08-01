@@ -157,6 +157,9 @@ export default function ProductEditor({
   const [saving, setSaving] = useState(false);
   const [approvalNote, setApprovalNote] = useState(false);
 
+  const isUploading = Boolean(uploading.images || uploading.meta || uploading.video);
+  const isSaveDisabled = saving || catLoading || isUploading || loading;
+
   // status (allow-to-purchase) toggle
   const [statusTarget, setStatusTarget] = useState<0 | 1 | null>(null);
   const [statusSaving, setStatusSaving] = useState(false);
@@ -459,7 +462,7 @@ export default function ProductEditor({
   /* -------------------------------- save ---------------------------------- */
 
   const startSave = () => {
-    if (!form || !initial) return;
+    if (!form || !initial || isSaveDisabled) return;
     // isCreate gates the three checks the backend enforces only at create
     // (boutique, category, description) — applying them on edit would block
     // saving an existing product that legitimately has one of them empty.
@@ -841,7 +844,7 @@ export default function ProductEditor({
                 >
                   {t("Load Draft")}
                 </DashButton> */}
-                <DashButton icon="check" onClick={startSave}>
+                <DashButton icon="check" onClick={startSave} disabled={isSaveDisabled} loading={saving}>
                   {t("Create Product")}
                 </DashButton>
               </>
@@ -891,7 +894,7 @@ export default function ProductEditor({
                     >
                       {t("Load Draft")}
                     </DashButton> */}
-                    <DashButton icon="check" onClick={startSave}>
+                    <DashButton icon="check" onClick={startSave} disabled={isSaveDisabled} loading={saving}>
                       {t("Save Changes")}
                     </DashButton>
                   </>
@@ -1002,7 +1005,7 @@ export default function ProductEditor({
               >
                 {t("Load Draft")}
               </DashButton> */}
-              <DashButton icon="check" onClick={startSave}>
+              <DashButton icon="check" onClick={startSave} disabled={isSaveDisabled} loading={saving}>
                 {isCreate ? t("Create Product") : t("Save Changes")}
               </DashButton>
             </div>
@@ -1099,7 +1102,7 @@ function ConfirmDialog({
         <DashButton variant="ghost" fullWidth onClick={onCancel} disabled={saving}>
           {t("Cancel")}
         </DashButton>
-        <DashButton icon="check" fullWidth className="min-w-[165px]" loading={saving} onClick={onConfirm}>
+        <DashButton icon="check" fullWidth className="min-w-[165px]" loading={saving} disabled={saving} onClick={onConfirm}>
           {t("Confirm & Save")}
         </DashButton>
       </div>
