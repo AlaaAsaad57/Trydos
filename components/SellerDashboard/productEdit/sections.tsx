@@ -1,8 +1,10 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { translateFunction } from "utils/functions";
 import { getLocalizedCountryName } from "utils/countryData";
 import LocalizationServiceClass from "services/localization";
+import { allCountries } from "country-telephone-data";
+import { FlagIcon } from "utils/tinyUtils";
 import {
   DashButton,
   DashField,
@@ -240,7 +242,7 @@ function Select({
   label: string;
   value: string;
   onChange: (v: string) => void;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; icon?: React.ReactNode }[];
   disabled?: boolean;
   error?: string;
   required?: boolean;
@@ -292,8 +294,9 @@ function Select({
             error ? "border-[#f85555]" : ""
           } ${disabled ? "opacity-70 cursor-not-allowed" : ""}`}
         >
-          <span className={`truncate text-[13px] ${selectedOption ? "text-[#3c3c3c] medium" : "text-[#8e8e8e]"}`}>
-            {selectedOption ? selectedOption.label : t("Select")}
+          <span className={`truncate text-[13px] flex items-center gap-2 ${selectedOption ? "text-[#3c3c3c] medium" : "text-[#8e8e8e]"}`}>
+            {selectedOption?.icon && <span className="shrink-0 flex items-center">{selectedOption.icon}</span>}
+            <span className="truncate">{selectedOption ? selectedOption.label : t("Select")}</span>
           </span>
           <span className={`text-[#8e8e8e] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}>
             <DashIcon name="chevronDown" size={14} />
@@ -342,13 +345,14 @@ function Select({
                       setIsOpen(false);
                       setQuery("");
                     }}
-                    className={`px-3 py-2 rounded-[8px] text-[12px] cursor-pointer transition-colors ${
+                    className={`px-3 py-2 rounded-[8px] text-[12px] cursor-pointer transition-colors flex items-center gap-2 ${
                       value === o.value
                         ? "bg-[#5d5d5d]/[0.08] text-[#3c3c3c] font-medium"
                         : "text-[#3c3c3c] hover:bg-[#f4f4f4]"
                     }`}
                   >
-                    {o.label}
+                    {o.icon && <span className="shrink-0 flex items-center">{o.icon}</span>}
+                    <span className="truncate">{o.label}</span>
                   </div>
                 ))
               )}
@@ -841,11 +845,30 @@ export function CountriesSection({ form, patch, lookups, disabled, currency, pri
   };
   const removeExtra = (i: number) => patch({ extra_price_for_country: form.extra_price_for_country.filter((_, idx) => idx !== i) });
 
+  const originCountryOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    (allCountries || []).forEach((c) => {
+      if (c && c.iso2) {
+        const code = c.iso2.toUpperCase();
+        if (!map.has(code)) {
+          map.set(code, getLocalizedCountryName(code, language));
+        }
+      }
+    });
+    return Array.from(map.entries())
+      .map(([iso, name]) => ({
+        value: iso,
+        label: name,
+        icon: <FlagIcon iso={iso} />,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [language]);
+
   return (
     <Section icon="shopInfo" title="Origin & Countries">
       <div className="space-y-6">
         <div className="max-w-md">
-          <Select label="Country of Origin" value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={countries.map((c) => ({ value: c.iso, label: getLocalizedCountryName(c.iso, language) }))} />
+          <Select label="Country of Origin" value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={originCountryOptions} />
         </div>
 
         <div>
