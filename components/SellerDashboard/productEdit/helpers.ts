@@ -41,6 +41,7 @@ export interface ColorLookup {
   id: number;
   code: string;
   name: string;
+  translated_name?: string;
 }
 export interface SizeLookup {
   id: number;
@@ -54,15 +55,18 @@ export interface CountryLookup {
 export interface CategoryLookup {
   id: number;
   name: string;
+  translated_name?: string;
   parent_id?: number;
 }
 export interface LabelLookup {
   id: number;
   label: string;
+  translated_label?: string;
 }
 export interface NamedLookup {
   id: number;
   name: string;
+  translated_name?: string;
 }
 export interface LocationLookup {
   id: number;
@@ -223,6 +227,7 @@ export interface ImageItem {
 export interface SelColor {
   code: string;
   name: string;
+  translated_name?: string;
   id?: number;
 }
 export interface SelSize {
@@ -527,18 +532,18 @@ export function buildFormFromEdit(
   // `color_image_mappings`). Rebuild the color axis from every explicit source
   // and dedupe by uppercased color code so the matrix isn't silently dropped.
   const colorsByCode = new Map<string, SelColor>();
-  const addColor = (code?: string, name?: string, id?: number) => {
+  const addColor = (code?: string, name?: string, id?: number, translated_name?: string) => {
     if (!code) return;
     const k = String(code).toUpperCase();
     if (colorsByCode.has(k)) return;
-    colorsByCode.set(k, { code, name: name || code, id });
+    colorsByCode.set(k, { code, name: name || code, translated_name, id });
   };
   for (const m of product.color_image_mappings || []) {
-    if (m?.color_code) addColor(m.color_code, m.color_name, m.color_id);
+    if (m?.color_code) addColor(m.color_code, m.color_name, m.color_id, (m as any)?.translated_color_name ?? (m as any)?.translated_name);
   }
   for (const code of product.selected_colors || []) {
     const c = colorByCode.get(String(code).toUpperCase());
-    addColor(code, c?.name, c?.id);
+    addColor(code, c?.name, c?.id, c?.translated_name);
   }
   const colors: SelColor[] = [...colorsByCode.values()];
 
@@ -726,19 +731,36 @@ export function validate(
   // seller_product_id is optional server-side on both create and update; it is only
   // checked for marketplace uniqueness when provided.
 
+  if (!form.location_id) e.location_id = tx("Location is required");
+
   const up = num(form.unit_price);
   const dp = num(form.discount_price);
+  const pp = num(form.purchase_price);
   if (!pricesLocked) {
     if (form.unit_price === "" || isNaN(up) || up < 0)
       e.unit_price = tx("Enter a valid unit price");
+
     if (form.discount_price !== "") {
-      if (isNaN(dp) || dp < 0) e.discount_price = tx("Enter a valid discount price");
-      else if (!isNaN(up) && dp > up)
-        e.discount_price = tx("Discount must be ≤ unit price");
+      if (isNaN(dp) || dp < 0) {
+        e.discount_price = tx("Enter a valid discount price");
+      } else if (!isNaN(up) && up <= dp) {
+        e.discount_price = tx("Unit price must be greater than discount price");
+      }
     }
+
+    if (form.purchase_price !== "") {
+      if (isNaN(pp) || pp < 0) {
+        e.purchase_price = tx("Enter a valid purchase price");
+      } else if (form.discount_price !== "" && !isNaN(dp) && dp <= pp) {
+        e.discount_price = tx("Discount price must be greater than purchase price");
+      } else if (form.discount_price === "" && !isNaN(up) && up <= pp) {
+        e.purchase_price = tx("Unit price must be greater than purchase price");
+      }
+    }
+  } else {
+    if (form.purchase_price !== "" && (isNaN(pp) || pp < 0))
+      e.purchase_price = tx("Enter a valid purchase price");
   }
-  if (form.purchase_price !== "" && (isNaN(num(form.purchase_price)) || num(form.purchase_price) < 0))
-    e.purchase_price = tx("Enter a valid purchase price");
 
   if (
     (form.unit === "pc" || form.unit === "l") &&
@@ -801,8 +823,18 @@ export function validate(
       e.variations = tx("Variant discount price cannot be negative");
       break;
     }
+    if (!pricesLocked && r.price !== "" && r.discount !== "" && !isNaN(num(r.price)) && !isNaN(num(r.discount))) {
+      if (num(r.price) <= num(r.discount)) {
+        e.variations = tx("Unit price must be greater than discount price");
+        break;
+      }
+    }
     if (r.luck !== "" && (isNaN(num(r.luck)) || num(r.luck) < 0)) {
       e.variations = tx("Variant luck price cannot be negative");
+      break;
+    }
+    if (!r.location_id) {
+      e.variations = tx("Every variant needs a location");
       break;
     }
     const cleanSku = (r.sku || "").trim();
@@ -1186,10 +1218,14 @@ export function buildDiff(
     push(tx(label), initial[key], current[key]);
   }
 
-  const brandName = (id: string) =>
-    lookups.brands.find((b) => String(b.id) === id)?.name || id || "—";
-  const boutiqueName = (id: string) =>
-    lookups.boutiques.find((b) => String(b.id) === id)?.name || id || "—";
+  const brandName = (id: string) => {
+    const b = lookups.brands.find((b) => String(b.id) === id);
+    return b ? (b.translated_name ?? b.name) : id || "—";
+  };
+  const boutiqueName = (id: string) => {
+    const b = lookups.boutiques.find((b) => String(b.id) === id);
+    return b ? (b.translated_name ?? b.name) : id || "—";
+  };
   if (initial.brand_id !== current.brand_id)
     out.push({
       label: tx("Brand"),

@@ -896,6 +896,7 @@ class AuthService {
         "x-api-key": MEDIA_API_KEY,
         "X-Upload-Ticket":ticket
       },
+      credentials:'include',
       body: form,
     });
 

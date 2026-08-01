@@ -344,6 +344,7 @@ class SellerDashboardService {
       method: "POST",
       headers: { "x-api-key": MEDIA_API_KEY ,"X-Upload-Ticket":ticket},
       body: form,
+      credentials:'include'
     });
     let data: any = null;
     try {
@@ -448,6 +449,7 @@ class SellerDashboardService {
       method: "POST",
       headers: { "x-api-key": MEDIA_API_KEY ,"X-Upload-Ticket":ticket},
       body: form,
+      credentials:'include'
     });
 
     let data: any = null;
@@ -591,6 +593,7 @@ class SellerDashboardService {
         "X-Upload-Ticket": ticket,
       },
       body: form,
+      credentials:'include'
     });
 
     let data: any = null;
@@ -760,6 +763,7 @@ class SellerDashboardService {
         method: "POST",
         headers: { "x-api-key": MEDIA_API_KEY, "X-Upload-Ticket": ticket },
         body: form,
+        credentials:'include'
       },
     );
 

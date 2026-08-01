@@ -347,9 +347,9 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
         <Txt label="Seller Product ID" fieldKey="seller_product_id" value={form.seller_product_id} error={errors.seller_product_id} hint={t("Must stay unique across the marketplace")} disabled={disabled} onChange={(v) => patch({ seller_product_id: v })} />
         <Txt label="Barcode" fieldKey="barcode" value={form.barcode} disabled={disabled} onChange={(v) => patch({ barcode: v })} />
         <Select label="Unit" fieldKey="unit" value={form.unit} required error={errors.unit} disabled={disabled} onChange={(v) => patch({ unit: v })} options={UNITS.map((u) => ({ value: u, label: u }))} />
-        <Select label="Brand" fieldKey="brand_id" value={form.brand_id} required error={errors.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.name }))} />
-        <Select label="Boutique" fieldKey="boutique_id" value={form.boutique_id} error={errors.boutique_id} disabled={disabled} onChange={(v) => patch({ boutique_id: v })} options={(lookups.boutiques || []).map((b) => ({ value: String(b.id), label: b.name }))} />
-        <Select label="Location" fieldKey="location_id" value={form.location_id} disabled={disabled} onChange={(v) => patch({ location_id: v })} options={(lookups.locations || []).map((l) => ({ value: String(l.id), label: locationLabel(l) }))} />
+        <Select label="Brand" fieldKey="brand_id" value={form.brand_id} required error={errors.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.translated_name ?? b.name }))} />
+        <Select label="Boutique" fieldKey="boutique_id" value={form.boutique_id} error={errors.boutique_id} disabled={disabled} onChange={(v) => patch({ boutique_id: v })} options={(lookups.boutiques || []).map((b) => ({ value: String(b.id), label: b.translated_name ?? b.name }))} />
+        <Select label="Location" fieldKey="location_id" value={form.location_id} required error={errors.location_id} disabled={disabled} onChange={(v) => patch({ location_id: v })} options={(lookups.locations || []).map((l) => ({ value: String(l.id), label: locationLabel(l) }))} />
         <Txt label="Model Number" fieldKey="model_number" value={form.model_number} disabled={disabled} onChange={(v) => patch({ model_number: v })} />
         <Txt label="Report Ref. Number" fieldKey="report_ref_number" value={form.report_ref_number} disabled={disabled} onChange={(v) => patch({ report_ref_number: v })} />
       </Grid>
@@ -420,7 +420,7 @@ function toggleStr(arr: string[], v: string): string[] {
 export function CategoriesSection({ form, patch, errors, lookups, disabled, busy }: SectionProps) {
   const group = (
     title: string,
-    items: { id: number; name: string }[],
+    items: { id: number; name: string; translated_name?: string }[],
     selected: number[],
     key: keyof ProductForm,
   ) => {
@@ -437,7 +437,7 @@ export function CategoriesSection({ form, patch, errors, lookups, disabled, busy
           <div className="flex flex-wrap gap-2">
             {shown.map((c) => (
               <Chip key={c.id} active={selected.includes(c.id)} disabled={disabled || busy} onClick={() => patch({ [key]: toggleId(selected, c.id) } as any)}>
-                {c.name}
+                {c.translated_name ?? c.name}
               </Chip>
             ))}
           </div>
@@ -625,7 +625,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
                 const active = form.labels.includes(l.id);
                 return (
                   <Chip key={l.id} active={active} disabled={disabled || (!active && form.labels.length >= 3)} onClick={() => patch({ labels: toggleId(form.labels, l.id) })}>
-                    {l.label}
+                    {l.translated_label ?? l.label}
                   </Chip>
                 );
               })}
@@ -641,7 +641,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
             <div className="flex flex-wrap gap-2">
               {shownTags.map((tg) => (
                 <Chip key={tg.id} active={form.tags_ids.includes(tg.id)} disabled={disabled} onClick={() => patch({ tags_ids: toggleId(form.tags_ids, tg.id) })}>
-                  {tg.name}
+                  {tg.translated_name ?? tg.name}
                 </Chip>
               ))}
             </div>
@@ -972,11 +972,11 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
     const row = form.variations[key] || emptyVariantRow();
     patch({ variations: { ...form.variations, [key]: { ...row, [field]: value } } });
   };
-  const toggleColor = (c: { id: number; code: string; name: string }) => {
+  const toggleColor = (c: { id: number; code: string; name: string; translated_name?: string }) => {
     const exists = form.colors.some((x) => x.code === c.code);
     const colors = exists
       ? form.colors.filter((x) => x.code !== c.code)
-      : [...form.colors, { code: c.code, name: c.name, id: c.id }];
+      : [...form.colors, { code: c.code, name: c.name, translated_name: c.translated_name, id: c.id }];
     const colorImages = { ...form.colorImages };
     if (exists) delete colorImages[c.code];
     patch({ colors, colorImages });
@@ -1006,7 +1006,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                 return (
                   <button key={c.id} type="button" disabled={disabled} onClick={() => toggleColor(c)} className={`inline-flex items-center gap-2 pl-1.5 pr-3 h-[34px] rounded-full text-[13px] medium border transition-colors active:scale-[0.98] ${active ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#3c3c3c]" : "border-transparent bg-[#f2f2f2] text-[#8e8e8e]"}`}>
                     <span className="w-[22px] h-[22px] rounded-full border border-black/10 shrink-0" style={{ background: c.code }} />
-                    {c.name}
+                    {c.translated_name ?? c.name}
                   </button>
                 );
               })}
@@ -1137,7 +1137,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                             value={r.location_id}
                             disabled={disabled}
                             onChange={(e) => setVariant(c.key, "location_id", e.target.value)}
-                            className="w-[150px] h-[38px] px-2 bg-[#f8f8f8] border border-[#ededed] rounded-[10px] text-[13px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white disabled:opacity-70"
+                            className={`w-[150px] h-[38px] px-2 bg-[#f8f8f8] border ${!r.location_id && errors.variations ? "border-[#f85555]" : "border-[#ededed]"} rounded-[10px] text-[13px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white disabled:opacity-70`}
                           >
                             <option value="">{t("Select")}</option>
                             {(lookups.locations || []).map((l) => (
@@ -1167,7 +1167,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                 <div key={c.code} className="rounded-[12px] border border-[#ededed] p-3">
                   <div className="flex items-center gap-2 mb-2.5">
                     <span className="w-4 h-4 rounded-full border border-black/10" style={{ background: c.code }} />
-                    <span className="text-[13px] medium text-[#3c3c3c]">{c.name}</span>
+                    <span className="text-[13px] medium text-[#3c3c3c]">{c.translated_name ?? c.name}</span>
                   </div>
                   {form.images.length === 0 ? (
                     <p className="text-[12px] text-[#b8b8b8]">{t("Upload images first.")}</p>

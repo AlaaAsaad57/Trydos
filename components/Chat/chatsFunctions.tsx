@@ -527,7 +527,7 @@ const uploadFile = async (file_name, file) => {
      headers:{"X-Upload-Ticket":ticket},
       method: "POST",
       body: formData,
-  
+      credentials:'include'
     });
 
     if (!response.ok) {
