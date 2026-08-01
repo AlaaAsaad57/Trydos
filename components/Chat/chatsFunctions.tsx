@@ -4,6 +4,7 @@ import { SendMessage } from "store/chat/actions";
 import { getUserChat, LogError, translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { GetTicket } from "utils/UploadUtils";
 
 export const getUser: any = () => {
   return useAppStore.getState().userChat;
@@ -522,20 +523,21 @@ const uploadFile = async (file_name, file) => {
   let formData = new FormData();
   formData.append("file", file);
   formData.append("file_name", file_name);
-
+    let ticket=await GetTicket("chat",false,1);
   try {
-    let response = await fetchData({
-      url: "/api/v1/upload_file",
-      server: "chat",
+    let response = await fetch( process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL+"/gated/chat/upload_file",{
+     headers:{"X-Upload-Ticket":ticket},
       method: "POST",
       body: formData,
-      reqTitle: REQUESTS_DATA.UPLOAD_CHAT_FILE,
+  
     });
     // @ts-ignore
     if (!response.success) {
-      throw new Error(response.message);
+      let JsonResponse=await response.json();
+      throw new Error(JsonResponse?.message);
     }
-    return response;
+     let JsonResponse=await response.json();
+    return JsonResponse;
   } catch (err) {
     LogError({
       error: err,

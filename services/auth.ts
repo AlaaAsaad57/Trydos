@@ -21,6 +21,7 @@ import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 import { checkWallet } from "./wallet";
+import { GetTicket } from "utils/UploadUtils";
 
 // Helper to update user metadata in HttpOnly cookies via server route
 async function updateSecureUserData(
@@ -882,17 +883,18 @@ class AuthService {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server upload is not configured");
     }
-
+    let ticket=await GetTicket("customers/profile",false,1);
     const form = new FormData();
     form.append("file", file);
     form.append("folder", "customers/profile");
 
-    const uploadUrl = `${MEDIA_SERVER_BASE_URL}/upload`;
+    const uploadUrl = `${MEDIA_SERVER_BASE_URL}/gated/upload`;
 
     const response = await fetch(uploadUrl, {
       method: "POST",
       headers: {
         "x-api-key": MEDIA_API_KEY,
+        "X-Upload-Ticket":ticket
       },
       body: form,
     });

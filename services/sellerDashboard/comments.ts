@@ -58,30 +58,6 @@ class SellerCommentsService {
   ): Promise<any> {
     return getSellerProductsSocial({ sellerId, productIds });
   }
-
-  async UploadExcel(file: File) {
-    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
-      throw new Error("Media server upload is not configured");
-    }
-
-    const form = new FormData();
-    form.append("file", file);
-
-    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload-excel`, {
-      method: "POST",
-      headers: {
-        "x-api-key": MEDIA_API_KEY,
-      },
-      body: form,
-    });
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.message || "Failed to upload excel file");
-    }
-
-    return response.json();
-  }
 }
 
 const sellerCommentsService = new SellerCommentsService();
