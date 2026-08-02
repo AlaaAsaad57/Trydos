@@ -262,7 +262,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       // 1) Upload the filled excel to the media server (dummy — user will write).
       const uploaded = await SellerDashboardService.uploadExcelFile(file);
       // 2) Hand the resulting url to the backend for processing.
-      let response=await SellerDashboardService.processExcel(sellerId, uploaded.url);
+      let response=await SellerDashboardService.processExcel(sellerId, uploaded.key);
       if(!response.success){
         throw new Error(response?.message)
       }
