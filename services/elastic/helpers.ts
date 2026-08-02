@@ -103,16 +103,26 @@ export function getSourceFields(full: boolean = false): string[] {
 //   • Unknown / absent keys fall back to RELEVANCE, byte-for-byte identical to
 //     the previous hardcoded default, so stale/malformed URLs degrade gracefully
 //     and the default listing behaviour is unchanged.
-// A-Z/Z-A sort on the localized product name: `custom_products.name.keyword` is
-// byte-order (raw UTF-8), filtered to the active locale's nested row so the
-// correct localized name is the sort key. True locale collation is deferred.
+// A-Z/Z-A sort on the localized product name: a Painless `_script` sort that
+// lowercases `custom_products.name.keyword` at query time, filtered to the
+// active locale's nested row so the correct localized name is the sort key.
+// A plain field sort on the raw keyword is byte-order (uppercase A–Z sorts
+// before lowercase a–z), which splits mixed-case catalogs into two blocks —
+// the script makes the sort case-insensitive without an index/mapping change
+// (`name.keyword` has no lowercase normalizer, and adding one needs a closed
+// index + the Go indexer's mapping source). The script reads doc-values only
+// (no `_source` parsing — the reason the price script sort was rejected does
+// not apply); cost is ~µs per matching doc, so revisit the index-side
+// normalized subfield if the catalog approaches ~100k products. True locale
+// collation (ICU) remains deferred.
 //
 // Every field sort also carries `unmapped_type` so that if a field is absent
 // from the index mapping, Elasticsearch does NOT throw
 // ("No mapping found … to sort on") and 500 the listing — it treats the field
 // as unmapped, `missing:"_last"` applies, and results fall back to the `id`
 // tie-breaker. This is defensive: these fields are expected to be mapped, but an
-// unmet assumption degrades gracefully instead of breaking the page.
+// unmet assumption degrades gracefully instead of breaking the page. The name
+// script sort keeps the same resilience via its `doc.containsKey` guard.
 //
 // Price sorts on the ROOT `offered_price` only. Per-country
 // `country_offer_prices` overrides are intentionally NOT applied to the sort key
@@ -173,23 +183,34 @@ export function buildSortClause(
         tieBreaker,
       ];
     case "name_asc":
-    case "name_desc":
+    case "name_desc": {
+      const order = sortKey === "name_asc" ? "asc" : "desc";
+      // Script sorts have no `missing:"_last"` — the sentinel keeps docs
+      // without a localized name (or an unmapped field) at the end in either
+      // direction: U+FFFF is above every real name (asc), "" below (desc).
+      const missing = order === "asc" ? "\uffff" : "";
       return [
         {
-          "custom_products.name.keyword": {
-            order: sortKey === "name_asc" ? "asc" : "desc",
-            missing: "_last",
-            unmapped_type: "keyword",
+          _script: {
+            type: "string",
+            order,
             nested: {
               path: "custom_products",
               filter: {
                 term: { "custom_products.language_code": languageCode },
               },
             },
+            script: {
+              source:
+                "doc.containsKey('custom_products.name.keyword') && doc['custom_products.name.keyword'].size() > 0 " +
+                "? doc['custom_products.name.keyword'].value.toLowerCase() : params.missing",
+              params: { missing },
+            },
           },
         },
         tieBreaker,
       ];
+    }
     default:
       return [...RELEVANCE_SORT];
   }

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Trydos — a multilingual e-commerce / live-shopping storefront. Next.js 16 (App Router) + React 19 + TypeScript + Zustand 5 + TailwindCSS 4, deployed on Vercel with a separate Go backend (`NEXT_PUBLIC_GO_BACKEND_URL`).
+Trydos — a multilingual e-commerce / live-shopping storefront. Next.js 16 (App Router) + React 19 + TypeScript + Zustand 5 + TailwindCSS 4, deployed on Vercel against two separate backends: the **core** backend (`BACKEND_URL`) and the **gateway** (`GO_BACKEND_URL` — pending rename, see "Stack-agnostic naming").
 
 `.github/copilot-instructions.md` is the authoritative coding-standards document for this repo (security checklist, fetch patterns, store rules, breakpoints, "no automated tests" policy). Read it before non-trivial work — the notes below complement, not replace, it.
 
@@ -39,7 +39,7 @@ Next.js 16 renames `middleware.ts` → **`proxy.ts`**. This single file runs on 
 - Sitemaps are generated dynamically (`app/sitemap-*.xml`, `robots.ts`).
 
 ### Data fetching — three distinct paths (do not mix)
-1. **Server components / server actions → `serverRequests/HandleAuthedFetch.ts`**. Reads the auth token from cookies (`MARKET-TOKEN`, falling back to `DEVICE-TOKEN`), and on a 401 auto-registers a guest token (`/auth/register-guest`) and retries. Cookie writes silently no-op during pure render (only allowed in Server Actions / Route Handlers). Wraps `fetchServerData` (`serverRequests/ServerFetch.tsx`).
+1. **Server components / server actions → `serverRequests/HandleAuthedFetch.ts`**. Reads the auth token from the `MARKET-TOKEN` cookie (single auth cookie for guest AND logged-in), and on a 401 auto-registers a guest token (`/auth/register-guest`) and retries. Cookie writes silently no-op during pure render (only allowed in Server Actions / Route Handlers). Wraps `fetchServerData` (`serverRequests/ServerFetch.tsx`).
 2. **Client-side (services, handlers) → `utils/fetchData.ts`** with the `{ url, method, body, server, reqTitle }` shape.
 3. **Bare `fetch`** only for internal API routes you control (e.g. `/api/auth/update-user`), where token injection isn't needed.
 
@@ -55,7 +55,7 @@ Domain modules (`auth.ts`, `cart.ts`, `chat.ts`, `search.ts`, `order(s).ts`, `el
 Rate limiting and abuse/DDoS protection run at the platform edge via **Vercel Firewall** (rules configured in the Vercel dashboard), before functions are invoked. There is no in-code rate-limiter wrapper. If a specific endpoint needs business-logic limits (auth, OTP, checkout), use an edge-compatible limiter such as Upstash `@upstash/ratelimit` — never `ioredis` in middleware (it can't run on the Edge runtime).
 
 ### Auth & tokens
-JWTs live **only** in HttpOnly cookies — `MARKET-TOKEN` (logged-in), `DEVICE-TOKEN` (guest), `User-Data` (profile JSON). Read server-side via `utils/cookies/cookie-manager` / `next/headers`. Never put tokens in localStorage or expose them to client components.
+JWTs live **only** in HttpOnly cookies — `MARKET-TOKEN` (the single auth cookie, guest or logged-in) and `User-Data` (profile JSON). `DEVICE-TOKEN` is legacy: never read or set it (it survives only in logout-cleanup lists). Read server-side via `utils/cookies/cookie-manager` / `next/headers`. Never put tokens in localStorage or expose them to client components.
 
 ### Error reporting & analytics
 `LogError` / `LogServerError` route to **Sentry** (config in `sentry.*.config.ts`, `instrumentation*.ts`). Analytics via `utils/gtag.ts` (Google Analytics) and PostHog (`utils/posthog.ts`) for session replay + product analytics.
@@ -89,6 +89,23 @@ The app has **4 languages**: `en` is the source (the English string *is* the key
 - **Never deduplicate keys.** Each distinct English string is its own key with one entry per file; don't merge distinct strings under a shared key, and don't drop an existing key to avoid a near-duplicate. A repeated word still gets wrapped at every call site.
 - **Interpolation:** translate the static sentence and interpolate the dynamic value — e.g. `` `${t("Missing")}: ${name}` `` — never build a key by string concatenation.
 - Keep the three files **key-parallel**: a key added to one must be added to the other two in the same edit.
+
+## Stack-agnostic naming — never encode the backing technology
+
+**Never name or store anything after the technology that happens to implement it.** No `go`, `laravel`, `nest`, `next`, `django`, `rails`, `symfony`, `express`, … in any name or persisted value. Name things after the **role they play in the product**, not the stack behind them — a service that gets rewritten in another language must not force a rename (or, worse, keep a name that now lies).
+
+Applies to: env vars, identifiers (constants, functions, types, object keys), cookie/storage keys, file and directory names, ticket/branch names, HTTP header and query names, API request/response fields, telemetry and log payloads, and error messages.
+
+```
+✗ GO_BACKEND_URL, GO_APIS, isFromGoApi, isLaravelVerify, { backend: "laravel" }
+✓ GATEWAY_BACKEND_URL, GATEWAY_APIS, isGatewayApi, isCoreVerify, { backend: "core" }
+```
+
+Two backends serve this app; refer to them by role — the **gateway** (guest/allow-listed traffic) and the **core** backend (`BACKEND_URL`, verified-user traffic). Use those words in code, comments, docs, and tickets.
+
+**Exempt** (framework-mandated, not our choice): imports from `next/*`, the `NEXT_PUBLIC_` env prefix Next.js requires, config files a tool dictates by name (`next.config.ts`), and dependency names in `package.json`. Everything we control is in scope.
+
+**Why it is also a security rule:** advertising the server stack to the browser hands an attacker a free head start on which CVEs to try. Nothing that reaches the client — response bodies, headers, error text, bundle identifiers, public env values — may name the backend technology.
 
 ## Security note
 

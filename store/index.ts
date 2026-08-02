@@ -17,6 +17,22 @@ const withDevtools =
     ? (fn: any) => devtools(fn, { name: "MainAppStore" })
     : (fn: any) => fn;
 
+/** Settled GET /shop/info outcome for one shop. See the field notes below. */
+export type DashboardShopInfo = {
+  sellerId: string;
+  currency: { code: string; name: string };
+  /** false ONLY when the backend explicitly says so; absent field => true. */
+  newProductsApproval: boolean;
+  /** false when the request did not succeed — the standing is unknown. */
+  available: boolean;
+  /**
+   * false when the user lacks READ_SHOP_INFO for this shop, so GET /shop/info
+   * was never issued. Distinguishes "we couldn't load it" (retryable) from
+   * "you are not allowed to load it" (permanent — say so instead of retrying).
+   */
+  permitted: boolean;
+};
+
 // Create a type that combines all store states
 type AppState = ReturnType<typeof useAuthStore> &
   ReturnType<typeof useCartStore> &
@@ -34,6 +50,20 @@ type AppState = ReturnType<typeof useAuthStore> &
     checkCameraPermissions: () => Promise<void>;
     sellerOrders: any[];
     setSellerOrders: (orders: any[] | ((prev: any[]) => any[])) => void;
+    // Seller-dashboard shop info (GET /shop/info), keyed by sellerId so a
+    // shop switch never shows a stale currency.
+    //
+    // The record is a SETTLED outcome for exactly one sellerId — null means
+    // "not resolved yet", never "failed". `available` distinguishes the two:
+    //   available: false -> the request did not succeed; the standing is UNKNOWN
+    //   available: true  -> the response was read; newProductsApproval is usable
+    // `currency` is always present (`{ code: "", name: "" }` when unavailable) so
+    // consumers reading `currency.code` need no null handling.
+    // `newProductsApproval` is false ONLY when the backend explicitly says so; an
+    // absent field means the backend does not gate this seller, never a restriction.
+    // `permitted: false` means READ_SHOP_INFO is missing and no request was made.
+    dashboardShopInfo: DashboardShopInfo | null;
+    setDashboardShopInfo: (info: DashboardShopInfo | null) => void;
   };
 
 // Create the combined store with hydration support
@@ -49,6 +79,10 @@ export const useAppStore = create<AppState>()(
       ...useSearchStore(set, get),
       ...useCartStore(set, get),
       ...useLuckStore(set, get),
+
+      dashboardShopInfo: null,
+      setDashboardShopInfo: (value: DashboardShopInfo | null) =>
+        set({ dashboardShopInfo: value }, false, "setDashboardShopInfo"),
 
       cameraPermissions: "asked",
       setCameraPermissions: (value: any) => set({ cameraPermissions: value }),

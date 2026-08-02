@@ -5,7 +5,7 @@
 | **Feature ID** | CO-04 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-05 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/index.tsx` (`QuantutyInput`, `RemoveFromCartAction`), `services/cart.ts`, `store/Cart/reducer.ts` |
 
 ---
@@ -45,7 +45,7 @@ Any shopper adjusting their bag before checkout.
 | Update quantity | `POST /cart/update` — `{ key: cartId, quantity }` (`cartService.UpdateCart`) |
 | Remove item | `POST /cart/remove` — `{ key: itemId }` (`cartService.RemoveFromCart`) |
 | Refresh after change | `getCart()` / `GetCartOreview()` → `initCart()` |
-| Backend | **Go backend** — both `/cart/update` and `/cart/remove` are on the Go allow-list |
+| Backend | `/cart/update` and `/cart/remove` are on the **gateway** allow-list for guests; **verified shoppers are served entirely by the core backend** |
 
 ## Technical reference
 

@@ -5,7 +5,7 @@
 | **Feature ID** | CO-29 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-06 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/setting/orders/OrdersView.tsx`, `components/setting/orders/OrdersOptionsMenu.tsx`, `components/setting/orders/HiddenOrdersWidget.tsx`, `components/Orders/HiddenOrderItem.tsx`, `services/orders.ts`, `services/order.ts` |
 
 ---
@@ -62,7 +62,7 @@ Any shopper who hid an order or product (CO-22) and wants it back.
 | List hidden | `GET /customer/order/getHiddenOrders` → flat `data: OrderInterface[]` (`fetchHiddenOrders`) |
 | Restore pack | `PATCH /customer/order/{order_id}/visibility` — `{ is_hidden: false }` (`HideOrder`, flag off) |
 | Restore product | `PATCH /customer/order/detail/{detail_id}/visibility` — `{ is_hidden: false }` (`HideOrderDetail`, flag off) |
-| Backend | **Legacy backend** (Laravel) |
+| Backend | **Core backend** |
 
 ## Technical reference
 

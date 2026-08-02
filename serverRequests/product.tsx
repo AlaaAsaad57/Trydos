@@ -17,6 +17,10 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
+// Safe here: this is a "use server" module — client imports get action
+// proxies, so tokenManager's next/headers never enters the client bundle
+// (same as this file's own next/headers import above).
+import { getMarketFetchBase } from "utils/server/tokenManager";
 import { General_Site_Data } from "./meta/StructuredData/Constants";
 import { buildAlternates } from "./meta/buildAlternates";
 import {
@@ -134,7 +138,7 @@ export async function GetCountries({ language, country }) {
   }
 
   let response = await fetchServerData({
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/countries",
+    url: process.env.BACKEND_URL + "/countries",
     headers: { lang: language, country: country },
     local: `${country}-${language}`,
     method: "GET",
@@ -177,7 +181,8 @@ export async function GetGlobalProduct({
       }
     }
     let freshGlobalData = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/globalDetails/${slug}`,
+      // Verified users → Laravel, guests → Go (user-based routing)
+      url: `${await getMarketFetchBase()}/web/product/globalDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -240,7 +245,7 @@ export async function GetProductPriceQtyDetails({
       }
     }
     let freshQtyPricesData = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
+      url: `${await getMarketFetchBase()}/web/product/qtyPriceDetails/${slug}`,
       method: "GET",
       headers: {
         language: language,
@@ -286,10 +291,17 @@ export async function GetProductMeta({
       return { ...cachedMeta, metaFromRedis: true };
     }
     let freshMeta = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/web/product/product-meta/${slug}?lang=${language}`,
+      url: `${await getMarketFetchBase()}/web/product/product-meta/${slug}?lang=${language}`,
       method: "GET",
       local: `${country}-${language}`,
     });
+    // A 404 is definitive — the product does not exist. Reported separately from
+    // the catch-all below so callers can redirect on "gone" while a transient
+    // failure (timeout, 5xx, Redis) still renders the product page instead of
+    // bouncing the user off a product that is actually fine.
+    if (freshMeta?.status === 404) {
+      return { productNotFound: true };
+    }
     if (freshMeta?.error) {
       throw new Error(freshMeta?.error);
     }
@@ -553,7 +565,7 @@ export async function GetProductStoriesData({ page, productId }) {
 
   let response = await fetchServerData({
     url:
-      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
+      process.env.STORIES_BACKEND_URL +
       `/api/v1/stories/product_stories/${productId}?page=${page}`,
     method: "GET",
     headers: headers,

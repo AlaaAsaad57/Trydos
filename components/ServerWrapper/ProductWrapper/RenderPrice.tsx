@@ -1,4 +1,4 @@
-import { RoundPrice } from "utils/server";
+import { RoundPrice } from "utils/server/helpers";
 import { OfferPrice } from "./OfferPrice";
 
 export const RenderPrice = ({

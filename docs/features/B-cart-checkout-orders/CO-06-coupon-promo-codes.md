@@ -5,7 +5,7 @@
 | **Feature ID** | CO-06 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-05 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/couponElement.tsx`, `components/Cart/PaymentMethod.tsx`, `components/Cart/PlaceOrderWidget.tsx`, `store/Cart/reducer.ts` |
 
 ---
@@ -51,7 +51,7 @@ Any shopper with a promo code, at the point of paying.
 | Validity | `response.success` + `response.data.status` (truthy = valid) |
 | Discount value | `response.data.discount` → stored as `coupon` / drives `coupon_discount` |
 | Totals after apply | Refreshed by a follow-up `getCart()` → `initCart()` (server-computed) |
-| Backend | **Legacy backend** (`NEXT_PUBLIC_BACKEND_URL`) — `/coupon/apply` is **not** on the Go allow-list |
+| Backend | **Core backend** — `/coupon/apply` is **not** on the gateway allow-list, so guests and verified shoppers alike are served by the core backend |
 
 ## Technical reference
 

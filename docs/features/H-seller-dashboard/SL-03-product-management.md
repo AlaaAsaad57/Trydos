@@ -5,7 +5,7 @@
 | **Feature ID** | SL-03 |
 | **Domain** | H · Seller Dashboard |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-07 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx` (`renderProducts`), `services/sellerDashboard/index.ts`, `services/sellerDashboard/comments.ts` |
 
 ---
@@ -14,12 +14,15 @@
 
 The **Products** tab of the seller dashboard — a browsable grid of everything the shop sells, each
 card showing its photo, name, price, live stock level, active/inactive status, and a row of social
-stats (reactions, questions, reviews, shares). Tapping a card opens the full product editor (SL-04).
+stats (reactions, questions, reviews, shares). Tapping a card opens the full product editor (SL-04),
+and an **"+ Add Product"** button starts a brand-new one.
 
 ## Where it appears
 
 - Inside the seller dashboard → **Products** tab.
 - Each product card links to `…/sellerDashboard/<sellerId>/products/<productId>` (the editor).
+- **"+ Add Product"** (shown only with `CREATE_PRODUCT`) links to `…/products/new`; the empty state
+  offers the same as "Add your first product".
 
 ## Who uses it
 
@@ -30,7 +33,8 @@ stats (reactions, questions, reviews, shares). Tapping a card opens the full pro
 - **Loads on first open.** Products are fetched the first time the tab is opened and then cached
   (kept in shared context), so switching away and back doesn't re-fetch page 1.
 - **Each card shows:** the first product image (or a "No Image" placeholder); the category name;
-  the product name (or "Unnamed Product"); the unit price to 2 decimals; and two badges.
+  the product name (or "Unnamed Product"); the unit price to 2 decimals **followed by the shop's own
+  currency code**; and two badges.
 - **Status badge:** green **"Active"** when `status === 1`, otherwise grey **"Inactive"**.
 - **Stock badge:** red **"Out of stock"** at 0; amber **"{n} in stock"** when 5 or fewer; grey
   **"{n} in stock"** otherwise.
@@ -45,6 +49,7 @@ stats (reactions, questions, reviews, shares). Tapping a card opens the full pro
 | Item | Value |
 |------|-------|
 | Product list | `SellerDashboardService.getSellerProducts(sellerId, page)` → **GET `/shop/products`** (`?page=N` from page 2), `market-dashboard` backend, shop-scoped by seller ID |
+| Currency shown on cards | `dashboardShopInfo.currency.code` in the store — filled once per shop by `ShopInfoLoader` (**GET `/shop/info`**) |
 | Social counts | `sellerCommentsService.GetProductsSocial(...)` → `getSellerProductsSocial` **server action** reading Elasticsearch directly (`comments_index`, `share_index`, `product_interactions_index`); batched ≤100 IDs |
 
 ## Technical reference
@@ -64,12 +69,13 @@ gracefully to `—` when unavailable.
 
 ## Known gaps / notes
 
-- The price currency label is a **hardcoded "USD"** on every card — it does not read the product's
-  or shop's actual currency, and prices are shown raw (`toFixed(2)`) with no locale formatting.
+- Prices are shown raw (`toFixed(2)`) with no locale formatting; if the shop's currency can't be read
+  (e.g. no `READ_SHOP_INFO`) the number is shown with no currency code at all. *(The previous
+  hardcoded "USD" label is fixed.)*
 - Social counts fail silently: if the counts can't be loaded (e.g. missing `READ_COMMENTS`) the four
   stats stay `—` with no error shown (the failure is only logged).
 
 ## Related features
 
-SL-04 (Product editing) · SL-05 (Activate / allow purchase) · SL-09 (Product image gallery) ·
-SL-11 (Comments & reviews management) · SL-14 (Roles & permissions viewer).
+SL-04 (Product editing / adding) · SL-05 (Activate / allow purchase) · SL-09 (Product image gallery) ·
+SL-11 (Comments & reviews management) · SL-14 (Roles & permissions viewer) · SL-15 (Locations).

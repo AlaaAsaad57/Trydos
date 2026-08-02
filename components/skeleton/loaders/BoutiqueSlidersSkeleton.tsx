@@ -1,4 +1,4 @@
-import { GetImageUrl } from "utils/server";
+import { GetImageUrl } from "utils/server/helpers";
 import Skeleton from "react-loading-skeleton";
 
 function BoutiqueSlidersSkeleton({ boutique }: any) {

@@ -1,4 +1,8 @@
 import { LogServerError } from "utils/serverErrorReporter";
+// NOT a "use server" module — reach the user-aware market base through the
+// "use server" wrapper in ./products so tokenManager's next/headers can never
+// enter a client bundle graph via this file.
+import { resolveMarketFetchBase } from "./products";
 import { RedisGet, RedisSet } from "./radis";
 
 export const runtime = "nodejs";
@@ -10,7 +14,8 @@ export async function GetColorAndSizes() {
       return cachedRes;
     }
     let res = await fetch(
-      process.env.NEXT_PUBLIC_GO_BACKEND_URL + "/web/get-colors-and-sizes",
+      // Verified users → Laravel, guests → Go (user-based routing)
+      (await resolveMarketFetchBase()) + "/web/get-colors-and-sizes",
       {
         next: {
           revalidate: 0,

@@ -214,7 +214,7 @@ async function refreshCountries({ language, country }) {
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries`,
+      `${process.env.BACKEND_URL}/countries`,
       {
         method: "GET",
         headers: {

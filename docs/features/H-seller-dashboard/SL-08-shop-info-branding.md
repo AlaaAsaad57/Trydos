@@ -5,8 +5,8 @@
 | **Feature ID** | SL-08 |
 | **Domain** | H · Seller Dashboard |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-07 (against `develop`) |
-| **Source of truth** | `components/SellerDashboard/ShopInfo.tsx`, `services/sellerDashboard/index.ts` |
+| **Last verified** | 2026-07-27 (against `develop`) |
+| **Source of truth** | `components/SellerDashboard/ShopInfo.tsx`, `components/SellerDashboard/ShopInfoLoader.tsx`, `services/sellerDashboard/index.ts` |
 
 ---
 
@@ -33,12 +33,18 @@ no Save button).
   server on save; only changed images are re-uploaded (existing URLs are kept otherwise).
 - **Save** sends name, address, contact and the two image references together. Success shows a
   toast; failure logs to Sentry and shows a native browser alert.
+- **The same shop record now also feeds the rest of the dashboard.** An invisible loader fetches it
+  **once per shop** and keeps it in the store, so the product list, the product form and the boutique
+  screens can read the shop's **currency** and its **new-product approval standing** without
+  refetching. Because the read is protected by `READ_SHOP_INFO`, the request is **never issued** for a
+  user who doesn't hold that permission — those screens say the permission is missing instead of
+  spinning or offering a retry that cannot succeed.
 
 ## Data source
 
 | Item | Value |
 |------|-------|
-| Read | `getShopInfo(sellerId)` → **GET `/shop/info`** (`market-dashboard`) |
+| Read | `getShopInfo(sellerId)` → **GET `/shop/info`** (`market-dashboard`) — also loaded dashboard-wide by `ShopInfoLoader` into the `dashboardShopInfo` store slice |
 | Update | `updateShopInfo(sellerId, {name, address, contact, image, banner})` → **PUT `/shop/info`** |
 | Image upload | `uploadShopImage(file, 'seller')` → **POST `{MEDIA_SERVER}/upload`** (`x-api-key`) |
 
@@ -66,4 +72,5 @@ image cropping + media upload work end to end.
 
 ## Related features
 
-SL-01 (My shops) · SL-06 (Boutiques) · SD-17 (the public boutique storefront shoppers see).
+SL-01 (My shops) · SL-03 / SL-04 (consume the shop currency & approval standing) · SL-06 (Boutiques) ·
+SL-15 (Locations) · SD-17 (the public boutique storefront shoppers see).

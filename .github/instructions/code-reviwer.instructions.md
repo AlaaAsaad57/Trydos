@@ -224,7 +224,7 @@ Smart code is calm code.
 | Language | TypeScript (strict) |
 | State | Zustand 5 — single combined `useAppStore` |
 | Styling | TailwindCSS 4, custom breakpoints |
-| Auth | JWT in HttpOnly cookies (`MARKET-TOKEN`, `DEVICE-TOKEN`, `User-Data`) |
+| Auth | JWT in HttpOnly cookies (`MARKET-TOKEN` — guest or logged-in — and `User-Data`) |
 | Server fetch | `HandleAuthedFetch` (auto 401 refresh) → `fetchServerData` |
 | Client fetch | `fetchData` utility in `utils/fetchData.ts` |
 | API protection | Vercel Firewall (rate limiting + abuse/DDoS) at the edge |

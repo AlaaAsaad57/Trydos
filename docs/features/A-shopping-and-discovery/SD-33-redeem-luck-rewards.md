@@ -5,7 +5,7 @@
 | **Feature ID** | SD-33 |
 | **Domain** | A · Shopping & Product Discovery |
 | **Status** | 🟡 Partial — a working time-limited discount claim, but the timer duration is hardcoded, the one-time limit is enforced only by a browser cookie, and the charged price relies on the backend honouring the flag (not verifiable here) |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `utils/luck/index.ts`, `store/luck/reducer.ts`, `hooks/useLuckTimer.ts`, `components/ServerWrapper/ProductWrapper/ProductButtonWrapper.tsx`, `components/Cart/AddToCart/Button.tsx` |
 
 ---
@@ -51,6 +51,11 @@ Any shopper viewing a luck-eligible product — no account step is involved.
 - **Timer freeze bug — fixed.** A recent fix (commit `9654b375`) moved the countdown clock into
   React state so it ticks correctly under the React Compiler; previously `luckTimer` could freeze on
   a value until a pause/resume.
+- **Expired luck price on the product footer — fixed.** The sticky product footer was reading the raw
+  eligibility flag rather than the one that folds in the "already redeemed" cookie, so the orange
+  luck price could stay on screen after the window had closed. The footer now uses the same gate as
+  the rest of the page (and is hidden while an in-app navigation is in flight, since it is rendered
+  outside the page and used to float above the loader).
 
 ## Data source
 

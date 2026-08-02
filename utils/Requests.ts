@@ -213,6 +213,21 @@ export const REQUESTS_DATA = {
   ADD_BOUTIQUE: { reqTitle: "ADD_BOUTIQUE", code: 204 },
   GET_LANGUAGES: { reqTitle: "GET_LANGUAGES", code: 205 },
   DELETE_BOUTIQUE: { reqTitle: "DELETE_BOUTIQUE", code: 206 },
+  GET_SHOP_LOCATIONS: { reqTitle: "GET_SHOP_LOCATIONS", code: 207 },
+  GET_SHOP_LOCATION_LOOKUPS: {
+    reqTitle: "GET_SHOP_LOCATION_LOOKUPS",
+    code: 208,
+  },
+  ADD_SHOP_LOCATION: { reqTitle: "ADD_SHOP_LOCATION", code: 209 },
+  GET_SHOP_LOCATION_FOR_EDIT: {
+    reqTitle: "GET_SHOP_LOCATION_FOR_EDIT",
+    code: 210,
+  },
+  UPDATE_SHOP_LOCATION: { reqTitle: "UPDATE_SHOP_LOCATION", code: 211 },
+  CHANGE_SHOP_LOCATION_STATUS: {
+    reqTitle: "CHANGE_SHOP_LOCATION_STATUS",
+    code: 212,
+  },
   GET_SELLER_PERMISSIONS: { reqTitle: "GET_SELLER_PERMISSIONS", code: 147 },
   GET_SHOP_ROLES: { reqTitle: "GET_SHOP_ROLES", code: 148 },
   ADD_USER_TO_SHOP: { reqTitle: "ADD_USER_TO_SHOP", code: 149 },
@@ -269,4 +284,6 @@ export const REQUESTS_DATA = {
   GET_PRODUCT_CREATE_FORM: { reqTitle: "GET_PRODUCT_CREATE_FORM", code: 188 },
   ADD_PRODUCT: { reqTitle: "ADD_PRODUCT", code: 189 },
   GET_CATEGORY_LOOKUPS: { reqTitle: "GET_CATEGORY_LOOKUPS", code: 190 },
+  SYNC_PRODUCT_DESCRIPTORS: { reqTitle: "SYNC_PRODUCT_DESCRIPTORS", code: 191 },
+  GET_TICKET: { reqTitle: "GET_TICKET", code: 192 },
 };

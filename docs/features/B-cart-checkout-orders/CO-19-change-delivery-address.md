@@ -5,7 +5,7 @@
 | **Feature ID** | CO-19 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/setting/orders/OrderOptionsMenu.tsx`, `components/Orders/ChangeAddressWidget.tsx`, `services/order.ts` |
 
 ---
@@ -45,7 +45,7 @@ Any shopper who needs an in-flight order delivered somewhere else.
 | Change address | `POST /customer/order/change-address` — body `{ order_group_id, new_shipping_address_id }` (`changeOrderAddress`) |
 | Address list | `Order.GetAddressList` → `store.addressLists` |
 | Eligibility | `order.can_update_address` |
-| Backend | **Legacy backend** |
+| Backend | **Core backend** |
 
 ## Technical reference
 

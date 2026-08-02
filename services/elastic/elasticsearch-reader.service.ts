@@ -573,7 +573,7 @@ export class ElasticsearchReader {
           const categoriesLength =
             boutique.mainCategoriesForProductIds?.length ?? 0;
           if (
-            categoriesLength <= 5 &&
+            categoriesLength <= (parseInt(process.env.MIN_CATEGORIES_UNDER_BOUTIQUE) ?? 5)&&
             fallbackProductsByBoutique[key]?.length
           ) {
             boutique.mainCategoriesForProductIds =

@@ -15,7 +15,17 @@ export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { nameModal } = useAppStore();
+  // Selectors (not getState() at render): the name-modal condition must
+  // re-evaluate when CheckLogin seeds userChat/userStories after boot, and a
+  // narrowed subscription no longer re-renders this component on every write.
+  const nameModal = useAppStore((s) => s.nameModal);
+  const userName = useAppStore((s) => s.userProfile?.name);
+  const userChatId = useAppStore((s) => s.userChat?.id);
+  const userStoriesId = useAppStore((s) => s.userStories?.id);
+  const message = searchParams?.get("message");
+  // Mount-only housekeeping. Deliberately keeps empty deps: re-running the
+  // cookie cleanup, nav-state reset and story-token init on every query-string
+  // change would be wrong.
   useEffect(() => {
     deleteCookie("last-page");
     const { setIsNavigating, setIsProductPage } = useAppStore.getState();
@@ -23,20 +33,26 @@ export default function Home() {
     setIsProductPage(false);
     EnableScroll();
     initStoryToken();
-    if (searchParams?.get("message")?.length > 0) {
-      let message = searchParams.get("message");
-      if (message === "product_not_found") {
-        showErrorNotification(translateFunction("Product not found"));
-      }
-      if (message === "boutique_not_found") {
-        showErrorNotification(translateFunction("Boutique not found"));
-      }
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete("message");
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-    }
   }, []);
+  // Split out of the mount effect and keyed on `message` so the toast still
+  // fires when Home is ALREADY mounted — e.g. a dead product opened from the
+  // home page redirects back to `/{lang}?message=product_not_found`, which does
+  // not remount this component. Stripping the param below flips `message` to
+  // null, so the early return makes the follow-up run a no-op (no double toast).
+  useEffect(() => {
+    if (!message?.length) return;
+    if (message === "product_not_found") {
+      showErrorNotification(translateFunction("Product not found"));
+    }
+    if (message === "boutique_not_found") {
+      showErrorNotification(translateFunction("Boutique not found"));
+    }
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("message");
+    const query = newParams.toString();
+    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+    router.push(query ? `${pathname}?${query}` : pathname, { shallow: true });
+  }, [message]);
   const initStoryToken = async () => {
     if (StoryServiceClass.getUserStories()?.id) {
       const Cookies = (await import("js-cookie")).default;
@@ -44,21 +60,10 @@ export default function Home() {
     }
   };
 
-  const getNameModalOpen = () => {
-    if (typeof window === "undefined") {
-      return false;
-    } else {
-      const user = useAppStore.getState().userProfile;
-      const userChat = useAppStore.getState().userChat;
-      const userStories = useAppStore.getState().userStories;
-      let name = user?.name;
-      return (
-        userChat?.id &&
-        userStories?.id &&
-        (!name || name?.length === 0) &&
-        nameModal
-      );
-    }
-  };
-  return <>{getNameModalOpen() && <NameModal />}</>;
+  const nameModalOpen =
+    userChatId &&
+    userStoriesId &&
+    (!userName || userName?.length === 0) &&
+    nameModal;
+  return <>{nameModalOpen && <NameModal />}</>;
 }

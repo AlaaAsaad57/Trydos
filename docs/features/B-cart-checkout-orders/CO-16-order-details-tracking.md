@@ -5,7 +5,7 @@
 | **Feature ID** | CO-16 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `app/(client)/[lang]/settings/orders/[id]/page.tsx`, `components/setting/orders/OrderDetailsWrapper.tsx`, `components/settings/cards/OrderStatusCartsIcon.tsx`, `services/order.ts` |
 
 ---
@@ -52,7 +52,7 @@ Any signed-in shopper viewing one of their orders.
 | Ratings (if delivered) | `POST /api/products/comments/order_rating` (`server: "local"` → Elasticsearch) |
 | Return details (if any) | `GET /customer/order/return_requests/order_details_by_group?order_group_id=…` |
 | Delivery chat | `POST /api/v1/channels/orderChatParticipant/get-recipient` (`server: "chat"`) |
-| Backend | Order + return reads → **legacy backend**; ratings → local route / Elasticsearch; chat → chat backend |
+| Backend | Order + return reads → **core backend**; ratings → local route / Elasticsearch; chat → chat backend |
 
 ## Technical reference
 

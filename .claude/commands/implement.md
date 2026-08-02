@@ -1,70 +1,82 @@
 ---
-description: After an APPROVED review, create the ticket branch and apply ONLY the changes declared in plan.md; record implement.md; advance ticket to implemented. Supports resume from implementation-in-progress. Blocks (status=blocked) on unsafe/unclear conditions; never touches unrelated files; never commits or pushes (publishing is the single git delivery boundary).
+description: After an APPROVED review, create the ticket branch and make ONLY the changes listed in plan.md; write implement.md; move the ticket to implemented. Can resume from implementation-in-progress. Stops (status=blocked) when something is unsafe or unclear; never touches files outside the plan; never commits and never pushes (publishing is the one place git work happens).
 argument-hint: <slug>
 allowed-tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 
 # /implement
 
-For ticket `<slug>`: apply **only** the changes declared in `plan.md`, record
-`implement.md`, and advance the ticket to `implemented`. This is the **first
-command that mutates source code**.
+For ticket `<slug>`: make **only** the changes listed in `plan.md`, write
+`implement.md`, and move the ticket to `implemented`. This is the **first command
+that changes source code**.
 
-`/implement` has two entry paths (chosen by current `ticket.md > state`):
-- **Initial** — from `state: approved`: create the branch, then implement.
+There are two ways into `/implement` (chosen by the current `ticket.md > state`):
+- **First run** — from `state: approved`: create the branch, then implement.
 - **Resume** — from `state: implementation-in-progress`: do **not** create a new
-  branch; continue the remaining planned work. This makes a ticket stuck at
-  `implementation-in-progress` recoverable **without manual state edits**.
+  branch; carry on with the planned work that is left. This is what makes a
+  ticket stuck at `implementation-in-progress` recoverable **without editing the
+  state by hand**.
 
-It must: implement only what `plan.md` lists, never silently modify unrelated
-files, block (`status: blocked`) on unsafe/unclear conditions, and never push.
+This command must: change only what `plan.md` lists, never quietly touch other
+files, stop (`status: blocked`) when something is unsafe or unclear, and never
+push.
 
-Authoritative references (apply, do not reinvent):
-- Command contract: `.claude/docs/command-architecture.md` (`/implement`)
-- **Validation: `.claude/rules/validation-model.md` — apply rule codes only; no
-  custom validation logic.**
-- Branch strategy: `command-architecture.md §3`. State ownership: ADR-003.
+**Write in plain English.** Everything this command produces — every section of
+`implement.md` (including the reason it stopped, if it stopped) and the report it
+prints — must be easy to read: short sentences, everyday words, no jargon where a
+plain word works. Keep exact technical names (rule codes, state names, `AC-n`
+ids, file paths, front-matter keys) as they are. See
+`.claude/rules/workflow-rules.md > Plain language`.
+
+Rules to follow (use them; do not make up your own):
+- What this command must do: `.claude/docs/command-architecture.md` (`/implement`)
+- **Checks: `.claude/rules/validation-model.md` — use its rule codes. Do NOT
+  write checks of your own.**
+- Branch strategy: `command-architecture.md §3`. Who owns the state: ADR-003.
 
 ## Inputs
 
-- `slug` (required) — workspace `_specs/<slug>/`. If missing, ask once.
+- `slug` (required) — the workspace `_specs/<slug>/`. If it is missing, ask once.
 
-## Step 1 — Validate & choose path (block on ERROR, make NO changes — IM-8)
+## Step 1 — Check and pick the way in (stop on any ERROR and change NOTHING — IM-8)
 
-Read `_specs/<slug>/ticket.md`, `plan.md`, `review.md`, and `implement.md` (if
-present); then apply:
-- **TS-1 / TS-2 / TS-3** — `ticket.md` exists, valid; read current `state`.
-- **IM-1 (entry path)** — exactly one of:
-  - *Initial:* `state == approved` AND `review.md` Decision = APPROVED.
+Read `_specs/<slug>/ticket.md`, `plan.md`, `review.md`, and `implement.md` (if it
+exists), then use:
+- **TS-1 / TS-2 / TS-3** — `ticket.md` exists and is valid; read the current
+  `state`.
+- **IM-1 (which way in)** — exactly one of these:
+  - *First run:* `state == approved` AND the `review.md` Decision is APPROVED.
   - *Resume:* `state == implementation-in-progress`.
-  Any other state → block.
-- **IM-2** — `plan.md` complete (PL-1..PL-5) with an explicit, **unambiguous**
-  "Files to change" list.
-- **IM-5 / GU-2** — if any planned file is under a `protected_paths` entry, require
-  `ticket.md > mode` = `high_risk`; else block.
+  Any other state → stop.
+- **IM-2** — `plan.md` is complete (PL-1..PL-5) and its "Files to change" list is
+  **clear and leaves no doubt**.
+- **IM-5 / GU-2** — a `protected_paths` file may be changed only when the
+  approved `plan.md` lists it under "Files to change"; otherwise stop (CLAUDE.md
+  says this is a full stop).
 - Branch checks:
-  - *Initial (IM-3 / GU-4):* `develop` clean AND no `ticket/<slug>` branch exists.
+  - *First run (IM-3 / GU-4):* `develop` is clean AND no `ticket/<slug>` branch
+    exists yet.
   - *Resume (IM-3a):* the `ticket/<slug>` branch **already exists** and is the
-    current checked-out branch. If missing or mismatched → block (do not create
-    a second branch).
+    branch you are on. If it is missing or you are on a different branch → stop
+    (do not create a second branch).
 
-If any check fails, stop and report the rule code + message. **No branch, no file
-changes, no state change.**
+If any check fails, stop and report the rule code and the message. **No branch,
+no file changes, no state change.**
 
-## Step 2 — Branch / enter (path-specific)
+## Step 2 — Branch or continue (depends on the way in)
 
-- **Initial:** create and check out `ticket/<slug>` from clean `main` (IM-3, the
-  only branch-creation point). Update `ticket.md`: `state:
-  implementation-in-progress`, `updated_at: <today>`; append:
+- **First run:** create `ticket/<slug>` from a clean `develop` and switch to it
+  (IM-3 — this is the only place a branch is ever created). Update `ticket.md`:
+  `state: implementation-in-progress`, `updated_at: <today>`; add:
   ```yaml
   - state: implementation-in-progress
     event: implementation-started
     by: developer
     timestamp: <today>
   ```
-- **Resume:** do **not** create a branch. Confirm you are on `ticket/<slug>`.
-  Read `implement.md` to see what was already done; if `status: blocked`, reset
-  `ticket.md status: active`. Append:
+- **Resume:** do **not** create a branch. Make sure you are on `ticket/<slug>`.
+  Read `implement.md` to see what is already done; if `status: blocked`, set
+  `ticket.md status: active` again. Add:
   ```yaml
   - state: implementation-in-progress
     event: implementation-resumed
@@ -72,34 +84,39 @@ changes, no state change.**
     timestamp: <today>
   ```
 
-## Step 3 — Apply ONLY the remaining planned changes (IM-4)
+## Step 3 — Make ONLY the planned changes that are left (IM-4)
 
-Apply each not-yet-done entry from `plan.md` "Files to change" (Edit/Write).
-**Do not modify any file not on that list.** Leave the changes as **uncommitted
-working-tree edits** on the `ticket/<slug>` branch — `/implement` creates **no
-commit** and **never pushes** (IM-9). The single publishable commit is created
-later by `/publish-pr`, the git delivery boundary (PB-8 / ADR-008).
+Work through each entry in the `plan.md` "Files to change" list that is not done
+yet (with Edit or Write). **Do not touch any file that is not on that list.**
+Leave the changes **uncommitted** in the working tree on the `ticket/<slug>`
+branch — `/implement` makes **no commit** and **never pushes** (IM-9). The one
+commit that gets published is created later by `/publish-pr`, the single place
+where git work happens (PB-8 / ADR-008).
 
-**If implementation cannot continue** (scope creep — a needed file is not listed;
-or any unsafe/unclear condition):
+**If you cannot carry on** (the work needs a file the plan does not list, or
+anything is unsafe or unclear):
 - Do **not** set `state: implemented`.
-- Keep `state: implementation-in-progress`; set `status: blocked` (IM-10).
-- Write/update `implement.md` with: **blocking reason**, **partial changes so
-  far**, **recommended next action**, and **whether plan revision is required**.
-- Stop and report. (Re-run `/implement` later to resume, or `/plan` to revise.)
+- Keep `state: implementation-in-progress` and set `status: blocked` (IM-10).
+- Write or update `implement.md` with: **why you stopped**, **what you changed so
+  far**, **what you recommend doing next**, and **whether the plan has to be
+  rewritten**.
+- Stop and report. (Run `/implement` again later to resume, or `/plan` to rewrite
+  the plan.)
 
-## Step 4 — Record implement.md (IM-6)
+## Step 4 — Write implement.md (IM-6)
 
-Write/update `_specs/<slug>/implement.md` from `_specs/_templates/implement.md`:
-front-matter (`ticket`, `stage: implement`, `mode`, `status` reflecting progress,
-`owner: developer`, `updated: <today>`, `links`) + Changes made, Deviations from
-plan, Validation run. **No commit is created at `/implement` (IM-9)** — there are
-no SHAs to record; the "Changes prepared" section lists the changed files instead.
+Write or update `_specs/<slug>/implement.md` from
+`_specs/_templates/implement.md`: the front-matter (`ticket`,
+`stage: implement`, `mode`, `status` showing how far you got, `owner: developer`,
+`updated: <today>`, `links`) plus Changes made, Deviations from plan, and
+Validation run. **No commit is made at `/implement` (IM-9)** — so there are no
+commit ids to record; the "Changes prepared" section lists the changed files
+instead.
 
-## Step 5 — Complete (TS-4 / IM-7), only if all planned work is done
+## Step 5 — Finish (TS-4 / IM-7), only when all the planned work is done
 
-Update `ticket.md`: `state: implemented`, `status: active`, `updated_at: <today>`;
-append:
+Update `ticket.md`: `state: implemented`, `status: active`,
+`updated_at: <today>`; add:
 ```yaml
 - state: implemented
   event: implementation-completed
@@ -107,51 +124,58 @@ append:
   timestamp: <today>
 ```
 
-## Postconditions — validate AFTER
+## Checks after you finish
 
-- **IM-3** initial branch from clean main (or **IM-3a** resume used the existing
-  branch, no second branch) · **IM-4** changes confined to planned files · **IM-5**
-  protected paths only if high_risk · **IM-6** implement.md complete · **IM-9** no
-  commit, no push.
-- Completed: **IM-7 / TS-4 / CMD-2** state = `implemented` with all planned work
-  done and validation recorded.
-- Blocked: **IM-10** state = `implementation-in-progress`, `status: blocked`,
-  implement.md documents reason/partial/next-action — valid but **not** complete.
+- **IM-3** the first run created the branch from a clean develop (or **IM-3a**
+  the resume used the branch that was already there, with no second branch) ·
+  **IM-4** the changes stayed inside the planned files · **IM-5** protected paths
+  were touched only if the approved plan listed them · **IM-6** `implement.md` is
+  complete · **IM-9** no commit and no push.
+- Finished: **IM-7 / TS-4 / CMD-2** state = `implemented`, with all planned work
+  done and the validation written down.
+- Stopped: **IM-10** state = `implementation-in-progress`, `status: blocked`, and
+  `implement.md` records the reason, what was done so far, and what to do next —
+  a valid result, but **not** a finished one.
 
 ## MUST NOT
 
-- Do **not** run unless state ∈ {`approved`, `implementation-in-progress`} (IM-1).
-- Do **not** create a second branch on resume (IM-3a).
-- Do **not** modify files not listed in `plan.md` (IM-4 — no silent edits).
-- Do **not** modify a `protected_paths` entry unless mode = `high_risk` (IM-5/GU-2).
-- Do **not** set `implemented` unless all planned work is complete + validation
-  recorded (IM-7).
-- Do **not** commit or push (IM-9 — `/publish-pr` owns the single publishable
-  commit); do **not** advance past `implemented` (`/verify` owns
-  `implemented → verified → closed`).
+- Do **not** run unless the state is `approved` or `implementation-in-progress`
+  (IM-1).
+- Do **not** create a second branch on a resume (IM-3a).
+- Do **not** change files that `plan.md` does not list (IM-4 — no quiet edits).
+- Do **not** change `protected_paths` unless the approved `plan.md` lists it
+  (IM-5 / GU-2).
+- Do **not** set `implemented` unless all the planned work is done and the
+  validation is written down (IM-7).
+- Do **not** commit and do **not** push (IM-9 — `/publish-pr` owns the one
+  publishable commit); do **not** move the state past `implemented` (`/verify`
+  owns `implemented → verified → closed`).
 
 ## Report
 
-State the entry path (initial/resume), the branch, the files changed (all from
-`plan.md`, left **uncommitted**), and the resulting `ticket.md` state:
-- completed → `implemented`; next: a reviewer runs `/verify`.
-- blocked → `implementation-in-progress` + `status: blocked`; report the blocking
-  reason and whether `/plan` revision is needed.
+Say which way in you used (first run or resume), the branch, the files you
+changed (all of them from `plan.md`, left **uncommitted**), and the state
+`ticket.md` now has:
+- finished → `implemented`; next: the owner runs `/verify`.
+- stopped → `implementation-in-progress` plus `status: blocked`; report why you
+  stopped and whether the plan has to be rewritten with `/plan`.
 
 ## Next step (NS-1..NS-4)
 
-Emit the next-step block (`command-architecture.md §6`):
+Print the next-step block (`command-architecture.md §6`):
 
-- **Completed → `implemented`:**
+- **Finished → `implemented`:**
   - **Current state:** `implemented`
-  - **Next command:** `/verify <slug>` (a reviewer; read-only validation)
-  - **Required actions:** none — work is applied to the branch, uncommitted.
-  - **Optional actions:** none (do not commit/push here; that is `/publish-pr`).
+  - **Next command:** `/verify <slug>` (the owner; checks only, changes nothing)
+  - **Required actions:** none — the work is on the branch, uncommitted.
+  - **Optional actions:** none (do not commit or push here; that is
+    `/publish-pr`).
   - **Terminal?** no
-- **Blocked → `implementation-in-progress` + `status: blocked` (NS-3):**
+- **Stopped → `implementation-in-progress` plus `status: blocked` (NS-3):**
   - **Current state:** `implementation-in-progress` (`status: blocked`)
-  - **Next command:** `/implement <slug>` (resume) or `/plan <slug>` (revision)
-  - **Required actions:** resolve the blocking reason recorded in `implement.md`
-    (and, if it requires a plan change, revise via `/plan` first).
+  - **Next command:** `/implement <slug>` (resume) or `/plan <slug>` (rewrite)
+  - **Required actions:** fix the reason you stopped, as written in
+    `implement.md` (and if it needs a change to the plan, rewrite the plan with
+    `/plan` first).
   - **Optional actions:** none
   - **Terminal?** no

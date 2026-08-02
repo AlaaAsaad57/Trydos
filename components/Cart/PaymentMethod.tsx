@@ -418,15 +418,20 @@ const CODInput = ({ active, setActive, total, disabled = false }) => {
         border: active && !disabled && "1px solid rgb(56 144 255 / 51%)",
       }}
     >
-      <div data-cy="WalletIcon-container" className="flex-row items-center">
+      <div
+        data-cy="WalletIcon-container"
+        className={`flex-row items-center gap-[8px] ${
+          isRtl ? "flex-row-reverse" : ""
+        }`}
+      >
         <img
-          src="/icons/WalletIcon.svg"
+          src="/icons/cod_method.svg"
           className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
           data-cy="WalletIcon-container-svg"
         />
         <span
           data-cy="Cash-texts"
-          className={`ml-[8px]  ${
+          className={`${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
         >
@@ -475,7 +480,12 @@ const TryDosWalletInput = ({
         border: active && !disabled && "1px solid rgb(56 144 255 / 51%)",
       }}
     >
-      <div data-cy="second-bay-way-con" className="flex-row items-center">
+      <div
+        data-cy="second-bay-way-con"
+        className={`flex-row items-center gap-[8px] ${
+          isRtl ? "flex-row-reverse" : ""
+        }`}
+      >
         <img
           src="/icons/WalletIcon.svg"
           data-cy="second-bay-way-svg"
@@ -483,17 +493,14 @@ const TryDosWalletInput = ({
         />
         <span
           data-cy="second-bay-way-con-text"
-          className={`ml-[8px]  ${
+          className={`${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
         >
           {translateFunction("RDB Wallet")}
         </span>
         {orderLoading && (
-          <span
-            data-cy="second-bay-way-con-text-load"
-            className="bold ml-[11px]"
-          >
+          <span data-cy="second-bay-way-con-text-load" className="bold">
             <Spinner />
           </span>
         )}
@@ -535,7 +542,12 @@ const CreditInput = ({ active, setActive, disabled = false }) => {
           : "flex-row pr-[26px] pl-[23px]"
       } mt-[6px] cursor-pointer w-full items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
-      <div data-cy="dredit-way-con" className="flex-row items-center">
+      <div
+        data-cy="dredit-way-con"
+        className={`flex-row items-center gap-[8px] ${
+          isRtl ? "flex-row-reverse" : ""
+        }`}
+      >
         <img
           src="/icons/CreditIcon.svg"
           data-cy="dredit-way-svg"
@@ -543,7 +555,7 @@ const CreditInput = ({ active, setActive, disabled = false }) => {
         />
         <span
           data-cy="dredit-way-text"
-          className={`ml-[8px] ${
+          className={`${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
         >
@@ -601,7 +613,12 @@ const CryptoInput = ({ active, setActive, disabled = false }) => {
           : "flex-row pr-[26px] pl-[23px]"
       } mt-[6px] cursor-pointer w-full items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
-      <div data-cy="crypto-bay-way-container" className="flex-row items-center">
+      <div
+        data-cy="crypto-bay-way-container"
+        className={`flex-row items-center gap-[8px] ${
+          isRtl ? "flex-row-reverse" : ""
+        }`}
+      >
         <img
           src="/icons/CryptoIcon.svg"
           data-cy="crypto-bay-way-svg"
@@ -609,7 +626,7 @@ const CryptoInput = ({ active, setActive, disabled = false }) => {
         />
         <span
           data-cy="crypto-bay-way-text"
-          className={`ml-[8px] ${
+          className={`${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
         >

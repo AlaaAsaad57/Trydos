@@ -1,5 +1,5 @@
 "use client";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import HomeService from "services/home";
 import PopupCountry from "utils/PopupCountry";
@@ -16,16 +16,27 @@ import auth from "services/auth";
 
 function Init() {
   const { lang } = useParams();
-  const { isNotificationModal, setNotificationModal, userProfile } =
-    useAppStore();
+  const router = useRouter();
+  const isNotificationModal = useAppStore((s) => s.isNotificationModal);
+  const setNotificationModal = useAppStore((s) => s.setNotificationModal);
+  // Reactive user id so the posthog/FCM effect re-runs on login/logout.
+  // Previously this relied on the whole-store subscription re-rendering Init
+  // so the `auth.UserID()` in the dep array got re-evaluated.
+  const userId = useAppStore((s) => s.userProfile?.id || s.user?.id);
   // @ts-ignore
   const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
   const [dataCountries, setCountriesData] = useState([]);
 
-  // Initialize login check once
+  // Initialize login check once. CheckLogin's proactive refresh returns true
+  // when it rotated an expired session's token pair — server components were
+  // rendered with the dead token, so refetch them with the fresh one
+  // (self-heal for expired-session page loads; ticket go-refresh-token).
   useEffect(() => {
-    HomeService.CheckLogin();
+    void (async () => {
+      const sessionRefreshed = await HomeService.CheckLogin();
+      if (sessionRefreshed) router.refresh();
+    })();
   }, []);
 
   // Capture uncaught client errors / promise rejections so they reach both
@@ -141,7 +152,7 @@ function Init() {
         scenario: "Init PostHog in Init",
       });
     }
-  }, [auth.UserID()]);
+  }, [userId]);
   const initPageLoad = async () => {
     const permission = Notification.permission;
 

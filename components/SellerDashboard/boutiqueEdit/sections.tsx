@@ -4,9 +4,22 @@ import { translateFunction } from "utils/functions";
 import { getLocalizedCountryName } from "utils/countryData";
 import LocalizationServiceClass from "services/localization";
 import { DashButton, DashIcon, Segmented } from "components/SellerDashboard/ui";
-import { RichTextEditor } from "components/SellerDashboard/ui/RichTextEditor";
+import dynamic from "next/dynamic";
+import RichTextEditorSkeleton from "components/skeleton/RichTextEditorSkeleton";
+
+// Lazy: TipTap (+ prosemirror) is ~150KB min; only the description field
+// needs it, so it loads when the form renders instead of with the page.
+const RichTextEditor = dynamic(
+  () =>
+    import("components/SellerDashboard/ui/RichTextEditor").then(
+      (m) => m.RichTextEditor,
+    ),
+  { ssr: false, loading: () => <RichTextEditorSkeleton /> },
+);
 import { Section, Chip, CopyFrom, FieldShell, dashInputClass } from "./controls";
 import {
+  AVAILABILITY_LABEL_KEYS,
+  FALLBACK_AVAILABILITIES,
   RECOMMENDED_BANNER,
   type BoutiqueForm,
   type BoutiqueLookups,
@@ -35,6 +48,36 @@ export interface SectionProps {
   onCopyField: (field: CopyableField, fromLang: LangCode) => void;
   uploading: { icon?: boolean; banners?: boolean };
   shakeTick: number;
+}
+
+/* ------------------------------ Availability ---------------------------- */
+
+export function AvailabilitySection({ form, patch, lookups, disabled }: SectionProps) {
+  const fromLookups = (lookups.availabilities || []).filter(
+    (o) => o.value in AVAILABILITY_LABEL_KEYS, // unknown values are never offered
+  );
+  const options = fromLookups.length ? fromLookups : FALLBACK_AVAILABILITIES;
+
+  return (
+    <Section
+      icon="boutiques"
+      title="Availability"
+      desc="Choose where this boutique is available."
+    >
+      <select
+        value={String(form.availability)}
+        disabled={disabled}
+        onChange={(e) => patch({ availability: Number(e.target.value) })}
+        className={`${dashInputClass} max-w-[320px] ${disabled ? "opacity-70" : ""}`}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {t(AVAILABILITY_LABEL_KEYS[o.value])}
+          </option>
+        ))}
+      </select>
+    </Section>
+  );
 }
 
 /* ------------------------------- Countries ------------------------------ */
@@ -212,7 +255,7 @@ export function TranslationsSection(props: SectionProps) {
                 />
                 <DashButton
                   variant="secondary"
-                  size="sm"
+                
                   icon="upload"
                   loading={uploading.icon}
                   onClick={() => iconRef.current?.click()}

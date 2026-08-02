@@ -35,23 +35,29 @@ import CartSkeleton from "components/skeleton/CartSkeleton";
 import OrdersPageSkeleton from "components/skeleton/OrdersPageSkeleton";
 
 const CartProvider = ({ language, country }) => {
-  const {
-    enableCart,
-    disableAddToCartOption,
-    setEnableSearch,
-    setLoginOpen,
-    setSelectedStory,
-    setAppLanguage,
-    setAppCountry,
-    setCurrency,
-    setChatOpen,
-    openPayIframe,
-    payIframeURL,
-    cart_enable: enable,
-    selected_product_for_add_to_cart,
-    setSelectedProductForCart,
-    setAddStory,
-  } = useAppStore();
+  // Per-field selectors: this component is mounted on every page and the boot
+  // fetch chain writes to the store many times in the first second — a
+  // whole-store subscription re-rendered it on each write. Action references
+  // are stable, so selecting them never triggers a re-render.
+  const enableCart = useAppStore((s) => s.enableCart);
+  const disableAddToCartOption = useAppStore((s) => s.disableAddToCartOption);
+  const setEnableSearch = useAppStore((s) => s.setEnableSearch);
+  const setLoginOpen = useAppStore((s) => s.setLoginOpen);
+  const setSelectedStory = useAppStore((s) => s.setSelectedStory);
+  const setAppLanguage = useAppStore((s) => s.setAppLanguage);
+  const setAppCountry = useAppStore((s) => s.setAppCountry);
+  const setCurrency = useAppStore((s) => s.setCurrency);
+  const setChatOpen = useAppStore((s) => s.setChatOpen);
+  const openPayIframe = useAppStore((s) => s.openPayIframe);
+  const payIframeURL = useAppStore((s) => s.payIframeURL);
+  const enable = useAppStore((s) => s.cart_enable);
+  const selected_product_for_add_to_cart = useAppStore(
+    (s) => s.selected_product_for_add_to_cart,
+  );
+  const setSelectedProductForCart = useAppStore(
+    (s) => s.setSelectedProductForCart,
+  );
+  const setAddStory = useAppStore((s) => s.setAddStory);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -216,10 +222,11 @@ const CartProvider = ({ language, country }) => {
 };
 export default CartProvider;
 const StepSlider = ({ enableCart }) => {
-  const { cart_enable: enable, cart, currency, total_cash } = useAppStore();
   const [step, setStep] = useState(0);
 
   const handleToOrders = () => {
+    // Click-handler-only reads — no subscription needed.
+    const { cart, total_cash } = useAppStore.getState();
     GAevent({
       action: GA_EVENT_NAMES.SCREEN_VIEW,
       params: {

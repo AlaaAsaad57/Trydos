@@ -13,6 +13,9 @@ export const STARTER_SETTINGS = "/web/home/startingSettings";
 export const PRODUCT_DELIVERY_TIMES = "/web/product/delivery_times";
 
 export const LOG_IN_CHAT = "/api/v1/users/login";
+// Detaches a device's FCM registration from the account. Called server-side by
+// /api/auth/logout (post-response), never from the client.
+export const REMOVE_FCM_TOKEN_URL = "/api/v1/firebase_tokens/remove-token";
 
 export const GET_CONTATCS_URL = "/api/v1/users/my_contacts";
 export const SEND_MESSAGE_URL = "/api/v1/messages/send";

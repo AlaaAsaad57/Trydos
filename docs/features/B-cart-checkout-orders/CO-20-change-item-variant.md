@@ -5,7 +5,7 @@
 | **Feature ID** | CO-20 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/setting/orders/OrderItemOptions.tsx`, `components/Orders/ChangeOrderItem.tsx`, `components/setting/orders/confirmations/ChangeOrderItemConfirmWindow.tsx`, `services/order.ts` |
 
 ---
@@ -44,7 +44,7 @@ Any shopper who ordered the wrong colour/size and wants to correct it in flight.
 | Change variant | `POST /customer/order/change-item-variant` — body `{ color, size, order_detail_id, image }` (`changeOrderItemVariant`) |
 | Live variant/stock | `GET /web/product/qtyPriceDetails/{slug}` + `GET /web/product/globalDetails/{slug}` |
 | Eligibility | `!delivered && can_change_variant && qty > 0` |
-| Backend | **Legacy backend** |
+| Backend | **Core backend** |
 
 ## Technical reference
 

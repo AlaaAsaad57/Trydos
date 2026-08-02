@@ -63,6 +63,11 @@ scripts/*
 # Engineering Workflow v1 helpers must be shared with the team (exceptions to scripts/* above)
 !scripts/clickup_intake.py
 !scripts/github_publish.py
+# Trello -> ClickUp backlog migration helpers (used by the migrate-trello-batch skill)
+!scripts/workflow_env.py
+!scripts/trello_fetch.py
+!scripts/trello_move_card.py
+!scripts/clickup_create_task.py
 
 # Local design references (XD exports) - not for repo
 xd-designs-for-inspreation/
@@ -81,3 +86,37 @@ price-filter-es-implementation.md
 
 # Security assessment HAR captures contain live tokens/cookies — never commit.
 security-check/*.har
+
+# Captured request payloads contain live seller data (boutique ids, prices,
+# purchase-price margins, barcodes) and would carry auth headers if re-captured
+# with them — never commit. Keep captures in a scratchpad outside the repo.
+*-payload.txt
+SECURITY-register-guest.md
+
+# Local gate-notification config — holds the Telegram bot token (secret).
+# Keep it local; never commit the secret. Copy .claude/notifications.example.json
+# to .claude/notifications.json and fill in botToken, or supply WF_TELEGRAM_* env.
+.claude/notifications.json
+
+# Backend body-contract working docs. These describe the shop-product create/update
+# request contract by reading BACKEND SOURCE, and record unpatched backend defects
+# (boutique ownership not checked, client-controllable `id` on create, no barcode
+# uniqueness on update, approval-queue bypass) with exact backend file:line
+# citations. THIS REPOSITORY IS PUBLIC — committing them would publish a working
+# exploitation guide for a live system. Keep them local; share via the backend
+# team's own channel, never via this repo.
+docs/api-requirements/shop-product-body-contract.md
+docs/api-requirements/shop-product-body-payloads.txt
+docs/api-requirements/seller-product-body-alignment-roadmap.md
+Guest-Authentication-&-Token-Renewal.md
+go-refresh-api-contract.md
+# Same class: the core backend's auth contract (endpoint shapes, token TTLs and
+# server-side config names) plus the implementation plan that quotes it. Keep
+# local; share through the backend team's own channel, never via this repo.
+laravel-refresh-flow.md
+laravel-refresh-plan.md
+
+# Same class: the shop-locations backend contract (endpoint shapes, permission
+# names and the seller-scoping rules). Keep local; share through the backend
+# team's own channel, never via this repo.
+seller-dashboard-locations-api-contract.md

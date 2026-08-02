@@ -20,6 +20,7 @@ import GalleryTab from "components/SellerDashboard/GalleryTab";
 import StoriesTab from "components/SellerDashboard/StoriesTab";
 import CommentsTab from "components/SellerDashboard/CommentsTab";
 import ExcelUploadTab from "components/SellerDashboard/ExcelUploadTab";
+import LocationsTab from "components/SellerDashboard/locations/LocationsTab";
 import BackBar from "components/setting/BackBar";
 import ShopInfo from "components/SellerDashboard/ShopInfo";
 import { ConfirmModal } from "components/global/ConfirmModal";
@@ -42,6 +43,7 @@ import {
 type TabType =
   | "products"
   | "boutiques"
+  | "locations"
   | "permissions"
   | "users"
   | "orders"
@@ -65,6 +67,12 @@ const PERMISSION_GROUPS = {
     "UPDATE_BUTIKS",
     "DELETE_BUTIKS",
     "CHANGE_BOUTIQUE_STATUS",
+  ],
+  LOCATIONS: [
+    "READ_LOCATIONS",
+    "CREATE_LOCATION",
+    "UPDATE_LOCATION",
+    "CHANGE_LOCATION_STATUS",
   ],
   CATEGORIES: [
     "READ_CATEGORIES",
@@ -201,6 +209,14 @@ function SellerDashBoard() {
   const searchParams = useSearchParams();
   const { setIsNavigating, setLastPathname } = useAppStore();
 
+  // Shop currency (fetched dashboard-wide by ShopInfoLoader). Only trusted when
+  // it belongs to THIS shop — product cards render no label otherwise.
+  const dashboardShopInfo = useAppStore((s) => s.dashboardShopInfo);
+  const shopCurrency =
+    dashboardShopInfo?.sellerId === sellerId
+      ? dashboardShopInfo.currency.code
+      : "";
+
   // The active section lives in the URL (`?tab=`) rather than local state so
   // that opening a product/boutique detail and pressing back restores the exact
   // list the seller was on — browser history round-trips the query. Absent /
@@ -208,6 +224,7 @@ function SellerDashBoard() {
   const VALID_TABS: TabType[] = [
     "products",
     "boutiques",
+    "locations",
     "permissions",
     "users",
     "orders",
@@ -315,6 +332,15 @@ function SellerDashBoard() {
     hasPermission(p),
   );
   const canViewBoutiques = PERMISSION_GROUPS.BOUTIQUES.some((p: string) =>
+    hasPermission(p),
+  );
+  // Locations (warehouses / pickup points). The tab appears when the user holds
+  // any location permission; each action is then gated on its own.
+  const canReadLocations = hasPermission("READ_LOCATIONS");
+  const canCreateLocation = hasPermission("CREATE_LOCATION");
+  const canUpdateLocation = hasPermission("UPDATE_LOCATION");
+  const canChangeLocationStatus = hasPermission("CHANGE_LOCATION_STATUS");
+  const canViewLocations = PERMISSION_GROUPS.LOCATIONS.some((p: string) =>
     hasPermission(p),
   );
   const canViewPermissions = [
@@ -1021,9 +1047,11 @@ function SellerDashBoard() {
                   product.unit_price !== null ? (
                     <p className="text-[16px] bold text-[#3c3c3c] leading-none">
                       {Number(product.unit_price).toFixed(2)}
-                      <span className="text-[10px] text-[#8e8e8e] ml-1 regular">
-                        {translateFunction("USD")}
-                      </span>
+                      {shopCurrency && (
+                        <span className="text-[10px] text-[#8e8e8e] ml-1 regular">
+                          {shopCurrency}
+                        </span>
+                      )}
                     </p>
                   ) : (
                     <span />
@@ -1809,6 +1837,13 @@ function SellerDashBoard() {
       show: canViewBoutiques,
     },
     {
+      tab: "locations",
+      icon: "location",
+      label: translateFunction("Locations"),
+      desc: translateFunction("Warehouses and pickup points for this shop"),
+      show: canViewLocations,
+    },
+    {
       tab: "orders",
       icon: "orders",
       label: translateFunction("Orders"),
@@ -1887,6 +1922,7 @@ function SellerDashBoard() {
           {tiles.map((t) => (
             <button
               key={t.tab}
+              data-cy={`seller-dashboard-tab-${t.tab}`}
               onClick={() => changeTab(t.tab)}
               className="group flex items-center gap-3.5 p-4 rounded-[15px] bg-[#f8f8f8] border border-transparent hover:bg-white hover:border-[#ededed] hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-all active:scale-[0.99] text-left"
             >
@@ -2012,6 +2048,28 @@ function SellerDashBoard() {
                     {loadingSideBar ? <Spinner /> : sellerBoutiques?.length}
                   </span>
                   {activeTab === "boutiques" && (
+                    <span className="ml-auto text-[#5d5d5d]">
+                      <DashIcon name="check" size={16} />
+                    </span>
+                  )}
+                </button>
+              )}
+
+              {canViewLocations && (
+                <button
+                  onClick={() => {
+                    changeTab("locations");
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                    activeTab === "locations"
+                      ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
+                      : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
+                  }`}
+                >
+                  <DashIcon name="location" size={20} />
+                  <span>{translateFunction("Locations")}</span>
+                  {activeTab === "locations" && (
                     <span className="ml-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
@@ -2233,6 +2291,7 @@ function SellerDashBoard() {
             </h1>
             <div className="flex flex-wrap items-center gap-2 mt-1.5">
               <span
+                data-cy="seller-dashboard-role"
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] semibold ${
                   isAdmin
                     ? "bg-[#5d5d5d]/10 text-[#5d5d5d]"
@@ -2247,7 +2306,9 @@ function SellerDashBoard() {
               </span>
               <span className="text-[12px] text-[#8e8e8e]">
                 {translateFunction("Seller ID:")}{" "}
-                <span className="medium text-[#505050]">{sellerId}</span>
+                <span data-cy="seller-dashboard-seller-id" className="medium text-[#505050]">
+                  {sellerId}
+                </span>
               </span>
             </div>
           </div>
@@ -2262,6 +2323,16 @@ function SellerDashBoard() {
         {activeTab === "none" && renderHome()}
         {activeTab === "products" && renderProducts()}
         {activeTab === "boutiques" && renderBoutiques()}
+        {activeTab === "locations" && (
+          <LocationsTab
+            sellerId={sellerId}
+            language={language}
+            canRead={canReadLocations}
+            canCreate={canCreateLocation}
+            canUpdate={canUpdateLocation}
+            canChangeStatus={canChangeLocationStatus}
+          />
+        )}
         {activeTab === "permissions" && renderPermissions()}
         {activeTab === "users" && renderUsers()}
         {activeTab === "orders" && (

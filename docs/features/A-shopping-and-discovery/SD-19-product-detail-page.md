@@ -48,9 +48,9 @@ Every shopper deciding on a product.
 
 | Item | Value |
 |------|-------|
-| Core product | `GetGlobalProduct({ slug, language, country })` — Redis cache → Go backend `/web/product/globalDetails/<slug>` |
+| Core product | `GetGlobalProduct({ slug, language, country })` — Redis cache → `/web/product/globalDetails/<slug>` (gateway for guests, core backend for verified shoppers) |
 | Price / stock / sizes | `GetProductPriceQtyDetails(...)` — Redis cache → `/web/product/qtyPriceDetails/<slug>` |
-| Shipping settings | `GetStarttingSetting(...)` → Go backend `/web/home/startingSettings` |
+| Shipping settings | `GetStarttingSetting(...)` → `/web/home/startingSettings` (gateway for guests, core backend for verified shoppers) |
 | SEO metadata | `GetProductMeta` (full route only), cached in Redis |
 
 ## Technical reference

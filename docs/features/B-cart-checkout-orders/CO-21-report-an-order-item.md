@@ -5,7 +5,7 @@
 | **Feature ID** | CO-21 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/setting/orders/ReportOrderItemWrapper.tsx`, `components/setting/orders/OrderItemOptions.tsx`, `utils/orderReportOptions.ts`, `services/order.ts` |
 
 ---
@@ -44,7 +44,7 @@ Any shopper unhappy with a delivered item or its delivery.
 |------|-------|
 | Submit report | `POST /customer/order/report` — body `{ order_id, order_detail_id, product_id, order_group_id, points, note }` (`Order.ReportOrderItem`) |
 | Reason contract | `utils/orderReportOptions.ts` (frozen client-side wire contract) |
-| Backend | **Legacy backend** |
+| Backend | **Core backend** |
 
 ## Technical reference
 

@@ -5,7 +5,7 @@
 | **Feature ID** | ST-02 |
 | **Domain** | F · Stories |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Home/Stories/AddStoryWidget.tsx`, `components/Home/Stories/CameraStory.tsx`, `components/Home/AddStory.tsx`, `services/story.ts` |
 
 ---
@@ -56,7 +56,7 @@ name (else it prompts for a name first); guests are routed through sign-in.
 
 | Item | Value |
 |------|-------|
-| Create modal | `components/Home/Stories/AddStoryWidget.tsx` (renders only when `addStoryEnable`) |
+| Create modal | `components/Home/Stories/AddStoryWidget.tsx` (renders only when `addStoryEnable`), **lazy-loaded** via `AddStoryWidgetLazy.tsx` with a matching skeleton — the camera code is not downloaded until the shopper taps "+" |
 | Trigger tile | `components/Home/AddStory.tsx` (`data-cy="Add-Story-Button"`, gated on `is_allowed_to_upload_story`) |
 | Camera | `components/Home/Stories/CameraStory.tsx` (`NewStoryModal`) |
 | Limits | `MAX_FILE_SIZE_MB = 10`; video cap at 59 s ("1 minutes video only") |

@@ -78,19 +78,38 @@ export default function GalleryTab({
         throw new Error(res?.message || "Failed to load images");
       }
       const data = res.data?.images ?? res.data?.data ?? res.data ?? [];
+      const metaData = res.data?.meta ?? res.meta ?? null;
       setImages(Array.isArray(data) ? data : []);
-      setMeta(res.data?.meta ?? res.meta ?? null);
+      setMeta(metaData);
       setPage(p);
+      return { images: Array.isArray(data) ? data : [], meta: metaData };
     } catch (e: any) {
       LogError({
         scenario: "GalleryTab.fetchImages",
         error: e instanceof Error ? e.message : String(e),
       });
       setError(e?.message || translateFunction("Failed to load images"));
+      return { images: [], meta: null };
     } finally {
       setLoading(false);
     }
   }, [sellerId]);
+
+  // Re-fetch the current page after a delete; if the page is now empty, step
+  // back to the previous page so the user never lands on an empty page 2+.
+  const refreshCurrentPage = useCallback(async () => {
+    const currentPage = meta?.current_page ?? page;
+    const result = await fetchImages(currentPage);
+    if (result.images.length === 0 && currentPage > 1) {
+      const fallbackPage =
+        result.meta?.last_page && result.meta.last_page > 0
+          ? Math.min(currentPage - 1, result.meta.last_page)
+          : currentPage - 1;
+      if (fallbackPage !== currentPage) {
+        await fetchImages(fallbackPage);
+      }
+    }
+  }, [fetchImages, meta, page]);
 
   useEffect(() => {
     fetchImages(1);
@@ -164,13 +183,13 @@ export default function GalleryTab({
       if (res?.success === false) {
         throw new Error(res?.message || translateFunction("Failed to delete image"));
       }
-      setImages((prev) => prev.filter((img) => String(img.id) !== String(imageId)));
       setSelectedIds((prev) => {
         const next = new Set(prev);
         next.delete(String(imageId));
         return next;
       });
       setDeleteTarget(null);
+      await refreshCurrentPage();
     } catch (e: any) {
       LogError({
         scenario: "GalleryTab.handleDelete",
@@ -220,9 +239,9 @@ export default function GalleryTab({
       if (res?.success === false) {
         throw new Error(res?.message || translateFunction("Failed to delete images"));
       }
-      setImages((prev) => prev.filter((img) => !selectedIds.has(String(img.id))));
       setShowBulkDelete(false);
       exitSelectMode();
+      await refreshCurrentPage();
     } catch (e: any) {
       LogError({
         scenario: "GalleryTab.handleBulkDelete",

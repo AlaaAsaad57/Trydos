@@ -149,7 +149,7 @@ export async function checkWallet({
   let res = await fetchServerData({
     method: "GET",
     local: local,
-    url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/wallets/myAcounts`,
+    url: process.env.WALLET_BACKEND_URL + `/wallets/myAcounts`,
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -185,7 +185,7 @@ export async function createWallet({
       subtype: "MAIN",
       name: "Primary Funding Wallet",
     }),
-    url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/wallets?subtype=MAIN",
+    url: process.env.WALLET_BACKEND_URL + "/wallets?subtype=MAIN",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -214,7 +214,7 @@ export async function getCurrencies({
       method: "GET",
       local: local,
       url:
-        process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
+        process.env.WALLET_BACKEND_URL +
         `/currencies?countryCode=${country?.toUpperCase()}`,
       headers: {
         Authorization: `Bearer ${token}`,
@@ -240,7 +240,7 @@ export async function GetBanks({
     let response: FetchResponse<BanksApi> = await fetchServerData({
       method: "GET",
       local: local,
-      url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/banks",
+      url: process.env.WALLET_BACKEND_URL + "/banks",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -271,7 +271,7 @@ export async function UploadMedia({
     method: "POST",
     body: formData,
     local: local,
-    url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/media/upload/direct",
+    url: process.env.WALLET_BACKEND_URL + "/media/upload/direct",
     headers: {
       Authorization: `Bearer ${token}`,
       // Using "MULTIPART" flag so your fetch wrapper knows to DELETE the content-type header
@@ -316,7 +316,7 @@ export async function CreateBankDeposit({
       transactionReference,
       idempotencyKey,
     }),
-    url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/bank-deposits",
+    url: process.env.WALLET_BACKEND_URL + "/bank-deposits",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -355,7 +355,7 @@ export async function CalculateFees({
       amount,
     }),
     url:
-      process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
+      process.env.WALLET_BACKEND_URL +
       "/bank-deposits/calculate-fees",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -379,7 +379,7 @@ export async function GetBankDepostits({
   let response: FetchResponse<GetBankDepositeApi> = await fetchServerData({
     method: "GET",
     local: local,
-    url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + "/bank-deposits",
+    url: process.env.WALLET_BACKEND_URL + "/bank-deposits",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -410,7 +410,7 @@ export async function GetWalletBalanceInCurrency({
     method: "GET",
     local: local,
     url:
-      process.env.NEXT_PUBLIC_WALLET_BACKEND_URL +
+      process.env.WALLET_BACKEND_URL +
       `/wallets/my/balances/${currencyId}?${params?.toString()}`,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -475,7 +475,7 @@ export async function CheckoutOrder({
       method: "POST",
       local: local,
       body: JSON.stringify(checkoutPayload),
-      url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/merchant/checkout`,
+      url: process.env.WALLET_BACKEND_URL + `/merchant/checkout`,
       headers: {
         Authorization: `Bearer ${token}`,
         "X-Merchant-Api-Key": process.env.WALLET_PUBLIC_API_KEY,
@@ -491,7 +491,7 @@ export async function CheckoutOrder({
     return processResponse<CheckoutOrderApi>(response, handleUnauthenticated, {
       scenario: "CheckoutOrder in wallet system",
       userId: String(userId),
-      url: process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + `/merchant/checkout`,
+      url: process.env.WALLET_BACKEND_URL + `/merchant/checkout`,
       currencyId: currencyId,
       amount: amount,
       cart_groub_ids: [cartId],

@@ -13,8 +13,6 @@ export async function POST(request: NextRequest) {
 
     const marketToken =
       cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ?? null;
-    const deviceToken =
-      cookieStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ?? null;
     const chatToken = cookieStore.get(COOKIE_NAMES.CHAT_TOKEN)?.value ?? null;
     const storiesToken =
       cookieStore.get(COOKIE_NAMES.STORIES_TOKEN)?.value ?? null;
@@ -36,7 +34,6 @@ export async function POST(request: NextRequest) {
         ? errorPayload
         : { message: String(errorPayload) }),
       marketToken,
-      deviceToken,
       chatToken,
       storiesToken,
       walletToken,
@@ -45,7 +42,7 @@ export async function POST(request: NextRequest) {
     };
 
     let res=await fetch(
-      process.env.NEXT_PUBLIC_GO_BACKEND_URL + "/mobile_error_log/store",
+      process.env.GO_BACKEND_URL + "/mobile_error_log/store",
       {
         method: "POST",
         headers: {
@@ -56,9 +53,7 @@ export async function POST(request: NextRequest) {
       },
     );
 
-    return NextResponse.json({ success: true },{headers:{
-      'IS-FROM-GO':'true'
-    }});
+    return NextResponse.json({ success: true });
   } catch (err) {
     console.error("mobile-error-log route error:", err);
     return NextResponse.json({ success: false }, { status: 500 });

@@ -30,8 +30,8 @@ stages:
 
 - Written as a checklist of **observable, testable** statements.
 - Each criterion is independently verifiable (pass/fail, no ambiguity).
-- No criterion may require touching protected runtime paths unless the
-  ticket is explicitly a protected-path change approved at the review gate.
+- No criterion may require touching a `protected_paths` entry unless that change
+  is explicitly part of the ticket and listed in the approved `plan.md`.
 - "Done" is defined only by the acceptance criteria — not by effort spent.
 
 ## Test case rules

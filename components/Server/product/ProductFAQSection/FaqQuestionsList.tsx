@@ -15,6 +15,7 @@ import {
 } from "utils/endpointConfig";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogError } from "utils/functions";
+import { useLiveColor, useLiveParam } from "hooks/useLiveColor";
 
 // Internal Next route (same-origin) returning the FAQ-comments data page.
 async function fetchFaqComments({
@@ -62,6 +63,11 @@ function FaqQuestionsList({
     removeCommentEntity,
     appendedFaqIds,
   } = useAppStore();
+  // Query-only ?color=/?size= navigations reuse the stale server render, so
+  // the server-provided props go stale — track the live values instead
+  // (they're stamped into the variant of newly asked questions).
+  const liveColor = useLiveColor(color);
+  const liveSize = useLiveParam("size", size);
   const [commentsData, setCommentsData] = useState(comments);
   // Questions created this session in any FAQ widget that aren't already in this
   // widget's own list — rendered on top so a new question fans out here too.
@@ -250,8 +256,8 @@ function FaqQuestionsList({
       </HortiznalScrollBar>
       <AskInput
         productId={productId}
-        color={color}
-        size={size}
+        color={liveColor}
+        size={liveSize}
         owner_id={owner_id}
         owner_type={owner_type}
         language={language}

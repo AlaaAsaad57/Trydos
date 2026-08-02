@@ -194,7 +194,10 @@ function toMobileProductShape(merged: any, elastic: any, language: string) {
     offer_type: merged.offer_type ?? null,
     descriptors: merged.descriptors ?? [],
     allow_return_in_days: merged.allow_return_in_days ?? null,
-    views_count: merged.views_count ?? 0,
+    // The backend's own views_count is always 0 (never populated), so both view
+    // keys are served from the same authoritative counter the web page uses
+    // (Elasticsearch views_index.view_count, surfaced as elastic.total_views).
+    views_count: elastic?.total_views ?? 0,
 
     // Reviews / social / analytics (from getProductDataFromElastic)
     shared_count: elastic?.shared_count ?? 0,

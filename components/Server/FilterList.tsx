@@ -7,12 +7,12 @@ import {
   buildParamsFromFilters,
   FilterParams,
   pollinateInput,
-} from "utils/server";
+} from "utils/server/helpers";
 import InfiniteScrollFilters from "components/ListingPage/filterComponents/InfiniteScrollFilters";
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
-import { getConfiguredImage, RoundPrice } from "utils/server";
+import { getConfiguredImage, RoundPrice } from "utils/server/helpers";
 
 import FilterItem from "components/ListingPage/FilterItem";
 
@@ -79,9 +79,9 @@ function FilterList({
           />
           <HortiznalScrollBar
             id="filter-list-row-container"
-            className={`$${
+            className={`${
               isRtl
-                ? "flex-row-reverse flex mr-[45px]"
+                ? "[direction:rtl] flex-row flex mr-[45px]"
                 : "flex-row flex ml-[45px]"
             }  items-center pr-5   justify-start align-start filter-container overflow-auto scroll-smooth`}
           >

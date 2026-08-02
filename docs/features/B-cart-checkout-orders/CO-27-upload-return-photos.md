@@ -5,7 +5,7 @@
 | **Feature ID** | CO-27 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Orders/UploadImageComponent.tsx`, `components/global/ImageCropWidget.tsx`, `components/setting/orders/ReturnOrderItemWrapper.tsx`, `services/order.ts` |
 
 ---
@@ -48,7 +48,7 @@ Any shopper creating a return request (CO-26).
 | Upload image | `POST {NEXT_PUBLIC_MEDIA_SERVER_BASE_URL}/upload` — multipart `FormData` (`file`, `folder="return_request_products"`), header `x-api-key` |
 | Remove saved image | `GET /customer/order/return_request_products/remove_image?return_request_product_id=…&image=…` |
 | Display URL | `NEXT_PUBLIC_BASE_MEDIA_URL + "/return_request_products/" + sub_path` |
-| Backend | Media server for upload; **legacy backend** for the remove call |
+| Backend | Media server for upload; **core backend** for the remove call |
 
 ## Technical reference
 

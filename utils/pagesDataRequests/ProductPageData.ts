@@ -6,6 +6,7 @@ import {
   product_interactions_index,
   share_index,
   user_interactions_index,
+  views_index,
 } from "services/elastic/INDEXES";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -36,6 +37,7 @@ export const getProductDataFromElastic = async ({
       FQAComments,
       recommendationStats,
       likeDetails,
+      viewCount,
     ] = await Promise.all([
       getProductSharedCountFromElasticsearch(productId, slug, lang),
       GetRatingCommentsForProduct({
@@ -55,6 +57,7 @@ export const getProductDataFromElastic = async ({
       }),
 
       getProductInteractions(productId, user_id),
+      getProductViewCount(productId),
     ]);
 
     let sharesData =
@@ -78,7 +81,11 @@ export const getProductDataFromElastic = async ({
       recommendation_stats: recommendationStats.stats,
       count_of_likes: likeDetails?.total_likes,
       is_liked: likeDetails?.is_liked,
-      total_views: likeDetails?.total_views,
+      // View count comes from views_index — the same source the web product page
+      // reads (GetProductGeneralData). product_interactions_index also carries a
+      // total_views field, but it is never populated (always 0) and its document
+      // is missing entirely for most products.
+      total_views: viewCount,
       total_rating: Number(likeDetails?.final_rating) ?? 0,
       size_analysis: likeDetails?.size_analysis,
       good_quality_product: likeDetails?.good_quality_product,
@@ -510,6 +517,31 @@ async function GetFQACommentsForProductWithReactions({
   }));
 }
 
+// Authoritative product view counter (views_index.view_count) — mirrors
+// getProductViewsQuery in serverRequests/product.tsx, which is what the web
+// product page renders.
+async function getProductViewCount(productId: string) {
+  try {
+    const res = await client.get({
+      index: views_index,
+      id: productId,
+      _source: ["view_count"],
+    });
+    return (res._source as any)?.view_count ?? 0;
+  } catch (error) {
+    // A 404 just means this product has no view-count doc yet — not an error.
+    const statusCode =
+      (error as any)?.statusCode ?? (error as any)?.meta?.statusCode;
+    if (statusCode !== 404) {
+      LogServerError({
+        scenario: "getProductViewCount in ProductPageData",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    return 0;
+  }
+}
+
 async function getProductInteractions(productId: string, userId?: string) {
   try {
     // Run both queries in parallel
@@ -547,7 +579,6 @@ async function getProductInteractions(productId: string, userId?: string) {
       final_rating: source?.final_rating,
       total_comments: source?.total_comments,
       total_likes: source?.total_likes ?? 0,
-      total_views: source?.total_views ?? 0,
       ratingDetails: source?.star_distribution
         ? Object.keys(source.star_distribution)?.map((s) => ({
             ratingGroup: s?.split("_")[1],
@@ -581,7 +612,6 @@ async function getProductInteractions(productId: string, userId?: string) {
         total_likes: 0,
         final_rating: 0,
         ratingDetails: [],
-        total_views: 0,
         size_analysis: {
           small_percentage: 0,
           large_percentage: 0,

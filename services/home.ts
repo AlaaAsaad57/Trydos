@@ -22,6 +22,8 @@ import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { normaliseStartingSettings } from "utils/startingSettings";
+import { fetchAuthMe } from "utils/authMe";
 import { isGuestName } from "utils/tinyUtils";
 import { COOKIE_NAMES, setCookie } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -52,8 +54,12 @@ class HomeService {
         throw new Error(response.message);
       }
     
-      setSettings(response.data);
-      sessionStorage.setItem("starttingSetting", JSON.stringify(response.data));
+      // Envelope-preserving: keeps the response envelope and replaces only the
+      // settings entry, so every existing `settings["starting_setting"]` reader
+      // is unaffected regardless of which backend served the request.
+      const settings = normaliseStartingSettings(response.data);
+      setSettings(settings);
+      sessionStorage.setItem("starttingSetting", JSON.stringify(settings));
       await this.getCustomerInfo();
 
       getCart({
@@ -160,7 +166,7 @@ class HomeService {
     }
   }
 
-  async registerForExpire(id?: number) {
+  async registerForExpire() {
     const {
       isRegisteringReady,
       setIsRegisteringReady,
@@ -172,12 +178,14 @@ class HomeService {
     if (!isRegisteringReady) return;
 
     setIsRegisteringReady(false);
-    const userId = id || auth.UserID();
 
     try {
       const [country, lang] = (
         window.location.pathname.split("/")[1] || ""
       ).split("-");
+      // Bodyless per the Go contract — register-guest only creates brand-new
+      // guests; old_guest_user_id no longer exists (session continuity is the
+      // refresh token's job now).
       const response = await fetch("/api/auth/register-device", {
         method: "POST",
         headers: {
@@ -185,7 +193,6 @@ class HomeService {
           "x-country": country || "sy",
           "x-language": lang || "en",
         },
-        body: JSON.stringify({ old_guest_user_id: userId || null }),
         credentials: "include",
       });
 
@@ -317,7 +324,14 @@ class HomeService {
     }
   }
 
-  async CheckLogin() {
+  /**
+   * App-load auth bootstrap. Refresh is REACTIVE-ONLY: no proactive
+   * expiry-based exchange runs here — local token expiry (JWT exp /
+   * expired_at) is ignored entirely, and the pair is rotated exclusively by
+   * the 401 recovery path in fetchData / HandleAuthedFetch. Always returns
+   * `false` (nothing rotated at boot).
+   */
+  async CheckLogin(): Promise<boolean> {
     const {
       loginSuccess,
       loginSuccessChat,
@@ -326,36 +340,32 @@ class HomeService {
       editUserInfo,
     } = useAppStore.getState();
 
+    const sessionRefreshed = false;
+
     // Fetch user data from HttpOnly cookies via server route
     let userData: any = null;
     let userChat: any = null;
     let userStories: any = null;
     let userWallet: any = null;
-    let hasDeviceToken = false;
     let hasMarketToken = false;
 
-    try {
-      const meResponse = await fetch("/api/auth/me", {
-        credentials: "include",
-        method: "POST",
-      });
-      if (meResponse.ok) {
-        const meData = await meResponse.json();
-        userData = meData.user;
-        userChat = meData.chatUser;
-        userStories = meData.storiesUser;
-        userWallet = meData.walletUser;
-        hasDeviceToken = meData.hasDeviceToken;
-        hasMarketToken = meData.hasMarketToken;
-      }
-    } catch (_) {}
+    const meData = await fetchAuthMe();
+    if (meData) {
+      userData = meData.user;
+      userChat = meData.chatUser;
+      userStories = meData.storiesUser;
+      userWallet = meData.walletUser;
+      hasMarketToken = meData.hasMarketToken;
+    }
 
     if (userData) {
       editUserInfo(userData);
       SetGAUser(userData, false);
     }
 
-    if (!hasDeviceToken) await this.RegisterDevice();
+    // MARKET_TOKEN is the single auth cookie (guest or logged-in) — register a
+    // guest only when no token exists at all.
+    if (!hasMarketToken) await this.RegisterDevice();
 
     if (userData && userData?.is_phone_verified === 1 && hasMarketToken) {
       if (process.env.NODE_ENV === "production")
@@ -391,6 +401,7 @@ class HomeService {
       }
     }
     // auth.CheckUserName();
+    return sessionRefreshed;
   }
 
   async RegisterDevice() {
@@ -407,6 +418,8 @@ class HomeService {
       const [country, lang] = (
         window.location.pathname.split("/")[1] || ""
       ).split("-");
+      // Bodyless per the Go contract — no old_guest_user_id (see
+      // registerForExpire above).
       const response = await fetch("/api/auth/register-device", {
         method: "POST",
         headers: {
@@ -414,7 +427,6 @@ class HomeService {
           "x-country": country || "sy",
           "x-language": lang || "en",
         },
-        body: JSON.stringify({ old_guest_user_id: userId || null }),
         credentials: "include",
       });
 

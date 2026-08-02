@@ -18,8 +18,5 @@ app/(client)/requests-log/
 app/(client)/backend-compare/
 app/simulateUser/
 
-# Internal OTP rate-limit diagnostics modal (admin/debug, not shopper copy).
-components/Home/OtpStatsModal.tsx
-
 # Developer test harness for push notifications ("Test" buttons + dev notes).
 components/global/NotificationsTest.tsx

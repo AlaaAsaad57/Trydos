@@ -5,7 +5,7 @@
 | **Feature ID** | CO-26 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/setting/orders/ReturnOrderItemWrapper.tsx`, `components/setting/orders/OrderItemOptions.tsx`, `components/setting/orders/confirmations/OrderItemReturnConfirmationWindow.tsx`, `services/order.ts` |
 
 ---
@@ -60,7 +60,7 @@ Any shopper who has received an order and wants to send an item back.
 | Add product to request | `POST /customer/order/return_request_products/store` — `{ product_id, order_detail_id, quantity, return_request_id, images, return_request_reason_id, is_for_exchange:0, details:"" }` |
 | Update product on request | `POST /customer/order/return_request_products/update` — `{ id, quantity, images, return_request_reason_id }` |
 | Request detail check | `GET /customer/order/return_requests/order_details?return_request_id=…` |
-| Backend | **Legacy backend** (`NEXT_PUBLIC_BACKEND_URL`) — none of the `return_requests/*` paths are on the Go allow-list |
+| Backend | **Core backend** — none of the `return_requests/*` paths are on the gateway allow-list |
 
 ## Technical reference
 

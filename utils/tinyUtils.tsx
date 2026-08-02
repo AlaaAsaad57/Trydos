@@ -15,12 +15,83 @@ export const ChatConroller = (payload) => {
     setChatOpen(payload);
   } catch (error) {}
 };
+// The logout route only deletes cookies (the FCM detach it triggers runs after
+// its response), so it is fast — but a stalled request must never strand the
+// user on a half-logged-out screen. Bounded so logout always completes.
+const LOGOUT_REQUEST_TIMEOUT_MS = 1800;
+
+// Backstop for the push teardown below. The work is local, so this only guards
+// against a browser that makes `unsubscribe()` wait on its push service.
+const PUSH_TEARDOWN_BUDGET_MS = 800;
+
+/**
+ * Stop push delivery to this device.
+ *
+ * The push subscription — NOT any of the cookies/localStorage/IndexedDB cleared
+ * below — is what makes a push display here, so dropping it is what keeps the
+ * next person on this device from seeing the logged-out user's orders and chats.
+ * It covers direct-to-token and FCM *topic* pushes alike, because both terminate
+ * at the same endpoint; the server-side detach cannot stop topic broadcasts.
+ *
+ * Deliberately NOT Firebase's `deleteToken`: `deleteTokenInternal` sends its
+ * network DELETE to Google FIRST and only then removes the local record and
+ * unsubscribes, with no timeout anywhere in the chain — so on the slow/filtered
+ * networks our markets sit on it hung for tens of seconds AND achieved nothing,
+ * because neither local step ever ran. `unsubscribe()` removes the subscription
+ * locally, and the next `getToken` sees a fresh endpoint/keys, discards
+ * Firebase's now-stale record (it suppresses errors there) and mints a new token.
+ */
+const teardownPushDelivery = async () => {
+  if (!("serviceWorker" in navigator)) return;
+  const registration = await navigator.serviceWorker.getRegistration(
+    "/firebase-messaging-sw.js",
+  );
+  const subscription = await registration?.pushManager.getSubscription();
+  await subscription?.unsubscribe();
+};
+
 export const clearAllUserData = async () => {
+  // Hand the device's FCM token to the logout route, which detaches it from the
+  // account server-side after responding. Read before `localStorage` is cleared
+  // below. Every logout path gets this, not just the menu one: session expiry,
+  // version bumps and the login-recovery screens used to leave the registration
+  // attached, so pushes for the old account kept arriving on the device.
+  const fcmToken = localStorage.getItem("FB-DEVICE-TOKEN") || "";
+
   // Stop every in-flight authed request NOW so none of them can resolve a 401
-  // mid-logout and trigger a re-register. Runs after FCM-token removal (done
-  // earlier in handleLogout) and does not affect this bare logout fetch.
+  // mid-logout and trigger a re-register. Does not affect this bare fetch.
   abortInFlightForLogout();
-  await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+
+  const logoutRequest = (async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fcmToken }),
+        signal: AbortSignal.timeout(LOGOUT_REQUEST_TIMEOUT_MS),
+      });
+    } catch (error) {
+      // The local clears below still run, and callers still reload — a failed
+      // cookie delete surfaces as "still signed in", which we want reported.
+      LogError({
+        scenario: "clearAllUserData logout request",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  })();
+
+  // Runs alongside the request above (they touch nothing in common), so the
+  // teardown adds no time to a logout in practice.
+  await Promise.all([
+    logoutRequest,
+    Promise.race([
+      teardownPushDelivery().catch(() => {
+        /* best-effort — the session is going away regardless */
+      }),
+      new Promise((resolve) => setTimeout(resolve, PUSH_TEARDOWN_BUDGET_MS)),
+    ]),
+  ]);
   // Break the PostHog identity link so the next guest session isn't stitched
   // onto the user who just logged out (fresh anonymous distinct_id + session).
   posthogReset();
@@ -31,7 +102,7 @@ export const clearAllUserData = async () => {
 export const getCurrency = async ({ callback }) => {
   try {
     let response = await fetchData({
-      url: "/home/currency",
+      url: "/mobile/home/currency",
       reqTitle: REQUESTS_DATA.CURRENCY_REQUEST,
       method: "GET",
       server: "market",
@@ -40,8 +111,12 @@ export const getCurrency = async ({ callback }) => {
     if (!response.success) {
       throw new Error(response.message);
     }
-    callback({ currency: response.data, res: {} });
-    return response.data;
+    // /mobile/home/currency nests the fields under data.currency (legacy
+    // /home/currency returned them flat) — unwrap to the flat shape the store
+    // consumers read (currency?.exchange_rate, currency?.symbol, ...).
+    const currency = response.data?.currency ?? response.data;
+    callback({ currency, res: {} });
+    return currency;
   } catch (err) {
     LogError({
       scenario: "getCurrency in ProductPageData",
@@ -279,21 +354,7 @@ export const getVideoUrl = (
 ): string => {
   // Build transformation string
   let transformations = [];
-  if (options?.height) {
-    transformations.push(`h_${options.height}`);
-  }
-  const width = options?.width ?? 720;
-  transformations.push(`w_${width}`, "c_limit");
-  transformations.push("f_auto");
-  transformations.push("q_auto:best");
-  transformations.push("vc_auto");
-  // Default to 5s-15s if not provided
-  const start = options?.start ?? 1;
-  const end = options?.end ?? 10;
-  if (end !== -1) {
-    transformations.push(`so_${start}`);
-    transformations.push(`eo_${end}`);
-  }
+ 
 
   const transformStr = transformations.join(",");
 

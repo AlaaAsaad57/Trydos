@@ -6,7 +6,12 @@ file under `docs/features/<domain>/` — this index links them together and show
 glance, where each feature stands.
 
 **Audience:** Management / non-technical stakeholders.
-**Last updated:** 2026-07-12 (SL-02 post-leave wiring landed on branch `ticket/migrate-customer-api-to-go`, ahead of `develop`; rest reflects `develop`)
+**Last updated:** 2026-07-27 — synced against `develop` after ~90 commits since the previous pass
+(2026-07-13). Headline changes in that window: sellers can now **add** products and boutiques (not
+just edit them) and manage **Locations** (new **SL-15**); the shopper's Checklist moved from a
+slide-in panel to its own Settings screen; product colour switching became instant; sessions renew
+silently via refresh tokens; and the two backends are now chosen by **who** the shopper is, not only
+by which endpoint is called.
 **How it was built:** Compiled directly from the current codebase (routes, services, and
 app state) — not from memory — so it reflects what is actually shipped on the `develop` branch.
 **Companion:** a prioritized management status report lives in
@@ -41,9 +46,9 @@ app state) — not from memory — so it reflects what is actually shipped on th
 | E. Chat & Calls | 25 | 1-to-1 chat + Agora voice/video (customer↔customer, customer↔delivery worker); a few shipped controls are inert (Edit message, Category, Reminder, Archive — see Domain E note) |
 | F. Stories | 7 | Seller/admin stories + customer stories (shoppable); ST-07 view-time tracking only console-logs (not wired to backend/analytics) |
 | G. Notifications | 10 | Push (Firebase) + in-app |
-| H. Seller Dashboard | 14 | Merchant back-office; partial: SL-04 (interim, AI redesign planned), SL-06 (boutiques view-only), SL-07 (item-level fulfilment only) |
+| H. Seller Dashboard | 15 | Merchant back-office; **+SL-15 Locations**; products & boutiques can now be created, not just edited; partial: SL-04 (interim, AI redesign planned), SL-06 (delete switched off pending a decision), SL-07 (item-level fulfilment only) |
 | I. Platform & Foundations | 46 | Localization, SEO, analytics, PWA, security |
-| **Total** | **200** | |
+| **Total** | **201** | |
 
 ### Key things the manager should know up front
 - **Login is phone + OTP only** — no passwords, no email login, no Google/Apple/Facebook login.
@@ -52,6 +57,8 @@ app state) — not from memory — so it reflects what is actually shipped on th
 - **Known placeholders:** Bank Cards screen (⚪), the Privacy / Terms / About / Contact legal-info pages (⚪, AC-27–30 — thin boilerplate, not linked from settings).
 - **No readable legal policy for users:** the signup consent gate (AC-06) has a dead "Terms" link and no Privacy link; there is no cookie-consent / GDPR banner. Real Privacy/Terms content + linking is still needed before launch.
 - **Seller product editing (SL-04)** is functional today but is planned to be replaced by a new AI-driven editor that extracts product info from images — treat the current form as interim.
+- **Sellers can now create, not just edit.** The same form that edits a product also **adds** one ("+ Add Product"), boutiques gained a full create/edit/activate flow (SL-06), and a new **Locations** section (SL-15) records the warehouses/pickup points a product and each variant ship from.
+- **Sessions now renew silently.** A logged-in shopper whose access token expires is refreshed in the background using a 30-day single-use refresh token rather than being dropped to guest. Only when that fails do they see a "session expired" prompt offering **Login** or **Continue as guest**.
 - **Pre-launch reminders:** search indexing (SEO) is gated behind env flags; PostHog session replay is currently paused for cost.
 - **Try-on now is a placeholder**: virtual try-on now is a placeholder in Product Page for now ⚪. 
 ---
@@ -75,7 +82,7 @@ lives in each feature's own doc / the [status report](../pm-status-report-2026-0
 | AC-06 | Privacy / terms consent | Wire the dead "Terms" link + add a Privacy link to real pages; ideally persist consent server-side (today it's only an analytics event). |
 | AC-09 | QR-code login | Replace the local **mock** with real backend endpoints (create / status / scanned / approve / deny) and mint a real session on approval. |
 | SL-04 | Product editing | Fully functional today — "partial" only because it's slated for replacement by the planned AI-driven editor. Ship as-is or deliver the AI editor. |
-| SL-06 | Boutiques management | Build the create/edit/delete/status actions (the write permissions exist but the tab is read-only today), or rename it to a viewer. |
+| SL-06 | Boutiques management | Decide whether sellers may **delete** a boutique and flip the hardcoded `canDelete = false`; create / edit / activate all work today. |
 | SL-07 | Orders & fulfillment | Un-comment/finish whole-order status change, and build (or hide) the payment/refund/shipping/tracking actions the order permissions imply. |
 
 ### ⚪ Placeholder / Planned — scaffolded but not functional
@@ -138,7 +145,7 @@ The shopper-facing browsing experience.
 |----|---------|--------------|:------:|
 | [SD-19](A-shopping-and-discovery/SD-19-product-detail-page.md) | Product detail page | Full product page: photos, name & brand, description, specs, delivery estimate and actions. | 🟢 |
 | [SD-20](A-shopping-and-discovery/SD-20-image-video-gallery.md) | Image & video gallery | Swipeable image slider (Embla) + tap-to-zoom + picture-in-picture product video. | 🟢 |
-| [SD-21](A-shopping-and-discovery/SD-21-colour-variant-selection.md) | Colour / variant selection | Pick a colour (reloads gallery) and size via chips. | 🟢 |
+| [SD-21](A-shopping-and-discovery/SD-21-colour-variant-selection.md) | Colour / variant selection | Pick a colour (gallery switches instantly, no page reload) and size via chips. | 🟢 |
 | [SD-22](A-shopping-and-discovery/SD-22-product-labels-view-counts.md) | Product labels & view counts | Promotional label tags (rotating on cards) and product view counts. | 🟢 |
 | [SD-23](A-shopping-and-discovery/SD-23-delivery-shipping-returns.md) | Delivery & shipping/returns info | Expected delivery date, free-shipping and free-return badges + delivery-times sheet. | 🟢 |
 | [SD-24](A-shopping-and-discovery/SD-24-virtual-try-on.md) | Virtual try-on | Photo capture/upload UI only — the try-on itself is a placeholder (echoes the input photo; no AI/backend). | ⚪ |
@@ -152,7 +159,7 @@ The shopper-facing browsing experience.
 ### Cross-cutting shopper actions
 | ID | Feature | What it does | Status |
 |----|---------|--------------|:------:|
-| [SD-31](A-shopping-and-discovery/SD-31-wishlist-favourites.md) | Wishlist / favourites | Save products ("CheckList") and view them in a slide-in panel. | 🟢 |
+| [SD-31](A-shopping-and-discovery/SD-31-wishlist-favourites.md) | Wishlist / favourites | Save products ("CheckList") and review them on the **Settings → My Checklist** screen (replaced the old slide-in panel). | 🟢 |
 | [SD-32](A-shopping-and-discovery/SD-32-product-comparison.md) | Product comparison | Add products to a compare list and view them side by side (2-item slots). | 🟢 |
 | [SD-33](A-shopping-and-discovery/SD-33-redeem-luck-rewards.md) | Redeem / "luck" rewards | Time-limited redeemable discount ("Luck!") on product cards and detail. Timer + one-time limit are held in **local state (cookie)** — this is the intended design, not a gap. | 🟢 |
 
@@ -253,19 +260,19 @@ Signing in and managing an account. **Identity is phone-number + OTP only.**
 ### Sessions & lifecycle
 | ID | Feature | What it does | Status |
 |----|---------|--------------|:------:|
-| AC-11 | Automatic guest registration | Silently registers an anonymous device so guests can browse and cart. | 🟢 |
+| AC-11 | Automatic guest registration | Silently registers an anonymous visitor so guests can browse and cart. Guest and logged-in sessions now share **one** auth cookie. | 🟢 |
 | AC-12 | Guest → verified upgrade | Merges guest data into the real account on verification. | 🟢 |
-| AC-13 | Session-expiry re-auth | Recovers a expired session and re-prompts verification seamlessly. | 🟢 |
-| AC-14 | Logout | Clears sessions/tokens, resets the app, unregisters push. | 🟢 |
+| AC-13 | Session-expiry re-auth | **Silent renewal first:** an expired session is refreshed in the background using a 30-day single-use refresh token, triggered only when a request actually comes back unauthorized. Only if renewal fails does a prompt appear offering **Login** (hands off to phone + OTP, and the shopper's number is carried over) or **Continue as guest**. | 🟢 |
+| AC-14 | Logout | Clears sessions/tokens, resets the app, unregisters push. Now completes immediately instead of waiting on the remote cleanup call. | 🟢 |
 | AC-15 | Verify-now prompt | Shows verification status and lets an unverified user verify. | 🟢 |
 | AC-16 | Simulate / impersonate user | Load a session from a payload for testing/support. | 🔧 |
 
 ### Profile & settings
 | ID | Feature | What it does | Status |
 |----|---------|--------------|:------:|
-| AC-17 | Account / settings home | Hub linking profile, orders, wallet, preferences, country, language, legal. | 🟢 |
-| AC-18 | Profile overview | Landing page for personal details. | 🟢 |
-| AC-19 | Edit personal info | Update name, phone, email, gender and alternative phone. | 🟢 |
+| AC-17 | Account / settings home | Hub linking profile, orders, **My Checklist** (SD-31), wallet, preferences, country, language, legal. Menu order and links were reworked, and the orders badge now loads in the browser so the page renders without waiting on it. | 🟢 |
+| AC-18 | Profile overview | Landing page for personal details; shows a placeholder avatar when none is set. | 🟢 |
+| AC-19 | Edit personal info | Update name, phone, email, gender and alternative phone. **Only fields the user actually changed are sent** — previously untouched empty fields were submitted and the backend rejected them. | 🟢 |
 | AC-20 | Change phone number | Change the number with fresh OTP re-verification. | 🟢 |
 | AC-21 | Profile picture | Add or replace the account avatar. | 🟢 |
 | AC-22 | Body / clothing size profile | Record size info used for shopping. | 🟢 |
@@ -379,10 +386,10 @@ The merchant/seller back-office (per-shop, permission-gated).
 |----|---------|--------------|:------:|
 | [SL-01](H-seller-dashboard/SL-01-my-shops-shop-picker.md) | My shops / shop picker | The seller's "Your Shops" entry page — lists shops a user can manage (role + permissions) and opens the dashboard. **Note:** the account-menu seller card's "Sales" banner shows a hardcoded `0` (the permissions API returns no counts); left as-is by decision (2026-07-08). | 🟢 |
 | [SL-02](H-seller-dashboard/SL-02-leave-a-shop.md) | Leave a shop | Remove your own access to a shop. Confirms first, then on success redirects to the shop picker; failures show an inline error. | 🟢 |
-| [SL-03](H-seller-dashboard/SL-03-product-management.md) | Product management | Browse the shop's products with stock, status and social stats. | 🟢 |
-| [SL-04](H-seller-dashboard/SL-04-product-editing.md) | Product editing | Full edit form for a product (variants, prices, images) — functional today (loads & saves real data), but slated to be replaced by a new AI-driven design that extracts product info from images, so treated as interim. | 🟡 |
+| [SL-03](H-seller-dashboard/SL-03-product-management.md) | Product management | Browse the shop's products with stock, status and social stats; "+ Add Product" starts a new one. | 🟢 |
+| [SL-04](H-seller-dashboard/SL-04-product-editing.md) | Product editing (add & edit) | One form that both **creates** and edits a product (variants, prices, images, attributes, rich-text descriptions, per-variant locations, drafts, approval gating) — functional today, but slated to be replaced by a new AI-driven design that extracts product info from images, so treated as interim. | 🟡 |
 | [SL-05](H-seller-dashboard/SL-05-activate-allow-purchase.md) | Activate / allow purchase | Toggle a product on/off for sale, with (server-side) eligibility checks. | 🟢 |
-| [SL-06](H-seller-dashboard/SL-06-boutiques-management.md) | Boutiques management | View the shop's boutiques (sub-storefronts) — view-only; no create/edit/delete/status actions are built. | 🟡 |
+| [SL-06](H-seller-dashboard/SL-06-boutiques-management.md) | Boutiques management | Create, edit (per-language name/description/bio/icon/banners), set availability & countries, and activate/deactivate a boutique. Delete is built but switched off pending a decision. | 🟡 |
 | [SL-07](H-seller-dashboard/SL-07-orders-fulfillment.md) | Orders & fulfillment | View received orders and progress them (confirm, pack, cancel at item level). Whole-order status change is commented out; payments/shipping/tracking not built. | 🟡 |
 | [SL-08](H-seller-dashboard/SL-08-shop-info-branding.md) | Shop info / branding | Edit shop name, contact, address, logo and banner. | 🟢 |
 | [SL-09](H-seller-dashboard/SL-09-product-image-gallery.md) | Product image gallery | Upload, browse and delete product images (shop-wide library). | 🟢 |
@@ -391,6 +398,7 @@ The merchant/seller back-office (per-shop, permission-gated).
 | [SL-12](H-seller-dashboard/SL-12-bulk-upload-excel.md) | Bulk upload (Excel) | Download a template, fill it, and create products in bulk. The widget hands the file to the backend, which does the parsing/creation. | 🟢 |
 | [SL-13](H-seller-dashboard/SL-13-team-user-management.md) | Team / user management | Invite staff by phone, assign roles, remove users (change-role/delete are Super-Admin-only). | 🟢 |
 | [SL-14](H-seller-dashboard/SL-14-roles-permissions-viewer.md) | Roles & permissions viewer | See your own role and grouped permission breakdown. | 🟢 |
+| [SL-15](H-seller-dashboard/SL-15-locations.md) | Locations | Record the shop's warehouses / pickup points (name, country, address, map pin) and attach them to a product and to each variant. Deactivate-only — the API has no delete. | 🟢 |
 
 ---
 
@@ -401,8 +409,8 @@ Cross-cutting capabilities that apply across the whole app.
 ### Localization & region
 | ID | Feature | What it does | Status |
 |----|---------|--------------|:------:|
-| PF-01 | Multi-language (en/ar/tr/ku) | The whole store in four languages, baked into every URL. | 🟢 |
-| PF-02 | On-demand translations | Non-English text loads only when needed, and is cached. | 🟢 |
+| PF-01 | Multi-language (en/ar/tr/ku) | The whole store in four languages, baked into every URL. A build-time lint rule now **fails the build** on a translation key missing from ar/tr/ku, and warns on hardcoded on-screen text. | 🟢 |
+| PF-02 | On-demand translations | Non-English text loads only when needed, and is cached. Translation tables and the country dataset are no longer shipped in the browser bundle. | 🟢 |
 | PF-03 | Right-to-left layout | Arabic & Kurdish flip the page direction automatically. | 🟢 |
 | PF-04 | Multi-country storefront | Country-specific stores (Syria, Lebanon, Turkey, Iraq + GB default). | 🟢 |
 | PF-05 | Auto language/country detection | First-time visitors are routed to the right locale by browser + geo-IP. | 🟢 |
@@ -470,7 +478,7 @@ Cross-cutting capabilities that apply across the whole app.
 |----|---------|--------------|:------:|
 | PF-40 | Localization cookies | Persists country/language choices reliably across the app. | 🟢 |
 | PF-41 | Cookies-disabled detection | Warns users whose browser has cookies turned off. | 🟢 |
-| PF-42 | Session management | Guest vs. authenticated sessions, expiry timers, logout guard. | 🟢 |
+| PF-42 | Session management | Guest vs. authenticated sessions on **one** auth cookie, silent renewal via a 30-day single-use refresh token (reactive — triggered by an unauthorized response, never by a clock), a teardown fallback, and a logout guard that stops anything minting credentials mid-logout. Documented in `REFRESH-FLOWS.md`. | 🟢 |
 | PF-43 | Cookie-consent / GDPR banner | **Not present** — flagged as a possible compliance gap. | ⚪ |
 
 ### Security & performance
@@ -479,6 +487,19 @@ Cross-cutting capabilities that apply across the whole app.
 | PF-44 | Security headers (HSTS) | Enforces HTTPS across the site and subdomains. | 🟢 |
 | PF-45 | Edge caching & preconnect | Smart cache rules and preconnects to speed up loading. | 🟢 |
 | PF-46 | Image optimization | Optimizes and caches media images from trusted hosts. | 🟢 |
+
+> **Recent hardening & speed work (2026-07).** No new features, but worth knowing:
+> - **Nothing in the browser names our server stack any more.** The internal debug pages (`api-test`,
+>   `requests-log`) were removed along with every place a backend hostname or technology name could
+>   reach the client; the internal proxy now only accepts targets on our own backend origin and base
+>   path. Dependency security advisories were patched.
+> - **Which backend serves a request now depends on *who* is asking.** Verified shoppers are served
+>   entirely by the **core** backend; guests keep the per-endpoint rule (allow-listed paths go to the
+>   **gateway**, everything else to the core backend). Seller-dashboard traffic is unchanged.
+> - **Faster first load:** translation tables and the country dataset dropped out of the browser
+>   bundle, and the stories player, add-story camera, image/voice search, the rich-text editor and the
+>   product share sheet are now downloaded only when actually opened (each with a matching loading
+>   skeleton). Duplicate account lookups on first load were de-duplicated.
 
 ---
 

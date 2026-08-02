@@ -1,172 +1,231 @@
 # Workflow Rules — Engineering Workflow v1
 
-Defines each stage, its gates, and the cross-cutting guardrails. Stages, modes,
-lifecycle states, and decision tracking are canonical in
-`.claude/project-config.yaml`.
+This file describes each stage, its gates, and the safety rules that apply
+everywhere. The stages, the single workflow form, the comprehension gate, the
+lifecycle states, and how decisions are tracked are all defined in
+`.claude/project-config.yaml` — that file is the source of truth.
 
-## Stage definitions, entry & exit criteria
+## Plain language — how everything must be written
+
+**Everything the workflow produces must be easy to read.** This covers every
+artifact under `_specs/<ticket>/` (intake, research, spec, plan, review,
+implement, verify, comprehension), every comprehension question and answer
+option, every review-panel finding, every PR title and body, and every report or
+next-step block a command prints.
+
+Write at roughly **B2 English level**:
+- Short sentences. One idea per sentence.
+- Everyday words. Say "stop" not "abort", "change" not "mutate", "all or nothing"
+  not "atomic", "safe to run again" not "idempotent", "how much can break" not
+  "blast radius", "point out" not "surface".
+- Explain a term the first time you use it, in a few words, rather than assuming
+  the reader knows it.
+- Use the active voice: "the command writes `plan.md`", not "`plan.md` is
+  written".
+- No filler, no marketing tone, no long words used to sound serious.
+
+**What must stay exactly as it is** — never simplify or translate these:
+- rule codes (`RS-1`, `CG-5`, `PB-8`, …), state names (`spec-complete`,
+  `implementation-in-progress`, …), and event names (`plan-approved`, …),
+- file paths, command names, front-matter keys and their values, YAML snippets,
+  and ADR references,
+- acceptance-criteria ids (`AC-n`) and open-question ids (`OQ-n`).
+
+**Language:** the artifacts, the comprehension questions, and the recorded
+answers are always written in **English**, whatever language the conversation is
+in (CLAUDE.md). Plain English still means English.
+
+This rule is about wording only. It never changes what a command checks, what it
+writes, or which state it moves the ticket to.
+
+## The stages: what each one is, and how you get in and out
 
 ### 1. intake
-- **Definition:** Capture and qualify the request; create the ticket workspace.
-- **Entry:** A request exists with at least a title and goal.
-- **Exit:** `_specs/<ticket>/` created; metadata per `ticket-standard.md` filled.
+- **What it is:** Capture the request, decide whether it is clear enough, and
+  create the ticket workspace.
+- **Way in:** a request exists with at least a title and a goal.
+- **Way out:** `_specs/<ticket>/` is created, with the metadata filled in as
+  described in `ticket-standard.md`.
 
 ### 2. research
-- **Definition:** Read-only investigation of repo, configs, and impact.
-- **Entry:** Intake complete.
-- **Exit:** `research.md` lists relevant directories, config files, affected
-  services, validation commands, risks. **No code changed.**
+- **What it is:** Read the repo, the configs, and work out the impact. Change
+  nothing.
+- **Way in:** intake is finished.
+- **Way out:** `research.md` lists the directories that matter, the config files,
+  the affected services, the validation commands, the risks, and the open
+  questions with `OQ-n` ids (ADR-015). **No code is changed.**
 
 ### 3. spec
-- **Definition:** Define acceptance criteria and test cases.
-- **Entry:** Research complete.
-- **Exit:** Acceptance criteria + test cases exist and are unambiguous.
+- **What it is:** Write the acceptance criteria and the test cases.
+- **Way in:** research is finished.
+- **Way out:** the acceptance criteria and test cases exist and leave no room for
+  doubt, and every `OQ-n` from research is either answered or pushed to `/plan`
+  with its id (SP-9).
 
 ### 4. plan
-- **Definition:** Decide the approach and concrete steps.
-- **Entry:** Spec complete.
-- **Exit:** `plan.md` has approach, steps, files to change, validation, rollback.
+- **What it is:** Decide the approach and the concrete steps.
+- **Way in:** the spec is finished.
+- **Way out:** `plan.md` has the approach, the steps, the files to change, the
+  validation, the rollback, the integration surface, and an answer for every
+  `OQ-n` the spec pushed forward (PL-12).
 
-### 5. review  (review gate)
-- **Definition:** A reviewer (not the author) reviews spec + plan before any implementation.
-- **Entry:** Spec and plan complete.
-- **Exit:** Reviewer records `APPROVED`. `CHANGES_REQUESTED`/`REJECTED` returns to spec/plan.
+### 5. review  (gate)
+- **What it is:** The owner reviews the spec and the plan (their own work) and
+  answers a comprehension check before anything is implemented.
+- **Way in:** the spec and the plan are finished.
+- **Way out:** the owner records `APPROVED` after passing the comprehension
+  check. `CHANGES_REQUESTED` or `REJECTED` sends the ticket back to spec/plan.
 
 ### 6. implement
-- **Definition:** Apply the change per the approved plan only.
-- **Entry:** Review `APPROVED`.
-- **Exit:** `implement.md` records files changed and deviations. Changes are
-  applied to the working tree on `ticket/<slug>` but **not committed** — the
-  single publishable commit is created later by `/publish-pr` (the git delivery
-  boundary; ADR-008).
+- **What it is:** Make the change, following the approved plan and nothing else.
+- **Way in:** the review said `APPROVED`.
+- **Way out:** `implement.md` records the files changed and anything done
+  differently from the plan. The changes sit on the `ticket/<slug>` branch but
+  are **not committed** — the one commit that gets published is made later by
+  `/publish-pr`, the single place where git work happens (ADR-008).
 
-### 7. verify  (review gate)
-- **Definition:** Validate the change and review runtime impact.
-- **Entry:** Implementation complete.
-- **Exit:** `verify.md` shows passing checks; a reviewer signs off; ticket
-  `verified` → `closed` (see closure strategy below).
+### 7. verify  (gate)
+- **What it is:** Check the change and look at what it does at runtime.
+- **Way out:** `verify.md` shows the checks passing; the owner signs off after
+  the comprehension check; the ticket goes `verified` → `closed` (see "How a
+  ticket closes" below).
 
-## Execution modes
+## One workflow form (single owner + comprehension gate)
 
-v1 has **two** modes sharing the same lifecycle and gates; they differ only in
-depth. The **canonical definitions** (stages, approvals, ADR/verification
-requirements) live in `project-config.yaml > modes` — this section only
-summarizes them.
+There are **no modes and no risk levels** (ADR-011). Every ticket runs the **same
+workflow**: all seven stages and both gates, carried by a **single owner**. The
+source of truth is `project-config.yaml > workflow_form` and
+`> comprehension_gates` — this section only summarises it. (`standard`,
+`high_risk`, and `fast` are gone; the `mode:` front-matter field keeps one old
+value, `standard`.)
 
-- **standard** — all seven stages. Default for normal work. 1 approval (one reviewer).
-- **high_risk** — all seven stages for protected-runtime-path, irreversible, or
-  wide-blast-radius work. **2 approvals** (reviewer + second approver; the
-  Workflow Owner is eligible as the second), **mandatory ADR**, verification
-  includes a rollback rehearsal.
-- **fast** — **deferred (not in v1).** `/start-ticket` rejects `mode: fast`.
+- **Single owner:** one person writes the ticket **and** runs its `/review` and
+  `/verify` gates. Reviewing your own work is expected here. There is no second
+  reviewer and no split of duties.
+- **The comprehension gate is the control.** Instead of a second person, each
+  gate makes the owner answer questions taken **from the file being reviewed**
+  (`plan.md` and `spec.md` at `/review`; `implement.md` and `spec.md` at
+  `/verify`) before it can record a decision. This is what stops someone
+  approving work without reading it (CG-1..CG-6). **At least 3 questions — a
+  minimum, not a fixed number** (ADR-014): always **at least 1 about integration
+  and cross-flow effects** (CG-5, taken from the plan's `Integration surface`),
+  plus **one more for every `major` finding from the advisory panel** at
+  `/review` (CG-6). The panel still never blocks anything — the owner may dismiss
+  a finding, but only after showing they understood it.
+- **The same safeguards for every ticket:** all seven stages, **1 approval** by
+  the owner, `adr_required: false` (ADRs are optional), and verification at
+  `all-ac` (every acceptance criterion gets a result). No risk levels, no second
+  approver, no rollback rehearsal.
 
-The `review` gate is **never** skipped in any mode. The mode is declared in
-each artifact's front-matter (`mode:`). Choosing a lighter mode than the work
-warrants is a guardrail violation.
+The `/review` and `/verify` gates are **never** skipped, and neither of them may
+record a decision until the comprehension questions have been answered.
 
 ## Lifecycle states
 
-The canonical ticket **state machine** (states + allowed transitions) is defined
-in `project-config.yaml > lifecycle`. This is the single source of truth:
+The official ticket **state machine** (the states and the moves allowed between
+them) is defined in `project-config.yaml > lifecycle`. That is the single source
+of truth:
 
 `draft → ready-for-research → research-complete → spec-complete → plan-complete
 → approved → implementation-in-progress → implemented → verified → closed`
 
-- (Fast mode's `ready-for-research → plan-complete` shortcut is deferred — not
-  part of v1.)
-- `blocked` is **not** a state; it is an orthogonal flag carried in artifact
-  front-matter (`status: blocked`). A stage may not advance while its artifact
-  status is `blocked`.
-- The only path into `implementation-in-progress` is from `approved` — no mode
-  bypasses the review gate.
-- `closed` is terminal: no reopen; open a new ticket.
+- `blocked` is **not** a state. It is a separate flag in the artifact
+  front-matter (`status: blocked`). A stage cannot move forward while its
+  artifact says `blocked`.
+- The only way into `implementation-in-progress` is from `approved` — nothing
+  gets around the review gate.
+- `closed` is the end: you cannot reopen a ticket. Open a new one.
 
-## Closure strategy
+## How a ticket closes
 
-There is **no `/close` command.** Closure is owned by two commands
+There is **no `/close` command.** Two commands close tickets
 (`project-config.yaml > closure`):
 
-- **Success:** `/verify` — at reviewer sign-off the ticket transitions
+- **Success:** `/verify` — when the owner signs off, the ticket moves
   `verified → closed`.
-- **Rejection:** `/review` — a `REJECTED` decision transitions
-  `spec-complete → closed` (terminal).
+- **Rejection:** `/review` — a `REJECTED` decision moves the ticket
+  `spec-complete → closed`.
 
-In both cases `closed` is terminal: no reopen; open a new ticket.
+In both cases `closed` is the end: no reopening. Open a new ticket.
 
-## Ticket state ownership
+## Who owns the ticket state
 
-The ticket's workflow state has exactly one owner (see
+Exactly one file owns the ticket's workflow state (see
 [ADR-003](../docs/adr/ADR-003-ticket-state-ownership.md)):
 
-- **`_specs/<ticket>/ticket.md` owns workflow state** — its front-matter `state`
-  field is authoritative.
-- **Artifact files never own workflow state.** They may carry a *local* `status`
-  describing only their own stage progress.
-- **Only `ticket.md` defines the current ticket state.** A `review.md` may
-  document *why* a transition happened, but does not own the state.
-- Commands **must never** infer state from artifact existence or content. They
-  read `ticket.md`, validate the transition, then update `ticket.md`.
+- **`_specs/<ticket>/ticket.md` owns the state** — the `state` field in its
+  front-matter is the one that counts.
+- **Other artifact files never own the workflow state.** They may carry a *local*
+  `status` that describes only their own progress.
+- **Only `ticket.md` says what state the ticket is in.** A `review.md` may explain
+  *why* a move happened, but it does not own the state.
+- Commands must **never** work out the state from which files exist or what they
+  contain. They read `ticket.md`, check the move is allowed, then write
+  `ticket.md`.
 
-## Role authority & separation of duties
+## Who may run what (single-owner model)
 
-(Canonical: `project-config.yaml > role_authority` / `separation_of_duties`;
-validation: RA-1..RA-3.)
+(Source of truth: `project-config.yaml > role_authority` /
+`separation_of_duties`; checks: RA-1..RA-3.)
 
-- **Roles:** `workflow_owner` (governance — workflow evolution, governance
-  decisions, escalations, cross-project issues; **not** a per-ticket gate),
-  `reviewer` (per-ticket gate authority for `/review` and `/verify`; any
-  qualified team member who is not the author — need not be an Engineering
-  Manager), `developer`/`ai_agent` (authors). Legacy `em` maps to `reviewer`
-  (gate) / `workflow_owner` (governance).
-- The gates `/review` and `/verify` may be invoked **only** by the `reviewer`
-  role (RA-1). Authoring commands are run by `developer`/`ai_agent`. **The
-  workflow never requires Engineering Manager participation on a ticket.**
-- Every recorded actor (`owner`, history `by`) must be a defined role (RA-2).
-- **Separation of duties:** the `reviewer` approving at a gate must **not** be the
-  author of the plan/implementation under review — no self-approval (RA-3). This
-  makes concrete the prohibition in CLAUDE.md.
-  - **Standard-mode exception (opt-in, off by default):** for `standard`
-    (low-risk) tickets only, self-review may be permitted when
-    `project-config.yaml > separation_of_duties.allow_self_review.standard: true`.
-    `high_risk` always requires a distinct second actor and can never self-review.
+- **Roles:** `workflow_owner` (looks after the workflow itself — how it evolves,
+  governance decisions, escalations, cross-project problems; **not** a gate on
+  each ticket), `reviewer` (the person at the `/review` and `/verify` gates —
+  normally the ticket **owner** running their own gate; ADR-011),
+  `developer` / `ai_agent` (they write the ticket and do the work). The old `em`
+  role now maps to `reviewer` (at a gate) and `workflow_owner` (for governance).
+- The `/review` and `/verify` gates are run by the ticket **owner** themselves
+  (RA-1). The other commands are run by `developer` / `ai_agent`. **The workflow
+  never needs an Engineering Manager on a ticket.**
+- Every recorded person (`owner`, and `by` in the history) must be one of the
+  defined roles (RA-2).
+- **No split of duties (single-owner model, ADR-011):** the ticket owner does the
+  work **and** runs its `/review` and `/verify` gates. That is expected, not
+  forbidden. What stops someone approving work without reading it is the
+  **comprehension gate** (CG-1..CG-6), not a second person. There is no second
+  approver.
 
-## Traceability
+## Tracing the work
 
-- Every stage artifact begins with YAML front-matter carrying `ticket`, `stage`,
+- Every stage artifact starts with YAML front-matter carrying `ticket`, `stage`,
   `mode`, `status`, `owner`, `updated`, and `links` (ClickUp/GitHub).
-- Acceptance criteria are given stable IDs in `spec.md` and referenced by the
-  same IDs in `verify.md`, giving criterion → test → result traceability.
+- Acceptance criteria get fixed ids in `spec.md`, and `verify.md` uses the same
+  ids — so you can follow each criterion from spec to test to result.
 
 ## Architectural decisions (ADRs)
 
-- Significant or hard-to-reverse choices are recorded as ADRs under
-  `.claude/docs/adr/` using `ADR-0000-template.md`.
-- An ADR references the originating ticket; a ticket references its ADRs in the
-  relevant artifact. ADRs are append-only (supersede, never rewrite).
+- Choices that are important or hard to undo are written up as ADRs under
+  `.claude/docs/adr/`, using `ADR-0000-template.md`.
+- An ADR names the ticket it came from, and the ticket names its ADRs in the
+  right artifact. ADRs are only ever added to: write a new one that replaces an
+  old one, never rewrite the old one.
 
-## Guardrails
+## Safety rules
 
-- No stage may begin before the previous stage's exit criteria are met.
-- Research/spec/plan/review are **non-mutating** — no source or config edits.
-- Protected runtime paths (`protected_paths`) are never modified by
-  workflow tooling or governance work.
+- A stage may not start before the previous stage has met its exit criteria.
+- Research, spec, plan, and review **change nothing** — no source and no config
+  edits.
+- Protected runtime paths (`protected_paths` in `project-config.yaml`) are never
+  changed by workflow tooling or governance work.
 - Each stage writes only inside its own `_specs/<ticket>/` folder.
-- No workflow commands are created except where a phase explicitly authorizes it.
+- No new workflow commands are created unless a phase clearly allows it.
 
-## Verification requirements
+## What verification must cover
 
-- Every acceptance criterion (by ID) maps to at least one executed test case in
-  `verify.md`, with its result recorded.
-- The `verify` stage must explicitly state whether any `protected_paths` file
-  changed (yes/no) and, if yes, that it was intended and approved at the review gate.
-- Verification commands and their output must be reproducible.
+- Every acceptance criterion (by id) maps to at least one test case that was
+  actually run in `verify.md`, with its result written down.
+- The `verify` stage must clearly say whether any `protected_paths` file changed
+  (yes or no) and, if yes, that it was intended and approved at the review gate.
+- Someone else must be able to run the same validation commands and get the same
+  output.
 
-## Documentation requirements
+## What must be documented
 
-- Each stage produces its artifact from `_specs/_templates/`, including front-matter.
-- Deviations from the plan are documented in `implement.md`.
+- Each stage produces its artifact from `_specs/_templates/`, front-matter
+  included.
+- Anything done differently from the plan is written down in `implement.md`.
 - Review decisions (`APPROVED` / `CHANGES_REQUESTED` / `REJECTED`) are recorded
   against the stage.
 - Architectural decisions are recorded as ADRs (see above).
-- This rules file and `project-config.yaml` are the source of truth; other docs
-  must be reconciled to them.
+- This file and `project-config.yaml` are the source of truth; any other document
+  that disagrees with them must be corrected.

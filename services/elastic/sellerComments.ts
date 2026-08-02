@@ -70,7 +70,7 @@ const MAX_RESULT_WINDOW = 10000;
 const MAX_REPLY_LENGTH = 1000;
 
 const PERMISSIONS_URL =
-  (process.env.NEXT_PUBLIC_BACKEND_URL || "") + "/shop/auth/permissions";
+  (process.env.BACKEND_URL || "") + "/shop/auth/permissions";
 
 // Short-TTL permission cache (Rec #2) and a longer "stale" copy used only as a
 // fallback while Go is unreachable (Rec #7). Both are keyed by a hash of the

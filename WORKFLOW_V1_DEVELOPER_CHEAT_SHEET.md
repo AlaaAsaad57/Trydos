@@ -1,5 +1,13 @@
 # Workflow V1 — Developer Cheat Sheet
 
+> ⚠️ **Superseded (ADR-011).** No modes, no risk tiers, no separate reviewer — one
+> uniform workflow form run by a **single owner** who runs their own `/review` and
+> `/verify` (self-review). The gate control is a **comprehension check** (answer
+> 2–3 questions generated from the artifact under review) before recording a
+> decision. Every ticket: 1 self-approval, ADR optional, `all-ac` verification.
+> Read any "mode"/`standard`/`high_risk`/"different reviewer"/two-approver text
+> below as the single-owner form + comprehension gate.
+
 > Quick daily reference. **Not** a replacement for `WORKFLOW_V1_RUNBOOK.md` —
 > see the Runbook for full detail, edge cases, and rule codes. Describes current
 > behavior only.

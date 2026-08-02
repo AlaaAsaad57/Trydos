@@ -5,7 +5,7 @@
 | **Feature ID** | CO-02 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/AddToCart/NotifyButton.tsx`, `components/Cart/AddToCart/AddToCartComponent.tsx`, `services/auth.ts`, `services/home.ts` |
 
 ---
@@ -52,7 +52,7 @@ Any shopper who lands on an out-of-stock variant and wants to be told when it co
 | Unsubscribe | `POST /firebase_device_tokens/unsubscribe_topic` — `{ topic, variant }` (`home.UnsubscribeToTopicInventory`) |
 | Topic string | Built client-side: `product_availability_{productId}` (add-to-cart flow) |
 | Permission / token | `home.AllowNotifications()` → Firebase FCM registration |
-| Backend | **Go backend** — both topic endpoints are on the Go allow-list; market/device token injected server-side |
+| Backend | Both topic endpoints are on the **gateway** allow-list (so guests go to the gateway); **verified shoppers are served entirely by the core backend**. Auth token injected server-side |
 
 ## Technical reference
 

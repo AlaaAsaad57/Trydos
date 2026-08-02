@@ -13,7 +13,7 @@ import { GAevent } from "utils/gtag";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 
 function StoriesContainer({ selectedStory, stories }: any) {
-  const { storiesData: storiesCache } = useAppStore();
+  const storiesCache = useAppStore((s) => s.storiesData);
   let storiesData = (stories?.length > 0 && stories) || storiesCache || [];
   var dir = 0;
   const [isTop, setIsTop] = useState("");

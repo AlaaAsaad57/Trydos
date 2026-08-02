@@ -3,6 +3,9 @@
 import { fetchServerData } from "./ServerFetch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
+// Safe here: "use server" module — client imports get action proxies, so
+// tokenManager's next/headers never enters the client bundle graph.
+import { getMarketFetchBase } from "utils/server/tokenManager";
 interface CurrencyResponse {
   [key: string]: any;
 }
@@ -54,8 +57,9 @@ export async function fetchCurrency(
 ): Promise<CurrencyResponse> {
   let response;
   try {
+    // Verified users → Laravel, guests → Go (user-based routing)
     response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_GO_BACKEND_URL}/home/currency?lang=${language}&country=${country}`,
+      url: `${await getMarketFetchBase()}/mobile/home/currency?lang=${language}&country=${country}`,
       method: "GET",
       revalidate: 0,
       local: `${country}-${language}`,
@@ -65,7 +69,11 @@ export async function fetchCurrency(
       throw response?.error ?? `Currency Error: ${response.status}`;
     }
 
-    return response.data;
+    // /mobile/home/currency nests the fields under data.currency; the legacy
+    // /home/currency returned them flat in data. Flatten so callers can keep
+    // spreading `currencyData.data` (exchange_rate, symbol, ...) unchanged.
+    const body = response.data;
+    return { ...body, data: body?.data?.currency ?? body?.data };
   } catch (error) {
     LogServerError({
       error: `Currency Error: ${response.status}`,

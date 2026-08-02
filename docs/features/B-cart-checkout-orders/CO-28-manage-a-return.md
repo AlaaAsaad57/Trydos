@@ -5,7 +5,7 @@
 | **Feature ID** | CO-28 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟡 Partial — track / confirm / cancel work, but the tracking UI shows hardcoded fake timers and a fixed "3 USD" refund figure |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Orders/OrderRetailsReturnInfo.tsx`, `components/setting/orders/OrderDetailsWrapper.tsx`, `components/setting/orders/confirmations/OrderItemReturnConfirmationWindow.tsx`, `services/order.ts` |
 
 ---
@@ -49,7 +49,7 @@ Any shopper who has started a return (CO-26) and wants to finalise, follow, or w
 | Confirm request | `POST /customer/order/return_requests/confirm_return_request` — `{ return_request_ids:[…] }` |
 | Bulk-cancel request | `POST /customer/order/return_requests/bulk_cancel` — `{ return_request_ids:[…] }` |
 | Cancel single product | `GET /customer/order/return_request_products/cancel?return_request_product_id=…` |
-| Backend | **Legacy backend** (none of the `return_requests/*` paths are on the Go allow-list) |
+| Backend | **Core backend** (none of the `return_requests/*` paths are on the gateway allow-list) |
 
 ## Technical reference
 

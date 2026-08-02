@@ -1,5 +1,7 @@
 import { fetchData } from "utils/fetchData";
+import { toServiceToken } from "utils/serviceTokens";
 import { REQUESTS_DATA } from "utils/Requests";
+import { GetTicket } from "utils/UploadUtils";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
@@ -330,16 +332,19 @@ class SellerDashboardService {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server upload is not configured");
     }
+    let IsVideo=file.type.startsWith("video/");
+     let ticket=await GetTicket("stories",IsVideo,1);
     const form = new FormData();
     form.append("file", file);
     form.append("folder", "stories");
-    const uploadUrl = file.type.startsWith("video/")
-      ? `${MEDIA_SERVER_BASE_URL}/upload?story=true`
-      : `${MEDIA_SERVER_BASE_URL}/upload`;
+    const uploadUrl = IsVideo
+      ? `${MEDIA_SERVER_BASE_URL}/gated/upload?story=true`
+      : `${MEDIA_SERVER_BASE_URL}/gated/upload`;
     const response = await fetch(uploadUrl, {
       method: "POST",
-      headers: { "x-api-key": MEDIA_API_KEY },
+      headers: { "x-api-key": MEDIA_API_KEY ,"X-Upload-Ticket":ticket},
       body: form,
+
     });
     let data: any = null;
     try {
@@ -435,14 +440,16 @@ class SellerDashboardService {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server is not configured");
     }
+    let ticket=await GetTicket(folder,false,files.length);
     const form = new FormData();
     form.append("folder", folder);
     files.forEach((file) => form.append("files", file));
 
-    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload/bulk`, {
+    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/gated/upload/bulk`, {
       method: "POST",
-      headers: { "x-api-key": MEDIA_API_KEY },
+      headers: { "x-api-key": MEDIA_API_KEY ,"X-Upload-Ticket":ticket},
       body: form,
+    
     });
 
     let data: any = null;
@@ -574,14 +581,19 @@ class SellerDashboardService {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server upload is not configured");
     }
+    let ticket=await GetTicket(folder,false,1);
     const form = new FormData();
     form.append("file", file);
     form.append("folder", folder);
 
-    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload`, {
+    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/gated/upload`, {
       method: "POST",
-      headers: { "x-api-key": MEDIA_API_KEY },
+      headers: {
+        "x-api-key": MEDIA_API_KEY,
+        "X-Upload-Ticket": ticket,
+      },
       body: form,
+      
     });
 
     let data: any = null;
@@ -671,7 +683,7 @@ class SellerDashboardService {
     const res = await fetch("/api/proxy", {
       method: "POST",
       headers: {
-        "x-proxy-server": "market-dashboard",
+        "x-proxy-server": toServiceToken("market-dashboard"),
         "x-proxy-url": encodeURI(targetUrl),
         "x-proxy-method": "GET",
         "x-country": country || "sy",
@@ -716,7 +728,7 @@ class SellerDashboardService {
       method: "POST",
       server: "market-dashboard",
       reqTitle: REQUESTS_DATA.PROCESS_EXCEL,
-      body: JSON.stringify({ file_url:url }),
+      body: JSON.stringify({ file_url:process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL+'/file/upload/'+url }),
       sellerId,
     });
   }
@@ -740,17 +752,18 @@ class SellerDashboardService {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server upload is not configured");
     }
-
+    let ticket=await GetTicket(folder,false,1);
     // folder must be in the query string — it's read before the file streams.
     const form = new FormData();
     form.append("file", file);
 
     const response = await fetch(
-      `${MEDIA_SERVER_BASE_URL}/upload/excel?folder=${encodeURIComponent(folder)}`,
+      `${MEDIA_SERVER_BASE_URL}/gated/upload/excel?folder=${encodeURIComponent(folder)}`,
       {
         method: "POST",
-        headers: { "x-api-key": MEDIA_API_KEY },
+        headers: { "x-api-key": MEDIA_API_KEY, "X-Upload-Ticket": ticket },
         body: form,
+    
       },
     );
 
@@ -761,7 +774,7 @@ class SellerDashboardService {
       data = null;
     }
 
-    if (!response.ok || !data?.url) {
+    if (!response.ok || !data?.key) {
       throw new Error(
         data?.error || data?.message || "Excel upload to media server failed",
       );
@@ -864,6 +877,28 @@ class SellerDashboardService {
       sub_sub_categories: d.sub_sub_categories || [],
       descriptor_groups: d.descriptor_groups || [],
     };
+  }
+
+  // POST /shop/products/{id}/descriptors — UPDATE_PRODUCT | SUPER_ADMIN
+  // Full-replace sync (product-descriptors-edit.md): the body's
+  // {descriptor_group_id: {descriptor_id: value}} map becomes the product's
+  // COMPLETE new descriptor set — anything stored but not sent is deleted, and
+  // {} clears all. Validation is all-or-nothing; a 422 lists every problem in
+  // detailed_error. Edit flow only — create has no product id to sync against.
+  async syncProductDescriptors(
+    sellerId: string,
+    productId: string | number,
+    descriptors: Record<string, Record<string, string>>,
+  ) {
+    return fetchData({
+      url: `/shop/products/${productId}/descriptors`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.SYNC_PRODUCT_DESCRIPTORS,
+      body: JSON.stringify({ descriptors }),
+      sellerId,
+      noMessage: true,
+    });
   }
 
   // POST /shop/products — CREATE_PRODUCT | SUPER_ADMIN
@@ -1005,6 +1040,122 @@ class SellerDashboardService {
       method: "DELETE",
       server: "market-dashboard",
       reqTitle: REQUESTS_DATA.DELETE_BOUTIQUE,
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // ---------- Shop Locations ----------
+  // Seller-owned warehouses / pickup points (see the Shop Locations contract).
+  // All scoped to X-Seller-ID via the sellerId arg — another shop's location id
+  // behaves exactly like a nonexistent one (404), so existence never leaks.
+  // There is NO delete endpoint: a location can only be deactivated.
+
+  // GET /shop/locations — READ_LOCATIONS | SUPER_ADMIN
+  // Newest first, page size from the business `pagination_limit` setting.
+  // `status` (1 = active, 0 = inactive) and `country_id` are optional filters;
+  // status is checked against null/undefined rather than falsiness so that the
+  // legitimate `status=0` filter isn't silently dropped.
+  async getShopLocations(
+    sellerId: string,
+    filters: {
+      status?: 0 | 1 | null;
+      countryId?: string | number | null;
+      page?: number;
+    } = {},
+  ) {
+    const params = new URLSearchParams();
+    if (filters.status !== undefined && filters.status !== null)
+      params.set("status", String(filters.status));
+    if (filters.countryId) params.set("country_id", String(filters.countryId));
+    if (filters.page && filters.page > 1) params.set("page", String(filters.page));
+    const qs = params.toString();
+    return fetchData({
+      url: `/shop/locations${qs ? `?${qs}` : ""}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SHOP_LOCATIONS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/locations/lookups — CREATE_LOCATION | SUPER_ADMIN
+  // Reference data for the create form: the active countries that have an active
+  // shipping method (same source as the boutique lookups). NOTE the permission —
+  // a READ-only user gets 403 here, so never use this to build a *filter* list.
+  async getShopLocationLookups(sellerId: string) {
+    return fetchData({
+      url: `/shop/locations/lookups`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SHOP_LOCATION_LOOKUPS,
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // POST /shop/locations — CREATE_LOCATION | SUPER_ADMIN
+  // The owning shop always comes from X-Seller-ID; any owner field in the body is
+  // ignored. New locations start active (status: 1). `name` is unique per shop
+  // per country — a duplicate returns 422 with detailed_error[].code = "name".
+  async addShopLocation(sellerId: string, payload: Record<string, unknown>) {
+    return fetchData({
+      url: `/shop/locations`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.ADD_SHOP_LOCATION,
+      body: JSON.stringify(payload),
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // GET /shop/locations/{id}/edit — READ_LOCATIONS | UPDATE_LOCATION | SUPER_ADMIN
+  // One call renders the edit form: { location, lookups: { countries } }.
+  async getShopLocationForEdit(sellerId: string, locationId: string | number) {
+    return fetchData({
+      url: `/shop/locations/${locationId}/edit`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SHOP_LOCATION_FOR_EDIT,
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // POST /shop/locations/{id}/update — UPDATE_LOCATION | SUPER_ADMIN
+  // Same payload/rules as create (the unique-name rule ignores this location).
+  // `status` CANNOT be changed here — use changeShopLocationStatus.
+  async updateShopLocation(
+    sellerId: string,
+    locationId: string | number,
+    payload: Record<string, unknown>,
+  ) {
+    return fetchData({
+      url: `/shop/locations/${locationId}/update`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.UPDATE_SHOP_LOCATION,
+      body: JSON.stringify(payload),
+      sellerId,
+      noMessage: true,
+    });
+  }
+
+  // POST /shop/locations/{id}/change-status — CHANGE_LOCATION_STATUS | SUPER_ADMIN
+  // Success `data` = { status }. Deactivating does NOT detach the location from
+  // products that reference it.
+  async changeShopLocationStatus(
+    sellerId: string,
+    locationId: string | number,
+    status: 0 | 1,
+  ) {
+    return fetchData({
+      url: `/shop/locations/${locationId}/change-status`,
+      method: "POST",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.CHANGE_SHOP_LOCATION_STATUS,
+      body: JSON.stringify({ status }),
       sellerId,
       noMessage: true,
     });

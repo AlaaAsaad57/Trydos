@@ -72,7 +72,7 @@
   min-width: 70px;
   height: 100%;
   position: relative;
-  margin-left: 10px;
+  margin-inline-start: 10px;
   z-index: 10;
 }
 .category-circle svg:not(.active-category-icon),
@@ -93,7 +93,7 @@
   border-radius: 50%;
 }
 .category-circle:first-child {
-  margin-left: 0px;
+  margin-inline-start: 0px;
 }
 .category-shadow {
   position: absolute;
@@ -124,7 +124,7 @@
 .categories-sub-circles {
   min-width: 10px; /* min-width as the pixel value */
   width: 0;
-  margin-left: 10px;
+  margin-inline-start: 10px;
   transition: 0.3s;
   height: 130px;
   display: flex;
@@ -141,14 +141,14 @@
 .no-transform {
   max-width: 10000px;
 
-  margin-left: 5px;
+  margin-inline-start: 5px;
 }
 .sub-circle {
   position: relative;
 }
 .no-transform > .sub-circle {
   transform: translateX(0px) !important;
-  margin-left: 5px;
+  margin-inline-start: 5px;
 }
 .active-category-icon {
   position: absolute;

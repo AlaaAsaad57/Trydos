@@ -74,7 +74,6 @@ const eslintConfig = [
       "app/(client)/requests-log/**/*.{ts,tsx}",
       "components/global/NotificationsTest.tsx",
       "components/global/WebviewCall.tsx",
-      "components/Home/OtpStatsModal.tsx",
     ],
     rules: { "i18next/no-literal-string": "off" },
   },

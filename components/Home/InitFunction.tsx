@@ -4,9 +4,10 @@ import { useAppStore } from "store";
 import { getCookie, setLocaizationCookies } from "utils/cookies/cookie-manager";
 
 function InitFunction({ init }: { init: string | string[] }) {
-  const { language, country } = useAppStore();
-
   const initFunc = async () => {
+    // Read once inside the mount effect — no reactive subscription needed,
+    // so this always-mounted component doesn't re-render on store writes.
+    const { language, country } = useAppStore.getState();
     let languageCookies = getCookie("language");
     let countryCookies = getCookie("country");
     let stored_language =

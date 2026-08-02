@@ -13,19 +13,13 @@ const NotificationsPanel = dynamic(
     loading: () => <NotificationSkeleton />,
   },
 );
-import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
 
-const OtpStatsModal = dynamic(() => import("./OtpStatsModal"), { ssr: false });
 import auth from "services/auth";
-import { COOKIE_NAMES, deleteCookie } from "utils/cookies/cookie-manager";
 import { clearAllUserData } from "utils/tinyUtils";
 import dynamic from "next/dynamic";
 
 import { useAppStore } from "store";
-
-import { fetchData } from "utils/fetchData";
-import { REQUESTS_DATA } from "utils/Requests";
 
 interface MenuProps {
   user: any;
@@ -99,11 +93,7 @@ const MenuItem = ({
 
 const Menu = ({ user, setMenuOpen ,isRtl}) => {
   const { setLoggingOut } = useAppStore();
-  const userChat = useAppStore.getState().userChat;
-  const userStories = useAppStore.getState().userStories;
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showWishList, setShowWishList] = useState(false);
-  const [showOtpStats, setShowOtpStats] = useState(false);
   const { lang } = useParams();
   const [loading, setLoading] = useState(false);
 
@@ -112,42 +102,18 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
     setLoggingOut(true);
     setLoading(true);
 
-    // 1. Remove FCM token FIRST (while cookies still have valid tokens)
-    try {
-      if (localStorage.getItem("FB-DEVICE-TOKEN")) {
-        await fetchData({
-          method: "POST",
-          url: "/api/v1/firebase_tokens/remove-token",
-          server: "chat",
-          reqTitle: REQUESTS_DATA.REOMVE_FCM,
-          noMessage: true,
-          body: JSON.stringify({
-            token: localStorage.getItem("FB-DEVICE-TOKEN"),
-          }),
-        });
-      }
-    } catch (e) {
-      /* swallow — we're logging out anyway */
-    }
-
-    // 2. Delete firebase token locally
-    try {
-      const { getFirebaseMessaging } = await import("utils/firebaseInitv1");
-      const { deleteToken } = await import("firebase/messaging");
-      const messaging = await getFirebaseMessaging();
-      if (messaging) await deleteToken(messaging);
-    } catch (e) {
-      /* swallow */
-    }
-
-    // 3. NOW clear all data (cookies, storage, store)
+    // 1. Clear cookies, storage and store, and tear down push delivery to this
+    //    device. Everything remote is either same-origin (the cookie deletes) or
+    //    off the critical path (the account-side FCM detach, which
+    //    /api/auth/logout runs after responding) — so no backend can slow this
+    //    down. See `clearAllUserData`.
     await clearAllUserData();
 
-    // 4. Reset store auth state explicitly
+    // 2. Reset store auth state explicitly
     const { cancelAuth } = useAppStore.getState();
     cancelAuth(); // pass NO argument — full reset, not "expired"
 
-    // 5. Reload immediately — no need for 2s delay
+    // 3. Reload immediately — no need for 2s delay
     if (
       window.location.pathname.includes("/seller") ||
       window.location.pathname.includes("/settings")
@@ -212,24 +178,6 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
             }
           >
             {translateFunction("Settings")}
-          </MenuItem>
-          <MenuItem
-            dataCy="WishList-Icon"
-            onClick={() => {
-              // Sendevent({
-              //   event: GA_EVENT_NAMES.CLICK,
-              //   value: GA_CLICK_EVENT_VALUES.WISHLIST_BUTTON,
-              // });
-              setShowWishList(!showWishList);
-              // setMenuOpen(false);
-            }}
-            icon={
-              <MenuIcon isRtl={isRtl}>
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </MenuIcon>
-            }
-          >
-            {translateFunction("CheckList")}
           </MenuItem>
           <MenuItem
             dataCy="Notifications-Icon"
@@ -343,80 +291,6 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
           >
             {translateFunction("Compare")}
           </MenuItem>
-          <MenuItem
-            onClick={() => {
-              setMenuOpen(false);
-            }}
-            icon={
-              <MenuIcon isRtl={isRtl}>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-label="Request Log"
-                  role="img"
-                  className="w-5 h-5"
-                >
-                  <rect
-                    x="3"
-                    y="4"
-                    width="14"
-                    height="12"
-                    rx="2"
-                    stroke="#404040"
-                    strokeWidth="1"
-                    fill="none"
-                  />
-                  <rect
-                    x="6"
-                    y="7"
-                    width="8"
-                    height="2"
-                    rx="1"
-                    fill="#8e8e8e"
-                  />
-                  <rect
-                    x="6"
-                    y="11"
-                    width="5"
-                    height="2"
-                    rx="1"
-                    fill="#8e8e8e"
-                  />
-                </svg>
-              </MenuIcon>
-            }
-          >
-            <a href="/requests-log" target="_blank" className="text-[12px]">
-              {translateFunction("Request Log")}
-            </a>
-          </MenuItem>
-          <MenuItem
-            icon={<></>}
-            onClick={() => {
-              setMenuOpen(false);
-              deleteCookie("redemed_ids");
-            }}
-          >
-            {translateFunction("Reset Redeemed Products")}
-          </MenuItem>
-          <MenuItem
-            dataCy="show-otp-statics"
-            icon={
-              <MenuIcon isRtl={isRtl}>
-                <path d="M3 3v18h18" />
-                <rect x="7" y="11" width="3" height="6" />
-                <rect x="13" y="7" width="3" height="10" />
-              </MenuIcon>
-            }
-            onClick={() => {
-              setShowOtpStats(true);
-            }}
-          >
-            {translateFunction("Show OTP Statics")}
-          </MenuItem>
         </>
         {shouldShowLogout() && (
           <MenuItem
@@ -433,54 +307,6 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
             {loading ? <Spinner /> : translateFunction("Logout")}
           </MenuItem>
         )}
-        {userChat?.id && (
-          <MenuItem
-            dataCy="change-chat-token"
-            icon={<></>}
-            onClick={() => {
-              // Debug: invalidate chat token via server route
-              fetch("/api/auth/update-user", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  updates: [
-                    {
-                      name: COOKIE_NAMES.USER_CHAT,
-                      value: { ...userChat, access_token: "skajdklajsd" },
-                    },
-                  ],
-                }),
-                credentials: "include",
-              });
-            }}
-          >
-            {translateFunction("Make Chat Token Expired")}
-          </MenuItem>
-        )}
-        {userStories?.id && (
-          <MenuItem
-            dataCy="change-chat-token"
-            icon={<></>}
-            onClick={() => {
-              // Debug: invalidate stories token via server route
-              fetch("/api/auth/update-user", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  updates: [
-                    {
-                      name: COOKIE_NAMES.USER_STORIES,
-                      value: { ...userStories, access_token: "skajdklajsd" },
-                    },
-                  ],
-                }),
-                credentials: "include",
-              });
-            }}
-          >
-            {translateFunction("Make Stories Token Expired")}
-          </MenuItem>
-        )}
       </div>
 
       {showNotifications && (
@@ -488,12 +314,6 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
           closeWindow={() => setMenuOpen(false)}
           onClose={() => setShowNotifications(false)}
         />
-      )}
-
-      {showWishList && <WishListPanel onClose={() => setShowWishList(false)} />}
-
-      {showOtpStats && (
-        <OtpStatsModal onClose={() => setShowOtpStats(false)} />
       )}
     </>
   );

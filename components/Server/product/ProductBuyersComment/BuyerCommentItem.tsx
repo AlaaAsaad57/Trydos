@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/server";
+import { convertTextToXFormat, GetImageUrl } from "utils/server/helpers";
+import { formatTime } from "utils/tinyUtils";
 import profilePng from "public/images/profileNo.png";
 import Image from "next/image";
 import { useAppStore } from "store";
@@ -71,7 +72,7 @@ export const BuyersCommentItem = ({ id, comment, language, width = 90 }) => {
             left: isRtl ? "10px" : "initial",
           }}
         >
-          {formatTime(c?.created_at, language)}
+          {formatTime(c?.created_at)}
         </div>
         <div
           id={`comment-${c.id}-text`}

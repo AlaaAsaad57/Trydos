@@ -5,7 +5,7 @@
 | **Feature ID** | CO-18 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟡 Partial  -- same as CO-17|
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/setting/orders/OrderItemOptions.tsx`, `components/setting/orders/CancelOrderItemWrapper.tsx`, `components/Orders/ChangeOrderItem.tsx`, `components/setting/orders/confirmations/CancelOrderItemConfirmationWindow.tsx`, `services/order.ts` |
 
 ---
@@ -41,7 +41,7 @@ Any shopper wanting to drop or reduce one line of an order.
 |------|-------|
 | Cancel item / reduce qty | `POST /customer/order/cancel-item` — body `{ order_id, detail_id, qty }` (`Order.CancelOrderItem`) |
 | Eligibility | `parentOrder.can_cancele_order && orderItem.qty > 0` |
-| Backend | **Legacy backend** |
+| Backend | **Core backend** |
 
 ## Technical reference
 

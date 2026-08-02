@@ -15,11 +15,13 @@ import {
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { fetchAuthMe } from "utils/authMe";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 import { checkWallet } from "./wallet";
+import { GetTicket } from "utils/UploadUtils";
 
 // Helper to update user metadata in HttpOnly cookies via server route
 async function updateSecureUserData(
@@ -37,30 +39,35 @@ async function updateSecureUserData(
   }
 }
 
-let _expirePromise: Promise<void> | null = null;
+/**
+ * Result of an expire cycle.
+ * - `renewed`: the server's last-chance refresh saved the session — no nuke.
+ * - `wasVerified`: the session that WAS nuked belonged to a phone-verified
+ *   shopper, so the caller should wait for an immediate re-verification rather
+ *   than let them continue as an anonymous guest.
+ */
+export interface ExpireOutcome {
+  renewed: boolean;
+  wasVerified: boolean;
+}
+
+let _expirePromise: Promise<ExpireOutcome> | null = null;
+// Deduplicate concurrent refresh calls (mirrors _expirePromise): parallel 401s
+// on one page load share a single /api/auth/refresh round trip (AC-12).
+let _refreshPromise: Promise<{
+  refreshed: boolean;
+  eligible: boolean;
+}> | null = null;
 let normalizePhone = (phone: string) => {
   return phone.replaceAll("+", "");
 };
 class AuthService {
   private async getServiceUsersFromCookies() {
-    try {
-      const response = await fetch("/api/auth/me", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        return { chatUser: null, storiesUser: null };
-      }
-
-      const data = await response.json();
-      return {
-        chatUser: data?.chatUser ?? null,
-        storiesUser: data?.storiesUser ?? null,
-      };
-    } catch (error) {
-      return { chatUser: null, storiesUser: null };
-    }
+    const data = await fetchAuthMe();
+    return {
+      chatUser: data?.chatUser ?? null,
+      storiesUser: data?.storiesUser ?? null,
+    };
   }
 
   async SendOtp(
@@ -410,43 +417,136 @@ class AuthService {
       }
     }
   }
-  async ExpiredUser(noReq = false) {
+  /**
+   * Exchange the HttpOnly refresh cookie for a fresh token pair via
+   * /api/auth/refresh (Go auth contract). Reactive callers pass the failed
+   * request's {url, server} — Go-eligibility is decided SERVER-SIDE with the
+   * same routing helpers the proxy uses; the proactive on-load call passes
+   * nothing (fast no-op while the access token is valid).
+   * Returns {refreshed, eligible}; on failure/ineligibility the caller falls
+   * through to the existing expiry flow.
+   */
+  async RefreshSession(url?: string, server?: string) {
     const { LoggingOut } = useAppStore.getState();
-    if (LoggingOut) return;
+    if (LoggingOut) return { refreshed: false, eligible: false };
 
-    // Deduplicate concurrent 401 handlers — reuse in-flight expire
+    if (_refreshPromise) return _refreshPromise;
+
+    _refreshPromise = (async () => {
+      try {
+        const response = await fetch("/api/auth/refresh", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            url !== undefined || server !== undefined ? { url, server } : {},
+          ),
+          credentials: "include",
+        });
+        const repo = await response.json().catch(() => ({}));
+        if (repo?.eligible === false)
+          return { refreshed: false, eligible: false };
+        return { refreshed: response.ok && repo?.refreshed === true, eligible: true };
+      } catch {
+        return { refreshed: false, eligible: true };
+      }
+    })();
+
+    try {
+      return await _refreshPromise;
+    } finally {
+      _refreshPromise = null;
+    }
+  }
+
+  async ExpiredUser(noReq = false): Promise<ExpireOutcome> {
+    const { LoggingOut } = useAppStore.getState();
+    if (LoggingOut) return { renewed: false, wasVerified: false };
+
+    // Deduplicate concurrent 401 handlers — reuse in-flight expire. Waiters
+    // share the same outcome, so a parallel 401 also learns `wasVerified`.
     if (_expirePromise) return _expirePromise;
 
     _expirePromise = this._doExpire(noReq);
     try {
-      await _expirePromise;
+      return await _expirePromise;
     } finally {
       _expirePromise = null;
     }
   }
 
-  private async _doExpire(noReq: boolean) {
-    const { setReAuthResult, setIsRegisteringReady } = useAppStore.getState();
+  private async _doExpire(noReq: boolean): Promise<ExpireOutcome> {
+    const { setReAuthResult, setIsRegisteringReady, setShouldAuthinticated } =
+      useAppStore.getState();
+
+    // Read at the point of use, never here: the expire request below is awaited,
+    // and a concurrent 401 (chat/stories) can arm a re-auth flow in the
+    // meantime — a marker captured now would be stale by the time it is read.
+    const armedFlow = () => useAppStore.getState().shouldAuthinticated;
 
     setIsRegisteringReady(false);
+    let wasVerified = false;
 
     try {
       if (!noReq) {
         const { country, language } = this._getLocale();
-        await fetch("/api/auth/expire", {
+        const response = await fetch("/api/auth/expire", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "x-country": country,
             "x-language": language,
           },
-          body: JSON.stringify({ old_user_id: this.UserID() }),
           credentials: "include",
         });
+
+        // Last-chance renewal succeeded server-side (a race loser carrying
+        // the winner's rotated refresh cookie): the session survived — do
+        // NOT cancel/downgrade the client state the winner just renewed.
+        // Re-sync happens through the callers' own retries (single re-sync
+        // mechanism); the "success" signal is scoped to expire-waiters only —
+        // never release an armed phone re-verification wait without an OTP.
+        const repo = await response.json().catch(() => ({}));
+        if (repo?.renewed === true) {
+          if (!armedFlow()) setReAuthResult("success");
+          return { renewed: true, wasVerified: false };
+        }
+        // The nuked session belonged to a phone-verified shopper (captured
+        // server-side before the guest re-register overwrote User-Data).
+        wasVerified = repo?.wasVerified === true;
       }
 
+      // Preserve the outgoing shopper's phone before anything can lose it —
+      // cancelAuth(true) keeps the profile, but a later guest customer-info
+      // sync overwrites userProfile before the user reaches the verify widget.
+      const expiredPhone = useAppStore.getState().userProfile?.phone;
+
       this.cancelAuth(true);
-      setReAuthResult("cancelled");
+
+      // A verified shopper is never left silently downgraded to an anonymous
+      // guest: arm the session-expired prompt ("please login again", styled
+      // like the notification-allowance widget) so they choose between logging
+      // back into their real account (opens the OTP widget) or continuing as
+      // the fresh guest minted above. Guests keep the silent path.
+      //
+      // Unless a re-auth is already on screen: a concurrent chat/stories 401 can
+      // arm the verify widget while the expire request above is in flight, and
+      // swapping it for this prompt would yank the OTP form away mid-entry.
+      // That armed flow re-authenticates the user anyway and owns the outcome
+      // (its own `reAuthResult`), so leave it — same rule the 401 handlers
+      // follow: whoever armed first keeps the screen until it resolves.
+      if (wasVerified && !armedFlow()) {
+        if (expiredPhone && expiredPhone !== "0") {
+          useAppStore
+            .getState()
+            .setExpiredSessionPhone(String(expiredPhone));
+        }
+        setReAuthResult("pending");
+        setShouldAuthinticated("expired");
+      } else if (!wasVerified) {
+        setReAuthResult("cancelled");
+      }
+
+      return { renewed: false, wasVerified };
     } finally {
       setIsRegisteringReady(true);
     }
@@ -676,7 +776,7 @@ class AuthService {
           previousUserObj?.image ?? userProfile?.image,
         );
         const prevProfilePictureURL = prevImagePath
-          ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${prevImagePath}`
+          ? `${process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL}${prevImagePath}`
           : null;
 
         try {
@@ -783,18 +883,20 @@ class AuthService {
     if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
       throw new Error("Media server upload is not configured");
     }
-
+    let ticket=await GetTicket("customers/profile",false,1);
     const form = new FormData();
     form.append("file", file);
     form.append("folder", "customers/profile");
 
-    const uploadUrl = `${MEDIA_SERVER_BASE_URL}/upload`;
+    const uploadUrl = `${MEDIA_SERVER_BASE_URL}/gated/upload`;
 
     const response = await fetch(uploadUrl, {
       method: "POST",
       headers: {
         "x-api-key": MEDIA_API_KEY,
+        "X-Upload-Ticket":ticket
       },
+
       body: form,
     });
 

@@ -5,8 +5,8 @@
 | **Feature ID** | SD-15 |
 | **Domain** | A · Shopping & Product Discovery |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-04 (against `develop`) |
-| **Source of truth** | `components/ListingPage/filterComponents/FiltersWindow/index.tsx`, `components/Server/FilterList.tsx`, `services/elastic/elasticSearch.ts`, `utils/server/index.tsx` |
+| **Last verified** | 2026-07-27 (against `develop`) |
+| **Source of truth** | `components/ListingPage/filterComponents/FiltersWindow/index.tsx`, `components/Server/FilterList.tsx`, `components/ListingPage/FilterItem.tsx`, `services/elastic/elasticSearch.ts`, `utils/server/index.tsx` |
 
 ---
 
@@ -48,7 +48,9 @@ Shoppers refining a broad listing (e.g. "shoes" → pick a brand, a size and a p
 - **More options load on demand.** Each group shows the first 10 options; the rest load as the
   shopper scrolls within the group.
 - **One responsive layout** — the same components serve mobile and desktop (mobile-first
-  full-screen panel), and flip direction automatically for Arabic / Kurdish (RTL).
+  full-screen panel), and flip direction automatically for Arabic / Kurdish (RTL). The category
+  rail's stacked sub-category circles now mirror properly in Arabic and Kurdish: they tuck behind
+  their parent category instead of hanging detached on the wrong side.
 
 ## Data source
 

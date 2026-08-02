@@ -11,7 +11,7 @@ import {
   GetImageUrl,
   FilterItemProps,
   FilterState,
-} from "utils/server";
+} from "utils/server/helpers";
 import {
   getFilterStateForItem,
   getFilterStateForItemLegacy,
@@ -183,7 +183,11 @@ const FilterItem = ({
                     key={s.slug}
                     style={{
                       position: showSub ? "relative" : "absolute",
-                      left: showSub ? "0" : `${index * 8}px`,
+                      // Anchor the collapsed stack on the parent-circle side so
+                      // the peeking cascade mirrors under RTL.
+                      [isRtl ? "right" : "left"]: showSub
+                        ? "0"
+                        : `${index * 8}px`,
                       zIndex: showSub ? "auto" : 100 - index,
                       transform: showSub
                         ? "none"
@@ -252,7 +256,7 @@ const FilterItem = ({
                   {s.childes?.length > 0 && (
                     <div
                       className={`categories-sub-circles ${
-                        showSub && "no-transform ml-[10px]"
+                        showSub && "no-transform ms-[10px]"
                       } z-0`}
                       style={{
                         minWidth: showSub ? "max-content" : "10px",

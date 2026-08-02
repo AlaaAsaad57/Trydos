@@ -5,7 +5,7 @@
 | **Feature ID** | CO-13 |
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live — ⚠️ but a secret-leak bug in the failure path needs fixing |
-| **Last verified** | 2026-07-04 (against `develop`) |
+| **Last verified** | 2026-07-27 (against `develop`) |
 | **Source of truth** | `components/Cart/WalletPaymentModal.tsx`, `components/Cart/PaymentMethod.tsx`, `services/wallet/index.ts`, `store/Cart/reducer.ts` |
 
 ---
@@ -48,7 +48,7 @@ Shoppers with enough wallet balance to cover the order total.
 | Wallet checkout | `POST {WALLET}/merchant/checkout` — HMAC-SHA256 signed; body `{ currencyId, store_user_id, amount, cart_group_ids, idempotencyKey }` — `wallet.CheckoutOrder` |
 | Balance | `GET {WALLET}/wallets/my/balances/{currencyId}` — `GetWalletBalanceForCountryCurrency` |
 | Order-conversion check | `GET /customer/order/getOrdersByCartGroupID?cart_group_id=…` |
-| Backend | Wallet calls → **separate Go wallet microservice** (`NEXT_PUBLIC_WALLET_BACKEND_URL`); order lookup → legacy backend |
+| Backend | Wallet calls → **separate wallet backend service** (`NEXT_PUBLIC_WALLET_BACKEND_URL`); order lookup → core backend |
 
 ## Technical reference
 

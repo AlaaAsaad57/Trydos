@@ -81,8 +81,10 @@ const Page = () => {
             userData: parsed.userData,
             userChat: parsed.userChat,
             userStories: parsed.userStories,
-            marketToken: (parsed as any).marketToken,
-            deviceToken: (parsed as any).deviceToken,
+            // Single auth cookie now: a guest payload's deviceToken is applied
+            // as the MARKET-TOKEN (DEVICE-TOKEN is never set anymore).
+            marketToken:
+              (parsed as any).marketToken ?? (parsed as any).deviceToken,
             chatToken: (parsed as any).chatToken,
             storiesToken: (parsed as any).storiesToken,
             walletToken: (parsed as any).walletToken,

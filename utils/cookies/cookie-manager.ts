@@ -36,9 +36,22 @@ export const COOKIE_NAMES = {
   LOCAL: "local",
   WALLET_USER: "WALLET_USER",
   WALLET_TOKEN: "rdb_at",
+  /**
+   * LEGACY — the guest JWT now lives in MARKET_TOKEN (single auth cookie).
+   * Never read or set this; it remains listed only so logout/cleanup paths can
+   * purge the stale cookie from browsers that still carry it.
+   */
   DEVICE_TOKEN: "DEVICE-TOKEN",
   USER_DATA: "User-Data",
   MARKET_TOKEN: "MARKET-TOKEN",
+  /**
+   * Single-use rotating refresh token (Go auth contract). Exchanged at
+   * `/auth/refresh-token` for a fresh MARKET_TOKEN + refresh pair; every
+   * issuance (register-guest, refresh, verify-otp) replaces BOTH cookies.
+   * ~30-day lifetime, renewed on every rotation. HttpOnly — never readable
+   * client-side, never placed in a response body.
+   */
+  MARKET_REFRESH_TOKEN: "MARKET-REFRESH-TOKEN",
   CHAT_TOKEN: "CHAT-TOKEN",
   STORIES_TOKEN: "STORIES-TOKEN",
   USER_CHAT: "USER-CHAT",
@@ -77,6 +90,7 @@ export const COOKIE_NAMES = {
  */
 export const HTTPONLY_COOKIE_NAMES = new Set([
   COOKIE_NAMES.MARKET_TOKEN,
+  COOKIE_NAMES.MARKET_REFRESH_TOKEN,
   COOKIE_NAMES.DEVICE_TOKEN,
   COOKIE_NAMES.CHAT_TOKEN,
   COOKIE_NAMES.STORIES_TOKEN,

@@ -14,7 +14,7 @@ export default function SellerBoutiqueCreatePage() {
   const onBackIntercept = useDashboardDetailBack(sellerId);
 
   return (
-    <div className="w-full max-w-[1366px] mx-auto setting-screen pb-10">
+    <div className="w-full max-w-[1366px] mx-auto setting-screen pb-10" dir={isRtl?"rtl":"ltr"}>
       <div className="mb-3 bg-white">
         <BackBar
           isRtl={isRtl}

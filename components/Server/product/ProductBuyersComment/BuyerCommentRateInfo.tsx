@@ -1,6 +1,6 @@
 import RatingStars from "components/settings/cards/RatingStars";
 
-import { translateFunction } from "utils/server";
+import { translateFunction } from "utils/functions";
 import { LikeButton } from "../LikeButtton";
 
 export const BuyerCommentRateInfo = ({

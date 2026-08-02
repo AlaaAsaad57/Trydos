@@ -12,6 +12,7 @@ import { LogServerError } from "utils/serverErrorReporter";
 import { isGuestName } from "utils/tinyUtils";
 import {
   SECURE_COOKIE_OPTIONS,
+  REFRESH_COOKIE_OPTIONS,
   setSecureCookieJSON,
   sanitizeUserData,
   sanitizeServiceUser,
@@ -72,10 +73,7 @@ export async function GET(request: NextRequest) {
       request.headers.get("lang")?.trim() ||
       "en";
     const cookiesStore = await cookies();
-    const guest_token =
-      cookiesStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ||
-      cookiesStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ||
-      "";
+    const guest_token = cookiesStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value || "";
 
     const { searchParams } = request.nextUrl;
     const verificationId = searchParams.get("verificationId");
@@ -90,35 +88,42 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. Primary OTP Verification (Critical Path)
-    const otpUrl = `${
-      // process.env.NEXT_PUBLIC_BACKEND_URL
-      process.env.NEXT_PUBLIC_GO_BACKEND_URL
-    }${VERIFY_OTP_ENDPOINT}?verificationId=${verificationId}&otp=${otp}${
-      name ? `&name=${name}` : ""
-    }`;
+    // Always served by the core backend — for first-time guest verification
+    // AND re-verification alike (product decision; do NOT route this call by
+    // user type). POST with a JSON body {verificationId, otp} + Bearer auth
+    // (no query params); returns a fresh token pair on promote and on merge.
+    const otpUrl = `${process.env.BACKEND_URL}${VERIFY_OTP_ENDPOINT}`;
     let otpRes: Response;
     let otp_response: any;
     try {
       otpRes = await fetch(otpUrl, {
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
           Authorization: `Bearer ${guest_token}`,
           country,
           language,
+          Lang: language,
+          Country: country,
         },
         method: "POST",
-        body: JSON.stringify({ verificationId, otp, name }), // Send data in body for better security and consistency
+        body: JSON.stringify({
+          verificationId,
+          otp,
+          ...(name ? { name } : {}),
+        }),
       });
 
       otp_response = await otpRes.json();
     } catch (error) {
-      // Transport/parse failure reaching the Go verify_otp_from_guest service.
+      // Transport/parse failure reaching the verify_otp_from_guest service.
       // This is server-side and otherwise very hard to trace, so capture it to
       // Sentry explicitly with the request context before falling through to the
       // outer handler (which returns the generic 500).
       await LogServerError(
         {
-          scenario: "verify_otp_from_guest go service request failed",
+          scenario: "verify_otp_from_guest service request failed",
+          backend: "core",
           error,
           verificationId,
           country,
@@ -132,7 +137,8 @@ export async function GET(request: NextRequest) {
     if (!otpRes.ok) {
       LogServerError(
         {
-          scenario: "verify_otp_from_guest go service returned non-OK",
+          scenario: "verify_otp_from_guest service returned non-OK",
+          backend: "core",
           error: otp_response,
           status: otpRes.status,
           verificationId,
@@ -142,12 +148,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(otp_response, { status: otpRes.status });
     }
 
+    // Legacy branch tolerance (AC-8): when the OTP server is disabled the
+    // response's `data` is the bare phone_verifications record — NO token
+    // pair, no user. Return it untouched and leave the shopper's currently
+    // stored tokens intact (no cookie writes, no sub-service logins).
+    if (!otp_response?.data?.token || !otp_response?.data?.user) {
+      return NextResponse.json(otp_response, { status: 200 });
+    }
+
     const {
       token: MainToken,
       id_token: idToken,
       user: InventoryUser,
     } = otp_response.data;
-    console.log(otp_response);
     // Treat backend guest placeholder names ("guest"/"verified_guest") as "no name"
     // so the UI prompts the user to enter a real name. Don't surface them as-is.
     if (InventoryUser && isGuestName(InventoryUser.name)) {
@@ -166,7 +179,7 @@ export async function GET(request: NextRequest) {
         },
       ),
       safeServiceLogin(
-        process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
+        process.env.STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
         {
           otp_id_token: idToken,
           mobile_phone: InventoryUser.phone,
@@ -174,7 +187,7 @@ export async function GET(request: NextRequest) {
         },
       ),
       safeServiceLogin(
-        process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL + LOG_IN_COMMENTS_ENDPOINT,
+        process.env.COMMENT_BACKEND_URL + LOG_IN_COMMENTS_ENDPOINT,
         {
           user_id: String(InventoryUser.id),
           phone: String(InventoryUser.phone),
@@ -182,7 +195,7 @@ export async function GET(request: NextRequest) {
         },
       ),
       safeServiceLogin(
-        process.env.NEXT_PUBLIC_WALLET_BACKEND_URL + LOG_IN_WALLET_ENDPOINT,
+        process.env.WALLET_BACKEND_URL + LOG_IN_WALLET_ENDPOINT,
         {
           otp_id_token: idToken,
           mobile_phone: InventoryUser.phone,
@@ -270,6 +283,16 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Verify returns a NEW token pair (promote or merge) — always replace
+    // BOTH stored tokens; the refresh cookie gets its own 30d rotating TTL.
+    if (otp_response.data.refresh_token) {
+      cookiesStore.set({
+        name: COOKIE_NAMES.MARKET_REFRESH_TOKEN,
+        value: otp_response.data.refresh_token,
+        ...REFRESH_COOKIE_OPTIONS,
+      });
+    }
+
     // 6. Store user metadata in HttpOnly cookies (for server-side access)
     const chatUserData = chatRes?.data?.data || null;
     const storiesUserData = storiesRes?.data?.data || null;
@@ -312,6 +335,7 @@ export async function GET(request: NextRequest) {
         data: {
           ...otp_response.data,
           token: undefined, // Strip market token from response
+          refresh_token: undefined, // Never expose the refresh token (NFR-3)
         },
         ChatUser: sanitizeServiceUser(chatUserData),
         StoriesUser: sanitizeServiceUser(storiesUserData),

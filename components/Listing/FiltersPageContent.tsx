@@ -1,4 +1,5 @@
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
+import NotFoundRedirect from "components/global/NotFoundRedirect";
 import { Suspense } from "react";
 import "styles/listing-components.css";
 import { fetchCurrency } from "serverRequests";
@@ -6,7 +7,7 @@ import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
-import { parseFiltersFromParams } from "utils/server";
+import { parseFiltersFromParams } from "utils/server/helpers";
 import { dedupeRequest } from "serverRequests/requestDedup";
 import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
@@ -38,7 +39,11 @@ async function getBoutique(
         slug: boutique,
       });
       if (!boutiqueData?.banners) {
-        redirect(`/${country}-${language}?message=boutique_not_found`);
+        // Reported, never thrown. A redirect() here was caught by this very
+        // catch block, logged as "get boutique details error" and turned into an
+        // empty "Search" listing — so the boutique-not-found redirect never
+        // fired anywhere. The caller decides how to navigate.
+        return { boutiqueNotFound: true, banners: null, name: "Search", time: 0 };
       }
       const end = process.hrtime.bigint();
       return { ...boutiqueData, time: Number(end - start) / 1_000_000 };
@@ -98,12 +103,20 @@ interface FiltersPageContentProps {
   params: { lang: string; filters?: string[] };
   sort?: string;
   search?: string;
+  /**
+   * True when rendered from the `@modal/(.)filters` slot. Next isolates errors
+   * thrown inside a parallel route slot, so `redirect()` there is serialized
+   * into the RSC stream and never moves the browser — the slot has to navigate
+   * from the client instead. See NotFoundRedirect.
+   */
+  intercepted?: boolean;
 }
 
 export default async function FiltersPageContent({
   params,
   sort,
   search,
+  intercepted = false,
 }: FiltersPageContentProps) {
   const Params = params;
   try {
@@ -134,6 +147,18 @@ export default async function FiltersPageContent({
     // cookie, so they overlap the cookie read instead of waiting behind it.
     const currencyPromise = getCurrencyForListing(country, language);
     const boutiquePromise = getBoutique(boutiqueItem, country, language);
+
+    // Resolved before any JSX is returned. The promise is otherwise handed
+    // un-awaited to the streamed children below, so a redirect raised once
+    // those Suspense boundaries have flushed would never reach the browser.
+    // Costs nothing on non-boutique (search) listings: getBoutique returns
+    // immediately when there is no boutique slug.
+    const boutiqueResolved: any = await boutiquePromise;
+    if (boutiqueResolved?.boutiqueNotFound) {
+      const target = `/${country}-${language}?message=boutique_not_found`;
+      if (intercepted) return <NotFoundRedirect href={target} />;
+      redirect(target);
+    }
 
     const userData = await getCookieServer<{ id: string }>(
       COOKIE_NAMES.USER_DATA,
@@ -277,6 +302,10 @@ export default async function FiltersPageContent({
       </>
     );
   } catch (error) {
+    // Let framework control-flow errors (the redirect above, notFound) through
+    // untouched — otherwise a legitimate redirect is reported to Sentry as a
+    // listing failure.
+    unstable_rethrow(error);
     LogServerError(
       { error, filters: Params.filters },
       `/${Params.lang}/filters`,

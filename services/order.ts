@@ -12,6 +12,7 @@ import { GetWalletBalanceForCountryCurrency } from "./wallet";
 import { WALLET_REAUTH_ON_401 } from "./wallet/reauthFlag";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import type { ReportPointSelection } from "utils/orderReportOptions";
+import { GetTicket } from "utils/UploadUtils";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
@@ -22,17 +23,19 @@ class OrderService {
     if (!MEDIA_SERVER_BASE_URL) {
       throw new Error("Media server upload is not configured");
     }
-
+    let ticket=await GetTicket(folder,false,1);
     const form = new FormData();
     form.append("file", file);
     form.append("folder", folder);
 
-    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/upload`, {
+    const response = await fetch(`${MEDIA_SERVER_BASE_URL}/gated/upload`, {
       method: "POST",
       headers: {
         "x-api-key": process.env.NEXT_PUBLIC_MEDIA_API_KEY,
+        "X-Upload-Ticket":ticket
       },
       body: form,
+
     });
 
     let data: any = null;
