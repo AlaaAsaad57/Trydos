@@ -728,7 +728,7 @@ class SellerDashboardService {
       method: "POST",
       server: "market-dashboard",
       reqTitle: REQUESTS_DATA.PROCESS_EXCEL,
-      body: JSON.stringify({ file_url:url }),
+      body: JSON.stringify({ file_url:process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL+'/file/upload/'+url }),
       sellerId,
     });
   }
@@ -774,7 +774,7 @@ class SellerDashboardService {
       data = null;
     }
 
-    if (!response.ok || !data?.url) {
+    if (!response.ok || !data?.key) {
       throw new Error(
         data?.error || data?.message || "Excel upload to media server failed",
       );
