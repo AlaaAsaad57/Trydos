@@ -223,7 +223,7 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
             type="file"
             hidden
             id="profile-file-picker"
-            accept="images/*"
+            accept="image/*"
           />
 
           <div
