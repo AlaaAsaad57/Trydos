@@ -185,7 +185,8 @@ const handleUnauthorized = async (
       case "market-dashboard":
       case "local":
         if (
-          (server === "local" && LOCAL_AUTEHD_ROUTES.includes(options.url)) ||
+          (server === "local" &&
+            LOCAL_AUTEHD_ROUTES.includes(options.url.split("?")[0])) ||
           server === "market-dashboard" ||
           server === "market"
         ) {
