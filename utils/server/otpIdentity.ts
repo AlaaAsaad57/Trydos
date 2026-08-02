@@ -152,7 +152,7 @@ async function registerGuestForOtp(): Promise<string | null> {
 
     // Bodyless per the Go contract: register-guest only creates brand-new
     // guests — no old_guest_user_id, no "user does not exist" retry.
-    const res = await fetch(process.env.GO_BACKEND_URL + REGISTER_GUEST_URL, {
+    const res = await fetch(process.env.BACKEND_URL + REGISTER_GUEST_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

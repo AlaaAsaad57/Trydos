@@ -76,7 +76,7 @@ const SECURE_COOKIE_NAMES = [
 ] as const;
 
 const GO_APIS = [
-  "/auth/register-guest",
+  // "/auth/register-guest",
   "/mobile/home/currency",
   "/web/home/startingSettings",
   "/checklist",

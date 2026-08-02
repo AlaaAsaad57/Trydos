@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     // guests — no old_guest_user_id (the re-issue-by-id path no longer
     // exists), so there is also no "user does not exist" retry.
     const response = await fetch(
-      process.env.GO_BACKEND_URL + REGISTER_DEVICE_URL,
+      process.env.BACKEND_URL + REGISTER_DEVICE_URL,
       {
         method: "POST",
         headers: {
