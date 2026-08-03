@@ -833,7 +833,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
   );
 }
 
-export function CountriesSection({ form, patch, lookups, disabled, currency, pricesLocked }: SectionProps) {
+export function CountriesSection({ form, patch, lookups, disabled, currency, pricesLocked ,errors}: SectionProps) {
   // Per-country surcharge is a price: an unapproved seller cannot set one on
   // create, so the whole block is hidden rather than rendered greyed out.
   const extraPriceDisabled = disabled;
@@ -869,7 +869,7 @@ export function CountriesSection({ form, patch, lookups, disabled, currency, pri
     <Section icon="shopInfo" title="Origin & Countries">
       <div className="space-y-6">
         <div className="max-w-md">
-          <Select label="Country of Origin" error={form.origin_country_iso} value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={originCountryOptions} />
+          <Select label="Country of Origin" error={errors.origin_country_iso} value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={originCountryOptions} />
         </div>
 
         <div>
