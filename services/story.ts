@@ -88,7 +88,11 @@ class StoryService {
     }
   }
   async WatchStory(pid: number | string, id: number | string) {
-    const { watchStory } = useAppStore.getState();
+    const { watchStory ,userStories} = useAppStore.getState();
+    // TODO: check if userStories is null or undefined before accessing its properties
+    if(!userStories?.id){
+     return;
+    }
     try {
       if (this.getUserStories()?.id) {
         watchStory({ pid: pid, id: id });
