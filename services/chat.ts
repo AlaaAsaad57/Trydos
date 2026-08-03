@@ -190,8 +190,12 @@ class ChatService {
       setIsTyping,
       setLastNotificationDate,
       setContacts,
+      userChat
     } = useAppStore.getState();
-
+    // TODO: check if userChat is null or undefined before accessing its properties
+    if(!userChat?.id){
+     return;
+    }
     const { onValue, ref } = await import("firebase/database");
     try {
       if (!payload) {
@@ -269,7 +273,12 @@ class ChatService {
     }
   }
   async getContacts() {
-    const { setContacts } = useAppStore.getState();
+    const { setContacts,userChat } = useAppStore.getState();
+        // TODO: check if userChat is null or undefined before accessing its properties
+        
+    if(!userChat?.id){
+     return;
+    }
     try {
       let response = await fetchData({
         url: GET_CONTATCS_URL,
