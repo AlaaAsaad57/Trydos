@@ -869,7 +869,7 @@ export function CountriesSection({ form, patch, lookups, disabled, currency, pri
     <Section icon="shopInfo" title="Origin & Countries">
       <div className="space-y-6">
         <div className="max-w-md">
-          <Select label="Country of Origin" value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={originCountryOptions} />
+          <Select label="Country of Origin" error={form.origin_country_iso} value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={originCountryOptions} />
         </div>
 
         <div>
