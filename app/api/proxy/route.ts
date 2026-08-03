@@ -216,6 +216,16 @@ export async function POST(request: NextRequest) {
     const responseContentType =
       backendResponse.headers.get("content-type") || "";
 
+    if (backendResponse.status === 204) {
+      return new NextResponse(null, {
+        status: 204,
+        headers: {
+          "Cache-Control": "no-store",
+          ...marketBackendHeader,
+        },
+      });
+    }
+
     if (responseContentType.includes("application/json")) {
       const data = await backendResponse.json();
       return NextResponse.json(data, {
