@@ -847,6 +847,27 @@ export function validate(
   // checked for marketplace uniqueness when provided.
 
   if (!form.location_id) e.location_id = tx("Location is required");
+  // if( form.shipping_days === "" || isNaN(Number(form.shipping_days)) || Number(form.shipping_days) < 0){
+  //   e.shipping_days = tx("Enter a valid shipping days");
+  // }
+  
+  // Origin country is required on both create and update. The server checks that the value is valid and authorized for the seller, so the client only needs to check that a value was selected.
+  if(form.origin_country_iso===""||!form.origin_country_iso){
+    e.origin_country_iso=tx("Select a valid origin country");
+  }
+  // Count of pieces
+  if(form.count_of_pieces===""||isNaN(Number(form.count_of_pieces))||Number(form.count_of_pieces)<0){
+    e.count_of_pieces=tx("Enter a valid Count of pieces");
+  }
+  // Stock
+  if(!form.current_stock || Number(form.current_stock)<0 || isNaN(Number(form.current_stock))){
+   if(Object.keys(form.variations).length) {
+    e.current_stock=tx("Enter a Valid Value for Quantity In Variants Table");
+   }
+   else{
+    e.current_stock=tx("Enter a Valid Value for Quantity");
+   }
+  }
 
   const up = num(form.unit_price);
   const dp = num(form.discount_price);
@@ -863,7 +884,7 @@ export function validate(
       }
     }
 
-    if (form.purchase_price !== "") {
+    if (form.purchase_price === ""||!form.purchase_price) {
       if (isNaN(pp) || pp < 0) {
         e.purchase_price = tx("Enter a valid purchase price");
       } else if (form.discount_price !== "" && !isNaN(dp) && dp <= pp) {
@@ -873,7 +894,7 @@ export function validate(
       }
     }
   } else {
-    if (form.purchase_price !== "" && (isNaN(pp) || pp < 0))
+    if (form.purchase_price === "" || (isNaN(pp) || pp < 0))
       e.purchase_price = tx("Enter a valid purchase price");
   }
 

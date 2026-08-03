@@ -2439,6 +2439,10 @@ const translations = {
   "Notifications Not Supported": "Bildirimler Desteklenmiyor",
   "Push notifications are not supported by your current browser or mode. To access features that depend on notifications, such as order updates and live chat, please switch to a supported browser like Chrome, Edge, or Safari.": "Anlık bildirimler mevcut tarayıcınız veya modunuz tarafından desteklenmiyor. Sipariş güncellemeleri ve canlı sohbet gibi bildirimlere bağlı özellikleri kullanmak için lütfen Chrome, Edge veya Safari gibi desteklenen bir tarayıcıya geçin.",
   "Got it": "Anladım",
+    "Enter a Valid Value for Quantity": "Miktar için geçerli bir değer girin",
+  "Enter a Valid Value for Quantity In Variants Table": "Varyasyonlar tablosunda miktar için geçerli bir değer girin",
+  "Enter a valid Count of pieces": "Geçerli bir parça sayısı girin",
+  "Select a valid origin country": "Geçerli bir menşe ülkesi seçin"
 };
 
 export default translations;

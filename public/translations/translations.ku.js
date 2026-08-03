@@ -2459,6 +2459,10 @@ const translations = {
   "Notifications Not Supported": "ئاگادارکردنەوەکان پشتگیری نەکراون",
   "Push notifications are not supported by your current browser or mode. To access features that depend on notifications, such as order updates and live chat, please switch to a supported browser like Chrome, Edge, or Safari.": "ئاگادارکردنەوەکان لەم وێبگەڕە یان دۆخەی ئێستاتدا پشتگیری ناکرێن. بۆ بەکارهێنانی ئەو تایبەتمەندییانەی کە بەستراونەتەوە بە ئاگادارکردنەوەکانەوە، وەک زانیارییەکانی داواکاری و چاتی ڕاستەوخۆ، تکایە بۆ وێبگەڕێکی پشتگیریکراو وەک Chrome، Edge یان Safari بگۆڕە.",
   "Got it": "تێگەیشتم",
+  "Enter a Valid Value for Quantity": "بەهایەکی دروست بۆ ژمارە بنووسە",
+"Enter a Valid Value for Quantity In Variants Table": "بەهایەکی دروست بۆ ژمارە لە خشتەی جیاوازییەکان بنووسە",
+"Enter a valid Count of pieces": "ژمارەی پارچەیەکی دروست بنووسە",
+"Select a valid origin country": "وڵاتێکی دروست بۆ سەرچاوە هەڵبژێرە"
 };
 
 export default translations;

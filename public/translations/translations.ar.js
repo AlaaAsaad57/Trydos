@@ -2408,6 +2408,10 @@ const translations = {
   "Notifications Not Supported": "الإشعارات غير مدعومة",
   "Push notifications are not supported by your current browser or mode. To access features that depend on notifications, such as order updates and live chat, please switch to a supported browser like Chrome, Edge, or Safari.": "الإشعارات الفورية غير مدعومة في متصفحك الحالي أو الوضع الحالي. للاستفادة من الميزات التي تعتمد على الإشعارات، مثل تحديثات الطلبات والمحادثة المباشرة، يرجى الانتقال إلى متصفح مدعوم مثل Chrome أو Edge أو Safari.",
   "Got it": "حسناً",
+  "Enter a Valid Value for Quantity": "أدخل قيمة صحيحة للكمية",
+  "Enter a Valid Value for Quantity In Variants Table": "أدخل قيمة صحيحة للكمية في جدول المتغيرات",
+  "Enter a valid Count of pieces": "أدخل عدد قطع صالح",
+  "Select a valid origin country": "اختر بلد منشأ صالح"
 };
 
 export default translations;
