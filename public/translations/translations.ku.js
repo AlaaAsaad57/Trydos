@@ -2462,7 +2462,8 @@ const translations = {
   "Enter a Valid Value for Quantity": "بەهایەکی دروست بۆ ژمارە بنووسە",
 "Enter a Valid Value for Quantity In Variants Table": "بەهایەکی دروست بۆ ژمارە لە خشتەی جیاوازییەکان بنووسە",
 "Enter a valid Count of pieces": "ژمارەی پارچەیەکی دروست بنووسە",
-"Select a valid origin country": "وڵاتێکی دروست بۆ سەرچاوە هەڵبژێرە"
+"Select a valid origin country": "وڵاتێکی دروست بۆ سەرچاوە هەڵبژێرە",
+"Changes were saved": "گۆڕانکارییەکان پاشەکەوت کران"
 };
 
 export default translations;

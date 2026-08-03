@@ -2411,7 +2411,8 @@ const translations = {
   "Enter a Valid Value for Quantity": "أدخل قيمة صحيحة للكمية",
   "Enter a Valid Value for Quantity In Variants Table": "أدخل قيمة صحيحة للكمية في جدول المتغيرات",
   "Enter a valid Count of pieces": "أدخل عدد قطع صالح",
-  "Select a valid origin country": "اختر بلد منشأ صالح"
+  "Select a valid origin country": "اختر بلد منشأ صالح",
+  "Changes were saved": "تم حفظ التغييرات"
 };
 
 export default translations;

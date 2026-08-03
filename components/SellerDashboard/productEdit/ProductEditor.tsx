@@ -938,11 +938,17 @@ export default function ProductEditor({
 
         {approvalNote && (
           <div className="mt-4">
+            {shopInfo.newProductsApproval?
             <InlineAlert tone="success">
+              {t(
+                "Changes were submitted",
+              )}
+            </InlineAlert>
+            :<InlineAlert tone="success">
               {t(
                 "Changes were submitted and are pending admin approval — they go live once approved.",
               )}
-            </InlineAlert>
+            </InlineAlert>}
           </div>
         )}
         {!editMode && canUpdate && (

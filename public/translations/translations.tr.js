@@ -2442,7 +2442,8 @@ const translations = {
     "Enter a Valid Value for Quantity": "Miktar için geçerli bir değer girin",
   "Enter a Valid Value for Quantity In Variants Table": "Varyasyonlar tablosunda miktar için geçerli bir değer girin",
   "Enter a valid Count of pieces": "Geçerli bir parça sayısı girin",
-  "Select a valid origin country": "Geçerli bir menşe ülkesi seçin"
+  "Select a valid origin country": "Geçerli bir menşe ülkesi seçin",
+  "Changes were saved": "Değişiklikler kaydedildi"
 };
 
 export default translations;
