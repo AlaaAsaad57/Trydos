@@ -10,7 +10,7 @@
     },
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "types": ["node"],
+    "types": ["node","vitest/globals"],
     "skipLibCheck": true,
     "strict": false,
     "forceConsistentCasingInFileNames": true,

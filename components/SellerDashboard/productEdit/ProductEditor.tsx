@@ -118,9 +118,9 @@ export default function ProductEditor({
   const shopInfoUnavailable =
     shopInfo !== null && shopInfo.permitted && !shopInfo.available;
   // Restrict ONLY on a usable record that explicitly says the seller is not
-  // approved. Never on the edit path, never on an unknown standing.
+  // approved. Applied to both create and update paths.
   const pricesLocked =
-    isCreate && !!shopInfo?.available && !shopInfo.newProductsApproval;
+    !!shopInfo?.available && !shopInfo.newProductsApproval;
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);

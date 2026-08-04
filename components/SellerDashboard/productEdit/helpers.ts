@@ -828,10 +828,10 @@ export function validate(
   form: ProductForm,
   isCreate = false,
   /**
-   * Creating a product as a seller who is not approved for new products: the
-   * only price they may enter is purchase_price, so the unit/discount rules are
-   * skipped — the backend drops them on this path too. Purchase price is still
-   * validated. There is no product-level luck-price rule to skip.
+   * Creating or updating a product as a seller who is not approved: the only price
+   * they may enter is purchase_price, so the unit/discount rules are skipped —
+   * the backend drops them on this path too. Purchase price is still validated.
+   * There is no product-level luck-price rule to skip.
    */
   pricesLocked = false,
 ): Record<string, string> {

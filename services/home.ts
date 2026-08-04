@@ -114,6 +114,7 @@ class HomeService {
         method: "GET",
         server: "market",
       });
+      
       // @ts-ignore
       if (!response_customer_Info.success) {
         // @ts-ignore

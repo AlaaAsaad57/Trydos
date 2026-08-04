@@ -465,11 +465,11 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
 
 export function PricingSection({ form, patch, errors, disabled, currency, pricesLocked }: SectionProps) {
   const hasVariants = combos(form).length > 0;
-  // Every price except Purchase Price is hidden for an unapproved seller on
-  // create — an input that cannot be filled is noise, so it is not rendered at
-  // all rather than shown greyed out. Non-price fields below (stock, weight,
-  // qty, pieces, shipping days) stay editable. The payload is unaffected:
-  // buildUpdateFormData sends "0" for every omitted price key.
+  // Every price except Purchase Price is hidden for an unapproved seller — an
+  // input that cannot be filled is noise, so it is not rendered at all rather
+  // than shown greyed out. Non-price fields below (stock, weight, qty, pieces,
+  // shipping days) stay editable. The payload is unaffected: buildUpdateFormData
+  // sends "0" or existing values for omitted price keys.
   return (
     <Section icon="orders" title="Pricing & Stock" desc="Prices are in your display currency; converted server-side.">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -834,8 +834,8 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
 }
 
 export function CountriesSection({ form, patch, lookups, disabled, currency, pricesLocked ,errors}: SectionProps) {
-  // Per-country surcharge is a price: an unapproved seller cannot set one on
-  // create, so the whole block is hidden rather than rendered greyed out.
+  // Per-country surcharge is a price: an unapproved seller cannot set one,
+  // so the whole block is hidden rather than rendered greyed out.
   const extraPriceDisabled = disabled;
   const countries = lookups.countries || [];
   const language = LocalizationServiceClass.GetAppLanguage();
@@ -1332,7 +1332,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                       // Money cells get the shop-currency overlay (compact, narrow cells).
                       const suffix = currency && isMoney ? currency : "";
                       // The three money columns are not rendered at all for an
-                      // unapproved seller on create (see below); qty/sku/
+                      // unapproved seller (see below); qty/sku/
                       // barcode/location stay editable.
                       const cellDisabled = disabled;
                       return (
