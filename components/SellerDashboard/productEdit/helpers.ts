@@ -1036,10 +1036,11 @@ export function validate(
     }
   }
 
+  if (!form.category_id.length)
+    e.category_id = tx("Select at least one category");
+
   if (isCreate) {
     if (!form.boutique_id) e.boutique_id = tx("Boutique is required");
-    if (!form.category_id.length)
-      e.category_id = tx("Select at least one category");
     const descText = form.description
       .replace(/<[^>]*>/g, "")
       .replace(/&nbsp;/g, " ")
