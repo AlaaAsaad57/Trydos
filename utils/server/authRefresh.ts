@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
-import { REFRESH_TOKEN_ENDPOINT } from "utils/fetch/Endpoints";
+import { REFRESH_TOKEN_ENDPOINT, CHAT_REFRESH_TOKEN_ENDPOINT } from "utils/fetch/Endpoints";
 import {
   SECURE_COOKIE_OPTIONS,
   REFRESH_COOKIE_OPTIONS,
@@ -10,7 +10,8 @@ import {
 import { LogServerError } from "utils/serverErrorReporter";
 
 /**
- * Shared, backend-aware refresh-token exchange (Go + Laravel auth contracts).
+ * Shared refresh-token exchange helpers (market: Go + Laravel auth contracts;
+ * chat: dedicated chat backend contract).
  *
  * Design rules (tickets go-refresh-token, laravel-refresh-token):
  * - Refresh tokens are SINGLE-USE: never call this from a context that cannot
@@ -185,6 +186,115 @@ async function doRefresh(): Promise<RefreshOutcome> {
     return { status: "refreshed", token: parsed.token };
   } catch (error) {
     LogServerError({ error, type: "refresh-token unexpected failure" });
+    return { status: "unavailable" };
+  }
+}
+
+// Per-backend adapter for the chat service (single backend, dedicated token pair).
+// Same contract as the market helper: single-use rotation, both cookies replaced,
+// races resolve toward the browser jar, never delete the refresh cookie here.
+const CHAT_REFRESH_BACKEND = {
+  baseUrl: () => process.env.NEXT_PUBLIC_CHAT_BACKEND_URL || "",
+  endpoint: CHAT_REFRESH_TOKEN_ENDPOINT,
+  buildBody: (refreshToken: string) =>
+    JSON.stringify({ refresh_token: refreshToken }),
+  // Response envelope mirrors the chat login response:
+  // { data: { access_token, refresh_token, ... } }
+  parse: (json: any) => ({
+    token: json?.data?.access_token as string | undefined,
+    refreshToken: json?.data?.refresh_token as string | undefined,
+  }),
+};
+
+let chatInflight: Promise<RefreshOutcome> | null = null;
+
+export async function refreshChatSession(): Promise<RefreshOutcome> {
+  if (chatInflight) return chatInflight;
+  chatInflight = doRefreshChat().finally(() => {
+    chatInflight = null;
+  });
+  return chatInflight;
+}
+
+async function doRefreshChat(): Promise<RefreshOutcome> {
+  try {
+    const cookieStore = await cookies();
+
+    // Logout in progress: never mint or rotate credentials mid-logout.
+    if (cookieStore.get(COOKIE_NAMES.LOGOUT_GUARD)?.value) {
+      return { status: "ineligible" };
+    }
+
+    const refreshToken = cookieStore.get(COOKIE_NAMES.CHAT_REFRESH_TOKEN)?.value;
+    if (!refreshToken) return { status: "no-token" };
+
+    const backend = CHAT_REFRESH_BACKEND;
+    const local = cookieStore.get(COOKIE_NAMES.LOCAL)?.value || "gb-en";
+    const [country, language] = local.split("-");
+
+    let response: Response;
+    try {
+      response = await fetch(backend.baseUrl() + backend.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Lang: language || "en",
+          Country: country || "gb",
+        },
+        body: backend.buildBody(refreshToken),
+        credentials: "omit",
+      });
+    } catch (error) {
+      LogServerError({ error, type: "chat refresh-token network failure" });
+      return { status: "unavailable" };
+    }
+
+    if (response.status === 401) {
+      // Uniform 401 (dead OR raced). Do NOT delete the refresh cookie here —
+      // a concurrent winner may have rotated it; the jar-retry inherits it.
+      return { status: "invalid" };
+    }
+
+    const json = await response.json().catch(() => null);
+    if (!response.ok || !json) {
+      LogServerError({
+        error: { status: response.status, message: json?.message },
+        type: "chat refresh-token exchange failed",
+      });
+      return { status: "unavailable" };
+    }
+
+    const parsed = backend.parse(json);
+    if (!parsed.token || !parsed.refreshToken) {
+      LogServerError({
+        error: { message: "chat refresh response missing token pair" },
+        type: "chat refresh-token exchange failed",
+      });
+      return { status: "unavailable" };
+    }
+
+    try {
+      cookieStore.set({
+        name: COOKIE_NAMES.CHAT_TOKEN,
+        value: parsed.token,
+        ...SECURE_COOKIE_OPTIONS,
+      });
+      cookieStore.set({
+        name: COOKIE_NAMES.CHAT_REFRESH_TOKEN,
+        value: parsed.refreshToken,
+        ...REFRESH_COOKIE_OPTIONS,
+      });
+    } catch (error) {
+      LogServerError({
+        error,
+        type: "chat refresh-token rotated pair could not be persisted (caller violated writability contract)",
+      });
+    }
+
+    return { status: "refreshed", token: parsed.token };
+  } catch (error) {
+    LogServerError({ error, type: "chat refresh-token unexpected failure" });
     return { status: "unavailable" };
   }
 }

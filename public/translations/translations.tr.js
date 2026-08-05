@@ -1565,6 +1565,8 @@ const translations = {
   SHIPPING: "Kargo",
   COUNTRIES: "Ülkeler",
   ADMIN: "Yönetim",
+  COMMENTS: "Yorumlar",
+  Permissions: "İzinler",
   "Failed to update checklist": "Kontrol listesini güncelleme başarısız oldu",
   Stories: "Hikayeler",
   "No stories yet": "Henüz hikaye yok",

@@ -15,7 +15,8 @@ across every entry point — and what happens when renewal fails.
 |---|---|
 | `MARKET-TOKEN` | HttpOnly access-token cookie — the single auth cookie for guest **and** logged-in users. |
 | `MARKET-REFRESH-TOKEN` | HttpOnly refresh cookie, 30 days, **single-use** — every exchange rotates both cookies together. |
-| `refreshMarketSession()` | The one shared exchange helper (`utils/server/authRefresh.ts`). Routes by user type: **verified → core**, **guest → gateway** (both share one DB, so a pair minted by either validates on both). Single-flighted per server instance. |
+| `refreshMarketSession()` | The one shared exchange helper for market (`utils/server/authRefresh.ts`). Routes by user type: **verified → core**, **guest → gateway** (both share one DB, so a pair minted by either validates on both). Single-flighted per server instance. |
+| `refreshChatSession()` | Chat exchange helper (`utils/server/authRefresh.ts`). Calls the chat backend with the single-use `CHAT-REFRESH-TOKEN` and rotates `CHAT-TOKEN` + `CHAT-REFRESH-TOKEN`. Single-flighted per server instance. |
 | `/api/auth/refresh` | Internal route wrapping the helper (`app/api/auth/refresh/route.ts`). Called proactively (no body) and reactively (`{url, server}` after a 401). Token material never appears in a response body — only `Set-Cookie`. |
 | `/api/auth/expire` | The teardown fallback (`app/api/auth/expire/route.ts`). Runs only after refresh has failed; tries one **last-chance** refresh before nuking. |
 | Logout guard | A short-lived cookie set during logout. Every flow checks it first — nothing mints or rotates credentials mid-logout. |
@@ -76,8 +77,8 @@ no guest re-register, no identity loss.
 
 ## Flow 2 — Reactive refresh on a client 401
 
-**Path:** `utils/fetchData.ts:217-266` — applies to `server === "market" | "market-dashboard"` only.
-`chat` / `stories` / `comments` / `wallet` keep their own `need_auth` re-auth flow and are **not** refreshable here.
+**Path:** `utils/fetchData.ts:217-266` — applies to `server === "market" | "market-dashboard" | "chat"`.
+`stories` / `comments` / `wallet` keep their own `need_auth` re-auth flow and are **not** refreshable here. Chat shares the same refresh-first pattern: a failed chat 401 is retried after the CHAT-TOKEN pair is rotated; only when refresh fails does it fall back to the chat `need_auth` prompt.
 
 ```mermaid
 flowchart TD
@@ -85,7 +86,7 @@ flowchart TD
     B --> C{Outcome}
     C -->|refreshed| D[Retry original request<br/>with rotated cookie → done]
     C -->|"failed (still eligible)"| E["Jar-retry: retry original request once anyway<br/>a concurrent tab may have already rotated the cookies"]
-    C -->|"ineligible server (chat/stories/…)"| F[Own need_auth flow]
+    C -->|"ineligible server (stories/comments/wallet)"| F[Own need_auth flow]
     E --> G{Retry result}
     G -->|200| H[Done — a race winner's cookie saved it]
     G -->|"401 again (attempt 1)"| I["ExpiredUser() → /api/auth/expire<br/>(Flow 4)"]

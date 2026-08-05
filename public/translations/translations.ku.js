@@ -1589,6 +1589,7 @@ const translations = {
   SHIPPING: "گواستنەوە",
   COUNTRIES: "وڵاتەکان",
   ADMIN: "بەڕێوەبردن",
+  COMMENTS: "کۆمێنتەکان",
   "Failed to update checklist": "شکستی نوێکردنەوەی لیستی چیک",
   Stories: "چیرۆکەکان",
   "No stories yet": "هێشتا چیرۆکێک نییە",

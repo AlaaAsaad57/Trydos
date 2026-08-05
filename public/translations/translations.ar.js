@@ -1557,6 +1557,8 @@ const translations = {
   SHIPPING: "الشحن",
   COUNTRIES: "الدول",
   ADMIN: "الإدارة",
+  COMMENTS: "التعليقات",
+  Permissions: "الأذونات",
   "Failed to update checklist": "فشل تحديث قائمة الرغبات",
   Stories: "القصص",
   "No stories yet": "لا توجد قصص بعد",

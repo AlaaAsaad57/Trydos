@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + LOG_IN_CHAT_ENDPOINT,
         {
           otp_id_token: String(idToken),
-          mobile_phone: String(InventoryUser.phone),
+          mobile_phone: String(InventoryUser.phone).replace('+',''),
           name: String(name || InventoryUser.name),
           original_user_id: String(InventoryUser.id),
         },
@@ -262,6 +262,10 @@ export async function GET(request: NextRequest) {
       {
         name: COOKIE_NAMES.CHAT_TOKEN,
         value: chatRes.data?.data?.access_token,
+      },
+      {
+        name: COOKIE_NAMES.CHAT_REFRESH_TOKEN,
+        value: chatRes.data?.data?.refresh_token,
       },
       {
         name: COOKIE_NAMES.STORIES_TOKEN,

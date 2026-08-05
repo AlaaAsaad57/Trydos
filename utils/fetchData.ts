@@ -279,6 +279,20 @@ const handleUnauthorized = async (
         return false;
 
       case "chat":
+        // Refresh-first for chat, exactly like market: a single 401 tries the
+        // HttpOnly CHAT-REFRESH-TOKEN exchange. On success the proxy's next
+        // request picks up the rotated CHAT-TOKEN automatically; on failure
+        // (or eligibility false) we fall through to the existing need_auth
+        // prompt flow, just like stories/wallet/comments.
+        if (authAttempt === 0) {
+          const authService = await import("../services/auth");
+          const refresh = await authService.default.RefreshSession(
+            options?.url,
+            server,
+          );
+          if (refresh.eligible) return true;
+        }
+      // falls through to the shared sub-service need_auth flow
       case "stories":
       case "comments":
       case "wallet":

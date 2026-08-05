@@ -185,6 +185,18 @@ const formatPermissionName = (permission: string): string => {
   );
 };
 
+const getPermissionGroupLabel = (group: string): string => {
+  const labelMap: Record<string, string> = {
+    SHOP_INFO: "Shop Info",
+    PRODUCT_IMAGES: "Product Images",
+    STORIES: "Stories",
+    COMMENTS: "Comments",
+    LOCATIONS: "Locations",
+    OTHER: "Other",
+  };
+  return labelMap[group] || group.replace(/_/g, " ");
+};
+
 function SellerDashBoard() {
   const params = useParams();
   const sellerId = params.sellerId as string;
@@ -1342,7 +1354,7 @@ function SellerDashBoard() {
               <span className="text-[#5d5d5d]">
                 <DashIcon name="permissions" size={18} />
               </span>
-              {translateFunction(group.replace(/_/g, " "))}
+              {translateFunction(getPermissionGroupLabel(group))}
             </h3>
             <div className="flex flex-wrap gap-2">
               {permissions.map((permission) => (
