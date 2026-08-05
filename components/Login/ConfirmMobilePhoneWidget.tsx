@@ -74,7 +74,7 @@ function ConfirmMobilePhoneWidget() {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
-                        tokens: ["CHAT-TOKEN", "STORIES-TOKEN"],
+                        tokens: [ "STORIES-TOKEN"],
                       }),
                       credentials: "include",
                       keepalive: true,

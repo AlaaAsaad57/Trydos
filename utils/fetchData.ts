@@ -290,6 +290,7 @@ const handleUnauthorized = async (
             options?.url,
             server,
           );
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // let the store update propagate before the retry
           if (refresh.eligible) return true;
         }
       // falls through to the shared sub-service need_auth flow
@@ -309,7 +310,7 @@ const handleUnauthorized = async (
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            tokens: [COOKIE_NAMES.CHAT_TOKEN, COOKIE_NAMES.STORIES_TOKEN],
+            tokens: [ COOKIE_NAMES.STORIES_TOKEN],
           }),
           credentials: "include",
         });

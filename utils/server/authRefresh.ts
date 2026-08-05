@@ -273,6 +273,7 @@ async function doRefreshChat(): Promise<RefreshOutcome> {
       });
       return { status: "unavailable" };
     }
+    console.log(parsed);
 
     try {
       cookieStore.set({
