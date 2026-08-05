@@ -67,6 +67,7 @@ export interface NamedLookup {
   id: number;
   name: string;
   translated_name?: string;
+  translations?: Record<string, string>[];
 }
 export interface LocationLookup {
   id: number;

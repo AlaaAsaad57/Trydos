@@ -757,7 +757,8 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
         const q = tagQuery.toLowerCase().trim();
         const name = (tg.name || "").toLowerCase();
         const trans = (tg.translated_name || "").toLowerCase();
-        return name.includes(q) || trans.includes(q);
+        const NestedTrans=(tg.translations?.[0]?.value||"").toLocaleLowerCase();
+        return name.includes(q) || trans.includes(q) || NestedTrans.includes(q);
       });
 
   return (
@@ -822,7 +823,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
             <div className="flex flex-wrap gap-2 max-h-[180px] overflow-auto p-0.5 custom-scrollbar">
               {shownTags.map((tg) => (
                 <Chip key={tg.id} active={form.tags_ids.includes(tg.id)} disabled={disabled} onClick={() => patch({ tags_ids: toggleId(form.tags_ids, tg.id) })}>
-                  {tg.translated_name ?? tg.name}
+                  {tg.translated_name ??tg.translations?.[0]?.value ??tg.name}
                 </Chip>
               ))}
             </div>
