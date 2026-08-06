@@ -861,7 +861,7 @@ export function validate(
     e.count_of_pieces=tx("Enter a valid Count of pieces");
   }
   // Stock
-  if(!form.current_stock || Number(form.current_stock)<0 || isNaN(Number(form.current_stock))){
+  if(!form.current_stock || Number(form.current_stock)<=0 || isNaN(Number(form.current_stock))){
    if(Object.keys(form.variations).length) {
     e.current_stock=tx("Enter a Valid Value for Quantity In Variants Table");
    }
