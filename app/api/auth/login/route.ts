@@ -217,7 +217,7 @@ export async function GET(request: NextRequest) {
         phone: String(InventoryUser.phone),
       });
     
-    if (!storiesRes.success)
+    if (!storiesRes.success || !storiesRes.data.isSuccessful)
       failures.push({
         endpoint: "STORIES",
         ...storiesRes,
