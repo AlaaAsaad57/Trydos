@@ -311,7 +311,8 @@ function sanitizeUserData(data: any) {
 
 function sanitizeServiceUser(data: any) {
   if (!data) return null;
-  const { access_token, token, ...safe } = data;
+  const { access_token, token,refresh_token
+, ...safe } = data;
   return safe;
 }
 

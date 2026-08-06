@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         ? setSecureCookieJSON(COOKIE_NAMES.USER_CHAT, {
             ...userChat,
             access_token: undefined, // fully invalidate — proxy/SSR auth off token cookies now
-            need_auth: true,
+            // need_auth: true,
           })
         : Promise.resolve(),
       userStories?.id
