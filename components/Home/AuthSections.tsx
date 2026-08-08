@@ -23,13 +23,7 @@ const LegacyLoginWidget = dynamic(
 // Enhanced RDB login widget. Loaded on demand: it pulls in framer-motion, the QR
 // stack and `rdb-auth.css`, none of which belong in the first load for a visitor
 // who never opens login.
-const FullEnhancedLoginWidget = dynamic(
-  () => import("components/Login/Enhanced/FullEnhancedLoginWidget"),
-  {
-    loading: () => <LandingPage afterLoad={true} />,
-  }
-);
-
+import FullEnhancedLoginWidget from "components/Login/Enhanced/FullEnhancedLoginWidget"
 /**
  * Configure active login widget mode:
  * - 'enhanced-fullscreen': RDB UI in full-width / full-screen view (default)
