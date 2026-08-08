@@ -7,7 +7,8 @@ import { translateFunction } from 'utils/functions';
 interface AlreadyExistScreenProps {
   phone: string;
   onLogIn: () => void;
-  onChangeNumber: () => void;
+  /** "Cancel & take a look at the app" — leaves the flow, keeps the account. */
+  onCancel: () => void;
   onClose?: () => void;
   variant?: 'floated' | 'fullscreen';
   lang?: string;
@@ -16,7 +17,7 @@ interface AlreadyExistScreenProps {
 export default function AlreadyExistScreen({
   phone,
   onLogIn,
-  onChangeNumber,
+  onCancel,
   onClose,
   variant = 'floated',
   lang = 'en',
@@ -85,7 +86,7 @@ export default function AlreadyExistScreen({
             {translate("Login & Continue")}
           </button>
           <button
-            onClick={onChangeNumber}
+            onClick={onCancel}
             className="text-xd-13 text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
           >
             {translate("Cancel & Take A Look At The App")}

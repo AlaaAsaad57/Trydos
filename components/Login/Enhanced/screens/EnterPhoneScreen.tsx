@@ -14,6 +14,8 @@ interface EnterPhoneScreenProps {
     authType: string;
     setPhone: (phone: string) => void;
     onClose?: () => void;
+    /** Message from a failed send/verify, already translated by the caller. */
+    error?: string;
     variant?: 'floated' | 'fullscreen';
     lang?: string;
 }
@@ -25,6 +27,7 @@ export default function EnterPhoneScreen({
     authType,
     setPhone,
     onClose,
+    error,
     lang = 'en',
 }: EnterPhoneScreenProps) {
     const translate = (key: string) => translateFunction(key, lang);
@@ -126,7 +129,7 @@ export default function EnterPhoneScreen({
                             isLoading={loading || lockRemaining > 0}
                         />
                     </div>
-                    {lockRemaining > 0 && (
+                    {lockRemaining > 0 ? (
                         <div
                             data-cy="otp-cooldown"
                             className="pt-xd-10 text-xd-12 font-medium text-[#FF5F61] text-center"
@@ -135,6 +138,16 @@ export default function EnterPhoneScreen({
                             <span className="font-bold">{lockRemaining}s</span>
                             <span> {translate('before trying again')}</span>
                         </div>
+                    ) : (
+                        error && (
+                            <div
+                                data-cy="phone-error"
+                                role="alert"
+                                className="pt-xd-10 px-xd-20 text-xd-12 font-medium text-[#FF5F61] text-center"
+                            >
+                                {error}
+                            </div>
+                        )
                     )}
                     <FlexibleSpace grow />
                 </div>

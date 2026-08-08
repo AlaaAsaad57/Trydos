@@ -64,6 +64,7 @@ export const GA_AUTH_SCREEN = {
   USER_NOT_FOUND_SCREEN: "user_not_found_screen",
   USER_ALREADY_EXISTS_SCREEN: "user_already_exists_screen",
   USER_NAME_INPUT_SCREEN: "user_name_input_screen",
+  QR_LOGIN_SCREEN: "qr_login_screen",
 };
 export const GA_GLOBAL_SCREEN = {
   HOME_SCREEN: "home_screen",

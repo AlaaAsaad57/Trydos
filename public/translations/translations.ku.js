@@ -203,6 +203,7 @@ const translations = {
   "Show Original": "پیشاندانی ڕەسەن",
   "Waiting…": "چاوەڕێکردن…",
   Wait: "چاوەڕێ بکە",
+  "Wait": "چاوەڕێ بکە",
   "before trying again": "پێش هەوڵدانەوە",
   "Product Return Request Approve": "پەسەندکردنی داوای گەڕاندنەوە",
   "Product Return Needs Confirm":

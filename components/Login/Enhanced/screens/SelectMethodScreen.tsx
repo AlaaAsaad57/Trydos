@@ -14,6 +14,8 @@ interface SelectMethodScreenProps {
     authType: string;
     loading?: boolean;
     onClose?: () => void;
+    /** Message from a failed send, already translated by the caller. */
+    error?: string;
     variant?: 'floated' | 'fullscreen';
     lang?: string;
 }
@@ -26,6 +28,7 @@ export default function SelectMethodScreen({
     authType,
     loading = false,
     onClose,
+    error,
     lang = 'en',
 }: SelectMethodScreenProps) {
     const translate = (key: string) => translateFunction(key, lang);
@@ -204,6 +207,16 @@ export default function SelectMethodScreen({
                             className="pt-xd-10 text-xd-12 font-medium text-[#FF5F61] text-center"
                         >
                             {translate('Session limit reached. Try again later.')}
+                        </div>
+                    )}
+
+                    {!blocked && error && (
+                        <div
+                            data-cy="send-otp-error"
+                            role="alert"
+                            className="pt-xd-10 px-xd-20 text-xd-12 font-medium text-[#FF5F61] text-center"
+                        >
+                            {error}
                         </div>
                     )}
 

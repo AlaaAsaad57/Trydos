@@ -7,7 +7,8 @@ import { translateFunction } from 'utils/functions';
 interface NotFoundScreenProps {
   phone: string;
   onCreateAccount: () => void;
-  onChangeNumber: () => void;
+  /** "Cancel & take a look at the app" — leaves the flow without registering. */
+  onCancel: () => void;
   onClose?: () => void;
   variant?: 'floated' | 'fullscreen';
   lang?: string;
@@ -16,7 +17,7 @@ interface NotFoundScreenProps {
 export default function NotFoundScreen({
   phone,
   onCreateAccount,
-  onChangeNumber,
+  onCancel,
   onClose,
   variant = 'floated',
   lang = 'en',
@@ -85,7 +86,7 @@ export default function NotFoundScreen({
             {translate("Create New Account & Continue")}
           </button>
           <button
-            onClick={onChangeNumber}
+            onClick={onCancel}
             className="text-xd-13 text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
           >
             {translate("Cancel & Take A Look At The App")}

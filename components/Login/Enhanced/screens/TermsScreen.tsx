@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
+import { GA_EVENT_NAMES } from 'utils/GAEvents';
+import { GAevent } from 'utils/gtag';
 
 interface TermsScreenProps {
     onAgree?: () => void;
@@ -60,7 +62,13 @@ export default function TermsScreen({ onAgree, onLater, lang = 'en' }: TermsScre
 
                 {/* Button */}
                 <button
-                    onClick={onAgree}
+                    onClick={() => {
+                        GAevent({
+                            action: GA_EVENT_NAMES.TERMS_SERVICES,
+                            params: { mission: 'signup', status: 'terms_accepted' },
+                        });
+                        onAgree?.();
+                    }}
                     className="w-xd-390 m-1 h-xd-60 rounded-xd-20 border-dashed border border-[#5D5C5D]/50 bg-[#FAFAFA] text-[#3C3C3C] text-xd-16 cursor-pointer transition-all active:scale-[0.98]"
                 >
                     {translate('Agree & Continue')}

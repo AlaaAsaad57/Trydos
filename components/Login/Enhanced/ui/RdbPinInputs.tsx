@@ -206,8 +206,10 @@ export default function RdbPinInputs({
                 <input
                     ref={hiddenInputRef}
                     type="text"
+                    name="otp"
                     inputMode="numeric"
-                    autoComplete="off"
+                    // Lets the browser/OS offer the code it just saw in an SMS.
+                    autoComplete="one-time-code"
                     className="sr-only"
                     value={value}
                     disabled={disabled}

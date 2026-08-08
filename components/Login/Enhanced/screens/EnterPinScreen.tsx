@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import RdbPinInputs from '../ui/RdbPinInputs';
 import FlexibleSpace from 'scaling/FlexibleSpace';
@@ -21,6 +21,10 @@ interface EnterPinScreenProps {
     loading?: string;
     isValidPin?: 'valid' | 'notvalid' | '';
     timerSeconds?: number;
+    /** Message from a failed verify, already translated by the caller. */
+    error?: string;
+    /** Fires once when the resend cooldown runs out (analytics only). */
+    onTimerExpired?: () => void;
     variant?: 'floated' | 'fullscreen';
     lang?: string;
 }
@@ -39,11 +43,24 @@ export default function EnterPinScreen({
     loading = '',
     isValidPin = '',
     timerSeconds = 120,
+    error,
+    onTimerExpired,
     lang = 'en',
 }: EnterPinScreenProps) {
     const translate = (key: string) => translateFunction(key, lang);
     const [timeLeft, setTimeLeft] = useState(timerSeconds);
     const [canResend, setCanResend] = useState(false);
+
+    // Kept in a ref so the interval below never restarts just because the
+    // parent handed us a new function identity.
+    const onTimerExpiredRef = useRef(onTimerExpired);
+    useEffect(() => {
+        onTimerExpiredRef.current = onTimerExpired;
+    }, [onTimerExpired]);
+    // One report per cooldown, not one per tick. Starts "already reported" so a
+    // screen that opens with no cooldown running (storage disabled, resumed
+    // session) doesn't report an expiry that never happened.
+    const reportedExpiryRef = useRef(true);
 
     useEffect(() => {
         const sync = () => {
@@ -51,9 +68,14 @@ export default function EnterPinScreen({
             if (remaining > 0) {
                 setTimeLeft(remaining);
                 setCanResend(false);
+                reportedExpiryRef.current = false;
             } else {
                 setTimeLeft(0);
                 setCanResend(true);
+                if (!reportedExpiryRef.current) {
+                    reportedExpiryRef.current = true;
+                    onTimerExpiredRef.current?.();
+                }
             }
         };
         sync();
@@ -227,6 +249,15 @@ export default function EnterPinScreen({
                     {isExpired && (
                         <p className="text-xd-11 pt-1 font-medium text-[#1D1D1D]">
                             {translate('The Code Sent Has Expired')}
+                        </p>
+                    )}
+                    {!isExpired && error && (
+                        <p
+                            data-cy="verify-otp-error"
+                            role="alert"
+                            className="text-xd-11 pt-1 px-xd-20 font-medium text-[#FF5F61] text-center"
+                        >
+                            {error}
                         </p>
                     )}
                     <FlexibleSpace grow />

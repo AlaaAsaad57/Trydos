@@ -69,11 +69,25 @@ interface RdbPhoneInputProps {
     lang?: string;
 }
 
+/**
+ * Digits only, with the international prefix the user actually types stripped:
+ * "+963...", "00963...", "0963..." all become "963...". Without this a number
+ * typed the way most people type it matches no dial code, is treated as an
+ * unknown-country number, and is sent to the backend with the leading zeros
+ * still on it.
+ */
+export const normalizeDialInput = (input: string): string => {
+    let digits = (input || '').replace(/\D/g, '');
+    if (digits.startsWith('00')) digits = digits.slice(2);
+    else if (digits.startsWith('0')) digits = digits.slice(1);
+    return digits;
+};
+
 export const getCountryByDialCode = (input: string): CountryData | undefined => {
-    const cleanInput = input.replace(/\D/g, '');
-    return COUNTRIES.sort((a, b) => b.dialCode.length - a.dialCode.length).find((country) =>
-        cleanInput.startsWith(country.dialCode),
-    );
+    const cleanInput = normalizeDialInput(input);
+    // SORTED_COUNTRIES is a pre-sorted copy — sorting COUNTRIES here would
+    // reorder the shared module-level list on every call.
+    return SORTED_COUNTRIES.find((country) => cleanInput.startsWith(country.dialCode));
 };
 
 export default function RdbPhoneInput({
@@ -127,7 +141,7 @@ export default function RdbPhoneInput({
         };
     }, [keypadOpen]);
 
-    const digits = value.replace(/[^\d]/g, '');
+    const digits = normalizeDialInput(value);
 
     const detectedCountry = useMemo(() => {
         if (!digits) return null;
@@ -312,8 +326,7 @@ export default function RdbPhoneInput({
                         if (e.key === 'Enter' && isValidPhone && onSend) onSend();
                     }}
                     onChange={(e) => {
-                        const d = e.target.value.replace(/\D/g, '').slice(0, maxTotalDigits);
-                        onChange(d);
+                        onChange(normalizeDialInput(e.target.value).slice(0, maxTotalDigits));
                     }}
                 />
             )}
