@@ -48,7 +48,7 @@ export default function GetStartedScreen({
             {/* Logo */}
             <div className="flex flex-col items-center">
                 <Image
-                    src="/icons/logo.svg"
+                    src="/icons/Logo.svg"
                     alt="RDB Logo"
                     width={144}
                     height={104}

@@ -52,9 +52,17 @@ export const viewport = {
 };
 // Each weight gets its own CSS variable so existing CSS (font-family: var(--Quicksand-*)) keeps working.
 // Next.js injects these variables onto <html> via the className applied below.
+//
+// `weight` is REQUIRED on every one of these. Without it next/font emits an
+// @font-face with no font-weight descriptor, which CSS defaults to 400 — so a
+// `font-weight: 700` on any of these families finds no matching face and the
+// browser fakes bold by smearing the outlines. Synthetic bold renders soft and
+// blurry. Declaring the real weight gives an exact match and crisp glyphs.
 const quicksand_regular = localFont({
   src: "../../../public/fonts/Quicksand-Regular.woff2",
   variable: "--Quicksand-Regular",
+  weight: "400",
+  style: "normal",
   display: "swap",
   preload: true,
   fallback: ["system-ui", "arial"],
@@ -62,6 +70,8 @@ const quicksand_regular = localFont({
 const quicksand_light = localFont({
   src: "../../../public/fonts/Quicksand-Light.woff2",
   variable: "--Quicksand-Light",
+  weight: "300",
+  style: "normal",
   display: "swap",
   preload: false,
   fallback: ["system-ui", "arial"],
@@ -69,6 +79,8 @@ const quicksand_light = localFont({
 const quicksand_bold = localFont({
   src: "../../../public/fonts/Quicksand-Bold.woff2",
   variable: "--Quicksand-Bold",
+  weight: "700",
+  style: "normal",
   display: "swap",
   preload: false,
   fallback: ["system-ui", "arial"],
@@ -76,6 +88,8 @@ const quicksand_bold = localFont({
 const quicksand_medium = localFont({
   src: "../../../public/fonts/Quicksand-Medium.woff2",
   variable: "--Quicksand-Medium",
+  weight: "500",
+  style: "normal",
   display: "swap",
   preload: false,
   fallback: ["system-ui", "arial"],
@@ -83,6 +97,8 @@ const quicksand_medium = localFont({
 const quicksand_semibold = localFont({
   src: "../../../public/fonts/Quicksand-SemiBold.woff2",
   variable: "--Quicksand-SemiBold",
+  weight: "600",
+  style: "normal",
   display: "swap",
   preload: false,
   fallback: ["system-ui", "arial"],
