@@ -2465,6 +2465,7 @@ const translations = {
   "Agree & Continue": "الموافقة والمتابعة",
   "Sign Up !": "إنشاء حساب !",
   "Login !": "تسجيل الدخول !",
+  "Login": "تسجيل الدخول",
   "Enter Your Phone Number Registered With Us": "أدخل رقم هاتفك المسجل لدينا",
   "We Will Send A Verification Code To The Number": "سنقوم بإرسال رمز التحقق إلى الرقم",
   "Your Privacy Is Completely Safe": "خصوصيتك آمنة تماماً",

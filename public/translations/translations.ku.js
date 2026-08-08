@@ -2515,6 +2515,7 @@ const translations = {
   "Agree & Continue": "پەسەندکردن و بەردەوامبوون",
   "Sign Up !": "تۆمارکردن !",
   "Login !": "چوونەژوورەوە !",
+  "Login": "چوونەژوورەوە",
   "Enter Your Phone Number Registered With Us": "ژمارەی مۆبایلە تۆمارکراوەکەت بنووسە",
   "We Will Send A Verification Code To The Number": "کۆدی پشتڕاستکردنەوە بۆ ئەم ژمارەیە دەنێردرێت",
   "Your Privacy Is Completely Safe": "زانیارییەکانت بە تەواوی پارێزراون",

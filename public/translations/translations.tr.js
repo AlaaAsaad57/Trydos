@@ -2496,6 +2496,7 @@ const translations = {
   "Agree & Continue": "Kabul Et ve Devam Et",
   "Sign Up !": "Kayıt Ol !",
   "Login !": "Giriş Yap !",
+  "Login": "Giriş Yap",
   "Enter Your Phone Number Registered With Us": "Bizde Kayıtlı Telefon Numaranızı Girin",
   "We Will Send A Verification Code To The Number": "Numaraya Doğrulama Kodu Göndereceğiz",
   "Your Privacy Is Completely Safe": "Gizliliğiniz Tamamen Güvende",
