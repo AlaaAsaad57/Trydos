@@ -138,7 +138,7 @@ export const HandleAuthedFetch = async <T = any>(
       // "user does not exist" retry ladder (the re-issue-by-id path is gone).
       // Guest creation is Go's job, so this stays pinned to GO_BACKEND_URL.
       const regResponse = await fetchServerData({
-        url: process.env.BACKEND_URL + REGISTER_DEVICE_URL,
+        url: process.env.GO_BACKEND_URL + REGISTER_DEVICE_URL,
         method: "POST",
         headers: headers,
       });
