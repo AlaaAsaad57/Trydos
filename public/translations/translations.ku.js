@@ -1805,6 +1805,8 @@ const translations = {
   "Change Image": "گۆڕینی وێنە",
   "Change media": "گۆڕینی میدیا",
   "Change status": "گۆڕینی دۆخ",
+  "Changes were submitted": "گۆڕانکارییەکان نێردران",
+  "Your Trusted Commerce Partner": "هاوبەشی متمانەپێکراوی بازرگانیت",
   "Changes were submitted and are pending admin approval — they go live once approved.": "گۆڕانکارییەکان نێردران و چاوەڕێی پەسەندکردنی بەڕێوەبەرن — کاتێک پەسەند کران بڵاو دەبنەوە.",
   "Charge shipping per item ordered.": "کرێی گواستنەوە بۆ هەر شتێکی داواکراو وەربگرە.",
   "Check back later for comments from customers.": "دواتر بگەڕێوە بۆ سەرنجەکانی کڕیاران.",

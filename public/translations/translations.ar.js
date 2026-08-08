@@ -1774,6 +1774,8 @@ const translations = {
   "Change Image": "تغيير الصورة",
   "Change media": "تغيير الوسائط",
   "Change status": "تغيير الحالة",
+  "Changes were submitted": "تم إرسال التغييرات",
+  "Your Trusted Commerce Partner": "شريكك الموثوق في التجارة",
   "Changes were submitted and are pending admin approval — they go live once approved.": "تم إرسال التغييرات وهي قيد موافقة المشرف — ستُنشر بمجرد الموافقة عليها.",
   "Charge shipping per item ordered.": "احتساب الشحن لكل عنصر مطلوب.",
   "Check back later for comments from customers.": "عُد لاحقاً للاطلاع على تعليقات العملاء.",

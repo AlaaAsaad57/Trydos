@@ -1782,6 +1782,8 @@ const translations = {
   "Change Image": "Görseli Değiştir",
   "Change media": "Medyayı değiştir",
   "Change status": "Durumu değiştir",
+  "Changes were submitted": "Değişiklikler gönderildi",
+  "Your Trusted Commerce Partner": "Güvenilir Ticaret Ortağınız",
   "Changes were submitted and are pending admin approval — they go live once approved.": "Değişiklikler gönderildi ve yönetici onayı bekliyor — onaylandıktan sonra yayına girecek.",
   "Charge shipping per item ordered.": "Sipariş edilen her ürün için kargo ücreti al.",
   "Check back later for comments from customers.": "Müşteri yorumları için daha sonra tekrar kontrol edin.",
