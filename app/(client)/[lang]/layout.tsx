@@ -80,7 +80,7 @@ const quicksand_light = localFont({
   weight: "300",
   style: "normal",
   display: "swap",
-  preload: false,
+  preload: true,
   fallback: ["system-ui", "arial"],
 });
 const quicksand_bold = localFont({
@@ -89,7 +89,7 @@ const quicksand_bold = localFont({
   weight: "700",
   style: "normal",
   display: "swap",
-  preload: false,
+  preload: true,
   fallback: ["system-ui", "arial"],
 });
 const quicksand_medium = localFont({
@@ -98,7 +98,7 @@ const quicksand_medium = localFont({
   weight: "500",
   style: "normal",
   display: "swap",
-  preload: false,
+  preload: true,
   fallback: ["system-ui", "arial"],
 });
 const quicksand_semibold = localFont({
@@ -107,7 +107,7 @@ const quicksand_semibold = localFont({
   weight: "600",
   style: "normal",
   display: "swap",
-  preload: false,
+  preload: true,
   fallback: ["system-ui", "arial"],
 });
 
