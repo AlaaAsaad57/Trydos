@@ -8,7 +8,7 @@ import { translateFunction } from 'utils/functions';
 
 interface SelectMethodScreenProps {
     setMethod: (method: 'sms' | 'whatsapp') => void;
-    changeNumber: () => void;
+    changeNumber?: () => void;
     method?: 'sms' | 'whatsapp' | '';
     phone?: string;
     authType: string;
@@ -104,12 +104,16 @@ export default function SelectMethodScreen({
                                 <p className="text-trim-descend text-xd-12 font-medium text-[#1D1D1D]">
                                     +{phone}
                                 </p>
-                                <button
-                                    onClick={changeNumber}
-                                    className="text-trim-descend text-xd-12 font-medium text-[#388CFF] underline cursor-pointer"
-                                >
-                                    {translate('Edit')}
-                                </button>
+                                {/* Omitted when the account already owns this
+                                    number — the user must verify it, not swap it. */}
+                                {changeNumber && (
+                                    <button
+                                        onClick={changeNumber}
+                                        className="text-trim-descend text-xd-12 font-medium text-[#388CFF] underline cursor-pointer"
+                                    >
+                                        {translate('Edit')}
+                                    </button>
+                                )}
                             </div>
                             <div className="flex pt-xd-8 items-center gap-xd-6">
                                 <span className="text-trim-descend text-xd-11 text-[#C3C3C3]">
