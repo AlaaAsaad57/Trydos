@@ -149,7 +149,7 @@ export default function AppScaler({
           top: 0,
           left: `calc((100vw - ${DESIGN_W}px) / 2)`,
           width: DESIGN_W,
-          height: DESIGN_H,
+          height: DESIGN_H - 100,
           transformOrigin: 'top left',
           transform: 'scale(1)',
           overflow: 'hidden',

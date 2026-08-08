@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { NumericKeypad } from './NumericKeypad';
 import { useIsTouchDevice } from 'hooks/useIsTouchDevice';
+import { translateFunction } from 'utils/functions';
 
 interface CountryData {
     code: string;
@@ -65,6 +66,7 @@ interface RdbPhoneInputProps {
     onSend?: () => void;
     isLoading?: boolean;
     placeholder?: string;
+    lang?: string;
 }
 
 export const getCountryByDialCode = (input: string): CountryData | undefined => {
@@ -79,8 +81,11 @@ export default function RdbPhoneInput({
     onChange,
     onSend,
     isLoading = false,
-    placeholder = 'Phone Number',
+    placeholder,
+    lang = 'en',
 }: RdbPhoneInputProps) {
+    const translate = (key: string) => translateFunction(key, lang);
+    const resolvedPlaceholder = placeholder ?? translate('Phone Number');
     const isTouch = useIsTouchDevice();
     const showCustomKeypad = isTouch;
 
@@ -228,8 +233,8 @@ export default function RdbPhoneInput({
                                     <Image
                                         src="/assets/icons/auth/phone-cursor.svg"
                                         alt=""
-                                        width={2}
-                                        height={16}
+                                        width={11}
+                                        height={1}
                                         className="animate-blink mb-0.75 shrink-0"
                                     />
                                 )}
@@ -240,21 +245,21 @@ export default function RdbPhoneInput({
                                     <Image
                                         src="/assets/icons/auth/phone-cursor.svg"
                                         alt=""
-                                        width={2}
-                                        height={16}
+                                        width={11}
+                                        height={1}
                                         className="absolute top-10 font-light text-[#1D1D1D] animate-blink mb-0.75 shrink-0"
                                     />
                                 ) : (
                                     <Image
                                         src="/assets/icons/auth/phone-cursor.svg"
                                         alt=""
-                                        width={2}
-                                        height={16}
+                                        width={11}
+                                        height={1}
                                         className="absolute top-10 animate-blink mb-0.75 shrink-0 opacity-0!"
                                     />
                                 )}
                                 <span className="pl-1.5 text-xd-16 text-[#C3C3C3]">
-                                    {placeholder}
+                                    {resolvedPlaceholder}
                                 </span>
                             </>
                         )}
@@ -269,7 +274,7 @@ export default function RdbPhoneInput({
                             }}
                             disabled={isLoading}
                             className="shrink-0 w-xd-28 h-xd-28 flex items-center justify-center rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            aria-label="Send phone number"
+                            aria-label={translate('Send phone number')}
                         >
                             <Image
                                 src="/assets/icons/auth/arrow-right.svg"

@@ -31,7 +31,7 @@ export default function NotFoundScreen({
           <button
             onClick={onClose}
             className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-            aria-label="close"
+            aria-label={translate("Close")}
           >
             <Image
               src="/assets/icons/auth/close.svg"
@@ -49,14 +49,14 @@ export default function NotFoundScreen({
       {/* Info content */}
       <div className="w-full px-xd-30 h-1/2 flex items-end justify-start">
         <div className="flex flex-col items-start justify-start w-full">
-          <h2 className="text-xd-30 font-bold text-[#1D1D1D] text-trim-descend">
+          <h2 className="text-xd-30 font-bold text-[#1D1D1D]">
             {translate("Not Registered !")}
           </h2>
-          <p className="text-xd-16 font-medium text-[#1D1D1D] mt-xd-10 text-trim-descend">
+          <p className="text-xd-16 font-medium text-[#1D1D1D] mt-xd-10">
             {translate("Sorry, This Number Is Not Registered With Us !")}
           </p>
           <div className="flex items-center gap-xd-2 mt-xd-6">
-            <p className="text-xd-12 font-semibold text-[#1D1D1D] text-trim-descend">
+            <p className="text-xd-12 font-semibold text-[#1D1D1D]">
               +{phone}
             </p>
             <div className="w-xd-15 h-xd-15 ml-2 shrink-0">
@@ -77,16 +77,16 @@ export default function NotFoundScreen({
 
       <div className="w-full h-1/2 flex flex-col items-center">
         <FlexibleSpace size={296} share={0.4} />
-        <div className="flex flex-col items-center gap-xd-20 px-xd-15 pb-xd-45 w-full max-w-xd-390">
+        <div className="flex flex-col items-center gap-xd-20 px-xd-15 pb-xd-45">
           <button
             onClick={onCreateAccount}
-            className="w-full h-xd-60 rounded-xd-20 bg-[#FAFAFA] text-[#1D1D1D] text-xd-16 font-normal shadow-sm transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center"
+            className="w-xd-390 h-xd-60 rounded-xd-20 bg-[#FAFAFA] text-[#1D1D1D] text-xd-16 font-normal shadow-sm transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center"
           >
             {translate("Create New Account & Continue")}
           </button>
           <button
             onClick={onChangeNumber}
-            className="text-xd-13 text-[#4D84FF] transition-colors hover:opacity-70 font-medium cursor-pointer"
+            className="text-xd-13 text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
           >
             {translate("Cancel & Take A Look At The App")}
           </button>

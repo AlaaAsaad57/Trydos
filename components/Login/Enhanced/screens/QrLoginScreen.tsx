@@ -135,7 +135,7 @@ export default function QrLoginScreen({
                     <button
                         onClick={handleCancel}
                         className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                        aria-label="close"
+                        aria-label={translate('Close')}
                     >
                         <Image
                             src="/assets/icons/auth/close.svg"

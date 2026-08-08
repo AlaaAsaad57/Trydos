@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import FlexibleSpace from 'scaling/FlexibleSpace';
+import { translateFunction } from 'utils/functions';
 
 interface TermsScreenProps {
     onAgree?: () => void;
@@ -10,9 +11,11 @@ interface TermsScreenProps {
     variant?: 'floated' | 'fullscreen';
 }
 
-export default function TermsScreen({ onAgree, onLater }: TermsScreenProps) {
+export default function TermsScreen({ onAgree, onLater, lang = 'en' }: TermsScreenProps) {
+    const translate = (key: string) => translateFunction(key, lang);
+
     return (
-        <div className="w-full bg-white flex flex-col font-quicksand h-full">
+        <div className="w-full bg-white flex flex-col font-quicksand">
             <FlexibleSpace size={280} share={0.42} />
 
             {/* Logo */}
@@ -32,9 +35,9 @@ export default function TermsScreen({ onAgree, onLater }: TermsScreenProps) {
             <div className="flex flex-col items-center px-xd-20">
                 {/* Description */}
                 <p className="text-xd-14 leading-[1.4] text-[#1D1D1D] text-center">
-                    To Create New Account Tap “Agree & Continue” To Accept{' '}
+                    {translate('To Create New Account Tap “Agree & Continue” To Accept')}{' '}
                     <span className="font-bold">rdb </span>
-                    terms of services
+                    {translate('terms of services')}
                 </p>
 
                 <FlexibleSpace size={50} share={0.07} />
@@ -49,16 +52,18 @@ export default function TermsScreen({ onAgree, onLater }: TermsScreenProps) {
                             className="w-xd-25 h-xd-25 object-contain"
                         />
                     </div>
-                    <span className="text-xd-14 text-[#388CFF] font-medium">Terms Of Services</span>
+                    <span className="text-xd-14 text-[#388CFF]">
+                        {translate('Terms Of Services')}
+                    </span>
                 </div>
                 <FlexibleSpace size={50} share={0.07} />
 
                 {/* Button */}
                 <button
                     onClick={onAgree}
-                    className="w-xd-390 m-1 h-xd-60 rounded-xd-20 border-dashed border border-[#5D5C5D]/50 bg-[#FAFAFA] text-[#3C3C3C] text-xd-16 font-medium cursor-pointer transition-all active:scale-[0.98]"
+                    className="w-xd-390 m-1 h-xd-60 rounded-xd-20 border-dashed border border-[#5D5C5D]/50 bg-[#FAFAFA] text-[#3C3C3C] text-xd-16 cursor-pointer transition-all active:scale-[0.98]"
                 >
-                    Agree & Continue
+                    {translate('Agree & Continue')}
                 </button>
 
                 {/* Later */}
@@ -67,9 +72,9 @@ export default function TermsScreen({ onAgree, onLater }: TermsScreenProps) {
                     <div className="text-center">
                         <button
                             onClick={onLater}
-                            className="text-xd-14 text-[#4D84FF] transition-colors hover:opacity-70 font-medium cursor-pointer"
+                            className="text-xd-14 text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
                         >
-                            Later, Take A Look At The App
+                            {translate('Later, Take A Look At The App')}
                         </button>
                     </div>
                 )}

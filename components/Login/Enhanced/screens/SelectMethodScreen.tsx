@@ -55,7 +55,7 @@ export default function SelectMethodScreen({
                     <button
                         onClick={onClose}
                         className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                        aria-label="close"
+                        aria-label={translate('Close')}
                     >
                         <Image
                             src="/assets/icons/auth/close.svg"
@@ -75,15 +75,17 @@ export default function SelectMethodScreen({
                 <div className="w-full h-1/2 flex flex-col justify-end px-xd-20 items-start">
                     <div className="h-xd-115 w-full">
                         <h2 className="text-trim-descend text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
-                            {authType === 'signUp' ? 'Sign Up !' : 'Login !'}
+                            {authType === 'signUp'
+                                ? translate('Sign Up !')
+                                : translate('Login !')}
                         </h2>
                         <div className="w-full flex px-xd-20 flex-col pt-xd-12 items-start">
                             <p className="text-trim-descend text-xd-16 text-[#1D1D1D] font-medium">
-                                Choose Verification Method
+                                {translate('Choose Verification Method')}
                             </p>
                             <div className="flex pt-xd-8 items-center gap-xd-5">
                                 <span className="text-trim-descend text-xd-12 text-[#1D1D1D]">
-                                    We Will Send A Verification Code To The Number
+                                    {translate('We Will Send A Verification Code To The Number')}
                                 </span>
                                 <div className="w-xd-15 h-xd-15 shrink-0">
                                     <Image
@@ -103,12 +105,12 @@ export default function SelectMethodScreen({
                                     onClick={changeNumber}
                                     className="text-trim-descend text-xd-12 font-medium text-[#388CFF] underline cursor-pointer"
                                 >
-                                    Edit
+                                    {translate('Edit')}
                                 </button>
                             </div>
                             <div className="flex pt-xd-8 items-center gap-xd-6">
                                 <span className="text-trim-descend text-xd-11 text-[#C3C3C3]">
-                                    Your Privacy Is Completely Safe
+                                    {translate('Your Privacy Is Completely Safe')}
                                 </span>
                                 <div className="w-xd-14 h-xd-14 shrink-0">
                                     <Image
@@ -133,12 +135,12 @@ export default function SelectMethodScreen({
                         <button
                             onClick={() => !loading && !blocked && setMethod('whatsapp')}
                             disabled={loading || blocked}
-                            className={`relative my-1 mx-0.5 w-xd-193 flex flex-1 flex-col items-center justify-center h-xd-60 rounded-xd-20 border border-dashed transition-all ${
-                                loading || blocked
-                                    ? 'opacity-50 cursor-not-allowed border-[#C3C3C3]'
+                            className={`relative my-1 mx-0.5 w-xd-193 flex flex-1 flex-col items-center justify-center h-xd-60 rounded-xd-20 border border-dashed transition-all cursor-pointer disabled:cursor-not-allowed ${
+                                blocked
+                                    ? 'opacity-50 border-[#C3C3C3]'
                                     : method === 'whatsapp'
-                                      ? 'border-[#388CFF] bg-[#FCFCFC] cursor-pointer'
-                                      : 'border-[#C3C3C3] cursor-pointer'
+                                      ? 'border-[#388CFF] bg-[#FCFCFC]'
+                                      : 'border-[#C3C3C3]'
                             }`}
                         >
                             <span
@@ -153,19 +155,19 @@ export default function SelectMethodScreen({
                                 />
                             </span>
                             <span className="text-xd-16 font-normal text-[#1D1D1D]">
-                                Send WhatsApp
+                                {translate('Send WhatsApp')}
                             </span>
                         </button>
 
                         <button
                             onClick={() => !loading && !blocked && setMethod('sms')}
                             disabled={loading || blocked}
-                            className={`relative my-1 mx-0.5 w-xd-193 flex flex-1 flex-col items-center justify-center h-xd-60 rounded-xd-20 border border-dashed transition-all ${
-                                loading || blocked
-                                    ? 'opacity-50 cursor-not-allowed border-[#C3C3C3]'
+                            className={`relative my-1 mx-0.5 w-xd-193 flex flex-1 flex-col items-center justify-center h-xd-60 rounded-xd-20 border border-dashed transition-all cursor-pointer disabled:cursor-not-allowed ${
+                                blocked
+                                    ? 'opacity-50 border-[#C3C3C3]'
                                     : method === 'sms'
-                                      ? 'border-[#388CFF] bg-[#FCFCFC] cursor-pointer'
-                                      : 'border-[#C3C3C3] cursor-pointer'
+                                      ? 'border-[#388CFF] bg-[#FCFCFC]'
+                                      : 'border-[#C3C3C3]'
                             }`}
                         >
                             <span
@@ -180,7 +182,7 @@ export default function SelectMethodScreen({
                                 />
                             </span>
                             <span className="text-xd-16 text-[#1D1D1D]">
-                                Send SMS
+                                {translate('Send SMS')}
                             </span>
                         </button>
                     </div>

@@ -235,8 +235,8 @@ export default function FullEnhancedLoginWidget() {
                               : undefined
                 }
             >
-                <div className="w-full h-full relative overflow-hidden bg-white">
-                    <AnimatePresence initial={false} mode="popLayout" custom={direction}>
+                <div className="w-full h-full relative overflow-hidden">
+                    <AnimatePresence initial={false} mode="wait" custom={direction}>
                         <motion.div
                             key={step}
                             custom={direction}
@@ -360,7 +360,7 @@ export default function FullEnhancedLoginWidget() {
                                 <AuthSuccessScreen
                                     variant={step === 'login-success' ? 'login' : 'signup'}
                                     onDone={handleAfterSuccess}
-                                    delayMs={3500}
+                                    delayMs={1500}
                                     lang={langCode}
                                 />
                             )}

@@ -46,8 +46,8 @@ export default function InputNameScreen({ onSubmit, loading, name: propName, set
             <FlexibleSpace size={60} share={0} />
 
             {/* Input row */}
-            <div className="w-full px-xd-15 flex items-center justify-center">
-                <div className="relative flex items-center w-full max-w-xd-390 h-xd-60 rounded-xd-20 border border-dashed border-[#C3C3C3] focus-within:border-[#388CFF] px-xd-16 transition-colors">
+            <div className="w-full px-xd-15">
+                <div className="relative flex items-center w-full h-xd-60 rounded-xd-20 border border-dashed border-[#C3C3C3] focus-within:border-[#388CFF] px-xd-16 transition-colors">
                     <input
                         type="text"
                         value={name}
@@ -62,7 +62,7 @@ export default function InputNameScreen({ onSubmit, loading, name: propName, set
                             onClick={handleSubmit}
                             disabled={!!loading}
                             className="shrink-0 flex items-center justify-center disabled:opacity-50 cursor-pointer"
-                            aria-label="Continue"
+                            aria-label={translate('Continue')}
                         >
                             <Image
                                 src="/assets/icons/auth/arrow-right.svg"

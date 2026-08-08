@@ -5,6 +5,7 @@ import Image from 'next/image';
 import RdbPinInputs from '../ui/RdbPinInputs';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { getNumberLockRemaining } from 'utils/otpLocks';
+import { translateFunction } from 'utils/functions';
 
 interface EnterPinScreenProps {
     onSubmit: (pin: string) => void;
@@ -38,7 +39,9 @@ export default function EnterPinScreen({
     loading = '',
     isValidPin = '',
     timerSeconds = 120,
+    lang = 'en',
 }: EnterPinScreenProps) {
+    const translate = (key: string) => translateFunction(key, lang);
     const [timeLeft, setTimeLeft] = useState(timerSeconds);
     const [canResend, setCanResend] = useState(false);
 
@@ -79,7 +82,7 @@ export default function EnterPinScreen({
     };
 
     const isExpired = canResend && !loading;
-    const methodLabel = method === 'whatsapp' ? 'Whatsapp' : 'SMS';
+    const methodLabel = method === 'whatsapp' ? translate('Whatsapp') : translate('SMS');
 
     return (
         <div className="w-full h-full flex flex-col items-start bg-white font-quicksand relative">
@@ -89,7 +92,7 @@ export default function EnterPinScreen({
                     <button
                         onClick={onClose}
                         className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                        aria-label="close"
+                        aria-label={translate('Close')}
                     >
                         <Image
                             src="/assets/icons/auth/close.svg"
@@ -107,15 +110,17 @@ export default function EnterPinScreen({
                 <div className="w-full h-1/2 flex flex-col justify-end px-xd-20 items-start">
                     <div className="h-xd-138 w-full relative">
                         <h2 className="text-trim-descend text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
-                            {authType === 'signUp' ? 'Sign Up !' : 'Login !'}
+                            {authType === 'signUp'
+                                ? translate('Sign Up !')
+                                : translate('Login !')}
                         </h2>
                         <div className="w-full flex pl-xd-20 pt-xd-12 flex-col items-start">
                             <p className="text-trim-descend text-xd-16 text-[#1D1D1D] font-medium">
-                                Enter Verification Code Sent To Your {methodLabel}
+                                {`${translate('Enter Verification Code Sent To Your')} ${methodLabel}`}
                             </p>
                             <div className="flex items-center pt-xd-8 gap-xd-5">
                                 <span className="text-trim-descend text-xd-12 text-[#1D1D1D]">
-                                    We Will Send A Verification Code To The Number
+                                    {translate('We Will Send A Verification Code To The Number')}
                                 </span>
                                 <div className="w-xd-15 h-xd-15 shrink-0">
                                     <Image
@@ -133,14 +138,14 @@ export default function EnterPinScreen({
                                 </span>
                                 {!isExpired ? (
                                     <span className="text-trim-descend text-xd-12 font-normal text-[#C3C3C3]">
-                                        Resend After -{' '}
+                                        {translate('Resend After -')}{' '}
                                         <span className="text-[#388CFF] font-bold">
                                             {formatTime(timeLeft)}
                                         </span>
                                     </span>
                                 ) : (
                                     <span className="text-trim-descend text-xd-12 font-normal text-[#C3C3C3]">
-                                        Didn't You Receive A Code?
+                                        {translate("Didn't You Receive A Code?")}
                                     </span>
                                 )}
                                 <div className="w-xd-15 h-xd-15 shrink-0">
@@ -159,31 +164,31 @@ export default function EnterPinScreen({
                                         onClick={handleResend}
                                         className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
                                     >
-                                        Resend Code
+                                        {translate('Resend Code')}
                                     </button>
                                     {changeNumber && (
                                         <>
                                             <span className="text-trim-descend text-xd-12 text-[#8E8E8E]">
-                                                Or
+                                                {translate('Or')}
                                             </span>
                                             <button
                                                 onClick={changeNumber}
                                                 className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
                                             >
-                                                Change Number
+                                                {translate('Change Number')}
                                             </button>
                                         </>
                                     )}
                                     {changeMethod && (
                                         <>
                                             <span className="text-trim-descend text-xd-12 text-[#8E8E8E]">
-                                                Or
+                                                {translate('Or')}
                                             </span>
                                             <button
                                                 onClick={changeMethod}
                                                 className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
                                             >
-                                                Method
+                                                {translate('Method')}
                                             </button>
                                         </>
                                     )}
@@ -191,7 +196,7 @@ export default function EnterPinScreen({
                             )}
                             <span className="flex items-center pt-xd-8 gap-xd-5">
                                 <p className="text-trim-descend text-xd-12 font-normal text-[#C3C3C3]">
-                                    Your Privacy Is Completely Safe
+                                    {translate('Your Privacy Is Completely Safe')}
                                 </p>
                                 <div className="w-xd-14 h-xd-14 shrink-0">
                                     <Image
@@ -221,7 +226,7 @@ export default function EnterPinScreen({
                     />
                     {isExpired && (
                         <p className="text-xd-11 pt-1 font-medium text-[#1D1D1D]">
-                            The Code Sent Has Expired
+                            {translate('The Code Sent Has Expired')}
                         </p>
                     )}
                     <FlexibleSpace grow />

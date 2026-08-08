@@ -11,6 +11,7 @@
 }
 
 /* Base Dimensions */
+.w-xd-430 { width: calc(430 * var(--xd-unit)); }
 .w-xd-144 { width: calc(144 * var(--xd-unit)); }
 .w-xd-104 { width: calc(104 * var(--xd-unit)); }
 .w-xd-390 { width: calc(390 * var(--xd-unit)); }
@@ -18,7 +19,13 @@
 .w-xd-350 { width: calc(350 * var(--xd-unit)); }
 .w-xd-360 { width: calc(360 * var(--xd-unit)); }
 .w-xd-400 { width: calc(400 * var(--xd-unit)); }
+.w-xd-300 { width: calc(300 * var(--xd-unit)); }
+.w-xd-280 { width: calc(280 * var(--xd-unit)); }
+.w-xd-194 { width: calc(194 * var(--xd-unit)); }
 .w-xd-193 { width: calc(193 * var(--xd-unit)); }
+.w-xd-120 { width: calc(120 * var(--xd-unit)); }
+.w-xd-60 { width: calc(60 * var(--xd-unit)); }
+.w-xd-28 { width: calc(28 * var(--xd-unit)); }
 .w-xd-24 { width: calc(24 * var(--xd-unit)); }
 .w-xd-25 { width: calc(25 * var(--xd-unit)); }
 .w-xd-20 { width: calc(20 * var(--xd-unit)); }
@@ -28,19 +35,27 @@
 .w-xd-40 { width: calc(40 * var(--xd-unit)); }
 .w-xd-48 { width: calc(48 * var(--xd-unit)); }
 
+.max-w-xd-390 { max-width: calc(390 * var(--xd-unit)); }
+
+.h-xd-300 { height: calc(300 * var(--xd-unit)); }
+.h-xd-280 { height: calc(280 * var(--xd-unit)); }
+.h-xd-190 { height: calc(190 * var(--xd-unit)); }
 .h-xd-141 { height: calc(141 * var(--xd-unit)); }
 .h-xd-104 { height: calc(104 * var(--xd-unit)); }
 .h-xd-115 { height: calc(115 * var(--xd-unit)); }
 .h-xd-138 { height: calc(138 * var(--xd-unit)); }
+.h-xd-86 { height: calc(86 * var(--xd-unit)); }
 .h-xd-60 { height: calc(60 * var(--xd-unit)); }
 .h-xd-50 { height: calc(50 * var(--xd-unit)); }
 .h-xd-40 { height: calc(40 * var(--xd-unit)); }
+.h-xd-28 { height: calc(28 * var(--xd-unit)); }
 .h-xd-25 { height: calc(25 * var(--xd-unit)); }
 .h-xd-24 { height: calc(24 * var(--xd-unit)); }
 .h-xd-20 { height: calc(20 * var(--xd-unit)); }
 .h-xd-16 { height: calc(16 * var(--xd-unit)); }
 .h-xd-15 { height: calc(15 * var(--xd-unit)); }
 .h-xd-14 { height: calc(14 * var(--xd-unit)); }
+.h-xd-13 { height: calc(13 * var(--xd-unit)); }
 .h-xd-48 { height: calc(48 * var(--xd-unit)); }
 
 .size-xd-20 {
@@ -60,14 +75,19 @@
   height: calc(60 * var(--xd-unit));
 }
 
-/* Typography */
-.text-xd-30 { font-size: calc(30 * var(--xd-unit)); line-height: 1.2; }
-.text-xd-22 { font-size: calc(22 * var(--xd-unit)); line-height: 1.3; }
-.text-xd-16 { font-size: calc(16 * var(--xd-unit)); line-height: 1.4; }
-.text-xd-14 { font-size: calc(14 * var(--xd-unit)); line-height: 1.4; }
-.text-xd-13 { font-size: calc(13 * var(--xd-unit)); line-height: 1.5; }
-.text-xd-12 { font-size: calc(12 * var(--xd-unit)); line-height: 1.5; }
-.text-xd-11 { font-size: calc(11 * var(--xd-unit)); line-height: 1.5; }
+/* Typography — font-size only, matching the rdb `text-xd-*` utility.
+   Line-height is deliberately NOT set here: rdb inherits Tailwind's preflight
+   `line-height: 1.5`, so hardcoding a tighter value here shifts every heading. */
+.text-xd-32 { font-size: calc(32 * var(--xd-unit)); }
+.text-xd-30 { font-size: calc(30 * var(--xd-unit)); }
+.text-xd-26 { font-size: calc(26 * var(--xd-unit)); }
+.text-xd-22 { font-size: calc(22 * var(--xd-unit)); }
+.text-xd-18 { font-size: calc(18 * var(--xd-unit)); }
+.text-xd-16 { font-size: calc(16 * var(--xd-unit)); }
+.text-xd-14 { font-size: calc(14 * var(--xd-unit)); }
+.text-xd-13 { font-size: calc(13 * var(--xd-unit)); }
+.text-xd-12 { font-size: calc(12 * var(--xd-unit)); }
+.text-xd-11 { font-size: calc(11 * var(--xd-unit)); }
 
 /* Spacing & Gaps */
 .gap-xd-2 { gap: calc(2 * var(--xd-unit)); }
@@ -78,6 +98,7 @@
 .gap-xd-12 { gap: calc(12 * var(--xd-unit)); }
 .gap-xd-15 { gap: calc(15 * var(--xd-unit)); }
 .gap-xd-20 { gap: calc(20 * var(--xd-unit)); }
+.gap-xd-30 { gap: calc(30 * var(--xd-unit)); }
 
 /* Padding */
 .p-xd-10 { padding: calc(10 * var(--xd-unit)); }
@@ -86,26 +107,37 @@
 .px-xd-15 { padding-left: calc(15 * var(--xd-unit)); padding-right: calc(15 * var(--xd-unit)); }
 .px-xd-16 { padding-left: calc(16 * var(--xd-unit)); padding-right: calc(16 * var(--xd-unit)); }
 .px-xd-20 { padding-left: calc(20 * var(--xd-unit)); padding-right: calc(20 * var(--xd-unit)); }
+.px-xd-24 { padding-left: calc(24 * var(--xd-unit)); padding-right: calc(24 * var(--xd-unit)); }
 .px-xd-30 { padding-left: calc(30 * var(--xd-unit)); padding-right: calc(30 * var(--xd-unit)); }
+.px-xd-35 { padding-left: calc(35 * var(--xd-unit)); padding-right: calc(35 * var(--xd-unit)); }
+.px-xd-40 { padding-left: calc(40 * var(--xd-unit)); padding-right: calc(40 * var(--xd-unit)); }
 .py-xd-6 { padding-top: calc(6 * var(--xd-unit)); padding-bottom: calc(6 * var(--xd-unit)); }
 .py-xd-10 { padding-top: calc(10 * var(--xd-unit)); padding-bottom: calc(10 * var(--xd-unit)); }
 .py-xd-20 { padding-top: calc(20 * var(--xd-unit)); padding-bottom: calc(20 * var(--xd-unit)); }
 .pt-xd-4 { padding-top: calc(4 * var(--xd-unit)); }
 .pt-xd-8 { padding-top: calc(8 * var(--xd-unit)); }
+.pt-xd-10 { padding-top: calc(10 * var(--xd-unit)); }
 .pt-xd-12 { padding-top: calc(12 * var(--xd-unit)); }
 .pl-xd-20 { padding-left: calc(20 * var(--xd-unit)); }
 .pb-xd-20 { padding-bottom: calc(20 * var(--xd-unit)); }
 .pb-xd-45 { padding-bottom: calc(45 * var(--xd-unit)); }
+.pb-xd-50 { padding-bottom: calc(50 * var(--xd-unit)); }
 
 /* Margin */
-.m-xd-1 { margin: calc(4 * var(--xd-unit)); }
+.m-xd-1 { margin: calc(1 * var(--xd-unit)); }
 .mt-xd-4 { margin-top: calc(4 * var(--xd-unit)); }
+.mt-xd-5 { margin-top: calc(5 * var(--xd-unit)); }
 .mt-xd-6 { margin-top: calc(6 * var(--xd-unit)); }
 .mt-xd-8 { margin-top: calc(8 * var(--xd-unit)); }
 .mt-xd-10 { margin-top: calc(10 * var(--xd-unit)); }
 .mt-xd-12 { margin-top: calc(12 * var(--xd-unit)); }
+.mt-xd-16 { margin-top: calc(16 * var(--xd-unit)); }
 .mt-xd-20 { margin-top: calc(20 * var(--xd-unit)); }
+.mb-xd-3 { margin-bottom: calc(3 * var(--xd-unit)); }
 .mb-xd-8 { margin-bottom: calc(8 * var(--xd-unit)); }
+.mb-xd-14 { margin-bottom: calc(14 * var(--xd-unit)); }
+.mb-xd-16 { margin-bottom: calc(16 * var(--xd-unit)); }
+.mb-xd-370 { margin-bottom: calc(370 * var(--xd-unit)); }
 .my-xd-2 { margin-top: calc(2 * var(--xd-unit)); margin-bottom: calc(2 * var(--xd-unit)); }
 .my-xd-8 { margin-top: calc(8 * var(--xd-unit)); margin-bottom: calc(8 * var(--xd-unit)); }
 
@@ -117,5 +149,12 @@
 
 /* Position */
 .top-xd-30 { top: calc(30 * var(--xd-unit)); }
+.top-xd-100 { top: calc(100 * var(--xd-unit)); }
+.bottom-xd-100 { bottom: calc(100 * var(--xd-unit)); }
 .right-xd-30 { right: calc(30 * var(--xd-unit)); }
 .left-xd-14 { left: calc(14 * var(--xd-unit)); }
+
+/* Logical (RTL-safe) inset — matches rdb's `start-xd-*` / `end-xd-*` */
+.start-xd-16 { inset-inline-start: calc(16 * var(--xd-unit)); }
+.start-xd-100 { inset-inline-start: calc(100 * var(--xd-unit)); }
+.end-xd-100 { inset-inline-end: calc(100 * var(--xd-unit)); }

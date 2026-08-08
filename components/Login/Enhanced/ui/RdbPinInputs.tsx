@@ -98,11 +98,7 @@ export default function RdbPinInputs({
     }, [isValidPin]);
 
     const activeIndex =
-        disabled ||
-        (showCustomKeypad && !keypadOpen) ||
-        (!showCustomKeypad && !isFocused)
-            ? -1
-            : pin.findIndex((d) => d === '');
+        disabled || (!showCustomKeypad && !isFocused) ? -1 : pin.findIndex((d) => d === '');
 
     const addDigit = useCallback(
         (digit: string) => {
@@ -140,13 +136,13 @@ export default function RdbPinInputs({
 
     const getBoxClass = (digit: string, i: number) => {
         const isActive = activeIndex === i;
-        if (isValidPin === 'valid') return 'border border-[#22C55E]/50 bg-[#FCFFFC]';
-        if (isValidPin === 'notvalid') return 'bg-white border border-dashed border-[#FF5F61]';
+        if (isValidPin === 'valid') return 'border border-[#78D97F] bg-[#FCFFFC]';
+        if (isValidPin === 'notvalid') return 'border border-dashed border-[#FF5F61] bg-white';
         if (isExpired && !digit) return 'border border-dashed border-[#FDCA57] bg-[#FCFCFC]';
         if (isExpired && digit) return 'border border-dashed border-[#FDCA57] bg-white';
-        if (digit) return 'bg-[#FCFCFC] border border-[#4D84FF]/50';
-        if (isActive) return 'bg-[#FFFFFF] border border-dashed border-[#3066CC]';
-        return 'bg-[#FFFFFF] border border-dashed border-[#C3C3C3]';
+        if (isActive) return 'border border-[#4D84FF]/50 border-dashed bg-white';
+        if (digit) return 'border border-[#4D84FF]/50 bg-white';
+        return 'border border-dashed border-[#C3C3C3] bg-[#FCFCFC]';
     };
 
     return (

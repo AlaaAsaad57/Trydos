@@ -30,6 +30,31 @@
   font-family: var(--Quicksand-Regular),'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Each Quicksand weight is loaded as its own font family (one localFont per
+   weight), so a Tailwind weight utility on its own makes the browser synthesize
+   a fake bold. rdb uses a real 300–700 face, so map each weight utility onto
+   the matching real family. Scoped to .font-quicksand — the auth flow only. */
+.font-quicksand.font-light,
+.font-quicksand .font-light {
+  font-family: var(--Quicksand-Light),'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.font-quicksand.font-normal,
+.font-quicksand .font-normal {
+  font-family: var(--Quicksand-Regular),'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.font-quicksand.font-medium,
+.font-quicksand .font-medium {
+  font-family: var(--Quicksand-Medium),'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.font-quicksand.font-semibold,
+.font-quicksand .font-semibold {
+  font-family: var(--Quicksand-SemiBold),'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.font-quicksand.font-bold,
+.font-quicksand .font-bold {
+  font-family: var(--Quicksand-Bold),'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 /* Full iOS Background Scale Effect */
 .rdb-scale-target {
   transition: transform 0.6s var(--rdb-ios-easing), border-radius 0.6s var(--rdb-ios-easing);
@@ -121,18 +146,18 @@
   animation: shake-slow 0.8s ease-in-out;
 }
 
-/* OTP Blinking Dot Animation */
+/* OTP Blinking Dot Animation — hard on/off, like a text caret */
 @keyframes rdb-blink {
   0%, 100% {
     opacity: 1;
   }
   50% {
-    opacity: 0.2;
+    opacity: 0;
   }
 }
 
 .animate-blink {
-  animation: rdb-blink 1s ease-in-out infinite;
+  animation: rdb-blink 1s step-start infinite;
 }
 
 /* RDB Keyframe Animations */

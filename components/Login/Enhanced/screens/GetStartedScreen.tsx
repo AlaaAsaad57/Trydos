@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import FlexibleSpace from 'scaling/FlexibleSpace';
+import { translateFunction } from 'utils/functions';
 
 interface GetStartedScreenProps {
     onExistingAccount?: () => void;
@@ -17,7 +18,10 @@ export default function GetStartedScreen({
     onNewCustomer,
     onLater,
     onScanQr,
+    lang = 'en',
 }: GetStartedScreenProps) {
+    const translate = (key: string) => translateFunction(key, lang);
+
     return (
         <main className="w-full bg-white flex flex-col font-quicksand h-full relative">
             {onScanQr && (
@@ -25,7 +29,7 @@ export default function GetStartedScreen({
                     <button
                         onClick={onScanQr}
                         className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                        aria-label="Scan QR Code"
+                        aria-label={translate('Scan QR Code')}
                     >
                         <Image
                             src="/assets/icons/auth/qrlogin.svg"
@@ -59,7 +63,7 @@ export default function GetStartedScreen({
             {/* Bottom Section */}
             <div className="flex flex-col items-center">
                 <h2 className="text-xd-30 font-bold text-[#1D1D1D] h-xd-40 text-center">
-                    Get Started !
+                    {translate('Get Started !')}
                 </h2>
                 <FlexibleSpace size={24} share={0.04} />
 
@@ -68,7 +72,9 @@ export default function GetStartedScreen({
                         className="text-xd-13 leading-[1.6] w-xd-376 text-center font-normal text-[#5D5C5D]
               tracking-tight last-line:tracking-normal first-letter:ml-[-0.8ch]"
                     >
-                        To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time
+                        {translate(
+                            'To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time'
+                        )}
                     </p>
                 </div>
 
@@ -77,15 +83,15 @@ export default function GetStartedScreen({
                 <div className="flex py-xd-6 flex-col items-center">
                     <button
                         onClick={onExistingAccount}
-                        className="xd-dashed-border w-xd-390 h-xd-60 leading-[1.3] rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-16 font-medium cursor-pointer transition-all active:scale-[0.98]"
+                        className="xd-dashed-border w-xd-390 h-xd-60 leading-[1.3] rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-16 cursor-pointer transition-all active:scale-[0.98]"
                     >
-                        I Have Already Account
+                        {translate('I Have Already Account')}
                     </button>
                     <button
                         onClick={onNewCustomer}
-                        className="xd-dashed-border w-xd-390 h-xd-60 leading-[1.3] rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-16 mt-xd-8 font-medium cursor-pointer transition-all active:scale-[0.98]"
+                        className="xd-dashed-border w-xd-390 h-xd-60 leading-[1.3] rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-16 mt-xd-8 cursor-pointer transition-all active:scale-[0.98]"
                     >
-                        New Customer
+                        {translate('New Customer')}
                     </button>
                 </div>
 
@@ -94,9 +100,9 @@ export default function GetStartedScreen({
                 {onLater && (
                     <button
                         onClick={onLater}
-                        className="text-xd-13 text-[#4D84FF] transition-colors hover:opacity-70 font-medium cursor-pointer"
+                        className="text-xd-13 text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
                     >
-                        Later, Take A Look At The App
+                        {translate('Later, Take A Look At The App')}
                     </button>
                 )}
                 <FlexibleSpace size={35} share={0} />

@@ -93,22 +93,17 @@ export function NumericKeypad({
                 <motion.div
                     ref={keypadRef as unknown as React.Ref<HTMLDivElement>}
                     className="fixed bg-[#1C1C1E] bottom-0 left-0 right-0 select-none z-[2147483647]"
-                    style={
-                        {
-                            zIndex: 2147483647,
-                            '--xd-unit': 'clamp(0.814px, calc(100vw / 430), 1.046px)',
-                        } as React.CSSProperties
-                    }
+                    style={{ zIndex: 2147483647 }}
                     initial={{ y: '100%' }}
                     animate={{ y: 0 }}
                     exit={{ y: '100%' }}
                     transition={springTransition}
                 >
                     <div
-                        className="flex flex-col w-full max-w-[430px] h-[35vh] min-h-[280px] mx-auto"
+                        className="flex flex-col max-w-100 h-[35vh] mx-auto"
                         style={{
                             padding:
-                                'calc(var(--xd-unit, 1px) * 12) calc(var(--xd-unit, 1px) * 16) calc(var(--xd-unit, 1px) * 16)',
+                                'calc(var(--xd-unit, 1px) * 10) calc(var(--xd-unit, 1px) * 3) calc(var(--xd-unit, 1px) * 10)',
                             background: '#1C1C1E',
                             gap: 'calc(var(--xd-unit, 1px) * 10)',
                         }}
@@ -136,7 +131,7 @@ export function NumericKeypad({
                         {/* Bottom row */}
                         <div
                             className="flex flex-1 w-full"
-                            style={{ gap: 'calc(var(--xd-unit, 1px) * 10)' }}
+                            style={{ gap: 'calc(var(--xd-unit, 1px) * 6)' }}
                         >
                             <div className="flex-1" />
 
@@ -230,14 +225,14 @@ function KeyButton({
                 }}
             >
                 <span
-                    className="font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,sans-serif] font-light text-white leading-none"
+                    className="font-[system-ui] font-light text-white leading-none"
                     style={{ fontSize: 'calc(var(--xd-unit, 1px) * 32)' }}
                 >
                     {digit}
                 </span>
                 {letters && (
                     <span
-                        className="font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,sans-serif] font-medium text-white/60 uppercase leading-none"
+                        className="font-[system-ui] font-medium text-white/60 uppercase leading-none"
                         style={{
                             fontSize: 'calc(var(--xd-unit, 1px) * 10)',
                             marginTop: 'calc(var(--xd-unit, 1px) * 2)',

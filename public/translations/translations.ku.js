@@ -2531,7 +2531,28 @@ const translations = {
   "Cancel & Take A Look At The App": "پاشگەزبوونەوە و سەیرکردنی بەرنامەکە",
   "Not Registered !": "تۆمارنەکراوە !",
   "Sorry, This Number Is Not Registered With Us !": "ببوورە، ئەم ژمارەیە تۆمارنەکراوە !",
-  "Create New Account & Continue": "دروستکردنی هەژماری نوێ و بەردەوامبوون"
+  "Create New Account & Continue": "دروستکردنی هەژماری نوێ و بەردەوامبوون",
+  // Auth flow — sign in / sign up
+  "Sign in to your account": "بچۆ ژوورەوە بۆ هەژمارەکەت",
+  "terms of services": "مەرجەکانی خزمەتگوزاری",
+  "Enter Verification Code Sent To Your": "کۆدی پشتڕاستکردنەوە بنووسە کە نێردراوە بە",
+  "Whatsapp": "واتسئاپ",
+  "Resend After -": "ناردنەوە دوای -",
+  "Login Successfully !": "چوونەژوورەوە سەرکەوتوو بوو !",
+  "Welcome Back, Enjoy Our Services": "بەخێربێیتەوە، چێژ لە خزمەتگوزارییەکانمان وەربگرە",
+  "Sign Up Successfully !": "تۆمارکردن سەرکەوتوو بوو !",
+  "Session limit reached. Try again later.": "سنووری دانیشتن پڕ بووە. دواتر هەوڵ بدەرەوە.",
+  // Auth flow — QR login
+  "Login with QR": "چوونەژوورەوە بە QR",
+  "Show a new code": "کۆدێکی نوێ پیشان بدە",
+  "Login was declined on your phone": "چوونەژوورەوە لە تەلەفۆنەکەتەوە ڕەتکرایەوە",
+  "Scanned — confirm on your phone to continue": "سکان کرا — بۆ بەردەوامبوون لە تەلەفۆنەکەتەوە پشتڕاست بکەرەوە",
+  "On your phone, open Settings → Linked Devices → Scan, then point the camera at this code.": "لە تەلەفۆنەکەتدا، ڕێکخستنەکان → ئامێرە بەستراوەکان → سکان بکەرەوە، پاشان کامێرا ڕوو لەم کۆدە بگرە.",
+  "This device appears to be in a different city": "وا دیارە ئەم ئامێرە لە شارێکی جیاوازدایە",
+  // Auth flow — accessibility labels
+  "Scan QR Code": "سکانی کۆدی QR",
+  "Send phone number": "ناردنی ژمارەی تەلەفۆن",
+  "Continue": "بەردەوامبوون"
 };
 
 export default translations;

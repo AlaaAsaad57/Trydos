@@ -2481,7 +2481,28 @@ const translations = {
   "Cancel & Take A Look At The App": "إلغاء وإلقاء نظرة على التطبيق",
   "Not Registered !": "غير مسجل !",
   "Sorry, This Number Is Not Registered With Us !": "عذراً، هذا الرقم غير مسجل لدينا !",
-  "Create New Account & Continue": "إنشاء حساب جديد والمتابعة"
+  "Create New Account & Continue": "إنشاء حساب جديد والمتابعة",
+  // Auth flow — sign in / sign up
+  "Sign in to your account": "سجّل الدخول إلى حسابك",
+  "terms of services": "شروط الخدمة",
+  "Enter Verification Code Sent To Your": "أدخل رمز التحقق المرسل عبر",
+  "Whatsapp": "واتساب",
+  "Resend After -": "إعادة الإرسال بعد -",
+  "Login Successfully !": "تم تسجيل الدخول بنجاح !",
+  "Welcome Back, Enjoy Our Services": "مرحباً بعودتك، استمتع بخدماتنا",
+  "Sign Up Successfully !": "تم إنشاء الحساب بنجاح !",
+  "Session limit reached. Try again later.": "تم بلوغ حد الجلسة. حاول مرة أخرى لاحقاً.",
+  // Auth flow — QR login
+  "Login with QR": "تسجيل الدخول برمز QR",
+  "Show a new code": "عرض رمز جديد",
+  "Login was declined on your phone": "تم رفض تسجيل الدخول من هاتفك",
+  "Scanned — confirm on your phone to continue": "تم المسح — أكّد من هاتفك للمتابعة",
+  "On your phone, open Settings → Linked Devices → Scan, then point the camera at this code.": "من هاتفك، افتح الإعدادات ← الأجهزة المرتبطة ← مسح، ثم وجّه الكاميرا نحو هذا الرمز.",
+  "This device appears to be in a different city": "يبدو أن هذا الجهاز في مدينة مختلفة",
+  // Auth flow — accessibility labels
+  "Scan QR Code": "مسح رمز QR",
+  "Send phone number": "إرسال رقم الهاتف",
+  "Continue": "متابعة"
 };
 
 export default translations;

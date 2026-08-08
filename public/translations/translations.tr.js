@@ -2512,7 +2512,28 @@ const translations = {
   "Cancel & Take A Look At The App": "İptal Et ve Uygulamaya Göz At",
   "Not Registered !": "Kayıtlı Değil !",
   "Sorry, This Number Is Not Registered With Us !": "Üzgünüz, Bu Numara Bizde Kayıtlı Değil !",
-  "Create New Account & Continue": "Yeni Hesap Oluştur ve Devam Et"
+  "Create New Account & Continue": "Yeni Hesap Oluştur ve Devam Et",
+  // Auth flow — sign in / sign up
+  "Sign in to your account": "Hesabınıza giriş yapın",
+  "terms of services": "hizmet şartları",
+  "Enter Verification Code Sent To Your": "Size Gönderilen Doğrulama Kodunu Girin:",
+  "Whatsapp": "Whatsapp",
+  "Resend After -": "Tekrar Gönder -",
+  "Login Successfully !": "Giriş Başarılı !",
+  "Welcome Back, Enjoy Our Services": "Tekrar Hoş Geldiniz, Hizmetlerimizin Tadını Çıkarın",
+  "Sign Up Successfully !": "Kayıt Başarılı !",
+  "Session limit reached. Try again later.": "Oturum sınırına ulaşıldı. Daha sonra tekrar deneyin.",
+  // Auth flow — QR login
+  "Login with QR": "QR ile Giriş",
+  "Show a new code": "Yeni kod göster",
+  "Login was declined on your phone": "Giriş telefonunuzdan reddedildi",
+  "Scanned — confirm on your phone to continue": "Tarandı — devam etmek için telefonunuzdan onaylayın",
+  "On your phone, open Settings → Linked Devices → Scan, then point the camera at this code.": "Telefonunuzda Ayarlar → Bağlı Cihazlar → Tara yolunu açın, ardından kamerayı bu koda doğrultun.",
+  "This device appears to be in a different city": "Bu cihaz farklı bir şehirde görünüyor",
+  // Auth flow — accessibility labels
+  "Scan QR Code": "QR Kodu Tara",
+  "Send phone number": "Telefon numarası gönder",
+  "Continue": "Devam"
 };
 
 export default translations;

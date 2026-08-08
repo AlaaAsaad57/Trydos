@@ -52,7 +52,7 @@ export default function EnterPhoneScreen({
                     <button
                         onClick={onClose}
                         className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                        aria-label="close"
+                        aria-label={translate('Close')}
                     >
                         <Image
                             src="/assets/icons/auth/close.svg"
@@ -72,15 +72,17 @@ export default function EnterPhoneScreen({
                 <div className="w-full h-1/2 flex flex-col justify-end px-xd-20 items-start">
                     <div className="h-xd-115 w-full">
                         <h2 className="text-trim-descend text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
-                            {authType === 'signUp' ? 'Sign Up !' : 'Login !'}
+                            {authType === 'signUp'
+                                ? translate('Sign Up !')
+                                : translate('Login !')}
                         </h2>
                         <div className="w-full flex px-xd-20 flex-col pt-xd-12 items-start">
                             <p className="text-trim-descend text-xd-16 text-[#1D1D1D] font-medium">
-                                Enter Your Phone Number Registered With Us
+                                {translate('Enter Your Phone Number Registered With Us')}
                             </p>
                             <div className="flex items-center pt-xd-8 gap-xd-5">
                                 <span className="text-trim-descend text-xd-12 text-[#1D1D1D]">
-                                    We Will Send A Verification Code To The Number
+                                    {translate('We Will Send A Verification Code To The Number')}
                                 </span>
                                 <div className="w-xd-15 h-xd-15 shrink-0">
                                     <Image
@@ -94,7 +96,7 @@ export default function EnterPhoneScreen({
                             </div>
                             <div className="flex items-center pt-xd-8 gap-xd-5">
                                 <span className="text-trim-descend text-xd-11 text-[#C3C3C3]">
-                                    Your Privacy Is Completely Safe
+                                    {translate('Your Privacy Is Completely Safe')}
                                 </span>
                                 <div className="w-xd-14 h-xd-14 shrink-0">
                                     <Image
@@ -119,7 +121,8 @@ export default function EnterPhoneScreen({
                             onSend={handleSubmit}
                             value={phone}
                             onChange={setPhone}
-                            placeholder="ُEnter Your Phone Number"
+                            placeholder={translate('Enter Your Phone Number')}
+                            lang={lang}
                             isLoading={loading || lockRemaining > 0}
                         />
                     </div>
