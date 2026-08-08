@@ -273,9 +273,15 @@ span[aria-live="polite"] {
   justify-content: space-between;
 }
 
+/* NOTE: no `will-change: transform` here. It used to be, which forced EVERY
+   `.fixed` element into its own composited layer. Where a `.fixed` element is an
+   ancestor of a scaled container (the auth flow: main.fixed > #master-canvas
+   with transform: scale(...)), Chrome rasterizes the subtree once and lets the
+   GPU scale that texture instead of re-rasterizing text at the final scale —
+   which renders the text visibly blurry. `position: fixed` alone is what this
+   rule is for; Tailwind's own `.fixed` utility already provides it. */
 .fixed {
   position: fixed;
-  will-change: transform;
 }
 
 *::-webkit-scrollbar {
