@@ -381,6 +381,11 @@ span[aria-live="polite"] {
   }
 }
 
+.antialiased {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 img {
   -o-object-fit: cover;
   object-fit: cover !important;

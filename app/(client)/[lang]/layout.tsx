@@ -106,7 +106,7 @@ export default async function RootLayout({ params, children, modal }) {
       // dir={language === "ar" || language === "ku" ? "rtl" : "ltr"}
     >
       <body
-        className={`${language === "ar" || language === "ku" ? "text-rtl" : ""} notranslate`}
+        className={`${language === "ar" || language === "ku" ? "text-rtl" : ""} notranslate antialiased`}
         translate="no"
       >
         <Organaization local={lang} />
