@@ -7,6 +7,7 @@ import { LogError, translateFunction } from 'utils/functions';
 import { getNumberLockRemaining, isSessionCapReached } from 'utils/otpLocks';
 import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from 'utils/GAEvents';
 import { GAevent } from 'utils/gtag';
+import { normalizeDialInput } from './ui/RdbPhoneInput';
 
 export type PhoneVerifyStep = 'enter-phone' | 'select-method' | 'enter-pin';
 
@@ -93,7 +94,14 @@ export function usePhoneVerifyFlow({
 
     const startsAtMethod = Boolean(phoneLocked && initialPhone);
     const [step, setStep] = useState<PhoneVerifyStep>(startsAtMethod ? 'select-method' : 'enter-phone');
-    const [phone, setPhone] = useState(initialPhone || '');
+    // `phone` is digits only, everywhere. The screens render it as `+{phone}`
+    // and `AuthService.SendOtp` is given it raw, so a seed value carrying its
+    // own prefix — `userProfile.phone` is stored as "+963…", and the settings
+    // form hands over whatever the shopper typed — would otherwise show "++963…"
+    // and send a differently-shaped number than the login flow does.
+    // `normalizeDialInput` is the same helper RdbPhoneInput applies to typed
+    // input, so a seeded number and a typed one end up identical.
+    const [phone, setPhone] = useState(normalizeDialInput(initialPhone || ''));
     const [method, setMethod] = useState<Method>('');
     const [pin, setPin] = useState('');
     const [isValidPin, setIsValidPin] = useState<'valid' | 'notvalid' | ''>('');

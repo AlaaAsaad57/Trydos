@@ -2444,6 +2444,8 @@ const translations = {
   "or": "أو",
   "Change Number": "تغيير الرقم",
   "Change Method": "تغيير الطريقة",
+  "Verify Your Number !": "تأكيد رقمك !",
+  "Change Your Number !": "تغيير رقمك !",
   "Verification code has expired": "انتهت صلاحية رمز التحقق",
   "Enter Your Name !": "أدخل اسمك !",
   "Last Step And Enjoy Our Services": "الخطوة الأخيرة للتمتع بخدماتنا",

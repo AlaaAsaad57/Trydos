@@ -67,6 +67,16 @@ interface RdbPhoneInputProps {
     isLoading?: boolean;
     placeholder?: string;
     lang?: string;
+    /**
+     * Fall back to the device's own keyboard instead of the in-app keypad.
+     *
+     * The keypad is `position: fixed` at the bottom of the viewport, so it
+     * covers any host that also sits at the bottom — the cart's ~200px footer
+     * panel is hidden entirely behind it. The device keyboard scrolls the
+     * focused field into view instead. Fullscreen hosts have the room and keep
+     * the keypad, so this defaults to off.
+     */
+    disableCustomKeypad?: boolean;
 }
 
 /**
@@ -97,11 +107,12 @@ export default function RdbPhoneInput({
     isLoading = false,
     placeholder,
     lang = 'en',
+    disableCustomKeypad = false,
 }: RdbPhoneInputProps) {
     const translate = (key: string) => translateFunction(key, lang);
     const resolvedPlaceholder = placeholder ?? translate('Phone Number');
     const isTouch = useIsTouchDevice();
-    const showCustomKeypad = isTouch;
+    const showCustomKeypad = isTouch && !disableCustomKeypad;
 
     const [isFocused, setIsFocused] = useState(false);
     const [keypadOpen, setKeypadOpen] = useState(false);

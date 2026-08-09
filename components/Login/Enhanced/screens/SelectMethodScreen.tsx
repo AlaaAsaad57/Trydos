@@ -5,6 +5,7 @@ import Image from 'next/image';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { getNumberLockRemaining, isSessionCapReached } from 'utils/otpLocks';
 import { translateFunction } from 'utils/functions';
+import { authHeadingKey } from '../authHeadings';
 
 interface SelectMethodScreenProps {
     setMethod: (method: 'sms' | 'whatsapp') => void;
@@ -78,9 +79,7 @@ export default function SelectMethodScreen({
                 <div className="w-full h-1/2 flex flex-col justify-end px-xd-20 items-start">
                     <div className="h-xd-115 w-full">
                         <h2 className="text-trim-descend text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
-                            {authType === 'signUp'
-                                ? translate('Sign Up !')
-                                : translate('Login !')}
+                            {translate(authHeadingKey(authType))}
                         </h2>
                         <div className="w-full flex px-xd-20 flex-col pt-xd-12 items-start">
                             <p className="text-trim-descend text-xd-16 text-[#1D1D1D] font-medium">

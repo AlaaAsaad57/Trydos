@@ -14,6 +14,13 @@ interface RdbPinInputsProps {
     labelTone?: 'default' | 'error';
     autoFocus?: boolean;
     isExpired?: boolean;
+    /**
+     * Fall back to the device's own keyboard instead of the in-app keypad.
+     * See the same prop on `RdbPhoneInput` — the keypad is fixed to the bottom
+     * of the viewport and hides any host that sits there, such as the cart's
+     * ~200px footer panel. Defaults to off, so fullscreen hosts are unaffected.
+     */
+    disableCustomKeypad?: boolean;
 }
 
 export default function RdbPinInputs({
@@ -26,9 +33,10 @@ export default function RdbPinInputs({
     labelTone = 'default',
     autoFocus = true,
     isExpired = false,
+    disableCustomKeypad = false,
 }: RdbPinInputsProps) {
     const isTouch = useIsTouchDevice();
-    const showCustomKeypad = isTouch;
+    const showCustomKeypad = isTouch && !disableCustomKeypad;
 
     const [pin, setPin] = useState<string[]>(Array(6).fill(''));
     const [shake, setShake] = useState(false);

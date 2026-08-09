@@ -2475,6 +2475,8 @@ const translations = {
   "or": "veya",
   "Change Number": "Numarayı Değiştir",
   "Change Method": "Yöntemi Değiştir",
+  "Verify Your Number !": "Numaranı Doğrula !",
+  "Change Your Number !": "Numaranı Değiştir !",
   "Verification code has expired": "Doğrulama kodunun süresi doldu",
   "Enter Your Name !": "Adınızı Girin !",
   "Last Step And Enjoy Our Services": "Son Adım ve Hizmetlerimizin Tadını Çıkarın",

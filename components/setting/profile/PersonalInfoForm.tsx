@@ -254,6 +254,9 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
           <VerifyPhoneFlow
             initialPhone={phoneInput.value}
             phoneLocked
+            // A NEW number the shopper just typed — the screens say "Change
+            // Your Number !", not "Verify Your Number !".
+            authType="changePhone"
             // A NEW number: verify it against the phone-update endpoint, which
             // returns the id_token the profile save must carry.
             verify={(code, verificationId) =>

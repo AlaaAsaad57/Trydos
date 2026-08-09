@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { usePhoneVerifyFlow, type PhoneVerifyStep } from './usePhoneVerifyFlow';
+import type { AuthFlowType } from './authHeadings';
 
 import EnterPhoneScreen from './screens/EnterPhoneScreen';
 import SelectMethodScreen from './screens/SelectMethodScreen';
@@ -18,8 +19,8 @@ export interface VerifyPhoneFlowProps {
     onSuccess: (result: unknown) => void;
     onClose: () => void;
     lang?: string;
-    /** 'signIn' picks the "Login !" heading, 'signUp' picks "Sign Up !". */
-    authType?: 'signIn' | 'signUp';
+    /** Picks the heading each screen shows — see `authHeadings.ts`. */
+    authType?: AuthFlowType;
 }
 
 const transition = { duration: 0.35, ease: [0.4, 0, 0.2, 1] as const };
@@ -40,7 +41,9 @@ export default function VerifyPhoneFlow({
     onSuccess,
     onClose,
     lang = 'en',
-    authType = 'signIn',
+    // Every host of this component is confirming a number, not logging in —
+    // the login/signup headings belong to FullEnhancedLoginWidget's own screens.
+    authType = 'verify',
 }: VerifyPhoneFlowProps) {
     // Layout-only: which way the next screen slides in. The hook doesn't know
     // about animation, so it stays here and is nudged by `goTo` (manual nav)

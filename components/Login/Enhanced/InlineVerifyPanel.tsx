@@ -129,6 +129,7 @@ export default function InlineVerifyPanel({
                         placeholder={translate('Enter Your Phone Number')}
                         lang={lang}
                         isLoading={busy}
+                        disableCustomKeypad
                     />
                 </div>
             )}
@@ -162,6 +163,7 @@ export default function InlineVerifyPanel({
                         disabled={busy || isValidPin === 'valid'}
                         isValidPin={isValidPin}
                         autoFocus={false}
+                        disableCustomKeypad
                     />
                     <button
                         onClick={() => method && sendMethod(method)}

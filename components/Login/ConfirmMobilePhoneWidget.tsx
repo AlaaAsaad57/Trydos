@@ -122,7 +122,7 @@ function ConfirmMobilePhoneWidget() {
                 onSuccess={handleSuccess}
                 onClose={handleDismiss}
                 lang={language}
-                authType="signIn"
+                authType="verify"
             />
         </AuthOverlay>
     );

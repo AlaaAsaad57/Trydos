@@ -2494,6 +2494,8 @@ const translations = {
   "or": "یان",
   "Change Number": "گۆڕینی ژمارە",
   "Change Method": "گۆڕینی ڕێگە",
+  "Verify Your Number !": "ژمارەکەت پشتڕاست بکەرەوە !",
+  "Change Your Number !": "ژمارەکەت بگۆڕە !",
   "Verification code has expired": "ماوەی کۆدی پشتڕاستکردنەوە بەسەرچوو",
   "Enter Your Name !": "ناوت بنووسە !",
   "Last Step And Enjoy Our Services": "دوا هەنگاو بۆ بەکارهێنانی خزمەتگوزارییەکانمان",
