@@ -128,6 +128,17 @@ export function usePhoneVerifyFlow({
         return useful ? message : translate('Something went wrong');
     };
 
+    /**
+     * Error text for a failed send/resend. A send the limiter blocked has
+     * already armed the client cooldown (`utils/otpLocks`) from the same
+     * response, and the screens render a live countdown off that lock — so the
+     * server's static "Please wait N seconds before trying again" is dropped.
+     * Keeping it would park it in the very slot the countdown occupies, hidden
+     * behind it and then revealed the instant the countdown reaches 0: a second
+     * timer, frozen on the number it was issued with, that never ticks down.
+     */
+    const sendErrorText = (e: unknown) => (getNumberLockRemaining(phone) > 0 ? '' : errorText(e));
+
     const sendMethod = async (selected: 'sms' | 'whatsapp') => {
         if (loading) return;
         const remaining = getNumberLockRemaining(phone);
@@ -165,7 +176,7 @@ export function usePhoneVerifyFlow({
             onAdvance?.();
         } catch (e) {
             setLoading('');
-            setError(errorText(e));
+            setError(sendErrorText(e));
             LogError({ error: e, scenario: `Error sending OTP in ${source}` });
         }
     };
@@ -194,7 +205,7 @@ export function usePhoneVerifyFlow({
             setLoading('');
         } catch (e) {
             setLoading('');
-            setError(errorText(e));
+            setError(sendErrorText(e));
             LogError({ error: e, scenario: `Error resending OTP in ${source}` });
         }
     };

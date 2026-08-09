@@ -199,6 +199,17 @@ export default function FullEnhancedLoginWidget() {
     };
 
     /**
+     * Error text for a failed send/resend. A send the limiter blocked has
+     * already armed the client cooldown (`utils/otpLocks`) from the same
+     * response, and the screens render a live countdown off that lock — so the
+     * server's static "Please wait N seconds before trying again" is dropped.
+     * Keeping it would park it in the very slot the countdown occupies, hidden
+     * behind it and then revealed the instant the countdown reaches 0: a second
+     * timer, frozen on the number it was issued with, that never ticks down.
+     */
+    const sendErrorText = (e: unknown) => (getNumberLockRemaining(phone) > 0 ? '' : errorText(e));
+
+    /**
      * Re-sync everything that was rendered for the guest: server components hold
      * the pre-login markup, and the story rail holds the guest's story set.
      */
@@ -266,7 +277,7 @@ export default function FullEnhancedLoginWidget() {
             goTo('enter-pin', 1);
         } catch (e) {
             setLoading('');
-            setError(errorText(e));
+            setError(sendErrorText(e));
             GAevent({
                 action: GA_EVENT_NAMES.EXCEPTION,
                 params: {
@@ -411,7 +422,7 @@ export default function FullEnhancedLoginWidget() {
             setLoading('');
         } catch (e) {
             setLoading('');
-            setError(errorText(e));
+            setError(sendErrorText(e));
             GAevent({
                 action: GA_EVENT_NAMES.EXCEPTION,
                 params: {
