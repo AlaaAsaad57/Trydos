@@ -648,6 +648,7 @@ function OrderButton({ close, toOrders }) {
                         setOption(false);
                       }}
                       onSuccess={() => {
+                        setOption(false);
                         GoToOrders(true);
                       }}
                       lang={languageVariable}

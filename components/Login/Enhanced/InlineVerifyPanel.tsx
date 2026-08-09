@@ -1,9 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import AuthService from 'services/auth';
 import { translateFunction } from 'utils/functions';
-import { getNumberLockRemaining } from 'utils/otpLocks';
+import { getNumberLockRemaining, isSessionCapReached } from 'utils/otpLocks';
 import { usePhoneVerifyFlow } from './usePhoneVerifyFlow';
 import RdbPhoneInput from './ui/RdbPhoneInput';
 import RdbPinInputs from './ui/RdbPinInputs';
@@ -56,18 +57,37 @@ export default function InlineVerifyPanel({
         lang,
         // This panel has no screen of its own to render a cooldown/cap
         // message (unlike VerifyPhoneFlow's select-method screen), so a
-        // blocked send needs a visible error here.
+        // blocked send needs a visible error here. `remaining === 0` with the
+        // send still blocked means the block is the distinct-number session
+        // cap (utils/otpLocks.ts), not the per-number cooldown — same split
+        // SelectMethodScreen renders as two separate messages.
         blockedMessage: (secondsRemaining) =>
-            `${translate('Wait')} ${secondsRemaining}s ${translate('before trying again')}`,
+            secondsRemaining > 0
+                ? `${translate('Wait')} ${secondsRemaining}s ${translate('before trying again')}`
+                : translate('Session limit reached. Try again later.'),
         source: 'InlineVerifyPanel',
     });
 
     const busy = loading !== '';
 
+    // Mirrors SelectMethodScreen's own lock/cap polling: the method buttons
+    // must not stay tappable while a send would just be silently re-blocked.
+    const [blocked, setBlocked] = useState(false);
+    useEffect(() => {
+        if (!phone) {
+            setBlocked(false);
+            return;
+        }
+        const sync = () => setBlocked(getNumberLockRemaining(phone) > 0 || isSessionCapReached(phone));
+        sync();
+        const id = setInterval(sync, 1000);
+        return () => clearInterval(id);
+    }, [phone]);
+
     const methodButton = (kind: 'whatsapp' | 'sms', label: string, icon: string) => (
         <button
             onClick={() => sendMethod(kind)}
-            disabled={busy}
+            disabled={busy || blocked}
             className={`relative mx-0.5 flex flex-1 items-center justify-center h-xd-48 rounded-xd-15 border border-dashed transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
                 method === kind ? 'border-[#388CFF] bg-[#FCFCFC]' : 'border-[#C3C3C3] bg-white'
             }`}
@@ -114,10 +134,23 @@ export default function InlineVerifyPanel({
             )}
 
             {step === 'select-method' && (
-                <div className="w-full flex">
-                    {methodButton('whatsapp', translate('Send WhatsApp'), '/assets/icons/auth/whatsapp.svg')}
-                    {methodButton('sms', translate('Send SMS'), '/assets/icons/auth/sms.svg')}
-                </div>
+                <>
+                    <div className="w-full flex">
+                        {methodButton('whatsapp', translate('Send WhatsApp'), '/assets/icons/auth/whatsapp.svg')}
+                        {methodButton('sms', translate('Send SMS'), '/assets/icons/auth/sms.svg')}
+                    </div>
+                    {/* Omitted when the account already owns this number — the
+                        user must verify it, not swap it (same rule VerifyPhoneFlow's
+                        `backFromMethod` follows for the fullscreen screens). */}
+                    {!phoneLocked && (
+                        <button
+                            onClick={() => setStep('enter-phone')}
+                            className="text-xd-12 text-[#388CFF] underline cursor-pointer"
+                        >
+                            {translate('Change Number')}
+                        </button>
+                    )}
+                </>
             )}
 
             {step === 'enter-pin' && (

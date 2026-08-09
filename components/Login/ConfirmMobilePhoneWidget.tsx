@@ -9,15 +9,16 @@ import AuthOverlay from './Enhanced/AuthOverlay';
 import VerifyPhoneFlow from './Enhanced/VerifyPhoneFlow';
 
 function ConfirmMobilePhoneWidget() {
-    const {
-        setShouldAuthinticated,
-        shouldAuthinticated,
-        setAddStory,
-        setReAuthResult,
-        expiredSessionPhone,
-        setExpiredSessionPhone,
-        language,
-    } = useAppStore();
+    // Per-field selectors: a whole-store destructure would re-render this
+    // widget (and re-run its effects) on any unrelated store write while it's
+    // mounted over the whole app.
+    const setShouldAuthinticated = useAppStore((s) => s.setShouldAuthinticated);
+    const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
+    const setAddStory = useAppStore((s) => s.setAddStory);
+    const setReAuthResult = useAppStore((s) => s.setReAuthResult);
+    const expiredSessionPhone = useAppStore((s) => s.expiredSessionPhone);
+    const setExpiredSessionPhone = useAppStore((s) => s.setExpiredSessionPhone);
+    const language = useAppStore((s) => s.language);
 
     // Phone preserved when /api/auth/expire cleared the previous session — the
     // fresh guest profile no longer carries it. Only the session-expired

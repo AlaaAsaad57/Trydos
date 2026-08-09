@@ -18,7 +18,11 @@ import SessionExpiredScreen from './Enhanced/screens/SessionExpiredScreen';
  * logged-in state and renders the fresh guest session.
  */
 function SessionExpiredWidget() {
-    const { language, setShouldAuthinticated, setReAuthResult } = useAppStore();
+    // Per-field selectors: a whole-store destructure would re-render this
+    // widget on any unrelated store write while it's mounted over the whole app.
+    const language = useAppStore((s) => s.language);
+    const setShouldAuthinticated = useAppStore((s) => s.setShouldAuthinticated);
+    const setReAuthResult = useAppStore((s) => s.setReAuthResult);
 
     // Same seller detection the phone-verify widget's dismiss uses: a guest
     // can't stay on the seller dashboard, so both buttons behave differently.

@@ -29,8 +29,8 @@ Companion: `docs/posthog-events.md` (the event registry — see §5 for the serv
 
 | Event | Fires | File | Carries IP? |
 |---|---|---|---|
-| `send_otp` | On the WhatsApp/SMS button tap, gated by `!loading && !blocked` (the client `otpLocks` guard). Fires on **click intent**, before the server result — so it includes attempts the server later rate-limit-blocks, but **not** attempts the client guard already blocks (button disabled). | `components/Login/SendMethod.tsx:322,392` | No (`$ip` discarded) |
-| `resend_otp` | "Resend" tap on the PIN screen. Carries an `attempts` counter. | `components/Login/LogInPins.tsx:149` | No (`$ip` discarded) |
+| `send_otp` | On the WhatsApp/SMS button tap, gated by `!loading && !blocked` (the client `otpLocks` guard). Fires on **click intent**, before the server result — so it includes attempts the server later rate-limit-blocks, but **not** attempts the client guard already blocks (button disabled). | `components/Login/Enhanced/FullEnhancedLoginWidget.tsx:247` (the fullscreen login/signup widget); `components/Login/Enhanced/usePhoneVerifyFlow.ts:140` (the shared flow behind the cart's `InlineVerifyPanel`, the re-auth widget, the session-expired prompt, and settings change-phone — all via `VerifyPhoneFlow`) | No (`$ip` discarded) |
+| `resend_otp` | "Resend" tap on the PIN screen. Carries an `attempts` counter. | `components/Login/Enhanced/FullEnhancedLoginWidget.tsx:397`; `components/Login/Enhanced/usePhoneVerifyFlow.ts:173` | No (`$ip` discarded) |
 
 > Counting repeat sends needs **both** events — `send_otp` (first send to a number / re-entry) and
 > `resend_otp` (PIN-screen resends). `resend_otp` currently has no data (low traffic), but the

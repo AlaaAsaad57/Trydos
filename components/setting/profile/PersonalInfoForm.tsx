@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { isGuestName } from "utils/tinyUtils";
 import { useAppStore } from "store";
@@ -33,9 +33,12 @@ const normalizePhone = (phone: unknown): string =>
   String(phone ?? "").replace(/^\+/, "");
 
 function PersonalInfoForm({ initialData, isRtl, language, local }) {
-  const { userProfile: clientUser, setLoginOpen } = useAppStore();
-  // Per-field selectors: read the global auth surfaces so this settings
-  // overlay can stand down when one of them is active (see isPhoneShouldChange below).
+  // Per-field selectors: a whole-store destructure would re-render this form
+  // on any unrelated store write. `loginOpen` / `shouldAuthinticated` are read
+  // so this settings overlay can stand down when one of the global auth
+  // surfaces is active (see isPhoneShouldChange below).
+  const clientUser = useAppStore((s) => s.userProfile);
+  const setLoginOpen = useAppStore((s) => s.setLoginOpen);
   const loginOpen = useAppStore((s) => s.loginOpen);
   const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
   const user = clientUser || initialData;
@@ -139,6 +142,17 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
   };
 
   const [isPhoneShouldChange, setIsPhoneShouldChange] = useState(false);
+
+  // The overlay below stands down while a global auth surface is active (see
+  // the comment near it), but that alone leaves `isPhoneShouldChange` true.
+  // Left alone, the overlay would pop back the moment the global surface
+  // clears — mid-flow state gone, at a moment the user never asked for it.
+  // Reset the flag as soon as the gate closes it, so it stays closed after.
+  useEffect(() => {
+    if (loginOpen || shouldAuthinticated) {
+      setIsPhoneShouldChange(false);
+    }
+  }, [loginOpen, shouldAuthinticated]);
 
   const updateField = (field: string, value: any) => {
     setUserProfileData({ ...userProfileData, [field]: value });

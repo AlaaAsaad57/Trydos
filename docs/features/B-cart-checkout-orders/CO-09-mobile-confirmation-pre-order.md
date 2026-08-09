@@ -6,7 +6,7 @@
 | **Domain** | B · Cart, Checkout & Orders |
 | **Status** | 🟢 Live |
 | **Last verified** | 2026-07-04 (against `develop`) |
-| **Source of truth** | `components/Cart/ConfirmMobile.tsx`, `components/Cart/OrderButton.tsx`, `services/auth.ts`, `serverActions/sendOtp.ts` |
+| **Source of truth** | `components/Login/Enhanced/InlineVerifyPanel.tsx`, `components/Login/Enhanced/usePhoneVerifyFlow.ts`, `components/Cart/OrderButton.tsx`, `services/auth.ts`, `serverActions/sendOtp.ts` |
 
 ---
 
@@ -55,7 +55,7 @@ skip it.
 
 | Item | Value |
 |------|-------|
-| Confirmation UI | `components/Cart/ConfirmMobile.tsx` (reuses `PhoneInput`, `SendMethod`, `LogInPins`) |
+| Confirmation UI | `components/Login/Enhanced/InlineVerifyPanel.tsx` — the verify flow compressed into the cart footer's expanded button; built from the Enhanced `ui/` primitives, with the send/verify/resend logic in the shared `components/Login/Enhanced/usePhoneVerifyFlow.ts` hook (also used by `VerifyPhoneFlow`, the fullscreen re-auth/session-expired/settings surfaces) |
 | Checkout trigger | `components/Cart/OrderButton.tsx` (opens when guest / `is_phone_verified === 0`) |
 | Hard gate | `components/Cart/PlaceOrderButtons.tsx`, `components/Cart/OrdersPage.tsx` (re-check before submit) |
 | Re-auth reuse | `components/Login/ConfirmMobilePhoneWidget.tsx` (mounted from `NavbarClient.tsx`) |
@@ -71,7 +71,7 @@ system. See AC-04 / AC-08 for the underlying OTP entry and resend/rate-limiting.
 - **It's effectively a full login/registration, not a lightweight phone check** — verifying calls the
   login path and establishes a session with `is_phone_verified: 1`.
 
-- **Commented-out analytics** and a no-op `FinaliseLogin` remain in the component.
+- **`send_otp` / `resend_otp` GA/PostHog events** fire from the shared `usePhoneVerifyFlow` hook (not this component directly) — see `docs/posthog-otp-abuse-insight.md`.
 
 ## Related features
 

@@ -32,22 +32,23 @@ import 'public/styles/rdb-auth.css';
  */
 export default function AuthOverlay({
     children,
-    onBackdropClick,
     zIndex = 9999999999999,
 }: {
     children: React.ReactNode;
-    /** Omit to make the backdrop inert — the default for a blocking surface. */
-    onBackdropClick?: () => void;
     zIndex?: number;
 }) {
     if (typeof document === 'undefined') return null;
 
     return createPortal(
         <>
+            {/* Inert: AppScaler renders #app-outer as `position: fixed; inset: 0`
+                inside the sibling below (zIndex + 1), so it covers the whole
+                viewport and swallows every click before this backdrop ever sees
+                one. No `onClick` here — it would promise a behaviour no caller
+                can reach. */}
             <div
                 className="fixed inset-0 bg-[#0000004d]"
                 style={{ zIndex }}
-                onClick={onBackdropClick}
                 aria-hidden="true"
             />
             <div className="fixed inset-0 w-full h-dvh font-quicksand" style={{ zIndex: zIndex + 1 }}>

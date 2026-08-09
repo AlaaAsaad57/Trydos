@@ -5,6 +5,8 @@ import { useAppStore } from 'store';
 import AuthService from 'services/auth';
 import { LogError, translateFunction } from 'utils/functions';
 import { getNumberLockRemaining, isSessionCapReached } from 'utils/otpLocks';
+import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from 'utils/GAEvents';
+import { GAevent } from 'utils/gtag';
 
 export type PhoneVerifyStep = 'enter-phone' | 'select-method' | 'enter-pin';
 
@@ -84,7 +86,10 @@ export function usePhoneVerifyFlow({
     source,
 }: UsePhoneVerifyFlowOptions): UsePhoneVerifyFlowResult {
     const translate = (key: string) => translateFunction(key, lang);
-    const { verficationID } = useAppStore();
+    // Per-field selector: a whole-store destructure would re-render every host
+    // of this hook (cart, re-auth widget, session-expired prompt, settings) on
+    // any unrelated store write.
+    const verficationID = useAppStore((s) => s.verficationID);
 
     const startsAtMethod = Boolean(phoneLocked && initialPhone);
     const [step, setStep] = useState<PhoneVerifyStep>(startsAtMethod ? 'select-method' : 'enter-phone');
@@ -98,6 +103,11 @@ export function usePhoneVerifyFlow({
     // The pin inputs can fire onComplete twice inside one tick, before `loading`
     // has re-rendered, and each extra submit burns a server-side attempt.
     const verifyingRef = useRef(false);
+    // Verify attempts made since the last successful send — read inside the
+    // resend's GA payload the way `FullEnhancedLoginWidget` does with its own
+    // `attemptsRef`. A ref (not state) because it's read inside an async
+    // callback and must reflect the count as of the request, not of render.
+    const attemptsRef = useRef(0);
 
     /**
      * A failed request carries either a backend message (already localised by
@@ -123,8 +133,23 @@ export function usePhoneVerifyFlow({
         setMethod(selected);
         setError('');
         setLoading('send-pin');
+        // Mirrors FullEnhancedLoginWidget's handleSelectMethod: fired on send
+        // intent (before the server result), attributed to this hook's host
+        // via `source` since this flow has no login/signup mission of its own.
+        GAevent({
+            action: GA_EVENT_NAMES.SEND_OTP,
+            params: {
+                method: selected,
+                source,
+                button_name:
+                    selected === 'whatsapp'
+                        ? GA_BUTTONS_NAMES.CHOOSE_WHATSAPP_BUTTON
+                        : GA_BUTTONS_NAMES.CHOOSE_SMS_BUTTON,
+            },
+        });
         try {
             await AuthService.SendOtp(phone, selected === 'whatsapp' ? 1 : 0, () => {});
+            attemptsRef.current = 0;
             setPin('');
             setIsValidPin('');
             setLoading('');
@@ -143,8 +168,19 @@ export function usePhoneVerifyFlow({
 
         setError('');
         setLoading('resend-pin');
+        // Mirrors FullEnhancedLoginWidget's handleResendOtp.
+        GAevent({
+            action: GA_EVENT_NAMES.RESEND_OTP,
+            params: {
+                method,
+                attempts: attemptsRef.current,
+                source,
+                button_name: GA_BUTTONS_NAMES.RESEND_OTP_BUTTON,
+            },
+        });
         try {
             await AuthService.SendOtp(phone, method === 'whatsapp' ? 1 : 0, () => {});
+            attemptsRef.current = 0;
             setPin('');
             setIsValidPin('');
             setLoading('');
@@ -158,6 +194,7 @@ export function usePhoneVerifyFlow({
     const verifyPin = async (inputPin: string) => {
         if (loading || verifyingRef.current) return;
         verifyingRef.current = true;
+        attemptsRef.current += 1;
         setError('');
         setLoading('verify-pin');
         try {
@@ -165,6 +202,20 @@ export function usePhoneVerifyFlow({
             setIsValidPin('valid');
             setLoading('');
             // Let the green "valid" state land before the host tears us down.
+            //
+            // Do NOT add a `clearTimeout` cleanup here. `AuthService.VerifyOtp`
+            // (services/auth.ts) calls `setShouldAuthinticated(false)` BEFORE it
+            // resolves. `NavbarClient.tsx` gates `ConfirmMobilePhoneWidget` /
+            // `SessionExpiredWidget` on that marker (and the settings overlays
+            // gate `VerifyPhoneFlow` on it too), so by the time this timer fires
+            // the whole subtree — widget, VerifyPhoneFlow, this hook — has
+            // already unmounted. `handleSuccess`/`onSuccess` in the host only
+            // runs because this detached timer survives the unmount, carrying
+            // the pre-clear state in its closure. Clearing it on unmount would
+            // silently drop `verify_completed_returned_to_checkout`,
+            // `setAddStory(true)` for "open Story", `ChatConroller(true)` for
+            // "open chat", and the `expiredSessionPhone` cleanup — with no error
+            // anywhere to flag it.
             setTimeout(() => onSuccess(result), 600);
         } catch (e) {
             setLoading('');

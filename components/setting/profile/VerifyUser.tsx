@@ -8,13 +8,17 @@ import AuthOverlay from "components/Login/Enhanced/AuthOverlay";
 import VerifyPhoneFlow from "components/Login/Enhanced/VerifyPhoneFlow";
 
 function VerifyUser({ phone: serverPhone }) {
-  const { setLoginOpen, userProfile, user } = useAppStore();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  // Per-field selectors: read the global auth surfaces so this settings
-  // overlay can stand down when one of them is active (see isModalOpen below).
+  // Per-field selectors: a whole-store destructure would re-render this
+  // button on any unrelated store write. `loginOpen` / `shouldAuthinticated`
+  // are read so this settings overlay can stand down when one of the global
+  // auth surfaces is active (see isModalOpen below).
+  const setLoginOpen = useAppStore((s) => s.setLoginOpen);
+  const userProfile = useAppStore((s) => s.userProfile);
+  const user = useAppStore((s) => s.user);
   const loginOpen = useAppStore((s) => s.loginOpen);
   const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Prefer live client state from store, fall back to server-rendered prop
   const phone = userProfile?.phone ?? user?.phone ?? serverPhone;
@@ -26,6 +30,17 @@ function VerifyUser({ phone: serverPhone }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // The overlay below stands down while a global auth surface is active (see
+  // the comment near it), but that alone leaves `isModalOpen` true. Left
+  // alone, the overlay would pop back the moment the global surface clears —
+  // mid-flow state gone, at a moment the user never asked for it. Reset the
+  // flag as soon as the gate closes it, so it stays closed after.
+  useEffect(() => {
+    if (loginOpen || shouldAuthinticated) {
+      setIsModalOpen(false);
+    }
+  }, [loginOpen, shouldAuthinticated]);
 
   const handleOpenModal = () => {
     if (!isVerified) {
