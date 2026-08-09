@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
-import { useAppStore } from 'store';
 import AuthService from 'services/auth';
-import { LogError, translateFunction } from 'utils/functions';
-import { getNumberLockRemaining, isSessionCapReached } from 'utils/otpLocks';
+import { translateFunction } from 'utils/functions';
+import { getNumberLockRemaining } from 'utils/otpLocks';
+import { usePhoneVerifyFlow } from './usePhoneVerifyFlow';
 import RdbPhoneInput from './ui/RdbPhoneInput';
 import RdbPinInputs from './ui/RdbPinInputs';
 
@@ -18,14 +17,14 @@ interface InlineVerifyPanelProps {
     lang?: string;
 }
 
-type Step = 'enter-phone' | 'select-method' | 'enter-pin';
-
 /**
  * The verify flow compressed into the cart footer's expanded button (~200px).
  *
  * Built from the Enhanced `ui/` primitives rather than the Enhanced screens:
  * those screens size themselves against the 430×932 artboard through
- * `FlexibleSpace` (raw artboard px) and overflow a short container.
+ * `FlexibleSpace` (raw artboard px) and overflow a short container. The
+ * send/verify/resend logic itself lives in `usePhoneVerifyFlow`, shared with
+ * `VerifyPhoneFlow` — only the JSX below is specific to this panel.
  */
 export default function InlineVerifyPanel({
     initialPhone,
@@ -35,71 +34,39 @@ export default function InlineVerifyPanel({
     lang = 'en',
 }: InlineVerifyPanelProps) {
     const translate = (key: string) => translateFunction(key, lang);
-    const { verficationID } = useAppStore();
 
-    const startsAtMethod = Boolean(phoneLocked && initialPhone);
-    const [step, setStep] = useState<Step>(startsAtMethod ? 'select-method' : 'enter-phone');
-    const [phone, setPhone] = useState(initialPhone || '');
-    const [method, setMethod] = useState<'sms' | 'whatsapp' | ''>('');
-    const [pin, setPin] = useState('');
-    const [isValidPin, setIsValidPin] = useState<'valid' | 'notvalid' | ''>('');
-    const [error, setError] = useState('');
-    const [busy, setBusy] = useState(false);
+    const {
+        step,
+        setStep,
+        phone,
+        setPhone,
+        method,
+        pin,
+        setPin,
+        isValidPin,
+        error,
+        loading,
+        sendMethod,
+        verifyPin,
+    } = usePhoneVerifyFlow({
+        initialPhone,
+        phoneLocked,
+        verify: (code, verificationId) => AuthService.VerifyOtp(code, verificationId, '', () => {}),
+        onSuccess,
+        lang,
+        // This panel has no screen of its own to render a cooldown/cap
+        // message (unlike VerifyPhoneFlow's select-method screen), so a
+        // blocked send needs a visible error here.
+        blockedMessage: (secondsRemaining) =>
+            `${translate('Wait')} ${secondsRemaining}s ${translate('before trying again')}`,
+        source: 'InlineVerifyPanel',
+    });
 
-    const errorText = (e: unknown) => {
-        const message = e instanceof Error ? e.message : '';
-        const useful = message && message !== 'Wrong Code' && message !== 'user not found';
-        return useful ? message : translate('Something went wrong');
-    };
-
-    const send = async (selected: 'sms' | 'whatsapp') => {
-        if (busy) return;
-        if (getNumberLockRemaining(phone) > 0 || isSessionCapReached(phone)) {
-            setError(
-                `${translate('Wait')} ${getNumberLockRemaining(phone)}s ${translate('before trying again')}`
-            );
-            return;
-        }
-        setMethod(selected);
-        setError('');
-        setBusy(true);
-        try {
-            await AuthService.SendOtp(phone, selected === 'whatsapp' ? 1 : 0, () => {});
-            setPin('');
-            setIsValidPin('');
-            setBusy(false);
-            setStep('enter-pin');
-        } catch (e) {
-            setBusy(false);
-            setError(errorText(e));
-            LogError({ error: e, scenario: 'Error sending OTP in InlineVerifyPanel' });
-        }
-    };
-
-    const verify = async (inputPin: string) => {
-        if (busy) return;
-        setBusy(true);
-        setError('');
-        try {
-            await AuthService.VerifyOtp(inputPin, verficationID as string, '', () => {});
-            setIsValidPin('valid');
-            setBusy(false);
-            setTimeout(onSuccess, 600);
-        } catch (e) {
-            setBusy(false);
-            setIsValidPin('notvalid');
-            setError(translate('Please Enter The Correct Code Sent To Your Phone'));
-            LogError({ error: e, scenario: 'Error verifying OTP in InlineVerifyPanel' });
-            setTimeout(() => {
-                setIsValidPin('');
-                setPin('');
-            }, 1500);
-        }
-    };
+    const busy = loading !== '';
 
     const methodButton = (kind: 'whatsapp' | 'sms', label: string, icon: string) => (
         <button
-            onClick={() => send(kind)}
+            onClick={() => sendMethod(kind)}
             disabled={busy}
             className={`relative mx-0.5 flex flex-1 items-center justify-center h-xd-48 rounded-xd-15 border border-dashed transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
                 method === kind ? 'border-[#388CFF] bg-[#FCFCFC]' : 'border-[#C3C3C3] bg-white'
@@ -158,13 +125,13 @@ export default function InlineVerifyPanel({
                     <RdbPinInputs
                         value={pin}
                         onChange={setPin}
-                        onComplete={verify}
+                        onComplete={verifyPin}
                         disabled={busy || isValidPin === 'valid'}
                         isValidPin={isValidPin}
                         autoFocus={false}
                     />
                     <button
-                        onClick={() => method && send(method)}
+                        onClick={() => method && sendMethod(method)}
                         disabled={busy || getNumberLockRemaining(phone) > 0}
                         className="text-xd-12 text-[#388CFF] underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
