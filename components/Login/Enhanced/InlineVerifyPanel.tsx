@@ -55,34 +55,36 @@ export default function InlineVerifyPanel({
         verify: (code, verificationId) => AuthService.VerifyOtp(code, verificationId, '', () => {}),
         onSuccess,
         lang,
-        // This panel has no screen of its own to render a cooldown/cap
-        // message (unlike VerifyPhoneFlow's select-method screen), so a
-        // blocked send needs a visible error here. `remaining === 0` with the
-        // send still blocked means the block is the distinct-number session
-        // cap (utils/otpLocks.ts), not the per-number cooldown — same split
-        // SelectMethodScreen renders as two separate messages.
-        blockedMessage: (secondsRemaining) =>
-            secondsRemaining > 0
-                ? `${translate('Wait')} ${secondsRemaining}${translate('s')} ${translate('before trying again')}`
-                : translate('Session limit reached. Try again later.'),
+        // No `blockedMessage`: this panel renders its own live cooldown/cap
+        // message below, the same way SelectMethodScreen does, so a blocked
+        // send has an explanation on screen before the shopper even taps.
+        // Passing one as well would show two competing messages.
         source: 'InlineVerifyPanel',
     });
 
     const busy = loading !== '';
 
-    // Mirrors SelectMethodScreen's own lock/cap polling: the method buttons
-    // must not stay tappable while a send would just be silently re-blocked.
-    const [blocked, setBlocked] = useState(false);
+    // Mirrors SelectMethodScreen's own lock/cap polling, so the countdown ticks
+    // down on screen and the method buttons are not tappable while a send would
+    // just be re-blocked.
+    const [lockRemaining, setLockRemaining] = useState(0);
+    const [capReached, setCapReached] = useState(false);
     useEffect(() => {
         if (!phone) {
-            setBlocked(false);
+            setLockRemaining(0);
+            setCapReached(false);
             return;
         }
-        const sync = () => setBlocked(getNumberLockRemaining(phone) > 0 || isSessionCapReached(phone));
+        const sync = () => {
+            setLockRemaining(getNumberLockRemaining(phone));
+            setCapReached(isSessionCapReached(phone));
+        };
         sync();
         const id = setInterval(sync, 1000);
         return () => clearInterval(id);
     }, [phone]);
+
+    const blocked = lockRemaining > 0 || capReached;
 
     const methodButton = (kind: 'whatsapp' | 'sms', label: string, icon: string) => (
         <button
@@ -101,7 +103,9 @@ export default function InlineVerifyPanel({
 
     return (
         <div
-            className="w-full h-full flex flex-col items-center justify-center gap-xd-8 px-xd-10 font-quicksand"
+            // Capped at the RDB design canvas width so the panel keeps the same
+            // proportions as the fullscreen auth screens on a wide cart footer.
+            className="w-full max-w-[430px] mx-auto h-full flex flex-col items-center justify-center gap-xd-8 px-xd-10 font-quicksand"
             // The panel sits inside the cart's Confirm button, whose onClick
             // would otherwise swallow every interaction in here.
             onClick={(e) => e.stopPropagation()}
@@ -167,7 +171,7 @@ export default function InlineVerifyPanel({
                     />
                     <button
                         onClick={() => method && sendMethod(method)}
-                        disabled={busy || getNumberLockRemaining(phone) > 0}
+                        disabled={busy || blocked}
                         className="text-xd-12 text-[#388CFF] underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {translate('Resend Code')}
@@ -175,7 +179,34 @@ export default function InlineVerifyPanel({
                 </>
             )}
 
-            {error && (
+            {/* Live cooldown countdown — visible before the shopper taps, and
+                ticking, so the wait is explained rather than discovered. */}
+            {lockRemaining > 0 && (
+                <p
+                    data-cy="otp-cooldown"
+                    className="text-xd-11 font-medium text-[#FF5F61] text-center"
+                >
+                    <span>{translate('Wait')} </span>
+                    <span className="font-bold">
+                        {lockRemaining}
+                        {translate('s')}
+                    </span>
+                    <span> {translate('before trying again')}</span>
+                </p>
+            )}
+
+            {/* The distinct-number session cap has no countdown of its own — it
+                clears on its own window, so it gets a message, not a timer. */}
+            {lockRemaining === 0 && capReached && (
+                <p
+                    data-cy="otp-cap-reached"
+                    className="text-xd-11 font-medium text-[#FF5F61] text-center"
+                >
+                    {translate('Session limit reached. Try again later.')}
+                </p>
+            )}
+
+            {!blocked && error && (
                 <p role="alert" className="text-xd-11 font-medium text-[#FF5F61] text-center">
                     {error}
                 </p>
