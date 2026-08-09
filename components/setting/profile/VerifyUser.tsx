@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { translateFunction } from "utils/functions";
-import { createPortal } from "react-dom";
-import { ConfirmationModal } from "components/settings/PersonalInfo";
 import { useAppStore } from "store";
 import { isValidPhone } from "utils/phone";
+import AuthService from "services/auth";
+import AuthOverlay from "components/Login/Enhanced/AuthOverlay";
+import VerifyPhoneFlow from "components/Login/Enhanced/VerifyPhoneFlow";
 
 function VerifyUser({ phone: serverPhone }) {
   const { setLoginOpen, userProfile, user } = useAppStore();
@@ -58,24 +59,20 @@ function VerifyUser({ phone: serverPhone }) {
           : translateFunction("Verify Now")}
       </span>
 
-      {/* Portal لضمان ظهور الـ Modal فوق الأنيميشن تماماً */}
-      {isModalOpen &&
-        mounted &&
-        createPortal(
-          <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 backdrop-blur-xs">
-            <div className="w-full max-w-md animate-in zoom-in-95 duration-200">
-              <ConfirmationModal
-                forVerify={true}
-                closeWindow={() => setIsModalOpen(false)}
-                value={phone}
-                successCallback={(idToken) => {
-                  setIsModalOpen(false);
-                }}
-              />
-            </div>
-          </div>,
-          document.body,
-        )}
+      {isModalOpen && mounted && (
+        <AuthOverlay>
+          <VerifyPhoneFlow
+            initialPhone={phone}
+            phoneLocked
+            // The account already owns this number — a plain login verify.
+            verify={(code, verificationId) =>
+              AuthService.VerifyOtp(code, verificationId, "", () => {})
+            }
+            onSuccess={() => setIsModalOpen(false)}
+            onClose={() => setIsModalOpen(false)}
+          />
+        </AuthOverlay>
+      )}
     </div>
   );
 }

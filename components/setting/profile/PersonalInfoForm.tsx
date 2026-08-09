@@ -8,10 +8,10 @@ import auth from "services/auth";
 
 import { pollinateInput } from "utils/tinyUtils";
 import BackBar from "../BackBar";
-import ConfirmMobileChange from "components/settings/ConfirmMobileChange";
 import { usePhoneInput } from "utils/usePhoneInput";
 import { allCountries } from "country-telephone-data";
-import { createPortal } from "react-dom";
+import AuthOverlay from "components/Login/Enhanced/AuthOverlay";
+import VerifyPhoneFlow from "components/Login/Enhanced/VerifyPhoneFlow";
 
 // Validation helpers
 const isValidEmail = (email: string): boolean => {
@@ -227,28 +227,30 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
       key="personal-info-setting-page"
     >
       {isPhoneShouldChange && (
-        <ConfirmationModal
-          forVerify={false}
-          closeWindow={() => {
-          //   phoneInput.setValue(
-          //   initialData?.phone === "0" ? "" : initialData?.phone || "",
-          // );
-            setIsPhoneShouldChange(false);
-          }}
-          value={phoneInput.value}
-          successCallback={(idToken) => {
-            updateUserProfile({
-              ...userProfileData,
-              phone: phoneInput.modifiedValue?.includes("+")
-                ? phoneInput.modifiedValue
-                : `+${phoneInput.modifiedValue}`,
-              alternative_phone: alternativePhoneInput.modifiedValue || "",
-              id_token: idToken,
-            });
-
-            setIsPhoneShouldChange(false);
-          }}
-        />
+        <AuthOverlay>
+          <VerifyPhoneFlow
+            initialPhone={phoneInput.value}
+            phoneLocked
+            // A NEW number: verify it against the phone-update endpoint, which
+            // returns the id_token the profile save must carry.
+            verify={(code, verificationId) =>
+              auth.VerifyOtpForUpdatePhone(code, verificationId)
+            }
+            onSuccess={(idToken) => {
+              updateUserProfile({
+                ...userProfileData,
+                phone: phoneInput.modifiedValue?.includes("+")
+                  ? phoneInput.modifiedValue
+                  : `+${phoneInput.modifiedValue}`,
+                alternative_phone: alternativePhoneInput.modifiedValue || "",
+                id_token: idToken,
+              });
+              setIsPhoneShouldChange(false);
+            }}
+            onClose={() => setIsPhoneShouldChange(false)}
+            lang={language}
+          />
+        </AuthOverlay>
       )}
       <BackBar
         name={translateFunction("Profile | Personal Info", language)}
@@ -620,38 +622,3 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
 }
 
 export default PersonalInfoForm;
-const ConfirmationModal = ({
-  closeWindow,
-  value,
-  successCallback,
-  forVerify,
-}: any) => {
-  return (
-    <>
-      <img
-        onClick={closeWindow}
-        src="/icons/settings/WhiteXicon.svg"
-        className="w-[20px] absolute z-[9999999999] top-[calc(50%-170px)]  right-[30px]  h-[20px] cursor-pointer"
-      />
-
-      {createPortal(
-        <>
-          <div className="fixed z-[999999998] top-0 left-0  w-full h-full bg-black opacity-50" onClick={()=>{
-            // closeWindow();
-          }}/>
-          <div className="p-5 flex  w-auto justify-center z-[999999999] h-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[15px]">
-            <ConfirmMobileChange
-              forVerify={forVerify}
-              closeWindow={closeWindow}
-              value={value}
-              successCallbackFunction={(idToken) => {
-                successCallback(idToken);
-              }}
-            />
-          </div>
-        </>,
-        document.body,
-      )}
-    </>
-  );
-};
