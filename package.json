@@ -11,7 +11,9 @@
     "lint:i18n-parity": "node scripts/i18n-parity.mjs",
     "start-server": "next build & next start",
     "knip": "knip",
-    "test": "vitest"
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "resolutions": {
     "form-data": "4.0.6",
@@ -127,6 +129,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.5",
+    "@vitest/coverage-v8": "^4.1.10",
     "babel-plugin-react-compiler": "^1.0.0",
     "css-loader": "^7.1.2",
     "eslint": "^9.39.4",
