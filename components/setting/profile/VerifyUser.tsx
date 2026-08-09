@@ -11,6 +11,10 @@ function VerifyUser({ phone: serverPhone }) {
   const { setLoginOpen, userProfile, user } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // Per-field selectors: read the global auth surfaces so this settings
+  // overlay can stand down when one of them is active (see isModalOpen below).
+  const loginOpen = useAppStore((s) => s.loginOpen);
+  const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
 
   // Prefer live client state from store, fall back to server-rendered prop
   const phone = userProfile?.phone ?? user?.phone ?? serverPhone;
@@ -59,7 +63,12 @@ function VerifyUser({ phone: serverPhone }) {
           : translateFunction("Verify Now")}
       </span>
 
-      {isModalOpen && mounted && (
+      {/* AppScaler (the overlay's scaled canvas) is single-instance-only —
+          it hardcodes #app-outer/#master-canvas and :root vars, so a second
+          mounted instance corrupts both. The global auth surface wins:
+          if the token just died (session expired / re-verify needed), this
+          own-account re-verify can't complete anyway, so it stands down. */}
+      {isModalOpen && mounted && !loginOpen && !shouldAuthinticated && (
         <AuthOverlay>
           <VerifyPhoneFlow
             initialPhone={phone}

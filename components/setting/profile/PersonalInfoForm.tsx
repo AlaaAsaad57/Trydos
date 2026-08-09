@@ -34,6 +34,10 @@ const normalizePhone = (phone: unknown): string =>
 
 function PersonalInfoForm({ initialData, isRtl, language, local }) {
   const { userProfile: clientUser, setLoginOpen } = useAppStore();
+  // Per-field selectors: read the global auth surfaces so this settings
+  // overlay can stand down when one of them is active (see isPhoneShouldChange below).
+  const loginOpen = useAppStore((s) => s.loginOpen);
+  const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
   const user = clientUser || initialData;
 
   const isNotLoggedIn = !user || 
@@ -226,7 +230,12 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
       } ${isNotLoggedIn ? "opacity-65" : ""}`}
       key="personal-info-setting-page"
     >
-      {isPhoneShouldChange && (
+      {/* AppScaler (the overlay's scaled canvas) is single-instance-only —
+          it hardcodes #app-outer/#master-canvas and :root vars, so a second
+          mounted instance corrupts both. The global auth surface wins:
+          if the token just died (session expired / re-verify needed), the
+          phone change can't complete anyway, so this overlay stands down. */}
+      {isPhoneShouldChange && !loginOpen && !shouldAuthinticated && (
         <AuthOverlay>
           <VerifyPhoneFlow
             initialPhone={phoneInput.value}
