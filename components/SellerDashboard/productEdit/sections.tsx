@@ -500,28 +500,34 @@ export function PricingSection({ form, patch, errors, disabled, currency, prices
         )}
         <Num label="Shipping Days" value={form.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
         {/* A flat tax is an amount in the display currency and is converted
-            server-side; any other type is read as a percentage (contract §1b). */}
-        <Num
-          label="Tax"
-          fieldKey="tax"
-          value={form.tax}
-          error={errors.tax}
-          disabled={disabled}
-          suffix={form.tax_type === "flat" ? currency : "%"}
-          onChange={(v) => patch({ tax: v })}
-        />
-        <Select
-          label="Tax Type"
-          fieldKey="tax_type"
-          value={form.tax_type}
-          error={errors.tax_type}
-          disabled={disabled}
-          onChange={(v) => patch({ tax_type: v })}
-          options={[
-            { value: "percent", label: t("Percent") },
-            { value: "flat", label: t("Flat") },
-          ]}
-        />
+            server-side; any other type is read as a percentage (contract §1b).
+            Tax changes what the buyer pays, so it follows the same rule as the
+            other prices and is hidden for an unapproved seller. */}
+        {!pricesLocked && (
+          <Num
+            label="Tax"
+            fieldKey="tax"
+            value={form.tax}
+            error={errors.tax}
+            disabled={disabled}
+            suffix={form.tax_type === "flat" ? currency : "%"}
+            onChange={(v) => patch({ tax: v })}
+          />
+        )}
+        {!pricesLocked && (
+          <Select
+            label="Tax Type"
+            fieldKey="tax_type"
+            value={form.tax_type}
+            error={errors.tax_type}
+            disabled={disabled}
+            onChange={(v) => patch({ tax_type: v })}
+            options={[
+              { value: "percent", label: t("Percent") },
+              { value: "flat", label: t("Flat") },
+            ]}
+          />
+        )}
       </div>
     </Section>
   );
