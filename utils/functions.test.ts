@@ -77,6 +77,9 @@ describe("utils/functions", () => {
 
   it("returns the original key for English fallback", async () => {
     const { translateFunction } = await loadFunctionsModule();
+    // An untranslated key is the point of this assertion, so the i18n rule
+    // must not demand ar/tr/ku entries for it.
+    // eslint-disable-next-line local/translate-key-exists
     expect(translateFunction("welcome", "en")).toBe("welcome");
   });
 

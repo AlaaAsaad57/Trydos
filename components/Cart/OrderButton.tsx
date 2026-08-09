@@ -6,7 +6,7 @@ import {
   translateFunction,
 } from "utils/functions";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
-import ConfirmMobile from "./ConfirmMobile";
+import InlineVerifyPanel from "components/Login/Enhanced/InlineVerifyPanel";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
 import OrderMarquee from "./OrderMarquee";
@@ -629,20 +629,29 @@ function OrderButton({ close, toOrders }) {
               <>
                 {option ? (
                   <>
-                    <ConfirmMobile
-                      //  @ts-ignore
-                      hasMobile={
+                    <InlineVerifyPanel
+                      initialPhone={
+                        userData?.phone !== null &&
+                        // @ts-ignore — phone is typed loosely across the store
+                        userData?.phone !== 0 &&
+                        userData?.phone !== "0"
+                          ? userData?.phone
+                          : null
+                      }
+                      phoneLocked={
                         userData?.phone !== null &&
                         // @ts-ignore
                         userData?.phone !== 0 &&
                         userData?.phone !== "0"
                       }
-                      closeWindow={() => {
+                      onClose={() => {
                         setOption(false);
                       }}
-                      goToOrders={() => {
+                      onSuccess={() => {
+                        setOption(false);
                         GoToOrders(true);
                       }}
+                      lang={languageVariable}
                     />
                   </>
                 ) : (

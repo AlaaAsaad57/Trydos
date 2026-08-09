@@ -1,13 +1,22 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { translateFunction } from "utils/functions";
-import { createPortal } from "react-dom";
-import { ConfirmationModal } from "components/settings/PersonalInfo";
 import { useAppStore } from "store";
 import { isValidPhone } from "utils/phone";
+import AuthService from "services/auth";
+import AuthOverlay from "components/Login/Enhanced/AuthOverlay";
+import VerifyPhoneFlow from "components/Login/Enhanced/VerifyPhoneFlow";
 
 function VerifyUser({ phone: serverPhone }) {
-  const { setLoginOpen, userProfile, user } = useAppStore();
+  // Per-field selectors: a whole-store destructure would re-render this
+  // button on any unrelated store write. `loginOpen` / `shouldAuthinticated`
+  // are read so this settings overlay can stand down when one of the global
+  // auth surfaces is active (see isModalOpen below).
+  const setLoginOpen = useAppStore((s) => s.setLoginOpen);
+  const userProfile = useAppStore((s) => s.userProfile);
+  const user = useAppStore((s) => s.user);
+  const loginOpen = useAppStore((s) => s.loginOpen);
+  const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -21,6 +30,17 @@ function VerifyUser({ phone: serverPhone }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // The overlay below stands down while a global auth surface is active (see
+  // the comment near it), but that alone leaves `isModalOpen` true. Left
+  // alone, the overlay would pop back the moment the global surface clears —
+  // mid-flow state gone, at a moment the user never asked for it. Reset the
+  // flag as soon as the gate closes it, so it stays closed after.
+  useEffect(() => {
+    if (loginOpen || shouldAuthinticated) {
+      setIsModalOpen(false);
+    }
+  }, [loginOpen, shouldAuthinticated]);
 
   const handleOpenModal = () => {
     if (!isVerified) {
@@ -58,24 +78,25 @@ function VerifyUser({ phone: serverPhone }) {
           : translateFunction("Verify Now")}
       </span>
 
-      {/* Portal لضمان ظهور الـ Modal فوق الأنيميشن تماماً */}
-      {isModalOpen &&
-        mounted &&
-        createPortal(
-          <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 backdrop-blur-xs">
-            <div className="w-full max-w-md animate-in zoom-in-95 duration-200">
-              <ConfirmationModal
-                forVerify={true}
-                closeWindow={() => setIsModalOpen(false)}
-                value={phone}
-                successCallback={(idToken) => {
-                  setIsModalOpen(false);
-                }}
-              />
-            </div>
-          </div>,
-          document.body,
-        )}
+      {/* AppScaler (the overlay's scaled canvas) is single-instance-only —
+          it hardcodes #app-outer/#master-canvas and :root vars, so a second
+          mounted instance corrupts both. The global auth surface wins:
+          if the token just died (session expired / re-verify needed), this
+          own-account re-verify can't complete anyway, so it stands down. */}
+      {isModalOpen && mounted && !loginOpen && !shouldAuthinticated && (
+        <AuthOverlay>
+          <VerifyPhoneFlow
+            initialPhone={phone}
+            phoneLocked
+            // The account already owns this number — a plain login verify.
+            verify={(code, verificationId) =>
+              AuthService.VerifyOtp(code, verificationId, "", () => {})
+            }
+            onSuccess={() => setIsModalOpen(false)}
+            onClose={() => setIsModalOpen(false)}
+          />
+        </AuthOverlay>
+      )}
     </div>
   );
 }

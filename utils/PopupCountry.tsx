@@ -11,6 +11,7 @@ import PersonalInfoCountries from "components/settings/PersonalInfoCountries";
 
 import { FlagIcon } from "./tinyUtils";
 import { setLocaizationCookies } from "./cookies/cookie-manager";
+import { countryNameFromIso } from "./server/country";
 
 const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   const [loading, setLoading] = useState(true);
@@ -115,22 +116,19 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
     return () => clearInterval(interval);
   }, [initialLoading]);
 
-  // Get country info helper
-  const getCountryInfo = useCallback(
-    (countryValue) => {
-      if (!countryValue || !options) return null;
-      return options.find(
-        (country) =>
-          country.value?.toLowerCase() === countryValue?.toLowerCase(),
-      );
-    },
-    [options],
-  );
-
   // Get current language
   const currentLanguage = Array.isArray(lang)
     ? lang[0]?.split("-")[1]
     : lang?.split("-")[1] || "en";
+
+  // Country names are shown in the visitor's language. The backend `name`
+  // field is English-only, so resolve the ISO code the same way the rest of
+  // the app does.
+  const countryLabel = useCallback(
+    (iso?: string) =>
+      countryNameFromIso(iso, currentLanguage) || iso?.toUpperCase(),
+    [currentLanguage],
+  );
 
   return (
     <div
@@ -235,15 +233,12 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                     message={`${translateFunction(
                       "You previously visited from",
                       currentLanguage,
-                    )} ${
-                      getCountryInfo(decodeURI(forChanged).split(",")[1])
-                        ?.label ||
-                      decodeURI(forChanged).split(",")[1]?.toUpperCase()
-                    } ${translateFunction("but now accessing from")} ${
-                      getCountryInfo(decodeURI(forChanged).split(",")[0])
-                        ?.label ||
-                      decodeURI(forChanged).split(",")[0]?.toUpperCase()
-                    }`}
+                    )} ${countryLabel(
+                      decodeURI(forChanged).split(",")[1],
+                    )} ${translateFunction(
+                      "but now accessing from",
+                      currentLanguage,
+                    )} ${countryLabel(decodeURI(forChanged).split(",")[0])}`}
                   />
                   <div className="space-y-3 px-[8px]">
                     {/* Continue with new country */}
@@ -274,9 +269,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                         <FlagIcon iso={decodeURI(forChanged).split(",")[0]} />
                       </span>
                       <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
-                        {getCountryInfo(decodeURI(forChanged).split(",")[0])
-                          ?.label ||
-                          decodeURI(forChanged).split(",")[0]?.toUpperCase()}
+                        {countryLabel(decodeURI(forChanged).split(",")[0])}
                       </span>
                     </button>
 
@@ -314,9 +307,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                         <FlagIcon iso={decodeURI(forChanged).split(",")[1]} />
                       </span>
                       <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
-                        {getCountryInfo(decodeURI(forChanged).split(",")[1])
-                          ?.label ||
-                          decodeURI(forChanged).split(",")[1]?.toUpperCase()}
+                        {countryLabel(decodeURI(forChanged).split(",")[1])}
                       </span>
                     </button>
                   </div>
@@ -327,6 +318,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
               {noCountry && (
                 <PersonalInfoCountries
                   hideTopBar
+                  local={Array.isArray(lang) ? lang[0] : lang}
                   infoMessage={translateFunction(
                     "Choose your country to get the best experience",
                     currentLanguage,

@@ -95,8 +95,10 @@ export async function sendOtpAction(input: {
         isWhatsapp: input.isWhatsapp,
       });
       const wait = limit.lockSeconds || 60;
-      // Reuse the existing PhoneNumberError parser: any message containing
-      // "seconds before trying again" renders a live countdown in the UI.
+      // The countdown itself comes from the structured `lockSeconds` field
+      // below (services/auth.ts feeds it straight into `lockNumber()` /
+      // `utils/otpLocks`) — this message is shown as-is, not parsed for a
+      // "seconds before trying again" pattern.
       const message =
         limit.reason === "cooldown"
           ? `Please wait ${wait} seconds before trying again`

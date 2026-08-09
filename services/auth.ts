@@ -241,6 +241,11 @@ class AuthService {
         // continues in place (mirrors the chat/stories flow).
         // await this.CheckUserName();
       } catch (error) {}
+      // not exist and has no name
+      // return [false, ""];
+      // // not exist and has no name
+      // return [true, ""];
+
       return [response.data.already_exists, user.name];
     } catch (e) {
       if (e.message === "user not found") {

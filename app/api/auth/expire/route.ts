@@ -115,9 +115,9 @@ export async function POST(request: NextRequest) {
     // also no "user does not exist" retry.
     const country = request.headers.get("x-country")?.trim() || "sy";
     const language = request.headers.get("x-language")?.trim() || "en";
-    // TODO GO
+
     const response = await fetch(
-      process.env.BACKEND_URL + REGISTER_GUEST_URL,
+      process.env.GO_BACKEND_URL + REGISTER_GUEST_URL,
       {
         method: "POST",
         headers: {

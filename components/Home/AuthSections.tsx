@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import LandingPage from "./LandingPage";
 import { useAppStore } from "store";
+import FullEnhancedLoginWidget from "components/Login/Enhanced/FullEnhancedLoginWidget";
 
 const CallContainer = dynamic(
   () => import("components/Chat/pages/CallContainer"),
@@ -11,14 +12,8 @@ const CallContainer = dynamic(
 const ChatModal = dynamic(() => import("components/Chat/ChatModal"), {
   loading: () => <LandingPage afterLoad={true} />,
 });
-const NewLoginWidget = dynamic(
-  () => import("components/Login/NewLoginWidget"),
-  {
-    loading: () => <LandingPage afterLoad={true} />,
-  }
-);
+
 function AuthSections() {
-  // Per-field selectors: mounted on every page via NavbarClient.
   const loginOpen = useAppStore((s) => s.loginOpen);
   const chatOpen = useAppStore((s) => s.chatVar);
   const call = useAppStore((s) => s.call);
@@ -26,8 +21,7 @@ function AuthSections() {
   return (
     <>
       {chatOpen && <ChatModal />}
-      {loginOpen && <NewLoginWidget />}
-
+      {loginOpen && <FullEnhancedLoginWidget />}
       {call && <CallContainer />}
     </>
   );

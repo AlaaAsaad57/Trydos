@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { isGuestName } from "utils/tinyUtils";
 import { useAppStore } from "store";
@@ -8,10 +8,10 @@ import auth from "services/auth";
 
 import { pollinateInput } from "utils/tinyUtils";
 import BackBar from "../BackBar";
-import ConfirmMobileChange from "components/settings/ConfirmMobileChange";
 import { usePhoneInput } from "utils/usePhoneInput";
 import { allCountries } from "country-telephone-data";
-import { createPortal } from "react-dom";
+import AuthOverlay from "components/Login/Enhanced/AuthOverlay";
+import VerifyPhoneFlow from "components/Login/Enhanced/VerifyPhoneFlow";
 
 // Validation helpers
 const isValidEmail = (email: string): boolean => {
@@ -33,7 +33,14 @@ const normalizePhone = (phone: unknown): string =>
   String(phone ?? "").replace(/^\+/, "");
 
 function PersonalInfoForm({ initialData, isRtl, language, local }) {
-  const { userProfile: clientUser, setLoginOpen } = useAppStore();
+  // Per-field selectors: a whole-store destructure would re-render this form
+  // on any unrelated store write. `loginOpen` / `shouldAuthinticated` are read
+  // so this settings overlay can stand down when one of the global auth
+  // surfaces is active (see isPhoneShouldChange below).
+  const clientUser = useAppStore((s) => s.userProfile);
+  const setLoginOpen = useAppStore((s) => s.setLoginOpen);
+  const loginOpen = useAppStore((s) => s.loginOpen);
+  const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
   const user = clientUser || initialData;
 
   const isNotLoggedIn = !user || 
@@ -136,6 +143,17 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
 
   const [isPhoneShouldChange, setIsPhoneShouldChange] = useState(false);
 
+  // The overlay below stands down while a global auth surface is active (see
+  // the comment near it), but that alone leaves `isPhoneShouldChange` true.
+  // Left alone, the overlay would pop back the moment the global surface
+  // clears — mid-flow state gone, at a moment the user never asked for it.
+  // Reset the flag as soon as the gate closes it, so it stays closed after.
+  useEffect(() => {
+    if (loginOpen || shouldAuthinticated) {
+      setIsPhoneShouldChange(false);
+    }
+  }, [loginOpen, shouldAuthinticated]);
+
   const updateField = (field: string, value: any) => {
     setUserProfileData({ ...userProfileData, [field]: value });
     if (showValidation && validationErrors[field]) {
@@ -226,29 +244,39 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
       } ${isNotLoggedIn ? "opacity-65" : ""}`}
       key="personal-info-setting-page"
     >
-      {isPhoneShouldChange && (
-        <ConfirmationModal
-          forVerify={false}
-          closeWindow={() => {
-          //   phoneInput.setValue(
-          //   initialData?.phone === "0" ? "" : initialData?.phone || "",
-          // );
-            setIsPhoneShouldChange(false);
-          }}
-          value={phoneInput.value}
-          successCallback={(idToken) => {
-            updateUserProfile({
-              ...userProfileData,
-              phone: phoneInput.modifiedValue?.includes("+")
-                ? phoneInput.modifiedValue
-                : `+${phoneInput.modifiedValue}`,
-              alternative_phone: alternativePhoneInput.modifiedValue || "",
-              id_token: idToken,
-            });
-
-            setIsPhoneShouldChange(false);
-          }}
-        />
+      {/* AppScaler (the overlay's scaled canvas) is single-instance-only —
+          it hardcodes #app-outer/#master-canvas and :root vars, so a second
+          mounted instance corrupts both. The global auth surface wins:
+          if the token just died (session expired / re-verify needed), the
+          phone change can't complete anyway, so this overlay stands down. */}
+      {isPhoneShouldChange && !loginOpen && !shouldAuthinticated && (
+        <AuthOverlay>
+          <VerifyPhoneFlow
+            initialPhone={phoneInput.value}
+            phoneLocked
+            // A NEW number the shopper just typed — the screens say "Change
+            // Your Number !", not "Verify Your Number !".
+            authType="changePhone"
+            // A NEW number: verify it against the phone-update endpoint, which
+            // returns the id_token the profile save must carry.
+            verify={(code, verificationId) =>
+              auth.VerifyOtpForUpdatePhone(code, verificationId)
+            }
+            onSuccess={(idToken) => {
+              updateUserProfile({
+                ...userProfileData,
+                phone: phoneInput.modifiedValue?.includes("+")
+                  ? phoneInput.modifiedValue
+                  : `+${phoneInput.modifiedValue}`,
+                alternative_phone: alternativePhoneInput.modifiedValue || "",
+                id_token: idToken,
+              });
+              setIsPhoneShouldChange(false);
+            }}
+            onClose={() => setIsPhoneShouldChange(false)}
+            lang={language}
+          />
+        </AuthOverlay>
       )}
       <BackBar
         name={translateFunction("Profile | Personal Info", language)}
@@ -620,38 +648,3 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
 }
 
 export default PersonalInfoForm;
-const ConfirmationModal = ({
-  closeWindow,
-  value,
-  successCallback,
-  forVerify,
-}: any) => {
-  return (
-    <>
-      <img
-        onClick={closeWindow}
-        src="/icons/settings/WhiteXicon.svg"
-        className="w-[20px] absolute z-[9999999999] top-[calc(50%-170px)]  right-[30px]  h-[20px] cursor-pointer"
-      />
-
-      {createPortal(
-        <>
-          <div className="fixed z-[999999998] top-0 left-0  w-full h-full bg-black opacity-50" onClick={()=>{
-            // closeWindow();
-          }}/>
-          <div className="p-5 flex  w-auto justify-center z-[999999999] h-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[15px]">
-            <ConfirmMobileChange
-              forVerify={forVerify}
-              closeWindow={closeWindow}
-              value={value}
-              successCallbackFunction={(idToken) => {
-                successCallback(idToken);
-              }}
-            />
-          </div>
-        </>,
-        document.body,
-      )}
-    </>
-  );
-};
