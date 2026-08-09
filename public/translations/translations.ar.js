@@ -201,6 +201,7 @@ const translations = {
   "Waiting…": "جارٍ الانتظار…",
   Wait: "انتظر",
   "Wait": "انتظر",
+  "s": "ثا",
   "before trying again": "قبل المحاولة مرة أخرى",
   "Notification is Blocked in This Browser Please Enable Notification premission and refresh":
     "تم حظر الإشعارات في هذا المتصفح، يرجى تفعيل إذن الإشعارات ثم تحديث الصفحة",

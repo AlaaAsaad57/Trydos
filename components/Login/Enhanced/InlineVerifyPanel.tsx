@@ -63,7 +63,7 @@ export default function InlineVerifyPanel({
         // SelectMethodScreen renders as two separate messages.
         blockedMessage: (secondsRemaining) =>
             secondsRemaining > 0
-                ? `${translate('Wait')} ${secondsRemaining}s ${translate('before trying again')}`
+                ? `${translate('Wait')} ${secondsRemaining}${translate('s')} ${translate('before trying again')}`
                 : translate('Session limit reached. Try again later.'),
         source: 'InlineVerifyPanel',
     });

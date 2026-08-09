@@ -134,7 +134,10 @@ export default function EnterPhoneScreen({
                             className="pt-xd-10 text-xd-12 font-medium text-[#FF5F61] text-center"
                         >
                             <span>{translate('Wait')} </span>
-                            <span className="font-bold">{lockRemaining}s</span>
+                            <span className="font-bold">
+                                {lockRemaining}
+                                {translate('s')}
+                            </span>
                             <span> {translate('before trying again')}</span>
                         </div>
                     ) : (

@@ -206,6 +206,7 @@ const translations = {
   "Waiting…": "Bekleniyor…",
   Wait: "Bekleyin",
   "Wait": "Bekleyin",
+  "s": "sn",
   "before trying again": "tekrar denemeden önce",
   "Product Return Request Approve": "Ürün iade talebini onayla",
   "Product Return Needs Confirm": "Ürün iade talebi onay gerektiriyor",
