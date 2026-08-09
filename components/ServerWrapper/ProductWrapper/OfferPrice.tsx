@@ -7,7 +7,7 @@ export const OfferPrice = ({ price, luckActive }) => {
       {price}
       {luckActive && (
         <svg
-          className="absolute w-full"
+          className="absolute w-full top-1/2"
           xmlns="http://www.w3.org/2000/svg"
           width="100%"
           height="1"
