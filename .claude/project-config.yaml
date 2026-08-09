@@ -233,6 +233,12 @@ validation_checks:
     description: No unused files/exports/dependencies introduced.
     command: "pnpm knip"
     pass_when: exit-zero
+  unit-tests:
+    description: The unit test suite passes.
+    # Runs once and exits. NEVER `pnpm test` — that is watch mode and would hang
+    # the gate instead of failing it. Coverage is a separate hand-run command.
+    command: "pnpm test:run"
+    pass_when: exit-zero
 
 validation_profiles:
   # Lightweight gate for typical feature/fix work.
@@ -241,6 +247,20 @@ validation_profiles:
     requires:
       - check: typecheck
         depth: all-ac             # verification depth (MO-6): all-ac for every ticket
+      - check: lint
+        depth: all-ac
+  # Gate for tickets that add or change tests. Deliberately excludes `knip`:
+  # adding files is normal work for those tickets, and an unused-file report
+  # would block them for reasons unrelated to the change. `knip` still exists as
+  # its own check. Deliberately excludes `build` too — these tickets touch no
+  # runtime code.
+  tests-and-types:
+    description: Unit tests + type safety + lint for tickets that write tests.
+    requires:
+      - check: unit-tests
+        depth: all-ac             # verification depth (MO-6): all-ac for every ticket
+      - check: typecheck
+        depth: all-ac
       - check: lint
         depth: all-ac
   # Fuller gate for high-blast-radius changes (protected_paths, build-affecting work).
