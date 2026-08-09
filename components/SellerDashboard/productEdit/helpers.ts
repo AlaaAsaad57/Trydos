@@ -1074,8 +1074,8 @@ const ERROR_CODE_FIELDS = new Set([
   "count_of_pieces",
   "shipping_cost",
   "shipping_days",
-  // tax / tax_type removed: their inputs are hidden, so a server error keyed to
-  // them would highlight nothing — it falls through to the general message.
+  "tax",
+  "tax_type",
   "category_id",
   "description",
   "images",
@@ -1167,12 +1167,11 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
   set("count_of_pieces", form.count_of_pieces === "" ? "1" : form.count_of_pieces);
   set("shipping_cost", form.shipping_cost === "" ? "0" : form.shipping_cost);
   set("shipping_days", form.shipping_days === "" ? "0" : form.shipping_days);
-  // Tax inputs are hidden from the form for now — always send a fixed zero flat
-  // tax (tax_type must be exactly 'flat' or 'percent'; only 'flat' currency-
-  // converts, contract §1b). The ProductForm fields still exist/hydrate, they
-  // are just never user-edited or sent.
-  set("tax", "0");
-  set("tax_type", "flat");
+  // tax / tax_type are both sent on every save. tax_type must be exactly 'flat'
+  // or 'percent' — only 'flat' currency-converts the amount, anything else is
+  // read as a percentage (contract §1b). An empty amount means "no tax" → 0.
+  set("tax", form.tax === "" ? "0" : form.tax);
+  set("tax_type", form.tax_type === "flat" ? "flat" : "percent");
 
   // Always present, always an explicit boolean — the create DTO rejects a missing
   // key ("must be true or false"), so the previous "send 'on' / omit to disable"
@@ -1329,9 +1328,9 @@ const SCALARS: [keyof ProductForm, string][] = [
   ["count_of_pieces", "Pieces / Unit"],
   ["shipping_cost", "Shipping Cost"],
   ["shipping_days", "Shipping Days"],
-  // tax / tax_type are NOT diffed: the inputs are hidden and the payload always
-  // sends the forced 0/flat (see buildUpdateFormData), so a stored non-zero tax
-  // would otherwise show as a phantom change on every save.
+  ["tax", "Tax"],
+  // tax_type is skipped in the loop below and pushed with a translated label.
+  ["tax_type", "Tax Type"],
   ["meta_title", "Meta Title"],
   ["meta_description", "Meta Description"],
   ["origin_country_iso", "Origin Country"],
@@ -1372,10 +1371,21 @@ export function buildDiff(
     return c ? c.nicename : iso.toUpperCase();
   };
 
-  // 1. Scalar Text/Numeric Fields (excluding origin_country_iso which is handled below with flag)
+  // 1. Scalar Text/Numeric Fields (excluding origin_country_iso which is handled
+  // below with flag, and tax_type which shows its translated label)
   for (const [key, label] of SCALARS) {
-    if (key === "origin_country_iso") continue;
+    if (key === "origin_country_iso" || key === "tax_type") continue;
     push(String(key), tx(label), initial[key], current[key]);
+  }
+  const taxTypeLabel = (v: string) => (v === "flat" ? tx("Flat") : tx("Percent"));
+  if (initial.tax_type !== current.tax_type) {
+    out.push({
+      key: "tax_type",
+      label: tx("Tax Type"),
+      from: taxTypeLabel(initial.tax_type),
+      to: taxTypeLabel(current.tax_type),
+      type: "text",
+    });
   }
 
   // 2. Brand, Boutique, Location

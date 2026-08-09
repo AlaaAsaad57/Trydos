@@ -499,8 +499,29 @@ export function PricingSection({ form, patch, errors, disabled, currency, prices
           <Num label="Shipping Cost" value={form.shipping_cost} disabled={disabled} suffix={currency} onChange={(v) => patch({ shipping_cost: v })} />
         )}
         <Num label="Shipping Days" value={form.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
-        {/* Tax inputs are hidden for now — the payload always sends tax=0 /
-            tax_type=flat (see buildUpdateFormData). */}
+        {/* A flat tax is an amount in the display currency and is converted
+            server-side; any other type is read as a percentage (contract §1b). */}
+        <Num
+          label="Tax"
+          fieldKey="tax"
+          value={form.tax}
+          error={errors.tax}
+          disabled={disabled}
+          suffix={form.tax_type === "flat" ? currency : "%"}
+          onChange={(v) => patch({ tax: v })}
+        />
+        <Select
+          label="Tax Type"
+          fieldKey="tax_type"
+          value={form.tax_type}
+          error={errors.tax_type}
+          disabled={disabled}
+          onChange={(v) => patch({ tax_type: v })}
+          options={[
+            { value: "percent", label: t("Percent") },
+            { value: "flat", label: t("Flat") },
+          ]}
+        />
       </div>
     </Section>
   );
