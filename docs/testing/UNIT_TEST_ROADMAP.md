@@ -98,25 +98,82 @@ ones.
 
 ### Phase 2 — `test-fixtures-and-mock-factories` — **closed**
 
-### Phase 3 — `rtl-render-harness`
+### Phase 3 — `rtl-render-harness` — **done**
 
-Every component phase (10, 19, 20, 25, 28, 29) is blocked on this one.
+Every component phase (10, 19, 20, 25, 28, 29) was blocked on this one. It is
+unblocked. The work was done straight on `develop`, outside the ticket workflow,
+by the owner's decision — so there is no `_specs/rtl-render-harness/` folder.
 
-- `@testing-library/react` and `@testing-library/dom` are already installed. Add
-  `@testing-library/jest-dom` and `@testing-library/user-event` — neither is.
-- Add `setupFiles` to `vitest.config.mts`.
-- Build a `renderWithProviders` helper that mounts a component with a seeded
-  store and a resolved locale, so no later phase hand-rolls its own.
-- Whether `msw` earns its place is a decision for this phase's `/plan`, driven by
-  what the component phases actually need. Do not assume it.
+**Acceptance criteria** — all three met, and proved in `tests/render.test.tsx`:
+a component that reads the store renders with seeded state; a component that
+calls `translateFunction` renders translated copy for a chosen locale; the helper
+makes no network call.
 
-**Acceptance criteria (draft)** — a component that reads the store renders with
-seeded state; a component that calls `translateFunction` renders translated copy
-for a chosen locale; the helper mounts no network call.
+**What a component phase now has**
+
+| Use this | For |
+|---|---|
+| `tests/render.tsx` → `renderWithProviders` | Put a component on the page with a seeded store, a chosen language, and a route. Always `await` it. |
+| `tests/mocks/nextNavigation.ts` | The App Router hooks. Registered for the whole run — no test file has to ask. Read `routerSpies` to see where a component sent the user. |
+| `tests/msw/handlers.ts` → `proxyRoute` | Answer a backend call. The app never asks a backend directly, so match on the path, not the address (see below). |
+| `tests/mocks/serverActions.ts` | The Server Actions. Also registered for the whole run. |
+| `tests/mocks/serverRequests.ts` | The cache layer. Also registered for the whole run, and the one you must not remove — see finding 2. |
+
+`renderWithProviders` gives the component the **real** store, with the real
+reducers and real actions, so a store change re-renders the component. It resets
+the store before every render, so no test inherits the one before it.
+
+**The msw decision — yes, it is in.** The two Phase 2 stand-ins
+(`tests/mocks/fetchData.ts`, `tests/mocks/mockFetch.ts`) work by replacing a
+module, so the code they replace stops running. They cannot cover a component
+that calls `fetch` itself and still needs the real code path — which
+`components/global/compare.tsx` does, straight to
+`/api/products/searchInCatalog`. msw answers at the network layer instead.
+It runs in Node only: no service worker, nothing added to `public/`. An
+unhandled request now fails the test rather than reaching the real network.
+Reach for the cheaper Phase 2 stand-ins first; use msw when the real path has to
+run.
+
+**Are the component phases ready to start? Yes — checked, not assumed.**
+All **68** components in the phase 19, 20, 25, 28 and 29 folders load under the
+harness. Three of them (`ColorSelect`, `PricesRow`, `ProductCard`) were rendered
+end to end, in English and in Arabic, reading the store and `next/image`.
+
+One caveat worth knowing: `components/Cart/AddToCart/AddToCartComponent.tsx`
+takes about 4.5 seconds to load the first time, which is longer than the default
+5-second limit for a single test. It only matters if a test loads it with
+`await import(...)` *inside* the test. A normal `import` at the top of the file
+happens before the test starts and is not timed, so this costs nothing in
+practice.
+
+**Three things this phase found**
+
+1. **The app never asks a backend by its address.** `utils/fetchData.ts` sends
+   every external call to `POST /api/proxy` with the real path in an
+   `x-proxy-url` header, and the service name as an opaque token in
+   `x-proxy-server`. A handler written for `/customer/info` would match nothing.
+   `proxyRoute()` reads those headers for you and decodes the service name.
+2. **The client module graph reaches the server side, and it opens a socket.**
+   `services/auth.ts` imports `serverActions/sendOtp.ts`, and the shared store
+   reaches `serverRequests/radis` — which loads `ioredis`. **ioredis opens a real
+   connection the moment it is loaded, before anything calls it.** Next cuts both
+   chains at the `"use server"` line; the test runner does not, so importing the
+   store first failed outright (`server-only` will not resolve) and then, once it
+   loaded, quietly connected to a Redis server that was not there. `tests/setup.ts`
+   cuts both in the same place with stand-ins, and `tests/setup.test.tsx` fails if
+   anyone removes the cache one. **No production code was changed** (rule 4): this
+   is recorded as a finding, and a refactor would be its own ticket.
+3. **Tests need their own settings.** The runner does not read `.env.development`,
+   and it should not — those addresses are real. Without a media address,
+   `next/image` is handed `"undefined/…"` and throws before a component can
+   render. `vitest.config.mts > test.env` now sets obviously fake values;
+   `example.com` is the media host because it is reserved for this and is already
+   in the `next.config.ts` allow-list. Add a key there when a component needs one,
+   and never point it at something real.
 
 **Note.** Only one `<Page variant="scaled">` may ever be mounted — `AppScaler`
-uses hardcoded ids and `:root` variables with no refcount. The render helper must
-not mount a second one.
+uses hardcoded ids and `:root` variables with no refcount. `renderWithProviders`
+never mounts one.
 
 ---
 

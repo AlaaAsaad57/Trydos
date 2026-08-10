@@ -9,6 +9,37 @@ export default defineConfig({
   test: {
     globals:true,
     environment: 'jsdom',
+    // Runs once per test file, before its tests: the extra page checks, the
+    // clean-up between renders, and the fake network. See tests/setup.ts.
+    setupFiles: ['./tests/setup.ts'],
+    // The settings a test run needs, written here rather than read from
+    // .env.development. Two reasons: the runner does not load Next's env files,
+    // and pointing tests at the real addresses in them is how a test ends up
+    // talking to something real.
+    //
+    // Every value is obviously fake. The media address is example.com because
+    // that domain is reserved for exactly this and is already allowed in
+    // next.config.ts, so next/image accepts it and jsdom never asks for the
+    // picture. Without a media address, next/image is handed "undefined/…" and
+    // throws before the component can render.
+    env: {
+      NEXT_PUBLIC_BASE_MEDIA_URL: 'https://example.com',
+      NEXT_PUBLIC_BASE_VIDEO_MEDIA_URL: 'https://example.com',
+      NEXT_PUBLIC_MEDIA_SERVER_BASE_URL: 'https://example.com',
+      NEXT_PUBLIC_CHAT_BACKEND_URL: 'https://example.com',
+      NEXT_PUBLIC_DEFAULT_COUNTRY: 'gb',
+      NEXT_PUBLIC_DEFAULT_LANGUAGE: 'en',
+      NEXT_PUBLIC_APP_VERSION: '0.0.0-test',
+      NEXT_PUBLIC_MAX_ARRAY_LENGTH: '50',
+      // Left empty on purpose: the analytics and maps keys are the ones that
+      // would reach a real service if anything ever used them.
+      NEXT_PUBLIC_GA_MEASUREMENT_ID: '',
+      NEXT_PUBLIC_POSTHOG_KEY: '',
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: '',
+      NEXT_PUBLIC_MEDIA_API_KEY: '',
+      NEXT_PUBLIC_ALLOW_INDEXING: 'false',
+      NEXT_PUBLIC_ANALYTICS_LOG: 'false',
+    },
     coverage: {
       provider: 'v8',
       // The console prints the headline numbers only. Per-file detail lives in
