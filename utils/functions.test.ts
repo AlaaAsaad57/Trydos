@@ -1,5 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { makeCookieManagerMock } from "tests/mocks/cookieManager";
+import { makeFetchDataMock } from "tests/mocks/fetchData";
+import { makeLocalizationMock } from "tests/mocks/localization";
+import { makeStoreMock } from "tests/mocks/store";
+
+// Four of this file's ten replacements now come from the shared kit
+// (tests/mocks/). The other six below are local to this file and stay exactly
+// as they were: two of them look like they belong to the kit but do not —
+// `./errorReported` and `./posthog` are OUR OWN wrappers, not the third-party
+// clients the kit stands in for.
 const mockStoreState = {
   userChat: { id: "chat-1" },
   userStories: { id: "story-1" },
@@ -7,28 +17,13 @@ const mockStoreState = {
   language: "en",
 };
 
-vi.mock("store", () => ({
-  useAppStore: {
-    getState: () => mockStoreState,
-  },
-}));
+vi.mock("store", () => makeStoreMock(mockStoreState));
 
-vi.mock("services/localization", () => ({
-  default: {
-    GetAppLanguage: () => "en",
-  },
-}));
+vi.mock("services/localization", () => makeLocalizationMock({ language: "en" }));
 
-vi.mock("./fetchData", () => ({
-  fetchData: vi.fn(),
-}));
+vi.mock("./fetchData", () => makeFetchDataMock());
 
-vi.mock("./cookies/cookie-manager", () => ({
-  getCookie: vi.fn(),
-  setCookie: vi.fn(),
-  deleteCookie: vi.fn(),
-  COOKIE_NAMES: { USER_DATA: "USER_DATA" },
-}));
+vi.mock("./cookies/cookie-manager", () => makeCookieManagerMock());
 
 vi.mock("./Requests", () => ({
   REQUESTS_DATA: {},
