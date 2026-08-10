@@ -143,7 +143,7 @@ export default async function Page({ params, searchParams }) {
         </Suspense>
         <div
           data-cy="filter_listing_bar"
-          className={`filter-listing-bar z-99999999 relative ${
+          className={`filter-listing-bar z-99999999 ${
             isRtl ? "flex-row-reverse flex" : "flex-row flex"
           } align-center w-full left-0 right-0 mx-auto h-[50px] pl-[15px] pr-[20px] max-w-[1365px] justify-between bg-white z-10`}
         >

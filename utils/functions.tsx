@@ -46,8 +46,6 @@ async function importTranslations(
 }
 
 function loadTranslations(lang: string): Promise<Record<string, string>> {
-  if (translationCache[lang])
-    return Promise.resolve(translationCache[lang]);
   if (translationLoads[lang]) return translationLoads[lang];
 
   const pending = importTranslations(lang)
@@ -393,7 +391,7 @@ export const LogError = async (error) => {
         ? { message: String(serializedError) }
         : {};
   const Error_Object = {
-    ...(baseError ?? {}),
+    ...baseError,
     message,
     userChat,
     userData,

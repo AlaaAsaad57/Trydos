@@ -478,6 +478,22 @@ describe("getConfiguredImage", () => {
     );
   });
 
+  it("includes the width and the padded form for an object source too", async () => {
+    const { getConfiguredImage } = await loadFunctions();
+    // The object branch takes the same two settings as the text one, so it has
+    // to build the same address from them.
+    expect(
+      getConfiguredImage({
+        src: { file_path: "https://media_server.example/upload/v1/b.jpg" },
+        height: 100,
+        width: 200,
+        c_pad: true,
+      }),
+    ).toBe(
+      "https://media_server.example/upload/h_100,w_200,w_800,c_pad/f_auto/q_auto:good/fl_lossy/so_0/v1/b.jpg",
+    );
+  });
+
   it("returns the path unchanged for an object that is not on the media host", async () => {
     const { getConfiguredImage } = await loadFunctions();
     expect(
@@ -543,6 +559,14 @@ describe("RoundPrice", () => {
     storeSeed.language = "ar";
     const { RoundPrice } = await loadFunctions();
     expect(RoundPrice({ num: 100000 })).toBe("100أ");
+  });
+
+  it("falls back to English when nobody has a language at all", async () => {
+    // The shared state can be read before the language has been set, and the
+    // short forms still have to say something.
+    storeSeed.language = undefined;
+    const { RoundPrice } = await loadFunctions();
+    expect(RoundPrice({ num: 100000 })).toBe("100K");
   });
 
   it("lets the language passed in win over the shared state's", async () => {
@@ -686,6 +710,15 @@ describe("addToCompare", () => {
     expect(jar.s_p).toBe("beta");
   });
 
+  it("still fills the slot when there is no browser to tell", async () => {
+    const { addToCompare } = await loadFunctionsWithoutBrowser();
+    const { setCookie } = standIns();
+
+    // Nothing to announce to, but the cookie still has to be written.
+    expect(addToCompare("alpha")).toBe("?f_p=alpha");
+    expect(setCookie).toHaveBeenCalledWith("f_p", "alpha");
+  });
+
   it("tells the browser the comparison changed", async () => {
     const { addToCompare, COMPARE_CHANGED_EVENT } = await loadFunctions();
     const heard = vi.fn();
@@ -725,6 +758,15 @@ describe("removeFromCompare", () => {
 
     expect(removeFromCompare("beta")).toBe("?f_p=alpha");
     expect(jar.f_p).toBe("alpha");
+    expect(jar.s_p).toBeUndefined();
+  });
+
+  it("empties the comparison when the second slot was the only one filled", async () => {
+    cookieSeed = { s_p: "beta" };
+    const { removeFromCompare } = await loadFunctions();
+    const { jar } = standIns();
+
+    expect(removeFromCompare("beta")).toBe("");
     expect(jar.s_p).toBeUndefined();
   });
 
@@ -813,6 +855,13 @@ describe("areProductsEqual", () => {
     expect(
       areProductsEqual({ product_id: 1 }, { product_id: 1, variations: { Size: "" } }),
     ).toBe(true);
+    // The same answer whichever side the choices are missing from.
+    expect(areProductsEqual({ product_id: 1, variations: {} }, { product_id: 1 })).toBe(
+      true,
+    );
+    expect(
+      areProductsEqual({ product_id: 1, variations: { Size: "M" } }, { product_id: 1 }),
+    ).toBe(false);
   });
 });
 
@@ -851,6 +900,33 @@ describe("getCart", () => {
     );
     expect(callback).toHaveBeenCalledWith([{ cart: [] }]);
     expect(result).toEqual({ cart: [] });
+  });
+
+  it("records the reason when the failure is not a real Error", async () => {
+    // Anything can be thrown, not just an Error. A bare piece of text used to
+    // be recorded as nothing at all.
+    storeSeed.userProfile = { id: 7 };
+    fetchDataReply = () => {
+      throw "the cart service fell over";
+    };
+
+    const { getCart } = await loadFunctions();
+    const { ReportError } = standIns();
+    const callback = vi.fn();
+
+    await expect(getCart({ callback })).resolves.toEqual({ cart: [] });
+    expect((ReportError as any).mock.calls[0][0].error).toBe(
+      "the cart service fell over",
+    );
+  });
+
+  it("returns an empty cart when the request fails and nobody passed a callback", async () => {
+    storeSeed.userProfile = { id: 7 };
+    fetchDataReply = () => ({ success: false, message: "cart is closed" });
+
+    const { getCart } = await loadFunctions();
+
+    await expect(getCart({ callback: undefined })).resolves.toEqual({ cart: [] });
   });
 
   it("gives up with an empty cart when no user ever arrives", async () => {
@@ -950,6 +1026,21 @@ describe("getOldCart", () => {
     expect(ReportError).toHaveBeenCalled();
   });
 
+  it("records the reason when the failure is not a real Error", async () => {
+    storeSeed.userProfile = { id: 7 };
+    fetchDataReply = () => {
+      throw "the saved-cart service fell over";
+    };
+
+    const { getOldCart } = await loadFunctions();
+    const { ReportError } = standIns();
+
+    await expect(getOldCart()).resolves.toBeUndefined();
+    expect((ReportError as any).mock.calls[0][0].error).toBe(
+      "the saved-cart service fell over",
+    );
+  });
+
   it("picks the user up when one arrives while it is waiting", async () => {
     // The id used to be read once, before the loop, so a user who signed in
     // halfway through was never noticed — unlike getCart.
@@ -1008,6 +1099,20 @@ describe("GetCartOreview", () => {
     await expect(GetCartOreview()).resolves.toBeUndefined();
     expect(useAppStore.getState().setCartPreview).not.toHaveBeenCalled();
     expect(ReportError).toHaveBeenCalled();
+  });
+
+  it("records the reason when the failure is not a real Error", async () => {
+    fetchDataReply = () => {
+      throw "the overview service fell over";
+    };
+
+    const { GetCartOreview } = await loadFunctions();
+    const { ReportError } = standIns();
+
+    await expect(GetCartOreview()).resolves.toBeUndefined();
+    expect((ReportError as any).mock.calls[0][0].error).toBe(
+      "the overview service fell over",
+    );
   });
 });
 
@@ -1200,5 +1305,17 @@ describe("LogError", () => {
 
     const payload = (ReportError as any).mock.calls[0][0];
     expect(payload.url).toBeUndefined();
+  });
+
+  it("leaves out the browser name when there is no browser", async () => {
+    vi.stubGlobal("navigator", undefined);
+
+    const { LogError } = await loadFunctionsWithoutBrowser();
+    const { ReportError } = standIns();
+
+    await LogError({ message: "boom" });
+
+    const payload = (ReportError as any).mock.calls[0][0];
+    expect(payload.user_agent).toBeUndefined();
   });
 });
