@@ -28,14 +28,14 @@ export default defineConfig({
         'serverRequests/**/*.{ts,tsx,js,jsx}',
         'services/**/*.{ts,tsx,js,jsx}',
         'store/**/*.{ts,tsx,js,jsx}',
-        'types/**/*.{ts,tsx,js,jsx}',
         'utils/**/*.{ts,tsx,js,jsx}',
         'proxy.ts',
       ],
       // Left out on purpose, because none of it is app code we would write a
       // unit test for:
       //   - the tests and their stand-ins (tests/, *.test.*, *.spec.*)
-      //   - descriptions of types, which have nothing to run (*.d.ts)
+      //   - descriptions of types, which have nothing to run (*.d.ts and
+      //     types/)
       //   - build and tool settings (next/tailwind/postcss/eslint/sentry
       //     configs, instrumentation, eslint-rules/, scripts/)
       //   - public/, which holds the browser service worker and the three
