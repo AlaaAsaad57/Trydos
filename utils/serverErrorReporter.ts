@@ -1,65 +1,28 @@
 import { COOKIE_NAMES, deserialize } from "./cookies/cookie-manager";
+import { readServerCookies } from "./cookies/server-cookie-fallback";
 import { ReportError } from "./errorReported";
 import { readStoredLastPaths } from "./history";
 
-// Cookie reads need the framework's request store, which exists only on the
-// server — but this module cannot import the server reader
-// (utils/cookies/server-cookie-manager), statically OR dynamically.
-//
-// It sits in the client SSR graph: services/home.ts is "use client" and calls
+// This module cannot import the ordinary server cookie reader
+// (utils/cookies/server-cookie-manager), statically OR dynamically: it sits in
+// the client SSR graph — services/home.ts is "use client" and calls
 // LogServerError, and services/auth.ts reaches here through utils/fetchData.
-// Any import of a next/headers module from that graph fails the build, and a
-// dynamic import does not help — the bundler follows it just the same (proved
-// by a build, import trace #4).
-//
-// So the request store is reached through a bare `require`, which the bundler
-// does not follow, exactly as utils/history.ts does for the same reason. The
-// cost is real and accepted here: if the require fails, every value below is
-// null and the report loses its context. That is fine for best-effort error
-// reporting, and nowhere else — every other caller in the app uses the real
-// module and its tests.
-//
-// The proper fix is to stop calling LogServerError from client code. That is a
-// bigger change than this one, and its own ticket.
-async function readServerCookies(names: string[]): Promise<any[]> {
-  const nothing = names.map(() => null);
-  if (typeof window !== "undefined") return nothing;
+// See ./cookies/server-cookie-fallback for what it uses instead and why.
 
+/** Turn a stored cookie back into the value it was written from. */
+function decodeStored(raw: string | null) {
+  if (!raw) return null;
   try {
-    const { cookies } = require("next/headers");
-    const store = await cookies();
-    return names.map((name) => {
-      try {
-        const raw = store.get(name)?.value;
-        return raw ? deserialize(decodeURIComponent(raw)) : null;
-      } catch {
-        // One unreadable cookie must not cost us the other ten.
-        return null;
-      }
-    });
+    return deserialize(decodeURIComponent(raw));
   } catch {
-    return nothing;
+    // One unreadable cookie must not cost us the other ten.
+    return null;
   }
 }
 
 export const LogServerError = async (error?: unknown, pagePath?: string) => {
   try {
-    const [
-      [
-        userData,
-        userChat,
-        userStories,
-        language,
-        country,
-        userIP,
-        marketToken,
-        chatToken,
-        storiesToken,
-        walletToken,
-        userIdHash,
-      ],
-      last_paths,
-    ] = await Promise.all([
+    const [stored, last_paths] = await Promise.all([
       readServerCookies([
         COOKIE_NAMES.USER_DATA,
         COOKIE_NAMES.USER_CHAT,
@@ -75,6 +38,20 @@ export const LogServerError = async (error?: unknown, pagePath?: string) => {
       ]),
       readStoredLastPaths(),
     ]);
+
+    const [
+      userData,
+      userChat,
+      userStories,
+      language,
+      country,
+      userIP,
+      marketToken,
+      chatToken,
+      storiesToken,
+      walletToken,
+      userIdHash,
+    ] = stored.map(decodeStored);
     const serializedError =
       error instanceof Error
         ? { message: error.message, stack: error.stack, name: error.name }
