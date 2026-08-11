@@ -1189,7 +1189,13 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
   // which rejects 'on' while the DTO requires it, so the flag is impossible to
   // enable at create through this endpoint. That is a backend defect, not
   // something this builder can work around (spec AC-16).
+  if(isCreate){
+  set("packed_after_ordering", form.packed_after_ordering ? "true" : "false");
+  }
+  else{
   set("packed_after_ordering", form.packed_after_ordering ? "on" : "");
+  }
+
 
   set("meta_title", form.meta_title);
   set("meta_description", form.meta_description);

@@ -110,3 +110,145 @@ Two backends serve this app; refer to them by role — the **gateway** (guest/al
 ## Security note
 
 `package.json` contains a **hardcoded GitLab access token** embedded in the `rdb` Git dependency URL. Treat it as a leaked secret — it should be rotated and moved to an auth'd `.npmrc` / env var rather than committed. Flag, don't propagate.
+
+<!-- wf governance text: v1.0.7 -->
+
+# Engineering Workflow v1
+
+Governance contract for any AI agent (and human) working in this repository.
+This file is authoritative. When in doubt, stop and ask the Workflow Owner.
+
+The ticket commands ship in the `wf` plugin and are namespaced: `/wf:start-ticket`,
+`/wf:research`, `/wf:spec`, `/wf:plan`, `/wf:review`, `/wf:implement`, `/wf:verify`,
+`/wf:publish-pr`. The project half of the config is `.claude/project-config.yaml`.
+
+---
+
+## Project profile
+
+> Everything **below** the `---` after this section is the shared governance
+> text, copied from the plugin's `templates/CLAUDE.md` unchanged. Only this block
+> is per-project. When the plugin ships a new governance version, re-copy the
+> shared text and keep this block.
+
+**Mission.** This repository hosts the Trydos storefront — a multilingual
+e-commerce / live-shopping web app (Next.js App Router, two backends: the
+**gateway** and the **core** backend). The mission of the engineering workflow is
+to make every change **small, reviewed, and verifiable**, moving through a fixed
+set of stages with explicit review gates — never improvising scope or skipping
+review.
+
+**Base branch — this repository overrides the plugin default.** The shared rules
+(GU-4 / IM-3) say `main`; in this repository the base branch is **`develop`**.
+`main` is the staging branch (storefront gate) and is never branched from or
+merged into directly. So: `/wf:implement` creates `ticket/<slug>` from a clean
+**`develop`**, and `/wf:publish-pr` opens the PR against **`develop`**
+(`--base develop`).
+
+**Protected runtime paths.** The paths below are this repository's runtime. They
+may be changed **only** inside an approved `implement` stage, and only when the
+approved `plan.md` lists them:
+
+- `proxy.ts` — runs on every request (locale routing, country detection, bot
+  handling, the staging gate)
+- `next.config.ts` — build and image/host configuration
+- `instrumentation.ts`, `instrumentation-client.ts`, `sentry.*.config.ts` —
+  error reporting wiring
+- `.github/workflows/**` — CI configuration
+
+---
+
+## Workflow stages
+
+Canonical stages (see the `wf` plugin's `workflow-config.yaml` and
+`rules/workflow-rules.md` for full definitions; the project half of the config
+is `.claude/project-config.yaml` in this repository):
+
+1. `intake` — capture and qualify the request.
+2. `research` — read-only investigation of the repo and impact.
+3. `spec` — define what "done" means (criteria + test cases).
+4. `plan` — decide the approach and concrete steps.
+5. `review` — a reviewer reviews spec/plan before any code.
+6. `implement` — apply the change per the approved plan.
+7. `verify` — validate the change and review runtime impact.
+
+Each stage produces an artifact under `_specs/<ticket>/` in this repository,
+from the templates in the `wf` plugin's `templates/`.
+
+## Hard stop conditions
+
+Stop immediately and request Workflow Owner direction if any of these occur:
+
+- A change would touch this repository's **protected runtime paths** (listed in
+  **Project profile** above) outside an explicitly approved implement stage.
+- The request requires deleting or rewriting existing workflow artifacts.
+- Acceptance criteria are missing, ambiguous, or untestable.
+- A stage's entry criteria are not met (e.g. implementing before plan approval).
+- Scope grows beyond what the approved spec/plan describes.
+
+## Language
+
+**Everything written to this repository is in English.** Workflow artifacts,
+comprehension questions and their options, review findings, ADRs, commit
+messages, and PR text — regardless of the language the request or conversation
+used. The conversation may be in any language; the artifacts never are.
+
+**Write that English plainly.** The reader's first language is Arabic, so keep
+the wording simple: short sentences, common words, no idioms, no rare or
+academic vocabulary. This is about *vocabulary only* — the reader is a senior
+engineer. Never simplify the technical content, the depth, or the reasoning, and
+keep standard technical terms as they are (`scrape`, `cardinality`, `rollback`,
+`AC-n`, …). Simple words, full engineering substance.
+
+## Forbidden actions
+
+- Do **not** write any artifact, comprehension question, or PR/commit text in a
+  language other than English (see **Language** above).
+- Do **not** create workflow commands unless a phase explicitly authorizes it.
+- Do **not** implement tickets during research, spec, plan, or review stages.
+- Do **not** modify the **protected runtime paths** (see **Project profile**) as
+  part of workflow/governance work.
+- Do **not** delete `_specs/`, `.claude/project-config.yaml` (this project's half
+  of the config), or `.claude/settings.json` (which enables the `wf` plugin).
+- Do **not** edit the shared governance text below **Project profile** in this
+  copy. It is a copy. Change the master in the `wf` plugin
+  (`templates/CLAUDE.md`), bump the plugin version, then re-copy.
+- Do **not** skip stages or record a gate decision without completing the
+  **comprehension check**. The single owner runs their own `/review` and
+  `/verify` (self-review is expected; ADR-009) — there is no separate-reviewer
+  requirement; the comprehension gate (CG-1..CG-7) is the control against
+  rubber-stamping.
+
+## Review gate requirements
+
+- The gates `/review` and `/verify` are run per ticket by the **owner** themselves
+  (self-review; ADR-009). Gate integrity comes from the **comprehension check**
+  (the owner answers questions generated from the artifact), not a second person.
+  They do **not** require an Engineering Manager.
+- The `review` stage is a **mandatory gate**: no `implement` may begin until the
+  owner accepts the `spec` and `plan` at `/review` (with the comprehension check
+  completed).
+- The owner signs off again at `verify` (comprehension check) before a ticket is
+  considered done.
+- Review decisions are recorded as `CHANGES_REQUESTED` / `REJECTED` / `APPROVED`
+  against the relevant stage.
+- At `/review`, an **advisory** AI panel (senior / security / performance,
+  read-only) reviews the plan and records findings for the owner (ADR-010). It
+  **informs** the decision — it never blocks or makes it; the comprehension gate
+  remains the control.
+- The comprehension check asks **at least 3 questions — a floor, not a fixed
+  count** (ADR-012). Every gate includes **≥1 question on the integration /
+  cross-flow axis** (what the change touches outside itself, which other flow
+  shares that code or config), sourced from the plan's required
+  **Integration surface** section; and `/review` adds **one question per `major`
+  panel finding**. A finding may still be dismissed — only after it is understood.
+- The **Workflow Owner** owns governance (workflow evolution, governance
+  decisions, escalations, cross-project issues), not per-ticket sign-off. Escalate
+  to the Workflow Owner only when a hard-stop or governance question arises.
+
+## Small-change philosophy
+
+- Prefer the smallest change that satisfies the acceptance criteria.
+- One ticket = one focused outcome; split anything larger.
+- Bias toward read-only investigation first; touch code last and minimally.
+- Every change must be reversible and individually verifiable.

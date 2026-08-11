@@ -1,0 +1,86 @@
+# Project configuration for Engineering Workflow v1 — PROJECT HALF.
+#
+# The generic half (stages, state machine, workflow form, comprehension gates,
+# review panel, notifications, closure, roles) ships with the `wf` plugin as
+# `workflow-config.yaml`. Nothing is duplicated here.
+#
+# Paths are relative to the project root.
+
+project:
+  name: Trydos
+  slug: trydos
+  description: Multilingual e-commerce / live-shopping storefront (Next.js App Router, deployed on Vercel).
+
+features:
+  clickup: true          # /wf:start-ticket may seed a ticket from a ClickUp task (read-only)
+  github: true           # /wf:publish-pr may open a PR — base branch is `develop`, not `main`
+  observability: false   # this repository owns no observability runtime files
+
+# ---------------------------------------------------------------------------
+# validation_checks — DEFINITIONS: check-id -> command + pass condition.
+# Commands live ONLY here. All are deterministic, non-interactive, and do not
+# modify source files.
+# ---------------------------------------------------------------------------
+validation_checks:
+  lint:
+    description: ESLint passes, including the i18n rules (missing translate keys are errors).
+    command: "pnpm lint"
+    pass_when: exit-zero
+
+  typecheck:
+    description: TypeScript compiles with no errors.
+    command: "node_modules/.bin/tsc --noEmit --pretty false"
+    pass_when: exit-zero
+
+  i18n-parity:
+    description: translations.{ar,tr,ku}.js are key-parallel.
+    command: "pnpm lint:i18n-parity"
+    pass_when: exit-zero
+
+  unit-tests:
+    description: Vitest unit tests pass.
+    command: "pnpm test:run"
+    pass_when: exit-zero
+
+  build:
+    description: Production build succeeds (catches server/client boundary errors tsc misses).
+    command: "pnpm build"
+    pass_when: exit-zero
+
+# ---------------------------------------------------------------------------
+# validation_profiles — SELECTION: profile-id -> required check-ids + depth.
+# A ticket names at most ONE profile in plan.md "Validation strategy".
+# Naming no profile leaves /wf:verify behaving as before (VP-5).
+# ---------------------------------------------------------------------------
+validation_profiles:
+  ui-change:
+    description: UI or copy changes. Covers translation-key parity and types.
+    requires:
+      - check: lint
+        depth: all-ac
+      - check: i18n-parity
+        depth: all-ac
+      - check: typecheck
+        depth: all-ac
+
+  logic-change:
+    description: Services, stores, proxy, or API route changes with unit-test coverage.
+    requires:
+      - check: lint
+        depth: all-ac
+      - check: typecheck
+        depth: all-ac
+      - check: unit-tests
+        depth: all-ac
+
+  full:
+    description: Changes that can break the build itself (server/client boundaries, imports, config).
+    requires:
+      - check: lint
+        depth: all-ac
+      - check: typecheck
+        depth: all-ac
+      - check: unit-tests
+        depth: all-ac
+      - check: build
+        depth: all-ac

@@ -1,1 +1,5 @@
-{}
+{
+  "enabledPlugins": {
+    "wf@ramaaz-workflows": true
+  }
+}

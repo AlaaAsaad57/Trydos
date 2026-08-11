@@ -1,13 +1,13 @@
 # Test summary — 11 August 2026
 
-**177 automatic checks now run over the app, and all of them pass. This first round covers the
-part of the site that decides which language and country a visitor lands on, and the shared
-helpers behind prices, the basket and product comparison.**
+**194 automatic checks now run over the app and every one of them passes. They cover the part of
+the site that decides which language and country a visitor lands on, and the shared helpers behind
+translations, prices, pictures, the basket and product comparison.**
 
 | | |
 |---|---|
-| **New checks on the app this time** | 177 |
-| **Checks on the app in total** | 177 |
+| **New checks added this time** | 194 |
+| **Checks in the app in total** | 194 |
 | **Result** | ✅ All passing |
 | **How much of the app is checked** | 2.4% of the code |
 | **Date** | 2026-08-11 |
@@ -16,232 +16,256 @@ helpers behind prices, the basket and product comparison.**
 
 ## What we checked this time
 
-### Choosing the visitor's language
+### Landing on the right language
 
 - When the address already says English, then the visitor stays on English.
 - When the address already says Arabic, then the visitor stays on Arabic.
 - When the address already says Turkish, then the visitor stays on Turkish.
 - When the address already says Kurdish, then the visitor stays on Kurdish.
-- When the address names a language we do not offer, then the visitor gets English.
-- When the address has no language, then the visitor gets the one their browser asks for.
-- When the browser sends no language preference, then the visitor gets English.
+- When the address names a language we do not offer, then the visitor gets English instead.
+- When the address names no language, then the visitor gets the one their browser asks for.
+- When the browser asks for no language at all, then the visitor gets English.
 - When the browser asks only for languages we do not offer, then the visitor gets English.
 
-### Choosing the visitor's country
+### Landing on the right country
 
-- When a saved country was stored in capitals, then it is still accepted.
-- When the country of a visit arrives in capitals, then it is still accepted.
+- When a saved country was stored in capital letters, then it is still accepted.
+- When the country a visit comes from arrives in capital letters, then it is still accepted.
 - When a visitor chose a country before, then that beats the country their connection suggests.
-- When a visitor chose nothing, then their connection's country beats our default.
-- When a saved country is one we do not serve, then the visitor gets the United Kingdom.
-- When a saved country and language pair has a language we do not offer, then the pair is ignored.
-- When the language was stored under the older cookie name, then it is still found.
+- When a visitor never chose one, then the country of their connection beats our default.
+- When a saved country is one we do not serve, then the visitor gets the United Kingdom instead.
+- When a saved pair names a language we do not offer, then the whole saved pair is ignored.
+- When the language was saved under the older name, then it is still found.
 - When a visitor arrives from Syria, then Syria is treated as a country we serve.
 - When a visitor arrives from Lebanon, then Lebanon is treated as a country we serve.
 - When a visitor arrives from Turkey, then Turkey is treated as a country we serve.
 - When a visitor arrives from Iraq, then Iraq is treated as a country we serve.
 
-### Sending the visitor to the right address
+### Getting sent to the right address
 
 - When the address already names a country and language we serve, then the visit is left alone.
-- When the address has neither, then both are added to the front and the rest is kept exactly.
-- When the visitor asks for the home page, then the country and language are added on their own.
-- When the address starts with a country we do not serve, then it is replaced, not added to.
-- When the address starts with a language we do not offer, then it is replaced, not added to.
-- When an unsupported prefix has nothing after it, then it is still replaced and never doubled.
-- When an unsupported prefix is written in capitals, then it is still replaced and never doubled.
+- When the address names neither, then both are put at the front and the rest is kept exactly.
+- When the visitor asks for the home page, then only the country and language are added.
+- When the address starts with a country we do not serve, then it is replaced, not doubled.
+- When the address starts with a language we do not offer, then it is replaced, not doubled.
+- When an unsupported prefix has nothing after it, then it is still replaced on its own.
+- When an unsupported prefix is written in capital letters, then it is still replaced correctly.
 - When the redirect limit is reached, then the prefix is still replaced and never doubled.
-- When any visit is handled, then it is let through or redirected, never quietly swapped.
-- When a saved country differs from the address, then both are flagged instead of switching silently.
-- When the address says United Kingdom and another was saved, then the visitor moves to the saved one.
+- When a returning visitor asks for the home page, then they go to the country and language they saved.
+- When any visit is handled, then it is let through or redirected, and never quietly swapped.
+
+### When the saved country and the address disagree
+
+- When the saved country differs from the address, then both are flagged instead of switching silently.
+- When the address says United Kingdom but another was saved, then the visitor moves to the saved one.
+- When such an address ends with a slash, then it is still handled correctly.
 - When that flag is already on the address, then the visit is let through and not redirected again.
 - When a visitor has been redirected too many times, then they land on a working default address.
+- When the limit is reached on the home page, then they land on a plain default address.
 - When the redirect count is still under the limit, then redirecting carries on as normal.
 
-### Search engines and sitemaps
+### Search engines and link previews
 
-- When Google's crawler arrives with a valid country and language, then it is let through.
-- When Bing's crawler arrives the same way, then it is let through.
-- When Facebook's link preview crawler arrives the same way, then it is let through.
-- When X/Twitter's crawler arrives the same way, then it is let through.
-- When LinkedIn's crawler arrives the same way, then it is let through.
-- When a crawler arrives with no country and language, then it gets a permanent redirect to one.
-- When a crawler is handled, then it never sees the country-change flags meant for real visitors.
-- When a crawler is handled, then it is given no language cookies.
-- When an ordinary browser arrives, then it is treated as a person, not as a crawler.
-- When the sitemap is requested, then it is handed over untouched.
-- When the product sitemap is requested, then it is handed over untouched.
-- When a sitemap is requested under a country and language prefix, then it is handed over untouched.
-- When a product sitemap is requested under a prefix, then it is handed over untouched.
-- When a sitemap is requested and the saved country disagrees, then it is still handed over untouched.
+- When Google's crawler arrives at a proper address, then it is let straight through.
+- When Bing's crawler arrives at a proper address, then it is let straight through.
+- When Facebook's link preview arrives at a proper address, then it is let straight through.
+- When X's link preview arrives at a proper address, then it is let straight through.
+- When LinkedIn's link preview arrives at a proper address, then it is let straight through.
+- When a crawler arrives without a country and language, then it gets a permanent redirect to one.
+- When a crawler is handled, then no country-question flags are ever added to its address.
+- When a crawler is handled, then nothing is stored on it about language or country.
+- When a crawler asks for the home page, then it is sent to a full country and language address.
+- When a crawler lands on a prefix we do not serve, then it is sent to one we do.
+- When an ordinary browser arrives, then it is treated as a person and not as a crawler.
 
-### The robots file and capitalised addresses
+### What the site remembers about a visit
 
-- When a page's name merely contains the word "robots", then it is shown normally, not hijacked.
-- When the robots file itself is requested, then it is served.
-- When "/robots" is requested, then it goes to the robots file.
-- When an address is typed in capitals, then it is permanently redirected to the small-letter form.
-- When that redirect is sent, then it carries no connection-warming hints, as it renders nothing.
-- When a real page is served, then it does carry the connection-warming hints.
+- When a visitor is served a page, then the country and language are stored for the page to read.
+- When a visitor is served a page, then their network address is stored where page scripts cannot read it.
+- When a visit passes through, then the network address it really came from is the one stored.
+- When the network address has not changed, then it is not written again.
+- When the stored country and language already match the address, then they are not written again.
+- When only the language differs from what was stored, then the one in the address is stored.
+- When a visitor arrives from another website, then that website is stored as where they came from.
+- When a visitor arrives from a page on this same site, then no referring website is stored.
+- When a visitor arrives with a campaign tag, then the referring website is stored anyway.
+- When a real page is served, then any leftover sign-out marker is cleared.
+- When the visit is only a redirect step, then the sign-out marker is kept for the next step.
+- When a lifetime is configured for stored values, then that lifetime is used.
 
-### What the site remembers in the browser
+### The country question popup
 
-- When a visitor is served, then the three language and country cookies are written for pages to read.
-- When a visitor is served, then their IP address is stored where page scripts cannot read it.
-- When a visitor genuinely arrives from another site, then that site is saved.
-- When a visitor simply moves around inside our own site, then no referring site is saved.
-- When a visit carries a marketing campaign tag, then the referring site is saved anyway.
-- When a real page loads, then the "just logged out" marker is cleared.
-- When the visit is only a redirect on the way, then that marker is kept.
-- When a cookie lifetime is configured, then the cookies use it.
+- When the address carries the no-country flag, then the popup is shown instead of a redirect.
+- When a redirect happens, then the timing flag is dropped from the address on the way.
+- When the visitor answers the popup, then their choice is taken and they are not asked again.
+- When the answer arrives on an address with no country and language, then a proper one is built.
+- When the answer arrives on an address that already has them, then the choice is honoured as it is.
+- When other values are left in the address, then the visitor is sent to the cleaned-up address.
 
-### Where this runs, and where it stays out
+### Search-engine files and tidy addresses
 
-- When someone opens the home page, then this runs.
-- When someone opens a shop page, then this runs.
-- When someone opens a product page, then this runs.
-- When someone opens the checkout page, then this runs.
-- When the sign-in service is called, then this stays out of the way.
-- When the site's own script files are fetched, then this stays out of the way.
-- When the image service is called, then this stays out of the way.
-- When the sitemap is fetched, then this stays out of the way.
-- When the robots file is fetched, then this stays out of the way.
-- When the site icon is fetched, then this stays out of the way.
-- When an ordinary image file is fetched, then this stays out of the way.
-- When a translation file is fetched, then this stays out of the way.
-- When the site loads a page quietly in the background, then that request is skipped.
+- When a crawler asks for the site map, then it gets the raw file untouched.
+- When a crawler asks for the product site map, then it gets the raw file untouched.
+- When a site map is asked for under a country and language, then it is still served untouched.
+- When a product site map is asked for that way, then it is still served untouched.
+- When the saved country disagrees with a site map address, then the site map is still served.
+- When a page name merely contains the word robots, then it is left alone as a normal page.
+- When the crawler rules file itself is asked for, then it is served.
+- When that file is asked for without the file ending, then it is still served.
+- When the address is typed in capitals, then the visitor is permanently redirected to small letters.
+- When that capitals redirect happens, then the speed-up hints are left off it.
+- When a real page is served, then the speed-up hints are included.
 
-### Keeping the site up when the country service fails
+### Which requests are handled at all
 
-- When a visit is handled, then the country lookup is the only outside call, made in the background.
-- When that lookup is made, then the country the visit came from is sent with it.
-- When that lookup fails, then the site keeps working from a built-in list of countries.
-- When the lookup has already answered, then the answer is reused instead of asking again.
-- When one check finishes, then nothing is remembered into the next one.
+- When the home page is asked for, then the language and country check runs.
+- When a shop page is asked for, then the check runs.
+- When a product page is asked for, then the check runs.
+- When the checkout is asked for, then the check runs.
+- When the sign-in service is called, then the check is skipped.
+- When a code file for the site is fetched, then the check is skipped.
+- When a picture is resized by the site, then the check is skipped.
+- When the site map is fetched, then the check is skipped.
+- When the crawler rules file is fetched, then the check is skipped.
+- When the little tab icon is fetched, then the check is skipped.
+- When a stored image is fetched, then the check is skipped.
+- When a translation file is fetched, then the check is skipped.
+- When the site quietly pre-loads the next page, then the check is skipped.
+
+### Keeping the list of countries we serve up to date
+
+- When a visit is handled, then the country list is refreshed in the background and nothing else is.
+- When the list is refreshed, then the country the visit came from is sent with the request.
+- When the refresh fails, then the site keeps working from its built-in list of countries.
+- When the refresh answers with an error, then the built-in list is kept.
+- When the refresh answers without a country list, then the built-in list is kept.
+- When several visits arrive together, then the answer is remembered and asked for only once.
+- When the site starts fresh, then nothing is carried over from before.
+
+### Showing the site in the visitor's language
+
+- When the language is English, then the wording is shown exactly as written.
+- When the address carries no language, then the wording is shown in English.
+- When a translation is still loading, then English shows first, and unknown wording stays English.
+- When Turkish or Kurdish is chosen, then those translations load in the same way.
+- When a language has no translations at all, then the English wording is shown.
+- When wording is prepared before the page reaches the browser, then the app's language is used.
+- When that is done and the app language is English, then the English wording is used.
+- When a language is given before the page reaches the browser, then that language is used.
+- When a language is given inside the browser, then the visitor's own language is used instead.
+- When the code runs inside a visitor's browser, then it correctly knows a browser is there.
+- When the code runs before the page reaches the browser, then it correctly knows there is none.
 
 ### Showing the right price
 
-- When a price is zero, then it shows as zero.
-- When a price is below one thousand, then it shows as a plain number.
-- When a price is one thousand or more, then it shows in the short "K" form.
-- When a price is one million or more, then it shows in the short "M" form.
-- When the shopper is on Arabic, then the Arabic short forms are used.
-- When no language is given, then the shopper's current language is used.
-- When no language is set anywhere, then English is used.
-- When a language is passed in directly, then it beats the shopper's current one.
-- When a page needs to do its own maths, then the price can come back as a raw number.
-- When a price is converted, then the rate and decimals come from the shopper's chosen currency.
-- When a rate is passed in directly, then it beats the chosen currency's rate.
+- When a price is zero, then it is shown as zero.
+- When a price is under a thousand, then it is shown as a plain number.
+- When a price reaches a thousand, then it is shortened to the K form.
+- ⚠️ When a price is just under a million, then it still reads as 1000K — recorded, not approved.
+- When a price reaches a million, then it is shortened to the M form.
+- When the visitor reads Arabic, then the Arabic short forms are used.
+- When no language is given, then the one the app is using is taken.
+- When nobody has set a language at all, then English is used.
+- When a language is given, then it wins over the one the app is using.
+- When a plain number is asked for, then the converted price is given without any shortening.
+- When no rate is given, then the rate and decimal places come from the chosen currency.
+- When a rate is given, then it wins over the visitor's chosen currency.
 - When a price is converted, then it multiplies exactly and never drifts by a penny.
-- When a price is rounded, then it always rounds up, so we never show less than the real price.
-- When a price is missing or unreadable, then it counts as nothing rather than showing wrong.
-- When a price arrives as text rather than a number, then it still works.
+- When a converted price has extra decimals, then it is rounded up, never to the nearest.
+- When a price is missing or unreadable, then it is treated as nothing rather than shown wrong.
+- When a price arrives written as text, then it is still converted correctly.
 
-### Showing text in the right language
+### Showing product pictures
 
-- When the site runs inside a real browser, then it correctly spots that.
-- When the site runs on the server with no browser, then it correctly spots that.
-- When the text is English, then it is shown as written with no lookup.
-- When the address has no language part, then English is used.
-- When a translation is still loading, then English shows first and is replaced when it arrives.
-- When the language is Turkish or Kurdish, then translations load the same way as Arabic.
-- When a language has no translation file, then English is shown rather than blanks.
-- When the site runs on the server, then the language comes from the app's own setting.
-- When the server language is English, then the text is used as written.
-- When a language is passed in on the server, then it beats the app setting.
-- When a real browser is present, then the browser's own language wins instead.
+- When a picture address is given as text, then the full address is built from it.
+- When a width is given, then it is included in the picture address.
+- When a padded picture is asked for, then the padded form is used.
+- When a picture is given as a set of details, then the same address is built as from plain text.
+- When a picture is given as details with a width and padding, then both are included.
+- When a picture is not on our media host, then its address is passed through unchanged.
+- When there is no picture at all, then an empty address is given rather than a broken one.
+- When the details carry no path, then an empty address is given rather than a broken one.
 
 ### The basket
 
-- When a shopper's basket loads, then it is stored so every page shows the same contents.
-- When loading the basket fails, then the reason is recorded and the shopper sees an empty basket.
-- When that failure is not a normal error, then it is still recorded properly.
-- When loading fails and no follow-up handler was given, then the basket still comes back empty.
-- When no shopper is ever identified, then it gives up with an empty basket instead of waiting for ever.
-- When the shopper is identified while it waits, then it carries on and loads their basket.
-- When a previously saved basket loads, then the newest items come first.
-- When the saved basket arrives wrapped in an extra layer, then it is still read correctly.
-- When the reply carries no saved basket, then it is handled without failing.
-- When loading the saved basket fails, then the reason is recorded, not thrown at the shopper.
-- When that failure is not a normal error, then it is still recorded properly.
-- When the shopper is identified while it waits, then it goes on to load the saved basket.
-- When no shopper ever arrives, then it gives up quietly without asking.
-- When the basket summary loads, then it is stored for the pages that show it.
-- When loading the summary fails, then the reason is recorded, not thrown at the shopper.
-- When that failure is not a normal error, then it is still recorded properly.
+- When the basket is loaded, then its contents are put where the whole app can see them.
+- When loading the basket fails, then the reason is recorded and an empty basket is shown.
+- When that failure is not a normal error, then the reason is still recorded.
+- When loading fails and nothing was waiting on it, then an empty basket is still shown.
+- When no visitor is ever identified, then loading gives up with an empty basket.
+- When a visitor is identified while loading waits, then loading picks up and carries on.
+- When a saved basket is loaded, then its items are shown newest first.
+- When the reply is wrapped in an outer layer, then the saved basket is still read from it.
+- When the reply carries no saved basket, then nothing breaks.
+- When loading a saved basket fails, then the reason is recorded instead of the page breaking.
+- When that failure is not a normal error, then the reason is still recorded.
+- When a visitor is identified while it waits, then the saved basket is loaded.
+- When no visitor is ever identified, then it gives up without asking the server.
+- When the basket summary is loaded, then it is put where the whole app can see it.
+- When loading the summary fails, then the reason is recorded instead of the page breaking.
+- When that summary failure is not a normal error, then the reason is still recorded.
 
 ### Comparing products
 
-- When the site announces a comparison change, then it uses one fixed name the pages listen for.
-- When nothing is being compared and a product is added, then it goes into the first slot.
-- When one product is being compared and another is added, then it goes into the second slot.
-- When two are being compared and a third is added, then it replaces the first.
-- When a product is added with no browser present, then it still fills its slot.
-- When the comparison changes, then the page is told so it can update.
-- When the first product is removed, then the second moves into its place.
-- When the only product is removed, then the comparison is emptied.
-- When the second product is removed, then the first stays where it is.
-- When the second was the only one filled and is removed, then the comparison is emptied.
-- When a product that was never compared is removed, then nothing changes.
-- When nothing actually changed, then nothing is announced.
-- When a product really was removed, then the change is announced.
-- When either product is missing, then the two do not count as the same.
-- When the product and every chosen option match, then the two count as the same.
-- When the product itself differs, then the two do not count as the same.
-- When any one chosen option differs, then the two do not count as the same.
-- When one option is blank and the other was never chosen, then they count as the same.
-
-### Product images
-
-- When an image source is plain text, then the image address is built from it.
-- When a width is asked for, then it is included in the address.
-- When the padded version is asked for, then the address switches to it.
-- When an image source is an object, then it builds the same address as plain text.
-- When a width and padding are asked for on an object source, then both are included.
-- When an image is already hosted elsewhere, then its address is left exactly as it is.
-- When there is no image source at all, then an empty result comes back, not a broken image.
-- When an object has no image path, then an empty result comes back.
+- When the comparison changes, then the rest of the page is told using one agreed signal.
+- When nothing is being compared, then the first product fills the first slot.
+- When one product is being compared, then the next one fills the second slot.
+- When both slots are full, then a new product replaces the first one.
+- When there is no browser to tell, then the slot is still filled correctly.
+- When a product is added, then the page is told the comparison changed.
+- When the first of two products is removed, then the second moves up into its place.
+- When the only product being compared is removed, then the comparison is emptied.
+- When the second of two products is removed, then the first stays where it is.
+- When the second slot held the only product, then removing it empties the comparison.
+- When a product that is not being compared is removed, then nothing happens.
+- When nothing actually changed, then the page is not told about a change.
+- When a product really was removed, then the page is told the comparison changed.
+- When either product is missing, then the two are not treated as the same.
+- When two entries are the same product with the same choices, then they are treated as the same.
+- When two entries are different products, then they are not treated as the same.
+- When any one choice differs, then the two entries are not treated as the same.
+- When one entry has no choice and the other an empty one, then they are treated as the same.
 
 ### Recent searches
 
 - When nothing has been searched before, then the first search starts a new list.
-- When a new word is searched, then it goes to the front of the list.
-- When the same word is searched twice, then the list comes back unchanged.
-- When the saved history is damaged, then it is thrown away and the list starts again.
-- When the saved history is the wrong shape, then it is thrown away and the list starts again.
+- When a new word is searched, then it goes to the front of the recent list.
+- When a word already in the list is searched again, then the list is left as it is.
+- When the stored list is damaged, then it is thrown away and a fresh one is started.
+- When the stored list is not a list at all, then it is thrown away and a fresh one is started.
 
 ### Knowing who the visitor is
 
-- When a chat identity is in the app's memory, then it is used.
-- When there is no chat identity, then an empty result comes back rather than an error.
-- When a stories identity is in the app's memory, then it is used.
-- When it is missing there, then the saved profile is used instead.
-- When neither is available, then nothing comes back and nothing breaks.
-- When the identity is looked up, then nothing is printed into the browser console.
-- When the configuration setting is empty, then it reads as off.
-- When the setting has any value, then it reads as on.
+- When a visitor is signed in, then the chat side of the app knows who they are.
+- When nobody is signed in, then the chat side gets nothing rather than a wrong person.
+- When a visitor is signed in, then the stories side of the app knows who they are.
+- When the app has forgotten, then the visitor is identified from what the browser stored.
+- When there is nothing stored either, then no visitor is identified.
+- When the visitor is looked up, then nothing is printed into the browser console.
 
-### Recording problems
+### When something goes wrong
 
-- When an error happens, then it is sent to our internal log.
-- When there is no browser involved, then nothing is sent.
-- When the send itself fails, then it is swallowed rather than causing a second error.
-- When nothing at all is handed in, then it is handled safely.
-- When an error is reported, then it carries everything known about the session.
-- When a real error is reported, then it is flattened into a message, a type and a trace.
-- When the error is plain text, then it is still reported.
-- When nothing is handed in, then it is still handled safely.
-- When the shopper is in the middle of logging out, then reporting is skipped.
-- When the reporting itself fails, then it never throws.
-- When the send fails, then it never throws.
-- When the error came from the server, then it is still reported.
-- When there is no browser, then the browser name is left out.
-- When the thing being waited for is already ready, then waiting finishes immediately.
-- When it becomes ready while waiting, then waiting finishes there and then.
-- When it never becomes ready, then waiting gives up after ten seconds.
+- When a configuration switch is left empty, then it counts as off.
+- When that switch has any value at all, then it counts as on.
+- When something the app waits for is ready already, then it carries on immediately.
+- When it becomes ready while the app waits, then the app carries on at that moment.
+- When it never becomes ready, then the app gives up after ten seconds instead of hanging.
+- When an error happens, then it is sent to our internal error record.
+- When there is no browser, then no error record is sent.
+- When sending the error fails, then the failure is swallowed and the page keeps working.
+- When nothing at all is handed over, then recording still copes without breaking.
+- When an error is reported, then everything known about the session goes with it.
+- When the visitor is signing out, then errors are not reported.
+- When a real error is reported, then its message, type and trail are recorded.
+- When only a piece of text is reported, then it is still recorded.
+- When nothing is handed over to the reporter, then it still copes without breaking.
+- When reporting itself goes wrong, then the page never breaks because of it.
+- When sending the report fails, then the page never breaks because of it.
+- When there is no browser, then the error is still reported.
+- When there is no browser, then the browser name is left out of the report.
 
-Another 71 checks keep the testing setup itself honest — they protect the tests, not the app, so
-they are counted but not listed.
+Another 71 checks keep the testing setup itself honest — they protect the tests, not the app,
+so they are counted but not listed.
 
 ---
 
@@ -249,26 +273,25 @@ they are counted but not listed.
 
 | Measure | Covered | Total | Share |
 |---|---|---|---|
-| Lines of code | 662 | 27,771 | 2.4% |
-| Decision points | 333 | 25,009 | 1.3% |
-| Functions | 80 | 7,100 | 1.1% |
+| Lines of code | 670 | 27764 | 2.4% |
+| Decision points | 347 | 24997 | 1.4% |
+| Functions | 80 | 7100 | 1.1% |
 
-Of **716** files: **2** have tests of their own, **60** are partly run only because a tested file
-uses them, and **654** have nothing.
+Of the 716 files in the app, 2 have a test of their own. Another 60 are touched only because a
+tested file uses them, and 654 have nothing at all.
 
 ### The parts we set out to test
 
 | Part of the app | Share checked |
 |---|---|
-| Shared helpers — prices, translation, basket, comparison | 100.0% |
-| Language and country routing | 92.5% |
+| Deciding a visitor's language and country — proxy.ts | 100.0% |
+| Shared helpers for prices, pictures, basket and comparison — utils/functions.tsx | 100.0% |
 
 ### Reading these numbers
 
-- **What is checked well:** the routing every visit passes through (92.5%) and the shared helpers
-  behind prices and the basket (100%) — the two pieces that break everything else when they break.
-- **What has nothing yet:** all 478 screen files, every page and service call, and every business
-  rule. That is why the whole-app figure is 2.4%; we have deliberately gone deep on two files first.
+- **What is checked well:** the two parts we chose are fully checked, and both run on every page.
+- **What has nothing yet:** the screens people see, the business rules, the pages and the
+  connections to our backends have no checks of their own.
 - **What "checked" does not mean:** a checked line is one a test ran. It does not prove the
   behaviour is what the business wants, and it says nothing about how the app looks or feels.
 <!-- test-index v1 — written by the test-summary skill. Do not edit by hand.
@@ -351,6 +374,8 @@ tests/proxy.test.ts :: crawlers (AC-7) lets Mozilla/5.0 (compatible; bingbot/2.0
 tests/proxy.test.ts :: crawlers (AC-7) lets Twitterbot/1.0 through when the address already has a valid pair
 tests/proxy.test.ts :: crawlers (AC-7) lets facebookexternalhit/1.1 through when the address already has a valid pair
 tests/proxy.test.ts :: crawlers (AC-7) never adds a country-change or no-country marker for a crawler
+tests/proxy.test.ts :: crawlers (AC-7) sends a crawler asking for the site root to a locale address
+tests/proxy.test.ts :: crawlers (AC-7) sends a crawler on an unsupported prefix to a supported address
 tests/proxy.test.ts :: crawlers (AC-7) treats an ordinary browser as a person, not a crawler
 tests/proxy.test.ts :: crawlers (AC-7) writes no locale cookies for a crawler
 tests/proxy.test.ts :: passing through or redirecting (AC-4) does not double the prefix when the bounce limit is reached either
@@ -358,6 +383,7 @@ tests/proxy.test.ts :: passing through or redirecting (AC-4) handles the site ro
 tests/proxy.test.ts :: passing through or redirecting (AC-4) lets a request with a valid pair through untouched
 tests/proxy.test.ts :: passing through or redirecting (AC-4) never rewrites — every answer is a pass-through or a redirect
 tests/proxy.test.ts :: passing through or redirecting (AC-4) puts the pair in front of the path and keeps the rest of the address
+tests/proxy.test.ts :: passing through or redirecting (AC-4) sends a returning visitor from the site root to their saved locale
 tests/proxy.test.ts :: passing through or redirecting (AC-4) swaps a locale-shaped prefix it does not support for the default, without doubling it (/gb-fr/shop)
 tests/proxy.test.ts :: passing through or redirecting (AC-4) swaps a locale-shaped prefix it does not support for the default, without doubling it (/xx-en/shop)
 tests/proxy.test.ts :: passing through or redirecting (AC-4) swaps an unsupported prefix that has nothing after it
@@ -367,16 +393,27 @@ tests/proxy.test.ts :: sitemap addresses (AC-9) lets /lb-en/sitemap.xml through 
 tests/proxy.test.ts :: sitemap addresses (AC-9) lets /sitemap-products.xml through untouched so a crawler gets the raw file
 tests/proxy.test.ts :: sitemap addresses (AC-9) lets /sitemap.xml through untouched so a crawler gets the raw file
 tests/proxy.test.ts :: sitemap addresses (AC-9) still lets a sitemap through when the saved country disagrees with the address
+tests/proxy.test.ts :: the bounce limit (AC-6) lands on a bare default address when the bounce limit is reached at the site root
 tests/proxy.test.ts :: the bounce limit (AC-6) still bounces while the count is within the limit
 tests/proxy.test.ts :: the bounce limit (AC-6) stops bouncing after the allowed number and lands on a default address
 tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) clears the logout marker on a real page render
 tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) does not save the referring site when the visit came from this same site
+tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) does not write the IP again when it has not changed
+tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) does not write the locale cookies again when they already match the address
 tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) keeps the logout marker on a redirect hop
+tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) saves the IP the request really came from
+tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) saves the language from the address when only the language differs from the saved one
 tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) saves the referring site anyway when the visit carries a campaign marker
 tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) saves the referring site when the visit really came from somewhere else
 tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) takes the cookie lifetime from the setting when one is given
 tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) writes the three locale cookies so the browser can read them
 tests/proxy.test.ts :: the cookies the proxy leaves behind (AC-8) writes the visitor's IP address so page scripts cannot read it
+tests/proxy.test.ts :: the country popup markers drops the timestamp marker on its way to a redirect
+tests/proxy.test.ts :: the country popup markers honours the choice on the next hop, once the address has a pair
+tests/proxy.test.ts :: the country popup markers puts the visitor on a proper address when the choice arrives with no pair
+tests/proxy.test.ts :: the country popup markers redirects to the cleaned address when other query values are left
+tests/proxy.test.ts :: the country popup markers shows the popup instead of redirecting when the no-country marker is on the address
+tests/proxy.test.ts :: the country popup markers takes the visitor's choice and stops asking
 tests/proxy.test.ts :: the paths the proxy runs on (AC-11) runs on /
 tests/proxy.test.ts :: the paths the proxy runs on (AC-11) runs on /checkout
 tests/proxy.test.ts :: the paths the proxy runs on (AC-11) runs on /gb-en/product/123
@@ -397,10 +434,13 @@ tests/proxy.test.ts :: the robots address and the lower-case redirect (AC-10) st
 tests/proxy.test.ts :: the robots address and the lower-case redirect (AC-10) still sends /robots itself to the robots file
 tests/proxy.test.ts :: the robots address and the lower-case redirect (AC-10) still sends /robots.txt itself to the robots file
 tests/proxy.test.ts :: what leaves the process, and what is remembered (AC-12, AC-13) forgets everything between tests, so the test before this one changed nothing
+tests/proxy.test.ts :: what leaves the process, and what is remembered (AC-12, AC-13) keeps the built-in list when the lookup answers with an error
+tests/proxy.test.ts :: what leaves the process, and what is remembered (AC-12, AC-13) keeps the built-in list when the lookup answers without a countries list
 tests/proxy.test.ts :: what leaves the process, and what is remembered (AC-12, AC-13) keeps working when the lookup fails, using the built-in fallback list
 tests/proxy.test.ts :: what leaves the process, and what is remembered (AC-12, AC-13) remembers the answer within one loaded copy and asks only once
 tests/proxy.test.ts :: what leaves the process, and what is remembered (AC-12, AC-13) sends the country the request came from with the lookup
 tests/proxy.test.ts :: what leaves the process, and what is remembered (AC-12, AC-13) starts the country lookup in the background and nothing else
+tests/proxy.test.ts :: when the saved country differs from the address (AC-5) handles the locale root with a trailing slash
 tests/proxy.test.ts :: when the saved country differs from the address (AC-5) lets the request through once the country-change marker is already on the address
 tests/proxy.test.ts :: when the saved country differs from the address (AC-5) raises the country-change marker naming both countries instead of switching silently
 tests/proxy.test.ts :: when the saved country differs from the address (AC-5) sends the visitor to the saved country when the address says gb
