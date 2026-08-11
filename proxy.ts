@@ -339,7 +339,10 @@ export async function proxy(request: NextRequest) {
   const referer = request.headers.get("referer");
   const utm_source = url.searchParams.get("utm_source");
   const mediaUrl=process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL;
- if (mediaUrl) {
+ // Skipped when `response` is the lower-case redirect: these hints tell a browser
+ // to open connections early for a page it is about to render, and a redirect
+ // renders nothing. The browser gets them on the real page it lands on.
+ if (mediaUrl && !hasUppercase) {
     // We only need to preconnect to the base domain origin, not the full subpaths
     response.headers.append(
       'Link',
@@ -377,7 +380,11 @@ export async function proxy(request: NextRequest) {
   // Bot handling
 
   // Handle robots.txt requests
-  if (pathname?.includes("/robots.txt") || pathname?.includes("/robots")) {
+  // Exact match only. `includes` used to catch any path with the word in it, so
+  // a real page like /gb-en/robots-guide was sent to the robots file too. The
+  // matcher already excludes /robots and /robots.txt as a first segment, so this
+  // is only a safety net for the day that list changes.
+  if (pathname === "/robots.txt" || pathname === "/robots") {
     return NextResponse.redirect(new URL("/robots.txt", request.url));
   }
 
@@ -418,13 +425,13 @@ export async function proxy(request: NextRequest) {
     // Even if we hit redirect limit, ensure we have a proper locale
     const preferredLanguage = getPreferredLanguage(request);
     const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
-    const cleanPathname = urlLocale
-      ? pathname.replace(urlLocale.locale, defaultLocale)
-      : pathname.startsWith("/")
-        ? pathname
-        : `/${pathname}`;
+    // Take off whatever locale-shaped prefix the address arrived with, then put
+    // the default one in front. `replace` used to swap the prefix for the default
+    // and the template then added the default again, so /xx-en/shop came out as
+    // /gb-en/gb-en/shop.
+    const cleanPathname = getCleanPathname(pathname, urlLocale);
 
-    url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname}`;
+    url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname === "/" ? "" : cleanPathname}`;
     url.searchParams.delete("cart");
     url.searchParams.set("no-country", "true");
     return NextResponse.redirect(url);
@@ -563,11 +570,9 @@ export async function proxy(request: NextRequest) {
 
   // 3. Fallback الافتراضي (فقط هنا يظهر no-country)
   const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
-  const cleanPathname = urlLocale
-    ? pathname.replace(urlLocale.locale, defaultLocale)
-    : pathname.startsWith("/")
-      ? pathname
-      : `/${pathname}`;
+  // Same fix as the redirect-limit branch above: strip the locale-shaped prefix
+  // rather than replacing it, or the default locale ends up in the address twice.
+  const cleanPathname = getCleanPathname(pathname, urlLocale);
 
   url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname === "/" ? "" : cleanPathname}`;
   url.searchParams.delete("cart");
