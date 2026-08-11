@@ -1,9 +1,6 @@
 import ProfileSizeInfo from "components/settings/ProfileSizeInfo";
-import {
-  COOKIE_NAMES,
-  getCookieServer,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 
 async function SizeForm({ params }) {
   let Params = await params;

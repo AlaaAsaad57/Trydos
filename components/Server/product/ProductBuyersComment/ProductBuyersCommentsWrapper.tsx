@@ -5,7 +5,8 @@ import ProductBuyersCommentList from "./ProductBuyersCommentList";
 
 import { GetRecommendationCountForProduct } from "serverRequests/product";
 import { GetRatingCommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
-import { getCookieServer, COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 
 async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
   let product = await globalPromise;

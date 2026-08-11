@@ -1,9 +1,6 @@
 import UploadProfilePhoto from "components/settings/UploadProfilePhoto";
-import {
-  COOKIE_NAMES,
-  getCookieServer,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 
 async function ProfilePictureForm({ params }) {
   let Params = await params;

@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { getCookieServer } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 
 /**
  * Request-scoped read of the guest's redeemed lottery ids.

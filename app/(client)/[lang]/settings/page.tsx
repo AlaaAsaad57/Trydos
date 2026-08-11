@@ -11,11 +11,8 @@ import { getLocalizedCountryName } from "utils/countryData";
 import { buildAlternates } from "serverRequests/meta/buildAlternates";
 import RouterRefresh from "components/global/RouterRefresh";
 
-import {
-  COOKIE_NAMES,
-  getCookieServer,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 
 
 export async function generateMetadata({ params }) {

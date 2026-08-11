@@ -1,9 +1,6 @@
 import BackBar from "components/setting/BackBar";
-import {
-  COOKIE_NAMES,
-  getCookieServer,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { translateFunction } from "utils/server";
 
 async function ProfileBankCards({ params }) {

@@ -1,7 +1,7 @@
 "use server";
 import { getProductsAndFiltersFromElastic, getRelatedProducts } from "services/elastic/elasticSearch";
 import type { GetProductsResult, GetRelatedProductsResult } from "types/listing";
-import { getCookieServer } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
 import { combineCategoriesWithRelated } from "utils/server";
 import { LogServerError } from "utils/serverErrorReporter";

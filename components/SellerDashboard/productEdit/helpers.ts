@@ -1182,19 +1182,7 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
   // §2.2 makes key presence load-bearing on update.
   set("multiplyQTY", form.multiply_qty?1:0);
 
-  // packed_after_ordering is NOT a boolean on the wire. The DTO enables the flag
-  // only on the literal string 'on' (contract §1c, §4); any other value stores 0.
-  // The key is always appended because update reads it with isset.
-  // KNOWN LIMITATION — update only: on CREATE the rule is `nullable|boolean`,
-  // which rejects 'on' while the DTO requires it, so the flag is impossible to
-  // enable at create through this endpoint. That is a backend defect, not
-  // something this builder can work around (spec AC-16).
-  if(isCreate){
-  set("packed_after_ordering", form.packed_after_ordering ? "true" : "false");
-  }
-  else{
-  set("packed_after_ordering", form.packed_after_ordering ? "on" : "");
-  }
+   set("packed_after_ordering", form.packed_after_ordering ? "on" : "off");
 
 
   set("meta_title", form.meta_title);

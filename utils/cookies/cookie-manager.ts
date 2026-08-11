@@ -1,14 +1,6 @@
-import jwt from "jsonwebtoken";
-
-let cookies: any;
-try {
-  if (typeof window === "undefined") {
-    cookies = require("next/headers").cookies;
-  }
-} catch {
-  // next/headers not available (e.g., in pages directory)
-  cookies = null;
-}
+// Cookie names, shared helpers and the browser-side helpers. This module is
+// part of the client bundle, so it must never import `next/headers`. The
+// server-side read lives in `./server-cookie-manager`.
 
 export interface CookieOptions {
   maxAge?: number;
@@ -133,44 +125,15 @@ function serialize(value: any): string {
 }
 
 /**
- * Deserialize value from cookie storage
+ * Deserialize value from cookie storage.
+ * Exported for `./server-cookie-manager`, so both halves parse alike.
  */
-function deserialize<T = any>(value: string): T {
+export function deserialize<T = any>(value: string): T {
   if (!value) return null as T;
   try {
     return JSON.parse(value) as T;
   } catch {
     return value as T;
-  }
-}
-
-// ====== SERVER-SIDE METHODS ======
-
-/**
- * Get cookie value (server-side)
- */
-export async function getCookieServer<T = string>(
-  name: string,
-): Promise<T | null> {
-  if (!isServer()) {
-    console.warn("getCookieServer can only be used on the server");
-  }
-
-  if (!cookies) {
-    console.warn("next/headers cookies not available");
-    return null;
-  }
-
-  try {
-    const cookieStore = await cookies();
-    const cookie = cookieStore.get(name);
-
-    if (!cookie?.value) return null;
-    const decoded = decodeURIComponent(cookie.value);
-    return deserialize<T>(decoded);
-  } catch (error) {
-    console.warn("Failed to get cookie from server:", error);
-    return null;
   }
 }
 

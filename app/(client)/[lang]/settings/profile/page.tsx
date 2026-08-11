@@ -1,10 +1,7 @@
 import NextLink from "components/global/NextLink";
 import BackBar from "components/setting/BackBar";
-import {
-  COOKIE_NAMES,
-  getCookieServer,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { GetImageUrl, translateFunction } from "utils/server";
 async function Profile({ params }) {
   let Params = await params;

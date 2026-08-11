@@ -69,11 +69,15 @@ export type CookieJar = Record<string, any>;
 /**
  * Build a fresh stand-in for the cookie manager.
  *
- * It covers everything the real module makes available, server half included:
- * `getCookieServer`, `getCookie`, `setCookie`, `deleteCookie`,
- * `clearHashedUserId`, `setLocaizationCookies`, `COOKIE_NAMES` and
- * `HTTPONLY_COOKIE_NAMES`. A missing part would break any test whose code path
- * happens to reach it.
+ * It covers everything the real module makes available: `getCookie`,
+ * `setCookie`, `deleteCookie`, `clearHashedUserId`, `setLocaizationCookies`,
+ * `COOKIE_NAMES` and `HTTPONLY_COOKIE_NAMES`. A missing part would break any
+ * test whose code path happens to reach it.
+ *
+ * The server-side read is NOT here — it lives in
+ * `utils/cookies/server-cookie-manager`, its own module. A test that needs it
+ * stands in for `next/headers` instead (see ./nextHeaders) and lets the real
+ * reader run.
  *
  * Reads and writes go to a plain object held by this stand-in, so nothing
  * touches a real browser cookie store. Pass a starting jar if a test needs a
@@ -90,7 +94,6 @@ export function makeCookieManagerMock(initialCookies: CookieJar = {}) {
     __jar: jar,
 
     getCookie: vi.fn((name: string) => jar[name] ?? null),
-    getCookieServer: vi.fn(async (name: string) => jar[name] ?? null),
     setCookie: vi.fn((name: string, value: any) => {
       jar[name] = value;
     }),

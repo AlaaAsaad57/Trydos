@@ -4,7 +4,7 @@ import VirtualTryOn from "components/products/VirtualTryOn";
 import { getColorImageGroups } from "./colorImageGroups";
 
 import Image from "next/image";
-import { getCookieServer } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 
 import { getConfiguredImage, GetImageUrl } from "utils/server";
 import ProductRedeemCounter from "components/products/ProductRedeemCounter";

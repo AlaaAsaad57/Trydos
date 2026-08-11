@@ -278,22 +278,13 @@ describe("what leaves the server (AC-19)", () => {
       token: "secret",
       access_token: "secret",
       id_token: "secret",
+      // The refresh token used to survive this cleaner while its sibling below
+      // stripped it, so a profile carrying the field reached the browser with
+      // it intact. Both cleaners now remove it.
+      refresh_token: "secret",
     });
 
     expect(safe).toEqual({ id: 1, name: "A B" });
-  });
-
-  it("PINS A DEFECT — a profile's refresh token is NOT stripped (finding 6)", async () => {
-    // The sibling cleaner below removes `refresh_token`. This one does not, so a
-    // profile carrying that field would reach the browser with it intact.
-    //
-    // Pinned as it is today. When the field is added to the cleaner, this test
-    // SHOULD fail — move `refresh_token` into the test above then.
-    const { sanitizeUserData } = await import("utils/server/tokenManager");
-
-    const safe: any = sanitizeUserData({ id: 1, refresh_token: "leaked" });
-
-    expect(safe.refresh_token).toBe("leaked");
   });
 
   it("strips tokens, including the refresh token, from a service profile", async () => {

@@ -1,9 +1,6 @@
 import PersonalInfoForm from "components/setting/profile/PersonalInfoForm";
-import {
-  COOKIE_NAMES,
-  getCookieServer,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 async function PersonalInfo({ params }) {
   let Params = await params;
   let [country, language] = Params?.lang?.split("-");

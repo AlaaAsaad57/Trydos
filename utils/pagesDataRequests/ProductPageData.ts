@@ -8,7 +8,8 @@ import {
   user_interactions_index,
   views_index,
 } from "services/elastic/INDEXES";
-import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 
 let client = elasticSearchClient;

@@ -8,27 +8,46 @@
 // reads these names and this set. Pinning them here means a change to any of
 // them has to be deliberate.
 //
-// What is NOT covered here, and why:
+// The server-side read is covered too, now that it lives in its own module.
+// It used to be unreachable: the reader came in through a bare `require` at
+// module scope inside a `try`, which the runner does not provide, so every read
+// returned null even with the cookie present — a test written the obvious way
+// passed while proving nothing.
 //
-//   - `getCookieServer` cannot be reached by any test. The module loads the
-//     framework's request reader through a bare `require` at module scope
-//     (cookie-manager.ts:3-11), inside a `try` that swallows the failure. The
-//     test runner does not provide that `require`, so the module ends up with no
-//     reader at all and every server-side read returns null — even when the
-//     stand-in holds the cookie. It fails the same way under a browser-like
-//     environment, where the `typeof window` guard skips the require entirely.
-//     Recorded as finding 7; fixing it would mean changing the code under test.
-//
-//   - The three browser-only helpers (get/set/delete) refuse to run outside a
-//     browser. This ticket is the server-side plumbing; they belong with the
-//     client-side phase.
-import { describe, expect, it } from "vitest";
+// What is NOT covered here, and why: the three browser-only helpers
+// (get/set/delete) refuse to run outside a browser. This ticket is the
+// server-side plumbing; they belong with the client-side phase.
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   COOKIE_NAMES,
   HTTPONLY_COOKIE_NAMES,
 } from "utils/cookies/cookie-manager";
-import { SECURE_COOKIE_NAMES } from "utils/server/tokenManager";
+import { makeNextHeadersMock } from "../mocks/nextHeaders";
+
+const headers = makeNextHeadersMock();
+vi.mock("next/headers", () => headers);
+
+// The token module pulls in the failure reporter, and that drags the whole
+// error-reporting stack behind it. Nothing here calls it, so standing it in
+// keeps this file offline and quick — the same stand-in the token module's own
+// test file uses.
+vi.mock("utils/serverErrorReporter", () => ({
+  LogServerError: vi.fn(async () => undefined),
+  default: vi.fn(async () => undefined),
+}));
+
+// Anything that reaches next/headers is imported inside the tests, never at the
+// top of the file: a top-level import would run before the stand-in above
+// exists. That is the server reader, and the token module.
+const loadReader = async () =>
+  (await import("utils/cookies/server-cookie-manager")).getCookieServer;
+const loadPurgeList = async () =>
+  (await import("utils/server/tokenManager")).SECURE_COOKIE_NAMES;
+
+beforeEach(() => {
+  headers.__reset();
+});
 
 describe("cookie names (AC-13)", () => {
   it("holds the auth token in one cookie, for guest and signed-in alike", () => {
@@ -45,16 +64,13 @@ describe("cookie names (AC-13)", () => {
     expect(COOKIE_NAMES.DEVICE_TOKEN).toBe("DEVICE-TOKEN");
   });
 
-  it("PINS A DEFECT — the legacy device cookie is still read by one module (finding 8)", async () => {
+  it("is named nowhere outside the cleanup lists it exists for", async () => {
     // AC-13 says the legacy cookie survives only in cleanup lists: never read,
     // never written. The repository rule says the same in as many words.
     //
-    // It is not true today. This walks the source for uses of that cookie and
-    // pins the ONE place that still reads it, so a second place cannot appear
-    // without this test going red.
-    //
-    // When the read below is removed, this test SHOULD fail — change the
-    // expectation to an empty list then.
+    // `services/elastic/sellerComments.ts` used to break it — it declared its
+    // own copy of the name and read the cookie as a fallback token. That read is
+    // gone. This walks the source so a new one cannot appear unnoticed.
     const { execSync } = await import("node:child_process");
     const hits = execSync(
       'git grep -ln "COOKIE_NAMES.DEVICE_TOKEN\\|\\"DEVICE-TOKEN\\"" -- "*.ts" "*.tsx" ":!tests/**"',
@@ -66,9 +82,7 @@ describe("cookie names (AC-13)", () => {
       .filter((file) => file !== "utils/cookies/cookie-manager.ts")
       .filter((file) => file !== "utils/server/tokenManager.ts");
 
-    // `services/elastic/sellerComments.ts` declares its own copy of the name
-    // (line 91) and reads the cookie through it (line 121). Nothing else does.
-    expect(hits).toEqual(["services/elastic/sellerComments.ts"]);
+    expect(hits).toEqual([]);
   });
 
   it("keeps the visit id and the logout guard separate from the auth cookies", () => {
@@ -86,6 +100,7 @@ describe("cookies the browser must not read (AC-14)", () => {
     COOKIE_NAMES.MARKET_REFRESH_TOKEN,
     COOKIE_NAMES.DEVICE_TOKEN,
     COOKIE_NAMES.CHAT_TOKEN,
+    COOKIE_NAMES.CHAT_REFRESH_TOKEN,
     COOKIE_NAMES.STORIES_TOKEN,
     COOKIE_NAMES.WALLET_TOKEN,
     COOKIE_NAMES.USER_ID_HASH,
@@ -108,20 +123,95 @@ describe("cookies the browser must not read (AC-14)", () => {
     expect(hidden.has(COOKIE_NAMES.LANG)).toBe(false);
   });
 
-  it("PINS A DEFECT — the two lists of hidden cookies disagree (finding 5)", () => {
-    // There are two lists that both claim to name every cookie the browser must
-    // not read: HTTPONLY_COOKIE_NAMES here, and SECURE_COOKIE_NAMES in the token
-    // module. They do not match. The chat refresh token is in one and not the
-    // other, so whichever list a future change consults decides whether that
-    // cookie is protected.
+  it("is the same list the token module purges on sign-out", async () => {
+    // Two lists used to make this claim: HTTPONLY_COOKIE_NAMES here, and a
+    // hand-written SECURE_COOKIE_NAMES in the token module. They drifted — the
+    // chat refresh token was in one and not the other, so which list a change
+    // happened to consult decided whether that cookie was protected and whether
+    // sign-out cleared it.
     //
-    // This test pins the disagreement AS IT IS TODAY. It is not the behaviour we
-    // want. When the lists are made to agree, this test SHOULD fail — delete it
-    // then, and move the name into the test above.
-    const inHttpOnlyOnly = [...HTTPONLY_COOKIE_NAMES].filter(
-      (name) => !(SECURE_COOKIE_NAMES as readonly string[]).includes(name),
+    // The token module now derives its list from this one. This test fails if a
+    // second hand-written copy comes back.
+    const purged = await loadPurgeList();
+
+    expect([...purged].sort()).toEqual([...HTTPONLY_COOKIE_NAMES].sort());
+  });
+
+  it("clears the chat refresh token on sign-out, like every other token", async () => {
+    // The concrete cookie the drift above left unprotected.
+    const purged = await loadPurgeList();
+
+    expect(purged).toContain(COOKIE_NAMES.CHAT_REFRESH_TOKEN);
+  });
+});
+
+describe("reading a cookie on the server", () => {
+  it("returns a plain string as it was stored", async () => {
+    const getCookieServer = await loadReader();
+    headers.__reset({
+      cookies: { [COOKIE_NAMES.MARKET_TOKEN]: "fake.jwt.abc" },
+    });
+
+    expect(await getCookieServer(COOKIE_NAMES.MARKET_TOKEN)).toBe(
+      "fake.jwt.abc",
+    );
+  });
+
+  it("gives back a profile as an object, not the text it was stored as", async () => {
+    // The app stores JSON encoded. A caller that had to parse it itself would
+    // sooner or later parse it differently somewhere.
+    const getCookieServer = await loadReader();
+    headers.__reset({
+      cookies: {
+        [COOKIE_NAMES.USER_DATA]: encodeURIComponent(
+          JSON.stringify({ id: 7, phone: "0500000000" }),
+        ),
+      },
+    });
+
+    expect(await getCookieServer(COOKIE_NAMES.USER_DATA)).toEqual({
+      id: 7,
+      phone: "0500000000",
+    });
+  });
+
+  it("undoes the encoding a stored value was written with", async () => {
+    const getCookieServer = await loadReader();
+    headers.__reset({ cookies: { greeting: encodeURIComponent("a b+c") } });
+
+    expect(await getCookieServer("greeting")).toBe("a b+c");
+  });
+
+  it("returns nothing for a cookie that is not there", async () => {
+    const getCookieServer = await loadReader();
+
+    expect(await getCookieServer("no-such-cookie")).toBeNull();
+  });
+
+  it("returns nothing for a cookie that is present but empty", async () => {
+    const getCookieServer = await loadReader();
+    headers.__reset({ cookies: { [COOKIE_NAMES.MARKET_TOKEN]: "" } });
+
+    expect(await getCookieServer(COOKIE_NAMES.MARKET_TOKEN)).toBeNull();
+  });
+
+  it("hands back text it cannot parse rather than throwing", async () => {
+    // A half-written or hand-edited cookie must not take a page down.
+    const getCookieServer = await loadReader();
+    headers.__reset({ cookies: { [COOKIE_NAMES.USER_DATA]: "{not json" } });
+
+    expect(await getCookieServer(COOKIE_NAMES.USER_DATA)).toBe("{not json");
+  });
+
+  it("returns nothing when there is no request to read from", async () => {
+    // A static render has no request store, so the framework throws. A missing
+    // cookie is the right answer for a request that does not exist — the old
+    // code answered null here too, and callers depend on it.
+    const getCookieServer = await loadReader();
+    headers.cookies.mockRejectedValueOnce(
+      new Error("`cookies` was called outside a request scope."),
     );
 
-    expect(inHttpOnlyOnly).toEqual([COOKIE_NAMES.CHAT_REFRESH_TOKEN]);
+    expect(await getCookieServer(COOKIE_NAMES.MARKET_TOKEN)).toBeNull();
   });
 });
