@@ -1,9 +1,44 @@
-import { COOKIE_NAMES, getCookieServer } from "./cookies/cookie-manager";
+import { COOKIE_NAMES, deserialize } from "./cookies/cookie-manager";
+import { readServerCookies } from "./cookies/server-cookie-fallback";
 import { ReportError } from "./errorReported";
 import { readStoredLastPaths } from "./history";
 
+// This module cannot import the ordinary server cookie reader
+// (utils/cookies/server-cookie-manager), statically OR dynamically: it sits in
+// the client SSR graph — services/home.ts is "use client" and calls
+// LogServerError, and services/auth.ts reaches here through utils/fetchData.
+// See ./cookies/server-cookie-fallback for what it uses instead and why.
+
+/** Turn a stored cookie back into the value it was written from. */
+function decodeStored(raw: string | null) {
+  if (!raw) return null;
+  try {
+    return deserialize(decodeURIComponent(raw));
+  } catch {
+    // One unreadable cookie must not cost us the other ten.
+    return null;
+  }
+}
+
 export const LogServerError = async (error?: unknown, pagePath?: string) => {
   try {
+    const [stored, last_paths] = await Promise.all([
+      readServerCookies([
+        COOKIE_NAMES.USER_DATA,
+        COOKIE_NAMES.USER_CHAT,
+        COOKIE_NAMES.USER_STORIES,
+        "language",
+        "country",
+        "userIP",
+        COOKIE_NAMES.MARKET_TOKEN,
+        COOKIE_NAMES.CHAT_TOKEN,
+        COOKIE_NAMES.STORIES_TOKEN,
+        COOKIE_NAMES.WALLET_TOKEN,
+        COOKIE_NAMES.USER_ID_HASH,
+      ]),
+      readStoredLastPaths(),
+    ]);
+
     const [
       userData,
       userChat,
@@ -11,26 +46,12 @@ export const LogServerError = async (error?: unknown, pagePath?: string) => {
       language,
       country,
       userIP,
-      last_paths,
       marketToken,
       chatToken,
       storiesToken,
       walletToken,
       userIdHash,
-    ] = await Promise.all([
-      getCookieServer(COOKIE_NAMES.USER_DATA),
-      getCookieServer(COOKIE_NAMES.USER_CHAT),
-      getCookieServer(COOKIE_NAMES.USER_STORIES),
-      getCookieServer("language"),
-      getCookieServer("country"),
-      getCookieServer("userIP"),
-      readStoredLastPaths(),
-      getCookieServer(COOKIE_NAMES.MARKET_TOKEN),
-      getCookieServer(COOKIE_NAMES.CHAT_TOKEN),
-      getCookieServer(COOKIE_NAMES.STORIES_TOKEN),
-      getCookieServer(COOKIE_NAMES.WALLET_TOKEN),
-      getCookieServer(COOKIE_NAMES.USER_ID_HASH),
-    ]);
+    ] = stored.map(decodeStored);
     const serializedError =
       error instanceof Error
         ? { message: error.message, stack: error.stack, name: error.name }

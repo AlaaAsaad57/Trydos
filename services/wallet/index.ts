@@ -1,6 +1,7 @@
 "use server";
 
-import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 
 import {
   BanksApi,

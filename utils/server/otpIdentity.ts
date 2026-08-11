@@ -1,7 +1,8 @@
 import "server-only";
 import crypto from "crypto";
 import { cookies, headers } from "next/headers";
-import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import {
   SECURE_COOKIE_OPTIONS,
   REFRESH_COOKIE_OPTIONS,

@@ -11,11 +11,8 @@ import { fetchServerData } from "./ServerFetch";
 import { Metadata } from "next";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import { cookies } from "next/headers";
-import {
-  COOKIE_NAMES,
-  getCookieServer,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 // Safe here: this is a "use server" module — client imports get action
 // proxies, so tokenManager's next/headers never enters the client bundle

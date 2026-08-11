@@ -91,7 +91,6 @@ vi.mock("./cookies/cookie-manager", () => ({
     return cookieMock.HTTPONLY_COOKIE_NAMES;
   },
   getCookie: (...args: any[]) => (cookieMock.getCookie as any)(...args),
-  getCookieServer: (...args: any[]) => (cookieMock.getCookieServer as any)(...args),
   setCookie: (...args: any[]) => (cookieMock.setCookie as any)(...args),
   deleteCookie: (...args: any[]) => (cookieMock.deleteCookie as any)(...args),
   clearHashedUserId: (...args: any[]) => (cookieMock.clearHashedUserId as any)(...args),

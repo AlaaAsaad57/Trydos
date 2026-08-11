@@ -1,7 +1,7 @@
 import ListingSkeleton from "components/skeleton/listing";
 import React, { Suspense } from "react";
 import ProductListServer from "./ProductList";
-import { getCookieServer } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { getTitleAndTargetofListing } from "serverRequests/meta/StructuredData/utils";
 import ListingBreadcrumbList from "serverRequests/meta/StructuredData/ListingBreadcrumbList";
 import ClientLogger from "components/global/ClientLogger";

@@ -93,9 +93,9 @@ describe("store stand-in — a module that loads the store late", () => {
 // ─── The copied cookie names, against the real module ──────────────────────
 describe("cookie stand-in — the copied names", () => {
   it("still matches every name in the real cookie manager", async () => {
-    // The ONLY place in the kit that loads the real cookie module. It needs the
-    // browser-like (jsdom) environment: without a browser window the real
-    // module reaches for server-side request reading.
+    // The ONLY place in the kit that loads the real cookie module. Safe to load
+    // anywhere now: the half that reaches the server request store was split
+    // out into utils/cookies/server-cookie-manager.
     const real = await vi.importActual<
       typeof import("utils/cookies/cookie-manager")
     >("utils/cookies/cookie-manager");

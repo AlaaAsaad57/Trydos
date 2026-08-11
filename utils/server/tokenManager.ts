@@ -1,5 +1,8 @@
 import { cookies } from "next/headers";
-import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import {
+  COOKIE_NAMES,
+  HTTPONLY_COOKIE_NAMES,
+} from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 
 // ---------- Types ----------
@@ -57,23 +60,15 @@ const ALLOWED_SERVERS: ProxiedServer[] = [
   "market-dashboard",
 ];
 
-// All cookie names that hold sensitive tokens — must be HttpOnly.
+// All cookie names that hold sensitive tokens — must be HttpOnly, and must be
+// purged on logout. Derived from HTTPONLY_COOKIE_NAMES so there is ONE list:
+// a second hand-written copy used to drift (CHAT_REFRESH_TOKEN was in one and
+// not the other), which decided by accident whether a cookie was protected.
+// Add a name in cookie-manager.ts and both meanings follow.
 // DEVICE_TOKEN is legacy (guest JWTs now live in MARKET_TOKEN); it stays in
 // this list ONLY so logout still purges the stale cookie from old browsers —
 // nothing reads or sets it anymore.
-const SECURE_COOKIE_NAMES = [
-  COOKIE_NAMES.MARKET_TOKEN,
-  COOKIE_NAMES.MARKET_REFRESH_TOKEN,
-  COOKIE_NAMES.DEVICE_TOKEN,
-  COOKIE_NAMES.CHAT_TOKEN,
-  COOKIE_NAMES.STORIES_TOKEN,
-  COOKIE_NAMES.WALLET_TOKEN,
-  COOKIE_NAMES.USER_ID_HASH,
-  COOKIE_NAMES.USER_DATA,
-  COOKIE_NAMES.USER_CHAT,
-  COOKIE_NAMES.USER_STORIES,
-  COOKIE_NAMES.WALLET_USER,
-] as const;
+const SECURE_COOKIE_NAMES: readonly string[] = [...HTTPONLY_COOKIE_NAMES];
 
 const GO_APIS = [
   "/auth/register-guest",
@@ -305,7 +300,7 @@ async function getCurrentUser() {
 // Strip tokens and sensitive fields before sending to client
 function sanitizeUserData(data: any) {
   if (!data) return null;
-  const { token, access_token, id_token, ...safe } = data;
+  const { token, access_token, id_token, refresh_token, ...safe } = data;
   return safe;
 }
 

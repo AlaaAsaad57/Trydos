@@ -1,11 +1,8 @@
 import AddStory from "components/Home/AddStory";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { fetchStoriesForGuest, fetchStoriesForUser } from "@/serverRequests";
-import {
-  COOKIE_NAMES,
-  getCookieServer,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import AddStoryWidget from "components/Home/Stories/AddStoryWidgetLazy";
 import StoriesWrapper from "components/clientWrapper/StoriesWrapper";
 

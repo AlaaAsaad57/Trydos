@@ -1,4 +1,5 @@
-import { getCookieServer, COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import React from "react";
 import { GetFQACommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
 import FaqSectionTopBar from "./FaqSectionTopBar";
