@@ -22,9 +22,9 @@ Design record: `docs/superpowers/specs/2026-07-27-trello-to-clickup-migration-sk
 | Status on creation | `draft`, always |
 
 Credentials: `TRELLO_API_KEY` and `TRELLO_TOKEN` live in the gitignored
-`.env.development`. `CLICKUP_API_TOKEN` is expected in the **environment** — same as
-`clickup_intake.py` requires — and is not duplicated into the file. The scripts load
-both themselves; never print a token and never write one into a ticket.
+`.env.development`. `CLICKUP_API_TOKEN` is expected in the **environment** and is not
+duplicated into the file. The scripts load both themselves; never print a token and
+never write one into a ticket.
 
 If a script exits `CUW-1 ERROR: CLICKUP_API_TOKEN is not set`, the shell is missing
 that variable. Export it rather than copying the secret into `.env.development`.
@@ -218,6 +218,5 @@ Name every failure explicitly. A card that errored is not a card that was skippe
 - **Never create a ticket without running the clarification gate first.** If the user
   has not answered for a card, that card is not ready — leave it in Trello and say so.
 - Never put a literal `:` in a filename. `Trello-`, not `Trello:`.
-- Never modify `scripts/clickup_intake.py` — it is read-only by rule CU-3.
 - Never edit a Trello card's name, description, members or labels. Column only.
 - Never invent a verdict, and never claim to have tested the running app.

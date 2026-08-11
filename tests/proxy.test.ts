@@ -2,10 +2,10 @@
 // language and the country, then either lets the request through or sends the
 // visitor to an address that carries a `<country>-<language>` prefix.
 //
-// Why the tests live here and not next to the file: `proxy.ts` is a protected
-// path (`.claude/project-config.yaml > protected_paths`). A new file inside that
-// area would be a protected-path change. Writing the test in the `tests/` mirror
-// keeps every guardrail as it is. See docs/testing/UNIT_TESTING.md.
+// Why the tests live here and not next to the file: `proxy.ts` is a sensitive
+// path — it carries the routing every request goes through. We keep files that
+// are not runtime code out of it, so the test goes in the `tests/` mirror
+// instead. See docs/testing/UNIT_TESTING.md.
 //
 // How these tests work: they drive the proxy the way Next does — build a
 // request, call the exported function, then read the status, the address in the
@@ -329,6 +329,17 @@ describe("passing through or redirecting (AC-4)", () => {
     },
   );
 
+  it("sends a returning visitor from the site root to their saved locale", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/", { cookies: { country: "tr", lang: "tr" } }),
+    );
+
+    // No trailing slash: the root has no path to keep.
+    expect(redirectTarget(response)).toBe("/tr-tr");
+  });
+
   it("swaps an unsupported prefix that has nothing after it", async () => {
     const { proxy } = await loadProxy();
 
@@ -411,6 +422,18 @@ describe("when the saved country differs from the address (AC-5)", () => {
     expect(cookieOn(response, "lang")?.value).toBe("tr");
   });
 
+  it("handles the locale root with a trailing slash", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/gb-en/", { cookies: { country: "tr", lang: "tr" } }),
+    );
+
+    // The path after the pair is empty, so only the pair is left. The trailing
+    // slash the visitor typed is kept.
+    expect(redirectTarget(response)).toBe("/tr-tr/");
+  });
+
   it("lets the request through once the country-change marker is already on the address", async () => {
     const { proxy } = await loadProxy();
 
@@ -444,6 +467,16 @@ describe("the bounce limit (AC-6)", () => {
     );
 
     expect(redirectTarget(response)).toBe("/gb-en/shop?no-country=true");
+  });
+
+  it("lands on a bare default address when the bounce limit is reached at the site root", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/", { headers: { "x-redirect-count": "3" } }),
+    );
+
+    expect(redirectTarget(response)).toBe("/gb-en?no-country=true");
   });
 
   it("still bounces while the count is within the limit", async () => {
@@ -522,6 +555,28 @@ describe("crawlers (AC-7)", () => {
     expect(response.cookies.getAll()).toHaveLength(0);
   });
 
+  it("sends a crawler asking for the site root to a locale address", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/", { headers: { "user-agent": "Googlebot/2.1" } }),
+    );
+
+    expect(response.status).toBe(308);
+    expect(redirectTarget(response)).toBe("/gb-en");
+  });
+
+  it("sends a crawler on an unsupported prefix to a supported address", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/xx-en/shop", { headers: { "user-agent": "Googlebot/2.1" } }),
+    );
+
+    expect(response.status).toBe(308);
+    expect(redirectTarget(response)).toBe("/gb-en/shop");
+  });
+
   it("treats an ordinary browser as a person, not a crawler", async () => {
     const { proxy } = await loadProxy();
 
@@ -572,6 +627,55 @@ describe("the cookies the proxy leaves behind (AC-8)", () => {
 
     // The IP is personal data. Server code still reads it; page scripts must not.
     expect(cookieOn(response, "userIP")?.httpOnly).toBe(true);
+  });
+
+  it("saves the IP the request really came from", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/gb-en/shop", { headers: { "x-real-ip": "203.0.113.5" } }),
+    );
+
+    expect(cookieOn(response, "userIP")?.value).toBe("203.0.113.5");
+  });
+
+  it("does not write the IP again when it has not changed", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/gb-en/shop", {
+        headers: { "x-real-ip": "203.0.113.5" },
+        cookies: { userIP: "203.0.113.5" },
+      }),
+    );
+
+    expect(cookieOn(response, "userIP")).toBeUndefined();
+  });
+
+  it("does not write the locale cookies again when they already match the address", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/gb-en/shop", { cookies: { country: "gb", lang: "en" } }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(cookieOn(response, "country")).toBeUndefined();
+    expect(cookieOn(response, "lang")).toBeUndefined();
+  });
+
+  it("saves the language from the address when only the language differs from the saved one", async () => {
+    const { proxy } = await loadProxy();
+
+    // Same country, different language: the address wins and is saved. This is
+    // how a visitor switches language by changing the address.
+    const response = await proxy(
+      makeRequest("/tr-ar/shop", { cookies: { country: "tr", lang: "en" } }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(cookieOn(response, "lang")?.value).toBe("ar");
+    expect(cookieOn(response, "country")?.value).toBe("tr");
   });
 
   it("saves the referring site when the visit really came from somewhere else", async () => {
@@ -646,6 +750,91 @@ describe("the cookies the proxy leaves behind (AC-8)", () => {
     const response = await proxy(makeRequest("/gb-en/shop"));
 
     expect(cookieOn(response, "country")?.maxAge).toBe(60);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The country popup — the markers it uses, and the way out of it
+// ---------------------------------------------------------------------------
+
+describe("the country popup markers", () => {
+  it("shows the popup instead of redirecting when the no-country marker is on the address", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(makeRequest("/tr-tr/shop?no-country=true"));
+
+    // The page renders and asks the visitor; the address is left alone.
+    expect(response.status).toBe(200);
+    expect(cookieOn(response, "country")?.value).toBe("tr");
+    expect(cookieOn(response, "lang")?.value).toBe("tr");
+  });
+
+  it("drops the timestamp marker on its way to a redirect", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/gb-en/shop?_t=123456", {
+        cookies: { country: "tr", lang: "tr" },
+      }),
+    );
+
+    expect(redirectTarget(response)).toBe("/tr-tr/shop");
+  });
+
+  it("takes the visitor's choice and stops asking", async () => {
+    const { proxy } = await loadProxy();
+
+    // `_bypass=popup-selection` is what the popup sends when the visitor has
+    // picked. The choice in the address is saved and every marker is cleared.
+    const response = await proxy(
+      makeRequest("/tr-tr/shop?_bypass=popup-selection&no-country=true"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(cookieOn(response, "country")?.value).toBe("tr");
+    expect(cookieOn(response, "lang")?.value).toBe("tr");
+  });
+
+  it("puts the visitor on a proper address when the choice arrives with no pair", async () => {
+    const { proxy } = await loadProxy();
+
+    // There is no pair in the address, so there is no choice to save. Skipping
+    // the checks here would leave the visitor on an address with no locale at
+    // all, so the normal rules run instead and give them one.
+    const response = await proxy(makeRequest("/shop?_bypass=popup-selection"));
+
+    expect(response.status).toBe(307);
+    expect(redirectTarget(response)).toBe(
+      "/gb-en/shop?_bypass=popup-selection&no-country=true",
+    );
+  });
+
+  it("honours the choice on the next hop, once the address has a pair", async () => {
+    const { proxy } = await loadProxy();
+
+    // The address the test above redirects to. The visitor is not stranded: the
+    // second hop has a pair, so the choice is saved and the markers cleared.
+    const response = await proxy(
+      makeRequest("/gb-en/shop?_bypass=popup-selection&no-country=true"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(cookieOn(response, "country")?.value).toBe("gb");
+    expect(cookieOn(response, "lang")?.value).toBe("en");
+  });
+
+  it("redirects to the cleaned address when other query values are left", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/tr-tr/shop?_bypass=popup-selection&changed-country=tr,lb&page=2"),
+    );
+
+    expect(redirectTarget(response)).toBe("/tr-tr/shop?page=2");
+    // The choice travels with the redirect. It used to be written only on the
+    // pass-through response, so it was lost here and the popup asked again.
+    expect(cookieOn(response, "country")?.value).toBe("tr");
+    expect(cookieOn(response, "lang")?.value).toBe("tr");
   });
 });
 
@@ -837,6 +1026,30 @@ describe("what leaves the process, and what is remembered (AC-12, AC-13)", () =>
     const response = await proxy(makeRequest("/lb-en/shop"));
 
     expect(response.status).toBe(200);
+  });
+
+  it("keeps the built-in list when the lookup answers with an error", async () => {
+    const { proxy } = await loadProxy();
+    net.queueReply(jsonReply({ message: "server error" }, 500));
+
+    await proxy(makeRequest("/gb-en/shop"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Nothing was remembered, so `eg` is still an unknown country.
+    const second = await proxy(makeRequest("/eg-en/shop"));
+    expect(redirectTarget(second)).toBe("/gb-en/shop?no-country=true");
+  });
+
+  it("keeps the built-in list when the lookup answers without a countries list", async () => {
+    const { proxy } = await loadProxy();
+    // A reply in an unexpected shape must not break routing.
+    net.queueReply(jsonReply({ data: {} }));
+
+    await proxy(makeRequest("/gb-en/shop"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const second = await proxy(makeRequest("/eg-en/shop"));
+    expect(redirectTarget(second)).toBe("/gb-en/shop?no-country=true");
   });
 
   it("remembers the answer within one loaded copy and asks only once", async () => {

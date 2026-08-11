@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """ClickUp task creation for the Trello backlog migration skill.
 
-This is the **only** place ClickUp write logic lives. `clickup_intake.py` stays
-strictly read-only (rule CU-3) and is deliberately untouched -- adding a write verb
-there would void a guarantee `/start-ticket` depends on.
+This is the **only** place ClickUp write logic lives. Any other ClickUp helper
+stays strictly read-only -- adding a write verb elsewhere would spread the write
+path across files that callers assume are safe.
 
 The duplicate lookup (`--find-by-name`) is a GET, but it lives here rather than in a
 separate reader because it exists only to guard the create; splitting them would let
