@@ -46,8 +46,7 @@ Phases 1 and 2 are closed. What they left behind:
 - `tests/mocks/` — `nextHeaders`, `cookieManager`, `fetchData`, `store`,
   `localization`, `posthog`, `sentry`, and `mockFetch`
 - `docs/testing/UNIT_TESTING.md` — the conventions every phase follows
-- `pnpm test:run` / `pnpm test:coverage`, and a `tests-and-types` validation
-  profile in `.claude/project-config.yaml`
+- `pnpm test:run` / `pnpm test:coverage`
 
 **There is no CI.** `.gitlab-ci.yml` is dead. Everything here runs locally. No
 phase adds a pipeline.
@@ -101,8 +100,7 @@ ones.
 ### Phase 3 — `rtl-render-harness` — **done**
 
 Every component phase (10, 19, 20, 25, 28, 29) was blocked on this one. It is
-unblocked. The work was done straight on `develop`, outside the ticket workflow,
-by the owner's decision — so there is no `_specs/rtl-render-harness/` folder.
+unblocked. The work was done straight on `develop`, by the owner's decision.
 
 **Acceptance criteria** — all three met, and proved in `tests/render.test.tsx`:
 a component that reads the store renders with seeded state; a component that

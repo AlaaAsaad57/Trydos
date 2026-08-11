@@ -4,7 +4,7 @@
 > Scope: **only** how to page `GET /api/products/searchInCatalog` without
 > duplicates or skips using Point-in-Time (PIT). Nothing else about the endpoint
 > changes.
-> Background (optional): [ADR-009](../.claude/docs/adr/ADR-009-elasticsearch-pit-listing-pagination.md).
+> Background (optional): [ADR-009](./adr/ADR-009-elasticsearch-pit-listing-pagination.md).
 
 ## Why
 

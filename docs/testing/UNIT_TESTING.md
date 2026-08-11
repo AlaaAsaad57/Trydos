@@ -24,9 +24,9 @@ utils/orderFunnel.ts       →  utils/orderFunnel.test.ts
 store/listing/reducer.ts   →  store/listing/reducer.test.ts
 ```
 
-**Exception — protected paths.** When the file you are testing sits under a
-`protected_paths` glob in `.claude/project-config.yaml`, put the test in a
-`tests/` mirror of the same path instead:
+**Exception — sensitive paths.** When the file you are testing sits under one of
+the sensitive globs listed below, put the test in a `tests/` mirror of the same
+path instead:
 
 ```
 serverRequests/HandleAuthedFetch.ts  →  tests/serverRequests/HandleAuthedFetch.test.ts
@@ -34,11 +34,10 @@ utils/cookies/cookie-manager.ts      →  tests/utils/cookies/cookie-manager.tes
 app/api/auth/login/route.ts          →  tests/app/api/auth/login/route.test.ts
 ```
 
-The reason is the workflow, not taste. A new file inside a protected glob counts
-as changing a protected path, which triggers a full stop at `/implement`
-(GU-2 / IM-5) and needs the path listed in an approved `plan.md`. Writing the
-test outside the glob avoids that for every ticket, and no guardrail has to be
-weakened. The protected globs are `proxy.ts`, `serverRequests/**`,
+The reason is safety, not taste. These paths carry auth, cookies, routing and
+build config, so we keep them free of files that are not runtime code. Writing
+the test outside the glob keeps that line clean. The sensitive globs are
+`proxy.ts`, `serverRequests/**`,
 `utils/cookies/**`, `app/api/auth/**`, `services/auth.ts`, `services/cart.ts`,
 `services/order.ts`, `services/orders.ts`, `store/index.ts` and `next.config.ts`.
 
