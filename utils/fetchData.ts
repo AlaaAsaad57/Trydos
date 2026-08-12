@@ -7,9 +7,9 @@ import {
   showErrorNotification,
   showSuccessNotification,
 } from "store/notifications/reducer";
-import auth from "../services/auth";
+import auth from "services/auth";
 import { COOKIE_NAMES, getCookie } from "./cookies/cookie-manager";
-import { useAppStore } from "../store";
+import { useAppStore } from "store";
 import { toServiceToken } from "./serviceTokens";
 
 // ---------- Types ----------
@@ -125,7 +125,7 @@ const getLocale = () => {
 
 const waitUntilRegisteringComplete = async (): Promise<void> => {
   try {
-    const { useAppStore } = await import("../store");
+    const { useAppStore } = await import("store");
     const check = () => useAppStore.getState().isRegisteringReady;
     if (check()) return;
 
@@ -190,7 +190,7 @@ const handleUnauthorized = async (
           server === "market-dashboard" ||
           server === "market"
         ) {
-          const { useAppStore } = await import("../store");
+          const { useAppStore } = await import("store");
           const { isRegisteringReady, shouldAuthinticated, reAuthResult } =
             useAppStore.getState();
 
@@ -228,7 +228,7 @@ const handleUnauthorized = async (
             (server === "market" || server === "market-dashboard") &&
             authAttempt === 0
           ) {
-            const authService = await import("../services/auth");
+            const authService = await import("services/auth");
             const refresh = await authService.default.RefreshSession(
               options?.url,
               server,
@@ -248,7 +248,7 @@ const handleUnauthorized = async (
             (typeof window !== "undefined" &&
               window.location.pathname.includes("/seller"));
 
-          const authService = await import("../services/auth");
+          const authService = await import("services/auth");
           const outcome = await authService.default.ExpiredUser();
 
           // Expire's last-chance refresh renewed the session (a race loser
@@ -285,7 +285,7 @@ const handleUnauthorized = async (
         // (or eligibility false) we fall through to the existing need_auth
         // prompt flow, just like stories/wallet/comments.
         if (authAttempt === 0) {
-          const authService = await import("../services/auth");
+          const authService = await import("services/auth");
           const refresh = await authService.default.RefreshSession(
             options?.url,
             server,
@@ -315,7 +315,7 @@ const handleUnauthorized = async (
           credentials: "include",
         });
 
-        const { useAppStore } = await import("../store");
+        const { useAppStore } = await import("store");
         const {
           setShouldAuthinticated,
           setReAuthResult,
@@ -414,7 +414,7 @@ export const fetchData = async <T = any>(
     signal,
     sellerId,
   } = params;
-  const { useAppStore } = await import("../store");
+  const { useAppStore } = await import("store");
   // Once a logout has started no authed request may go out — a late 401 would
   // trigger a re-register and resurrect the session. The FCM detach used to be
   // exempt here because it had to run before the cookies were cleared; it now
@@ -452,7 +452,7 @@ export const fetchData = async <T = any>(
   const doFetchWithRetry = async (): Promise<T> => {
     await waitUntilRegisteringComplete();
     if (url === "/auth/register-guest") {
-      const { useAppStore } = await import("../store");
+      const { useAppStore } = await import("store");
       let { setIsRegisteringReady, LoggingOut } = useAppStore.getState();
       setIsRegisteringReady(false);
     }
@@ -480,7 +480,7 @@ export const fetchData = async <T = any>(
         if (body && !(body instanceof FormData)) {
           localHeaders["Content-Type"] = "application/json";
         }
-
+           
         res = await fetch(url, {
           method,
           headers: localHeaders,
@@ -526,7 +526,7 @@ export const fetchData = async <T = any>(
       }
 
       status = res.status;
-
+      
       try {
         responseData = await res.json();
       } catch (e) {}

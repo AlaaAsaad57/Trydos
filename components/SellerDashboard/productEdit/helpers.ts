@@ -1175,14 +1175,17 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
 
   // Always present, always an explicit boolean — the create DTO rejects a missing
   // key ("must be true or false"), so the previous "send 'on' / omit to disable"
-  // encoding is gone. `set` stringifies, so these go on the wire as "true"/"false".
+  // encoding is gone. `set` stringifies, so this goes on the wire as "1"/"0".
   // Contract §1c confirms this is correct: the boolean rule accepts
-  // 1/0/true/false/"1"/"0" and the value is parsed with FILTER_VALIDATE_BOOL,
-  // which reads "true"/"false" correctly. Do NOT reinstate the omit pattern —
-  // §2.2 makes key presence load-bearing on update.
+  // 1/0/true/false/"1"/"0" and the value is parsed with FILTER_VALIDATE_BOOL.
+  // Do NOT reinstate the omit pattern — §2.2 makes key presence load-bearing
+  // on update.
   set("multiplyQTY", form.multiply_qty?1:0);
 
-   set("packed_after_ordering", form.packed_after_ordering ? "on" : "off");
+  // packed_after_ordering is NOT a boolean on the wire: the same "on"/"off"
+  // switch encoding is sent on create and on update. The key is always
+  // appended because update reads it with isset.
+  set("packed_after_ordering", form.packed_after_ordering ? "on" : "off");
 
 
   set("meta_title", form.meta_title);

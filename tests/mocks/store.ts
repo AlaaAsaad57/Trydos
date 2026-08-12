@@ -46,6 +46,8 @@ export const DEFAULT_STORE_STATE: StoreState = {
   cameraPermissions: "asked",
   sellerOrders: [],
   dashboardShopInfo: null,
+  setShouldAuthinticated:vi.fn(),
+  setReAuthResult :vi.fn()
 };
 
 /**

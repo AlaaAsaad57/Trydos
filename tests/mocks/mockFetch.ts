@@ -29,15 +29,16 @@ export type RecordedCall = {
 
 /** One queued reply: either a response to give back, or a failure to throw. */
 export type QueuedReply =
-  | { kind: "response"; status: number; body: any; headers: Record<string, string> }
-  | { kind: "failure"; error: Error };
+  | { kind: "response"; status: number; body: any; headers: Record<string, string> ,time?:number}
+  | { kind: "failure"; error: Error, time?:number};
 
 /** A reply that succeeds and carries JSON. */
-export function jsonReply(body: any, status = 200): QueuedReply {
+export function jsonReply(body: any, status = 200,time=0): QueuedReply {
   return {
     kind: "response",
     status,
     body,
+    time,
     headers: { "content-type": "application/json" },
   };
 }
@@ -104,7 +105,9 @@ export function makeMockFetch(replies: QueuedReply[] = []) {
           `Queue another reply, or check why the code under test called again.`,
       );
     }
-
+    if(next.time&&next.time>0){
+          await new Promise((resolve) => setTimeout(resolve, next.time));
+    }
     if (next.kind === "failure") {
       throw next.error;
     }
