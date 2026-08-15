@@ -216,21 +216,38 @@ describe("fetchData module basics", () => {
     expect(net.callCount).toBe(1);
   });
 
+  // Unlike the test above, the signal here is live when the caller joins the
+  // in-flight request and is aborted afterwards — so this covers the abort
+  // LISTENER inside raceWithSignal, not its already-aborted early return.
+  //
+  // Fake timers keep the ordering exact. This used to race a real 10ms abort
+  // timer against the mock's real 50ms reply delay: under parallel-suite CPU
+  // load the reply won, `second` resolved, and the test failed at random.
   it("rejects a deduped caller when its signal aborts mid-flight", async () => {
     await setup();
     const net = makeMockFetch([jsonReply({ data: [] }, 200, 50)]);
     vi.stubGlobal("fetch", net.fetch);
     const { fetchData } = await loadFetchData();
     await import("store");
+    vi.useFakeTimers();
 
     const first = fetchData(baseParams);
-    await new Promise((r) => setTimeout(r, 0));
+    // Let the first call register itself in the in-flight map.
+    await vi.advanceTimersByTimeAsync(0);
+
     const controller = new AbortController();
     const second = fetchData({ ...baseParams, signal: controller.signal });
-    setTimeout(() => controller.abort(), 10);
+    // Let the second call join that in-flight request and attach its abort
+    // listener. The mock reply is still 40ms away, so the request is genuinely
+    // mid-flight when the abort lands.
+    await vi.advanceTimersByTimeAsync(10);
+    controller.abort();
 
     await expect(second).rejects.toThrow("The user aborted a request.");
+
+    await vi.advanceTimersByTimeAsync(50); // let the shared request finish
     await first;
+    expect(net.callCount).toBe(1);
   });
 
   it("returns cached result when useCached is true", async () => {
