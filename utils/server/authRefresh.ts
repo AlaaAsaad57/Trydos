@@ -219,11 +219,19 @@ const STORIES_REFRESH_BACKEND = {
   endpoint: STORIES_REFRESH_TOKEN_ENDPOINT,
   buildBody: (refreshToken: string) =>
     JSON.stringify({ refresh_token: refreshToken }),
-  // Response envelope mirrors the stories login response:
-  // { data: { access_token, refresh_token, ... } }
+  // The stories backend is NOT self-consistent: its login response wraps the
+  // pair ({ isSuccessful, data: { access_token, refresh_token, ... } }) but its
+  // refresh response returns it FLAT at the top level
+  // ({ user, access_token, refresh_token, token_type, expires_in }). Read the
+  // flat shape first and keep the wrapped one as a fallback, so this keeps
+  // working whichever shape the backend settles on.
   parse: (json: any) => ({
-    token: json?.data?.access_token as string | undefined,
-    refreshToken: json?.data?.refresh_token as string | undefined,
+    token: (json?.access_token ?? json?.data?.access_token) as
+      | string
+      | undefined,
+    refreshToken: (json?.refresh_token ?? json?.data?.refresh_token) as
+      | string
+      | undefined,
   }),
 };
 
