@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
-import { refreshMarketSession, refreshChatSession } from "utils/server/authRefresh";
+import { refreshMarketSession, refreshChatSession, refreshStoriesSession } from "utils/server/authRefresh";
 
 /**
  * Internal refresh endpoint (market: Go + Laravel auth contracts; chat: chat
@@ -43,12 +43,13 @@ export async function POST(request: NextRequest) {
       // Reactive call — the untrusted `{url, server}` is never fetched,
       // redirected to, or logged. Market traffic carries the MARKET-TOKEN pair,
       // so it is refreshable whichever backend served the failed request. Chat
-      // carries its own CHAT-TOKEN pair and is now refreshable here; stories,
+      // and stories carry their own token pairs and are refreshable here;
       // comments and wallet keep their existing need_auth flow.
       const serverAllowed =
         server === "market" ||
         server === "market-dashboard" ||
-        server === "chat";
+        server === "chat" ||
+        server === "stories";
       if (!serverAllowed) {
         return NextResponse.json({ eligible: false }, { status: 200 });
       }
@@ -60,7 +61,11 @@ export async function POST(request: NextRequest) {
     }
 
     const outcome =
-      server === "chat" ? await refreshChatSession() : await refreshMarketSession();
+      server === "chat"
+        ? await refreshChatSession()
+        : server === "stories"
+          ? await refreshStoriesSession()
+          : await refreshMarketSession();
     switch (outcome.status) {
       case "refreshed":
         // Cookies were set on this response by the helper; body stays

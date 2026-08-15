@@ -54,10 +54,18 @@ export interface ExpireOutcome {
 let _expirePromise: Promise<ExpireOutcome> | null = null;
 // Deduplicate concurrent refresh calls (mirrors _expirePromise): parallel 401s
 // on one page load share a single /api/auth/refresh round trip (AC-12).
-let _refreshPromise: Promise<{
-  refreshed: boolean;
-  eligible: boolean;
-}> | null = null;
+//
+// Keyed BY SERVICE. Each service owns a separate token pair (MARKET / CHAT /
+// STORIES) and /api/auth/refresh exchanges only the pair named in the body, so
+// one shared promise made the losers of a race inherit a rotation that never
+// touched their cookie: a stories 401 arriving just after a market 401 got
+// `{eligible: true}` back without a stories exchange, retried with the same
+// dead token and fell through to the OTP prompt. Market and market-dashboard
+// share the MARKET pair, so they legitimately share one key.
+type RefreshResult = { refreshed: boolean; eligible: boolean };
+const _refreshPromises = new Map<string, Promise<RefreshResult>>();
+const refreshKeyFor = (server?: string) =>
+  server === "chat" || server === "stories" ? server : "market";
 let normalizePhone = (phone: string) => {
   return phone.replaceAll("+", "");
 };
@@ -435,9 +443,11 @@ class AuthService {
     const { LoggingOut } = useAppStore.getState();
     if (LoggingOut) return { refreshed: false, eligible: false };
 
-    if (_refreshPromise) return _refreshPromise;
+    const key = refreshKeyFor(server);
+    const pending = _refreshPromises.get(key);
+    if (pending) return pending;
 
-    _refreshPromise = (async () => {
+    const request = (async () => {
       try {
         const response = await fetch("/api/auth/refresh", {
           method: "POST",
@@ -455,11 +465,12 @@ class AuthService {
         return { refreshed: false, eligible: true };
       }
     })();
+    _refreshPromises.set(key, request);
 
     try {
-      return await _refreshPromise;
+      return await request;
     } finally {
-      _refreshPromise = null;
+      _refreshPromises.delete(key);
     }
   }
 

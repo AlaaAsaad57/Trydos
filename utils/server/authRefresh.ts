@@ -1,6 +1,10 @@
 import { cookies } from "next/headers";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
-import { REFRESH_TOKEN_ENDPOINT, CHAT_REFRESH_TOKEN_ENDPOINT } from "utils/fetch/Endpoints";
+import {
+  REFRESH_TOKEN_ENDPOINT,
+  CHAT_REFRESH_TOKEN_ENDPOINT,
+  STORIES_REFRESH_TOKEN_ENDPOINT,
+} from "utils/fetch/Endpoints";
 import {
   SECURE_COOKIE_OPTIONS,
   REFRESH_COOKIE_OPTIONS,
@@ -206,6 +210,23 @@ const CHAT_REFRESH_BACKEND = {
   }),
 };
 
+// Per-backend adapter for the stories service. Its own host (STORIES_BACKEND_URL,
+// separate from the chat backend), but the same wire contract as chat: same
+// path, same body, same response envelope. It keeps its own dedicated token
+// pair so a stories 401 can be recovered without disturbing chat.
+const STORIES_REFRESH_BACKEND = {
+  baseUrl: () => process.env.STORIES_BACKEND_URL || "",
+  endpoint: STORIES_REFRESH_TOKEN_ENDPOINT,
+  buildBody: (refreshToken: string) =>
+    JSON.stringify({ refresh_token: refreshToken }),
+  // Response envelope mirrors the stories login response:
+  // { data: { access_token, refresh_token, ... } }
+  parse: (json: any) => ({
+    token: json?.data?.access_token as string | undefined,
+    refreshToken: json?.data?.refresh_token as string | undefined,
+  }),
+};
+
 let chatInflight: Promise<RefreshOutcome> | null = null;
 
 export async function refreshChatSession(): Promise<RefreshOutcome> {
@@ -296,6 +317,99 @@ async function doRefreshChat(): Promise<RefreshOutcome> {
     return { status: "refreshed", token: parsed.token };
   } catch (error) {
     LogServerError({ error, type: "chat refresh-token unexpected failure" });
+    return { status: "unavailable" };
+  }
+}
+
+let storiesInflight: Promise<RefreshOutcome> | null = null;
+
+export async function refreshStoriesSession(): Promise<RefreshOutcome> {
+  if (storiesInflight) return storiesInflight;
+  storiesInflight = doRefreshStories().finally(() => {
+    storiesInflight = null;
+  });
+  return storiesInflight;
+}
+
+async function doRefreshStories(): Promise<RefreshOutcome> {
+  try {
+    const cookieStore = await cookies();
+
+    // Logout in progress: never mint or rotate credentials mid-logout.
+    if (cookieStore.get(COOKIE_NAMES.LOGOUT_GUARD)?.value) {
+      return { status: "ineligible" };
+    }
+
+    const refreshToken = cookieStore.get(COOKIE_NAMES.STORIES_REFRESH_TOKEN)?.value;
+    if (!refreshToken) return { status: "no-token" };
+
+    const backend = STORIES_REFRESH_BACKEND;
+    const local = cookieStore.get(COOKIE_NAMES.LOCAL)?.value || "gb-en";
+    const [country, language] = local.split("-");
+
+    let response: Response;
+    try {
+      response = await fetch(backend.baseUrl() + backend.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Lang: language || "en",
+          Country: country || "gb",
+        },
+        body: backend.buildBody(refreshToken),
+        credentials: "omit",
+      });
+    } catch (error) {
+      LogServerError({ error, type: "stories refresh-token network failure" });
+      return { status: "unavailable" };
+    }
+
+    if (response.status === 401) {
+      // Uniform 401 (dead OR raced). Do NOT delete the refresh cookie here —
+      // a concurrent winner may have rotated it; the jar-retry inherits it.
+      return { status: "invalid" };
+    }
+
+    const json = await response.json().catch(() => null);
+    if (!response.ok || !json) {
+      LogServerError({
+        error: { status: response.status, message: json?.message },
+        type: "stories refresh-token exchange failed",
+      });
+      return { status: "unavailable" };
+    }
+
+    const parsed = backend.parse(json);
+    if (!parsed.token || !parsed.refreshToken) {
+      LogServerError({
+        error: { message: "stories refresh response missing token pair" },
+        type: "stories refresh-token exchange failed",
+      });
+      return { status: "unavailable" };
+    }
+
+    try {
+      cookieStore.set({
+        name: COOKIE_NAMES.STORIES_TOKEN,
+        value: parsed.token,
+        ...SECURE_COOKIE_OPTIONS,
+      });
+      cookieStore.set({
+        name: COOKIE_NAMES.STORIES_REFRESH_TOKEN,
+        value: parsed.refreshToken,
+        ...REFRESH_COOKIE_OPTIONS,
+      });
+    } catch (error) {
+      LogServerError({
+        error,
+        type: "stories refresh-token rotated pair could not be persisted (caller violated writability contract)",
+      });
+    }
+
+    return { status: "refreshed", token: parsed.token };
+  } catch (error) {
+    LogServerError({ error, type: "stories refresh-token unexpected failure" });
     return { status: "unavailable" };
   }
 }

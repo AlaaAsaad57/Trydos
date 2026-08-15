@@ -141,8 +141,11 @@ describe("credential lookup (AC-16)", () => {
     headers.__reset({
       cookies: {
         [COOKIE_NAMES.MARKET_TOKEN]: "market-value",
+        [COOKIE_NAMES.MARKET_REFRESH_TOKEN]: "market-refresh-value",
         [COOKIE_NAMES.CHAT_TOKEN]: "chat-value",
+        [COOKIE_NAMES.CHAT_REFRESH_TOKEN]: "chat-refresh-value",
         [COOKIE_NAMES.STORIES_TOKEN]: "stories-value",
+        [COOKIE_NAMES.STORIES_REFRESH_TOKEN]: "stories-refresh-value",
         [COOKIE_NAMES.WALLET_TOKEN]: "wallet-value",
         [COOKIE_NAMES.USER_ID_HASH]: "comments-value",
       },

@@ -77,8 +77,8 @@ no guest re-register, no identity loss.
 
 ## Flow 2 — Reactive refresh on a client 401
 
-**Path:** `utils/fetchData.ts:217-266` — applies to `server === "market" | "market-dashboard" | "chat"`.
-`stories` / `comments` / `wallet` keep their own `need_auth` re-auth flow and are **not** refreshable here. Chat shares the same refresh-first pattern: a failed chat 401 is retried after the CHAT-TOKEN pair is rotated; only when refresh fails does it fall back to the chat `need_auth` prompt.
+**Path:** `utils/fetchData.ts:217-266` — applies to `server === "market" | "market-dashboard" | "chat" | "stories"`.
+`comments` / `wallet` keep their own `need_auth` re-auth flow and are **not** refreshable here. Chat and stories share the same refresh-first pattern: a failed chat/stories 401 is retried after the CHAT-TOKEN / STORIES-TOKEN pair is rotated; only when refresh fails does it fall back to the chat/stories `need_auth` prompt.
 
 ```mermaid
 flowchart TD
@@ -86,7 +86,7 @@ flowchart TD
     B --> C{Outcome}
     C -->|refreshed| D[Retry original request<br/>with rotated cookie → done]
     C -->|"failed (still eligible)"| E["Jar-retry: retry original request once anyway<br/>a concurrent tab may have already rotated the cookies"]
-    C -->|"ineligible server (stories/comments/wallet)"| F[Own need_auth flow]
+    C -->|"ineligible server (comments/wallet)"| F[Own need_auth flow]
     E --> G{Retry result}
     G -->|200| H[Done — a race winner's cookie saved it]
     G -->|"401 again (attempt 1)"| I["ExpiredUser() → /api/auth/expire<br/>(Flow 4)"]
@@ -194,6 +194,20 @@ to an anonymous guest** — one OTP puts them back into their real account.
 6. **Backend routing is one rule.** Verified → core, guest → gateway — decided inside
    the shared helper only (same rule as `getMarketFetchBase`), never re-implemented
    by callers.
+7. **Each service only ever touches its own credentials.** The chat / stories /
+   comments / wallet arms of `handleUnauthorized` share one exit path, but the
+   `/api/auth/clear-tokens` call is scoped per service (`STALE_TOKENS_FOR` in
+   `utils/fetchData.ts`), and the route invalidates only the profile blob whose
+   token it just deleted. A failure in one sub-service never deletes another's
+   pair and never downgrades `User-Data` to unverified. For the same reason the
+   client refresh dedup (`_refreshPromises` in `services/auth.ts`) is keyed by
+   service: market/market-dashboard share the MARKET pair, chat and stories each
+   get their own exchange.
+8. **Refresh cookies always get the 30-day TTL.** Every writer —
+   `/api/auth/login`, `/api/auth/update-user`, and the rotation inside
+   `authRefresh.ts` — stores `*-REFRESH-TOKEN` with `REFRESH_COOKIE_OPTIONS`,
+   never the 48h access-token TTL. Storage must never expire before the token
+   it holds, or the reactive refresh has nothing left to exchange.
 
 ## Monitoring
 

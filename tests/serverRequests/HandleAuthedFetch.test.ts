@@ -282,7 +282,9 @@ describe("a rejection for a guest with no refresh credential (AC-8, AC-9, AC-10)
     expect(headers.__deletes).toEqual(
       expect.arrayContaining([
         COOKIE_NAMES.CHAT_TOKEN,
+        COOKIE_NAMES.CHAT_REFRESH_TOKEN,
         COOKIE_NAMES.STORIES_TOKEN,
+        COOKIE_NAMES.STORIES_REFRESH_TOKEN,
         COOKIE_NAMES.WALLET_TOKEN,
         COOKIE_NAMES.USER_ID_HASH,
         COOKIE_NAMES.USER_CHAT,

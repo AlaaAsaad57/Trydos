@@ -554,7 +554,11 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
 // the card/border itself instead of receiving server JSX.
 export async function GetProductStoriesData({ page, productId }) {
   let cookiesStore = await cookies();
-  let storiesToken = cookiesStore.get("USER-STORIES")?.value;
+  // Auth from the dedicated STORIES_TOKEN cookie — the same source the proxy
+  // and fetchStoriesForUser use. This used to read USER-STORIES, which is the
+  // (URL-encoded JSON) profile blob, not a token: the request went out with a
+  // Bearer header that could never authenticate.
+  let storiesToken = cookiesStore.get(COOKIE_NAMES.STORIES_TOKEN)?.value;
   let headers = {};
   if (storiesToken) {
     headers = { ...headers, Authorization: `Bearer ${storiesToken}` };

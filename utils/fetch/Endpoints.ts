@@ -7,6 +7,9 @@ export const REFRESH_TOKEN_ENDPOINT = "/auth/refresh-token";
 // Single-use rotation: the presented refresh token is revoked on success — always replace
 // BOTH stored cookies with the returned pair.
 export const CHAT_REFRESH_TOKEN_ENDPOINT = "/api/v1/auth/refresh-token";
+// Stories refresh-token exchange (same backend contract as chat: single-use
+// rotation, same path, same response envelope).
+export const STORIES_REFRESH_TOKEN_ENDPOINT = "/api/v1/auth/refresh-token";
 export const LOG_IN_COMMENTS_ENDPOINT = "/public_comment/auth/exchange_token";
 export const LOG_IN_CHAT_ENDPOINT = "/api/v1/users/login";
 export const LOG_IN_STORIES_ENDPOINT = "/api/v1/users/login";

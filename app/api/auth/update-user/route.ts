@@ -5,6 +5,7 @@ import {
   setSecureCookie,
   setSecureCookieJSON,
   getSecureCookie,
+  REFRESH_COOKIE_OPTIONS,
 } from "utils/server/tokenManager";
 
 // Whitelist of cookie names that can be updated
@@ -21,6 +22,16 @@ const UPDATABLE_COOKIES = new Set([
 const TOKEN_COOKIE_FOR: Record<string, string> = {
   [COOKIE_NAMES.USER_CHAT]: COOKIE_NAMES.CHAT_TOKEN,
   [COOKIE_NAMES.USER_STORIES]: COOKIE_NAMES.STORIES_TOKEN,
+};
+
+// The same re-auth payload also carries a fresh single-use refresh_token. It
+// must be stored with the access token: syncing only the access token left the
+// refresh cookie holding the previous — now revoked — value, so the next 401
+// exchange failed with `invalid` and the user was prompted again instead of
+// being renewed silently.
+const REFRESH_COOKIE_FOR: Record<string, string> = {
+  [COOKIE_NAMES.USER_CHAT]: COOKIE_NAMES.CHAT_REFRESH_TOKEN,
+  [COOKIE_NAMES.USER_STORIES]: COOKIE_NAMES.STORIES_REFRESH_TOKEN,
 };
 
 /**
@@ -54,11 +65,32 @@ export async function POST(request: NextRequest) {
 
       await setSecureCookieJSON(update.name, merged);
 
-      // Keep the dedicated token cookie (CHAT_TOKEN/STORIES_TOKEN) in sync with
-      // the fresh access_token from re-auth, so the proxy stays authenticated.
+      // Keep the dedicated token cookies (CHAT/STORIES access + refresh) in
+      // sync with the fresh pair from re-auth, so the proxy stays
+      // authenticated and the pair never drifts apart. The refresh token keeps
+      // its own 30d rotating TTL, not the 48h access-token one.
+      //
+      // Both are read from the INCOMING payload, never from `merged`: the
+      // stored blob still holds whatever pair was written at login, while the
+      // cookies are rotated (and the blob is not) on every /api/auth/refresh
+      // exchange. A name-only update merged over that stale blob would push the
+      // revoked login-time tokens back over the freshly rotated ones — undoing
+      // the rotation the 401 recovery just performed.
+      const incoming: any =
+        update.value && typeof update.value === "object" ? update.value : {};
+
       const tokenCookie = TOKEN_COOKIE_FOR[update.name];
-      if (tokenCookie && merged?.access_token) {
-        await setSecureCookie(tokenCookie, merged.access_token);
+      if (tokenCookie && incoming.access_token) {
+        await setSecureCookie(tokenCookie, incoming.access_token);
+      }
+
+      const refreshCookie = REFRESH_COOKIE_FOR[update.name];
+      if (refreshCookie && incoming.refresh_token) {
+        await setSecureCookie(
+          refreshCookie,
+          incoming.refresh_token,
+          REFRESH_COOKIE_OPTIONS,
+        );
       }
 
       results.push(update.name);

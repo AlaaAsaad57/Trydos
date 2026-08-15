@@ -272,17 +272,34 @@ export async function GET(request: NextRequest) {
         value: storiesRes.data?.data?.access_token,
       },
       {
+        name: COOKIE_NAMES.STORIES_REFRESH_TOKEN,
+        value: storiesRes.data?.data?.refresh_token,
+      },
+      {
         name: COOKIE_NAMES.USER_ID_HASH,
         value: commentRes.data?.comments_token,
       },
     ];
+
+    // Refresh cookies must NOT get the 48h access-token TTL: the pair they
+    // renew is valid ~30 days server-side and the cookie is re-set on every
+    // rotation. With the 48h TTL the chat/stories refresh cookie died at the
+    // same moment as the token it exists to replace, so the reactive
+    // refresh-on-401 flow had nothing left to exchange. Same rule as
+    // MARKET_REFRESH_TOKEN below and as the rotation path in authRefresh.ts.
+    const REFRESH_COOKIES = new Set<string>([
+      COOKIE_NAMES.CHAT_REFRESH_TOKEN,
+      COOKIE_NAMES.STORIES_REFRESH_TOKEN,
+    ]);
 
     tokensToSet.forEach((token) => {
       if (token.value) {
         cookiesStore.set({
           name: token.name,
           value: token.value,
-          ...SECURE_COOKIE_OPTIONS,
+          ...(REFRESH_COOKIES.has(token.name)
+            ? REFRESH_COOKIE_OPTIONS
+            : SECURE_COOKIE_OPTIONS),
         });
       }
     });

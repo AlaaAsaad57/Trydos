@@ -228,8 +228,9 @@ async function getTokenForServer(server: ProxiedServer): Promise<string> {
       // DEVICE_TOKEN is legacy and is never read (kept only in the cleanup lists).
       return cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value || "";
     case "stories":
-      // Auth from the dedicated STORIES_TOKEN cookie (48h). Refreshed on re-auth
-      // by /api/auth/update-user; USER_STORIES holds profile data only.
+      // Auth from the dedicated STORIES_TOKEN cookie (48h). Refreshed reactively
+      // by /api/auth/refresh using STORIES_REFRESH_TOKEN, and on re-auth by
+      // /api/auth/update-user; USER_STORIES holds profile data only.
       return cookieStore.get(COOKIE_NAMES.STORIES_TOKEN)?.value || "";
     case "elastic":
       return "";
