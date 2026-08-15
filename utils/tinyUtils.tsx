@@ -18,7 +18,15 @@ export const ChatConroller = (payload) => {
 // The logout route only deletes cookies (the FCM detach it triggers runs after
 // its response), so it is fast — but a stalled request must never strand the
 // user on a half-logged-out screen. Bounded so logout always completes.
-const LOGOUT_REQUEST_TIMEOUT_MS = 1800;
+//
+// NOT tight. A person logs out once per session, so this is almost always the
+// FIRST hit on the route — a cold start. Warm it answers in ~20-70ms, but cold
+// it measured 4.2s, and the previous 1800ms cap aborted it every single time:
+// the response never landed, so the browser never applied the cookie deletions
+// and the session survived the reload ("logout does nothing"). The abort was
+// invisible because it is swallowed into the LogError below. Keep this well
+// above cold-start time; it exists only to bound a truly hung request.
+const LOGOUT_REQUEST_TIMEOUT_MS = 10000;
 
 // Backstop for the push teardown below. The work is local, so this only guards
 // against a browser that makes `unsubscribe()` wait on its push service.
