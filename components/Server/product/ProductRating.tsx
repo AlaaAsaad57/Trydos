@@ -12,7 +12,7 @@ function ProductRating({ rating, color = "#1d1d1d", size = 11.326 }) {
     return "transparent"; // empty stars
   };
   return (
-    <div className="flex flex-row gap-1" style={{ direction: "rtl" }}>
+    <div className="flex flex-row gap-1">
       {[1, 2, 3, 4, 5].map((index) => (
         <div key={index} className="cursor-pointer relative">
           <StarIcon size={size} fill={getStarFill(index)} color={color} />
