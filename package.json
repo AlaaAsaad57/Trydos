@@ -14,6 +14,7 @@
     "test": "vitest --project unit",
     "test:run": "vitest run --project unit",
     "test:coverage": "vitest run --project unit --coverage",
+    "test:ci": "vitest run --project unit --coverage --reporter=default --reporter=json --outputFile.json=test-results.json",
     "test:live": "vitest run --project live --passWithNoTests"
   },
   "resolutions": {

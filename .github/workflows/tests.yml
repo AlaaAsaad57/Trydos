@@ -13,18 +13,19 @@
 # Where the live suite goes
 #
 # The suite that talks to the real staging backend is a separate vitest project
-# (`live`, run with `pnpm test:live`) and will get its own workflow file,
-# `test-live.yml` — never a job in here. Two reasons it stays out:
+# (`live`, run with `pnpm test:live`). It gets a job in this file — but one
+# gated on `github.event_name == 'push'`, so it runs after a merge and never on
+# a pull request. Two reasons it must never run on a pull request:
 #
-#   * A pull request must not be blocked because staging is down. A red run here
-#     has to mean "the code broke", nothing else.
-#   * It needs staging secrets. This workflow needs none, so it can keep running
-#     on forks and on any branch without handing credentials to it.
+#   * A pull request must not be blocked because staging is down. A red check on
+#     a pull request has to mean "the code broke", nothing else.
+#   * It needs staging secrets, which are never exposed to a pull request from a
+#     fork. Gating on `push` keeps forks working.
 #
-# That file will trigger on `workflow_dispatch` plus a nightly `schedule`, read
-# the staging addresses and the test account from repository secrets, and skip
-# cleanly when they are unset. See tests/live/README.md for the contract it
-# implements.
+# That job does not exist yet, because `tests/live/` is still empty. It arrives
+# in phase 4 of docs/testing/LIVE_TEST_ROADMAP.md, together with the nightly
+# `test-live.yml` and the concurrency rules that stop two live runs writing to
+# the same staging shop at once.
 # ---------------------------------------------------------------------------
 
 name: Tests
@@ -50,6 +51,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
+    # Read by the notify job below. Every one of these is produced by the
+    # "Collect the result" step, which runs even when something above it failed.
+    outputs:
+      steps: ${{ steps.collect.outputs.steps }}
+      failures: ${{ steps.collect.outputs.failures }}
+      totals: ${{ steps.collect.outputs.totals }}
+      coverage: ${{ steps.collect.outputs.coverage }}
+
     steps:
       - name: Check out the branch
         uses: actions/checkout@v4
@@ -74,6 +83,7 @@ jobs:
 
       # Cheapest first, but every step runs even after one fails.
       - name: Translation key parity (ar / tr / ku)
+        id: parity
         if: ${{ !cancelled() }}
         run: pnpm lint:i18n-parity
 
@@ -81,6 +91,7 @@ jobs:
       # build over; clearing them is its own ticket. Do not add --max-warnings 0
       # here until that ticket has landed.
       - name: Lint
+        id: lint
         if: ${{ !cancelled() }}
         run: pnpm lint
 
@@ -89,13 +100,126 @@ jobs:
       # perfectly on a developer machine. `next typegen` writes both without
       # running a full build.
       - name: Generate framework types
+        id: typegen
         if: ${{ !cancelled() }}
         run: pnpm exec next typegen
 
       - name: Type check
+        id: types
         if: ${{ !cancelled() }}
         run: pnpm exec tsc --noEmit
 
+      # `test:ci` is `test:run` plus two machine-readable outputs, and nothing
+      # else: coverage/coverage-summary.json for the percentages, and
+      # test-results.json for the failing test names. Both are read by the step
+      # below and neither is committed.
       - name: Unit tests
+        id: unit
         if: ${{ !cancelled() }}
-        run: pnpm test:run
+        run: pnpm test:ci
+
+      # Everything the Telegram message needs, gathered in one place. `always()`
+      # because its whole purpose is to describe a run that failed.
+      - name: Collect the result
+        id: collect
+        if: ${{ always() }}
+        env:
+          R_PARITY: ${{ steps.parity.outcome }}
+          R_LINT: ${{ steps.lint.outcome }}
+          R_TYPES: ${{ steps.types.outcome }}
+          R_UNIT: ${{ steps.unit.outcome }}
+        run: |
+          set -u
+
+          icon() {
+            case "$1" in
+              success) printf '✅' ;;
+              failure) printf '❌' ;;
+              skipped) printf '⏭️' ;;
+              *)       printf '⚠️' ;;
+            esac
+          }
+
+          STEP_LINE="parity $(icon "$R_PARITY")  lint $(icon "$R_LINT")  types $(icon "$R_TYPES")  unit $(icon "$R_UNIT")"
+
+          TOTALS=""
+          FAILURES=""
+          COVERAGE=""
+
+          # Written by the json reporter whether the suite passed or failed. The
+          # shape is the Jest one: numPassedTests / numFailedTests at the top,
+          # and every test under testResults[].assertionResults[].
+          if [ -f test-results.json ]; then
+            TOTALS=$(node -e '
+              const r = require("./test-results.json");
+              let out = "unit " + r.numPassedTests + " passed";
+              if (r.numFailedTests) out += " · " + r.numFailedTests + " failed";
+              process.stdout.write(out);
+            ')
+            FAILURES=$(node -e '
+              const r = require("./test-results.json");
+              const failed = (r.testResults || [])
+                .flatMap((f) => f.assertionResults || [])
+                .filter((a) => a.status === "failed")
+                .map((a) => a.fullName);
+              if (!failed.length) process.exit(0);
+              // Four names, each cut to one readable line. The message has a
+              // hard 4096-character limit and a wall of names helps nobody —
+              // the run link is there for the rest.
+              const shown = failed.slice(0, 4)
+                .map((n) => "  • " + (n.length > 110 ? n.slice(0, 110) + "…" : n));
+              if (failed.length > shown.length) {
+                shown.push("  … and " + (failed.length - shown.length) + " more");
+              }
+              process.stdout.write(shown.join("\n"));
+            ')
+          fi
+
+          # coverage.reporter in vitest.config.mts carries json-summary purely so
+          # this file exists. `total` holds the four percentages as numbers.
+          if [ -f coverage/coverage-summary.json ]; then
+            COVERAGE=$(node -e '
+              const t = require("./coverage/coverage-summary.json").total;
+              const p = (m) => m.pct.toFixed(1) + "%";
+              process.stdout.write(
+                "lines " + p(t.lines) + "  stmts " + p(t.statements) +
+                "  funcs " + p(t.functions) + "  branches " + p(t.branches)
+              );
+            ')
+          fi
+
+          # Multi-line values need the heredoc form of $GITHUB_OUTPUT.
+          {
+            echo "steps<<TRYDOS_EOF"
+            echo "$STEP_LINE"
+            echo "TRYDOS_EOF"
+            echo "totals<<TRYDOS_EOF"
+            echo "$TOTALS"
+            echo "TRYDOS_EOF"
+            echo "coverage<<TRYDOS_EOF"
+            echo "$COVERAGE"
+            echo "TRYDOS_EOF"
+            echo "failures<<TRYDOS_EOF"
+            echo "$FAILURES"
+            echo "TRYDOS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+  notify:
+    name: Telegram
+    needs: verify
+    # `always()` so a red run is the one that definitely reports.
+    #
+    # Pull requests are left out on purpose: a pull request already shows its
+    # own result, and notifying there would be a message for every push to every
+    # open branch. Delete the second condition to include them — but note that a
+    # fork's pull request has no secrets, so it would send nothing anyway.
+    if: ${{ always() && github.event_name != 'pull_request' }}
+    uses: ./.github/workflows/notify-telegram.yml
+    with:
+      result: ${{ needs.verify.result }}
+      title: Tests · ${{ github.event_name }}
+      steps: ${{ needs.verify.outputs.steps }}
+      failures: ${{ needs.verify.outputs.failures }}
+      totals: ${{ needs.verify.outputs.totals }}
+      coverage: ${{ needs.verify.outputs.coverage }}
+    secrets: inherit

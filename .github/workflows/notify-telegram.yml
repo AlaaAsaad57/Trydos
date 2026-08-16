@@ -1,0 +1,159 @@
+# One Telegram message, sent on behalf of whichever workflow called it.
+#
+# It is reusable (`workflow_call`) so the bot token is handled in exactly one
+# file. It decides nothing: the caller works out what happened and passes the
+# pieces in, this file only formats and sends them.
+#
+# Two rules it must keep:
+#
+#   * It can never change the verdict of the run that called it. The send step
+#     carries `continue-on-error`, so Telegram being unreachable cannot turn a
+#     green test run red. A failed send is printed in this job's log instead.
+#   * Not configured is not a failure. With no TELEGRAM_BOT_TOKEN or
+#     TELEGRAM_CHAT_ID it exits 0 quietly — which is also exactly what happens
+#     on a pull request from a fork, where secrets are never exposed.
+#
+# Set up once, outside this repo: create the bot with @BotFather, add it to the
+# channel as an *administrator* (a plain member cannot post), then store the
+# token and the channel id as repository secrets.
+
+name: Telegram notification
+
+on:
+  workflow_call:
+    inputs:
+      result:
+        description: 'What is being reported: success, failure or cancelled'
+        required: true
+        type: string
+      title:
+        description: 'What ran, e.g. "Tests · push"'
+        required: true
+        type: string
+      steps:
+        description: 'One line naming each step and how it went'
+        required: false
+        default: ''
+        type: string
+      failures:
+        description: 'The first few failing test names, one per line'
+        required: false
+        default: ''
+        type: string
+      totals:
+        description: 'Test counts, e.g. "unit 756 passed"'
+        required: false
+        default: ''
+        type: string
+      coverage:
+        description: 'Coverage percentages, e.g. "lines 6.1%  stmts 6.1%  …"'
+        required: false
+        default: ''
+        type: string
+
+# It reads nothing from the repository and checks nothing out.
+permissions: {}
+
+jobs:
+  send:
+    name: Send
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Send the result to Telegram
+        # See the note at the top: a notification must never decide a build.
+        continue-on-error: true
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RESULT: ${{ inputs.result }}
+          TITLE: ${{ inputs.title }}
+          STEP_LINE: ${{ inputs.steps }}
+          FAILURES: ${{ inputs.failures }}
+          TOTALS: ${{ inputs.totals }}
+          COVERAGE: ${{ inputs.coverage }}
+          # Only a push carries a commit object. Everywhere else this is empty
+          # and the subject line is simply left off.
+          COMMIT_SUBJECT: ${{ github.event.head_commit.message }}
+        run: |
+          set -u
+          # Never `set -x` here. GitHub masks secrets in logs on a best-effort
+          # basis, and a traced curl line is the classic way to defeat it.
+
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then
+            echo "TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID are not set — nothing sent."
+            exit 0
+          fi
+
+          # parse_mode is HTML, so only these three characters need escaping.
+          # MarkdownV2 would need . - ( ) ! and several more escaped, and any
+          # test name or branch name containing one would come back as a 400.
+          esc() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
+
+          case "$RESULT" in
+            success)   ICON='✅' ;;
+            failure)   ICON='❌' ;;
+            cancelled) ICON='🚫' ;;
+            *)         ICON='⚠️' ;;
+          esac
+
+          NL=$'\n'
+          SHORT_SHA=$(printf '%s' "$GITHUB_SHA" | cut -c1-7)
+          SUBJECT=$(printf '%s' "$COMMIT_SUBJECT" | head -n 1)
+          RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+          TEXT="$ICON <b>$(esc "$TITLE")</b>"
+          LINE="<code>$(esc "$GITHUB_REF_NAME")</code> · <code>$SHORT_SHA</code>"
+          if [ -n "$SUBJECT" ]; then
+            LINE="$LINE — $(esc "$SUBJECT")"
+          fi
+          TEXT="$TEXT${NL}${LINE}"
+
+          if [ "$RESULT" = "success" ]; then
+            # Green: the numbers. Coverage is the point of this message —
+            # a passing run that says nothing is a run nobody learns from.
+            if [ -n "$TOTALS" ]; then
+              TEXT="$TEXT${NL}${NL}$(esc "$TOTALS")"
+            fi
+            if [ -n "$COVERAGE" ]; then
+              TEXT="$TEXT${NL}coverage — $(esc "$COVERAGE")"
+            fi
+          else
+            # Red: what broke, and how the other steps did — so one broken step
+            # is not read as everything being broken.
+            if [ -n "$STEP_LINE" ]; then
+              TEXT="$TEXT${NL}${NL}$(esc "$STEP_LINE")"
+            fi
+            if [ -n "$FAILURES" ]; then
+              TEXT="$TEXT${NL}${NL}$(esc "$FAILURES")"
+            fi
+          fi
+
+          TEXT="$TEXT${NL}${NL}<a href=\"$RUN_URL\">open the run</a>"
+
+          # Telegram rejects anything over 4096 characters. The caller already
+          # caps the failing-test list, so this is a backstop: drop the detail
+          # rather than send a half-closed tag, which would be a 400.
+          if [ "${#TEXT}" -gt 3800 ]; then
+            TEXT="$ICON <b>$(esc "$TITLE")</b>${NL}${LINE}${NL}${NL}Too much detail to send here.${NL}${NL}<a href=\"$RUN_URL\">open the run</a>"
+          fi
+
+          HTTP=$(curl -sS -o /tmp/telegram-response.json -w '%{http_code}' \
+            "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TG_CHAT}" \
+            --data-urlencode "text=${TEXT}" \
+            -d parse_mode=HTML \
+            -d disable_web_page_preview=true) || HTTP="000"
+
+          if [ "$HTTP" != "200" ]; then
+            echo "Telegram replied $HTTP:"
+            cat /tmp/telegram-response.json || true
+            echo
+            echo "chat not found            → TELEGRAM_CHAT_ID is wrong"
+            echo "bot is not a member       → the bot is a subscriber, not an administrator"
+            echo "can't parse entities      → the message escaping above broke"
+            exit 1
+          fi
+
+          echo "Sent."

@@ -11,6 +11,9 @@ hardcoded-text-report.json
 hardcoded-text-report.md
 # testing
 /coverage/*
+# Written by `pnpm test:ci` for CI to read (failing test names for the Telegram
+# message). Regenerated on every run and never useful in a commit.
+test-results.json
 /site/*
 .nyc_output/*
 .nyc_output/out.json

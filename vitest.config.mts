@@ -116,8 +116,14 @@ export default defineConfig({
       // The console prints the headline numbers only. Per-file detail lives in
       // coverage/index.html, where you can walk the folders and see what still
       // has no tests — the full list is far too long to read in a terminal.
-      // There is no coverage upload, so no machine-readable format is produced.
-      reporter: ['text-summary', 'html'],
+      //
+      // json-summary is the third one, and it is not for a human: it writes
+      // coverage/coverage-summary.json, whose `total` block holds the four
+      // percentages as numbers. The CI Telegram message reads them from there
+      // with jq — text-summary and html are both unparseable. It costs nothing
+      // and changes neither of the other two outputs. There is still no
+      // coverage upload anywhere.
+      reporter: ['text-summary', 'html', 'json-summary'],
       // Every source file the app itself ships, tested or not, so the report
       // doubles as the list of what is still to do. A file with no test shows
       // up at 0%.
