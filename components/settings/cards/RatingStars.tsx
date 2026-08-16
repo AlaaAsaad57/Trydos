@@ -58,7 +58,7 @@ function RatingStars({
   };
 
   return (
-    <div className="flex flex-row gap-1" style={{ direction: "rtl" }}>
+    <div className="flex flex-row gap-1" >
       {[1, 2, 3, 4, 5].map((index) => (
         <div
           key={index}
