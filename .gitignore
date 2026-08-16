@@ -60,6 +60,12 @@ next-env.d.ts
 graphify-out/
 
 scripts/*
+# Anything under scripts/ is ignored unless it is listed here. A new script is
+# silently never committed until it gets a line below — which is how
+# i18n-parity.mjs, referenced by a package.json script and by CI, went missing
+# from every fresh clone.
+# Run by `pnpm lint:i18n-parity` and by the Tests workflow.
+!scripts/i18n-parity.mjs
 # Trello -> ClickUp backlog migration helpers (used by the migrate-trello-batch skill)
 !scripts/workflow_env.py
 !scripts/trello_fetch.py
