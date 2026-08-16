@@ -48,8 +48,24 @@ Phases 1 and 2 are closed. What they left behind:
 - `docs/testing/UNIT_TESTING.md` — the conventions every phase follows
 - `pnpm test:run` / `pnpm test:coverage`
 
-**There is no CI.** `.gitlab-ci.yml` is dead. Everything here runs locally. No
-phase adds a pipeline.
+**There is CI, and no phase adds to it.** `.github/workflows/tests.yml` runs on
+every pull request into `develop` and `main`, and on every push to them. One
+job, four gates: `pnpm lint:i18n-parity`, `pnpm lint`, `next typegen` +
+`tsc --noEmit`, and `pnpm test:run`. It was added outside this roadmap, as its
+own change, and a phase neither edits it nor needs to know it is there — write
+the tests, and the gate picks them up.
+
+Two things about it that will otherwise cost you an afternoon:
+
+- **`tsc --noEmit` on its own fails on a fresh checkout.** `next-env.d.ts` is
+  gitignored and imports `./.next/types/routes.d.ts`, so neither file exists
+  until `next typegen` writes them. Reproduce a CI type failure locally by
+  running `pnpm exec next typegen` first.
+- **Lint is errors-only.** The repo has 39 warnings; the gate does not use
+  `--max-warnings 0`. Clearing them is somebody's ticket, not a phase's job.
+
+Coverage is still local only — nothing is uploaded and no artifact is kept.
+`.gitlab-ci.yml` is dead and removing it is not part of this roadmap.
 
 ---
 
@@ -88,6 +104,13 @@ own ticket.
 **5. No test performs real I/O.** No network, no Redis, no Elasticsearch, no
 Firebase, no real cookie writes. Use the Phase 2 factories; do not invent new
 ones.
+
+This rule is unchanged by the `live` vitest project (`tests/live/`,
+`pnpm test:live`), which does talk to the staging backend. That project is
+**outside this roadmap**, is empty today, and is never part of `pnpm test:run`
+or of CI — precisely so that no phase here ever depends on staging being up. A
+phase writes into the `unit` project and nowhere else. See
+`tests/live/README.md`.
 
 **Validation profile:** every phase names `tests-and-types` in `plan.md`.
 
@@ -373,7 +396,9 @@ these becomes critical, it gets its own ticket outside this roadmap.
 - **End-to-end (Playwright).** Nothing installed and nothing planned. The
   journeys above are covered at unit and component level; a browser suite is a
   separate decision.
-- **CI.** No pipeline, no coverage upload, no artifacts. `.gitlab-ci.yml` is
+- **CI.** The pipeline exists (`.github/workflows/tests.yml`, see **Starting
+  point**) but no phase touches it — it was added as its own change and needs no
+  per-phase edit. Still no coverage upload and no artifacts. `.gitlab-ci.yml` is
   dead; removing it is not part of this roadmap.
 - **i18n parity.** Covered by `pnpm lint:i18n-parity` and the
   `local/translate-key-exists` ESLint rule. Do not duplicate it in tests.

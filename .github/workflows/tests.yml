@@ -1,0 +1,101 @@
+# The check that runs on every pull request into develop and main.
+#
+# It runs the four things that already pass locally, in one job, so a red run
+# points at exactly one broken thing. Every step carries `if: ${{ !cancelled() }}`
+# so a failure in one does not hide the other three — one run tells you
+# everything that is wrong, not just the first thing.
+#
+# The isolated suite only. Tests here never reach a real backend: the unit
+# project starts msw with `onUnhandledRequest: "error"`, so an unstubbed
+# request fails the test rather than leaving the runner.
+#
+# ---------------------------------------------------------------------------
+# Where the live suite goes
+#
+# The suite that talks to the real staging backend is a separate vitest project
+# (`live`, run with `pnpm test:live`) and will get its own workflow file,
+# `test-live.yml` — never a job in here. Two reasons it stays out:
+#
+#   * A pull request must not be blocked because staging is down. A red run here
+#     has to mean "the code broke", nothing else.
+#   * It needs staging secrets. This workflow needs none, so it can keep running
+#     on forks and on any branch without handing credentials to it.
+#
+# That file will trigger on `workflow_dispatch` plus a nightly `schedule`, read
+# the staging addresses and the test account from repository secrets, and skip
+# cleanly when they are unset. See tests/live/README.md for the contract it
+# implements.
+# ---------------------------------------------------------------------------
+
+name: Tests
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+# A new push to the same branch cancels the run still going for the old one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Lint, types and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out the branch
+        uses: actions/checkout@v4
+
+      # The version is pinned here rather than in package.json's `packageManager`
+      # field on purpose: the deploy platform runs its own install command, and a
+      # `packageManager` field would also apply there. Keeping the pin in this
+      # file means CI cannot change how the app is built.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.0
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Cheapest first, but every step runs even after one fails.
+      - name: Translation key parity (ar / tr / ku)
+        if: ${{ !cancelled() }}
+        run: pnpm lint:i18n-parity
+
+      # Errors only. The repo currently has warnings that are not worth failing a
+      # build over; clearing them is its own ticket. Do not add --max-warnings 0
+      # here until that ticket has landed.
+      - name: Lint
+        if: ${{ !cancelled() }}
+        run: pnpm lint
+
+      # next-env.d.ts is gitignored and it imports ./.next/types/routes.d.ts, so
+      # a fresh checkout has neither file and tsc fails on code that type-checks
+      # perfectly on a developer machine. `next typegen` writes both without
+      # running a full build.
+      - name: Generate framework types
+        if: ${{ !cancelled() }}
+        run: pnpm exec next typegen
+
+      - name: Type check
+        if: ${{ !cancelled() }}
+        run: pnpm exec tsc --noEmit
+
+      - name: Unit tests
+        if: ${{ !cancelled() }}
+        run: pnpm test:run

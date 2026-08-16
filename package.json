@@ -11,9 +11,10 @@
     "lint:i18n-parity": "node scripts/i18n-parity.mjs",
     "start-server": "next build & next start",
     "knip": "knip",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test": "vitest --project unit",
+    "test:run": "vitest run --project unit",
+    "test:coverage": "vitest run --project unit --coverage",
+    "test:live": "vitest run --project live --passWithNoTests"
   },
   "resolutions": {
     "form-data": "4.0.6",
