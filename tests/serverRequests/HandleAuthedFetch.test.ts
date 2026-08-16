@@ -377,4 +377,73 @@ describe("a rejection for a guest with no refresh credential (AC-8, AC-9, AC-10)
     expect(headers.__deletes).toEqual([]);
     expect(headers.__cookieJar[COOKIE_NAMES.CHAT_TOKEN]).toBe("old-chat");
   });
+
+  it("stores only what a sparse guest reply actually carries", async () => {
+    // A token on its own is a usable identity. The refresh credential and the
+    // profile are each written only if they came, so a short reply does not
+    // leave an empty cookie standing in for either.
+    headers.__reset({
+      cookies: { [COOKIE_NAMES.MARKET_TOKEN]: "stale-token" },
+    });
+    rejectThenAccept();
+    registerReturns({ data: { token: "token-only" } });
+
+    const result = await call();
+
+    expect(headers.__lastWrite(COOKIE_NAMES.MARKET_TOKEN)).toMatchObject({
+      value: "token-only",
+    });
+    expect(headers.__lastWrite(COOKIE_NAMES.MARKET_REFRESH_TOKEN)).toBeUndefined();
+    expect(headers.__lastWrite(COOKIE_NAMES.USER_DATA)).toBeUndefined();
+    expect(attempts).toEqual(["Bearer stale-token", "Bearer token-only"]);
+    expect(result).toMatchObject({ status: 200 });
+  });
+
+  it("probes with a throwaway cookie when there is no token to re-write", async () => {
+    // The probe asks "can this context store a cookie at all?" by re-writing the
+    // token it already has. With no token there is nothing to re-write, so it
+    // writes an already-expired one instead — same question, nothing destroyed.
+    headers.__reset();
+    rejectThenAccept();
+    registerReturns(guestPayload);
+
+    const result = await call();
+
+    const probe = headers.__writes[0];
+    expect(probe).toMatchObject({ name: COOKIE_NAMES.MARKET_TOKEN, value: "" });
+    expect((probe.options as any).maxAge).toBe(0);
+    // The probe passed, so the recovery ran to the end as normal.
+    expect(registrations).toBe(1);
+    expect(result).toMatchObject({ status: 200 });
+  });
+});
+
+describe("a recovery that breaks unexpectedly", () => {
+  it("reports the fault and hands back the original rejection", async () => {
+    // Anything thrown inside the recovery is caught. The shopper gets the
+    // rejection the backend actually sent, not a crashed page, and the fault is
+    // reported so it is not lost.
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    headers.__reset({
+      cookies: {
+        [COOKIE_NAMES.MARKET_TOKEN]: "stale-token",
+        [COOKIE_NAMES.MARKET_REFRESH_TOKEN]: "refresh-value",
+      },
+    });
+    rejectAlways();
+    registerReturns(guestPayload);
+    refreshMarketSession.mockRejectedValue(new Error("exchange exploded"));
+
+    const result = await call();
+
+    expect(result.status).toBe(401);
+    expect(LogError).toHaveBeenCalledTimes(1);
+    // No guest is minted on the way out of a fault.
+    expect(registrations).toBe(0);
+    expect(attempts).toHaveLength(1);
+
+    consoleError.mockRestore();
+  });
 });

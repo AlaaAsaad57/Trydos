@@ -1,23 +1,184 @@
 # Test summary — 16 August 2026
 
-**No new checks were added since yesterday. The whole set was run again and everything passes.**
+**We checked the small helpers the whole app leans on — product pictures, addresses, filter links, dates — and what the app remembers about your account. The checks found five faults, all five are now fixed, and everything passes.**
 
 | | |
 |---|---|
-| **New checks added this time** | 0 |
-| **Checks in the app in total** | 525 |
+| **New checks added this time** | 107 |
+| **Checks in the app in total** | 756 |
 | **Result** | ✅ All passing |
-| **How much of the app is checked** | 4.7% of the code |
+| **How much of the app is checked** | 6.1% of the code |
 | **Date** | 2026-08-16 |
 
 ---
 
 ## What we checked this time
 
-Nothing new was added. The 525 checks listed in the earlier summaries were all run
-again and all of them passed. The share of the app that is checked has not moved.
+### Showing product pictures and videos
 
-Another 71 checks keep the testing setup itself honest — they protect the tests, not the app,
+- When a picture already has a full web address, then it is used exactly as it is.
+- When a picture path arrives on its own, then the media address is put in front of it.
+- When a picture path already starts with a slash, then the address is not given two.
+- When an uploaded file's path has no opening slash, then the missing slash is added.
+- When there is no picture at all, then nothing is returned, not a broken address.
+- When a picture field holds something that is not text, then it is handed back untouched.
+- When an uploaded file names the media server itself, then its own address is used as final.
+- When a video is named on its own, then the media address, folder and file type are added.
+- When a video name already ends in .mp4, then the file type is not added twice.
+- When a video name starts with a slash, then the address is not given two.
+- When a video already has a full address, then it is left exactly as it is.
+
+### Building a filter link
+
+- When no filters are chosen, then the link carries none.
+- When the same filters are chosen in a different order, then both people land on one address.
+- When several choices of one kind are made, then they are joined with commas.
+- When a colour is chosen, then the hash is dropped so the address still reaches the server.
+
+### Writing out an address
+
+- When every part of an address is filled in, then they are shown joined by bars.
+- When parts of an address were never filled in, then they are left out.
+- When the backend sends the word 'null' for a part, then it is treated as empty, not printed.
+- When a part in the middle is missing, then no empty gap is left between the bars.
+- When the first parts are missing, then the line does not start with a bar.
+- When there is no address at all, then an empty line is shown.
+
+### Guest accounts and phone numbers
+
+- When an account carries one of the three guest names, then it is recognised as a guest.
+- When a guest name has capitals or spaces around it, then it is still recognised.
+- When a real shopper's name is checked, then it is not mistaken for a guest.
+- When a phone number is typed with spaces, dashes or brackets, then those are removed.
+- When a phone number starts with a plus, then that one plus is kept.
+- When a plus is typed mid-number, then it is removed, not treated as a country code.
+- When text with no digits is entered as a phone number, then nothing is left.
+
+### Which way text runs on the page
+
+- When text starts with an Arabic or Kurdish letter, then it is laid out right to left.
+- When text starts with a Latin letter, then it is laid out left to right.
+- When text starts with spaces, then the first real letter decides the direction.
+- When there is no text at all, then it is laid out left to right.
+
+### Where a visitor came from
+
+- When there is no previous page, then the visit is recorded as direct.
+- When a visitor arrives from Facebook or Instagram, then that site is named.
+- When a visitor arrives from X or Twitter, then it is recorded as X.
+- When an ordinary site merely contains the letter x, then it is not mistaken for X.
+- When a visitor arrives from a site we do not list, then it is recorded as other.
+
+### Choosing a colour and size on a product
+
+- When two colour names differ only by capitals or spaces, then they count as the same.
+- When a colour name is compared with a full colour record, then a match on either counts.
+- When one side of a colour comparison is missing, then the two do not match.
+- When two different colours are compared, then they do not match.
+- When a colour and a size are both chosen, then the matching product option is found.
+- When only a colour is chosen, then the option for that colour is found.
+- When only a size is chosen, then the option for that size is found.
+- When nothing is chosen, then no product option is returned.
+- When the chosen pair does not exist, then no product option is returned.
+
+### Cleaning up what people type
+
+- When typed text holds characters that could carry a command, then they are removed.
+- When typed text is longer than ninety characters, then it is cut to ninety.
+- When ordinary words are typed, then they are left alone.
+- When something that is not text is passed in, then an empty result comes back.
+
+### Opening a panel over the page
+
+- When a panel opens, then the page behind it stops moving and returns to the top.
+- When the basket opens, then the page stops moving but keeps the shopper's place.
+- When the panel closes, then the page can be moved again.
+
+### Recording which screen a shopper is on
+
+- When a shopper is in the settings pages, then the settings screen is recorded.
+- When the basket is open, then the basket is recorded, whatever page sits behind it.
+- When a shopper is on a product page, then the product screen is recorded.
+- When a shopper is in a boutique, then the boutique screen is recorded, not the filters one.
+- When a shopper is filtering, then the filters screen is recorded.
+- When the page is none of these, then the home screen is recorded.
+
+### Showing dates and times
+
+- When something happened today, then the time is shown with the word Today.
+- When something happened the day before, then the time is shown with the word Yesterday.
+- When something happened longer ago, then the full date is shown.
+- When the page is in another language, then Today is taken from the translations.
+- When the page is in another language, then Yesterday is taken from the translations.
+- When a date is shown on an address screen, then it is translated in the language given.
+- When a time arrives with no zone marker, then it is read as universal time.
+- When an address time arrives the same way, then it is read as local time, by design.
+- When a day number arrives from the backend, then zero means Sunday and six means Saturday.
+- When a day number does not exist, then no day name is returned.
+
+### Ending a session
+
+- When a signed-in session expires, then the account details stay but are marked as not verified.
+- When someone signs out on purpose, then every stored account detail is cleared.
+- When a session ends either way, then the old error message and the remaining-tries count reset.
+- When a session ends and nothing was stored, then nothing is invented and it stays empty.
+
+### Signing in and remembering the account
+
+- When someone signs in, then their account and profile are saved and the failure mark is cleared.
+- When sign-in details arrive and some are already stored, then the new ones are added to the old.
+- When sign-in details arrive and nothing was stored yet, then the new ones are saved as they are.
+- When account details are edited, then the change reaches both the profile and the signed-in copy.
+- When a fresh profile arrives, then it replaces the stored profile and updates the signed-in copy.
+- When a phone or email is verified, then only the profile record is updated.
+- When account details are updated and no profile is stored, then it still works without an error.
+- When someone changes their name, then it changes in both the signed-in details and the profile.
+- When someone changes their name and no profile is stored, then it still works without an error.
+
+### The very first time something is stored
+
+- When someone signs in on a fresh tab, then the reply becomes both the account and its copy.
+- When someone signs in and no profile was stored, then the profile is started from that reply.
+- When a profile arrives and nobody was signed in, then the signed-in details are built from it.
+- When a phone or email is verified and no profile was stored, then a profile is started for it.
+- When chat details arrive and nothing was stored, then they are saved as the new record.
+- When stories details arrive and a record already exists, then the new ones are added to it.
+- When wallet details arrive and a record already exists, then the new ones are added to it.
+
+### Being asked to verify again
+
+- When nothing is wrong, then the verify-again prompt stays off, and it can be turned on and off.
+- When a verify-again finishes, then the outcome is recorded so a waiting request can carry on.
+- When a session expires, then that phone number is kept so the shopper does not type it again.
+
+### What a screen sees before anything has loaded
+
+- When the orders have not been counted yet, then that shows as unknown, not as zero orders.
+- When notification settings arrive, then they replace the old ones, so a turned-off one stays off.
+- When the list of notification kinds arrives, then it is stored, starting from an empty list.
+- When a wrong code is entered, then the message is kept, and it can be cleared again.
+- When a code is being checked, then the reference for that check is held.
+- When a temporary user is held during sign-up, then the signed-in account is left alone.
+- When no address is in use, then that is the starting state, and it can be switched on.
+
+### Getting the sign-in wrong
+
+- When a sign-in attempt fails, then it is marked as failed and one try is used up.
+- When no tries are left and another one fails, then the count stops at zero and goes no lower.
+
+### Notification choices
+
+- When a notification subject is turned on, then only that one changes.
+- When a notification subject is turned off, then only that one is removed.
+- When a notification subject changes, then the other notification settings stay as they were.
+
+### When the backend refuses a shopper's pass
+
+- When a request is refused and there is no pass to test with, then a throwaway one is used.
+- When a new guest pass arrives on its own, then nothing empty is stored for the missing parts.
+- When the recovery itself breaks, then the fault is reported and the shopper gets the refusal.
+
+Another 53 checks keep the testing setup itself honest — they protect the tests, not the app,
 so they are counted but not listed.
 
 ---
@@ -26,36 +187,43 @@ so they are counted but not listed.
 
 | Measure | Covered | Total | Share |
 |---|---|---|---|
-| Lines of code | 1300 | 27908 | 4.7% |
-| Decision points | 867 | 25135 | 3.4% |
-| Functions | 186 | 7126 | 2.6% |
+| Lines of code | 1692 | 27895 | 6.1% |
+| Decision points | 1196 | 25120 | 4.8% |
+| Functions | 265 | 7126 | 3.7% |
 
-The app has 721 files. 11 of them have a test written for them. 58 more are touched
-only because a tested file uses them, so they are not really checked. 652 have nothing.
+Out of 726 files in the app, 13 have a test written for them. Another 56 are only touched
+because a tested file uses them, and 657 have nothing at all.
 
 ### The parts we set out to test
 
+Nine of the thirteen are now checked completely.
+
 | Part of the app | Share checked |
 |---|---|
-| Landing on the right language and country | 100.0% |
-| Asking a backend for page data | 100.0% |
-| Avoiding repeat work in one page load | 100.0% |
-| Shared helpers, such as prices and dates | 100.0% |
-| The wait between sign-in code requests | 100.0% |
-| Renewing a session that has expired | 100.0% |
-| Recording what happens with sign-in codes | 100.0% |
-| Choosing which backend a request goes to | 98.9% |
-| Sending requests from the browser | 98.7% |
-| Knowing who asked for a sign-in code | 98.4% |
-| Signing a shopper back in mid-request | 92.3% |
+| Landing on the right language and country — proxy.ts | 100.0% |
+| Sending a signed-in request — serverRequests/HandleAuthedFetch.ts | 100.0% |
+| Asking the backends for data — serverRequests/ServerFetch.tsx | 100.0% |
+| Not asking twice for the same thing — serverRequests/requestDedup.ts | 100.0% |
+| What the app remembers about your account — store/auth/reducer.tsx | 100.0% |
+| Shared helpers, including prices — utils/functions.tsx | 100.0% |
+| Holding the one-time-code limit — utils/otpLocks.ts | 100.0% |
+| Renewing an expired session — utils/server/authRefresh.ts | 100.0% |
+| Recording one-time-code events — utils/server/otpTelemetry.ts | 100.0% |
+| Which service may be reached — utils/server/tokenManager.ts | 98.9% |
+| Sending requests from the browser — utils/fetchData.ts | 98.7% |
+| Who a one-time code belongs to — utils/server/otpIdentity.ts | 98.4% |
+| The small shared helpers — utils/tinyUtils.tsx | 59.2% |
+
+The last one was picked because 115 other files use it, and one function inside it —
+the one that builds every picture address — is called from 219 places. What is still
+unchecked there is the part that talks to the network or asks the browser for permission.
 
 ### Reading these numbers
 
-- **What is checked well:** sign-in codes, session renewal, language and country, and backend calls.
-- **What has nothing yet:** every screen people see, the shopping rules, and all pages and routes.
+- **What is checked well:** language routing, the backends, sign-in, and the shared helpers.
+- **What has nothing yet:** the screens people see, the pages, and the rules behind them.
 - **What "checked" does not mean:** a checked line is one a test ran. It does not prove the
   behaviour is what the business wants, and it says nothing about how the app looks or feels.
-
 <!-- test-index v1 — written by the test-summary skill. Do not edit by hand.
 tests/fixtures/fixtures.test.ts :: test fixtures — every builder 'address': returns a complete object when called with nothing
 tests/fixtures/fixtures.test.ts :: test fixtures — every builder 'address': two calls return independent objects
@@ -219,10 +387,13 @@ tests/render.test.tsx :: renderWithProviders re-renders a component when the sto
 tests/render.test.tsx :: renderWithProviders records where a component sent the user
 tests/render.test.tsx :: renderWithProviders renders translated copy for the chosen language
 tests/render.test.tsx :: renderWithProviders starts from a clean store, so the last test does not leak in
+tests/serverRequests/HandleAuthedFetch.test.ts :: a recovery that breaks unexpectedly reports the fault and hands back the original rejection
 tests/serverRequests/HandleAuthedFetch.test.ts :: a rejection for a guest with no refresh credential (AC-8, AC-9, AC-10) creates one guest identity, clears the old one, and retries once
 tests/serverRequests/HandleAuthedFetch.test.ts :: a rejection for a guest with no refresh credential (AC-8, AC-9, AC-10) leaves every existing cookie alone when creating a guest fails (AC-10)
 tests/serverRequests/HandleAuthedFetch.test.ts :: a rejection for a guest with no refresh credential (AC-8, AC-9, AC-10) leaves every existing cookie alone when creating a guest returns no credential (AC-10)
+tests/serverRequests/HandleAuthedFetch.test.ts :: a rejection for a guest with no refresh credential (AC-8, AC-9, AC-10) probes with a throwaway cookie when there is no token to re-write
 tests/serverRequests/HandleAuthedFetch.test.ts :: a rejection for a guest with no refresh credential (AC-8, AC-9, AC-10) stops after one retry when the retry is rejected too (AC-9)
+tests/serverRequests/HandleAuthedFetch.test.ts :: a rejection for a guest with no refresh credential (AC-8, AC-9, AC-10) stores only what a sparse guest reply actually carries
 tests/serverRequests/HandleAuthedFetch.test.ts :: a rejection for a guest with no refresh credential (AC-8, AC-9, AC-10) stores the new pair hidden from the browser, with the refresh cookie living longer
 tests/serverRequests/HandleAuthedFetch.test.ts :: a rejection for a verified shopper with no refresh credential (AC-7) gives the rejection back rather than replacing the account with a guest
 tests/serverRequests/HandleAuthedFetch.test.ts :: a rejection where cookies cannot be written (AC-4) hands the rejection back and spends nothing single-use
@@ -254,6 +425,59 @@ tests/serverRequests/requestDedup.test.ts :: when the shared work fails (AC-30) 
 tests/serverRequests/requestDedup.test.ts :: when the shared work fails (AC-30) lets the next caller try again instead of handing on the failure
 tests/serverRequests/requestDedup.test.ts :: when the shared work fails (AC-30) lets the next request try again after a failure
 tests/serverRequests/requestDedup.test.ts :: when the shared work fails (AC-30) stops holding a key open once its work has failed
+tests/services/auth.otp.test.ts :: sending a code falls back to the documented default cooldown when the server names none (AC-2)
+tests/services/auth.otp.test.ts :: sending a code records the verification id, starts the cooldown the server asked for, and counts the number (AC-1)
+tests/services/auth.otp.test.ts :: sending a code reports, calls the caller's error hook and raises when the send never reaches the server — and starts no cooldown (AC-4)
+tests/services/auth.otp.test.ts :: sending a code still starts the cooldown when the send is refused with one, and reports the refusal (AC-3)
+tests/services/auth.otp.test.ts :: verifying a changed number carries the code and the verification id to the call (AC-12)
+tests/services/auth.otp.test.ts :: verifying a changed number encodes the code and the verification id into the query (AC-12)
+tests/services/auth.otp.test.ts :: verifying a changed number fails WITHOUT marking the phone verified when the reply carries no token (AC-12)
+tests/services/auth.otp.test.ts :: verifying a changed number marks the phone verified, mirrors it to the profile copy, and returns the one-time token (AC-12)
+tests/services/auth.otp.test.ts :: verifying a changed number shows its own wording, never a raw internal error (AC-12)
+tests/services/auth.otp.test.ts :: verifying a code does not report a mapping when the shopper was already this user (AC-7)
+tests/services/auth.otp.test.ts :: verifying a code leaves a message and spends NO attempt when the user is unknown (AC-9)
+tests/services/auth.otp.test.ts :: verifying a code releases the re-verification wait and clears the prompt marker (AC-6)
+tests/services/auth.otp.test.ts :: verifying a code reports a failed verification with the flow it was opened from (AC-11)
+tests/services/auth.otp.test.ts :: verifying a code reports back whether the account already existed, and under what name (AC-8)
+tests/services/auth.otp.test.ts :: verifying a code reports the guest-to-user mapping only when the id actually changed (AC-7)
+tests/services/auth.otp.test.ts :: verifying a code shows the refusal and raises when the server rejects the code outright (AC-10)
+tests/services/auth.otp.test.ts :: verifying a code spends an attempt and flags the failure on a wrong code (AC-10)
+tests/services/auth.otp.test.ts :: verifying a code writes all four service records, each marked verified (AC-5)
+tests/services/auth.profile.test.ts :: picture paths (AC-27) adds the folder for the stored copy, and leaves an empty value as it is
+tests/services/auth.profile.test.ts :: picture paths (AC-27) leaves a value that is already in the target form alone
+tests/services/auth.profile.test.ts :: picture paths (AC-27) reports nothing for an empty value on the service side
+tests/services/auth.profile.test.ts :: picture paths (AC-27) strips the folder for the market and adds it for the other services
+tests/services/auth.profile.test.ts :: renaming (AC-23) puts the old name back and says so when a service refuses it
+tests/services/auth.profile.test.ts :: renaming (AC-23) writes the new name to the state and to all three profile copies before any request
+tests/services/auth.profile.test.ts :: updating the profile does not roll back a leg that never ran (AC-25)
+tests/services/auth.profile.test.ts :: updating the profile looks up the missing service records before running the legs (AC-26)
+tests/services/auth.profile.test.ts :: updating the profile puts every completed leg back when a later one fails, and tells the shopper once (AC-25)
+tests/services/auth.profile.test.ts :: updating the profile sends the picture path in the form each service expects (AC-24)
+tests/services/auth.profile.test.ts :: updating the profile skips a leg the shopper has no record for (AC-24)
+tests/services/auth.profile.test.ts :: updating the profile writes both the shared state and that service's own copy, for each leg (AC-24)
+tests/services/auth.profile.test.ts :: uploading a picture refuses to run when the upload is not configured (AC-28)
+tests/services/auth.profile.test.ts :: uploading a picture reports a failure rather than a picture when the upload is refused (AC-28)
+tests/services/auth.profile.test.ts :: uploading a picture reports the failure rather than raising when a refused upload's reply cannot be read (AC-29)
+tests/services/auth.profile.test.ts :: uploading a picture reports where the picture was stored (AC-28)
+tests/services/auth.session.test.ts :: concurrent expiry (AC-22) attempts nothing while a logout is running (AC-13)
+tests/services/auth.session.test.ts :: concurrent expiry (AC-22) releases the cycle so a later expiry can run again
+tests/services/auth.session.test.ts :: concurrent expiry (AC-22) restores the registering flag whichever way the cycle ends
+tests/services/auth.session.test.ts :: concurrent expiry (AC-22) shares one cycle and hands both callers the same outcome
+tests/services/auth.session.test.ts :: exchanging a dying session asks for a plain exchange when it is given no request to name (AC-16)
+tests/services/auth.session.test.ts :: exchanging a dying session attempts nothing at all while a logout is running (AC-13)
+tests/services/auth.session.test.ts :: exchanging a dying session does not report a refresh when the server answers successfully but says nothing (AC-14)
+tests/services/auth.session.test.ts :: exchanging a dying session names the request when it is given one (AC-16)
+tests/services/auth.session.test.ts :: exchanging a dying session passes on the server's own "not eligible" (AC-14)
+tests/services/auth.session.test.ts :: exchanging a dying session reports a refresh only when the server answers successfully AND says it refreshed (AC-14)
+tests/services/auth.session.test.ts :: exchanging a dying session treats a network failure as eligible-but-not-refreshed, so the caller falls through to the expiry flow (AC-15)
+tests/services/auth.session.test.ts :: the expiry cycle, when the session is gone arms the log-in-again prompt and keeps the phone for it (AC-19)
+tests/services/auth.session.test.ts :: the expiry cycle, when the session is gone cancels a guest session silently, with no prompt (AC-20)
+tests/services/auth.session.test.ts :: the expiry cycle, when the session is gone does not keep a placeholder phone (AC-19)
+tests/services/auth.session.test.ts :: the expiry cycle, when the session is gone never replaces a re-verification that is already armed (AC-21)
+tests/services/auth.session.test.ts :: the expiry cycle, when the session is gone skips the request entirely when asked to (AC-20)
+tests/services/auth.session.test.ts :: the expiry cycle, when the session survives does NOT release a re-verification that is already on screen (AC-18)
+tests/services/auth.session.test.ts :: the expiry cycle, when the session survives ends the cycle without cancelling what the renewal just saved, and releases waiters (AC-17)
+tests/services/auth.session.test.ts :: the expiry cycle, when the session survives sends the shopper's country and language with the request (AC-17)
 tests/services/authRefreshSession.test.ts :: RefreshSession dedup does NOT share a chat refresh with a stories refresh
 tests/services/authRefreshSession.test.ts :: RefreshSession dedup does NOT share a market refresh with a chat refresh
 tests/services/authRefreshSession.test.ts :: RefreshSession dedup does NOT share a market refresh with a stories refresh
@@ -266,6 +490,41 @@ tests/setup.test.tsx :: the render setup drives a click through user-event
 tests/setup.test.tsx :: the render setup takes the last test's markup off the page first
 tests/setup.test.tsx :: the server boundary hands back a cache that is always empty
 tests/setup.test.tsx :: the server boundary never loads the real cache layer
+tests/store/auth/reducer.test.ts :: cancelAuth (AC-30) clears every record when the cancellation is not an expiry
+tests/store/auth/reducer.test.ts :: cancelAuth (AC-30) keeps the shopper's records and marks them unverified when the session expired
+tests/store/auth/reducer.test.ts :: cancelAuth (AC-30) leaves an already-empty session empty rather than inventing records
+tests/store/auth/reducer.test.ts :: cancelAuth (AC-30) resets the attempt counter and the message on both routes
+tests/store/auth/reducer.test.ts :: failed attempts (AC-32) flags the failure and spends one attempt
+tests/store/auth/reducer.test.ts :: failed attempts (AC-32) stops at zero rather than going negative
+tests/store/auth/reducer.test.ts :: notification topics (AC-33) adds one topic and leaves the rest alone
+tests/store/auth/reducer.test.ts :: notification topics (AC-33) keeps the other notification settings untouched
+tests/store/auth/reducer.test.ts :: notification topics (AC-33) removes only the topic it is given
+tests/store/auth/reducer.test.ts :: renaming (AC-34) renames onto an absent profile without throwing
+tests/store/auth/reducer.test.ts :: renaming (AC-34) updates the signed-in user AND the profile record
+tests/store/auth/reducer.test.ts :: sign-in writes (AC-31) merges into an existing service record
+tests/store/auth/reducer.test.ts :: sign-in writes (AC-31) merges the signed-in user and the profile, and clears the failure flag
+tests/store/auth/reducer.test.ts :: sign-in writes (AC-31) replaces an absent service record with what it is given
+tests/store/auth/reducer.test.ts :: the first write, when nothing was stored yet (AC-31) builds the signed-in user from a fresh profile when there was none
+tests/store/auth/reducer.test.ts :: the first write, when nothing was stored yet (AC-31) merges into an existing stories record
+tests/store/auth/reducer.test.ts :: the first write, when nothing was stored yet (AC-31) merges into an existing wallet record
+tests/store/auth/reducer.test.ts :: the first write, when nothing was stored yet (AC-31) starts a profile when a verification arrives and none was stored
+tests/store/auth/reducer.test.ts :: the first write, when nothing was stored yet (AC-31) starts the profile from the sign-in reply when there was none
+tests/store/auth/reducer.test.ts :: the first write, when nothing was stored yet (AC-31) stores a chat record when there was none
+tests/store/auth/reducer.test.ts :: the first write, when nothing was stored yet (AC-31) takes the sign-in reply as the user when nobody was signed in
+tests/store/auth/reducer.test.ts :: the other merge shapes (AC-31) editUserInfo merges into both the profile and the signed-in user
+tests/store/auth/reducer.test.ts :: the other merge shapes (AC-31) merges onto an absent profile without throwing
+tests/store/auth/reducer.test.ts :: the other merge shapes (AC-31) updateUserInfo replaces the profile and merges the signed-in user
+tests/store/auth/reducer.test.ts :: the other merge shapes (AC-31) updateUserIsVerified merges into the profile only
+tests/store/auth/reducer.test.ts :: the plain values screens read holds a temporary user without touching the signed-in one
+tests/store/auth/reducer.test.ts :: the plain values screens read holds the verification reference for the code being checked
+tests/store/auth/reducer.test.ts :: the plain values screens read keeps the wrong-code message and can clear it
+tests/store/auth/reducer.test.ts :: the plain values screens read marks whether an address is in use, starting from not in use
+tests/store/auth/reducer.test.ts :: the plain values screens read replaces the notification settings rather than merging them
+tests/store/auth/reducer.test.ts :: the plain values screens read starts the order count at 'not counted yet', not at zero
+tests/store/auth/reducer.test.ts :: the plain values screens read stores the kinds of notification on offer, starting from none
+tests/store/auth/reducer.test.ts :: the re-verify switches records the outcome so a waiting request can read it
+tests/store/auth/reducer.test.ts :: the re-verify switches remembers the phone of the session that expired
+tests/store/auth/reducer.test.ts :: the re-verify switches starts disarmed, arms the prompt, and can be cleared again
 tests/utils/cookieManager.test.ts :: cookie names (AC-13) holds the auth token in one cookie, for guest and signed-in alike
 tests/utils/cookieManager.test.ts :: cookie names (AC-13) is named nowhere outside the cleanup lists it exists for
 tests/utils/cookieManager.test.ts :: cookie names (AC-13) keeps the refresh token in its own cookie
@@ -555,6 +814,75 @@ tests/utils/server/tokenManager.test.ts :: which services may be proxied at all 
 tests/utils/server/tokenManager.test.ts :: which services may be proxied at all refuses admin
 tests/utils/server/tokenManager.test.ts :: which services may be proxied at all refuses internal
 tests/utils/server/tokenManager.test.ts :: which services may be proxied at all refuses market 
+tests/utils/tinyUtils.test.ts :: building a filter link (buildParamsFromFilters) always uses the same order, whatever order the choices came in
+tests/utils/tinyUtils.test.ts :: building a filter link (buildParamsFromFilters) drops the hash from colours so the address stays readable
+tests/utils/tinyUtils.test.ts :: building a filter link (buildParamsFromFilters) gives nothing back when nothing is chosen
+tests/utils/tinyUtils.test.ts :: building a filter link (buildParamsFromFilters) joins several choices of the same kind with commas
+tests/utils/tinyUtils.test.ts :: building a picture address (GetImageUrl) adds the missing slash to an upload record's path as well
+tests/utils/tinyUtils.test.ts :: building a picture address (GetImageUrl) does not double the slash when the path already has one
+tests/utils/tinyUtils.test.ts :: building a picture address (GetImageUrl) hands back anything that is not text unchanged
+tests/utils/tinyUtils.test.ts :: building a picture address (GetImageUrl) hands back nothing when it was given nothing
+tests/utils/tinyUtils.test.ts :: building a picture address (GetImageUrl) leaves a full address alone
+tests/utils/tinyUtils.test.ts :: building a picture address (GetImageUrl) puts the media address in front of a bare path
+tests/utils/tinyUtils.test.ts :: building a picture address (GetImageUrl) takes an upload record's own path as final when it names the media server
+tests/utils/tinyUtils.test.ts :: building a video address (getVideoUrl) adds the media address, the folder and the file type
+tests/utils/tinyUtils.test.ts :: building a video address (getVideoUrl) does not add the file type twice
+tests/utils/tinyUtils.test.ts :: building a video address (getVideoUrl) does not double the slash when the name has one
+tests/utils/tinyUtils.test.ts :: building a video address (getVideoUrl) leaves an already-hosted address exactly as it is
+tests/utils/tinyUtils.test.ts :: choosing which way text runs (getFirstLetterLang) falls back to left to right when there is no text
+tests/utils/tinyUtils.test.ts :: choosing which way text runs (getFirstLetterLang) ignores spaces before the first letter
+tests/utils/tinyUtils.test.ts :: choosing which way text runs (getFirstLetterLang) reads Arabic and Kurdish text right to left
+tests/utils/tinyUtils.test.ts :: choosing which way text runs (getFirstLetterLang) reads Latin text left to right
+tests/utils/tinyUtils.test.ts :: cleaning typed input (pollinateInput) cuts anything longer than ninety characters
+tests/utils/tinyUtils.test.ts :: cleaning typed input (pollinateInput) gives an empty result for anything that is not text
+tests/utils/tinyUtils.test.ts :: cleaning typed input (pollinateInput) leaves ordinary words alone
+tests/utils/tinyUtils.test.ts :: cleaning typed input (pollinateInput) removes the characters that could carry a command
+tests/utils/tinyUtils.test.ts :: finding the chosen product option (findVariation) finds it by colour alone when no size was chosen
+tests/utils/tinyUtils.test.ts :: finding the chosen product option (findVariation) finds it by size alone when no colour was chosen
+tests/utils/tinyUtils.test.ts :: finding the chosen product option (findVariation) finds the one matching both a colour and a size
+tests/utils/tinyUtils.test.ts :: finding the chosen product option (findVariation) gives nothing back when nothing was chosen
+tests/utils/tinyUtils.test.ts :: finding the chosen product option (findVariation) gives nothing back when the choice has no matching option
+tests/utils/tinyUtils.test.ts :: locking the page behind an overlay (DisableScroll, EnableScroll) can stop the page moving without sending it to the top
+tests/utils/tinyUtils.test.ts :: locking the page behind an overlay (DisableScroll, EnableScroll) lets the page move again
+tests/utils/tinyUtils.test.ts :: locking the page behind an overlay (DisableScroll, EnableScroll) stops the page moving and sends it to the top
+tests/utils/tinyUtils.test.ts :: matching a colour (isSameColor) matches a plain name against a full colour record
+tests/utils/tinyUtils.test.ts :: matching a colour (isSameColor) matches two names ignoring capitals and spaces
+tests/utils/tinyUtils.test.ts :: matching a colour (isSameColor) says no for two different colours
+tests/utils/tinyUtils.test.ts :: matching a colour (isSameColor) says no when either side is missing
+tests/utils/tinyUtils.test.ts :: naming a day of the week (ShowDayStr) counts from Sunday, the way the backend does
+tests/utils/tinyUtils.test.ts :: naming a day of the week (ShowDayStr) gives nothing back for a day number that does not exist
+tests/utils/tinyUtils.test.ts :: naming the screen for analytics (DetectScreen) falls back to the home screen for anything else
+tests/utils/tinyUtils.test.ts :: naming the screen for analytics (DetectScreen) names the basket whenever it is open, whatever page is behind it
+tests/utils/tinyUtils.test.ts :: naming the screen for analytics (DetectScreen) names the boutique screen rather than the general filters one
+tests/utils/tinyUtils.test.ts :: naming the screen for analytics (DetectScreen) names the filters screen
+tests/utils/tinyUtils.test.ts :: naming the screen for analytics (DetectScreen) names the product screen
+tests/utils/tinyUtils.test.ts :: naming the screen for analytics (DetectScreen) names the settings screen
+tests/utils/tinyUtils.test.ts :: naming where a visitor came from (getReferralSource) does not mistake an ordinary address for X
+tests/utils/tinyUtils.test.ts :: naming where a visitor came from (getReferralSource) names X only for X itself
+tests/utils/tinyUtils.test.ts :: naming where a visitor came from (getReferralSource) names the social sites it knows
+tests/utils/tinyUtils.test.ts :: naming where a visitor came from (getReferralSource) says 'direct' when there is no previous page
+tests/utils/tinyUtils.test.ts :: naming where a visitor came from (getReferralSource) says 'other' for a site it does not know
+tests/utils/tinyUtils.test.ts :: spotting a guest account (isGuestName) does not mistake a real name for a guest
+tests/utils/tinyUtils.test.ts :: spotting a guest account (isGuestName) ignores capitals and spaces around the name
+tests/utils/tinyUtils.test.ts :: spotting a guest account (isGuestName) knows the three names a guest can carry
+tests/utils/tinyUtils.test.ts :: tidying a typed phone number (sanitizePhone) does not invent a plus that was not typed
+tests/utils/tinyUtils.test.ts :: tidying a typed phone number (sanitizePhone) gives an empty result for text with no digits
+tests/utils/tinyUtils.test.ts :: tidying a typed phone number (sanitizePhone) keeps a leading plus and only that one
+tests/utils/tinyUtils.test.ts :: tidying a typed phone number (sanitizePhone) removes the spacing people type
+tests/utils/tinyUtils.test.ts :: writing a time a shopper can read (formatTime) does the same on the address screens, in the language it is handed
+tests/utils/tinyUtils.test.ts :: writing a time a shopper can read (formatTime) reads a bare timestamp as universal time, unlike the address version
+tests/utils/tinyUtils.test.ts :: writing a time a shopper can read (formatTime) reads a time with no zone marker as universal time
+tests/utils/tinyUtils.test.ts :: writing a time a shopper can read (formatTime) says today for a time from today
+tests/utils/tinyUtils.test.ts :: writing a time a shopper can read (formatTime) says yesterday for a time from the day before
+tests/utils/tinyUtils.test.ts :: writing a time a shopper can read (formatTime) takes Today from the translator rather than writing it in English
+tests/utils/tinyUtils.test.ts :: writing a time a shopper can read (formatTime) takes Yesterday from the translator too
+tests/utils/tinyUtils.test.ts :: writing a time a shopper can read (formatTime) writes the full date for anything older
+tests/utils/tinyUtils.test.ts :: writing an address out (GetAddressString) does not start the line with a bar when the first parts are missing
+tests/utils/tinyUtils.test.ts :: writing an address out (GetAddressString) gives an empty line back when there is no address at all
+tests/utils/tinyUtils.test.ts :: writing an address out (GetAddressString) joins the parts it was given with bars
+tests/utils/tinyUtils.test.ts :: writing an address out (GetAddressString) leaves no gap when a part in the middle is missing
+tests/utils/tinyUtils.test.ts :: writing an address out (GetAddressString) skips the parts that were never filled in
+tests/utils/tinyUtils.test.ts :: writing an address out (GetAddressString) treats the word 'null' as an empty part, not as a place name
 utils/functions.test.ts :: COMPARE_CHANGED_EVENT is the name the compare helpers announce
 utils/functions.test.ts :: GetCartOreview puts the overview into the shared state
 utils/functions.test.ts :: GetCartOreview records the failure instead of throwing
