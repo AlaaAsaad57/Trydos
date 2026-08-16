@@ -1,69 +1,3 @@
-interface FirebaseSettings {
-  subscribed_topics: Array<{ topic: string }>;
-  unsubscribed_topics: string[];
-  email: number;
-  whatsapp: number;
-  firebase: number;
-}
-
-interface User {
-  name?: string;
-  [key: string]: any;
-}
-
-type ReAuthResult = "pending" | "success" | "cancelled" | null;
-
-interface AuthState {
-  user: User | null;
-  Tempuser: User | null;
-  failedLogin: boolean;
-  attempts: number;
-  wrongNumber: string;
-  // "expired" shows the session-expired "please login again" prompt
-  // (SessionExpiredWidget); "expired-login" is the phone-verify widget opened
-  // FROM that prompt (dismissal hard-reloads immediately; success keeps the
-  // normal finalise/soft-refresh path — never reload on success). Every other
-  // truthy value opens the phone-verify widget directly. Kept on the same
-  // marker so in-flight 401 handlers (waitForReAuthSuccess) keep waiting
-  // through prompt → OTP → success.
-  shouldAuthinticated:
-    | boolean
-    | "open Story"
-    | "open chat"
-    | "seller"
-    | "expired"
-    | "expired-login";
-  reAuthResult: ReAuthResult;
-  // Phone of the shopper whose session /api/auth/expire nuked. Lets the
-  // re-login verify widget skip phone entry (straight to OTP method) even
-  // after the fresh guest profile overwrites userProfile. In-memory only —
-  // survives exactly as long as the tab session.
-  expiredSessionPhone: string | null;
-  verficationID: string | null;
-  firebaseSettings: FirebaseSettings;
-  userProfile: any | null;
-  totalOrders: number;
-  isActiveAddress: boolean;
-
-  // Actions
-  setIsActiveAddress: (isActive: boolean) => void;
-  setTotalOrders: (total: number) => void;
-  editUserInfo: (info: Partial<any>) => void;
-  cancelAuth: () => void;
-  loginSuccess: (userData: User) => void;
-  loginFailed: () => void;
-  setWrongNumber: (number: string) => void;
-  setVerificationId: (id: string) => void;
-  updateUserInfo: (profile: any) => void;
-  getFirebaseSettings: (settings: FirebaseSettings) => void;
-  disableNotification: (topic: string) => void;
-  enableNotification: (topic: string) => void;
-  setTempUser: (user: User) => void;
-  updateName: (name: string) => void;
-  setReAuthResult: (result: ReAuthResult) => void;
-  setExpiredSessionPhone: (phone: string | null) => void;
-}
-
 export const useAuthStore = (set, get) => ({
   // Initial state
   user: null,
@@ -72,8 +6,19 @@ export const useAuthStore = (set, get) => ({
   userWallet: null,
   Tempuser: null,
   failedLogin: false,
+  // "expired" shows the session-expired "please login again" prompt
+  // (SessionExpiredWidget); "expired-login" is the phone-verify widget opened
+  // FROM that prompt (dismissal hard-reloads immediately; success keeps the
+  // normal finalise/soft-refresh path — never reload on success). Every other
+  // truthy value opens the phone-verify widget directly. Kept on the same
+  // marker so in-flight 401 handlers (waitForReAuthSuccess) keep waiting
+  // through prompt → OTP → success.
   shouldAuthinticated: null,
   reAuthResult: null,
+  // Phone of the shopper whose session /api/auth/expire nuked. Lets the
+  // re-login verify widget skip phone entry (straight to OTP method) even
+  // after the fresh guest profile overwrites userProfile. In-memory only —
+  // survives exactly as long as the tab session.
   expiredSessionPhone: null,
   attempts: 4,
   wrongNumber: "",
@@ -176,7 +121,9 @@ export const useAuthStore = (set, get) => ({
   loginFailed: () =>
     set((state) => ({
       failedLogin: true,
-      attempts: state.attempts - 1,
+      // Floored at zero: "no attempts left" is the real state, and a negative
+      // count is not something any screen can mean.
+      attempts: Math.max(0, state.attempts - 1),
     })),
 
   setWrongNumber: (number) => set({ wrongNumber: number }),
@@ -218,6 +165,9 @@ export const useAuthStore = (set, get) => ({
     set((state) => ({
       user: { ...state.user, name },
       Tempuser: { ...state.user, name },
+      // The profile record too: it is what `auth.getUser()` reads, so leaving it
+      // behind showed the new name in one place and the old one in another.
+      userProfile: { ...(state.userProfile ?? {}), name },
     })),
 });
 

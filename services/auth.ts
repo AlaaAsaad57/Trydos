@@ -66,9 +66,6 @@ type RefreshResult = { refreshed: boolean; eligible: boolean };
 const _refreshPromises = new Map<string, Promise<RefreshResult>>();
 const refreshKeyFor = (server?: string) =>
   server === "chat" || server === "stories" ? server : "market";
-let normalizePhone = (phone: string) => {
-  return phone.replaceAll("+", "");
-};
 class AuthService {
   private async getServiceUsersFromCookies() {
     const data = await fetchAuthMe();
@@ -110,25 +107,24 @@ class AuthService {
       if (response.lockSeconds) {
         lockNumber(mobilePhone, response.lockSeconds);
       }
-      setWrongNumber(msg || "Failed to send verification code");
-      throw new Error(msg || "Failed to send verification code");
+      const refusal = msg || translateFunction("Failed to send verification code");
+      setWrongNumber(refusal);
+      throw new Error(refusal);
     } catch (e) {
       LogServerError({
         error: e,
         scenario: "Error In SendOtp in services/auth",
       });
       errorCallback();
-      setWrongNumber(msg);
+      // Keep whatever reason we already have. `msg` is still the empty string
+      // when the action threw before replying, and overwriting with it left the
+      // screen with no reason at all.
+      setWrongNumber(msg || translateFunction("Failed to send verification code"));
 
       throw e;
     }
   }
-  async VerifyOtp(
-    code: string,
-    verficationID: string,
-    Username: string,
-    EditPhoneFunc: Function,
-  ) {
+  async VerifyOtp(code: string, verficationID: string) {
     const { userProfile } = useAppStore.getState();
     let old_geust_id = userProfile?.id;
     const {
@@ -146,9 +142,8 @@ class AuthService {
       let response = await fetchData({
         url:
           "/api/auth/login" +
-          `?verificationId=${verficationID}&otp=${code}${
-            Username.length > 0 ? `&name=${Username}` : ""
-          }`,
+          `?verificationId=${encodeURIComponent(verficationID)}` +
+          `&otp=${encodeURIComponent(code)}`,
         method: "GET",
         server: "local",
         reqTitle: REQUESTS_DATA.VERIFY_OTP_FROM_GUEST,
@@ -156,13 +151,13 @@ class AuthService {
 
       if (response.code === 501 && !response.success) {
         showErrorNotification(response?.message);
-        throw new Error("Wrong Code", response?.message);
+        throw new Error("Wrong Code", { cause: response?.message });
       }
       if (response?.data?.message === "user not found") {
         throw new Error("user not found");
       }
       if (response?.isSuccessful === false && !response.success) {
-        throw new Error("Wrong Code", response?.message);
+        throw new Error("Wrong Code", { cause: response?.message });
       }
       if (response?.is_failed) {
         LogError({
@@ -208,7 +203,6 @@ class AuthService {
       localStorage.setItem("LAST-VERIFY", new Date().toISOString());
       loginSuccess({
         id: user.id,
-        idToken: user.id_token,
         name: user.name,
         phone: user.phone,
         image: user.image,
@@ -247,7 +241,6 @@ class AuthService {
         // On /seller, do NOT reload: setReAuthResult("success") above lets the
         // pending fetchData re-auth poll retry the original request so the seller
         // continues in place (mirrors the chat/stories flow).
-        // await this.CheckUserName();
       } catch (error) {}
       // not exist and has no name
       // return [false, ""];
@@ -282,7 +275,8 @@ class AuthService {
       let response = await fetchData({
         url:
           "/auth/phone/verify_otp" +
-          `?verificationId=${verficationID}&otp=${code}`,
+          `?verificationId=${encodeURIComponent(verficationID)}` +
+          `&otp=${encodeURIComponent(code)}`,
         method: "GET",
         server: "market",
         reqTitle: REQUESTS_DATA.VERIFY_OTP,
@@ -292,16 +286,29 @@ class AuthService {
         throw new Error("user not found");
       }
       if (response?.isSuccessful === false && !response.success) {
-        throw new Error("Wrong Code", response?.message);
+        throw new Error("Wrong Code", { cause: response?.message });
       }
-      localStorage.setItem("ID-TOKEN", response.data.id_token);
+      // No token means the server did not confirm the number, so nothing below
+      // may run: marking the phone verified on an unconfirmed reply is what this
+      // check exists to prevent. Keep it an explicit check — an incidental
+      // property read here is one "cleanup" away from disappearing.
+      const idToken = response?.data?.id_token;
+      if (!idToken) {
+        throw new Error(translateFunction("Something went wrong"));
+      }
       updateUserIsVerified({ is_phone_verified: 1 });
       updateSecureUserData([
         { name: COOKIE_NAMES.USER_DATA, value: { is_phone_verified: 1 } },
       ]);
-      return response.data.id_token;
+      return idToken;
     } catch (error) {
-      setWrongNumber(error.message);
+      // Only ever our own wording: the raw text of an unexpected error is not
+      // something a shopper should be shown, and it is never translated.
+      setWrongNumber(
+        error instanceof Error && !(error instanceof TypeError)
+          ? error.message
+          : translateFunction("Something went wrong"),
+      );
       LogServerError({
         error: error,
         scenario: "Error In VerifyOtpForUpdatePhone in services/auth",
@@ -312,6 +319,9 @@ class AuthService {
   async UpdateName(name: string) {
     const { updateName, userChat, userStories, userProfile } =
       useAppStore.getState();
+    // Kept so the optimistic write below can be undone. Without it a refused
+    // rename stayed on screen and in three stored copies, and nobody was told.
+    const previousName = userProfile?.name ?? "";
     try {
       // Update store immediately for responsive UI
       updateName(name);
@@ -360,6 +370,15 @@ class AuthService {
         error: e,
         scenario: "Error In UpdateName in services/auth",
       });
+      // Put the old name back — on screen and in the stored copies — and say so.
+      // A rename that the backend refused must not look like it worked.
+      updateName(previousName);
+      updateSecureUserData([
+        { name: COOKIE_NAMES.USER_DATA, value: { name: previousName } },
+        { name: COOKIE_NAMES.USER_CHAT, value: { name: previousName } },
+        { name: COOKIE_NAMES.USER_STORIES, value: { name: previousName } },
+      ]);
+      showErrorNotification(translateFunction("Failed to update name"));
     }
   }
 
@@ -432,8 +451,8 @@ class AuthService {
   }
   /**
    * Exchange the HttpOnly refresh cookie for a fresh token pair via
-   * /api/auth/refresh (Go auth contract). Reactive callers pass the failed
-   * request's {url, server} — Go-eligibility is decided SERVER-SIDE with the
+   * /api/auth/refresh (the gateway's auth contract). Reactive callers pass the
+   * failed request's {url, server} — eligibility is decided SERVER-SIDE with the
    * same routing helpers the proxy uses; the proactive on-load call passes
    * nothing (fast no-op while the access token is valid).
    * Returns {refreshed, eligible}; on failure/ineligibility the caller falls
@@ -595,7 +614,7 @@ class AuthService {
       // --- Wallet profile update DISABLED (under development) ---
       // The wallet `/users/me` PATCH is temporarily commented out. `wallet_done`
       // stays false, so the wallet rollback block in the catch below is inert.
-      // NOTE: when re-enabling, fix `profilePictureURL` for Go's bare sub_path
+      // NOTE: when re-enabling, fix `profilePictureURL` for the gateway's bare sub_path
       // (needs a slash between the media base and "customers/profile/..").
       /*
       // Update wallet user info
@@ -758,7 +777,7 @@ class AuthService {
       if (market_done) {
         let res = await fetchData({
           url: "/customer/update-profile",
-          body: userProfile,
+          body: JSON.stringify(userProfile),
           reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
           method: "POST",
           server: "market",
@@ -922,9 +941,10 @@ class AuthService {
     } catch {
       data = null;
     }
-    console.log(data);
     if (!response.ok || !data?.url) {
-      return { error: data.error, data: null };
+      // `data` is null when the reply could not be read at all, so this must not
+      // reach into it — it used to throw here instead of reporting the failure.
+      return { error: data?.error ?? "Upload failed", data: null };
     }
 
     return {
@@ -951,146 +971,5 @@ class AuthService {
       return null;
     }
   }
-  // async CheckUserName() {
-  //   const { userChat, userStories, userProfile, userWallet, language } =
-  //     useAppStore.getState();
-
-  //   // Skip for guest users
-  //   if (userProfile?.name === "verified_guest") return null;
-
-  //   // Helper to normalize phone (remove +, keep only digits)
-  //   const normalizePhone = (phone: string | undefined) => {
-  //     if (!phone) return "";
-  //     return phone.replace(/^\+/, "").replace(/\D/g, "");
-  //   };
-
-  //   try {
-  //     // Get market data (source of truth)
-  //     const marketName = userProfile?.name || "";
-  //     const marketPhone = normalizePhone(userProfile?.phone);
-
-  //     let needsUpdate = false;
-  //     const updates: {
-  //       wallet?: boolean;
-  //       chat?: boolean;
-  //       stories?: boolean;
-  //     } = {};
-
-  //     // Check wallet
-  //     if (userWallet) {
-  //       const walletName =
-  //         `${userWallet.firstName || ""} ${userWallet.lastName || ""}`.trim();
-  //       const walletPhone = normalizePhone(userWallet.phoneNumber);
-
-  //       if (walletName !== marketName) {
-  //         needsUpdate = true;
-  //         updates.wallet = true;
-  //       }
-  //     }
-
-  //     // Check chat
-  //     if (userChat?.id) {
-  //       const chatName = userChat?.name || "";
-  //       const chatPhone = normalizePhone(userChat?.mobile_phone);
-
-  //       if (chatName !== marketName || chatPhone !== marketPhone) {
-  //         needsUpdate = true;
-  //         updates.chat = true;
-  //       }
-  //     }
-
-  //     // Check stories
-  //     if (userStories?.id) {
-  //       const storiesName = userStories?.name || "";
-  //       const storiesPhone = normalizePhone(userStories?.mobile_phone);
-
-  //       if (storiesName !== marketName || storiesPhone !== marketPhone) {
-  //         needsUpdate = true;
-  //         updates.stories = true;
-  //       }
-  //     }
-
-  //     // Update if needed
-  //     if (needsUpdate) {
-  //       const { loginSuccessChat, loginSuccessStories, loginSuccessWallet } =
-  //         useAppStore.getState();
-
-  //       // Update local state first for instant UI feedback
-  //       if (updates.chat) {
-  //         loginSuccessChat({
-  //           name: marketName,
-  //           mobile_phone: userProfile?.phone,
-  //         });
-  //       }
-  //       if (updates.stories) {
-  //         loginSuccessStories({
-  //           name: marketName,
-  //           mobile_phone: userProfile?.phone,
-  //         });
-  //       }
-  //       if (updates.wallet) {
-  //         const nameParts = marketName?.split(" ") || [];
-  //         loginSuccessWallet({
-  //           firstName: nameParts[0] || "",
-  //           lastName: nameParts.slice(1).join(" ") || "",
-  //           phoneNumber: userProfile?.phone,
-  //         });
-  //       }
-
-  //       // Update server-side cookies
-  //       const cookieUpdates: Array<{ name: string; value: any }> = [];
-  //       if (updates.chat) {
-  //         cookieUpdates.push({
-  //           name: COOKIE_NAMES.USER_CHAT,
-  //           value: { name: marketName, mobile_phone: userProfile?.phone },
-  //         });
-  //       }
-  //       if (updates.stories) {
-  //         cookieUpdates.push({
-  //           name: COOKIE_NAMES.USER_STORIES,
-  //           value: { name: marketName, mobile_phone: userProfile?.phone },
-  //         });
-  //       }
-  //       if (updates.wallet) {
-  //         const nameParts = marketName?.split(" ") || [];
-  //         cookieUpdates.push({
-  //           name: COOKIE_NAMES.WALLET_USER,
-  //           value: {
-  //             firstName: nameParts[0] || "",
-  //             lastName: nameParts.slice(1).join(" ") || "",
-  //             phoneNumber: userProfile?.phone,
-  //           },
-  //         });
-  //       }
-  //       if (cookieUpdates.length > 0) {
-  //         updateSecureUserData(cookieUpdates);
-  //       }
-
-  //       // Update all services via UpdateProfile
-  //       try {
-  //         await this.UpdateProfile(
-  //           {
-  //             name: marketName,
-  //             image: userProfile?.image,
-  //           },
-  //           {
-  //             name: marketName,
-  //             image: userProfile?.image,
-  //           },
-  //         );
-  //       } catch (error) {
-  //         LogServerError({
-  //           error: error,
-  //           scenario: "Error In CheckUserName UpdateProfile",
-  //         });
-  //       }
-  //     }
-  //   } catch (error) {
-  //     LogServerError({
-  //       error: error,
-  //       scenario: "Error In CheckUserName in services/auth",
-  //     });
-  //   }
-  // }
 }
 export default new AuthService();

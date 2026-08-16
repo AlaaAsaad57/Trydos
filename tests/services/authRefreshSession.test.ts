@@ -4,41 +4,28 @@ import { makeStoreMock } from "tests/mocks/store";
 // services/auth pulls in the whole client stack (analytics, other services,
 // server actions). None of it is exercised by RefreshSession, so it is all
 // stubbed out — this file covers the refresh dedup only.
+// The stand-in bodies come from tests/mocks/authGraph.ts, shared with the other
+// three auth suites. They used to be written out again here, and the two lists
+// drifted apart every time services/auth.ts gained an import.
 vi.mock("store", () => makeStoreMock({ LoggingOut: false }));
-vi.mock("@/store/notifications/reducer", () => ({
-  showErrorNotification: vi.fn(),
-}));
-vi.mock("store/notifications/reducer", () => ({
-  showErrorNotification: vi.fn(),
-}));
-vi.mock("utils/posthog", () => ({ posthogIdentify: vi.fn() }));
-vi.mock("utils/functions", () => ({
-  _isStoreLastJson: vi.fn(),
-  LogError: vi.fn(),
-  translateFunction: vi.fn((k: string) => k),
-}));
-vi.mock("serverActions/sendOtp", () => ({ sendOtpAction: vi.fn() }));
-vi.mock("utils/otpLocks", () => ({
-  lockNumber: vi.fn(),
-  recordSessionNumber: vi.fn(),
-}));
-vi.mock("services/story", () => ({ default: {} }));
-vi.mock("services/home", () => ({ default: {} }));
-vi.mock("./home", () => ({ default: {} }));
-vi.mock("utils/gtag", () => ({ GAevent: vi.fn(), SetGAUser: vi.fn() }));
-vi.mock("utils/orderFunnel", () => ({
-  ORDER_EVENTS: {},
-  resolveVerifyFlowSource: vi.fn(),
-  trackOrder: vi.fn(),
-}));
-vi.mock("utils/fetchData", () => ({ fetchData: vi.fn() }));
-vi.mock("utils/authMe", () => ({ fetchAuthMe: vi.fn() }));
-vi.mock("utils/GAEvents", () => ({ GA_EVENT_NAMES: {} }));
-vi.mock("utils/Requests", () => ({ REQUESTS_DATA: {} }));
-vi.mock("utils/serverErrorReporter", () => ({ LogServerError: vi.fn() }));
-vi.mock("services/wallet", () => ({ checkWallet: vi.fn() }));
-vi.mock("./wallet", () => ({ checkWallet: vi.fn() }));
-vi.mock("utils/UploadUtils", () => ({ GetTicket: vi.fn() }));
+vi.mock("@/store/notifications/reducer", async () => (await import("tests/mocks/authGraph")).makeNotificationsMock());
+vi.mock("store/notifications/reducer", async () => (await import("tests/mocks/authGraph")).makeNotificationsMock());
+vi.mock("utils/posthog", async () => (await import("tests/mocks/authGraph")).makePosthogMock());
+vi.mock("utils/functions", async () => (await import("tests/mocks/authGraph")).makeFunctionsMock());
+vi.mock("serverActions/sendOtp", async () => (await import("tests/mocks/authGraph")).makeSendOtpMock());
+vi.mock("utils/otpLocks", async () => (await import("tests/mocks/authGraph")).makeOtpLocksMock());
+vi.mock("services/story", async () => (await import("tests/mocks/authGraph")).makeStoryServiceMock());
+vi.mock("services/home", async () => (await import("tests/mocks/authGraph")).makeHomeServiceMock());
+vi.mock("utils/gtag", async () => (await import("tests/mocks/authGraph")).makeGtagMock());
+vi.mock("utils/orderFunnel", async () => (await import("tests/mocks/authGraph")).makeOrderFunnelMock());
+vi.mock("utils/fetchData", async () => (await import("tests/mocks/authGraph")).makeFetchDataMock());
+vi.mock("utils/authMe", async () => (await import("tests/mocks/authGraph")).makeAuthMeMock());
+vi.mock("utils/GAEvents", async () => (await import("tests/mocks/authGraph")).makeGaEventNamesMock());
+vi.mock("utils/Requests", async () => (await import("tests/mocks/authGraph")).makeRequestsMock());
+vi.mock("utils/serverErrorReporter", async () => (await import("tests/mocks/authGraph")).makeErrorReporterMock());
+vi.mock("utils/cookies/cookie-manager", async () => (await import("tests/mocks/authGraph")).makeCookieNamesMock());
+vi.mock("services/wallet", async () => (await import("tests/mocks/authGraph")).makeWalletMock());
+vi.mock("utils/UploadUtils", async () => (await import("tests/mocks/authGraph")).makeUploadUtilsMock());
 
 async function loadAuth(state: Record<string, any> = {}) {
   vi.resetModules();

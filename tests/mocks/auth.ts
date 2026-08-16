@@ -1,7 +1,3 @@
-let _refreshPromise: Promise<{
-  refreshed: boolean;
-  eligible: boolean;
-}> | null = null;
 export function makeMockAuthModule(){
     return {
         default:{

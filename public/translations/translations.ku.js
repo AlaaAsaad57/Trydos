@@ -2312,6 +2312,8 @@ const translations = {
   "New message": "پەیامی نوێ",
   "Loading": "بارکردن",
   "Failed to update profile Info": "نوێکردنەوەی زانیاری پرۆفایل سەرکەوتوو نەبوو",
+  "Failed to update name": "نوێکردنەوەی ناو سەرکەوتوو نەبوو",
+  "Failed to send verification code": "ناردنی کۆدی پشتڕاستکردنەوە سەرکەوتوو نەبوو",
   "Failed to Initialize Call": "دەستپێکردنی پەیوەندی سەرکەوتوو نەبوو",
   "Contacts API not supported on this browser": "API ی پەیوەندییەکان لەم وێبگەڕەدا پشتگیری ناکرێت",
   "Add Contact Manually": "پەیوەندی بە دەستی زیاد بکە",

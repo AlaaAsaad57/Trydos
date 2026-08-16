@@ -52,7 +52,7 @@ export default function InlineVerifyPanel({
     } = usePhoneVerifyFlow({
         initialPhone,
         phoneLocked,
-        verify: (code, verificationId) => AuthService.VerifyOtp(code, verificationId, '', () => {}),
+        verify: (code, verificationId) => AuthService.VerifyOtp(code, verificationId),
         onSuccess,
         lang,
         // No `blockedMessage`: this panel renders its own live cooldown/cap
