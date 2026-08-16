@@ -2,11 +2,26 @@
 
 import { fileURLToPath } from 'node:url'
 
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
-export default defineConfig({
+// Two suites live here, and they must never run together.
+//
+//   unit — everything under tests/, isolated. No network, no Redis, no real
+//          cookies. This is what `pnpm test:run` runs and what CI gates on, so
+//          a red run always means the code broke.
+//   live — tests/live/, against the real staging backend. Run on demand with
+//          `pnpm test:live`. It is red when staging is down, which is useful
+//          information about the backend and useless information about a pull
+//          request — so it is a separate project, never part of test:run.
+//
+// The folder is empty today. The split is here from the start so adding the
+// first live test is a new file and nothing else. See tests/live/README.md.
+
+// Shared by both projects. A project is a full Vite config, so plugins and
+// aliases do not fall through from the root — they are spread into each one.
+const viteSetup = {
   plugins: [tsconfigPaths(), react()],
   resolve: {
     alias: {
@@ -21,46 +36,87 @@ export default defineConfig({
       ),
     },
   },
+}
+
+// The settings a test run needs, written here rather than read from
+// .env.development. Two reasons: the runner does not load Next's env files, and
+// pointing tests at the real addresses in them is how a test ends up talking to
+// something real.
+//
+// Every value is obviously fake. The media address is example.com because that
+// domain is reserved for exactly this and is already allowed in next.config.ts,
+// so next/image accepts it and jsdom never asks for the picture. Without a media
+// address, next/image is handed "undefined/…" and throws before the component
+// can render.
+//
+// The live project does not get these — it reads the real, untracked
+// .env.development instead, and skips when those values are missing.
+const isolatedEnv = {
+  NEXT_PUBLIC_BASE_MEDIA_URL: 'https://example.com',
+  NEXT_PUBLIC_BASE_VIDEO_MEDIA_URL: 'https://example.com',
+  NEXT_PUBLIC_MEDIA_SERVER_BASE_URL: 'https://example.com',
+  NEXT_PUBLIC_CHAT_BACKEND_URL: 'https://example.com',
+  NEXT_PUBLIC_DEFAULT_COUNTRY: 'gb',
+  NEXT_PUBLIC_DEFAULT_LANGUAGE: 'en',
+  NEXT_PUBLIC_APP_VERSION: '0.0.0-test',
+  NEXT_PUBLIC_MAX_ARRAY_LENGTH: '50',
+  // Left empty on purpose: the analytics and maps keys are the ones that would
+  // reach a real service if anything ever used them.
+  NEXT_PUBLIC_GA_MEASUREMENT_ID: '',
+  NEXT_PUBLIC_POSTHOG_KEY: '',
+  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: '',
+  NEXT_PUBLIC_MEDIA_API_KEY: '',
+  NEXT_PUBLIC_ALLOW_INDEXING: 'false',
+  NEXT_PUBLIC_ANALYTICS_LOG: 'false',
+}
+
+export default defineConfig({
   test: {
-    globals:true,
-    environment: 'jsdom',
-    // Runs once per test file, before its tests: the extra page checks, the
-    // clean-up between renders, and the fake network. See tests/setup.ts.
-    setupFiles: ['./tests/setup.ts'],
-    // The settings a test run needs, written here rather than read from
-    // .env.development. Two reasons: the runner does not load Next's env files,
-    // and pointing tests at the real addresses in them is how a test ends up
-    // talking to something real.
-    //
-    // Every value is obviously fake. The media address is example.com because
-    // that domain is reserved for exactly this and is already allowed in
-    // next.config.ts, so next/image accepts it and jsdom never asks for the
-    // picture. Without a media address, next/image is handed "undefined/…" and
-    // throws before the component can render.
-    env: {
-      NEXT_PUBLIC_BASE_MEDIA_URL: 'https://example.com',
-      NEXT_PUBLIC_BASE_VIDEO_MEDIA_URL: 'https://example.com',
-      NEXT_PUBLIC_MEDIA_SERVER_BASE_URL: 'https://example.com',
-      NEXT_PUBLIC_CHAT_BACKEND_URL: 'https://example.com',
-      NEXT_PUBLIC_DEFAULT_COUNTRY: 'gb',
-      NEXT_PUBLIC_DEFAULT_LANGUAGE: 'en',
-      NEXT_PUBLIC_APP_VERSION: '0.0.0-test',
-      NEXT_PUBLIC_MAX_ARRAY_LENGTH: '50',
-      // Left empty on purpose: the analytics and maps keys are the ones that
-      // would reach a real service if anything ever used them.
-      NEXT_PUBLIC_GA_MEASUREMENT_ID: '',
-      NEXT_PUBLIC_POSTHOG_KEY: '',
-      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: '',
-      NEXT_PUBLIC_MEDIA_API_KEY: '',
-      NEXT_PUBLIC_ALLOW_INDEXING: 'false',
-      NEXT_PUBLIC_ANALYTICS_LOG: 'false',
-    },
+    projects: [
+      {
+        ...viteSetup,
+        test: {
+          name: 'unit',
+          globals: true,
+          environment: 'jsdom',
+          // Runs once per test file, before its tests: the extra page checks,
+          // the clean-up between renders, and the fake network. See
+          // tests/setup.ts.
+          setupFiles: ['./tests/setup.ts'],
+          // Left on the default pattern so a *.test.ts anywhere is picked up —
+          // that is how utils/functions.test.tsx, the one colocated leftover,
+          // still runs. Only the live folder is taken out, and the defaults are
+          // spread back in so node_modules stays excluded.
+          exclude: [...configDefaults.exclude, 'tests/live/**'],
+          env: isolatedEnv,
+        },
+      },
+      {
+        ...viteSetup,
+        test: {
+          name: 'live',
+          globals: true,
+          // No jsdom: these call a real backend from Node, not from a page.
+          environment: 'node',
+          // Deliberately NOT tests/setup.ts. That file starts msw with
+          // onUnhandledRequest: "error", which would block every real request
+          // this project exists to make.
+          include: ['tests/live/**/*.live.test.ts'],
+          // The folder is empty until the live ticket is picked up, and an empty
+          // project is not a failure. "no test files found" is decided by the
+          // runner before a project's own settings are read, so this has to be
+          // the --passWithNoTests flag on the test:live script — setting
+          // passWithNoTests here does nothing, and setting it at the root would
+          // also let the unit suite pass while running nothing at all.
+        },
+      },
+    ],
     coverage: {
       provider: 'v8',
       // The console prints the headline numbers only. Per-file detail lives in
       // coverage/index.html, where you can walk the folders and see what still
       // has no tests — the full list is far too long to read in a terminal.
-      // There is no CI, so no machine-readable format is produced.
+      // There is no coverage upload, so no machine-readable format is produced.
       reporter: ['text-summary', 'html'],
       // Every source file the app itself ships, tested or not, so the report
       // doubles as the list of what is still to do. A file with no test shows
