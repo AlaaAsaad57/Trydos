@@ -6,6 +6,11 @@ no script change, no argument about whether it belongs in the main suite.
 
 Nothing here has been written yet. Picking this up is its own ticket.
 
+**The plan now exists: `docs/testing/LIVE_TEST_ROADMAP.md`** — 27 phases, one
+ticket each. Everything below still holds; the roadmap says in which order it
+gets done, and adds the harness, the shared contracts and the write-safety rules
+that the phases share.
+
 ---
 
 ## What these are for
@@ -28,9 +33,15 @@ pnpm test:live      # this folder only
 pnpm test:run       # the isolated suite only — never includes this folder
 ```
 
-`pnpm test:live` is **not** part of `pnpm test:run` and is **not** part of CI.
-If it were, every future test phase would depend on staging being up, and a red
-suite would stop meaning "the code broke".
+`pnpm test:live` is **not** part of `pnpm test:run` and **never runs on a pull
+request**. If it did, every future test phase would depend on staging being up,
+and a red pull-request check would stop meaning "the code broke".
+
+It does run in CI, twice: on **push** to `develop` and `main` (after the merge,
+so nothing is blocked) and **nightly**. Both report to Telegram. Only one live
+run may touch staging at a time, and a live run is never cancelled mid-flight —
+it would leave the rows it created behind. See
+`docs/testing/LIVE_TEST_ROADMAP.md`, phase 4.
 
 ## The rules a live test follows
 
