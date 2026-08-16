@@ -5,7 +5,7 @@ import {
   buildProxyHeaders,
   logSecureRequest,
   getTokenForServer,
-  isFromGoApi,
+  isGatewayApi,
 } from "utils/server/tokenManager";
 import { SEND_OTP } from "utils/endpointConfig";
 import { fromServiceToken } from "utils/serviceTokens";

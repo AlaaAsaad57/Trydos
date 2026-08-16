@@ -73,7 +73,7 @@ export const HandleAuthedFetch = async <T = any>(
   // 401 as-is; the post-logout reload registers a fresh guest normally.
   const loggingOut = cookieStore?.get(CANONICAL_COOKIE_NAMES.LOGOUT_GUARD)?.value;
 
-  // 2. If 401 Unauthorized, try refresh-first recovery (Go/Laravel contracts)
+  // 2. If 401 Unauthorized, try refresh-first recovery (both backends' contracts)
   if (response.status === 401 && !loggingOut) {
     try {
       // Cookie-writability probe BEFORE consuming anything single-use: re-set
@@ -104,9 +104,9 @@ export const HandleAuthedFetch = async <T = any>(
 
       // Refresh applies to EVERY market 401, whichever backend served it: the
       // exchange itself is routed by user type inside refreshMarketSession
-      // (verified → Laravel, guest → Go). Notably this covers Laravel-served
-      // calls made with a guest's Go-issued token (e.g. send_otp), which the
-      // previous Go-only gate left as a hard 401.
+      // (verified → core backend, guest → gateway). Notably this covers
+      // core-served calls made with a guest's gateway-issued token (e.g.
+      // send_otp), which the previous gateway-only gate left as a hard 401.
       const hasRefreshToken = Boolean(
         cookieStore.get(COOKIE_NAMES.MARKET_REFRESH_TOKEN)?.value,
       );
@@ -138,7 +138,7 @@ export const HandleAuthedFetch = async <T = any>(
       // No refresh cookie at all (pre-rollout session / cleared cookies):
       // bodyless register-guest per the contract — no old_guest_user_id, no
       // "user does not exist" retry ladder (the re-issue-by-id path is gone).
-      // Guest creation is Go's job, so this stays pinned to GO_BACKEND_URL.
+      // Guest creation is the gateway's job, so this stays pinned to its base.
       const regResponse = await fetchServerData({
         url: process.env.GO_BACKEND_URL + REGISTER_DEVICE_URL,
         method: "POST",

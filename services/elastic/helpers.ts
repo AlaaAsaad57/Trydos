@@ -563,9 +563,18 @@ export function calculateDiscountedPrice(
   return Math.max(0, originalPrice - discount);
 }
 
+// `extra_price` stays null when the record carries none. It used to be filled
+// in with 0, which reads as "there is no extra charge for this country" — and
+// resolveUnitPriceForCountry treats 0 as an answer, so the branch that works the
+// charge out from the country's offer price could never run. Absent and zero are
+// different facts and are kept apart here.
 function normalizeCountryOfferPrices(
   value: any,
-): Array<{ country_iso: string; offer_price: number; extra_price: number }> {
+): Array<{
+  country_iso: string;
+  offer_price: number;
+  extra_price: number | null;
+}> {
   if (value === null || value === undefined || value === "") return [];
 
   let parsed = value;
@@ -581,7 +590,7 @@ function normalizeCountryOfferPrices(
 
   const normalized: Record<
     string,
-    { country_iso: string; offer_price: number; extra_price: number }
+    { country_iso: string; offer_price: number; extra_price: number | null }
   > = {};
   for (const item of parsed) {
     if (!item || typeof item !== "object") continue;
@@ -602,7 +611,7 @@ function normalizeCountryOfferPrices(
       extra_price:
         item.extra_price != null && !isNaN(Number(item.extra_price))
           ? Number(item.extra_price)
-          : 0,
+          : null,
     };
   }
 

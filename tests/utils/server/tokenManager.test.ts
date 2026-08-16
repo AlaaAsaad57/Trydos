@@ -243,31 +243,31 @@ describe("backend routing (AC-18)", () => {
   });
 
   it("recognises an allow-listed address", async () => {
-    const { isFromGoApi } = await import("utils/server/tokenManager");
-    expect(isFromGoApi("/customer/info")).toBe(true);
-    expect(isFromGoApi("/web/home/startingSettings")).toBe(true);
+    const { isGatewayApi } = await import("utils/server/tokenManager");
+    expect(isGatewayApi("/customer/info")).toBe(true);
+    expect(isGatewayApi("/web/home/startingSettings")).toBe(true);
   });
 
   it("ignores a query string when matching the allow-list", async () => {
-    const { isFromGoApi } = await import("utils/server/tokenManager");
-    expect(isFromGoApi("/customer/info?expand=addresses")).toBe(true);
+    const { isGatewayApi } = await import("utils/server/tokenManager");
+    expect(isGatewayApi("/customer/info?expand=addresses")).toBe(true);
   });
 
   it("matches an address that ends in a changing segment", async () => {
-    const { isFromGoApi } = await import("utils/server/tokenManager");
-    expect(isFromGoApi("/web/product/globalDetails/some-product-slug")).toBe(
+    const { isGatewayApi } = await import("utils/server/tokenManager");
+    expect(isGatewayApi("/web/product/globalDetails/some-product-slug")).toBe(
       true,
     );
   });
 
   it("does not match a sibling that merely starts the same way", async () => {
-    const { isFromGoApi } = await import("utils/server/tokenManager");
-    expect(isFromGoApi("/web/product/globalDetailsSomethingElse")).toBe(false);
+    const { isGatewayApi } = await import("utils/server/tokenManager");
+    expect(isGatewayApi("/web/product/globalDetailsSomethingElse")).toBe(false);
   });
 
   it("leaves an address that is not allow-listed to the core backend", async () => {
-    const { isFromGoApi } = await import("utils/server/tokenManager");
-    expect(isFromGoApi("/orders/place")).toBe(false);
+    const { isGatewayApi } = await import("utils/server/tokenManager");
+    expect(isGatewayApi("/orders/place")).toBe(false);
   });
 });
 
@@ -430,10 +430,10 @@ describe("which backend each service talks to", () => {
   });
 
   it("treats the checklist address as gateway work", async () => {
-    const { isFromGoApi } = await import("utils/server/tokenManager");
+    const { isGatewayApi } = await import("utils/server/tokenManager");
 
-    expect(isFromGoApi("/checklist")).toBe(true);
-    expect(isFromGoApi("/checklist/items?page=2")).toBe(true);
+    expect(isGatewayApi("/checklist")).toBe(true);
+    expect(isGatewayApi("/checklist/items?page=2")).toBe(true);
   });
 });
 

@@ -107,7 +107,7 @@ files, and is the one genuine two-line rename.
 
 **`compare.tsx` also fixes a routing defect.** It uses
 `/web/product/globalDetails` and `/web/product/qtyPriceDetails`
-(`compare.tsx:157-158`) — both Go-gateway paths per `GO_API_PREFIXES`
+(`compare.tsx:157-158`) — both Go-gateway paths per `GATEWAY_API_PREFIXES`
 (`utils/server/tokenManager.ts:104-108`) — but currently sends them to the
 Laravel host. They should be served by Go. Routing through `fetchData` corrects
 this, so the change is a **behavioural fix, not a neutral refactor**, and needs
@@ -165,7 +165,7 @@ Sites that carried it:
 **Still unverified:** whether the `Cache-Control: no-store` addition to the
 proxy's binary response path was included in that work.
 
-**Why.** `isFromGoApi(targetUrl)` (`utils/server/tokenManager.ts:110-114`) returns
+**Why.** `isGatewayApi(targetUrl)` (`utils/server/tokenManager.ts:110-114`) returns
 whether an endpoint is served by the Go gateway or the Laravel backend, and we
 return that answer to the caller. Replaying the proxy across our endpoint list
 yields a complete Go-vs-Laravel topology map for free — precisely the internal

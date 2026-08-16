@@ -6,14 +6,19 @@
 // the app. That reach is the reason these are worth pinning, not their size.
 //
 // Picked by how often each one is actually called, biggest first. The ones left
-// out either talk to the network (fetchCountries, getCurrency), ask the browser
-// for a permission (requestPermissions), or render (FlagIcon) — those belong
-// with the tests that stand the network up, not here.
+// out either ask the browser for a permission (requestPermissions) or render
+// (FlagIcon) — those belong with the tests that stand a browser or a network up,
+// not here. (`fetchCountries` was left out because nothing in the app called it;
+// it has since been deleted.)
 //
-// Four tests are marked RECORDED FINDING. They pin what the code does today,
-// which is not what it looks like it means to do. They are written that way on
-// purpose: changing the behaviour is a separate decision, and until someone
-// makes it, the test is the record.
+// `getCurrency` is here even though it makes a request, because the request
+// itself is stood in and what is being pinned is the shape it reads back: which
+// of two reply shapes holds the exchange rate every price on the site is
+// converted with.
+//
+// Several tests below say what the code used to do before it was fixed. That
+// sentence is the point of them: it turns a regression into the same failure
+// message somebody has already read once.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -27,12 +32,38 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // Do not import "utils/functions" into this file. Importing it before
 // "utils/tinyUtils" resolves the module under a second name and the stand-in
 // stops reaching the code under test, with no error to say so.
+//
+// The error reporter is stood in beside it. The real one reads the store and
+// the cookies and hands the fault to the reporting service, none of which a
+// test wants; the currency tests below assert on whether it was reached.
+//
+// Its spy is built with `vi.hoisted` rather than imported back, for the reason
+// in the paragraph above: importing "utils/functions" here is what breaks the
+// stand-in. `vi.hoisted` hands the same function to the factory and to the
+// tests without anyone importing the module.
+const logErrorSpy = vi.hoisted(() => vi.fn());
+
 vi.mock("utils/functions", async (importOriginal) => {
   const actual = await importOriginal<Record<string, any>>();
-  return { ...actual, translateFunction: vi.fn((key: string) => `[${key}]`) };
+  return {
+    ...actual,
+    translateFunction: vi.fn((key: string) => `[${key}]`),
+    LogError: logErrorSpy,
+  };
 });
 
+// The request helper is stood in whole, so nothing here reaches a network. See
+// tests/mocks/fetchData.ts. The stand-in has to be pulled in inside the factory:
+// vi.mock is lifted above the imports, so a name imported below is not ready yet
+// when this runs.
+vi.mock("utils/fetchData", async () => {
+  const { makeFetchDataMock } = await import("../mocks/fetchData");
+  return makeFetchDataMock();
+});
+
+import { fetchData } from "utils/fetchData";
 import { GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import { REQUESTS_DATA } from "utils/Requests";
 import {
   buildParamsFromFilters,
   DetectScreen,
@@ -41,6 +72,7 @@ import {
   findVariation,
   formatTime,
   formatTimeForAddress,
+  getCurrency,
   GetAddressString,
   GetImageUrl,
   getFirstLetterLang,
@@ -538,6 +570,111 @@ describe("writing a time a shopper can read (formatTime)", () => {
     expect(formatTime("2026-08-16T09:30:00")).toContain(
       `${pad(readAsUniversal.getHours())}:${pad(readAsUniversal.getMinutes())}`,
     );
+  });
+});
+
+describe("reading the currency back (getCurrency)", () => {
+  // Everything a shopper sees a price in comes from this one object: the symbol
+  // in front of the number and the rate the number was converted with. It is
+  // read out of a reply that has had two different shapes over time, and the
+  // wrong branch does not fail — it hands back an object with no rate, and every
+  // price on the page quietly becomes the unconverted one.
+  const CURRENCY = { code: "USD", symbol: "$", exchange_rate: 1.25 };
+
+  afterEach(() => {
+    logErrorSpy.mockClear();
+    vi.mocked(fetchData).mockClear();
+  });
+
+  it("asks the market backend for the currency, by name", () => {
+    vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
+      data: { currency: CURRENCY },
+    } as any);
+
+    return getCurrency({ callback: () => {} }).then(() => {
+      expect(fetchData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: "/mobile/home/currency",
+          method: "GET",
+          server: "market",
+          reqTitle: REQUESTS_DATA.CURRENCY_REQUEST,
+        }),
+      );
+    });
+  });
+
+  it("unwraps the currency from inside the reply", async () => {
+    // The current address nests the fields under data.currency.
+    vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
+      data: { currency: CURRENCY },
+    } as any);
+
+    const callback = vi.fn();
+    await expect(getCurrency({ callback })).resolves.toEqual(CURRENCY);
+    expect(callback).toHaveBeenCalledWith({ currency: CURRENCY, res: {} });
+  });
+
+  it("still reads the older flat reply, where the fields sit at the top", async () => {
+    // The legacy address returned them flat. Reading the nested branch on this
+    // shape would hand back nothing, and no rate means every price is shown
+    // unconverted.
+    vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
+      data: CURRENCY,
+    } as any);
+
+    await expect(getCurrency({ callback: vi.fn() })).resolves.toEqual(CURRENCY);
+  });
+
+  it("falls back to the flat shape when the nested one is empty", async () => {
+    vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
+      data: { currency: null, ...CURRENCY },
+    } as any);
+
+    await expect(getCurrency({ callback: vi.fn() })).resolves.toMatchObject({
+      exchange_rate: 1.25,
+    });
+  });
+
+  it("hands back nothing, and reports, when the backend refuses", async () => {
+    vi.mocked(fetchData).mockResolvedValueOnce({
+      success: false,
+      message: "no currency for you",
+    } as any);
+
+    const callback = vi.fn();
+    await expect(getCurrency({ callback })).resolves.toBeNull();
+    // The caller is still told, with nothing, so a screen waiting on it stops
+    // waiting rather than hanging.
+    expect(callback).toHaveBeenCalledWith({ currency: null, res: {} });
+    expect(logErrorSpy).toHaveBeenCalled();
+  });
+
+  it("does not throw when the request itself fails", async () => {
+    // This runs while a product page is loading. A raised error here would take
+    // the page down over a currency lookup.
+    vi.mocked(fetchData).mockRejectedValueOnce(new Error("network is gone"));
+
+    const callback = vi.fn();
+    await expect(getCurrency({ callback })).resolves.toBeNull();
+    expect(callback).toHaveBeenCalledWith({ currency: null, res: {} });
+  });
+
+  it("treats a reply that succeeded but carried no currency as a failure", () => {
+    // A success with no body used to fall through: nothing was reported and the
+    // caller was handed undefined, where every other failure path reports and
+    // hands back null. Both paths out of this function agree now.
+    vi.mocked(fetchData).mockResolvedValueOnce({ success: true } as any);
+
+    const callback = vi.fn();
+    return getCurrency({ callback }).then((currency) => {
+      expect(currency).toBeNull();
+      expect(callback).toHaveBeenCalledWith({ currency: null, res: {} });
+      expect(logErrorSpy).toHaveBeenCalled();
+    });
   });
 });
 

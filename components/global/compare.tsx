@@ -162,7 +162,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
       //
       // Routed through fetchData (server: "market") rather than calling the
       // backend host directly: both paths are Go-gateway endpoints, so
-      // isFromGoApi resolves them to the Go backend, and no backend hostname
+      // isGatewayApi resolves them to the gateway, and no backend hostname
       // reaches the client bundle. Only globalDetails is cached — qtyPriceDetails
       // carries live price and stock, and the request cache has no TTL.
       const language = lang.toString().split("-")[1];

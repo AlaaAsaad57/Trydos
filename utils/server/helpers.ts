@@ -9,22 +9,21 @@ export const getConfiguredImage = ({
   q = "auto:good",
 }) => {
   if(!src) return "";
-  if (typeof src === "string") {
-    return src.replace(
-      "/upload",
-      `/upload/h_${height}${width ? `,w_${width}` : ""},${
-        c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_${q}/fl_lossy/so_0`,
-    );
+  // One rule for both shapes. The two branches used to cut the address at
+  // different points — "/upload" for text and "/upload/" for an upload record —
+  // so a record came back with the version glued to the end of the settings
+  // ("…/so_0v1/a.jpg") while the same picture as text came back correct.
+  const path = typeof src === "string" ? src : src?.file_path;
+  if (typeof path !== "string") return src?.file_path || src || "";
+  if (typeof src !== "string" && !path.includes("media_server")) {
+    return path || src || "";
   }
-  if (src?.file_path.includes("media_server")) {
-    return src.file_path.replace(
-      "/upload/",
-      `/upload/h_${height}${width ? `,w_${width}` : ""},${
-        c_pad ? "w_800,c_pad" : "c_pad,b_auto"
-      }/f_auto/q_${q}/fl_lossy/so_0`,
-    );
-  } else return src?.file_path || src || "";
+  return path.replace(
+    "/upload",
+    `/upload/h_${height}${width ? `,w_${width}` : ""},${
+      c_pad ? "w_800,c_pad" : "c_pad,b_auto"
+    }/f_auto/q_${q}/fl_lossy/so_0`,
+  );
 };
 
 export const GetImageUrl = (url) => {
@@ -33,18 +32,27 @@ export const GetImageUrl = (url) => {
   if (url?.file_path) {
     if (url?.file_path?.includes("media_server")) {
       return url?.file_path;
-    } else {
-      return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url?.file_path;
     }
+    // The same joining rule as the text route below. This branch used to
+    // concatenate the media address and the path with nothing between them, so a
+    // path with no leading slash produced
+    // "https://media.example.comcustomers/a.jpg" — a picture that cannot load.
+    return (
+      process.env.NEXT_PUBLIC_BASE_MEDIA_URL +
+      (url.file_path.startsWith("/") ? url.file_path : "/" + url.file_path)
+    );
   }
-  if (!url || typeof url !== "string") return url;
-  if (url && url?.includes("http")) return url;
-  // Go returns a bare sub_path (e.g. "customers/profile/x.jpg") with no leading
-  // slash, whereas legacy Laravel returned a full URL / leading-slash path.
-  // Ensure exactly one slash between the media base and a relative path so both
-  // forms resolve correctly.
+
+  const path = url;
+  if (typeof path !== "string") return url;
+  if (path.includes("http")) return path;
+  // The gateway returns a bare sub_path (e.g. "customers/profile/x.jpg") with no
+  // leading slash, whereas the core backend returned a full URL / leading-slash
+  // path. Ensure exactly one slash between the media base and a relative path so
+  // both forms resolve correctly.
   return (
-    process.env.NEXT_PUBLIC_BASE_MEDIA_URL + (url.startsWith("/") ? url : "/" + url)
+    process.env.NEXT_PUBLIC_BASE_MEDIA_URL +
+    (path.startsWith("/") ? path : "/" + path)
   );
 };
 
@@ -124,7 +132,12 @@ export const RoundPrice = ({
 
   // Currency conversion at the start
   let rateVariable = rate ?? 1;
-  let deciaml_points = points;
+  // Callers pass `points: currency?.decimal_digits`, which is undefined until
+  // the currency request lands. `10 ** undefined` is NaN, so the whole price
+  // collapsed and the shopper was shown "NaNM" while the page was still
+  // loading. Zero is the same fallback the client-side sibling in
+  // utils/functions.tsx uses.
+  let deciaml_points = Number(points) || 0;
   price_num = Number(toFixedUp(deciaml_points, price_num));
   let number = preciseMultiply(price_num, rateVariable);
 
@@ -165,14 +178,18 @@ export const getVideoUrl = (
   if(!input) return "";
   // Build transformation string
   let transformations = [];
-  
+
   const transformStr = transformations.join(",");
+  // Nothing is ever put in the list above, so an empty settings block used to be
+  // inserted anyway and an already-hosted video came back with a doubled slash
+  // ("/video/upload//v123/a.mp4"). Insert the block only when there is one.
+  const transformSegment = transformStr ? `${transformStr}/` : "";
 
 
   if (input.startsWith("http") && input?.includes("/video/upload/")) {
     return input.replace(
       /\/video\/upload\/(v\d+)?/,
-      `/video/upload/${transformStr}/$1`,
+      `/video/upload/${transformSegment}$1`,
     );
   }
 
@@ -188,7 +205,9 @@ export const getVideoUrl = (
   }
 
 
-  return `${mediaBase}/${folder}/${filename}?${options.end ? "target=preview" : ""}`;
+  // `options` is optional in the signature, so it has to be read as optional —
+  // reading it straight threw for a caller that left it out.
+  return `${mediaBase}/${folder}/${filename}?${options?.end ? "target=preview" : ""}`;
 };
 
 export const getUrlofProduct = (
