@@ -305,8 +305,6 @@ export default function FullEnhancedLoginWidget() {
             const [alreadyExists, userName] = await AuthService.VerifyOtp(
                 inputPin,
                 verficationID,
-                '',
-                () => {},
             );
             setUser({ name: userName, already_exists: alreadyExists });
             setIsValidPin('valid');

@@ -2274,6 +2274,8 @@ const translations = {
   "New message": "رسالة جديدة",
   "Loading": "جارٍ التحميل",
   "Failed to update profile Info": "فشل تحديث معلومات الملف الشخصي",
+  "Failed to update name": "فشل تحديث الاسم",
+  "Failed to send verification code": "فشل إرسال رمز التحقق",
   "Failed to Initialize Call": "فشل بدء المكالمة",
   "Contacts API not supported on this browser": "واجهة جهات الاتصال غير مدعومة في هذا المتصفح",
   "Add Contact Manually": "إضافة جهة اتصال يدوياً",

@@ -117,7 +117,7 @@ function ConfirmMobilePhoneWidget() {
                 initialPhone={knownPhone}
                 phoneLocked={Boolean(knownPhone)}
                 verify={(code, verificationId) =>
-                    AuthService.VerifyOtp(code, verificationId, '', () => {})
+                    AuthService.VerifyOtp(code, verificationId)
                 }
                 onSuccess={handleSuccess}
                 onClose={handleDismiss}

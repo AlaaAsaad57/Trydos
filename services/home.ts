@@ -376,7 +376,6 @@ class HomeService {
         });
       loginSuccess({
         ...userData,
-        idToken: localStorage.getItem("ID-TOKEN"),
         name: userData.name,
         image: userData.image,
       });
@@ -393,7 +392,6 @@ class HomeService {
           });
         loginSuccess({
           ...userData,
-          idToken: localStorage.getItem("ID-TOKEN"),
           name: userData.name,
           image: userData.image,
         });
@@ -401,7 +399,6 @@ class HomeService {
         this.RegisterDevice();
       }
     }
-    // auth.CheckUserName();
     return sessionRefreshed;
   }
 

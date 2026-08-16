@@ -90,7 +90,7 @@ function VerifyUser({ phone: serverPhone }) {
             phoneLocked
             // The account already owns this number — a plain login verify.
             verify={(code, verificationId) =>
-              AuthService.VerifyOtp(code, verificationId, "", () => {})
+              AuthService.VerifyOtp(code, verificationId)
             }
             onSuccess={() => setIsModalOpen(false)}
             onClose={() => setIsModalOpen(false)}

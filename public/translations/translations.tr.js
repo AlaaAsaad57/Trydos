@@ -2282,6 +2282,8 @@ const translations = {
   "New message": "Yeni mesaj",
   "Loading": "Yükleniyor",
   "Failed to update profile Info": "Profil bilgileri güncellenemedi",
+  "Failed to update name": "Ad güncellenemedi",
+  "Failed to send verification code": "Doğrulama kodu gönderilemedi",
   "Failed to Initialize Call": "Görüşme başlatılamadı",
   "Contacts API not supported on this browser": "Kişiler API'si bu tarayıcıda desteklenmiyor",
   "Add Contact Manually": "Kişiyi elle ekle",
