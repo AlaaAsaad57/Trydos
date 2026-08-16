@@ -134,6 +134,7 @@ export default function QrLoginScreen({
                 {handleCancel && (
                     <button
                         onClick={handleCancel}
+                        data-pw="close"
                         className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                         aria-label={translate('Close')}
                     >
@@ -210,6 +211,7 @@ export default function QrLoginScreen({
                     {showRetry && (
                         <button
                             onClick={startSession}
+                            data-pw="qr-show-new-code"
                             className="flex flex-col items-center gap-xd-12 px-xd-24 text-center cursor-pointer"
                         >
                             <p className="text-xd-14 font-medium text-[#1D1D1D] leading-[1.4]">

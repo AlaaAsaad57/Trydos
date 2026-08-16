@@ -55,6 +55,7 @@ export default function EnterPhoneScreen({
                 {onClose && (
                     <button
                         onClick={onClose}
+                        data-pw="close"
                         className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                         aria-label={translate('Close')}
                     >

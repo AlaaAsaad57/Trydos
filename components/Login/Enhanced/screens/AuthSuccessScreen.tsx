@@ -45,7 +45,7 @@ export default function AuthSuccessScreen({
     }, [delayMs]);
 
     return (
-        <div className={`w-full h-full flex flex-col items-start font-quicksand ${cls}`} style={{ backgroundColor: bg }}>
+        <div data-pw="welcome" className={`w-full h-full flex flex-col items-start font-quicksand ${cls}`} style={{ backgroundColor: bg }}>
             {/* Top space */}
             <FlexibleSpace size={366} share={0.5} />
 

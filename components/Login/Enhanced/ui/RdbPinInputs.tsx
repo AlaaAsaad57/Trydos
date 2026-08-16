@@ -174,6 +174,7 @@ export default function RdbPinInputs({
                     {pin.map((digit, i) => (
                         <div
                             key={i}
+                            data-pw={`otp-digit-${i + 1}`}
                             className={`relative size-xd-60 flex items-center my-xd-2 justify-center rounded-xd-15 transition-all duration-150 ${getBoxClass(digit, i)}`}
                         >
                             {digit && (
@@ -218,6 +219,7 @@ export default function RdbPinInputs({
                     inputMode="numeric"
                     // Lets the browser/OS offer the code it just saw in an SMS.
                     autoComplete="one-time-code"
+                    data-pw="input-otp-field"
                     className="sr-only"
                     value={value}
                     disabled={disabled}

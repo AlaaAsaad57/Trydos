@@ -25,12 +25,13 @@ export default function AlreadyExistScreen({
   const translate = (key: string) => translateFunction(key, lang);
 
   return (
-    <div className="w-full h-full flex flex-col items-start bg-[#F4F8FF] font-quicksand relative" style={{ backgroundColor: '#F4F8FF' }}>
+    <div data-pw="registered" className="w-full h-full flex flex-col items-start bg-[#F4F8FF] font-quicksand relative" style={{ backgroundColor: '#F4F8FF' }}>
       {/* Top-right close/back button */}
       <div className="flex absolute justify-end right-xd-30 top-xd-30 z-10">
         {onClose && (
           <button
             onClick={onClose}
+            data-pw="close"
             className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
             aria-label={translate("Close")}
           >
@@ -81,12 +82,14 @@ export default function AlreadyExistScreen({
         <div className="flex flex-col items-center gap-xd-30 px-xd-15 pb-xd-45">
           <button
             onClick={onLogIn}
+            data-pw="login-continue"
             className="w-xd-390 h-xd-60 rounded-xd-20 bg-[#FAFAFA] text-[#1D1D1D] text-xd-16 font-normal shadow-sm transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center"
           >
             {translate("Login & Continue")}
           </button>
           <button
             onClick={onCancel}
+            data-pw="cancel-take-look"
             className="text-xd-13 text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
           >
             {translate("Cancel & Take A Look At The App")}

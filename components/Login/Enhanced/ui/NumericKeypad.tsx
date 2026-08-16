@@ -150,6 +150,7 @@ export function NumericKeypad({
                                     onPointerDown={handleBackDown}
                                     onPointerUp={handleBackUp}
                                     onPointerLeave={handleBackUp}
+                                    data-pw="keypad-backspace"
                                     disabled={disabled}
                                     className="w-full h-full flex items-center justify-center disabled:opacity-40"
                                     style={{
@@ -214,6 +215,7 @@ function KeyButton({
                 onPointerDown={onPointerDown}
                 onPointerUp={onPointerUp}
                 onPointerLeave={onPointerUp}
+                data-pw={`keypad-digit-${digit}`}
                 disabled={disabled}
                 className="w-full h-full flex flex-col items-center justify-center disabled:opacity-40"
                 style={{

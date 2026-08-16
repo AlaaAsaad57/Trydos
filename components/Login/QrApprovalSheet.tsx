@@ -58,10 +58,10 @@ function QrApprovalSheet({ requestId, user, isRtl, language, onDone }: Props) {
         <h3>{t("Log in on this device?")}</h3>
         <div className="qr-sheet-ctx">{deviceLine}</div>
         <div className="qr-sheet-actions">
-          <button className="qr-sheet-deny" onClick={deny} disabled={busy}>
+          <button className="qr-sheet-deny" data-pw="qr-deny" onClick={deny} disabled={busy}>
             {t("Deny")}
           </button>
-          <button className="qr-sheet-approve" onClick={approve} disabled={busy}>
+          <button className="qr-sheet-approve" data-pw="qr-approve" onClick={approve} disabled={busy}>
             {t("Approve")}
           </button>
         </div>

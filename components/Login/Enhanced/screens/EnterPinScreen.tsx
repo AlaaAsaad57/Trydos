@@ -114,6 +114,7 @@ export default function EnterPinScreen({
                 {onClose && (
                     <button
                         onClick={onClose}
+                        data-pw="close"
                         className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                         aria-label={translate('Close')}
                     >
@@ -183,6 +184,7 @@ export default function EnterPinScreen({
                                 <div className="flex items-center pt-xd-8 gap-xd-5">
                                     <button
                                         onClick={handleResend}
+                                        data-pw="resend-code"
                                         className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
                                     >
                                         {translate('Resend Code')}
@@ -194,6 +196,7 @@ export default function EnterPinScreen({
                                             </span>
                                             <button
                                                 onClick={changeNumber}
+                                                data-pw="change-phone-number"
                                                 className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
                                             >
                                                 {translate('Change Number')}
@@ -207,6 +210,7 @@ export default function EnterPinScreen({
                                             </span>
                                             <button
                                                 onClick={changeMethod}
+                                                data-pw="change-otp-method"
                                                 className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
                                             >
                                                 {translate('Method')}
