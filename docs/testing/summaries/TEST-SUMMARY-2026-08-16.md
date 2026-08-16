@@ -1,182 +1,446 @@
 # Test summary — 16 August 2026
 
-**We checked the small helpers the whole app leans on — product pictures, addresses, filter links, dates — and what the app remembers about your account. The checks found five faults, all five are now fixed, and everything passes.**
+**We checked the shared helpers the whole storefront runs on — product pictures, prices, filter
+links, search order, dates and error reports — and what the app remembers about your account.
+Everything passes. Seven faults were found along the way; they are recorded here, not yet fixed.**
 
 | | |
 |---|---|
-| **New checks added this time** | 107 |
-| **Checks in the app in total** | 756 |
+| **New checks added this time** | 320 |
+| **Checks in the app in total** | 969 |
 | **Result** | ✅ All passing |
-| **How much of the app is checked** | 6.1% of the code |
+| **How much of the app is checked** | 8.5% of the code |
 | **Date** | 2026-08-16 |
 
 ---
 
 ## What we checked this time
 
-### Showing product pictures and videos
+### Product pictures on a card
 
 - When a picture already has a full web address, then it is used exactly as it is.
-- When a picture path arrives on its own, then the media address is put in front of it.
-- When a picture path already starts with a slash, then the address is not given two.
-- When an uploaded file's path has no opening slash, then the missing slash is added.
-- When there is no picture at all, then nothing is returned, not a broken address.
-- When a picture field holds something that is not text, then it is handed back untouched.
-- When an uploaded file names the media server itself, then its own address is used as final.
-- When a video is named on its own, then the media address, folder and file type are added.
-- When a video name already ends in .mp4, then the file type is not added twice.
-- When a video name starts with a slash, then the address is not given two.
-- When a video already has a full address, then it is left exactly as it is.
+- When a picture is stored as a bare file name, then the media address is put in front of it.
+- When that file name already starts with a slash, then no second slash is added.
+- When there is no picture at all, then nothing is returned rather than a broken address.
+- When a picture is stored as something other than text, then it is handed back untouched.
+- When an upload record points at the media server, then its own address is used as final.
+- When an upload record's path has no slash, then the missing slash is added.
+- When a slot needs a set height, then the media server is asked for the picture at that height.
+- When a slot also has a width, then the width is asked for alongside the height.
+- When a slot asks for padding, then the picture is padded to a fixed width.
+- ⚠️ When an upload record is resized, then the slash before the version is lost and the address
+  breaks — recorded as it is today, not as we want it.
+- When an upload record is not on the media server, then it is left exactly as it is.
+- When there is no picture to resize, then an empty address is returned.
+- When a picture has a full address, then resizing leaves that address alone.
+- When a picture is a bare file name, then the media address is put in front of it.
+- When that name already starts with a slash, then no second slash is added.
+- When there is no picture, then nothing is returned.
+- When an upload record names the media server, then its own address is used as final.
+- ⚠️ When an upload record's path has no slash, then it is glued onto the media address and
+  breaks — recorded as it is today, not as we want it.
+
+### Banners, brand logos and sharing pictures
+
+- When a boutique banner is shown, then it is asked for at the wide size the banner slot needs.
+- When a boutique has no banner picture, then an empty address is returned.
+- When a page is shared, then the picture is sized to what the social sites expect.
+- When a sharing picture sits on the internal host, then it is moved onto the public one.
+- When a sharing picture is not on the media server, then it is left exactly as it is.
+- When there is no sharing picture, then nothing is returned.
+- When a brand logo is shown, then it is fitted into the small logo box.
+- When a caller asks for a different logo size, then that size is used instead.
+- When a brand logo is hosted somewhere else, then it is left exactly as it is.
+- When a brand has no logo, then an empty address is returned.
+
+### Showing a price
+
+- When a price is shown, then it is converted into the shopper's own currency.
+- When a price is converted, then it multiplies exactly and never drifts by a penny.
+- When a converted price falls between two pennies, then it is always rounded up, never down.
+- When no exchange rate is given, then the price is shown as it is.
+- When a price is an ordinary one, then it is written out in full.
+- When an item is free, then the price shows as zero.
+- When a price runs into the hundreds of thousands, then it is shortened to thousands.
+- When a price runs into the millions, then it is shortened to millions.
+- When the site is in Arabic, then the Arabic short forms are used instead of K and M.
+- ⚠️ When the currency has not loaded yet, then the price shows as "NaNM" — recorded as it is
+  today, not as we want it.
+- When a discount is a percentage, then that share is taken off the price.
+- When a discount is a fixed amount, then that amount is taken off the price.
+- When a discount is larger than the price, then the price stops at zero and never goes below.
+
+### The price a shopper in one country pays
+
+- When a product has no country prices, then the ordinary price is shown.
+- When a product has no offer price, then the full price is shown instead.
+- When a product has a price for the shopper's country, then that price is shown.
+- When the country prices arrive as text rather than a list, then they are still read.
+- When a product has prices for other countries only, then the ordinary price is shown.
+- When a country is written with odd spacing or capitals, then it is still matched.
+- When only the older extra-charge shape is stored, then that charge is added to the price.
+- When no country is known, then the ordinary price is shown.
+- When a country price entry names no country, then it is ignored.
+- When a country price is not a number, then it is ignored.
+- When the country prices cannot be read at all, then the ordinary price is shown.
+- When a country is listed twice, then the last entry is the one used.
+- When a product has no country prices, then the ordinary full price is struck through.
+- When a country carries an extra charge, then it is added to the struck-through price.
+- ⚠️ When a country price is stored with no extra charge, then the struck-through price stays at
+  the ordinary one and can read lower than the price paid — recorded as it is today.
+- When a country's charge would push the full price below zero, then it stops at zero.
+- When only the older extra-charge shape is stored, then the struck-through price uses it.
+- When no country is known, then the ordinary full price is struck through.
+
+### Which products fall inside a chosen price band
+
+- When no country is known, then the band is matched against the ordinary price.
+- When a band has only a lower end, then it is treated as that one price.
+- When a country is known, then its own price is looked at first and the ordinary one otherwise.
+- When a product has no country prices at all, then the search still runs rather than failing.
+- When a listing is shown, then the cheapest and dearest products on it are reported.
+- When a listing has a price spread, then it is split into four bands a shopper can pick from.
+- When a listing has no products, then the price band reads as zero rather than as missing.
+- When every product on a listing costs the same, then no bands are offered.
+- When a product has no price at all, then it is left out of the band.
+- When a country is known, then the band is worked out from that country's prices.
+
+### The price slider and the price cards
+
+- When the slider is drawn, then the whole price span is split into a fixed number of steps.
+- When every product costs the same, then the step falls back to one rather than to nothing.
+- When both ordinary and country prices exist, then they are merged into one price span.
+- When only one of the two has products in it, then that one is used on its own.
+- When nothing matched the search, then the span reads as zero.
+- When the two price sets line up on a step, then their counts are added together.
+- When the steps are drawn, then they run cheapest first.
+- When nothing matched the search, then an empty distribution is returned.
+- When price cards are offered, then each holds roughly the same number of products.
+- When price cards are offered, then they run from the cheapest product to the dearest.
+- When nearly every product sits in one wide band, then the cards still come out balanced.
+- When there is only one product, then a single card is offered.
+- When there is nothing to show, then no cards are offered.
+- When no card count is asked for, then five cards are offered.
+
+### The order a listing comes in
+
+- When the website asks for products, then the heavy fields are left out of the reply.
+- When the phone app asks for products, then those heavy fields are added back.
+- When products are asked for, then both price shapes come back so a country price can be read.
+- When no order is asked for, then the best matches come first.
+- When an order we do not know is asked for, then the best matches come first.
+- When a shopper asks for best selling, then the most sold products come first.
+- When a shopper asks by date, then the newest or the oldest products come first.
+- When a shopper asks by price, then the cheapest or the dearest products come first.
+- When a shopper asks by name, then the name in their own language is the one sorted on.
+- When a product has no name in that language, then it goes to the end whichever way is chosen.
+- When a listing is paged through, then the same tie-breaker always ends the order, so no product
+  is ever repeated or skipped.
+- When a field is missing from the search server, then the listing degrades rather than failing.
+
+### The filter lists in the side panel
+
+- When a brand's details came back, then its name and logo are shown.
+- When a brand's details are missing, then it is still listed, with its count.
+- When a boutique has banners, then the first one that has not been deleted is shown.
+- When a banner is shown, then the page is never told that other banners were deleted.
+- When a boutique has no banner, then none is shown.
+- When a boutique's details are missing, then it is still listed, with its count.
+- When a filter list is long, then ten filters are shown per page.
+- When the page number is out of range, then the first page is shown rather than nothing.
+- When a category has children, then they are listed alongside the category itself.
+- When there are no related categories, then the category list is left exactly as it is.
+- When there are related categories, then they are added at the end and marked as related.
+- When a category appears on both lists, then it is kept rather than one copy being hidden.
+
+### Clicking a filter
+
+- When a shopper clicks a filter that was not chosen, then it is added to the address.
+- When a filter is already in the address, then it shows as chosen.
+- When a shopper clicks a filter that was chosen, then it is taken back out.
+- When one filter of a kind is added, then the others of that kind are kept.
+- When one filter of a kind is removed, then the others of that kind are kept.
+- When a filter is clicked, then the choices of every other kind are left untouched.
+- When a colour is chosen, then it is stored with its hash and written into the address without.
+- When a colour is stored either way, then it still shows as chosen.
+- When a chosen colour is clicked, then it is taken back out in either form.
+- When one colour is added, then the colours already chosen are kept.
+- When a new price band is clicked, then it replaces the one chosen before.
+- When the chosen price band is clicked again, then the price filter is cleared.
+- When a child category is chosen, then its parent is dropped from the address.
+- When a filter is clicked during a search, then the search and the sort order are carried across.
+- When no language is set, then the address is built without one.
+- When an older filter link is clicked, then the choice is added to the query instead of the path.
+- When an older filter link is clicked twice, then the choice is taken back out of the query.
+- When an older price band is clicked, then it replaces the one chosen before.
+- When an older query cannot be read, then the fault is reported and the filter starts fresh.
+- ⚠️ When older filters do not arrive as a real query, then they are ignored and the choice is
+  added a second time — recorded as it is today, not as we want it.
 
 ### Building a filter link
 
-- When no filters are chosen, then the link carries none.
-- When the same filters are chosen in a different order, then both people land on one address.
+- When nothing is chosen, then no filter link is built.
+- When several kinds are chosen, then the link always uses the same order, whatever order they
+  were clicked in.
 - When several choices of one kind are made, then they are joined with commas.
-- When a colour is chosen, then the hash is dropped so the address still reaches the server.
+- When colours are chosen, then the hash is dropped so the address stays readable.
+- When nothing is chosen, then no filter link is built.
+- When several kinds are chosen, then the link always uses the same fixed order.
+- When several choices of one kind are made, then they are joined with commas.
+- When colours are chosen, then the hash is dropped from the address.
+- When a filter is drawn, then it shows as chosen only if it is in the current list.
 
-### Writing out an address
+### Reading the filters out of a web address
 
-- When every part of an address is filled in, then they are shown joined by bars.
-- When parts of an address were never filled in, then they are left out.
-- When the backend sends the word 'null' for a part, then it is treated as empty, not printed.
-- When a part in the middle is missing, then no empty gap is left between the bars.
+- When an address carries no filters, then nothing is read from it.
+- When an address lists several choices, then they are split on the commas.
+- When an address carries colours, then the hash is put back so they can be matched.
+- When a colour in the address already has a hash, then a second one is not added.
+- When an address carries a search phrase, then it is kept whole rather than split.
+- When an address holds a part we do not recognise, then it is skipped.
+- When a filter name has no choices after it, then it is ignored.
+- When an address carries related categories, then they are folded into the ordinary ones.
+- When an address carries a list of numbers, then they are read as numbers.
+- When something in that list is not a number, then it is dropped.
+- When there is nothing to read, then an empty list is returned.
+
+### Turning a search address into a search request
+
+- When an address carries nothing, then nothing extra is asked of the search server.
+- When categories are in the address, then they are asked for.
+- When related categories are in the address, then they are added without repeats.
+- When boutiques, brands, colours or tags are in the address, then each is asked for.
+- When a price band is written as one number to another, then both ends are read.
+- When the address asks for flash deals, then only flash deals are asked for.
+- When the page itself is the flash deals page, then only flash deals are asked for.
+- When a search phrase is wrapped in quotes, then the quotes are stripped off.
+- When sizes are chosen, then they are read out of the attributes in the address.
+- When the page is the featured page, then only featured products are asked for.
+
+### Building a product card from a search result
+
+- When a card is built, then both the price paid and the price struck through are shown.
+- When a country is known, then that country's prices are the ones shown.
+- When a product has stock, then it shows as in stock, and as out of stock when it has none.
+- When today falls inside a flash deal's dates, then the deal shows as running.
+- When a flash deal's end date has passed, then it shows as finished.
+- When a flash deal was switched off, then it is ignored.
+- When a product has a reward price, then it is shown, and it is left off when there is none.
+- When a brand has wording in the shopper's language, then that wording is the one used.
+- When a brand record does not say it is verified, then it is shown as unverified.
+- When a listing is built, then only the wording in the shopper's language is kept.
+- When a product has nothing written in that language, then it is left off the listing.
+- When a product has no wording at all, then it is left off the listing.
+- When a listing is built, then the price band across everything on it is reported.
+- When a product no longer has a colour, then that colour's picture set is dropped.
+- When a picture is named on a card, then it is turned into an address the page can load.
+- When the picture sets arrive as text rather than a list, then they are still read.
+- When a colour is a trending one, then the card says so plainly.
+- When there are no products to tidy, then nothing is changed.
+
+### Putting the chosen colour first
+
+- When a shopper filters by colour, then that colour moves to the front of the product's colours.
+- When no colour is chosen, then the colours are left in the order they came in.
+- When a shopper filters by colour, then that colour's pictures move to the front.
+- When a product has none of the chosen colours, then its pictures are left alone.
+- When no colour is chosen, then the pictures are left in the order they came in.
+- When the pictures are re-ordered, then the list the page was given is not changed underneath it.
+
+### Product page addresses and product videos
+
+- When a product is linked to, then the address points at the right country and language site.
+- When a colour is chosen, then it is carried in the address so the page opens on that colour.
+- When a video is shown, then the media address, the folder and the file type are added.
+- When a video name already ends in the file type, then it is not added twice.
+- When a video name starts with a slash, then no second slash appears in the address.
+- When a preview is wanted, then the short preview is asked for instead of the full video.
+- When there is no video, then an empty address is returned.
+- ⚠️ When a video already has a full address, then an extra slash is put into it — recorded as it
+  is today, not as we want it.
+- ⚠️ When a caller gives no options at all, then building the video address fails — recorded as it
+  is today; no caller does this yet.
+- When a video is shown, then the media address, the folder and the file type are added.
+- When a video name already ends in the file type, then it is not added twice.
+- When a video name starts with a slash, then no second slash appears in the address.
+- When a video already has a full address, then it is left exactly as it is.
+
+### Whether search engines may list the site
+
+- When indexing is not turned on, then search engines are told to stay out of the whole site.
+- When indexing is turned on, then the site's own search-engine settings are used.
+
+### Writing a delivery address out
+
+- When an address has all its parts, then they are joined with bars.
+- When a part was never filled in, then it is left out.
+- When a part holds the word "null", then it is treated as empty, not as a place name.
+- When a part in the middle is missing, then no gap is left where it was.
 - When the first parts are missing, then the line does not start with a bar.
-- When there is no address at all, then an empty line is shown.
+- When there is no address at all, then an empty line is returned.
 
-### Guest accounts and phone numbers
+### Guest names, phone numbers and typed input
 
-- When an account carries one of the three guest names, then it is recognised as a guest.
-- When a guest name has capitals or spaces around it, then it is still recognised.
-- When a real shopper's name is checked, then it is not mistaken for a guest.
-- When a phone number is typed with spaces, dashes or brackets, then those are removed.
-- When a phone number starts with a plus, then that one plus is kept.
-- When a plus is typed mid-number, then it is removed, not treated as a country code.
-- When text with no digits is entered as a phone number, then nothing is left.
+- When an account carries one of the three guest names, then it is spotted as a guest.
+- When a guest name has odd capitals or spacing, then it is still spotted.
+- When an account has a real name, then it is not mistaken for a guest.
+- When a phone number is typed with spacing, then the spacing is removed.
+- When a phone number starts with a plus, then that one plus is kept and no other.
+- When a phone number has no plus, then one is not invented.
+- When text holds no digits at all, then an empty phone number is returned.
+- When a shopper types characters that could carry a command, then those characters are removed.
+- When a shopper types more than ninety characters, then the rest is cut off.
+- When a shopper types ordinary words, then they are left alone.
+- When something that is not text arrives, then an empty result is returned.
+- When a shopper types characters that could carry a command, then those characters are removed.
+- When a shopper types more than ninety characters, then the rest is cut off.
+- When something that is not text arrives, then an empty result is returned.
 
-### Which way text runs on the page
+### Tidying text for display
+
+- When a description carries formatting tags, then they are removed before it is shown.
+- When there is no description, then an empty one is returned.
+- When a thumbnail is needed, then the media server is asked for the small version.
+- When there is no picture to shrink, then nothing is returned.
+- When a name must be hidden, then only its first letters are shown and the rest become crosses.
+- When there is no name to hide, then an empty result is returned.
+
+### Which way the text runs
 
 - When text starts with an Arabic or Kurdish letter, then it is laid out right to left.
 - When text starts with a Latin letter, then it is laid out left to right.
-- When text starts with spaces, then the first real letter decides the direction.
+- When text starts with spaces, then they are skipped before the direction is decided.
 - When there is no text at all, then it is laid out left to right.
 
-### Where a visitor came from
+### Where a visitor came from and which screen they are on
 
 - When there is no previous page, then the visit is recorded as direct.
-- When a visitor arrives from Facebook or Instagram, then that site is named.
-- When a visitor arrives from X or Twitter, then it is recorded as X.
-- When an ordinary site merely contains the letter x, then it is not mistaken for X.
-- When a visitor arrives from a site we do not list, then it is recorded as other.
+- When a visitor comes from a social site we know, then that site is named.
+- When a visitor comes from X, then X is named.
+- When a visitor comes from an ordinary address, then it is not mistaken for X.
+- When a visitor comes from a site we do not know, then it is recorded as other.
+- When a shopper is on the settings screen, then that is the screen reported for analytics.
+- When the basket is open, then the basket is reported whatever page is behind it.
+- When a shopper is on a product screen, then the product screen is reported.
+- When a shopper is on a boutique screen, then the boutique screen is reported, not the filters.
+- When a shopper is on the filters screen, then the filters screen is reported.
+- When a shopper is anywhere else, then the home screen is reported.
 
-### Choosing a colour and size on a product
+### Matching colours and product options
 
-- When two colour names differ only by capitals or spaces, then they count as the same.
-- When a colour name is compared with a full colour record, then a match on either counts.
-- When one side of a colour comparison is missing, then the two do not match.
-- When two different colours are compared, then they do not match.
-- When a colour and a size are both chosen, then the matching product option is found.
-- When only a colour is chosen, then the option for that colour is found.
-- When only a size is chosen, then the option for that size is found.
-- When nothing is chosen, then no product option is returned.
-- When the chosen pair does not exist, then no product option is returned.
+- When two colour names differ only in capitals or spacing, then they are treated as the same.
+- When a plain colour name is checked against a full colour record, then they still match.
+- When either side is missing, then they are not treated as the same.
+- When two different colours are compared, then they are not treated as the same.
+- When a shopper picks a colour and a size, then the option matching both is found.
+- When only a colour is picked, then the option is found by colour alone.
+- When only a size is picked, then the option is found by size alone.
+- When nothing is picked, then no option is chosen.
+- When a picked combination has no matching option, then no option is chosen.
 
-### Cleaning up what people type
+### Locking the page behind an overlay
 
-- When typed text holds characters that could carry a command, then they are removed.
-- When typed text is longer than ninety characters, then it is cut to ninety.
-- When ordinary words are typed, then they are left alone.
-- When something that is not text is passed in, then an empty result comes back.
+- When an overlay opens, then the page stops moving and jumps to the top.
+- When an overlay opens in place, then the page stops moving without jumping to the top.
+- When an overlay closes, then the page can be moved again.
 
-### Opening a panel over the page
+### Dates and times a shopper reads
 
-- When a panel opens, then the page behind it stops moving and returns to the top.
-- When the basket opens, then the page stops moving but keeps the shopper's place.
-- When the panel closes, then the page can be moved again.
-
-### Recording which screen a shopper is on
-
-- When a shopper is in the settings pages, then the settings screen is recorded.
-- When the basket is open, then the basket is recorded, whatever page sits behind it.
-- When a shopper is on a product page, then the product screen is recorded.
-- When a shopper is in a boutique, then the boutique screen is recorded, not the filters one.
-- When a shopper is filtering, then the filters screen is recorded.
-- When the page is none of these, then the home screen is recorded.
-
-### Showing dates and times
-
-- When something happened today, then the time is shown with the word Today.
-- When something happened the day before, then the time is shown with the word Yesterday.
-- When something happened longer ago, then the full date is shown.
-- When the page is in another language, then Today is taken from the translations.
-- When the page is in another language, then Yesterday is taken from the translations.
-- When a date is shown on an address screen, then it is translated in the language given.
-- When a time arrives with no zone marker, then it is read as universal time.
-- When an address time arrives the same way, then it is read as local time, by design.
-- When a day number arrives from the backend, then zero means Sunday and six means Saturday.
+- When a time is from today, then it reads as "Today".
+- When a time is from the day before, then it reads as "Yesterday".
+- When a time is older than that, then the full date is written out.
+- When a time carries no zone marker, then it is read as universal time.
+- When "Today" is shown, then it comes from the translator rather than being written in English.
+- When "Yesterday" is shown, then it comes from the translator too.
+- When a time is shown on the address screens, then the same words are used, in the language the
+  screen was handed.
+- When a bare timestamp reaches the address screens, then it is read as local time — a deliberate
+  difference from the rest of the app, confirmed as intended.
+- When a day number arrives from the backend, then it is counted from Sunday, the way the backend
+  counts it.
 - When a day number does not exist, then no day name is returned.
 
-### Ending a session
+### Signing out and failed attempts
 
-- When a signed-in session expires, then the account details stay but are marked as not verified.
-- When someone signs out on purpose, then every stored account detail is cleared.
-- When a session ends either way, then the old error message and the remaining-tries count reset.
-- When a session ends and nothing was stored, then nothing is invented and it stays empty.
+- When a session expires, then the shopper's records are kept and marked as unverified.
+- When a shopper cancels for any other reason, then every record is cleared.
+- When a shopper cancels either way, then the attempt counter and the message are reset.
+- When a session was already empty, then it stays empty rather than records being invented.
+- When a code is entered wrongly, then the failure is flagged and one attempt is spent.
+- When no attempts are left, then the counter stops at zero rather than going below.
 
-### Signing in and remembering the account
+### What the app stores when you sign in
 
-- When someone signs in, then their account and profile are saved and the failure mark is cleared.
-- When sign-in details arrive and some are already stored, then the new ones are added to the old.
-- When sign-in details arrive and nothing was stored yet, then the new ones are saved as they are.
-- When account details are edited, then the change reaches both the profile and the signed-in copy.
-- When a fresh profile arrives, then it replaces the stored profile and updates the signed-in copy.
-- When a phone or email is verified, then only the profile record is updated.
-- When account details are updated and no profile is stored, then it still works without an error.
-- When someone changes their name, then it changes in both the signed-in details and the profile.
-- When someone changes their name and no profile is stored, then it still works without an error.
+- When a service record already exists, then the new details are merged into it.
+- When a service record is missing, then it is created from what arrived.
+- When a shopper signs in, then the account and the profile are merged and the failure flag clears.
+- When a profile is edited, then both the profile and the signed-in account are updated.
+- When a profile is replaced, then the profile is overwritten and the account is merged.
+- When a verification arrives, then only the profile is updated.
+- When there is no profile yet, then the details are stored without the app failing.
+- When a chat record arrives first, then it is stored rather than dropped.
+- When a stories record already exists, then the new details are merged into it.
+- When a wallet record already exists, then the new details are merged into it.
+- When nobody was signed in, then the sign-in reply becomes the signed-in account.
+- When there was no profile, then it is started from the sign-in reply.
+- When a fresh profile arrives first, then the signed-in account is built from it.
+- When a verification arrives and no profile was stored, then a profile is started.
 
-### The very first time something is stored
+### Notification topics and renaming
 
-- When someone signs in on a fresh tab, then the reply becomes both the account and its copy.
-- When someone signs in and no profile was stored, then the profile is started from that reply.
-- When a profile arrives and nobody was signed in, then the signed-in details are built from it.
-- When a phone or email is verified and no profile was stored, then a profile is started for it.
-- When chat details arrive and nothing was stored, then they are saved as the new record.
-- When stories details arrive and a record already exists, then the new ones are added to it.
-- When wallet details arrive and a record already exists, then the new ones are added to it.
+- When a topic is switched on, then it is added and the other topics are left alone.
+- When a topic is switched off, then only that topic is removed.
+- When topics change, then the other notification settings stay untouched.
+- When a shopper is renamed, then both the signed-in account and the profile are updated.
+- When there is no profile to rename, then the rename still runs without the app failing.
 
-### Being asked to verify again
+### The re-verify prompt and the values screens start from
 
-- When nothing is wrong, then the verify-again prompt stays off, and it can be turned on and off.
-- When a verify-again finishes, then the outcome is recorded so a waiting request can carry on.
-- When a session expires, then that phone number is kept so the shopper does not type it again.
-
-### What a screen sees before anything has loaded
-
-- When the orders have not been counted yet, then that shows as unknown, not as zero orders.
-- When notification settings arrive, then they replace the old ones, so a turned-off one stays off.
-- When the list of notification kinds arrives, then it is stored, starting from an empty list.
-- When a wrong code is entered, then the message is kept, and it can be cleared again.
+- When the app starts, then the re-verify prompt is off, and it can be turned on and cleared again.
+- When re-verifying finishes, then the outcome is recorded so a waiting request can read it.
+- When a session expires, then the phone number it belonged to is remembered.
+- When no orders have been counted, then the count reads as "not counted yet", not as zero.
+- When notification settings arrive, then they replace what was there rather than merging into it.
+- When the kinds of notification on offer arrive, then they are stored, starting from none.
+- When a code is wrong, then the message is kept, and it can be cleared again.
 - When a code is being checked, then the reference for that check is held.
-- When a temporary user is held during sign-up, then the signed-in account is left alone.
-- When no address is in use, then that is the starting state, and it can be switched on.
+- When a temporary user is held, then the signed-in account is not touched.
+- When an address is in use, then it is marked as such, starting from not in use.
 
-### Getting the sign-in wrong
+### Staying signed in when a request is refused
 
-- When a sign-in attempt fails, then it is marked as failed and one try is used up.
-- When no tries are left and another one fails, then the count stops at zero and goes no lower.
+- When a guest reply carries only part of what was expected, then only that part is stored.
+- When there is no token to write back, then a throwaway one is used to check cookies can be
+  written at all.
+- When the recovery itself breaks, then the fault is reported and the original refusal is returned.
 
-### Notification choices
+### Preparing a fault for the error log
 
-- When a notification subject is turned on, then only that one changes.
-- When a notification subject is turned off, then only that one is removed.
-- When a notification subject changes, then the other notification settings stay as they were.
+- When a fault is reported, then its name, message and where it happened are all kept.
+- When a fault is written to the log, then it is marked as a fault, not as an ordinary record.
+- When a fault was caused by another, then the one that caused it is kept too.
+- When several faults happened at once, then every one of them is kept.
+- When a fault is buried inside an ordinary record, then it is still found and written out.
+- When a fault is inside a list, then it is still found and written out.
+- When a date is reported, then it is written in a form the log can read.
+- When ordinary values are reported, then they pass through untouched.
+- When a value the log cannot hold is reported, then it is written out as text instead.
+- When part of a record was never filled in, then it is left out of the log.
+- When a record points back at itself, then the log is written without the app hanging.
+- When a list points back at itself, then the log is written without the app hanging.
+- When a record is buried very deep, then the log stops going deeper rather than growing forever.
 
-### When the backend refuses a shopper's pass
+### Choosing the line the error log files a fault under
 
-- When a request is refused and there is no pass to test with, then a throwaway one is used.
-- When a new guest pass arrives on its own, then nothing empty is stored for the missing parts.
-- When the recovery itself breaks, then the fault is reported and the shopper gets the refusal.
+- When a fault carries a message, then that message is the line it is filed under.
+- When the message sits one level in, then it is still found.
+- When there is no message but the fault itself has one, then that one is used.
+- When a fault carries no message at all, then the whole fault is written out instead.
+- When the fault is plain text, then that text is the line.
+- When the fault is not text, then it is written out as text.
+- When there is nothing to go on, then it is filed as an unknown fault.
+- When a message is empty, then it is filed as an unknown fault rather than under an empty line.
+- When a fault points back at itself, then it is still filed rather than the report failing.
 
 Another 53 checks keep the testing setup itself honest — they protect the tests, not the app,
 so they are counted but not listed.
@@ -187,41 +451,40 @@ so they are counted but not listed.
 
 | Measure | Covered | Total | Share |
 |---|---|---|---|
-| Lines of code | 1692 | 27895 | 6.1% |
-| Decision points | 1196 | 25120 | 4.8% |
-| Functions | 265 | 7126 | 3.7% |
+| Lines of code | 2367 | 27895 | 8.5% |
+| Decision points | 1762 | 25120 | 7.0% |
+| Functions | 381 | 7126 | 5.3% |
 
-Out of 726 files in the app, 13 have a test written for them. Another 56 are only touched
-because a tested file uses them, and 657 have nothing at all.
+Of the 726 files the app ships, 17 have a test of their own. Another 57 were run only because a
+tested file uses them, and 652 have nothing at all.
 
 ### The parts we set out to test
 
-Nine of the thirteen are now checked completely.
-
 | Part of the app | Share checked |
 |---|---|
-| Landing on the right language and country — proxy.ts | 100.0% |
-| Sending a signed-in request — serverRequests/HandleAuthedFetch.ts | 100.0% |
-| Asking the backends for data — serverRequests/ServerFetch.tsx | 100.0% |
-| Not asking twice for the same thing — serverRequests/requestDedup.ts | 100.0% |
-| What the app remembers about your account — store/auth/reducer.tsx | 100.0% |
-| Shared helpers, including prices — utils/functions.tsx | 100.0% |
-| Holding the one-time-code limit — utils/otpLocks.ts | 100.0% |
-| Renewing an expired session — utils/server/authRefresh.ts | 100.0% |
-| Recording one-time-code events — utils/server/otpTelemetry.ts | 100.0% |
-| Which service may be reached — utils/server/tokenManager.ts | 98.9% |
-| Sending requests from the browser — utils/fetchData.ts | 98.7% |
-| Who a one-time code belongs to — utils/server/otpIdentity.ts | 98.4% |
-| The small shared helpers — utils/tinyUtils.tsx | 59.2% |
-
-The last one was picked because 115 other files use it, and one function inside it —
-the one that builds every picture address — is called from 219 places. What is still
-unchecked there is the part that talks to the network or asks the browser for permission.
+| Every request that reaches the site | 100.0% |
+| Staying signed in when a request is refused | 100.0% |
+| Fetching from the backends | 100.0% |
+| Not asking twice for the same thing | 100.0% |
+| What the app remembers about your account | 100.0% |
+| The shared helpers | 100.0% |
+| Locking a one-time code | 100.0% |
+| Renewing an expired session | 100.0% |
+| Recording one-time-code trouble | 100.0% |
+| Which services may be proxied | 98.9% |
+| Talking to the backends from the browser | 98.7% |
+| Who a one-time code belongs to | 98.4% |
+| Preparing a fault for the error log | 97.4% |
+| Clicking a filter | 96.9% |
+| Pictures, prices and filter links | 95.6% |
+| The small shared helpers | 59.2% |
+| The search helpers — prices, sorting, filters | 51.3% |
 
 ### Reading these numbers
 
-- **What is checked well:** language routing, the backends, sign-in, and the shared helpers.
-- **What has nothing yet:** the screens people see, the pages, and the rules behind them.
+- **What is checked well:** the helpers under prices, pictures, filters and search order, the
+  sign-in and session handling, and what the app remembers about an account.
+- **What has nothing yet:** every screen a shopper sees, every page and every backend route.
 - **What "checked" does not mean:** a checked line is one a test ran. It does not prove the
   behaviour is what the business wants, and it says nothing about how the app looks or feels.
 <!-- test-index v1 — written by the test-summary skill. Do not edit by hand.
@@ -485,6 +748,96 @@ tests/services/authRefreshSession.test.ts :: RefreshSession dedup market and mar
 tests/services/authRefreshSession.test.ts :: RefreshSession dedup never refreshes while logging out
 tests/services/authRefreshSession.test.ts :: RefreshSession dedup releases the key so a later 401 on the same service can refresh again
 tests/services/authRefreshSession.test.ts :: RefreshSession dedup shares one round trip for concurrent 401s on the SAME service
+tests/services/elastic/helpers.test.ts :: asking the search server for the right fields (getSourceFields) adds the heavy fields back for the phone app
+tests/services/elastic/helpers.test.ts :: asking the search server for the right fields (getSourceFields) asks for both price shapes, so a country price can be read
+tests/services/elastic/helpers.test.ts :: asking the search server for the right fields (getSourceFields) leaves the heavy fields out for the website
+tests/services/elastic/helpers.test.ts :: collecting the cards for a listing (extractFilters) keeps only the wording in the shopper's language
+tests/services/elastic/helpers.test.ts :: collecting the cards for a listing (extractFilters) reports the price band across everything it collected
+tests/services/elastic/helpers.test.ts :: collecting the cards for a listing (extractFilters) skips a product with no wording at all
+tests/services/elastic/helpers.test.ts :: collecting the cards for a listing (extractFilters) skips a product with nothing written in the shopper's language
+tests/services/elastic/helpers.test.ts :: finding the products inside a chosen price band (buildCountryAwarePriceRangeCondition) does not fall over when the product has no country prices at all
+tests/services/elastic/helpers.test.ts :: finding the products inside a chosen price band (buildCountryAwarePriceRangeCondition) looks at the country's own price first and the ordinary one otherwise
+tests/services/elastic/helpers.test.ts :: finding the products inside a chosen price band (buildCountryAwarePriceRangeCondition) matches on the ordinary price when no country was asked for
+tests/services/elastic/helpers.test.ts :: finding the products inside a chosen price band (buildCountryAwarePriceRangeCondition) treats a band with only a lower end as that one price
+tests/services/elastic/helpers.test.ts :: putting a listing in order (buildSortClause) always ends on the same tie-breaker, so paging never repeats a product
+tests/services/elastic/helpers.test.ts :: putting a listing in order (buildSortClause) falls back to best match for an order it does not know
+tests/services/elastic/helpers.test.ts :: putting a listing in order (buildSortClause) falls back to best match when no order was asked for
+tests/services/elastic/helpers.test.ts :: putting a listing in order (buildSortClause) keeps a product with no name in the shopper's language at the end, either way
+tests/services/elastic/helpers.test.ts :: putting a listing in order (buildSortClause) orders by date, newest or oldest first
+tests/services/elastic/helpers.test.ts :: putting a listing in order (buildSortClause) orders by how much has sold when the shopper asks for best selling
+tests/services/elastic/helpers.test.ts :: putting a listing in order (buildSortClause) orders by price, cheapest or dearest first
+tests/services/elastic/helpers.test.ts :: putting a listing in order (buildSortClause) orders by the name in the shopper's own language
+tests/services/elastic/helpers.test.ts :: putting a listing in order (buildSortClause) survives a field the search server has never been told about
+tests/services/elastic/helpers.test.ts :: putting the chosen colour first does not change the list it was given
+tests/services/elastic/helpers.test.ts :: putting the chosen colour first leaves a product's pictures alone when it has none of the chosen colours
+tests/services/elastic/helpers.test.ts :: putting the chosen colour first leaves the colours alone when none was chosen
+tests/services/elastic/helpers.test.ts :: putting the chosen colour first leaves the pictures alone when no colour was chosen
+tests/services/elastic/helpers.test.ts :: putting the chosen colour first moves the chosen colour to the front of the product's colours
+tests/services/elastic/helpers.test.ts :: putting the chosen colour first moves the chosen colour's pictures to the front
+tests/services/elastic/helpers.test.ts :: taking money off a price (calculateDiscountedPrice) never lets a discount take a price below zero
+tests/services/elastic/helpers.test.ts :: taking money off a price (calculateDiscountedPrice) takes a fixed amount off for a flat discount
+tests/services/elastic/helpers.test.ts :: taking money off a price (calculateDiscountedPrice) takes a share off for a percentage discount
+tests/services/elastic/helpers.test.ts :: the filter lists in the side panel does not tell the page when a banner was deleted
+tests/services/elastic/helpers.test.ts :: the filter lists in the side panel lists a category's children alongside the category itself
+tests/services/elastic/helpers.test.ts :: the filter lists in the side panel shows no banner when the boutique has none
+tests/services/elastic/helpers.test.ts :: the filter lists in the side panel shows ten filters per page
+tests/services/elastic/helpers.test.ts :: the filter lists in the side panel shows the boutique's first banner that has not been deleted
+tests/services/elastic/helpers.test.ts :: the filter lists in the side panel shows the brand's name and logo when the details came back
+tests/services/elastic/helpers.test.ts :: the filter lists in the side panel shows the first page rather than nothing when the page number is wrong
+tests/services/elastic/helpers.test.ts :: the filter lists in the side panel still lists a boutique whose details are missing, with its count
+tests/services/elastic/helpers.test.ts :: the filter lists in the side panel still lists a brand whose details are missing, with its count
+tests/services/elastic/helpers.test.ts :: the price a product is struck through at (resolveUnitPriceForCountry) RECORDED FINDING: leaves the full price alone when no extra charge is stored
+tests/services/elastic/helpers.test.ts :: the price a product is struck through at (resolveUnitPriceForCountry) adds the country's extra charge to the full price
+tests/services/elastic/helpers.test.ts :: the price a product is struck through at (resolveUnitPriceForCountry) falls back to the older extra-charge shape
+tests/services/elastic/helpers.test.ts :: the price a product is struck through at (resolveUnitPriceForCountry) never lets a country's charge push the full price below zero
+tests/services/elastic/helpers.test.ts :: the price a product is struck through at (resolveUnitPriceForCountry) uses the ordinary full price when no country was asked for
+tests/services/elastic/helpers.test.ts :: the price a product is struck through at (resolveUnitPriceForCountry) uses the ordinary full price when there are no country prices
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) adds the country's extra charge when only the older shape is stored
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) falls back to the full price when there is no offer price
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) ignores a country price entry with no country on it
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) ignores a country price that is not a number
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) ignores country prices stored as text that cannot be read
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) ignores the country prices of every other country
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) keeps the last entry when a country is listed twice
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) matches the country however it is written
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) reads the country prices when they arrive as text rather than a list
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) uses the country's own price when there is one
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) uses the ordinary price when no country was asked for
+tests/services/elastic/helpers.test.ts :: the price a shopper in one country pays (resolveOfferPriceForCountry) uses the ordinary price when the product has no country prices
+tests/services/elastic/helpers.test.ts :: the price band shown on a listing (calculatePriceRange) ignores a product with no price at all
+tests/services/elastic/helpers.test.ts :: the price band shown on a listing (calculatePriceRange) offers no bands when every product costs the same
+tests/services/elastic/helpers.test.ts :: the price band shown on a listing (calculatePriceRange) reports the cheapest and dearest products on the page
+tests/services/elastic/helpers.test.ts :: the price band shown on a listing (calculatePriceRange) reports zero when there are no products
+tests/services/elastic/helpers.test.ts :: the price band shown on a listing (calculatePriceRange) splits the band into four bands the shopper can pick from
+tests/services/elastic/helpers.test.ts :: the price band shown on a listing (calculatePriceRange) uses the country's prices when a country was asked for
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) adds the two counts together where the price steps line up
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) falls back to a step of one when every product costs the same
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) gives an empty distribution back when nothing matched
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) gives every price card roughly the same number of products
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) merges the ordinary prices and the country prices into one span
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) offers a single card when there is only one product
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) offers five cards unless told otherwise
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) offers no cards when there is nothing to show
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) puts the price steps in order, cheapest first
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) reports zero when nothing matched at all
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) runs the cards from the cheapest product to the dearest
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) splits the whole price span into a fixed number of steps
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) stays balanced when nearly every product sits in one wide band
+tests/services/elastic/helpers.test.ts :: the price slider and the price cards (the whole-catalog figures) uses whichever of the two has products in it
+tests/services/elastic/helpers.test.ts :: tidying the pictures on a card (normalizeCustomProducts) does nothing when there are no products to tidy
+tests/services/elastic/helpers.test.ts :: tidying the pictures on a card (normalizeCustomProducts) drops the picture sets for colours the product no longer has
+tests/services/elastic/helpers.test.ts :: tidying the pictures on a card (normalizeCustomProducts) reads the picture sets when they arrive as text rather than a list
+tests/services/elastic/helpers.test.ts :: tidying the pictures on a card (normalizeCustomProducts) says plainly whether a colour is a trending one
+tests/services/elastic/helpers.test.ts :: tidying the pictures on a card (normalizeCustomProducts) turns a picture name into an address the page can load
+tests/services/elastic/helpers.test.ts :: turning a search result into a product card (processCustomProduct) ignores a flash deal that was switched off
+tests/services/elastic/helpers.test.ts :: turning a search result into a product card (processCustomProduct) marks a flash deal as finished once its end date has passed
+tests/services/elastic/helpers.test.ts :: turning a search result into a product card (processCustomProduct) marks a flash deal as running when today falls inside its dates
+tests/services/elastic/helpers.test.ts :: turning a search result into a product card (processCustomProduct) marks the product as in stock only when there is stock
+tests/services/elastic/helpers.test.ts :: turning a search result into a product card (processCustomProduct) shows both the price paid and the price struck through
+tests/services/elastic/helpers.test.ts :: turning a search result into a product card (processCustomProduct) shows the reward price only when the product has one
+tests/services/elastic/helpers.test.ts :: turning a search result into a product card (processCustomProduct) takes the brand written in the shopper's language
+tests/services/elastic/helpers.test.ts :: turning a search result into a product card (processCustomProduct) treats a brand as unverified unless the record says otherwise
+tests/services/elastic/helpers.test.ts :: turning a search result into a product card (processCustomProduct) uses the country's prices when a country was asked for
 tests/setup.test.tsx :: the render setup adds the page checks to expect
 tests/setup.test.tsx :: the render setup drives a click through user-event
 tests/setup.test.tsx :: the render setup takes the last test's markup off the page first
@@ -553,6 +906,28 @@ tests/utils/cookieManager.test.ts :: reading a cookie on the server returns noth
 tests/utils/cookieManager.test.ts :: reading a cookie on the server returns nothing for a cookie that is present but empty
 tests/utils/cookieManager.test.ts :: reading a cookie on the server returns nothing when there is no request to read from
 tests/utils/cookieManager.test.ts :: reading a cookie on the server undoes the encoding a stored value was written with
+tests/utils/errorSerialization.test.ts :: choosing the line the error log is filed under (extractPrimaryErrorMessage) falls back to the message on the fault itself
+tests/utils/errorSerialization.test.ts :: choosing the line the error log is filed under (extractPrimaryErrorMessage) says the fault is unknown rather than filing everything under an empty line
+tests/utils/errorSerialization.test.ts :: choosing the line the error log is filed under (extractPrimaryErrorMessage) says the fault is unknown when there is nothing to go on
+tests/utils/errorSerialization.test.ts :: choosing the line the error log is filed under (extractPrimaryErrorMessage) still files a fault that points back at itself
+tests/utils/errorSerialization.test.ts :: choosing the line the error log is filed under (extractPrimaryErrorMessage) takes plain text as the line itself
+tests/utils/errorSerialization.test.ts :: choosing the line the error log is filed under (extractPrimaryErrorMessage) uses a message written one level in
+tests/utils/errorSerialization.test.ts :: choosing the line the error log is filed under (extractPrimaryErrorMessage) uses the message when there is one
+tests/utils/errorSerialization.test.ts :: choosing the line the error log is filed under (extractPrimaryErrorMessage) writes a value that is not text out as text
+tests/utils/errorSerialization.test.ts :: choosing the line the error log is filed under (extractPrimaryErrorMessage) writes the whole fault out when it carries no message
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) does not hang on a list that points back at itself
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) does not hang on a record that points back at itself
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) finds a fault buried inside an ordinary record
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) finds a fault inside a list
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) keeps every fault when several happened at once
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) keeps the fault that caused it
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) keeps the name, the message and where it happened
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) leaves out the parts of a record that were never filled in
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) marks it so the log knows it was a fault and not an ordinary record
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) passes ordinary values through untouched
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) stops going deeper once a record is buried too far down
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) writes a date out in a form the log can read
+tests/utils/errorSerialization.test.ts :: preparing a fault for the error log (serializeUnknownForErrorLog) writes out the values a log cannot hold as text instead
 tests/utils/fetchData.test.ts :: 401 recovery 'chat' 401 clear-tokens scope clears only the chat credentials
 tests/utils/fetchData.test.ts :: 401 recovery 'comments' 401 clear-tokens scope clears only the comments credentials
 tests/utils/fetchData.test.ts :: 401 recovery 'stories' 401 clear-tokens scope clears only the stories credentials
@@ -632,6 +1007,26 @@ tests/utils/fetchData.test.ts :: response status and message handling ignored me
 tests/utils/fetchData.test.ts :: response status and message handling noMessage suppresses the success notification
 tests/utils/fetchData.test.ts :: response status and message handling redirects a seller to home on a non-200 market GET
 tests/utils/fetchData.test.ts :: response status and message handling throws and reports a non-OK response
+tests/utils/listing/filterItemState.test.ts :: clicking a colour keeps the other colours when one is added
+tests/utils/listing/filterItemState.test.ts :: clicking a colour knows a colour is chosen whether or not the hash is written
+tests/utils/listing/filterItemState.test.ts :: clicking a colour stores a colour with its hash but writes it into the address without one
+tests/utils/listing/filterItemState.test.ts :: clicking a colour takes a chosen colour back out in either form
+tests/utils/listing/filterItemState.test.ts :: clicking a filter on and off adds the choice to the address when it was not chosen
+tests/utils/listing/filterItemState.test.ts :: clicking a filter on and off keeps the choices of every other kind untouched
+tests/utils/listing/filterItemState.test.ts :: clicking a filter on and off keeps the other choices of the same kind when one is added
+tests/utils/listing/filterItemState.test.ts :: clicking a filter on and off keeps the other choices of the same kind when one is removed
+tests/utils/listing/filterItemState.test.ts :: clicking a filter on and off marks a choice already in the address as chosen
+tests/utils/listing/filterItemState.test.ts :: clicking a filter on and off takes the choice back out when it was already chosen
+tests/utils/listing/filterItemState.test.ts :: clicking a price band allows only one price band at a time
+tests/utils/listing/filterItemState.test.ts :: clicking a price band clears the price band when the chosen one is clicked again
+tests/utils/listing/filterItemState.test.ts :: the older filter links, which use a query instead of a path RECORDED FINDING: ignores the current filters unless they arrive as a real query
+tests/utils/listing/filterItemState.test.ts :: the older filter links, which use a query instead of a path adds the choice to the query
+tests/utils/listing/filterItemState.test.ts :: the older filter links, which use a query instead of a path allows only one price band at a time here too
+tests/utils/listing/filterItemState.test.ts :: the older filter links, which use a query instead of a path reports the fault and starts fresh when the query cannot be read
+tests/utils/listing/filterItemState.test.ts :: the older filter links, which use a query instead of a path takes the choice back out of the query when it was already chosen
+tests/utils/listing/filterItemState.test.ts :: the rest of the address carries the search and the sort order across the click
+tests/utils/listing/filterItemState.test.ts :: the rest of the address drops the parent category when a child of it is chosen
+tests/utils/listing/filterItemState.test.ts :: the rest of the address leaves the language out of the address when there is none
 tests/utils/otpLocks.test.ts :: counting distinct numbers in a session (AC-3, AC-4) blocks a new number once the session limit is reached
 tests/utils/otpLocks.test.ts :: counting distinct numbers in a session (AC-3, AC-4) does not spend a second slot on a number already counted
 tests/utils/otpLocks.test.ts :: counting distinct numbers in a session (AC-3, AC-4) ignores a value with no digits when counting
@@ -700,6 +1095,87 @@ tests/utils/server/authRefresh.test.ts :: when the exchange is refused (AC-19) r
 tests/utils/server/authRefresh.test.ts :: when there is no request to read at all reports the chat session as unavailable rather than throwing
 tests/utils/server/authRefresh.test.ts :: when there is no request to read at all reports the shopper session as unavailable rather than throwing
 tests/utils/server/authRefresh.test.ts :: when there is no request to read at all reports the stories session as unavailable rather than throwing
+tests/utils/server/helpers.test.ts :: building a brand logo address (getBrandIconImageUrl) fits the logo into the small default box
+tests/utils/server/helpers.test.ts :: building a brand logo address (getBrandIconImageUrl) gives an empty address back when there is no logo
+tests/utils/server/helpers.test.ts :: building a brand logo address (getBrandIconImageUrl) leaves a logo hosted anywhere else exactly as it is
+tests/utils/server/helpers.test.ts :: building a brand logo address (getBrandIconImageUrl) uses the box the caller asks for instead
+tests/utils/server/helpers.test.ts :: building a filter link (buildParamsFromFilters, HandleIsActive) always uses the same order, whatever order the choices came in
+tests/utils/server/helpers.test.ts :: building a filter link (buildParamsFromFilters, HandleIsActive) drops the hash from colours so the address stays readable
+tests/utils/server/helpers.test.ts :: building a filter link (buildParamsFromFilters, HandleIsActive) gives nothing back when nothing is chosen
+tests/utils/server/helpers.test.ts :: building a filter link (buildParamsFromFilters, HandleIsActive) joins several choices of the same kind with commas
+tests/utils/server/helpers.test.ts :: building a filter link (buildParamsFromFilters, HandleIsActive) marks a filter as chosen only when it is in the list
+tests/utils/server/helpers.test.ts :: building a picture address (GetImageUrl) RECORDED FINDING: an upload record's path loses its slash and the address breaks
+tests/utils/server/helpers.test.ts :: building a picture address (GetImageUrl) does not double the slash when the path already has one
+tests/utils/server/helpers.test.ts :: building a picture address (GetImageUrl) hands back nothing when it was given nothing
+tests/utils/server/helpers.test.ts :: building a picture address (GetImageUrl) leaves a full address alone
+tests/utils/server/helpers.test.ts :: building a picture address (GetImageUrl) puts the media address in front of a bare path
+tests/utils/server/helpers.test.ts :: building a picture address (GetImageUrl) takes an upload record's own path as final when it names the media server
+tests/utils/server/helpers.test.ts :: building a product page address (getUrlofProduct) carries the chosen colour so the page opens on it
+tests/utils/server/helpers.test.ts :: building a product page address (getUrlofProduct) points at the product on the right country and language site
+tests/utils/server/helpers.test.ts :: building a video address (getVideoUrl) RECORDED FINDING: an already-hosted video gains an extra slash
+tests/utils/server/helpers.test.ts :: building a video address (getVideoUrl) RECORDED FINDING: breaks when the caller gives no options at all
+tests/utils/server/helpers.test.ts :: building a video address (getVideoUrl) adds the media address, the folder and the file type
+tests/utils/server/helpers.test.ts :: building a video address (getVideoUrl) asks for the short preview when the caller wants one
+tests/utils/server/helpers.test.ts :: building a video address (getVideoUrl) does not add the file type twice
+tests/utils/server/helpers.test.ts :: building a video address (getVideoUrl) does not double the slash when the name has one
+tests/utils/server/helpers.test.ts :: building a video address (getVideoUrl) gives an empty address back when there is no video
+tests/utils/server/helpers.test.ts :: cleaning typed input (pollinateInput) cuts anything longer than ninety characters
+tests/utils/server/helpers.test.ts :: cleaning typed input (pollinateInput) gives an empty result for anything that is not text
+tests/utils/server/helpers.test.ts :: cleaning typed input (pollinateInput) removes the characters that could carry a command
+tests/utils/server/helpers.test.ts :: preparing a picture for a slot (getConfiguredImage) RECORDED FINDING: an upload record loses the slash before the version
+tests/utils/server/helpers.test.ts :: preparing a picture for a slot (getConfiguredImage) asks for a width as well when the slot has one
+tests/utils/server/helpers.test.ts :: preparing a picture for a slot (getConfiguredImage) asks the media server for the height the slot needs
+tests/utils/server/helpers.test.ts :: preparing a picture for a slot (getConfiguredImage) gives an empty picture back when it was given nothing
+tests/utils/server/helpers.test.ts :: preparing a picture for a slot (getConfiguredImage) leaves an upload record from anywhere else alone
+tests/utils/server/helpers.test.ts :: preparing a picture for a slot (getConfiguredImage) pads to a fixed width when the slot asks to be padded
+tests/utils/server/helpers.test.ts :: preparing the wide pictures (configureImageForBoutique, buildOgImageUrl) asks for the boutique banner at its own width
+tests/utils/server/helpers.test.ts :: preparing the wide pictures (configureImageForBoutique, buildOgImageUrl) gives an empty banner back when there is no picture
+tests/utils/server/helpers.test.ts :: preparing the wide pictures (configureImageForBoutique, buildOgImageUrl) gives nothing back when there is no sharing picture
+tests/utils/server/helpers.test.ts :: preparing the wide pictures (configureImageForBoutique, buildOgImageUrl) leaves a sharing picture alone when it is not on the media server
+tests/utils/server/helpers.test.ts :: preparing the wide pictures (configureImageForBoutique, buildOgImageUrl) moves a sharing picture off the internal host onto the public one
+tests/utils/server/helpers.test.ts :: preparing the wide pictures (configureImageForBoutique, buildOgImageUrl) sizes the sharing picture to what the social sites expect
+tests/utils/server/helpers.test.ts :: reading numbers out of an address (parseNumberArray) drops anything in the list that is not a number
+tests/utils/server/helpers.test.ts :: reading numbers out of an address (parseNumberArray) gives an empty list back when there is nothing to read
+tests/utils/server/helpers.test.ts :: reading numbers out of an address (parseNumberArray) reads a plain list of numbers
+tests/utils/server/helpers.test.ts :: reading the filters out of an address (parseFiltersFromParams) does not add a second hash to a colour that already has one
+tests/utils/server/helpers.test.ts :: reading the filters out of an address (parseFiltersFromParams) folds the related categories into the ordinary ones, without repeats
+tests/utils/server/helpers.test.ts :: reading the filters out of an address (parseFiltersFromParams) gives nothing back when the address carries no filters
+tests/utils/server/helpers.test.ts :: reading the filters out of an address (parseFiltersFromParams) ignores a filter name with no choices after it
+tests/utils/server/helpers.test.ts :: reading the filters out of an address (parseFiltersFromParams) keeps a search phrase whole rather than splitting it
+tests/utils/server/helpers.test.ts :: reading the filters out of an address (parseFiltersFromParams) puts the hash back on colours so they can be matched
+tests/utils/server/helpers.test.ts :: reading the filters out of an address (parseFiltersFromParams) skips a part of the address it does not recognise
+tests/utils/server/helpers.test.ts :: reading the filters out of an address (parseFiltersFromParams) splits a list of choices on the commas
+tests/utils/server/helpers.test.ts :: showing a price (RoundPrice) RECORDED FINDING: shows 'NaNM' when the currency has not loaded yet
+tests/utils/server/helpers.test.ts :: showing a price (RoundPrice) always rounds a fraction of a penny up, never down
+tests/utils/server/helpers.test.ts :: showing a price (RoundPrice) converts into the shopper's currency
+tests/utils/server/helpers.test.ts :: showing a price (RoundPrice) leaves the rate out when none was given
+tests/utils/server/helpers.test.ts :: showing a price (RoundPrice) multiplies without the usual decimal drift
+tests/utils/server/helpers.test.ts :: showing a price (RoundPrice) shortens a price in the hundreds of thousands to thousands
+tests/utils/server/helpers.test.ts :: showing a price (RoundPrice) shortens a price in the millions to millions
+tests/utils/server/helpers.test.ts :: showing a price (RoundPrice) uses the Arabic short forms on the Arabic site
+tests/utils/server/helpers.test.ts :: showing a price (RoundPrice) writes a free item as zero
+tests/utils/server/helpers.test.ts :: showing a price (RoundPrice) writes an ordinary price out in full
+tests/utils/server/helpers.test.ts :: showing the related categories alongside the ordinary ones adds the related ones at the end and marks them as related
+tests/utils/server/helpers.test.ts :: showing the related categories alongside the ordinary ones changes nothing when there are no related categories
+tests/utils/server/helpers.test.ts :: showing the related categories alongside the ordinary ones keeps a category that appears on both lists rather than hiding one
+tests/utils/server/helpers.test.ts :: tidying text for display (stripHtml, getThumb, convertTextToXFormat) asks the media server for a small thumbnail
+tests/utils/server/helpers.test.ts :: tidying text for display (stripHtml, getThumb, convertTextToXFormat) gives an empty description back when there is none
+tests/utils/server/helpers.test.ts :: tidying text for display (stripHtml, getThumb, convertTextToXFormat) gives an empty result when there is no name to hide
+tests/utils/server/helpers.test.ts :: tidying text for display (stripHtml, getThumb, convertTextToXFormat) gives nothing back when there is no picture to shrink
+tests/utils/server/helpers.test.ts :: tidying text for display (stripHtml, getThumb, convertTextToXFormat) hides a name behind crosses but keeps its shape
+tests/utils/server/helpers.test.ts :: tidying text for display (stripHtml, getThumb, convertTextToXFormat) removes the formatting tags from a description
+tests/utils/server/helpers.test.ts :: turning a search address into a search request (NormalizeSearchParamsForSearchRequest) adds the related categories to the chosen ones, without repeats
+tests/utils/server/helpers.test.ts :: turning a search address into a search request (NormalizeSearchParamsForSearchRequest) asks for nothing extra when the address carries nothing
+tests/utils/server/helpers.test.ts :: turning a search address into a search request (NormalizeSearchParamsForSearchRequest) asks only for the featured products on the featured page
+tests/utils/server/helpers.test.ts :: turning a search address into a search request (NormalizeSearchParamsForSearchRequest) reads a price band written as one number to another
+tests/utils/server/helpers.test.ts :: turning a search address into a search request (NormalizeSearchParamsForSearchRequest) reads the chosen boutiques, brands, colours and tags
+tests/utils/server/helpers.test.ts :: turning a search address into a search request (NormalizeSearchParamsForSearchRequest) reads the chosen categories
+tests/utils/server/helpers.test.ts :: turning a search address into a search request (NormalizeSearchParamsForSearchRequest) reads the chosen sizes out of the attributes
+tests/utils/server/helpers.test.ts :: turning a search address into a search request (NormalizeSearchParamsForSearchRequest) strips the quotes off a search phrase
+tests/utils/server/helpers.test.ts :: turning a search address into a search request (NormalizeSearchParamsForSearchRequest) turns on the flash deals when the address asks for them
+tests/utils/server/helpers.test.ts :: turning a search address into a search request (NormalizeSearchParamsForSearchRequest) turns on the flash deals when the page itself is the flash deals page
+tests/utils/server/helpers.test.ts :: whether search engines may list the site (isIndexingAllowed, getRobotsConfig) keeps the site out of search results unless it is turned on
+tests/utils/server/helpers.test.ts :: whether search engines may list the site (isIndexingAllowed, getRobotsConfig) lets search engines in once it is turned on
 tests/utils/server/otpIdentity.test.ts :: a visitor arriving for the first time (AC-10, AC-11) mints a visit id and keeps it for a year, far longer than a token
 tests/utils/server/otpIdentity.test.ts :: a visitor arriving for the first time (AC-10, AC-11) says the visit id was not minted when the visitor already had one
 tests/utils/server/otpIdentity.test.ts :: a visitor arriving for the first time (AC-10, AC-11) still returns usable keys when the request cannot store cookies
