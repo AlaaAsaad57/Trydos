@@ -1,217 +1,24 @@
-# Test summary — 15 August 2026
+# Test summary — 16 August 2026
 
-**This round checked the sign-in code limits, how a session is renewed when it expires, and how repeated work in one page load is avoided. Everything passes.**
+**No new checks were added since yesterday. The whole set was run again and everything passes.**
 
 | | |
 |---|---|
-| **New checks added this time** | 153 |
+| **New checks added this time** | 0 |
 | **Checks in the app in total** | 525 |
 | **Result** | ✅ All passing |
 | **How much of the app is checked** | 4.7% of the code |
-| **Date** | 2026-08-15 |
-
-> An earlier round on the same day covered talking to the backends, retrying, and signing a shopper back in. Those 104 checks are counted in the totals above but are not listed again here.
+| **Date** | 2026-08-16 |
 
 ---
 
 ## What we checked this time
 
-### Asking for a code — the wait between tries
+Nothing new was added. The 525 checks listed in the earlier summaries were all run
+again and all of them passed. The share of the app that is checked has not moved.
 
-- When a code has just been sent to a number, then the wait counts down in whole seconds to zero.
-- When the same number is typed with spaces or dashes, then it is treated as the same number.
-- When a number has never been used, then it is reported as free to try.
-- When a value with no digits is locked, then nothing is saved.
-- When a wait of zero seconds is asked for, then nothing is saved.
-- When the same number is used twice, then it does not use up a second of the visitor's allowance.
-- When a visitor has already tried the allowed number of different numbers, then a new one is blocked.
-- When a visitor asks again for a number they already used, then the allowance does not block them.
-- When a value with no digits is recorded, then it does not count toward the allowance.
-- When an hour has passed since a number was first used, then it stops counting toward the allowance.
-- When that hour is not quite up, then the number still counts toward the allowance.
-- When a wait ends, then it is cleared out of storage straight away.
-- When a number falls out of its hour, then it is cleared out of storage too.
-- When the saved waiting times are damaged, then the app starts over instead of breaking.
-- When the saved data has an unexpected shape, then the app still works and reports nothing waiting.
-- When the browser refuses to save anything, then the app keeps working and the server still holds the limit.
-- When the page is built on the server, then nothing is reported as waiting or blocked.
-- When the page is built on the server, then recording a wait does nothing and does not break the page.
-- When a number is tidied up on the server, then it still works, because nothing has to be saved.
-
-### Recognising the same visitor
-
-- When one visitor asks twice, then both requests are recognised as the same visitor.
-- When a different visitor asks, then they are recognised as someone else.
-- When a visitor's sign-in is replaced mid-visit, then they are still recognised as the same visitor.
-- When a visitor is recognised, then neither their address nor their visit is stored in readable form.
-- When the server's secret is in place, then a key cannot be worked back to the address behind it.
-- When that secret stays the same, then one visitor keeps one key and two visitors keep different ones.
-- When a visitor has an ordinary internet address, then it is used as it is.
-- When an address is an old-style one wrapped inside a new-style one, then the old-style part is used.
-- When a visitor has a new-style address, then only the part that stays the same is used.
-- When a new-style address is written in short form, then it is still reduced correctly.
-- When an address arrives inside brackets, then the brackets are removed first.
-- When an address carries an extra network label, then that label is dropped.
-- When an address is written with extra zeros, then it is read the same as without them.
-- When no address is given, then a harmless stand-in address is used.
-- When the address is missing entirely, then a harmless stand-in address is used.
-- When someone opens two sessions on one home connection, then both count as the same connection.
-- When a request passes through several relays, then the visitor's own address is the one used.
-
-### Giving a new visitor an identity
-
-- When a visitor first arrives, then they get a marker that lasts a year, far longer than a sign-in.
-- When a visitor already has that marker, then a new one is not created.
-- When the page cannot save anything, then the visitor is still recognised for that request.
-- When a visitor has no account yet and one is needed, then a guest account is made once and saved.
-- When no country or language is saved, then the default ones are used.
-- When making a guest account is refused, then no account is reported and the problem is recorded.
-- When the connection drops while making a guest account, then no account is reported and it is recorded.
-- When the visitor already has an account, then no guest account is made.
-- When no account is needed, then none is made.
-- When a visitor is signed in, then that fact is reported without revealing the sign-in itself.
-
-### Keeping a record of every code request
-
-- When a code request reaches the server, then the record carries what happened, why, and where from.
-- When a record is sent, then no customer profile is created and the server's own location is not looked up.
-- When a code is sent successfully, then that is recorded.
-- When a request is blocked for asking too often, then that is recorded.
-- When the backend refuses a request, then that is recorded.
-- When a request says whether it wants WhatsApp, then it is recorded as a plain yes or no.
-- When a code is requested, then the visitor never waits for the record to be sent.
-- When the recording service cannot be reached, then the visitor still gets their code.
-- When there is no request to attach the record to, then nothing breaks.
-- When the app is not live, then nothing is recorded.
-- When no recording account is set up, then nothing is recorded.
-
-### Renewing a session without the shopper noticing
-
-- When a session would be renewed while the visitor is signing out, then nothing is renewed.
-- When there is nothing saved to renew with, then no renewal is attempted.
-- When a renewal is refused, then the saved detail is kept on purpose, so a race cannot sign a shopper out.
-- When the connection drops during a renewal, then it is reported as unavailable and recorded.
-- When the backend has an error during a renewal, then it is reported as unavailable and recorded.
-- When the reply cannot be read, then the renewal is reported as unavailable and recorded.
-- When a renewal returns only the first half of what is needed, then nothing is saved.
-- When a renewal returns only the second half, then nothing is saved.
-- When a renewal returns neither half, then nothing is saved.
-- When a renewal succeeds, then both parts are saved together, each lasting as long as it should.
-- When a renewal returns updated account details, then they replace the saved ones.
-- When a renewal returns no account details, then a signed-in shopper is never turned into a guest.
-- When a renewal succeeds but nothing can be saved, then the problem is recorded.
-- When a signed-in shopper renews, then the request goes to the backend that serves signed-in shoppers.
-- When a guest renews, then the request goes to the backend that serves guests.
-- When a visitor has no saved details at all, then they are treated as a guest.
-- When a session is renewed, then the visitor's own language and country go with it.
-- When no language or country is saved, then the default ones are used.
-
-### Renewing the chat and stories sessions
-
-- When a chat session is renewed, then only the chat details change.
-- When a stories session is renewed, then only the stories details change.
-- When a chat session would be renewed during sign-out, then nothing is renewed.
-- When a stories session would be renewed during sign-out, then nothing is renewed.
-- When a chat renewal is refused, then the saved detail is kept rather than deleted.
-- When a stories renewal is refused, then the saved detail is kept rather than deleted.
-- When the stories service replies in its usual shape, then the new details are read correctly.
-- When the same service replies in its other shape, then the new details are still read correctly.
-- When a reply somehow arrives in both shapes at once, then the plain one is used.
-
-### When renewing chat or stories goes wrong
-
-- When the chat session has nothing saved to renew with, then no renewal is attempted.
-- When a chat renewal loses its connection, then it is reported as unavailable and recorded.
-- When the chat backend has an error, then the renewal is reported as unavailable and recorded.
-- When a chat reply cannot be read, then the renewal is reported as unavailable and recorded.
-- When a chat reply carries only half of what is needed, then nothing is saved.
-- When a chat session is renewed, then the visitor's own language and country go with it.
-- When a chat renewal cannot be saved, then the problem is recorded.
-- When the stories session has nothing saved to renew with, then no renewal is attempted.
-- When a stories renewal loses its connection, then it is reported as unavailable and recorded.
-- When the stories backend has an error, then the renewal is reported as unavailable and recorded.
-- When a stories reply cannot be read, then the renewal is reported as unavailable and recorded.
-- When a stories reply carries only half of what is needed, then nothing is saved.
-- When a stories session is renewed, then the visitor's own language and country go with it.
-- When a stories renewal cannot be saved, then the problem is recorded.
-- When the shop session is renewed with no request to read, then it fails safely instead of breaking.
-- When the chat session is renewed with no request to read, then it fails safely instead of breaking.
-- When the stories session is renewed with no request to read, then it fails safely instead of breaking.
-
-### Two pages renewing at the same time
-
-- When two pages find the session expired at once, then it is renewed once, not twice.
-- When a session expires again later, then it can be renewed again.
-- When chat, stories and the shop all need renewing, then each one is renewed on its own.
-- When two different people renew at the same moment, then each uses their own details and gets their own.
-- When one person's two pages renew at the same moment, then they share a single renewal.
-
-### Choosing which backend a request goes to
-
-- When a search request is made, then it goes to the search service's own address.
-- When a chat request is made, then it goes to the chat service's own address.
-- When a stories request is made, then it goes to the stories service's own address.
-- When a comments request is made, then it goes to the comments service's own address.
-- When a wallet request is made, then it goes to the wallet service's own address.
-- When a signed-in shopper asks for a listed address, then it still goes to the backend that serves them.
-- When a guest asks for a listed address, then it goes to the backend that serves guests.
-- When a guest asks for anything else, then it goes to the main backend.
-- When a seller dashboard asks for a listed address, then the address decides, not who is signed in.
-- When a seller dashboard asks for anything else, then it goes to the main backend.
-- When an unknown service is named, then the app refuses rather than guessing an address.
-- When a checklist address is asked for, then it is treated as work for the guest backend.
-
-### What every proxied request carries
-
-- When a request is passed on, then it carries the language, the country and the caller's sign-in.
-- When there is no sign-in, then no sign-in header is sent at all rather than an empty one.
-- When a request is for one shop, then that shop is named; when it is not, nothing is added.
-- When a caller's chat profile names a role, then that role goes with the request.
-- When it names no role, then a clear "no role" value is sent instead of a blank one.
-
-### What the app knows about the visitor right now
-
-- When a signed-in visitor is looked up, then their details come back with every secret removed.
-- When a visitor has no saved details, then they are reported as not signed in.
-- When a saved value cannot be read as data, then it is handed back as it is rather than lost.
-- When a cookie is not there, then nothing is returned for it.
-- When a cookie is removed, then it is really removed.
-
-### Which services may be asked for at all
-
-- When the shop is named, then it is allowed.
-- When the seller dashboard is named, then it is allowed.
-- When chat is named, then it is allowed.
-- When stories is named, then it is allowed.
-- When search is named, then it is allowed.
-- When comments is named, then it is allowed.
-- When the wallet is named, then it is allowed.
-- When nothing is named, then it is refused.
-- When "admin" is named, then it is refused.
-- When "internal" is named, then it is refused.
-- When a known name is written in capitals, then it is refused.
-- When a known name has a stray space, then it is refused.
-
-### What a failure record may say
-
-- When a passed-on request fails, then it is recorded with only an unusable hint of the sign-in.
-- When a passed-on request succeeds, then nothing is recorded.
-- When there was no sign-in, then the record says so instead of inventing a hint.
-
-### Doing the same work once per page load
-
-- When one page asks for the same information twice, then the work is done once and both get the answer.
-- When a second request joins work already running, then it waits rather than starting its own.
-- When a request arrives after the work has finished, then it gets that answer without repeating it.
-- When two different things are asked for, then each one is fetched separately.
-- When two searches differ only in the page number, then they are treated as different searches.
-- When the next visitor loads the page, then the work is done fresh rather than reusing the last answer.
-- When shared work fails, then everyone waiting on it is told.
-- When shared work fails, then the next caller tries again instead of being handed the same failure.
-- When a later attempt for that same thing succeeds, then the good answer is shared normally.
-- When the page is loaded again, then the work is tried again from scratch.
-
-No new checks on the testing setup itself were added this time; 71 of them exist in total, and they protect the tests rather than the app, so they are counted but not listed.
+Another 71 checks keep the testing setup itself honest — they protect the tests, not the app,
+so they are counted but not listed.
 
 ---
 
@@ -223,29 +30,32 @@ No new checks on the testing setup itself were added this time; 71 of them exist
 | Decision points | 867 | 25135 | 3.4% |
 | Functions | 186 | 7126 | 2.6% |
 
-721 parts of the app appear in the report. 11 have tests written for them on purpose, and the rest are either touched only because a tested part uses them, or have nothing at all.
+The app has 721 files. 11 of them have a test written for them. 58 more are touched
+only because a tested file uses them, so they are not really checked. 652 have nothing.
 
 ### The parts we set out to test
 
 | Part of the app | Share checked |
 |---|---|
-| Sending every visitor to the right language and country | 100.0% |
-| Fetching pages from the backend, with retries | 100.0% |
-| Doing the same work once per page load | 100.0% |
-| Shared helpers — prices, dates and translations | 100.0% |
-| The wait between code requests | 100.0% |
-| Recording every code request | 100.0% |
-| Renewing an expired session | 100.0% |
-| Storing sign-in details safely | 98.9% |
-| Requests made from the visitor's browser | 98.7% |
-| Recognising who is asking for a code | 98.4% |
-| Keeping a page signed in while it loads | 92.3% |
+| Landing on the right language and country | 100.0% |
+| Asking a backend for page data | 100.0% |
+| Avoiding repeat work in one page load | 100.0% |
+| Shared helpers, such as prices and dates | 100.0% |
+| The wait between sign-in code requests | 100.0% |
+| Renewing a session that has expired | 100.0% |
+| Recording what happens with sign-in codes | 100.0% |
+| Choosing which backend a request goes to | 98.9% |
+| Sending requests from the browser | 98.7% |
+| Knowing who asked for a sign-in code | 98.4% |
+| Signing a shopper back in mid-request | 92.3% |
 
 ### Reading these numbers
 
-- **What is checked well:** signing in, staying signed in, and every page's requests — almost line by line.
-- **What has nothing yet:** the screens people see, the shopping and checkout rules, and the pages themselves.
-- **What "checked" does not mean:** a checked line is one a test ran. It does not prove the behaviour is what the business wants, and it says nothing about how the app looks or feels.
+- **What is checked well:** sign-in codes, session renewal, language and country, and backend calls.
+- **What has nothing yet:** every screen people see, the shopping rules, and all pages and routes.
+- **What "checked" does not mean:** a checked line is one a test ran. It does not prove the
+  behaviour is what the business wants, and it says nothing about how the app looks or feels.
+
 <!-- test-index v1 — written by the test-summary skill. Do not edit by hand.
 tests/fixtures/fixtures.test.ts :: test fixtures — every builder 'address': returns a complete object when called with nothing
 tests/fixtures/fixtures.test.ts :: test fixtures — every builder 'address': two calls return independent objects

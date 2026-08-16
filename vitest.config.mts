@@ -1,11 +1,26 @@
 /// <reference types="vitest/config" />
 
+import { fileURLToPath } from 'node:url'
+
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from 'vite-tsconfig-paths'
- 
+
 export default defineConfig({
   plugins: [tsconfigPaths(), react()],
+  resolve: {
+    alias: {
+      // `server-only` is a marker the framework's build resolves, not a package
+      // that is installed — so `import "server-only"` cannot resolve here, and
+      // every module carrying that line is unloadable in a test without this.
+      // The stand-in keeps the rule rather than dropping it: it resolves to
+      // nothing in a server-like test and throws in a browser-like one, which is
+      // what the build does per bundle. See tests/mocks/serverOnly.ts.
+      'server-only': fileURLToPath(
+        new URL('./tests/mocks/serverOnly.ts', import.meta.url),
+      ),
+    },
+  },
   test: {
     globals:true,
     environment: 'jsdom',

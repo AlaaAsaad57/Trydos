@@ -60,13 +60,13 @@ behaviour it protects ("a 401 mid-checkout does not lose the cart"), then lists
 the modules that behaviour runs through. If a module in the list has nothing to
 do with the journey, drop it from the phase — do not test it for completeness.
 
-**2. Where a test file goes.** Colocated by default (`utils/orderFunnel.test.ts`),
-matching `utils/functions.test.ts`. **Exception:** when the module sits under a
-`protected_paths` glob, the test goes in a `tests/` mirror
-(`tests/serverRequests/HandleAuthedFetch.test.ts`). A new file inside
-`serverRequests/**` matches the protected glob and would trigger the
-protected-path full stop (GU-2 / IM-5) on that ticket. Testing from outside the
-glob avoids it, and no guardrail has to be weakened.
+**2. Where a test file goes.** In the `tests/` mirror of the source path
+(`utils/server/authRefresh.ts` → `tests/utils/server/authRefresh.test.ts`),
+mirroring the full path, not a flattened one. This is required for a module under
+a `protected_paths` glob — a new file inside `serverRequests/**` would trigger the
+protected-path full stop (GU-2 / IM-5) — and it is the convention for everything
+else too, so one suite lives in one place. `utils/functions.test.ts` is the single
+colocated leftover; leave it, do not copy it. See `UNIT_TESTING.md`.
 
 Phases marked **🔒** touch a protected path, must use the mirror, must state it
 in `plan.md`, and must carry the protected-path statement in `verify.md` (TR-3).
@@ -75,9 +75,11 @@ Protected globs: `proxy.ts`, `serverRequests/**`, `utils/cookies/**`,
 `app/api/auth/**`, `services/auth.ts`, `services/cart.ts`, `services/order.ts`,
 `services/orders.ts`, `store/index.ts`, `next.config.ts`.
 
-**3. Coverage is scoped, never global.** `coverage.include` is an explicit list
-and **each phase appends its own targets**. The number then describes what was
-tested on purpose.
+**3. Coverage covers the whole app.** `coverage.include` names whole folders, so
+a phase adds nothing to it. The headline share is honest — every file the app
+ships is counted, and an untested file shows as 0%, which makes the report the
+list of what is left. (It was an explicit per-phase list once; that only ever
+reported on files somebody had already tested.)
 
 **4. Tests never change the code under test.** If a module resists testing, that
 is a finding recorded in the ticket, not licence to refactor. A refactor is its
@@ -201,10 +203,10 @@ token leaks. Every phase below is on the critical path of every other journey.
 
 | # | Ticket slug | Targets | |
 |---|---|---|---|
-| 5 | `unit-tests-authed-fetch` | `serverRequests/HandleAuthedFetch.ts` (191), `ServerFetch.tsx` (184), `requestDedup.ts` (32) | 🔒 |
+| 5 | `unit-tests-authed-fetch` | `serverRequests/HandleAuthedFetch.ts` (191), `ServerFetch.tsx` (184) | 🔒 |
 | 6 | `unit-tests-cookie-and-token` | `utils/cookies/cookie-manager.ts` (315), `utils/server/tokenManager.ts` (439) | 🔒 |
 | 7 | `unit-tests-client-fetch-data` | `utils/fetchData.ts` (690) — the client `{url, method, body, server, reqTitle}` path | |
-| 8 | `unit-tests-otp-locks-and-refresh` | `utils/server/otpIdentity.ts` (257), `utils/otpLocks.ts` (108), `utils/server/otpTelemetry.ts` (95), `utils/server/authRefresh.ts` (301) | |
+| 8 | `unit-tests-otp-locks-refresh-and-dedup` | `utils/server/otpIdentity.ts` (258), `utils/otpLocks.ts` (108), `utils/server/otpTelemetry.ts` (95), `utils/server/authRefresh.ts` (415), `serverRequests/requestDedup.ts` (32) | 🔒 |
 | 9 | `unit-tests-auth-service` | `services/auth.ts` (1085) — login, logout, session, guest, OTP send/resend/verify; `store/auth/reducer.tsx` (224) | 🔒 |
 | 10 | `unit-tests-api-auth-routes` | `app/api/auth/` — `login`, `logout`, `refresh`, `clear-tokens`, `me`, `update-user`, `register-device`, `wallet-token`, `expire`; `app/api/proxy/route.ts` — the hard block on `send_otp` | 🔒 |
 | 11 | `component-tests-auth-flow` | `components/Login/Enhanced/` (`VerifyPhoneFlow`, `InlineVerifyPanel`, `usePhoneVerifyFlow`, `screens/`, `ui/`); `Login/` — `Timer`, `SessionTimer`, `SessionExpiredWidget`, `ConfirmMobilePhoneWidget` | |
@@ -222,7 +224,11 @@ malformed token. `MARKET-TOKEN` is the single auth cookie for guest and logged-i
 alike; `DEVICE-TOKEN` is legacy and must appear only in logout-cleanup lists — a
 test should lock that in.
 
-**Phase 8** mocks Redis. No test may reach a real instance.
+**Phase 8** mocks Redis. No test may reach a real instance. It also carries
+`serverRequests/requestDedup.ts`, which was a Phase 5 target and was left
+untested there — that is why the phase is now 🔒 and its dedup test goes in the
+`tests/serverRequests/` mirror. `authRefresh.ts` grew from 301 to 415 lines
+while the refresh flow was reworked; the counts above are current.
 
 **Phase 9** asserts **the dispatch into the store**, not just the return value.
 Build the auth slice in isolation so the phase stays clear of the protected

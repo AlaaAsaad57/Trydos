@@ -211,6 +211,7 @@ export default function RdbPhoneInput({
             <div className="flex w-full items-center justify-center">
                 <div
                     ref={inputRef}
+                    data-pw="phone-number-display"
                     onClick={() => {
                         setIsFocused(true);
                         if (showCustomKeypad) setKeypadOpen(true);
@@ -297,6 +298,7 @@ export default function RdbPhoneInput({
                                 e.stopPropagation();
                                 onSend();
                             }}
+                            data-pw="send-phone-number"
                             disabled={isLoading}
                             className="shrink-0 w-xd-28 h-xd-28 flex items-center justify-center rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label={translate('Send phone number')}
@@ -328,6 +330,7 @@ export default function RdbPhoneInput({
                     type="tel"
                     inputMode="numeric"
                     autoComplete="off"
+                    data-pw="input-phone-number-field"
                     className="sr-only"
                     value={digits}
                     disabled={isLoading}

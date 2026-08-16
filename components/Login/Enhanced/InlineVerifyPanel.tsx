@@ -89,6 +89,7 @@ export default function InlineVerifyPanel({
     const methodButton = (kind: 'whatsapp' | 'sms', label: string, icon: string) => (
         <button
             onClick={() => sendMethod(kind)}
+            data-pw={`inline-${kind}-receive-otp`}
             disabled={busy || blocked}
             className={`relative mx-0.5 flex flex-1 items-center justify-center h-xd-48 rounded-xd-15 border border-dashed transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
                 method === kind ? 'border-[#388CFF] bg-[#FCFCFC]' : 'border-[#C3C3C3] bg-white'
@@ -112,6 +113,7 @@ export default function InlineVerifyPanel({
         >
             <button
                 onClick={onClose}
+                data-pw="inline-close"
                 aria-label={translate('Close')}
                 className="self-end w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer"
             >
@@ -150,6 +152,7 @@ export default function InlineVerifyPanel({
                     {!phoneLocked && (
                         <button
                             onClick={() => setStep('enter-phone')}
+                            data-pw="inline-change-phone-number"
                             className="text-xd-12 text-[#388CFF] underline cursor-pointer"
                         >
                             {translate('Change Number')}
@@ -171,6 +174,7 @@ export default function InlineVerifyPanel({
                     />
                     <button
                         onClick={() => method && sendMethod(method)}
+                        data-pw="inline-resend-code"
                         disabled={busy || blocked}
                         className="text-xd-12 text-[#388CFF] underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >

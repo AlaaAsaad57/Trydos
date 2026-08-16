@@ -114,6 +114,7 @@ function QrScannerModal({ isRtl, language, onDetected, onClose }: Props) {
 
       <button
         className="qr-scanner-close"
+        data-pw="qr-scanner-close"
         style={isRtl ? { left: 20 } : { right: 20 }}
         onClick={onClose}
         aria-label={t("Close")}

@@ -69,6 +69,7 @@ export default function TermsScreen({ onAgree, onLater, lang = 'en' }: TermsScre
                         });
                         onAgree?.();
                     }}
+                    data-pw="agree-continue"
                     className="w-xd-390 m-1 h-xd-60 rounded-xd-20 border-dashed border border-[#5D5C5D]/50 bg-[#FAFAFA] text-[#3C3C3C] text-xd-16 cursor-pointer transition-all active:scale-[0.98]"
                 >
                     {translate('Agree & Continue')}
@@ -80,6 +81,7 @@ export default function TermsScreen({ onAgree, onLater, lang = 'en' }: TermsScre
                     <div className="text-center">
                         <button
                             onClick={onLater}
+                            data-pw="take-look"
                             className="text-xd-14 text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
                         >
                             {translate('Later, Take A Look At The App')}

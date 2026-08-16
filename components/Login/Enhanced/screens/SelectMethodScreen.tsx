@@ -58,6 +58,7 @@ export default function SelectMethodScreen({
                 {onClose && (
                     <button
                         onClick={onClose}
+                        data-pw="close"
                         className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                         aria-label={translate('Close')}
                     >
@@ -108,6 +109,7 @@ export default function SelectMethodScreen({
                                 {changeNumber && (
                                     <button
                                         onClick={changeNumber}
+                                        data-pw="edit-phone-number"
                                         className="text-trim-descend text-xd-12 font-medium text-[#388CFF] underline cursor-pointer"
                                     >
                                         {translate('Edit')}
@@ -140,6 +142,7 @@ export default function SelectMethodScreen({
                     <div className="flex w-xd-400">
                         <button
                             onClick={() => !loading && !blocked && setMethod('whatsapp')}
+                            data-pw="whatsapp-receive-otp"
                             disabled={loading || blocked}
                             className={`relative my-1 mx-0.5 w-xd-193 flex flex-1 flex-col items-center justify-center h-xd-60 rounded-xd-20 border border-dashed transition-all cursor-pointer disabled:cursor-not-allowed ${
                                 blocked
@@ -167,6 +170,7 @@ export default function SelectMethodScreen({
 
                         <button
                             onClick={() => !loading && !blocked && setMethod('sms')}
+                            data-pw="sms-receive-otp"
                             disabled={loading || blocked}
                             className={`relative my-1 mx-0.5 w-xd-193 flex flex-1 flex-col items-center justify-center h-xd-60 rounded-xd-20 border border-dashed transition-all cursor-pointer disabled:cursor-not-allowed ${
                                 blocked

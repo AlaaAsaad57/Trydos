@@ -55,11 +55,13 @@ export default function InputNameScreen({ onSubmit, loading, name: propName, set
                         onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                         placeholder={translate("Enter Your Name Exact ID")}
                         autoFocus
+                        data-pw="input-user-name-field"
                         className="flex-1 bg-transparent outline-none text-xd-16 font-medium text-[#1D1D1D] placeholder:text-[#1D1D1D]/40 caret-[#1D1D1D] [caret-shape:underscore]"
                     />
                     {canSubmit && (
                         <button
                             onClick={handleSubmit}
+                            data-pw="submit-user-name"
                             disabled={!!loading}
                             className="shrink-0 flex items-center justify-center disabled:opacity-50 cursor-pointer"
                             aria-label={translate('Continue')}

@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
-import { makeNextHeadersMock } from "../mocks/nextHeaders";
+import { makeNextHeadersMock } from "../../mocks/nextHeaders";
 
 const headers = makeNextHeadersMock();
 vi.mock("next/headers", () => headers);
@@ -342,5 +342,344 @@ describe("what leaves the server (AC-19)", () => {
 
     expect(maskToken("short")).toBe("***");
     expect(maskToken("")).toBe("***");
+  });
+});
+
+describe("which backend each service talks to", () => {
+  // One address per service, and no service quietly falling back to another's.
+  // Getting this wrong sends a signed-in shopper's request to a host that has
+  // never heard of them, which reads as a mass logout rather than a routing bug.
+  const ELASTIC = "https://search.invalid";
+  const COMMENTS = "https://comments.invalid";
+  const WALLET = "https://wallet.invalid";
+  const CHAT = "https://chat.invalid";
+  const STORIES = "https://stories.invalid";
+
+  beforeEach(() => {
+    vi.stubEnv("ELASTIC_BACKEND_URL", ELASTIC);
+    vi.stubEnv("COMMENT_BACKEND_URL", COMMENTS);
+    vi.stubEnv("WALLET_BACKEND_URL", WALLET);
+    vi.stubEnv("NEXT_PUBLIC_CHAT_BACKEND_URL", CHAT);
+    vi.stubEnv("STORIES_BACKEND_URL", STORIES);
+  });
+
+  it.each([
+    ["search", "elastic", () => ELASTIC],
+    ["chat", "chat", () => CHAT],
+    ["stories", "stories", () => STORIES],
+    ["comments", "comments", () => COMMENTS],
+    ["the wallet", "wallet", () => WALLET],
+  ])("sends %s to its own host", async (_name, server, expected) => {
+    const { getServerBaseUrl } = await import("utils/server/tokenManager");
+
+    await expect(getServerBaseUrl(server as any, "/anything")).resolves.toBe(
+      expected(),
+    );
+  });
+
+  it("sends a verified shopper to the core backend even for an allow-listed address", async () => {
+    // The allow-list is guest routing. A verified shopper is served entirely by
+    // the core backend, so the list must not pull them back to the gateway.
+    seedProfile({ id: 1, phone: "+442079460111" });
+    const { getServerBaseUrl } = await import("utils/server/tokenManager");
+
+    await expect(
+      getServerBaseUrl("market" as any, "/web/product/globalDetails/some-slug"),
+    ).resolves.toBe(CORE);
+  });
+
+  it("sends a guest to the gateway for an allow-listed address", async () => {
+    headers.__reset();
+    const { getServerBaseUrl } = await import("utils/server/tokenManager");
+
+    await expect(
+      getServerBaseUrl("market" as any, "/web/product/globalDetails/some-slug"),
+    ).resolves.toBe(GATEWAY);
+  });
+
+  it("sends a guest to the core backend for everything else", async () => {
+    headers.__reset();
+    const { getServerBaseUrl } = await import("utils/server/tokenManager");
+
+    await expect(getServerBaseUrl("market" as any, "/cart")).resolves.toBe(CORE);
+  });
+
+  it.each([
+    ["an allow-listed address", "/web/product/globalDetails/x", () => GATEWAY],
+    ["anything else", "/seller/orders", () => CORE],
+  ])(
+    "routes the seller dashboard by address alone — %s",
+    async (_name, url, expected) => {
+      // The shopper rule is deliberately market-only: a seller's dashboard is
+      // routed by what it is asking for, whoever is signed in.
+      seedProfile({ id: 1, phone: "+442079460111" });
+      const { getServerBaseUrl } = await import("utils/server/tokenManager");
+
+      await expect(
+        getServerBaseUrl("market-dashboard" as any, url),
+      ).resolves.toBe(expected());
+    },
+  );
+
+  it("refuses to guess a host for a service it does not know", async () => {
+    const { getServerBaseUrl } = await import("utils/server/tokenManager");
+
+    await expect(
+      getServerBaseUrl("nonsense" as any, "/anything"),
+    ).rejects.toThrow(/Unknown server/);
+  });
+
+  it("treats the checklist address as gateway work", async () => {
+    const { isFromGoApi } = await import("utils/server/tokenManager");
+
+    expect(isFromGoApi("/checklist")).toBe(true);
+    expect(isFromGoApi("/checklist/items?page=2")).toBe(true);
+  });
+});
+
+describe("the headers a proxied request carries", () => {
+  it("carries the language, the country and the caller's credential", async () => {
+    headers.__reset({
+      cookies: { [COOKIE_NAMES.MARKET_TOKEN]: "market-credential-for-tests" },
+    });
+    const { buildProxyHeaders } = await import("utils/server/tokenManager");
+
+    const built = await buildProxyHeaders("market" as any, "tr", "ar");
+
+    expect(built).toMatchObject({
+      accept: "application/json",
+      lang: "ar",
+      "Accept-Language": "ar",
+      "x-lang": "ar",
+      country: "tr",
+      countryCode: "TR",
+      Authorization: "Bearer market-credential-for-tests",
+    });
+  });
+
+  it("sends no sign-in header at all when there is no credential", async () => {
+    // An empty `Authorization: Bearer ` is worse than none: it reads as a
+    // malformed sign-in rather than an honest guest.
+    headers.__reset();
+    const { buildProxyHeaders } = await import("utils/server/tokenManager");
+
+    const built = await buildProxyHeaders("market" as any, "gb", "en");
+
+    expect(built.Authorization).toBeUndefined();
+    expect(Object.keys(built)).not.toContain("Authorization");
+  });
+
+  it("says which shop the request is for, only when there is one", async () => {
+    const { buildProxyHeaders } = await import("utils/server/tokenManager");
+
+    const withSeller = await buildProxyHeaders(
+      "market-dashboard" as any,
+      "gb",
+      "en",
+      "seller-42",
+    );
+    const withoutSeller = await buildProxyHeaders(
+      "market-dashboard" as any,
+      "gb",
+      "en",
+    );
+
+    expect(withSeller["X-Seller-ID"]).toBe("seller-42");
+    expect(withoutSeller["X-Seller-ID"]).toBeUndefined();
+  });
+
+  it("carries the caller's role when their chat profile names one", async () => {
+    headers.__reset({
+      cookies: {
+        [COOKIE_NAMES.USER_CHAT]: encodeURIComponent(
+          JSON.stringify({ id: 9, role_id: "7" }),
+        ),
+      },
+    });
+    const { buildProxyHeaders } = await import("utils/server/tokenManager");
+
+    expect((await buildProxyHeaders("chat" as any, "gb", "en")).current_role_id)
+      .toBe("7");
+  });
+
+  it("falls back to no role rather than leaving it blank", async () => {
+    headers.__reset();
+    const { buildProxyHeaders } = await import("utils/server/tokenManager");
+
+    expect((await buildProxyHeaders("chat" as any, "gb", "en")).current_role_id)
+      .toBe("-1");
+  });
+});
+
+describe("what the current visitor looks like to the app", () => {
+  it("gathers every profile and reports the visitor as signed in", async () => {
+    headers.__reset({
+      cookies: {
+        [COOKIE_NAMES.USER_DATA]: encodeURIComponent(
+          JSON.stringify({ id: 1, name: "Shopper", token: "secret-value" }),
+        ),
+        [COOKIE_NAMES.USER_CHAT]: encodeURIComponent(
+          JSON.stringify({ id: 2, access_token: "chat-secret" }),
+        ),
+        [COOKIE_NAMES.USER_STORIES]: encodeURIComponent(
+          JSON.stringify({ id: 3, token: "stories-secret" }),
+        ),
+        [COOKIE_NAMES.WALLET_USER]: encodeURIComponent(
+          JSON.stringify({ id: 4, balance: 10, email: "a@example.com" }),
+        ),
+        [COOKIE_NAMES.MARKET_TOKEN]: "market-credential-for-tests",
+      },
+    });
+    const { getCurrentUser } = await import("utils/server/tokenManager");
+
+    const current = await getCurrentUser();
+
+    expect(current.isAuthenticated).toBe(true);
+    expect(current.hasMarketToken).toBe(true);
+    expect(current.user).toMatchObject({ id: 1, name: "Shopper" });
+    expect(current.chatUser).toMatchObject({ id: 2 });
+    expect(current.storiesUser).toMatchObject({ id: 3 });
+    expect(current.walletUser).toMatchObject({ id: 4, balance: 10 });
+
+    // Nothing sensitive travels with it.
+    const asText = JSON.stringify(current);
+    expect(asText).not.toContain("secret-value");
+    expect(asText).not.toContain("chat-secret");
+    expect(asText).not.toContain("stories-secret");
+    expect(asText).not.toContain("a@example.com");
+  });
+
+  it("reports a visitor with no profile as not signed in", async () => {
+    headers.__reset();
+    const { getCurrentUser } = await import("utils/server/tokenManager");
+
+    const current = await getCurrentUser();
+
+    expect(current.isAuthenticated).toBe(false);
+    expect(current.hasMarketToken).toBe(false);
+    expect(current.user).toBeNull();
+    expect(current.chatUser).toBeNull();
+    expect(current.storiesUser).toBeNull();
+    expect(current.walletUser).toBeNull();
+  });
+
+  it("hands back a stored value it cannot read as data, rather than nothing", async () => {
+    headers.__reset({
+      cookies: { [COOKIE_NAMES.USER_DATA]: "not-json-at-all" },
+    });
+    const { getSecureCookie } = await import("utils/server/tokenManager");
+
+    await expect(getSecureCookie(COOKIE_NAMES.USER_DATA)).resolves.toBe(
+      "not-json-at-all",
+    );
+  });
+
+  it("hands back nothing for a cookie that is not there", async () => {
+    headers.__reset();
+    const { getSecureCookie } = await import("utils/server/tokenManager");
+
+    await expect(getSecureCookie(COOKIE_NAMES.USER_DATA)).resolves.toBeNull();
+  });
+
+  it("removes a cookie when asked to", async () => {
+    headers.__reset({ cookies: { [COOKIE_NAMES.MARKET_TOKEN]: "value" } });
+    const { deleteSecureCookie } = await import("utils/server/tokenManager");
+
+    await deleteSecureCookie(COOKIE_NAMES.MARKET_TOKEN);
+
+    expect(headers.__deletes).toContain(COOKIE_NAMES.MARKET_TOKEN);
+  });
+});
+
+describe("which services may be proxied at all", () => {
+  it.each([
+    "market",
+    "market-dashboard",
+    "chat",
+    "stories",
+    "elastic",
+    "comments",
+    "wallet",
+  ])("allows %s", async (server) => {
+    const { isAllowedServer } = await import("utils/server/tokenManager");
+    expect(isAllowedServer(server)).toBe(true);
+  });
+
+  it.each(["", "admin", "MARKET", "market ", "internal"])(
+    "refuses %s",
+    async (server) => {
+      // The allow-list is what stops a caller naming any host it likes, so it
+      // has to be exact — no case folding, no trimming, no near-misses.
+      const { isAllowedServer } = await import("utils/server/tokenManager");
+      expect(isAllowedServer(server)).toBe(false);
+    },
+  );
+});
+
+describe("what a request log is allowed to say", () => {
+  it("records the request without ever writing the credential down", async () => {
+    headers.__reset({
+      cookies: { [COOKIE_NAMES.MARKET_TOKEN]: "abcdefghijklmnopqrstuvwxyz" },
+    });
+    const { logSecureRequest } = await import("utils/server/tokenManager");
+    const { LogServerError } = await import("utils/serverErrorReporter");
+
+    await logSecureRequest({
+      server: "market",
+      url: "/cart",
+      method: "GET",
+      status: 500,
+      error: new Error("upstream failed"),
+    });
+
+    expect(LogServerError).toHaveBeenCalledTimes(1);
+    const reported = (LogServerError as any).mock.calls[0][0];
+    expect(reported).toMatchObject({
+      type: "proxy-request",
+      server: "market",
+      url: "/cart",
+      status: 500,
+      tokenPresent: true,
+      tokenHint: "abcd...wxyz",
+    });
+    expect(JSON.stringify(reported)).not.toContain(
+      "abcdefghijklmnopqrstuvwxyz",
+    );
+  });
+
+  it("stays quiet when the request did not fail", async () => {
+    headers.__reset();
+    const { logSecureRequest } = await import("utils/server/tokenManager");
+    const { LogServerError } = await import("utils/serverErrorReporter");
+    (LogServerError as any).mockClear();
+
+    await logSecureRequest({
+      server: "market",
+      url: "/cart",
+      method: "GET",
+      status: 200,
+    });
+
+    expect(LogServerError).not.toHaveBeenCalled();
+  });
+
+  it("says a credential was missing rather than inventing a hint", async () => {
+    headers.__reset();
+    const { logSecureRequest } = await import("utils/server/tokenManager");
+    const { LogServerError } = await import("utils/serverErrorReporter");
+    (LogServerError as any).mockClear();
+
+    await logSecureRequest({
+      server: "market",
+      url: "/cart",
+      method: "GET",
+      status: 401,
+      error: new Error("rejected"),
+    });
+
+    expect((LogServerError as any).mock.calls[0][0]).toMatchObject({
+      tokenPresent: false,
+      tokenHint: "***",
+    });
   });
 });

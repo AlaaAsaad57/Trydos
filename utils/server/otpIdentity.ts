@@ -16,9 +16,25 @@ import { LogServerError } from "utils/serverErrorReporter";
 // debug stats action import this so they derive identical Redis keys.
 // ---------------------------------------------------------------------------
 
-/** SHA-256 → 32 hex chars. Never store a raw token/IP in a Redis key. */
+/**
+ * SHA-256 → 32 hex chars. Never store a raw token/IP in a Redis key.
+ *
+ * Mixed with a server-side secret (`OTP_KEY_SALT`) before hashing. Without it
+ * the hash is reversible in practice, not in theory: the whole IPv4 space is
+ * small enough to hash end to end, so anyone who could read a key could work out
+ * which address it stood for. The secret never leaves the server, so the keys
+ * stop being guessable from the outside.
+ *
+ * Changing or setting the secret changes every key at once, which resets the
+ * per-session and per-IP counters. That is a one-off, and the reason to ship it
+ * at a quiet hour rather than mid-campaign.
+ */
 export const hashKey = (value: string) =>
-  crypto.createHash("sha256").update(value || "anon").digest("hex").slice(0, 32);
+  crypto
+    .createHash("sha256")
+    .update(`${process.env.OTP_KEY_SALT || ""}:${value || "anon"}`)
+    .digest("hex")
+    .slice(0, 32);
 
 /** Expand an IPv6 address (handling `::` compression) to 8 hextets. */
 function expandIpv6(addr: string): string[] {
