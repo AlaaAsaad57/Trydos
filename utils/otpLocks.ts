@@ -37,7 +37,12 @@ function read(): LockState {
       locks: parsed?.locks ?? {},
       numbers: parsed?.numbers ?? {},
     };
-    return prune(state);
+    // Persist the cleaned copy, don't just return it. Pruning in memory only
+    // meant a dead entry stayed in storage until the next lock happened to be
+    // written — so "expired" and "gone" were different moments, and a session
+    // that only ever read kept every number it had used.
+    if (prune(state)) write(state);
+    return state;
   } catch {
     return { locks: {}, numbers: {} };
   }
@@ -52,16 +57,24 @@ function write(state: LockState): void {
   }
 }
 
-// Drop expired cooldowns and out-of-window numbers.
-function prune(state: LockState): LockState {
+// Drop expired cooldowns and out-of-window numbers, in place.
+// Returns true when something was dropped, so the caller can save the result.
+function prune(state: LockState): boolean {
   const now = Date.now();
+  let dropped = false;
   for (const [k, exp] of Object.entries(state.locks)) {
-    if (!exp || exp <= now) delete state.locks[k];
+    if (!exp || exp <= now) {
+      delete state.locks[k];
+      dropped = true;
+    }
   }
   for (const [k, ts] of Object.entries(state.numbers)) {
-    if (!ts || now - ts >= WINDOW_MS) delete state.numbers[k];
+    if (!ts || now - ts >= WINDOW_MS) {
+      delete state.numbers[k];
+      dropped = true;
+    }
   }
-  return state;
+  return dropped;
 }
 
 /** Remaining cooldown for a number, in whole seconds (0 = not locked). */

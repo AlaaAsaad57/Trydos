@@ -94,6 +94,11 @@
 - OTP_SESSION_MAX=2
 - OTP_IP_MAX=4
 - OTP_WINDOW_SECONDS=3600
+- OTP_KEY_SALT=&lt;secret&gt;
+
+> `OTP_KEY_SALT` is a server-side secret mixed into the rate-limit keys. Changing
+> it changes every key at once, which resets the counters — expected, and a
+> reason to change it at a quiet hour.
 ---
   
 

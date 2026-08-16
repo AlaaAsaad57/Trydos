@@ -31,6 +31,24 @@ across every entry point — and what happens when renewal fails.
 | `ineligible` | Logout in progress | Do nothing |
 | `unavailable` | 5xx / network / malformed — never retried | Fall through to fallback flow |
 
+### Known trade-off: a refused credential is kept
+
+`invalid` deliberately leaves the refresh cookie in place, and this is the one
+outcome where the safe choice has a real cost. It was reviewed on 2026-08-15 and
+**left as it is**; unit tests pin it (`tests/utils/server/authRefresh.test.ts`),
+so a change here is a decision, not an accident.
+
+- **Why it is kept.** A 401 cannot tell "this credential is dead" from "a
+  concurrent winner already rotated it". Two tabs refreshing at once produce
+  exactly one loser, and deleting on its behalf would sign out a shopper whose
+  session is fine. Losing a live session is worse than carrying a dead cookie.
+- **What it costs.** A genuinely dead credential is sent on every later request
+  until the expire route's nuke path clears it. The cost is wasted exchanges, not
+  a broken session.
+- **What would actually fix it.** The backend answering "dead" differently from
+  "raced" — then the dead case can be cleared immediately and the raced case left
+  alone. Until then, deleting on a plain 401 is not a fix, it is a new bug.
+
 ---
 
 ## Map of all flows

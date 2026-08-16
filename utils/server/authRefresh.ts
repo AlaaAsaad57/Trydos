@@ -80,16 +80,56 @@ const REFRESH_BACKENDS = {
   },
 } as const;
 
-// Module-scope single-flight: parallel 401s inside one server instance share
-// one exchange instead of burning the single-use token N times (NFR-1).
-let inflight: Promise<RefreshOutcome> | null = null;
+// Single-flight, KEYED ON THE CREDENTIAL BEING SPENT.
+//
+// Parallel 401s must share one exchange, or the single-use token is burned N
+// times (NFR-1). But the flight cannot be a bare module variable: module scope
+// lives for the whole server process while a cookie jar lives for one request,
+// so two DIFFERENT visitors served by the same instance at the same moment would
+// share an exchange — and the second would be handed the first's freshly minted
+// token, which the caller then puts on its own retry. That is a cross-visitor
+// credential leak, not a saved round trip.
+//
+// Keying on the refresh credential itself gets the intent exactly right: the
+// same visitor's parallel requests hold the same credential and share, two
+// visitors hold different ones and do not.
+const marketFlights = new Map<string, Promise<RefreshOutcome>>();
+const chatFlights = new Map<string, Promise<RefreshOutcome>>();
+const storiesFlights = new Map<string, Promise<RefreshOutcome>>();
+
+async function singleFlight(
+  flights: Map<string, Promise<RefreshOutcome>>,
+  cookieName: string,
+  run: () => Promise<RefreshOutcome>,
+): Promise<RefreshOutcome> {
+  let key: string | undefined;
+  try {
+    key = (await cookies()).get(cookieName)?.value;
+  } catch {
+    key = undefined;
+  }
+
+  // Nothing to share on: `run` decides what a missing credential means.
+  if (!key) return run();
+
+  const running = flights.get(key);
+  if (running) return running;
+
+  const flight = run().finally(() => {
+    // Only clear our own entry: a credential rotated and re-used in the same
+    // instance must not have a newer flight removed by an older one settling.
+    if (flights.get(key) === flight) flights.delete(key);
+  });
+  flights.set(key, flight);
+  return flight;
+}
 
 export async function refreshMarketSession(): Promise<RefreshOutcome> {
-  if (inflight) return inflight;
-  inflight = doRefresh().finally(() => {
-    inflight = null;
-  });
-  return inflight;
+  return singleFlight(
+    marketFlights,
+    COOKIE_NAMES.MARKET_REFRESH_TOKEN,
+    doRefresh,
+  );
 }
 
 async function doRefresh(): Promise<RefreshOutcome> {
@@ -235,14 +275,12 @@ const STORIES_REFRESH_BACKEND = {
   }),
 };
 
-let chatInflight: Promise<RefreshOutcome> | null = null;
-
 export async function refreshChatSession(): Promise<RefreshOutcome> {
-  if (chatInflight) return chatInflight;
-  chatInflight = doRefreshChat().finally(() => {
-    chatInflight = null;
-  });
-  return chatInflight;
+  return singleFlight(
+    chatFlights,
+    COOKIE_NAMES.CHAT_REFRESH_TOKEN,
+    doRefreshChat,
+  );
 }
 
 async function doRefreshChat(): Promise<RefreshOutcome> {
@@ -329,14 +367,12 @@ async function doRefreshChat(): Promise<RefreshOutcome> {
   }
 }
 
-let storiesInflight: Promise<RefreshOutcome> | null = null;
-
 export async function refreshStoriesSession(): Promise<RefreshOutcome> {
-  if (storiesInflight) return storiesInflight;
-  storiesInflight = doRefreshStories().finally(() => {
-    storiesInflight = null;
-  });
-  return storiesInflight;
+  return singleFlight(
+    storiesFlights,
+    COOKIE_NAMES.STORIES_REFRESH_TOKEN,
+    doRefreshStories,
+  );
 }
 
 async function doRefreshStories(): Promise<RefreshOutcome> {
