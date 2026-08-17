@@ -112,7 +112,11 @@ or of CI — precisely so that no phase here ever depends on staging being up. A
 phase writes into the `unit` project and nowhere else. See
 `tests/live/README.md`.
 
-**Validation profile:** every phase names `tests-and-types` in `plan.md`.
+**Validation profile:** every phase names `logic-change` in `plan.md` — lint,
+typecheck and the unit tests. (This line used to say `tests-and-types`, which is
+not a profile this project defines; the profiles in
+`.claude/project-config.yaml` are `ui-change`, `logic-change` and `full`, and
+naming one that does not exist makes `/wf:plan` abort on VP-1.)
 
 ---
 
@@ -233,6 +237,23 @@ token leaks. Every phase below is on the critical path of every other journey.
 | 9 | `unit-tests-auth-service` | `services/auth.ts` (1085) — login, logout, session, guest, OTP send/resend/verify; `store/auth/reducer.tsx` (224) | 🔒 |
 | 10 | `unit-tests-api-auth-routes` | `app/api/auth/` — `login`, `logout`, `refresh`, `clear-tokens`, `me`, `update-user`, `register-device`, `wallet-token`, `expire`; `app/api/proxy/route.ts` — the hard block on `send_otp` | 🔒 |
 | 11 | `component-tests-auth-flow` | `components/Login/Enhanced/` (`VerifyPhoneFlow`, `InlineVerifyPanel`, `usePhoneVerifyFlow`, `screens/`, `ui/`); `Login/` — `Timer`, `SessionTimer`, `SessionExpiredWidget`, `ConfirmMobilePhoneWidget` | |
+
+**Also in this journey, outside the numbered phases:**
+`unit-tests-otp-send-and-limiter` — `serverActions/sendOtp.ts` (166) and the
+`otpRateLimit` wrapper in `serverRequests/radis/index.ts` 🔒. It is deliberately
+**not** given a phase number: the numbers above are referenced elsewhere and
+renumbering them would break those references, and the count in the contents
+table ("29 phases") counts the numbered phases only.
+
+Why it exists at all: both files were in no phase, and both are replaced by
+stand-ins for the whole test run (`tests/setup.ts`), so neither had ever been
+executed by a test. The send action owns the rate-limit decision and every
+refusal message a user sees; the wrapper owns what happens when the counter store
+is unreachable — it fails **open**. Each test file lifts only its own stand-in,
+which is why they are separate files.
+
+The counter script itself is **not** covered here. It needs a real store, and it
+belongs to `LIVE_TEST_ROADMAP.md` phase 6.
 
 **Phase 5 is the single highest-value test in the repo.** Draft acceptance
 criteria: a 200 passes through with the token attached; a 401 triggers **exactly

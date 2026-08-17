@@ -212,7 +212,11 @@ does. A retried write is a duplicated order.
 **9. One login per identity per run.** OTP is rate limited for real (see finding
 2). Sessions are created once in the harness and shared by every file.
 
-**Validation profile:** every phase names `tests-and-types` in `plan.md`.
+**Validation profile:** every phase names `logic-change` in `plan.md` — lint,
+typecheck and the unit tests. (This line used to say `tests-and-types`, which is
+not a profile this project defines; the profiles in
+`.claude/project-config.yaml` are `ui-change`, `logic-change` and `full`, and
+naming one that does not exist makes `/wf:plan` abort on VP-1.)
 
 Phases marked **🔒** touch a protected runtime path (`.github/workflows/**`) and
 must say so in `plan.md` and carry the protected-path statement in `verify.md`.
@@ -490,6 +494,16 @@ The send is real; only the code is fixed. The verify step reads
 read a WhatsApp message and the `is_via_whatsapp` flag only changes how the
 backend is asked to deliver — both values are still worth sending, because both
 buttons exist in `SelectMethodScreen.tsx` and a user can press either.
+
+**What this phase does NOT have to prove any more.** The *wrapper* around the
+counter script — fail-open when the store is missing or fails, the refusal
+names, the lock-time fallback, and the four limits read from configuration — is
+covered by unit tests (`tests/serverRequests/radis/index.test.ts`, ticket
+`unit-tests-otp-send-and-limiter`). The same ticket covers the send action's own
+decisions. **The script itself is still this phase's job**, and only this phase
+can do it: its counting, its fixed windows, and its behaviour when two callers
+arrive at once all need a real store. Do not re-prove the wrapper here, and do
+not read the unit tests as evidence that the limiter works end to end.
 
 Cover the refusals as well as the happy path: wrong code, unknown
 `verificationId`, a second send inside the cooldown, the WhatsApp flag, and

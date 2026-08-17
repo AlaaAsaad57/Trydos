@@ -63,8 +63,15 @@ describe("the server boundary", () => {
     await expect(RedisGet("anything")).resolves.toBeNull();
   });
 
-  it("hands back a cache that is always empty", async () => {
-    await expect(otpRateLimit({} as any)).resolves.toEqual({ blocked: false });
+  // The stand-in's default reply has to be a reply the real limiter could
+  // actually give, or a test can pass on a value that cannot happen. It used to
+  // say `{ blocked: false }`, which the real one never returns.
+  it("hands back a limiter that allows the send", async () => {
+    await expect(otpRateLimit({} as any)).resolves.toEqual({
+      allowed: true,
+      reason: "ok",
+      lockSeconds: 60,
+    });
     expect(cacheSpies.otpRateLimit).toHaveBeenCalled();
   });
 });

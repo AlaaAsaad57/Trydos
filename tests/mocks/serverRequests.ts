@@ -32,8 +32,18 @@ export const cacheSpies = {
   getKeys: vi.fn(async () => [] as string[]),
   GetFromRedis: vi.fn(async () => null),
   fixedWindowRateLimit: vi.fn(async () => ({ allowed: true, remaining: 1 })),
-  // Never blocked by default. A test about the OTP limiter sets its own reply.
-  otpRateLimit: vi.fn(async () => ({ blocked: false })),
+  // Allowed by default, in the shape the real limiter actually returns:
+  // { allowed, reason, lockSeconds }. It used to reply `{ blocked: false }`,
+  // which the real code never returns — and the send action reads `allowed`, so
+  // against the old reply it read `undefined`, took it as false, and refused
+  // every send. Any test that let the real action run would have been proving
+  // the opposite of what it looked like. A test about the limiter sets its own
+  // reply; this default is only for the files that never touch it.
+  otpRateLimit: vi.fn(async () => ({
+    allowed: true,
+    reason: "ok",
+    lockSeconds: 60,
+  })),
   flushOtpLimitsAction: vi.fn(async () => undefined),
 };
 
