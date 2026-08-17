@@ -96,8 +96,8 @@ describe("renaming (AC-23)", () => {
     expect(net.calls[0].url).toBe("/api/auth/update-user");
     expect(net.calls[0].body.updates.map((u: any) => u.name)).toEqual([
       "User-Data",
-      "User-Chat",
-      "User-Stories",
+      "USER-CHAT",
+      "USER-STORIES",
     ]);
   });
 
@@ -165,8 +165,8 @@ describe("updating the profile", () => {
     expect(s.userProfile).toMatchObject({ name: "Ada" });
     // One secure-copy write per leg, in the same order.
     expect(net.calls.map((c) => c.body.updates[0].name)).toEqual([
-      "User-Stories",
-      "User-Chat",
+      "USER-STORIES",
+      "USER-CHAT",
       "User-Data",
     ]);
   });

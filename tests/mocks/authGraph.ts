@@ -113,12 +113,17 @@ export const makeFetchDataMock = () => ({ fetchData: vi.fn() });
 
 export const makeAuthMeMock = () => ({ fetchAuthMe: vi.fn(async () => null) });
 
+/** The four cookie names the sign-in graph touches, copied verbatim from
+ *  utils/cookies/cookie-manager. Copied, not imported, for the reason at the top
+ *  of this file — and checked against the real module in mocks.test.ts, because
+ *  a copy nobody checks drifts. These four are NOT uniformly cased in the real
+ *  module; do not tidy them. */
 export const makeCookieNamesMock = () => ({
   COOKIE_NAMES: {
     USER_DATA: "User-Data",
-    USER_CHAT: "User-Chat",
-    USER_STORIES: "User-Stories",
-    WALLET_USER: "Wallet-User",
+    USER_CHAT: "USER-CHAT",
+    USER_STORIES: "USER-STORIES",
+    WALLET_USER: "WALLET_USER",
   },
 });
 

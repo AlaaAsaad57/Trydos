@@ -11,6 +11,59 @@ import { SEND_OTP } from "utils/endpointConfig";
 import { fromServiceToken } from "utils/serviceTokens";
 import { LogServerError } from "utils/serverErrorReporter";
 
+/** The proxy's single failure answer.
+ *
+ *  An unrecognised service identifier and a recognised one whose upstream call
+ *  fails must be indistinguishable, or the pair becomes a way of discovering
+ *  which service names are real. Both cases return this exact response, built
+ *  here and nowhere else, so status, body and headers cannot drift apart again.
+ *
+ *  Residual: the unrecognised case answers before any upstream call, so it comes
+ *  back sooner. That timing difference is not closed here — doing so would mean
+ *  delaying a real failure on purpose. */
+const proxyFailure = () =>
+  NextResponse.json(
+    { message: "Proxy request failed" },
+    { status: 503, headers: { "Cache-Control": "no-store" } },
+  );
+
+/** Decode percent-escapes until the string stops changing.
+ *
+ *  One pass is not enough for either guard below: "%252F" survives a single pass
+ *  as "%2F", and "send%255Fotp" survives as "send%5Fotp" — both still reach a
+ *  backend router that decodes again. The loop is bounded so a deeply nested
+ *  input cannot spin, and a malformed escape returns what we have rather than
+ *  throwing, which keeps the guards failing closed. */
+const fullyDecode = (value: string) => {
+  let current = value;
+  for (let pass = 0; pass < 5; pass += 1) {
+    let next: string;
+    try {
+      next = decodeURIComponent(current);
+    } catch {
+      return current;
+    }
+    if (next === current) return current;
+    current = next;
+  }
+  return current;
+};
+
+/** Does this target rewrite the host instead of naming a path on it?
+ *
+ *  The upstream URL is built by concatenation (getServerBaseUrl + targetUrl),
+ *  and several base URLs (wallet, stories, elastic, chat, comments) are bare
+ *  hosts with no path component. A target that does not begin with a single "/"
+ *  can therefore rewrite the host rather than the path — e.g. "@evil.tld/x"
+ *  yields "https://<wallet-host>@evil.tld/x", which resolves to evil.tld and
+ *  would carry the injected Bearer token off-site. "//" is protocol-relative and
+ *  "/\" is normalized to "//" by some URL parsers; both escape the host the same
+ *  way. */
+const escapesHost = (target: string) =>
+  !target.startsWith("/") ||
+  target.startsWith("//") ||
+  target.startsWith("/\\");
+
 export async function POST(request: NextRequest) {
   try {
     // 1. Read proxy metadata from headers
@@ -29,13 +82,9 @@ export async function POST(request: NextRequest) {
 
     // 2. Validate server type (prevent arbitrary URL access)
     if (!isAllowedServer(server)) {
-      // Deliberately identical to the generic failure below: an unrecognised
-      // identifier and a recognised one whose upstream call fails must be
-      // indistinguishable, so the mapping cannot be recovered by probing.
-      return NextResponse.json(
-        { message: "Proxy request failed" },
-        { status: 503, headers: { "Cache-Control": "no-store" } },
-      );
+      // Same answer as the generic failure below, from the same place, so the
+      // mapping cannot be recovered by probing. See proxyFailure().
+      return proxyFailure();
     }
 
     if (!targetUrl) {
@@ -51,19 +100,16 @@ export async function POST(request: NextRequest) {
       targetUrl = decodeURI(targetUrl);
     }
 
-    // The upstream URL is built by concatenation (getServerBaseUrl + targetUrl),
-    // and several base URLs (wallet, stories, elastic, chat, comments) are bare
-    // hosts with no path component. A target that does not begin with a single
-    // "/" can therefore rewrite the host rather than the path — e.g.
-    // "@evil.tld/x" yields "https://<wallet-host>@evil.tld/x", which resolves to
-    // evil.tld and would carry the injected Bearer token off-site. Require an
-    // on-host absolute path. "//" is protocol-relative and "/\" is normalized to
-    // "//" by some URL parsers; both escape the host the same way.
-    if (
-      !targetUrl.startsWith("/") ||
-      targetUrl.startsWith("//") ||
-      targetUrl.startsWith("/\\")
-    ) {
+    // Require an on-host absolute path — see escapesHost() for why, and for what
+    // each of the three shapes does.
+    //
+    // The check runs against the escaped form AND the fully decoded one. The
+    // decoding header above uses decodeURI, which leaves "%2F" escaped by
+    // design, so "/%2F%2Fevil.tld/x" reaches here still looking like a plain
+    // path while decoding to a protocol-relative address further down the line.
+    // Decoding is used only to decide, never to forward.
+    const decodedTarget = fullyDecode(targetUrl);
+    if (escapesHost(targetUrl) || escapesHost(decodedTarget)) {
       return NextResponse.json(
         { error: "Invalid target URL" },
         { status: 400, headers: { "Cache-Control": "no-store" } },
@@ -112,19 +158,19 @@ export async function POST(request: NextRequest) {
     // called. Blocking it here stops anyone using the proxy as an open relay to
     // reach the OTP endpoint directly and bypass that limiter.
     //
-    // Match on the *decoded* resolved path, not the raw header: a backend router
-    // decodes percent-escapes before routing, so "/auth/phone/send%5Fotp" reaches
-    // send_otp while sailing past a raw substring match. Decoding here fails
-    // closed — an over-broad match only blocks a request that must not be
-    // proxied anyway.
-    let decodedPath = resolvedUrl.pathname;
-    try {
-      decodedPath = decodeURIComponent(resolvedUrl.pathname);
-    } catch {
-      // Malformed escape sequence — keep the undecoded path for the check.
-    }
+    // Match on the *fully decoded* resolved path, not the raw header: a backend
+    // router decodes percent-escapes before routing, so "/auth/phone/send%5Fotp"
+    // reaches send_otp while sailing past a raw substring match — and
+    // "send%255Fotp" sails past a single decode pass too. Decoding here fails
+    // closed: an over-broad match only blocks a request that must not be proxied
+    // anyway.
+    const decodedPath = fullyDecode(resolvedUrl.pathname);
 
-    if (targetUrl.includes(SEND_OTP) || decodedPath.includes(SEND_OTP)) {
+    if (
+      targetUrl.includes(SEND_OTP) ||
+      decodedTarget.includes(SEND_OTP) ||
+      decodedPath.includes(SEND_OTP)
+    ) {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403, headers: { "Cache-Control": "no-store" } },
@@ -268,9 +314,6 @@ export async function POST(request: NextRequest) {
       url: targetUrl,
     });
 
-    return NextResponse.json(
-      { message: "Proxy request failed" },
-      { status: 503 },
-    );
+    return proxyFailure();
   }
 }

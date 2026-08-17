@@ -112,6 +112,27 @@ describe("cookie stand-in — the copied names", () => {
     );
   });
 
+  it("still matches the real names in the sign-in graph's own copy", async () => {
+    // A second, smaller copy of the same names lives in tests/mocks/authGraph.ts
+    // — the sign-in service tests replace the whole cookie module, so they get
+    // that one. It went unchecked and drifted: three of its four names were
+    // written in a casing the real module does not use, so those tests asserted
+    // against names that do not exist and could not have caught a real mismatch.
+    const real = await vi.importActual<
+      typeof import("utils/cookies/cookie-manager")
+    >("utils/cookies/cookie-manager");
+
+    const { makeCookieNamesMock } = await import("./authGraph");
+    const copy = makeCookieNamesMock().COOKIE_NAMES;
+
+    // A subset, so every name it does carry must be the real one.
+    for (const [key, value] of Object.entries(copy)) {
+      expect({ [key]: value }).toEqual({
+        [key]: (real.COOKIE_NAMES as Record<string, string>)[key],
+      });
+    }
+  });
+
   it("reads and writes its own jar instead of a real cookie store", () => {
     const cookies = makeCookieManagerMock({ [""]: "" });
     const { COOKIE_NAMES } = cookies;
