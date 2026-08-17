@@ -41,6 +41,19 @@ interface SendOtpResult {
 
 const digitsOnly = (phone: string) => (phone || "").replace(/[^0-9]/g, "");
 
+// A number outside this range is refused BEFORE the limiter is consulted, so
+// rubbish can never spend anyone's allowance.
+//   • 6 is the lower bound this action always had.
+//   • 15 is E.164's maximum, and also the most the phone input can produce:
+//     RdbPhoneInput caps an unknown country at 15 digits and a detected one at
+//     its dial code + local length. So no real shopper can reach the upper
+//     bound — only a caller posting to the action directly can.
+// Without the upper bound an arbitrarily long run of digits went through to the
+// limiter, and every distinct one became a new member of the per-session number
+// set the limiter counts and stores.
+const MIN_PHONE_DIGITS = 6;
+const MAX_PHONE_DIGITS = 15;
+
 // fetchServerData encodes non-2xx bodies as "HTTP <status> <url>: <body>".
 // Pull the backend message back out so wait/throttle text reaches the UI.
 function extractMessage(raw: string | null | undefined): string {
@@ -61,7 +74,13 @@ export async function sendOtpAction(input: {
 }): Promise<SendOtpResult> {
   try {
     const digits = digitsOnly(input.phone);
-    if (digits.length < 6) {
+    if (
+      digits.length < MIN_PHONE_DIGITS ||
+      digits.length > MAX_PHONE_DIGITS
+    ) {
+      // The same refusal either way: to the person typing, a number that is too
+      // long is just as invalid as one that is too short. Reusing the existing
+      // message also means no new user-visible string to translate.
       return { success: false, message: "Invalid Phone Number" };
     }
     const phone = `+${digits}`;

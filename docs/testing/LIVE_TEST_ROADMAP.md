@@ -135,11 +135,41 @@ rest are new. The admin shape is not settled — `auth:admin-api` may want a
 long-lived token or an email and password. **Phase 19 research confirms it**, and
 the roadmap does not guess.
 
-The OTP for all test phones is `999999`.
+### The OTP for test accounts
 
-**Nothing in this table is ever printed.** Not in an assertion message, not in a
-failure diff, not in a snapshot, not in a log line. Phase 1 adds a helper that
-redacts them, and every later phase uses it.
+Two shopper accounts are confirmed on staging, and both accept the fixed code
+`999999`:
+
+| Number | Identity | Variable |
+|---|---|---|
+| `963937288307` | shopper A | `TEST_ACCOUNT_PHONE` |
+| `963937729850` | shopper B | `TEST_ACCOUNT_PHONE_2` |
+
+`TEST_ACCOUNT_OTP` is `999999`, and it is the code for every test identity. The
+seller and the delivery worker still need their own numbers; they use the same
+fixed code once they have them.
+
+**Why a fixed code and not a real one.** The OTP now arrives over WhatsApp, and
+WhatsApp shows a one-time code **only on the primary phone**. A linked device —
+WhatsApp Web, WhatsApp Desktop, or any library that links itself as one — is
+refused by design and sees a placeholder instead of the digits. So no unattended
+test can read a real code unless a phone sits somewhere and forwards it. The
+fixed code removes that whole dependency: the send still happens for real
+against the real backend, and only the six digits come from the environment
+instead of from a message.
+
+**The fixed path is a staging control, and it must stay on staging.**
+`security-check/remediation-plan.md` B2 tracks that work — an env flag, an
+allow-list holding exactly these numbers, and a build that fails if the path is
+reachable in production. If B2 is ever closed by removing the fixed code instead
+of gating it, every phase from 6 on loses its login and this section has to be
+rewritten first.
+
+**Nothing in this table is ever printed at run time.** Not in an assertion
+message, not in a failure diff, not in a snapshot, not in a log line. Phase 1
+adds a helper that redacts them, and every later phase uses it. The two numbers
+are written above because they are throwaway staging accounts and the phases
+need to know which identity is which; that is not permission to print them.
 
 ---
 
@@ -182,7 +212,11 @@ does. A retried write is a duplicated order.
 **9. One login per identity per run.** OTP is rate limited for real (see finding
 2). Sessions are created once in the harness and shared by every file.
 
-**Validation profile:** every phase names `tests-and-types` in `plan.md`.
+**Validation profile:** every phase names `logic-change` in `plan.md` — lint,
+typecheck and the unit tests. (This line used to say `tests-and-types`, which is
+not a profile this project defines; the profiles in
+`.claude/project-config.yaml` are `ui-change`, `logic-change` and `full`, and
+naming one that does not exist makes `/wf:plan` abort on VP-1.)
 
 Phases marked **🔒** touch a protected runtime path (`.github/workflows/**`) and
 must say so in `plan.md` and carry the protected-path statement in `verify.md`.
@@ -454,6 +488,22 @@ Redis cooldown (`OTP_COOLDOWN_SECONDS`, `OTP_SESSION_MAX`, `OTP_IP_MAX`,
 `OTP_WINDOW_SECONDS`). A phase that logs in freely will lock the suite out of its
 own accounts. Log in once per identity per run and cache it — that is rule 9, and
 this is the phase that proves the limiter works rather than fighting it.
+
+The send is real; only the code is fixed. The verify step reads
+`TEST_ACCOUNT_OTP` (see **The OTP for test accounts** above), so nothing has to
+read a WhatsApp message and the `is_via_whatsapp` flag only changes how the
+backend is asked to deliver — both values are still worth sending, because both
+buttons exist in `SelectMethodScreen.tsx` and a user can press either.
+
+**What this phase does NOT have to prove any more.** The *wrapper* around the
+counter script — fail-open when the store is missing or fails, the refusal
+names, the lock-time fallback, and the four limits read from configuration — is
+covered by unit tests (`tests/serverRequests/radis/index.test.ts`, ticket
+`unit-tests-otp-send-and-limiter`). The same ticket covers the send action's own
+decisions. **The script itself is still this phase's job**, and only this phase
+can do it: its counting, its fixed windows, and its behaviour when two callers
+arrive at once all need a real store. Do not re-prove the wrapper here, and do
+not read the unit tests as evidence that the limiter works end to end.
 
 Cover the refusals as well as the happy path: wrong code, unknown
 `verificationId`, a second send inside the cooldown, the WhatsApp flag, and
