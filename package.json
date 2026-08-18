@@ -19,6 +19,7 @@
     "test:e2e:live": "tsx tests/e2e/cli.ts run --project live",
     "test:e2e:scripted": "tsx tests/e2e/cli.ts run --project scripted --pass-with-no-tests",
     "e2e:preflight": "tsx tests/e2e/cli.ts preflight",
+    "e2e:health": "tsx tests/e2e/cli.ts health",
     "e2e:build": "tsx tests/e2e/cli.ts build",
     "e2e:report": "playwright show-report"
   },

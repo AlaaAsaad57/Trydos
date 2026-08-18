@@ -61,6 +61,7 @@ jobs:
       totals: ${{ steps.report.outputs.totals }}
       failures: ${{ steps.report.outputs.failures }}
       configured: ${{ steps.preflight.outputs.configured }}
+      staging: ${{ steps.preflight.outputs.staging }}
 
     steps:
       - name: Check out the branch
@@ -115,15 +116,21 @@ jobs:
             echo "No E2E_ENV_FILE secret. Preflight will report not configured."
           fi
 
-      # Configured? And is every backend address a known staging host? This runs
-      # **before** the build, so a wrong target costs nothing and an
-      # unconfigured repository builds nothing at all.
+      # Configured? Is every backend address a known staging host? And is
+      # staging actually serving? This runs **before** the build, so a wrong
+      # target costs nothing, an unconfigured repository builds nothing at all,
+      # and a backend that is already down does not buy two minutes of build
+      # time to find that out.
+      #
+      # `configured` and `staging` are separate outputs because they are separate
+      # situations: "nobody set this up" is silence, "it is set up and the
+      # backend is down" is news.
       - name: Preflight
         id: preflight
         run: pnpm e2e:preflight
 
       - name: Cache the browser
-        if: ${{ steps.preflight.outputs.configured == 'true' }}
+        if: ${{ steps.preflight.outputs.configured == 'true' && steps.preflight.outputs.staging == 'up' }}
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
@@ -131,18 +138,37 @@ jobs:
 
       - name: Install Chromium
         id: browser
-        if: ${{ steps.preflight.outputs.configured == 'true' }}
+        if: ${{ steps.preflight.outputs.configured == 'true' && steps.preflight.outputs.staging == 'up' }}
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Build
         id: build
-        if: ${{ steps.preflight.outputs.configured == 'true' }}
+        if: ${{ steps.preflight.outputs.configured == 'true' && steps.preflight.outputs.staging == 'up' }}
         run: pnpm e2e:build
 
+      # `continue-on-error` here does **not** mean a failing suite is tolerated.
+      # It defers the verdict to "Decide the verdict" below, which is the only
+      # step that can fail this job. A step that fails outright ends the job on
+      # the spot, and the whole point is to ask one more question first.
       - name: Browser journeys
         id: journeys
-        if: ${{ steps.preflight.outputs.configured == 'true' }}
+        if: ${{ steps.preflight.outputs.configured == 'true' && steps.preflight.outputs.staging == 'up' }}
+        continue-on-error: true
         run: pnpm exec playwright test
+
+      # Was staging still up when that failed?
+      #
+      # Preflight passing is not enough. On 2026-08-18 preflight was clean and
+      # Elasticsearch went down ninety seconds later, during the build — so every
+      # journey failed on a blank page and the run was reported as broken code.
+      # Asking again, after the fact, is the only way to tell the two apart.
+      #
+      # Only on failure: a green suite proves staging was up, and probing it
+      # again would be a request that can only produce a confusing answer.
+      - name: Re-check staging
+        id: recheck
+        if: ${{ always() && steps.journeys.outcome == 'failure' }}
+        run: pnpm e2e:health
 
       # The counts and the failing test names, read from the JSON reporter's
       # `e2e-results.json`. `always()` because its whole purpose is to describe a
@@ -175,6 +201,8 @@ jobs:
         if: ${{ always() }}
         env:
           R_CONFIGURED: ${{ steps.preflight.outputs.configured }}
+          R_STAGING: ${{ steps.preflight.outputs.staging }}
+          R_RECHECK: ${{ steps.recheck.outputs.staging }}
           R_BROWSER: ${{ steps.browser.outcome }}
           R_BUILD: ${{ steps.build.outcome }}
           R_JOURNEYS: ${{ steps.journeys.outcome }}
@@ -192,6 +220,13 @@ jobs:
 
           if [ "$R_CONFIGURED" != "true" ]; then
             STEP_LINE="staging not configured — nothing built, nothing run ⏭️"
+          elif [ "$R_STAGING" = "down" ]; then
+            STEP_LINE="staging is down — nothing built, nothing run ⚠️"
+          elif [ "$R_RECHECK" = "down" ]; then
+            # The case this whole file was changed for. Naming it explicitly
+            # matters: without this line the message is a list of failing test
+            # names, and everyone spends an hour reading the wrong code.
+            STEP_LINE="journeys failed, but staging went down mid-run ⚠️ — not a code failure"
           else
             STEP_LINE="browser $(icon "$R_BROWSER")  build $(icon "$R_BUILD")  journeys $(icon "$R_JOURNEYS")"
           fi
@@ -201,6 +236,42 @@ jobs:
             echo "$STEP_LINE"
             echo "TRYDOS_EOF"
           } >> "$GITHUB_OUTPUT"
+
+      # ---------------------------------------------------------------------
+      # The only step that can fail this job.
+      #
+      # A red check here has to mean "the code broke" — that is the rule the top
+      # of this file is built on, and a suite that cannot reach its backend has
+      # not learned anything about the code. So a failure is a failure **unless**
+      # staging was provably not serving when we asked.
+      #
+      # It is deliberately narrow, because the failure mode of getting this wrong
+      # is a real bug reported as an outage. It downgrades only when the probe
+      # says "down" *after* the run, at which point the suite had no backend.
+      # Anything else — a probe that could not decide, a suite that failed with
+      # staging healthy — is a red job.
+      # ---------------------------------------------------------------------
+      - name: Decide the verdict
+        if: ${{ always() }}
+        env:
+          R_JOURNEYS: ${{ steps.journeys.outcome }}
+          R_RECHECK: ${{ steps.recheck.outputs.staging }}
+        run: |
+          set -u
+
+          if [ "$R_JOURNEYS" != "failure" ]; then
+            exit 0
+          fi
+
+          if [ "$R_RECHECK" = "down" ]; then
+            echo "The journeys failed, and staging is not serving."
+            echo "Reporting this as a backend outage, not a code failure."
+            echo "Re-run this workflow once staging is back."
+            exit 0
+          fi
+
+          echo "The journeys failed and staging is up. This is a code failure."
+          exit 1
 
   notify:
     name: Telegram

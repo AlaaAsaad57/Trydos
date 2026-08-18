@@ -32,6 +32,13 @@ export const ALLOWED_HOSTS: readonly string[] = [
   "trydos_comments_develop.ramaaz.dev",
   "recomende_elasticsearch_engin_develop.ramaaz.dev",
   "fleet_develop.ramaaz.dev", // the delivery-worker product
+  // The search index, reached by address rather than by name because that is
+  // how it is deployed today. Written out here so the guard covers it like
+  // every other backend — it is already in this repository's public CI logs,
+  // which print it on every Elasticsearch error, so listing it publishes
+  // nothing new. It should get a staging hostname and a firewall; until it
+  // does, this entry is what keeps the suite from silently pointing elsewhere.
+  "13.233.30.40",
 ];
 
 export type TargetReport = {

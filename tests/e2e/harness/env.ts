@@ -40,7 +40,11 @@ export const BACKEND_ADDRESS_KEYS = [
   "GO_BACKEND_URL", // the gateway (rename pending)
   "WALLET_BACKEND_URL",
   "STORIES_BACKEND_URL",
-  "ELASTIC_BACKEND_URL",
+  "ELASTIC_BACKEND_URL", // the recommendation engine
+  // The search index itself, and it was missing from this list until the run
+  // that made `health.ts` necessary: preflight reported "7 staging addresses
+  // checked" while the one address that took the suite down was never looked at.
+  "ELASTICSEARCH_NODE",
   "NEXT_PUBLIC_CHAT_BACKEND_URL",
   "COMMENT_BACKEND_URL",
   "FLEET_BASE_URL", // a separate product, phase 19

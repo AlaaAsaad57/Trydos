@@ -1,6 +1,7 @@
 // The one entry point for the e2e suite.
 //
-//   tsx tests/e2e/cli.ts preflight   is this configured, and is it staging?
+//   tsx tests/e2e/cli.ts preflight   is this configured, is it staging, is it up?
+//   tsx tests/e2e/cli.ts health      is staging up? — on its own, for after a run
 //   tsx tests/e2e/cli.ts build       build the app with the staging environment
 //   tsx tests/e2e/cli.ts run         all three, in order, for local use
 //
@@ -20,6 +21,7 @@ import { resolve } from "node:path";
 
 import { hasBackends, hasShopperA, loadLiveEnv } from "./harness/env";
 import { assertStagingTarget } from "./harness/guard";
+import { probeStaging } from "./harness/health";
 import { redact } from "./harness/redact";
 import { buildApp } from "./harness/server";
 
@@ -48,7 +50,39 @@ const setStepOutput = (key: string, value: string): void => {
  *  Returns false when nothing is configured, which means "skip everything" and
  *  not "something is wrong". Throws when an address is set and is not a known
  *  staging host — that is the one hard stop. */
-const preflight = (): boolean => {
+/** Is staging serving? Reports it, records it for CI, and answers.
+ *
+ *  Used twice in a run and for different reasons. Before the build, so a known
+ *  outage does not cost minutes of build time. After a failure, so a red suite
+ *  can be told apart from a staging outage that happened to start after
+ *  preflight passed — which is exactly what happened on 2026-08-18, where
+ *  preflight was clean and Elasticsearch went down ninety seconds later.
+ *
+ *  `staging` is a separate step output from `configured` on purpose. "Nobody set
+ *  this up" and "it is set up and it is down" are different situations and only
+ *  one of them is worth telling anyone about. */
+const checkStaging = async (): Promise<boolean> => {
+  const health = await probeStaging();
+
+  if (health.skipped) {
+    log("no search backend configured, so nothing to health-check.");
+    setStepOutput("staging", "up");
+    return true;
+  }
+
+  if (!health.up) {
+    log(`staging is not serving: ${health.reason}`);
+    log("This is a backend outage, not a code failure. The suite will skip.");
+    setStepOutput("staging", "down");
+    return false;
+  }
+
+  log("staging health check passed.");
+  setStepOutput("staging", "up");
+  return true;
+};
+
+const preflight = async (): Promise<boolean> => {
   loadLiveEnv();
 
   if (!hasBackends()) {
@@ -76,7 +110,11 @@ const preflight = (): boolean => {
   );
 
   setStepOutput("configured", "true");
-  return true;
+
+  // Last, and only once the target is known to be staging. Probing an address
+  // before proving it is one would mean reaching out to a host the guard has not
+  // cleared yet.
+  return await checkStaging();
 };
 
 // ---------------------------------------------------------------------------
@@ -241,11 +279,18 @@ const main = async (): Promise<number> => {
 
   switch (command) {
     case "preflight":
-      preflight();
+      await preflight();
+      return 0;
+
+    // The same probe on its own, for the step that runs after a failed suite.
+    // Never fails the job — its answer is a step output, and deciding what that
+    // answer means is the workflow's business, not this command's.
+    case "health":
+      await checkStaging();
       return 0;
 
     case "build":
-      if (!preflight()) return 0;
+      if (!(await preflight())) return 0;
       await buildApp();
       return 0;
 
@@ -256,13 +301,13 @@ const main = async (): Promise<number> => {
       return 0;
 
     case "run":
-      if (!preflight()) return 0;
+      if (!(await preflight())) return 0;
       await buildApp();
       return await runPlaywright(rest);
 
     default:
       console.error(
-        `Unknown command "${command}". Use preflight, build, run or report.`,
+        `Unknown command "${command}". Use preflight, health, build, run or report.`,
       );
       return 1;
   }
