@@ -33,7 +33,7 @@ import { listing, nav, product, region, search } from "../selectors";
  *  assert on it rather than guess. */
 export const chooseRegionIfAsked = async (
   page: Page,
-): Promise<{ chosen: boolean }> => {
+): Promise<{ chosen: boolean; iso?: string }> => {
   const popup = region.popup(page);
 
   // Short wait, not the default: on a page that has no popup this is pure
@@ -48,22 +48,31 @@ export const chooseRegionIfAsked = async (
 
   const first = region.anyCountry(page).first();
   await expect(first).toBeVisible();
+
+  // Which country this is, so we can wait for the URL that proves we arrived.
+  const iso = ((await first.getAttribute("data-pw")) ?? "")
+    .replace("personal-info-countries-", "")
+    .toLowerCase();
+
   await first.click();
 
-  // Choosing rewrites the URL to the chosen country and drops `no-country`.
+  // Wait for the navigation to actually land, and this wait is the whole point
+  // of the function.
+  //
+  // `changeCountry` (components/settings/PersonalInfoCountries.tsx) sets the
+  // country cookie **immediately**, then awaits a starter-settings round trip to
+  // staging, and only then assigns `window.location.href`. So there is a window,
+  // as long as that request takes, where the cookie already says the new country
+  // while the page still lists the old one's products. Click a card in that
+  // window and the server resolves an old-country slug against the new country,
+  // answers `productNotFound`, and redirects to `?message=product_not_found`.
+  //
+  // A person never sees this — they cannot click faster than the round trip. A
+  // test hits it every single time. Waiting for the URL closes the window.
+  await page.waitForURL(new RegExp(`/${iso}-`), { timeout: 45_000 });
   await expect(popup).toBeHidden({ timeout: 30_000 });
 
-  // Then reload, and this is a workaround rather than tidiness.
-  //
-  // Without it the page keeps the listing it was rendered with before the
-  // country changed, so the cards on screen are the *previous* country's
-  // products. They look fine and they are not there: clicking one lands on
-  // `?message=product_not_found`. Recorded as a finding in
-  // docs/testing/E2E_TEST_DESIGN.md section 16 — a live failure is a finding,
-  // not something a test quietly works around, so this comment is the receipt.
-  await page.reload({ waitUntil: "domcontentloaded" });
-
-  return { chosen: true };
+  return { chosen: true, iso };
 };
 
 /** Open the storefront home page and wait for it to be usable.

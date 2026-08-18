@@ -16,7 +16,12 @@ test.describe("a guest browsing the storefront", () => {
   test("the root path redirects to a country-and-language path", async ({
     page,
   }) => {
-    await page.goto("/");
+    // `domcontentloaded`, not the default `load`. `load` waits for every last
+    // resource — analytics, fonts, media from the CDN — and on a CI runner
+    // talking to staging that regularly outlives the navigation timeout. This
+    // test is about the redirect, which has already happened by the time the
+    // document parses.
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
     // The shape, not one exact value: the country comes from detection and the
     // default can change without this journey being broken. `/gb-en/` — country
