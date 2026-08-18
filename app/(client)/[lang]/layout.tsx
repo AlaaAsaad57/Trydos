@@ -2,6 +2,7 @@ import "styles/globals.css";
 import "styles/home.css";
 
 import localFont from "next/font/local";
+import { lang as langParam } from "next/root-params";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
@@ -111,8 +112,8 @@ const quicksand_semibold = localFont({
   fallback: ["system-ui", "arial"],
 });
 
-export default async function RootLayout({ params, children, modal }) {
-  const { lang } = await params;
+export default async function RootLayout({ children, modal }) {
+  const lang = await langParam();
   const [country, language] = lang.split("-");
   return (
     <html

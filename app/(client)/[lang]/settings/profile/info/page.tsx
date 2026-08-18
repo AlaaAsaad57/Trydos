@@ -1,9 +1,10 @@
+import { lang as langParam } from "next/root-params";
 import PersonalInfoForm from "components/setting/profile/PersonalInfoForm";
 import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
 import { getCookieServer } from "utils/cookies/server-cookie-manager";
-async function PersonalInfo({ params }) {
-  let Params = await params;
-  let [country, language] = Params?.lang?.split("-");
+async function PersonalInfo() {
+  const lang = await langParam();
+  let [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
   let SafeUserProfile = (await getCookieServer<UserData>(
     COOKIE_NAMES.USER_DATA,
@@ -14,7 +15,7 @@ async function PersonalInfo({ params }) {
         initialData={SafeUserProfile}
         isRtl={isRtl}
         language={language}
-        local={Params?.lang}
+        local={lang}
       />
     </div>
   );

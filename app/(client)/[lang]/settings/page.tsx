@@ -1,3 +1,4 @@
+import { lang as langParam } from "next/root-params";
 import NextLink from "components/global/NextLink";
 import BackBar from "components/setting/BackBar";
 import OrdersLinkCard from "components/setting/orders";
@@ -15,24 +16,24 @@ import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
 import { getCookieServer } from "utils/cookies/server-cookie-manager";
 
 
-export async function generateMetadata({ params }) {
-  let Params = await params;
-  const [country, language] = Params?.lang?.split("-");
+export async function generateMetadata() {
+  const lang = await langParam();
+  const [country, language] = lang?.split("-");
   const metadata = {
     title: translateFunction("Settings - TryDos", language),
     description: translateFunction(
       "Manage your account settings and preferences.",
       language,
     ),
-    alternates: buildAlternates(Params.lang, "/settings"),
+    alternates: buildAlternates(lang, "/settings"),
   };
   return metadata;
 }
 
-async function page({ params }) {
+async function page() {
   // Server component to render JSON-LD structured data
-  let Params = await params;
-  let [country, language] = Params?.lang?.split("-");
+  const lang = await langParam();
+  let [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
   // The orders count is fetched client-side by <OrdersLinkCard>, so the page
   // itself only needs the cached profile cookie.
@@ -48,17 +49,17 @@ async function page({ params }) {
     {
       name: "Settings",
       Icon: `/icons/SettingsIcon.svg`,
-      href: `/${Params?.lang}/settings/prefferences`,
+      href: `/${lang}/settings/prefferences`,
     },
     {
       name: "My Checklist",
       Icon: `/icons/Heart.svg`,
-      href: `/${Params?.lang}/settings/checklist`,
+      href: `/${lang}/settings/checklist`,
     },
     {
       name: "Terms & Conditions",
       Icon: `/icons/TermsIcon.svg`,
-      href: `/${Params?.lang}/terms-of-service`,
+      href: `/${lang}/terms-of-service`,
     },
     {
       name: "Legal Information",
@@ -68,7 +69,7 @@ async function page({ params }) {
     // {
     //   name: "Contact Us",
     //   Icon: `/icons/ContactInfoIcon.svg`,
-    //   href: `/${Params?.lang}/contact`,
+    //   href: `/${lang}/contact`,
     // },
     {
       name: "About Us",
@@ -78,7 +79,7 @@ async function page({ params }) {
     // {
     //   name: "Compare",
     //   Icon: `/icons/FilterInfoIcon.svg`,
-    //   href: `/${Params?.lang}/compare`,
+    //   href: `/${lang}/compare`,
     // },
     {
       name: "Share App",
@@ -107,8 +108,8 @@ async function page({ params }) {
     >
       <BackBar
         isRtl={isRtl}
-        local={Params?.lang}
-        preivous_page={`/${Params.lang}`}
+        local={lang}
+        preivous_page={`/${lang}`}
       />
       <RouterRefresh />
       <Suspense
@@ -122,7 +123,7 @@ async function page({ params }) {
       >
         {/* @ts-ignore */}
         <Profile
-          local={Params.lang}
+          local={lang}
           isRtl={isRtl}
           language={language}
           SafeUserProfile={SafeUserProfile}
@@ -142,7 +143,7 @@ async function page({ params }) {
         <OrdersLinkCard
           isRtl={isRtl}
           language={language}
-          local={Params?.lang}
+          local={lang}
           user={SafeUserProfile}
         />
 
@@ -166,7 +167,7 @@ async function page({ params }) {
       >
         <NextLink
           isFromSetting={true}
-          href={`/${Params?.lang}/settings/countries`}
+          href={`/${lang}/settings/countries`}
           data-pw="country-button"
           className={`${
             isRtl ? "flex-row-reverse" : "flex-row"
@@ -187,7 +188,7 @@ async function page({ params }) {
         </NextLink>
         <NextLink
           isFromSetting={true}
-          href={`/${Params?.lang}/settings/languages`}
+          href={`/${lang}/settings/languages`}
           className={`${
             isRtl ? "flex-row-reverse" : "flex-row"
           } w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer gap-[12px]`}
