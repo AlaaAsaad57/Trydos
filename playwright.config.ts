@@ -53,9 +53,17 @@ export default defineConfig({
   // covers starting the server and logging in once.
   globalTimeout: 30 * 60 * 1000,
 
-  // `list` on CI too: the HTML report is a directory we have decided not to
-  // upload, so it would only ever be written and thrown away.
-  reporter: process.env.CI ? [["list"]] : [["list"], ["html", { open: "never" }]],
+  // `list` for a human reading the CI log, plus `json` for the Telegram message
+  // — which needs the counts and the failing test names, and cannot get them by
+  // scraping console output.
+  //
+  // The HTML report is left out on CI on purpose: it is a directory we have
+  // decided not to upload, so it would only ever be written and thrown away.
+  // `e2e-results.json` is gitignored and never uploaded either; it is read in
+  // the same job by `cli.ts report`, which redacts it before anything is sent.
+  reporter: process.env.CI
+    ? [["list"], ["json", { outputFile: "e2e-results.json" }]]
+    : [["list"], ["html", { open: "never" }]],
 
   use: {
     baseURL: LIVE_ORIGIN,

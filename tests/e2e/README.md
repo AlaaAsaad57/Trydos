@@ -16,6 +16,11 @@ pnpm e2e:preflight        # just "is this configured, and is it staging?"
 pnpm e2e:report           # open the last local HTML report
 ```
 
+CI runs one more command, `tsx tests/e2e/cli.ts report`. It reads the JSON
+reporter's `e2e-results.json` and produces the two lines the Telegram message
+needs — the counts, and up to four failing tests with the reason each failed.
+Everything it emits goes through `redact()` first.
+
 First time on a machine:
 
 ```bash

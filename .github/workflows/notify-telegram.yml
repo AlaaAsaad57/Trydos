@@ -125,8 +125,14 @@ jobs:
             if [ -n "$STEP_LINE" ]; then
               TEXT="$TEXT${NL}${NL}$(esc "$STEP_LINE")"
             fi
+            # The counts belong here too. "3 failed" reads very differently
+            # depending on whether 2 or 200 passed alongside it, and a red
+            # message that only lists names cannot tell you which it was.
+            if [ -n "$TOTALS" ]; then
+              TEXT="$TEXT${NL}$(esc "$TOTALS")"
+            fi
             if [ -n "$FAILURES" ]; then
-              TEXT="$TEXT${NL}${NL}$(esc "$FAILURES")"
+              TEXT="$TEXT${NL}${NL}<b>Failures</b>${NL}<pre>$(esc "$FAILURES")</pre>"
             fi
           fi
 

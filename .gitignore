@@ -134,6 +134,7 @@ docs/testing/TESTING_STACK_AND_ROADMAP.md
 # same problem in a different shape — a trace archives every request header.
 # See docs/testing/E2E_TEST_DESIGN.md section 11.
 tests/e2e/.artifacts/
+e2e-results.json
 tests/e2e/.auth/
 playwright-report/
 blob-report/

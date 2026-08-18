@@ -58,6 +58,8 @@ jobs:
 
     outputs:
       steps: ${{ steps.collect.outputs.steps }}
+      totals: ${{ steps.report.outputs.totals }}
+      failures: ${{ steps.report.outputs.failures }}
       configured: ${{ steps.preflight.outputs.configured }}
 
     steps:
@@ -142,6 +144,19 @@ jobs:
         if: ${{ steps.preflight.outputs.configured == 'true' }}
         run: pnpm exec playwright test
 
+      # The counts and the failing test names, read from the JSON reporter's
+      # `e2e-results.json`. `always()` because its whole purpose is to describe a
+      # run that failed, and it never fails the job itself — a broken report must
+      # not turn a green suite red.
+      #
+      # Everything it emits is passed through `redact()` first. A Playwright
+      # failure message carries whatever the assertion saw, and this repository
+      # is public.
+      - name: Read the results
+        id: report
+        if: ${{ always() && steps.preflight.outputs.configured == 'true' }}
+        run: pnpm exec tsx tests/e2e/cli.ts report
+
       # ---------------------------------------------------------------------
       # There is deliberately no artifact upload here.
       #
@@ -199,4 +214,6 @@ jobs:
       result: ${{ needs.e2e.result }}
       title: E2E · ${{ github.event_name }}
       steps: ${{ needs.e2e.outputs.steps }}
+      totals: ${{ needs.e2e.outputs.totals }}
+      failures: ${{ needs.e2e.outputs.failures }}
     secrets: inherit

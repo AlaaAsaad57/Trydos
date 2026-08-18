@@ -375,6 +375,22 @@ configured" and the run is green and empty.
 Chromium is installed with a cached `~/.cache/ms-playwright`. Results are
 reported through the existing `notify-telegram.yml`.
 
+**What the Telegram message says.** A red run has to be readable without opening
+GitHub, so the message carries the counts (`e2e 4 passed · 1 failed`) and up to
+four failing tests, each with its full title and the reason it failed — the
+opening line of the error plus any `Expected` / `Received` / `Timeout` line that
+followed it. `cli.ts report` builds this from the JSON reporter's
+`e2e-results.json`; console output cannot be scraped reliably.
+
+Two constraints shape it. **Everything goes through `redact()`** — a Playwright
+failure message carries whatever the assertion saw, and the step that builds the
+text runs in a public log. And the list is capped at four, because Telegram
+rejects anything over 4096 characters; the run link covers the rest.
+
+`notify-telegram.yml` previously showed the counts only on a *passing* run, so a
+red message never said how many had passed. It shows them on both now, which
+improves the unit-test message too.
+
 A full run is roughly 15 to 25 minutes: install, build, browser, journey. That is
 fine nightly and after a merge, and is another reason it never gates a pull
 request.
@@ -491,19 +507,31 @@ with it. Full text is in git history.
 
 **New, found by the first run of this suite:**
 
-9. **Changing country leaves the previous country's products on screen.** Pick a
-   country in the "Select Your Region" popup and the URL changes, but the home
-   page keeps the listing it was rendered with. The cards look fine and the
-   products are not available in the new country: clicking one lands on
-   `?message=product_not_found`.
+9. **Changing country has a race window between the cookie and the navigation.**
 
-   Proven rather than guessed — `chooseRegionIfAsked` reloads after choosing, and
-   that single change took the guest journey from failing to passing. The reload
-   is a workaround, marked as one in `actions/nav.ts`.
+   `changeCountry` (`components/settings/PersonalInfoCountries.tsx:66`) sets the
+   country cookie **first**, then awaits a starter-settings round trip to
+   staging, and only then assigns `window.location.href`. For as long as that
+   request takes, the cookie already says the new country while the page still
+   lists the old one's products. Clicking a card in that window sends an
+   old-country slug to a server that now resolves it against the new country, so
+   it answers `productNotFound` and redirects to `?message=product_not_found`.
 
-   Worth its own ticket. It is the same shape as the known stale-RSC problem
-   where a query-string navigation reuses a cached payload, and a real visitor
-   who changes country hits it on the first click.
+   **Impact is low.** A person cannot click faster than the round trip, and the
+   owner confirmed the flow works normally on the deployed site. An automated
+   test hits it every time, which is how it was found.
+
+   **This is not an app bug to fix; it is a wait the test owes.**
+   `chooseRegionIfAsked` waits for the URL to carry the chosen country before it
+   returns. An earlier version called `page.reload()` instead — that also made
+   the suite pass, and it was the wrong fix for the wrong diagnosis (I had
+   assumed stale rendered content). Recorded because the wrong version was
+   plausible and someone will reach for it again.
+
+   *Correction, worth reading if you saw the first version of this note:* the
+   redirect comes from the **server** (`products/[productId]/page.tsx:75`), not
+   from stale client state, and both country-change paths do a hard navigation.
+   Neither fact fits a caching explanation.
 
 10. **The app cannot detect a country over loopback**, so every local and CI run
     lands on `?no-country=true` and gets the region popup. Not a bug — there is

@@ -15,7 +15,7 @@
 // fast, honest "skipped". Only a target that is set *and wrong* fails.
 
 import { spawn } from "node:child_process";
-import { appendFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { hasBackends, hasShopperA, loadLiveEnv } from "./harness/env";
@@ -38,7 +38,9 @@ const log = (message: string): void => {
 const setStepOutput = (key: string, value: string): void => {
   const file = process.env.GITHUB_OUTPUT;
   if (!file) return;
-  appendFileSync(file, `${key}=${value}\n`);
+  // The heredoc form, because a failure list is several lines and the `key=value`
+  // form silently keeps only the first.
+  appendFileSync(file, `${key}<<TRYDOS_EOF\n${value}\nTRYDOS_EOF\n`);
 };
 
 /** Decide whether to run, and prove the target is staging.
@@ -77,6 +79,150 @@ const preflight = (): boolean => {
   return true;
 };
 
+// ---------------------------------------------------------------------------
+// The report, for the Telegram message.
+//
+// Playwright's JSON reporter writes `e2e-results.json`. Console output cannot be
+// scraped reliably, so the counts and the failing test names come from there.
+//
+// **Everything printed goes through `redact()`.** A failure message carries
+// whatever the assertion saw — a URL, a header, a response body — and this
+// repository is public, so its CI logs are world-readable. The Telegram chat is
+// not public, but the step that builds this text is.
+// ---------------------------------------------------------------------------
+
+const RESULTS_FILE = resolve(process.cwd(), "e2e-results.json");
+
+/** How many failures to name. The message has a hard 4096-character limit, and
+ *  a wall of names helps nobody — the run link is there for the rest. */
+const MAX_NAMED_FAILURES = 4;
+
+type PlaywrightSpec = {
+  title: string;
+  ok?: boolean;
+  tests?: { results?: { status?: string; error?: { message?: string } }[] }[];
+};
+
+type PlaywrightSuite = {
+  title?: string;
+  specs?: PlaywrightSpec[];
+  suites?: PlaywrightSuite[];
+};
+
+type Failure = { name: string; reason: string };
+
+/** Walk the nested suites and collect every spec that did not pass. */
+const collectFailures = (
+  suites: PlaywrightSuite[] = [],
+  trail: string[] = [],
+): Failure[] =>
+  suites.flatMap((suite) => {
+    const here = suite.title ? [...trail, suite.title] : trail;
+
+    const failedHere = (suite.specs ?? [])
+      .filter((spec) => spec.ok === false)
+      .map((spec) => {
+        const message = (spec.tests ?? [])
+          .flatMap((test) => test.results ?? [])
+          .find((result) => result.error?.message)?.error?.message;
+
+        return {
+          name: [...here, spec.title].join(" › "),
+          reason: summariseError(message ?? "no error message recorded"),
+        };
+      });
+
+    return [...failedHere, ...collectFailures(suite.suites, here)];
+  });
+
+/** The part of an error worth putting in a chat message.
+ *
+ *  Playwright errors run to dozens of lines of call log, and the opening line
+ *  alone is often not enough: a timeout says everything in itself, but an
+ *  assertion opens with `expect(received).toBe(expected)` and keeps the actual
+ *  answer two lines further down. So take the opening line plus whichever of
+ *  the Expected / Received / Timeout lines follow it.
+ *
+ *  Colour codes are stripped because Telegram renders them as literal escape
+ *  characters. */
+const DETAIL_LINE = /^(Expected|Received|Timeout|Locator)\b/;
+
+const summariseError = (message: string): string => {
+  const lines = message
+    .replace(/\x1b\[[0-9;]*m/g, "")
+    .split("\n")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+
+  const opening = lines[0] ?? "no error message recorded";
+  const details = lines
+    .slice(1)
+    .filter((line) => DETAIL_LINE.test(line))
+    .slice(0, 2);
+
+  const clip = (line: string): string =>
+    line.length > 120 ? `${line.slice(0, 120)}\u2026` : line;
+
+  return [opening, ...details].map(clip).join("\n      ");
+};
+
+/** Read the run's results and write the two values the notifier wants. */
+const report = (): void => {
+  let raw: string;
+  try {
+    raw = readFileSync(RESULTS_FILE, "utf8");
+  } catch {
+    // No file means the run never got as far as producing one — the build
+    // failed, or preflight skipped everything. Say so rather than inventing
+    // numbers.
+    log("no e2e-results.json — the suite did not run.");
+    setStepOutput("totals", "");
+    setStepOutput("failures", "");
+    return;
+  }
+
+  const results = JSON.parse(raw) as {
+    stats?: {
+      expected?: number;
+      unexpected?: number;
+      flaky?: number;
+      skipped?: number;
+    };
+    suites?: PlaywrightSuite[];
+  };
+
+  const stats = results.stats ?? {};
+  const passed = stats.expected ?? 0;
+  const failed = stats.unexpected ?? 0;
+  const flaky = stats.flaky ?? 0;
+  const skipped = stats.skipped ?? 0;
+
+  const totals = [
+    `e2e ${passed} passed`,
+    failed ? `${failed} failed` : "",
+    flaky ? `${flaky} flaky` : "",
+    skipped ? `${skipped} skipped` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const failures = collectFailures(results.suites);
+  const shown = failures.slice(0, MAX_NAMED_FAILURES).map(
+    // Two lines each: what broke, then why. The indent is what makes a list of
+    // four readable on a phone.
+    (failure) => `  • ${failure.name}\n      ${failure.reason}`,
+  );
+
+  if (failures.length > shown.length) {
+    shown.push(`  … and ${failures.length - shown.length} more`);
+  }
+
+  setStepOutput("totals", redact(totals));
+  setStepOutput("failures", redact(shown.join("\n")));
+
+  log(totals);
+};
+
 /** Hand the rest of the arguments to Playwright and adopt its exit code. */
 const runPlaywright = (args: string[]): Promise<number> =>
   new Promise((resolvePromise, reject) => {
@@ -103,6 +249,12 @@ const main = async (): Promise<number> => {
       await buildApp();
       return 0;
 
+    // Reads the last run's results. Never fails a job: a broken report must not
+    // turn a green suite red.
+    case "report":
+      report();
+      return 0;
+
     case "run":
       if (!preflight()) return 0;
       await buildApp();
@@ -110,7 +262,7 @@ const main = async (): Promise<number> => {
 
     default:
       console.error(
-        `Unknown command "${command}". Use preflight, build or run.`,
+        `Unknown command "${command}". Use preflight, build, run or report.`,
       );
       return 1;
   }
