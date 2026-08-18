@@ -60,8 +60,17 @@ export interface UsePhoneVerifyFlowResult {
     error: string;
     setError: (error: string) => void;
     loading: LoadingState;
-    /** Sends the OTP for the first time (or after a method switch) and, on success, advances to 'enter-pin'. */
-    sendMethod: (selected: 'sms' | 'whatsapp') => Promise<void>;
+    /**
+     * Sends the OTP for the first time (or after a method switch) and, on
+     * success, advances to 'enter-pin'.
+     *
+     * Resolves to `false` when the send was refused — by the client guard
+     * before the request, or by the limiter / backend after it. A host needs
+     * that to tell the two cooldowns apart: `services/auth.ts` arms the same
+     * per-number lock on a *successful* send too (so the resend is throttled),
+     * so "a cooldown is running" on its own does not mean a send failed.
+     */
+    sendMethod: (selected: 'sms' | 'whatsapp') => Promise<boolean>;
     /** Resends on the already-selected method without changing step. */
     resend: () => Promise<void>;
     verifyPin: (inputPin: string) => Promise<void>;
@@ -140,14 +149,14 @@ export function usePhoneVerifyFlow({
     const sendErrorText = (e: unknown) => (getNumberLockRemaining(phone) > 0 ? '' : errorText(e));
 
     const sendMethod = async (selected: 'sms' | 'whatsapp') => {
-        if (loading) return;
+        if (loading) return false;
         const remaining = getNumberLockRemaining(phone);
         // The screen renders its own cooldown / cap message when `blockedMessage`
         // is omitted, so returning silently still leaves the user with an
         // explanation on screen.
         if (remaining > 0 || isSessionCapReached(phone)) {
             if (blockedMessage) setError(blockedMessage(remaining));
-            return;
+            return false;
         }
         setMethod(selected);
         setError('');
@@ -174,10 +183,12 @@ export function usePhoneVerifyFlow({
             setLoading('');
             setStep('enter-pin');
             onAdvance?.();
+            return true;
         } catch (e) {
             setLoading('');
             setError(sendErrorText(e));
             LogError({ error: e, scenario: `Error sending OTP in ${source}` });
+            return false;
         }
     };
 

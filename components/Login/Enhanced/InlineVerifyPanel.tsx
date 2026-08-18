@@ -97,7 +97,17 @@ export default function InlineVerifyPanel({
     // just be re-blocked.
     const [lockRemaining, setLockRemaining] = useState(0);
     const [capReached, setCapReached] = useState(false);
+    // A *successful* send arms the very same per-number cooldown a refused one
+    // does — `services/auth.ts` locks the number on success so the resend is
+    // throttled. So "a cooldown is running" cannot, on its own, mean the send
+    // failed: read that way, the red "Wait Ns before trying again" line landed
+    // right under the pin inputs the success had just opened. This flag says
+    // which of the two armed it, so only a refusal gets the red line.
+    const [sendSucceeded, setSendSucceeded] = useState(false);
     useEffect(() => {
+        // A different number carries its own cooldown; the last send's outcome
+        // says nothing about it.
+        setSendSucceeded(false);
         if (!phone) {
             setLockRemaining(0);
             setCapReached(false);
@@ -114,9 +124,15 @@ export default function InlineVerifyPanel({
 
     const blocked = lockRemaining > 0 || capReached;
 
+    // Every send in this panel goes through here — first send, method switch and
+    // resend alike — so the outcome is recorded on exactly one path.
+    const runSend = async (kind: 'whatsapp' | 'sms') => {
+        setSendSucceeded(await sendMethod(kind));
+    };
+
     const methodButton = (kind: 'whatsapp' | 'sms', label: string, icon: string) => (
         <button
-            onClick={() => sendMethod(kind)}
+            onClick={() => runSend(kind)}
             data-pw={`inline-${kind}-receive-otp`}
             disabled={busy || blocked}
             className={`relative mx-0.5 flex flex-1 items-center justify-center h-xd-48 rounded-xd-15 border border-dashed transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
@@ -156,12 +172,7 @@ export default function InlineVerifyPanel({
 
             {intro === 'choice' && (
                 <>
-                    <h2
-                        data-pw="inline-get-started"
-                        className="text-xd-16 font-bold text-[#1D1D1D] text-center"
-                    >
-                        {translate('Get Started !')}
-                    </h2>
+                
                     {/* Side by side, not stacked as on GetStartedScreen: the cart
                         panel is ~200px tall and two 60px buttons plus the heading
                         do not fit in it. */}
@@ -169,14 +180,14 @@ export default function InlineVerifyPanel({
                         <button
                             onClick={() => setIntro('done')}
                             data-pw="inline-have-account-button"
-                            className="xd-dashed-border flex-1 h-xd-48 px-1 rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-13 leading-[1.3] cursor-pointer transition-all active:scale-[0.98]"
+                            className="xd-dashed-border flex-1 h-xd-48 px-1 rounded-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-13 leading-[1.3] cursor-pointer transition-all active:scale-[0.98]"
                         >
                             {translate('I Have Already Account')}
                         </button>
                         <button
                             onClick={() => setIntro('terms')}
                             data-pw="inline-create-account"
-                            className="xd-dashed-border flex-1 h-xd-48 px-1 rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-13 leading-[1.3] cursor-pointer transition-all active:scale-[0.98]"
+                            className="xd-dashed-border flex-1 h-xd-48 px-1 rounded-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-13 leading-[1.3] cursor-pointer transition-all active:scale-[0.98]"
                         >
                             {translate('New Customer')}
                         </button>
@@ -260,7 +271,7 @@ export default function InlineVerifyPanel({
                         disableCustomKeypad
                     />
                     <button
-                        onClick={() => method && sendMethod(method)}
+                        onClick={() => method && runSend(method)}
                         data-pw="inline-resend-code"
                         disabled={busy || blocked}
                         className="text-xd-12 text-[#388CFF] underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -271,8 +282,9 @@ export default function InlineVerifyPanel({
             )}
 
             {/* Live cooldown countdown — visible before the shopper taps, and
-                ticking, so the wait is explained rather than discovered. */}
-            {lockRemaining > 0 && (
+                ticking, so the wait is explained rather than discovered. Only
+                for a send that was actually refused (see `sendSucceeded`). */}
+            {lockRemaining > 0 && !sendSucceeded && (
                 <p
                     data-pw="otp-cooldown"
                     className="text-xd-11 font-medium text-[#FF5F61] text-center"
@@ -283,6 +295,19 @@ export default function InlineVerifyPanel({
                         {translate('s')}
                     </span>
                     <span> {translate('before trying again')}</span>
+                </p>
+            )}
+
+            {/* The code did go out, so the same countdown means only "the resend
+                is not open yet". Same one-line slot, stated the way EnterPinScreen
+                states it, instead of leaving the disabled resend unexplained. */}
+            {lockRemaining > 0 && sendSucceeded && (
+                <p data-pw="otp-resend-countdown" className="text-xd-11 text-[#8E8E8E] text-center">
+                    <span>{translate('Resend After -')} </span>
+                    <span className="font-bold text-[#388CFF]">
+                        {lockRemaining}
+                        {translate('s')}
+                    </span>
                 </p>
             )}
 
