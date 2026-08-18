@@ -10,7 +10,7 @@ import {
   NetworkErrorIllustration,
 } from "../components/global/ErrorIllustrations";
 import "styles/globals.css";
-export default function GlobalError({ error, reset }) {
+export default function GlobalError({ error, retry }) {
   const sendError = async () => {
     const userAgent =
       typeof navigator !== "undefined" ? navigator.userAgent || "" : "";

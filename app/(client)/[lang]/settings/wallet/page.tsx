@@ -1,13 +1,14 @@
+import { lang as langParam } from "next/root-params";
 import BackBar from "components/setting/BackBar";
 import WalletTransactions from "components/settings/WalletTransactions";
 import React from "react";
 import { translateFunction } from "utils/server";
 
-async function Wallet({ params, searchParams }) {
-  let Params = await params;
-  let [country, language] = Params?.lang?.split("-");
+async function Wallet({ searchParams }) {
+  const lang = await langParam();
+  let [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
-  const local = Params.lang;
+  const local = lang;
 
   return (
     <div

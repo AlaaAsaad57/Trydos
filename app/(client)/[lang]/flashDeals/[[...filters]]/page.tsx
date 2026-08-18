@@ -1,3 +1,4 @@
+import { lang as langParam } from "next/root-params";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 import { Suspense } from "react";
@@ -22,6 +23,7 @@ import ListingBarOptions from "components/Listing/ListingBarOptions";
 export const dynamicParams = true;
 export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
+  const lang = await langParam();
   const sp = (await searchParams) ?? {};
   const search = typeof sp.search === "string" ? sp.search : undefined;
 
@@ -37,7 +39,7 @@ export async function generateMetadata({ params, searchParams }) {
   } catch (error) {
     LogServerError(
       { error, type: "get page meta error" },
-      `/${Params.lang}/flashDeals`,
+      `/${lang}/flashDeals`,
     );
 
     return [];
@@ -68,10 +70,11 @@ async function getCurrency(country, language) {
 }
 export default async function Page({ params, searchParams }) {
   let Params = await params;
+  const lang = await langParam();
   const sp = (await searchParams) ?? {};
 
   const legacy = buildSearchRedirectTarget(
-    Params.lang,
+    lang,
     "flashDeals",
     Params.filters,
     sp,
@@ -82,7 +85,7 @@ export default async function Page({ params, searchParams }) {
     const sort = typeof sp.sort === "string" ? sp.sort : undefined;
     const search = typeof sp.search === "string" ? sp.search : undefined;
     let parsedFilters = parseFiltersFromParams(Params.filters || []);
-    const [country, language] = Params.lang.split("-");
+    const [country, language] = lang.split("-");
     let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
     const effectiveSearch =
       (search && search.length > 0
@@ -125,7 +128,7 @@ export default async function Page({ params, searchParams }) {
 
     return (
       <>
-        <Suspense fallback={<></>} key={`FilterWidget ${Params.lang}`}>
+        <Suspense fallback={<></>} key={`FilterWidget ${lang}`}>
           <FilterWidgetServer
             currencyPromise={currency}
             language={language}
@@ -153,8 +156,8 @@ export default async function Page({ params, searchParams }) {
             data={{
               is_full_home: true,
             }}
-            href={`/${Params.lang}`}
-            ariaLabel={`TryDos Home ${Params.lang}`}
+            href={`/${lang}`}
+            ariaLabel={`TryDos Home ${lang}`}
             className="back-icon"
           >
             <img
@@ -188,7 +191,7 @@ export default async function Page({ params, searchParams }) {
         >
           <Suspense
             fallback={<ListingSkeleton justFilters />}
-            key={`FilterList ${Params.lang}`}
+            key={`FilterList ${lang}`}
           >
             <FilterListContainer
               filtersPromis={filtersData}
@@ -202,7 +205,7 @@ export default async function Page({ params, searchParams }) {
         </div>
         <Suspense
           fallback={<ListingSkeleton forProducts={true} />}
-          key={`ProductList ${Params.lang} ${sort ?? "relevance"}`}
+          key={`ProductList ${lang} ${sort ?? "relevance"}`}
         >
           <ProductListConainer
             isFlashDeals={true}
@@ -222,7 +225,7 @@ export default async function Page({ params, searchParams }) {
   } catch (error) {
     LogServerError(
       { error, filters: Params.filters },
-      `/${Params.lang}/flashDeals`,
+      `/${lang}/flashDeals`,
     );
     throw error instanceof Error ? error : new Error(String(error));
   }

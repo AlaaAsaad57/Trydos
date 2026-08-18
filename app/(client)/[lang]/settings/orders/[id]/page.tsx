@@ -1,11 +1,13 @@
+import { lang as langParam } from "next/root-params";
 import OrderDetailsWrapper from "components/setting/orders/OrderDetailsWrapper";
 import React from "react";
 
 async function OrderDetailsPage({ params, searchParams }) {
   let [Params, query] = await Promise.all([params, searchParams]);
-  let [country, language] = Params?.lang?.split("-");
+  const lang = await langParam();
+  let [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
-  const local = Params.lang;
+  const local = lang;
   const order_group_id = Params.id;
   const pack_id = query.order_id;
   const chat_order_id = query.chat_id;

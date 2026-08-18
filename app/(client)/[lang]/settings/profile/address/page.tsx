@@ -1,9 +1,10 @@
+import { lang as langParam } from "next/root-params";
 import PersonalInfoAddress from "components/settings/PersonalInfoAddress";
 import { GetCountries } from "serverRequests/product";
 
-async function ProfileAddressList({ params }) {
-  let Params = await params;
-  let [country, language] = Params?.lang?.split("-");
+async function ProfileAddressList() {
+  const lang = await langParam();
+  let [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
 
   let countries = await GetCountries({ country, language });
@@ -13,7 +14,7 @@ async function ProfileAddressList({ params }) {
       <PersonalInfoAddress
         countries={countries}
         isRtl={isRtl}
-        local={Params.lang}
+        local={lang}
       />
     </div>
   );

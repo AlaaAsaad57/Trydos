@@ -1,13 +1,14 @@
+import { lang as langParam } from "next/root-params";
 import PersonalInfoCountries from "components/settings/PersonalInfoCountries";
 
-async function CountriesPage({ params }) {
-  let Params = await params;
-  let [country, language] = Params?.lang?.split("-");
+async function CountriesPage() {
+  const lang = await langParam();
+  let [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
 
   return (
     <div className="flex-col w-full flex ">
-      <PersonalInfoCountries isRtl={isRtl} local={Params.lang} />
+      <PersonalInfoCountries isRtl={isRtl} local={lang} />
     </div>
   );
 }

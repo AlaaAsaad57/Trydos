@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
         process.env.COMMENT_BACKEND_URL + LOG_IN_COMMENTS_ENDPOINT,
         {
           user_id: String(InventoryUser.id),
-          phone: String(InventoryUser.phone),
+          phone: String(InventoryUser.phone).replace('+',''),
           id_token: idToken,
         },
       ),

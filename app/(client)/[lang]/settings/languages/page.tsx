@@ -1,9 +1,10 @@
+import { lang as langParam } from "next/root-params";
 import BackBar from "components/setting/BackBar";
 import LanguageSetting from "components/settings/LanguageSetting";
 
-async function LanguagesPage({ params }) {
-  let Params = await params;
-  let [country, language] = Params?.lang?.split("-");
+async function LanguagesPage() {
+  const lang = await langParam();
+  let [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
   const res = await fetch(`${process.env.BACKEND_URL}/languages`, {
     method: "GET",
@@ -24,7 +25,7 @@ async function LanguagesPage({ params }) {
       <LanguageSetting
         languages={languages}
         isRtl={isRtl}
-        local={Params.lang}
+        local={lang}
         languageVar={language}
       />
     </div>

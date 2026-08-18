@@ -1,11 +1,12 @@
+import { lang as langParam } from "next/root-params";
 import BackBar from "components/setting/BackBar";
 import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
 import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { translateFunction } from "utils/server";
 
-async function ProfileBankCards({ params }) {
-  let Params = await params;
-  let [country, language] = Params?.lang?.split("-");
+async function ProfileBankCards() {
+  const lang = await langParam();
+  let [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
   let SafeUserProfile = (await getCookieServer<UserData>(
     COOKIE_NAMES.USER_DATA,
@@ -17,9 +18,9 @@ async function ProfileBankCards({ params }) {
     >
       <BackBar
         isRtl={isRtl}
-        local={Params?.lang}
+        local={lang}
         name={translateFunction("Profile | Bank Cards", language)}
-        preivous_page={`/${Params.lang}/settings/profile`}
+        preivous_page={`/${lang}/settings/profile`}
       />
     </div>
   );

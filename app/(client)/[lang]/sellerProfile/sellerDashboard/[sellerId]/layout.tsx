@@ -1,4 +1,5 @@
 import React from "react";
+import { lang as langParam } from "next/root-params";
 import { redirect } from "next/navigation";
 import { getSellerShopsCached } from "serverRequests/settings/sellerShopsGuard";
 import ShopInfoLoader from "components/SellerDashboard/ShopInfoLoader";
@@ -8,9 +9,10 @@ async function layout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ lang: string; sellerId: string }>;
+  params: Promise<{ sellerId: string }>;
 }) {
-  const { lang, sellerId } = await params;
+  const { sellerId } = await params;
+  const lang = await langParam();
 
   // Per-shop server-side guard: a user may own some shops yet open a `sellerId`
   // they have no access to (e.g. a deep link). Bounce to the homepage before any

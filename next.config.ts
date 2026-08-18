@@ -9,10 +9,14 @@ import type { NextConfig } from "next";
 const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
 
 // Local dev on constrained machines: skip prod-only compile passes that add no
-// dev value but cost RAM/CPU. reactCompiler runs babel-plugin-react-compiler on
-// every module (the slow Babel path under Turbopack) and only affects shipped
-// runtime perf; optimizeCss (critters) and optimizeServerReact are prod-only
-// optimizations. All stay ON for real builds (NODE_ENV=production).
+// dev value but cost RAM/CPU. optimizeCss (critters) and optimizeServerReact are
+// prod-only optimizations. Both stay ON for real builds (NODE_ENV=production).
+//
+// reactCompiler used to be guarded here too, because it ran
+// babel-plugin-react-compiler on every module — the slow Babel path. Next 16.3
+// runs the compiler natively inside Turbopack (see turbopackRustReactCompiler in
+// `experimental` below), so that cost is gone and the compiler now runs in dev
+// as well. Keep the two remaining guards.
 const isDev = process.env.NODE_ENV === "development";
 
 let nextConfig: NextConfig = {
@@ -22,7 +26,7 @@ let nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   bundlePagesRouterDependencies: false,
-  reactCompiler: !isDev,
+  reactCompiler: true,
   // Reverse-proxy PostHog ingestion through our own domain so ad-blockers can't
   // drop events / session replays (utils/posthog.ts sets api_host: "/ingest").
   // The proxy itself is a route handler (app/ingest/[...path]/route.ts), NOT a
@@ -199,6 +203,11 @@ let nextConfig: NextConfig = {
         "localhost:3000",
       ],
     },
+    // Run the React Compiler natively inside Turbopack instead of through the
+    // Babel plugin. This is what makes `reactCompiler: true` affordable in dev
+    // on a constrained machine. Experimental in 16.3: it changes what ships to
+    // the browser, so it is a single line and revertable on its own.
+    turbopackRustReactCompiler: true,
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
     optimizeCss: !isDev,
