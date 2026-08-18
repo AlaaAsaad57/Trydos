@@ -92,7 +92,7 @@ function OrderSuccess() {
       className={`transition-all justify-center  order-sucess items-center flex-col ${
         orderData.success ? "min-h-[300px]" : "h-0 overflow-hidden"
       }`}
-      data-cy="The-Purchas"
+      data-pw="The-Purchas"
     >
       <img src="/icons/OrderSuccess.svg" />
       <span className="regular text-[14px] text-[#1d1d1d] mt-[11px]">
@@ -103,7 +103,7 @@ function OrderSuccess() {
       </span>
       <span
         className="bold text-[20px] text-[#404040] mt-[6px]"
-        data-cy="order-group-id"
+        data-pw="order-group-id"
       >
         {/* @ts-ignore */}
         {orderData?.data[0]?.order_group_id}

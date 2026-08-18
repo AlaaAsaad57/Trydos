@@ -167,7 +167,7 @@ async function page({ params }) {
         <NextLink
           isFromSetting={true}
           href={`/${Params?.lang}/settings/countries`}
-          data-cy="country-button"
+          data-pw="country-button"
           className={`${
             isRtl ? "flex-row-reverse" : "flex-row"
           } w-1/2 h-[53px] bg-[#F8F8F8] gap-[12px] rounded-[15px] px-[12px] items-center cursor-pointer`}
@@ -191,7 +191,7 @@ async function page({ params }) {
           className={`${
             isRtl ? "flex-row-reverse" : "flex-row"
           } w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer gap-[12px]`}
-          data-cy="language-button"
+          data-pw="language-button"
         >
           <img
             src={`/icons/LanguageIcon.svg`}

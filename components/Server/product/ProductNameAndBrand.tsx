@@ -48,7 +48,7 @@ async function ProductNameAndBrand({ globalPromise, isRtl, color }) {
           className={`${
             isRtl && "dir-rtl"
           } text-[#1D1D1D] regular capitalize text-[13px]`}
-          data-cy="productName_productPage"
+          data-pw="productName_productPage"
         >
           {getProductText()}
         </div>

@@ -11,7 +11,7 @@
 //      as repository secrets, and a file that happens to exist in the checkout
 //      must never overwrite them.
 //
-// See docs/testing/LIVE_TEST_ROADMAP.md, "Identities and secrets".
+// See docs/testing/E2E_TEST_DESIGN.md, "Identities and secrets".
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -22,7 +22,7 @@ const ENV_FILE = resolve(process.cwd(), ".env.development");
 // the suite may only ever talk to a server this harness started, so there is
 // nothing to configure and no way to point it somewhere else by accident. An
 // earlier draft had a LIVE_BASE_URL override to skip the build; it was cut on
-// purpose (see the roadmap, phase 1).
+// purpose.
 export const LIVE_HOST = "127.0.0.1";
 export const LIVE_PORT = 3100;
 export const LIVE_ORIGIN = `http://${LIVE_HOST}:${LIVE_PORT}`;

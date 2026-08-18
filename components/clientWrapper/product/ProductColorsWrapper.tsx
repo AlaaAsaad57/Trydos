@@ -20,7 +20,7 @@ function ProductColorsWrapper({
   return (
     <div
       className="product-photos-slider min-w-full h-[20px] bg-transparent  max-w-[176px] w-auto left-0 right-0 m-0 z-9999999 cursor-pointer hover:scale-125 transition-all origin-bottom top-[274px] overflow-hidden flex absolute align-center justify-center"
-      data-cy="productPhotoSlider"
+      data-pw="productPhotoSlider"
       onClick={handleClick}
       style={{ opacity: "1", zIndex: "10" }}
     >

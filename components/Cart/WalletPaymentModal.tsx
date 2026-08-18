@@ -424,7 +424,7 @@ export default function WalletPaymentModal({
                 {/* Action Buttons */}
                 <div className="flex-col gap-[10px] mt-[16px]">
                   <div
-                    data-cy="wallet-confirm-payment"
+                    data-pw="wallet-confirm-payment"
                     onClick={() => {
                       if (!isProcessing && isBalanceSufficient) {
                         handleConfirmPayment();
@@ -444,7 +444,7 @@ export default function WalletPaymentModal({
                   </div>
                   {!isProcessing && (
                     <div
-                      data-cy="wallet-cancel-payment"
+                      data-pw="wallet-cancel-payment"
                       onClick={onClose}
                       className="w-full h-[40px] rounded-[15px] flex justify-center items-center cursor-pointer bg-transparent text-[#8D8D8D] regular text-[13px]"
                     >

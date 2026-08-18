@@ -4,7 +4,7 @@ function ProductMoreButton({ Active, setActive }) {
   return (
     <div
       className="product-option-item flex-row"
-      data-cy="ThreePointsIcon"
+      data-pw="ThreePointsIcon"
       onClick={() => {
         // Sendevent({
         //   event: GA_EVENT_NAMES.CLICK,

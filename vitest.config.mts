@@ -6,22 +6,24 @@ import { configDefaults, defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
-// Two suites live here, and they must never run together.
+// The isolated suite, and only the isolated suite.
 //
 //   unit — everything under tests/, isolated. No network, no Redis, no real
 //          cookies. This is what `pnpm test:run` runs and what CI gates on, so
 //          a red run always means the code broke.
-//   live — tests/live/, against the real staging backend. Run on demand with
-//          `pnpm test:live`. It is red when staging is down, which is useful
-//          information about the backend and useless information about a pull
-//          request — so it is a separate project, never part of test:run.
 //
-// The live project has a harness now (tests/live/harness/) — it builds the app,
-// starts it, holds a cookie jar per identity, and refuses to run against anything
-// that is not a known staging host. See tests/live/README.md.
+// The browser suite is **not** here. It runs on Playwright, against a real
+// `next build` + `next start` and the real staging backends — see
+// `playwright.config.ts` and docs/testing/E2E_TEST_DESIGN.md. It is excluded
+// below rather than merely absent: its files are named `*.spec.ts`, which
+// vitest's default pattern would otherwise pick up and run without a browser.
+//
+// The two never run together, because they answer different questions. A red
+// unit run means the code broke. A red browser run may mean staging is down,
+// which is useful to know and is not a reason to block a pull request.
 
-// Shared by both projects. A project is a full Vite config, so plugins and
-// aliases do not fall through from the root — they are spread into each one.
+// A project is a full Vite config, so plugins and aliases do not fall through
+// from the root — they are spread in.
 const viteSetup = {
   plugins: [tsconfigPaths(), react()],
   resolve: {
@@ -50,7 +52,7 @@ const viteSetup = {
 // address, next/image is handed "undefined/…" and throws before the component
 // can render.
 //
-// The live project does not get these — it reads the real, untracked
+// The browser suite does not get these — it reads the real, untracked
 // .env.development instead, and skips when those values are missing.
 const isolatedEnv = {
   NEXT_PUBLIC_BASE_MEDIA_URL: 'https://example.com',
@@ -88,47 +90,8 @@ export default defineConfig({
           // that is how utils/functions.test.tsx, the one colocated leftover,
           // still runs. Only the live folder is taken out, and the defaults are
           // spread back in so node_modules stays excluded.
-          exclude: [...configDefaults.exclude, 'tests/live/**'],
+          exclude: [...configDefaults.exclude, 'tests/e2e/**'],
           env: isolatedEnv,
-        },
-      },
-      {
-        ...viteSetup,
-        test: {
-          name: 'live',
-          globals: true,
-          // No jsdom: these call a real backend from Node, not from a page.
-          environment: 'node',
-          // Deliberately NOT tests/setup.ts. That file starts msw with
-          // onUnhandledRequest: "error", which would block every real request
-          // this project exists to make.
-          include: ['tests/live/**/*.live.test.ts'],
-          // An empty project is not a failure. "no test files found" is decided
-          // by the runner before a project's own settings are read, so this has
-          // to be the --passWithNoTests flag on the test:live script — setting
-          // passWithNoTests here does nothing, and setting it at the root would
-          // also let the unit suite pass while running nothing at all.
-
-          // Checks the target is staging, then builds the app and starts it on
-          // 127.0.0.1:3100. With no staging addresses configured it returns
-          // without building, so an unconfigured machine pays nothing.
-          globalSetup: ['./tests/live/harness/globalSetup.ts'],
-
-          // A real request over a real network to a real backend. The default 5s
-          // is a budget for a mocked call, and a cold serverless route on staging
-          // can spend most of a minute before it answers.
-          testTimeout: 60_000,
-          // beforeAll in a live file logs an identity in, which is several
-          // sequential round trips. The build itself is NOT bounded by this — it
-          // has its own timeout inside the harness, because a hook timeout that
-          // fires mid-build leaves a server nobody stops.
-          hookTimeout: 180_000,
-
-          // One file at a time, and this is not a performance setting. Files
-          // share one staging dataset and one set of OTP rate limits: two files
-          // adding to the same cart, or logging in as the same identity at once,
-          // fail each other for reasons that look exactly like product bugs.
-          fileParallelism: false,
         },
       },
     ],

@@ -77,7 +77,7 @@ function OrderItemsList({
         >
           <span
             className={`bold ${isRtl ? " text-right dir-rtl" : " "}`}
-            data-cy="order-products-count"
+            data-pw="order-products-count"
           >
             {items.length}
           </span>{" "}

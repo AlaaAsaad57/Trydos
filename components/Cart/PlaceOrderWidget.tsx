@@ -74,7 +74,7 @@ const OrderCartItem = () => {
               <div className="flex relative h-[125px]">
                 <span
                   className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
-                  data-cy="order-item-quantity-label"
+                  data-pw="order-item-quantity-label"
                 >
                   {s?.quantity ?? s?.qty}
                 </span>
@@ -452,13 +452,13 @@ const PaymentOrder = ({ success }) => {
         className={`${
           isRtl ? "items-end" : "items-start"
         } flex-col payment-valid-border pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full  `}
-        data-cy="Payment-Container-Cart-Page"
+        data-pw="Payment-Container-Cart-Page"
       >
         <div
           className={`${isRtl ? " flex-row-reverse" : " flex-row"} gap-[4px] `}
         >
           <svg
-            data-cy="svg-payment"
+            data-pw="svg-payment"
             id="_15x15_photo_back"
             data-name="15x15 photo back"
             xmlns="http://www.w3.org/2000/svg"
@@ -530,7 +530,7 @@ const PaymentOrder = ({ success }) => {
 
           <div
             className="regular text-[#1D1D1D] text-[14px]"
-            data-cy="Payment-Method-Statement"
+            data-pw="Payment-Method-Statement"
           >
             {translateFunction("Payment Method")}
           </div>
@@ -630,7 +630,7 @@ const CODInput = ({
       style={{
         border: "#C4C2C28c 1px soild",
       }}
-      data-cy="cachondelivry-cartpage"
+      data-pw="cachondelivry-cartpage"
     >
       <div className="flex-row items-center">
         <img src="/icons/WalletIcon.svg" />
@@ -706,30 +706,30 @@ const CreditInput = ({ total }) => {
         </span>
       </div>
       <div className="flex-row items-center">
-        <img src="/icons/Visa.svg" data-cy="Visa-Icon" />
+        <img src="/icons/Visa.svg" data-pw="Visa-Icon" />
         <img
           src="/icons/Master.svg"
-          data-cy="Master-Icon"
+          data-pw="Master-Icon"
           className="ml-[5px]"
         />
         <img
           src="/icons/Maestro.svg"
-          data-cy="Maestro-Icon"
+          data-pw="Maestro-Icon"
           className="ml-[5px]"
         />
         <img
           src="/icons/AmericanExpress.svg"
-          data-cy="AmericanExpress-Icon"
+          data-pw="AmericanExpress-Icon"
           className="ml-[5px]"
         />
         <img
           src="/icons/ApplePay.svg"
-          data-cy="ApplePay-Icon"
+          data-pw="ApplePay-Icon"
           className="ml-[5px]"
         />
         <img
           src="/icons/GooglePay.svg"
-          data-cy="GooglePay-Icon"
+          data-pw="GooglePay-Icon"
           className="ml-[5px]"
         />
       </div>
@@ -758,20 +758,20 @@ const CryptoInput = ({ total }) => {
         </span>
       </div>
       <div className="flex-row items-center">
-        <img src="/icons/DimondPay.svg" data-cy="PaymentIconOne-icons" />
+        <img src="/icons/DimondPay.svg" data-pw="PaymentIconOne-icons" />
         <img
           src="/icons/DimondPay1.svg"
-          data-cy="PaymentIconTwo-icons"
+          data-pw="PaymentIconTwo-icons"
           className="ml-[5px]"
         />
         <img
           src="/icons/DimondPay2.svg"
-          data-cy="PaymentIconThree-icons"
+          data-pw="PaymentIconThree-icons"
           className="ml-[5px]"
         />
         <img
           src="/icons/DimondPay3.svg"
-          data-cy="PaymentIconFour-icons"
+          data-pw="PaymentIconFour-icons"
           className="ml-[5px]"
         />
       </div>

@@ -256,7 +256,7 @@ export default function EnterPinScreen({
                     )}
                     {!isExpired && error && (
                         <p
-                            data-cy="verify-otp-error"
+                            data-pw="verify-otp-error"
                             role="alert"
                             className="text-xd-11 pt-1 px-xd-20 font-medium text-[#FF5F61] text-center"
                         >

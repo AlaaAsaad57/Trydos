@@ -103,7 +103,7 @@ function CommentSection({ product_data }) {
   return (
     <div
       className="extended-section items-center justify-center"
-      data-cy="ExtendCoomentSection"
+      data-pw="ExtendCoomentSection"
     >
       {(!user || user?.phone === "0") && (
         <span className="text-red-500">
@@ -140,7 +140,7 @@ function CommentSection({ product_data }) {
         )}
       </div>
 
-      <div className="content-extended comments-extended" data-cy="CommentArea">
+      <div className="content-extended comments-extended" data-pw="CommentArea">
         {loading ? (
           <>
             {" "}

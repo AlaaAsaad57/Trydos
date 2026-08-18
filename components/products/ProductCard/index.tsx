@@ -215,7 +215,7 @@ function ProductCard({
         ariaLabel={`go to product ${name} ${language}`}
         href={getUrlofProduct(color, language, country, slug)}
         className="product-container  align-center flex-col relative pb-[12px]"
-        data-cy="product_link"
+        data-pw="product_link"
         id={slug}
         data={{
           name: InitialProductData.name,
@@ -367,7 +367,7 @@ function ProductCard({
         >
           <div
             className="prouct-details max-w-full whitespace-normal inline-block  text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[28px]"
-            data-cy="productName"
+            data-pw="productName"
           >
             <span className="flex-row align-center justify-start gap-[4px]">
               {brand?.icon ? (
@@ -390,7 +390,7 @@ function ProductCard({
             </span>
             <p
               className={`${isRtl && "dir-rtl"} truncate w-full max-w-full`}
-              data-cy="product-name"
+              data-pw="product-name"
             >
               {[name, ...category_tree?.map((s) => s)]
                 ?.filter((s) => typeof s === "string")

@@ -114,7 +114,7 @@ function SearchResult({
   return (
     <div>
       <div
-        data-cy="ContactItem"
+        data-pw="ContactItem"
         className="chat-conversation-item-container"
         key={key}
       >

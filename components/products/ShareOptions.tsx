@@ -221,7 +221,7 @@ const shareViaEmail = (e) => {
       <div className={`share-avatar`}>
         <div className="share-image social shadow-none">
           <FacebookShareButton
-            data-cy="Facebook"
+            data-pw="Facebook"
             url={generateUrlForSharing("facebook")}
             beforeOnClick={() => {
               // Sendevent({
@@ -236,7 +236,7 @@ const shareViaEmail = (e) => {
         </div>
         <div className="share-name">Facebook</div>
       </div>
-      <div className={`share-avatar`} data-cy="Twitter">
+      <div className={`share-avatar`} data-pw="Twitter">
         <div className="share-image social shadow-none">
           <TwitterShareButton
             beforeOnClick={() => {
@@ -254,7 +254,7 @@ const shareViaEmail = (e) => {
         </div>
         <div className="share-name">Twitter / X</div>
       </div>
-      <div className={`share-avatar`} data-cy="Whatsapp">
+      <div className={`share-avatar`} data-pw="Whatsapp">
         <div className="share-image social shadow-none">
           <WhatsappShareButton
             beforeOnClick={() => {
@@ -271,7 +271,7 @@ const shareViaEmail = (e) => {
         </div>
         <div className="share-name">WhatsApp</div>
       </div>
-      <div className={`share-avatar`} data-cy="Whatsapp">
+      <div className={`share-avatar`} data-pw="Whatsapp">
         <div className="share-image social shadow-none">
           <TelegramShareButton
             beforeOnClick={() => {
@@ -288,7 +288,7 @@ const shareViaEmail = (e) => {
         </div>
         <div className="share-name">Telegram</div>
       </div>
-      <div className={`share-avatar`} data-cy="Whatsapp">
+      <div className={`share-avatar`} data-pw="Whatsapp">
         <div className="share-image social shadow-none">
           <button
   type="button"
@@ -304,7 +304,7 @@ const shareViaEmail = (e) => {
       </div>
       <div className={`share-avatar`}>
         <div
-          data-cy="copy_link_button"
+          data-pw="copy_link_button"
           className="share-image social shadow-none flex justify-center items-center bg-[#f8f8e4]"
           onClick={() => {
             // Sendevent({
@@ -325,7 +325,7 @@ const shareViaEmail = (e) => {
         <div className="share-name">{translateFunction("Copy Link")}</div>
       </div>
  {canNativeShare && (
-        <div className={`share-avatar`} data-cy="NativeShare">
+        <div className={`share-avatar`} data-pw="NativeShare">
           <div
             className="share-image social shadow-none flex justify-center items-center bg-[#f0f0f0]"
             onClick={nativeShare}

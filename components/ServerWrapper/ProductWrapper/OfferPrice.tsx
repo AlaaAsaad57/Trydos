@@ -2,7 +2,7 @@ export const OfferPrice = ({ price, luckActive }) => {
   return (
     <span
       className="old-price ml-[3px] relative bold color-dark-gray flex f-12 "
-      data-cy="product-offer-price"
+      data-pw="product-offer-price"
     >
       {price}
       {luckActive && (

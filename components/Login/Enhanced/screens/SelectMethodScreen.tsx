@@ -199,7 +199,7 @@ export default function SelectMethodScreen({
 
                     {lockRemaining > 0 && (
                         <div
-                            data-cy="otp-cooldown"
+                            data-pw="otp-cooldown"
                             className="pt-xd-10 text-xd-12 font-medium text-[#FF5F61] text-center"
                         >
                             <span>{translate('Wait')} </span>
@@ -210,7 +210,7 @@ export default function SelectMethodScreen({
 
                     {lockRemaining === 0 && capReached && (
                         <div
-                            data-cy="otp-cap-reached"
+                            data-pw="otp-cap-reached"
                             className="pt-xd-10 text-xd-12 font-medium text-[#FF5F61] text-center"
                         >
                             {translate('Session limit reached. Try again later.')}
@@ -219,7 +219,7 @@ export default function SelectMethodScreen({
 
                     {!blocked && error && (
                         <div
-                            data-cy="send-otp-error"
+                            data-pw="send-otp-error"
                             role="alert"
                             className="pt-xd-10 px-xd-20 text-xd-12 font-medium text-[#FF5F61] text-center"
                         >

@@ -376,7 +376,7 @@ const NotificationsContainer = () => {
               </p>
               <p
                 className={`text-[12px] regular text-[#402CDD]`}
-                data-cy="notification-text"
+                data-pw="notification-text"
               >
                 {typeof notification.message === "string"
                   ? notification.message

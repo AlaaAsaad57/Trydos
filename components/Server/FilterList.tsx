@@ -62,7 +62,7 @@ function FilterList({
       {/* ...existing code... */}
       {itemsLength > 1 && (
         <div
-          data-cy="boutique_filter_options"
+          data-pw="boutique_filter_options"
           className={`w-full relative flex-row items-center pl-3.75`}
         >
           <SwitchFiltersButton
@@ -303,7 +303,7 @@ const ActiveFiltersBar = ({
                 </div>
                 <div
                   className="category-title filter-bar-main-title"
-                  data-cy="mainFilter"
+                  data-pw="mainFilter"
                 >
                   {
                     getItemData({
@@ -430,7 +430,7 @@ const ActiveFiltersBar = ({
       className={`filter-info-bar ${
         isRtl ? "flex-row-reverse" : "flex-row"
       } w-full mx-[10px] mt-[5px] h-[30px] bg-[#efefef] rounded-[10px] px-[10px] cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none `}
-      data-cy="filterInfo"
+      data-pw="filterInfo"
     >
       <NextLink
         data={{
@@ -438,12 +438,12 @@ const ActiveFiltersBar = ({
         }}
         ignoreConditionCase={true}
         href={getResetUrl()}
-        data-cy="reset_filter_button"
+        data-pw="reset_filter_button"
         ariaLabel={`close filter ${params.lang}`}
       >
         <img
           src="/icons/CloseIcon.svg"
-          data-cy="closeIcon"
+          data-pw="closeIcon"
           className="mr-2 ml-2"
         />
       </NextLink>
@@ -565,7 +565,7 @@ const ActiveFiltersBar = ({
                   </div>
                   <div
                     className="category-title filter-bar-main-title"
-                    data-cy="mainFilterBrand"
+                    data-pw="mainFilterBrand"
                   >
                     {
                       getItemData({
@@ -661,7 +661,7 @@ const ActiveFiltersBar = ({
             <React.Fragment key={size}>
               <div
                 className="category-title filter-bar-main-title uppercase"
-                data-cy="sizeFilterTitle"
+                data-pw="sizeFilterTitle"
                 key={size}
               >
                 {size}
@@ -744,7 +744,7 @@ const FilterItemsRow = ({
     >
       <div
         className="category-row-container flex-row"
-        data-cy={getDataCy()}
+        data-pw={getDataCy()}
         style={{
           direction: isRtl ? "rtl" : "ltr",
         }}

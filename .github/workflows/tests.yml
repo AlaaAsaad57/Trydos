@@ -10,22 +10,20 @@
 # request fails the test rather than leaving the runner.
 #
 # ---------------------------------------------------------------------------
-# Where the live suite goes
+# Where the browser suite goes
 #
-# The suite that talks to the real staging backend is a separate vitest project
-# (`live`, run with `pnpm test:live`). It gets a job in this file — but one
-# gated on `github.event_name == 'push'`, so it runs after a merge and never on
-# a pull request. Two reasons it must never run on a pull request:
+# It is **not** in this file. The suite that talks to the real staging backend
+# runs in Chromium and lives in `.github/workflows/test-e2e.yml`, on push and
+# nightly, never on a pull request.
 #
-#   * A pull request must not be blocked because staging is down. A red check on
-#     a pull request has to mean "the code broke", nothing else.
-#   * It needs staging secrets, which are never exposed to a pull request from a
-#     fork. Gating on `push` keeps forks working.
+# The reason it is a separate file rather than another job here is the
+# `cancel-in-progress: true` immediately below. That cancels the whole run —
+# every job in it — as soon as another push lands on the same branch, and a
+# job-level concurrency group cannot opt out of that. A browser run killed
+# halfway may already have created a real order on staging and would never reach
+# the teardown that cancels it. So it runs where nothing cancels it.
 #
-# That job does not exist yet, because `tests/live/` is still empty. It arrives
-# in phase 4 of docs/testing/LIVE_TEST_ROADMAP.md, together with the nightly
-# `test-live.yml` and the concurrency rules that stop two live runs writing to
-# the same staging shop at once.
+# See docs/testing/E2E_TEST_DESIGN.md section 12.
 # ---------------------------------------------------------------------------
 
 name: Tests

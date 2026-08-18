@@ -1,14 +1,16 @@
 // The target guard.
 //
-// Rule 5 of the roadmap: never point the suite at production. This is the thing
-// that makes it a rule instead of a hope. `.env.development` points at staging
-// today by convenience, not by guarantee — and the same variable names hold the
-// real addresses on a deployment.
+// Never point the suite at production. This is the thing that makes it a rule
+// instead of a hope. `.env.development` points at staging today by convenience,
+// not by guarantee — and the same variable names hold the real addresses on a
+// deployment.
 //
-// The guard runs **before** the build, in the global setup, against the values
-// the harness is about to hand to the server it starts. That ordering is the
-// point: an unrecognised address stops the run before anything is built, started
-// or requested, so there is no window in which a test could reach it.
+// The guard runs in **preflight**, before the build, against the values the
+// harness is about to hand to the server it starts. That ordering is the point:
+// an unrecognised address stops the run before anything is built, started or
+// requested, so there is no window in which a test could reach it. Playwright's
+// global setup runs it a second time, which costs nothing and means the guard
+// still holds for someone who runs `playwright test` directly.
 //
 // It is an allow-list, and an unknown host is a hard stop rather than a warning.
 // A deny-list would have to predict what production is called; an allow-list only
@@ -75,7 +77,7 @@ export const assertStagingTarget = (): TargetReport => {
           "Refusing to build or start anything.",
           "",
           "If this host is genuinely staging, add it to ALLOWED_HOSTS in",
-          "tests/live/harness/guard.ts — deliberately, having checked it.",
+          "tests/e2e/harness/guard.ts — deliberately, having checked it.",
           "If it is production, the suite must never run against it.",
         ].join("\n"),
       );

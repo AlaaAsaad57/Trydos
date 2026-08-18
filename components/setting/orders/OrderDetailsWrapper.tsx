@@ -758,7 +758,7 @@ const OrderNotFoundState = ({
     <div
       className="flex flex-col items-center justify-center w-full flex-1 min-h-[60vh] px-[24px] py-[40px] text-center"
       style={{ direction: isRtl ? "rtl" : "ltr" }}
-      data-cy="order-not-found"
+      data-pw="order-not-found"
     >
       <div className="flex items-center justify-center w-[120px] h-[120px] rounded-full bg-[#F0F0F0] mb-[24px]">
         <svg
@@ -1193,7 +1193,7 @@ const ProductCard = ({
             right: isRtl ? "initial" : "0px",
             left: isRtl ? "0px" : "initial",
           }}
-          data-cy="order-item-options"
+          data-pw="order-item-options"
           onClick={() => {
             DisableScroll();
             setSelectedOrderItem(product);
@@ -1339,7 +1339,7 @@ const ProductCard = ({
               {product.offer_price >= 0 && (
                 <div
                   className="line-through text-[#C4C2C2] regular text-[12px]  line-through-[#C4C2C2]"
-                  data-cy="order-product-offer-price"
+                  data-pw="order-product-offer-price"
                 >
                   {/* {RoundPrice({ num: product.price, language: language })} */}
                   {RoundPrice({
@@ -1351,7 +1351,7 @@ const ProductCard = ({
               )}
               <div
                 className="text-[#1D1D1D] text-[12px] bold"
-                data-cy="order-product-price"
+                data-pw="order-product-price"
               >
                 {/* {RoundPrice({
                   num: product.price_after_discount,

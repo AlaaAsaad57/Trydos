@@ -7,7 +7,7 @@ interface BorderProps {
 function Border({ height, width, color }: BorderProps) {
   return (
     <svg
-      data-cy="container-enterPhone-svg"
+      data-pw="container-enterPhone-svg"
       style={{ position: "absolute", left: "0px", top: "0px", zIndex: "1" }}
       xmlns="http://www.w3.org/2000/svg"
       width={width || "390"}

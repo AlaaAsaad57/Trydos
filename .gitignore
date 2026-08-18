@@ -127,3 +127,14 @@ laravel-refresh-plan.md
 # team's own channel, never via this repo.
 seller-dashboard-locations-api-contract.md
 docs/testing/TESTING_STACK_AND_ROADMAP.md
+
+# The browser suite's output. None of it belongs in the repository, and one item
+# is an outright secret: the saved session (`storageState`) holds MARKET-TOKEN,
+# the real auth cookie for the staging test account. Traces and videos are the
+# same problem in a different shape — a trace archives every request header.
+# See docs/testing/E2E_TEST_DESIGN.md section 11.
+tests/e2e/.artifacts/
+tests/e2e/.auth/
+playwright-report/
+blob-report/
+test-results/

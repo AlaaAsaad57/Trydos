@@ -19,7 +19,7 @@ function BoutiqueWrapper({ boutique, lang }) {
           icon: boutique.icon,
         }}
         ignoreConditionCase={true}
-        data-cy="boutique_link"
+        data-pw="boutique_link"
         className="w-full"
         href={`/${lang}/filters/boutiques/${boutique.slug}`}
       >
@@ -38,7 +38,7 @@ function BoutiqueWrapper({ boutique, lang }) {
               <img
                 alt={boutique.name}
                 src={configureImageForBoutique(GetImageUrl(banner?.file_path))}
-                data-cy="boutique-banner"
+                data-pw="boutique-banner"
                 width={1280}
                 height={750}
                 className="h-auto w-full object-center object-cover  max-w-full "

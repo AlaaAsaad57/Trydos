@@ -117,7 +117,7 @@ const OrderInvoiceCard = ({ amount, payments }) => {
       </span>
       <span
         className="text-[#1D1D1D] text-[12px] regular mt-[3px]"
-        data-cy="order-amount"
+        data-pw="order-amount"
       >
         {RoundPrice({
           num: amount,

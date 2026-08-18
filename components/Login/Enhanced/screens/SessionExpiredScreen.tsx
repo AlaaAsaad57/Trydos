@@ -58,7 +58,6 @@ export default function SessionExpiredScreen({
                 <div className="flex py-xd-6 flex-col items-center">
                     <button
                         onClick={onLogin}
-                        data-cy="session-expired-login"
                         data-pw="session-expired-login"
                         className="xd-dashed-border w-xd-390 h-xd-60 leading-[1.3] rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-16 cursor-pointer transition-all active:scale-[0.98]"
                     >
@@ -66,7 +65,6 @@ export default function SessionExpiredScreen({
                     </button>
                     <button
                         onClick={onContinueAsGuest}
-                        data-cy="session-expired-guest"
                         data-pw="session-expired-guest"
                         className="xd-dashed-border w-xd-390 h-xd-60 leading-[1.3] rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-16 mt-xd-8 cursor-pointer transition-all active:scale-[0.98]"
                     >

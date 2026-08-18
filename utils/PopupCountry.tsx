@@ -201,7 +201,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
         countries.length > 0 && (
           <div
             className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
-            data-cy="Change-Url-Container"
+            data-pw="Change-Url-Container"
           >
             {/* Header */}
             <div className="bg-linear-to-r from-blue-500 to-purple-600 px-6 py-4">
@@ -255,7 +255,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                         OTransition: "none",
                         msTransition: "none",
                       }}
-                      data-cy="countain-with"
+                      data-pw="countain-with"
                       disabled={loadingWidget || navigating}
                       onClick={() => {
                         UpdateUrl(
@@ -436,7 +436,7 @@ const CountryInfoRow = ({ message }) => {
         style={{
           border: "1px solid rgb(211 211 211 / 51%)",
         }}
-        data-cy="address-info-header" // Added data-cy
+        data-pw="address-info-header" // Added data-pw
       >
         <svg
           id="Group_3387"

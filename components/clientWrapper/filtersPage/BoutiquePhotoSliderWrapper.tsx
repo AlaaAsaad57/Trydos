@@ -7,8 +7,8 @@ function BoutiquePhotoSliderWrapper({ children }) {
     Autoplay({ delay: 3000 }),
   ]);
   return (
-    <div data-cy="embla_embla" className="embla" ref={emblaRef}>
-      <div data-cy="embla__container_embla" className="embla__container">
+    <div data-pw="embla_embla" className="embla" ref={emblaRef}>
+      <div data-pw="embla__container_embla" className="embla__container">
         {children}
       </div>
     </div>

@@ -82,7 +82,7 @@ const ProfilePicture = ({ photo, language, local }) => {
       <NextLink
         isFromSetting={true}
         href={`/${local}/settings/profile/picture`}
-        data-cy="go-to-update-photo-screen"
+        data-pw="go-to-update-photo-screen"
         className="relative w-[128px] h-[128px] flex justify-center items-center object-cover cursor-pointer"
         style={{
           filter: "drop-shadow(0px 3px 6px #0000002a)",
@@ -105,7 +105,7 @@ const ProfilePicture = ({ photo, language, local }) => {
       <NextLink
         isFromSetting={true}
         href={`/${local}/settings/profile/picture`}
-        data-cy="go-to-update-photo-screen"
+        data-pw="go-to-update-photo-screen"
         className="relative w-[128px] h-[128px] flex justify-center items-center object-cover cursor-pointer"
         style={{
           filter: "drop-shadow(0px 3px 6px #0000002a)",
@@ -195,7 +195,7 @@ const SettingOption = ({ name, Icon, dataCy, href }: any) => {
     <NextLink
       isFromSetting={true}
       href={href}
-      data-cy={dataCy}
+      data-pw={dataCy}
       className="w-full cursor-pointer flex-row mt-[4px] gap-2 h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center"
     >
       <img src={Icon} className="w-[25px] h-[25px]" />

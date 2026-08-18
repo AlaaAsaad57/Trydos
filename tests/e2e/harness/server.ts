@@ -1,9 +1,14 @@
 // Building and running the app under test.
 //
 // The suite drives a **real production server**: `next build`, then `next start`
-// on a fixed loopback port. Nothing about the request path is simulated except
-// the browser — the proxy runs, the route handlers run, the token injection runs,
-// and the request leaves for the real staging backend.
+// on a fixed loopback port. Nothing about the request path is simulated — the
+// proxy runs, the route handlers run, the token injection runs, and the request
+// leaves for the real staging backend. The browser is real too.
+//
+// **Build and start are separate on purpose.** They used to be one function. They
+// are two now because the build is the slow half: CI runs it as its own step, so
+// a broken build is a red "build" step and never looks like a failed test, and
+// the output can be cached. See docs/testing/E2E_TEST_DESIGN.md section 4.
 //
 // Two things are deliberate and neither is a convenience:
 //
@@ -11,13 +16,16 @@
 //     `next start` runs in production mode, where Next loads `.env.production`
 //     and never `.env.development` — and on a deployment `.env.production` holds
 //     the real addresses. Values already in the environment win over a file, so
-//     passing them is what makes the target certain rather than likely.
-//   * **Every run builds.** There is no reuse-an-existing-server option, so the
-//     suite can only ever talk to a server this file started and configured.
-//     Which is also why an already-occupied port is a hard error below: something
-//     is listening that we did not build, and we do not know what it is.
+//     passing them is what makes the target certain rather than likely. The build
+//     needs the same treatment, because every NEXT_PUBLIC_ value is baked in at
+//     build time.
+//   * **The suite only talks to a server it started itself.** There is no
+//     reuse-a-running-server option, which is why an already-occupied port is a
+//     hard error below: something is listening that we did not build, and we do
+//     not know what it is.
 
 import { spawn, type ChildProcess } from "node:child_process";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { LIVE_HOST, LIVE_ORIGIN, LIVE_PORT, loadLiveEnv } from "./env";
@@ -27,16 +35,17 @@ import { redact } from "./redact";
 // package-manager shim. `pnpm exec next` would need a shell on Windows and a
 // package manager that matches the lockfile; this needs neither.
 const NEXT_BIN = resolve(process.cwd(), "node_modules/next/dist/bin/next");
+const BUILD_OUTPUT = resolve(process.cwd(), ".next");
 
 const BUILD_TIMEOUT_MS = 15 * 60 * 1000;
 const START_TIMEOUT_MS = 3 * 60 * 1000;
 const READY_POLL_INTERVAL_MS = 500;
 
 const log = (message: string): void => {
-  console.log(redact(`[live] ${message}`));
+  console.log(redact(`[e2e] ${message}`));
 };
 
-/** The environment the built server runs with.
+/** The environment the build and the server both run with.
  *
  *  Whatever this process holds — which includes everything `loadLiveEnv()` read
  *  out of `.env.development` — plus the two values that must not be inherited
@@ -46,8 +55,8 @@ const childEnv = (): NodeJS.ProcessEnv => {
 
   return {
     ...process.env,
-    // vitest sets this to "test". A build that inherits it is not a production
-    // build, and `next start` refuses to serve one.
+    // A test runner sets this to "test". A build that inherits it is not a
+    // production build, and `next start` refuses to serve one.
     NODE_ENV: "production",
     PORT: String(LIVE_PORT),
   };
@@ -97,6 +106,16 @@ const runNext = (args: string[], timeoutMs: number): Promise<void> =>
       reject(new Error(`next ${args.join(" ")} exited with code ${code}`));
     });
   });
+
+/** Build the app, with the staging environment applied.
+ *
+ *  Its own step, called by `tests/e2e/cli.ts build`. Never called from Playwright
+ *  — by the time a spec runs, the build must already exist. */
+export const buildApp = async (): Promise<void> => {
+  log("building the app (this is the slow part) …");
+  await runNext(["build"], BUILD_TIMEOUT_MS);
+  log("build finished.");
+};
 
 /** Wait until the server answers anything at all.
  *
@@ -156,20 +175,29 @@ const stopTree = async (child: ChildProcess): Promise<void> => {
   if (outcome === "timeout") child.kill("SIGKILL");
 };
 
-/** Build the app, start it, and return the function that stops it. */
-export const startLiveServer = async (): Promise<() => Promise<void>> => {
-  if (await portIsBusy()) {
+/** Start the already-built app, and return the function that stops it.
+ *
+ *  Does **not** build. If there is no build, that is a clear error naming the
+ *  step that was skipped rather than a confusing failure from `next start`. */
+export const startServer = async (): Promise<() => Promise<void>> => {
+  if (!existsSync(BUILD_OUTPUT)) {
     throw new Error(
       [
-        `Something is already listening on ${LIVE_ORIGIN}.`,
-        "The live suite only ever runs against a server it built and started",
-        "itself, so it will not adopt this one. Stop it and run again.",
+        "There is no build to serve (.next is missing).",
+        "Build first: pnpm e2e:build — or run the whole thing with pnpm test:e2e.",
       ].join("\n"),
     );
   }
 
-  log("building the app (this is the slow part) …");
-  await runNext(["build"], BUILD_TIMEOUT_MS);
+  if (await portIsBusy()) {
+    throw new Error(
+      [
+        `Something is already listening on ${LIVE_ORIGIN}.`,
+        "The e2e suite only ever runs against a server it started itself, so it",
+        "will not adopt this one. Stop it and run again.",
+      ].join("\n"),
+    );
+  }
 
   log(`starting the server on ${LIVE_ORIGIN} …`);
   const child = spawn(

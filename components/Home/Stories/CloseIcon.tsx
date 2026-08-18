@@ -4,7 +4,7 @@ function CloseIcon({ close }: { close: Function }) {
   return (
     <div
       className="close-stories-icon"
-      data-cy="close_stories_icon"
+      data-pw="close_stories_icon"
       style={{
         position: "fixed",
         top: "25px",

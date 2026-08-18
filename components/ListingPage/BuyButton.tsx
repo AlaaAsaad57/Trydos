@@ -36,7 +36,7 @@ function BuyButton({
           direction: isRtl ? "rtl" : "ltr",
         }}
         className={`buy-button pb-[10px] px-[4px]  ${showOrangeFont()} light-text flex-col align-start justify-end cursor-pointer absolute z-50 bottom-0  pr-[10px] h-[40px] items-center`}
-        data-cy="buy-button"
+        data-pw="buy-button"
         onClick={(e) => {
           e.preventDefault();
           buy();
@@ -55,7 +55,7 @@ function BuyButton({
               <div className="flex-row flex gap-[2px] items-center">
                 <span
                   className="text-[10px] pt-[2px] flex align-start bold relative"
-                  data-cy="product-redeem-price"
+                  data-pw="product-redeem-price"
                 >
                   {RoundPrice({
                     num: luck_price,

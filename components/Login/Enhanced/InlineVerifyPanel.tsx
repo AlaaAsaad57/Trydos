@@ -188,7 +188,7 @@ export default function InlineVerifyPanel({
                 <>
                     <p className="text-xd-12 leading-[1.4] text-[#1D1D1D] text-center px-xd-10">
                         {translate('To Create New Account Tap “Agree & Continue” To Accept')}{' '}
-                        <span className="font-bold">rdb </span>
+                        <span className="font-bold">Trydos </span>
                         {translate('terms of services')}
                     </p>
                     <div className="flex items-center gap-xd-5">
@@ -274,7 +274,7 @@ export default function InlineVerifyPanel({
                 ticking, so the wait is explained rather than discovered. */}
             {lockRemaining > 0 && (
                 <p
-                    data-cy="otp-cooldown"
+                    data-pw="otp-cooldown"
                     className="text-xd-11 font-medium text-[#FF5F61] text-center"
                 >
                     <span>{translate('Wait')} </span>
@@ -290,7 +290,7 @@ export default function InlineVerifyPanel({
                 clears on its own window, so it gets a message, not a timer. */}
             {lockRemaining === 0 && capReached && (
                 <p
-                    data-cy="otp-cap-reached"
+                    data-pw="otp-cap-reached"
                     className="text-xd-11 font-medium text-[#FF5F61] text-center"
                 >
                     {translate('Session limit reached. Try again later.')}

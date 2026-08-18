@@ -73,7 +73,7 @@ function FaqItemComponent({
             <div className="comment-content capitalize mx-[10px]">
               <div
                 className="comment-source text-[#1D1D1D] text-[9px] regular"
-                data-cy="Source-Of-Comment"
+                data-pw="Source-Of-Comment"
               >
                 <span className="bold pr-[4px]">Q</span>{" "}
                 {convertTextToXFormat(c?.customer?.name)}
@@ -85,7 +85,7 @@ function FaqItemComponent({
           </span>
           <div
             className="comment-date text-[9px] absolute text-[#1d1d1d]"
-            data-cy="Date-Of-Comment"
+            data-pw="Date-Of-Comment"
             style={{
               right: isRtl ? "initial" : "10px",
               left: isRtl ? "10px" : "initial",
@@ -137,7 +137,7 @@ function FaqItemComponent({
                 <div className="comment-content capitalize mx-[10px]">
                   <div
                     className="comment-source text-[#1D1D1D] text-[9px] regular"
-                    data-cy="Source-Of-Comment"
+                    data-pw="Source-Of-Comment"
                   >
                     <span className="bold pr-[4px]">A</span>
                     {convertTextToXFormat(seller_name)}
@@ -150,7 +150,7 @@ function FaqItemComponent({
               </span>
               <div
                 className="comment-date text-[9px]"
-                data-cy="Date-Of-Comment"
+                data-pw="Date-Of-Comment"
                 style={{
                   right: isRtl ? "initial" : "10px",
                   left: isRtl ? "10px" : "initial",

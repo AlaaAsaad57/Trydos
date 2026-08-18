@@ -7,7 +7,7 @@ function CustomPhoneInput({ ...props }) {
       type="number"
       autoFocus={false}
       inputMode="numeric"
-      data-testid="phone-number-input"
+      data-pw="phone-number-input"
       id="phoneInput"
       aria-autocomplete="both"
       aria-haspopup="false"

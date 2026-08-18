@@ -5,7 +5,7 @@ function FeaturedProductsSkeleton() {
     <div className="flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]">
       <a
         className="flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-xs rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d]"
-        data-cy=""
+        data-pw=""
         href="/sy-en/featured"
       >
         <span>
@@ -26,17 +26,17 @@ function FeaturedProductsSkeleton() {
       <div
         id="featured-products-container"
         className="featured-products-container py-[10px] gap-[8px] w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-auto pb-[8px] horizntal-scroll overflow-x-scroll overflow-y-hidden whitespace-nowrap [&amp;&gt; *]: select-none [&amp;::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-        data-cy="featured-products-container"
+        data-pw="featured-products-container"
       >
         {Array.from({ length: 6 }).map((s, key) => (
           <div className="relative flex" key={key}>
             <div
               className="max-h-[377px] relative"
-              data-cy="product-card-flash-deal"
+              data-pw="product-card-flash-deal"
             >
               <a
                 className="product-container  align-center flex-col relative pb-[12px]"
-                data-cy="product_link"
+                data-pw="product_link"
                 href="/sy-en/products/women-pleated-1?color=Black"
               >
                 <Skeleton width={200} borderRadius={15} height={377} />

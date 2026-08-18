@@ -237,7 +237,7 @@ export default function SearchBoutiquePage({
   return (
     <div
       ref={containerRef}
-      data-cy="searchIcon_boutiquePage"
+      data-pw="searchIcon_boutiquePage"
       id="searchIconBoutique"
       className={`filter-option transition-all filter-search-option relative ${
         isOpen
@@ -263,7 +263,7 @@ export default function SearchBoutiquePage({
 
       <input
         ref={inputElRef}
-        data-cy="inputFiled"
+        data-pw="inputFiled"
         id="filter-search"
         value={value}
         onChange={onChange}

@@ -36,7 +36,7 @@ function AddToCartButton({ product }: { product: any }) {
       className={`${
         product ? "h-[68px] absolute" : "h-[63px] static"
       } w-[80px] justify-center bottom-0  left-0 right-0 mx-auto rounded-t-[15px] bg-[#513AAF] text-[13px] medium text-white items-start pt-[11px] shadow-[inset_0px_3px_6px_rgb(255,255,255,0.5)]`}
-      data-cy="addToCartButton"
+      data-pw="addToCartButton"
       onClick={(e) => {
         if (product) {
           // Countdown continuity is handled by the shared luck store (keyed by

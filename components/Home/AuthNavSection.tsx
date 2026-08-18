@@ -98,7 +98,7 @@ function AuthNavSection({
         }}
       >
         {!LoggingOut && !chatVar && getNew(chats).length === 0 ? (
-          <img src="/icons/ChatIcon.svg" data-cy="Chat-Icon" />
+          <img src="/icons/ChatIcon.svg" data-pw="Chat-Icon" />
         ) : (
           !LoggingOut &&
           !chatVar && <ChatNotification num={getNew(chats).length} />
@@ -113,7 +113,7 @@ function AuthNavSection({
         {userData?.name && !isGuestName(userData?.name) && (
           <>
             <span>,</span>{" "}
-            <span className={`${language + "-light"}`} data-cy="NavUserName">
+            <span className={`${language + "-light"}`} data-pw="NavUserName">
               {userData?.name}
             </span>
           </>

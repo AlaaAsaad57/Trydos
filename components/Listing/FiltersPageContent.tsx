@@ -218,7 +218,7 @@ export default async function FiltersPageContent({
           isRtl={isRtl}
           filterBar={
             <div
-              data-cy="filter_listing_bar"
+              data-pw="filter_listing_bar"
               className={`filter-listing-bar z-99999999 ${
                 isRtl ? "flex-row-reverse flex" : "flex-row flex"
               } align-center left-0 right-0 mx-auto w-full h-[50px] pl-[15px] max-w-[1365px] pr-[20px] justify-between bg-white z-10`}

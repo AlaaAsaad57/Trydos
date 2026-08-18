@@ -229,7 +229,7 @@ function MoreOptionsSection({ product }) {
     });
   };
   return (
-    <div className="extended-section" data-cy="ExtendThreePointsSection">
+    <div className="extended-section" data-pw="ExtendThreePointsSection">
       <div className="extended-bar-top share-bar-top">
         <span className="flex">
           {translate("More Options", language)}
@@ -330,7 +330,7 @@ function MoreOptionsSection({ product }) {
                       type,
                     );
                   }}
-                  data-cy={`notify-type`}
+                  data-pw={`notify-type`}
                 >
                   {checkIfTopicEnabled(`${type.topic}_${product?.id}`) && (
                     <img src="/icons/CheckIcon.svg" className="mx-1" />
@@ -345,20 +345,20 @@ function MoreOptionsSection({ product }) {
           className={`px-[20px] more-options-button ${
             isInWishlist ? "bg-green-300" : ""
           } ${wishlistLoading ? "opacity-60 cursor-wait" : ""}`}
-          data-cy="add-checkList"
+          data-pw="add-checkList"
           aria-busy={wishlistLoading}
           onClick={toggleWishlist}
         >
           {wishlistLoading ? (
             <span
-              data-cy="add-checkList-spinner"
+              data-pw="add-checkList-spinner"
               className="w-[25px] h-[25px] flex-row items-center justify-center"
             >
               <Spinner />
             </span>
           ) : (
           <svg
-            data-cy="add-checkList-svg"
+            data-pw="add-checkList-svg"
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width="25"
@@ -493,7 +493,7 @@ function MoreOptionsSection({ product }) {
           </svg>
           )}
 
-          <span data-cy="add-checkList-text">
+          <span data-pw="add-checkList-text">
             {translate("Add To My Checklist", language)}
           </span>
         </div>
@@ -501,7 +501,7 @@ function MoreOptionsSection({ product }) {
           className={`more-options-button px-[20px] ${
             AddedToCompare() ? "bg-green-300" : ""
           }`}
-          data-cy="add-compare"
+          data-pw="add-compare"
           onClick={() => {
             if (AddedToCompare()) {
               removeFromCompare(product?.slug);
@@ -535,7 +535,7 @@ function MoreOptionsSection({ product }) {
           }}
         >
           <svg
-            data-cy="add-compare-svg"
+            data-pw="add-compare-svg"
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width="25"
@@ -615,7 +615,7 @@ function MoreOptionsSection({ product }) {
               </g>
             </g>
           </svg>
-          <span data-cy="add-compare-text">
+          <span data-pw="add-compare-text">
             {AddedToCompare() ? (
               <>{translate("Added To Compare", language)}</>
             ) : (

@@ -97,7 +97,7 @@ function StoryHolder({ story, active, isPaused }) {
               }}
             >
               <img
-                data-cy={"delete-story-icon"}
+                data-pw={"delete-story-icon"}
                 src="/icons/DeleteIcon.svg"
                 className="w-[22px] h-[22px] fill-white"
               />
@@ -120,7 +120,7 @@ function StoryHolder({ story, active, isPaused }) {
               {/* Flag = universally understood "report" affordance; white
                   stroke keeps it legible on the dark story container. */}
               <svg
-                data-cy="report-story-icon"
+                data-pw="report-story-icon"
                 className="w-[22px] h-[22px]"
                 viewBox="0 0 24 24"
                 fill="none"

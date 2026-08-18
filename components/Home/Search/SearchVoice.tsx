@@ -337,7 +337,7 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
               <div className="relative">
                 <img
                   src="/icons/SearchMicIcon.svg"
-                  data-cy="searchVoiceIcon"
+                  data-pw="searchVoiceIcon"
                   onClick={handleOnRecord}
                   className={`${
                     isRecording ? "listening-icon-mic" : "ggg"
@@ -402,7 +402,7 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
           <div className="relative">
             <img
               src="/icons/SearchMicIcon.svg"
-              data-cy="searchVoiceIcon"
+              data-pw="searchVoiceIcon"
               onClick={() => {
                 showErrorNotification(
                   translateFunction("Browser does not support this feature"),

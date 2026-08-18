@@ -23,7 +23,7 @@ export default function ListingBarOptions({
   const isExpanded = expanded || serverSearch.length > 0;
   return (
     <div
-      data-cy="filter_bar_options"
+      data-pw="filter_bar_options"
       className={`filter-bar-options justify-between ${
         isRtl ? "flex-row-reverse flex" : "flex-row flex"
       } align-center ${isExpanded ? "w-full" : "w-[170px]"}`}

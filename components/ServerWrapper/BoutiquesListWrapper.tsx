@@ -74,7 +74,7 @@ async function RecomendedProductWrapper({
   return (
     <div
       className="flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]"
-      data-cy="recommended-products"
+      data-pw="recommended-products"
     >
       <div
         // href={`/${lang}/featured`}

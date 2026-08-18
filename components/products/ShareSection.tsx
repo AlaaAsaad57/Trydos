@@ -28,7 +28,7 @@ function ShareSection({ product }: any) {
     setContactsLoading(false);
   };
   return (
-    <div className="extended-section" data-cy="ExtendShareSection">
+    <div className="extended-section" data-pw="ExtendShareSection">
       <div className="extended-bar-top share-bar-top">
         <svg
           xmlns="http://www.w3.org/2000/svg"

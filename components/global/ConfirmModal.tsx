@@ -54,7 +54,7 @@ export const ConfirmModal = ({
                 className="px-4 py-2 rounded-sm bg-red-600 text-white hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-red-400"
                 onClick={onConfirm}
                 tabIndex={0}
-                data-cy={dataCy}
+                data-pw={dataCy}
                 aria-label={
                   type === "Delete" ? "Confirm delete" : "Confirm report"
                 }

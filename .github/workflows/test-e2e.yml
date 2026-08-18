@@ -1,0 +1,202 @@
+# The browser suite, against real staging.
+#
+# It drives a real `next build` + `next start` in Chromium against the real
+# staging backends. See docs/testing/E2E_TEST_DESIGN.md.
+#
+# ---------------------------------------------------------------------------
+# Why this is its own file and not a job in tests.yml
+#
+# tests.yml sets `cancel-in-progress: true` at the workflow level, which cancels
+# the entire run — every job in it — as soon as another push lands on the same
+# branch. A job-level concurrency group does not protect a job from that.
+#
+# A cancelled browser run is not merely a lost result. By the time it is killed
+# it may already have created a real order on staging, and it will now never
+# reach the teardown that cancels it. So the suite lives here, in a workflow that
+# is never cancelled.
+# ---------------------------------------------------------------------------
+#
+# **Never on a pull request.** Two reasons, and both are load-bearing:
+#
+#   * A pull request must not be blocked because staging is down. A red check on
+#     a pull request has to mean "the code broke", nothing else.
+#   * It needs staging secrets, and a pull request from a fork never gets them.
+#     Gating on push and schedule keeps forks working.
+
+name: E2E
+
+on:
+  push:
+    branches: [develop, main]
+  schedule:
+    # Nightly, 02:30 UTC. Off the hour on purpose — the top of the hour is when
+    # every scheduled workflow on the platform queues at once.
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+# **One global group, and never cancelled.** Both halves matter:
+#
+#   * `live-suite` is shared with every other run of this workflow, so a merge
+#     and the nightly can never be in the same staging shop at the same time.
+#     Two runs adding to one cart break each other for reasons that look exactly
+#     like product bugs.
+#   * `cancel-in-progress: false` because a run killed mid-checkout leaves an
+#     order behind. A queued run is cheap; an orphaned order is not.
+concurrency:
+  group: live-suite
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Browser journeys
+    runs-on: ubuntu-latest
+    # Install, build, browser, journeys. The build is the slow part.
+    timeout-minutes: 45
+
+    outputs:
+      steps: ${{ steps.collect.outputs.steps }}
+      configured: ${{ steps.preflight.outputs.configured }}
+
+    steps:
+      - name: Check out the branch
+        uses: actions/checkout@v4
+
+      # Pinned here rather than in package.json's `packageManager` field: the
+      # deploy platform runs its own install command, and a `packageManager`
+      # field would also apply there.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.0
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # ---------------------------------------------------------------------
+      # The staging environment.
+      #
+      # One secret holding the whole file, rather than twenty named secrets. The
+      # build needs every NEXT_PUBLIC_ value baked in — media hosts, the default
+      # country and language, the app version — and not just the backend
+      # addresses, so the named-secret version would be a long list that silently
+      # breaks the build whenever the app reads a new one.
+      #
+      # The trade-off, stated so nobody discovers it later: one blob is harder to
+      # audit and rotate than named secrets. It is worth it here because the file
+      # already exists in exactly this form on every developer machine, so CI and
+      # local runs cannot drift apart.
+      #
+      # No secret means no file, which means preflight reports "not configured"
+      # and every step below skips. That is the correct behaviour for a fork and
+      # for a repository nobody has set up yet.
+      # ---------------------------------------------------------------------
+      - name: Write the staging environment
+        env:
+          E2E_ENV_FILE: ${{ secrets.E2E_ENV_FILE }}
+        run: |
+          # The guard is inside the shell, not in `if:` — a step's own `env`
+          # block is not readable from its `if`, so that version would silently
+          # never run.
+          if [ -n "${E2E_ENV_FILE:-}" ]; then
+            printf '%s' "$E2E_ENV_FILE" > .env.development
+            echo "Wrote .env.development from the repository secret."
+          else
+            echo "No E2E_ENV_FILE secret. Preflight will report not configured."
+          fi
+
+      # Configured? And is every backend address a known staging host? This runs
+      # **before** the build, so a wrong target costs nothing and an
+      # unconfigured repository builds nothing at all.
+      - name: Preflight
+        id: preflight
+        run: pnpm e2e:preflight
+
+      - name: Cache the browser
+        if: ${{ steps.preflight.outputs.configured == 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ms-playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Chromium
+        id: browser
+        if: ${{ steps.preflight.outputs.configured == 'true' }}
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build
+        id: build
+        if: ${{ steps.preflight.outputs.configured == 'true' }}
+        run: pnpm e2e:build
+
+      - name: Browser journeys
+        id: journeys
+        if: ${{ steps.preflight.outputs.configured == 'true' }}
+        run: pnpm exec playwright test
+
+      # ---------------------------------------------------------------------
+      # There is deliberately no artifact upload here.
+      #
+      # This repository is public, so an uploaded artifact is world-readable. A
+      # Playwright trace archives every request header — which is the auth token
+      # for the staging test account — and a screenshot of a failed login shows
+      # the phone number. The live project records none of it
+      # (playwright.config.ts), and nothing is uploaded even so.
+      #
+      # Reproduce a failure locally with `pnpm test:e2e -- --trace on`, where the
+      # file never leaves the machine.
+      # ---------------------------------------------------------------------
+
+      - name: Collect the result
+        id: collect
+        if: ${{ always() }}
+        env:
+          R_CONFIGURED: ${{ steps.preflight.outputs.configured }}
+          R_BROWSER: ${{ steps.browser.outcome }}
+          R_BUILD: ${{ steps.build.outcome }}
+          R_JOURNEYS: ${{ steps.journeys.outcome }}
+        run: |
+          set -u
+
+          icon() {
+            case "$1" in
+              success) printf '✅' ;;
+              failure) printf '❌' ;;
+              skipped) printf '⏭️' ;;
+              *)       printf '⚠️' ;;
+            esac
+          }
+
+          if [ "$R_CONFIGURED" != "true" ]; then
+            STEP_LINE="staging not configured — nothing built, nothing run ⏭️"
+          else
+            STEP_LINE="browser $(icon "$R_BROWSER")  build $(icon "$R_BUILD")  journeys $(icon "$R_JOURNEYS")"
+          fi
+
+          {
+            echo "steps<<TRYDOS_EOF"
+            echo "$STEP_LINE"
+            echo "TRYDOS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+  notify:
+    name: Telegram
+    needs: e2e
+    # `always()` so a red run is the one that definitely reports. A run that
+    # found staging unconfigured still reports, because silence would be
+    # indistinguishable from the workflow never having triggered.
+    if: ${{ always() }}
+    uses: ./.github/workflows/notify-telegram.yml
+    with:
+      result: ${{ needs.e2e.result }}
+      title: E2E · ${{ github.event_name }}
+      steps: ${{ needs.e2e.outputs.steps }}
+    secrets: inherit

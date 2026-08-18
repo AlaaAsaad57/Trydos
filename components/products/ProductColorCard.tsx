@@ -23,7 +23,7 @@ function ProductColorCard({
     <div
       className="max-h-[377px] relative"
       key={product.slug}
-      data-cy="product-card"
+      data-pw="product-card"
       onClick={() => {
         onClick();
       }}
@@ -50,7 +50,7 @@ function ProductColorCard({
           onClick();
         }}
         className="product-container  align-center flex-col relative pb-[10px]"
-        data-cy="product_link"
+        data-pw="product_link"
       >
         <ProductBanner
           flashDeals={product.flash_deal_end_date}
@@ -117,7 +117,7 @@ function ProductColorCard({
         <div className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px]  flex-col align-start justify-start max-h-[60px] min-h-[30px]">
           <p
             className="prouct-details max-w-full whitespace-normal inline-block  text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[28px]"
-            data-cy="productName"
+            data-pw="productName"
           >
             <span className="flex-row align-center justify-start gap-[4px]">
               {product?.brand?.icon && (

@@ -103,7 +103,7 @@ function ChecklistView({
       />
 
       {loading ? (
-        <div className="flex-col w-full" data-cy="checklist-loading">
+        <div className="flex-col w-full" data-pw="checklist-loading">
           {[0, 1, 2, 3].map((key) => (
             <Skeleton
               key={key}
@@ -112,7 +112,7 @@ function ChecklistView({
           ))}
         </div>
       ) : items.length > 0 ? (
-        <div className="flex-col w-full pb-[20px]" data-cy="checklist-list">
+        <div className="flex-col w-full pb-[20px]" data-pw="checklist-list">
           {items.map((item) => (
             <ChecklistItem
               key={item.id}
@@ -128,7 +128,7 @@ function ChecklistView({
           {hasNext && (
             <button
               type="button"
-              data-cy="checklist-load-more"
+              data-pw="checklist-load-more"
               onClick={loadMore}
               disabled={loadingMore}
               className="w-full h-[45px] mt-[12px] rounded-[15px] bg-[#F8F8F8] text-[14px] medium text-[#402CDD] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -141,7 +141,7 @@ function ChecklistView({
         </div>
       ) : (
         <div
-          data-cy="checklist-empty"
+          data-pw="checklist-empty"
           className="flex-col w-full items-center justify-center gap-[12px] mt-[40px] py-[40px] rounded-[15px] bg-[#F8F8F8]"
         >
           <img src="/icons/Heart.svg" alt="" className="w-[40px] h-[40px]" />

@@ -11,29 +11,29 @@ function OrderMarquee({ shippingCost }) {
   };
   return (
     <div
-      data-cy="horizontal-tape-container"
+      data-pw="horizontal-tape-container"
       className="flex flex-row pl-3 items-center marquee-slide mt-2"
     >
-      <div data-cy="firstItem-onHorizontalTape" className="flex items-center">
+      <div data-pw="firstItem-onHorizontalTape" className="flex items-center">
         <DeleiveryIcon />
         <div
-          data-cy="deleivery-text"
+          data-pw="deleivery-text"
           className="ml-1 whitespace-nowrap regular  text-[11px] text-[#505050]"
         >
           {translate("Delivery")}
-          <span data-cy="text-name" className="bold ml-1">
+          <span data-pw="text-name" className="bold ml-1">
             {translate("2 June")}
           </span>
         </div>
       </div>
       {shippingCost === 0 && (
         <div
-          data-cy="secondItem-onHorizontalTape"
+          data-pw="secondItem-onHorizontalTape"
           className="flex items-center ml-2"
         >
           <FreeShippingIcon />
           <div
-            data-cy="FreeShipping-text"
+            data-pw="FreeShipping-text"
             className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
           >
             {translate("Free Shipping")}
@@ -41,84 +41,84 @@ function OrderMarquee({ shippingCost }) {
         </div>
       )}
       <div
-        data-cy="thirdItem-onHorizontalTape"
+        data-pw="thirdItem-onHorizontalTape"
         className="flex items-center ml-2"
       >
         <FreeReturnIcon />
         <div
-          data-cy="FreeReturn-text"
+          data-pw="FreeReturn-text"
           className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
         >
           {translate("Free Return")}
         </div>
       </div>
       <div
-        data-cy="fourthItem-onHorizontalTape"
+        data-pw="fourthItem-onHorizontalTape"
         className="flex items-center ml-2"
       >
         <DeleiveryGuaranteeIcon />
         <div
-          data-cy="DeliveryGuarantee-text"
+          data-pw="DeliveryGuarantee-text"
           className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
         >
           {translate("Delivery Guarantee")}
         </div>
       </div>
       <div
-        data-cy="fifthItem-onHorizontalTape"
+        data-pw="fifthItem-onHorizontalTape"
         className="flex items-center ml-2"
       >
         <ReturnGuranteeIcon />
         <div
-          data-cy="ReturnGurantee-text"
+          data-pw="ReturnGurantee-text"
           className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
         >
           {translate("Return Guarantee")}
         </div>
       </div>
       <div
-        data-cy="sixtyItem-onHorizontalTape"
+        data-pw="sixtyItem-onHorizontalTape"
         className="flex items-center ml-2"
       >
         <SecurePaymentIcon />
         <div
-          data-cy="SecurePayment-text"
+          data-pw="SecurePayment-text"
           className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
         >
           {translate("Secure Privacy")}
         </div>
       </div>
       <div
-        data-cy="seventyItem-onHorizontalTape"
+        data-pw="seventyItem-onHorizontalTape"
         className="flex items-center ml-2"
       >
         <SafePaymentIcon />
         <div
-          data-cy="SafePayment-text"
+          data-pw="SafePayment-text"
           className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
         >
           {translate("Safe & Easy Payment")}
         </div>
       </div>
       <div
-        data-cy="eightyItem-onHorizontalTape"
+        data-pw="eightyItem-onHorizontalTape"
         className="flex items-center ml-2"
       >
         <PurchaseProtectionIcon />
         <div
-          data-cy="PurchaseProtection-text"
+          data-pw="PurchaseProtection-text"
           className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
         >
           {translate("Purshase Protection")}
         </div>
       </div>
       <div
-        data-cy="nintyItem-onHorizontalTape"
+        data-pw="nintyItem-onHorizontalTape"
         className="flex items-center ml-2"
       >
         <MoneyIcon />
         <div
-          data-cy="Money-text"
+          data-pw="Money-text"
           className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
         >
           {translate("Earn Money With This Order")}
@@ -132,7 +132,7 @@ export default OrderMarquee;
 const DeleiveryIcon = () => {
   return (
     <svg
-      data-cy="deleivery-icon"
+      data-pw="deleivery-icon"
       id="Group_3138"
       data-name="Group 3138"
       xmlns="http://www.w3.org/2000/svg"
@@ -169,7 +169,7 @@ const DeleiveryIcon = () => {
 const FreeShippingIcon = () => {
   return (
     <svg
-      data-cy="free-shipping-icon"
+      data-pw="free-shipping-icon"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="14"
@@ -272,7 +272,7 @@ const FreeShippingIcon = () => {
 const FreeReturnIcon = () => {
   return (
     <svg
-      data-cy="free-return-icon"
+      data-pw="free-return-icon"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="14"
@@ -375,7 +375,7 @@ const FreeReturnIcon = () => {
 const DeleiveryGuaranteeIcon = () => {
   return (
     <svg
-      data-cy="deleiveryuaranteeIcon"
+      data-pw="deleiveryuaranteeIcon"
       xmlns="http://www.w3.org/2000/svg"
       width="13.999"
       height="14"
@@ -425,7 +425,7 @@ const DeleiveryGuaranteeIcon = () => {
 const ReturnGuranteeIcon = () => {
   return (
     <svg
-      data-cy="Return-Gurantee-Icon"
+      data-pw="Return-Gurantee-Icon"
       xmlns="http://www.w3.org/2000/svg"
       width="14"
       height="13.999"
@@ -475,7 +475,7 @@ const ReturnGuranteeIcon = () => {
 const SecurePaymentIcon = () => {
   return (
     <svg
-      data-cy="Secure-Payment-Icon"
+      data-pw="Secure-Payment-Icon"
       xmlns="http://www.w3.org/2000/svg"
       width="13.999"
       height="13.999"
@@ -538,7 +538,7 @@ const SecurePaymentIcon = () => {
 const SafePaymentIcon = () => {
   return (
     <svg
-      data-cy="Safe-Payment-Icon"
+      data-pw="Safe-Payment-Icon"
       xmlns="http://www.w3.org/2000/svg"
       width="13.999"
       height="14"
@@ -575,7 +575,7 @@ const SafePaymentIcon = () => {
 const PurchaseProtectionIcon = () => {
   return (
     <svg
-      data-cy="Purchase-Protection-Icon"
+      data-pw="Purchase-Protection-Icon"
       xmlns="http://www.w3.org/2000/svg"
       width="14"
       height="14"
@@ -648,7 +648,7 @@ const PurchaseProtectionIcon = () => {
 const MoneyIcon = () => {
   return (
     <svg
-      data-cy="Money-Icon"
+      data-pw="Money-Icon"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="14"

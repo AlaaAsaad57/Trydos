@@ -119,14 +119,14 @@ export default function ListingShareControl({
     <>
       <button
         type="button"
-        data-cy="share_ortion"
+        data-pw="share_ortion"
         className="filter-option relative flex items-center justify-center border-0 bg-transparent p-0"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-label={t("Share this page")}
         onClick={() => setIsOpen(true)}
       >
-        <img src="/icons/shareIcon.svg" data-cy="share_ortion_svg" alt="" />
+        <img src="/icons/shareIcon.svg" data-pw="share_ortion_svg" alt="" />
       </button>
 
       {isOpen && (
@@ -151,7 +151,7 @@ export default function ListingShareControl({
             {/* Share grid — reuses styles/share-options.css for parity with the
                 product share widget. No tracking, no contacts. */}
             <div className="share-options">
-              <div className="share-avatar" data-cy="Facebook">
+              <div className="share-avatar" data-pw="Facebook">
                 <div className="share-image social shadow-none">
                   <FacebookShareButton url={generateUrlForSharing("facebook")}>
                     <FacebookIcon size={70} borderRadius={20} />
@@ -160,7 +160,7 @@ export default function ListingShareControl({
                 <div className="share-name">Facebook</div>
               </div>
 
-              <div className="share-avatar" data-cy="Twitter">
+              <div className="share-avatar" data-pw="Twitter">
                 <div className="share-image social shadow-none">
                   <TwitterShareButton
                     url={generateUrlForSharing("X")}
@@ -172,7 +172,7 @@ export default function ListingShareControl({
                 <div className="share-name">Twitter / X</div>
               </div>
 
-              <div className="share-avatar" data-cy="Whatsapp">
+              <div className="share-avatar" data-pw="Whatsapp">
                 <div className="share-image social shadow-none">
                   <WhatsappShareButton url={generateUrlForSharing("whatsapp")}>
                     <WhatsappIcon size={70} borderRadius={20} />
@@ -181,7 +181,7 @@ export default function ListingShareControl({
                 <div className="share-name">WhatsApp</div>
               </div>
 
-              <div className="share-avatar" data-cy="Telegram">
+              <div className="share-avatar" data-pw="Telegram">
                 <div className="share-image social shadow-none">
                   <TelegramShareButton url={generateUrlForSharing("Telegram")}>
                     <TelegramIcon size={70} borderRadius={20} />
@@ -190,7 +190,7 @@ export default function ListingShareControl({
                 <div className="share-name">Telegram</div>
               </div>
 
-              <div className="share-avatar" data-cy="Email">
+              <div className="share-avatar" data-pw="Email">
                 <div className="share-image social shadow-none">
                   <button
                     type="button"
@@ -205,7 +205,7 @@ export default function ListingShareControl({
 
               <div className="share-avatar">
                 <div
-                  data-cy="copy_link_button"
+                  data-pw="copy_link_button"
                   className="share-image social shadow-none flex justify-center items-center bg-[#f8f8e4]"
                   onClick={copyLink}
                 >
@@ -221,7 +221,7 @@ export default function ListingShareControl({
               </div>
 
               {canNativeShare && (
-                <div className="share-avatar" data-cy="NativeShare">
+                <div className="share-avatar" data-pw="NativeShare">
                   <div
                     className="share-image social shadow-none flex justify-center items-center bg-[#f0f0f0]"
                     onClick={nativeShare}

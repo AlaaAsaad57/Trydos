@@ -30,7 +30,7 @@ function SearchTrending({ trending, clearAll, setValue }) {
             <div
               key={index}
               className="search-filter-option"
-              data-cy="search-trending-option"
+              data-pw="search-trending-option"
               onClick={(e) => {
                 setValue(s.term);
               }}
@@ -66,7 +66,7 @@ function SearchTrending({ trending, clearAll, setValue }) {
             <div
               key={index}
               className="option-row-search flex-row"
-              data-cy="search-trending-option"
+              data-pw="search-trending-option"
               onClick={(e) => {
                 setValue(s.term);
                 // Sendevent({

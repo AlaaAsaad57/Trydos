@@ -56,7 +56,7 @@ function ProductFooter({ isRtl, productLightData }) {
             className={`options-container relative w-full  justify-between flex flex-row pb-[35px] pt-[8px] h-[68px] px-[20px] ${
               isRtl && "flex-row-reverse"
             }`}
-            data-cy="InteraCtionBoX"
+            data-pw="InteraCtionBoX"
           >
             <AddToCartButton product={productLightData} />
             <div

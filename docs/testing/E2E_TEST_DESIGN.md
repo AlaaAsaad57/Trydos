@@ -50,10 +50,17 @@ red pull request check must always mean "the code broke".
 Three steps, kept separate so a red step means one thing:
 
 ```
-preflight  node tests/e2e/preflight.mjs   is this configured, and is it staging?
-build      pnpm build                     a failure here means the build broke
-e2e        pnpm exec playwright test      a failure here means the app broke
+preflight  pnpm e2e:preflight          is this configured, and is it staging?
+build      pnpm e2e:build              a failure here means the build broke
+e2e        pnpm exec playwright test   a failure here means the app broke
 ```
+
+All three are `tests/e2e/cli.ts`, run through `tsx`. One file with three
+subcommands rather than three scripts, because they share the environment
+loading and the guard, and duplicating those is how they drift apart. `pnpm build`
+is not used directly: `next build` in production mode reads `.env.production` and
+never `.env.development`, so the build would miss the staging values it has to
+bake in.
 
 Locally `pnpm test:e2e` runs all three in order. On CI they are three steps, so
 the slow half can be cached and a broken build never looks like a failed test.
@@ -105,14 +112,16 @@ tests/e2e/
     env.ts          reads .env.development, decides what is configured
     server.ts       next start, wait until answering, kill the tree
     redact.ts       masks secrets in anything we print
+    handle.ts       the running server, shared by setup and teardown
+  cli.ts            preflight | build | run
   globalSetup.ts    guard, start, log in, save the session
   globalTeardown.ts stop the server, cancel any orphan order
-  fixtures.ts       the session fixture and the order tracker
+  fixtures.ts       auto-skip when unconfigured; later, the order tracker
   selectors.ts
-  actions/          auth.ts cart.ts order.ts nav.ts
+  actions/          nav.ts mock.ts — auth.ts cart.ts order.ts come with ticket 2
   scenarios/        named response sets for scripted mode
-  guest.spec.ts
-  shopper.spec.ts
+  guest.live.spec.ts
+  shopper.live.spec.ts     (ticket 2)
 playwright.config.ts
 ```
 
@@ -236,15 +245,30 @@ Every locator lives in `selectors.ts`. When copy changes you fix one line, not
 thirty specs.
 
 The app renders in four languages through `translateFunction`, so a locator that
-matches English text breaks in Arabic. Two decisions follow:
+matches English text breaks in Arabic. Journeys therefore run under `/gb-en/`,
+and real locators use an attribute rather than text.
 
-- Journeys run under `/gb-en/`, so role and name locators work.
-- `data-testid` is added to the money path, where the text is dynamic or
-  ambiguous: `PlaceOrderWidget`, `PlaceOrderButtons`, `CheckoutButton`, the
-  `EnterPinScreen` boxes, and the order rows under `settings/orders`.
+**The attribute is `data-pw`, and the app is already full of it.** The design
+first assumed we would add `data-testid` to the money path. That turned out to be
+unnecessary: the app carried about 800 `data-cy` attributes left from an earlier
+Cypress setup, covering exactly the paths that matter — `addToCartButton`,
+`Confirm-Order-Button`, `cachondelivry-cartpage`, `cart-total-price`,
+`product-card`, `cart_icon_button`, `phone-number-input`. Nothing in the source
+read them.
 
-The repository has three `data-testid` attributes today, so this is new. It edits
-application components, not only tests. Keep it to the money path.
+They were renamed wholesale to `data-pw`, and `playwright.config.ts` points
+`getByTestId()` at it. So the money-path ticket needs close to zero new
+attributes.
+
+Two details that came out of the rename and are worth keeping written down:
+
+- The unit suite's own files (`tests/render.test.tsx`, `tests/setup.test.tsx`)
+  still use `data-testid`, because React Testing Library's `getByTestId` reads
+  that name and `tests/setup.ts` does not override it. Renaming those would break
+  1210 passing tests for nothing.
+- Four elements carried both attributes and became duplicates. Three were the
+  same name twice; one (`UserNavTopSection`) had `data-testid="login-text"` and
+  `data-cy="login-icon"` on one element, and kept the `data-cy` name.
 
 ## 9. Identities and the session
 
@@ -315,24 +339,38 @@ or a token in a failure message is published, not merely untidy.
 `.github/workflows/**` is a protected runtime path. Changing it needs an approved
 `plan.md` that names the file.
 
-| Runs on | Runs |
-|---|---|
-| `pull_request` → `develop`, `main` | parity, lint, types, unit — unchanged |
-| `push` → `develop`, `main` | the above, then build and e2e, after the merge |
-| nightly `schedule` + `workflow_dispatch` | build and e2e |
+| File | Runs on | Runs |
+|---|---|---|
+| `tests.yml` *(unchanged)* | `pull_request` + `push` → `develop`, `main` | parity, lint, types, unit |
+| `test-e2e.yml` *(new)* | `push` → `develop`, `main`; nightly; dispatch | preflight, build, browser journeys |
 
-The e2e job is gated on the event being a push or a schedule, never a pull
-request. A fork therefore never runs it and never needs a staging secret.
+**The e2e job is its own workflow file, not a job in `tests.yml`.** The design
+first put it in `tests.yml`. That is wrong, and the reason is worth stating
+because it is easy to get back to: `tests.yml` sets `cancel-in-progress: true` at
+the **workflow** level, which cancels the entire run — every job in it — as soon
+as another push lands on the same branch. A job-level concurrency group cannot
+opt out of that. A browser run killed mid-checkout may already have created a
+real order and would never reach the teardown that cancels it.
+
+Never on `pull_request`. A fork therefore never runs it and never needs a staging
+secret.
 
 **Two concurrency rules, neither optional:**
 
-1. **The e2e job must never be cancelled.** `tests.yml` today sets
-   `cancel-in-progress: true`. A run killed mid-checkout has already created an
-   order and will never reach teardown. The e2e job gets its own group with
-   `cancel-in-progress: false`.
-2. **Only one e2e run may touch staging at a time.** The push job and the nightly
+1. **Never cancelled.** `cancel-in-progress: false`. A queued run is cheap; an
+   orphaned order is not.
+2. **Only one run may touch staging at a time.** The push run and the nightly
    share one global `live-suite` group. Two runs in the same staging shop break
    each other for reasons that look exactly like product bugs.
+
+**The environment is one secret, `E2E_ENV_FILE`, holding the whole
+`.env.development`.** Named secrets were the first plan; the build needs every
+`NEXT_PUBLIC_` value baked in, not just the backend addresses, so that list would
+silently break the build each time the app read a new one. The trade-off — a blob
+is harder to audit and rotate than named secrets — is accepted because the file
+already exists in exactly this form on every developer machine, so CI and local
+runs cannot drift. No secret means no file, which means preflight reports "not
+configured" and the run is green and empty.
 
 Chromium is installed with a cached `~/.cache/ms-playwright`. Results are
 reported through the existing `notify-telegram.yml`.
@@ -343,7 +381,9 @@ request.
 
 ## 13. What gets deleted
 
-All of it is uncommitted working-tree work, so nothing is lost from history.
+Almost all of it is uncommitted working-tree work, so almost nothing is lost from
+history. The two exceptions are tracked and are removed by the implementing
+commit: `tests/live/README.md` and `docs/testing/LIVE_TEST_ROADMAP.md`.
 
 | Deleted | Why |
 |---|---|
@@ -365,13 +405,18 @@ Kept and moved to `tests/e2e/harness/`: `guard.ts`, `env.ts`, `server.ts`,
 - **AC-1** `pnpm test:e2e` on a machine with no staging addresses configured
   finishes green, builds nothing, and starts no server.
 - **AC-2** With any backend address set to a host that is not on the staging
-  allow-list, the run stops before the server starts.
+  allow-list, the run stops in preflight — before anything is built and before
+  any server starts.
 - **AC-3** `pnpm test:e2e` builds the app, starts it on `127.0.0.1:3100`, runs
   the specs, and leaves no process holding the port.
-- **AC-4** `guest.spec.ts` proves: `/` redirects to `/gb-en/`, the home page
-  renders with no console error, search reaches a listing, a listing reaches a
-  product page, and the cart drawer opens.
-- **AC-5** `shopper.spec.ts` proves, against real staging: log in, add to cart,
+- **AC-4** `guest.live.spec.ts` proves: `/` redirects to a country-and-language
+  path, the home page renders without throwing, search returns results, a
+  listing reaches a product page, and the cart drawer opens.
+  *(Not "no console error": third-party scripts on staging log errors that say
+  nothing about our code, and a test that fails on those teaches everyone to
+  ignore it. An uncaught exception — `pageerror` — is the signal worth failing
+  on, and that is what the spec asserts.)*
+- **AC-5** `shopper.live.spec.ts` proves, against real staging: log in, add to cart,
   place a cash-on-delivery order, see it under `settings/orders`, cancel it
   through the UI, and see it as cancelled.
 - **AC-6** The order created by AC-5 carries the run marker, and is cancelled
@@ -403,3 +448,64 @@ Kept and moved to `tests/e2e/harness/`: `guard.ts`, `env.ts`, `server.ts`,
   sets it as an HttpOnly auth cookie. It is commented as debug-only, and I found
   no environment gate on it. On production that is session fixation. These tests
   must not use it either, since it would skip the login flow we want proven.
+
+## 16. Findings carried over
+
+These came out of the research for the roadmap this document replaces. They are
+about the app, not about the deleted plan, so they are kept here rather than lost
+with it. Full text is in git history.
+
+1. **`POST /api/auth/simulate` is not gated.** It writes any auth cookie —
+   including `MARKET-TOKEN` — from an unauthenticated request body, in every
+   environment, with no origin check. Needs its own security ticket. Also in
+   section 15, because it is the one finding this work must actively avoid using.
+
+2. **OTP rate limiting will fight the suite.** Redis-backed cooldowns are real on
+   staging. This is why the session is created once per run, and why the
+   rate-limited branch is a scripted scenario rather than a live one.
+
+3. **`x-market-backend` makes routing free to assert.** The response says which
+   backend served it. Useful to a future spec; nothing uses it yet.
+
+4. **Login fans out to five backends and writes about ten cookies.** A partial
+   failure is invisible today — a shopper can be logged in to the storefront but
+   not to chat. Worth a spec once the money path lands.
+
+5. **Chat realtime is Firebase Realtime Database, not sockets.** Anything
+   asserting live chat has to account for that.
+
+6. **A test must not import a server module in-process.** `serverRequests/radis`
+   opens a Redis connection, and the modules reaching it are server-side. Driving
+   the app over HTTP — which is all this suite does — keeps that in the server
+   process, which is exactly what production does. A spec that finds itself
+   wanting a direct import is reaching for a unit test.
+
+7. **`starting-setting` versus `starting_setting`.** The core backend uses the
+   hyphen, the gateway the underscore, and the app reads the underscore only.
+   Verified shoppers silently get `0` for the shipping duration and the decimal
+   points. Still unfixed; a journey through checkout may well surface it.
+
+8. **The listing price-sort mismatch is real and unfixed.** The sort key is the
+   root `offered_price` while the card shows the country or flash price. Needs a
+   backend indexed effective-price field.
+
+**New, found by the first run of this suite:**
+
+9. **Changing country leaves the previous country's products on screen.** Pick a
+   country in the "Select Your Region" popup and the URL changes, but the home
+   page keeps the listing it was rendered with. The cards look fine and the
+   products are not available in the new country: clicking one lands on
+   `?message=product_not_found`.
+
+   Proven rather than guessed — `chooseRegionIfAsked` reloads after choosing, and
+   that single change took the guest journey from failing to passing. The reload
+   is a workaround, marked as one in `actions/nav.ts`.
+
+   Worth its own ticket. It is the same shape as the known stale-RSC problem
+   where a query-string navigation reuses a cached payload, and a real visitor
+   who changes country hits it on the first click.
+
+10. **The app cannot detect a country over loopback**, so every local and CI run
+    lands on `?no-country=true` and gets the region popup. Not a bug — there is
+    no geo header to read — but it is why no journey may assume `/gb-en`, and why
+    dealing with the popup is part of `gotoHome` rather than a special case.

@@ -38,7 +38,7 @@ export default function TermsScreen({ onAgree, onLater, lang = 'en' }: TermsScre
                 {/* Description */}
                 <p className="text-xd-14 leading-[1.4] text-[#1D1D1D] text-center">
                     {translate('To Create New Account Tap “Agree & Continue” To Accept')}{' '}
-                    <span className="font-bold">rdb </span>
+                    <span className="font-bold">Trydos </span>
                     {translate('terms of services')}
                 </p>
 

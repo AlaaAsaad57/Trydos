@@ -13,7 +13,7 @@ function StoryViewerSkeleton() {
   return (
     <div
       className="fixed top-0 left-0 w-screen h-full max-w-full max-h-full bg-black z-999999999999999"
-      data-cy="story-viewer-skeleton"
+      data-pw="story-viewer-skeleton"
     >
       {/* Story surface */}
       <div className="absolute inset-0 bg-neutral-900 animate-pulse" />

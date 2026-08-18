@@ -55,7 +55,7 @@ const OrderProductSlider = ({
             {isProductHidden && onRestoreProduct && (
               <button
                 type="button"
-                data-cy="restore-hidden-product"
+                data-pw="restore-hidden-product"
                 aria-label="Restore hidden product"
                 onClick={(e) => {
                   e.preventDefault();

@@ -20,14 +20,14 @@ export default function FilterListingBackButton({
     return (
       <button
         type="button"
-        data-cy="BackIcon_boutique"
+        data-pw="BackIcon_boutique"
         onClick={() => router.back()}
         className="back-icon flex cursor-pointer items-center justify-center border-0 bg-transparent p-0"
         aria-label="Back"
       >
         <img
           src="/icons/backIcon.svg"
-          data-cy="back_icon_boutique_page"
+          data-pw="back_icon_boutique_page"
           alt=""
           className={isRtl ? "rotate-180" : ""}
         />
@@ -37,7 +37,7 @@ export default function FilterListingBackButton({
 
   return (
     <NextLink
-      data-cy="BackIcon_boutique"
+      data-pw="BackIcon_boutique"
       ignoreConditionCase={true}
       data={{ is_full_home: true }}
       href={`/${lang}`}
@@ -46,7 +46,7 @@ export default function FilterListingBackButton({
     >
       <img
         src="/icons/backIcon.svg"
-        data-cy="back_icon_boutique_page"
+        data-pw="back_icon_boutique_page"
         alt=""
         className={isRtl ? "rotate-180" : ""}
       />

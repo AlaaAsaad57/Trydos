@@ -15,7 +15,12 @@
     "test:run": "vitest run --project unit",
     "test:coverage": "vitest run --project unit --coverage",
     "test:ci": "vitest run --project unit --coverage --reporter=default --reporter=json --outputFile.json=test-results.json",
-    "test:live": "vitest run --project live --passWithNoTests"
+    "test:e2e": "tsx tests/e2e/cli.ts run",
+    "test:e2e:live": "tsx tests/e2e/cli.ts run --project live",
+    "test:e2e:scripted": "tsx tests/e2e/cli.ts run --project scripted --pass-with-no-tests",
+    "e2e:preflight": "tsx tests/e2e/cli.ts preflight",
+    "e2e:build": "tsx tests/e2e/cli.ts build",
+    "e2e:report": "playwright show-report"
   },
   "resolutions": {
     "form-data": "4.0.6",
@@ -125,6 +130,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@next/bundle-analyzer": "16.2.10",
+    "@playwright/test": "^1.62.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
@@ -148,6 +154,7 @@
     "sass": "^1.83.4",
     "sass-loader": "^14.2.1",
     "style-loader": "^4.0.0",
+    "tsx": "^4.23.12",
     "typescript": "^5.9.2",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.10",

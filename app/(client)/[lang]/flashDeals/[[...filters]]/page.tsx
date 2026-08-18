@@ -142,13 +142,13 @@ export default async function Page({ params, searchParams }) {
           />
         </Suspense>
         <div
-          data-cy="filter_listing_bar"
+          data-pw="filter_listing_bar"
           className={`filter-listing-bar z-99999999 ${
             isRtl ? "flex-row-reverse flex" : "flex-row flex"
           } align-center w-full left-0 right-0 mx-auto h-[50px] pl-[15px] pr-[20px] max-w-[1365px] justify-between bg-white z-10`}
         >
           <NextLink
-            data-cy="BackIcon_boutique"
+            data-pw="BackIcon_boutique"
             ignoreConditionCase={true}
             data={{
               is_full_home: true,
@@ -159,7 +159,7 @@ export default async function Page({ params, searchParams }) {
           >
             <img
               src="/icons/backIcon.svg"
-              data-cy="back_icon_boutique_page"
+              data-pw="back_icon_boutique_page"
               className={`${isRtl && "rotate-180"}`}
             />
           </NextLink>
@@ -183,7 +183,7 @@ export default async function Page({ params, searchParams }) {
         </div>
 
         <div
-          data-cy="boutique_header"
+          data-pw="boutique_header"
           className={`boutique-header ${"flex-col"} align-center`}
         >
           <Suspense

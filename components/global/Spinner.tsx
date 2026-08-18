@@ -3,7 +3,7 @@ import "styles/spinner.css";
 function Spinner(props) {
   return (
     <div
-      data-cy="spinner-container2"
+      data-pw="spinner-container2"
       className={
         "spin-cont min-w-4 " +
         (props.no && " no-tran ") +
@@ -12,7 +12,7 @@ function Spinner(props) {
       }
     >
       <svg
-        data-cy="SpinneR"
+        data-pw="SpinneR"
         className="spinner-component"
         xmlns="http://www.w3.org/2000/svg"
         width="15"
