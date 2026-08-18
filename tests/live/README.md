@@ -1,15 +1,42 @@
 # Live tests — against the real staging backend
 
-This folder is **empty on purpose**. The split that holds it exists so that
-writing the first live test is a new file and nothing else — no config change,
-no script change, no argument about whether it belongs in the main suite.
+**The plan is `docs/testing/LIVE_TEST_ROADMAP.md`** — 27 phases. Everything below
+still holds; the roadmap says in which order it gets done, and adds the shared
+contracts and the write-safety rules that the phases share.
 
-Nothing here has been written yet. Picking this up is its own ticket.
+**Phase 1 is done: the harness is in `harness/`.** Writing a live test is now a
+new file that imports it and nothing else.
 
-**The plan now exists: `docs/testing/LIVE_TEST_ROADMAP.md`** — 27 phases, one
-ticket each. Everything below still holds; the roadmap says in which order it
-gets done, and adds the harness, the shared contracts and the write-safety rules
-that the phases share.
+```ts
+import { CookieJar, hasShopperA, proxyJson, registerGuest } from "./harness";
+```
+
+| Module | What it does |
+|---|---|
+| `harness/globalSetup.ts` | guard, then `next build` + `next start` on `127.0.0.1:3100`, then tear down |
+| `harness/guard.ts` | refuses to run unless every configured backend address is a known **staging** host |
+| `harness/cookieJar.ts` | one jar = one identity; the `fetch` wrapper that resolves relative URLs and carries cookies |
+| `harness/browser.ts` | the jsdom `window.location` / `localStorage` shim, for files that drive client code |
+| `harness/redact.ts` | masks configured secrets, and tokens by shape |
+| `harness/proxy.ts` | builds the real `x-proxy-*` headers, using the app's own service-token map |
+| `harness/guest.ts` | `registerGuest(jar)` — the one approved write |
+| `harness/env.ts` | reads `.env.development`; decides what is configured |
+
+Three things worth knowing before you write the second live test:
+
+**Every run builds.** There is no reuse-a-running-server option; the suite only
+talks to a server it started itself. So an occupied port `3100` is a hard error,
+not something it adopts.
+
+**Nothing is built when nothing is configured.** With no staging addresses the
+global setup returns immediately and every file skips. `pnpm test:live` on a fresh
+checkout is fast and green.
+
+**A file that drives client code needs jsdom.** Put
+`/** @vitest-environment jsdom */` on its first line and call
+`installBrowserShim(jar)`. A file that only addresses a route handler stays on
+`node`. `utils/fetchData.ts` reads `window.location.pathname` for the locale, and
+the path is `/gb-en/…` — country first, then language.
 
 ---
 
@@ -61,6 +88,13 @@ skips cleanly when they are missing.** Both point at **staging**:
 Unset means skip, not fail. Someone who has never configured staging must still
 be able to run `pnpm test:live` and get a clean result.
 
+Those two decide whether the suite runs at all, but the guard checks **every**
+backend address the app resolves — wallet, stories, chat, comments, elastic, and
+the fleet and admin products — because proving the front door points at staging
+while the wallet points elsewhere proves nothing. The allow-list is
+`ALLOWED_HOSTS` in `harness/guard.ts`, and an unknown host stops the run before
+anything is built.
+
 **3. Assertions stay loose.** Status code, the *shape* of a token field, whether
 a retry happened. Never an exact response body — pinning one turns a harmless
 backend addition into a red suite.
@@ -73,28 +107,30 @@ guest records through `/auth/register-guest` is approved. Anything that changes
 data a person can see — an order, a product, a shop — is not, and needs its own
 decision first.
 
-## What the first tests should cover
+## What comes next
 
-Agreed when the split was designed, kept here so it is not lost:
+`smoke.live.test.ts` proves the harness. The three targets agreed when the split
+was designed are still the ones worth having first, and the roadmap now says which
+phase owns each:
 
-- **The guest-token contract, end to end.** Send a deliberately bad
-  `MARKET-TOKEN` at an authed endpoint and let the real
-  `401 → /auth/register-guest → retry → 200` sequence run. This is the single
-  highest-value live test: it is the path `serverRequests/HandleAuthedFetch.ts`
-  takes, and the isolated suite can only prove our half of it.
-- **The valid-token half**, using a test account. The owner offered a fixed test
-  phone and a fixed debug OTP for this — `TEST_ACCOUNT_PHONE` and
-  `TEST_ACCOUNT_OTP` in `.env.development`. Same rule as above: skip when unset,
-  and never print either value.
-- **`starting-setting` vs `starting_setting`.** The core backend returns the
-  hyphen form and the gateway returns the underscore form, and the app reads the
-  underscore form only. A live test is the only thing that will notice if that
-  ever changes on either side.
+- **The guest-token contract, end to end** — a deliberately bad `MARKET-TOKEN` at
+  an authed endpoint, and the real `401 → refresh → retry → 200` sequence. This is
+  the highest-value live test there is: it is the path
+  `serverRequests/HandleAuthedFetch.ts` takes, and the isolated suite can only
+  prove our half of it. **Phase 3**, which also builds `withSession()` on top of
+  `registerGuest()`.
+- **The valid-token half**, using shopper A and the fixed OTP. **Phase 6.**
+- **`starting-setting` vs `starting_setting`** — the core backend returns the
+  hyphen form, the gateway the underscore form, and the app reads the underscore
+  only, so a verified shopper silently gets `0` for the shipping duration and the
+  decimal points. **Phase 5.**
 
-## When this folder stops being empty
+## CI
 
-A live workflow file (`.github/workflows/test-live.yml`) gets added at the same
-time: `workflow_dispatch` plus a nightly `schedule`, staging addresses and the
-test account supplied as repository secrets, skipping cleanly when they are not
-set. It is a separate file from `tests.yml` so that the pull-request check never
-needs a secret and never depends on staging.
+Still to come, and it is **phase 4** — the one phase that touches
+`.github/workflows/**`, a protected runtime path. The shape is decided: the live
+job runs on `push` to `develop` and `main` and on a nightly schedule, never on a
+`pull_request`, so a fork never needs a staging secret. It gets its own
+concurrency group with `cancel-in-progress: false`, because a live run killed
+halfway has already created rows it will now never clean up, and one global
+`live-suite` group so two runs never share one staging shop.

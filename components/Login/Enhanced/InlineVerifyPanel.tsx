@@ -5,9 +5,22 @@ import Image from 'next/image';
 import AuthService from 'services/auth';
 import { translateFunction } from 'utils/functions';
 import { getNumberLockRemaining, isSessionCapReached } from 'utils/otpLocks';
+import { GA_EVENT_NAMES } from 'utils/GAEvents';
+import { GAevent } from 'utils/gtag';
 import { usePhoneVerifyFlow } from './usePhoneVerifyFlow';
 import RdbPhoneInput from './ui/RdbPhoneInput';
 import RdbPinInputs from './ui/RdbPinInputs';
+
+/**
+ * The two steps this panel owns before the shared verify flow starts.
+ *
+ * A shopper with no number on file first says which one they are: an existing
+ * account goes straight to the phone input, a new one accepts the terms first.
+ * Same opening the fullscreen login has (GetStartedScreen → TermsScreen), only
+ * laid out for the short cart panel. Kept local to this component so the shared
+ * `usePhoneVerifyFlow` step machine — and its other hosts — stay untouched.
+ */
+type IntroStep = 'choice' | 'terms' | 'done';
 
 interface InlineVerifyPanelProps {
     initialPhone?: string | null;
@@ -63,6 +76,21 @@ export default function InlineVerifyPanel({
     });
 
     const busy = loading !== '';
+
+    // The account already owns this number, so there is nothing to ask: the
+    // flow opens on the method step and the intro is skipped entirely.
+    const startsAtMethod = Boolean(phoneLocked && initialPhone);
+    const [intro, setIntro] = useState<IntroStep>(startsAtMethod ? 'done' : 'choice');
+
+    const agreeTerms = () => {
+        // Same event TermsScreen fires, so accepting the terms here is counted
+        // like accepting them in the fullscreen signup.
+        GAevent({
+            action: GA_EVENT_NAMES.TERMS_SERVICES,
+            params: { mission: 'signup', status: 'terms_accepted' },
+        });
+        setIntro('done');
+    };
 
     // Mirrors SelectMethodScreen's own lock/cap polling, so the countdown ticks
     // down on screen and the method buttons are not tappable while a send would
@@ -126,7 +154,66 @@ export default function InlineVerifyPanel({
                 />
             </button>
 
-            {step === 'enter-phone' && (
+            {intro === 'choice' && (
+                <>
+                    <h2
+                        data-pw="inline-get-started"
+                        className="text-xd-16 font-bold text-[#1D1D1D] text-center"
+                    >
+                        {translate('Get Started !')}
+                    </h2>
+                    {/* Side by side, not stacked as on GetStartedScreen: the cart
+                        panel is ~200px tall and two 60px buttons plus the heading
+                        do not fit in it. */}
+                    <div className="w-full flex items-stretch gap-xd-8">
+                        <button
+                            onClick={() => setIntro('done')}
+                            data-pw="inline-have-account-button"
+                            className="xd-dashed-border flex-1 h-xd-48 px-1 rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-13 leading-[1.3] cursor-pointer transition-all active:scale-[0.98]"
+                        >
+                            {translate('I Have Already Account')}
+                        </button>
+                        <button
+                            onClick={() => setIntro('terms')}
+                            data-pw="inline-create-account"
+                            className="xd-dashed-border flex-1 h-xd-48 px-1 rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-13 leading-[1.3] cursor-pointer transition-all active:scale-[0.98]"
+                        >
+                            {translate('New Customer')}
+                        </button>
+                    </div>
+                </>
+            )}
+
+            {intro === 'terms' && (
+                <>
+                    <p className="text-xd-12 leading-[1.4] text-[#1D1D1D] text-center px-xd-10">
+                        {translate('To Create New Account Tap “Agree & Continue” To Accept')}{' '}
+                        <span className="font-bold">rdb </span>
+                        {translate('terms of services')}
+                    </p>
+                    <div className="flex items-center gap-xd-5">
+                        <Image
+                            src="/assets/icons/auth/terms.svg"
+                            alt=""
+                            width={20}
+                            height={20}
+                            className="w-xd-20 h-xd-20 object-contain"
+                        />
+                        <span className="text-xd-12 text-[#388CFF]">
+                            {translate('Terms Of Services')}
+                        </span>
+                    </div>
+                    <button
+                        onClick={agreeTerms}
+                        data-pw="inline-agree-continue"
+                        className="w-full h-xd-48 rounded-xd-20 border border-dashed border-[#5D5C5D]/50 bg-[#FAFAFA] text-[#3C3C3C] text-xd-14 cursor-pointer transition-all active:scale-[0.98]"
+                    >
+                        {translate('Agree & Continue')}
+                    </button>
+                </>
+            )}
+
+            {intro === 'done' && step === 'enter-phone' && (
                 <div className="w-full h-xd-60">
                     <RdbPhoneInput
                         value={phone}

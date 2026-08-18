@@ -16,8 +16,9 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 //          information about the backend and useless information about a pull
 //          request — so it is a separate project, never part of test:run.
 //
-// The folder is empty today. The split is here from the start so adding the
-// first live test is a new file and nothing else. See tests/live/README.md.
+// The live project has a harness now (tests/live/harness/) — it builds the app,
+// starts it, holds a cookie jar per identity, and refuses to run against anything
+// that is not a known staging host. See tests/live/README.md.
 
 // Shared by both projects. A project is a full Vite config, so plugins and
 // aliases do not fall through from the root — they are spread into each one.
@@ -102,12 +103,32 @@ export default defineConfig({
           // onUnhandledRequest: "error", which would block every real request
           // this project exists to make.
           include: ['tests/live/**/*.live.test.ts'],
-          // The folder is empty until the live ticket is picked up, and an empty
-          // project is not a failure. "no test files found" is decided by the
-          // runner before a project's own settings are read, so this has to be
-          // the --passWithNoTests flag on the test:live script — setting
+          // An empty project is not a failure. "no test files found" is decided
+          // by the runner before a project's own settings are read, so this has
+          // to be the --passWithNoTests flag on the test:live script — setting
           // passWithNoTests here does nothing, and setting it at the root would
           // also let the unit suite pass while running nothing at all.
+
+          // Checks the target is staging, then builds the app and starts it on
+          // 127.0.0.1:3100. With no staging addresses configured it returns
+          // without building, so an unconfigured machine pays nothing.
+          globalSetup: ['./tests/live/harness/globalSetup.ts'],
+
+          // A real request over a real network to a real backend. The default 5s
+          // is a budget for a mocked call, and a cold serverless route on staging
+          // can spend most of a minute before it answers.
+          testTimeout: 60_000,
+          // beforeAll in a live file logs an identity in, which is several
+          // sequential round trips. The build itself is NOT bounded by this — it
+          // has its own timeout inside the harness, because a hook timeout that
+          // fires mid-build leaves a server nobody stops.
+          hookTimeout: 180_000,
+
+          // One file at a time, and this is not a performance setting. Files
+          // share one staging dataset and one set of OTP rate limits: two files
+          // adding to the same cart, or logging in as the same identity at once,
+          // fail each other for reasons that look exactly like product bugs.
+          fileParallelism: false,
         },
       },
     ],

@@ -71,7 +71,6 @@ against it. Nothing about the request path is simulated except the browser.
 ```
 vitest globalSetup
   └─ next build && next start  →  http://127.0.0.1:3100
-       (or reuse an already-running server via LIVE_BASE_URL)
 
 a test file
   └─ imports the real service:  services/cart.ts → addToCart()
@@ -117,37 +116,50 @@ warning.
 
 ## Identities and secrets
 
-Four identities are available on staging. All of them are read from the
-untracked `.env.development`. **Unset means skip, never fail** — someone who has
-configured none of them must still get a clean `pnpm test:live`.
+Four identities are available on staging, spread over five roles, and all of
+them are read from the untracked `.env.development`. **Unset means skip, never
+fail** — someone who has configured none of them must still get a clean
+`pnpm test:live`.
 
-| Variable | Identity | Unlocks |
+**No value appears in this file.** This repository is public, so the roadmap
+names variables and never the numbers, addresses or passwords behind them.
+
+| Variables | Identity | Unlocks |
 |---|---|---|
-| `TEST_ACCOUNT_PHONE` + `TEST_ACCOUNT_OTP` | shopper A | everything from phase 6 on |
-| `TEST_ACCOUNT_PHONE_2` | shopper B | chat between two people, contact lists |
-| `TEST_SELLER_PHONE` | seller (owns a staging shop) | seller dashboard, seller-side order status |
-| `TEST_FLEET_PHONE` | delivery worker | delivery-worker chat, delivered/returned steps |
-| `ADMIN_DASHBOARD_TOKEN` *(or `_EMAIL` + `_PASSWORD`)` | admin | `/api/dashboard_v1/…`, report status |
-| `LIVE_BASE_URL` | — | reuse a server you already started, skip the build |
+| `TEST_ACCOUNT_PHONE` + `TEST_ACCOUNT_OTP` | shopper A — **and the seller** | everything from phase 6 on, plus the whole seller side |
+| `TEST_ACCOUNT_PHONE_2` | shopper B | chat between two people, contact lists, buying from A's shop |
+| `FLEET_BASE_URL` + `FLEET_EMAIL` + `FLEET_PASSWORD` | delivery worker | delivered and returned steps |
+| `ADMIN_DASHBOARD_BASE_URL` + `_EMAIL` + `_PASSWORD` | admin | report status |
 
-The first two names are the ones `tests/live/README.md` already promised; the
-rest are new. The admin shape is not settled — `auth:admin-api` may want a
-long-lived token or an email and password. **Phase 19 research confirms it**, and
-the roadmap does not guess.
+Three things about this differ from the roadmap's first draft, and each one
+changes a phase.
+
+**Shopper A is also the seller.** One account holds both roles, so there is no
+separate seller variable and phases 26 and 27 run on shopper A's session. Phase
+19 still needs a buyer and a seller on opposite sides of one order, so **shopper
+B places it and shopper A confirms it as the seller**. An account may not be
+allowed to buy from its own shop, and the phase must not be built on the hope
+that it is.
+
+**Fleet and admin are separate projects with email-and-password logins.** They
+are not storefront identities: no phone, no OTP, none of our client code and none
+of our cookies. So `withSession()` (phase 3) covers shopper A and shopper B
+**only**, and fleet and admin are driven as **external tools** — their own base
+addresses, their own login, their own helper — so no assertion can imply the
+storefront was tested when a different product was. This settles the question the
+first draft left open for phase 19: the admin shape is an email and a password,
+not a long-lived token. The admin login sits on the core backend host under
+`/admin/auth/login`; the fleet has a host of its own.
+
+**The fleet host is a seventh staging address.** The six the storefront uses are
+listed under **Starting point**; the fleet is not one of them. The phase 1 target
+guard has to allow it explicitly or every fleet call in phase 19 is a hard stop.
 
 ### The OTP for test accounts
 
-Two shopper accounts are confirmed on staging, and both accept the fixed code
-`999999`:
-
-| Number | Identity | Variable |
-|---|---|---|
-| `963937288307` | shopper A | `TEST_ACCOUNT_PHONE` |
-| `963937729850` | shopper B | `TEST_ACCOUNT_PHONE_2` |
-
-`TEST_ACCOUNT_OTP` is `999999`, and it is the code for every test identity. The
-seller and the delivery worker still need their own numbers; they use the same
-fixed code once they have them.
+Both shopper accounts accept one fixed code, read from `TEST_ACCOUNT_OTP`. It is
+the code for every storefront identity, and the seller needs no separate one
+because it is the same account as shopper A.
 
 **Why a fixed code and not a real one.** The OTP now arrives over WhatsApp, and
 WhatsApp shows a one-time code **only on the primary phone**. A linked device —
@@ -167,9 +179,14 @@ rewritten first.
 
 **Nothing in this table is ever printed at run time.** Not in an assertion
 message, not in a failure diff, not in a snapshot, not in a log line. Phase 1
-adds a helper that redacts them, and every later phase uses it. The two numbers
-are written above because they are throwaway staging accounts and the phases
-need to know which identity is which; that is not permission to print them.
+adds a helper that redacts them, and every later phase uses it.
+
+That helper is a security control, not housekeeping: **this repository is
+public, so every CI run log is world-readable.** A phone number or a password
+reaching a failure message is published, not merely untidy. `redact()` therefore
+covers tokens, phone numbers and OTP codes **and email addresses and passwords** —
+the last two are live values only because fleet and admin log in that way, which
+the first draft of this roadmap did not anticipate.
 
 ---
 
@@ -268,8 +285,13 @@ Nothing in journeys 1–5 can start before these four are closed.
 
 **What it builds.** `globalSetup` runs `next build` then `next start` on
 `127.0.0.1:3100`, waits for the server to answer, and tears it down at the end.
-When `LIVE_BASE_URL` is set it skips the build entirely and uses that server —
-this is how you iterate locally without paying for a build every run.
+
+**Every run builds. There is no reuse-an-existing-server escape hatch.** An
+earlier draft had one (`LIVE_BASE_URL`), to avoid paying for a build while
+iterating; it is cut on purpose. The build cost is accepted, so the suite only
+ever runs against a server this harness started and configured, and there is one
+less way to point it somewhere unintended. A phase that genuinely needs to test a
+deployed address should add that knob then, with its own guard.
 
 The server is started with the staging addresses passed **explicitly** in its
 environment. Do not rely on `next start` picking up the right `.env` file: it
@@ -622,8 +644,10 @@ coupon. Then it asserts the order really exists, by reading it back through
 **Phase 19 is the phase that could not exist without all four identities, and it
 is the one most likely to find a real bug.** One order walks the whole system:
 
-1. shopper A places it (phase 17's helper);
-2. the **seller** moves it with `/shop/orders/details/status/confirmed` then
+1. **shopper B** places it (phase 17's helper) — B buys, because the seller is
+   shopper A and an account may not be able to buy from its own shop;
+2. **shopper A**, wearing the seller role, moves it with
+   `/shop/orders/details/status/confirmed` then
    `/shop/orders/details/status/packed` — no admin needed for this part;
 3. the **fleet** identity takes it to delivered;
 4. the shopper opens a return request:
@@ -639,9 +663,13 @@ is the one most likely to find a real bug.** One order walks the whole system:
    `UPDATE_ORDER_REPORTS`;
 7. the shopper rates the order.
 
-`/research` on this phase confirms the admin authentication shape before
-anything else. If it turns out to need an interactive login, say so in the ticket
-and cut step 6 into its own phase rather than blocking the other six steps.
+The admin authentication shape is now known — an email and a password against
+the core backend host, under `/admin/auth/login` — so this phase no longer opens
+with that unknown. What `/research` must still settle is the **API** shape behind
+that login page: which call exchanges the credentials for a usable token, and
+whether `/api/dashboard_v1/…` accepts it as a bearer token or expects a cookie.
+The same question applies to the fleet. Both are separate products, so the answer
+is read from their responses, not from this repository.
 
 ---
 
@@ -749,11 +777,23 @@ failure is invisible today. Phase 7 makes it visible.
 **5. Chat realtime is Firebase Realtime Database, not sockets.** Phase 22 starts
 with a REST assertion and records what that does not prove.
 
-**6. The store imports `ioredis`, which opens a connection the moment it is
-loaded.** The live project does not load `tests/setup.ts`, so a live test that
-imports the store will connect to the real staging Redis. Decide this in phase 1:
-either the harness stubs it the way `tests/setup.ts` does, or the phase states
-that a real connection is acceptable and closes it.
+**6. ~~The store imports `ioredis`~~ — wrong, and phase 1 settled it.** The claim
+was that `store/index.ts` opens a Redis connection when it loads. It does not:
+`store/index.ts` imports its slice reducers and `zustand`, nothing else. The only
+module that imports `ioredis` is `serverRequests/radis/index.ts`, and it is reached
+from server modules — `serverActions/sendOtp.ts`, a few `serverRequests/*`, three
+page components and the `/api/fcm/*` and `/api/clearRedis` routes.
+
+So the risk is real but much narrower than written, and the harness's design
+removes it: a live test drives the app **over HTTP**, so Redis is opened by the
+server process, which is exactly what production does and what phase 6 needs in
+order to test the OTP limiter at all. The test process itself imports no server
+module and opens no connection. Nothing is stubbed, because there is nothing to
+stub.
+
+The rule that follows: **a live test must not import a server module in-process.**
+If a phase ever finds it has to, it inherits this problem and must say so — and it
+is a sign the phase is reaching for a unit test.
 
 **7. `starting-setting` versus `starting_setting`.** The core backend uses the
 hyphen, the gateway uses the underscore, and the app reads the underscore only.
