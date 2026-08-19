@@ -15,6 +15,7 @@
     "test:run": "vitest run --project unit",
     "test:coverage": "vitest run --project unit --coverage",
     "test:ci": "vitest run --project unit --coverage --reporter=default --reporter=json --outputFile.json=test-results.json",
+    "test:report": "node scripts/unit-report.mjs",
     "test:e2e": "tsx tests/e2e/cli.ts run",
     "test:e2e:live": "tsx tests/e2e/cli.ts run --project live",
     "test:e2e:scripted": "tsx tests/e2e/cli.ts run --project scripted --pass-with-no-tests",

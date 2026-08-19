@@ -1,0 +1,309 @@
+/**
+ * The unit suite, described for a chat message.
+ * ---------------------------------------------
+ * Reads what `pnpm test:ci` leaves behind — `test-results.json` (the json
+ * reporter, Jest-shaped) and `coverage/coverage-summary.json` — and writes five
+ * values for the Telegram notifier:
+ *
+ *   totals    one line of counts, e.g. "unit 1041 passed"
+ *   coverage  the four percentages
+ *   failures  the first few failing test names, with the file they are in
+ *   rollup    one line per test file, with a tick or a cross and a count
+ *   tree      every describe and every it, indented, ticked or crossed
+ *
+ * In CI each one becomes a step output. Run locally with no GITHUB_OUTPUT set it
+ * prints them instead, which is how to check a format change without pushing.
+ *
+ *   node scripts/unit-report.mjs        # or: pnpm test:report
+ *
+ * **It never fails.** A missing or malformed results file means the suite did
+ * not get far enough to write one; that is worth saying, not worth turning a
+ * green run red over. The exit code is always 0.
+ *
+ * Why the tree is a value here and not a file the notifier reads: the notifier
+ * is a separate job on a separate machine with no checkout, so a file written
+ * here does not exist there. It travels as a job output and is written back out
+ * to a file at the far end, just before it is uploaded.
+ */
+
+import { appendFileSync, readFileSync } from "node:fs";
+import path from "node:path";
+
+const ROOT = process.cwd();
+const RESULTS_FILE = path.join(ROOT, "test-results.json");
+const COVERAGE_FILE = path.join(ROOT, "coverage", "coverage-summary.json");
+
+const PASS = "✅";
+const FAIL = "❌";
+const SKIP = "⏭️";
+
+/** How many failing test names go in the message. The message has a hard
+ *  4096-character limit and a wall of names helps nobody — the attached tree
+ *  has every one of them, and the run link is there too. */
+const MAX_NAMED_FAILURES = 4;
+
+/** How much of the message the per-file rollup may take.
+ *
+ *  The arithmetic, because Telegram's 4096 is a hard rejection: everything
+ *  around the rollup — title, branch, subject, counts, coverage, four named
+ *  failures, the link — comes to about 1000 characters in the worst case, and
+ *  the notifier's own backstop trips at 3800. That leaves 2600 here, which is
+ *  about 65 test files. Files past it are counted on a last line, never silently
+ *  dropped, and the attached tree has all of them either way. */
+const ROLLUP_BUDGET = 2600;
+
+/** A backstop on the attached tree. It travels as a job output, and a job
+ *  output is not a file transfer — 1MB is the documented ceiling. At roughly
+ *  50 characters a test this is about 40,000 tests, far past anything real. */
+const TREE_BUDGET = 2_000_000;
+
+const icon = (status) => {
+  if (status === "passed") return PASS;
+  if (status === "failed") return FAIL;
+  return SKIP; // pending, todo, skipped, and anything a future vitest adds
+};
+
+const clip = (line, max) => (line.length > max ? `${line.slice(0, max)}…` : line);
+
+/** Repo-relative, forward slashes, so the same string reads the same on a
+ *  Windows machine and on the runner. */
+const relative = (file) =>
+  path.relative(ROOT, file).split(path.sep).join("/") || file;
+
+const readJson = (file) => {
+  try {
+    return JSON.parse(readFileSync(file, "utf8"));
+  } catch {
+    return null;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Shaping the results
+// ---------------------------------------------------------------------------
+
+/** One entry per test file: its path, its counts, and its tests in order.
+ *
+ *  Order matters twice over. Inside a file the reporter's order is the order the
+ *  tests are written in, which is the order someone reading the tree expects.
+ *  Between files, failing files come first — a red run must not make anyone
+ *  scroll to find out what broke. */
+const byFile = (results) =>
+  (results.testResults ?? [])
+    .map((file) => {
+      const tests = (file.assertionResults ?? []).map((test) => ({
+        path: test.ancestorTitles ?? [],
+        title: test.title ?? "(unnamed test)",
+        fullName: test.fullName ?? test.title ?? "(unnamed test)",
+        status: test.status ?? "unknown",
+      }));
+
+      return {
+        file: relative(file.name ?? "(unknown file)"),
+        tests,
+        passed: tests.filter((t) => t.status === "passed").length,
+        failed: tests.filter((t) => t.status === "failed").length,
+        skipped: tests.filter(
+          (t) => t.status !== "passed" && t.status !== "failed",
+        ).length,
+      };
+    })
+    .sort((a, b) => {
+      if (Boolean(a.failed) !== Boolean(b.failed)) return a.failed ? -1 : 1;
+      return a.file.localeCompare(b.file);
+    });
+
+const buildTotals = (results) => {
+  const passed = results.numPassedTests ?? 0;
+  const failed = results.numFailedTests ?? 0;
+  const skipped = (results.numPendingTests ?? 0) + (results.numTodoTests ?? 0);
+
+  return [
+    `unit ${passed} passed`,
+    failed ? `${failed} failed` : "",
+    skipped ? `${skipped} skipped` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+};
+
+const buildFailures = (files) => {
+  const failed = files.flatMap((entry) =>
+    entry.tests
+      .filter((test) => test.status === "failed")
+      .map((test) => ({ file: entry.file, name: test.fullName })),
+  );
+
+  if (failed.length === 0) return "";
+
+  const shown = failed
+    .slice(0, MAX_NAMED_FAILURES)
+    // Two lines each: where it is, then what it is. The file on its own line is
+    // what makes four failures across three files readable on a phone.
+    .map((f) => `  • ${f.file}\n      ${clip(f.name, 110)}`);
+
+  if (failed.length > shown.length) {
+    shown.push(`  … and ${failed.length - shown.length} more`);
+  }
+
+  return shown.join("\n");
+};
+
+/** One line per file, ticked or crossed, cut off at a character budget.
+ *
+ *  Because failing files sort first, the budget can only ever eat into the
+ *  passing ones — the thing you came to read is never the thing dropped. */
+const buildRollup = (files) => {
+  const lines = [];
+  let used = 0;
+  let dropped = 0;
+
+  for (const entry of files) {
+    const total = entry.tests.length;
+    const notes = [
+      entry.failed ? `${entry.failed} failed` : "",
+      entry.skipped ? `${entry.skipped} skipped` : "",
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    const mark = entry.failed ? FAIL : entry.skipped === total ? SKIP : PASS;
+    // The full repo-relative path, not a shortened one. Stripping the leading
+    // "tests/" would save six characters a line and make two different files
+    // read as siblings: the suite has `utils/functions.test.ts` at the repo root
+    // as well as `tests/utils/...`, and shortened they are indistinguishable.
+    const line = `${mark} ${entry.file} · ${total}${notes ? ` (${notes})` : ""}`;
+
+    if (used + line.length + 1 > ROLLUP_BUDGET) {
+      dropped += 1;
+      continue;
+    }
+
+    lines.push(line);
+    used += line.length + 1;
+  }
+
+  if (dropped > 0) {
+    lines.push(`… and ${dropped} more file(s) — see the attached list`);
+  }
+
+  return lines.join("\n");
+};
+
+/** Every describe and every it, nested the way they are written.
+ *
+ *  This is the whole point of the attachment: a thousand ticks cannot go in a
+ *  chat message, but they fit in a file, and a file can be searched. */
+const buildTree = (results, files, totals) => {
+  const head = [
+    "Trydos — unit tests",
+    [process.env.GITHUB_REF_NAME, (process.env.GITHUB_SHA ?? "").slice(0, 7)]
+      .filter(Boolean)
+      .join(" · "),
+    totals,
+    `${files.length} file(s), ${results.numTotalTests ?? 0} test(s)`,
+    "",
+    `${PASS} passed    ${FAIL} failed    ${SKIP} skipped`,
+  ];
+
+  const body = files.flatMap((entry) => {
+    const notes = entry.failed ? ` — ${entry.failed} failed` : "";
+    const lines = [
+      "",
+      "─".repeat(60),
+      `${entry.failed ? FAIL : PASS} ${entry.file} — ${entry.tests.length} test(s)${notes}`,
+      "─".repeat(60),
+    ];
+
+    // A describe heading is printed only when it changes, so a file with one
+    // describe and forty its does not repeat itself forty times.
+    let open = [];
+    for (const test of entry.tests) {
+      test.path.forEach((title, depth) => {
+        if (open[depth] === title) return;
+        lines.push(`${"  ".repeat(depth)}${title}`);
+        // Anything nested deeper belonged to the heading just replaced.
+        open = [...open.slice(0, depth), title];
+      });
+      if (open.length > test.path.length) open = open.slice(0, test.path.length);
+
+      lines.push(
+        `${"  ".repeat(test.path.length)}${icon(test.status)} ${test.title}`,
+      );
+    }
+
+    return lines;
+  });
+
+  const text = [...head, ...body, ""].join("\n");
+  return text.length > TREE_BUDGET
+    ? `${text.slice(0, TREE_BUDGET)}\n\n[cut here — the list was too long to send]\n`
+    : text;
+};
+
+const buildCoverage = () => {
+  const total = readJson(COVERAGE_FILE)?.total;
+  if (!total) return "";
+
+  const pct = (metric) => `${(metric?.pct ?? 0).toFixed(1)}%`;
+  return (
+    `lines ${pct(total.lines)}  stmts ${pct(total.statements)}  ` +
+    `funcs ${pct(total.functions)}  branches ${pct(total.branches)}`
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Output
+// ---------------------------------------------------------------------------
+
+/** In CI, a step output. Anywhere else, something readable on a terminal.
+ *
+ *  The heredoc form of GITHUB_OUTPUT, because every one of these can be several
+ *  lines and the `key=value` form silently keeps only the first. */
+const emit = (values) => {
+  const file = process.env.GITHUB_OUTPUT;
+
+  if (!file) {
+    for (const [key, value] of Object.entries(values)) {
+      console.log(`\n=== ${key} ===`);
+      console.log(value || "(empty)");
+    }
+    return;
+  }
+
+  appendFileSync(
+    file,
+    Object.entries(values)
+      .map(([key, value]) => `${key}<<TRYDOS_EOF\n${value}\nTRYDOS_EOF\n`)
+      .join(""),
+  );
+};
+
+const main = () => {
+  const results = readJson(RESULTS_FILE);
+
+  if (!results) {
+    // No file means the suite never got as far as producing one. Say so rather
+    // than inventing numbers.
+    console.log(
+      "[unit-report] no readable test-results.json — the suite did not run.",
+    );
+    emit({ totals: "", coverage: "", failures: "", rollup: "", tree: "" });
+    return;
+  }
+
+  const files = byFile(results);
+  const totals = buildTotals(results);
+
+  emit({
+    totals,
+    coverage: buildCoverage(),
+    failures: buildFailures(files),
+    rollup: buildRollup(files),
+    tree: buildTree(results, files, totals),
+  });
+
+  console.log(`[unit-report] ${totals}`);
+};
+
+main();

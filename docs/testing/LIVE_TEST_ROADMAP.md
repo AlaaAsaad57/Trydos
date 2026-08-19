@@ -455,6 +455,27 @@ server, so it produces no meaningful coverage — the message says
 `unit … · live …` for test counts, and coverage is unlabelled because there is
 only one source for it.
 
+**Every test, ticked or crossed — in two places, because it does not fit in
+one.** Telegram rejects a message over 4096 characters, and the unit suite alone
+is over 1200 tests: the full `describe`/`it` list with a mark on each line is
+about 86KB, twenty times the limit. So it is split by what fits:
+
+- **In the message, one line per test file** — `✅ tests/proxy.test.ts · 96`,
+  with `(2 failed)` when it applies. Failing files sort first, so the budget can
+  only ever drop passing ones, and whatever is dropped is counted on a last line.
+- **Attached to the message, the whole tree** — every `describe` and every `it`,
+  nested and marked, as `unit-tests.txt` (`e2e-tests.txt` for the browser
+  suite). One upload, sent silently as a reply to the message, searchable in the
+  Telegram viewer.
+
+The marks are `✅` passed, `❌` failed, `⏭️` skipped, and — the browser suite
+only — `⚠️` flaky, for a test that passed but only on the retry.
+
+Both are built by `scripts/unit-report.mjs` (run `pnpm test:report` to see them
+without pushing) and by `tsx tests/e2e/cli.ts report`. They travel to the notify
+job as **job outputs, not files**: notify is a separate job on a separate machine
+with no checkout, so a file written by the test job does not exist there.
+
 **When it sends.** Every completed run, so a green message doubles as proof the
 pipeline itself is still alive. This widens the earlier "failures plus the first
 success after a failure" decision, because coverage that arrives only after a

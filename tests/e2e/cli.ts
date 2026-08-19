@@ -135,14 +135,23 @@ const RESULTS_FILE = resolve(process.cwd(), "e2e-results.json");
  *  a wall of names helps nobody — the run link is there for the rest. */
 const MAX_NAMED_FAILURES = 4;
 
+const PASS = "✅";
+const FAIL = "❌";
+const SKIP = "⏭️";
+const FLAKY = "⚠️";
+
 type PlaywrightSpec = {
   title: string;
   ok?: boolean;
-  tests?: { results?: { status?: string; error?: { message?: string } }[] }[];
+  tests?: {
+    status?: string;
+    results?: { status?: string; error?: { message?: string } }[];
+  }[];
 };
 
 type PlaywrightSuite = {
   title?: string;
+  file?: string;
   specs?: PlaywrightSpec[];
   suites?: PlaywrightSuite[];
 };
@@ -204,7 +213,104 @@ const summariseError = (message: string): string => {
   return [opening, ...details].map(clip).join("\n      ");
 };
 
-/** Read the run's results and write the two values the notifier wants. */
+// ---------------------------------------------------------------------------
+// The rollup and the tree.
+//
+// The same two shapes the unit reporter produces (scripts/unit-report.mjs), so
+// one Telegram message reads the same whichever suite sent it: a per-file line
+// in the message, and the full describe/test list as an attached file.
+//
+// The suites in the JSON nest the way the code does — a top-level suite is a
+// spec file, every suite inside it is a `describe`, and a "spec" is one `test`.
+// ---------------------------------------------------------------------------
+
+/** Every test in a suite and everything below it. */
+const allSpecs = (suite: PlaywrightSuite): PlaywrightSpec[] => [
+  ...(suite.specs ?? []),
+  ...(suite.suites ?? []).flatMap(allSpecs),
+];
+
+/** One mark per test, from the run's own verdict.
+ *
+ *  Flaky gets its own mark rather than a tick. It passed, so it must not fail
+ *  the run — but a test that only passed on the retry is exactly the thing worth
+ *  seeing before it becomes a nightly that fails once a week. */
+const specIcon = (spec: PlaywrightSpec): string => {
+  const statuses = (spec.tests ?? []).map((test) => test.status);
+
+  if (statuses.length > 0 && statuses.every((s) => s === "skipped")) return SKIP;
+  if (spec.ok === false) return FAIL;
+  if (statuses.includes("flaky")) return FLAKY;
+  return PASS;
+};
+
+/** One line per spec file, ticked or crossed, with its count. */
+const buildRollup = (files: PlaywrightSuite[]): string =>
+  files
+    .map((file) => {
+      const specs = allSpecs(file);
+      const failed = specs.filter((spec) => spec.ok === false).length;
+      // The path as the reporter gives it. Shortening it would save a few
+      // characters and cost the one thing the line is for — knowing which file.
+      const name = file.file ?? file.title ?? "(unknown file)";
+
+      return `${failed ? FAIL : PASS} ${name} · ${specs.length}${
+        failed ? ` (${failed} failed)` : ""
+      }`;
+    })
+    .join("\n");
+
+/** The describes and the tests below a suite, indented by nesting depth. */
+const treeLines = (suites: PlaywrightSuite[], depth: number): string[] =>
+  suites.flatMap((suite) => {
+    const pad = "  ".repeat(depth);
+    const inner = suite.title ? depth + 1 : depth;
+
+    return [
+      ...(suite.title ? [`${pad}${suite.title}`] : []),
+      ...(suite.specs ?? []).map(
+        (spec) => `${"  ".repeat(inner)}${specIcon(spec)} ${spec.title}`,
+      ),
+      ...treeLines(suite.suites ?? [], inner),
+    ];
+  });
+
+/** Every describe and every test, for the attached file. */
+const buildTree = (files: PlaywrightSuite[], totals: string): string => {
+  const head = [
+    "Trydos — browser journeys (e2e)",
+    [process.env.GITHUB_REF_NAME, (process.env.GITHUB_SHA ?? "").slice(0, 7)]
+      .filter(Boolean)
+      .join(" · "),
+    totals,
+    `${files.length} file(s), ${files.reduce((n, f) => n + allSpecs(f).length, 0)} test(s)`,
+    "",
+    `${PASS} passed    ${FAIL} failed    ${FLAKY} flaky    ${SKIP} skipped`,
+  ];
+
+  const body = files.flatMap((file) => {
+    const specs = allSpecs(file);
+    const failed = specs.filter((spec) => spec.ok === false).length;
+    const name = file.file ?? file.title ?? "(unknown file)";
+
+    return [
+      "",
+      "─".repeat(60),
+      `${failed ? FAIL : PASS} ${name} — ${specs.length} test(s)${
+        failed ? ` — ${failed} failed` : ""
+      }`,
+      "─".repeat(60),
+      ...(file.specs ?? []).map(
+        (spec) => `${specIcon(spec)} ${spec.title}`,
+      ),
+      ...treeLines(file.suites ?? [], 0),
+    ];
+  });
+
+  return [...head, ...body, ""].join("\n");
+};
+
+/** Read the run's results and write the values the notifier wants. */
 const report = (): void => {
   let raw: string;
   try {
@@ -216,6 +322,8 @@ const report = (): void => {
     log("no e2e-results.json — the suite did not run.");
     setStepOutput("totals", "");
     setStepOutput("failures", "");
+    setStepOutput("rollup", "");
+    setStepOutput("tree", "");
     return;
   }
 
@@ -255,8 +363,15 @@ const report = (): void => {
     shown.push(`  … and ${failures.length - shown.length} more`);
   }
 
+  const files = results.suites ?? [];
+
   setStepOutput("totals", redact(totals));
   setStepOutput("failures", redact(shown.join("\n")));
+  // Redacted like everything else here. A test title is written by us and holds
+  // no secret, but this is the one place the rule must not have an exception —
+  // the day a title interpolates a phone number, redact() is what catches it.
+  setStepOutput("rollup", redact(buildRollup(files)));
+  setStepOutput("tree", redact(buildTree(files, totals)));
 
   log(totals);
 };

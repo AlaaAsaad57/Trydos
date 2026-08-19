@@ -69,6 +69,8 @@ scripts/*
 # from every fresh clone.
 # Run by `pnpm lint:i18n-parity` and by the Tests workflow.
 !scripts/i18n-parity.mjs
+# Run by `pnpm test:report` and by the Tests workflow.
+!scripts/unit-report.mjs
 # Trello -> ClickUp backlog migration helpers (used by the migrate-trello-batch skill)
 !scripts/workflow_env.py
 !scripts/trello_fetch.py

@@ -60,6 +60,8 @@ jobs:
       steps: ${{ steps.collect.outputs.steps }}
       totals: ${{ steps.report.outputs.totals }}
       failures: ${{ steps.report.outputs.failures }}
+      rollup: ${{ steps.report.outputs.rollup }}
+      tree: ${{ steps.report.outputs.tree }}
       configured: ${{ steps.preflight.outputs.configured }}
       staging: ${{ steps.preflight.outputs.staging }}
 
@@ -287,4 +289,7 @@ jobs:
       steps: ${{ needs.e2e.outputs.steps }}
       totals: ${{ needs.e2e.outputs.totals }}
       failures: ${{ needs.e2e.outputs.failures }}
+      rollup: ${{ needs.e2e.outputs.rollup }}
+      tree: ${{ needs.e2e.outputs.tree }}
+      tree_name: e2e-tests.txt
     secrets: inherit

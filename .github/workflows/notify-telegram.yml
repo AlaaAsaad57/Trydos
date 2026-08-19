@@ -50,6 +50,25 @@ on:
         required: false
         default: ''
         type: string
+      rollup:
+        description: 'One line per test file, ticked or crossed, with its count'
+        required: false
+        default: ''
+        type: string
+      tree:
+        description: >
+          Every describe and every test, ticked or crossed. Sent as an attached
+          file, not in the message — a thousand ticks do not fit in 4096
+          characters. Travels as text because the caller is a different job on a
+          different machine, so a file it wrote does not exist here.
+        required: false
+        default: ''
+        type: string
+      tree_name:
+        description: 'What to call the attached file'
+        required: false
+        default: 'tests.txt'
+        type: string
 
 # It reads nothing from the repository and checks nothing out.
 permissions: {}
@@ -73,6 +92,9 @@ jobs:
           FAILURES: ${{ inputs.failures }}
           TOTALS: ${{ inputs.totals }}
           COVERAGE: ${{ inputs.coverage }}
+          ROLLUP: ${{ inputs.rollup }}
+          TREE: ${{ inputs.tree }}
+          TREE_NAME: ${{ inputs.tree_name }}
           # Only a push carries a commit object. Everywhere else this is empty
           # and the subject line is simply left off.
           COMMIT_SUBJECT: ${{ github.event.head_commit.message }}
@@ -103,44 +125,68 @@ jobs:
           SUBJECT=$(printf '%s' "$COMMIT_SUBJECT" | head -n 1)
           RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
-          TEXT="$ICON <b>$(esc "$TITLE")</b>"
           LINE="<code>$(esc "$GITHUB_REF_NAME")</code> · <code>$SHORT_SHA</code>"
           if [ -n "$SUBJECT" ]; then
             LINE="$LINE — $(esc "$SUBJECT")"
           fi
-          TEXT="$TEXT${NL}${LINE}"
 
-          if [ "$RESULT" = "success" ]; then
-            # Green: the numbers. Coverage is the point of this message —
-            # a passing run that says nothing is a run nobody learns from.
-            if [ -n "$TOTALS" ]; then
-              TEXT="$TEXT${NL}${NL}$(esc "$TOTALS")"
+          # The message is assembled by a function rather than in place, because
+          # it has to be built twice: once with the per-file rollup and, if that
+          # comes out over the limit, once without it. Rebuilding is the only way
+          # to drop a middle section without leaving a half-closed HTML tag.
+          build() {
+            local with_rollup="$1"
+            local out="$ICON <b>$(esc "$TITLE")</b>${NL}${LINE}"
+
+            if [ "$RESULT" = "success" ]; then
+              # Green: the numbers. Coverage is the point of this message —
+              # a passing run that says nothing is a run nobody learns from.
+              if [ -n "$TOTALS" ]; then
+                out="$out${NL}${NL}$(esc "$TOTALS")"
+              fi
+              if [ -n "$COVERAGE" ]; then
+                out="$out${NL}coverage — $(esc "$COVERAGE")"
+              fi
+            else
+              # Red: what broke, and how the other steps did — so one broken step
+              # is not read as everything being broken.
+              if [ -n "$STEP_LINE" ]; then
+                out="$out${NL}${NL}$(esc "$STEP_LINE")"
+              fi
+              # The counts belong here too. "3 failed" reads very differently
+              # depending on whether 2 or 200 passed alongside it, and a red
+              # message that only lists names cannot tell you which it was.
+              if [ -n "$TOTALS" ]; then
+                out="$out${NL}$(esc "$TOTALS")"
+              fi
+              if [ -n "$FAILURES" ]; then
+                out="$out${NL}${NL}<b>Failures</b>${NL}<pre>$(esc "$FAILURES")</pre>"
+              fi
             fi
-            if [ -n "$COVERAGE" ]; then
-              TEXT="$TEXT${NL}coverage — $(esc "$COVERAGE")"
+
+            # One line per test file with a tick or a cross. This is the level
+            # that fits: forty files fit in a message, a thousand tests do not,
+            # and those go in the attached file below.
+            if [ "$with_rollup" = "yes" ] && [ -n "$ROLLUP" ]; then
+              out="$out${NL}${NL}<b>By file</b>${NL}<pre>$(esc "$ROLLUP")</pre>"
             fi
-          else
-            # Red: what broke, and how the other steps did — so one broken step
-            # is not read as everything being broken.
-            if [ -n "$STEP_LINE" ]; then
-              TEXT="$TEXT${NL}${NL}$(esc "$STEP_LINE")"
+
+            if [ -n "$TREE" ]; then
+              out="$out${NL}${NL}Every test is in the attached <code>$(esc "$TREE_NAME")</code>."
             fi
-            # The counts belong here too. "3 failed" reads very differently
-            # depending on whether 2 or 200 passed alongside it, and a red
-            # message that only lists names cannot tell you which it was.
-            if [ -n "$TOTALS" ]; then
-              TEXT="$TEXT${NL}$(esc "$TOTALS")"
-            fi
-            if [ -n "$FAILURES" ]; then
-              TEXT="$TEXT${NL}${NL}<b>Failures</b>${NL}<pre>$(esc "$FAILURES")</pre>"
-            fi
+
+            printf '%s%s%s<a href="%s">open the run</a>' \
+              "$out" "$NL" "$NL" "$RUN_URL"
+          }
+
+          # Telegram rejects anything over 4096 characters. Two fallbacks, in the
+          # order that loses the least: the rollup goes first because the
+          # attached file says the same thing in full, and only then the detail.
+          TEXT=$(build yes)
+          if [ "${#TEXT}" -gt 3800 ]; then
+            echo "Message over the limit — sending it without the per-file rollup."
+            TEXT=$(build no)
           fi
-
-          TEXT="$TEXT${NL}${NL}<a href=\"$RUN_URL\">open the run</a>"
-
-          # Telegram rejects anything over 4096 characters. The caller already
-          # caps the failing-test list, so this is a backstop: drop the detail
-          # rather than send a half-closed tag, which would be a 400.
           if [ "${#TEXT}" -gt 3800 ]; then
             TEXT="$ICON <b>$(esc "$TITLE")</b>${NL}${LINE}${NL}${NL}Too much detail to send here.${NL}${NL}<a href=\"$RUN_URL\">open the run</a>"
           fi
@@ -163,3 +209,56 @@ jobs:
           fi
 
           echo "Sent."
+
+          # ---------------------------------------------------------------
+          # The full list, as an attached file.
+          #
+          # Every describe and every test with a tick or a cross is about 50KB —
+          # twelve times the message limit. As a file it is one upload, it does
+          # not flood the channel, and it can be searched in the Telegram viewer.
+          #
+          # It is a reply to the message just sent, so the two stay together in
+          # the channel, and it arrives silently: one run should ping once.
+          # ---------------------------------------------------------------
+          if [ -z "$TREE" ]; then
+            exit 0
+          fi
+
+          # The name comes from an input and ends up in a path, so keep it to
+          # characters that cannot walk out of the directory.
+          SAFE_NAME=$(printf '%s' "$TREE_NAME" | tr -cd 'A-Za-z0-9._-')
+          if [ -z "$SAFE_NAME" ]; then
+            SAFE_NAME="tests.txt"
+          fi
+          printf '%s\n' "$TREE" > "/tmp/$SAFE_NAME"
+
+          # Best effort: without it the file is still sent, just not threaded.
+          # Not worth a JSON parser — the first message_id in the reply is the
+          # message we just sent.
+          MESSAGE_ID=$(sed -n 's/.*"message_id":[[:space:]]*\([0-9][0-9]*\).*/\1/p' \
+            /tmp/telegram-response.json | head -n 1) || MESSAGE_ID=""
+
+          REPLY_TO=()
+          if [ -n "$MESSAGE_ID" ]; then
+            REPLY_TO=(-F "reply_to_message_id=${MESSAGE_ID}")
+          fi
+
+          DOC_HTTP=$(curl -sS -o /tmp/telegram-document.json -w '%{http_code}' \
+            "https://api.telegram.org/bot${TG_TOKEN}/sendDocument" \
+            -F "chat_id=${TG_CHAT}" \
+            -F "document=@/tmp/${SAFE_NAME}" \
+            -F "caption=every test in this run" \
+            -F "disable_notification=true" \
+            "${REPLY_TO[@]}") || DOC_HTTP="000"
+
+          if [ "$DOC_HTTP" != "200" ]; then
+            # The message is the notification; the attachment is the detail. A
+            # failed upload is worth seeing in this log and is never a reason to
+            # report the run itself differently.
+            echo "The test list did not upload — Telegram replied $DOC_HTTP:"
+            cat /tmp/telegram-document.json || true
+            echo
+            exit 1
+          fi
+
+          echo "Test list attached ($(wc -c < "/tmp/$SAFE_NAME") bytes)."
