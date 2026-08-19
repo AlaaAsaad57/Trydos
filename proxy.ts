@@ -461,20 +461,37 @@ export async function proxy(request: NextRequest) {
     if (url.searchParams.get("_t")) {
       url.searchParams.delete("_t");
     }
-    if (cookieValidation.isValid) {
-      const { country: cKey, language: lKey } = cookieValidation;
+    // A visitor on the global address who has already chosen a country belongs
+    // in that country, not here. `gb` is the global bucket — "we do not know
+    // where you are" — not a market, which is why the app also offers the
+    // country picker on every gb address.
+    //
+    // **The saved country alone is enough to move them.** Everywhere else a
+    // saved pair must be complete before it counts, because a country without a
+    // language decides only half a locale. Here it decides all of it: the
+    // address already carries a supported language, so the language they are
+    // reading is the obvious one to keep. Requiring both used to strand anyone
+    // whose `lang` cookie had been lost or expired separately on the global
+    // address, with the picker in front of them and a perfectly good country
+    // already chosen.
+    //
+    // Their saved language wins when they have one; the address's language is
+    // the fallback. Either way the full set is written back, so a half-set
+    // state heals itself on the way through.
+    const savedCountry = isValidCountry(countryFromCookies, allSupportedCountries)
+      ? countryFromCookies!.toLowerCase()
+      : undefined;
 
-      // If URL is GB but cookie is something else (e.g., TR), REDIRECT
-      if (urlLocale.country === "gb" && cKey !== "gb") {
-        const targetLocale = buildLocale(cKey!, lKey!);
-        const cleanPath = getCleanPathname(pathname, urlLocale);
-        url.pathname = `/${targetLocale?.toLowerCase()}${cleanPath === "/" ? "" : cleanPath}`;
+    if (urlLocale.country === "gb" && savedCountry && savedCountry !== "gb") {
+      const targetLanguage = cookieValidation.language ?? urlLocale.language;
+      const targetLocale = buildLocale(savedCountry, targetLanguage);
+      const cleanPath = getCleanPathname(pathname, urlLocale);
+      url.pathname = `/${targetLocale?.toLowerCase()}${cleanPath === "/" ? "" : cleanPath}`;
 
-        const res = createRedirectResponse(url, redirectCount);
-        // IMPORTANT: You must attach cookies to the redirect response
-        setLocaleCookies(res, cKey!.toLowerCase(), lKey!.toLowerCase());
-        return res;
-      }
+      const res = createRedirectResponse(url, redirectCount);
+      // IMPORTANT: You must attach cookies to the redirect response
+      setLocaleCookies(res, savedCountry, targetLanguage);
+      return res;
     }
     // CASE 1A: Handle no-country parameter
     if (url.searchParams.get("no-country")) {

@@ -118,7 +118,7 @@ tests/e2e/
   globalTeardown.ts stop the server, cancel any orphan order
   fixtures.ts       auto-skip when unconfigured; later, the order tracker
   selectors.ts
-  actions/          nav.ts mock.ts — auth.ts cart.ts order.ts come with ticket 2
+  actions/          nav.ts locale.ts auth.ts mock.ts — cart.ts order.ts come with ticket 2
   scenarios/        named response sets for scripted mode
   guest.live.spec.ts
   shopper.live.spec.ts     (ticket 2)
@@ -195,7 +195,7 @@ expect(result.outcome).toBe('wrong-otp')
 
 | Module | Functions |
 |---|---|
-| `auth` | `login` `attemptLogin` `logout` `resendOtp` |
+| `auth` | `bootAsNewGuest` `whoAmI` — `login` `attemptLogin` `logout` `resendOtp` come with ticket 2 |
 | `cart` | `addToCart` `setQuantity` `removeFromCart` `openCart` |
 | `order` | `placeOrder` `cancelOrder` `expectOrderVisible` |
 | `nav` | `gotoHome` `search` `gotoProduct` |
@@ -327,10 +327,21 @@ or a token in a failure message is published, not merely untidy.
 
 - `redact()` masks tokens, phone numbers, OTP codes, emails and passwords in
   anything printed.
-- **Live specs upload nothing.** No trace, no video, no screenshot. A trace
-  archives every request header, which is the auth token in a downloadable file.
-  A screenshot of a failed login shows the phone number. Debug by re-running
-  locally with `--trace on`, where nothing leaves the machine.
+- **No trace is ever recorded for a live spec, and none is ever uploaded.** A
+  trace archives every request header, so it is the auth token in a downloadable
+  file. There is no encryption story that makes that worth publishing. Debug by
+  re-running locally with `--trace on`, where nothing leaves the machine.
+- **A video of every spec, and a screenshot of each failing one, are recorded and
+  uploaded encrypted.** They carry no headers and no token, but they show what
+  the browser showed — on the login screen that is the test identity's phone
+  number. So `test-e2e.yml` packs them with
+  `7z -p"$E2E_ARTIFACT_PASSPHRASE" -mhe=on` before upload. `-mhe=on` encrypts the
+  file names too; without it the archive listing publishes the failing spec
+  names. The artifact is `e2e-session`, kept 3 days, and the Telegram message
+  links to it.
+- **The passphrase is a repository secret, `E2E_ARTIFACT_PASSPHRASE`.** With the
+  secret unset nothing is packed and nothing is uploaded, which is the right
+  default for a fork.
 - **Scripted specs may upload traces.** No real session, no real secrets.
 - The saved `storageState` is gitignored and never uploaded.
 

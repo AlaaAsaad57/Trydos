@@ -118,13 +118,20 @@ a retried checkout is a duplicated order.
 moment it is created, not after the assertions, so a failed assertion still
 cleans up.
 
+> **One accepted exception: guests.** `session.live.spec.ts` registers guests on
+> purpose — that is the behaviour it tests — and there is no way to remove one.
+> Roughly five per run, so about ten a day from the push and nightly schedules.
+> Decided when that ticket was opened; nothing else in this suite may claim the
+> exception without the same decision.
+
 **7. One login per identity per run.** The OTP send is rate limited for real.
 The session is created once in global setup and shared.
 
 ## What is here now, and what is not
 
 Built: the harness, preflight, the server, both projects, the action and
-scenario layers, `guest.live.spec.ts` and `locale.live.spec.ts`.
+scenario layers, `guest.live.spec.ts`, `locale.live.spec.ts` and
+`session.live.spec.ts`.
 
 Not built yet, each its own ticket:
 
