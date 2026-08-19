@@ -76,6 +76,27 @@ export const product = {
   addToCart: (page: Page): Locator => page.getByTestId("addToCartButton"),
 };
 
+/** The two ways the app can ask someone to sign in again.
+ *
+ *  **A guest must never see either.** The recovery that replaces a dead session
+ *  is shared: it prompts a seller and a phone-verified shopper on purpose, and
+ *  recovers a guest silently. A guest has no account to sign in to, so a prompt
+ *  in front of one is a dead end — and it is exactly the kind of change that
+ *  would ship unnoticed, because nothing about it looks broken from the inside.
+ *
+ *  Two locators rather than one because they are two different components: the
+ *  session-expired screen offers a choice, and the phone entry is where signing
+ *  in actually starts. A case that checked only the first would pass while the
+ *  second was on screen. */
+export const prompt = {
+  sessionExpired: (page: Page): Locator =>
+    page.getByTestId("session-expired-login"),
+  sessionExpiredGuestOption: (page: Page): Locator =>
+    page.getByTestId("session-expired-guest"),
+  phoneEntry: (page: Page): Locator =>
+    page.getByTestId("input-phone-number-field"),
+};
+
 export const cart = {
   /** The cart itself, opened by the nav cart icon. Not `bag-viewer` — that one
    *  lives in `ShippingAddressContainer` and only exists once you are far enough

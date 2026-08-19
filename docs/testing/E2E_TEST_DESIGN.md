@@ -118,7 +118,7 @@ tests/e2e/
   globalTeardown.ts stop the server, cancel any orphan order
   fixtures.ts       auto-skip when unconfigured; later, the order tracker
   selectors.ts
-  actions/          nav.ts mock.ts — auth.ts cart.ts order.ts come with ticket 2
+  actions/          nav.ts locale.ts auth.ts mock.ts — cart.ts order.ts come with ticket 2
   scenarios/        named response sets for scripted mode
   guest.live.spec.ts
   shopper.live.spec.ts     (ticket 2)
@@ -195,7 +195,7 @@ expect(result.outcome).toBe('wrong-otp')
 
 | Module | Functions |
 |---|---|
-| `auth` | `login` `attemptLogin` `logout` `resendOtp` |
+| `auth` | `bootAsNewGuest` `whoAmI` — `login` `attemptLogin` `logout` `resendOtp` come with ticket 2 |
 | `cart` | `addToCart` `setQuantity` `removeFromCart` `openCart` |
 | `order` | `placeOrder` `cancelOrder` `expectOrderVisible` |
 | `nav` | `gotoHome` `search` `gotoProduct` |
