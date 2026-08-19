@@ -98,8 +98,15 @@ class AuthService {
         setVerificationId(response.verificationId);
         // Mirror the server lock client-side so the button stays disabled and
         // the cooldown survives back/forward navigation.
-        lockNumber(mobilePhone, response.lockSeconds || 120);
-        recordSessionNumber(mobilePhone);
+        //
+        // Unless the number is on the server's test-number allowlist: the
+        // server counted nothing and locked nothing for it, so mirroring a lock
+        // here would be the browser inventing a limit of its own — and the
+        // exemption would look broken to the tester it exists for.
+        if (!response.allowlisted) {
+          lockNumber(mobilePhone, response.lockSeconds || 120);
+          recordSessionNumber(mobilePhone);
+        }
         return response.verificationId;
       }
 

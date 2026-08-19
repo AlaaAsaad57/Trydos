@@ -455,6 +455,106 @@ describe("what is recorded about every attempt", () => {
   });
 });
 
+describe("a number on the test-number allowlist", () => {
+  // The exemption exists so the people who have to log in over and over — the
+  // manual testers and the live suite, which shares one address for a whole run
+  // — are not locked out by rules aimed at the public. The allowlist module is
+  // deliberately left REAL here: it is the thing under test, and standing it in
+  // would only let the test agree with itself.
+  //
+  // Every case sets the list from the environment, exactly as a deployment does.
+  // The file's `afterEach` clears it, so nothing leaks into the tests above,
+  // which all assume no list at all.
+
+  it("is not sent to the limiter, and its send still goes out for real", async () => {
+    vi.stubEnv("OTP_TEST_PHONES", "999000000001");
+    HandleAuthedFetch.mockResolvedValue(reply({ data: { verificationId: "v-1" } }));
+
+    const result = await sendOtp({ phone: PHONE, isWhatsapp: 0 });
+
+    expect(cacheSpies.otpRateLimit).not.toHaveBeenCalled();
+    expect(HandleAuthedFetch).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(
+      expect.objectContaining({
+        success: true,
+        verificationId: "v-1",
+        // Nothing was counted for this number, so the browser must not invent a
+        // lock of its own — zero seconds, and the flag that says why.
+        lockSeconds: 0,
+        allowlisted: true,
+      }),
+    );
+  });
+
+  // The list is written by a person, in an environment variable. Insisting on
+  // one exact spelling is how an exemption silently does nothing.
+  it.each([
+    ["a leading plus", "+999000000001"],
+    ["spaces and brackets", "+999 (000) 000-001"],
+    ["several numbers, one of them this one", "963937729850,999000000001"],
+    ["untidy separators", " 963937729850 , +999-000-000-001 "],
+  ])("is matched on digits alone — %s", async (_case, configured) => {
+    vi.stubEnv("OTP_TEST_PHONES", configured);
+    HandleAuthedFetch.mockResolvedValue(reply({ data: { verificationId: "v-1" } }));
+
+    await sendOtp({ phone: TYPED_PHONE, isWhatsapp: 0 });
+
+    expect(cacheSpies.otpRateLimit).not.toHaveBeenCalled();
+  });
+
+  // The exemption must be exactly as wide as the list and no wider. These two
+  // are the cases that would turn the limiter off for everyone.
+  it.each([
+    ["a number that is not on the list", "963937729850"],
+    ["no list configured at all", ""],
+  ])("does not exempt %s", async (_case, configured) => {
+    vi.stubEnv("OTP_TEST_PHONES", configured);
+    HandleAuthedFetch.mockResolvedValue(reply({ data: { verificationId: "v-1" } }));
+
+    const result = await sendOtp({ phone: PHONE, isWhatsapp: 0 });
+
+    expect(cacheSpies.otpRateLimit).toHaveBeenCalledWith(
+      expect.objectContaining({ phone: PHONE }),
+    );
+    expect(result.lockSeconds).toBe(Number(COOLDOWN));
+    expect(result.allowlisted).toBeUndefined();
+  });
+
+  // A refusal from the backend is still a refusal — the exemption is ours, not
+  // the backend's. What it must not do is leave the tester with a locked button
+  // for a number our own limiter never counted.
+  it("gets no lock when the backend itself refuses the send", async () => {
+    vi.stubEnv("OTP_TEST_PHONES", "999000000001");
+    HandleAuthedFetch.mockResolvedValue(reply({ message: "no" }));
+
+    const result = await sendOtp({ phone: PHONE, isWhatsapp: 0 });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        success: false,
+        message: "no",
+        lockSeconds: 0,
+        allowlisted: true,
+      }),
+    );
+  });
+
+  // The attempt is still recorded, under its own reason. Without it a test
+  // number's sends would be invisible on the abuse dashboards — and telling
+  // "the testers" apart from "an attacker" is the whole use of that view.
+  it("is still recorded, named as a test number", async () => {
+    vi.stubEnv("OTP_TEST_PHONES", "999000000001");
+    HandleAuthedFetch.mockResolvedValue(reply({ data: { verificationId: "v-1" } }));
+
+    await sendOtp({ phone: PHONE, isWhatsapp: 1 });
+
+    expect(captureOtpAttempt).toHaveBeenCalledTimes(1);
+    expect(captureOtpAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({ outcome: "sent", reason: "test_phone" }),
+    );
+  });
+});
+
 describe("nothing real was touched", () => {
   // AC-16. The backend helper is a stand-in, so no request was ever built; the
   // reporter and the recorder are stand-ins, so nothing left the process. What is

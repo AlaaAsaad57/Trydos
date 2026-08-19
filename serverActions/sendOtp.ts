@@ -6,6 +6,7 @@ import { otpRateLimit } from "serverRequests/radis";
 import { SEND_OTP } from "utils/endpointConfig";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { resolveOtpIdentity } from "utils/server/otpIdentity";
+import { isAllowlistedTestPhone } from "utils/server/otpAllowlist";
 import { captureOtpAttempt } from "utils/server/otpTelemetry";
 import { LogServerError } from "utils/serverErrorReporter";
 
@@ -21,6 +22,10 @@ import { LogServerError } from "utils/serverErrorReporter";
 //   • The Redis rate limit (per-session cap of 2 numbers/1h, per-IP cap,
 //     per-number cooldown) runs here, BEFORE the backend is ever called, so a
 //     scripted "1000 random numbers" attack is rejected for free.
+//   • The one exception is the test-number allowlist (`OTP_TEST_PHONES`, see
+//     utils/server/otpAllowlist): those numbers skip our limiter so testers and
+//     the live e2e suite are not locked out of their own accounts. The send is
+//     still real, and the list is empty unless the environment sets it.
 //
 // The actual OTP request is then made server-to-server via HandleAuthedFetch
 // (which carries the guest/market token and auto-registers a guest on 401),
@@ -37,6 +42,13 @@ interface SendOtpResult {
   blocked?: boolean;
   /** Present when blocked by our own rate limiter (not surfaced to the user). */
   reason?: string;
+  /**
+   * True when this number is on the test-number allowlist (`OTP_TEST_PHONES`),
+   * so our limiter was skipped for it. The client mirrors the server's locks in
+   * sessionStorage — this tells it not to, otherwise the browser would lock a
+   * number the server never locked and the exemption would look broken.
+   */
+  allowlisted?: boolean;
 }
 
 const digitsOnly = (phone: string) => (phone || "").replace(/[^0-9]/g, "");
@@ -101,7 +113,20 @@ export async function sendOtpAction(input: {
     // );
 
     // ── Rate limit BEFORE touching the backend ──
-    const limit = await otpRateLimit({ sid, ip, phone });
+    // A configured test number (utils/server/otpAllowlist) skips the limiter
+    // completely: nothing is checked for it and — just as important — nothing is
+    // counted, so a whole day of test logins can't consume the shared per-IP
+    // budget that real shoppers on that address depend on. The send itself is
+    // still real; only OUR three rules are stepped over.
+    const isTestPhone = isAllowlistedTestPhone(phone);
+    const limit = isTestPhone
+      ? { allowed: true, reason: "test_phone", lockSeconds: 0 }
+      : await otpRateLimit({ sid, ip, phone });
+
+    // No client-side lock for a test number either — see `allowlisted` above.
+    const cooldownSeconds = isTestPhone
+      ? 0
+      : Number(process.env.OTP_COOLDOWN_SECONDS ?? 60);
     if (!limit.allowed) {
       // Record the blocked attempt with the real IP (the value to blocklist) —
       // these are the abusive senders the client `send_otp` event can't surface.
@@ -159,7 +184,8 @@ export async function sendOtpAction(input: {
         success: true,
         verificationId,
         message,
-        lockSeconds: Number(process.env.OTP_COOLDOWN_SECONDS ?? 60),
+        lockSeconds: cooldownSeconds,
+        ...(isTestPhone ? { allowlisted: true } : {}),
       };
     }
 
@@ -176,7 +202,8 @@ export async function sendOtpAction(input: {
     return {
       success: false,
       message: message || "Failed to send verification code",
-      lockSeconds: Number(process.env.OTP_COOLDOWN_SECONDS ?? 60),
+      lockSeconds: cooldownSeconds,
+      ...(isTestPhone ? { allowlisted: true } : {}),
     };
   } catch (error) {
     LogServerError({ error, scenario: "sendOtpAction" });
