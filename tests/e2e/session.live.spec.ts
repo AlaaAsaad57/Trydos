@@ -76,15 +76,46 @@ const EXPIRY = "/api/auth/expire";
  *  that way. Opening the cart is what provokes the refusal, so a case that did
  *  not wait would read the credentials before the app had finished replacing
  *  them. */
-const openCartAndSettle = async (page: any, recorder: any, mark: number) => {
+const openCartAndSettle = async (
+  page: any,
+  recorder: any,
+  spoiled: any,
+) => {
   const button = nav.cartButton(page);
   await expect(button).toBeVisible({ timeout: CART_OPEN_MS });
   await button.click({ timeout: CART_OPEN_MS });
   await recorder.waitFor(RENEWAL, RECOVERY_MS);
-  // A short settle so the retry that follows the renewal has written its
-  // cookies before anything is read.
-  await page.waitForTimeout(1_500);
-  return mark;
+
+  // Wait for the credentials to have actually rotated, not for a request to
+  // have been sent. The recorder reports a request the moment it leaves the
+  // browser, and the replacement arrives on the answer — so anything keyed on
+  // the request reads the old state.
+  //
+  // The stored identity is rewritten on that same answer, which is why this is
+  // the right thing to wait for. Waiting for a follow-up request was tried and
+  // is wrong: the profile write fires during boot, not after a recovery.
+  //
+  // **Compared against the spoiled state, not the original.** Comparing against
+  // the original made this true the instant the credential was overwritten —
+  // the spoiled value differs from the original too — so the wait returned
+  // before the app had done anything at all.
+  //
+  // This matters in both directions. Case 3 went intermittently red because the
+  // outgoing guest was still readable; case 2 — which asserts the identity is
+  // *unchanged* — would have gone quietly green for the same reason. A test
+  // that passes because it looked too early is worse than one that fails.
+  await expect
+    .poll(
+      async () => {
+        const changed = await credentialsChangedSince(page, spoiled);
+        return changed.access && changed.refresh;
+      },
+      {
+        timeout: RECOVERY_MS,
+        message: `the credentials never rotated after the cart was opened. Auth calls seen: ${recorder.paths().join(", ")}`,
+      },
+    )
+    .toBe(true);
 };
 
 /** Fail on the budget, and say what was seen while doing it.
@@ -146,10 +177,11 @@ test.describe("a guest's credential", () => {
     // Only the working credential. The means to renew is left intact, which is
     // what makes this a renewal rather than a re-registration.
     await spoilCredentials(page, [ACCESS_COOKIE]);
+    const spoiled = await snapshotCredentials(page);
     const afterSpoil = recorder.mark();
 
     withinWindow(guest.registeredAt, recorder, "before opening the cart");
-    await openCartAndSettle(page, recorder, afterSpoil);
+    await openCartAndSettle(page, recorder, spoiled);
     withinWindow(guest.registeredAt, recorder, "after the recovery");
 
     const changed = await credentialsChangedSince(page, before);
@@ -189,10 +221,11 @@ test.describe("a guest's credential", () => {
 
     // Both, so the exchange itself cannot succeed.
     await spoilCredentials(page, [ACCESS_COOKIE, REFRESH_COOKIE]);
+    const spoiled = await snapshotCredentials(page);
     const afterSpoil = recorder.mark();
 
     withinWindow(guest.registeredAt, recorder, "before opening the cart");
-    await openCartAndSettle(page, recorder, afterSpoil);
+    await openCartAndSettle(page, recorder, spoiled);
     await recorder.waitFor(EXPIRY, RECOVERY_MS);
     withinWindow(guest.registeredAt, recorder, "after the recovery");
 
