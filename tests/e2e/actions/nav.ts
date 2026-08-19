@@ -69,7 +69,16 @@ export const chooseRegionIfAsked = async (
   //
   // A person never sees this — they cannot click faster than the round trip. A
   // test hits it every single time. Waiting for the URL closes the window.
-  await page.waitForURL(new RegExp(`/${iso}-`), { timeout: 45_000 });
+  //
+  // `domcontentloaded`, not the `waitUntil: "load"` default: `load` waits for
+  // every last resource — analytics, fonts, CDN media, and any storefront fetch
+  // still retrying against staging — and on a runner that outlives the timeout.
+  // The URL is what this wait is about, and it is settled once the document
+  // parses. `page.goto` below already says the same thing for the same reason.
+  await page.waitForURL(new RegExp(`/${iso}-`), {
+    timeout: 45_000,
+    waitUntil: "domcontentloaded",
+  });
   await expect(popup).toBeHidden({ timeout: 30_000 });
 
   return { chosen: true, iso };
