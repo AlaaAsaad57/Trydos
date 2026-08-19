@@ -16,13 +16,14 @@
 //
 // Nothing here talks to the network, and it changes no file in the app.
 
-import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
-import { join, relative, sep } from "node:path";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { join, sep } from "node:path";
+
+import { latestSummary, nextSummaryName, readIndex, today } from "./summary-files.mjs";
 
 const REPO = process.cwd();
 const workDir = process.argv[2];
 const resultsPath = process.argv[3] ?? join(workDir ?? "", "vitest-results.json");
-const SUMMARY_DIR = join(REPO, "docs", "testing", "summaries");
 
 if (!workDir) {
   console.error("give me a folder to write digest.md and index-block.txt into");
@@ -92,42 +93,16 @@ const skipped = tests.filter((t) => t.status !== "passed" && t.status !== "faile
 
 // ------------------------------------------- what is new since the last summary
 
-/** Today, as YYYY-MM-DD, so a second run on the same day replaces the first. */
-const TODAY = new Date().toISOString().slice(0, 10);
+/** Today, as YYYY-MM-DD. */
+const TODAY = today();
 
-/**
- * The newest summary already written, or null on the very first run.
- *
- * Today's own file is left out on purpose. Running the skill twice in one day
- * writes the same filename, so counting it as "the previous run" would report no
- * new tests and blank the day's summary.
- */
-function previousSummary() {
-  if (!existsSync(SUMMARY_DIR)) return null;
-  const files = readdirSync(SUMMARY_DIR)
-    .filter((f) => /^TEST-SUMMARY-\d{4}-\d{2}-\d{2}\.md$/.test(f))
-    .filter((f) => f.slice(13, 23) !== TODAY)
-    .sort();
-  if (files.length === 0) return null;
-  const name = files[files.length - 1];
-  return { name, date: name.slice(13, 23), body: readFileSync(join(SUMMARY_DIR, name), "utf8") };
-}
+/** The file this run must write. A second run today gets `-2`, never the same name. */
+const TARGET = nextSummaryName("TEST-SUMMARY", TODAY);
 
-const prev = previousSummary();
-let knownIds = null;
-if (prev) {
-  const start = prev.body.indexOf(INDEX_START);
-  if (start !== -1) {
-    const end = prev.body.indexOf(INDEX_END, start);
-    knownIds = new Set(
-      prev.body
-        .slice(start + INDEX_START.length, end === -1 ? undefined : end)
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean),
-    );
-  }
-}
+// The run before this one is simply the newest summary on disk, today's earlier
+// runs included. Nothing is ever overwritten, so there is no file to skip.
+const prev = latestSummary("TEST-SUMMARY");
+const knownIds = prev ? readIndex(prev.body, INDEX_START) : null;
 
 const isFirstRun = knownIds === null;
 const newTests = isFirstRun ? tests : tests.filter((t) => !knownIds.has(t.id));
@@ -200,10 +175,11 @@ for (const f of fileRows) {
 const pct = (n) => `${n.toFixed(1)}%`;
 const out = [];
 
-out.push("# Digest for the test summary\n");
+out.push("# Digest for the unit test summary\n");
+out.push(`Write this run to: **docs/testing/summaries/${TARGET}** — that name is free. Never edit an existing summary.\n`);
 out.push(
   prev
-    ? `Previous summary: **${prev.name}** (${prev.date})${knownIds ? "" : " — it carries no hidden index, so every test below counts as new"}\n`
+    ? `Previous summary: **${prev.name}** (${prev.date}, run ${prev.run})${knownIds ? "" : " — it carries no hidden index, so every test below counts as new"}\n`
     : "Previous summary: **none — this is the first run**\n",
 );
 
@@ -287,6 +263,7 @@ writeFileSync(join(workDir, "digest.md"), out.join("\n"), "utf8");
 const index = [INDEX_START, ...tests.map((t) => t.id).sort(), INDEX_END, ""].join("\n");
 writeFileSync(join(workDir, "index-block.txt"), index, "utf8");
 
+console.log(`write to        docs/testing/summaries/${TARGET}`);
 console.log(`digest.md        ${out.length} lines`);
 console.log(`index-block.txt  ${tests.length} tests`);
 console.log(`new app tests    ${newAppTests.length}  <- this is the number of bullets the summary needs`);

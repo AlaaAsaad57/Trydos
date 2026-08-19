@@ -1,0 +1,104 @@
+E2E — run the browser suite twice (local build, then deployed URL)
+==================================================================
+
+Goal
+----
+The E2E workflow runs the browser journeys two times in one run:
+
+  Pass 1  next build + next start on 127.0.0.1:3100   (what it does today)
+  Pass 2  vercel deploy, then the same journeys against the deployment URL
+
+Decisions taken
+---------------
+* Deploy = CI deploys with VERCEL_TOKEN (`vercel deploy --scope
+  trydos-front-team`). Vercel builds remotely, the job gets the preview URL for
+  that exact commit. Deterministic: the URL belongs to the SHA we just tested.
+* Target guard for pass 2 = trust the Vercel project's Preview env, and
+  allow-list the deployment hostname. Accepted limit, stated openly: the suite
+  can no longer prove which backends the deployed app talks to. It trusts the
+  dashboard.
+* Pass 2 runs the same *.live.spec.ts files, and a failure there fails the job.
+  Fine while the specs are guest-only and read-only. When the money path lands
+  it means two real orders per run, and we revisit it then.
+
+What stands in the way today
+----------------------------
+1. `LIVE_ORIGIN` in tests/e2e/harness/env.ts is a hardcoded
+   http://127.0.0.1:3100 constant. Its comment records that an earlier
+   `LIVE_BASE_URL` override was deliberately cut — "the suite may only ever talk
+   to a server this harness started".
+2. tests/e2e/harness/guard.ts proves the target is staging by reading
+   BACKEND_URL etc. from the CI process. Those govern the server we start. A
+   deployed app reads its own env from the Vercel project, which the guard
+   cannot see — so pass 2 loses the suite's one safety property unless we
+   replace it with something.
+3. cli.ts `report` reads a single e2e-results.json, and `outputDir` is one
+   folder. Two passes need two of each, plus a merged Telegram message.
+4. .github/workflows/** is a protected runtime path in CLAUDE.md, so the CI half
+   needs a /wf: ticket.
+
+Two things found while reading, that will bite this design
+----------------------------------------------------------
+* `main` carries 5f39e7df "feat(main): gate every route to the centered-logo
+  page". This workflow triggers on pushes to develop AND main, so on a main push
+  the journeys fail on NavLogo for a reason that is not a code bug. The deployed
+  pass is therefore gated to develop only.
+* globalTeardown is already safe when no server was started (handle.ts
+  stopServer() no-ops), so the deployed pass needs no teardown change.
+
+The plan
+--------
+Ticket first: .github/workflows/** is protected, so this goes through
+/wf:start-ticket -> research -> spec -> plan -> review -> implement. What
+follows is the shape for plan.md.
+
+Code — 7 files:
+
+1. tests/e2e/harness/env.ts
+   Add E2E_TARGET_URL. Export TARGET_ORIGIN (the deployment URL, else
+   LIVE_ORIGIN) and isDeployedRun(). Rewrite the comment on LIVE_HOST that says
+   the override "was cut on purpose" — it stops being true.
+
+2. tests/e2e/harness/guard.ts
+   Add assertDeployedTarget(url): an allow-list on the deployment hostname
+   (*.vercel.app / the staging alias), hard stop otherwise. Document the
+   accepted limit plainly — this pass trusts the Vercel project's Preview env
+   and cannot prove which backends the deployed app resolves.
+
+3. tests/e2e/globalSetup.ts
+   On a deployed run, run assertDeployedTarget and return without building or
+   starting anything.
+
+4. playwright.config.ts
+   baseURL: TARGET_ORIGIN. Split outputDir (.artifacts/local vs
+   .artifacts/deployed) and the JSON outputFile — otherwise the second pass
+   overwrites the first pass's results and video.
+
+5. tests/e2e/cli.ts
+   `report` takes a results file and a step-output prefix, so the two passes
+   report separately into one Telegram message.
+
+6. .github/workflows/test-e2e.yml
+   After pass 1: a Deploy step (vercel deploy --token --scope
+   trydos-front-team, capture the URL), then "Browser journeys (deployed)" with
+   E2E_TARGET_URL and continue-on-error: true, then a second report step.
+   Widen "Collect the result" and "Decide the verdict" to both passes — the same
+   staging-outage downgrade applies to both. Raise timeout-minutes 45 -> 60 for
+   the remote build. Gate the deploy and pass-2 steps on
+   github.ref_name == 'develop'.
+
+7. docs/testing/E2E_TEST_DESIGN.md
+   Sections 2, 4 and 12 describe one pass. Make it two.
+
+Secrets to add before this can go green
+---------------------------------------
+VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID. The ids are not recoverable
+from a fresh clone — .vercel/ is gitignored.
+
+Open risk, to check before building
+-----------------------------------
+If Vercel Deployment Protection is on for previews, the browser gets a 401 on
+every page and pass 2 fails wholesale. It needs either
+VERCEL_AUTOMATION_BYPASS_SECRET sent as a header in the deployed project's
+extraHTTPHeaders, or protection turned off for this project. Check the
+dashboard first.
