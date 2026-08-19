@@ -42,6 +42,15 @@ export type Arrival = {
   hops: Hop[];
   /** The address the visitor ended on. */
   url: URL;
+  /** The status of the last answer. 200 when the address was served. */
+  status: number;
+  /** Its `Content-Type`, lower case and without the charset — `text/html`,
+   *  `application/xml`, `text/plain`. Empty when the answer had none. */
+  contentType: string;
+  /** The country and language the app saved on the way, read back out of the
+   *  cookies it set. Empty strings when it saved none — which is itself the
+   *  answer for a crawler, who must never be given any. */
+  savedAfter: { country: string; language: string };
   /** `iq` out of `/iq-ar/about`. Empty when the address carries no locale. */
   country: string;
   /** `ar` out of `/iq-ar/about`. Empty when the address carries no locale. */
@@ -100,6 +109,14 @@ const readSetCookies = (headers: Headers): [string, string][] => {
  *  @param options.maxHops          how many redirects to follow. One by
  *                                  default, which covers every case here and
  *                                  stops short of rendering a page.
+ *  @param options.userAgent        who is asking. A crawler is sent down a
+ *                                  completely separate branch, so this is the
+ *                                  only way to reach it.
+ *  @param options.bouncedAlready   how many redirects the app should believe
+ *                                  have already happened. The app counts its
+ *                                  own bounces in a header and gives up past a
+ *                                  limit; this is how that limit is reached
+ *                                  without building a real loop.
  *
  *  **On spoofing the country.** `x-vercel-ip-country` is set by the platform in
  *  production, and a header a client sends under that name is stripped there —
@@ -113,6 +130,8 @@ export const arriveAsGuest = async (options: {
   browserLanguages?: string;
   saved?: { country?: string; language?: string };
   maxHops?: number;
+  userAgent?: string;
+  bouncedAlready?: number;
 }): Promise<Arrival> => {
   const {
     path = "/",
@@ -120,6 +139,8 @@ export const arriveAsGuest = async (options: {
     browserLanguages,
     saved,
     maxHops = 1,
+    userAgent = HUMAN_USER_AGENT,
+    bouncedAlready,
   } = options;
 
   const jar = new Map<string, string>();
@@ -128,13 +149,21 @@ export const arriveAsGuest = async (options: {
   // `language`, and writes all of them. `lang` is what a returning visitor has.
   if (saved?.language) jar.set("lang", saved.language);
 
+  // What the app wrote back, as opposed to what the visitor arrived with.
+  const written = new Map<string, string>();
+
   const hops: Hop[] = [];
   let url = new URL(path, LIVE_ORIGIN);
+  let status = 0;
+  let contentType = "";
 
   for (;;) {
-    const headers: Record<string, string> = { "user-agent": HUMAN_USER_AGENT };
+    const headers: Record<string, string> = { "user-agent": userAgent };
     if (fromCountry) headers["x-vercel-ip-country"] = fromCountry;
     if (browserLanguages) headers["accept-language"] = browserLanguages;
+    if (bouncedAlready !== undefined) {
+      headers["x-redirect-count"] = String(bouncedAlready);
+    }
     if (jar.size) {
       headers.cookie = [...jar]
         .map(([name, value]) => `${name}=${value}`)
@@ -145,8 +174,18 @@ export const arriveAsGuest = async (options: {
     // Nothing reads a body here, and an unread one holds its socket open.
     await response.body?.cancel();
 
+    status = response.status;
+    contentType = (response.headers.get("content-type") ?? "")
+      .split(";")[0]
+      .trim()
+      .toLowerCase();
+
     for (const [name, value] of readSetCookies(response.headers)) {
       jar.set(name, value);
+      // Separately, because `jar` starts out holding what the visitor already
+      // had — reading `savedAfter` off it would report cookies the app never
+      // wrote, and "a crawler is given no cookies" would pass by accident.
+      written.set(name, value);
     }
 
     const location = response.headers.get("location");
@@ -173,6 +212,12 @@ export const arriveAsGuest = async (options: {
   return {
     hops,
     url,
+    status,
+    contentType,
+    savedAfter: {
+      country: written.get("country") ?? "",
+      language: written.get("lang") ?? "",
+    },
     country,
     language,
     askedToPickCountry: url.searchParams.get("no-country") === "true",
