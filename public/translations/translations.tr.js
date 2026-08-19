@@ -1964,6 +1964,7 @@ const translations = {
   "The product is restricted to the selected countries.": "Ürün seçili ülkelerle sınırlandırılmıştır.",
   "The product will be hidden from purchase until you re-enable it.": "Yeniden etkinleştirene kadar ürün satın almadan gizlenecek.",
   "These fields will be updated": "Bu alanlar güncellenecek",
+  "This Seller Product ID is already used": "Bu Satıcı Ürün ID'si zaten kullanılıyor",
   "This will remove your access to the shop dashboard. You can be re-invited later.": "Bu, mağaza paneline erişiminizi kaldıracak. Daha sonra tekrar davet edilebilirsiniz.",
   "Title": "Başlık",
   "Track and fulfil customer orders": "Müşteri siparişlerini takip edin ve karşılayın",

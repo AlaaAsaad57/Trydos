@@ -221,6 +221,32 @@ export interface Lookups {
   locations: LocationLookup[];
   descriptor_groups: DescriptorGroup[];
   units: string[];
+  /** Every seller product id already used in this shop, normalized (see
+   *  normalizeSellerProductIds) from the raw `seller_product_id` array the
+   *  create/edit lookups return. */
+  seller_product_ids: string[];
+}
+
+/** The lookups carry the ids already taken as a raw array that can hold nulls
+ *  and numbers (e.g. [null, null, "32"] — products saved without one). Keep the
+ *  trimmed, non-empty values only, deduped. */
+export function normalizeSellerProductIds(raw: any): string[] {
+  if (!Array.isArray(raw)) return [];
+  const out = new Set<string>();
+  for (const v of raw) {
+    const s = String(v ?? "").trim();
+    if (s) out.add(s);
+  }
+  return [...out];
+}
+
+/** True when the typed seller product id is already taken. `taken` must not
+ *  contain the product's own current id — on edit the lookups list includes it
+ *  and keeping it must stay allowed. Empty is allowed (the field is optional). */
+export function isSellerProductIdTaken(value: string, taken: string[]): boolean {
+  const v = String(value ?? "").trim();
+  if (!v) return false;
+  return taken.includes(v);
 }
 
 export interface VariantRow {
@@ -845,7 +871,8 @@ export function validate(
   // server still owns brand validity/authorization (spec E-5).
   if (!form.brand_id) e.brand_id = tx("Brand is required");
   // seller_product_id is optional server-side on both create and update; it is only
-  // checked for marketplace uniqueness when provided.
+  // checked for marketplace uniqueness when provided. Uniqueness is checked live
+  // in the editor against the lookups list (isSellerProductIdTaken), not here.
 
   if (!form.location_id) e.location_id = tx("Location is required");
   // if( form.shipping_days === "" || isNaN(Number(form.shipping_days)) || Number(form.shipping_days) < 0){

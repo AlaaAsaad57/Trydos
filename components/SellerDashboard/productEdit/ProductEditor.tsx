@@ -33,9 +33,11 @@ import {
   emptyProductForm,
   fileName,
   ImageItem,
+  isSellerProductIdTaken,
   ListDiffItem,
   Lookups,
   mapServerErrors,
+  normalizeSellerProductIds,
   ProductForm,
   sameDescriptorValues,
   scrollToFirstError,
@@ -206,6 +208,16 @@ export default function ProductEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sellerId]);
 
+  /** The taken seller-product-id list is an array of raw values (nulls included)
+   *  that sits beside the other datasets — flat under `data` on create, under
+   *  `data.lookups` on edit. Normalize it onto the lookups object either way. */
+  const withSellerProductIds = (raw: any, data: any): Lookups => ({
+    ...(raw as Lookups),
+    seller_product_ids: normalizeSellerProductIds(
+      raw?.seller_product_id ?? data?.seller_product_id,
+    ),
+  });
+
   const load = async () => {
     setLoading(true);
     setLoadError(null);
@@ -215,7 +227,7 @@ export default function ProductEditor({
         const res = await SellerDashboardService.getProductCreateForm(sellerId);
         // Create lookups sit flat under `data`; the edit endpoint nests them
         // under `data.lookups`. Same datasets, different nesting.
-        const lk = (res.data || {}) as Lookups;
+        const lk = withSellerProductIds(res.data || {}, res.data);
         const built = emptyProductForm();
         baseLookups.current = lk;
         catCache.current = new Map();
@@ -231,7 +243,7 @@ export default function ProductEditor({
         productId as string,
       );
       const product = res.data?.product;
-      const lk = (res.data?.lookups || {}) as Lookups;
+      const lk = withSellerProductIds(res.data?.lookups || {}, res.data);
       if (!product) throw new Error("Product not found");
       // Saved descriptor values sit beside product/lookups on the edit
       // response (data.descriptor_values[] — product-descriptors-edit.md).
@@ -468,6 +480,19 @@ export default function ProductEditor({
 
   /* -------------------------------- save ---------------------------------- */
 
+  // Seller product id uniqueness, checked live while the seller types. The
+  // lookups list holds every id already used in the shop; on edit it includes
+  // this product's own id, which must stay allowed. Kept out of the `errors`
+  // state on purpose — it is derived from the current value, so it clears the
+  // moment the seller types a free id.
+  const takenSellerProductIds = (lookups?.seller_product_ids || []).filter(
+    (id) => id !== (initial?.seller_product_id || "").trim(),
+  );
+  const sellerProductIdError =
+    form && isSellerProductIdTaken(form.seller_product_id, takenSellerProductIds)
+      ? t("This Seller Product ID is already used")
+      : "";
+
   const startSave = () => {
     if (!form || !initial || isSaveDisabled) return;
     // isCreate gates the three checks the backend enforces only at create
@@ -475,9 +500,12 @@ export default function ProductEditor({
     // saving an existing product that legitimately has one of them empty.
     const errs = validate(form, isCreate, pricesLocked);
     setErrors(errs);
-    if (Object.keys(errs).length > 0) {
+    const allErrs = sellerProductIdError
+      ? { ...errs, seller_product_id: sellerProductIdError }
+      : errs;
+    if (Object.keys(allErrs).length > 0) {
       showErrorMessage(t("Please fix the highlighted fields before saving."));
-      scrollToFirstError(errs);
+      scrollToFirstError(allErrs);
       return;
     }
     const diff = buildDiff(initial, form, lookups as Lookups);
@@ -762,7 +790,9 @@ export default function ProductEditor({
   const sectionProps: SectionProps = {
     form,
     patch,
-    errors,
+    errors: sellerProductIdError
+      ? { ...errors, seller_product_id: sellerProductIdError }
+      : errors,
     lookups,
     disabled: !editMode,
     pricesLocked,
