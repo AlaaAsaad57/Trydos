@@ -242,7 +242,8 @@ export function normalizeSellerProductIds(raw: any): string[] {
 
 /** True when the typed seller product id is already taken. `taken` must not
  *  contain the product's own current id — on edit the lookups list includes it
- *  and keeping it must stay allowed. Empty is allowed (the field is optional). */
+ *  and keeping it must stay allowed. Empty returns false: the empty case is the
+ *  "required" rule in validate(), not a uniqueness clash. */
 export function isSellerProductIdTaken(value: string, taken: string[]): boolean {
   const v = String(value ?? "").trim();
   if (!v) return false;
@@ -870,9 +871,11 @@ export function validate(
   // empty case before a request is made; it confers no security property, and the
   // server still owns brand validity/authorization (spec E-5).
   if (!form.brand_id) e.brand_id = tx("Brand is required");
-  // seller_product_id is optional server-side on both create and update; it is only
-  // checked for marketplace uniqueness when provided. Uniqueness is checked live
-  // in the editor against the lookups list (isSellerProductIdTaken), not here.
+  // Required on BOTH create and update. Uniqueness is a separate rule, checked
+  // live in the editor against the lookups list (isSellerProductIdTaken), not
+  // here — this only stops the empty case.
+  if (!form.seller_product_id.trim())
+    e.seller_product_id = tx("Seller Product ID is required");
 
   if (!form.location_id) e.location_id = tx("Location is required");
   // if( form.shipping_days === "" || isNaN(Number(form.shipping_days)) || Number(form.shipping_days) < 0){

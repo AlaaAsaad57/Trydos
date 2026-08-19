@@ -1956,6 +1956,7 @@ const translations = {
   "The product is restricted to the selected countries.": "المنتج محظور في الدول المحددة.",
   "The product will be hidden from purchase until you re-enable it.": "سيُخفى المنتج من الشراء حتى تعيد تفعيله.",
   "These fields will be updated": "سيتم تحديث هذه الحقول",
+  "Seller Product ID is required": "معرّف منتج البائع مطلوب",
   "This Seller Product ID is already used": "معرّف منتج البائع هذا مستخدم بالفعل",
   "This will remove your access to the shop dashboard. You can be re-invited later.": "سيؤدي هذا إلى إزالة صلاحيتك للوصول إلى لوحة تحكم المتجر. يمكن إعادة دعوتك لاحقاً.",
   "Title": "العنوان",

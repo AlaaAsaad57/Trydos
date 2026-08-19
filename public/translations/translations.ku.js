@@ -1994,6 +1994,7 @@ const translations = {
   "The product is restricted to the selected countries.": "بەرهەمەکە سنووردارکراوە بۆ وڵاتە هەڵبژێردراوەکان.",
   "The product will be hidden from purchase until you re-enable it.": "بەرهەمەکە لە کڕین دەشاردرێتەوە تا دووبارە چالاکی دەکەیتەوە.",
   "These fields will be updated": "ئەم خانانە نوێ دەکرێنەوە",
+  "Seller Product ID is required": "ناسنامەی بەرهەمی فرۆشیار پێویستە",
   "This Seller Product ID is already used": "ئەم ناسنامەی بەرهەمی فرۆشیارە پێشتر بەکارهاتووە",
   "This will remove your access to the shop dashboard. You can be re-invited later.": "ئەمە دەستڕاگەیشتنت بۆ داشبۆردی فرۆشگا لادەبات. دەتوانرێت دواتر دووبارە بانگهێشت بکرێیت.",
   "Title": "ناونیشان",
