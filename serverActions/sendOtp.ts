@@ -127,6 +127,7 @@ export async function sendOtpAction(input: {
     const cooldownSeconds = isTestPhone
       ? 0
       : Number(process.env.OTP_COOLDOWN_SECONDS ?? 60);
+
     if (!limit.allowed) {
       // Record the blocked attempt with the real IP (the value to blocklist) —
       // these are the abusive senders the client `send_otp` event can't surface.

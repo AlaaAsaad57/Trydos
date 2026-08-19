@@ -111,6 +111,28 @@ describe("sending a code", () => {
     expect(otpLocks.lockNumber).toHaveBeenCalledWith(PHONE, 120);
   });
 
+  // The server exempts a configured test number from its own limiter and counts
+  // nothing for it. The browser mirror has to step aside too: if it locked the
+  // button anyway, the tester would still be stopped for a minute and the
+  // exemption would look broken — by the one half of it that the server cannot
+  // see.
+  it("mirrors no lock and counts nothing when the server says the number is allowlisted", async () => {
+    (sendOtp.sendOtpAction as any).mockResolvedValue({
+      success: true,
+      verificationId: "vid-test",
+      message: "sent",
+      lockSeconds: 0,
+      allowlisted: true,
+    });
+
+    const id = await auth.SendOtp(PHONE, 0, vi.fn());
+
+    expect(id).toBe("vid-test");
+    expect(store.useAppStore.getState().verficationID).toBe("vid-test");
+    expect(otpLocks.lockNumber).not.toHaveBeenCalled();
+    expect(otpLocks.recordSessionNumber).not.toHaveBeenCalled();
+  });
+
   it("still starts the cooldown when the send is refused with one, and reports the refusal (AC-3)", async () => {
     (sendOtp.sendOtpAction as any).mockResolvedValue({
       success: false,

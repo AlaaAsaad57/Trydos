@@ -511,6 +511,19 @@ Redis cooldown (`OTP_COOLDOWN_SECONDS`, `OTP_SESSION_MAX`, `OTP_IP_MAX`,
 own accounts. Log in once per identity per run and cache it — that is rule 9, and
 this is the phase that proves the limiter works rather than fighting it.
 
+**The suite's own numbers can be exempted.** `OTP_TEST_PHONES` (read by
+`utils/server/otpAllowlist.ts`) holds a short list of numbers that skip our
+limiter entirely: nothing is checked for them, and — the part that matters here
+— nothing is counted for them either, so a run no longer spends the per-IP
+budget that real shoppers on that address share. Set it on staging to the
+identities in `TEST_ACCOUNT_PHONE` / `TEST_ACCOUNT_PHONE_2`. Two things follow.
+Rule 9 still stands: a login is a real send and the backend keeps its own
+per-number throttle. And **every limit case in this phase has to be driven with a
+number that is NOT on the list** — an exempted number proves nothing about the
+limiter. The exemption is worth one case of its own: an exempted number sends
+again inside the cooldown, and a normal number from the same address is still
+free to send afterwards.
+
 The send is real; only the code is fixed. The verify step reads
 `TEST_ACCOUNT_OTP` (see **The OTP for test accounts** above), so nothing has to
 read a WhatsApp message and the `is_via_whatsapp` flag only changes how the
@@ -766,7 +779,9 @@ an expired session, and it is a session-fixation risk that needs **its own
 security ticket**. This roadmap uses it; it does not bless it.
 
 **2. OTP will rate limit the suite against itself.** Redis-backed cooldowns are
-real on staging. One login per identity per run, cached in the harness.
+real on staging. One login per identity per run, cached in the harness — and the
+suite's identities belong in `OTP_TEST_PHONES` on staging, so a run can neither
+lock itself out nor spend the budget of a real shopper on the same address.
 
 **3. `x-market-backend` makes routing free to assert**, and the guest allow-list
 in `AUTH-TESTING-NOTES.md` may already be out of date. Phase 5 reports the drift.

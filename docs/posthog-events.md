@@ -302,7 +302,7 @@ event). `otp_send_attempt` is the authoritative, one-per-server-attempt record w
 
 | Event | Fires when | Props | File |
 |---|---|---|---|
-| `otp_send_attempt` | Every send that reaches `sendOtpAction` — one per outcome branch | `outcome` (`sent`/`blocked`/`failed`), `block_reason` (`cooldown`/`session_cap`/`ip_cap`/`ok`/`backend_rejected`/`no_verification_id`), `ip` (raw client IP — the blocklist value), `normalized_ip` (IPv6→/64, the Redis key), `is_whatsapp`, `source` (`server_action`) | `serverActions/sendOtp.ts` |
+| `otp_send_attempt` | Every send that reaches `sendOtpAction` — one per outcome branch | `outcome` (`sent`/`blocked`/`failed`), `block_reason` (`cooldown`/`session_cap`/`ip_cap`/`ok`/`test_phone`/`backend_rejected`/`no_verification_id`), `ip` (raw client IP — the blocklist value), `normalized_ip` (IPv6→/64, the Redis key), `is_whatsapp`, `source` (`server_action`) | `serverActions/sendOtp.ts` |
 
 Notes:
 - `distinct_id` is the hashed durable session key (`sid`, from the `VISIT-ID` cookie) — no PII,
@@ -311,6 +311,9 @@ Notes:
   config) and `$geoip_disable: true` (don't geo-resolve the *server's* IP).
 - **`ip` is PII.** It's stored deliberately for abuse forensics/blocklisting. Blocking itself
   happens at the **Vercel Firewall** edge, not in PostHog.
+- `block_reason: test_phone` means the number is on the `OTP_TEST_PHONES` allowlist, so our
+  limiter was skipped for it (`utils/server/otpAllowlist.ts`). Exclude it when counting real
+  traffic — those sends are the testers and the live suite, not shoppers and not abuse.
 - Insight + how to read it: `docs/posthog-otp-abuse-insight.md`.
 
 ---

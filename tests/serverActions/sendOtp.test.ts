@@ -491,8 +491,8 @@ describe("a number on the test-number allowlist", () => {
   it.each([
     ["a leading plus", "+999000000001"],
     ["spaces and brackets", "+999 (000) 000-001"],
-    ["several numbers, one of them this one", "963937729850,999000000001"],
-    ["untidy separators", " 963937729850 , +999-000-000-001 "],
+    ["several numbers, one of them this one", "999000000002,999000000001"],
+    ["untidy separators", " 999000000002 , +999-000-000-001 "],
   ])("is matched on digits alone — %s", async (_case, configured) => {
     vi.stubEnv("OTP_TEST_PHONES", configured);
     HandleAuthedFetch.mockResolvedValue(reply({ data: { verificationId: "v-1" } }));
@@ -505,7 +505,7 @@ describe("a number on the test-number allowlist", () => {
   // The exemption must be exactly as wide as the list and no wider. These two
   // are the cases that would turn the limiter off for everyone.
   it.each([
-    ["a number that is not on the list", "963937729850"],
+    ["a number that is not on the list", "999000000002"],
     ["no list configured at all", ""],
   ])("does not exempt %s", async (_case, configured) => {
     vi.stubEnv("OTP_TEST_PHONES", configured);

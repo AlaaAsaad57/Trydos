@@ -28,13 +28,19 @@ import "server-only";
 //     code still has to be verified.
 //
 // HOW TO CONFIGURE IT
-//   `OTP_TEST_PHONES` — a comma-separated list of numbers, in any readable
-//   shape (`+963937288307`, `963 937 288 307`, `00963...` is NOT the same
-//   number — see below). Everything except digits is ignored on both sides of
-//   the comparison, so `+963937288307` and `+963 (937) 288-307` are the same
-//   entry. A leading `+` is not part of the digits and never has to be typed.
+//   `OTP_TEST_PHONES` — a comma-separated list of numbers, written in whatever
+//   shape is readable. Everything except digits is ignored on BOTH sides of the
+//   comparison, so `+999000000001`, `999 000 000 001` and `+999 (000) 000-001`
+//   are all the same entry, and a leading `+` never has to be typed.
 //
-//     OTP_TEST_PHONES=963937288307,963937729850
+//   What is NOT ignored is the digits themselves: the country code is part of
+//   the number, and a `00` international prefix is not the same as a `+`. Write
+//   each number the way the app sends it — country code first, no `00`.
+//
+//     OTP_TEST_PHONES=999000000001,999000000002
+//
+//   The real numbers belong in the deployment's environment settings, never in a
+//   tracked file: this repository is public.
 //
 //   Unset or empty (the default) means the feature is OFF and every number goes
 //   through the limiter — which is what production must stay on. Set it on the
