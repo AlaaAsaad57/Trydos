@@ -3,6 +3,9 @@
 **The design is `docs/testing/E2E_TEST_DESIGN.md`.** This file is how to run
 them and how to add one.
 
+**The list of cases is `docs/testing/E2E_SCENARIOS.md`.** Add a row there when
+you add a case.
+
 A browser drives a real `next build` + `next start` against the real staging
 backends. Nothing is simulated.
 
@@ -121,7 +124,7 @@ The session is created once in global setup and shared.
 ## What is here now, and what is not
 
 Built: the harness, preflight, the server, both projects, the action and
-scenario layers, and `guest.live.spec.ts`.
+scenario layers, `guest.live.spec.ts` and `locale.live.spec.ts`.
 
 Not built yet, each its own ticket:
 
