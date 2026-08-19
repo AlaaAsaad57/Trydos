@@ -138,10 +138,38 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ms-playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
+      # **No `--with-deps`, on purpose.** It cost three minutes of every run and
+      # installed nothing this suite uses.
+      #
+      # Measured on run 32225455244: the step took 3m10s, and the Chromium
+      # download was not part of it — the cache above hit, so Playwright went
+      # straight to apt. Of that, 80s was `apt-get update` alone (the
+      # `Get:5 … noble-security InRelease` line), 100s was fetching .debs, and
+      # the nine packages it ended up installing were:
+      #
+      #   fonts-wqy-zenhei  fonts-freefont-ttf  fonts-tlwg-loma-otf
+      #   fonts-ipafont-gothic  fonts-unifont  xfonts-encodings
+      #   xfonts-utils  xfonts-cyrillic  xfonts-scalable
+      #
+      # All fonts — Chinese, Japanese, Thai, Cyrillic — and **not one shared
+      # library**. Every library Chromium needs is already on the ubuntu-24.04
+      # image, which ships Chrome, Chromium, Edge and Firefox and therefore their
+      # dependencies. Arabic is not in that list either; it comes from fonts the
+      # image already has.
+      #
+      # It is safe here because nothing in this suite looks at a glyph: the
+      # journeys assert on DOM text through locators, and playwright.config.ts
+      # records no screenshot and no trace. **If that changes** — the day someone
+      # adds `toHaveScreenshot()` or a visual check — put `--with-deps` back, or
+      # CJK text will render as empty boxes and the comparison will be a mystery.
+      #
+      # And it cannot be fixed with a cache instead. The runner is a fresh VM
+      # every run, so apt's system paths never persist, and half the cost is
+      # `apt-get update` reaching the network, which no cache avoids.
       - name: Install Chromium
         id: browser
         if: ${{ steps.preflight.outputs.configured == 'true' && steps.preflight.outputs.staging == 'up' }}
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install chromium
 
       - name: Build
         id: build
