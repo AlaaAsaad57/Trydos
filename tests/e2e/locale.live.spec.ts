@@ -266,6 +266,38 @@ test.describe("saved values that are only half there", () => {
     expect(arrival.country).toBe(detected);
   });
 
+  test("a global address with a saved country but no saved language still goes to that country", async ({
+    page,
+  }) => {
+    const { served } = await pickCountries(page);
+    test.skip(served.length < 1, "the app offers no country to test with");
+
+    // `gb` is the global bucket — "we do not know where you are" — not a
+    // market, and the app shows the country picker on every gb address. So
+    // someone who has already chosen a country must not be left on one.
+    //
+    // Everywhere else half a saved pair counts for nothing, and that is right:
+    // a country with no language decides only half a locale. Here it decides
+    // all of it, because the address already carries the language. Without
+    // this, losing one cookie stranded a visitor on the global address with the
+    // picker in front of them and a country already chosen.
+    //
+    // The address says Arabic, so Arabic is what they keep — this would pass
+    // just as well against a version that reset everyone to English.
+    const arrival = await arriveAsGuest({
+      path: `/gb-ar${PLAIN_PAGE}`,
+      saved: { country: served[0] },
+    });
+
+    expect(arrival.hops).toHaveLength(1);
+    expect(arrival.country).toBe(served[0]);
+    expect(arrival.language, "the language they were reading was not kept").toBe(
+      "ar",
+    );
+    // And the half-set state heals: the language is written back too.
+    expect(arrival.savedAfter).toEqual({ country: served[0], language: "ar" });
+  });
+
   test("a gb address with a different saved country goes to the saved country", async ({
     page,
   }) => {

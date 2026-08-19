@@ -30,20 +30,21 @@ test — about five per run, and they are not cleaned up (see rule 6 in
 | GUEST-15 | An address carrying the pick-a-country marker is served, not bounced again | `locale.live.spec.ts:213` | The picker's own address does not loop |
 | GUEST-16 | An address carrying the country-change marker is served, not bounced again | `locale.live.spec.ts:230` | The answer to GUEST-11 does not re-trigger GUEST-11 |
 | GUEST-17 | A saved country with no saved language is ignored | `locale.live.spec.ts:251` | Half a saved pair does not half-apply; detection decides |
-| GUEST-18 | A gb address with a different saved country goes to the saved country | `locale.live.spec.ts:269` | Nobody who has chosen is left on the default country |
-| GUEST-19 | A crawler on a valid address is served it, and given no cookies | `locale.live.spec.ts:289` | Indexed pages carry no `Set-Cookie` |
-| GUEST-20 | A crawler with no country gets a permanent redirect to one | `locale.live.spec.ts:307` | 308, not 307, so a crawler remembers the answer |
-| GUEST-21 | A crawler is never asked to pick a country | `locale.live.spec.ts:317` | The picker is never indexed in place of a page |
-| GUEST-22 | Answering the picker is remembered, and the next visit is not asked | `locale.live.spec.ts:338` | The choice sticks, even from another country |
-| GUEST-23 | An answer arriving with other query values still remembers the choice | `locale.live.spec.ts:366` | The fixed bug at `proxy.ts:428` — the choice was lost and the picker re-asked |
-| GUEST-24 | An answer with no country in the address still lands on a proper address | `locale.live.spec.ts:388` | The bypass does not strand a visitor on an address with no country |
-| GUEST-25 | Too many bounces stops on a default address and asks | `locale.live.spec.ts:407` | The loop guard fires |
-| GUEST-26 | A bounce within the limit still behaves normally | `locale.live.spec.ts:424` | The loop guard is a limit, not always-on |
-| GUEST-27 | The timestamp marker is dropped on the way to a redirect | `locale.live.spec.ts:439` | `_t` does not survive onto the visitor's address |
-| GUEST-28 | `robots.txt` is served as text, never locale-redirected | `locale.live.spec.ts:460` | Crawl rules are reachable |
-| GUEST-29 | The site sitemap is served as XML | `locale.live.spec.ts:471` | The matcher excludes it |
-| GUEST-30 | A sitemap under a country prefix is served as XML even when the saved country disagrees | `locale.live.spec.ts:479` | The bypass at `proxy.ts:278` — otherwise a crawler gets a redirect instead of XML |
-| GUEST-31 | An address written in capitals is permanently redirected to lower case | `locale.live.spec.ts:503` | One page, one address, so it is not indexed twice |
+| GUEST-18 | A gb address with a different saved country goes to the saved country | `locale.live.spec.ts:301` | Nobody who has chosen is left on the default country |
+| GUEST-19 | A crawler on a valid address is served it, and given no cookies | `locale.live.spec.ts:321` | Indexed pages carry no `Set-Cookie` |
+| GUEST-20 | A crawler with no country gets a permanent redirect to one | `locale.live.spec.ts:339` | 308, not 307, so a crawler remembers the answer |
+| GUEST-21 | A crawler is never asked to pick a country | `locale.live.spec.ts:349` | The picker is never indexed in place of a page |
+| GUEST-22 | Answering the picker is remembered, and the next visit is not asked | `locale.live.spec.ts:370` | The choice sticks, even from another country |
+| GUEST-23 | An answer arriving with other query values still remembers the choice | `locale.live.spec.ts:398` | The fixed bug at `proxy.ts:428` — the choice was lost and the picker re-asked |
+| GUEST-24 | An answer with no country in the address still lands on a proper address | `locale.live.spec.ts:420` | The bypass does not strand a visitor on an address with no country |
+| GUEST-25 | Too many bounces stops on a default address and asks | `locale.live.spec.ts:439` | The loop guard fires |
+| GUEST-26 | A bounce within the limit still behaves normally | `locale.live.spec.ts:456` | The loop guard is a limit, not always-on |
+| GUEST-27 | The timestamp marker is dropped on the way to a redirect | `locale.live.spec.ts:471` | `_t` does not survive onto the visitor's address |
+| GUEST-28 | `robots.txt` is served as text, never locale-redirected | `locale.live.spec.ts:492` | Crawl rules are reachable |
+| GUEST-29 | The site sitemap is served as XML | `locale.live.spec.ts:503` | The matcher excludes it |
+| GUEST-30 | A sitemap under a country prefix is served as XML even when the saved country disagrees | `locale.live.spec.ts:511` | The bypass at `proxy.ts:278` — otherwise a crawler gets a redirect instead of XML |
+| GUEST-31 | An address written in capitals is permanently redirected to lower case | `locale.live.spec.ts:535` | One page, one address, so it is not indexed twice |
 | GUEST-32 | A first visit registers the guest and leaves them able to act | `session.live.spec.ts:110` | The app issues a working credential and the means to renew it, and can name who the guest is |
 | GUEST-33 | A refused credential is exchanged, and the guest stays the same guest | `session.live.spec.ts:137` | The pair rotates and the identity survives, so a lapsed credential never interrupts browsing |
 | GUEST-34 | A refused pair issues a new guest, and never asks anyone to sign in | `session.live.spec.ts:181` | When renewal cannot work the app issues a new guest silently — a guest has no account to sign in to |
+| GUEST-35 | A global address with a saved country but no saved language still goes to that country | `locale.live.spec.ts:269` | `gb` is the global bucket, not a market — losing one cookie must not strand a visitor there with the picker up |
