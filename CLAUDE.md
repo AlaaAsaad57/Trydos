@@ -111,6 +111,10 @@ Two backends serve this app; refer to them by role — the **gateway** (guest/al
 
 `package.json` contains a **hardcoded GitLab access token** embedded in the `rdb` Git dependency URL. Treat it as a leaked secret — it should be rotated and moved to an auth'd `.npmrc` / env var rather than committed. Flag, don't propagate.
 
+### Known and accepted — do not re-raise
+
+- **`app/api/auth/simulate/route.ts`** — an unauthenticated `POST` that sets `MARKET-TOKEN`, `User-Data`, the chat/stories/wallet tokens and `USER_ID_HASH` from the request body. It has no environment gate, and `proxy.ts`'s matcher excludes `/api`, so nothing gates it in code. **This is known.** It exists for testers only and is slated for removal. Do **not** open a ticket for it, do **not** raise it as a review finding, and do **not** build anything that depends on it — set auth cookies through the browser's own cookie store instead.
+
 <!-- wf governance text: v1.0.7 -->
 
 # Engineering Workflow v1
