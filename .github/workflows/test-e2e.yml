@@ -64,6 +64,7 @@ jobs:
       tree: ${{ steps.report.outputs.tree }}
       configured: ${{ steps.preflight.outputs.configured }}
       staging: ${{ steps.preflight.outputs.staging }}
+      video_url: ${{ steps.upload.outputs.artifact-url }}
 
     steps:
       - name: Check out the branch
@@ -157,11 +158,13 @@ jobs:
       # dependencies. Arabic is not in that list either; it comes from fonts the
       # image already has.
       #
-      # It is safe here because nothing in this suite looks at a glyph: the
-      # journeys assert on DOM text through locators, and playwright.config.ts
-      # records no screenshot and no trace. **If that changes** — the day someone
-      # adds `toHaveScreenshot()` or a visual check — put `--with-deps` back, or
-      # CJK text will render as empty boxes and the comparison will be a mystery.
+      # It is safe here because nothing in this suite *asserts* on a glyph: the
+      # journeys assert on DOM text through locators. The video and the failure
+      # screenshots are looked at by a human, not compared, so a missing font
+      # costs nothing but a puzzling frame — Arabic renders (the image ships those
+      # fonts), CJK shows as empty boxes. **If that changes** — the day someone
+      # adds `toHaveScreenshot()` or any automated visual comparison — put
+      # `--with-deps` back, or the comparison will fail for reasons nobody can see.
       #
       # And it cannot be fixed with a cache instead. The runner is a fresh VM
       # every run, so apt's system paths never persist, and half the cost is
@@ -214,17 +217,70 @@ jobs:
         run: pnpm exec tsx tests/e2e/cli.ts report
 
       # ---------------------------------------------------------------------
-      # There is deliberately no artifact upload here.
+      # The session recording, encrypted before it is uploaded.
       #
-      # This repository is public, so an uploaded artifact is world-readable. A
-      # Playwright trace archives every request header — which is the auth token
-      # for the staging test account — and a screenshot of a failed login shows
-      # the phone number. The live project records none of it
-      # (playwright.config.ts), and nothing is uploaded even so.
+      # This repository is public, so an uploaded artifact is world-readable —
+      # anyone with the run URL can download it. The recording shows what the
+      # browser showed, which on the login screen is the test identity's phone
+      # number, so it is never uploaded in the clear.
       #
-      # Reproduce a failure locally with `pnpm test:e2e -- --trace on`, where the
-      # file never leaves the machine.
+      # `-mhe=on` matters as much as the passphrase: without it 7z encrypts the
+      # contents but leaves the file names listable, and the file names are the
+      # failing spec names.
+      #
+      # **A trace is still never recorded** (playwright.config.ts). That one is
+      # different in kind: it archives every request header, so it is the auth
+      # token in a file, and no passphrase makes it worth publishing.
+      #
+      # No passphrase secret means no archive and no upload — which is the right
+      # default for a fork and for a clone nobody has set up.
       # ---------------------------------------------------------------------
+      - name: Pack the session recording
+        id: pack
+        if: ${{ always() && steps.journeys.outcome != 'skipped' }}
+        env:
+          PASS: ${{ secrets.E2E_ARTIFACT_PASSPHRASE }}
+        run: |
+          set -u
+
+          # The guard is inside the shell, not in `if:` — a step's own `env`
+          # block is not readable from its `if`, so that version would silently
+          # never run.
+          if [ -z "${PASS:-}" ]; then
+            echo "No E2E_ARTIFACT_PASSPHRASE secret. Nothing packed, nothing uploaded."
+            exit 0
+          fi
+
+          if ! command -v 7z >/dev/null 2>&1; then
+            echo "No 7z on this runner — cannot encrypt, so refusing to upload."
+            exit 0
+          fi
+
+          # A run that died in the build never opened a browser, and an empty
+          # archive is worse than no archive: it puts a link in the Telegram
+          # message that leads to nothing.
+          if ! find tests/e2e/.artifacts -type f \( -name '*.webm' -o -name '*.png' \) 2>/dev/null | grep -q .; then
+            echo "No video or screenshot was written — nothing to pack."
+            exit 0
+          fi
+
+          # Never `set -x` in this step: a traced command line prints $PASS.
+          7z a -p"$PASS" -mhe=on /tmp/e2e-session.7z ./tests/e2e/.artifacts >/dev/null
+          echo "packed=true" >> "$GITHUB_OUTPUT"
+          echo "Packed $(du -h /tmp/e2e-session.7z | cut -f1) of recording."
+
+      - name: Upload the session recording
+        id: upload
+        if: ${{ always() && steps.pack.outputs.packed == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-session
+          path: /tmp/e2e-session.7z
+          # Short on purpose. The default is 90 days, and a nightly run would
+          # otherwise leave three months of recordings of the staging account.
+          # Three days covers a weekend, which is the longest a red run should
+          # wait to be looked at.
+          retention-days: 3
 
       - name: Collect the result
         id: collect
@@ -320,4 +376,5 @@ jobs:
       rollup: ${{ needs.e2e.outputs.rollup }}
       tree: ${{ needs.e2e.outputs.tree }}
       tree_name: e2e-tests.txt
+      video_url: ${{ needs.e2e.outputs.video_url }}
     secrets: inherit

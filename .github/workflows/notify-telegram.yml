@@ -69,6 +69,14 @@ on:
         required: false
         default: 'tests.txt'
         type: string
+      video_url:
+        description: >
+          Link to the uploaded session recording, if the caller made one. It is
+          a link and never the recording itself: the file is encrypted, and
+          Telegram is not the place to hand out a copy of a real session.
+        required: false
+        default: ''
+        type: string
 
 # It reads nothing from the repository and checks nothing out.
 permissions: {}
@@ -95,6 +103,7 @@ jobs:
           ROLLUP: ${{ inputs.rollup }}
           TREE: ${{ inputs.tree }}
           TREE_NAME: ${{ inputs.tree_name }}
+          VIDEO_URL: ${{ inputs.video_url }}
           # Only a push carries a commit object. Everywhere else this is empty
           # and the subject line is simply left off.
           COMMIT_SUBJECT: ${{ github.event.head_commit.message }}
@@ -175,6 +184,14 @@ jobs:
               out="$out${NL}${NL}Every test is in the attached <code>$(esc "$TREE_NAME")</code>."
             fi
 
+            # Outside the green/red split on purpose: seeing what the browser did
+            # on a passing run is how you find a test that passes for the wrong
+            # reason. Not escaped, because it is a URL this workflow built from
+            # the upload step's own output, not caller text.
+            if [ -n "$VIDEO_URL" ]; then
+              out="$out${NL}${NL}🎥 <a href=\"$VIDEO_URL\">the session recording</a> — encrypted, needs the passphrase"
+            fi
+
             printf '%s%s%s<a href="%s">open the run</a>' \
               "$out" "$NL" "$NL" "$RUN_URL"
           }
@@ -189,6 +206,11 @@ jobs:
           fi
           if [ "${#TEXT}" -gt 3800 ]; then
             TEXT="$ICON <b>$(esc "$TITLE")</b>${NL}${LINE}${NL}${NL}Too much detail to send here.${NL}${NL}<a href=\"$RUN_URL\">open the run</a>"
+            # Kept in the last-resort message too. It is two lines, and when the
+            # detail did not fit it is the fastest way to see what happened.
+            if [ -n "$VIDEO_URL" ]; then
+              TEXT="$TEXT${NL}🎥 <a href=\"$VIDEO_URL\">the session recording</a>"
+            fi
           fi
 
           HTTP=$(curl -sS -o /tmp/telegram-response.json -w '%{http_code}' \

@@ -11,11 +11,18 @@
 //   *.scripted.spec.ts  the browser's own calls are faked. No secrets in play.
 //
 // **This repository is public, so every CI log and artifact is world-readable.**
-// A Playwright trace archives every request header — which is the auth token in
-// a downloadable file — and a screenshot of a failed login shows the phone
-// number. So the live project records **nothing**. Debug it locally with
-// `--trace on`, where the file never leaves the machine. The scripted project
-// has no real session and no real secrets, so it may record freely.
+// That splits the artifacts in two, and the line is not about how sensitive they
+// feel — it is about what they contain:
+//
+//   * A trace archives every request header, so it *is* the auth token in a
+//     downloadable file. The live project never records one. Debug locally with
+//     `--trace on`, where the file never leaves the machine.
+//   * A video or screenshot contains no headers and no token. It can still show
+//     the test identity's phone number on the login screen, so the live project
+//     records both and `test-e2e.yml` encrypts them before upload.
+//
+// The scripted project has no real session and no real secrets, so it may record
+// freely.
 
 import { defineConfig } from "@playwright/test";
 
@@ -90,10 +97,17 @@ export default defineConfig({
       name: "live",
       testMatch: /.*\.live\.spec\.ts$/,
       use: {
-        // Deliberately all off. See the header.
+        // **No trace, ever.** This is the one artifact that carries the auth
+        // token: it archives every request header, so a downloadable trace is a
+        // downloadable session. Debug locally with `--trace on`.
         trace: "off",
-        video: "off",
-        screenshot: "off",
+
+        // Video and failure screenshots are recorded. They show what the browser
+        // showed — which can include the test identity's phone number on the
+        // login screen — so `test-e2e.yml` never uploads them in the clear: it
+        // packs them into a passphrase-encrypted archive first.
+        video: "on",
+        screenshot: "only-on-failure",
       },
     },
     {
