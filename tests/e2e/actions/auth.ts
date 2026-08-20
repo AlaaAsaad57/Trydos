@@ -16,6 +16,7 @@ import { auth } from "../selectors";
 import { arriveAsGuest } from "./locale";
 import { LIVE_ORIGIN } from "../harness/env";
 import { credentialsHeld, type AuthCallRecorder } from "../harness/session";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 /** How long each part of booting is allowed to take.
  *
@@ -510,3 +511,31 @@ export const attemptAuth = async (
   const error = await visibleVerifyError(page);
   return { screen, error };
 };
+
+export const verifyCookiesSet=async(page:Page):Promise<void>=>{
+ const cookies = await page.context().cookies();
+
+  const expected = [
+    COOKIE_NAMES.MARKET_TOKEN,
+    COOKIE_NAMES.MARKET_REFRESH_TOKEN,
+    COOKIE_NAMES.CHAT_REFRESH_TOKEN,
+    COOKIE_NAMES.STORIES_REFRESH_TOKEN,
+    COOKIE_NAMES.STORIES_TOKEN,
+    COOKIE_NAMES.USER_ID_HASH,
+    COOKIE_NAMES.USER_CHAT,
+    COOKIE_NAMES.USER_DATA,
+    COOKIE_NAMES.USER_STORIES,
+  ];
+
+  // Assert all are present (by name)
+  expected.forEach(name => {
+    expect(cookies).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name })])
+    );
+  });
+
+
+  const userData = cookies.find(c => c.name === COOKIE_NAMES.USER_DATA);
+  expect(userData).toBeDefined();
+  expect(JSON.parse(decodeURIComponent(userData.value))).toHaveProperty('id');
+}

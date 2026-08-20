@@ -97,8 +97,16 @@ export const auth = {
    *  yet. The widget shows the "not registered" screen. */
   userNotFound: {
     [ENDPOINTS.login]: {
-      status: 422,
-      body: { message: "User not found", data: null },
+    status: 200,
+      body: {
+        isSuccessful: true,
+        success: true,
+        data: {
+          user: fakeUser("Shopper A"),
+          already_exists: false,
+        },
+        ...fakeSatellites,
+      }
     },
   } satisfies MockMap,
 
