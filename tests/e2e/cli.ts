@@ -3,7 +3,9 @@
 //   tsx tests/e2e/cli.ts preflight   is this configured, is it staging, is it up?
 //   tsx tests/e2e/cli.ts health      is staging up? — on its own, for after a run
 //   tsx tests/e2e/cli.ts build       build the app with the staging environment
-//   tsx tests/e2e/cli.ts run         all three, in order, for local use
+//   tsx tests/e2e/cli.ts run [--skip-build]
+//                                    all three, in order, for local use.
+//                                    --skip-build reuses an existing .next output.
 //
 // **Why preflight is a separate command and runs before the build.** The build
 // takes minutes. Finding out afterwards that the machine has no staging
@@ -376,6 +378,15 @@ const report = (): void => {
   log(totals);
 };
 
+/** Pull out flags the CLI owns before Playwright sees them. */
+const parseRunFlags = (args: string[]): { skipBuild: boolean; playwrightArgs: string[] } => {
+  const skipBuild = args.includes("--skip-build");
+  return {
+    skipBuild,
+    playwrightArgs: args.filter((arg) => arg !== "--skip-build"),
+  };
+};
+
 /** Hand the rest of the arguments to Playwright and adopt its exit code. */
 const runPlaywright = (args: string[]): Promise<number> =>
   new Promise((resolvePromise, reject) => {
@@ -415,10 +426,12 @@ const main = async (): Promise<number> => {
       report();
       return 0;
 
-    case "run":
+    case "run": {
+      const { skipBuild, playwrightArgs } = parseRunFlags(rest);
       if (!(await preflight())) return 0;
-      await buildApp();
-      return await runPlaywright(rest);
+      if (!skipBuild) await buildApp();
+      return await runPlaywright(playwrightArgs);
+    }
 
     default:
       console.error(

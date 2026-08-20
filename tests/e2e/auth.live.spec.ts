@@ -13,7 +13,7 @@ test("an existing account logs in and reaches the welcome screen", async ({ page
     otp: envValue("TEST_ACCOUNT_OTP"),
   });
   const screen = (await currentAuthScreen(page)) ?? "closed";
-  expect(screen).toMatch(/^(welcome|close)$/);
+  expect(screen).toMatch(/^(welcome|closed)$/);
   await verifyCookiesSet(page);
 
 });
