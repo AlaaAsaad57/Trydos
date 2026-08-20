@@ -61,14 +61,14 @@ test.describe("scripted authentication", () => {
     await gotoAbout(page);
     await mockBackend(page, scenarios.auth.existingUser);
 
-    const outcome = await attemptAuth(page, {
+     await attemptAuth(page, {
       intent: "login",
       phone: pickPhone(1),
       method: "whatsapp",
       otp: "000000",
     });
-
-    expect(outcome.screen).toBe("welcome");
+    const screen = (await currentAuthScreen(page)) ?? "closed";
+    expect(screen).toBe("welcome");
   });
 
   test("logging in with an unregistered number shows the not-registered screen", async ({
@@ -83,8 +83,8 @@ test.describe("scripted authentication", () => {
       method: "whatsapp",
       otp: "000000",
     });
-
-    expect(outcome.screen).toBe("not-registered");
+   const screen = (await currentAuthScreen(page)) ?? "closed";
+    expect(screen).toBe("not-registered");
   });
   test("Signing up with a registered number shows the registered screen", async ({
     page,
