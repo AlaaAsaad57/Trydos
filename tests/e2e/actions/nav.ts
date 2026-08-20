@@ -167,10 +167,7 @@ export const gotoFirstProduct = async (
   // the app bounced it to `?message=product_not_found`. A locator that matches
   // the wrong thing is worse than one that matches nothing, because it fails
   // somewhere else and blames the app.
-const cards = listing.cardLink(page);
-const count = await cards.count();
-const randomIndex = Math.floor(Math.random() * count);
-const link = cards.nth(randomIndex);
+  const link = listing.cardLink(page).first();
 
   await expect(
     link,

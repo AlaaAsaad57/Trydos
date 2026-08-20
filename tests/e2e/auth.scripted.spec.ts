@@ -15,7 +15,6 @@ import {
   currentAuthScreen,
   enterPhone,
   openLoginWidget,
-  selectOtpMethod,
   sendOtpWithRetry,
   submitOtp,
   visibleVerifyError,
