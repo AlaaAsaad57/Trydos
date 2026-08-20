@@ -14,6 +14,7 @@
 
 import { expect, type Page } from "@playwright/test";
 
+import { LIVE_ORIGIN } from "../harness/env";
 import { listing, nav, product, region, search } from "../selectors";
 
 /** Deal with the "Select Your Region" popup, if it is showing.
@@ -99,6 +100,24 @@ export const gotoHome = async (page: Page): Promise<void> => {
   await expect(nav.logo(page)).toBeVisible();
 };
 
+/** Open a plain page that does not depend on Elasticsearch or the home listing.
+ *
+ *  Auth specs use this so a staging search outage does not hide the auth
+ *  widget, which lives in the nav bar on every page. */
+export const gotoAbout = async (page: Page): Promise<void> => {
+  // Seed a known-served locale so the country picker does not block the nav.
+  // The fallback list the app uses is [tr, iq, lb, sy]; any of them works.
+  await page.context().addCookies([
+    { name: "country", value: "iq", url: LIVE_ORIGIN },
+    { name: "lang", value: "en", url: LIVE_ORIGIN },
+    { name: "language", value: "en", url: LIVE_ORIGIN },
+  ]);
+
+  await page.goto("/about", { waitUntil: "domcontentloaded" });
+  await chooseRegionIfAsked(page);
+  await expect(nav.logo(page)).toBeVisible();
+};
+
 /** Type a term into the storefront search and wait for results.
  *
  *  Returns how many result links came back. Zero is a legitimate answer for a
@@ -148,7 +167,10 @@ export const gotoFirstProduct = async (
   // the app bounced it to `?message=product_not_found`. A locator that matches
   // the wrong thing is worse than one that matches nothing, because it fails
   // somewhere else and blames the app.
-  const link = listing.cardLink(page).first();
+const cards = listing.cardLink(page);
+const count = await cards.count();
+const randomIndex = Math.floor(Math.random() * count);
+const link = cards.nth(randomIndex);
 
   await expect(
     link,

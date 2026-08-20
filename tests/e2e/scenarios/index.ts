@@ -36,7 +36,72 @@ export const ENDPOINTS = {
   sendOtp: "/auth/phone/send_otp",
 } as const;
 
+/** A believable user object for a faked verify response.
+ *
+ *  The app reads `user.id`, `user.name`, `user.phone` and `user.mobilePhone`.
+ *  The phone is intentionally not a real one; it is never printed by a helper. */
+const fakeUser = (name: string) => ({
+  id: 123_456,
+  name,
+  phone: "+963700000000",
+  mobilePhone: "+963700000000",
+});
+
+/** The satellite service identities the login route is expected to return.
+ *
+ *  `AuthService.VerifyOtp` maps these to `ChatUser`, `StoriesUser` and
+ *  `WalletUser`; leaving them empty means the app treats the services as
+ *  unreachable, which is fine for widget-level specs. */
+const fakeSatellites = {
+  ChatUser: null,
+  StoriesUser: null,
+  WalletUser: null,
+};
+
 export const auth = {
+  /** A never-seen number signs up: `already_exists` is false and the user has
+   *  no name, so the widget moves to the name screen. */
+  signupNewPhone: {
+    [ENDPOINTS.login]: {
+      status: 200,
+      body: {
+        isSuccessful: true,
+        success: true,
+        data: {
+          user: fakeUser(""),
+          already_exists: false,
+        },
+        ...fakeSatellites,
+      },
+    },
+  } satisfies MockMap,
+
+  /** A known shopper logs in: `already_exists` is true and the user has a real
+   *  name, so the widget shows the welcome screen. */
+  existingUser: {
+    [ENDPOINTS.login]: {
+      status: 200,
+      body: {
+        isSuccessful: true,
+        success: true,
+        data: {
+          user: fakeUser("Shopper A"),
+          already_exists: true,
+        },
+        ...fakeSatellites,
+      },
+    },
+  } satisfies MockMap,
+
+  /** Logging in with a number that exists on the device but is not registered
+   *  yet. The widget shows the "not registered" screen. */
+  userNotFound: {
+    [ENDPOINTS.login]: {
+      status: 422,
+      body: { message: "User not found", data: null },
+    },
+  } satisfies MockMap,
+
   /** The backend refuses the code. */
   wrongOtp: {
     [ENDPOINTS.login]: {

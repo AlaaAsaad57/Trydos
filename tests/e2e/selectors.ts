@@ -97,6 +97,39 @@ export const prompt = {
     page.getByTestId("input-phone-number-field"),
 };
 
+/** The phone-verification widget (`components/Login/Enhanced`). */
+export const auth = {
+  /** Button that opens the widget from the nav bar. */
+  loginButton: (page: Page): Locator => page.getByTestId("login-icon"),
+  /** The initial screen: "Sign Up!" or "Login!". */
+  getStartedTitle: (page: Page): Locator => page.getByTestId("join-statement"),
+  signUpButton: (page: Page): Locator => page.getByTestId("create-account"),
+  loginButtonOnScreen: (page: Page): Locator =>
+    page.getByTestId("have-account-button"),
+  /** Phone entry screen. */
+  phoneInput: (page: Page): Locator =>
+    page.getByTestId("input-phone-number-field"),
+  submitPhoneButton: (page: Page): Locator =>
+    page.getByTestId("send-phone-number"),
+  /** Method selection screen. */
+  screenTitle: (page: Page): Locator => page.getByTestId("edit-phone-number"),
+  smsMethod: (page: Page): Locator => page.getByTestId("sms-receive-otp"),
+  whatsappMethod: (page: Page): Locator =>
+    page.getByTestId("whatsapp-receive-otp"),
+  otpCooldown: (page: Page): Locator => page.getByTestId("otp-cooldown"),
+  sendOtpError: (page: Page): Locator => page.getByTestId("send-otp-error"),
+  /** PIN entry screen. */
+  otpInput: (page: Page): Locator => page.getByTestId("input-otp-field"),
+  verifyOtpError: (page: Page): Locator => page.getByTestId("verify-otp-error"),
+  /** Post-login screens. */
+  welcomeTitle: (page: Page): Locator => page.getByTestId("welcome"),
+  nameInput: (page: Page): Locator => page.getByTestId("input-user-name-field"),
+  notRegisteredMessage: (page: Page): Locator =>
+    page.getByTestId("not registered"),
+  Terms: (page: Page): Locator => page.getByTestId("agree-continue"),
+  AlreadyRegistered:(page:Page):Locator =>page.getByTestId("registered")
+};
+
 export const cart = {
   /** The cart itself, opened by the nav cart icon. Not `bag-viewer` — that one
    *  lives in `ShippingAddressContainer` and only exists once you are far enough

@@ -138,7 +138,7 @@ export const probeStaging = async (): Promise<HealthReport> => {
     // restarting box apart from a firewall, so prefer it over the message.
     const code = (error as NodeJS.ErrnoException)?.code;
     const detail = code ?? (error as Error)?.message ?? "unknown error";
-
+    
     return { up: false, reason: `${url.host} — ${detail}`, skipped: false };
   }
 };

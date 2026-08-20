@@ -140,6 +140,12 @@ export const hasShopperA = (): boolean =>
 export const hasShopperB = (): boolean =>
   allSet("TEST_ACCOUNT_PHONE_2", "TEST_ACCOUNT_OTP");
 
+/** Either configured test phone, plus the shared OTP. Used by scripted auth
+ *  specs that only need to reach the PIN screen and do not require both
+ *  identities. */
+export const hasTestAccountPhones = (): boolean =>
+  hasShopperA() || hasShopperB();
+
 /** The delivery worker. A separate product with its own login. */
 export const hasFleet = (): boolean =>
   allSet("FLEET_BASE_URL", "FLEET_EMAIL", "FLEET_PASSWORD");

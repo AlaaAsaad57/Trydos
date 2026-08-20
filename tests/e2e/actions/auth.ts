@@ -9,7 +9,9 @@
 // whether the stored pair changed, recording requests — is in
 // `harness/session.ts`, because none of that is a thing a visitor does.
 
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
+
+import { auth } from "../selectors";
 
 import { arriveAsGuest } from "./locale";
 import { LIVE_ORIGIN } from "../harness/env";
@@ -39,7 +41,6 @@ const REGISTRATION_MS = 15_000;
  *  one that works rather than the one that is cheapest. */
 const BOOT_PAGE = "";
 
-
 // Countries to offer the app, so it can say which one it serves.
 //
 // **Not a hard-coded answer.** The app is asked and its answer is used; these
@@ -58,7 +59,10 @@ const SERVED_CANDIDATES = ["iq", "sy", "lb", "tr"];
 let servedCountryCache: { country: string; language: string } | null = null;
 
 /** A country the app serves, asked once per run. */
-const servedCountry = async (): Promise<{ country: string; language: string }> => {
+const servedCountry = async (): Promise<{
+  country: string;
+  language: string;
+}> => {
   if (servedCountryCache) return servedCountryCache;
 
   for (const iso of SERVED_CANDIDATES) {
@@ -212,3 +216,297 @@ export const whoAmI = async (page: Page): Promise<number | null> => {
 };
 
 export { COUNTRY_LOOKUP_MS };
+
+// ---------------------------------------------------------------------------
+// Scripted auth widget interactions.
+//
+// These live in the same module because they extend the same "who is the
+// visitor" idea, and the design doc reserves this file for authentication
+// verbs. They are kept separate from the guest-lifecycle helpers above so the
+// latter stay focused on session boot rather than widget flow.
+// ---------------------------------------------------------------------------
+
+/** Auth screens the widget can be on, used for assertions and waits. */
+export type AuthScreen =
+  | "get-started"
+  | "input-phone"
+  | "select-method"
+  | "enter-pin"
+  | "welcome"
+  | "input-name"
+  | "not-registered"
+  | "registered"
+  | "closed";
+
+export type OtpMethod = "sms" | "whatsapp";
+
+const AUTH_SCREEN_MS = 10_000;
+const SEND_OTP_MS = 20_000;
+
+/** Open the login widget from the nav bar and wait for the first screen. */
+export const openLoginWidget = async (page: Page): Promise<void> => {
+  const button = auth.loginButton(page);
+  await expect(button).toBeVisible();
+  await button.click();
+  await expect(auth.getStartedTitle(page)).toBeVisible();
+};
+
+/** Choose sign-up or login on the first screen. */
+export const chooseAuthIntent = async (
+  page: Page,
+  options: { intent: "signup" | "login" },
+): Promise<void> => {
+  const locator =
+    options.intent === "signup"
+      ? auth.signUpButton(page)
+      : auth.loginButtonOnScreen(page);
+  await expect(locator).toBeVisible();
+  await locator.click();
+  if(options.intent!=='signup')
+  await expect(auth.phoneInput(page)).toBeVisible();
+};
+export const AgreeTerms = async ({ page }: { page: Page }): Promise<void> => {
+  const locator = auth.Terms(page);
+  await expect(locator).toBeVisible();
+  await locator.click();
+
+  await expect(auth.phoneInput(page)).toBeVisible();
+};
+/** Enter the phone number and move to the method screen. */
+export const enterPhone = async (
+  page: Page,
+  options: { phone: string },
+): Promise<void> => {
+  const input = auth.phoneInput(page);
+  await expect(input).toBeVisible();
+  const digits = options.phone.replace(/\D/g, "").replace(/^0+/, "");
+  await input.fill(digits);
+  const submit = auth.submitPhoneButton(page);
+  await expect(submit).toBeEnabled();
+  await submit.click();
+  await expect(auth.screenTitle(page)).toBeVisible();
+};
+
+const OTP_GUARD_KEY = "otp_guard_v1";
+const OTP_GUARD_FAKE_LOCK_MS = 120_000;
+
+/** Seed a fake client-side OTP lock for the test number.
+ *
+ *  The PIN screen treats "no cooldown" as "code expired" and disables the
+ *  input. Allow-listed staging numbers skip the real lock, so the widget
+ *  immediately marks the code expired. A synthetic lock in sessionStorage
+ *  keeps the input enabled for the duration of the test without touching the
+ *  server. The method screen already made its decision before this is set. */
+const seedOtpLock = async (page: Page, phone: string): Promise<void> => {
+  const digits = phone.replace(/\D/g, "");
+  await page.evaluate(
+    ({ key, digits, expires }) => {
+      const raw = window.sessionStorage.getItem(key);
+      const parsed = raw ? JSON.parse(raw) : null;
+      window.sessionStorage.setItem(
+        key,
+        JSON.stringify({
+          locks: { ...(parsed?.locks ?? {}), [digits]: expires },
+          numbers: parsed?.numbers ?? {},
+        }),
+      );
+    },
+    {
+      key: OTP_GUARD_KEY,
+      digits,
+      expires: Date.now() + OTP_GUARD_FAKE_LOCK_MS,
+    },
+  );
+};
+
+/** Choose how the OTP should be sent.
+ *
+ *  The real send happens here through a server action. The action is not
+ *  intercepted; the timeout has to cover a slow staging response. */
+export const selectOtpMethod = async (
+  page: Page,
+  options: { method: OtpMethod; phone: string },
+): Promise<void> => {
+  const locator =
+    options.method === "whatsapp"
+      ? auth.whatsappMethod(page)
+      : auth.smsMethod(page);
+  await expect(locator).toBeVisible();
+  await expect(locator).toBeEnabled();
+  await locator.click();
+
+  // The server action can fail and leave an error on this screen. Fail fast
+  // with that message rather than waiting the full PIN-screen timeout.
+  const pinVisible = await auth
+    .otpInput(page)
+    .waitFor({ state: "visible", timeout: SEND_OTP_MS })
+    .then(() => true)
+    .catch(() => false);
+
+  if (!pinVisible) {
+    const cooldown = await auth
+      .otpCooldown(page)
+      .textContent()
+      .catch(() => null);
+    const error = await auth
+      .sendOtpError(page)
+      .textContent()
+      .catch(() => null);
+    throw new Error(
+      'wait 12s ',
+      cooldown?.trim() ??
+        error?.trim() ??
+        "the PIN screen did not appear after sending the OTP",
+    );
+  }
+};
+
+export async function sendOtpWithRetry(
+  page: Page,
+  options: { method: OtpMethod; phone: string },
+  maxAttempts = 5
+): Promise<void> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      await selectOtpMethod(page, options);
+      return; // success
+    } catch (error: any) {
+      // Try to extract a numeric cooldown from the error message
+      const match = error.message?.match(/\d+/);
+      if (match) {
+        const seconds = parseInt(match[0], 10);
+        console.log(`Cooldown detected, waiting ${seconds + 1} seconds...`);
+        // wait for cooldown + 1s (using a Promise-based delay)
+        await new Promise(resolve => setTimeout(resolve, (seconds + 1) * 1000));
+        // retry
+        continue;
+      }
+      // Non‑cooldown error – rethrow
+      throw error;
+    }
+  }
+  throw new Error('Exceeded maximum retry attempts');
+}
+/** Type the OTP and submit it.
+ *
+ *  The hidden input fires `onComplete` once six digits are entered, which
+ *  triggers the verify request. Allow-listed test numbers skip the real server
+ *  lock, so the widget thinks the code is expired and disables the input. We
+ *  seed a short client-side lock here, after the send succeeded and just before
+ *  we need the input to be enabled. */
+export const submitOtp = async (
+  page: Page,
+  options: { otp: string; phone: string },
+): Promise<void> => {
+  const input = auth.otpInput(page);
+  await expect(input).toBeVisible();
+  await seedOtpLock(page, options.phone);
+  await expect(input).toBeEnabled({ timeout: AUTH_SCREEN_MS });
+  await input.fill(options.otp);
+};
+
+/** Read the currently visible auth screen, if any. */
+export const currentAuthScreen = async (
+  page: Page,
+): Promise<AuthScreen | null> => {
+  const pairs: Array<[AuthScreen, Locator]> = [
+    ["get-started", auth.getStartedTitle(page)],
+    ["input-phone", auth.phoneInput(page)],
+    ["select-method", auth.screenTitle(page)],
+    ["enter-pin", auth.otpInput(page)],
+    ["welcome", auth.welcomeTitle(page)],
+    ["input-name", auth.nameInput(page)],
+    ["not-registered", auth.notRegisteredMessage(page)],
+    ["registered", auth.AlreadyRegistered(page)],
+  ];
+
+  for (const [name, locator] of pairs) {
+    if (await locator.isVisible().catch(() => false)) return name;
+  }
+
+  // The widget closes on success; if none of the screens are visible, treat it
+  // as closed rather than unknown.
+  const widgetOpen = await auth
+    .getStartedTitle(page)
+    .locator("..")
+    .locator("..")
+    .isVisible()
+    .catch(() => true);
+  return widgetOpen ? null : "closed";
+};
+
+/** Wait for the widget to land on a specific screen. */
+export const waitForAuthScreen = async (
+  page: Page,
+  options: { screen: AuthScreen; timeout?: number },
+): Promise<void> => {
+  const deadline = Date.now() + (options.timeout ?? AUTH_SCREEN_MS);
+
+  while (Date.now() < deadline) {
+    const screen = await currentAuthScreen(page);
+    if (screen === options.screen) return;
+    await page.waitForTimeout(250);
+  }
+
+  const actual = await currentAuthScreen(page);
+  throw new Error(
+    `expected auth screen "${options.screen}" but was "${actual ?? "unknown"}"`,
+  );
+};
+
+/** Read any visible OTP verify error without leaking the phone number. */
+export const visibleVerifyError = async (
+  page: Page,
+): Promise<string | null> => {
+  const text = await auth
+    .verifyOtpError(page)
+    .textContent()
+    .catch(() => null);
+  return text?.trim() ?? null;
+};
+
+/** Outcome of a complete auth attempt. */
+export type AuthOutcome = {
+  screen: AuthScreen;
+  /** A visible error on the PIN screen, if any. */
+  error: string | null;
+};
+
+/** Drive the whole widget flow from open to final screen.
+ *
+ *  Returns the screen the widget landed on and any verify error. */
+export const attemptAuth = async (
+  page: Page,
+  options: {
+    intent: "signup" | "login";
+    phone: string;
+    method: OtpMethod;
+    otp: string;
+  },
+): Promise<AuthOutcome> => {
+  await openLoginWidget(page);
+  await chooseAuthIntent(page, { intent: options.intent });
+  if (options.intent === "signup") await AgreeTerms({ page });
+  await enterPhone(page, { phone: options.phone });
+  await sendOtpWithRetry(page, { method: options.method, phone: options.phone });
+  await submitOtp(page, { otp: options.otp, phone: options.phone });
+
+  // After submit the widget may transition quickly (success) or stay on the
+  // PIN screen (wrong code / rate limit / server error). Poll for a stable
+  // screen instead of asserting immediately.
+  const deadline = Date.now() + AUTH_SCREEN_MS;
+  let lastScreen: AuthScreen | null = null;
+
+  while (Date.now() < deadline) {
+    const screen = await currentAuthScreen(page);
+    if (screen === lastScreen && screen !== null) {
+      return { screen, error: await visibleVerifyError(page) };
+    }
+    lastScreen = screen;
+    await page.waitForTimeout(250);
+  }
+
+  const screen = (await currentAuthScreen(page)) ?? "closed";
+  const error = await visibleVerifyError(page);
+  return { screen, error };
+};

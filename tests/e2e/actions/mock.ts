@@ -52,6 +52,50 @@ const matchKey = (map: MockMap, target: string): string | undefined =>
     .sort((a, b) => b.length - a.length)
     .find((key) => target.includes(key));
 
+/** Install a handler that returns a sequence of responses for one endpoint.
+ *
+ *  Useful when a single real OTP send needs to exercise several verify
+ *  branches: wrong code, rate limit, server error, and finally success. Each
+ *  request to the named endpoint consumes the next response in the list. Once
+ *  the list is exhausted the handler falls through to the real backend. */
+export const mockBackendSequence = async (
+  page: Page,
+  endpoint: string,
+  responses: Array<MockResponse>,
+): Promise<void> => {
+  let index = 0;
+
+  await page.route("**/api/proxy", async (route) => {
+    const target = route.request().headers()["x-proxy-url"] ?? "";
+    if (!target.includes(endpoint)) {
+      await route.continue();
+      return;
+    }
+    const mock = responses[index];
+    if (!mock) {
+      await route.continue();
+      return;
+    }
+    index += 1;
+    await fulfill(route, mock);
+  });
+
+  await page.route("**/api/auth/**", async (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (!pathname.includes(endpoint)) {
+      await route.continue();
+      return;
+    }
+    const mock = responses[index];
+    if (!mock) {
+      await route.continue();
+      return;
+    }
+    index += 1;
+    await fulfill(route, mock);
+  });
+};
+
 /** Install fakes for this page. Anything not named is passed straight through.
  *
  *  Pass-through rather than "fail on an unmocked call" is deliberate: the page

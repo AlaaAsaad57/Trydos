@@ -53,7 +53,7 @@ export default defineConfig({
   // A real browser against a real backend over a real network. The default 30s
   // is a budget for a local app; a cold serverless route on staging can spend
   // most of a minute before it answers.
-  timeout: 90_000,
+  timeout: 120_000,
   expect: { timeout: 15_000 },
 
   // The build is not bounded by this — it happens before Playwright starts. This
