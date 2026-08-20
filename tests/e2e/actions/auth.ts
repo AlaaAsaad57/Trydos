@@ -354,7 +354,6 @@ export const selectOtpMethod = async (
       .textContent()
       .catch(() => null);
     throw new Error(
-      'wait 12s ',
       cooldown?.trim() ??
         error?.trim() ??
         "the PIN screen did not appear after sending the OTP",
