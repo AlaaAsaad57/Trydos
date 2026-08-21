@@ -15,7 +15,7 @@
 import { expect, type Page } from "@playwright/test";
 
 import { LIVE_ORIGIN } from "../harness/env";
-import { listing, nav, product, region, search } from "../selectors";
+import { listing, nav, product, region, search, staticPage } from "../selectors";
 
 /** Deal with the "Select Your Region" popup, if it is showing.
  *
@@ -100,18 +100,27 @@ export const gotoHome = async (page: Page): Promise<void> => {
   await expect(nav.logo(page)).toBeVisible();
 };
 
-/** Open a plain page that does not depend on Elasticsearch or the home listing.
+/** Save a known-served country and language before the first navigation.
  *
- *  Auth specs use this so a staging search outage does not hide the auth
- *  widget, which lives in the nav bar on every page. */
-export const gotoAbout = async (page: Page): Promise<void> => {
-  // Seed a known-served locale so the country picker does not block the nav.
-  // The fallback list the app uses is [tr, iq, lb, sy]; any of them works.
+ *  Without this the country picker opens over the page and swallows every
+ *  click. The fallback list the app uses is [tr, iq, lb, sy]; any of them
+ *  works, and `iq` is the one the rest of the suite assumes.
+ *
+ *  Private on purpose: a spec that needs it needs an action, not the cookies. */
+const seedLocale = async (page: Page): Promise<void> => {
   await page.context().addCookies([
     { name: "country", value: "iq", url: LIVE_ORIGIN },
     { name: "lang", value: "en", url: LIVE_ORIGIN },
     { name: "language", value: "en", url: LIVE_ORIGIN },
   ]);
+};
+
+/** Open a plain page that does not depend on Elasticsearch or the home listing.
+ *
+ *  Auth specs use this so a staging search outage does not hide the auth
+ *  widget, which lives in the nav bar on every page. */
+export const gotoAbout = async (page: Page): Promise<void> => {
+  await seedLocale(page);
 
   await page.goto("/about", { waitUntil: "domcontentloaded" });
   await chooseRegionIfAsked(page);
@@ -186,6 +195,29 @@ export const gotoFirstProduct = async (
   return {
     name: (await name.textContent())?.trim() ?? "",
     url: page.url(),
+  };
+};
+
+/** Open a static "trust" page (About, Contact, Privacy, Terms) and wait for
+ *  its title to render.
+ *
+ *  The slug is given without a locale, the way a visitor arriving from an app
+ *  store or a bookmark has it. It returns the visible title so a spec can name
+ *  the page that actually loaded rather than settle for "something rendered". */
+export const gotoStaticPage = async (
+  page: Page,
+  options: { slug: string },
+): Promise<{ title: string }> => {
+  await seedLocale(page);
+
+  await page.goto(`/${options.slug}`, { waitUntil: "domcontentloaded" });
+  await chooseRegionIfAsked(page);
+
+  const titleLocator = staticPage.title(page);
+  await expect(titleLocator).toBeVisible();
+
+  return {
+    title: (await titleLocator.textContent())?.trim() ?? "",
   };
 };
 

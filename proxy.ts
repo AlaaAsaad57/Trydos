@@ -111,9 +111,15 @@ function validateCookieValues(
 }
 
 // URL parsing utilities
+// A prefix counts as a locale only if it is two letters, a hyphen, two letters.
+// The shape check is the whole point: without it any first segment carrying one
+// hyphen is read as a country and a language, so "/privacy-policy" is taken as
+// country "privacy" plus language "policy". `getCleanPathname` then strips it
+// as if it were a prefix, the path is gone, and the visitor lands on the home
+// page instead of the page they asked for.
 function parseUrlLocale(pathname: string): LocaleInfo | null {
   const parts = pathname.split("/")[1]?.toLowerCase()?.split("-");
-  if (parts?.length === 2) {
+  if (parts?.length === 2 && parts.every((part) => /^[a-z]{2}$/.test(part))) {
     return {
       country: parts[0]?.toLowerCase(),
       language: parts[1]?.toLowerCase(),

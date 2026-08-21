@@ -76,6 +76,14 @@ export const product = {
   addToCart: (page: Page): Locator => page.getByTestId("addToCartButton"),
 };
 
+/** Shared static "trust" pages (About, Contact, Privacy, Terms). */
+export const staticPage = {
+  container: (page: Page): Locator => page.getByTestId("static-page"),
+  title: (page: Page): Locator => page.getByTestId("static-page-title"),
+  backButton: (page: Page): Locator =>
+    page.getByTestId("static-page-back-back-button"),
+};
+
 /** The two ways the app can ask someone to sign in again.
  *
  *  **A guest must never see either.** The recovery that replaces a dead session

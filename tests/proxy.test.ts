@@ -329,6 +329,25 @@ describe("passing through or redirecting (AC-4)", () => {
     },
   );
 
+  it.each([
+    ["/privacy-policy", "/gb-en/privacy-policy?no-country=true"],
+    ["/terms-of-service", "/gb-en/terms-of-service?no-country=true"],
+    ["/gift-cards/buy", "/gb-en/gift-cards/buy?no-country=true"],
+  ])(
+    "keeps a hyphenated path that only looks like a pair (%s)",
+    async (path, target) => {
+      const { proxy } = await loadProxy();
+
+      // "privacy-policy" is one hyphen, like "gb-en" is. Reading it as a pair
+      // took country "privacy" and language "policy", then stripped the whole
+      // segment as a prefix — so the page was dropped and the visitor arrived
+      // at the home page. A pair is two letters on each side of the hyphen.
+      const response = await proxy(makeRequest(path));
+
+      expect(redirectTarget(response)).toBe(target);
+    },
+  );
+
   it("sends a returning visitor from the site root to their saved locale", async () => {
     const { proxy } = await loadProxy();
 

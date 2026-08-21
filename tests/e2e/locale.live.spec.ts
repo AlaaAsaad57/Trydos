@@ -170,6 +170,30 @@ test.describe("where a guest lands", () => {
       "the page they asked for was dropped on the way",
     ).toBe(`/${served[0]}-ar/about`);
   });
+
+  test("a hyphenated address with no country keeps its path too", async ({
+    page,
+  }) => {
+    const { served } = await pickCountries(page);
+    test.skip(served.length < 1, "the app offers no country to test with");
+
+    // The case above passes on any path without a hyphen. `/privacy-policy` has
+    // one, which is what a pair like `gb-en` has, and it used to be read as
+    // country "privacy" plus language "policy" — the segment was then taken off
+    // as a prefix and the visitor arrived at the home page. It is the address on
+    // app stores and in payment paperwork, so it cannot be a redirect to home.
+    const arrival = await arriveAsGuest({
+      path: "/privacy-policy",
+      saved: { country: served[0], language: "ar" },
+    });
+
+    expect(arrival.country).toBe(served[0]);
+    expect(arrival.language).toBe("ar");
+    expect(
+      arrival.url.pathname,
+      "the page they asked for was dropped on the way",
+    ).toBe(`/${served[0]}-ar/privacy-policy`);
+  });
 });
 
 test.describe("an address the app can serve as it is", () => {
