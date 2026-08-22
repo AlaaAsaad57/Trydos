@@ -761,11 +761,22 @@ class AuthService {
         throw new Error(res.message);
       }
       market_done = true;
+      // Every field that was just saved has to be mirrored here, not only some
+      // of them. The settings screens render from this stored copy — the form
+      // reads it as `initialData` (the User-Data cookie) and as `userProfile`
+      // (the store) — so a field left out of this object goes back to its old
+      // value on screen the moment the shopper returns, even though the backends
+      // all took the change. `gender`, `email` and `alternative_phone` were
+      // missing, which made a saved change look like it had been ignored.
       const marketUpdate = {
         weight: userObj?.weight ?? userProfile?.weight,
         tall: userObj?.tall ?? userProfile?.tall,
         name: userObj?.name ?? userProfile?.name,
         phone: userObj?.phone ?? userProfile?.phone,
+        gender: userObj?.gender ?? userProfile?.gender,
+        email: userObj?.email ?? userProfile?.email,
+        alternative_phone:
+          userObj?.alternative_phone ?? userProfile?.alternative_phone,
         image: this.getImageForCookie(userObj?.image ?? userProfile?.image),
       };
       editUserInfo(marketUpdate);
