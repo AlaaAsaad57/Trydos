@@ -1,0 +1,274 @@
+# The deploy, after the tests and never before them.
+#
+# Until this file existed, Vercel built and deployed every push on every branch
+# through its Git integration — a broken commit reached production before anyone
+# knew it was broken. `vercel.json` now carries `git.deploymentEnabled: false`,
+# which turns that off for *all* branches, and this workflow is the only thing
+# left that deploys. Both halves are needed: without the `vercel.json` change
+# every push deploys twice, and without this file nothing deploys at all.
+#
+#   develop → a preview deployment
+#   main    → production (main is the project's production branch on Vercel)
+#
+# ---------------------------------------------------------------------------
+# Why it triggers on E2E and not on both test workflows
+#
+# The two suites are in separate workflows on purpose (see the note at the top
+# of tests.yml). Waiting for both means listening to both — and a workflow that
+# fires on two `workflow_run` events runs twice for one commit, which is two
+# deployments of the same code if they both happen to find everything green.
+#
+# So it listens to the one that always finishes last: E2E takes 15 to 45 minutes
+# against a real staging backend, the unit run takes about five. When E2E
+# completes, the gate below asks GitHub how the unit run for that same commit
+# went. One trigger, one deployment, both suites accounted for.
+#
+# The cost of that choice, stated plainly: a deploy waits for the browser suite
+# even when the flag says the tests do not have to pass. `workflow_dispatch` is
+# there for when that wait is not acceptable.
+# ---------------------------------------------------------------------------
+#
+# **The flag: `DEPLOY_WHEN_SUCCESS`.** A repository *variable*, not a secret —
+# so it can be flipped with one command and no commit:
+#
+#   gh variable set DEPLOY_WHEN_SUCCESS --body false -R AlaaAsaad57/Trydos
+#
+#   unset or "true"  the tests must have passed (this is the default, and an
+#                    unreadable or misspelled value is read as "true" — the
+#                    safe direction to fail in)
+#   "false"          deploy whatever the tests said
+#
+# **Secrets it needs**, none of which exist yet:
+#
+#   VERCEL_TOKEN       created by the account owner at vercel.com/account/tokens
+#   VERCEL_ORG_ID      team_OO5bMIEwPEas7cHpZ8lZixBc  (team trydos-front-team)
+#   VERCEL_PROJECT_ID  prj_8xiUV3QgXldI0meovT9TvALpLAQK  (project trydos-front)
+#
+# The two ids are not recoverable from a fresh clone — `.vercel/` is gitignored —
+# which is why they are stored rather than read from the checkout.
+#
+# **Not configured is not a failure**, the same rule the test workflows follow.
+# With no `VERCEL_TOKEN` the gate says so and the run is green and empty. That
+# matters while the secrets are still missing: the alternative is a red Deploy
+# run and a red Telegram message on every single push, which teaches everyone to
+# ignore both.
+
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [E2E]
+    types: [completed]
+  # For a deploy that is not waiting for a commit: after the Vercel account is
+  # unblocked, or to put the current branch tip back on production. It still
+  # goes through the gate, so it still respects DEPLOY_WHEN_SUCCESS.
+  workflow_dispatch:
+
+# Never cancelled, and one at a time per branch. A deploy killed halfway leaves
+# a half-uploaded build on Vercel, and a queued deploy costs nothing.
+concurrency:
+  group: deploy-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  # To read how tests.yml and test-e2e.yml concluded for this commit.
+  actions: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # May this commit be deployed, and as what?
+  #
+  # It is a separate job from the deploy so that "we decided not to" is a green
+  # run with a readable reason, not a red one. Nothing here can fail the
+  # workflow: a commit that does not qualify is not a broken commit.
+  # ---------------------------------------------------------------------------
+  gate:
+    name: Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    # A nightly E2E run must not deploy: it fires on `schedule`, against
+    # whatever the branch tip happens to be, and nobody pushed anything.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.event == 'push' &&
+       (github.event.workflow_run.head_branch == 'develop' ||
+        github.event.workflow_run.head_branch == 'main'))
+
+    outputs:
+      deploy: ${{ steps.decide.outputs.deploy }}
+      branch: ${{ steps.decide.outputs.branch }}
+      sha: ${{ steps.decide.outputs.sha }}
+      target: ${{ steps.decide.outputs.target }}
+      reason: ${{ steps.decide.outputs.reason }}
+
+    steps:
+      - name: Decide
+        id: decide
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT: ${{ github.event_name }}
+          RUN_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          FLAG: ${{ vars.DEPLOY_WHEN_SUCCESS }}
+          # Only to find out whether it exists. The deploy job is the one that
+          # uses it.
+          HAS_TOKEN: ${{ secrets.VERCEL_TOKEN != '' }}
+        run: |
+          set -u
+
+          # A dispatch deploys the ref it was started on; a workflow_run deploys
+          # the exact commit the suites ran against, never the branch tip, which
+          # may have moved on while the browser suite was running.
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            BRANCH="$GITHUB_REF_NAME"
+            SHA="$GITHUB_SHA"
+          else
+            BRANCH="$RUN_BRANCH"
+            SHA="$RUN_SHA"
+          fi
+
+          TARGET=""
+
+          decided() {
+            {
+              echo "deploy=$1"
+              echo "branch=$BRANCH"
+              echo "sha=$SHA"
+              echo "target=$TARGET"
+              echo "reason=$2"
+            } >> "$GITHUB_OUTPUT"
+            echo "$2"
+            exit 0
+          }
+
+          case "$BRANCH" in
+            main)    TARGET="production" ;;
+            develop) TARGET="preview" ;;
+            *)       decided false "$BRANCH is not a deploy branch — nothing to do" ;;
+          esac
+
+          echo "Commit $SHA on $BRANCH would deploy as $TARGET."
+
+          if [ "$HAS_TOKEN" != "true" ]; then
+            decided false "no VERCEL_TOKEN secret — deploying is not set up yet"
+          fi
+
+          if [ "${FLAG:-true}" = "false" ]; then
+            decided true "DEPLOY_WHEN_SUCCESS is off — deploying without asking about the tests"
+          fi
+
+          # Every run for this commit, not just the newest: a suite that failed
+          # and was then re-run green counts as passed, which is what re-running
+          # is for.
+          passed() {
+            local count
+            count=$(gh api \
+              "repos/$GITHUB_REPOSITORY/actions/workflows/$1/runs?head_sha=$SHA&per_page=30" \
+              --jq '[.workflow_runs[] | select(.conclusion == "success")] | length') || count=0
+            [ "${count:-0}" -gt 0 ]
+          }
+
+          UNIT="❌"
+          if passed tests.yml; then UNIT="✅"; fi
+
+          BROWSER="❌"
+          if passed test-e2e.yml; then BROWSER="✅"; fi
+
+          if [ "$UNIT" = "✅" ] && [ "$BROWSER" = "✅" ]; then
+            decided true "tests $UNIT  journeys $BROWSER"
+          fi
+
+          decided false "tests $UNIT  journeys $BROWSER — not deploying"
+
+  deploy:
+    name: Deploy
+    needs: gate
+    if: ${{ needs.gate.outputs.deploy == 'true' }}
+    runs-on: ubuntu-latest
+    # The build happens on Vercel, not here; this is upload and wait.
+    timeout-minutes: 30
+
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      # The commit the suites ran against. Not the branch tip — deploying
+      # something newer than what was tested is the exact thing this workflow
+      # exists to prevent.
+      - name: Check out what was tested
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.gate.outputs.sha }}
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Install the Vercel CLI
+        run: npm install --global vercel@59
+
+      # ---------------------------------------------------------------------
+      # **No `--prebuilt`, on purpose.** Vercel builds this remotely, with the
+      # environment variables and the build cache the project already has, and
+      # with the install command the dashboard defines
+      # (`rm -rf node_modules && yarn install --production=false`). A build run
+      # here with pnpm would look right and quietly differ from the real one.
+      #
+      # The token comes from the environment rather than `--token`, so it never
+      # appears in a command line or in this job's process list.
+      # ---------------------------------------------------------------------
+      - name: Deploy
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          TARGET: ${{ needs.gate.outputs.target }}
+        run: |
+          set -u
+
+          # The guard is inside the shell, not in `if:` — a step's own `env`
+          # block is not readable from its `if`, so that version would silently
+          # never run.
+          if [ -z "${VERCEL_TOKEN:-}" ] || [ -z "${VERCEL_ORG_ID:-}" ] || [ -z "${VERCEL_PROJECT_ID:-}" ]; then
+            echo "VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID must all be set."
+            echo "See the note at the top of this file for what each one is."
+            exit 1
+          fi
+
+          # --archive=tgz uploads one tarball instead of thousands of files.
+          # This repository is large enough that the difference is minutes.
+          # --scope is explicit because the token's own default team can differ
+          # from the team that owns the project.
+          ARGS=(--yes --archive=tgz --scope trydos-front-team)
+          if [ "$TARGET" = "production" ]; then
+            ARGS+=(--prod)
+          fi
+
+          # Never `set -x` in this step.
+          URL=$(vercel deploy "${ARGS[@]}")
+
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Deployed to $TARGET: $URL"
+
+  notify:
+    name: Telegram
+    needs: [gate, deploy]
+    # Only when a deploy was actually attempted. A commit the gate turned away
+    # is not news — the test message already said the tests were red.
+    if: ${{ always() && needs.gate.outputs.deploy == 'true' }}
+    uses: ./.github/workflows/notify-telegram.yml
+    with:
+      result: ${{ needs.deploy.result }}
+      title: Deploy · ${{ needs.gate.outputs.target }} · ${{ needs.gate.outputs.branch }}
+      # The same sentence to both, on purpose: the notifier shows `totals` on a
+      # green run and `steps` on a red one, and why this commit was allowed
+      # through is worth reading either way — especially when the answer is
+      # "because the flag is off".
+      steps: ${{ needs.gate.outputs.reason }}
+      totals: ${{ needs.gate.outputs.reason }}
+      deployment_url: ${{ needs.deploy.outputs.url }}
+    secrets: inherit
