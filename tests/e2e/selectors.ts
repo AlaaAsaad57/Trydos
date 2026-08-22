@@ -211,6 +211,22 @@ export const profile = {
    *  before blaming a backend for a save that never went out. */
   chosenGender: (page: Page): Locator =>
     page.getByTestId("active-gender-input"),
+  /** All three gender choices, in the order they are drawn: Man, Woman, Other.
+   *
+   *  Two markers rather than one because the app swaps the marker on the chosen
+   *  one — `active-gender-input` when picked, `gender-input` when not — so
+   *  neither on its own finds all three, and their position is the only
+   *  language-independent way to say which is which. */
+  genderChoices: (page: Page): Locator =>
+    page.locator('[data-pw="gender-input"], [data-pw="active-gender-input"]'),
+
+  /** The size screen (`components/settings/ProfileSizeInfo.tsx`). */
+  heightField: (page: Page): Locator =>
+    page.getByTestId("personal-size-tall-input"),
+  weightField: (page: Page): Locator =>
+    page.getByTestId("personal-size-weight-input"),
+  sizeSaveButton: (page: Page): Locator =>
+    page.getByTestId("personal-size-save-button"),
 };
 
 export const cart = {

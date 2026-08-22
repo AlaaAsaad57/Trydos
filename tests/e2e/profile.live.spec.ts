@@ -1,5 +1,10 @@
-// PROF-01 and PROF-02 — the shopper's own details, and what changing them
+// PROF-01 to PROF-04 — the shopper's own details, and what changing them
 // actually writes.
+//
+//   PROF-01  the settings screens belong to the signed-in shopper
+//   PROF-02  a name change
+//   PROF-03  gender, e-mail and alternative phone  — RED, see the finding below
+//   PROF-04  the size screen
 //
 // Signing in is already proved to fan out to every backend
 // (`auth.live.spec.ts`). This file covers the other direction: a **write**.
@@ -36,6 +41,31 @@
 // so a missing write is never blamed on a backend that was never called.
 //
 // ---------------------------------------------------------------------------
+// PROF-03 is red on purpose, and must stay red
+//
+// It reports that a changed gender is back to the old one after a reload. That
+// is a confirmed application defect, not a flaky test:
+//
+// `UpdateProfile` sends the whole change to all three backends — that part
+// works, and PROF-03 proves each leg accepted it — but it then mirrors only
+// **five** fields into the app's own stored copy of the profile:
+//
+//     const marketUpdate = { weight, tall, name, phone, image };   // services/auth.ts
+//
+// `gender`, `email` and `alternative_phone` are not in that list, so the stored
+// copy keeps the old values. Every settings screen renders from that copy, so a
+// shopper who changes their gender, e-mail or alternative phone is shown the
+// old value the moment they come back — the change did save, and the app says
+// it did not.
+//
+// **PROF-04 is the control.** The size screen changes `tall` and `weight`,
+// which *are* in the list, and its identical reload check passes. Same code
+// path, same fan-out, different outcome — which is what rules out the test.
+//
+// Turning this green would delete the only thing reporting the defect. It stays
+// red until the mirror is fixed. See `docs/testing/AUTH_CLOSEOUT_PLAN.md`.
+//
+// ---------------------------------------------------------------------------
 // One sign-in, handed on through a saved session
 //
 // The same arrangement as `auth.live.spec.ts`, for the same reason: a real
@@ -68,16 +98,29 @@ import { expect, test } from "./fixtures";
 import { attemptAuth, currentAuthScreen, signedInSession } from "./actions/auth";
 import { gotoAbout } from "./actions/nav";
 import {
+  alternativePhoneIs,
   attemptSave,
+  attemptSizeSave,
   cardShowsAccountName,
+  chooseGender,
   gotoPersonalInfo,
   gotoSettings,
+  gotoSize,
   hasGenderSet,
   nameFieldIs,
+  otherGenderThan,
   phoneFieldMatchesAccount,
+  readAlternativePhone,
+  readEmail,
+  readGender,
   readName,
   readProfileCard,
+  readSize,
+  sizeIs,
+  typeAlternativePhone,
+  typeEmail,
   typeName,
+  typeSize,
 } from "./actions/profile";
 import { envValue, hasShopperA } from "./harness/env";
 import {
@@ -97,6 +140,20 @@ const SIGNED_IN_STATE = "tests/e2e/.auth/profile.json";
  *  anything shorter. A run that dies mid-way leaves this on the account, where
  *  it reads as "a test stopped here" rather than as somebody's real name. */
 const PROBE_NAME = "Trydos E2E Probe";
+
+/** The other marked values these cases save.
+ *
+ *  `example.com` is reserved for exactly this and reaches nobody. The
+ *  alternative phone is a placeholder that nothing ever dials — it is a second
+ *  contact number on a test account, not a number the suite uses. Both are
+ *  obvious markers, so a run that dies mid-way leaves something that reads as
+ *  "a test stopped here".  */
+const PROBE_EMAIL = "trydos.e2e.probe@example.com";
+const PROBE_ALT_PHONE = "963900000001";
+
+/** A height and weight inside the form's own limits (110-250cm, 40-180kg). */
+const PROBE_SIZE = { height: "177", weight: "77" };
+const PROBE_SIZE_ALT = { height: "178", weight: "78" };
 
 /** How long a leg of the save may take before it counts as never sent.
  *
@@ -125,6 +182,35 @@ const newLiveContext = async (
   context.setDefaultTimeout(20_000);
   context.setDefaultNavigationTimeout(45_000);
   return context;
+};
+
+/** Write the session back as it is **now**, so the next case inherits it.
+ *
+ *  This is not tidiness, it is the fix for a real failure. Every case opens the
+ *  same file, and a saved session is a **snapshot**: the moment a case does
+ *  authenticated work, the app can exchange a refused credential for a fresh
+ *  one and the pair on the backend moves on. The file still holds the old pair,
+ *  so the next case opens a session whose credential has been superseded, the
+ *  app recovers it the only way it can — as a guest — and the account's own
+ *  details are simply not there any more.
+ *
+ *  That is exactly what happened: PROF-03 reported "this account has no gender
+ *  set" when run after PROF-02, and passed that same check when run without it.
+ *  Nothing was wrong with the app or the account.
+ *
+ *  Only written when the session is still **this account**. A case that failed
+ *  its way down to a guest must not hand that on as if it were a session.  */
+const handOnSession = async (
+  context: BrowserContext,
+  page: Page,
+): Promise<void> => {
+  try {
+    const session = await signedInSession(page);
+    if (!session.phoneVerified) return;
+    await context.storageState({ path: SIGNED_IN_STATE });
+  } catch {
+    // Never let bookkeeping replace the failure a case is reporting.
+  }
 };
 
 const openSignedInSession = async (
@@ -242,6 +328,9 @@ test("PROF-01 the settings screens show the signed-in shopper, not a guest", asy
       .toBe(true);
   });
 
+  // Written again, because both steps above happened after the first snapshot
+  // and may have moved the credential on. See `handOnSession`.
+  await handOnSession(context, page);
   await context.close();
 });
 
@@ -280,7 +369,7 @@ test("PROF-02 a name change reaches every backend that keeps a copy", async ({
   let changed = false;
 
   try {
-    const writes = recordProfileWrites(page, { marker: PROBE_NAME });
+    const writes = recordProfileWrites(page);
 
     await test.step("the shopper changes their name and saves", async () => {
       await typeName(page, { name: PROBE_NAME });
@@ -330,6 +419,210 @@ test("PROF-02 a name change reaches every backend that keeps a copy", async ({
         )
         .toBe(true);
     }
+    await handOnSession(context, page);
+    await context.close();
+  }
+});
+
+test("PROF-03 gender, e-mail and alternative phone save together", async ({
+  browser,
+}) => {
+  // Two saves fanning out to three staging backends each, plus a reload.
+  test.setTimeout(180_000);
+
+  const context = await openSignedInSession(browser);
+  const page = await context.newPage();
+
+  await gotoAbout(page);
+  await gotoPersonalInfo(page);
+
+  // Read before anything is changed, so the `finally` has something to put
+  // back. Held in variables and never asserted on — see `actions/profile.ts`.
+  const originalGender = await readGender(page);
+  const originalEmail = await readEmail(page);
+  const originalAlternativePhone = await readAlternativePhone(page);
+
+  await test.step("the account carries the fields this case changes", async () => {
+    // Asked first, and each says what to do about it. The form refuses every
+    // save without a gender, and a field this case cannot put back would be
+    // drift on a shared account rather than a test.
+    expect(
+      originalGender,
+      "this account has no gender set, so the form refuses every save and no backend is ever called. " +
+        "Set one once on the test account, or treat a mandatory gender as a finding in its own right.",
+    ).toBeGreaterThanOrEqual(0);
+    // There is deliberately no "the account must already have an e-mail" check
+    // here. This account has none, and that is a normal state for a shopper who
+    // signed up by phone — so the case sets one and clears it again, which is
+    // the same reversible pair as adding and removing a picture. If clearing an
+    // e-mail turns out to be impossible, the restore below says so rather than
+    // this refusing to run.
+  });
+
+  const newGender = otherGenderThan(originalGender);
+  let changed = false;
+
+  try {
+    const writes = recordProfileWrites(page);
+
+    await test.step("the shopper changes all three and saves", async () => {
+      await chooseGender(page, { index: newGender });
+      await typeEmail(page, { email: PROBE_EMAIL });
+      await typeAlternativePhone(page, { phone: PROBE_ALT_PHONE });
+
+      const outcome = await attemptSave(page);
+      changed = true;
+
+      expect(
+        outcome.saved,
+        outcome.refusedWith
+          ? `the form refused the save: "${outcome.refusedWith}" — no backend was called`
+          : "the save never completed: the form neither reported a problem nor moved on",
+      ).toBe(true);
+    });
+
+    for (const leg of PROFILE_LEGS) {
+      await test.step(`the ${leg} backend took the change`, async () => {
+        await proveLegLanded(writes, leg);
+      });
+    }
+
+    // One assertion per field, not one for "the profile saved". Three fields go
+    // out in one body and a backend may keep some and drop others — a single
+    // check could only ever say "something did not stick".
+    await test.step("the new gender is still there after a reload", async () => {
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await gotoPersonalInfo(page);
+
+      expect(
+        await readGender(page),
+        `the gender went back to ${originalGender} after a reload, so the change was not kept`,
+      ).toBe(newGender);
+    });
+
+    await test.step("the new e-mail is still there after a reload", async () => {
+      expect(
+        (await readEmail(page)) === PROBE_EMAIL,
+        "the e-mail is not the one that was just saved, so the change was not kept",
+      ).toBe(true);
+    });
+
+    await test.step("the new alternative phone is still there after a reload", async () => {
+      expect(
+        await alternativePhoneIs(page, { phone: PROBE_ALT_PHONE }),
+        "the alternative phone is not the one that was just saved, so the change was not kept",
+      ).toBe(true);
+    });
+  } finally {
+    if (changed) {
+      const restored = await restoreProfileFields(page, {
+        gender: originalGender,
+        email: originalEmail,
+        alternativePhone: originalAlternativePhone,
+      });
+      expect
+        .soft(
+          restored,
+          "the shared test account still carries this case's gender, e-mail and alternative phone — " +
+            "putting the originals back failed, so the next run starts from the wrong values",
+        )
+        .toBe(true);
+    }
+    await handOnSession(context, page);
+    await context.close();
+  }
+});
+
+test("PROF-04 the size screen saves a height and a weight", async ({
+  browser,
+}) => {
+  test.setTimeout(180_000);
+
+  const context = await openSignedInSession(browser);
+  const page = await context.newPage();
+
+  await gotoAbout(page);
+  await gotoSize(page);
+
+  const originalSize = await readSize(page);
+
+  // There is deliberately no "the account must already carry a size" check.
+  //
+  // The size form makes both fields required, so **a size cannot be cleared**
+  // once set — unlike a name, a gender or an e-mail, there is no way back to
+  // "none". An account that starts with no size therefore gains one the first
+  // time this runs, and every run after that restores what it found. The drift
+  // is one-time and then stable, which is worth saying out loud rather than
+  // refusing to run over.
+  const createdASize =
+    originalSize.height.length === 0 || originalSize.weight.length === 0;
+  if (createdASize) {
+    test
+      .info()
+      .annotations.push({
+        type: "note",
+        description:
+          "this account had no height or weight, so this run created them. " +
+          "The size form makes both required, so there is no way to clear them again — " +
+          "later runs will restore whatever this one leaves.",
+      });
+  }
+
+  // Never save the value that is already there: a save that changes nothing
+  // proves nothing, and would pass whether or not the write worked.
+  const probe =
+    originalSize.height === PROBE_SIZE.height ? PROBE_SIZE_ALT : PROBE_SIZE;
+
+  let changed = false;
+
+  try {
+    const writes = recordProfileWrites(page);
+
+    await test.step("the shopper changes their size and saves", async () => {
+      await typeSize(page, probe);
+
+      const outcome = await attemptSizeSave(page);
+      changed = true;
+
+      expect(
+        outcome.saved,
+        outcome.refusedWith
+          ? `the size form refused the save: "${outcome.refusedWith}" — no backend was called`
+          : "the save never completed: the size form neither reported a problem nor moved on",
+      ).toBe(true);
+    });
+
+    // The size screen calls the same `UpdateProfile`, so it fans out the same
+    // way — with the name and phone unchanged. A backend that quietly drops the
+    // size while accepting the rest is exactly what this is watching for.
+    for (const leg of PROFILE_LEGS) {
+      await test.step(`the ${leg} backend took the change`, async () => {
+        await proveLegLanded(writes, leg);
+      });
+    }
+
+    await test.step("the new size is still there after a reload", async () => {
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await gotoSize(page);
+
+      expect(
+        await sizeIs(page, probe),
+        `the size is not ${probe.height}cm and ${probe.weight}kg after a reload, so the change was not kept`,
+      ).toBe(true);
+    });
+  } finally {
+    // Nothing to put back when there was nothing there: the form will not take
+    // an empty height or weight, so trying would fail for a reason that is not
+    // a fault. The annotation above is what records that.
+    if (changed && !createdASize) {
+      const restored = await restoreSize(page, originalSize);
+      expect
+        .soft(
+          restored,
+          "the shared test account still carries this case's height and weight — putting the originals back failed",
+        )
+        .toBe(true);
+    }
     await context.close();
     // The last case that needs it has finished. A real credential does not sit
     // on disk afterwards.
@@ -376,17 +669,14 @@ const proveLegLanded = async (
     )
     .toBe(true);
 
-  // A write carrying the OLD value only ever comes from the rollback in
-  // `UpdateProfile`'s catch. This leg was written and then put back, which
-  // means a later leg failed — a partial success, and a failure whatever this
-  // leg's own answer said.
-  expect
-    .soft(
-      outcome.rolledBack,
-      `the ${leg} backend was written and then rolled back to the old name, so a later leg failed and this change did not stick`,
-    )
-    .toBe(false);
 };
+
+// A rollback is not looked for here, and does not need to be.
+// `UpdateProfile`'s catch rethrows after putting the finished legs back, so
+// `updateUserProfile` never navigates when a rollback happened — which means
+// the save-completed assertion in each case above already covers it. Forcing a
+// leg to fail, and proving the others really are put back, is what the scripted
+// spec is for; staging will not refuse on request.
 
 /** Put the account's name back. Reports whether it worked; never throws. */
 const restoreName = async (
@@ -404,6 +694,42 @@ const restoreName = async (
     // Swallowed on purpose: this runs in a `finally`, so a throw here would
     // replace whatever the case was actually failing on. The caller reports the
     // `false` instead.
+    return false;
+  }
+};
+
+/** Put the other personal-info fields back. Reports whether it worked. */
+const restoreProfileFields = async (
+  page: Page,
+  original: { gender: number; email: string; alternativePhone: string },
+): Promise<boolean> => {
+  try {
+    await gotoPersonalInfo(page);
+    await chooseGender(page, { index: original.gender });
+    await typeEmail(page, { email: original.email });
+    await typeAlternativePhone(page, { phone: original.alternativePhone });
+    const outcome = await attemptSave(page);
+    return outcome.saved;
+  } catch {
+    // Swallowed for the same reason as `restoreName` above: this runs in a
+    // `finally`, and a throw here would replace the real failure.
+    return false;
+  }
+};
+
+/** Put the height and weight back. Reports whether it worked. */
+const restoreSize = async (
+  page: Page,
+  original: { height: string; weight: string },
+): Promise<boolean> => {
+  try {
+    await gotoSize(page);
+    if (await sizeIs(page, original)) return true;
+
+    await typeSize(page, original);
+    const outcome = await attemptSizeSave(page);
+    return outcome.saved;
+  } catch {
     return false;
   }
 };

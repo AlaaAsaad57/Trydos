@@ -230,3 +230,174 @@ export const attemptSave = async (
  *  blames a backend that was never called. */
 export const hasGenderSet = async (page: Page): Promise<boolean> =>
   profile.chosenGender(page).isVisible();
+
+// ---------------------------------------------------------------------------
+// The rest of the personal-info form: gender, e-mail, alternative phone
+//
+// All three ride the same Save as the name, so there is no second save path to
+// cover — only three more fields to set and read back. `buildChangedFields`
+// sends **only** what changed, so a case that touches one field does not
+// silently resend the others.
+
+/** Which gender is chosen, as a position: 0 Man, 1 Woman, 2 Other.
+ *
+ *  `-1` when none is — which is worth knowing, because the form refuses every
+ *  save until one is set. A position and not a label: the labels are
+ *  translated, the order is not. */
+export const readGender = async (page: Page): Promise<number> => {
+  const choices = profile.genderChoices(page);
+  const count = await choices.count();
+
+  for (let index = 0; index < count; index += 1) {
+    const marker = await choices.nth(index).getAttribute("data-pw");
+    if (marker === "active-gender-input") return index;
+  }
+  return -1;
+};
+
+/** Choose a gender by position. Does not save. */
+export const chooseGender = async (
+  page: Page,
+  options: { index: number },
+): Promise<void> => {
+  await profile.genderChoices(page).nth(options.index).click();
+
+  await expect
+    .poll(() => readGender(page), {
+      message: `the form did not take gender ${options.index}`,
+    })
+    .toBe(options.index);
+};
+
+/** Whichever gender is **not** the one on the account, so a case can change it
+ *  to something and change it back. Never Man-to-Man. */
+export const otherGenderThan = (index: number): number =>
+  index === 0 ? 1 : 0;
+
+export const readEmail = async (page: Page): Promise<string> =>
+  (await profile.emailField(page).inputValue()).trim();
+
+export const typeEmail = async (
+  page: Page,
+  options: { email: string },
+): Promise<void> => {
+  const field = profile.emailField(page);
+  await expect(field, "the e-mail field is not editable").toBeEditable();
+  await field.fill(options.email);
+  await expect(
+    field,
+    "the e-mail field did not take what was typed into it",
+  ).toHaveValue(options.email);
+};
+
+/** The alternative phone, digits only.
+ *
+ *  Digits because the field strips and reformats what is typed — comparing the
+ *  raw strings would report a difference the shopper never made. */
+export const readAlternativePhone = async (page: Page): Promise<string> =>
+  (await profile.alternativePhoneField(page).inputValue()).replace(/\D/g, "");
+
+export const typeAlternativePhone = async (
+  page: Page,
+  options: { phone: string },
+): Promise<void> => {
+  const field = profile.alternativePhoneField(page);
+  await expect(field, "the alternative phone field is not editable").toBeEditable();
+  await field.fill(options.phone);
+};
+
+/** Is the alternative phone this exact number? Digits on both sides. */
+export const alternativePhoneIs = async (
+  page: Page,
+  options: { phone: string },
+): Promise<boolean> =>
+  (await readAlternativePhone(page)) === options.phone.replace(/\D/g, "");
+
+// ---------------------------------------------------------------------------
+// The size screen
+//
+// Its own page and its own Save, but the same fan-out underneath: it calls
+// `auth.UpdateProfile` too, so a height change writes to stories and chat as
+// well as to the core backend — with the name and phone unchanged.
+
+export const gotoSize = async (page: Page): Promise<void> => {
+  await gotoUnderLocale(page, "/settings/profile/size");
+  await expect(
+    profile.heightField(page),
+    "the size form did not render",
+  ).toBeVisible();
+};
+
+/** Height and weight as the form holds them, digits only.
+ *
+ *  Digits because the form renders Arabic numerals in Arabic, and a run that
+ *  reads them raw would compare "١٧٥" with "175". */
+export const readSize = async (
+  page: Page,
+): Promise<{ height: string; weight: string }> => ({
+  height: (await profile.heightField(page).inputValue()).replace(/\D/g, ""),
+  weight: (await profile.weightField(page).inputValue()).replace(/\D/g, ""),
+});
+
+export const typeSize = async (
+  page: Page,
+  options: { height: string; weight: string },
+): Promise<void> => {
+  await profile.heightField(page).fill(options.height);
+  await profile.weightField(page).fill(options.weight);
+};
+
+export const sizeIs = async (
+  page: Page,
+  options: { height: string; weight: string },
+): Promise<boolean> => {
+  const current = await readSize(page);
+  return current.height === options.height && current.weight === options.weight;
+};
+
+/** The size screen's own validation messages, for the same reason as the
+ *  personal-info ones above: they are what is being reported and carry no
+ *  marker. */
+const SIZE_VALIDATION_MESSAGES = [
+  "Height is required",
+  "Height must be between 110 and 250 cm",
+  "Weight is required",
+  "Weight must be between 40 and 180 kg",
+] as const;
+
+export const visibleSizeValidationMessage = async (
+  page: Page,
+): Promise<string | null> => {
+  for (const message of SIZE_VALIDATION_MESSAGES) {
+    if (await page.getByText(message, { exact: true }).first().isVisible()) {
+      return message;
+    }
+  }
+  return null;
+};
+
+/** Press Save on the size screen and wait for its own signal.
+ *
+ *  Same signal as the personal-info form: on success it sends the browser to
+ *  the profile card page. */
+export const attemptSizeSave = async (
+  page: Page,
+  options: { timeoutMs?: number } = {},
+): Promise<SaveOutcome> => {
+  const button = profile.sizeSaveButton(page);
+  await expect(button, "there is no Save control on the size form").toBeVisible();
+  await button.click();
+
+  const saved = await page
+    .waitForURL(/\/settings\/profile\/?(\?.*)?$/, {
+      timeout: options.timeoutMs ?? 45_000,
+      waitUntil: "domcontentloaded",
+    })
+    .then(() => true)
+    .catch(() => false);
+
+  return {
+    saved,
+    refusedWith: saved ? null : await visibleSizeValidationMessage(page),
+  };
+};

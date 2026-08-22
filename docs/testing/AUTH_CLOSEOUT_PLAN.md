@@ -193,9 +193,13 @@ Targets, all currently at zero coverage:
 Use `tests/mocks/device.ts` and `tests/mocks/location.ts` from phase 11. Assert
 against roles and visible text, not class names.
 
-**Out of scope, and not by accident:** addresses, sizes, bank cards and the
-wallet screens under `/settings/profile/*`. They are the money path (unit phases
-15 and 20), not identity.
+**Scope change, by the owner's decision.** Sizes and addresses were cut from
+this plan as money-path work (unit phases 15 and 20). They are back in, live,
+along with gender, e-mail, alternative phone and the profile picture. A phone
+**change** stays out of the live suite and moves to Item B, because it needs a
+second real number and a real code.
+
+Still out: bank cards and the wallet screens under `/settings/profile/*`.
 
 ---
 
@@ -249,6 +253,41 @@ once `NextLink` renders one.
 | The **first** write to a leg was judged | `fetchData` recovers from a `401` by exchanging the credential and resending, so a leg's first answer is legitimately `401`. It now judges the settled write and reports the retry count as context |
 | Two writes to a leg was read as a rollback | A `401` retry produces two writes as well. It now tells them apart by whether the outgoing body carried the new name |
 | `success` was read out of the response body | No backend sends it — `utils/fetchData.ts` (~line 650) stamps it on client-side from the HTTP status. Body reading is gone entirely, which also removes a body carrying the account's name, phone and e-mail from reach of a public log |
+
+**App — a profile save does not mirror gender, e-mail or alternative phone
+into the app's own copy. Open; awaiting a decision. PROF-03 stays red.**
+`services/auth.ts` sends every changed field to all three backends, and each
+accepts it — PROF-03 proves that much. It then writes back only five fields:
+
+```js
+const marketUpdate = { weight, tall, name, phone, image };
+```
+
+`gender`, `email` and `alternative_phone` are missing, so the stored profile
+keeps the old values, and every settings screen renders from that copy. A
+shopper changes their gender, comes back, and is shown the old one — the change
+saved, and the app says it did not. **PROF-04 is the control:** it changes
+`tall` and `weight`, which *are* mirrored, and its identical reload check
+passes. Same code path, same fan-out, different outcome — which is what rules
+out the test.
+
+**Test — the saved session was handed on as a stale snapshot.** Every case
+opened the same `storageState` file. The first case to do authenticated work
+made the app exchange a refused credential, so the pair on the backend moved on
+while the file still held the old one; the next case opened a session whose
+credential had been superseded, the app recovered it as a **guest**, and the
+account's own details were simply not there. It reported "this account has no
+gender set" — which was true of the guest it had become, and nothing to do with
+the account. Proved by running PROF-03 without PROF-02, where the same check
+passed. Each case now writes its session back as it is at the end, and only when
+it is still the signed-in account.
+
+**Two account facts, neither a defect.** The test account carries no e-mail, and
+carried no height or weight. The e-mail case now sets one and clears it again —
+the same reversible pair as adding and removing a picture. A size **cannot** be
+cleared once set, because the form makes both fields required, so PROF-04 leaves
+what it creates and records that in a run annotation rather than refusing to
+run. The drift is one-time; later runs restore what they find.
 
 **Not yet exercised, and not claimed.** PROF-02 asserts that no leg was rolled
 back, and no run has yet seen that assertion go red — staging accepted all three

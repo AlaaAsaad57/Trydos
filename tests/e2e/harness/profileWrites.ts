@@ -21,20 +21,30 @@
 // at. `fromServiceToken` turns the token back into a name.
 //
 // ---------------------------------------------------------------------------
-// Two things this got wrong on its first run, both worth keeping written down
+// Judge the settled answer, not the first one
 //
-// **1. Judge the settled answer, not the first one.** `fetchData` recovers from
-// a `401` by exchanging the credential and sending the same request again. The
-// first answer for a leg is therefore allowed to be a `401` — that is the
-// recovery working, not a backend refusing. A judgement on the first write
-// reports a healthy save as a broken one. So `outcome()` reads the **last**
-// forward write.
+// `fetchData` recovers from a `401` by exchanging the credential and sending the
+// same request again. The first answer for a leg is therefore allowed to be a
+// `401` — that is the recovery working, not a backend refusing. A judgement on
+// the first write reports a healthy save as a broken one, which is exactly what
+// the first run of `profile.live.spec.ts` did. So `outcome()` reads the **last**
+// write and reports how many attempts it took as context.
 //
-// **2. Counting writes cannot tell a rollback from a retry.** Both produce two
-// writes to the same leg. What separates them is what is *in* them: a forward
-// write carries the new value, a rollback carries the old one. So the caller
-// passes the value it saved as `marker`, and each write is recorded as carrying
-// it or not.
+// ---------------------------------------------------------------------------
+// This does not try to spot the rollback, and it does not need to
+//
+// An earlier version compared each write against the value being saved, to tell
+// a forward write from the rollback `UpdateProfile` sends when a later leg
+// fails. Two problems: counting writes cannot do it (a `401` retry also
+// produces two), and matching the value only works for a **name** change — a
+// size or gender save sends stories and chat the same unchanged name either
+// way, so forward and rollback bodies are identical.
+//
+// It is also unnecessary. `UpdateProfile`'s catch rethrows after rolling back,
+// so `updateUserProfile` never navigates when a rollback happened. **A save
+// that completed is a save that did not roll back**, and the spec already
+// asserts the completion. One fact, asserted once, instead of a mechanism that
+// only worked for one field.
 //
 // ---------------------------------------------------------------------------
 // Nothing is read out of a response body, and nothing is kept out of a request
@@ -46,8 +56,8 @@
 // carries the account's name, phone and e-mail one careless line away from a
 // public job log.
 //
-// The **request** body is looked at, and only ever reduced to one boolean: does
-// it contain the marker. The body itself is never stored and never returned.
+// No request body is looked at either. The only thing kept per write is its
+// status code.
 
 import type { Page } from "@playwright/test";
 
@@ -59,12 +69,10 @@ export type ProfileLeg = "core" | "stories" | "chat";
 /** In the order `UpdateProfile` writes them. */
 export const PROFILE_LEGS: readonly ProfileLeg[] = ["stories", "chat", "core"];
 
-/** One write to one leg. Both fields are safe to print. */
+/** One write to one leg. Safe to print — it is a number. */
 export type LegWrite = {
   /** The status the backend answered with. */
   status: number;
-  /** Did this write carry the new value, or the old one being put back? */
-  forward: boolean;
 };
 
 /** What became of one leg of the save. */
@@ -77,11 +85,7 @@ export type LegOutcome = {
   status: number | null;
   /** Did that settled answer accept it? */
   accepted: boolean;
-  /** Did a write carrying the **old** value follow — the rollback
-   *  `UpdateProfile` sends when a later leg failed? A leg written and then put
-   *  back is a partial success, which is a failure. */
-  rolledBack: boolean;
-  /** How many times the forward write had to be sent. More than one means the
+  /** How many times the write had to be sent. More than one means the
    *  credential was refused and exchanged mid-save. Not a failure — worth
    *  saying in a message. */
   attempts: number;
@@ -127,18 +131,11 @@ const NOT_ASKED: LegOutcome = {
   asked: false,
   status: null,
   accepted: false,
-  rolledBack: false,
   attempts: 0,
 };
 
-/** Start recording. Attach this **before** the save is triggered.
- *
- *  `marker` is the value being saved. It is used for one thing only: deciding,
- *  per request, whether that request carried the new value or the old one. */
-export const recordProfileWrites = (
-  page: Page,
-  options: { marker: string },
-): ProfileWriteRecorder => {
+/** Start recording. Attach this **before** the save is triggered. */
+export const recordProfileWrites = (page: Page): ProfileWriteRecorder => {
   const seen: Record<ProfileLeg, LegWrite[]> = {
     core: [],
     stories: [],
@@ -161,25 +158,13 @@ export const recordProfileWrites = (
     );
     if (!leg) return;
 
-    // Reduced to a boolean here and nowhere else. The body is not stored.
-    let forward = false;
-    try {
-      forward = (request.postData() ?? "").includes(options.marker);
-    } catch {
-      // A body this cannot read is recorded as not-forward, which reads as
-      // "never asked" rather than as a pass. Fail closed.
-    }
-
-    seen[leg].push({ status: response.status(), forward });
+    seen[leg].push({ status: response.status() });
     for (const wake of waiting) wake();
   });
 
-  const forwardWrites = (leg: ProfileLeg): LegWrite[] =>
-    seen[leg].filter((write) => write.forward);
-
   const waitForWrite = (leg: ProfileLeg, timeoutMs: number): Promise<boolean> =>
     new Promise<boolean>((resolve) => {
-      if (forwardWrites(leg).length > 0) {
+      if (seen[leg].length > 0) {
         resolve(true);
         return;
       }
@@ -187,7 +172,7 @@ export const recordProfileWrites = (
       let timer: ReturnType<typeof setTimeout> | undefined;
 
       const wake = () => {
-        if (forwardWrites(leg).length === 0) return;
+        if (seen[leg].length === 0) return;
         clearTimeout(timer);
         waiting.delete(wake);
         resolve(true);
@@ -202,20 +187,17 @@ export const recordProfileWrites = (
     });
 
   const outcome = (leg: ProfileLeg): LegOutcome => {
-    const forward = forwardWrites(leg);
-    if (forward.length === 0) return NOT_ASKED;
+    const writes = seen[leg];
+    if (writes.length === 0) return NOT_ASKED;
 
     // The last one: everything before it was retried, so it is not the answer.
-    const settled = forward[forward.length - 1];
+    const settled = writes[writes.length - 1];
 
     return {
       asked: true,
       status: settled.status,
       accepted: settled.status < 400,
-      // A write carrying the old value only ever comes from the rollback in
-      // `UpdateProfile`'s catch.
-      rolledBack: seen[leg].some((write) => !write.forward),
-      attempts: forward.length,
+      attempts: writes.length,
     };
   };
 
