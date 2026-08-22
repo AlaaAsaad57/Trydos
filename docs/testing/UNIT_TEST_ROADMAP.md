@@ -236,7 +236,7 @@ token leaks. Every phase below is on the critical path of every other journey.
 | 8 | `unit-tests-otp-locks-refresh-and-dedup` | `utils/server/otpIdentity.ts` (258), `utils/otpLocks.ts` (108), `utils/server/otpTelemetry.ts` (95), `utils/server/authRefresh.ts` (415), `serverRequests/requestDedup.ts` (32) | 🔒 |
 | 9 | `unit-tests-auth-service` | `services/auth.ts` (1085) — login, logout, session, guest, OTP send/resend/verify; `store/auth/reducer.tsx` (224) | 🔒 |
 | 10 | `unit-tests-api-auth-routes` | `app/api/auth/` — `login`, `logout`, `refresh`, `clear-tokens`, `me`, `update-user`, `register-device`, `wallet-token`, `expire`; `app/api/proxy/route.ts` — the hard block on `send_otp` | 🔒 |
-| 11 | `component-tests-auth-flow` | `components/Login/Enhanced/` (`VerifyPhoneFlow`, `InlineVerifyPanel`, `usePhoneVerifyFlow`, `screens/`, `ui/`); `Login/` — `Timer`, `SessionTimer`, `SessionExpiredWidget`, `ConfirmMobilePhoneWidget` | |
+| 11 | `component-tests-auth-flow` | `components/Login/Enhanced/` (`VerifyPhoneFlow`, `InlineVerifyPanel`, `usePhoneVerifyFlow`, `screens/`, `ui/`); `Login/` — `Timer`, `SessionTimer`, `SessionExpiredWidget`, `ConfirmMobilePhoneWidget` | 🔒 |
 
 **Also in this journey, outside the numbered phases:**
 `unit-tests-otp-send-and-limiter` — `serverActions/sendOtp.ts` (166) and the
@@ -286,6 +286,26 @@ the only thing that will hold the line.
 **Phase 11.** `workspace/rdb` is the visual source of truth for these screens;
 compare OTP boxes against rdb `OtpInputs`, not `PinInputs`. Assert against roles
 and visible text, not class names.
+
+Three things it left behind for every later component phase:
+
+- **`tests/mocks/device.ts`** — say whether the test is on a phone or at a desk.
+  Both input primitives render a different interface per device, and jsdom
+  answers the question inconsistently (it carries `ontouchstart` while claiming
+  a fine pointer), so left alone every component test silently gets the phone
+  branch.
+- **`tests/mocks/location.ts`** — watch where a component sent the browser.
+  jsdom implements neither `location.reload()` nor assigning `location.href`.
+- **`tests/setup.ts` now supplies `window.matchMedia`**, which jsdom lacks
+  entirely; a component that asks for one otherwise fails to render with nothing
+  on screen to say why. The same file now carries a note about `afterEach`
+  order — unmount effects land on the *next* test's spies.
+
+It also found and fixed a bug: `EnterPinScreen` read "no send cooldown running"
+as "the code has expired", so a code sent to an allow-listed test number, or
+sent in any browser that will not give `utils/otpLocks` storage, arrived at a
+screen that said it had expired and would not take it. The screen now counts the
+code's own life separately from the send cooldown.
 
 ---
 

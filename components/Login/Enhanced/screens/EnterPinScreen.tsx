@@ -49,8 +49,35 @@ export default function EnterPinScreen({
     lang = 'en',
 }: EnterPinScreenProps) {
     const translate = (key: string) => translateFunction(key, lang);
+
+    // TWO CLOCKS, AND THEY ARE NOT THE SAME THING.
+    //
+    //   canResend — our own send cooldown: how long until this number may be
+    //               sent ANOTHER code. It comes from `utils/otpLocks`, which
+    //               mirrors the server's rate limit (OTP_COOLDOWN_SECONDS, 60
+    //               by default).
+    //   codeSpent — how long the code already in the shopper's hand is worth
+    //               typing. Nothing on the wire tells us this, so it is the
+    //               screen's own `timerSeconds` counted from when the code was
+    //               sent.
+    //
+    // This screen used to drive both off the cooldown, which broke twice. A
+    // send that arms no cooldown — an allow-listed test number
+    // (services/auth.ts skips the lock for one), or any browser where
+    // sessionStorage is unavailable, so `utils/otpLocks` silently keeps
+    // nothing — opened this screen already saying the code had expired, with
+    // the boxes disabled: a shopper holding a real code with no way to type
+    // it, and a Resend that landed them straight back in the same state. And
+    // when the cooldown did run, it killed a still-valid code the moment the
+    // resend unlocked, because our rate limit is not the backend's lifetime.
     const [timeLeft, setTimeLeft] = useState(timerSeconds);
     const [canResend, setCanResend] = useState(false);
+    const [codeSpent, setCodeSpent] = useState(false);
+
+    // When the code the shopper is holding was sent. The screen is put up as
+    // the send resolves, so that is the start of it; a resend starts it again.
+    // A ref, not state, so moving it never restarts the ticker below.
+    const sentAtRef = useRef(Date.now());
 
     // Kept in a ref so the interval below never restarts just because the
     // parent handed us a new function identity.
@@ -78,11 +105,12 @@ export default function EnterPinScreen({
                     onTimerExpiredRef.current?.();
                 }
             }
+            setCodeSpent(Date.now() - sentAtRef.current >= timerSeconds * 1000);
         };
         sync();
         const timer = setInterval(sync, 1000);
         return () => clearInterval(timer);
-    }, [phone]);
+    }, [phone, timerSeconds]);
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -100,11 +128,18 @@ export default function EnterPinScreen({
         if (onResend) {
             onResend();
             setCanResend(false);
+            // A new code carries its own life; the old one's is spent either
+            // way and must not be held against the code replacing it.
+            sentAtRef.current = Date.now();
+            setCodeSpent(false);
             setPin('');
         }
     };
 
-    const isExpired = canResend && !loading;
+    /** The shopper may ask for another code, or change how it arrives. */
+    const canAskAgain = canResend && !loading;
+    /** The code they were sent is past its life — typing it is pointless. */
+    const codeExpired = codeSpent && !loading;
     const methodLabel = method === 'whatsapp' ? translate('Whatsapp') : translate('SMS');
 
     return (
@@ -158,7 +193,7 @@ export default function EnterPinScreen({
                                 <span className="text-trim-descend text-xd-12 font-normal text-[#1D1D1D]">
                                     +{phone}
                                 </span>
-                                {!isExpired ? (
+                                {!canAskAgain ? (
                                     <span className="text-trim-descend text-xd-12 font-normal text-[#C3C3C3]">
                                         {translate('Resend After -')}{' '}
                                         <span className="text-[#388CFF] font-bold">
@@ -180,7 +215,7 @@ export default function EnterPinScreen({
                                     />
                                 </div>
                             </div>
-                            {isExpired && (
+                            {canAskAgain && (
                                 <div className="flex items-center pt-xd-8 gap-xd-5">
                                     <button
                                         onClick={handleResend}
@@ -245,16 +280,16 @@ export default function EnterPinScreen({
                         value={pin}
                         onChange={setPin}
                         onComplete={handlePinComplete}
-                        disabled={loading === 'verify-pin' || isValidPin === 'valid' || isExpired}
+                        disabled={loading === 'verify-pin' || isValidPin === 'valid' || codeExpired}
                         isValidPin={isValidPin}
-                        isExpired={isExpired}
+                        isExpired={codeExpired}
                     />
-                    {isExpired && (
+                    {codeExpired && (
                         <p className="text-xd-11 pt-1 font-medium text-[#1D1D1D]">
                             {translate('The Code Sent Has Expired')}
                         </p>
                     )}
-                    {!isExpired && error && (
+                    {!codeExpired && error && (
                         <p
                             data-pw="verify-otp-error"
                             role="alert"
