@@ -145,6 +145,34 @@ a five-second answer into an afternoon of bisecting by hand.
 9. **Adding a step or a backend to a flow means adding its own check** in the
    same change.
 
+### A red test is not a bug report — confirm, fix, then prove
+
+**MANDATORY on every test ticket.** A test going red means *something* is wrong.
+It does not tell you *what*, and it does not tell you the app is at fault. Most
+red tests are wrong tests. So never change application code because a test asked
+you to. Follow these four steps in order, every time:
+
+1. **Confirm it is a real bug.** Read the application code and prove the fault is
+   there. A red test on its own is not proof — the test may look at the wrong
+   moment, read the wrong value, or assert something the app was never meant to
+   do. Say out loud what the app does wrong and where.
+2. **Only then may you touch application code.** Before step 1 is done,
+   application code is off limits and the fix is in the test. This is the gate:
+   confirmation first, code second, never the other way round.
+3. **Fix the smallest thing** that removes the fault.
+4. **Prove it with a test that failed before the fix and passes after.** If the
+   test passes both before and after, it never covered the bug — go back to
+   step 1. Say which test, and that you saw it red first.
+
+If step 1 says the app is fine, the test was wrong. Fix the test and record what
+it was actually doing, so the next reader does not chase the same ghost.
+
+**A test that cannot prove what it claims is not finished.** Never ship a check
+that reports "pass" for a case it cannot see, and never park one as "known
+weak" — that is the silent pass this whole section exists to prevent. If the
+right signal is hard to find, keep looking, or say plainly that the criterion is
+not covered yet. Do not let a green tick stand in for it.
+
 ### Scope
 
 Applies to **both** suites — unit (`tests/`, Vitest) and browser (`tests/e2e/`,
