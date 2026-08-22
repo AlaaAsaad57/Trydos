@@ -254,8 +254,8 @@ once `NextLink` renders one.
 | Two writes to a leg was read as a rollback | A `401` retry produces two writes as well. It now tells them apart by whether the outgoing body carried the new name |
 | `success` was read out of the response body | No backend sends it — `utils/fetchData.ts` (~line 650) stamps it on client-side from the HTTP status. Body reading is gone entirely, which also removes a body carrying the account's name, phone and e-mail from reach of a public log |
 
-**App — a profile save does not mirror gender, e-mail or alternative phone
-into the app's own copy. Open; awaiting a decision. PROF-03 stays red.**
+**App — a profile save did not mirror gender, e-mail or alternative phone
+into the app's own copy. FIXED, and proved by PROF-03.**
 `services/auth.ts` sends every changed field to all three backends, and each
 accepts it — PROF-03 proves that much. It then writes back only five fields:
 
@@ -270,6 +270,37 @@ saved, and the app says it did not. **PROF-04 is the control:** it changes
 `tall` and `weight`, which *are* mirrored, and its identical reload check
 passes. Same code path, same fan-out, different outcome — which is what rules
 out the test.
+
+Fixed on the owner's decision by adding the three fields to `marketUpdate`.
+**PROF-03 was seen red before the fix and green after** — the whole file is
+4/4 green now, and the 1432 unit tests still pass. Nothing else reads those
+three fields off the stored profile: `gender`, `email` and `alternative_phone`
+are read only by `PersonalInfoForm`, and it already tolerates both shapes the
+backend uses for gender (`user?.gender?.value || user?.gender`).
+
+**App — the rollback path writes the NEW value after reverting to the old one.
+Open; NOT fixed, and deliberately so.** In the same function, both rollback
+mirrors do the inverse of the bug above:
+
+```js
+const revertMarket = { name: userObj?.name ?? userProfile?.name, ... };  // NEW name
+const revertChat   = { name: userObj?.name ?? userProfile?.name, ... };  // NEW name
+```
+
+The request body sent to each backend is the **old** profile, but the stored
+copy is written with `userObj` — the value that was just rolled back. So after a
+partial failure the app would show the change it had just undone. Left alone on
+purpose: no test exercises the rollback path yet, and a fix has to be proved by
+a test that was red first. **Item B is the ticket that exercises it**, and is
+where this gets fixed.
+
+**Test coverage gap, worth knowing.** `tests/services/auth.profile.test.ts` has
+16 tests over `UpdateProfile` and **none** of them caught the mirror bug — they
+assert that the shared state and each service copy are written, not which fields
+land in them. The live spec caught it because it read the value back off the
+screen after a reload. A field-by-field unit test would be a cheaper guard that
+runs on every pull request, which the browser suite never does; not added here,
+because PROF-03 already proves the fix and the smallest change is the target.
 
 **Test — the saved session was handed on as a stale snapshot.** Every case
 opened the same `storageState` file. The first case to do authenticated work

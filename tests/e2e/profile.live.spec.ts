@@ -3,7 +3,7 @@
 //
 //   PROF-01  the settings screens belong to the signed-in shopper
 //   PROF-02  a name change
-//   PROF-03  gender, e-mail and alternative phone  — RED, see the finding below
+//   PROF-03  gender, e-mail and alternative phone
 //   PROF-04  the size screen
 //
 // Signing in is already proved to fan out to every backend
@@ -41,29 +41,27 @@
 // so a missing write is never blamed on a backend that was never called.
 //
 // ---------------------------------------------------------------------------
-// PROF-03 is red on purpose, and must stay red
+// PROF-03 found a real defect, and is the proof it is fixed
 //
-// It reports that a changed gender is back to the old one after a reload. That
-// is a confirmed application defect, not a flaky test:
+// It was red on its first run: a changed gender was back to the old one after a
+// reload. `UpdateProfile` sent the whole change to all three backends and each
+// accepted it — PROF-03 proved that much — but it then mirrored only **five**
+// fields into the app's own stored copy of the profile:
 //
-// `UpdateProfile` sends the whole change to all three backends — that part
-// works, and PROF-03 proves each leg accepted it — but it then mirrors only
-// **five** fields into the app's own stored copy of the profile:
+//     const marketUpdate = { weight, tall, name, phone, image };   // before
 //
-//     const marketUpdate = { weight, tall, name, phone, image };   // services/auth.ts
+// `gender`, `email` and `alternative_phone` were missing, so the stored copy
+// kept the old values. Every settings screen renders from that copy, so a
+// shopper who changed their gender was shown the old one the moment they came
+// back — the change had saved, and the app said it had not.
 //
-// `gender`, `email` and `alternative_phone` are not in that list, so the stored
-// copy keeps the old values. Every settings screen renders from that copy, so a
-// shopper who changes their gender, e-mail or alternative phone is shown the
-// old value the moment they come back — the change did save, and the app says
-// it did not.
+// **PROF-04 was the control.** The size screen changes `tall` and `weight`,
+// which *were* in the list, and its identical reload check passed throughout.
+// Same code path, same fan-out, different outcome — which is what ruled out the
+// test rather than the app.
 //
-// **PROF-04 is the control.** The size screen changes `tall` and `weight`,
-// which *are* in the list, and its identical reload check passes. Same code
-// path, same fan-out, different outcome — which is what rules out the test.
-//
-// Turning this green would delete the only thing reporting the defect. It stays
-// red until the mirror is fixed. See `docs/testing/AUTH_CLOSEOUT_PLAN.md`.
+// The three fields were added to that object and PROF-03 went green. If it ever
+// goes red here again, read the object first.
 //
 // ---------------------------------------------------------------------------
 // One sign-in, handed on through a saved session
