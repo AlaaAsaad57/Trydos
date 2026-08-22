@@ -9,13 +9,25 @@
 // whether the stored pair changed, recording requests — is in
 // `harness/session.ts`, because none of that is a thing a visitor does.
 
-import { expect, type Locator, type Page } from "@playwright/test";
+import {
+  expect,
+  type Locator,
+  type Page,
+  type Response,
+} from "@playwright/test";
 
-import { auth } from "../selectors";
+import { auth, nav } from "../selectors";
 
 import { arriveAsGuest } from "./locale";
 import { LIVE_ORIGIN } from "../harness/env";
-import { credentialsHeld, type AuthCallRecorder } from "../harness/session";
+import {
+  credentialsChangedSince,
+  credentialsHeld,
+  type AuthCallRecorder,
+  type BackendName,
+  type CredentialSnapshot,
+  type SignInOutcomeRecorder,
+} from "../harness/session";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 /** How long each part of booting is allowed to take.
@@ -23,7 +35,8 @@ import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
  *  Explicit, and every one of them shorter than the suite defaults it would
  *  otherwise inherit (45s navigation, 20s action). The reason is arithmetic:
  *  this work happens **before** a case's measured window opens, and the whole
- *  case still has to finish inside the suite's 90-second per-case timeout. With
+ *  case still has to finish inside the suite's per-case timeout, which
+ *  `playwright.config.ts` sets to 120 seconds. With
  *  the suite defaults inherited, a slow-but-correct staging run could spend
  *  longer than that getting to the starting line and die before the window it
  *  was there to measure. See `_specs/e2e-guest-token-lifecycle/implement.md`
@@ -243,6 +256,25 @@ export type OtpMethod = "sms" | "whatsapp";
 
 const AUTH_SCREEN_MS = 10_000;
 const SEND_OTP_MS = 20_000;
+
+/** How long to wait for the sign-in answer itself.
+ *
+ *  It arrives on the same request the widget is already waiting on, so by the
+ *  time a case asks, it is normally there. The wait exists so that "never seen"
+ *  is a reported failure rather than a silent "nothing went wrong". */
+const SIGN_IN_ANSWER_MS = 15_000;
+
+/** How long signing out has to finish reloading **and** registering the guest
+ *  that replaces the signed-out shopper. Two round trips and a full page load,
+ *  so it is longer than a single request would need. */
+const SIGN_OUT_SETTLE_MS = 30_000;
+
+/** How long the cart read has to come back after the drawer opens.
+ *
+ *  This is the signal that proves the stored credential is still accepted
+ *  upstream, so it has to allow for the app noticing a refusal, exchanging the
+ *  credential and trying again before it gives up. */
+const CART_ANSWER_MS = 30_000;
 
 /** Open the login widget from the nav bar and wait for the first screen. */
 export const openLoginWidget = async (page: Page): Promise<void> => {
@@ -511,30 +543,288 @@ export const attemptAuth = async (
   return { screen, error };
 };
 
-export const verifyCookiesSet=async(page:Page):Promise<void>=>{
- const cookies = await page.context().cookies();
+// ---------------------------------------------------------------------------
+// What a real sign-in leaves behind, judged one backend at a time.
+// ---------------------------------------------------------------------------
 
-  const expected = [
-    COOKIE_NAMES.MARKET_TOKEN,
-    COOKIE_NAMES.MARKET_REFRESH_TOKEN,
-    COOKIE_NAMES.CHAT_REFRESH_TOKEN,
-    COOKIE_NAMES.STORIES_REFRESH_TOKEN,
-    COOKIE_NAMES.STORIES_TOKEN,
-    COOKIE_NAMES.USER_ID_HASH,
-    COOKIE_NAMES.USER_CHAT,
-    COOKIE_NAMES.USER_DATA,
-    COOKIE_NAMES.USER_STORIES,
-  ];
+/** What the app currently believes about the visitor.
+ *
+ *  Reduced **inside the page**, deliberately. `/api/auth/me` answers with the
+ *  whole stored profile, which for a signed-in shopper carries their phone and
+ *  e-mail; reducing in the browser means those never cross into the test
+ *  process, where an assertion message would publish them. `whoAmI` above does
+ *  the same thing for the same reason.
+ *
+ *  Booleans and one number. Nothing here is a name, a phone, or a token. */
+export type SignedInSession = {
+  /** Who the app says the visitor is. `null` when it can name nobody. */
+  accountId: number | null;
+  /** The one field that separates a signed-in shopper from a guest.
+   *
+   *  A plain guest also gets a stored profile — `/api/auth/register-device`
+   *  writes one — so "there is a profile" proves nothing at all. This flag is
+   *  what the app itself checks (`services/home.ts`). */
+  phoneVerified: boolean;
+  /** Did each backend's part of the sign-in land? */
+  chat: boolean;
+  stories: boolean;
+  wallet: boolean;
+};
 
-  // Assert all are present (by name)
-  expected.forEach(name => {
-    expect(cookies).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name })])
+const NOTHING_READ: SignedInSession = {
+  accountId: null,
+  phoneVerified: false,
+  chat: false,
+  stories: false,
+  wallet: false,
+};
+
+/** Ask the app what it believes, and bring back only booleans and an id. */
+export const signedInSession = async (
+  page: Page,
+): Promise<SignedInSession> => {
+  const reduced = await page.evaluate(() =>
+    fetch("/api/auth/me", { method: "POST", credentials: "include" })
+      .then((response) => response.json())
+      .then((body) => ({
+        accountId: typeof body?.user?.id === "number" ? body.user.id : null,
+        phoneVerified: body?.user?.is_phone_verified === 1,
+        chat: Boolean(body?.chatUser),
+        stories: Boolean(body?.storiesUser),
+        wallet: Boolean(body?.walletUser),
+      }))
+      // Caught in the browser so no parser message — which quotes the input it
+      // choked on — can reach the Node failure line.
+      .catch(() => null),
+  );
+
+  return reduced ?? NOTHING_READ;
+};
+
+/** Which of the sign-in's own cookies the browser currently holds.
+ *
+ *  Names only, sorted. Never the records: an assertion that receives a cookie
+ *  record prints its value into a public job log. */
+export const signInCookiesHeld = async (page: Page): Promise<string[]> => {
+  const jar = await page.context().cookies();
+  return jar.map((cookie) => cookie.name).sort();
+};
+
+/** Is the storefront credential kept out of reach of page scripts? */
+export const storefrontTokenIsHttpOnly = async (
+  page: Page,
+): Promise<boolean> => {
+  const jar = await page.context().cookies();
+  const record = jar.find((cookie) => cookie.name === COOKIE_NAMES.MARKET_TOKEN);
+  // The boolean, never the record.
+  return record?.httpOnly === true;
+};
+
+/** Prove a completed sign-in landed, one backend at a time.
+ *
+ *  Five backends answer a sign-in and each writes its own part of the session,
+ *  so a shopper can be signed in to the storefront and not to the wallet with
+ *  nothing on screen to say so. Every backend is therefore judged separately and
+ *  **named** when its part is missing.
+ *
+ *  The judgements are made on values already in hand, so nothing here retries
+ *  and nothing waits. They are `soft` so that one dead backend does not hide the
+ *  other four — all five are reported in a single run, and the case still fails.
+ *
+ *  Where the app itself said which sub-service failed, that label is quoted, so
+ *  the failure, the server log and Sentry all name the same backend. */
+export const proveSignInLanded = async (
+  page: Page,
+  outcome: SignInOutcomeRecorder,
+  session: SignedInSession,
+): Promise<void> => {
+  // Fail closed. Never having seen the sign-in answer is a failure to report,
+  // not "nothing went wrong". Soft, like the judgements below, so that it
+  // reports alongside them rather than hiding them.
+  const answered = await outcome.waitForOutcome(SIGN_IN_ANSWER_MS);
+  expect
+    .soft(
+      answered,
+      "the sign-in answer was never seen, so no backend can be named — treat every judgement below as unproven",
+    )
+    .toBe(true);
+
+  const held = await signInCookiesHeld(page);
+
+  /** "…did not land" plus the app's own word for it, when it gave one. */
+  const missing = (backend: BackendName, part: string): string =>
+    outcome.named(backend)
+      ? `${part} did not land (the app reported ${backend})`
+      : `${part} did not land (the app reported no failure for it)`;
+
+  // The storefront itself. Phone-verified, not "there is a profile" — a guest
+  // has a profile too.
+  expect
+    .soft(session.phoneVerified, missing("COMMENTS", "the storefront sign-in"))
+    .toBe(true);
+
+  expect.soft(session.chat, missing("CHAT", "the chat sign-in")).toBe(true);
+  expect
+    .soft(session.stories, missing("STORIES", "the stories sign-in"))
+    .toBe(true);
+  expect.soft(session.wallet, missing("WALLET", "the wallet sign-in")).toBe(true);
+
+  // Comments has no field in the app's answer, so it is read from the token it
+  // leaves behind. Held **now**, by name — a token that was written and then
+  // cleared must not read as "it landed".
+  expect
+    .soft(
+      held.includes(COOKIE_NAMES.USER_ID_HASH),
+      missing("COMMENTS", "the comments sign-in"),
+    )
+    .toBe(true);
+};
+
+// ---------------------------------------------------------------------------
+// Proving a session still works after a reload.
+// ---------------------------------------------------------------------------
+
+/** Where the browser sends everything bound for a backend.
+ *
+ *  Client code never calls a backend directly; it posts here and the server
+ *  attaches the credential (`utils/fetchData.ts`). So this is the one address a
+ *  case can watch to see whether the stored credential is still accepted. */
+const BACKEND_PROXY_PATH = "/api/proxy";
+
+/** The cart read the drawer performs when it opens (`utils/functions.tsx`). */
+const CART_READ_MARKER = "cart_shipping";
+
+/** Do an ordinary authenticated thing, and prove the backend accepted it.
+ *
+ *  **Why this and not the absence of something.** A signed-in account whose
+ *  credential is refused is *not* re-registered as a guest — the server returns
+ *  the refusal untouched and the app asks the shopper to sign in again
+ *  (`serverRequests/HandleAuthedFetch.ts`). So "no re-registration happened" is
+ *  equally true of a working session and a dead one, and proves neither. Nor is
+ *  it enough to look at what the app has stored: the stored profile is still
+ *  there after the credential stops being accepted, which is exactly the failure
+ *  worth catching.
+ *
+ *  What separates the two is whether a backend still answers. Opening the cart
+ *  makes the app fetch it through the proxy above, so a successful answer to
+ *  that fetch means the credential was accepted upstream — after a renewal, if
+ *  one was needed. A renewal is a pass: the shopper stayed signed in, which is
+ *  what the criterion is about.
+ *
+ *  Waiting for that answer is also what makes the checks that follow honest. The
+ *  "sign in again" prompt is raised two round trips after the first refusal, so
+ *  a case that looks for it the moment the cart is clicked always finds nothing.
+ *  By the time this returns, the app has had its answer and has done whatever it
+ *  was going to do. */
+export const openCartAndProveBackendAnswered = async (
+  page: Page,
+): Promise<void> => {
+  /** Is this the cart read?
+   *
+   *  The endpoint travels in a header, not the body — a `GET` through the proxy
+   *  sends no body at all (`utils/fetchData.ts`), so there is nothing to match
+   *  on there. The header carries the endpoint and the locale; the credential is
+   *  attached on the server and is not among them. */
+  const isCartRead = (response: Response): boolean => {
+    let pathname: string;
+    try {
+      pathname = new URL(response.url()).pathname;
+    } catch {
+      return false;
+    }
+    if (pathname !== BACKEND_PROXY_PATH) return false;
+    return (response.request().headers()["x-proxy-url"] ?? "").includes(
+      CART_READ_MARKER,
     );
-  });
+  };
 
+  // Statuses only — numbers, never an address or a header value. Collected
+  // rather than awaited once, because a refused credential is renewed and the
+  // read is tried again: the first answer can legitimately be a refusal on a
+  // session that then carries on working, and that is a pass.
+  const answers: number[] = [];
+  const collect = (response: Response) => {
+    if (isCartRead(response)) answers.push(response.status());
+  };
+  page.on("response", collect);
 
-  const userData = cookies.find(c => c.name === COOKIE_NAMES.USER_DATA);
-  expect(userData).toBeDefined();
-  // expect(JSON.parse(decodeURIComponent(userData.value))).toHaveProperty('id');
-}
+  try {
+    const button = nav.cartButton(page);
+    await expect(button).toBeVisible();
+    await button.click();
+
+    await expect
+      .poll(() => answers.includes(200), {
+        timeout: CART_ANSWER_MS,
+        message:
+          "opening the cart never produced an answer from a backend, so the stored " +
+          "credential is not being accepted. Answers seen: " +
+          `[${answers.join(", ")}] (empty means the app never asked)`,
+      })
+      .toBe(true);
+  } finally {
+    page.off("response", collect);
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Signing out.
+// ---------------------------------------------------------------------------
+
+/** Open the account menu from the navigation bar.
+ *
+ *  The trigger carries the same marker whether or not the account has a picture,
+ *  and the branch shown to a visitor who is not signed in carries it too — so
+ *  the marker being there proves nothing about being signed in. What proves it
+ *  is the sign-out item inside, which the app only offers to an account with a
+ *  usable phone. */
+export const openAccountMenu = async (page: Page): Promise<void> => {
+  const trigger = auth.accountMenuTrigger(page);
+  await expect(trigger).toHaveCount(1);
+  await trigger.click();
+  await expect(auth.signOutItem(page)).toBeVisible();
+};
+
+/** Sign out, and wait until the visitor is a guest again.
+ *
+ *  Signing out ends by reloading the page, and the app then registers a fresh
+ *  guest — so there are two settling steps, not one, and reading the cookie jar
+ *  between them describes a state no shopper is ever left in.
+ *
+ *  **What this waits for is the guest landing, not a request being sent.** A
+ *  request is recorded the moment it leaves the browser, while the cookies it
+ *  replaces arrive on the answer; a wait keyed on the request therefore returns
+ *  while the jar is still empty, and an empty jar makes every "it is gone" check
+ *  pass for the wrong reason. The condition below can only become true once the
+ *  replacement pair has actually been written:
+ *
+ *    * both credentials are **held** again, and
+ *    * both **differ** from the ones the signed-in shopper had.
+ *
+ *  Held alone would be true before the sign-out; changed alone is satisfied by
+ *  the deletion itself, because the comparison counts absent as different. Only
+ *  the pair of them means "a new guest is here". */
+export const signOutAndSettle = async (
+  page: Page,
+  options: { signedIn: CredentialSnapshot },
+): Promise<void> => {
+  await openAccountMenu(page);
+  await auth.signOutItem(page).click();
+
+  await expect
+    .poll(
+      async () => {
+        const changed = await credentialsChangedSince(page, options.signedIn);
+        const held = await credentialsHeld(page);
+        return changed.access && changed.refresh && held.length === 2;
+      },
+      {
+        timeout: SIGN_OUT_SETTLE_MS,
+        message:
+          "signing out never settled: the replacement guest's credentials never arrived. " +
+          "If the reload redirected instead of rendering, the sign-out guard is still set and " +
+          "the app registers no guest at all — that is the guard, not the sign-out.",
+      },
+    )
+    .toBe(true);
+};

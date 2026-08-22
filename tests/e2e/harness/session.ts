@@ -21,6 +21,38 @@
 // masked, so an `expect` that receives a cookie record publishes the token in
 // it. Keeping values inside this module means there is nothing to leak rather
 // than something that must be remembered to be masked.
+//
+// ---------------------------------------------------------------------------
+// The one permitted response-body reader
+//
+// `recordSignInOutcome` is the **only** thing in this file that reads a response
+// body, and it is bounded on purpose. Everything else here watches request
+// *paths* and nothing more.
+//
+// It exists because `/api/auth/me` cannot tell "the backend refused us" apart
+// from "the backend answered with nothing" — both arrive as `null` — and the
+// sign-in route already says which, and by name. Nothing else does.
+//
+// What keeps it safe, and what any future edit must preserve:
+//
+//   * it matches on `new URL(...).pathname` and keeps **no URL and no query
+//     string** — the sign-in route is a `GET` whose query carries the live
+//     one-time code, so a stored or printed URL is a published credential;
+//   * it maps the body to a **closed set** of backend names and throws the rest
+//     away unread. The body it reads carries the account's phone, e-mail and
+//     name, and each failure entry carries the phone again plus whatever the
+//     sub-backend put in its error — none of which may reach the log;
+//   * it keeps no reference to the body or the response once it has mapped;
+//   * a parse failure is swallowed rather than raised. Nothing awaits the
+//     listener, so a throw would be an unhandled rejection, not a test failure —
+//     and a parser message quotes the input it choked on, which would publish
+//     the body prefix. The case reports the miss instead, through the next
+//     point;
+//   * it fails **closed**: never having seen the sign-in answer reads as "not
+//     observed", never as "nothing failed".
+//
+// Do not add a second body reader here. If another one is ever truly needed, it
+// gets the same five properties and its own paragraph in this list.
 
 import { expect, type Page } from "@playwright/test";
 
@@ -274,6 +306,107 @@ export const recordAuthCalls = (page: Page): AuthCallRecorder => {
         await page.waitForTimeout(200);
       }
       return seen.includes(path);
+    },
+  };
+};
+
+// ---------------------------------------------------------------------------
+// The sign-in outcome recorder — see "The one permitted response-body reader"
+// at the top of this file before changing anything below.
+// ---------------------------------------------------------------------------
+
+/** The path the sign-in answer arrives on. */
+const SIGN_IN_PATH = "/api/auth/login";
+
+/** The backends a sign-in fans out to, besides the storefront itself.
+ *
+ *  This is a **closed** set. The sign-in route labels each failed sub-service
+ *  with one of these, and anything that is not one of them is dropped rather
+ *  than repeated — a label is a value the server chose, and this suite does not
+ *  print server-chosen text into a public log. */
+const KNOWN_BACKENDS = ["CHAT", "STORIES", "COMMENTS", "WALLET"] as const;
+
+export type BackendName = (typeof KNOWN_BACKENDS)[number];
+
+/** What a label maps to. Nothing else can come out of this recorder. */
+export type SignInLabel = BackendName | "unrecognised backend label";
+
+export type SignInOutcome =
+  | { observed: false }
+  | { observed: true; failed: SignInLabel[] };
+
+export type SignInOutcomeRecorder = {
+  /** What the app said about its own sign-in.
+   *
+   *  `observed: false` means the answer was never seen — which is a failure for
+   *  the case to report, never "nothing went wrong". */
+  outcome(): SignInOutcome;
+  /** Did the app name this backend as failed? False when nothing was observed,
+   *  so callers must check `observed` first. */
+  named(backend: BackendName): boolean;
+  /** Wait until the sign-in answer has been seen. Returns whether it arrived. */
+  waitForOutcome(timeoutMs: number): Promise<boolean>;
+};
+
+/** Read the labels the sign-in answer carries, and nothing else.
+ *
+ *  Attach before the sign-in starts. */
+export const recordSignInOutcome = (page: Page): SignInOutcomeRecorder => {
+  let outcome: SignInOutcome = { observed: false };
+
+  const mapLabels = (body: unknown): SignInLabel[] => {
+    const failures = (body as { is_failed?: unknown })?.is_failed;
+    if (!Array.isArray(failures)) return [];
+
+    // Read one field per entry, map it, drop everything else. The entries also
+    // carry the account's phone and id, and the sub-backend's own error body.
+    return failures.map((entry): SignInLabel => {
+      const label = (entry as { endpoint?: unknown })?.endpoint;
+      return KNOWN_BACKENDS.includes(label as BackendName)
+        ? (label as BackendName)
+        : "unrecognised backend label";
+    });
+  };
+
+  page.on("response", (response) => {
+    let pathname: string;
+    try {
+      // Path only. Never `response.url()` — the sign-in query carries the code.
+      pathname = new URL(response.url()).pathname;
+    } catch {
+      return;
+    }
+    if (pathname !== SIGN_IN_PATH) return;
+
+    void response
+      .json()
+      .then((body) => {
+        outcome = { observed: true, failed: mapLabels(body) };
+      })
+      .catch(() => {
+        // Swallowed on purpose, and it must stay swallowed.
+        //
+        // Nothing awaits this listener, so throwing here would be an unhandled
+        // rejection rather than a test failure — and the parser's own message
+        // quotes the input it choked on, which is the body this reader exists to
+        // keep out of the log.
+        //
+        // Leaving `outcome` untouched is the fail-closed answer the design wants:
+        // it stays `observed: false`, and the case reports that the sign-in
+        // answer was never read instead of concluding that nothing failed.
+      });
+  });
+
+  return {
+    outcome: () => outcome,
+    named: (backend) => outcome.observed && outcome.failed.includes(backend),
+    waitForOutcome: async (timeoutMs) => {
+      const deadline = Date.now() + timeoutMs;
+      while (Date.now() < deadline) {
+        if (outcome.observed) return true;
+        await page.waitForTimeout(200);
+      }
+      return outcome.observed;
     },
   };
 };

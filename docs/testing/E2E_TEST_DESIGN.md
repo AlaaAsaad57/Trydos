@@ -270,6 +270,34 @@ Two details that came out of the rename and are worth keeping written down:
   same name twice; one (`UserNavTopSection`) had `data-testid="login-text"` and
   `data-cy="login-icon"` on one element, and kept the `data-cy` name.
 
+**A marker is not a state.** `avatar-options` opens the account menu and sits on
+the branch shown to a signed-in shopper *and* the one shown to a visitor who is
+not signed in, so finding it says nothing about who is there. `logout` is the
+marker that does mean something, because the app only offers it to an account
+with a usable phone. Read the marker that changes with the state, not the one
+that happens to be nearby.
+
+**Two selectors can be the same marker.** `prompt.phoneEntry` and
+`auth.phoneInput` are both `input-phone-number-field`. A case that asserts the
+"sign in again" prompt is absent therefore also goes red if an earlier case left
+the auth widget open — so a signing-in case closes the widget before it ends.
+
+## 8a. A failing case must name the backend
+
+Where a flow crosses several backends, judge each one separately and name the one
+that failed. The project-wide rule is in `CLAUDE.md` ("a failure must say exactly
+what broke"); what it means here:
+
+- One assertion per backend, never one for the group. A session that "exists"
+  proves the storefront answered and nothing else.
+- Use `expect.soft` for those per-backend judgements so one dead backend does not
+  hide the other four — but only on values already in hand. A soft assertion on a
+  locator retries and burns its whole timeout on the way to failing.
+- Where the app itself names the failing sub-service, quote its label so the
+  case, the server log and Sentry all say the same word.
+- Never judge on a count. A count says a number changed, not which backend died,
+  and it breaks the day a backend is added.
+
 ## 9. Identities and the session
 
 Identities come from the untracked `.env.development`, and the same names arrive
@@ -280,13 +308,32 @@ arrives over WhatsApp, which shows it only on the primary handset, so no
 unattended run can read one. The fixed code is a staging control and must stay on
 staging.
 
-**One login per run.** `globalSetup` drives the real login form once and saves
-Playwright's `storageState`. Authenticated specs load it. The rule is enforced by
-the architecture, not by everyone remembering it — which matters, because the OTP
-send is rate limited for real.
+**One login per run — planned, not yet built.** The intent is that `globalSetup`
+drives the real login form once and saves Playwright's `storageState` for
+authenticated specs to load, so the rule is enforced by the architecture rather
+than by everyone remembering it. That matters because the OTP send is rate
+limited for real. `e2e-money-path` builds it; until then `globalSetup` starts the
+server and nothing more.
 
-The saved state contains `MARKET-TOKEN`. It is written to a gitignored path and
-is never uploaded anywhere.
+When it exists, the saved state will contain `MARKET-TOKEN`. It is written to a
+gitignored path and is never uploaded anywhere.
+
+**A saved session cannot replace signing in, for the cases that test signing
+in.** `AUTH-01` proves what a real sign-in *writes* across five backends, so a
+restored session — which skips the sign-in entirely — can prove none of it. Those
+cases drive the widget whatever `globalSetup` does. What they must not do is sign
+in more than once between them, which is why the signed-in file shares a single
+context (see below).
+
+**One shared session per file, for signed-in cases.** Signed-in cases that would
+otherwise sign in separately share one browser context and one sign-in, built
+lazily inside the first case in the file. Not in a `beforeAll`: the shared `test`
+object registers its "skip when staging is not configured" rule in a
+`beforeEach`, and Playwright runs `beforeAll` first, so a sign-in in a hook fails
+on an unconfigured machine instead of skipping. And not `describe.serial`: in
+serial mode the first red case skips the rest of the group, which would hide
+every later case behind one broken backend. One worker and no parallelism already
+give declaration order. The case that signs out goes last.
 
 **Signup is a scripted case, not a live one.** The fixed code is allow-listed to
 specific numbers, so a genuinely new number cannot be verified unattended. The
