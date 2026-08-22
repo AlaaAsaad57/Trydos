@@ -135,7 +135,24 @@ export const auth = {
   notRegisteredMessage: (page: Page): Locator =>
     page.getByTestId("not registered"),
   Terms: (page: Page): Locator => page.getByTestId("agree-continue"),
-  AlreadyRegistered:(page:Page):Locator =>page.getByTestId("registered")
+  AlreadyRegistered:(page:Page):Locator =>page.getByTestId("registered"),
+  /** The nav control that opens the account menu.
+   *
+   *  `components/Home/UserAvatar.tsx` puts this marker on **both** of its
+   *  branches — with a picture and without — so a signed-in shopper always has
+   *  it. `components/Home/UserNavTopSection.tsx` puts the same marker on the
+   *  branch it renders for a visitor who is **not** signed in. The two are
+   *  mutually exclusive, so exactly one is ever in the page, but the marker on
+   *  its own says nothing about whether anybody is signed in. Never read it as
+   *  a sign-in signal. */
+  accountMenuTrigger: (page: Page): Locator =>
+    page.getByTestId("avatar-options"),
+  /** The sign-out item inside the account menu (`components/Home/Menu.tsx`).
+   *
+   *  Only offered to an account that has a usable phone on it, so it is absent
+   *  for a plain guest — which is why a case that clicks it has proved it was
+   *  signed in first. */
+  signOutItem: (page: Page): Locator => page.getByTestId("logout"),
 };
 
 export const cart = {

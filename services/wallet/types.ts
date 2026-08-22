@@ -10,6 +10,31 @@ export interface FetchResponse<T = any> {
   success: boolean;
 }
 
+/**
+ * Returned by any wallet action when the wallet backend answers 401.
+ * The action cannot run the caller's reaction itself — it is a Server Action,
+ * so a client callback passed to it is only a reference, not a function.
+ * The caller checks for this shape and reacts on the client.
+ */
+export interface WalletUnauthenticated {
+  unauthenticated: true;
+  status: 401;
+  success: false;
+  error: string;
+  data: null;
+}
+
+/** Narrows any wallet action result to the 401 sentinel. */
+export function isWalletUnauthenticated(
+  response: unknown,
+): response is WalletUnauthenticated {
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "unauthenticated" in response
+  );
+}
+
 interface Timestamps {
   createdAt: string;
   updatedAt: string;

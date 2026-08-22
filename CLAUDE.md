@@ -233,25 +233,20 @@ Two backends serve this app; refer to them by role — the **gateway** (guest/al
 
 - **`app/api/auth/simulate/route.ts`** — an unauthenticated `POST` that sets `MARKET-TOKEN`, `User-Data`, the chat/stories/wallet tokens and `USER_ID_HASH` from the request body. It has no environment gate, and `proxy.ts`'s matcher excludes `/api`, so nothing gates it in code. **This is known.** It exists for testers only and is slated for removal. Do **not** open a ticket for it, do **not** raise it as a review finding, and do **not** build anything that depends on it — set auth cookies through the browser's own cookie store instead.
 
-<!-- wf governance text: v1.0.7 -->
+<!-- wf governance text: v3.0.0 -->
 
-# Engineering Workflow v1
+# CLAUDE.md — Engineering Workflows v3
 
 Governance contract for any AI agent (and human) working in this repository.
 This file is authoritative. When in doubt, stop and ask the Workflow Owner.
 
-The ticket commands ship in the `wf` plugin and are namespaced: `/wf:start-ticket`,
-`/wf:research`, `/wf:spec`, `/wf:plan`, `/wf:review`, `/wf:implement`, `/wf:verify`,
-`/wf:publish-pr`. The project half of the config is `.claude/project-config.yaml`.
-
 ---
 
-## Project profile
+## Project profile — fill this in per repository
 
 > Everything **below** the `---` after this section is the shared governance
-> text, copied from the plugin's `templates/CLAUDE.md` unchanged. Only this block
-> is per-project. When the plugin ships a new governance version, re-copy the
-> shared text and keep this block.
+> text. Copy it unchanged. Only this block changes per project. When the plugin
+> ships a new governance version, re-copy the shared text and keep this block.
 
 **Mission.** This repository hosts the Trydos storefront — a multilingual
 e-commerce / live-shopping web app (Next.js App Router, two backends: the
@@ -263,9 +258,10 @@ review.
 **Base branch — this repository overrides the plugin default.** The shared rules
 (GU-4 / IM-3) say `main`; in this repository the base branch is **`develop`**.
 `main` is the staging branch (storefront gate) and is never branched from or
-merged into directly. So: `/wf:implement` creates `ticket/<slug>` from a clean
+merged into directly. So: `implement` creates `ticket/<slug>` from a clean
 **`develop`**, and `/wf:publish-pr` opens the PR against **`develop`**
-(`--base develop`).
+(`--base develop`). This applies to `development` work items only — `study` and
+`research` cut no branch and open no PR.
 
 **Protected runtime paths.** The paths below are this repository's runtime. They
 may be changed **only** inside an approved `implement` stage, and only when the
@@ -280,22 +276,35 @@ approved `plan.md` lists them:
 
 ---
 
-## Workflow stages
+## Workflow types and stages
 
-Canonical stages (see the `wf` plugin's `workflow-config.yaml` and
-`rules/workflow-rules.md` for full definitions; the project half of the config
-is `.claude/project-config.yaml` in this repository):
+Pick the workflow type by what changes when the work is finished: a source file
+→ `development`; your understanding of something that already exists → `study`;
+a decision about a direction → `research`. A work item never changes type, and a
+study never quietly becomes an implementation.
+
+**`development`** — the stages this repository uses for a change:
 
 1. `intake` — capture and qualify the request.
 2. `research` — read-only investigation of the repo and impact.
 3. `spec` — define what "done" means (criteria + test cases).
 4. `plan` — decide the approach and concrete steps.
-5. `review` — a reviewer reviews spec/plan before any code.
+5. `review` — review spec/plan, with the comprehension gate, before any code.
 6. `implement` — apply the change per the approved plan.
 7. `verify` — validate the change and review runtime impact.
 
-Each stage produces an artifact under `_specs/<ticket>/` in this repository,
-from the templates in the `wf` plugin's `templates/`.
+**`study`** — `intake → scope → analyze → explain → assess` (read-only; no branch,
+no PR). **`research`** — `intake → frame → evidence → evaluate → recommend →
+assess → decide` (evaluates options; records a human decision).
+
+Each stage produces an artifact under `_specs/<ticket>/` in this repository, from
+the templates in the `wf` plugin. The authoritative stage list and the legal
+moves between stages live in the plugin's `workflows/<type>/workflow.yaml`, and the
+plugin's `rules/lifecycle-protocol.md` says how to move — `_specs/<ticket>/ticket.md`
+records the position in `workflow.current_stage` and is written only by the step
+that records an outcome, never by hand. Since v3 nothing *refuses* a bad
+transition; the state history is what makes one visible afterwards.
+`/wf:next <ticket>` runs whatever stage is due.
 
 ## Hard stop conditions
 
@@ -332,6 +341,11 @@ keep standard technical terms as they are (`scrape`, `cardinality`, `rollback`,
   part of workflow/governance work.
 - Do **not** delete `_specs/`, `.claude/project-config.yaml` (this project's half
   of the config), or `.claude/settings.json` (which enables the `wf` plugin).
+- Do **not** hand-edit `ticket.md > workflow.current_stage`, `status`, or its
+  state history outside the step that records an outcome. Since v3 no runtime
+  refuses a bad transition (ADR-023), so this rule is the whole of the protection:
+  editing those fields directly leaves a ticket whose state and history disagree,
+  and nothing will tell you.
 - Do **not** edit the shared governance text below **Project profile** in this
   copy. It is a copy. Change the master in the `wf` plugin
   (`templates/CLAUDE.md`), bump the plugin version, then re-copy.
@@ -358,12 +372,13 @@ keep standard technical terms as they are (`scrape`, `cardinality`, `rollback`,
   read-only) reviews the plan and records findings for the owner (ADR-010). It
   **informs** the decision — it never blocks or makes it; the comprehension gate
   remains the control.
-- The comprehension check asks **at least 3 questions — a floor, not a fixed
-  count** (ADR-012). Every gate includes **≥1 question on the integration /
-  cross-flow axis** (what the change touches outside itself, which other flow
-  shares that code or config), sourced from the plan's required
+- The comprehension check asks **between 3 and 5 questions** — a floor and a
+  ceiling (ADR-012, ADR-022). Every gate includes **≥1 question on the
+  integration / cross-flow axis** (what the change touches outside itself, which
+  other flow shares that code or config), sourced from the plan's required
   **Integration surface** section; and `/review` adds **one question per `major`
-  panel finding**. A finding may still be dismissed — only after it is understood.
+  panel finding**, up to the ceiling. A finding may still be dismissed — only
+  after it is understood.
 - The **Workflow Owner** owns governance (workflow evolution, governance
   decisions, escalations, cross-project issues), not per-ticket sign-off. Escalate
   to the Workflow Owner only when a hard-stop or governance question arises.

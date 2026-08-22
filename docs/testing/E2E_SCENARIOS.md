@@ -6,7 +6,8 @@ Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
 
 ## Guest journeys
 
-Real staging. Nothing logs in. Everything is read-only except GUEST-32 to
+Real staging. Nobody in this section signs in — the signed-in cases are in
+**Signed-in journeys** below. Everything here is read-only except GUEST-32 to
 GUEST-34, which register guests on staging because that is the behaviour they
 test — about five per run, and they are not cleaned up (see rule 6 in
 `tests/e2e/README.md`).
@@ -54,3 +55,25 @@ test — about five per run, and they are not cleaned up (see rule 6 in
 | GUEST-39 | The privacy policy page renders without errors | `staticPages.live.spec.ts:35` | The address on app stores and in payment paperwork reaches the page, not the home page |
 | GUEST-40 | The terms of service page renders without errors | `staticPages.live.spec.ts:50` | The shared static layout survives a path with more than one hyphen |
 | GUEST-41 | The back button on a static page keeps the visitor in the app | `staticPages.live.spec.ts:61` | The back bar goes to settings rather than dead-ending or leaving the site |
+
+## Signed-in journeys
+
+Real staging, with a real sign-in. Their own `AUTH-` range because these are not
+guest journeys: a guest has no account, and none of the guest cases above ever
+signs in.
+
+The three share **one** browser context and **one** real sign-in. Each sign-in is
+a real one-time code and a real sign-in that fans out to five backends, so three
+independent sign-ins would be three codes per run against limits that are not
+ours. They run in declaration order and **AUTH-03 must stay last**, because it
+ends the shared session.
+
+Per run they cost: one one-time code (a cooldown retry can cost more), one
+sign-in, and two guest registrations on staging — one at boot and one after
+signing out. Nothing is cleaned up, and nothing needs to be.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| AUTH-01 | A real sign-in lands on every backend it writes for | `auth.live.spec.ts:137` | One sign-in writes a session across five backends, and a part that did not land is named — the storefront, chat, stories, comments or wallet — instead of passing quietly |
+| AUTH-02 | A signed-in session still works after a full page reload | `auth.live.spec.ts:209` | A backend still answers an ordinary authenticated request after the reload, so the credential is still accepted and not merely still stored |
+| AUTH-03 | Signing out takes the whole session away | `auth.live.spec.ts:249` | Every backend's part of the session is gone, and the three the app also gives a guest come back belonging to somebody else |

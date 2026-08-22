@@ -182,7 +182,6 @@ class AuthService {
       // Only store non-sensitive user data in Zustand.
       checkWallet({
         id: response?.WalletUser?.id,
-        handleUnauthenticated: () => {},
       });
 
       const user = response.data.user;
