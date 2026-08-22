@@ -11,6 +11,40 @@
 #   main    → production (main is the project's production branch on Vercel)
 #
 # ---------------------------------------------------------------------------
+# This file only works from `main`, and `main`'s copy is the one that runs
+#
+# A `workflow_run` (and a `workflow_dispatch`) trigger is not attached to the
+# commit you pushed. GitHub reads it from the **default branch** only, and the
+# default branch here is `main`. While this file lived on `develop` alone it did
+# not merely fail to fire — Actions had never registered it, and `gh workflow
+# list --all` did not show it at all.
+#
+# Two things follow, and both cost an afternoon if you learn them the hard way:
+#
+#   * **Editing this file on `develop` changes nothing.** The copy on `main` is
+#     what executes, for `develop` pushes as much as for `main`. Every edit has
+#     to reach `main` before it means anything.
+#   * **`notify-telegram.yml` must be on `main` too.** A reusable workflow called
+#     by a local path is read from the same commit as its caller, and its caller
+#     here is `main`'s copy of this file.
+#
+# The gate below reads `workflow_run.head_sha`, not `github.sha`, precisely
+# because of this: `github.sha` on such a run points at `main`, and deploying
+# `main` when someone pushed `develop` would be a memorable bug.
+# ---------------------------------------------------------------------------
+#
+# **`main` has no tests, so `main` cannot pass the gate.** It has no `tests/`,
+# no `vitest.config.mts` and no `test:ci` script — the suites live on `develop`
+# only. Nothing runs on a push to `main`, so no `workflow_run` fires and this
+# workflow never starts for it. Until `develop` is merged up, production is
+# deployed by hand:
+#
+#   gh workflow run Deploy --ref main -f force=true
+#
+# `force` skips the test check for that one run and leaves DEPLOY_WHEN_SUCCESS
+# alone, so an urgent production deploy never has to unlock every future one.
+#
+# ---------------------------------------------------------------------------
 # Why it triggers on E2E and not on both test workflows
 #
 # The two suites are in separate workflows on purpose (see the note at the top
@@ -60,9 +94,15 @@ on:
     workflows: [E2E]
     types: [completed]
   # For a deploy that is not waiting for a commit: after the Vercel account is
-  # unblocked, or to put the current branch tip back on production. It still
-  # goes through the gate, so it still respects DEPLOY_WHEN_SUCCESS.
+  # unblocked, to put the current branch tip back on production, or to deploy
+  # `main`, which has no tests to wait for. It still goes through the gate, so
+  # it still respects DEPLOY_WHEN_SUCCESS unless `force` says otherwise.
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Deploy without checking the tests (for a branch that has none)'
+        type: boolean
+        default: false
 
 # Never cancelled, and one at a time per branch. A deploy killed halfway leaves
 # a half-uploaded build on Vercel, and a queued deploy costs nothing.
@@ -112,6 +152,8 @@ jobs:
           RUN_BRANCH: ${{ github.event.workflow_run.head_branch }}
           RUN_SHA: ${{ github.event.workflow_run.head_sha }}
           FLAG: ${{ vars.DEPLOY_WHEN_SUCCESS }}
+          # Empty on a workflow_run — there are no inputs on that event.
+          FORCE: ${{ inputs.force }}
           # Only to find out whether it exists. The deploy job is the one that
           # uses it.
           HAS_TOKEN: ${{ secrets.VERCEL_TOKEN != '' }}
@@ -153,6 +195,11 @@ jobs:
 
           if [ "$HAS_TOKEN" != "true" ]; then
             decided false "no VERCEL_TOKEN secret — deploying is not set up yet"
+          fi
+
+          # One run only, and it leaves the repository-wide flag alone.
+          if [ "${FORCE:-false}" = "true" ]; then
+            decided true "started by hand with force — the tests were not checked"
           fi
 
           if [ "${FLAG:-true}" = "false" ]; then
