@@ -10,6 +10,7 @@
 //   3. Anything a test rendered is taken off the page again afterwards, so two
 //      tests never see each other's markup.
 //   4. The fake network starts, is reset between tests, and stops at the end.
+//   5. `window.matchMedia` is supplied, because jsdom does not have it.
 //
 // Nothing here is specific to one feature. Keep it that way: a helper that only
 // some tests want belongs in tests/mocks/, tests/msw/ or tests/render.tsx, not in
@@ -51,6 +52,35 @@ vi.mock("serverRequests/radis", async () => {
   return makeCacheMock();
 });
 
+// jsdom has no `window.matchMedia`, and a component that asks for one gets a
+// TypeError out of the effect that asked — which surfaces as the component
+// failing to render, with nothing on screen to say why. Every component that
+// adapts to the device hits this: `hooks/useIsTouchDevice` asks
+// "(pointer: coarse)" on mount, and it sits under both auth input primitives.
+//
+// The stand-in answers **no** to every query, which together with jsdom's
+// 1024px window and its zero touch points describes a desktop with a mouse.
+// That is the honest default for a headless run, and it is the branch these
+// tests then read.
+//
+// A TEST THAT WANTS THE OTHER BRANCH REPLACES IT ITSELF, in that file:
+//   vi.stubGlobal("matchMedia", (query: string) => ({ ...same shape, matches: true }));
+// `vi.unstubAllGlobals()` puts this one back. Nothing here decides for a test
+// which device it is on — it only stops the question throwing.
+if (typeof window !== "undefined" && !window.matchMedia) {
+  window.matchMedia = ((query: string) => ({
+    media: query,
+    matches: false,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+    // Removed from the standard, still called by older libraries.
+    addListener: () => {},
+    removeListener: () => {},
+  })) as typeof window.matchMedia;
+}
+
 beforeAll(() => {
   server.listen({
     // A request nobody wrote a reply for fails the test instead of going out to
@@ -65,6 +95,13 @@ beforeAll(() => {
 });
 
 afterEach(async () => {
+  // NOTE ON ORDER. Vitest runs `afterEach` hooks in reverse order of
+  // registration, and this file is registered before any test file's own. So
+  // this cleanup runs LAST — after a test file has already reset its spies. A
+  // component's unmount effects (scroll locks, teardown callbacks, aborts) are
+  // therefore recorded against the NEXT test's spies. If a count is one higher
+  // than the test could explain, that is where the extra came from: clear the
+  // spy inside the test, right before the unmount being measured.
   cleanup();
   // Throws away anything a test added with `server.use()`, so a reply set up for
   // one test cannot leak into the next one.
