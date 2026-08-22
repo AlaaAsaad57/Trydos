@@ -155,6 +155,80 @@ export const auth = {
   signOutItem: (page: Page): Locator => page.getByTestId("logout"),
 };
 
+/** The shopper's own details: the card on the settings page, and the form
+ *  behind it (`components/setting/profile/`).
+ *
+ *  Two of these are not `data-pw`, and both on purpose:
+ *
+ *  * **`card`** is found by its `aria-label`, which is a plain English literal
+ *    in the app rather than a translated string, so it does not move with the
+ *    language. It is also the signal itself: the whole link is only rendered
+ *    for a visitor the app considers signed in, so finding it *is* the proof,
+ *    and a `data-pw` would have to be added to the app to say the same thing.
+ *  * **`verifiedMark`** is found by the icon's `src`. The label beside it
+ *    ("Verified" / "Verify Now") goes through `translateFunction`, so matching
+ *    the text would pass in English and fail in Arabic — and the two states are
+ *    two different files, so the icon path is the language-independent fact.
+ */
+export const profile = {
+  /** The card on the settings page. Present only when signed in.
+   *
+   *  By its address, not by its accessible name, and that is a workaround for a
+   *  real defect rather than a preference: the card's link is written with
+   *  `aria-label="View Profile"`, but `components/global/NextLink.tsx` renders
+   *  no `aria-label` at all, so the attribute never reaches the page. The link
+   *  wraps no text either, which leaves it with no accessible name whatsoever.
+   *  Matching the name therefore finds nothing — and "no card" is exactly what
+   *  a signed-out visitor looks like, so the miss reads as a real failure.
+   *
+   *  Its `href` is the next most stable thing about it and needs no language.
+   *  `$=` and not `*=`: the same card also links to `/settings/profile/picture`
+   *  and `/settings/profile/size`, which a looser match would pick up.
+   *
+   *  **Point this back at the accessible name once `NextLink` renders one.** */
+  card: (page: Page): Locator =>
+    page.locator('a[href$="/settings/profile"]'),
+  /** Shown when the account has a usable phone on record. */
+  verifiedMark: (page: Page): Locator =>
+    page.locator('img[src="/icons/settings/VerifiedUserIcon.svg"]'),
+  /** Shown when it does not — the shopper is invited to verify. */
+  unverifiedMark: (page: Page): Locator =>
+    page.locator('img[src="/icons/settings/verifyUserIcon.svg"]'),
+
+  /** The personal-info form. */
+  nameField: (page: Page): Locator =>
+    page.getByTestId("personal-info-recipient-name-input"),
+  phoneField: (page: Page): Locator =>
+    page.getByTestId("personal-info-phone-number-input"),
+  alternativePhoneField: (page: Page): Locator =>
+    page.getByTestId("personal-info-alternative-phone-number-input"),
+  emailField: (page: Page): Locator =>
+    page.getByTestId("personal-info-Contact-email-input"),
+  saveButton: (page: Page): Locator =>
+    page.getByTestId("personal-info-save-button"),
+  /** The gender the account already has. Absent when none is set — and the
+   *  form refuses to save at all until one is, so this is worth asking about
+   *  before blaming a backend for a save that never went out. */
+  chosenGender: (page: Page): Locator =>
+    page.getByTestId("active-gender-input"),
+  /** All three gender choices, in the order they are drawn: Man, Woman, Other.
+   *
+   *  Two markers rather than one because the app swaps the marker on the chosen
+   *  one — `active-gender-input` when picked, `gender-input` when not — so
+   *  neither on its own finds all three, and their position is the only
+   *  language-independent way to say which is which. */
+  genderChoices: (page: Page): Locator =>
+    page.locator('[data-pw="gender-input"], [data-pw="active-gender-input"]'),
+
+  /** The size screen (`components/settings/ProfileSizeInfo.tsx`). */
+  heightField: (page: Page): Locator =>
+    page.getByTestId("personal-size-tall-input"),
+  weightField: (page: Page): Locator =>
+    page.getByTestId("personal-size-weight-input"),
+  sizeSaveButton: (page: Page): Locator =>
+    page.getByTestId("personal-size-save-button"),
+};
+
 export const cart = {
   /** The cart itself, opened by the nav cart icon. Not `bag-viewer` — that one
    *  lives in `ShippingAddressContainer` and only exists once you are far enough
