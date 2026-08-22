@@ -4,7 +4,7 @@
 # file. It decides nothing: the caller works out what happened and passes the
 # pieces in, this file only formats and sends them.
 #
-# Two rules it must keep:
+# Three rules it must keep:
 #
 #   * It can never change the verdict of the run that called it. The send step
 #     carries `continue-on-error`, so Telegram being unreachable cannot turn a
@@ -12,6 +12,9 @@
 #   * Not configured is not a failure. With no TELEGRAM_BOT_TOKEN or
 #     TELEGRAM_CHAT_ID it exits 0 quietly — which is also exactly what happens
 #     on a pull request from a fork, where secrets are never exposed.
+#   * The message never says *why* a test failed. It names the tests that broke
+#     and stops; the reason is written beside the test in the attached file. See
+#     the Failures block below for the reasoning.
 #
 # Set up once, outside this repo: create the bot with @BotFather, add it to the
 # channel as an *administrator* (a plain member cannot post), then store the
@@ -36,7 +39,10 @@ on:
         default: ''
         type: string
       failures:
-        description: 'The first few failing test names, one per line'
+        description: >
+          The first few failing test names, one per line. **Names only.** Why
+          each one failed belongs in `tree`, beside the test it broke on — never
+          here. See the note on the Failures block below.
         required: false
         default: ''
         type: string
@@ -57,10 +63,12 @@ on:
         type: string
       tree:
         description: >
-          Every describe and every test, ticked or crossed. Sent as an attached
-          file, not in the message — a thousand ticks do not fit in 4096
-          characters. Travels as text because the caller is a different job on a
-          different machine, so a file it wrote does not exist here.
+          Every describe and every test, ticked or crossed, with the reason
+          printed under each failing one. Sent as an attached file, not in the
+          message — a thousand ticks do not fit in 4096 characters, and this is
+          the only place a failure reason is written. Travels as text because
+          the caller is a different job on a different machine, so a file it
+          wrote does not exist here.
         required: false
         default: ''
         type: string
@@ -168,6 +176,15 @@ jobs:
               if [ -n "$TOTALS" ]; then
                 out="$out${NL}$(esc "$TOTALS")"
               fi
+              # The names of the tests that broke — and only the names.
+              #
+              # **No failure reason goes in this message.** Not here, not
+              # anywhere else in it. An error is several lines per failure, so a
+              # handful of them is what pushes the message past the 4096-character
+              # limit and costs the counts and the rollup below; and a reason read
+              # away from its own test says much less than the same reason read
+              # under it. Both reporters therefore send names here and write the
+              # reason into the attached tree instead. Do not add it back.
               if [ -n "$FAILURES" ]; then
                 out="$out${NL}${NL}<b>Failures</b>${NL}<pre>$(esc "$FAILURES")</pre>"
               fi
@@ -181,7 +198,7 @@ jobs:
             fi
 
             if [ -n "$TREE" ]; then
-              out="$out${NL}${NL}Every test is in the attached <code>$(esc "$TREE_NAME")</code>."
+              out="$out${NL}${NL}Every test — and why each failing one broke — is in the attached <code>$(esc "$TREE_NAME")</code>."
             fi
 
             # Outside the green/red split on purpose: seeing what the browser did
@@ -269,7 +286,7 @@ jobs:
             "https://api.telegram.org/bot${TG_TOKEN}/sendDocument" \
             -F "chat_id=${TG_CHAT}" \
             -F "document=@/tmp/${SAFE_NAME}" \
-            -F "caption=every test in this run" \
+            -F "caption=every test in this run, with the reason under each failure" \
             -F "disable_notification=true" \
             "${REPLY_TO[@]}") || DOC_HTTP="000"
 

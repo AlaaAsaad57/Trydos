@@ -22,7 +22,14 @@ pnpm knip           # find unused files/exports/deps
 ANALYZE=true pnpm build   # bundle analyzer (@next/bundle-analyzer)
 ```
 
-There is **no test suite** — the project relies on clean code and type-checking, not tests. Do not add test files unless explicitly asked. (`.gitlab-ci.yml` references Cypress but no `cypress/` dir exists in the working tree.)
+```bash
+pnpm test:run       # unit suite (Vitest)
+pnpm test:e2e:live  # browser suite against staging (builds + starts the app first)
+pnpm e2e:health     # is staging answering? run this before blaming a test
+pnpm lint:i18n-parity   # ar/tr/ku translation keys are in step
+```
+
+Two suites exist: the **unit** suite (`tests/`, Vitest) and the **browser** suite (`tests/e2e/`, Playwright, run against staging). Both gate pull requests through `.github/workflows/`. Do not add tests outside these two, and do not add a test for code that has no caller. Anything you do add must follow the rule below.
 
 ## Architecture
 
@@ -72,6 +79,89 @@ Firebase / FCM push (`utils/firebaseAdmin.ts`, `utils/NotificationHandler.ts`, `
 - **TailwindCSS uses custom max-width breakpoints** (inverted): `xs`/`sm` = max 480px, `md` = max 768px, `lg2` = max 912px, `lg` = min 769px. Use these, not raw pixels. Default font is `font-sans` (Quicksand).
 - **React Compiler is enabled** (`reactCompiler: true`) — don't add manual `useMemo`/`useCallback` without a profiled reason.
 - `next/image` domains are allowlisted in `next.config.ts` (`images.domains`); add new media hosts there.
+
+## Testing — MANDATORY: a failure must say exactly what broke
+
+**A test exists to tell you *what* is broken, not *that* something is broken.**
+Read the failure alone, with no code open and no re-run: it must name the step
+that failed, and — when that step called a backend — which backend. If it does
+not, the test is not finished, however green it is today.
+
+This is the single most valuable property a test here can have, because these
+flows are long. Placing an order is a dozen steps across several backends. So
+is signing in. `expect(result).toBeTruthy()` in the middle of one of those turns
+a five-second answer into an afternoon of bisecting by hand.
+
+### The rules
+
+1. **Every assertion carries a message.** Both suites support it — Vitest and
+   Playwright take a message as the second argument to `expect`. The message
+   says what was supposed to be true, in plain words, from the point of view of
+   somebody who did not write the test.
+
+   ```ts
+   ✗ expect(order).toBeTruthy()
+   ✗ expect(res.status).toBe(200)
+   ✓ expect(order.id, "placing the order returned no order id").toBeTruthy()
+   ✓ expect(res.status, `the payment backend refused the charge (${res.status})`).toBe(200)
+   ```
+
+2. **One assertion per step, and one step per thing that can fail
+   independently.** If a flow has ten steps that can each break on their own, it
+   needs ten checks. Never collapse them into one assertion at the end — that
+   assertion can only ever say "the flow did not work".
+
+3. **Name the backend whenever a step crosses one.** This app talks to several:
+   the storefront core, the gateway, chat, stories, comments, wallet, media,
+   search. "Sign-in failed" is not a finding; "the wallet sign-in did not land"
+   is. Where the app already labels the failure itself — the sign-in route
+   collects per-service failures under an `endpoint` label (`CHAT`, `STORIES`,
+   `COMMENTS`, `WALLET`) and returns them as `is_failed` — **quote what the app
+   said** rather than inferring it from what is missing, so the test, the log
+   and Sentry all name the same thing.
+
+4. **A partial success is a failure.** Several of these flows answer `200` with
+   part of the work done, on purpose — a dead wallet must not stop a shopper
+   browsing. That is correct product behaviour and it is exactly why the test
+   has to look at each part: there is no error for it to notice.
+
+5. **Never assert on a count.** `toHaveLength(13)` tells you a number changed,
+   not which one is missing, and it breaks the day a step is added. Assert the
+   thing you mean, by name.
+
+6. **Check the content, not only that something is there.** A cookie, a record
+   or a response that exists but carries no usable payload is a failure. Never
+   assert a name is present and stop.
+
+7. **Put the actual value in the message when it helps.** A status code, an id,
+   the backend's own error string. Never put a token, a one-time code, a phone
+   number or any other credential in it — those must not reach output or any
+   kept artifact.
+
+8. **Long browser flows use `test.step()`** so the report names the step that
+   failed rather than a line number. Nothing in the browser suite does this yet;
+   the next multi-step flow added should be the first.
+
+9. **Adding a step or a backend to a flow means adding its own check** in the
+   same change.
+
+### Scope
+
+Applies to **both** suites — unit (`tests/`, Vitest) and browser (`tests/e2e/`,
+Playwright) — and to every multi-step flow: order placing, checkout and payment,
+sign-in and sign-out, cart changes, media upload, seller dashboard actions.
+
+It binds **every test you write or change from now on**. Existing tests are
+brought up to it as they are touched — there is no sweep, and a bare assertion
+you happen to read is not a ticket. Today about 130 of ~1900 assertions carry a
+message, nearly all of them in the browser suite; that is the gap this rule
+closes over time.
+
+One allowance, not a loophole: in a small unit test whose **name already says
+precisely what failed**, the name is the message and a second one adds nothing.
+The requirement is that *the failure identifies the step* — not that the words
+sit in any particular place. The moment a test covers more than one step or more
+than one backend, that allowance is gone.
 
 ## Internationalization — MANDATORY for every user-visible string
 

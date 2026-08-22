@@ -387,16 +387,26 @@ Chromium is installed with a cached `~/.cache/ms-playwright`. Results are
 reported through the existing `notify-telegram.yml`.
 
 **What the Telegram message says.** A red run has to be readable without opening
-GitHub, so the message carries the counts (`e2e 4 passed · 1 failed`) and up to
-four failing tests, each with its full title and the reason it failed — the
-opening line of the error plus any `Expected` / `Received` / `Timeout` line that
-followed it. `cli.ts report` builds this from the JSON reporter's
-`e2e-results.json`; console output cannot be scraped reliably.
+GitHub, so the message carries the counts (`e2e 4 passed · 1 failed`) and the
+full title of up to four failing tests. `cli.ts report` builds this from the JSON
+reporter's `e2e-results.json`; console output cannot be scraped reliably.
+
+**The message never says why a test failed.** The reason is written in the
+attached `e2e-tests.txt`, on the lines directly under the test it broke on — the
+opening line of the error plus any `Expected` / `Received` / `Timeout` / `Locator`
+line that followed it, up to five lines in all. Two reasons for putting it there
+and not in the message: an error is several lines *per failure*, so a handful of
+them is exactly what pushes the message past Telegram's hard 4096-character
+limit and costs the counts and the per-file rollup; and a reason read next to its
+own test needs no explaining, while the same reason in a separate list does. The
+unit suite follows the same rule (`scripts/unit-report.mjs`), so both messages
+read the same way.
 
 Two constraints shape it. **Everything goes through `redact()`** — a Playwright
 failure message carries whatever the assertion saw, and the step that builds the
-text runs in a public log. And the list is capped at four, because Telegram
-rejects anything over 4096 characters; the run link covers the rest.
+text runs in a public log. This covers the attached tree as much as the message,
+which matters more now that the tree carries error text. And the list of names is
+capped at four; the run link covers the rest.
 
 `notify-telegram.yml` previously showed the counts only on a *passing* run, so a
 red message never said how many had passed. It shows them on both now, which

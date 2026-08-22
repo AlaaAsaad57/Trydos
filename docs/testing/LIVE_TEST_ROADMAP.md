@@ -468,6 +468,13 @@ about 86KB, twenty times the limit. So it is split by what fits:
   suite). One upload, sent silently as a reply to the message, searchable in the
   Telegram viewer.
 
+**Why a test failed is written here and only here** — indented under the test it
+broke on, as the error text plus the first line of our own code in the stack. It
+is kept out of the message on purpose: an error runs to several lines per
+failure, which is what pushes a message past the 4096-character limit, and a
+reason read beside its own test is worth more than the same reason in a list of
+its own. The message names the failing tests and stops.
+
 The marks are `✅` passed, `❌` failed, `⏭️` skipped, and — the browser suite
 only — `⚠️` flaky, for a test that passed but only on the retry.
 

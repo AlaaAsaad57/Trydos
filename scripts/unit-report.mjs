@@ -9,7 +9,15 @@
  *   coverage  the four percentages
  *   failures  the first few failing test names, with the file they are in
  *   rollup    one line per test file, with a tick or a cross and a count
- *   tree      every describe and every it, indented, ticked or crossed
+ *   tree      every describe and every it, indented, ticked or crossed, with
+ *             the reason printed under each failing test
+ *
+ * **The reason a test failed goes in the tree and nowhere else.** The message is
+ * a notification — what ran, how much of it passed, which tests broke — and an
+ * error message is not that: it is several lines of assertion text per failure,
+ * it is what pushes a message past Telegram's 4096-character limit, and it is
+ * the part a reader wants next to the test it belongs to, not in a list on its
+ * own. So `failures` stays names-only and the tree carries the detail.
  *
  * In CI each one becomes a step output. Run locally with no GITHUB_OUTPUT set it
  * prints them instead, which is how to check a format change without pushing.
@@ -79,6 +87,83 @@ const readJson = (file) => {
 };
 
 // ---------------------------------------------------------------------------
+// Why a test failed
+//
+// vitest's json reporter gives `failureMessages`: the error text followed by a
+// stack, as one string. All of it is far too much — the stack alone is a dozen
+// frames deep inside vitest's own runner — and none of it belongs in the chat
+// message. What a reader actually needs beside a crossed-out test is two things:
+// what the assertion said, and the line of our code that raised it.
+// ---------------------------------------------------------------------------
+
+/** How many lines of the error text to keep. An `toEqual` on an object prints a
+ *  small diff, and four lines is enough to hold one; past that it is the same
+ *  information again, and the tree has one of these per failing test. */
+const MAX_REASON_LINES = 4;
+
+/** Long enough for a real assertion line, short enough that the tree stays
+ *  readable when a test compares two long strings. */
+const REASON_WIDTH = 160;
+
+const STACK_FRAME = /^at\s/;
+
+/** `at /home/runner/work/trydos/tests/x.test.ts:5:22` → `at tests/x.test.ts:5:22`.
+ *
+ *  Empty for anything outside the repository — a frame in `node_modules` is a
+ *  vitest internal and points at nothing anyone can open. */
+const repoFrame = (line) => {
+  const location = line
+    .replace(/^at\s+/, "")
+    .replace(/^.*\((.*)\)$/, "$1")
+    .replace(/^file:\/\/\//, "");
+
+  if (location.includes("node_modules")) return "";
+
+  const relativePath = relative(location);
+  // path.relative climbs out with "../" for anything above the repository root.
+  if (!relativePath || relativePath.startsWith("..")) return "";
+
+  return `at ${relativePath}`;
+};
+
+/** The error text and the first frame in our own code, as lines.
+ *
+ *  Returns an array rather than a string because the caller indents each line
+ *  to sit under the test it belongs to. */
+const summariseFailure = (messages) => {
+  const raw = (messages ?? []).find(
+    (message) => typeof message === "string" && message.trim().length > 0,
+  );
+
+  if (!raw) return ["no error message recorded"];
+
+  const lines = raw
+    // Colour codes: vitest writes them, and Telegram renders them as literal
+    // escape characters.
+    .replace(/\x1b\[[0-9;]*m/g, "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  const text = [];
+  let frame = "";
+
+  for (const line of lines) {
+    if (!STACK_FRAME.test(line)) {
+      if (text.length < MAX_REASON_LINES) text.push(line);
+      continue;
+    }
+    // The first frame that is ours. Later frames are how we got there, which is
+    // the run log's job, not this file's.
+    if (!frame) frame = repoFrame(line);
+  }
+
+  return [...text, frame]
+    .filter(Boolean)
+    .map((line) => clip(line, REASON_WIDTH));
+};
+
+// ---------------------------------------------------------------------------
 // Shaping the results
 // ---------------------------------------------------------------------------
 
@@ -96,6 +181,10 @@ const byFile = (results) =>
         title: test.title ?? "(unnamed test)",
         fullName: test.fullName ?? test.title ?? "(unnamed test)",
         status: test.status ?? "unknown",
+        reason:
+          test.status === "failed"
+            ? summariseFailure(test.failureMessages)
+            : [],
       }));
 
       return {
@@ -227,9 +316,14 @@ const buildTree = (results, files, totals) => {
       });
       if (open.length > test.path.length) open = open.slice(0, test.path.length);
 
-      lines.push(
-        `${"  ".repeat(test.path.length)}${icon(test.status)} ${test.title}`,
-      );
+      const pad = "  ".repeat(test.path.length);
+      lines.push(`${pad}${icon(test.status)} ${test.title}`);
+
+      // The reason, directly under the test it belongs to. This is the only
+      // place it is written — see the note at the top of this file.
+      test.reason.forEach((line, index) => {
+        lines.push(`${pad}   ${index === 0 ? "↳ " : "  "}${line}`);
+      });
     }
 
     return lines;

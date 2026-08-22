@@ -129,6 +129,12 @@ const preflight = async (): Promise<boolean> => {
 // whatever the assertion saw — a URL, a header, a response body — and this
 // repository is public, so its CI logs are world-readable. The Telegram chat is
 // not public, but the step that builds this text is.
+//
+// **The reason a test failed goes in the attached tree and nowhere else.** The
+// message names the tests that broke and stops there. A Playwright error is
+// several lines each — the assertion, what it expected, what it got — which is
+// what pushes a message past Telegram's 4096-character limit, and it reads far
+// better under the test it belongs to than in a list on its own.
 // ---------------------------------------------------------------------------
 
 const RESULTS_FILE = resolve(process.cwd(), "e2e-results.json");
@@ -158,33 +164,30 @@ type PlaywrightSuite = {
   suites?: PlaywrightSuite[];
 };
 
-type Failure = { name: string; reason: string };
-
-/** Walk the nested suites and collect every spec that did not pass. */
-const collectFailures = (
+/** Walk the nested suites and collect the full title of every spec that did not
+ *  pass. Names only — the reason belongs to the tree. */
+const collectFailureNames = (
   suites: PlaywrightSuite[] = [],
   trail: string[] = [],
-): Failure[] =>
+): string[] =>
   suites.flatMap((suite) => {
     const here = suite.title ? [...trail, suite.title] : trail;
 
     const failedHere = (suite.specs ?? [])
       .filter((spec) => spec.ok === false)
-      .map((spec) => {
-        const message = (spec.tests ?? [])
-          .flatMap((test) => test.results ?? [])
-          .find((result) => result.error?.message)?.error?.message;
+      .map((spec) => [...here, spec.title].join(" › "));
 
-        return {
-          name: [...here, spec.title].join(" › "),
-          reason: summariseError(message ?? "no error message recorded"),
-        };
-      });
-
-    return [...failedHere, ...collectFailures(suite.suites, here)];
+    return [...failedHere, ...collectFailureNames(suite.suites, here)];
   });
 
-/** The part of an error worth putting in a chat message.
+/** The first error a spec recorded, across its retries. */
+const specError = (spec: PlaywrightSpec): string =>
+  (spec.tests ?? [])
+    .flatMap((test) => test.results ?? [])
+    .find((result) => result.error?.message)?.error?.message ??
+  "no error message recorded";
+
+/** The part of an error worth writing beside a crossed-out test.
  *
  *  Playwright errors run to dozens of lines of call log, and the opening line
  *  alone is often not enough: a timeout says everything in itself, but an
@@ -192,11 +195,13 @@ const collectFailures = (
  *  answer two lines further down. So take the opening line plus whichever of
  *  the Expected / Received / Timeout lines follow it.
  *
- *  Colour codes are stripped because Telegram renders them as literal escape
- *  characters. */
+ *  Colour codes are stripped because they would otherwise arrive as literal
+ *  escape characters in the attached file. */
 const DETAIL_LINE = /^(Expected|Received|Timeout|Locator)\b/;
 
-const summariseError = (message: string): string => {
+/** Returns lines rather than one string: the caller indents each of them to sit
+ *  under the test it belongs to. */
+const summariseError = (message: string): string[] => {
   const lines = message
     .replace(/\x1b\[[0-9;]*m/g, "")
     .split("\n")
@@ -204,15 +209,20 @@ const summariseError = (message: string): string => {
     .filter((part) => part.length > 0);
 
   const opening = lines[0] ?? "no error message recorded";
+  // Four, not two. A failed `toBeVisible` prints Locator, Expected and
+  // Received, and two of the three is the pair that answers nothing. The file
+  // has the room the message did not.
   const details = lines
     .slice(1)
     .filter((line) => DETAIL_LINE.test(line))
-    .slice(0, 2);
+    .slice(0, 4);
 
+  // Wider than the message ever allowed, because the file has room for it: an
+  // `Expected` line carrying a URL is useless cut off at 120.
   const clip = (line: string): string =>
-    line.length > 120 ? `${line.slice(0, 120)}\u2026` : line;
+    line.length > 160 ? `${line.slice(0, 160)}\u2026` : line;
 
-  return [opening, ...details].map(clip).join("\n      ");
+  return [opening, ...details].map(clip);
 };
 
 // ---------------------------------------------------------------------------
@@ -262,6 +272,23 @@ const buildRollup = (files: PlaywrightSuite[]): string =>
     })
     .join("\n");
 
+/** One test, and — when it broke — why, on the lines under it.
+ *
+ *  This is the only place a reason is written. Keeping it here rather than in
+ *  the message is the whole point: the file has room, and a reason read next to
+ *  its own test needs no explaining. */
+const specLines = (spec: PlaywrightSpec, pad: string): string[] => {
+  const head = `${pad}${specIcon(spec)} ${spec.title}`;
+  if (spec.ok !== false) return [head];
+
+  return [
+    head,
+    ...summariseError(specError(spec)).map(
+      (line, index) => `${pad}   ${index === 0 ? "↳ " : "  "}${line}`,
+    ),
+  ];
+};
+
 /** The describes and the tests below a suite, indented by nesting depth. */
 const treeLines = (suites: PlaywrightSuite[], depth: number): string[] =>
   suites.flatMap((suite) => {
@@ -270,8 +297,8 @@ const treeLines = (suites: PlaywrightSuite[], depth: number): string[] =>
 
     return [
       ...(suite.title ? [`${pad}${suite.title}`] : []),
-      ...(suite.specs ?? []).map(
-        (spec) => `${"  ".repeat(inner)}${specIcon(spec)} ${spec.title}`,
+      ...(suite.specs ?? []).flatMap((spec) =>
+        specLines(spec, "  ".repeat(inner)),
       ),
       ...treeLines(suite.suites ?? [], inner),
     ];
@@ -302,9 +329,7 @@ const buildTree = (files: PlaywrightSuite[], totals: string): string => {
         failed ? ` — ${failed} failed` : ""
       }`,
       "─".repeat(60),
-      ...(file.specs ?? []).map(
-        (spec) => `${specIcon(spec)} ${spec.title}`,
-      ),
+      ...(file.specs ?? []).flatMap((spec) => specLines(spec, "")),
       ...treeLines(file.suites ?? [], 0),
     ];
   });
@@ -354,12 +379,12 @@ const report = (): void => {
     .filter(Boolean)
     .join(" · ");
 
-  const failures = collectFailures(results.suites);
-  const shown = failures.slice(0, MAX_NAMED_FAILURES).map(
-    // Two lines each: what broke, then why. The indent is what makes a list of
-    // four readable on a phone.
-    (failure) => `  • ${failure.name}\n      ${failure.reason}`,
-  );
+  const failures = collectFailureNames(results.suites);
+  // The names, and nothing else. Why each one broke is in the attached tree —
+  // see the note at the top of this section.
+  const shown = failures
+    .slice(0, MAX_NAMED_FAILURES)
+    .map((name) => `  • ${name}`);
 
   if (failures.length > shown.length) {
     shown.push(`  … and ${failures.length - shown.length} more`);
