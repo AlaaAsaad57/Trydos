@@ -11,7 +11,7 @@ created_at: 2026-08-23
 updated_at: 2026-08-23
 links:
   clickup: ""
-  github: ""
+  github: "https://github.com/AlaaAsaad57/Trydos/pull/103"
 ---
 
 # Ticket Record — auth-closeout-tests
