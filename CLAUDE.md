@@ -173,6 +173,50 @@ weak" — that is the silent pass this whole section exists to prevent. If the
 right signal is hard to find, keep looking, or say plainly that the criterion is
 not covered yet. Do not let a green tick stand in for it.
 
+### Every bug is confirmed by a test before it is fixed — no exceptions
+
+**MANDATORY, repository-wide.** The four steps above are written for a test that
+went red. They apply to a bug found **any** other way too: while reading code,
+from a Sentry report, from a shopper's complaint, from a review comment, or
+because you noticed it in passing. How the bug was found changes nothing.
+
+So, for every fix to application code:
+
+1. **Write a test that fails because of the bug**, before the fix. The test must
+   go red for the bug itself — not for a missing mock, a wrong URL or a typo in
+   the test. Run it and **see it red**.
+2. **Then fix the smallest thing** that removes the fault.
+3. **Run the same test again and see it green.** If it was green before the fix,
+   it never covered the bug: it is the wrong test, and the bug is not confirmed.
+   Go back to step 1.
+4. **Say all three out loud** in the commit, the ticket and the reply: which
+   test, that it was seen red, and that it is green after. "It should be fixed"
+   is not a result.
+
+**Keep the test.** The red-first run confirms the bug; the test that stays in
+the suite is what stops it coming back. If the confirming test is throwaway —
+a script, a one-off `console.log`, a temporary route — then the fix is not
+proved yet, and a real test in `tests/` still has to be written and has to fail
+against the old code. Prove that by reverting the fix, running it, and putting
+the fix back.
+
+**Which suite.** Put the test where the bug lives: the unit suite (`tests/`) for
+anything that can be reproduced without a backend, and the browser suite
+(`tests/e2e/`) only when it genuinely cannot. Prefer the unit suite — it gates
+every pull request; the browser suite never does, so a fix proved only there is
+unguarded from the day it lands.
+
+**The two allowed exceptions, both narrow.**
+
+- **A backend is at fault.** Then there is nothing in this repository to fix.
+  The test stays red and names the backend — see the rule above.
+- **A regression guard for a fix that is already proved.** Adding a cheaper test
+  for a bug some other test already proved is welcome, and it is expected to be
+  green from the moment it is written. Say which test did the proving.
+
+Anything else — a fix with no test, a test written after the fix and never seen
+red, a "too hard to reproduce" — is an unconfirmed fix. Report it as one.
+
 ### Scope
 
 Applies to **both** suites — unit (`tests/`, Vitest) and browser (`tests/e2e/`,
