@@ -19,9 +19,9 @@ sections below say what is already on `develop` as well as what is still owed.
 |---|---|---|
 | A | `tests/e2e/profile.live.spec.ts` | **Done** — on `develop` |
 | B | `tests/e2e/profile.scripted.spec.ts` | Not started |
-| C | `tests/e2e/session-recovery.live.spec.ts` | Not started |
-| D | unit `component-tests-profile` | Not started |
-| E | unit guards for the two defects the live suite found | Not started |
+| C | `tests/e2e/session-recovery.live.spec.ts` | **Written** — `RECOV-01`, awaiting its first staging run |
+| D | unit `component-tests-profile` | **Done** — four files, 27 cases |
+| E | unit guards for the two defects the live suite found | **Done** — field parity and the one-time-token exclusion |
 | F | the profile picture and the address, live | Not started |
 
 E and F were not in the first draft of this plan. E exists because the two app
@@ -395,6 +395,28 @@ test in this plan owes a red run.
 
 One line per finding, as **Done means** requires. A finding is recorded whether
 it turned out to be the app, the test, or a backend.
+
+### Found while planning items C, D and E — five defects, none ticketed yet
+
+One work item is open at a time, so these wait. They are written here, not in a
+workspace, because a workspace can be deleted and this file is committed. Each is
+subject to the repository rule when picked up: a check that fails because of it,
+seen failing, then the smallest fix.
+
+- **A refused profile-picture upload tells the shopper nothing.** The reply is
+  read, it throws, the handler only logs it, and the navigation never happens — so
+  the shopper stays on the screen with no message and no idea it failed.
+- **`id_token` reaches a kept artifact.** It is absent from every stored copy, but
+  the request body carries it and a failed save ships the whole body to Sentry as
+  `request_body`, with no scrub.
+- **Removing a profile picture leaves the old one in the stored copy.** The body
+  carries `image: null`; the mirror falls back to the previous value.
+- **The one-time-code cooldown text reaches the public job log unredacted.**
+  `redact()` is wired into the CLI, global setup and the server harness — not the
+  reporter path — and the send action rethrows the page's own error text raw.
+- **The exhausted-retry message names nothing.** The retrying send sleeps the
+  cooldown after its final attempt and then throws a generic "Exceeded maximum
+  retry attempts", swallowing the cooldown text the widget gave it.
 
 ### Item A
 
