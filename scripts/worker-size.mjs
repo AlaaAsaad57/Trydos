@@ -14,10 +14,12 @@
  * kilobytes and reads as a comfortable pass -- the worst answer a size gate can
  * give. So this sums every executable module the Worker is built from.
  *
- * This is an UPPER BOUND: it counts every module present, while wrangler ships
- * only what is reachable. Erring high is the safe direction for a limit check --
- * it can warn about a bundle that would have squeezed in, but it cannot tell you
- * a bundle fits when it does not.
+ * IT MUST NOT DOUBLE-COUNT. esbuild bundles most of the app INTO
+ * `handler.mjs` -- 452 of the `.next/server/chunks/**` files in one measured
+ * build were already inlined there. Counting those again alongside the bundle
+ * they are part of inflated a 9 MiB Worker to 21 MiB and turned a pass into a
+ * fail. So every `*.meta.json` esbuild leaves behind is read first, and anything
+ * listed as an input to a bundle is excluded from the count.
  *
  * It deliberately does NOT shell out to `wrangler deploy --dry-run`. That reads
  * the full wrangler config, and this repo intentionally ships an empty D1
@@ -74,9 +76,37 @@ if (!existsSync(WORKER)) {
   );
 }
 
+/**
+ * Every source file esbuild already inlined into a bundle.
+ *
+ * esbuild writes a `<output>.meta.json` beside each bundle listing its inputs.
+ * Those inputs still sit on disk, but they ship as part of the bundle, not
+ * beside it -- counting both is counting the same bytes twice.
+ */
+function bundledInputs() {
+  const inputs = new Set();
+  for (const [metaPath] of walk(".open-next", (p) => p.endsWith(".meta.json"))) {
+    let meta;
+    try {
+      meta = JSON.parse(readFileSync(metaPath, "utf8"));
+    } catch {
+      continue;
+    }
+    for (const output of Object.values(meta.outputs ?? {})) {
+      for (const input of Object.keys(output.inputs ?? {})) {
+        inputs.add(input.replaceAll("\\", "/"));
+      }
+    }
+  }
+  return inputs;
+}
+
+const inlined = bundledInputs();
+const normalize = (p) => p.replaceAll("\\", "/");
+
 const modules = [
   [WORKER, statSync(WORKER).size],
-  ...walk(FUNCTIONS, (p) => CODE.has(extname(p))),
+  ...walk(FUNCTIONS, (p) => CODE.has(extname(p)) && !inlined.has(normalize(p))),
 ];
 
 // A finished build has hundreds of modules. A handful means the build died
@@ -102,7 +132,8 @@ for (const [path, size] of modules) {
 console.log("");
 console.log("Cloudflare Worker size");
 console.log("----------------------");
-console.log(`  modules counted       : ${modules.length}`);
+console.log(`  modules shipped       : ${modules.length}`);
+console.log(`  inlined into a bundle : ${inlined.size} (excluded — they ship inside it)`);
 console.log(`  bundle (uncompressed) : ${mib(rawBytes)}`);
 console.log(`  bundle (gzip)         : ${mib(gzipBytes)}   <-- this is what counts`);
 console.log(
@@ -137,5 +168,5 @@ if (gzipBytes > FREE_LIMIT) {
 }
 console.log("");
 console.log(
-  "Note: an upper bound — every module on disk is counted, while wrangler ships only what is reachable.",
+  "Note: close to what wrangler uploads, but not identical — it ships only what is reachable.",
 );
