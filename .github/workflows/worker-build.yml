@@ -17,11 +17,14 @@
 # THIS DOES NOT DEPLOY. It needs no Cloudflare credentials and touches nothing in
 # your account. Deploying is a separate step, added once this goes green.
 #
-# EXPECTED TO FAIL TODAY. `sharp` is an optional dependency of Next itself, so it
-# is always installed and esbuild statically resolves its native `.node` binary
-# even though nothing imports it. Tracked upstream at
-# opennextjs/opennextjs-cloudflare#1226. Keep this workflow OUT of the required
-# checks until it passes, or it will block every pull request.
+# WHY IT DOES NOT RUN LOCALLY
+# The bundle step needs real memory: esbuild dies with "The service was stopped"
+# on an 8 GB Windows host and on a 3.9 GB Linux container. `NODE_OPTIONS` does
+# not help, because esbuild allocates outside the Node heap. A GitHub runner has
+# 16 GB and builds it fine. Windows additionally cannot create the symlinks the
+# adapter needs without Developer Mode.
+#
+# Keep this OUT of the required checks until it has been green a few times.
 
 name: Worker build
 
@@ -84,8 +87,9 @@ jobs:
         run: pnpm cf:build
 
       # Runs even when the build failed, so a red run still says WHY rather than
-      # only that something broke. Exits non-zero only if the bundle is over the
-      # paid-plan limit.
+      # only that something broke. Exits non-zero if the bundle is over the
+      # paid-plan limit OR if the size could not be established at all -- an
+      # unmeasurable bundle must never read as a pass.
       - name: Measure the bundle
         id: size
         if: ${{ !cancelled() }}
