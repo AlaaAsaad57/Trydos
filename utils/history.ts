@@ -1,3 +1,5 @@
+import { readServerCookies } from "./cookies/server-cookie-fallback";
+
 type LastPaths = string[];
 
 const COOKIE_NAME = "last_paths";
@@ -39,50 +41,23 @@ const setCookieClient = (name: string, value: string): void => {
   document.cookie = `${name}=${value}; Path=/; Max-Age=${MAX_AGE_SECONDS}; Expires=${expires}; SameSite=Lax`;
 };
 
-const getCookieServer = async (name: string) => {
-  try {
-    // Lazy import to avoid bundling client with server only code
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { cookies } = require("next/headers");
-    const store = await cookies();
-    return store.get(name)?.value;
-  } catch {
-    return undefined;
-  }
-};
-
-const setCookieServer = (name: string, value: string): void => {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { cookies } = require("next/headers");
-    const store = cookies();
-    store.set({
-      name,
-      value,
-      httpOnly: false,
-      sameSite: "lax",
-      path: "/",
-      maxAge: MAX_AGE_SECONDS,
-    });
-  } catch {
-    // Ignore if cookies store not available (e.g., during some server contexts)
-  }
-};
-
 const readLastPaths = async () => {
+  // This module is reachable from client components, so it cannot import the
+  // server cookie reader — see ./cookies/server-cookie-fallback for why, and
+  // what it costs. It used to hold its own copy of that same workaround.
   const raw = isServer
-    ? await getCookieServer(COOKIE_NAME)
+    ? (await readServerCookies([COOKIE_NAME]))[0]
     : getCookieClient(COOKIE_NAME);
   return safeParse(raw);
 };
 
+// Writes only ever happen in the browser: the one caller is PathTracker, and it
+// writes from an effect. There used to be a server half here, and it could not
+// have worked — it used the request store without awaiting it, so every write
+// threw into an empty catch. Removed rather than repaired: nothing on the
+// server writes this cookie.
 const writeLastPaths = (paths: LastPaths): void => {
-  const value = serialize(paths);
-  if (isServer) {
-    setCookieServer(COOKIE_NAME, value);
-    return;
-  }
-  setCookieClient(COOKIE_NAME, value);
+  setCookieClient(COOKIE_NAME, serialize(paths));
 };
 
 export const storeLastPaths = async (path: string) => {

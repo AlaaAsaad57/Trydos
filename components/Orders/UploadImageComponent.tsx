@@ -395,7 +395,7 @@ const UploadImageComponent = ({
           onChange={handleFileUpload}
           type="file"
           className="hidden"
-          data-cy="return-modal-file-input"
+          data-pw="return-modal-file-input"
         />
 
         <div

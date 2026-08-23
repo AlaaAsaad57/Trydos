@@ -25,9 +25,14 @@ export const SSRDetect = () => {
 // Cached translations per language — loaded once, reused forever
 const translationCache: Record<string, Record<string, string>> = {};
 
-async function loadTranslations(lang: string): Promise<Record<string, string>> {
-  if (translationCache[lang]) return translationCache[lang];
+// Loads already on their way, one per language. Without this, every call made
+// before the first load finishes starts another import of the same file
+// (158KB for Arabic) — a component rendering in a loop pays for it repeatedly.
+const translationLoads: Record<string, Promise<Record<string, string>>> = {};
 
+async function importTranslations(
+  lang: string,
+): Promise<Record<string, string>> {
   let mod: { default: Record<string, string> };
   if (lang === "ar")
     mod = await import("public/translations/translations.ar.js");
@@ -37,8 +42,23 @@ async function loadTranslations(lang: string): Promise<Record<string, string>> {
     mod = await import("public/translations/translations.tr.js");
   else return {};
 
-  translationCache[lang] = mod.default;
   return mod.default;
+}
+
+function loadTranslations(lang: string): Promise<Record<string, string>> {
+  if (translationLoads[lang]) return translationLoads[lang];
+
+  const pending = importTranslations(lang)
+    .then((dictionary) => {
+      translationCache[lang] = dictionary;
+      return dictionary;
+    })
+    .finally(() => {
+      delete translationLoads[lang];
+    });
+
+  translationLoads[lang] = pending;
+  return pending;
 }
 
 // Eagerly kick off loading for the current language so it's ready fast
@@ -74,7 +94,6 @@ export const getUserChat = (): any => {
 };
 export const getUserStories = (): any => {
   let userCookie = getCookie<any>(COOKIE_NAMES.USER_DATA);
-  console.log(useAppStore.getState().userStories, userCookie);
   if (useAppStore.getState().userStories)
     return useAppStore.getState().userStories;
   else {
@@ -96,13 +115,19 @@ export const getConfiguredImage = ({ src, width, height, q, c_pad }: any) => {
     );
   }
   if (src?.file_path?.includes("media_server")) {
+    // Replace "/upload" and keep the slash that follows it, exactly as the
+    // text branch above does — otherwise the rest of the path is glued to the
+    // settings ("…/so_0v1/b.jpg").
     return src.file_path.replace(
-      "/upload/",
+      "/upload",
       `/upload/h_${height}${width ? `,w_${width}` : ""},${
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
       }/f_auto/q_auto:good/fl_lossy/so_0`,
     );
-  } else return src?.file_path || src || "";
+  }
+  // Always text. An object with no path used to fall through to the object
+  // itself, and every caller here expects an address.
+  return src?.file_path || "";
 };
 
 function preciseMultiply(a, b) {
@@ -146,7 +171,7 @@ export const RoundPrice = ({
   num,
   rate,
   returnNumber,
-  language = "en",
+  language,
   points,
 }: {
   num?: number | string;
@@ -156,6 +181,10 @@ export const RoundPrice = ({
   points?: any;
 }): number | string => {
   let price_num = Number(num);
+  // A missing or unreadable price used to become NaN, which fails every band
+  // test below and lands in the millions branch — the shopper was shown
+  // "NaNM". Treat it as nothing instead.
+  if (!Number.isFinite(price_num)) price_num = 0;
   const {
     currency,
     settings,
@@ -194,30 +223,42 @@ export const RoundPrice = ({
 };
 
 export const onClickSearchHistory = (searchValue) => {
-  if (localStorage.getItem("search-history")) {
-    let arr = JSON.parse(localStorage.getItem("search-history"));
-    if (arr.some((s) => s.toLowerCase() === searchValue.toLowerCase())) {
-    } else {
-      let arr = JSON.parse(localStorage.getItem("search-history"));
-      localStorage.setItem(
-        "search-history",
-        JSON.stringify([searchValue, ...arr]),
-      );
+  let stored: string[] = [];
+  const raw = localStorage.getItem("search-history");
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      // Stored history can be anything a browser has kept for months. Bad data
+      // must not throw out of a click handler.
+      if (Array.isArray(parsed)) stored = parsed;
+    } catch {
+      stored = [];
     }
-    return [searchValue, ...arr];
-  } else {
-    localStorage.setItem("search-history", JSON.stringify([searchValue]));
-    return [searchValue];
   }
+
+  const alreadyThere = stored.some(
+    (s) => String(s).toLowerCase() === searchValue.toLowerCase(),
+  );
+  // On a repeat, hand back what is actually stored. Returning
+  // [searchValue, ...stored] showed the shopper the same word twice.
+  const history = alreadyThere ? stored : [searchValue, ...stored];
+
+  localStorage.setItem("search-history", JSON.stringify(history));
+  return history;
 };
 
 export const getOldCart = async () => {
-  const userId =
+  let userId =
     useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id;
+
+  // Re-read inside the loop, the same way getCart does. Reading it once meant
+  // a user who signed in while we waited was never noticed.
   let waited = 0;
   while (!userId && waited < 300000) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     waited += 1000;
+    userId =
+      useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id;
   }
   if (!userId) return [];
   try {
@@ -350,7 +391,7 @@ export const LogError = async (error) => {
         ? { message: String(serializedError) }
         : {};
   const Error_Object = {
-    ...(baseError ?? {}),
+    ...baseError,
     message,
     userChat,
     userData,
@@ -398,19 +439,32 @@ export async function storeError(error) {
     // ignore — logging must be best-effort
   }
 }
+// How long to wait for registration before going ahead anyway.
+const WAIT_FOR_CONDITION_LIMIT = 10000;
+
 export const WaitForCondition = async () => {
-  const { isRegisteringReady } = useAppStore.getState();
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
+    // Read the flag from the shared state on every check. Reading it once, up
+    // front, froze a copy — so the check could never see the flag being set,
+    // and the caller waited for ever while a timer ran for the life of the page.
+    if (useAppStore.getState().isRegisteringReady) {
+      resolve("Ready, now performing the request!");
+      return;
+    }
+
     const interval = setInterval(() => {
-      const isReady = isRegisteringReady;
-      if (isReady) {
+      if (useAppStore.getState().isRegisteringReady) {
         clearInterval(interval);
+        clearTimeout(limit);
         resolve("Ready, now performing the request!");
       }
     }, 1000); // Check every second
 
-    // Optional: timeout in case it's taking too long
-    // Wait for 10 seconds
+    // Give up after the limit so the caller is never stuck for ever.
+    const limit = setTimeout(() => {
+      clearInterval(interval);
+      resolve("Gave up waiting, performing the request anyway!");
+    }, WAIT_FOR_CONDITION_LIMIT);
   });
 };
 
@@ -463,7 +517,9 @@ export const removeFromCompare = (slug: string) => {
     deleteCookie("s_p");
     result = f_p ? `?f_p=${f_p}` : "";
   } else {
-    result = null;
+    // Nothing was being compared under that slug, so nothing changed. Telling
+    // everyone to re-read here made every listener work for nothing.
+    return null;
   }
   notifyCompareChanged();
   return result;

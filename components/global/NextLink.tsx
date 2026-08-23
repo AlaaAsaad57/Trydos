@@ -45,7 +45,7 @@ export default function NextLink({
       <Link
         suppressHydrationWarning
         className={className}
-        data-cy={props["data-cy"] ?? ""}
+        data-pw={props["data-pw"] ?? ""}
         style={style}
         prefetch={"auto"}
         href={href}
@@ -101,7 +101,7 @@ export default function NextLink({
         }}
         className={className}
         style={style}
-        data-cy={props["data-cy"] ?? ""}
+        data-pw={props["data-pw"] ?? ""}
         data-id={props["data-id"] ?? ""}
         data-name={props["data-name"] ?? ""}
         data-type={props["data-type"] ?? ""}
@@ -116,7 +116,7 @@ export default function NextLink({
       suppressHydrationWarning
       className={className}
       style={style}
-      data-cy={props["data-cy"] ?? ""}
+      data-pw={props["data-pw"] ?? ""}
       prefetch={"auto"}
       onNavigate={(e) => {
         if (isFromSetting) {

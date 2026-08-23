@@ -28,5 +28,14 @@ export function dedupeRequest<T>(
   if (existing) return existing;
   const promise = run();
   store.set(key, promise);
+  // Only successes are worth sharing. Keeping a failed promise meant the first
+  // error for a key became the answer for every later caller in the same render
+  // — one refused query took down the rest of the page with it, even the parts
+  // that would have succeeded. Dropping it lets the next caller try again.
+  // (The `catch` here only cleans up; the rejection is still delivered to
+  // whoever is awaiting `promise`.)
+  promise.catch(() => {
+    if (store.get(key) === promise) store.delete(key);
+  });
   return promise;
 }

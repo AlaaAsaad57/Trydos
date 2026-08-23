@@ -355,7 +355,7 @@ function ProductsInfiniteScroll({
 
       <div
         className="get-next-product absolute left-0 right-0 bottom-[200px] flex flex-col items-center justify-center"
-        data-cy="ReachEnd"
+        data-pw="ReachEnd"
       >
         {!isReachEnd ? (
           !loading ? (

@@ -15,7 +15,8 @@ across every entry point — and what happens when renewal fails.
 |---|---|
 | `MARKET-TOKEN` | HttpOnly access-token cookie — the single auth cookie for guest **and** logged-in users. |
 | `MARKET-REFRESH-TOKEN` | HttpOnly refresh cookie, 30 days, **single-use** — every exchange rotates both cookies together. |
-| `refreshMarketSession()` | The one shared exchange helper (`utils/server/authRefresh.ts`). Routes by user type: **verified → core**, **guest → gateway** (both share one DB, so a pair minted by either validates on both). Single-flighted per server instance. |
+| `refreshMarketSession()` | The one shared exchange helper for market (`utils/server/authRefresh.ts`). Routes by user type: **verified → core**, **guest → gateway** (both share one DB, so a pair minted by either validates on both). Single-flighted per server instance. |
+| `refreshChatSession()` | Chat exchange helper (`utils/server/authRefresh.ts`). Calls the chat backend with the single-use `CHAT-REFRESH-TOKEN` and rotates `CHAT-TOKEN` + `CHAT-REFRESH-TOKEN`. Single-flighted per server instance. |
 | `/api/auth/refresh` | Internal route wrapping the helper (`app/api/auth/refresh/route.ts`). Called proactively (no body) and reactively (`{url, server}` after a 401). Token material never appears in a response body — only `Set-Cookie`. |
 | `/api/auth/expire` | The teardown fallback (`app/api/auth/expire/route.ts`). Runs only after refresh has failed; tries one **last-chance** refresh before nuking. |
 | Logout guard | A short-lived cookie set during logout. Every flow checks it first — nothing mints or rotates credentials mid-logout. |
@@ -29,6 +30,24 @@ across every entry point — and what happens when renewal fails.
 | `invalid` | Upstream 401 — dead **or** raced. The cookie is *not* deleted here (a concurrent winner may have rotated it) | Fall through; only `/expire`'s nuke deletes it |
 | `ineligible` | Logout in progress | Do nothing |
 | `unavailable` | 5xx / network / malformed — never retried | Fall through to fallback flow |
+
+### Known trade-off: a refused credential is kept
+
+`invalid` deliberately leaves the refresh cookie in place, and this is the one
+outcome where the safe choice has a real cost. It was reviewed on 2026-08-15 and
+**left as it is**; unit tests pin it (`tests/utils/server/authRefresh.test.ts`),
+so a change here is a decision, not an accident.
+
+- **Why it is kept.** A 401 cannot tell "this credential is dead" from "a
+  concurrent winner already rotated it". Two tabs refreshing at once produce
+  exactly one loser, and deleting on its behalf would sign out a shopper whose
+  session is fine. Losing a live session is worse than carrying a dead cookie.
+- **What it costs.** A genuinely dead credential is sent on every later request
+  until the expire route's nuke path clears it. The cost is wasted exchanges, not
+  a broken session.
+- **What would actually fix it.** The backend answering "dead" differently from
+  "raced" — then the dead case can be cleared immediately and the raced case left
+  alone. Until then, deleting on a plain 401 is not a fix, it is a new bug.
 
 ---
 
@@ -76,8 +95,8 @@ no guest re-register, no identity loss.
 
 ## Flow 2 — Reactive refresh on a client 401
 
-**Path:** `utils/fetchData.ts:217-266` — applies to `server === "market" | "market-dashboard"` only.
-`chat` / `stories` / `comments` / `wallet` keep their own `need_auth` re-auth flow and are **not** refreshable here.
+**Path:** `utils/fetchData.ts:217-266` — applies to `server === "market" | "market-dashboard" | "chat" | "stories"`.
+`comments` / `wallet` keep their own `need_auth` re-auth flow and are **not** refreshable here. Chat and stories share the same refresh-first pattern: a failed chat/stories 401 is retried after the CHAT-TOKEN / STORIES-TOKEN pair is rotated; only when refresh fails does it fall back to the chat/stories `need_auth` prompt.
 
 ```mermaid
 flowchart TD
@@ -85,7 +104,7 @@ flowchart TD
     B --> C{Outcome}
     C -->|refreshed| D[Retry original request<br/>with rotated cookie → done]
     C -->|"failed (still eligible)"| E["Jar-retry: retry original request once anyway<br/>a concurrent tab may have already rotated the cookies"]
-    C -->|"ineligible server (chat/stories/…)"| F[Own need_auth flow]
+    C -->|"ineligible server (comments/wallet)"| F[Own need_auth flow]
     E --> G{Retry result}
     G -->|200| H[Done — a race winner's cookie saved it]
     G -->|"401 again (attempt 1)"| I["ExpiredUser() → /api/auth/expire<br/>(Flow 4)"]
@@ -193,6 +212,20 @@ to an anonymous guest** — one OTP puts them back into their real account.
 6. **Backend routing is one rule.** Verified → core, guest → gateway — decided inside
    the shared helper only (same rule as `getMarketFetchBase`), never re-implemented
    by callers.
+7. **Each service only ever touches its own credentials.** The chat / stories /
+   comments / wallet arms of `handleUnauthorized` share one exit path, but the
+   `/api/auth/clear-tokens` call is scoped per service (`STALE_TOKENS_FOR` in
+   `utils/fetchData.ts`), and the route invalidates only the profile blob whose
+   token it just deleted. A failure in one sub-service never deletes another's
+   pair and never downgrades `User-Data` to unverified. For the same reason the
+   client refresh dedup (`_refreshPromises` in `services/auth.ts`) is keyed by
+   service: market/market-dashboard share the MARKET pair, chat and stories each
+   get their own exchange.
+8. **Refresh cookies always get the 30-day TTL.** Every writer —
+   `/api/auth/login`, `/api/auth/update-user`, and the rotation inside
+   `authRefresh.ts` — stores `*-REFRESH-TOKEN` with `REFRESH_COOKIE_OPTIONS`,
+   never the 48h access-token TTL. Storage must never expire before the token
+   it holds, or the reactive refresh has nothing left to exchange.
 
 ## Monitoring
 

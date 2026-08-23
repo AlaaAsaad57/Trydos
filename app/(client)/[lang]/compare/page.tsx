@@ -1,3 +1,4 @@
+import { lang as langParam } from "next/root-params";
 import "styles/productDetails.css";
 import ComparePage from "components/global/compare";
 import { Suspense } from "react";
@@ -7,16 +8,16 @@ import { translateFunction } from "utils/server";
 
 export const dynamic = "auto";
 
-export async function generateMetadata({ params }) {
-  let Params = await params;
-  const [country, language] = Params?.lang?.split("-");
+export async function generateMetadata() {
+  const lang = await langParam();
+  const [country, language] = lang?.split("-");
   const metadata = {
     title: translateFunction("Compare Products - TryDos", language),
     description: translateFunction(
       "Compare products side by side on TryDos - Make informed purchasing decisions.",
       language,
     ),
-    alternates: buildAlternates(Params.lang, "/compare"),
+    alternates: buildAlternates(lang, "/compare"),
   };
   return metadata;
 }

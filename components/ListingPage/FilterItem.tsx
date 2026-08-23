@@ -104,7 +104,7 @@ const FilterItem = ({
           className={`category-circle flex-col align-center ${
             item?.childes?.length > 0 && "extended-circle"
           }`}
-          data-cy="category_filter_item"
+          data-pw="category_filter_item"
         >
           <div className="relative w-[70px] h-[70px] z-10">
             {isFiltered && (
@@ -149,7 +149,7 @@ const FilterItem = ({
             />
           </div>
           <div className="category-text-container flex-col align-center max-w-[70px]">
-            <span className="category-title" data-cy="categoryTitle">
+            <span className="category-title" data-pw="categoryTitle">
               {item.name}
             </span>
             {/* <span className="category-typo">1100</span> */}
@@ -373,7 +373,7 @@ const FilterItem = ({
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
         }`}
-        data-cy="brand_filter_item"
+        data-pw="brand_filter_item"
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
@@ -414,7 +414,7 @@ const FilterItem = ({
         </div>
 
         <div className="category-text-container flex-col align-center">
-          <span className="category-title" data-cy="brandTitle">
+          <span className="category-title" data-pw="brandTitle">
             {item.name}
           </span>
           {/* <span className="category-typo">1100</span> */}
@@ -436,7 +436,7 @@ const FilterItem = ({
         href={href}
         ariaLabel={`filter color ${item} ${params.lang}`}
         className={`category-circle flex-col align-center extended-circle`}
-        data-cy="color_filter_item"
+        data-pw="color_filter_item"
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
@@ -492,7 +492,7 @@ const FilterItem = ({
         href={href}
         ariaLabel={`filter size ${item} ${params.lang}`}
         className={`category-circle flex-col align-center extended-circle`}
-        data-cy="size_filter_item"
+        data-pw="size_filter_item"
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
@@ -537,7 +537,7 @@ const FilterItem = ({
           </div>
         </div>
         <div className="category-text-container flex-col align-center">
-          <span className="category-title" data-cy="sizeTitle">
+          <span className="category-title" data-pw="sizeTitle">
             {item}
           </span>
           {/* <span className="category-typo">1100</span> */}
@@ -559,7 +559,7 @@ const FilterItem = ({
         href={href}
         ariaLabel={`filter price ${item.min_price}-${item.max_price} ${params.lang}`}
         className={`category-circle flex-col align-center min-w-[140px] w-auto static extended-circle`}
-        data-cy="price_filter_item"
+        data-pw="price_filter_item"
       >
         <div className="relative w-[140px] h-[70px]">
           {isFiltered && (

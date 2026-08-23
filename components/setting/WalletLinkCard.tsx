@@ -128,7 +128,7 @@ function WalletLinkCard({ isRtl, language, country }) {
       </span>
       <span
         className="text-[#8D8D8D] text-[12px] regular"
-        data-cy="user-wallet-amount"
+        data-pw="user-wallet-amount"
       >
         <span className="medium">
           {loading ? (

@@ -19,7 +19,7 @@ function FiltersButton({
   return (
     <div
       className=" fixed gap-[5px] bg-white px-[10px] z-99999999 mx-auto left-0 right-0 bottom-[50px] flex-row w-full mt-3 items-end"
-      data-cy="searchResult"
+      data-pw="searchResult"
     >
       {isChanged &&
         !loading &&
@@ -46,7 +46,7 @@ function FiltersButton({
                 is_filter: true,
               }}
               className="w-full p-2 cursor-pointer flex bg-[#FF5F61] text-white justify-center items-center rounded-[20px] h-[65px]"
-              data-cy="searchTotalProduct"
+              data-pw="searchTotalProduct"
             >
               {translateFunction("Search")}
               {loading ? (
@@ -58,7 +58,7 @@ function FiltersButton({
                   {total_size !== null && (
                     <span
                       className="text-[#fafafa] regular ml-2"
-                      data-cy="countAfterFilter"
+                      data-pw="countAfterFilter"
                     >
                       ({translateFunction("Total Products:")} {total_size})
                     </span>
@@ -73,7 +73,7 @@ function FiltersButton({
       {isChanged && !loading && (
         <div
           className="w-[94px] py-[20px] px-[23px] text-[18px] regular cursor-pointer p-2 flex bg-white border border-[#388CFF] text-[#388CFF] h-[65px] justify-center items-center rounded-[20px]"
-          data-cy="reset-filter-button"
+          data-pw="reset-filter-button"
           onClick={() => onReset()}
         >
           {translateFunction("Reset")}

@@ -56,7 +56,7 @@ function AddStory() {
   if (isAllowedToUploadStories()) {
     return (
       <div
-        data-cy="Add-Story-Button"
+        data-pw="Add-Story-Button"
         className="relative w-[100px] min-w-[100px] add-story-container flex items-center justify-center h-[150px] ml-[20px] rounded-[20px] bg-[#f0f0f0] overflow-hidden"
         onClick={handleClick}
       >

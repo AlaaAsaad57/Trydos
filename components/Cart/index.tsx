@@ -152,20 +152,20 @@ function CartContainer({ close, toOrders }) {
       className={`flex-col ${
         cart.length > 0 ? "pb-[283px]" : "100px"
       }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-screen z-9999999999 pt-1`}
-      data-cy="cartPage-container"
+      data-pw="cartPage-container"
     >
       <div
         className="flex-col pl-2 pr-2 bg-white p-1"
-        data-cy="cartPage-header-container"
+        data-pw="cartPage-header-container"
       >
         <div
           className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center "
-          data-cy="cartPage-headerComponents-container"
+          data-pw="cartPage-headerComponents-container"
         >
           <img
             src="/icons/backIcon.svg"
             className="cursor-pointer z-50"
-            data-cy="CartBackIcon"
+            data-pw="CartBackIcon"
             onClick={() => {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
@@ -177,10 +177,10 @@ function CartContainer({ close, toOrders }) {
           />
           <span
             className="text-[13px] text-[#505050] regular flex-row items-center"
-            data-cy="cartPage-textContainer-onHeader"
+            data-pw="cartPage-textContainer-onHeader"
           >
             <svg
-              data-cy="svg-textContainer"
+              data-pw="svg-textContainer"
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"
               width="20"
@@ -301,18 +301,18 @@ function CartContainer({ close, toOrders }) {
               className={`regular ml-[8px] ${
                 language === "ar" || language === "ku" ? "text-right" : ""
               }`}
-              data-cy="textContainer-textOnHeader"
+              data-pw="textContainer-textOnHeader"
             >
               {translate("Shopping Bag", language)}{" "}
               {cart.length > 0 && (
-                <span className="bold" data-cy="length-ofItems">
+                <span className="bold" data-pw="length-ofItems">
                   {cart.length} {translate("Items")}
                 </span>
               )}
             </span>
           </span>
 
-          <img src="/icons/shareIcon.svg" data-cy="shareIcon-onHeader" />
+          <img src="/icons/shareIcon.svg" data-pw="shareIcon-onHeader" />
         </div>
       </div>
 
@@ -331,7 +331,7 @@ function CartContainer({ close, toOrders }) {
                     <div
                       className="relative px-[12px]"
                       key={key}
-                      data-cy="one-product"
+                      data-pw="one-product"
                     >
                       <CartItemLink product={product} key={key}>
                         <CartItem product={product} index={key} />
@@ -655,7 +655,7 @@ export const QuantutyInput = ({
 
   return (
     <div
-      data-cy="card-footer"
+      data-pw="card-footer"
       className={`${
         isRtl ? "right-[137px] flex-row-reverse" : "left-[137px] flex-row"
       } absolute flex-nowrap ${"top-[125px]"}  items-center justify-between gap-x-2 max-w-[calc(100%-152px)] w-full`}
@@ -665,10 +665,10 @@ export const QuantutyInput = ({
           className={`${
             loading && "opacity-40"
           } flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50`}
-          data-cy="plus-delete-increase-container"
+          data-pw="plus-delete-increase-container"
         >
           <svg
-            data-cy="square-icon"
+            data-pw="square-icon"
             className="absolute hide-btn"
             xmlns="http://www.w3.org/2000/svg"
             width="72"
@@ -703,7 +703,7 @@ export const QuantutyInput = ({
           {!shouldDisablePlus() && (
             <div
               className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
-              data-cy="PlusIcon_CartPage"
+              data-pw="PlusIcon_CartPage"
               onClick={() => {
                 if (disabled) return false;
                 // if (inputValue === max) {
@@ -729,7 +729,7 @@ export const QuantutyInput = ({
             <>
               <div
                 className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
-                data-cy="MinusIcon_CartPage"
+                data-pw="MinusIcon_CartPage"
                 onClick={() => {
                   if (disabled) return false;
                   if (inputValue > 1) {
@@ -740,7 +740,7 @@ export const QuantutyInput = ({
                 }}
               >
                 <Image
-                  data-cy="minus-icon-svg"
+                  data-pw="minus-icon-svg"
                   width={12}
                   height={12}
                   alt="cart-plus-icon"
@@ -751,7 +751,7 @@ export const QuantutyInput = ({
               {!loading && !disabled && (
                 <div
                   className="absolute h-[24px] flex items-center hide-btn right-[-20px] -top-px scale-125  cursor-pointer"
-                  data-cy="DeleteIcon_CartPage"
+                  data-pw="DeleteIcon_CartPage"
                   onClick={() => {
                     // Sendevent({
                     //   event: GA_EVENT_NAMES.CLICK,
@@ -761,7 +761,7 @@ export const QuantutyInput = ({
                   }}
                 >
                   <Image
-                    data-cy="delete-icon-svg"
+                    data-pw="delete-icon-svg"
                     width={12}
                     height={12}
                     alt="cart-delete-icon"
@@ -773,7 +773,7 @@ export const QuantutyInput = ({
           ) : disabled ? null : (
             <div
               className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
-              data-cy="DeleteIcon_CartPage"
+              data-pw="DeleteIcon_CartPage"
               onClick={() => {
                 trackOrder(ORDER_EVENTS.CART_ITEM_REMOVED, {
                   product_id: product?.product_id ?? id,
@@ -786,7 +786,7 @@ export const QuantutyInput = ({
               }}
             >
               <Image
-                data-cy="delete-icon-svg"
+                data-pw="delete-icon-svg"
                 width={12}
                 height={12}
                 alt="cart-delete-icon"
@@ -797,7 +797,7 @@ export const QuantutyInput = ({
           <input
             // @ts-ignore
             value={parseInt(inputValue)}
-            data-cy="QuantityInCart"
+            data-pw="QuantityInCart"
             max={max}
             disabled
             onChange={(e) => {}}
@@ -836,25 +836,25 @@ export const QuantutyInput = ({
       </div>
 
       <div className="flex-col min-w-0">
-        <div className={``} data-cy="oldNew-price-container">
-          <div className="product-info-price" data-cy="oldNew-price-container2">
+        <div className={``} data-pw="oldNew-price-container">
+          <div className="product-info-price" data-pw="oldNew-price-container2">
             {hasDiscount ? (
               <>
-                <div className="flex-col" data-cy="Subdivisions">
+                <div className="flex-col" data-pw="Subdivisions">
                   <div
                     className="flex-row gap-[4px]"
                     style={{
                       direction: isRtl ? "rtl" : "ltr",
                     }}
-                    data-cy="newOld-price"
+                    data-pw="newOld-price"
                   >
                     <div
                       className={`product-old-price ${priceFontClass} text-[#C4C2C2] regular`}
-                      data-cy="oldPrice-container"
+                      data-pw="oldPrice-container"
                     >
                       {oldPriceLabel}
                       <svg
-                        data-cy="oldPrice-svg"
+                        data-pw="oldPrice-svg"
                         className="bottom-3"
                         xmlns="http://www.w3.org/2000/svg"
                         width="100%"
@@ -875,31 +875,31 @@ export const QuantutyInput = ({
                       className={`${
                         (product as any)?.is_luck && "text-[#FF6200]"
                       } product-new-price ${priceFontClass} bold m-0`}
-                      data-cy="new-price"
+                      data-pw="new-price"
                     >
                       {newPriceLabel}
                     </div>
                     <div
                       className="product-currency text-[8px] light text-[#1D1D1D] m-0"
-                      data-cy="currency-symbol"
+                      data-pw="currency-symbol"
                     >
                       {currency?.symbol}
                     </div>
                   </div>
-                  <div className="flex-row" data-cy="below-subdivisions">
+                  <div className="flex-row" data-pw="below-subdivisions">
                     <Image
                       alt="saved-icon"
-                      data-cy="saved-svg"
+                      data-pw="saved-svg"
                       width={10}
                       height={10}
                       src={"/icons/SavedIcon.svg"}
                     />
                     <span
                       className="text-[8px] text-[#388CFF] flex-row-reverse flex mx-[4px]"
-                      data-cy="saved-text"
+                      data-pw="saved-text"
                     >
                       {translate("Saved")}{" "}
-                      <span className="bold" data-cy="rate">
+                      <span className="bold" data-pw="rate">
                         {savingPercent}%
                       </span>
                     </span>

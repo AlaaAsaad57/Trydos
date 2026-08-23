@@ -86,7 +86,9 @@ const Page = () => {
             marketToken:
               (parsed as any).marketToken ?? (parsed as any).deviceToken,
             chatToken: (parsed as any).chatToken,
+            chatRefreshToken: (parsed as any).chatRefreshToken,
             storiesToken: (parsed as any).storiesToken,
+            storiesRefreshToken: (parsed as any).storiesRefreshToken,
             walletToken: (parsed as any).walletToken,
             userIdHash: (parsed as any).userIdHash,
           }),

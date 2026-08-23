@@ -167,7 +167,7 @@ function RelatedProductsInfiniteScroll({
 
       <div
         className="get-next-product regular-text color-dark-gray  flex justify-center items-end bottom-[40px]"
-        data-cy="RelatedReachEnd"
+        data-pw="RelatedReachEnd"
       >
         {!isReachEnd ? (
           <>

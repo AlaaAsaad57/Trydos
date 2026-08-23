@@ -5,7 +5,7 @@ function BoutiqueSlidersSkeleton({ boutique }: any) {
   return (
     <>
       <div
-        data-cy="boutique_top_icons"
+        data-pw="boutique_top_icons"
         className="boutique-top-info flex-col items-center"
       >
         <div className="boutique-logo-container flex-row align-center">
@@ -22,30 +22,30 @@ function BoutiqueSlidersSkeleton({ boutique }: any) {
         </div>
         <div className="boutique-text">{boutique?.name}</div>
       </div>
-      <div data-cy="boutique_photo_holder" className="boutique-photo-holder w-full min-w-[100vw]">
+      <div data-pw="boutique_photo_holder" className="boutique-photo-holder w-full min-w-[100vw]">
         <div
-          data-cy="banners_length-1"
+          data-pw="banners_length-1"
           className={`${
             boutique?.banners?.length > 1 && "justify-start"
           } offer-slider-container`}
         >
-          <div data-cy="embla_embla" className="embla">
-            <div data-cy="embla__container_embla" className="embla__container">
+          <div data-pw="embla_embla" className="embla">
+            <div data-pw="embla__container_embla" className="embla__container">
               {boutique?.banners?.map((s, index) => (
                 <div
-                  data-cy="embla__slide_embla"
+                  data-pw="embla__slide_embla"
                   className="embla__slide"
                   key={index}
                 >
                   <div
-                    data-cy="offer_slide_item_embla"
+                    data-pw="offer_slide_item_embla"
                     className="offer-slide-item"
                     style={{ width: "100%" }}
                     key={index}
                   >
-                    <div data-cy="image_offer_image" className="image-offer">
+                    <div data-pw="image_offer_image" className="image-offer">
                       <div
-                        data-cy="image_inner_shadow_image"
+                        data-pw="image_inner_shadow_image"
                         className="image-inner-shadow"
                         style={{ height: "100%" }}
                       />
@@ -56,18 +56,18 @@ function BoutiqueSlidersSkeleton({ boutique }: any) {
                 </div>
               ))}
               {boutique?.banners?.length === 0 && (
-                <div data-cy="embla__slide_embla" className="embla__slide">
+                <div data-pw="embla__slide_embla" className="embla__slide">
                   <div
-                    data-cy="offer_slide_item_embla"
+                    data-pw="offer_slide_item_embla"
                     className="offer-slide-item"
                     style={{ width: "100%" }}
                   >
                     <div
-                      data-cy="image_offer_image"
+                      data-pw="image_offer_image"
                       className="image-offer w-full"
                     >
                       <div
-                        data-cy="image_inner_shadow_image"
+                        data-pw="image_inner_shadow_image"
                         className="image-inner-shadow"
                         style={{ height: "100%" }}
                       />

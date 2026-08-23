@@ -139,7 +139,7 @@ function ProductLikeButton({
       className={`product-option-item flex-row ${
         likeLoading && "opacity-80 scale-90"
       } transition-all`}
-      data-cy="LoveSymbol"
+      data-pw="LoveSymbol"
       onClick={() => {
         setLiked(!isLikedState);
         if (isLikedState) LikeProduct(false);
@@ -147,11 +147,11 @@ function ProductLikeButton({
       }}
     >
       {isLikedState ? (
-        <img src="/icons/HeartFill.svg" data-cy="LoveClickOnLast" />
+        <img src="/icons/HeartFill.svg" data-pw="LoveClickOnLast" />
       ) : (
         <img src="/icons/Heart.svg" />
       )}
-      {<span data-cy="CountOfLoves">{getLikesCount()}</span>}
+      {<span data-pw="CountOfLoves">{getLikesCount()}</span>}
     </div>
   );
 }

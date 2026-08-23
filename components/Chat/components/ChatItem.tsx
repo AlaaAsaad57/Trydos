@@ -196,7 +196,7 @@ function ChatItem({
         } ${isActive && "active-chat-effect"}
         ${isRtl ? "p-[10px_20px_10px_10px] flex-row-reverse" : "flex-row"} 
         `}
-        data-cy="ChatItem"
+        data-pw="ChatItem"
         onMouseUp={() => handleClick()}
       >
         {}

@@ -97,7 +97,7 @@ const HiddenOrderItem = ({
         className={`bg-[#f8f8f8] relative w-full pt-[7px] pb-[12px] pl-[12px] pr-[10px] rounded-[15px] h-[200px] mt-[10px] flex-col ${
           order.is_fully_hidden ? "opacity-40" : ""
         }`}
-        data-cy="hidden-order-card"
+        data-pw="hidden-order-card"
       >
         <div
           className={`${
@@ -139,7 +139,7 @@ const HiddenOrderItem = ({
       {order.is_fully_hidden && (
         <button
           type="button"
-          data-cy="restore-hidden-order"
+          data-pw="restore-hidden-order"
           aria-label="Restore hidden order"
           onClick={() => setConfirm({ level: "order", ids: order.pack_ids })}
           className="absolute z-20 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-[52px] h-[52px] rounded-full bg-white shadow-lg"

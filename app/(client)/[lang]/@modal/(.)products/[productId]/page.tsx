@@ -1,3 +1,4 @@
+import { lang as langParam } from "next/root-params";
 import ProductPageContent from "components/Product/ProductPageContent";
 import NotFoundRedirect from "components/global/NotFoundRedirect";
 import { GetProductMeta } from "serverRequests/product";
@@ -7,7 +8,8 @@ export const dynamic = "force-dynamic";
 
 export default async function InterceptedProductPage({ params, searchParams }) {
   const [Params, SearchParams] = await Promise.all([params, searchParams]);
-  const [country, language] = Params.lang.split("-");
+  const lang = await langParam();
+  const [country, language] = lang.split("-");
 
   // Awaited before anything renders so a missing product never paints the empty
   // shell (NaN prices, blank slider) inside the modal. The full-page route does

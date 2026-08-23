@@ -27,7 +27,7 @@ function SettingTopBar({
             transform: isRtl ? "rotate(180deg)" : "rotate(0)",
           }}
           onClick={() => goBack()}
-          data-cy={(DataCy && `${DataCy}-back-button`) || "back-button"}
+          data-pw={(DataCy && `${DataCy}-back-button`) || "back-button"}
         >
           <img src="/icons/backIcon.svg" />
         </span>
@@ -43,7 +43,7 @@ function SettingTopBar({
           className={
             "cursor-pointer medium text-[#402CDD] text-[14px] flex-row"
           }
-          data-cy={DataCy || "save-button"}
+          data-pw={DataCy || "save-button"}
           onClick={() => {
             if (validateFunction && !validateFunction()) return;
             if (Save) Save();

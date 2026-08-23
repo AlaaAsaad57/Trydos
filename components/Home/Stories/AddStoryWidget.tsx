@@ -599,7 +599,7 @@ export default function AddStoryWidget() {
             </button>
 
             <button
-              data-cy="Gallery-Photo-Option"
+              data-pw="Gallery-Photo-Option"
               onClick={handleFileClick}
               className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg"
             >
@@ -613,7 +613,7 @@ export default function AddStoryWidget() {
                 <input
                   type="url"
                   value={link}
-                  data-cy="link-story-input"
+                  data-pw="link-story-input"
                   onChange={handleLinkChange}
                   onBlur={() => {
                     // On blur, re-sanitize and update state in case of paste or autofill
@@ -640,7 +640,7 @@ export default function AddStoryWidget() {
             {preview && (
               <button
                 onClick={handleShareStory}
-                data-cy="share-story-button"
+                data-pw="share-story-button"
                 className="w-full bg-blue-500 text-white flex justify-center items-center py-2 rounded-lg hover:bg-blue-600 mt-auto disabled:bg-blue-200"
                 disabled={!!linkError || (link && !isValidUrl(link)) || loading}
               >

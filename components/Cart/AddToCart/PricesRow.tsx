@@ -34,7 +34,7 @@ function PricesRow({
           >
             <span className="relative text-[#C4C2C2]">
               <svg
-                data-cy="product_addtocart_svg"
+                data-pw="product_addtocart_svg"
                 className="top-1/2 left-0 absolute"
                 xmlns="http://www.w3.org/2000/svg"
                 width="100%"
@@ -73,7 +73,7 @@ function PricesRow({
           >
             <span className="relative text-[#C4C2C2]">
               <svg
-                data-cy="product_addtocart_svg"
+                data-pw="product_addtocart_svg"
                 className="top-1/2 left-0 absolute"
                 xmlns="http://www.w3.org/2000/svg"
                 width="100%"
@@ -97,7 +97,7 @@ function PricesRow({
             </span>
             <span className="relative text-[#C4C2C2]">
               <svg
-                data-cy="product_addtocart_svg"
+                data-pw="product_addtocart_svg"
                 className="top-1/2 left-0 absolute"
                 xmlns="http://www.w3.org/2000/svg"
                 width="100%"
@@ -157,7 +157,7 @@ function PricesRow({
           >
             <span className="relative text-[#C4C2C2]">
               <svg
-                data-cy="product_addtocart_svg"
+                data-pw="product_addtocart_svg"
                 className="top-1/2 left-0 absolute"
                 xmlns="http://www.w3.org/2000/svg"
                 width="100%"

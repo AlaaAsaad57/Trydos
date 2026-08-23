@@ -7,7 +7,7 @@ import "styles/share-options.css";
 // borderRadius={20}) above its name label.
 function ShareSectionSkeleton() {
   return (
-    <div className="share-options" data-cy="share-section-skeleton">
+    <div className="share-options" data-pw="share-section-skeleton">
       {[0, 1, 2, 3, 4].map((i) => (
         <div className="share-avatar" key={i}>
           <div className="w-[70px] h-[70px] rounded-[20px] bg-gray-200 animate-pulse" />

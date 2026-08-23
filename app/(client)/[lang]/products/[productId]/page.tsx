@@ -1,3 +1,4 @@
+import { lang as langParam } from "next/root-params";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 import { RedisSet } from "serverRequests/radis";
@@ -9,7 +10,8 @@ import { Metadata } from "next";
 
 export async function generateMetadata({ params, searchParams }): Promise<Metadata>{
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
-  let [country, language] = Params.lang.split("-");
+  const lang = await langParam();
+  let [country, language] = lang.split("-");
   try {
     const metaData = await GetProductMeta({
       country: country,
@@ -33,7 +35,7 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
       // @ts-ignore
       throw new Error(metaData?.error ?? metaData);
     }
-    RedisSet(`${Params.productId}-${Params.lang}`, JSON.stringify(metaData));
+    RedisSet(`${Params.productId}-${lang}`, JSON.stringify(metaData));
 
     return metaData;
 
@@ -55,7 +57,8 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
 
 export default async function Page({ params, searchParams }) {
   const [Params, SearchParams] = await Promise.all([params, searchParams]);
-  const [country, language] = Params.lang.split("-");
+  const lang = await langParam();
+  const [country, language] = lang.split("-");
 
   // Awaited on purpose: the page component is the last point that still blocks
   // the response, so it is the only place a not-found redirect can produce a

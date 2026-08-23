@@ -52,11 +52,11 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
   return (
     <>
       <div
-        data-cy="map-container"
+        data-pw="map-container"
         className={`${!expanded && "h-[120px]"} flex-col pl-[12px] pr-[12px]`}
       >
         <div
-          data-cy="map-toggle"
+          data-pw="map-toggle"
           onClick={() => {
             if (!expanded) {
               setExpanded(true);
@@ -75,7 +75,7 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
               <>
                 {!expanded && (
                   <div
-                    data-cy="expand-map"
+                    data-pw="expand-map"
                     onClick={() => {
                       setExpanded(true);
                     }}
@@ -110,7 +110,7 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
                 )}
 
                 <MapElement
-                  data-cy="map-element"
+                  data-pw="map-element"
                   cordinates={cordinates}
                   setLocation={(e) => {
                     setAddressDetails({
@@ -123,7 +123,7 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
 
                 {!expanded && (
                   <div
-                    data-cy="location-accuracy"
+                    data-pw="location-accuracy"
                     className="medium whitespace-nowrap  text-[12px] mt-[10px] flex"
                   >
                     {translateFunction(
@@ -164,11 +164,11 @@ export default Map;
 const ConfirmLocation = ({ locationSelected, selectLocation, closeMap }) => {
   return (
     <div
-      data-cy="confirm-location"
+      data-pw="confirm-location"
       className="bg-[#FFFFFF] flex-row justify-between pr-[20px] h-[100px] w-full pt-[12px] pl-[20px] "
     >
       <div
-        data-cy="confirm-button"
+        data-pw="confirm-button"
         onClick={() => {
           selectLocation();
         }}
@@ -183,7 +183,7 @@ const ConfirmLocation = ({ locationSelected, selectLocation, closeMap }) => {
           closeMap();
         }}
         className="text-[#1D1D1D] w-[124px] cursor-pointer text-[18px] h-[70px] text-center flex justify-center items-center medium "
-        data-cy="cancel-button"
+        data-pw="cancel-button"
       >
         {translateFunction("Cancel")}
       </div>

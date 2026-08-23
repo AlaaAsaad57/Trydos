@@ -27,19 +27,26 @@ export default function StaticPage({
     <div
       className="flex-col w-full pt-[20px] px-[12px] pb-[40px] flex setting-screen"
       style={{ direction: isRtl ? "rtl" : "ltr" }}
+      data-pw="static-page"
     >
       <BackBar
         isRtl={isRtl}
         local={lang}
         name={t(title)}
         preivous_page={`/${lang}/settings`}
+        DataCy="static-page-back"
       />
       <article
         className={`flex-col flex w-full mt-[12px] gap-[20px] ${
           isRtl ? "text-right" : "text-left"
         }`}
       >
-        <h1 className="text-[#1D1D1D] text-[22px] medium">{t(title)}</h1>
+        <h1
+          className="text-[#1D1D1D] text-[22px] medium"
+          data-pw="static-page-title"
+        >
+          {t(title)}
+        </h1>
         {intro && (
           <p className="text-[#5A5A5A] text-[15px] regular leading-[1.8]">
             {t(intro)}

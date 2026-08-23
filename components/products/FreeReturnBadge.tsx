@@ -13,7 +13,7 @@ async function FreeReturnBadge({ qtyPricePromise, language, isRtl }) {
     <div className="product-shipping h-auto rounded-none p-0 py-[8px] justify-start product-colors flex-col align-start relative">
       <div
         className={`${isRtl && "items-end"} colors-label w-full flex-col`}
-        data-cy="FreeReturn"
+        data-pw="FreeReturn"
       >
         <img
           src="/icons/FreeReturnIcon.svg"

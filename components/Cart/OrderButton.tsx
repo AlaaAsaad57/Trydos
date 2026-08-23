@@ -6,7 +6,7 @@ import {
   translateFunction,
 } from "utils/functions";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
-import ConfirmMobile from "./ConfirmMobile";
+import InlineVerifyPanel from "components/Login/Enhanced/InlineVerifyPanel";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
 import OrderMarquee from "./OrderMarquee";
@@ -67,7 +67,7 @@ function OrderButton({ close, toOrders }) {
   const ItemsIcon = () => {
     return (
       <svg
-        data-cy="item-icons"
+        data-pw="item-icons"
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         width="16"
@@ -150,7 +150,7 @@ function OrderButton({ close, toOrders }) {
   const MenuIcon = ({ className }) => {
     return (
       <svg
-        data-cy="menu-icon2"
+        data-pw="menu-icon2"
         className={className || ""}
         xmlns="http://www.w3.org/2000/svg"
         width="10"
@@ -255,7 +255,7 @@ function OrderButton({ close, toOrders }) {
         />
       )}
       <div
-        data-cy="order-bottom-button"
+        data-pw="order-bottom-button"
         style={{
           borderTopLeftRadius: "30px",
           borderTopRightRadius: "30px",
@@ -266,7 +266,7 @@ function OrderButton({ close, toOrders }) {
       >
         {cart.length > 0 && (
           <div
-            data-cy="overflow-hidden-container"
+            data-pw="overflow-hidden-container"
             {...handlers}
             className={`flex-col w-full overflow-hidden ${
               expanded
@@ -275,11 +275,11 @@ function OrderButton({ close, toOrders }) {
             }  transition-all`}
           >
             <div
-              data-cy="containerOf-questionMark"
+              data-pw="containerOf-questionMark"
               className="flex-row w-full justify-center"
             >
               <svg
-                data-cy="questionMark"
+                data-pw="questionMark"
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
                 height="14"
@@ -324,29 +324,29 @@ function OrderButton({ close, toOrders }) {
             <OrderMarquee shippingCost={total_shipping_cost} />
             {expanded && (
               <div
-                data-cy="itemPriceDiscountShipping-container"
+                data-pw="itemPriceDiscountShipping-container"
                 style={{
                   direction: isRtl ? "rtl" : "ltr",
                 }}
                 className="flex-col bg-[#F8F8F8] rounded-t-[12px]  mt-3 pt-[15px]"
               >
                 <div
-                  data-cy="item-container"
+                  data-pw="item-container"
                   className="flex-row items-start px-[12px]"
                 >
                   <ItemsIcon />
                   <div
-                    data-cy="itemTexts-container"
+                    data-pw="itemTexts-container"
                     className="flex-col mx-[5px]"
                   >
                     <span
-                      data-cy="itemTexts"
+                      data-pw="itemTexts"
                       className=" medium text-[#1D1D1D] text-[13px]"
                     >
                       {translate("Item")}
                     </span>
                     <span
-                      data-cy="itemTotalTexts"
+                      data-pw="itemTotalTexts"
                       className="regular text-[11px]"
                     >
                       {translate("Total Items")}
@@ -355,18 +355,18 @@ function OrderButton({ close, toOrders }) {
                   </div>
                 </div>
                 <div
-                  data-cy="Price-container"
+                  data-pw="Price-container"
                   className="flex-row items-start h-[50px] w-full justify-between mt-4"
                 >
                   <div
-                    data-cy="Price-statement-text"
+                    data-pw="Price-statement-text"
                     className="flex-col pl-[28px] text-[#1D1D1D]"
                   >
-                    <span data-cy="Price-text" className="medium text-[13px]">
+                    <span data-pw="Price-text" className="medium text-[13px]">
                       {translateFunction("Price")}
                     </span>
                     <span
-                      data-cy="NormalPrice-text"
+                      data-pw="NormalPrice-text"
                       className="regular text-[11px]"
                     >
                       {translateFunction("Normal Price")}
@@ -374,7 +374,7 @@ function OrderButton({ close, toOrders }) {
                   </div>
                   <span
                     className="ml-[5px] medium text-[#1D1D1D] text-[13px] px-[13px]"
-                    data-cy="cart-total-price"
+                    data-pw="cart-total-price"
                   >
                     {RoundPrice({
                       num:
@@ -389,30 +389,30 @@ function OrderButton({ close, toOrders }) {
                   </span>
                 </div>
                 <div
-                  data-cy="discount-container"
+                  data-pw="discount-container"
                   className="flex-row items-start h-[50px] w-full justify-between mt-2 bg-[#FDFDEF] rounded-[12px] pt-1"
                 >
                   <div
-                    data-cy="discount-container2"
+                    data-pw="discount-container2"
                     className="flex-row px-[12px]"
                   >
                     <span
-                      data-cy="discount-svg-container"
+                      data-pw="discount-svg-container"
                       className="flex-row translate-y-[3px]"
                     >
-                      <img src="/icons/Disount.svg" data-cy="discount-svg" />
+                      <img src="/icons/Disount.svg" data-pw="discount-svg" />
                     </span>{" "}
                     <div className="flex-col px-1 text-[#A28E5B]">
                       <span
                         className={`medium ${
                           languageVariable === "ar" && "dir-rtl"
                         } text-[13px] text-[#A28E5B] flex whitespace-nowrap `}
-                        data-cy="totalDiscount-text"
+                        data-pw="totalDiscount-text"
                       >
                         {translate("Total Discount")}
-                        <div data-cy="empty-div" className="mx-1" />
+                        <div data-pw="empty-div" className="mx-1" />
                         <span
-                          data-cy="empty-div2"
+                          data-pw="empty-div2"
                           className="bold text-[#A28E5B] "
                         >
                           {" " + getDiscount()} %
@@ -420,7 +420,7 @@ function OrderButton({ close, toOrders }) {
                       </span>
                       {!expanded && (
                         <span
-                          data-cy="ShowDiscount"
+                          data-pw="ShowDiscount"
                           className="regular text-[11px] text-[#A28E5B]"
                         >
                           {translate("Click To Show All Discount")}
@@ -430,7 +430,7 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span
-                    data-cy="totalDiscount-text"
+                    data-pw="totalDiscount-text"
                     className="ml-[5px] bold  text-[13px] px-[13px] text-[#A28E5B]"
                   >
                     -{" "}
@@ -464,21 +464,21 @@ function OrderButton({ close, toOrders }) {
                   </span>
                 </div>
                 <div
-                  data-cy="Shipping-container"
+                  data-pw="Shipping-container"
                   className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1"
                 >
                   <div
-                    data-cy="Shipping-container2"
+                    data-pw="Shipping-container2"
                     className="flex-row px-[12px]"
                   >
                     <span
-                      data-cy="Shipping-svg-container2"
+                      data-pw="Shipping-svg-container2"
                       className="flex-row translate-y-[3px]"
                     >
                       <img
                         className="w-5 h-5"
                         src="/icons/Shipping.svg"
-                        data-cy="Shipping-svg"
+                        data-pw="Shipping-svg"
                       />
                     </span>{" "}
                     {
@@ -498,7 +498,7 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span
-                    data-cy="Shipping-RoundPrice"
+                    data-pw="Shipping-RoundPrice"
                     className="ml-[5px] bold  text-[13px] px-[13px] text-[#5BA260]"
                   >
                     <span className="">
@@ -517,7 +517,7 @@ function OrderButton({ close, toOrders }) {
             )}
 
             <div
-              data-cy="total-expanded"
+              data-pw="total-expanded"
               onClick={() => {
                 setExpanded(!expanded);
               }}
@@ -528,23 +528,23 @@ function OrderButton({ close, toOrders }) {
                 } px-[10px] cursor-pointer  items-center min-h-[50px] w-full justify-between  rounded-[12px] pt-1 bg-[#F8F8F8]`}
             >
               <div
-                data-cy="total-left-container"
+                data-pw="total-left-container"
                 className="flex-row px-[12px]"
               >
                 <div
-                  data-cy="total-left-container2"
+                  data-pw="total-left-container2"
                   className={`${
                     isRtl ? "items-end" : "items-start"
                   } flex-col px-4 text-[#1D1D1D]`}
                 >
                   <span
-                    data-cy="total-left-text"
+                    data-pw="total-left-text"
                     className="bold text-[13px] text-[#1D1D1D]"
                   >
                     {translate("Total")}
                   </span>
                   <span
-                    data-cy="Inclusive-text"
+                    data-pw="Inclusive-text"
                     className="medium text-[10px] text-[#8D8D8D] overflow-hidden text-ellipsis whitespace-nowrap"
                   >
                     {translate("All Inclusive Without Additions")}
@@ -553,13 +553,13 @@ function OrderButton({ close, toOrders }) {
               </div>
 
               <span
-                data-cy="total-right-container"
+                data-pw="total-right-container"
                 className={`${
                   isRtl ? "flex-row-reverse" : "flex-row"
                 } justify-center items-center ml-[5px] bold gap-[4px]  text-[16px] px-[13px] text-[#1D1D1D]`}
               >
                 <span
-                  data-cy="total-right-RoundPrice"
+                  data-pw="total-right-RoundPrice"
                   className="line-through regular"
                 >
                   {RoundPrice({
@@ -569,7 +569,7 @@ function OrderButton({ close, toOrders }) {
                     language: languageVariable,
                   })}
                 </span>{" "}
-                <span data-cy="offer-total-price">
+                <span data-pw="offer-total-price">
                   {RoundPrice({
                     num: getTotaPriceToShow(),
                     returnNumber: true,
@@ -586,7 +586,7 @@ function OrderButton({ close, toOrders }) {
           </div>
         )}
         <div
-          data-cy="container-orderButton"
+          data-pw="container-orderButton"
           className={`flex-row w-full px-5 `}
           style={{
             boxShadow: "#0000001a 0px -3px 10px",
@@ -597,7 +597,7 @@ function OrderButton({ close, toOrders }) {
             className={`cursor-pointer  flex-col w-full  ${
               option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
             } rounded-[20px] text-center justify-center items-center`}
-            data-cy="Confirm-Order-Button"
+            data-pw="Confirm-Order-Button"
             style={{
               boxShadow:
                 "inset 0px 3px 6px rgba(255,255,255,0.16), 0px 3px 6px rgba(0,0,0,0.1)",
@@ -619,7 +619,7 @@ function OrderButton({ close, toOrders }) {
           >
             {loading && (
               <span
-                data-cy="spinner-container"
+                data-pw="spinner-container"
                 className="flex p-1 [&>div>svg>g>path]:fill-[#fafafa] scale-150"
               >
                 <Spinner />
@@ -629,20 +629,29 @@ function OrderButton({ close, toOrders }) {
               <>
                 {option ? (
                   <>
-                    <ConfirmMobile
-                      //  @ts-ignore
-                      hasMobile={
+                    <InlineVerifyPanel
+                      initialPhone={
+                        userData?.phone !== null &&
+                        // @ts-ignore — phone is typed loosely across the store
+                        userData?.phone !== 0 &&
+                        userData?.phone !== "0"
+                          ? userData?.phone
+                          : null
+                      }
+                      phoneLocked={
                         userData?.phone !== null &&
                         // @ts-ignore
                         userData?.phone !== 0 &&
                         userData?.phone !== "0"
                       }
-                      closeWindow={() => {
+                      onClose={() => {
                         setOption(false);
                       }}
-                      goToOrders={() => {
+                      onSuccess={() => {
+                        setOption(false);
                         GoToOrders(true);
                       }}
+                      lang={languageVariable}
                     />
                   </>
                 ) : (
@@ -652,7 +661,7 @@ function OrderButton({ close, toOrders }) {
                       <>
                         <span
                           className="text-[#FEFEFE] text-[18px] medium "
-                          data-cy="backHome-text"
+                          data-pw="backHome-text"
                         >
                           {translate(
                             "Back To HomePage",
@@ -663,7 +672,7 @@ function OrderButton({ close, toOrders }) {
                     ) : (
                       <>
                         <span
-                          data-cy="confirm-text"
+                          data-pw="confirm-text"
                           className="text-[#FEFEFE] text-[18px] medium "
                         >
                           {translate(

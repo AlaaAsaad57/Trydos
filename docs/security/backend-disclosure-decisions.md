@@ -2,16 +2,15 @@
 
 Status: **partially implemented** — D3 is applied in the working tree; D1/D2/D4 pending
 Date: 2026-07-19 (revised 2026-07-19 after research)
-Ticket: `_specs/remove-debug-pages-and-any-leaking-servers-info/`
+Ticket: `remove-debug-pages-and-any-leaking-servers-info`
 Scope: reduce what an attacker learns about our backend topology from the browser.
 
 > **Revision note.** The original version of this document contained a
 > **factually wrong feasibility claim** about D2 (see D2 below), written from an
 > incomplete grep. Research under the ticket above corrected it, and the owner
-> then narrowed several decisions. Where this document and
-> `_specs/remove-debug-pages-and-any-leaking-servers-info/research.md` disagree,
-> **the research file is authoritative** — it carries the full file:line
-> inventory and the owner's scope decisions (S1–S16).
+> then narrowed several decisions. The research file for that ticket carried the
+> full file:line inventory and the owner's scope decisions (S1–S16); it was
+> removed with the ticket workspaces and now lives only in git history.
 
 Goal: a penetration tester who reads the JS bundle and replays requests against
 `/api/proxy` should not be able to enumerate our hosts, tell which services exist,
@@ -108,7 +107,7 @@ files, and is the one genuine two-line rename.
 
 **`compare.tsx` also fixes a routing defect.** It uses
 `/web/product/globalDetails` and `/web/product/qtyPriceDetails`
-(`compare.tsx:157-158`) — both Go-gateway paths per `GO_API_PREFIXES`
+(`compare.tsx:157-158`) — both Go-gateway paths per `GATEWAY_API_PREFIXES`
 (`utils/server/tokenManager.ts:104-108`) — but currently sends them to the
 Laravel host. They should be served by Go. Routing through `fetchData` corrects
 this, so the change is a **behavioural fix, not a neutral refactor**, and needs
@@ -166,7 +165,7 @@ Sites that carried it:
 **Still unverified:** whether the `Cache-Control: no-store` addition to the
 proxy's binary response path was included in that work.
 
-**Why.** `isFromGoApi(targetUrl)` (`utils/server/tokenManager.ts:110-114`) returns
+**Why.** `isGatewayApi(targetUrl)` (`utils/server/tokenManager.ts:110-114`) returns
 whether an endpoint is served by the Go gateway or the Laravel backend, and we
 return that answer to the caller. Replaying the proxy across our endpoint list
 yields a complete Go-vs-Laravel topology map for free — precisely the internal

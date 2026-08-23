@@ -178,7 +178,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
             className={`${orderData.agree ? "bg-[#F5FFF8]" : "bg-[#F8F8F8]"} ${
               isRtl ? "flex-row-reverse" : "flex-row"
             } gap-[34px] w-full cursor-pointer agree-valid-border px-[26px] h-[40px] rounded-[15px] regular flex-row items-center text-[12px] text-[#1D1D1D]`}
-            data-cy="read-and-agree"
+            data-pw="read-and-agree"
             style={{
               border: "1px solid rgb(56 144 255 / 51%)",
             }}
@@ -237,7 +237,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
       >
         {!orderData.success && (
           <div
-            data-cy="Place-Order-Buttons"
+            data-pw="Place-Order-Buttons"
             onClick={() => {
               if (orderData.success) {
                 setOrderData({
@@ -312,7 +312,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
           >
             <a
               href={`/${lang}`}
-              data-cy="back-to-home-page"
+              data-pw="back-to-home-page"
               onClick={() => {
                 setIsNavigating({ is_full_home: true });
               }}

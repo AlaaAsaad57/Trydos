@@ -56,7 +56,7 @@ function LanguageSetting({
             style={{
               border: "1px solid rgb(211 211 211 / 51%)",
             }}
-            data-cy="address-info-header" // Added data-cy
+            data-pw="address-info-header" // Added data-pw
           >
             <svg
               id="Group_3387"
@@ -250,7 +250,7 @@ function LanguageSetting({
                 return (
                   <div
                     key={language_variable}
-                    data-cy={`language-${language_variable}`}
+                    data-pw={`language-${language_variable}`}
                     onClick={() => {
                       setSelectedLanguage(language_variable);
                     }}

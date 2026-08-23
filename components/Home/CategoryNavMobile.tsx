@@ -23,7 +23,7 @@ function CategoryNavMobile({
         is_home: true,
       }}
       ariaLabel={`Category ${slug} ${params?.lang}`}
-      data-cy="category-Link"
+      data-pw="category-Link"
       className={`categories-bar-item  cursor-pointer flex flex-col relative w-auto max-w-full justify-start mx-[5px] items-center ${
         decodeURI(mainCategory) === slug && "active-nav-category"
       }`}
@@ -39,13 +39,13 @@ function CategoryNavMobile({
         <img
           src="/icons/ActiveCategoryIcon.svg"
           className="absolute top-[-6px] left-[-6px]"
-          data-cy="activeCategoryIcon"
+          data-pw="activeCategoryIcon"
         />
       )}
       {
         <div
           className="categories-bar-item-icon flex h-auto w-full justify-center"
-          data-cy="categoryIcons"
+          data-pw="categoryIcons"
         >
           <Image
             width={25}

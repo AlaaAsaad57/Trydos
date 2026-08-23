@@ -28,7 +28,7 @@ function ChatListSearch(props) {
       </label>
       <input
         aria-label="Search"
-        data-cy="SearchInputChat"
+        data-pw="SearchInputChat"
         id="search"
         value={props.search}
         onChange={(e) => SearchContacts(pollinateInput(e.target.value))}

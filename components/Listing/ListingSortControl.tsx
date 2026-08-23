@@ -193,7 +193,7 @@ export default function ListingSortControl({
     <>
       <button
         type="button"
-        data-cy="sort_control"
+        data-pw="sort_control"
         className="filter-option relative flex items-center justify-center border-0 bg-transparent p-0"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
@@ -329,7 +329,7 @@ export default function ListingSortControl({
             >
               <button
                 type="button"
-                data-cy="sort_clear"
+                data-pw="sort_clear"
                 disabled={pending === "relevance"}
                 onClick={() => setPending("relevance")}
                 className="h-[48px] rounded-[15px] px-[22px] text-[14px] medium transition-colors"
@@ -344,7 +344,7 @@ export default function ListingSortControl({
               </button>
               <button
                 type="button"
-                data-cy="sort_confirm"
+                data-pw="sort_confirm"
                 disabled={pending === active}
                 onClick={() => applySort(pending)}
                 className="h-[48px] grow rounded-[15px] text-[15px] semibold text-white transition-opacity"

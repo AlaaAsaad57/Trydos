@@ -14,7 +14,7 @@ function OfferListServer({
   return (
     <div
       className={`offers-list w-full flex-col items-center max-w-[1280px] justify-start mt-[30px] pb-[184px] gap-[20px]`}
-      data-cy="boutiques"
+      data-pw="boutiques"
     >
       {HomeData?.boutiques?.map((boutique, myKey) => {
         return (

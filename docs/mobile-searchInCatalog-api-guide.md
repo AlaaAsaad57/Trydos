@@ -222,7 +222,7 @@ stateless cursor. So the robust implementation is: **always send `use_pit=true`,
 and send `pit_id` only when the last response returned a non-null one.** No app
 change is needed if the flag ever flips on or off.
 
-> Background: [ADR-009](../.claude/docs/adr/ADR-009-elasticsearch-pit-listing-pagination.md).
+> Background: [ADR-009](./adr/ADR-009-elasticsearch-pit-listing-pagination.md).
 
 ---
 

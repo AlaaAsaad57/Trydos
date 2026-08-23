@@ -99,7 +99,7 @@ function FileMessage({
             <img
               alt="user-img"
               src={"/icons/chat/output.png"}
-              data-cy="FILE-PNG"
+              data-pw="FILE-PNG"
               width={26}
               height={20}
               style={{ width: "26px" }}

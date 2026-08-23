@@ -55,7 +55,7 @@ export const BuyersCommentItem = ({ id, comment, language, width = 90 }) => {
           <div className="comment-content capitalize mx-[10px]">
             <div
               className="comment-source text-[#1D1D1D] text-[9px] regular"
-              data-cy="Source-Of-Comment"
+              data-pw="Source-Of-Comment"
             >
               {convertTextToXFormat(c?.customer?.name)}
             </div>
@@ -66,7 +66,7 @@ export const BuyersCommentItem = ({ id, comment, language, width = 90 }) => {
         </span>
         <div
           className="comment-date text-[9px] absolute text-[#1d1d1d]"
-          data-cy="Date-Of-Comment"
+          data-pw="Date-Of-Comment"
           style={{
             right: isRtl ? "initial" : "10px",
             left: isRtl ? "10px" : "initial",

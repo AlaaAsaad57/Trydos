@@ -10,7 +10,7 @@ function ProductShareButton({ Active, total_shares, setActive }) {
       className={`product-option-item relative flex-row ${
         Active && "active-option"
       }`}
-      data-cy="ShareIcon"
+      data-pw="ShareIcon"
       onClick={() => {
         // Sendevent({
         //   event: GA_EVENT_NAMES.CLICK,
@@ -21,7 +21,7 @@ function ProductShareButton({ Active, total_shares, setActive }) {
     >
       {" "}
       <img src="/icons/share.svg" />
-      <span data-cy="CountOfShares">{getSharesCount()}</span>
+      <span data-pw="CountOfShares">{getSharesCount()}</span>
     </div>
   );
 }

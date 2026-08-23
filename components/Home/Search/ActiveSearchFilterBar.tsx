@@ -30,11 +30,11 @@ function ActiveSearchFilterBar({ value, appliedFilters, reset }) {
     <HortiznalScrollBar
       id="filter-info-bar"
       className="filter-info-bar gap-[8px] w-full mx-[10px] mt-[5px] h-[30px] bg-[#efefef] rounded-[10px] px-[10px] flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
-      data-cy="filterInfo"
+      data-pw="filterInfo"
     >
       <img
         src="/icons/CloseIcon.svg"
-        data-cy="closeIcon"
+        data-pw="closeIcon"
         className="mx-[10px]"
         onClick={() => {
           reset();
@@ -106,7 +106,7 @@ function ActiveSearchFilterBar({ value, appliedFilters, reset }) {
                   </div>
                   <div
                     className="category-title filter-bar-main-title"
-                    data-cy="mainFilter"
+                    data-pw="mainFilter"
                   >
                     {category?.name ||
                       appliedFilters.categories.filter(
@@ -269,7 +269,7 @@ function ActiveSearchFilterBar({ value, appliedFilters, reset }) {
                   </div>
                   <div
                     className="category-title filter-bar-main-title"
-                    data-cy="mainFilterBrand"
+                    data-pw="mainFilterBrand"
                     key={`${brand.slug}-name`}
                   >
                     {brand?.name ||

@@ -52,7 +52,8 @@ import {
   share_index,
 } from "services/elastic/INDEXES";
 import { HandleAuthedFetch } from "serverRequests/HandleAuthedFetch";
-import { getCookieServer } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import {
   RedisGet,
   RedisSet,
@@ -86,11 +87,6 @@ const READ_WINDOW = Number(process.env.SELLER_COMMENTS_READ_WINDOW ?? 60);
 const WRITE_LIMIT = Number(process.env.SELLER_COMMENTS_WRITE_LIMIT ?? 20);
 const WRITE_WINDOW = Number(process.env.SELLER_COMMENTS_WRITE_WINDOW ?? 60);
 
-const COOKIE_NAMES = {
-  MARKET_TOKEN: "MARKET-TOKEN",
-  DEVICE_TOKEN: "DEVICE-TOKEN",
-};
-
 type ActionResult<T = unknown> =
   | { success: true; data: T }
   | { success: false; message: string };
@@ -106,8 +102,8 @@ interface VerifiedShop {
 // non-reversible cache/rate-limit key from it. The raw token is never logged.
 //
 // TOKEN SOURCE IS INJECTABLE (web vs mobile), but the security model is not:
-//   • Web (server actions) pass NO token → we read the HttpOnly MARKET-TOKEN /
-//     DEVICE-TOKEN cookie, exactly as before.
+//   • Web (server actions) pass NO token → we read the HttpOnly MARKET-TOKEN
+//     cookie, the single auth cookie for guest and signed-in alike.
 //   • Mobile (the `/api/seller/comments/*` route handlers) pass the market
 //     token the app sent in the `Authorization` header.
 // Whatever the source, the token is verified against Go the same way and the
@@ -118,8 +114,7 @@ async function resolveAuthToken(explicitToken?: string): Promise<string> {
   const explicit = explicitToken?.trim();
   if (explicit) return explicit;
   const market = await getCookieServer<string>(COOKIE_NAMES.MARKET_TOKEN);
-  const device = await getCookieServer<string>(COOKIE_NAMES.DEVICE_TOKEN);
-  return market || device || "anonymous";
+  return market || "anonymous";
 }
 
 function hashToken(token: string): string {

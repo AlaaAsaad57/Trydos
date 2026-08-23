@@ -2,6 +2,7 @@ import "styles/globals.css";
 import "styles/home.css";
 
 import localFont from "next/font/local";
+import { lang as langParam } from "next/root-params";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
@@ -50,46 +51,69 @@ export const viewport = {
   maximumScale: 1.0,
   userScalable: false,
 };
-// Each weight gets its own CSS variable so existing CSS (font-family: var(--Quicksand-*)) keeps working.
+// All five faces come from ONE variable Quicksand file (wght 300–700) — the same
+// font binary the rdb app uses. The previous five static per-weight woff2 files
+// rendered noticeably softer at dpr:1; the variable build carries the hinting
+// (gasp/fvar/gvar) that keeps stems crisp. Because every declaration shares the
+// same src, the browser downloads the file once and instances it per weight.
+//
+// Each weight still gets its own CSS variable so existing CSS
+// (font-family: var(--Quicksand-*)) keeps working unchanged.
 // Next.js injects these variables onto <html> via the className applied below.
+//
+// `weight` is REQUIRED on every one of these. Without it next/font emits an
+// @font-face with no font-weight descriptor, which CSS defaults to 400 — so a
+// `font-weight: 700` on any of these families finds no matching face and the
+// browser fakes bold by smearing the outlines. Synthetic bold renders soft and
+// blurry. Declaring the real weight pins the variable axis and gives an exact match.
 const quicksand_regular = localFont({
-  src: "../../../public/fonts/Quicksand-Regular.woff2",
+  src: "../../../public/fonts/quicksand-variable.ttf",
   variable: "--Quicksand-Regular",
+  weight: "400",
+  style: "normal",
   display: "swap",
   preload: true,
   fallback: ["system-ui", "arial"],
 });
 const quicksand_light = localFont({
-  src: "../../../public/fonts/Quicksand-Light.woff2",
+  src: "../../../public/fonts/quicksand-variable.ttf",
   variable: "--Quicksand-Light",
+  weight: "300",
+  style: "normal",
   display: "swap",
-  preload: false,
+  preload: true,
   fallback: ["system-ui", "arial"],
 });
 const quicksand_bold = localFont({
-  src: "../../../public/fonts/Quicksand-Bold.woff2",
+  src: "../../../public/fonts/quicksand-variable.ttf",
   variable: "--Quicksand-Bold",
+  weight: "700",
+  style: "normal",
   display: "swap",
-  preload: false,
+  preload: true,
   fallback: ["system-ui", "arial"],
 });
 const quicksand_medium = localFont({
-  src: "../../../public/fonts/Quicksand-Medium.woff2",
+  src: "../../../public/fonts/quicksand-variable.ttf",
   variable: "--Quicksand-Medium",
+  weight: "500",
+  style: "normal",
   display: "swap",
-  preload: false,
+  preload: true,
   fallback: ["system-ui", "arial"],
 });
 const quicksand_semibold = localFont({
-  src: "../../../public/fonts/Quicksand-SemiBold.woff2",
+  src: "../../../public/fonts/quicksand-variable.ttf",
   variable: "--Quicksand-SemiBold",
+  weight: "600",
+  style: "normal",
   display: "swap",
-  preload: false,
+  preload: true,
   fallback: ["system-ui", "arial"],
 });
 
-export default async function RootLayout({ params, children, modal }) {
-  const { lang } = await params;
+export default async function RootLayout({ children, modal }) {
+  const lang = await langParam();
   const [country, language] = lang.split("-");
   return (
     <html
@@ -106,7 +130,7 @@ export default async function RootLayout({ params, children, modal }) {
       // dir={language === "ar" || language === "ku" ? "rtl" : "ltr"}
     >
       <body
-        className={`${language === "ar" || language === "ku" ? "text-rtl" : ""} notranslate`}
+        className={`${language === "ar" || language === "ku" ? "text-rtl" : ""} notranslate antialiased`}
         translate="no"
       >
         <Organaization local={lang} />
@@ -132,8 +156,8 @@ export default async function RootLayout({ params, children, modal }) {
         <SpeedInsights />
         <div className="site-container items-center">
           <div className="home-navbar z-999999996 duration-1000 max-w-[1365px] min-h-[98px]  px-[20px] pt-[52px] bg-white flex-row items-start w-full justify-start">
-            <a href={`/`} aria-label="TryDos Home" data-cy="NavLogo">
-              <div className="logo-container" data-cy="storeLogo">
+            <a href={`/`} aria-label="TryDos Home" data-pw="NavLogo">
+              <div className="logo-container" data-pw="storeLogo">
                 <img
                   fetchPriority="high"
                   alt="TryDos Logo"

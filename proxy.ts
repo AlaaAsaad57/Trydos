@@ -2,22 +2,6 @@ import { NextResponse, userAgent, type NextRequest } from "next/server";
 import { ipAddress } from "@vercel/functions";
 import { NextURL } from "next/dist/server/web/next-url";
 
-// ── STAGING GATE — main branch only ────────────────────────────────────────
-// Pre-launch, main serves nothing but the centered-logo page (app/page.tsx) at
-// "/". Every other path — pages, /api/*, server actions — 307s back to "/".
-// The redirect is deliberately temporary (307, never 308): a permanent redirect
-// would be cached by browsers and keep sending real users to the logo long
-// after launch.
-//
-// This gate and the narrowed `config.matcher` at the bottom of this file are
-// one unit — reverting this commit lifts both together and restores the full
-// storefront. Do not lift one without the other.
-const STAGING_GATE_ENABLED = process.env.STAGING_GATE !== "off";
-
-// The only path the gate serves. Static assets the logo page needs are handled
-// by the matcher below, which never invokes this function for them.
-const STAGING_GATE_ALLOWED_PATH = "/";
-
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
 const DEFAULT_LANGUAGE = "en";
@@ -127,9 +111,15 @@ function validateCookieValues(
 }
 
 // URL parsing utilities
+// A prefix counts as a locale only if it is two letters, a hyphen, two letters.
+// The shape check is the whole point: without it any first segment carrying one
+// hyphen is read as a country and a language, so "/privacy-policy" is taken as
+// country "privacy" plus language "policy". `getCleanPathname` then strips it
+// as if it were a prefix, the path is gone, and the visitor lands on the home
+// page instead of the page they asked for.
 function parseUrlLocale(pathname: string): LocaleInfo | null {
   const parts = pathname.split("/")[1]?.toLowerCase()?.split("-");
-  if (parts?.length === 2) {
+  if (parts?.length === 2 && parts.every((part) => /^[a-z]{2}$/.test(part))) {
     return {
       country: parts[0]?.toLowerCase(),
       language: parts[1]?.toLowerCase(),
@@ -259,7 +249,8 @@ function getCleanPathname(
   if (urlLocale) {
     return pathname.slice(urlLocale.locale.length + 1);
   }
-  return pathname.startsWith("/") ? pathname : `/${pathname}`;
+  // A URL's pathname always starts with "/", so there is nothing to add here.
+  return pathname;
 }
 function getClientIp(req: NextRequest): string {
   const ip = ipAddress(req);
@@ -280,14 +271,6 @@ const extractLocales=(u:string)=>{
 }
 // Main middleware function
 export async function proxy(request: NextRequest) {
-  // Staging gate — see STAGING_GATE_ENABLED above. Must stay the first thing
-  // this function does, so no locale/country/bot logic can run pre-launch.
-  if (STAGING_GATE_ENABLED) {
-    return request.nextUrl.pathname === STAGING_GATE_ALLOWED_PATH
-      ? NextResponse.next()
-      : NextResponse.redirect(new URL("/", request.url), 307);
-  }
-
   const ua = request.headers.get("user-agent") ?? "";
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
@@ -334,36 +317,41 @@ export async function proxy(request: NextRequest) {
       return response;
     }
 
+    // Only unsupported pairs reach this point, so the pair in the address can
+    // never be the answer: building the target from it sent a crawler to
+    // /xx-en/xx-en/shop — doubled, and still unsupported. Because this is a
+    // permanent redirect, a crawler would remember that address. Use the default
+    // locale and strip the bad prefix, the same as the path a person takes.
     const preferredLanguage = getPreferredLanguage(request);
-    const defaultLocale = urlLocale
-      ? buildLocale(urlLocale.country, urlLocale.language)
-      : buildLocale(DEFAULT_COUNTRY, preferredLanguage);
+    const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
 
     // Preserve full path, prefix with locale
-    const cleanPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
-    url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname}`;
+    const cleanPathname = getCleanPathname(pathname, urlLocale);
+    url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname === "/" ? "" : cleanPathname}`;
     return NextResponse.redirect(url, 308);
   }
   const ip = getClientIp(request);
   // console.log(
   //   `Incoming request: ${pathname} from IP: ${ip}, User-Agent: ${ua}`,
   // );
-  if (!isBotAgent) {
-    if (ip && ip !== userIP) {
-      // HttpOnly: userIP is PII and must not be readable by page JS. Server code
-      // still reads it via getCookieServer (serverErrorReporter); client error
-      // reports get the IP from Sentry ingestion (sendDefaultPii), not this cookie.
-      response.cookies.set("userIP", ip, {
-        ...COOKIE_OPTIONS,
-        httpOnly: true,
-      });
-    }
+  // No `!isBotAgent` guard needed: every crawler has already returned above.
+  if (ip && ip !== userIP) {
+    // HttpOnly: userIP is PII and must not be readable by page JS. Server code
+    // still reads it via getCookieServer (serverErrorReporter); client error
+    // reports get the IP from Sentry ingestion (sendDefaultPii), not this cookie.
+    response.cookies.set("userIP", ip, {
+      ...COOKIE_OPTIONS,
+      httpOnly: true,
+    });
   }
   // Handle referer and UTM tracking
   const referer = request.headers.get("referer");
   const utm_source = url.searchParams.get("utm_source");
   const mediaUrl=process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL;
- if (mediaUrl) {
+ // Skipped when `response` is the lower-case redirect: these hints tell a browser
+ // to open connections early for a page it is about to render, and a redirect
+ // renders nothing. The browser gets them on the real page it lands on.
+ if (mediaUrl && !hasUppercase) {
     // We only need to preconnect to the base domain origin, not the full subpaths
     response.headers.append(
       'Link',
@@ -380,7 +368,8 @@ export async function proxy(request: NextRequest) {
     );
   }
 
-  if (!isBotAgent && (referer || utm_source)) {
+  // Same again: a crawler never gets this far, so it needs no check here.
+  if (referer || utm_source) {
     if (utm_source) {
       response.cookies.set("referer", referer, {
         ...COOKIE_OPTIONS,
@@ -401,7 +390,11 @@ export async function proxy(request: NextRequest) {
   // Bot handling
 
   // Handle robots.txt requests
-  if (pathname?.includes("/robots.txt") || pathname?.includes("/robots")) {
+  // Exact match only. `includes` used to catch any path with the word in it, so
+  // a real page like /gb-en/robots-guide was sent to the robots file too. The
+  // matcher already excludes /robots and /robots.txt as a first segment, so this
+  // is only a safety net for the day that list changes.
+  if (pathname === "/robots.txt" || pathname === "/robots") {
     return NextResponse.redirect(new URL("/robots.txt", request.url));
   }
 
@@ -416,22 +409,31 @@ export async function proxy(request: NextRequest) {
     allSupportedCountries,
   );
 
-  // Handle bypass parameter - skip all checks and clean URL
-  if (url.searchParams.get("_bypass") === "popup-selection") {
-    if (urlLocale && supportedLocales.has(urlLocale.locale)) {
-      setLocaleCookies(response, urlLocale.country, urlLocale.language);
-    }
-
+  // Handle bypass parameter - skip all checks and clean URL.
+  //
+  // Only when the address carries a pair we support. The pair IS the choice the
+  // visitor made in the popup, so without one there is nothing to save — and
+  // skipping every check would leave them on an address with no locale at all.
+  // Without a pair we now fall through and let the normal rules put them on a
+  // proper address first.
+  if (
+    url.searchParams.get("_bypass") === "popup-selection" &&
+    urlLocale &&
+    supportedLocales.has(urlLocale.locale)
+  ) {
     // Clean URL by removing all navigation-related params
     url.searchParams.delete("_bypass");
     url.searchParams.delete("changed-country");
     url.searchParams.delete("no-country");
     url.searchParams.delete("_t");
 
-    if (url.search) {
-      return NextResponse.redirect(url);
-    }
-    return response;
+    // The choice has to travel with whichever answer we give. It used to be
+    // written only on the pass-through response, so a bypass that still had
+    // another query value on it came back as a fresh redirect carrying no
+    // cookies — the choice was lost and the popup asked again.
+    const bypassResponse = url.search ? NextResponse.redirect(url) : response;
+    setLocaleCookies(bypassResponse, urlLocale.country, urlLocale.language);
+    return bypassResponse;
   }
 
   // Redirect protection
@@ -442,13 +444,13 @@ export async function proxy(request: NextRequest) {
     // Even if we hit redirect limit, ensure we have a proper locale
     const preferredLanguage = getPreferredLanguage(request);
     const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
-    const cleanPathname = urlLocale
-      ? pathname.replace(urlLocale.locale, defaultLocale)
-      : pathname.startsWith("/")
-        ? pathname
-        : `/${pathname}`;
+    // Take off whatever locale-shaped prefix the address arrived with, then put
+    // the default one in front. `replace` used to swap the prefix for the default
+    // and the template then added the default again, so /xx-en/shop came out as
+    // /gb-en/gb-en/shop.
+    const cleanPathname = getCleanPathname(pathname, urlLocale);
 
-    url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname}`;
+    url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname === "/" ? "" : cleanPathname}`;
     url.searchParams.delete("cart");
     url.searchParams.set("no-country", "true");
     return NextResponse.redirect(url);
@@ -456,89 +458,97 @@ export async function proxy(request: NextRequest) {
 
   // SCENARIO 1: Valid URL locale
   if (urlLocale && supportedLocales.has(urlLocale.locale)) {
-    // Validate URL locale against supported countries
-    const urlLocaleValidation = validateLocalePair(
-      urlLocale.country?.toLowerCase(),
-      urlLocale.language?.toLowerCase(),
-      allSupportedCountries,
-    );
+    // The locale is already in `supportedLocales`, which is built from the same
+    // country and language lists that validateLocalePair checks against. Running
+    // that check again here could never fail, so the "treat as no valid URL
+    // locale" branch it guarded never ran. Both are gone.
 
-    // If URL locale is not valid, treat as no valid URL locale
-    if (!urlLocaleValidation.isValid) {
-      // Fall through to SCENARIO 2
-    } else {
-      // Clean up timestamp parameter if present
-      if (url.searchParams.get("_t")) {
-        url.searchParams.delete("_t");
-      }
-      if (cookieValidation.isValid) {
-        const { country: cKey, language: lKey } = cookieValidation;
+    // Clean up timestamp parameter if present
+    if (url.searchParams.get("_t")) {
+      url.searchParams.delete("_t");
+    }
+    // A visitor on the global address who has already chosen a country belongs
+    // in that country, not here. `gb` is the global bucket — "we do not know
+    // where you are" — not a market, which is why the app also offers the
+    // country picker on every gb address.
+    //
+    // **The saved country alone is enough to move them.** Everywhere else a
+    // saved pair must be complete before it counts, because a country without a
+    // language decides only half a locale. Here it decides all of it: the
+    // address already carries a supported language, so the language they are
+    // reading is the obvious one to keep. Requiring both used to strand anyone
+    // whose `lang` cookie had been lost or expired separately on the global
+    // address, with the picker in front of them and a perfectly good country
+    // already chosen.
+    //
+    // Their saved language wins when they have one; the address's language is
+    // the fallback. Either way the full set is written back, so a half-set
+    // state heals itself on the way through.
+    const savedCountry = isValidCountry(countryFromCookies, allSupportedCountries)
+      ? countryFromCookies!.toLowerCase()
+      : undefined;
 
-        // If URL is GB but cookie is something else (e.g., TR), REDIRECT
-        if (urlLocale.country === "gb" && cKey !== "gb") {
-          const targetLocale = buildLocale(cKey!, lKey!);
-          const cleanPath = getCleanPathname(pathname, urlLocale);
-          url.pathname = `/${targetLocale?.toLowerCase()}${cleanPath === "/" ? "" : cleanPath}`;
+    if (urlLocale.country === "gb" && savedCountry && savedCountry !== "gb") {
+      const targetLanguage = cookieValidation.language ?? urlLocale.language;
+      const targetLocale = buildLocale(savedCountry, targetLanguage);
+      const cleanPath = getCleanPathname(pathname, urlLocale);
+      url.pathname = `/${targetLocale?.toLowerCase()}${cleanPath === "/" ? "" : cleanPath}`;
 
-          const res = createRedirectResponse(url, redirectCount);
-          // IMPORTANT: You must attach cookies to the redirect response
-          setLocaleCookies(res, cKey!.toLowerCase(), lKey!.toLowerCase());
-          return res;
-        }
-      }
-      // CASE 1A: Handle no-country parameter
-      if (url.searchParams.get("no-country")) {
-        setLocaleCookies(response, urlLocale.country, urlLocale.language);
-        return response; // Show the popup
-      }
+      const res = createRedirectResponse(url, redirectCount);
+      // IMPORTANT: You must attach cookies to the redirect response
+      setLocaleCookies(res, savedCountry, targetLanguage);
+      return res;
+    }
+    // CASE 1A: Handle no-country parameter
+    if (url.searchParams.get("no-country")) {
+      setLocaleCookies(response, urlLocale.country, urlLocale.language);
+      return response; // Show the popup
+    }
 
-      // CASE 1B: Check if cookies match URL (only if cookies are valid)
-      if (cookieValidation.isValid) {
-        const cookieCountry = cookieValidation.country!;
-        const cookieLanguage = cookieValidation.language!;
+    // CASE 1B: Check if cookies match URL (only if cookies are valid)
+    if (cookieValidation.isValid) {
+      const cookieCountry = cookieValidation.country!;
+      const cookieLanguage = cookieValidation.language!;
 
-        // Same country and language - proceed normally
-        if (
-          urlLocale.country === cookieCountry &&
-          urlLocale.language === cookieLanguage &&
-          !url.searchParams.get("changed-country")
-        ) {
-          return response;
-        }
-
-        // Different country - show popup
-        if (
-          urlLocale.country !== cookieCountry &&
-          cookieCountry !== "gb" &&
-          !url.searchParams.get("changed-country")
-        ) {
-          url.searchParams.delete("cart");
-          url.searchParams.set(
-            "changed-country",
-            `${urlLocale.country},${cookieCountry}`,
-          );
-          let parts=url.pathname.split('/');
-          let normalizedPart=parts[1];
-          return createRedirectResponse(url, redirectCount);
-        }
-      }
-
-      // CASE 1C: No valid cookies - set from URL
-      if (!cookieValidation.isValid) {
-        setLocaleCookies(response, urlLocale.country, urlLocale.language);
+      // Same country and language - proceed normally
+      if (
+        urlLocale.country === cookieCountry &&
+        urlLocale.language === cookieLanguage &&
+        !url.searchParams.get("changed-country")
+      ) {
         return response;
       }
 
-      // CASE 1D: Handle changed-country parameter
-      if (url.searchParams.get("changed-country")) {
-        setLocaleCookies(response, urlLocale.country, urlLocale.language);
-        return response; // Show the popup
+      // Different country - show popup
+      if (
+        urlLocale.country !== cookieCountry &&
+        cookieCountry !== "gb" &&
+        !url.searchParams.get("changed-country")
+      ) {
+        url.searchParams.delete("cart");
+        url.searchParams.set(
+          "changed-country",
+          `${urlLocale.country},${cookieCountry}`,
+        );
+        return createRedirectResponse(url, redirectCount);
       }
+    }
 
-      // Default: set cookies and proceed
+    // CASE 1C: No valid cookies - set from URL
+    if (!cookieValidation.isValid) {
       setLocaleCookies(response, urlLocale.country, urlLocale.language);
       return response;
     }
+
+    // CASE 1D: Handle changed-country parameter
+    if (url.searchParams.get("changed-country")) {
+      setLocaleCookies(response, urlLocale.country, urlLocale.language);
+      return response; // Show the popup
+    }
+
+    // Default: set cookies and proceed
+    setLocaleCookies(response, urlLocale.country, urlLocale.language);
+    return response;
   }
 
   // SCENARIO 2: No valid URL locale - determine redirect
@@ -581,17 +591,15 @@ export async function proxy(request: NextRequest) {
     geoValidation.language
   ) {
     const locale = buildLocale(geoValidation.country?.toLowerCase(), geoValidation.language?.toLowerCase());
-    url.pathname = `/${locale?.toLowerCase()}${pathname.startsWith("/") ? pathname : "/" + pathname}`;
+    url.pathname = `/${locale?.toLowerCase()}${pathname}`;
     return NextResponse.redirect(url);
   }
 
   // 3. Fallback الافتراضي (فقط هنا يظهر no-country)
   const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
-  const cleanPathname = urlLocale
-    ? pathname.replace(urlLocale.locale, defaultLocale)
-    : pathname.startsWith("/")
-      ? pathname
-      : `/${pathname}`;
+  // Same fix as the redirect-limit branch above: strip the locale-shaped prefix
+  // rather than replacing it, or the default locale ends up in the address twice.
+  const cleanPathname = getCleanPathname(pathname, urlLocale);
 
   url.pathname = `/${defaultLocale?.toLowerCase()}${cleanPathname === "/" ? "" : cleanPathname}`;
   url.searchParams.delete("cart");
@@ -599,31 +607,24 @@ export async function proxy(request: NextRequest) {
   return NextResponse.redirect(url);
 }
 
-// STAGING GATE matcher (main branch only) — paired with STAGING_GATE_ENABLED.
-//
-// Deliberately far wider than the storefront matcher this replaces: the old one
-// excluded /api plus a long list of segments (api-test, requests-log,
-// callInProg, call_direct, endCall, simulateUser, testBoutique, noposter,
-// sentry-test, fcm-dashboard, backend-compare, selectCountry, ingest,
-// revalidate) — none of which invoked the proxy, so all of them stayed fully
-// live and served the real app. It also carried a `missing:` clause that let
-// server actions and RSC prefetches skip the proxy entirely. Both holes are
-// closed here: everything not listed below now hits the gate.
-//
-// Only what the logo page needs to render — plus crawler hygiene — is excluded:
-//   _next                        bundle + /_next/image for the logo
-//   icons                        image-optimizer source fetch for Logo.svg
-//   favicon.ico
-//   google210329fcef4fbcff.html  search-console verification
-//   robots.txt                   serves `disallow: /` (NEXT_PUBLIC_ALLOW_INDEXING unset)
-//
-// Sitemaps are intentionally NOT excluded — they 307 to "/" rather than
-// advertising product URLs that all redirect.
-//
-// Restoring the storefront: revert this commit — it returns the matcher and the
-// gate together. Reverting only one leaves the app running under the wrong matcher.
 export const config = {
   matcher: [
-    "/((?!_next|icons|favicon.ico|robots.txt|google210329fcef4fbcff.html).*)",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    {
+      source:
+        "/((?!api|ingest|noposter|sentry-test|fcm-dashboard|testBoutique|simulateUser|firebase-messaging-sw.js|google210329fcef4fbcff.html|robots.txt|robots.txt|robots|opengraph-image.png|default.mp3|wa.mp3|backend-compare|sitemap|manifest.json|error.png|assets|icons|fonts|translations|reports|images|styles|endCall|sitemap.xml|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
+      missing: [
+        { type: "header", key: "purpose", value: "prefetch" },
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "next-action" },
+        { type: "header", key: "next-router-state-tree" },
+      ],
+    },
   ],
 };

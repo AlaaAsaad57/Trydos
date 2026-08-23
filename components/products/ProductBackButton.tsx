@@ -63,7 +63,7 @@ function ProductBackButton({ lang }) {
       }`}
     >
       <div
-        data-cy="backIcon_productPage"
+        data-pw="backIcon_productPage"
         onClick={handleBack}
         className="back-icon flex cursor-pointer"
       >

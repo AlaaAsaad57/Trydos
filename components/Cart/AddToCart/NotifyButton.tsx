@@ -114,7 +114,7 @@ function NotifyButton({
     <div className="w-full duration-75 transition-all px-[20px] flex overflow-hidden">
       <div className="w-full overflow-hidden flex">
         <div
-          data-cy="notify_container_2"
+          data-pw="notify_container_2"
           onClick={(e) => {
             if ((e.target as any).closest(".minuse-qty-icon")) return false;
             notifyAction();
@@ -161,7 +161,7 @@ function NotifyButton({
             {!isNotified ? (
               <>
                 <svg
-                  data-cy="is-not-notified-svg"
+                  data-pw="is-not-notified-svg"
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
                   width="20"
@@ -259,7 +259,7 @@ function NotifyButton({
             ) : (
               <>
                 <svg
-                  data-cy="is-notified-svg"
+                  data-pw="is-notified-svg"
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
                   width="20"

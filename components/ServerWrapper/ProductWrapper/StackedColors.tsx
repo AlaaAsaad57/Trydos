@@ -49,7 +49,7 @@ function StackedSlider({
               disableSlide ? "pointer-events-none no-navigate" : ""
             } absolute w-auto h-auto flex flex-col items-center justify-center`}
             style={getSlideStyle(index)}
-            data-cy={child_data_cy}
+            data-pw={child_data_cy}
           >
             {slide}
           </div>

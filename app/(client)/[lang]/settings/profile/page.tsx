@@ -1,14 +1,12 @@
+import { lang as langParam } from "next/root-params";
 import NextLink from "components/global/NextLink";
 import BackBar from "components/setting/BackBar";
-import {
-  COOKIE_NAMES,
-  getCookieServer,
-  UserData,
-} from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { GetImageUrl, translateFunction } from "utils/server";
-async function Profile({ params }) {
-  let Params = await params;
-  let [country, language] = Params?.lang?.split("-");
+async function Profile() {
+  const lang = await langParam();
+  let [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
   let SafeUserProfile = (await getCookieServer<UserData>(
     COOKIE_NAMES.USER_DATA,
@@ -18,25 +16,25 @@ async function Profile({ params }) {
       name: translateFunction("Personal Info", language),
       dataCy: "personal-info-button",
       Icon: `/icons/PersonIcon.svg`,
-      href: `/${Params?.lang}/settings/profile/info`,
+      href: `/${lang}/settings/profile/info`,
     },
     {
       name: translateFunction("Size", language),
       dataCy: "personal-size-button",
       Icon: "/icons/SizeIcon.svg",
-      href: `/${Params?.lang}/settings/profile/size`,
+      href: `/${lang}/settings/profile/size`,
     },
     {
       name: translateFunction("Address", language),
       dataCy: "personal-address-button",
       Icon: `/icons/AddressIcon.svg`,
-      href: `/${Params?.lang}/settings/profile/address`,
+      href: `/${lang}/settings/profile/address`,
     },
     {
       name: translateFunction("Bank Cards", language),
       dataCy: "personal-bank-button",
       Icon: "/icons/BankIcon.svg",
-      href: `/${Params?.lang}/settings/profile/Bank-Cards`,
+      href: `/${lang}/settings/profile/Bank-Cards`,
     },
   ];
   return (
@@ -46,10 +44,10 @@ async function Profile({ params }) {
     >
       <BackBar
         isRtl={isRtl}
-        local={Params?.lang}
+        local={lang}
         Icon={""}
         name={translateFunction("Profile", language)}
-        preivous_page={`/${Params?.lang}/settings`}
+        preivous_page={`/${lang}/settings`}
       />
       <div
         style={{
@@ -59,7 +57,7 @@ async function Profile({ params }) {
       >
         <ProfilePicture
           language={language}
-          local={Params.lang}
+          local={lang}
           photo={SafeUserProfile?.image}
         />
       </div>
@@ -85,7 +83,7 @@ const ProfilePicture = ({ photo, language, local }) => {
       <NextLink
         isFromSetting={true}
         href={`/${local}/settings/profile/picture`}
-        data-cy="go-to-update-photo-screen"
+        data-pw="go-to-update-photo-screen"
         className="relative w-[128px] h-[128px] flex justify-center items-center object-cover cursor-pointer"
         style={{
           filter: "drop-shadow(0px 3px 6px #0000002a)",
@@ -108,7 +106,7 @@ const ProfilePicture = ({ photo, language, local }) => {
       <NextLink
         isFromSetting={true}
         href={`/${local}/settings/profile/picture`}
-        data-cy="go-to-update-photo-screen"
+        data-pw="go-to-update-photo-screen"
         className="relative w-[128px] h-[128px] flex justify-center items-center object-cover cursor-pointer"
         style={{
           filter: "drop-shadow(0px 3px 6px #0000002a)",
@@ -198,7 +196,7 @@ const SettingOption = ({ name, Icon, dataCy, href }: any) => {
     <NextLink
       isFromSetting={true}
       href={href}
-      data-cy={dataCy}
+      data-pw={dataCy}
       className="w-full cursor-pointer flex-row mt-[4px] gap-2 h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center"
     >
       <img src={Icon} className="w-[25px] h-[25px]" />

@@ -37,7 +37,7 @@ function ProductCommentButton({
   return (
     <div
       className="product-option-item flex-row"
-      data-cy="CommentIcon"
+      data-pw="CommentIcon"
       onClick={() => {
         // Sendevent({
         //   event: GA_EVENT_NAMES.CLICK,
@@ -47,7 +47,7 @@ function ProductCommentButton({
       }}
     >
       <CommentIcon active={isActive} />
-      <span data-cy="CountOfComment">{getCommentsCount()}</span>
+      <span data-pw="CountOfComment">{getCommentsCount()}</span>
     </div>
   );
 }

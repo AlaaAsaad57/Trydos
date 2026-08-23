@@ -11,6 +11,9 @@ hardcoded-text-report.json
 hardcoded-text-report.md
 # testing
 /coverage/*
+# Written by `pnpm test:ci` for CI to read (failing test names for the Telegram
+# message). Regenerated on every run and never useful in a commit.
+test-results.json
 /site/*
 .nyc_output/*
 .nyc_output/out.json
@@ -60,9 +63,14 @@ next-env.d.ts
 graphify-out/
 
 scripts/*
-# Engineering Workflow v1 helpers must be shared with the team (exceptions to scripts/* above)
-!scripts/clickup_intake.py
-!scripts/github_publish.py
+# Anything under scripts/ is ignored unless it is listed here. A new script is
+# silently never committed until it gets a line below — which is how
+# i18n-parity.mjs, referenced by a package.json script and by CI, went missing
+# from every fresh clone.
+# Run by `pnpm lint:i18n-parity` and by the Tests workflow.
+!scripts/i18n-parity.mjs
+# Run by `pnpm test:report` and by the Tests workflow.
+!scripts/unit-report.mjs
 # Trello -> ClickUp backlog migration helpers (used by the migrate-trello-batch skill)
 !scripts/workflow_env.py
 !scripts/trello_fetch.py
@@ -120,3 +128,19 @@ laravel-refresh-plan.md
 # names and the seller-scoping rules). Keep local; share through the backend
 # team's own channel, never via this repo.
 seller-dashboard-locations-api-contract.md
+docs/testing/TESTING_STACK_AND_ROADMAP.md
+
+# The browser suite's output. None of it belongs in the repository, and one item
+# is an outright secret: the saved session (`storageState`) holds MARKET-TOKEN,
+# the real auth cookie for the staging test account. Traces and videos are the
+# same problem in a different shape — a trace archives every request header.
+# See docs/testing/E2E_TEST_DESIGN.md section 11.
+tests/e2e/.artifacts/
+e2e-results.json
+tests/e2e/.auth/
+playwright-report/
+blob-report/
+test-results/
+
+.vercel
+.env*

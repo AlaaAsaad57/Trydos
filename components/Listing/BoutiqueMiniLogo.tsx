@@ -11,7 +11,7 @@ export default async function BoutiqueMiniLogo({
   const boutique = await boutiquePromise;
   if (!boutique?.icon) return null;
   return (
-    <div data-cy="boutique_mini_logo" className="brand-mini align-center" aria-hidden>
+    <div data-pw="boutique_mini_logo" className="brand-mini align-center" aria-hidden>
       <Image
         alt={boutique?.name ?? ""}
         width={90}

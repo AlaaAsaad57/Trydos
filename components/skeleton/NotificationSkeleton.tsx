@@ -5,7 +5,7 @@ import { translateFunction } from "utils/functions";
 function NotificationSkeleton() {
   return (
     <div
-      data-cy="notification-container"
+      data-pw="notification-container"
       style={{
         position: "fixed",
         top: 10,
@@ -22,7 +22,7 @@ function NotificationSkeleton() {
       }}
     >
       <div
-        data-cy="notification-header"
+        data-pw="notification-header"
         style={{
           padding: "15px",
           borderBottom: "1px solid #eee",
@@ -33,10 +33,10 @@ function NotificationSkeleton() {
       >
         <div
           style={{ display: "flex", alignItems: "center", gap: "8px" }}
-          data-cy="notification-left"
+          data-pw="notification-left"
         >
           <svg
-            data-cy="notification-svg"
+            data-pw="notification-svg"
             width="20"
             height="20"
             viewBox="0 0 24 24"
@@ -51,14 +51,14 @@ function NotificationSkeleton() {
           </svg>
           <span
             style={{ fontWeight: 600, fontSize: "16px", color: "#333" }}
-            data-cy="notification-text"
+            data-pw="notification-text"
           >
             {translateFunction("Notifications")}
           </span>
         </div>
       </div>
       <div
-        data-cy="notification-body"
+        data-pw="notification-body"
         style={{
           flex: 1,
           overflowY: "auto",
@@ -73,7 +73,7 @@ function NotificationSkeleton() {
 
         {
           <div
-            data-cy="notification-loading"
+            data-pw="notification-loading"
             style={{
               padding: "16px",
               textAlign: "center",
@@ -85,7 +85,7 @@ function NotificationSkeleton() {
             }}
           >
             <svg
-              data-cy="loading-svg"
+              data-pw="loading-svg"
               className="animate-spin"
               width="20"
               height="20"

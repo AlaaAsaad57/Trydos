@@ -63,7 +63,7 @@ const OrderItemId = ({ id, isRtl }) => {
       </svg>
       <span
         className=" text-[#1D1D1D] text-[12px] medium"
-        data-cy="order-group-id"
+        data-pw="order-group-id"
       >
         {id}
       </span>

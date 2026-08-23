@@ -55,7 +55,7 @@ export default function ListingHeaderCollapse({
     <div data-collapsed={collapsed} data-rtl={isRtl} className="listing-header">
       {filterBar}
       <div
-        data-cy="boutique_header"
+        data-pw="boutique_header"
         className="boutique-header flex-col align-center"
       >
         <div ref={sentinelRef} aria-hidden className="banner-sentinel" />

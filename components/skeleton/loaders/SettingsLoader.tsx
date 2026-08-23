@@ -30,7 +30,7 @@ function SettingsLoader() {
     <div
       className="flex-col w-full pt-[20px] px-[12px] flex"
       aria-hidden="true"
-      data-cy="settings-loader"
+      data-pw="settings-loader"
     >
       {/* BackBar */}
       <div

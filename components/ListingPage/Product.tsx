@@ -83,7 +83,7 @@ export const BuyButtonProduct = ({
         <>
           <span
             className="old-price relative f-12 text-[#3c3c3c] light-text"
-            data-cy="product-price"
+            data-pw="product-price"
           >
             {RoundPrice({
               num: product?.price,
@@ -110,7 +110,7 @@ export const BuyButtonProduct = ({
           </span>
           <span
             className="old-price ml-[3px] relative bold color-dark-gray flex f-12"
-            data-cy="product-offer-price"
+            data-pw="product-offer-price"
           >
             {RoundPrice({
               num: product?.flash_deal_price,
@@ -128,7 +128,7 @@ export const BuyButtonProduct = ({
           <>
             <span
               className="old-price relative f-12 text-[#3c3c3c] light-text"
-              data-cy="product-price"
+              data-pw="product-price"
             >
               {RoundPrice({
                 num: product?.price,
@@ -155,7 +155,7 @@ export const BuyButtonProduct = ({
             </span>
             <span
               className="old-price ml-[3px] relative bold color-dark-gray flex f-12"
-              data-cy="product-offer-price"
+              data-pw="product-offer-price"
             >
               {product?.offer_price >= 0
                 ? RoundPrice({
@@ -194,7 +194,7 @@ export const BuyButtonProduct = ({
         return (
           <span
             className="old-price ml-[3px] bold color-dark-gray flex f-12 relative"
-            data-cy="product-redeem-price "
+            data-pw="product-redeem-price "
           >
             {RoundPrice({
               num: product?.price,
@@ -230,7 +230,7 @@ export const BuyButtonProduct = ({
           <>
             <span
               className="old-price relative f-12 text-[#3c3c3c] light-text"
-              data-cy="product-price"
+              data-pw="product-price"
             >
               {RoundPrice({
                 num: product?.price,
@@ -257,7 +257,7 @@ export const BuyButtonProduct = ({
             </span>
             <span
               className="new-price bold color-dark-gray flex f-12"
-              data-cy="product-offer-price"
+              data-pw="product-offer-price"
             >
               {product?.offer_price >= 0
                 ? RoundPrice({
@@ -279,7 +279,7 @@ export const BuyButtonProduct = ({
         return (
           <span
             className="old-price relative f-12 bold color-dark-gray"
-            data-cy="product-price"
+            data-pw="product-price"
           >
             {RoundPrice({
               num: product?.price,

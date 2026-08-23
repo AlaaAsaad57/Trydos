@@ -116,18 +116,24 @@ export function getFilterStateForItemLegacy(
   parentValue?: string[],
   lang?: string,
 ): FilterState {
-  // Convert to URLSearchParams if it's an object
+  // Convert to URLSearchParams if it's an object. Building an empty one instead
+  // threw the caller's filters away: every read below then found nothing, so a
+  // filter that WAS chosen read as not chosen and was added a second time. The
+  // `searchParams[filterKey]` fallback under it could never run either, because
+  // `params.get` always exists on a URLSearchParams.
   const params =
     searchParams instanceof URLSearchParams
       ? searchParams
-      : new URLSearchParams();
+      : new URLSearchParams(
+          Object.entries(searchParams ?? {})
+            .filter(([, value]) => value !== undefined && value !== null)
+            .map(([key, value]) => [key, String(value)]),
+        );
 
   let currentValues: any[] = [];
 
   // Extract and decode the filter value
-  const filterRawValue = params.get
-    ? params.get(filterKey)
-    : searchParams[filterKey];
+  const filterRawValue = params.get(filterKey);
   if (filterRawValue) {
     try {
       currentValues =

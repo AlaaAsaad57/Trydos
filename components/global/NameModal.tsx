@@ -63,7 +63,7 @@ function NameModal() {
             {translateFunction("Name")}
           </label>
           <input
-            data-cy="Input-Name"
+            data-pw="Input-Name"
             className="login-phone-input absolute top-0 text-[12px] regular"
             style={{
               zIndex: "2",
@@ -86,7 +86,7 @@ function NameModal() {
                 zIndex: "3",
                 cursor: "pointer",
               }}
-              data-cy="Input-Name-Submit"
+              data-pw="Input-Name-Submit"
               onClick={() => {
                 AuthService.UpdateName(value);
                 close();

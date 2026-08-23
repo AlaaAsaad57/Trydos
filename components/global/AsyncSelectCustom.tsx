@@ -107,7 +107,7 @@ const AsyncSelectCustom = ({
         />
         <div
           className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2"
-          data-cy="end-compare"
+          data-pw="end-compare"
         >
           {searchTerm && (
             <button
@@ -116,7 +116,7 @@ const AsyncSelectCustom = ({
               type="button"
             >
               <svg
-                data-cy="end-compare-svg"
+                data-pw="end-compare-svg"
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
                 height="20"

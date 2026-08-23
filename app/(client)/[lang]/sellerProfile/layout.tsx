@@ -1,16 +1,15 @@
 import React from "react";
 import { redirect } from "next/navigation";
+import { lang as langParam } from "next/root-params";
 import { SellerProfileProvider } from "./SellerProfileContext";
 import { getSellerShopsCached } from "serverRequests/settings/sellerShopsGuard";
 
 async function layout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ lang: string }>;
 }) {
-  const { lang } = await params;
+  const lang = await langParam();
 
   // Server-side guard: a user with no shops/permissions must never reach the
   // seller dashboard (this layout wraps every /sellerProfile route). Only bounce

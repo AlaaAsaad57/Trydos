@@ -132,7 +132,7 @@ function PersonalInfoCountries({
           style={{
             border: "1px solid rgb(211 211 211 / 51%)",
           }}
-          data-cy="address-info-header" // Added data-cy
+          data-pw="address-info-header" // Added data-pw
         >
           <svg
             id="Group_3387"
@@ -318,7 +318,7 @@ function PersonalInfoCountries({
                 return (
                   <div
                     key={country.iso}
-                    data-cy={`personal-info-countries-${country.iso}`}
+                    data-pw={`personal-info-countries-${country.iso}`}
                     onClick={() => {
                       if (hideTopBar) {
                         setPendingCountry(country);

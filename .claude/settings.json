@@ -1,15 +1,5 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python .claude/hooks/notify_gate.py"
-          }
-        ]
-      }
-    ]
+  "enabledPlugins": {
+    "wf@ramaaz-workflows": true
   }
 }

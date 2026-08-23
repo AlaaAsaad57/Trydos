@@ -198,7 +198,7 @@ function ChangeAddressWidget({
                           ? "text-[#1D1D1D]"
                           : "text-[#8D8D8D]"
                       }  mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full items-start h-auto min-h-[90px] px-[24px]  py-[7px]`}
-                      data-cy="Address"
+                      data-pw="Address"
                     >
                       <img
                         src="/icons/editAddressIcon.svg"
@@ -403,7 +403,7 @@ function ChangeAddressWidget({
                 </div>
                 <div
                   className="flex cursor-pointer w-full justify-center h-[40px] mt-[8px] items-center bg-[#E8FFED]"
-                  data-cy="Add-Shipping-Address"
+                  data-pw="Add-Shipping-Address"
                   style={{
                     border: "1px solid rgb(196 194 194 / 51%)",
                     borderRadius: "15px",

@@ -18,7 +18,15 @@ export const ChatConroller = (payload) => {
 // The logout route only deletes cookies (the FCM detach it triggers runs after
 // its response), so it is fast — but a stalled request must never strand the
 // user on a half-logged-out screen. Bounded so logout always completes.
-const LOGOUT_REQUEST_TIMEOUT_MS = 1800;
+//
+// NOT tight. A person logs out once per session, so this is almost always the
+// FIRST hit on the route — a cold start. Warm it answers in ~20-70ms, but cold
+// it measured 4.2s, and the previous 1800ms cap aborted it every single time:
+// the response never landed, so the browser never applied the cookie deletions
+// and the session survived the reload ("logout does nothing"). The abort was
+// invisible because it is swallowed into the LogError below. Keep this well
+// above cold-start time; it exists only to bound a truly hung request.
+const LOGOUT_REQUEST_TIMEOUT_MS = 10000;
 
 // Backstop for the push teardown below. The work is local, so this only guards
 // against a browser that makes `unsubscribe()` wait on its push service.
@@ -115,6 +123,12 @@ export const getCurrency = async ({ callback }) => {
     // /home/currency returned them flat) — unwrap to the flat shape the store
     // consumers read (currency?.exchange_rate, currency?.symbol, ...).
     const currency = response.data?.currency ?? response.data;
+    // A success that carried no body is a failure, not a currency. It used to
+    // fall through here: nothing was reported and the caller was handed
+    // undefined, where every other failure path reports and hands back null.
+    if (!currency) {
+      throw new Error("currency response carried no data");
+    }
     callback({ currency, res: {} });
     return currency;
   } catch (err) {
@@ -212,11 +226,11 @@ export const formatTime = (timeString: string) => {
   const timeFormat = `${hours}:${minutes}:${seconds}`;
 
   if (date.toDateString() === today.toDateString()) {
-    return `Today | ${timeFormat}`;
+    return `${translateFunction("Today")} | ${timeFormat}`;
   }
 
   if (date.toDateString() === yesterday.toDateString()) {
-    return `Yesterday | ${timeFormat}`;
+    return `${translateFunction("Yesterday")} | ${timeFormat}`;
   }
 
   const isSameYear = date.getFullYear() === today.getFullYear();
@@ -265,11 +279,11 @@ export const formatTimeForAddress = (
   const timeFormat = `${hours}:${minutes}:${seconds}`;
 
   if (date.toDateString() === today.toDateString()) {
-    return `Today | ${timeFormat}`;
+    return `${translateFunction("Today", languageVar || language)} | ${timeFormat}`;
   }
 
   if (date.toDateString() === yesterday.toDateString()) {
-    return `Yesterday | ${timeFormat}`;
+    return `${translateFunction("Yesterday", languageVar || language)} | ${timeFormat}`;
   }
 
   const isSameYear = date.getFullYear() === today.getFullYear();
@@ -292,44 +306,36 @@ export const formatTimeForAddress = (
   return `${day}/${month}/${year} | ${timeFormat}`;
 };
 export const GetAddressString = (location) => {
-  let str = "";
-  if (
-    location?.country &&
-    location?.country.length > 0 &&
-    location?.country !== "null"
-  ) {
-    str += `${location?.country} | `;
-  }
-  if (
-    location?.province &&
-    location?.province.length > 0 &&
-    location?.province !== "null"
-  )
-    str += `${location?.province}`;
-  if (location?.city && location?.city.length > 0 && location?.city !== "null")
-    str += ` | ${location?.city}`;
-  if (location?.town && location?.town.length > 0 && location?.town !== "null")
-    str += ` | ${location?.town}`;
-  if (
-    location?.street &&
-    location?.street?.length > 0 &&
-    location?.street !== "null"
-  )
-    str += ` | ${location.street}`;
-  if (
-    location?.building &&
-    location?.building?.length > 0 &&
-    location?.building !== "null"
-  )
-    str += ` | ${location?.building}`;
-  return str;
+  // Each part used to carry its own separator — the country a trailing " | ",
+  // every later part a leading one — so a missing part in the middle left both
+  // bars behind and printed "Turkey |  | Kadikoy". Collecting the parts that are
+  // actually there and joining once cannot produce a gap.
+  const isFilled = (part) =>
+    typeof part === "string" && part.length > 0 && part !== "null";
+
+  return [
+    location?.country,
+    location?.province,
+    location?.city,
+    location?.town,
+    location?.street,
+    location?.building,
+  ]
+    .filter(isFilled)
+    .join(" | ");
 };
 export const GetImageUrl = (url) => {
   if (url?.file_path) {
     if (url?.file_path?.includes("media_server")) {
       return url?.file_path;
     } else {
-      return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url?.file_path;
+      // Same one-slash rule as the plain-text route below. Without it a record
+      // whose path has no leading slash ran the host and the path together.
+      const filePath = url.file_path;
+      return (
+        process.env.NEXT_PUBLIC_BASE_MEDIA_URL +
+        (filePath.startsWith("/") ? filePath : "/" + filePath)
+      );
     }
   }
   if (!url || typeof url !== "string") return url;
@@ -359,6 +365,9 @@ export const getVideoUrl = (
   const transformStr = transformations.join(",");
 
   if (input.startsWith("http") && input.includes("/video/upload/")) {
+    // Nothing to insert means the address is already final. Rebuilding it
+    // regardless only put an empty step in the middle (".../upload//v1/...").
+    if (!transformStr) return input;
     return input.replace(
       /\/video\/upload\/(v\d+)?/,
       `/video/upload/${transformStr}/$1`,
@@ -473,7 +482,11 @@ export function getReferralSource(referer: string | null): string {
 
   if (url.includes("facebook")) return "facebook";
   if (url.includes("instagram")) return "instagram";
-  if (url.includes("twitter") || url.includes("x")) return "twitter/X";
+  // "x" on its own matched almost every address there is — example.com, any
+  // .xyz shop, box.com — and filed all of them as social traffic. X is matched
+  // on its own host instead, so "box.com" and "example.com" no longer count.
+  if (url.includes("twitter") || /(^|\/\/|\.)x\.com([/?#]|$)/.test(url))
+    return "twitter/X";
   if (url.includes("t.co")) return "twitter-shortlink";
   if (url.includes("whatsapp")) return "whatsapp";
   if (url.includes("linkedin")) return "linkedin";
@@ -553,93 +566,6 @@ export function isSameColor(colorA, colorB) {
     normalize(a?.color_option) === normalize(b.color_name) ||
     normalize(a?.color_option) === normalize(b.color_option)
   );
-}
-interface CountriesResponse {
-  countries: Country[];
-}
-interface Country {
-  [key: string]: any;
-}
-
-export async function fetchCountries(
-  country = "tr",
-  language = "en",
-): Promise<CountriesResponse> {
-  try {
-    return {
-      countries: [
-        {
-          id: 103,
-          phonecode: 964,
-          iso: "IQ",
-          name: "Iraq",
-          longitude: "43.6848",
-          latitude: "33.2209",
-        },
-        {
-          id: 119,
-          phonecode: 961,
-          iso: "LB",
-          name: "Lebanon",
-          longitude: "35.4954",
-          latitude: "33.8886",
-        },
-        {
-          id: 208,
-          phonecode: 963,
-          iso: "SY",
-          name: "Syria",
-          longitude: "36.2783",
-          latitude: "33.5104",
-        },
-        {
-          id: 219,
-          phonecode: 90,
-          iso: "TR",
-          name: "Turkey",
-          longitude: "35.6667",
-          latitude: "39.1667",
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      countries: [
-        {
-          id: 103,
-          phonecode: 964,
-          iso: "IQ",
-          name: "Iraq",
-          longitude: "43.6848",
-          latitude: "33.2209",
-        },
-        {
-          id: 119,
-          phonecode: 961,
-          iso: "LB",
-          name: "lebanon",
-          longitude: "35.4954",
-          latitude: "33.8886",
-        },
-        {
-          id: 208,
-          phonecode: 963,
-          iso: "SY",
-          name: "syria",
-          longitude: "36.2783",
-          latitude: "33.5104",
-        },
-        {
-          id: 219,
-          phonecode: 90,
-          iso: "TR",
-          name: "Turkey",
-          longitude: "35.6667",
-          latitude: "39.1667",
-        },
-      ],
-    };
-  }
 }
 export const ShowDayStr = (index, language) => {
   var days = [

@@ -74,7 +74,7 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
               style={{
                 border: "1px solid rgb(211 211 211 / 51%)",
               }}
-              data-cy="address-info-header" // Added data-cy
+              data-pw="address-info-header" // Added data-pw
             >
               <svg
                 id="Group_3387"
@@ -130,7 +130,7 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
           </div>
           <div
             className="flex-col w-full px-[12px] "
-            data-cy="container-name-phone"
+            data-pw="container-name-phone"
           >
             <div className="flex flex-col w-full px-[12px] mt-[19px] items-start">
               <div className="flex flex-row items-stretch">
@@ -181,10 +181,10 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
                       
                     
                      mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
-                        data-cy="Address"
+                        data-pw="Address"
                       >
                         <EditIcon
-                          data-cy="EditAddress"
+                          data-pw="EditAddress"
                           onClick={() => {
                             setIsActiveAddress(true);
                             setAddressDetails(s);
@@ -192,7 +192,7 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
                           address={s}
                         />
                         <DeleteIcon
-                          data-cy="DeleteAddress"
+                          data-pw="DeleteAddress"
                           address={s}
                           onClick={() => {
                             setDeleteModal(s);
@@ -341,7 +341,7 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
               )}
               <div
                 className="flex cursor-pointer w-full justify-center h-[40px] mt-[8px] items-center bg-[#E8FFED]"
-                data-cy="AddAddres"
+                data-pw="AddAddres"
                 style={{
                   border: "1px solid rgb(196 194 194 / 51%)",
                   borderRadius: "15px",
@@ -423,7 +423,7 @@ const EditIcon = ({ address, onClick }) => {
         onClick();
       }}
       className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-10 right-[32px] top-[8px]"
-      data-cy="Edit-Addres-Icon"
+      data-pw="Edit-Addres-Icon"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -498,7 +498,7 @@ const DeleteIcon = ({ address, onClick }) => {
         onClick();
       }}
       className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-10 right-[8px] top-[8px]"
-      data-cy="Delete-Address-Icon"
+      data-pw="Delete-Address-Icon"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

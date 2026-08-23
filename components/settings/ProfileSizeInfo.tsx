@@ -105,7 +105,7 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
           style={{
             border: "1px solid rgb(211 211 211 / 51%)",
           }}
-          data-cy="address-info-header" // Added data-cy
+          data-pw="address-info-header" // Added data-pw
         >
           <svg
             id="Group_3387"
@@ -164,7 +164,7 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
           direction: isRtl ? "rtl" : "ltr",
         }}
         className="flex-col w-full mt-[30px] px-[12px] pb-[110px]"
-        data-cy="container-name-phone"
+        data-pw="container-name-phone"
       >
         <div className="flex-row px-[12px] items-center">
           <svg
@@ -351,14 +351,14 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
 
           <div
             className="flex mx-[6px] text-[#404040] text-[12px] medium"
-            data-cy="contact-info-text"
+            data-pw="contact-info-text"
           >
             {translateFunction("Your Size Info")}
           </div>
           <img
             src="/icons/AddressInfo.svg"
             className="ml-[12px] cursor-pointer"
-            data-cy="Address-info-icon"
+            data-pw="Address-info-icon"
           />
         </div>
         <div
@@ -376,7 +376,7 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
-                data-cy="personal-size-tall-input"
+                data-pw="personal-size-tall-input"
                 placeholder={
                   isArabic
                     ? toArabicNumerals(translateFunction("000 CM"))
@@ -424,7 +424,7 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
-                data-cy="personal-size-weight-input"
+                data-pw="personal-size-weight-input"
                 placeholder={
                   isArabic
                     ? toArabicNumerals(translateFunction("000 KG"))

@@ -1,3 +1,4 @@
+import { lang as langParam } from "next/root-params";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export const dynamicParams = true;
 export async function generateMetadata({ params, searchParams }) {
   // Fetch your main product categories
   let Params = await params;
+  const lang = await langParam();
   const sp = (await searchParams) ?? {};
   const search = typeof sp.search === "string" ? sp.search : undefined;
   try {
@@ -25,16 +27,16 @@ export async function generateMetadata({ params, searchParams }) {
   } catch (error) {
     LogServerError(
       { error, type: "get page meta error", filters: Params.filters },
-      `/${Params.lang}/filters`,
+      `/${lang}/filters`,
     );
 
-    const [country, language] = Params?.lang?.split("-");
+    const [country, language] = lang?.split("-");
     const baseUrl = General_Site_Data.url;
     const filtersPath =
       Array.isArray(Params.filters) && Params.filters.length > 0
         ? `/${Params.filters.join("/")}`
         : "";
-    const fullUrl = `${baseUrl}/${Params.lang}/filters${filtersPath}`;
+    const fullUrl = `${baseUrl}/${lang}/filters${filtersPath}`;
     const ogImageUrl = `${baseUrl}/opengraph-image.png`;
     const title = translateFunction(
       "TryDos - Boutique & Product Listing",
@@ -71,10 +73,11 @@ export async function generateMetadata({ params, searchParams }) {
 
 export default async function Page({ params, searchParams }) {
   const Params = await params;
+  const lang = await langParam();
   const sp = (await searchParams) ?? {};
 
   const legacy = buildSearchRedirectTarget(
-    Params.lang,
+    lang,
     "filters",
     Params.filters,
     sp,

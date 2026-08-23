@@ -6,6 +6,7 @@ import { otpRateLimit } from "serverRequests/radis";
 import { SEND_OTP } from "utils/endpointConfig";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { resolveOtpIdentity } from "utils/server/otpIdentity";
+import { isAllowlistedTestPhone } from "utils/server/otpAllowlist";
 import { captureOtpAttempt } from "utils/server/otpTelemetry";
 import { LogServerError } from "utils/serverErrorReporter";
 
@@ -21,6 +22,10 @@ import { LogServerError } from "utils/serverErrorReporter";
 //   • The Redis rate limit (per-session cap of 2 numbers/1h, per-IP cap,
 //     per-number cooldown) runs here, BEFORE the backend is ever called, so a
 //     scripted "1000 random numbers" attack is rejected for free.
+//   • The one exception is the test-number allowlist (`OTP_TEST_PHONES`, see
+//     utils/server/otpAllowlist): those numbers skip our limiter so testers and
+//     the live e2e suite are not locked out of their own accounts. The send is
+//     still real, and the list is empty unless the environment sets it.
 //
 // The actual OTP request is then made server-to-server via HandleAuthedFetch
 // (which carries the guest/market token and auto-registers a guest on 401),
@@ -37,9 +42,29 @@ interface SendOtpResult {
   blocked?: boolean;
   /** Present when blocked by our own rate limiter (not surfaced to the user). */
   reason?: string;
+  /**
+   * True when this number is on the test-number allowlist (`OTP_TEST_PHONES`),
+   * so our limiter was skipped for it. The client mirrors the server's locks in
+   * sessionStorage — this tells it not to, otherwise the browser would lock a
+   * number the server never locked and the exemption would look broken.
+   */
+  allowlisted?: boolean;
 }
 
 const digitsOnly = (phone: string) => (phone || "").replace(/[^0-9]/g, "");
+
+// A number outside this range is refused BEFORE the limiter is consulted, so
+// rubbish can never spend anyone's allowance.
+//   • 6 is the lower bound this action always had.
+//   • 15 is E.164's maximum, and also the most the phone input can produce:
+//     RdbPhoneInput caps an unknown country at 15 digits and a detected one at
+//     its dial code + local length. So no real shopper can reach the upper
+//     bound — only a caller posting to the action directly can.
+// Without the upper bound an arbitrarily long run of digits went through to the
+// limiter, and every distinct one became a new member of the per-session number
+// set the limiter counts and stores.
+const MIN_PHONE_DIGITS = 6;
+const MAX_PHONE_DIGITS = 15;
 
 // fetchServerData encodes non-2xx bodies as "HTTP <status> <url>: <body>".
 // Pull the backend message back out so wait/throttle text reaches the UI.
@@ -61,7 +86,13 @@ export async function sendOtpAction(input: {
 }): Promise<SendOtpResult> {
   try {
     const digits = digitsOnly(input.phone);
-    if (digits.length < 6) {
+    if (
+      digits.length < MIN_PHONE_DIGITS ||
+      digits.length > MAX_PHONE_DIGITS
+    ) {
+      // The same refusal either way: to the person typing, a number that is too
+      // long is just as invalid as one that is too short. Reusing the existing
+      // message also means no new user-visible string to translate.
       return { success: false, message: "Invalid Phone Number" };
     }
     const phone = `+${digits}`;
@@ -82,7 +113,21 @@ export async function sendOtpAction(input: {
     // );
 
     // ── Rate limit BEFORE touching the backend ──
-    const limit = await otpRateLimit({ sid, ip, phone });
+    // A configured test number (utils/server/otpAllowlist) skips the limiter
+    // completely: nothing is checked for it and — just as important — nothing is
+    // counted, so a whole day of test logins can't consume the shared per-IP
+    // budget that real shoppers on that address depend on. The send itself is
+    // still real; only OUR three rules are stepped over.
+    const isTestPhone = isAllowlistedTestPhone(phone);
+    const limit = isTestPhone
+      ? { allowed: true, reason: "test_phone", lockSeconds: 0 }
+      : await otpRateLimit({ sid, ip, phone });
+
+    // No client-side lock for a test number either — see `allowlisted` above.
+    const cooldownSeconds = isTestPhone
+      ? 0
+      : Number(process.env.OTP_COOLDOWN_SECONDS ?? 60);
+
     if (!limit.allowed) {
       // Record the blocked attempt with the real IP (the value to blocklist) —
       // these are the abusive senders the client `send_otp` event can't surface.
@@ -95,8 +140,10 @@ export async function sendOtpAction(input: {
         isWhatsapp: input.isWhatsapp,
       });
       const wait = limit.lockSeconds || 60;
-      // Reuse the existing PhoneNumberError parser: any message containing
-      // "seconds before trying again" renders a live countdown in the UI.
+      // The countdown itself comes from the structured `lockSeconds` field
+      // below (services/auth.ts feeds it straight into `lockNumber()` /
+      // `utils/otpLocks`) — this message is shown as-is, not parsed for a
+      // "seconds before trying again" pattern.
       const message =
         limit.reason === "cooldown"
           ? `Please wait ${wait} seconds before trying again`
@@ -138,7 +185,8 @@ export async function sendOtpAction(input: {
         success: true,
         verificationId,
         message,
-        lockSeconds: Number(process.env.OTP_COOLDOWN_SECONDS ?? 60),
+        lockSeconds: cooldownSeconds,
+        ...(isTestPhone ? { allowlisted: true } : {}),
       };
     }
 
@@ -155,7 +203,8 @@ export async function sendOtpAction(input: {
     return {
       success: false,
       message: message || "Failed to send verification code",
-      lockSeconds: Number(process.env.OTP_COOLDOWN_SECONDS ?? 60),
+      lockSeconds: cooldownSeconds,
+      ...(isTestPhone ? { allowlisted: true } : {}),
     };
   } catch (error) {
     LogServerError({ error, scenario: "sendOtpAction" });

@@ -1,0 +1,186 @@
+# The check that runs on every pull request into develop and main.
+#
+# It runs the four things that already pass locally, in one job, so a red run
+# points at exactly one broken thing. Every step carries `if: ${{ !cancelled() }}`
+# so a failure in one does not hide the other three — one run tells you
+# everything that is wrong, not just the first thing.
+#
+# The isolated suite only. Tests here never reach a real backend: the unit
+# project starts msw with `onUnhandledRequest: "error"`, so an unstubbed
+# request fails the test rather than leaving the runner.
+#
+# ---------------------------------------------------------------------------
+# Where the browser suite goes
+#
+# It is **not** in this file. The suite that talks to the real staging backend
+# runs in Chromium and lives in `.github/workflows/test-e2e.yml`, on push and
+# nightly, never on a pull request.
+#
+# The reason it is a separate file rather than another job here is the
+# `cancel-in-progress: true` immediately below. That cancels the whole run —
+# every job in it — as soon as another push lands on the same branch, and a
+# job-level concurrency group cannot opt out of that. A browser run killed
+# halfway may already have created a real order on staging and would never reach
+# the teardown that cancels it. So it runs where nothing cancels it.
+#
+# See docs/testing/E2E_TEST_DESIGN.md section 12.
+# ---------------------------------------------------------------------------
+
+name: Tests
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+# A new push to the same branch cancels the run still going for the old one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Lint, types and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Read by the notify job below. Every one of these is produced by a step that
+    # runs even when something above it failed.
+    outputs:
+      steps: ${{ steps.collect.outputs.steps }}
+      failures: ${{ steps.report.outputs.failures }}
+      totals: ${{ steps.report.outputs.totals }}
+      coverage: ${{ steps.report.outputs.coverage }}
+      rollup: ${{ steps.report.outputs.rollup }}
+      tree: ${{ steps.report.outputs.tree }}
+
+    steps:
+      - name: Check out the branch
+        uses: actions/checkout@v4
+
+      # The version is pinned here rather than in package.json's `packageManager`
+      # field on purpose: the deploy platform runs its own install command, and a
+      # `packageManager` field would also apply there. Keeping the pin in this
+      # file means CI cannot change how the app is built.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.0
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Cheapest first, but every step runs even after one fails.
+      - name: Translation key parity (ar / tr / ku)
+        id: parity
+        if: ${{ !cancelled() }}
+        run: pnpm lint:i18n-parity
+
+      # Errors only. The repo currently has warnings that are not worth failing a
+      # build over; clearing them is its own ticket. Do not add --max-warnings 0
+      # here until that ticket has landed.
+      - name: Lint
+        id: lint
+        if: ${{ !cancelled() }}
+        run: pnpm lint
+
+      # next-env.d.ts is gitignored and it imports ./.next/types/routes.d.ts, so
+      # a fresh checkout has neither file and tsc fails on code that type-checks
+      # perfectly on a developer machine. `next typegen` writes both without
+      # running a full build.
+      - name: Generate framework types
+        id: typegen
+        if: ${{ !cancelled() }}
+        run: pnpm exec next typegen
+
+      - name: Type check
+        id: types
+        if: ${{ !cancelled() }}
+        run: pnpm exec tsc --noEmit
+
+      # `test:ci` is `test:run` plus two machine-readable outputs, and nothing
+      # else: coverage/coverage-summary.json for the percentages, and
+      # test-results.json for the failing test names. Both are read by the step
+      # below and neither is committed.
+      - name: Unit tests
+        id: unit
+        if: ${{ !cancelled() }}
+        run: pnpm test:ci
+
+      # How each step above went, as one line. Only the step outcomes — the
+      # counts, the coverage and the test list come from the reporter below.
+      # `always()` because its whole purpose is to describe a run that failed.
+      - name: Collect the result
+        id: collect
+        if: ${{ always() }}
+        env:
+          R_PARITY: ${{ steps.parity.outcome }}
+          R_LINT: ${{ steps.lint.outcome }}
+          R_TYPES: ${{ steps.types.outcome }}
+          R_UNIT: ${{ steps.unit.outcome }}
+        run: |
+          set -u
+
+          icon() {
+            case "$1" in
+              success) printf '✅' ;;
+              failure) printf '❌' ;;
+              skipped) printf '⏭️' ;;
+              *)       printf '⚠️' ;;
+            esac
+          }
+
+          STEP_LINE="parity $(icon "$R_PARITY")  lint $(icon "$R_LINT")  types $(icon "$R_TYPES")  unit $(icon "$R_UNIT")"
+
+          {
+            echo "steps<<TRYDOS_EOF"
+            echo "$STEP_LINE"
+            echo "TRYDOS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # The counts, the coverage, the failing names, the per-file rollup and the
+      # full describe/it tree — all five read from what `test:ci` left behind.
+      # See scripts/unit-report.mjs for the formats; run `pnpm test:report`
+      # locally to see them without pushing.
+      #
+      # `always()` because a failed suite is the run this reports on, and the
+      # script never exits non-zero: a broken report must not turn a green run
+      # red, and it must not hide a red one either.
+      - name: Read the results
+        id: report
+        if: ${{ always() }}
+        run: node scripts/unit-report.mjs
+
+  notify:
+    name: Telegram
+    needs: verify
+    # `always()` so a red run is the one that definitely reports.
+    #
+    # Pull requests are left out on purpose: a pull request already shows its
+    # own result, and notifying there would be a message for every push to every
+    # open branch. Delete the second condition to include them — but note that a
+    # fork's pull request has no secrets, so it would send nothing anyway.
+    if: ${{ always() && github.event_name != 'pull_request' }}
+    uses: ./.github/workflows/notify-telegram.yml
+    with:
+      result: ${{ needs.verify.result }}
+      title: Tests · ${{ github.event_name }}
+      steps: ${{ needs.verify.outputs.steps }}
+      failures: ${{ needs.verify.outputs.failures }}
+      totals: ${{ needs.verify.outputs.totals }}
+      coverage: ${{ needs.verify.outputs.coverage }}
+      rollup: ${{ needs.verify.outputs.rollup }}
+      tree: ${{ needs.verify.outputs.tree }}
+      tree_name: unit-tests.txt
+    secrets: inherit

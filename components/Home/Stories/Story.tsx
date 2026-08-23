@@ -14,7 +14,7 @@ function Story({ media, Name, index, story }) {
     <div
       className="shadow-[0_3px_6px_rgba(0,0,0,0.2)] rounded-[20px]"
       onClick={() => setSelectStory(StoryServiceClass.configureStory(story))}
-      data-cy="story-element"
+      data-pw="story-element"
     >
       <StoryCard
         key={media?.full_video_path || media?.photo_path}
