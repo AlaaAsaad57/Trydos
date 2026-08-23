@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { getFirebaseAdminApp } from "utils/firebaseAdmin";
+import { getAccessToken } from "utils/fcm";
 import { LogServerError } from "utils/serverErrorReporter";
 
 const tokenInfoHandler = async (request: NextRequest): Promise<NextResponse> => {
@@ -12,13 +12,7 @@ const tokenInfoHandler = async (request: NextRequest): Promise<NextResponse> => 
   }
 
   try {
-    const app = getFirebaseAdminApp();
-    const credential = app.options.credential;
-    if (!credential) {
-      throw new Error("Firebase credential not configured");
-    }
-
-    const { access_token } = await credential.getAccessToken();
+    const access_token = await getAccessToken();
 
     const iidResponse = await fetch(
       `https://iid.googleapis.com/iid/info/${(token)}?details=true`,

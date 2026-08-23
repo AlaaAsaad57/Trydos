@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getFirebaseMessaging } from "utils/firebaseAdmin";
+import { unsubscribeFromTopic } from "utils/fcm";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,8 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const messaging = getFirebaseMessaging();
-    await messaging.unsubscribeFromTopic(token, topic);
+    await unsubscribeFromTopic(token, topic);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

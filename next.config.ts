@@ -19,6 +19,18 @@ const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
 // as well. Keep the two remaining guards.
 const isDev = process.env.NODE_ENV === "development";
 
+// Sentry's build-time wrapper (OpenTelemetry instrumentation + source-map
+// upload) used to be gated on `process.env.VERCEL`. That is a HOST name, not an
+// intent: on any other host the gate silently evaluates false and the app ships
+// with no Sentry wrapper and no source maps -- a green build with no error
+// reporting, which is the failure you find out about during an incident.
+// Gate on the intent instead. Vercel still enables it with no env change
+// (VERCEL=1), any CI build enables it, and SENTRY_BUILD forces it either way.
+const sentryBuildEnabled =
+  process.env.SENTRY_BUILD === "true" ||
+  (process.env.SENTRY_BUILD !== "false" &&
+    Boolean(process.env.VERCEL || process.env.CI));
+
 let nextConfig: NextConfig = {
   reactStrictMode: false,
   // Removes the `X-Powered-By: Next.js` header (security scan F-06 — tech
@@ -32,7 +44,7 @@ let nextConfig: NextConfig = {
   // The proxy itself is a route handler (app/ingest/[...path]/route.ts), NOT a
   // rewrite: it strips the Cookie header before forwarding, because our large
   // first-party cookies otherwise overflow PostHog's upstream header limit and
-  // get a 400. The middleware (proxy.ts) excludes `ingest` from its matcher so
+  // get a 400. The middleware (middleware.ts) excludes `ingest` from its matcher so
   // the route handler is reached untouched. skipTrailingSlashRedirect keeps
   // PostHog's trailing-slash endpoints intact.
   skipTrailingSlashRedirect: true,
@@ -172,7 +184,17 @@ let nextConfig: NextConfig = {
     ];
   },
   images: {
-    unoptimized: false,
+    // Image optimization is OFF. Next's optimizer pulls in `sharp`, a native
+    // binary that cannot be bundled into a Cloudflare Worker at all, so the
+    // Worker build fails on its `.node` file.
+    //
+    // COST, deliberately accepted: images are now served at their original size
+    // and format on EVERY host, Vercel included. On an image-heavy storefront
+    // that means more bytes over the wire and a worse LCP than before. If that
+    // needs winning back, the route is Cloudflare Images via a custom loader
+    // (`loader: "custom"` + `loaderFile`), which resizes at the edge without
+    // sharp -- not turning this back on.
+    unoptimized: true,
     qualities: [100,90, 70, 65],
     domains: [
       "cdn.example.com",
@@ -210,7 +232,14 @@ let nextConfig: NextConfig = {
     turbopackRustReactCompiler: true,
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
-    optimizeCss: !isDev,
+    // optimizeCss (critters) inlines critical CSS. It stays ON for Vercel.
+    //
+    // It is turned OFF when building the Cloudflare Worker: the adapter copies
+    // `.next/static/css` whenever this flag is set, but Next 16 with Turbopack
+    // emits stylesheets into `static/chunks/` instead, so that directory never
+    // exists and the Worker build dies on a missing path. WORKER_BUILD is set by
+    // open-next.config.ts, which loads before `next build` is spawned.
+    optimizeCss: !isDev && !process.env.WORKER_BUILD,
     optimizeServerReact: !isDev,
     optimizePackageImports: [
       "embla-carousel-react",
@@ -223,6 +252,16 @@ let nextConfig: NextConfig = {
       dynamic: 30,
       static: 180,
     },
+  },
+
+  // `sharp` ships as an optional dependency of Next itself, so it is always
+  // installed and always picked up by the file tracer -- even with image
+  // optimization off. It is a native `.node` binary, which esbuild cannot bundle
+  // and a Cloudflare Worker could not run anyway, so the Worker build dies on
+  // it. Nothing in this app imports sharp directly (checked), and with
+  // `images.unoptimized` set nothing uses it indirectly either.
+  outputFileTracingExcludes: {
+    "**/*": ["node_modules/**/sharp/**", "node_modules/**/@img/**"],
   },
 
   productionBrowserSourceMaps: false,
@@ -254,10 +293,10 @@ const configWithSentry = withSentryConfig(analyze(nextConfig), {
   // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: false,
   sourcemaps: {
-    // Upload source maps ONLY on Vercel builds. Local `pnpm build` sets no
-    // VERCEL env var, so upload stays disabled there (no token needed, no maps
-    // shipped). Vercel sets VERCEL=1 automatically on every build.
-    disable: !process.env.VERCEL,
+    // Upload source maps only on a real CI/production build. Local `pnpm build`
+    // sets neither VERCEL nor CI, so upload stays disabled there (no token
+    // needed, no maps shipped). See `sentryBuildEnabled` above.
+    disable: !sentryBuildEnabled,
   },
   // Uncomment to route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
   // This can increase your server load as well as your hosting bill.
@@ -280,6 +319,6 @@ const configWithSentry = withSentryConfig(analyze(nextConfig), {
   },
 });
 
-// Vercel sets VERCEL=1 on every build; locally it's unset, so dev/local builds
-// run without the Sentry wrapper's instrumentation overhead.
-export default process.env.VERCEL ? configWithSentry : analyze(nextConfig);
+// Dev/local builds run without the Sentry wrapper's instrumentation overhead;
+// CI and production builds get it on every host. See `sentryBuildEnabled`.
+export default sentryBuildEnabled ? configWithSentry : analyze(nextConfig);

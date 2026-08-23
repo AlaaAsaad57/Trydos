@@ -1,5 +1,6 @@
 "use server";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
+import { now } from "utils/runtime/timing";
 import AnalyzeSearchText from "./analyzeSearchTextCerebras";
 import {
   buildAggregations,
@@ -243,7 +244,7 @@ export async function getProductsAndFiltersFromElastic(
     filters = { ...filters, priceRange: filters.prices };
   }
 
-  let start = process.hrtime.bigint();
+  let start = now();
   let isAnalyzed: any = false;
   try {
     if (filters.search_text && filters.search_text?.split(" ")?.length > 1) {
@@ -411,7 +412,7 @@ export async function getProductsAndFiltersFromElastic(
     // grid (`noProducts:false`) yet still needs the cards. Grid-only pagination
     // (`GetProducts`) passes `noFilters:true`, so it is excluded entirely.
     if (LISTING_PRICE_AGG_ENABLED && !noFilters && priceFacetActive) {
-      const computeStart = process.hrtime.bigint();
+      const computeStart = now();
       const priceFacet = (response as any).aggregations?.price_facet;
       // Stats are re-scoped to all active filters (incl. the selected price
       // range), so the slider bounds track the current selection.
@@ -474,7 +475,7 @@ export async function getProductsAndFiltersFromElastic(
       };
 
       // if (LISTING_PRICE_AGG_DEBUG) {
-      //   const computeEnd = process.hrtime.bigint();
+      //   const computeEnd = now();
       //   console.debug(
       //     "[price-agg]",
       //     JSON.stringify({
@@ -489,7 +490,7 @@ export async function getProductsAndFiltersFromElastic(
       //       histogramBuckets: histogram.length,
       //       cards: priceRanges,
       //       es_took_ms: (response as any).took,
-      //       compute_ms: Number(computeEnd - computeStart) / 1_000_000,
+      //       compute_ms: computeEnd - computeStart,
       //     }),
       //   );
       // }
@@ -545,7 +546,7 @@ export async function getProductsAndFiltersFromElastic(
     const mergedProducts = [...recommendedProducts, ...deduplicatedCatalog];
 
     if (noFilters) {
-      let end = process.hrtime.bigint();
+      let end = now();
       return {
         colors: colorsFilter,
         offset: lastSortValue,
@@ -555,7 +556,7 @@ export async function getProductsAndFiltersFromElastic(
         total_size: total_size,
         products: mergedProducts,
         limit: limit,
-        time: Number(end - start) / 1_000_000,
+        time: end - start,
         recommended_offset: newRecommendedOffset,
         pit_id: activePitId,
       };
@@ -675,14 +676,14 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset,
     );
-    let end = process.hrtime.bigint();
+    let end = now();
     // console.log(
     //   filters.search_text,
     //   "search term",
     //   total_size,
     //   "products count",
     //   "Time taken:",
-    //   Number(end - start) / 1_000_000,
+    //   end - start,
     //   "ms",
     // );
     if (
@@ -736,7 +737,7 @@ export async function getProductsAndFiltersFromElastic(
       applied: filters,
       recommended_offset: newRecommendedOffset,
       pit_id: activePitId,
-      time: Number(end - start) / 1_000_000,
+      time: end - start,
     };
   } catch (error) {
     LogServerError({
@@ -844,7 +845,7 @@ export async function GetRecomendationsForUser({
   fullSource = false,
 }) {
   try {
-    const start = process.hrtime.bigint();
+    const start = now();
 
     // STEP 1: Master list (source of truth)
     const allCandidates = await fetchRecommendationCandidates(userId);
@@ -920,7 +921,7 @@ export async function GetRecomendationsForUser({
       return posA - posB;
     });
 
-    const end = process.hrtime.bigint();
+    const end = now();
     return {
       products: sortedFetchedProducts.map((s) => ({
         ...s,
@@ -930,7 +931,7 @@ export async function GetRecomendationsForUser({
       limit,
       total_size: totalCandidates,
       offset: [currentIndex],
-      time: Number(end - start) / 1_000_000,
+      time: end - start,
     };
   } catch (error) {
     LogServerError({
@@ -1028,7 +1029,7 @@ export async function getRelatedProducts(
     fullSource = false,
   } = params;
 
-  let start = process.hrtime.bigint();
+  let start = now();
   try {
     // 1. Fetch the current product from ES by id to get its categories.gender and categories.group_age
     const productResponse = await client.search({
@@ -1173,7 +1174,7 @@ export async function getRelatedProducts(
         seller_status: s?.seller_status,
       })) ?? [];
 
-    let end = process.hrtime.bigint();
+    let end = now();
 
     return {
       offset: lastSortValue,
@@ -1181,7 +1182,7 @@ export async function getRelatedProducts(
       total_size: total_size,
       products: catalogProducts,
       pit_id: activePitId,
-      time: Number(end - start) / 1_000_000,
+      time: end - start,
     };
   } catch (error) {
     LogServerError({

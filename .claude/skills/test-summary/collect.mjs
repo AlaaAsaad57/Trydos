@@ -52,7 +52,7 @@ function tidyPath(p) {
 
 /** The area of the app a file belongs to, for the coverage rollup. */
 function areaOf(file) {
-  if (file === "proxy.ts") return "proxy.ts (every request)";
+  if (file === "middleware.ts") return "middleware.ts (every request)";
   const top = file.split("/")[0];
   const names = {
     app: "app — pages and API routes",

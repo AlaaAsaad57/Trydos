@@ -33,8 +33,15 @@ Two suites exist: the **unit** suite (`tests/`, Vitest) and the **browser** suit
 
 ## Architecture
 
-### Request entry: `proxy.ts` (the middleware)
-Next.js 16 renames `middleware.ts` → **`proxy.ts`**. This single file runs on every request and handles:
+### Request entry: `middleware.ts`
+Next.js 16 renames `middleware.ts` → `proxy.ts`, but this repository deliberately
+stays on **`middleware.ts`**. A `proxy.ts` always runs on the Node runtime, and
+the Cloudflare Workers adapter cannot deploy Node middleware
+([opennextjs-cloudflare#962](https://github.com/opennextjs/opennextjs-cloudflare/issues/962));
+`middleware.ts` runs on Edge, which every target supports. `next build` warns
+that the convention is deprecated — **that warning is expected; do not "fix" it**
+and do not run the `middleware-to-proxy` codemod. This single file runs on every
+request and handles:
 - **i18n locale routing** — supported languages `en`/`ar`/`tr`/`ku`, default `en`; country detection (default `gb`). Rewrites/redirects URLs under `app/(client)/[lang]/`.
 - **Bot detection** (googlebot, facebookexternalhit, etc.). Rate limiting / abuse protection is handled at the platform edge by **Vercel Firewall**, not in this file.
 - Locale is persisted in non-HttpOnly cookies for the client.
@@ -278,7 +285,7 @@ Two backends serve this app; refer to them by role — the **gateway** (guest/al
 
 ### Known and accepted — do not re-raise
 
-- **`app/api/auth/simulate/route.ts`** — an unauthenticated `POST` that sets `MARKET-TOKEN`, `User-Data`, the chat/stories/wallet tokens and `USER_ID_HASH` from the request body. It has no environment gate, and `proxy.ts`'s matcher excludes `/api`, so nothing gates it in code. **This is known.** It exists for testers only and is slated for removal. Do **not** open a ticket for it, do **not** raise it as a review finding, and do **not** build anything that depends on it — set auth cookies through the browser's own cookie store instead.
+- **`app/api/auth/simulate/route.ts`** — an unauthenticated `POST` that sets `MARKET-TOKEN`, `User-Data`, the chat/stories/wallet tokens and `USER_ID_HASH` from the request body. It has no environment gate, and `middleware.ts`'s matcher excludes `/api`, so nothing gates it in code. **This is known.** It exists for testers only and is slated for removal. Do **not** open a ticket for it, do **not** raise it as a review finding, and do **not** build anything that depends on it — set auth cookies through the browser's own cookie store instead.
 
 <!-- wf governance text: v3.0.0 -->
 
@@ -314,7 +321,7 @@ merged into directly. So: `implement` creates `ticket/<slug>` from a clean
 may be changed **only** inside an approved `implement` stage, and only when the
 approved `plan.md` lists them:
 
-- `proxy.ts` — runs on every request (locale routing, country detection, bot
+- `middleware.ts` — runs on every request (locale routing, country detection, bot
   handling, the staging gate)
 - `next.config.ts` — build and image/host configuration
 - `instrumentation.ts`, `instrumentation-client.ts`, `sentry.*.config.ts` —

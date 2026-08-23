@@ -1,4 +1,7 @@
 import Redis from "ioredis";
+import { now } from "utils/runtime/timing";
+import { isWorkerRuntime } from "utils/runtime/platform";
+import { createRestRedis, hasRestRedis, type RedisLike } from "./rest-client";
 import { LogServerError } from "utils/serverErrorReporter";
 
 declare global {
@@ -8,12 +11,27 @@ declare global {
 }
 
 const DEFAULT_TTL = 1800;
-let redis: Redis | null = null;
 
-if (process.env.NEXT_RUNTIME !== "edge") {
-  // Only init Redis in Node runtime
+// The client used to be built once at module load and shared by every request.
+// That is right on Node -- one pooled TCP socket, reused -- and illegal on the
+// Cloudflare Workers runtime, which refuses I/O created during another request
+// ("Cannot perform I/O on behalf of a different request").
+//
+// So the driver is chosen by runtime, behind one accessor:
+//   Node    -> the same pooled ioredis client as before, built on first use.
+//   Workers -> a stateless REST client, built per call. It holds no connection,
+//              so there is nothing to share and nothing to leak between
+//              requests. Needs REDIS_REST_URL / REDIS_REST_TOKEN.
+//   Edge    -> none, as before.
+//
+// Every caller already treats a null client as "cache unavailable" and carries
+// on, so a runtime with no Redis degrades instead of failing.
+let nodeClient: Redis | null = null;
+
+function getNodeClient(): Redis {
+  if (nodeClient) return nodeClient;
   // @ts-ignore
-  redis =
+  nodeClient =
     global._redis ??
     new Redis({
       host: process.env.REDIS_URL,
@@ -23,12 +41,28 @@ if (process.env.NEXT_RUNTIME !== "edge") {
     });
   if (process.env.NODE_ENV !== "production") {
     // @ts-ignore
-    global._redis = redis;
+    global._redis = nodeClient;
   }
+  return nodeClient;
+}
+
+function getRedis(): RedisLike | null {
+  if (process.env.NEXT_RUNTIME === "edge") return null;
+  if (isWorkerRuntime()) {
+    return hasRestRedis() ? createRestRedis() : null;
+  }
+  return getNodeClient() as unknown as RedisLike;
+}
+
+/** Drop the cached Node client. Exported for tests only. */
+export function __resetRedisClient() {
+  nodeClient = null;
+  global._redis = undefined;
 }
 
 // Store product in Redis
 export async function storeProduct(product, slug, lang, country) {
+  const redis = getRedis();
   if (!redis) {
     throw new Error("Redis is not available in Edge runtime");
   }
@@ -36,7 +70,7 @@ export async function storeProduct(product, slug, lang, country) {
     throw new Error("Invalid product object, missing product data");
   }
 
-  const start = process.hrtime.bigint();
+  const start = now();
   const ttl = Number(process.env.PRODUCT_REDIS_TTL_SECONDS) || DEFAULT_TTL;
 
   // Force everything into safe strings
@@ -49,8 +83,8 @@ export async function storeProduct(product, slug, lang, country) {
     await redis.set(productKey, JSON.stringify(product), "EX", ttl);
     await redis.set(slugKey, String(product.id), "EX", ttl);
 
-    const end = process.hrtime.bigint();
-    return { success: true, timeMs: Number(end - start) / 1_000_000 };
+    const end = now();
+    return { success: true, timeMs: end - start };
   } catch (err) {
     console.error("Redis SET failed", { productKey, slugKey, err });
     LogServerError(
@@ -62,18 +96,19 @@ export async function storeProduct(product, slug, lang, country) {
 
 // Get product from Redis
 export async function getProductFromCache(slug, lang, country) {
+  const redis = getRedis();
   if (!redis) {
     throw new Error("Redis is not available in Edge runtime");
   }
-  const start = process.hrtime.bigint();
+  const start = now();
   const slugKey = `slug:${String(slug)}:${String(lang)}:${String(country)}`;
 
   try {
     const productId = await redis.get(slugKey);
 
     if (!productId) {
-      const end = process.hrtime.bigint();
-      return { product: null, timeMs: Number(end - start) / 1_000_000 };
+      const end = now();
+      return { product: null, timeMs: end - start };
     }
 
     const productKey = `product:${String(productId)}:${String(lang)}:${String(
@@ -82,12 +117,12 @@ export async function getProductFromCache(slug, lang, country) {
 
     const cachedProduct = await redis.get(productKey);
 
-    const end = process.hrtime.bigint();
+    const end = now();
     let product = cachedProduct ? JSON.parse(cachedProduct) : null;
 
     return {
       product: { ...product, redis: true },
-      timeMs: Number(end - start) / 1_000_000,
+      timeMs: end - start,
     };
   } catch (err) {
     console.error("Redis GET failed", { slugKey, err });
@@ -97,6 +132,7 @@ export async function getProductFromCache(slug, lang, country) {
 }
 // Get Currency from Redis
 export async function getCurrencyFromCache(country) {
+  const redis = getRedis();
   try {
     if (!redis) {
       throw new Error("Redis is not available in Edge runtime");
@@ -112,6 +148,7 @@ export async function getCurrencyFromCache(country) {
   }
 }
 export async function StoreCurrency(country, value) {
+  const redis = getRedis();
   try {
     await redis.set(
       `currency-${country}`,
@@ -125,6 +162,7 @@ export async function StoreCurrency(country, value) {
 }
 
 export async function RedisGet(key) {
+  const redis = getRedis();
   try {
     const cachedProduct = await redis.get(key);
     return cachedProduct ? JSON.parse(cachedProduct) : null;
@@ -134,6 +172,7 @@ export async function RedisGet(key) {
   }
 }
 export async function RedisSet(key, value, ttl?: number) {
+  const redis = getRedis();
   try {
     const effectiveTtl =
       ttl ?? Number(process.env.PRODUCT_REDIS_TTL_SECONDS) ?? 120;
@@ -143,6 +182,7 @@ export async function RedisSet(key, value, ttl?: number) {
   }
 }
 export async function removeRedis(key) {
+  const redis = getRedis();
   try {
     await redis.del(key);
   } catch (error) {
@@ -152,6 +192,7 @@ export async function removeRedis(key) {
   }
 }
 export async function getKeys(keyword) {
+  const redis = getRedis();
   try {
     let keys = await redis.keys(keyword);
     return keys;
@@ -161,6 +202,7 @@ export async function getKeys(keyword) {
 }
 
 export async function GetFromRedis(key) {
+  const redis = getRedis();
   try {
     let result = await redis.get(key);
     return result;
@@ -183,6 +225,7 @@ export async function fixedWindowRateLimit(
   limit: number,
   windowSeconds: number,
 ): Promise<{ allowed: boolean; remaining: number; ttl: number }> {
+  const redis = getRedis();
   try {
     if (!redis) return { allowed: true, remaining: limit, ttl: 0 };
 
@@ -268,6 +311,7 @@ export async function otpRateLimit(params: {
   windowSeconds?: number;
   cooldownSeconds?: number;
 }): Promise<OtpRateLimitResult> {
+  const redis = getRedis();
   const { sid, ip, phone } = params;
   const cooldown = Number(
     params.cooldownSeconds ?? process.env.OTP_COOLDOWN_SECONDS ?? 60,
@@ -330,6 +374,7 @@ export async function otpRateLimit(params: {
 
 
 export async function flushOtpLimitsAction() {
+  const redis = getRedis();
 
   try {
     if (!redis) {

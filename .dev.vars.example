@@ -1,0 +1,45 @@
+# Local secrets for the Cloudflare Worker (`wrangler dev` / `pnpm cf:preview`).
+#
+# Copy to `.dev.vars` and fill in. `.dev.vars` is gitignored — never commit it,
+# and never put any of these in `wrangler.jsonc`, which IS committed.
+#
+# For production, do NOT use this file. Push each secret once with:
+#     wrangler secret put <NAME>
+#
+# The account id and API token are for the CLI itself, not the running Worker,
+# so they belong in your shell environment rather than here:
+#     export CLOUDFLARE_ACCOUNT_ID=...
+#     export CLOUDFLARE_API_TOKEN=...
+
+# --- Redis over HTTP -------------------------------------------------------
+# Required on Workers. The Worker runtime cannot share a pooled TCP client
+# between requests, so `serverRequests/radis` switches to a REST driver there
+# (see serverRequests/radis/rest-client.ts). Without these two, Redis is simply
+# unavailable on the Worker: caching is skipped and — importantly — the OTP
+# rate limiter fails OPEN, leaving abuse protection to the backend alone.
+REDIS_REST_URL=
+REDIS_REST_TOKEN=
+
+# --- Backends --------------------------------------------------------------
+BACKEND_URL=
+GO_BACKEND_URL=
+
+ELASTICSEARCH_NODE=
+ELASTICSEARCH_USERNAME=
+ELASTICSEARCH_PASSWORD=
+
+# --- Push notifications ----------------------------------------------------
+# Used by utils/fcm.ts. FIREBASE_PRIVATE_KEY keeps its literal \n escapes.
+FIREBASE_PROJECT_ID=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY=
+
+# --- Error reporting -------------------------------------------------------
+NEXT_PUBLIC_DSN_SENTRY=
+
+# --- Other ----------------------------------------------------------------
+FCM_DASHBOARD_TOKEN=
+ASSEMBLYAI_API_KEY=
+ASSEMBLYAI_BASE_URL=
+CEREBRAS_API_KEY=
+GL_API_KEY=

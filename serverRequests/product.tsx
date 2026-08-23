@@ -7,6 +7,7 @@ import {
   GetImageUrl,
 } from "utils/server";
 import { GetFromRedis, RedisGet, RedisSet } from "./radis";
+import { now } from "utils/runtime/timing";
 import { fetchServerData } from "./ServerFetch";
 import { Metadata } from "next";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
@@ -158,7 +159,7 @@ export async function GetGlobalProduct({
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
       country,
     )}`;
-    let start = process.hrtime.bigint();
+    let start = now();
     // When noCache is set the Redis read is skipped and the data is fetched
     // fresh from the Go backend (the write-back below still keeps the cache warm
     // for other consumers such as the web product page).
@@ -168,11 +169,11 @@ export async function GetGlobalProduct({
       if (productId) {
         let cachedProductData = await RedisGet(`${cacheKey}-global`);
         if (cachedProductData) {
-          let end = process.hrtime.bigint();
+          let end = now();
           return {
             ...cachedProductData,
             globalFromRedis: true,
-            globalDataTime: Number(end - start) / 1_000_000,
+            globalDataTime: end - start,
           };
         }
       }
@@ -195,11 +196,11 @@ export async function GetGlobalProduct({
         freshGlobalData.data.data,
       );
     }
-    let end = process.hrtime.bigint();
+    let end = now();
     return {
       ...freshGlobalData.data?.data,
       globalFromRedis: false,
-      globalDataTime: Number(end - start) / 1_000_000,
+      globalDataTime: end - start,
     };
   } catch (error) {
     LogServerError({
@@ -222,7 +223,7 @@ export async function GetProductPriceQtyDetails({
   noCache = false,
 }): Promise<QtyProductData> {
   try {
-    let start = process.hrtime.bigint();
+    let start = now();
     const slugKey = `product-slug:${String(slug)}:${String(language)}:${String(
       country,
     )}`;
@@ -232,11 +233,11 @@ export async function GetProductPriceQtyDetails({
       if (productId) {
         let cachedProductData = await RedisGet(`${cacheKey}-qtyPrices`);
         if (cachedProductData) {
-          let end = process.hrtime.bigint();
+          let end = now();
           return {
             ...cachedProductData,
             qtyPricesDataFromRedis: true,
-            qtyPricesDataTime: Number(end - start) / 1_000_000,
+            qtyPricesDataTime: end - start,
           };
         }
       }
@@ -257,11 +258,11 @@ export async function GetProductPriceQtyDetails({
         freshQtyPricesData.data.data,
       );
     }
-    let end = process.hrtime.bigint();
+    let end = now();
     return {
       ...freshQtyPricesData.data?.data,
       qtyPricesDataFromRedis: false,
-      qtyPricesDataTime: Number(end - start) / 1_000_000,
+      qtyPricesDataTime: end - start,
     };
   } catch (error) {
     LogServerError({

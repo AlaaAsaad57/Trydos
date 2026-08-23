@@ -76,6 +76,8 @@ scripts/*
 !scripts/trello_fetch.py
 !scripts/trello_move_card.py
 !scripts/clickup_create_task.py
+# Reports the built Worker's gzip size against Cloudflare's hard limit.
+!scripts/worker-size.mjs
 
 # Local design references (XD exports) - not for repo
 xd-designs-for-inspreation/
@@ -144,3 +146,19 @@ test-results/
 
 .vercel
 .env*
+
+# Cloudflare credentials & local Worker secrets.
+# CF-CREDENITIALS.md holds an account id and API tokens; .dev.vars is what
+# wrangler reads for local secrets. Neither may ever be committed — a token in
+# git history is a leaked token even after the file is deleted.
+CF-CREDENITIALS.md
+CF-CREDENTIALS.md
+.dev.vars
+.dev.vars.*
+# ...but the template carries no values and documents what is needed.
+!.dev.vars.example
+.wrangler/
+
+# OpenNext / Cloudflare build output
+.open-next/
+cloudflare-env.d.ts

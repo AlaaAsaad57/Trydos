@@ -1,4 +1,5 @@
 import { redirect, unstable_rethrow } from "next/navigation";
+import { now } from "utils/runtime/timing";
 import NotFoundRedirect from "components/global/NotFoundRedirect";
 import { Suspense } from "react";
 import "styles/listing-components.css";
@@ -30,7 +31,7 @@ async function getBoutique(
   country: string,
   language: string,
 ) {
-  const start = process.hrtime.bigint();
+  const start = now();
   try {
     if (boutique) {
       const reader = new ElasticsearchReader();
@@ -46,8 +47,8 @@ async function getBoutique(
         // fired anywhere. The caller decides how to navigate.
         return { boutiqueNotFound: true, banners: null, name: "Search", time: 0 };
       }
-      const end = process.hrtime.bigint();
-      return { ...boutiqueData, time: Number(end - start) / 1_000_000 };
+      const end = now();
+      return { ...boutiqueData, time: end - start };
     }
     return { banners: null, name: "Search", time: 0 };
   } catch (error) {
@@ -66,34 +67,34 @@ async function getBoutique(
 }
 
 async function getCurrencyForListing(country: string, language: string) {
-  const start = process.hrtime.bigint();
+  const start = now();
   try {
     const cachedCurrency = await getCurrencyFromCache(country);
 
     if (typeof cachedCurrency === "string") {
-      let end = process.hrtime.bigint();
+      let end = now();
       return {
         ...JSON.parse(cachedCurrency),
         redis: true,
-        time: Number(end - start) / 1_000_000,
+        time: end - start,
       };
     }
     if (cachedCurrency?.exchange_rate) {
-      let end = process.hrtime.bigint();
+      let end = now();
       return {
         ...cachedCurrency,
         redis: true,
-        time: Number(end - start) / 1_000_000,
+        time: end - start,
       };
     }
     const currencyData = await fetchCurrency(language, country);
     const currency = { ...currencyData.data };
     StoreCurrency(country, currency);
-    let end = process.hrtime.bigint();
+    let end = now();
     return {
       ...currency,
       redis: false,
-      time: Number(end - start) / 1_000_000,
+      time: end - start,
     };
   } catch {
     return undefined;

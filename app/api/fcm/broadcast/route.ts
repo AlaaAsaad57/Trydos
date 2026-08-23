@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getFirebaseMessaging } from "utils/firebaseAdmin";
+import { sendMessage, type FcmMessage } from "utils/fcm";
 import { RedisGet, RedisSet } from "serverRequests/radis";
 
 const STAT_TTL = 86400 * 30;
@@ -50,13 +50,11 @@ export async function POST(req: NextRequest) {
     badgeCount?: number;
   } | null;
 
-  const message: Parameters<
-    ReturnType<typeof getFirebaseMessaging>["send"]
-  >[0] = {
+  const message: FcmMessage = {
     notification: { title, body: msgBody },
     topic,
     ...(settings?.webLinkEnabled && settings.webLink
-      ? { webpush: { fcmOptions: { link: settings.webLink } } }
+      ? { webpush: { fcm_options: { link: settings.webLink } } }
       : {}),
     ...(settings?.badgeCountEnabled &&
     typeof settings.badgeCount === "number" &&
@@ -66,8 +64,7 @@ export async function POST(req: NextRequest) {
   };
 
   try {
-    const messaging = getFirebaseMessaging();
-    const messageId = await messaging.send(message);
+    const messageId = await sendMessage(message);
     await incrementStat("fcm:stat:messages_sent");
     return NextResponse.json({ success: true, messageId });
   } catch (error: unknown) {

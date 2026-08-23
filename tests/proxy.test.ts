@@ -42,7 +42,7 @@ import { jsonReply, makeMockFetch } from "./mocks/mockFetch";
 // `config`, which is a build-time export that no setting and no request can
 // change. It is read here, at module scope, so the AC-11 cases at the bottom can
 // be named per path instead of hidden inside one loop.
-import { config as shippedConfig } from "../proxy";
+import { config as shippedConfig } from "../middleware";
 
 /** The address the tests pretend the site is served from. */
 const ORIGIN = "https://trydos.test";
@@ -64,7 +64,12 @@ let net: ReturnType<typeof makeMockFetch>;
  */
 async function loadProxy() {
   vi.resetModules();
-  return import("../proxy");
+  const loaded = await import("../middleware");
+  // The file follows Next's `middleware.ts` convention (see the note at the top
+  // of it for why it is not `proxy.ts`), but every test below calls the entry
+  // point `proxy` — the name this app has always used for it. Alias it once
+  // here rather than renaming it in a hundred places.
+  return { ...loaded, proxy: loaded.middleware };
 }
 
 /**

@@ -1,0 +1,117 @@
+# Builds the Cloudflare Worker bundle and reports its compressed size.
+#
+# WHY THIS RUNS IN CI RATHER THAN ON A DEVELOPER MACHINE
+# The adapter (`@opennextjs/cloudflare`) creates symlinks while assembling the
+# bundle. On Windows that needs Developer Mode or an elevated shell, and it fails
+# with EPERM without them — OpenNext's own docs say to use WSL or Linux CI. The
+# bundle is also large enough that esbuild has been seen to die of memory
+# pressure on an 8 GB machine. A Linux runner has neither problem.
+#
+# WHAT IT ANSWERS
+# One question, and it is the question that decides whether this app can be
+# deployed to Workers at all: **does the bundle fit?** A Worker may not exceed
+# 3 MiB gzipped on the free plan or 10 MiB on the paid plan, and OpenNext packs
+# the entire app — every page, every route handler, every dependency — into one
+# Worker. No amount of code review answers that; only a build does.
+#
+# THIS DOES NOT DEPLOY. It needs no Cloudflare credentials and touches nothing in
+# your account. Deploying is a separate step, added once this goes green.
+#
+# EXPECTED TO FAIL TODAY. `sharp` is an optional dependency of Next itself, so it
+# is always installed and esbuild statically resolves its native `.node` binary
+# even though nothing imports it. Tracked upstream at
+# opennextjs/opennextjs-cloudflare#1226. Keep this workflow OUT of the required
+# checks until it passes, or it will block every pull request.
+
+name: Worker build
+
+on:
+  # Manual runs. Note: a `workflow_dispatch` button only appears once this file
+  # is on the repository's default branch — until then, use the pull_request
+  # trigger below, which runs the branch's own copy.
+  workflow_dispatch:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "open-next.config.ts"
+      - "wrangler.jsonc"
+      - "next.config.ts"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/worker-build.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Bundle and measure
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out the branch
+        uses: actions/checkout@v4
+
+      # Pinned here, not in package.json's `packageManager` field — the deploy
+      # platform runs its own install command and would pick that field up too.
+      # Same reasoning as tests.yml.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.0
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The runner has far more headroom than a laptop, but the bundle is big
+      # enough that the default heap is worth raising rather than debugging an
+      # out-of-memory kill that looks like a mystery crash.
+      - name: Build the Worker
+        id: build
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: pnpm cf:build
+
+      # Runs even when the build failed, so a red run still says WHY rather than
+      # only that something broke. Exits non-zero only if the bundle is over the
+      # paid-plan limit.
+      - name: Measure the bundle
+        id: size
+        if: ${{ !cancelled() }}
+        run: pnpm cf:size | tee worker-size.txt
+
+      - name: Put the size in the run summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo '## Cloudflare Worker size'
+            echo
+            echo '```'
+            cat worker-size.txt 2>/dev/null || echo 'No bundle was produced — the build failed above.'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The esbuild metafile. Feed it to an esbuild bundle analyzer to see what
+      # is taking the space when the bundle is too big — which is the only
+      # actionable next step after a size failure.
+      - name: Keep the bundle breakdown
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-bundle-analysis
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            worker-size.txt
+            .open-next/server-functions/default/handler.mjs.meta.json

@@ -1,6 +1,7 @@
 "use server";
 
 import { fetchServerData } from "./ServerFetch";
+import { now } from "utils/runtime/timing";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
 // Safe here: "use server" module — client imports get action proxies, so
@@ -11,36 +12,36 @@ interface CurrencyResponse {
 }
 
 export async function getCurrency(country, language) {
-  let start = process.hrtime.bigint();
+  let start = now();
 
   try {
     let cachedCurrency = await getCurrencyFromCache(country);
 
     if (typeof cachedCurrency === "string") {
-      let end = process.hrtime.bigint();
+      let end = now();
 
       return {
         ...JSON.parse(cachedCurrency),
         redis: true,
-        time: Number(end - start) / 1_000_000,
+        time: end - start,
       };
     }
     if (cachedCurrency?.exchange_rate) {
-      let end = process.hrtime.bigint();
+      let end = now();
       return {
         ...cachedCurrency,
         redis: true,
-        time: Number(end - start) / 1_000_000,
+        time: end - start,
       };
     } else {
       let currencyData = await fetchCurrency(language, country);
       let currency = { ...currencyData.data };
-      let end = process.hrtime.bigint();
+      let end = now();
       StoreCurrency(country, currency);
       return {
         ...currency,
         redis: false,
-        time: Number(end - start) / 1_000_000,
+        time: end - start,
       };
     }
   } catch (error) {

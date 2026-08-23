@@ -1,5 +1,21 @@
+// Next 16 renames this file to `proxy.ts` and this function to `proxy()`. This
+// app deliberately stays on the older `middleware.ts` name, because the two
+// conventions differ in more than spelling: a `proxy.ts` always runs on the
+// Node runtime, and the Cloudflare Workers adapter cannot deploy Node
+// middleware at all (opennextjs/opennextjs-cloudflare#962 -- the generated
+// bundle imports `async_hooks`, which Workers do not have). `middleware.ts`
+// runs on Edge, which both Vercel and Workers support.
+//
+// Nothing here needs Node: it reads headers and cookies, rewrites URLs, and
+// makes one background fetch. Keeping it Edge is also what the note further
+// down about avoiding `jsonwebtoken` was always protecting.
+//
+// Revisit when that issue closes; until then this name is load-bearing.
 import { NextResponse, userAgent, type NextRequest } from "next/server";
-import { ipAddress } from "@vercel/functions";
+import {
+  getClientIp as readClientIp,
+  getGeoCountry,
+} from "utils/runtime/platform";
 import { NextURL } from "next/dist/server/web/next-url";
 
 // Constants
@@ -176,11 +192,9 @@ function setLocaleCookies(
   response.cookies.set("language", language.toLowerCase(), COOKIE_OPTIONS);
 }
 
-// Geo IP utilities
-function getGeoCountry(request: NextRequest): string | undefined {
-  const country = request.headers.get("x-vercel-ip-country");
-  return country?.toLowerCase();
-}
+// Geo IP utilities live in utils/runtime/platform so this file does not name a
+// single host. `getGeoCountry` is imported above and reads whichever geo header
+// the platform in front of us actually set.
 
 // Redirect utilities
 function createRedirectResponse(url: URL, redirectCount: number): NextResponse {
@@ -253,10 +267,10 @@ function getCleanPathname(
   return pathname;
 }
 function getClientIp(req: NextRequest): string {
-  const ip = ipAddress(req);
+  const ip = readClientIp(req);
 
   if (ip) return ip;
-  return "0.0.0.0"; // fallback, should not happen on Vercel
+  return "0.0.0.0"; // fallback: no proxy told us who the caller is
 }
 
 const normalizeUrl=(url:NextURL):NextURL=>{
@@ -270,7 +284,7 @@ const extractLocales=(u:string)=>{
    }
 }
 // Main middleware function
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const ua = request.headers.get("user-agent") ?? "";
   const url = request.nextUrl.clone();
   const pathname = url.pathname;

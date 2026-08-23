@@ -1,4 +1,5 @@
 import { GetColorAndSizes } from "serverRequests/analyticsUtility";
+import { now } from "utils/runtime/timing";
 import { LogServerError } from "utils/serverErrorReporter";
 
 // Cerebras variant of AnalyzeSearchText. Same return contract as the Gemini
@@ -33,7 +34,7 @@ function safeParseJson(text: string): Record<string, any> {
 
 export default async function AnalyzeSearchTextCerebras(query): Promise<any> {
   const modifiedQuery = decodeURIComponent(query);
-  const start = process.hrtime.bigint();
+  const start = now();
   const data = await GetColorAndSizes();
 
   // Minified input: bare comma lists (no JSON.stringify wrapping) to spend
@@ -98,8 +99,8 @@ QUERY: "${modifiedQuery}"`;
       }),
     );
 
-    const end = process.hrtime.bigint();
-    return { ...filtered, cerebrasTime: Number(end - start) / 1_000_000, model: MODEL };
+    const end = now();
+    return { ...filtered, cerebrasTime: end - start, model: MODEL };
   } catch (error) {
     LogServerError({
       scenario: "AnalyzeSearchTextCerebras in services/analyzeSearchTextCerebras",

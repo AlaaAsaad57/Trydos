@@ -1,4 +1,5 @@
 import { GetColorAndSizes } from "serverRequests/analyticsUtility";
+import { now } from "utils/runtime/timing";
 import { LogServerError } from "utils/serverErrorReporter";
 // import { HttpsProxyAgent } from "https-proxy-agent";
 // import fetch from "node-fetch";
@@ -6,7 +7,7 @@ const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-
 
 export default async function AnalyzeSearchText(query): Promise<any> {
   let modifiedQuery = decodeURIComponent(query);
-  let start = process.hrtime.bigint();
+  let start = now();
   let data = await GetColorAndSizes();
 
   const prompt = `
@@ -65,8 +66,8 @@ Analyze the user's query and extract specific attributes into a valid JSON objec
       Object.entries(parsed).filter(([_, v]) => v !== "Unknown"),
     );
 
-    let end = process.hrtime.bigint();
-    return { ...filtered, Geminitime: Number(end - start) / 1_000_000 };
+    let end = now();
+    return { ...filtered, Geminitime: end - start };
   } catch (error) {
     LogServerError({
       scenario: "AnalyzeSearchText in services/analyzeSearchText",
