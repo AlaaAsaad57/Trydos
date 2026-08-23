@@ -315,3 +315,118 @@ describe("uploading a picture", () => {
     ).resolves.toEqual({ error: "Upload failed", data: null });
   });
 });
+
+describe("mirroring every saved field into the stored copy (AC-15)", () => {
+  // The guard for the defect PROF-03 found live: all three backends accepted a
+  // changed gender, e-mail and alternative phone, and the app then mirrored only
+  // five fields — so the shopper came back to the old values on screen and the
+  // save looked ignored.
+  //
+  // PROF-03 proves the fix, but it lives in the browser suite, which never runs
+  // on a pull request. This is the guard that does. It is expected to be green
+  // from the day it is written — it holds a fix that is already proved — which is
+  // the one allowance `spec.md` makes to the red-first rule.
+  //
+  // ---------------------------------------------------------------------------
+  // Two things this check has to do to be worth anything
+  //
+  // **Seed DIFFERENT old values.** The mirror writes `sent ?? previous` for every
+  // field. Against an empty stored copy, "the field reached the stored copy" is
+  // satisfied whichever value landed — so a field mirrored from the old profile
+  // instead of from the request would pass. The old values below are all
+  // distinct from the sent ones, which is what makes a fallback fail.
+  //
+  // **`image` is compared by VALUE, not by presence.** The stored copy is a
+  // merge, so a dropped `image` leaves the seeded old one in place and a
+  // presence check still passes. It is transformed on the way in, so the
+  // expected value is that transform — pinned by its own case above.
+
+  /** What the profile screens send today. The real keys, not the labels: the
+   *  height field is stored as `tall`. */
+  const SENT = {
+    name: "Ada Lovelace",
+    email: "new-address@example.com",
+    gender: 2,
+    phone: "+10000000002",
+    alternative_phone: "+10000000003",
+    tall: 177,
+    weight: 77,
+    image: "new-picture.png",
+  };
+
+  /** Every one different from what is sent, so a fallback cannot pass. */
+  const OLD = {
+    id: 7,
+    name: "Old Name",
+    email: "old-address@example.com",
+    gender: 1,
+    phone: "+10000000000",
+    alternative_phone: "+10000000001",
+    tall: 150,
+    weight: 50,
+    image: "old-picture.png",
+  };
+
+  it("writes every field that was sent, taking none of them from the old copy", async () => {
+    (store as any).__resetAuthStore({ userProfile: { ...OLD } });
+    market.reply(OK);
+
+    await withSettle(() => auth.UpdateProfile({ ...SENT }, {}));
+
+    const stored = store.useAppStore.getState().userProfile as any;
+
+    // By name, one at a time: a single object comparison would report "the
+    // profile is wrong" and leave the reader to find which field.
+    for (const field of [
+      "name",
+      "email",
+      "gender",
+      "phone",
+      "alternative_phone",
+      "tall",
+      "weight",
+    ] as const) {
+      expect(
+        stored[field],
+        `"${field}" was sent to the backends but the app's own stored copy still holds the old value, so the shopper sees their change ignored the moment they come back`,
+      ).toBe(SENT[field]);
+    }
+
+    // Transformed on the way in, so the expected value is that transform.
+    expect(
+      stored.image,
+      "the new picture was sent but the stored copy still points at the old one",
+    ).toBe(auth.getImageForCookie(SENT.image));
+  });
+
+  it("never writes the one-time token into the stored profile", async () => {
+    // The form puts `id_token` in the request body when a number was re-verified.
+    // It is a one-time credential and the `User-Data` cookie is not where it
+    // belongs — the mirror is a fixed list of keys and leaves it out.
+    //
+    // This is asserted rather than merely described, so that anyone answering a
+    // red parity check by adding the token to the mirror is stopped here. The
+    // value is obviously fake and deliberately not token-shaped, so a failure
+    // diff carries nothing sensitive and trips no secret scanner.
+    (store as any).__resetAuthStore({ userProfile: { ...OLD } });
+    market.reply(OK);
+
+    await withSettle(() =>
+      auth.UpdateProfile({ ...SENT, id_token: "not-a-real-id-token" }, {}),
+    );
+
+    const stored = store.useAppStore.getState().userProfile as any;
+
+    expect(
+      stored.id_token,
+      "a one-time credential was written into the profile the app keeps in a cookie — it must never be stored",
+    ).toBeUndefined();
+
+    // The rest still landed, or the check above would pass on a save that did
+    // nothing at all.
+    expect(
+      stored.name,
+      "the save carrying a one-time token mirrored nothing, so the check above proves nothing",
+    ).toBe(SENT.name);
+  });
+});

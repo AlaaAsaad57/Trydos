@@ -1,6 +1,6 @@
 # E2E scenarios
 
-Every case the browser suite runs — **53** of them today. Add a row whenever a
+Every case the browser suite runs — **54** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
@@ -8,6 +8,7 @@ case is added, and keep the count above in step.
 | Guest journeys | GUEST-01 to GUEST-41 | no | only the guest registrations in GUEST-32 to GUEST-34 |
 | Signed-in journeys | AUTH-01 to AUTH-03 | yes, once, shared | no |
 | Signed-in profile journeys | PROF-01 to PROF-04 | yes, once, shared | yes — the shared test account |
+| Signed-in session recovery | RECOV-01 | yes, its own — a third real code per run | no |
 | Scripted auth branches | SCRIPT-01 to SCRIPT-05 | no | no — only the real one-time-code send |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
@@ -123,6 +124,43 @@ inside `actions/profile.ts` and come back as booleans.
 | PROF-02 | A name change reaches every backend that keeps a copy | `profile.live.spec.ts:335` | One Save lands on stories, chat and the core backend — each named on its own — and the app's stored copy is updated too, checked separately by a reload |
 | PROF-03 | Gender, e-mail and alternative phone save together | `profile.live.spec.ts:425` | The fix for a real defect: all three backends accepted the change, but only five fields were mirrored into the app's stored copy, so a changed gender was back to the old one after a reload. Seen red before the fix, green after |
 | PROF-04 | The size screen saves a height and a weight | `profile.live.spec.ts:534` | The same fan-out from the size screen — and the control for PROF-03, because `tall` and `weight` were always mirrored, which is what ruled out the test rather than the app |
+
+## Signed-in session recovery
+
+Real staging, with a real sign-in, and the only case in the suite that
+deliberately **breaks** a credential to see what the app does next.
+
+`session.live.spec.ts` covers this for a **guest**, and a guest is the easy half:
+one whose credentials are both refused is quietly re-registered as somebody new
+and carries on shopping. That is correct for a guest and would be a disaster for
+an account. This is the signed-in half — the shopper has to come back as the
+**same** shopper.
+
+**Only the access credential is spoiled.** Refusing both cannot produce a
+recovery for a verified shopper: the server returns the refusal untouched and the
+app asks them to sign in again. A case written that way would spend a real
+one-time code on a guaranteed red every night while looking like a product
+failure. The means to renew is left intact — that is what makes this a recovery
+rather than a logout.
+
+**The order of the checks is load-bearing.** The rotation poll sits *between* the
+action and the identity read: move it after and "the same shopper" can pass
+before the exchange has finished, which is the silent pass the whole case is
+designed against. It compares against the **spoiled** snapshot, never the
+original — the case spoiled that credential itself, so comparing against the
+original is trivially true.
+
+It signs in for itself and saves **no** session file: it leaves the account's
+credentials rotated, and handing that on is how a profile case once dropped
+silently to a guest and reported the account's own details as missing. That costs
+a third real one-time code per run, which cannot be avoided — AUTH-03 signs the
+shared session out and forgets the saved state.
+
+Per run it costs: one one-time code, one sign-in, and no writes to the account.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| RECOV-01 | A signed-in shopper survives a credential refused mid-action | `session-recovery.live.spec.ts:118` | The action completes, the credentials really were exchanged, the app names the **same** shopper afterwards rather than a new guest, no sign-in prompt is ever shown, and the replacement credential is still kept from page scripts |
 
 ## Scripted auth branches
 
