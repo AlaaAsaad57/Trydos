@@ -8,96 +8,101 @@
  * on whether this app can be deployed to Workers at all, and it is the one thing
  * no amount of code review can answer.
  *
- * WHAT IS MEASURED, AND WHY IT IS NOT `worker.js`
- * `.open-next/worker.js` is a ~2 KB entry shim; the real code lives in
+ * WHAT IS MEASURED, AND WHY IT IS NOT `worker.js` ALONE
+ * `.open-next/worker.js` is a ~2 KB entry shim; the real code lives under
  * `.open-next/server-functions/**`. Measuring the shim reports a couple of
- * kilobytes and looks like a comfortable pass -- the worst possible answer.
- * So this asks wrangler to assemble the real deployable bundle
- * (`wrangler deploy --dry-run`) and reports the "Total Upload ... gzip" figure
- * it prints, which is the number Cloudflare itself enforces.
+ * kilobytes and reads as a comfortable pass -- the worst answer a size gate can
+ * give. So this sums every executable module the Worker is built from.
  *
- * Static assets under `.open-next/assets` are NOT part of that budget -- they
- * are uploaded separately and served from Cloudflare's edge -- so they are
- * reported for context only.
+ * This is an UPPER BOUND: it counts every module present, while wrangler ships
+ * only what is reachable. Erring high is the safe direction for a limit check --
+ * it can warn about a bundle that would have squeezed in, but it cannot tell you
+ * a bundle fits when it does not.
+ *
+ * It deliberately does NOT shell out to `wrangler deploy --dry-run`. That reads
+ * the full wrangler config, and this repo intentionally ships an empty D1
+ * `database_id` so a real deploy fails loudly -- which makes wrangler prompt,
+ * and a prompt with no stdin hangs the job. Measuring from disk needs no
+ * config, no credentials and no network.
+ *
+ * Static assets under `.open-next/assets` are NOT part of the budget -- they are
+ * uploaded separately and served from the edge -- so they are context only.
  *
  * Run `pnpm cf:build` first, then `pnpm cf:size`.
  *
  * Exits non-zero when the bundle is over the paid-plan limit, or when the size
- * could not be established at all. It never reports a pass it cannot prove.
+ * cannot be established. It never reports a pass it cannot prove.
  */
-import { execFileSync } from "node:child_process";
-import { existsSync, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { gzipSync } from "node:zlib";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join, extname } from "node:path";
 
 const FREE_LIMIT = 3 * 1024 * 1024;
 const PAID_LIMIT = 10 * 1024 * 1024;
+const WORKER = ".open-next/worker.js";
+const FUNCTIONS = ".open-next/server-functions";
+
+// What Cloudflare counts as Worker code.
+const CODE = new Set([".js", ".mjs", ".cjs", ".wasm"]);
 
 const mib = (bytes) => `${(bytes / 1024 / 1024).toFixed(2)} MiB`;
-
-function treeSize(dir) {
-  if (!existsSync(dir)) return 0;
-  let total = 0;
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const path = join(dir, entry.name);
-    total += entry.isDirectory() ? treeSize(path) : statSync(path).size;
-  }
-  return total;
-}
 
 function die(...lines) {
   for (const line of lines) console.error(line);
   process.exit(1);
 }
 
-if (!existsSync(".open-next/worker.js")) {
+/** Every file under `dir` matching `keep`, as [path, size] pairs. */
+function walk(dir, keep, out = []) {
+  if (!existsSync(dir)) return out;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) walk(path, keep, out);
+    else if (keep(path)) out.push([path, statSync(path).size]);
+  }
+  return out;
+}
+
+function treeSize(dir) {
+  return walk(dir, () => true).reduce((total, [, size]) => total + size, 0);
+}
+
+if (!existsSync(WORKER)) {
   die(
-    "No Worker bundle at .open-next/worker.js.",
+    `No Worker bundle at ${WORKER}.`,
     "Run `pnpm cf:build` before `pnpm cf:size`.",
   );
 }
 
-// Let wrangler assemble exactly what it would upload. `--dry-run` talks to
-// nothing and needs no credentials.
-let output = "";
-try {
-  output = execFileSync(
-    "pnpm",
-    ["exec", "wrangler", "deploy", "--dry-run", "--outdir", ".open-next/.size"],
-    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], shell: true },
-  );
-} catch (error) {
-  output = `${error.stdout ?? ""}${error.stderr ?? ""}`;
-  if (!/Total Upload/i.test(output)) {
-    die(
-      "wrangler could not assemble the bundle, so its size is unknown.",
-      "This is NOT a pass -- treat it as a failed measurement.",
-      "",
-      output.trim().split("\n").slice(-25).join("\n"),
-    );
-  }
-}
+const modules = [
+  [WORKER, statSync(WORKER).size],
+  ...walk(FUNCTIONS, (p) => CODE.has(extname(p))),
+];
 
-// e.g. "Total Upload: 12345.67 KiB / gzip: 3456.78 KiB"
-const match = output.match(
-  /Total Upload:\s*([\d.]+)\s*(\w+)\s*\/\s*gzip:\s*([\d.]+)\s*(\w+)/i,
-);
-if (!match) {
+// A finished build has hundreds of modules. A handful means the build died
+// partway and left the entry shim behind -- reporting its size as a pass is
+// exactly the false green this script exists to prevent.
+if (modules.length < 5) {
   die(
-    "wrangler ran but printed no 'Total Upload' line, so the size is unknown.",
-    "This is NOT a pass -- the output format may have changed.",
-    "",
-    output.trim().split("\n").slice(-25).join("\n"),
+    `Only ${modules.length} module(s) found under ${FUNCTIONS}, which is not a finished build.`,
+    "`pnpm cf:build` did not complete. Read its output — any size here would be meaningless.",
   );
 }
 
-const unit = (value, name) =>
-  Number(value) * (/^mib$/i.test(name) ? 1024 * 1024 : 1024);
-const rawBytes = unit(match[1], match[2]);
-const gzipBytes = unit(match[3], match[4]);
+let rawBytes = 0;
+let gzipBytes = 0;
+const perModule = [];
+for (const [path, size] of modules) {
+  const compressed = gzipSync(readFileSync(path), { level: 9 }).length;
+  rawBytes += size;
+  gzipBytes += compressed;
+  perModule.push([path, compressed]);
+}
 
 console.log("");
 console.log("Cloudflare Worker size");
 console.log("----------------------");
+console.log(`  modules counted       : ${modules.length}`);
 console.log(`  bundle (uncompressed) : ${mib(rawBytes)}`);
 console.log(`  bundle (gzip)         : ${mib(gzipBytes)}   <-- this is what counts`);
 console.log(
@@ -108,10 +113,16 @@ console.log(`  free plan limit       : ${mib(FREE_LIMIT)}`);
 console.log(`  paid plan limit       : ${mib(PAID_LIMIT)}`);
 console.log("");
 
+console.log("  ten heaviest modules (gzip):");
+for (const [path, size] of perModule.sort((a, b) => b[1] - a[1]).slice(0, 10)) {
+  console.log(`    ${mib(size).padStart(9)}  ${path}`);
+}
+console.log("");
+
 if (gzipBytes > PAID_LIMIT) {
   die(
     `FAIL: the Worker is ${mib(gzipBytes - PAID_LIMIT)} over the paid-plan limit and cannot be deployed.`,
-    "Analyze .open-next/server-functions/default/handler.mjs.meta.json with an esbuild bundle analyzer to find the weight.",
+    "The heaviest modules are listed above; the esbuild metafile in the run artifact has the full breakdown.",
   );
 }
 
@@ -124,3 +135,7 @@ if (gzipBytes > FREE_LIMIT) {
     `OK on both plans (${mib(FREE_LIMIT - gzipBytes)} of headroom on free).`,
   );
 }
+console.log("");
+console.log(
+  "Note: an upper bound — every module on disk is counted, while wrangler ships only what is reachable.",
+);
