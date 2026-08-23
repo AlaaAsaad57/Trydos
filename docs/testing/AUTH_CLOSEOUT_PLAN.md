@@ -242,14 +242,6 @@ has no live proof at all.
    user id** — not a new guest, and no bounce to the sign-in screen.
 4. The stored pair changed (`credentialsChangedSince`), and the storefront token
    is still `HttpOnly`.
-5. **The five-minute check does not undo any of it.** `utils/sessionManager.ts`
-   runs on every page load and on a timer through
-   `components/SessionChecker.tsx`, and nothing anywhere proves a tick leaves a
-   good session alone. This spec is already holding a long-lived signed-in
-   context, so it is the cheapest place to assert that after a reload — a real
-   tick — the same user id is still reported and no sign-in prompt appeared.
-   Item D covers the same code in jsdom; that is the unit half, not a substitute
-   for a real load.
 
 The "the exchange is itself refused" half belongs to item B — staging cannot be
 asked to refuse.
@@ -279,8 +271,6 @@ Targets, all currently at zero coverage:
 - `components/setting/profile/index.tsx` (182) — the card for a signed-in
   shopper, for a guest, and for the guest placeholder names the app treats as
   "no picture".
-- `utils/sessionManager.ts` (70) + `components/SessionChecker.tsx` (26) — runs
-  on every page load and every five minutes, and is untested.
 
 Use `tests/mocks/device.ts` and `tests/mocks/location.ts` from phase 11. Assert
 against roles and visible text, not class names.
@@ -405,76 +395,6 @@ test in this plan owes a red run.
 
 One line per finding, as **Done means** requires. A finding is recorded whether
 it turned out to be the app, the test, or a backend.
-
-### Found while planning items C, D and E — six defects, none ticketed yet
-
-One work item is open at a time in this repository, so these wait. They are
-written here, not in a workspace, because a workspace can be deleted and this
-file is committed. Each one is subject to the repository rule when it is picked
-up: a check that fails because of it, seen failing, then the smallest fix.
-
-**The tester session check can sign a real shopper out. Confirmed; three designs
-tried and all three broken.** `utils/sessionManager.ts` reads one value,
-`localStorage.sessionExpiry`, whose only writer is the tester simulate screen. It
-never expires and nothing removes it when a simulated session simply ends. If
-that browser later signs in for real, **two** globally-mounted paths act on the
-leftover — the page-load check (also on a five-minute timer) and
-`components/Login/SessionTimer.tsx`, which reaches its clearing function from
-three places. Each alerts, reloads and calls `clearAllUserData()`, which posts to
-the logout route and detaches the device's push registration — so the shopper is
-signed out **at the backend**, not just in the tab.
-
-Three designs were tried at plan stage and an advisory panel broke each one:
-
-1. *A second remembered value in `localStorage`* — exactly as stale as the value
-   it guards, so every simulation after the fix would reproduce the defect.
-2. *A companion cookie whose life matches the borrowed session* — both are thirty
-   minutes, set in the same click, and the clear only fires after that moment, so
-   the cookie is already gone. It cannot fire at all, which **breaks the tester
-   feature** rather than fixing the defect.
-3. *Any lifetime between the two* — longer reopens the window where a shopper is
-   signed out; shorter cannot fire. Presence alone is also pinnable by a
-   parent-domain cookie the app can read but not delete.
-
-**The measurement problem is the hard part, and it is why this needs research
-before a plan.** The unit suite's fake browser never expires a cookie, so a
-cookie-based design would report "pass" for the exact case it claims to cover.
-Any candidate must arrive with an honest answer to how it will be proved.
-
-Two more things a future ticket must not rediscover: seven existing checks in
-`tests/components/Login/SessionTimer.test.tsx` describe today's behaviour and
-each must be dispositioned (one of them exists to prove page script cannot hand
-itself a session of any length); and `utils/version-manager.ts:93` is a **third**
-caller of `clearAllUserData()`, mounted for every visitor. Also: the option "do
-not run the check outside the tester screen" was rejected once on a **false**
-premise — the countdown already ends a simulated session while the tester
-browses — so it deserves a fair second look.
-
-**`id_token` reaches a kept artifact.** It is correctly absent from every stored
-copy — `marketUpdate`, `chatUpdate`, `storiesUpdate` and every secure-cookie
-write carry explicit keys — but `marketBody = {...userObj}` (`services/auth.ts`,
-~line 749) carries it, and on a failed save `utils/fetchData.ts` ships the whole
-body to Sentry as `request_body`, with `sendDefaultPii: true` and no scrub.
-
-**Removing a profile picture leaves the old one in the stored copy.**
-`UploadProfilePhoto.tsx` sends `image: null`, but the mirror's
-`userObj?.image ?? userProfile?.image` falls back to the previous value. This is
-why item E's guard compares `image` by presence and records the gap.
-
-**`clearSimulatedUserSession` does not await `clearAllUserData()`** before its
-caller reloads, so the logout request can be killed in flight — a session meant
-to be revoked server-side may survive. Related: do not claim that path revokes
-anything at the backend. By the time it fires the simulate cookies have usually
-lapsed, so the request goes out with nothing to revoke; the existing check passes
-only because the fake browser never expires a cookie.
-
-**The `localStorage` key sweep in the same function is wide and
-case-sensitive**, and `clearAllUserData()` ends in `localStorage.clear()` anyway.
-
-**`utils/version-manager.ts:93` is a third caller of `clearAllUserData()`**,
-mounted for every visitor, which signs everyone out at the backend when the app
-version changes. Not a defect on its own — but any design that remembers
-something in storage has to survive it.
 
 ### Item A
 
