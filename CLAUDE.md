@@ -139,8 +139,11 @@ a five-second answer into an afternoon of bisecting by hand.
    kept artifact.
 
 8. **Long browser flows use `test.step()`** so the report names the step that
-   failed rather than a line number. Nothing in the browser suite does this yet;
-   the next multi-step flow added should be the first.
+   failed rather than a line number. `tests/e2e/profile.live.spec.ts` is the
+   model — including the nested per-backend form, `` await test.step(`the
+   ${leg} backend took the change`, …) ``, which is what makes a fan-out failure
+   name the backend that refused. No other browser spec does this yet; copy that
+   file, not the others.
 
 9. **Adding a step or a backend to a flow means adding its own check** in the
    same change.
