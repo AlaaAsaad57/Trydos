@@ -37,6 +37,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { jsonReply, makeMockFetch } from "./mocks/mockFetch";
 
+// The one static import of the proxy in this file. Every test that exercises
+// behaviour loads its own fresh copy through `loadProxy()`; this one reads
+// `config`, which is a build-time export that no setting and no request can
+// change. It is read here, at module scope, so the AC-11 cases at the bottom can
+// be named per path instead of hidden inside one loop.
+import { config as shippedConfig } from "../proxy";
+
 /** The address the tests pretend the site is served from. */
 const ORIGIN = "https://trydos.test";
 
@@ -117,6 +124,18 @@ beforeEach(() => {
   // and in the pull request.
   vi.stubEnv("BACKEND_URL", "https://example.com");
   vi.stubEnv("NEXT_PUBLIC_MEDIA_SERVER_BASE_URL", "https://example.com");
+
+  // `main` carries a pre-launch gate at the top of `proxy()` that 307s every
+  // path to the logo page (see the STAGING GATE block in proxy.ts). It would
+  // return before a single line the rest of this file is about. Switching it off
+  // is what the setting is for, and on `develop` there is no gate to switch, so
+  // this line is a no-op there.
+  //
+  // It buys the storefront tests below, and nothing else: the gate's own
+  // behaviour is not covered here, and cannot be — its other half is the
+  // `config.matcher`, which is a static export and answers to no setting. That
+  // half is asserted in AC-11 at the bottom of this file.
+  vi.stubEnv("STAGING_GATE", "off");
 
   // No replies are queued, so the background country lookup is recorded and then
   // fails — which is exactly what the proxy expects, and it falls back to its
@@ -964,43 +983,105 @@ describe("the robots address and the lower-case redirect (AC-10)", () => {
 // ---------------------------------------------------------------------------
 
 describe("the paths the proxy runs on (AC-11)", () => {
-  // The exact text of the setting is deliberately not asserted: a harmless edit
-  // to it would break the test for no reason. What matters is which paths are in
-  // and which are out, so the test names paths and checks them against the rule.
-  async function pathIsHandled(path: string) {
-    const { config } = await loadProxy();
-    const source = (config.matcher[0] as { source: string }).source;
+  // Two matchers exist in this repository, and they are opposites on purpose.
+  //
+  //   `develop` ships the storefront matcher. The proxy handles page requests
+  //   and stays off /api, the sitemaps and the static folders, which serve
+  //   themselves.
+  //
+  //   `main` ships the staging-gate matcher. Pre-launch every path must reach
+  //   the gate and 307 to "/", so it excludes only what the logo page needs to
+  //   render. /api and the static folders are deliberately *in* — leaving them
+  //   out is the leak the gate was written to close.
+  //
+  // Both lists are written out in full below, and the matcher the branch
+  // actually exports decides which one applies. Neither list is ever shortened
+  // to fit the other: whichever matcher ships, every path in its own list is
+  // checked. The exact text of the setting is deliberately not asserted — a
+  // harmless edit to it would break the test for no reason. What matters is
+  // which paths are in and which are out.
+  const STOREFRONT = {
+    name: "the storefront matcher",
+    runsOn: ["/", "/gb-en/shop", "/gb-en/product/123", "/checkout"],
+    staysOutOf: [
+      "/api/auth/login",
+      "/_next/static/chunk.js",
+      "/_next/image",
+      "/sitemap.xml",
+      "/robots.txt",
+      "/favicon.ico",
+      "/images/logo.png",
+      "/translations/translations.ar.js",
+    ],
+  };
+
+  const STAGING_GATE = {
+    name: "the staging-gate matcher",
+    runsOn: [
+      "/",
+      "/gb-en/shop",
+      "/gb-en/product/123",
+      "/checkout",
+      // The four the storefront matcher lets past, and the gate must not.
+      "/api/auth/login",
+      "/sitemap.xml",
+      "/images/logo.png",
+      "/translations/translations.ar.js",
+    ],
+    staysOutOf: [
+      "/_next/static/chunk.js",
+      "/_next/image",
+      "/icons/Logo.svg",
+      "/robots.txt",
+      "/favicon.ico",
+    ],
+  };
+
+  const entry = shippedConfig.matcher[0] as string | { source: string };
+  const source = typeof entry === "string" ? entry : entry.source;
+  const expected = typeof entry === "string" ? STAGING_GATE : STOREFRONT;
+
+  function pathIsHandled(path: string) {
     return new RegExp(`^${source}$`).test(path);
   }
 
-  it.each(["/", "/gb-en/shop", "/gb-en/product/123", "/checkout"])(
-    "runs on %s",
-    async (path) => {
-      expect(await pathIsHandled(path)).toBe(true);
-    },
-  );
+  it.each(expected.runsOn)("runs on %s", (path) => {
+    expect(
+      pathIsHandled(path),
+      `${expected.name} has to run on ${path}, and does not`,
+    ).toBe(true);
+  });
 
-  it.each([
-    "/api/auth/login",
-    "/_next/static/chunk.js",
-    "/_next/image",
-    "/sitemap.xml",
-    "/robots.txt",
-    "/favicon.ico",
-    "/images/logo.png",
-    "/translations/translations.ar.js",
-  ])("stays out of %s", async (path) => {
-    expect(await pathIsHandled(path)).toBe(false);
+  it.each(expected.staysOutOf)("stays out of %s", (path) => {
+    expect(
+      pathIsHandled(path),
+      `${expected.name} has to stay off ${path}, and runs on it`,
+    ).toBe(false);
   });
 
   it("skips a request the router made in the background", async () => {
     const { config } = await loadProxy();
+    const shippedEntry = config.matcher[0] as
+      | string
+      | { missing?: { key: string }[] };
+
+    if (typeof shippedEntry === "string") {
+      // The staging-gate matcher carries no `missing:` clause, on purpose: a
+      // prefetch and a server action have to reach the gate like anything else.
+      // That clause letting them past was the second half of the leak.
+      expect(
+        (shippedEntry as unknown as { missing?: unknown }).missing,
+        "the staging-gate matcher must let nothing skip the proxy, so it carries no `missing:` clause",
+      ).toBeUndefined();
+      return;
+    }
 
     // The proxy only runs when these headers are missing, so a prefetch or a
     // server action never triggers a locale redirect.
-    const missing = (config.matcher[0] as { missing: { key: string }[] }).missing;
-
-    expect(missing.map((entry) => entry.key)).toEqual([
+    expect(
+      shippedEntry.missing?.map((e) => e.key),
+      "the storefront matcher no longer lets prefetches and server actions past the proxy",
+    ).toEqual([
       "purpose",
       "next-router-prefetch",
       "next-action",
