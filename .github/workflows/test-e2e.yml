@@ -22,12 +22,37 @@
 #     a pull request has to mean "the code broke", nothing else.
 #   * It needs staging secrets, and a pull request from a fork never gets them.
 #     Gating on push and schedule keeps forks working.
+#
+# ---------------------------------------------------------------------------
+# This file has to exist on `main`, and `main` is the only reason it says
+# `ref:` further down
+#
+# GitHub reads `schedule:` and `workflow_dispatch:` only from the **default**
+# branch, which in this repository is `main`. While this file lived on `develop`
+# alone the cron below was never armed: every run in the history was a `push`,
+# and the nightly silently never happened.
+#
+# So `main` carries this one file — and only this file — out of `develop`. It
+# does not carry the suite: `main` is the staging gate and has no `tests/`, no
+# Playwright config and no `e2e:*` scripts. That shapes the two rules below:
+# nothing here triggers on a push to `main`, and a scheduled run checks out
+# `develop`.
+#
+# Any edit to this file therefore needs a pull request to `main` as well as to
+# `develop`, or the two copies drift and the one that runs the nightly is the
+# stale one.
+# ---------------------------------------------------------------------------
 
 name: E2E
 
 on:
+  # **`develop` only.** `main` carries this file (see above) but not the suite,
+  # so a push to `main` that started this workflow would die on
+  # `pnpm e2e:preflight` — script not found — and paint the staging branch red
+  # for tests it does not contain. Add `main` back on the day `develop` is
+  # merged up and `main` carries the tooling.
   push:
-    branches: [develop, main]
+    branches: [develop]
   schedule:
     # Nightly, 02:30 UTC. Off the hour on purpose — the top of the hour is when
     # every scheduled workflow on the platform queues at once.
@@ -67,8 +92,15 @@ jobs:
       video_url: ${{ steps.upload.outputs.artifact-url }}
 
     steps:
-      - name: Check out the branch
+      # A scheduled run is dispatched from the default branch, `main`, so left
+      # alone it would check out `main` — the staging gate, which has no tests in
+      # it. The code under test at night is `develop`. Every other event checks
+      # out whatever it was fired on, which is what a push and a manual run
+      # already mean.
+      - name: Check out the code under test
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'schedule' && 'develop' || github.ref }}
 
       # Pinned here rather than in package.json's `packageManager` field: the
       # deploy platform runs its own install command, and a `packageManager`
