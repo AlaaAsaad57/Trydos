@@ -372,8 +372,15 @@ The original order was A → B → C → D, and A is done. B is no longer first
 because it is now the only item with an app fix in it, and because C and D both
 return a result sooner.
 
-Each item is one branch off `develop` and one commit set, so any one of them can
-be reverted alone.
+**How they are ticketed.** C, D and E run together as one work item,
+`auth-closeout-tests`: all three are test-only, they share one outcome — the auth
+journey is proved at unit and browser level — and none of them touches
+application code, so the whole thing reverts with no runtime risk. B is its own
+ticket because it carries the rollback-mirror fix, and E's second guard goes with
+it. F is its own ticket because it is additive live surface.
+
+Within that, each item is still its own commit set, so any one of them can be
+reverted alone.
 
 ## Done means
 

@@ -1,6 +1,14 @@
 # E2E scenarios
 
-Every case the browser suite runs. Add a row whenever a case is added.
+Every case the browser suite runs — **53** of them today. Add a row whenever a
+case is added, and keep the count above in step.
+
+| Section | Cases | Signs in? | Writes to staging? |
+|---------|-------|-----------|--------------------|
+| Guest journeys | GUEST-01 to GUEST-41 | no | only the guest registrations in GUEST-32 to GUEST-34 |
+| Signed-in journeys | AUTH-01 to AUTH-03 | yes, once, shared | no |
+| Signed-in profile journeys | PROF-01 to PROF-04 | yes, once, shared | yes — the shared test account |
+| Scripted auth branches | SCRIPT-01 to SCRIPT-05 | no | no — only the real one-time-code send |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
 
@@ -45,9 +53,9 @@ test — about five per run, and they are not cleaned up (see rule 6 in
 | GUEST-29 | The site sitemap is served as XML | `locale.live.spec.ts:527` | The matcher excludes it |
 | GUEST-30 | A sitemap under a country prefix is served as XML even when the saved country disagrees | `locale.live.spec.ts:535` | The bypass at `proxy.ts:278` — otherwise a crawler gets a redirect instead of XML |
 | GUEST-31 | An address written in capitals is permanently redirected to lower case | `locale.live.spec.ts:559` | One page, one address, so it is not indexed twice |
-| GUEST-32 | A first visit registers the guest and leaves them able to act | `session.live.spec.ts:110` | The app issues a working credential and the means to renew it, and can name who the guest is |
-| GUEST-33 | A refused credential is exchanged, and the guest stays the same guest | `session.live.spec.ts:137` | The pair rotates and the identity survives, so a lapsed credential never interrupts browsing |
-| GUEST-34 | A refused pair issues a new guest, and never asks anyone to sign in | `session.live.spec.ts:181` | When renewal cannot work the app issues a new guest silently — a guest has no account to sign in to |
+| GUEST-32 | A first visit registers the guest and leaves them able to act | `session.live.spec.ts:141` | The app issues a working credential and the means to renew it, and can name who the guest is |
+| GUEST-33 | A refused credential is exchanged, and the guest stays the same guest | `session.live.spec.ts:168` | The pair rotates and the identity survives, so a lapsed credential never interrupts browsing |
+| GUEST-34 | A refused pair issues a new guest, and never asks anyone to sign in | `session.live.spec.ts:213` | When renewal cannot work the app issues a new guest silently — a guest has no account to sign in to |
 | GUEST-35 | A global address with a saved country but no saved language still goes to that country | `locale.live.spec.ts:293` | `gb` is the global bucket, not a market — losing one cookie must not strand a visitor there with the picker up |
 | GUEST-36 | A hyphenated address with no country keeps its path | `locale.live.spec.ts:174` | The fixed bug at `proxy.ts:114` — `/privacy-policy` was read as country `privacy` and language `policy`, and the page was dropped for the home page |
 | GUEST-37 | The about page renders its title and back bar | `staticPages.live.spec.ts:14` | A server-rendered page with translations and a back bar loads and shows its own copy |
@@ -77,3 +85,61 @@ signing out. Nothing is cleaned up, and nothing needs to be.
 | AUTH-01 | A real sign-in lands on every backend it writes for | `auth.live.spec.ts:137` | One sign-in writes a session across five backends, and a part that did not land is named — the storefront, chat, stories, comments or wallet — instead of passing quietly |
 | AUTH-02 | A signed-in session still works after a full page reload | `auth.live.spec.ts:209` | A backend still answers an ordinary authenticated request after the reload, so the credential is still accepted and not merely still stored |
 | AUTH-03 | Signing out takes the whole session away | `auth.live.spec.ts:249` | Every backend's part of the session is gone, and the three the app also gives a guest come back belonging to somebody else |
+
+## Signed-in profile journeys
+
+Real staging, with a real sign-in, and the only cases in the suite that **write
+to the shared test account**. Their own `PROF-` range because they prove the
+opposite direction to `AUTH-`: not what signing in reads, but what pressing Save
+writes.
+
+One "Save" fans out to stories, then chat, then the core backend, in sequence,
+and can finish with two of the three written and the third refused. The shopper
+is told once, in one sentence, whatever failed — so each leg is judged
+separately here and named when it is missing. **The wallet is not a fourth leg:**
+its call is commented out in `services/auth.ts`, so three legs is correct. If it
+is ever re-enabled, these cases gain a fourth judgement in the same change.
+
+A write landing is judged on the status the backend answered the settled request
+with — never on the `success` field, which is stamped on client-side and would
+put the account's name, phone and e-mail within reach of a public job log. A
+reload proves something different and is asserted as such: `/api/auth/me` reads
+cookies only, so a reload shows the app's **own stored copy** was updated, not
+that a backend agrees.
+
+The four share **one** browser context and **one** real sign-in, handed on
+through a saved session under `tests/e2e/.auth/` (gitignored, never uploaded,
+removed after the last case). PROF-01 signs in and saves it; PROF-02 to PROF-04
+open it, so **PROF-01 must stay first**. Every value changed is put back in a
+`finally`; a name left as `PROBE_NAME` means a case died mid-run.
+
+Per run they cost: one one-time code, one sign-in, and eight saves against
+staging. Nothing prints the account's name, phone or e-mail — comparisons happen
+inside `actions/profile.ts` and come back as booleans.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| PROF-01 | The settings screens show the signed-in shopper, not a guest | `profile.live.spec.ts:233` | A real sign-in leaves a session the settings pages render from, and the profile card carries this account rather than a guest placeholder or the previous one |
+| PROF-02 | A name change reaches every backend that keeps a copy | `profile.live.spec.ts:335` | One Save lands on stories, chat and the core backend — each named on its own — and the app's stored copy is updated too, checked separately by a reload |
+| PROF-03 | Gender, e-mail and alternative phone save together | `profile.live.spec.ts:425` | The fix for a real defect: all three backends accepted the change, but only five fields were mirrored into the app's stored copy, so a changed gender was back to the old one after a reload. Seen red before the fix, green after |
+| PROF-04 | The size screen saves a height and a weight | `profile.live.spec.ts:534` | The same fan-out from the size screen — and the control for PROF-03, because `tall` and `weight` were always mirrored, which is what ruled out the test rather than the app |
+
+## Scripted auth branches
+
+Real staging pages, with the **verify** answer faked. The one-time-code *send* is
+still a real server action against staging using the allow-listed test numbers,
+spread across two of them so a per-number throttle does not starve the run; only
+`/api/auth/login` is scripted, from `tests/e2e/scenarios/index.ts`.
+
+They exist because staging cannot produce these branches on demand: the
+allow-listed number is already registered, so signup can never be reached live,
+and a wrong code, a throttled verify and a backend error are not ours to cause.
+No real session is created, so these are the specs allowed to upload traces.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| SCRIPT-01 | A new phone is taken through signup to the name screen | `auth.scripted.spec.ts:42` | The signup branch runs to the point where a name is asked for — the branch a live run can never reach |
+| SCRIPT-02 | An existing account logs in and reaches the success screen | `auth.scripted.spec.ts:58` | The ordinary login branch ends on the welcome screen, or on a widget that closed itself |
+| SCRIPT-03 | Logging in with an unregistered number shows the not-registered screen | `auth.scripted.spec.ts:74` | Someone with no account is told so, instead of being left on the code screen |
+| SCRIPT-04 | Signing up with a registered number shows the registered screen | `auth.scripted.spec.ts:89` | Someone who already has an account is sent to sign in, instead of being walked through signup again |
+| SCRIPT-05 | Verify errors are surfaced on the PIN screen | `auth.scripted.spec.ts:103` | Three refusals in a row — a wrong code, a throttled verify and a backend error — each reach the shopper as a visible message rather than a silent no-op |
