@@ -2124,6 +2124,7 @@ const translations = {
   "Enter a valid discount price": "أدخل سعر خصم صالح",
   "Enter a valid purchase price": "أدخل سعر شراء صالح",
   "Enter a valid stock": "أدخل مخزونًا صالحًا",
+  "Enter a valid weight": "أدخل وزنًا صالحًا",
   "Enter a valid unit price": "أدخل سعر وحدة صالح",
   "Every color needs at least one image": "يحتاج كل لون إلى صورة واحدة على الأقل",
   "Every image must be assigned to a color": "يجب تخصيص كل صورة للون",

@@ -2132,6 +2132,7 @@ const translations = {
   "Enter a valid discount price": "Geçerli bir indirim fiyatı girin",
   "Enter a valid purchase price": "Geçerli bir satın alma fiyatı girin",
   "Enter a valid stock": "Geçerli bir stok girin",
+  "Enter a valid weight": "Geçerli bir ağırlık girin",
   "Enter a valid unit price": "Geçerli bir birim fiyat girin",
   "Every color needs at least one image": "Her renk için en az bir resim gerekir",
   "Every image must be assigned to a color": "Her resim bir renge atanmalıdır",

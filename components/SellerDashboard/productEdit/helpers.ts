@@ -934,6 +934,10 @@ export function validate(
     (form.weight === "" || isNaN(num(form.weight)) || num(form.weight) <= 0)
   )
     e.weight = tx("Weight is required for pc / liter units");
+  // Weight stays optional for kg / gms, but a value that was typed must be a
+  // positive number — 0 or a non-number is never a real weight.
+  else if (form.weight !== "" && (isNaN(num(form.weight)) || num(form.weight) <= 0))
+    e.weight = tx("Enter a valid weight");
 
   if (form.current_stock !== "" && (isNaN(num(form.current_stock)) || num(form.current_stock) < 0))
     e.current_stock = tx("Enter a valid stock");
