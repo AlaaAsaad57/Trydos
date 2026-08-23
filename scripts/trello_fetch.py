@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Read-only Trello card reader for the backlog migration skill.
 
-Mirrors the isolation pattern of `clickup_intake.py`: this is the **only** place
-Trello read logic lives, so the skill stays thin and the integration is testable
-and swappable without touching the skill.
+This is the **only** place Trello read logic lives, so the skill stays thin and
+the integration is testable and swappable without touching the skill.
 
 Behaviour:
   - Issues GET requests only. Never writes to Trello (see `trello_move_card.py`

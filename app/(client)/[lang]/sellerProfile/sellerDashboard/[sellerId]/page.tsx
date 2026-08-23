@@ -185,6 +185,18 @@ const formatPermissionName = (permission: string): string => {
   );
 };
 
+const getPermissionGroupLabel = (group: string): string => {
+  const labelMap: Record<string, string> = {
+    SHOP_INFO: "Shop Info",
+    PRODUCT_IMAGES: "Product Images",
+    STORIES: "Stories",
+    COMMENTS: "Comments",
+    LOCATIONS: "Locations",
+    OTHER: "Other",
+  };
+  return labelMap[group] || group.replace(/_/g, " ");
+};
+
 function SellerDashBoard() {
   const params = useParams();
   const sellerId = params.sellerId as string;
@@ -1342,7 +1354,7 @@ function SellerDashBoard() {
               <span className="text-[#5d5d5d]">
                 <DashIcon name="permissions" size={18} />
               </span>
-              {translateFunction(group.replace(/_/g, " "))}
+              {translateFunction(getPermissionGroupLabel(group))}
             </h3>
             <div className="flex flex-wrap gap-2">
               {permissions.map((permission) => (
@@ -1922,7 +1934,7 @@ function SellerDashBoard() {
           {tiles.map((t) => (
             <button
               key={t.tab}
-              data-cy={`seller-dashboard-tab-${t.tab}`}
+              data-pw={`seller-dashboard-tab-${t.tab}`}
               onClick={() => changeTab(t.tab)}
               className="group flex items-center gap-3.5 p-4 rounded-[15px] bg-[#f8f8f8] border border-transparent hover:bg-white hover:border-[#ededed] hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-all active:scale-[0.99] text-left"
             >
@@ -2291,7 +2303,7 @@ function SellerDashBoard() {
             </h1>
             <div className="flex flex-wrap items-center gap-2 mt-1.5">
               <span
-                data-cy="seller-dashboard-role"
+                data-pw="seller-dashboard-role"
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] semibold ${
                   isAdmin
                     ? "bg-[#5d5d5d]/10 text-[#5d5d5d]"
@@ -2306,7 +2318,7 @@ function SellerDashBoard() {
               </span>
               <span className="text-[12px] text-[#8e8e8e]">
                 {translateFunction("Seller ID:")}{" "}
-                <span data-cy="seller-dashboard-seller-id" className="medium text-[#505050]">
+                <span data-pw="seller-dashboard-seller-id" className="medium text-[#505050]">
                   {sellerId}
                 </span>
               </span>

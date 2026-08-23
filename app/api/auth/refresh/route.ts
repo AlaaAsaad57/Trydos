@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
-import { refreshMarketSession } from "utils/server/authRefresh";
+import { refreshMarketSession, refreshChatSession, refreshStoriesSession } from "utils/server/authRefresh";
 
 /**
- * Internal refresh endpoint (Go + Laravel auth contracts).
+ * Internal refresh endpoint (market: Go + Laravel auth contracts; chat: chat
+ * backend refresh contract).
  *
  * Single caller (refresh is REACTIVE-ONLY):
  * - `fetchData`'s 401 handler POSTs the failed request's `{url, server}`.
@@ -40,11 +41,15 @@ export async function POST(request: NextRequest) {
 
     if (failedUrl !== undefined || server !== undefined) {
       // Reactive call — the untrusted `{url, server}` is never fetched,
-      // redirected to, or logged. Only the service matters now: market traffic
-      // carries the MARKET-TOKEN pair, so it is refreshable whichever backend
-      // served the failed request. chat/stories/comments/wallet keep their own
-      // need_auth flow and are not refreshable here.
-      const serverAllowed = server === "market" || server === "market-dashboard";
+      // redirected to, or logged. Market traffic carries the MARKET-TOKEN pair,
+      // so it is refreshable whichever backend served the failed request. Chat
+      // and stories carry their own token pairs and are refreshable here;
+      // comments and wallet keep their existing need_auth flow.
+      const serverAllowed =
+        server === "market" ||
+        server === "market-dashboard" ||
+        server === "chat" ||
+        server === "stories";
       if (!serverAllowed) {
         return NextResponse.json({ eligible: false }, { status: 200 });
       }
@@ -55,7 +60,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ refreshed: false }, { status: 200 });
     }
 
-    const outcome = await refreshMarketSession();
+    const outcome =
+      server === "chat"
+        ? await refreshChatSession()
+        : server === "stories"
+          ? await refreshStoriesSession()
+          : await refreshMarketSession();
     switch (outcome.status) {
       case "refreshed":
         // Cookies were set on this response by the helper; body stays

@@ -37,14 +37,14 @@ function SwitchFiltersButton({ length, language }) {
       className={`filter-button absolute ${
         isRtl ? "right-[15px]" : "left-[15px]"
       } top-1/3 flex-row items-center h-[25px]`}
-      data-cy="rightScrool"
+      data-pw="rightScrool"
       onClick={() => onClick()}
     >
       {Array.from({ length }).map((_, i) => (
         <span
           className={`${i > 0 && "ml-[2px]"}`}
           key={i}
-          data-cy="countFilters"
+          data-pw="countFilters"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

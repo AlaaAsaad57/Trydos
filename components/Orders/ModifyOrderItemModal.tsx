@@ -102,7 +102,7 @@ export const SizeList = ({
 
   return (
     <div
-      data-cy="countainer_ofSize_scroller"
+      data-pw="countainer_ofSize_scroller"
       className="flex-row h-[96px] max-h-[96px] w-full  relative"
     >
       <HortiznalScrollBar

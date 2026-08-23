@@ -110,7 +110,7 @@ function Card({
           </div>
 
           <div
-            data-cy="product-name-label"
+            data-pw="product-name-label"
             className={`${
               isRtl ? "dir-rtl" : ""
             } flex flex-row items-center regular text-[#1D1D1D] text-[11px]`}
@@ -271,9 +271,9 @@ const Prices = ({ offer_price, price, luck_price }) => {
             isRtl ? "dir-rtl" : ""
           } flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]`}
         >
-          <span className="relative text-[#C4C2C2]" data-cy="offer-price-label">
+          <span className="relative text-[#C4C2C2]" data-pw="offer-price-label">
             <svg
-              data-cy="product_addtocart_svg"
+              data-pw="product_addtocart_svg"
               className="top-1/2 left-0 absolute"
               xmlns="http://www.w3.org/2000/svg"
               width="100%"
@@ -297,7 +297,7 @@ const Prices = ({ offer_price, price, luck_price }) => {
           </span>
           <span
             className="relative bold text-[#ff6200]"
-            data-cy="redeem-price-label"
+            data-pw="redeem-price-label"
           >
             {RoundPrice({
               num: luck_price,
@@ -317,10 +317,10 @@ const Prices = ({ offer_price, price, luck_price }) => {
         >
           <span
             className="relative text-[#C4C2C2]"
-            data-cy="normal-price-label"
+            data-pw="normal-price-label"
           >
             <svg
-              data-cy="product_addtocart_svg"
+              data-pw="product_addtocart_svg"
               className="top-1/2 left-0 absolute"
               xmlns="http://www.w3.org/2000/svg"
               width="100%"
@@ -342,9 +342,9 @@ const Prices = ({ offer_price, price, luck_price }) => {
               language: language,
             })}
           </span>
-          <span className="relative text-[#C4C2C2]" data-cy="offer-price-label">
+          <span className="relative text-[#C4C2C2]" data-pw="offer-price-label">
             <svg
-              data-cy="product_addtocart_svg"
+              data-pw="product_addtocart_svg"
               className="top-1/2 left-0 absolute"
               xmlns="http://www.w3.org/2000/svg"
               width="100%"
@@ -368,7 +368,7 @@ const Prices = ({ offer_price, price, luck_price }) => {
           </span>
           <span
             className="relative bold text-[#ff6200] "
-            data-cy="redeem-price-label "
+            data-pw="redeem-price-label "
           >
             {RoundPrice({
               num: luck_price,
@@ -390,7 +390,7 @@ const Prices = ({ offer_price, price, luck_price }) => {
         >
           <span
             className="relative text-[#1D1D1D] bold"
-            data-cy="offer-price-label"
+            data-pw="offer-price-label"
           >
             {RoundPrice({
               num: price,
@@ -410,10 +410,10 @@ const Prices = ({ offer_price, price, luck_price }) => {
         >
           <span
             className="relative text-[#C4C2C2]"
-            data-cy="normal-price-label"
+            data-pw="normal-price-label"
           >
             <svg
-              data-cy="product_addtocart_svg"
+              data-pw="product_addtocart_svg"
               className="top-1/2 left-0 absolute"
               xmlns="http://www.w3.org/2000/svg"
               width="100%"
@@ -437,7 +437,7 @@ const Prices = ({ offer_price, price, luck_price }) => {
           </span>
           <span
             className="relative text-[#1D1D1D] bold"
-            data-cy="offer-price-label"
+            data-pw="offer-price-label"
           >
             {RoundPrice({
               num: offer_price,

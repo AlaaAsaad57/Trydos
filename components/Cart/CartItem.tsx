@@ -25,7 +25,7 @@ function CartItem({ product, index }) {
         className={`${
           isRtl ? "flex-row-reverse" : "flex-row"
         }  w-[110px] h-[160px] relative`}
-        data-cy="container-image-onCard"
+        data-pw="container-image-onCard"
       >
         {product.flash_deal_details?.end_date && (
           <div className="relative top-[8px]">
@@ -36,7 +36,7 @@ function CartItem({ product, index }) {
           </div>
         )}
         <img
-          data-cy="image-onCard"
+          data-pw="image-onCard"
           src={getConfiguredImage({
             height: 150,
             width: 150,
@@ -49,14 +49,14 @@ function CartItem({ product, index }) {
       </div>
       <div
         className={`${isRtl ? "items-end" : "items-start"} flex-col mt-4 mx-5`}
-        data-cy="container-ofProduct-information"
+        data-pw="container-ofProduct-information"
       >
         <div
           className="h-[10px] overflow-hidden"
-          data-cy="container-ofProduct-information-img"
+          data-pw="container-ofProduct-information-img"
         >
           <img
-            data-cy="img-ofProduct-information"
+            data-pw="img-ofProduct-information"
             src={getConfiguredImage({
               height: 150,
               width: 150,
@@ -75,7 +75,7 @@ function CartItem({ product, index }) {
           className={`${
             isRtl && "dir-rtl"
           } text-[12px] mt-1 text-[#505050] flex regular`}
-          data-cy="productNameInCart"
+          data-pw="productNameInCart"
         >
           {product.name.substring(0, 50)}
           {product.name.length > 50 ? "..." : ""}
@@ -83,12 +83,12 @@ function CartItem({ product, index }) {
 
         <div
           className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex-wrap`}
-          data-cy="color-div"
+          data-pw="color-div"
         >
           {colorValue && (
             <div
               className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mx-2"
-              data-cy="color-div2"
+              data-pw="color-div2"
             >
               <Image
                 src={"/icons/CartColorIcon.svg"}
@@ -96,14 +96,14 @@ function CartItem({ product, index }) {
                 width={10}
                 className="max-h-[10px] object-contain"
                 height={10}
-                data-cy="color-icon"
+                data-pw="color-icon"
               />
               <span
-                data-cy="color-text"
+                data-pw="color-text"
                 className={`${language === "ar" && "dir-rtl"} ml-1.5`}
               >
                 {translateFunction("Color")}:{" "}
-                <span className="regular" data-cy="color-name">
+                <span className="regular" data-pw="color-name">
                   {colorValue}
                 </span>
               </span>
@@ -112,7 +112,7 @@ function CartItem({ product, index }) {
           {sizeValue && (
             <div
               className="flex-row items-center text-[12px] light text-[#505050] mt-1"
-              data-cy="size-container"
+              data-pw="size-container"
             >
               <Image
                 src={"/icons/CartSizeIcon.svg"}
@@ -120,15 +120,15 @@ function CartItem({ product, index }) {
                 className="max-h-[10px] object-contain"
                 width={10}
                 height={10}
-                data-cy="color-icon"
+                data-pw="color-icon"
               />
 
               <span
                 className={`ml-1.5 ${language === "ar" && "dir-rtl"}`}
-                data-cy="size-container-text"
+                data-pw="size-container-text"
               >
                 {translateFunction("Size")}:
-                <span className="regular" data-cy="size-container-size">
+                <span className="regular" data-pw="size-container-size">
                   {sizeValue}
                 </span>
               </span>
@@ -139,7 +139,7 @@ function CartItem({ product, index }) {
           className={`${
             isRtl ? "flex-row-reverse" : "flex-row"
           }  items-center text-[12px] regular text-[#505050] mt-1 mx-3`}
-          data-cy="countPieces-container"
+          data-pw="countPieces-container"
         >
           <Image
             src={"/icons/PiecesIcon.svg"}
@@ -147,17 +147,17 @@ function CartItem({ product, index }) {
             className="max-h-[10px] object-contain"
             width={10}
             height={10}
-            data-cy="color-icon"
+            data-pw="color-icon"
           />
 
           <span
             className={`ml-1.5 ${
               language === "ar" && "dir-rtl"
             } text-[#8D8D8D] regular `}
-            data-cy="countPieces-text"
+            data-pw="countPieces-text"
           >
             {translateFunction("Composed Of:")}{" "}
-            <span className="regular" data-cy="countPieces-number">
+            <span className="regular" data-pw="countPieces-number">
               {product.count_of_pieces} {translateFunction("Piece")}
             </span>
           </span>
@@ -167,7 +167,7 @@ function CartItem({ product, index }) {
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
             }  whitespace-nowrap items-center text-[12px] light text-[#505050] mt-1 mx-3`}
-            data-cy="sshipping-container"
+            data-pw="sshipping-container"
           >
             <Image
               src={"/icons/DeleiveryIcon.svg"}
@@ -175,18 +175,18 @@ function CartItem({ product, index }) {
               className="max-h-[10px] object-contain"
               width={10}
               height={10}
-              data-cy="color-icon"
+              data-pw="color-icon"
             />
             <span
               className={`ml-1.5 flex whitespace-nowrap ${
                 language === "ar" && "dir-rtl"
               } text-[#8D8D8D] regular`}
-              data-cy="shipping-text"
+              data-pw="shipping-text"
             >
               {translateFunction("Shipping")}:{" "}
-              <span className="regular whitespace-nowrap" data-cy="days-number">
+              <span className="regular whitespace-nowrap" data-pw="days-number">
                 {totalShippingDays} {translateFunction("Days")}{" "}
-                <span className="ml-1 underline" data-cy="days-text">
+                <span className="ml-1 underline" data-pw="days-text">
                   {translateFunction("Details")}
                 </span>
               </span>
@@ -215,10 +215,10 @@ function CartItem({ product, index }) {
 
       <div
         className={`${isRtl ? "left-1" : "right-1"} absolute top-1 `}
-        data-cy="card-numbering-container"
+        data-pw="card-numbering-container"
       >
         <input
-          data-cy="card-numbering-value"
+          data-pw="card-numbering-value"
           defaultValue={index + 1}
           type="number"
           min={1}
@@ -241,7 +241,7 @@ function CartItem({ product, index }) {
               width={10}
               className="max-h-[10px] object-contain"
               height={10}
-              data-cy="color-icon"
+              data-pw="color-icon"
             />
           </span>
           <span className="bold ml-1">

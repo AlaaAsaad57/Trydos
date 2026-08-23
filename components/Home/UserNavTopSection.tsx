@@ -31,8 +31,7 @@ function UserNavTopSection({
     if (getUserType() === "NEW_USER") {
       return (
         <div
-          data-testid="login-text"
-          data-cy="login-icon"
+          data-pw="login-icon"
           className="nav-question-item"
           onClick={() => {
             openLogin(true);
@@ -58,8 +57,7 @@ function UserNavTopSection({
       if (userData?.phone)
         return (
           <div
-            data-testid="login-text"
-            data-cy="login-icon"
+            data-pw="login-icon"
             className="nav-question-item"
             onClick={() => {
               setShouldAuthinticated(true);
@@ -163,23 +161,23 @@ function UserNavTopSection({
   return (
     <div
       className={`user-nav-container`}
-      data-cy="Nav_CartIcon_LogIn"
+      data-pw="Nav_CartIcon_LogIn"
     >
       <div
         className="nav-question-item cart-icon-selector cursor-pointer relative"
-        data-cy="cart_icon_button"
+        data-pw="cart_icon_button"
         style={{ marginRight: "30px", marginLeft: "0px" }}
         onClick={() => enableCartAction(true)}
       >
         {localCart?.length > 0 && (
           <div
-            data-cy="cart-item-counts"
+            data-pw="cart-item-counts"
             className="bg-green-500 top-[-4px] left-[13px] text-[10px] font-bold text-white rounded-full   absolute px-[5px] justify-center flex items-center "
           >
             {localCart.length}
           </div>
         )}
-        <img src="/icons/CartIcon.svg" data-cy="cartIcon_mainPage" />
+        <img src="/icons/CartIcon.svg" data-pw="cartIcon_mainPage" />
       </div>
 
       {(!userData || getUserType() === "NEW_USER") && (
@@ -235,7 +233,7 @@ function UserNavTopSection({
               src="/icons/userIcon.svg"
               quality={90}
               width={30}
-              data-cy="avatar-options"
+              data-pw="avatar-options"
               className="avatar-user-image object-cover object-center"
               onClick={() => setMenuOpen(!menuOpen)}
               height={30}

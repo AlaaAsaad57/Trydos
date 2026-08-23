@@ -18,12 +18,12 @@
 ## Backend classification (Go vs Laravel)
 
 `market` and `market-dashboard` are **logical channels, not hosts**. The real
-host is chosen at request time by `isFromGoApi(url)` in
+host is chosen at request time by `isGatewayApi(url)` in
 `utils/server/tokenManager.ts`:
 
-| `isFromGoApi` | Base env var | Backend |
+| `isGatewayApi` | Base env var | Backend |
 |---|---|---|
-| true (`/checklist*`, Go product prefixes, or a `GO_APIS` suffix) | `NEXT_PUBLIC_GO_BACKEND_URL` | **Go** store gateway |
+| true (`/checklist*`, Go product prefixes, or a `GATEWAY_APIS` suffix) | `NEXT_PUBLIC_GO_BACKEND_URL` | **Go** store gateway |
 | false | `NEXT_PUBLIC_BACKEND_URL` | **Laravel** monolith |
 
 Client calls route via `/api/proxy`; server calls (`serverRequests/*`) build the
@@ -182,7 +182,7 @@ flows through the same proxy and resolves to Laravel.
 
 ---
 
-*Classification source of truth: `GO_APIS` / `GO_API_PREFIXES` / `isFromGoApi`
+*Classification source of truth: `GATEWAY_APIS` / `GATEWAY_API_PREFIXES` / `isGatewayApi`
 in `utils/server/tokenManager.ts`; channel resolution in `utils/fetchData.ts` +
 `app/api/proxy/route.ts`. Test-only harness `app/(client)/api-test/page.tsx`
 excluded.*

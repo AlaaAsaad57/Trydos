@@ -96,7 +96,7 @@ const OldCartAddAgainLabel = ({ product, language, onAddAgain }) => {
           </>
         )}
         <span
-          data-cy="old-cart-add-again"
+          data-pw="old-cart-add-again"
           className={`underline text-[#54b8ff] ${adding ? "opacity-50" : ""}`}
           onClick={handleAddAgainClick}
         >
@@ -173,32 +173,32 @@ function OldCartContainer() {
     return (
       <div
         className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10"
-        data-cy="oldCart-outOfBag"
+        data-pw="oldCart-outOfBag"
       >
-        <hr className="p-4 border-[#e5e7eb]" data-cy="line" />
+        <hr className="p-4 border-[#e5e7eb]" data-pw="line" />
         <div
           className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]"
-          data-cy="oldCart-viewer"
+          data-pw="oldCart-viewer"
         >
-          <span className="ml-[32px]" data-cy="spanContainer-oldCartIcon">
+          <span className="ml-[32px]" data-pw="spanContainer-oldCartIcon">
             <Image
               src={"/icons/OldCartIcon.svg"}
               alt="cart-color"
               width={20}
               height={20}
-              data-cy="color-icon"
+              data-pw="color-icon"
             />
           </span>{" "}
           <span
             className="regular text-[#505050] text-[15px] ml-1"
-            data-cy="outOfBag-text"
+            data-pw="outOfBag-text"
           >
             {translateFunction("Out Of Bag!", language)}
           </span>
         </div>
         <div
           className="flex-col  w-full h-auto mt-3 pb-[200px]"
-          data-cy="Product_Non_Available_In_Cart"
+          data-pw="Product_Non_Available_In_Cart"
         >
           {[1, 1, 1, 1, 1].map((s, key) => (
             <div className="flex-col bg-white pb-10 pt-2 pl-2 pr-2" key={key}>
@@ -266,30 +266,30 @@ function OldCartContainer() {
   return (
     <div
       className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10"
-      data-cy="oldCart-outOfBag"
+      data-pw="oldCart-outOfBag"
     >
-      <hr className="p-4 border-[#e5e7eb]" data-cy="line" />
+      <hr className="p-4 border-[#e5e7eb]" data-pw="line" />
       <div
         className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]"
-        data-cy="oldCart-viewer"
+        data-pw="oldCart-viewer"
       >
-        <span className="ml-[32px]" data-cy="spanContainer-oldCartIcon">
+        <span className="ml-[32px]" data-pw="spanContainer-oldCartIcon">
           <Image
             src={"/icons/OldCartIcon.svg"}
             alt="cart-color"
             width={20}
             height={20}
-            data-cy="color-icon"
+            data-pw="color-icon"
           />
         </span>{" "}
         <span
           className="regular text-[#505050] text-[15px] ml-1"
-          data-cy="outOfBag-text"
+          data-pw="outOfBag-text"
         >
           {translateFunction("Out Of Bag!", language)}
         </span>
         <span
-          data-cy="hideAll"
+          data-pw="hideAll"
           className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
           onClick={() => {
             trackOrder(ORDER_EVENTS.OLD_CART_CLEARED, {
@@ -304,13 +304,13 @@ function OldCartContainer() {
       </div>
       <div
         className="flex-col  w-full h-auto mt-3 pb-[200px]"
-        data-cy="Product_Non_Available_In_Cart"
+        data-pw="Product_Non_Available_In_Cart"
       >
         {filteredOldCart.map((product, key) => (
           <div
             className="relative px-[12px]"
             key={key}
-            data-cy="oldProduct-card"
+            data-pw="oldProduct-card"
           >
             <CartItemLink
               normalHeight="208px"
@@ -369,7 +369,7 @@ function OldCartContainer() {
                         className="max-h-[10px] object-contain"
                         width={10}
                         height={10}
-                        data-cy="color-icon"
+                        data-pw="color-icon"
                       />
 
                       <span
@@ -390,7 +390,7 @@ function OldCartContainer() {
                         className="max-h-[10px] object-contain"
                         width={10}
                         height={10}
-                        data-cy="color-icon"
+                        data-pw="color-icon"
                       />
 
                       <span
@@ -411,7 +411,7 @@ function OldCartContainer() {
                     className="max-h-[10px] object-contain"
                     width={10}
                     height={10}
-                    data-cy="color-icon"
+                    data-pw="color-icon"
                   />
 
                   <span
@@ -434,7 +434,7 @@ function OldCartContainer() {
                       className="max-h-[10px] object-contain"
                       width={10}
                       height={10}
-                      data-cy="color-icon"
+                      data-pw="color-icon"
                     />
 
                     <span
@@ -478,7 +478,7 @@ function OldCartContainer() {
                     alt="cart-color"
                     width={20}
                     height={20}
-                    data-cy="color-icon"
+                    data-pw="color-icon"
                   />
                 </span>
                 <OldCartAddAgainLabel

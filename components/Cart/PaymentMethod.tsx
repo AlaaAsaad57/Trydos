@@ -185,9 +185,9 @@ function PaymentMethod() {
 
   return (
     <>
-      <div data-cy="payment-viewer" className="px-[12px] flex-col">
+      <div data-pw="payment-viewer" className="px-[12px] flex-col">
         <div
-          data-cy="payment-viewer-container"
+          data-pw="payment-viewer-container"
           style={{
             border: "1px solid rgb(196 194 194 / 51%)",
             borderRadius: "15px",
@@ -195,13 +195,13 @@ function PaymentMethod() {
           className={`flex-col payment-valid-border ${"mt-[30px] min-h-[203px]"} pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full  `}
         >
           <div
-            data-cy="first-bay-way"
+            data-pw="first-bay-way"
             className={`flex-row ${
               language === "ar" || language === "ku" ? "flex-row-reverse" : ""
             }`}
           >
             <svg
-              data-cy="payment-viewer-svg"
+              data-pw="payment-viewer-svg"
               id="_15x15_photo_back"
               data-name="15x15 photo back"
               xmlns="http://www.w3.org/2000/svg"
@@ -272,7 +272,7 @@ function PaymentMethod() {
             </svg>
 
             <div
-              data-cy="payment-viewer-text"
+              data-pw="payment-viewer-text"
               className={`regular text-[#1D1D1D] text-[14px] ml-2 ${
                 language === "ar" || language === "ku" ? "text-right pr-2" : ""
               }`}
@@ -281,7 +281,7 @@ function PaymentMethod() {
             </div>
           </div>
           <div
-            data-cy="payment-viewer-text2"
+            data-pw="payment-viewer-text2"
             className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${
               language === "ar" || language === "ku" ? "text-right" : ""
             }`}
@@ -335,7 +335,7 @@ function PaymentMethod() {
                     />
                     <div
                       className={`rounded-[10px]  justify-center items-center flex h-[40px] min-w-[45px] bg-[#f8f8f8] cursor-pointer`}
-                      data-cy="refresh-wallet"
+                      data-pw="refresh-wallet"
                       onClick={() => {
                         refreshWallet();
                       }}
@@ -405,7 +405,7 @@ const CODInput = ({ active, setActive, total, disabled = false }) => {
 
   return (
     <div
-      data-cy="Cash-on-delivery"
+      data-pw="Cash-on-delivery"
       onClick={() => {
         if (!disabled) setActive();
       }}
@@ -419,7 +419,7 @@ const CODInput = ({ active, setActive, total, disabled = false }) => {
       }}
     >
       <div
-        data-cy="WalletIcon-container"
+        data-pw="WalletIcon-container"
         className={`flex-row items-center gap-[8px] ${
           isRtl ? "flex-row-reverse" : ""
         }`}
@@ -427,10 +427,10 @@ const CODInput = ({ active, setActive, total, disabled = false }) => {
         <img
           src="/icons/cod_method.svg"
           className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
-          data-cy="WalletIcon-container-svg"
+          data-pw="WalletIcon-container-svg"
         />
         <span
-          data-cy="Cash-texts"
+          data-pw="Cash-texts"
           className={`${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -438,9 +438,9 @@ const CODInput = ({ active, setActive, total, disabled = false }) => {
           {translateFunction("Cash On Delivery")}
         </span>
       </div>
-      <div data-cy="total-container" className="flex-row items-center">
+      <div data-pw="total-container" className="flex-row items-center">
         <span
-          data-cy="total-container-span"
+          data-pw="total-container-span"
           className="text-[#D3D3D3] regular text-[12px]"
         >
           {translateFunction("Shipping Cost")}
@@ -467,7 +467,7 @@ const TryDosWalletInput = ({
 
   return (
     <div
-      data-cy="second-bay-way"
+      data-pw="second-bay-way"
       onClick={() => {
         if (!disabled) setActive();
       }}
@@ -481,18 +481,18 @@ const TryDosWalletInput = ({
       }}
     >
       <div
-        data-cy="second-bay-way-con"
+        data-pw="second-bay-way-con"
         className={`flex-row items-center gap-[8px] ${
           isRtl ? "flex-row-reverse" : ""
         }`}
       >
         <img
           src="/icons/WalletIcon.svg"
-          data-cy="second-bay-way-svg"
+          data-pw="second-bay-way-svg"
           className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
         />
         <span
-          data-cy="second-bay-way-con-text"
+          data-pw="second-bay-way-con-text"
           className={`${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -500,21 +500,21 @@ const TryDosWalletInput = ({
           {translateFunction("RDB Wallet")}
         </span>
         {orderLoading && (
-          <span data-cy="second-bay-way-con-text-load" className="bold">
+          <span data-pw="second-bay-way-con-text-load" className="bold">
             <Spinner />
           </span>
         )}
       </div>
-      <div data-cy="third-bay-way" className="flex-row items-center">
+      <div data-pw="third-bay-way" className="flex-row items-center">
         <span
-          data-cy="third-bay-way-text"
+          data-pw="third-bay-way-text"
           className="text-[#D3D3D3] regular text-[12px]"
         >
           {translateFunction("Your Balance")}
         </span>
         <span
           className="text-[#1D1D1D] semibold text-[12px] ml-1"
-          data-cy="wallet-balance"
+          data-pw="wallet-balance"
         >
           {!orderLoading && balance} {currency?.symbol}
         </span>
@@ -529,7 +529,7 @@ const CreditInput = ({ active, setActive, disabled = false }) => {
 
   return (
     <div
-      data-cy="dredit-way"
+      data-pw="dredit-way"
       onClick={() => {
         if (!disabled) setActive();
       }}
@@ -543,18 +543,18 @@ const CreditInput = ({ active, setActive, disabled = false }) => {
       } mt-[6px] cursor-pointer w-full items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
       <div
-        data-cy="dredit-way-con"
+        data-pw="dredit-way-con"
         className={`flex-row items-center gap-[8px] ${
           isRtl ? "flex-row-reverse" : ""
         }`}
       >
         <img
           src="/icons/CreditIcon.svg"
-          data-cy="dredit-way-svg"
+          data-pw="dredit-way-svg"
           className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
         />
         <span
-          data-cy="dredit-way-text"
+          data-pw="dredit-way-text"
           className={`${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -562,31 +562,31 @@ const CreditInput = ({ active, setActive, disabled = false }) => {
           {translateFunction("Credit Cards")}
         </span>
       </div>
-      <div data-cy="container-icons" className="flex-row items-center">
-        <img src="/icons/Visa.svg" data-cy="Visa-Icon" />
+      <div data-pw="container-icons" className="flex-row items-center">
+        <img src="/icons/Visa.svg" data-pw="Visa-Icon" />
         <img
           src="/icons/Master.svg"
-          data-cy="Master-Icon"
+          data-pw="Master-Icon"
           className="ml-[5px]"
         />
         <img
           src="/icons/Maestro.svg"
-          data-cy="Maestro-Icon"
+          data-pw="Maestro-Icon"
           className="ml-[5px]"
         />
         <img
           src="/icons/AmericanExpress.svg"
-          data-cy="AmericanExpress-Icon"
+          data-pw="AmericanExpress-Icon"
           className="ml-[5px]"
         />
         <img
           src="/icons/ApplePay.svg"
-          data-cy="ApplePay-Icon"
+          data-pw="ApplePay-Icon"
           className="ml-[5px]"
         />
         <img
           src="/icons/GooglePay.svg"
-          data-cy="GooglePay-Icon"
+          data-pw="GooglePay-Icon"
           className="ml-[5px]"
         />
       </div>
@@ -599,7 +599,7 @@ const CryptoInput = ({ active, setActive, disabled = false }) => {
 
   return (
     <div
-      data-cy="crypto-bay-way"
+      data-pw="crypto-bay-way"
       onClick={(e) => {
         // @ts-ignore
         if (!disabled) setActive();
@@ -614,18 +614,18 @@ const CryptoInput = ({ active, setActive, disabled = false }) => {
       } mt-[6px] cursor-pointer w-full items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
       <div
-        data-cy="crypto-bay-way-container"
+        data-pw="crypto-bay-way-container"
         className={`flex-row items-center gap-[8px] ${
           isRtl ? "flex-row-reverse" : ""
         }`}
       >
         <img
           src="/icons/CryptoIcon.svg"
-          data-cy="crypto-bay-way-svg"
+          data-pw="crypto-bay-way-svg"
           className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
         />
         <span
-          data-cy="crypto-bay-way-text"
+          data-pw="crypto-bay-way-text"
           className={`${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -633,21 +633,21 @@ const CryptoInput = ({ active, setActive, disabled = false }) => {
           {translateFunction("Crypto")}
         </span>
       </div>
-      <div data-cy="containers-icons" className="flex-row items-center">
-        <img src="/icons/DimondPay.svg" data-cy="PaymentIconOne-icons" />
+      <div data-pw="containers-icons" className="flex-row items-center">
+        <img src="/icons/DimondPay.svg" data-pw="PaymentIconOne-icons" />
         <img
           src="/icons/DimondPay1.svg"
-          data-cy="PaymentIconTwo-icons"
+          data-pw="PaymentIconTwo-icons"
           className="ml-[5px]"
         />
         <img
           src="/icons/DimondPay2.svg"
-          data-cy="PaymentIconThree-icons"
+          data-pw="PaymentIconThree-icons"
           className="ml-[5px]"
         />
         <img
           src="/icons/DimondPay3.svg"
-          data-cy="PaymentIconFour-icons"
+          data-pw="PaymentIconFour-icons"
           className="ml-[5px]"
         />
       </div>

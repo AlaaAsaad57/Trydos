@@ -11,7 +11,7 @@ function BoutiqueLoader({ boutique, isForSearch = false }) {
   return (
     <div className="w-full flex-col flex bg-[#fafafa] overflow-hidden">
       <div
-        data-cy="filter_listing_bar"
+        data-pw="filter_listing_bar"
         // The real bar is `position: sticky` with a high z-index so it pins under
         // the navbar while the grid scrolls. In a static loading skeleton that only
         // makes the white bar float OVER the filter circles when the page isn't at
@@ -25,14 +25,14 @@ function BoutiqueLoader({ boutique, isForSearch = false }) {
         <span></span>
 
         <div
-          data-cy="filter_bar_options"
+          data-pw="filter_bar_options"
           className={`filter-bar-options gap-[12px] w-[170px] justify-between ${
             isRtl ? "flex-row-reverse flex" : "flex-row flex"
           }  align-center`}
         >
           <Skeleton width={24} height={24} borderRadius={"50%"} />
           <div
-            data-cy="filter_option_loseSearchInput"
+            data-pw="filter_option_loseSearchInput"
             className="filter-option"
           >
             <Skeleton width={24} height={24} borderRadius={"50%"} />
@@ -43,7 +43,7 @@ function BoutiqueLoader({ boutique, isForSearch = false }) {
       </div>
 
       <div
-        data-cy="boutique_header"
+        data-pw="boutique_header"
         className={`boutique-header ${"flex-col"} align-center`}
       >
         {boutique?.name && <BoutiqueSlidersSkeleton boutique={boutique} />}

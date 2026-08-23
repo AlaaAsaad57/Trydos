@@ -10,20 +10,20 @@ function CartSkeleton() {
       className={`flex-col ${
         cart.length > 0 ? "pb-[283px]" : "100px"
       }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-screen z-9999999999 pt-1`}
-      data-cy="cartPage-container"
+      data-pw="cartPage-container"
     >
       <div
         className="flex-col pl-2 pr-2 bg-white p-1"
-        data-cy="cartPage-header-container"
+        data-pw="cartPage-header-container"
       >
         <div
           className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center "
-          data-cy="cartPage-headerComponents-container"
+          data-pw="cartPage-headerComponents-container"
         >
           <img
             src="/icons/backIcon.svg"
             className="cursor-pointer z-50"
-            data-cy="CartBackIcon"
+            data-pw="CartBackIcon"
             onClick={() => {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
@@ -35,10 +35,10 @@ function CartSkeleton() {
           />
           <span
             className="text-[13px] text-[#505050] regular flex-row items-center"
-            data-cy="cartPage-textContainer-onHeader"
+            data-pw="cartPage-textContainer-onHeader"
           >
             <svg
-              data-cy="svg-textContainer"
+              data-pw="svg-textContainer"
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"
               width="20"
@@ -159,18 +159,18 @@ function CartSkeleton() {
               className={`regular ml-[8px] ${
                 language === "ar" || language === "ku" ? "text-right" : ""
               }`}
-              data-cy="textContainer-textOnHeader"
+              data-pw="textContainer-textOnHeader"
             >
               {translateFunction("Shopping Bag", language)}{" "}
               {cart.length > 0 && (
-                <span className="bold" data-cy="length-ofItems">
+                <span className="bold" data-pw="length-ofItems">
                   {cart.length} {translateFunction("Items", language)}
                 </span>
               )}
             </span>
           </span>
 
-          <img src="/icons/shareIcon.svg" data-cy="shareIcon-onHeader" />
+          <img src="/icons/shareIcon.svg" data-pw="shareIcon-onHeader" />
         </div>
       </div>
 

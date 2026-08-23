@@ -77,6 +77,18 @@ const eslintConfig = [
     ],
     rules: { "i18next/no-literal-string": "off" },
   },
+  // Test files ship no wording to any user, so the i18n rules do not apply to
+  // them: a test deliberately uses fake or untranslated keys. Matched by file
+  // NAME, not by folder — tests live next to the code they test, so a
+  // folder-based pattern would miss them (e.g. utils/functions.test.ts).
+  // Scoped to these two rules only; everything else still applies to tests.
+  {
+    files: ["**/*.{test,spec}.{ts,tsx,js,jsx}"],
+    rules: {
+      "local/translate-key-exists": "off",
+      "i18next/no-literal-string": "off",
+    },
+  },
   {
     files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"],
     rules: {

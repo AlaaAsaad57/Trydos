@@ -19,13 +19,13 @@ function FilterBoutiquePageButton() {
   return (
     <>
       <div
-        data-cy="filter-widget-button"
+        data-pw="filter-widget-button"
         className="filter-option"
         onClick={handleFilterButtonClick}
       >
         <img
           src="/icons/filterIcon.svg"
-          data-cy="settingsIcon_svg"
+          data-pw="settingsIcon_svg"
           className={`${filterEnabled && "filter-icon-enabled"}`}
         />
       </div>

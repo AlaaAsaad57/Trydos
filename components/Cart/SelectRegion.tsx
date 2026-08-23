@@ -24,7 +24,7 @@ function SelectRegion({ closeSelect }) {
       <>
         <div
           className={`flex text-[#1D1D1D] text-[14px] regular`}
-          data-cy="country-extend"
+          data-pw="country-extend"
         >
           {country.name}
         </div>
@@ -36,7 +36,7 @@ function SelectRegion({ closeSelect }) {
                 ? "text-[#D3D3D3]"
                 : "text-[#1D1D1D]"
             }  text-[14px] regular`}
-            data-cy="Province-extend"
+            data-pw="Province-extend"
           >
             <span className="px-1">|</span>
             {addressDetails.region_details?.province ||
@@ -50,7 +50,7 @@ function SelectRegion({ closeSelect }) {
                 ? "text-[#D3D3D3]"
                 : "text-[#1D1D1D]"
             }  text-[14px] regular`}
-            data-cy="Town-extend"
+            data-pw="Town-extend"
           >
             <span className="px-1">|</span>
             {addressDetails.region_details?.city || translateFunction("Town")}
@@ -63,7 +63,7 @@ function SelectRegion({ closeSelect }) {
                 ? "text-[#D3D3D3]"
                 : "text-[#1D1D1D]"
             }  text-[14px] regular`}
-            data-cy="Suburb-extend"
+            data-pw="Suburb-extend"
           >
             <span className="px-1">|</span>
             {addressDetails.region_details?.town ||
@@ -88,13 +88,13 @@ function SelectRegion({ closeSelect }) {
       />
       <div
         className="flex-col items-center px-[12px] bottom-0  absolute z-999999999 rounded-t-[30px] bg-white h-[441px] w-full pt-[19px]"
-        data-cy="Extended-Choose-Area"
+        data-pw="Extended-Choose-Area"
       >
         <div className="flex-row items-center w-full justify-center">
-          <img src="/icons/Target.svg" data-cy="target-icon" />
+          <img src="/icons/Target.svg" data-pw="target-icon" />
           <span
             className="flex regular ml-[6px] text-[#1D1D1D] text-[14px]"
-            data-cy="Select-From-List"
+            data-pw="Select-From-List"
           >
             {translateFunction("Select From List")}
           </span>
@@ -105,7 +105,7 @@ function SelectRegion({ closeSelect }) {
             <FlagIcon iso={country.iso} />
           </span>
 
-          <div className="flex-row ml-[8px]" data-cy="region-div">
+          <div className="flex-row ml-[8px]" data-pw="region-div">
             {showRegion()}
           </div>
         </div>
@@ -157,7 +157,7 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
     <>
       <div className="relative flex w-full mt-[21px]">
         <svg
-          data-cy="search-svg"
+          data-pw="search-svg"
           className="absolute top-[11px] left-[12px] z-20"
           id="_15x15_photo_back"
           data-name="15x15 photo back"
@@ -214,7 +214,7 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
             "Search Province | District | Town | Street",
           )}
           className="pl-[47px] pr-[15px] border-none outline-hidden flex rounded-[12px] bg-[#F8F8F8] regular text-[#1D1D1D] w-full h-[40px]"
-          data-cy="SearchProvince-District-Town-Street"
+          data-pw="SearchProvince-District-Town-Street"
           debounceTimeout={400}
         />
       </div>
@@ -279,7 +279,7 @@ const SearchResults = ({
             <div
               key={i}
               className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
-              data-cy="Firstly-Search-Result"
+              data-pw="Firstly-Search-Result"
               onClick={() => {
                 searchAction(s);
               }}
@@ -293,7 +293,7 @@ const SearchResults = ({
           <div
             key={i}
             className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
-            data-cy="Firstly-Search-Result"
+            data-pw="Firstly-Search-Result"
             onClick={() => {
               select(s);
             }}

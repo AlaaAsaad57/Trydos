@@ -440,7 +440,7 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
     <Section icon="products" title="General" desc="Identity & classification of the product.">
       <Grid>
         <Txt label="Product Name" fieldKey="name" value={form.name} required error={errors.name} disabled={disabled} onChange={(v) => patch({ name: v })} />
-        <Txt label="Seller Product ID" fieldKey="seller_product_id" value={form.seller_product_id} error={errors.seller_product_id} hint={t("Must stay unique across the marketplace")} disabled={disabled} onChange={(v) => patch({ seller_product_id: v })} />
+        <Txt label="Seller Product ID" fieldKey="seller_product_id" value={form.seller_product_id} required error={errors.seller_product_id} hint={t("Must stay unique across the marketplace")} disabled={disabled} onChange={(v) => patch({ seller_product_id: v })} />
         <Txt label="Barcode" fieldKey="barcode" value={form.barcode} disabled={disabled} onChange={(v) => patch({ barcode: v })} />
         <Select label="Unit" fieldKey="unit" value={form.unit} required error={errors.unit} disabled={disabled} onChange={(v) => patch({ unit: v })} options={UNITS.map((u) => ({ value: u, label: u }))} />
         <Select label="Brand" fieldKey="brand_id" value={form.brand_id} required error={errors.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.translated_name ?? b.name }))} />
@@ -465,11 +465,11 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
 
 export function PricingSection({ form, patch, errors, disabled, currency, pricesLocked }: SectionProps) {
   const hasVariants = combos(form).length > 0;
-  // Every price except Purchase Price is hidden for an unapproved seller on
-  // create — an input that cannot be filled is noise, so it is not rendered at
-  // all rather than shown greyed out. Non-price fields below (stock, weight,
-  // qty, pieces, shipping days) stay editable. The payload is unaffected:
-  // buildUpdateFormData sends "0" for every omitted price key.
+  // Every price except Purchase Price is hidden for an unapproved seller — an
+  // input that cannot be filled is noise, so it is not rendered at all rather
+  // than shown greyed out. Non-price fields below (stock, weight, qty, pieces,
+  // shipping days) stay editable. The payload is unaffected: buildUpdateFormData
+  // sends "0" or existing values for omitted price keys.
   return (
     <Section icon="orders" title="Pricing & Stock" desc="Prices are in your display currency; converted server-side.">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -499,8 +499,35 @@ export function PricingSection({ form, patch, errors, disabled, currency, prices
           <Num label="Shipping Cost" value={form.shipping_cost} disabled={disabled} suffix={currency} onChange={(v) => patch({ shipping_cost: v })} />
         )}
         <Num label="Shipping Days" value={form.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
-        {/* Tax inputs are hidden for now — the payload always sends tax=0 /
-            tax_type=flat (see buildUpdateFormData). */}
+        {/* A flat tax is an amount in the display currency and is converted
+            server-side; any other type is read as a percentage (contract §1b).
+            Tax changes what the buyer pays, so it follows the same rule as the
+            other prices and is hidden for an unapproved seller. */}
+        {!pricesLocked && (
+          <Num
+            label="Tax"
+            fieldKey="tax"
+            value={form.tax}
+            error={errors.tax}
+            disabled={disabled}
+            suffix={form.tax_type === "flat" ? currency : "%"}
+            onChange={(v) => patch({ tax: v })}
+          />
+        )}
+        {!pricesLocked && (
+          <Select
+            label="Tax Type"
+            fieldKey="tax_type"
+            value={form.tax_type}
+            error={errors.tax_type}
+            disabled={disabled}
+            onChange={(v) => patch({ tax_type: v })}
+            options={[
+              { value: "percent", label: t("Percent") },
+              { value: "flat", label: t("Flat") },
+            ]}
+          />
+        )}
       </div>
     </Section>
   );
@@ -757,7 +784,8 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
         const q = tagQuery.toLowerCase().trim();
         const name = (tg.name || "").toLowerCase();
         const trans = (tg.translated_name || "").toLowerCase();
-        return name.includes(q) || trans.includes(q);
+        const NestedTrans=(tg.translations?.[0]?.value||"").toLocaleLowerCase();
+        return name.includes(q) || trans.includes(q) || NestedTrans.includes(q);
       });
 
   return (
@@ -822,7 +850,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
             <div className="flex flex-wrap gap-2 max-h-[180px] overflow-auto p-0.5 custom-scrollbar">
               {shownTags.map((tg) => (
                 <Chip key={tg.id} active={form.tags_ids.includes(tg.id)} disabled={disabled} onClick={() => patch({ tags_ids: toggleId(form.tags_ids, tg.id) })}>
-                  {tg.translated_name ?? tg.name}
+                  {tg.translated_name ??tg.translations?.[0]?.value ??tg.name}
                 </Chip>
               ))}
             </div>
@@ -833,9 +861,9 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
   );
 }
 
-export function CountriesSection({ form, patch, lookups, disabled, currency, pricesLocked }: SectionProps) {
-  // Per-country surcharge is a price: an unapproved seller cannot set one on
-  // create, so the whole block is hidden rather than rendered greyed out.
+export function CountriesSection({ form, patch, lookups, disabled, currency, pricesLocked ,errors}: SectionProps) {
+  // Per-country surcharge is a price: an unapproved seller cannot set one,
+  // so the whole block is hidden rather than rendered greyed out.
   const extraPriceDisabled = disabled;
   const countries = lookups.countries || [];
   const language = LocalizationServiceClass.GetAppLanguage();
@@ -869,7 +897,7 @@ export function CountriesSection({ form, patch, lookups, disabled, currency, pri
     <Section icon="shopInfo" title="Origin & Countries">
       <div className="space-y-6">
         <div className="max-w-md">
-          <Select label="Country of Origin" value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={originCountryOptions} />
+          <Select label="Country of Origin" error={errors.origin_country_iso} value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={originCountryOptions} />
         </div>
 
         <div>
@@ -1332,7 +1360,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                       // Money cells get the shop-currency overlay (compact, narrow cells).
                       const suffix = currency && isMoney ? currency : "";
                       // The three money columns are not rendered at all for an
-                      // unapproved seller on create (see below); qty/sku/
+                      // unapproved seller (see below); qty/sku/
                       // barcode/location stay editable.
                       const cellDisabled = disabled;
                       return (

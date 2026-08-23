@@ -38,7 +38,7 @@ function ProductButtonWrapper({
           direction: isRtl ? "rtl" : "ltr",
         }}
         className="buy-button pb-[10px] px-[4px] light-text flex-col align-start justify-end cursor-pointer absolute z-50 bottom-0 pr-[10px] h-[40px] items-center"
-        data-cy="buy-button"
+        data-pw="buy-button"
         onClick={(e) => {
           e.preventDefault();
           AddToCart();
@@ -139,7 +139,7 @@ const RedeemPrice = ({ price, symbol }) => (
   <div className="gap-[2px] items-center flex">
     <span
       className="text-[10px] pt-[2px] flex align-start bold relative text-[#FF5724]"
-      data-cy="product-redeem-price"
+      data-pw="product-redeem-price"
     >
       {price}
     </span>

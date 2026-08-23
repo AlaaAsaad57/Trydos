@@ -83,12 +83,12 @@ function ExtraInfoArea({
             } flex  items-center gap-[3px] regular text-[10px] text-[#1d1d1d]`}
           >
             <span>{translateFunction("Color")}</span>
-            <span className="bold" data-cy="add-to-cart-selected-color">
+            <span className="bold" data-pw="add-to-cart-selected-color">
               {selected_color?.color_name}
             </span>
             <span>|</span>
             <span>{translateFunction("Size")}</span>
-            <span className="bold" data-cy="add-to-cart-selected-size">
+            <span className="bold" data-pw="add-to-cart-selected-size">
               {selected_size?.name || selected_size}
             </span>
           </div>
@@ -105,14 +105,14 @@ function ExtraInfoArea({
             {selected_color ? (
               <>
                 <span>{translateFunction("Color")}</span>
-                <span className="bold" data-cy="add-to-cart-selected-color">
+                <span className="bold" data-pw="add-to-cart-selected-color">
                   {selected_color?.color_name}
                 </span>
               </>
             ) : selected_size ? (
               <>
                 <span>{translateFunction("Size")}</span>
-                <span className="bold" data-cy="add-to-cart-selected-size">
+                <span className="bold" data-pw="add-to-cart-selected-size">
                   {selected_size?.name || selected_size}
                 </span>
               </>

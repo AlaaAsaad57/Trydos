@@ -1,6 +1,10 @@
 import { cookies } from "next/headers";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
-import { REFRESH_TOKEN_ENDPOINT } from "utils/fetch/Endpoints";
+import {
+  REFRESH_TOKEN_ENDPOINT,
+  CHAT_REFRESH_TOKEN_ENDPOINT,
+  STORIES_REFRESH_TOKEN_ENDPOINT,
+} from "utils/fetch/Endpoints";
 import {
   SECURE_COOKIE_OPTIONS,
   REFRESH_COOKIE_OPTIONS,
@@ -10,7 +14,8 @@ import {
 import { LogServerError } from "utils/serverErrorReporter";
 
 /**
- * Shared, backend-aware refresh-token exchange (Go + Laravel auth contracts).
+ * Shared refresh-token exchange helpers (market: Go + Laravel auth contracts;
+ * chat: dedicated chat backend contract).
  *
  * Design rules (tickets go-refresh-token, laravel-refresh-token):
  * - Refresh tokens are SINGLE-USE: never call this from a context that cannot
@@ -75,16 +80,56 @@ const REFRESH_BACKENDS = {
   },
 } as const;
 
-// Module-scope single-flight: parallel 401s inside one server instance share
-// one exchange instead of burning the single-use token N times (NFR-1).
-let inflight: Promise<RefreshOutcome> | null = null;
+// Single-flight, KEYED ON THE CREDENTIAL BEING SPENT.
+//
+// Parallel 401s must share one exchange, or the single-use token is burned N
+// times (NFR-1). But the flight cannot be a bare module variable: module scope
+// lives for the whole server process while a cookie jar lives for one request,
+// so two DIFFERENT visitors served by the same instance at the same moment would
+// share an exchange — and the second would be handed the first's freshly minted
+// token, which the caller then puts on its own retry. That is a cross-visitor
+// credential leak, not a saved round trip.
+//
+// Keying on the refresh credential itself gets the intent exactly right: the
+// same visitor's parallel requests hold the same credential and share, two
+// visitors hold different ones and do not.
+const marketFlights = new Map<string, Promise<RefreshOutcome>>();
+const chatFlights = new Map<string, Promise<RefreshOutcome>>();
+const storiesFlights = new Map<string, Promise<RefreshOutcome>>();
+
+async function singleFlight(
+  flights: Map<string, Promise<RefreshOutcome>>,
+  cookieName: string,
+  run: () => Promise<RefreshOutcome>,
+): Promise<RefreshOutcome> {
+  let key: string | undefined;
+  try {
+    key = (await cookies()).get(cookieName)?.value;
+  } catch {
+    key = undefined;
+  }
+
+  // Nothing to share on: `run` decides what a missing credential means.
+  if (!key) return run();
+
+  const running = flights.get(key);
+  if (running) return running;
+
+  const flight = run().finally(() => {
+    // Only clear our own entry: a credential rotated and re-used in the same
+    // instance must not have a newer flight removed by an older one settling.
+    if (flights.get(key) === flight) flights.delete(key);
+  });
+  flights.set(key, flight);
+  return flight;
+}
 
 export async function refreshMarketSession(): Promise<RefreshOutcome> {
-  if (inflight) return inflight;
-  inflight = doRefresh().finally(() => {
-    inflight = null;
-  });
-  return inflight;
+  return singleFlight(
+    marketFlights,
+    COOKIE_NAMES.MARKET_REFRESH_TOKEN,
+    doRefresh,
+  );
 }
 
 async function doRefresh(): Promise<RefreshOutcome> {
@@ -185,6 +230,230 @@ async function doRefresh(): Promise<RefreshOutcome> {
     return { status: "refreshed", token: parsed.token };
   } catch (error) {
     LogServerError({ error, type: "refresh-token unexpected failure" });
+    return { status: "unavailable" };
+  }
+}
+
+// Per-backend adapter for the chat service (single backend, dedicated token pair).
+// Same contract as the market helper: single-use rotation, both cookies replaced,
+// races resolve toward the browser jar, never delete the refresh cookie here.
+const CHAT_REFRESH_BACKEND = {
+  baseUrl: () => process.env.NEXT_PUBLIC_CHAT_BACKEND_URL || "",
+  endpoint: CHAT_REFRESH_TOKEN_ENDPOINT,
+  buildBody: (refreshToken: string) =>
+    JSON.stringify({ refresh_token: refreshToken }),
+  // Response envelope mirrors the chat login response:
+  // { data: { access_token, refresh_token, ... } }
+  parse: (json: any) => ({
+    token: json?.data?.access_token as string | undefined,
+    refreshToken: json?.data?.refresh_token as string | undefined,
+  }),
+};
+
+// Per-backend adapter for the stories service. Its own host (STORIES_BACKEND_URL,
+// separate from the chat backend), but the same wire contract as chat: same
+// path, same body, same response envelope. It keeps its own dedicated token
+// pair so a stories 401 can be recovered without disturbing chat.
+const STORIES_REFRESH_BACKEND = {
+  baseUrl: () => process.env.STORIES_BACKEND_URL || "",
+  endpoint: STORIES_REFRESH_TOKEN_ENDPOINT,
+  buildBody: (refreshToken: string) =>
+    JSON.stringify({ refresh_token: refreshToken }),
+  // The stories backend is NOT self-consistent: its login response wraps the
+  // pair ({ isSuccessful, data: { access_token, refresh_token, ... } }) but its
+  // refresh response returns it FLAT at the top level
+  // ({ user, access_token, refresh_token, token_type, expires_in }). Read the
+  // flat shape first and keep the wrapped one as a fallback, so this keeps
+  // working whichever shape the backend settles on.
+  parse: (json: any) => ({
+    token: (json?.access_token ?? json?.data?.access_token) as
+      | string
+      | undefined,
+    refreshToken: (json?.refresh_token ?? json?.data?.refresh_token) as
+      | string
+      | undefined,
+  }),
+};
+
+export async function refreshChatSession(): Promise<RefreshOutcome> {
+  return singleFlight(
+    chatFlights,
+    COOKIE_NAMES.CHAT_REFRESH_TOKEN,
+    doRefreshChat,
+  );
+}
+
+async function doRefreshChat(): Promise<RefreshOutcome> {
+  try {
+    const cookieStore = await cookies();
+
+    // Logout in progress: never mint or rotate credentials mid-logout.
+    if (cookieStore.get(COOKIE_NAMES.LOGOUT_GUARD)?.value) {
+      return { status: "ineligible" };
+    }
+
+    const refreshToken = cookieStore.get(COOKIE_NAMES.CHAT_REFRESH_TOKEN)?.value;
+    if (!refreshToken) return { status: "no-token" };
+
+    const backend = CHAT_REFRESH_BACKEND;
+    const local = cookieStore.get(COOKIE_NAMES.LOCAL)?.value || "gb-en";
+    const [country, language] = local.split("-");
+
+    let response: Response;
+    try {
+      response = await fetch(backend.baseUrl() + backend.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Lang: language || "en",
+          Country: country || "gb",
+        },
+        body: backend.buildBody(refreshToken),
+        credentials: "omit",
+      });
+    } catch (error) {
+      LogServerError({ error, type: "chat refresh-token network failure" });
+      return { status: "unavailable" };
+    }
+
+    if (response.status === 401) {
+      // Uniform 401 (dead OR raced). Do NOT delete the refresh cookie here —
+      // a concurrent winner may have rotated it; the jar-retry inherits it.
+      return { status: "invalid" };
+    }
+
+    const json = await response.json().catch(() => null);
+    if (!response.ok || !json) {
+      LogServerError({
+        error: { status: response.status, message: json?.message },
+        type: "chat refresh-token exchange failed",
+      });
+      return { status: "unavailable" };
+    }
+
+    const parsed = backend.parse(json);
+    if (!parsed.token || !parsed.refreshToken) {
+      LogServerError({
+        error: { message: "chat refresh response missing token pair" },
+        type: "chat refresh-token exchange failed",
+      });
+      return { status: "unavailable" };
+    }
+   
+
+    try {
+      cookieStore.set({
+        name: COOKIE_NAMES.CHAT_TOKEN,
+        value: parsed.token,
+        ...SECURE_COOKIE_OPTIONS,
+      });
+      cookieStore.set({
+        name: COOKIE_NAMES.CHAT_REFRESH_TOKEN,
+        value: parsed.refreshToken,
+        ...REFRESH_COOKIE_OPTIONS,
+      });
+    } catch (error) {
+      LogServerError({
+        error,
+        type: "chat refresh-token rotated pair could not be persisted (caller violated writability contract)",
+      });
+    }
+
+    return { status: "refreshed", token: parsed.token };
+  } catch (error) {
+    LogServerError({ error, type: "chat refresh-token unexpected failure" });
+    return { status: "unavailable" };
+  }
+}
+
+export async function refreshStoriesSession(): Promise<RefreshOutcome> {
+  return singleFlight(
+    storiesFlights,
+    COOKIE_NAMES.STORIES_REFRESH_TOKEN,
+    doRefreshStories,
+  );
+}
+
+async function doRefreshStories(): Promise<RefreshOutcome> {
+  try {
+    const cookieStore = await cookies();
+
+    // Logout in progress: never mint or rotate credentials mid-logout.
+    if (cookieStore.get(COOKIE_NAMES.LOGOUT_GUARD)?.value) {
+      return { status: "ineligible" };
+    }
+
+    const refreshToken = cookieStore.get(COOKIE_NAMES.STORIES_REFRESH_TOKEN)?.value;
+    if (!refreshToken) return { status: "no-token" };
+
+    const backend = STORIES_REFRESH_BACKEND;
+    const local = cookieStore.get(COOKIE_NAMES.LOCAL)?.value || "gb-en";
+    const [country, language] = local.split("-");
+
+    let response: Response;
+    try {
+      response = await fetch(backend.baseUrl() + backend.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Lang: language || "en",
+          Country: country || "gb",
+        },
+        body: backend.buildBody(refreshToken),
+        credentials: "omit",
+      });
+    } catch (error) {
+      LogServerError({ error, type: "stories refresh-token network failure" });
+      return { status: "unavailable" };
+    }
+
+    if (response.status === 401) {
+      // Uniform 401 (dead OR raced). Do NOT delete the refresh cookie here —
+      // a concurrent winner may have rotated it; the jar-retry inherits it.
+      return { status: "invalid" };
+    }
+
+    const json = await response.json().catch(() => null);
+    if (!response.ok || !json) {
+      LogServerError({
+        error: { status: response.status, message: json?.message },
+        type: "stories refresh-token exchange failed",
+      });
+      return { status: "unavailable" };
+    }
+
+    const parsed = backend.parse(json);
+    if (!parsed.token || !parsed.refreshToken) {
+      LogServerError({
+        error: { message: "stories refresh response missing token pair" },
+        type: "stories refresh-token exchange failed",
+      });
+      return { status: "unavailable" };
+    }
+
+    try {
+      cookieStore.set({
+        name: COOKIE_NAMES.STORIES_TOKEN,
+        value: parsed.token,
+        ...SECURE_COOKIE_OPTIONS,
+      });
+      cookieStore.set({
+        name: COOKIE_NAMES.STORIES_REFRESH_TOKEN,
+        value: parsed.refreshToken,
+        ...REFRESH_COOKIE_OPTIONS,
+      });
+    } catch (error) {
+      LogServerError({
+        error,
+        type: "stories refresh-token rotated pair could not be persisted (caller violated writability contract)",
+      });
+    }
+
+    return { status: "refreshed", token: parsed.token };
+  } catch (error) {
+    LogServerError({ error, type: "stories refresh-token unexpected failure" });
     return { status: "unavailable" };
   }
 }

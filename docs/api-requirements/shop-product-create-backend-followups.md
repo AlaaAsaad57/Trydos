@@ -110,7 +110,7 @@ Your list, re-ordered by what blocks us, with FE status noted.
 
 | # | Item | FE status |
 |---|---|---|
-| 3 | **`tax_type` precedence bug** — any truthy `tax_type` (incl. `"percent"`) makes the server treat `tax` as flat and currency-convert it | We omit both fields and have **disabled the tax inputs read-only** in the editor. Sellers cannot set tax at all until this ships. See §1. |
+| 3 | ~~**`tax_type` precedence bug**~~ — **not a bug**; the DTO converts only when `tax_type == 'flat'` | Nothing to do. The editor shows editable **Tax** and **Tax Type** inputs and sends both keys on every save, `tax_type` constrained to exactly `'flat'` or `'percent'`. See §1. |
 | 4 | **`multiplyQTY` precedence bug** — sending `"off"` *enables* it | Already safe: we only ever send `multiplyQTY="on"`, and omit the key entirely to disable. No FE change needed, but please still fix — it is a trap for any other client. |
 | 5 | **Pin `status` to 0 on create** (ignore client value) | Already safe: we never send `status`. Same note as above — fix for defence in depth. |
 
@@ -156,11 +156,11 @@ and videos are filenames of already-uploaded media).
 | `discount_price` | canonical name (never `discount`) |
 | `unit` | one of `pc,kg,gms,l` |
 | `multiplyQTY` | `"on"` when enabled, **key omitted** when disabled — never `"off"` |
-| `packed_after_ordering` | `"on"` or omitted |
+| `packed_after_ordering` | **always present**, `"on"` when enabled / `"off"` when disabled — same on create and update |
 | `label`, `model_number`, `report_ref_number` | **always present**, `""` when empty |
 | `location_id` | conditional (not in your update-required list) |
 | `seller_product_id` | **now optional** client-side, per Q12 |
-| `tax`, `tax_type` | **not sent** — see §1 |
+| `tax`, `tax_type` | **always sent**, `tax_type` exactly `'flat'` or `'percent'` — see §1 |
 | `status` | **never sent** |
 | `cloud_video`, `remove_videos[]` | update only; hidden in create mode |
 | descriptors | **not sent** — no key exists (Q11) |

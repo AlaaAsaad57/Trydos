@@ -1,5 +1,4 @@
-import { GET_CONTATCS_URL, LOG_IN_CHAT } from "utils/endpointConfig";
-import HomeService from "services/home";
+import { GET_CONTATCS_URL } from "utils/endpointConfig";
 import { useAppStore } from "store";
 import {
   _isStoreLastJson,
@@ -11,7 +10,6 @@ import {
   showErrorNotification,
 } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import home from "services/home";
 import UPDATED_API_DATA from "migration.staging";
@@ -74,49 +72,6 @@ class ChatService {
     });
   }
 
-  async loginChat() {
-    try {
-      const { loginSuccessChat, userProfile } = useAppStore.getState();
-      const user = userProfile;
-      const response = await fetchData({
-        url: LOG_IN_CHAT,
-        body: JSON.stringify({
-          otp_id_token: localStorage.getItem("ID-TOKEN"),
-          mobile_phone: user?.phone,
-          name: user?.name,
-          original_user_id: user?.id,
-        }),
-        method: "POST",
-        server: "chat",
-        reqTitle: REQUESTS_DATA.LOGIN_CHAT,
-      });
-      if (!response.success) {
-        throw new Error(response.message);
-      }
-      // Update HttpOnly cookie via server route
-      fetch("/api/auth/update-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          updates: [{ name: COOKIE_NAMES.USER_CHAT, value: response.data }],
-        }),
-        credentials: "include",
-      });
-      loginSuccessChat({
-        ...response.data,
-      });
-      if (response.data?.id) {
-        HomeService.CheckLogin();
-      } else {
-        throw new Error();
-      }
-    } catch (e) {
-      LogServerError({
-        error: e,
-        scenario: "Error In loginChat in services/chat",
-      });
-    }
-  }
   async ShareProduct({ userId, product, callback }) {
     const { language } = useAppStore.getState();
     try {
@@ -190,8 +145,12 @@ class ChatService {
       setIsTyping,
       setLastNotificationDate,
       setContacts,
+      userChat
     } = useAppStore.getState();
-
+    // TODO: check if userChat is null or undefined before accessing its properties
+    if(!userChat?.id){
+     return;
+    }
     const { onValue, ref } = await import("firebase/database");
     try {
       if (!payload) {
@@ -269,7 +228,12 @@ class ChatService {
     }
   }
   async getContacts() {
-    const { setContacts } = useAppStore.getState();
+    const { setContacts,userChat } = useAppStore.getState();
+        // TODO: check if userChat is null or undefined before accessing its properties
+        
+    if(!userChat?.id){
+     return;
+    }
     try {
       let response = await fetchData({
         url: GET_CONTATCS_URL,

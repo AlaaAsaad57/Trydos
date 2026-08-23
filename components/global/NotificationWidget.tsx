@@ -3,8 +3,6 @@
 import React, {
   useCallback,
   useEffect,
-  useMemo,
-  useRef,
   useState,
 } from "react";
 import Illustration from "public/images/notifications.png";
@@ -12,7 +10,8 @@ import Image from "next/image";
 import { LogError, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
-import home from "services/home";
+import NotSupportedNotificationsWidget from "./NotSupportedNotificationsWidget";
+
 interface NotificationWidgetProps {
   onAllow?: () => void;
   onDismiss?: () => void;
@@ -32,6 +31,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
   const { language, setNotificationModal } = useAppStore();
 
   const [isClient, setIsClient] = useState(false);
+  const [isSupported, setIsSupported] = useState<boolean | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -40,18 +40,45 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
   useEffect(() => {
     if (!isClient) return;
 
-    if (typeof Notification === "undefined") return;
-    if (Notification.permission === "granted") return;
+    let isMounted = true;
+    const checkSupport = async () => {
+      if (
+        typeof window === "undefined" ||
+        typeof Notification === "undefined" ||
+        typeof navigator === "undefined" ||
+        !("serviceWorker" in navigator) ||
+        !("PushManager" in window)
+      ) {
+        if (isMounted) setIsSupported(false);
+        return;
+      }
+
+      try {
+        const { isSupported: checkFirebaseSupported } = await import(
+          "firebase/messaging"
+        );
+        const supported = await checkFirebaseSupported();
+        if (isMounted) setIsSupported(supported);
+      } catch (err) {
+        if (isMounted) setIsSupported(false);
+      }
+    };
+
+    checkSupport();
+
+    return () => {
+      isMounted = false;
+    };
   }, [isClient]);
 
   const handleClose = useCallback(() => {
     setNotificationModal(false);
-  }, []);
+  }, [setNotificationModal]);
 
   const handleAllowClick = useCallback(async () => {
     // Check if Notification API is available
     if (typeof window === "undefined" || typeof Notification === "undefined") {
-      onAllow();
+      onAllow?.();
       handleClose();
       return;
     }
@@ -62,7 +89,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
 
       // If already granted, just close and call callback
       if (currentPermission === "granted") {
-        onAllow();
+        onAllow?.();
         handleClose();
         return;
       }
@@ -75,7 +102,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
             language,
           ),
         );
-        onDismiss();
+        onDismiss?.();
         handleClose();
         return;
       }
@@ -99,7 +126,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
       }
 
       if (result === "granted") {
-        onAllow();
+        onAllow?.();
       } else if (result === "denied") {
         showErrorNotification(
           translateFunction(
@@ -107,10 +134,10 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
             language,
           ),
         );
-        onDismiss();
+        onDismiss?.();
       } else {
         // Permission is still "default" - user dismissed the prompt
-        onDismiss();
+        onDismiss?.();
       }
     } catch (error) {
       LogError({
@@ -124,16 +151,16 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
           language,
         ),
       );
-      onDismiss();
+      onDismiss?.();
     } finally {
       handleClose();
     }
-  }, [handleClose, language]);
+  }, [handleClose, language, onAllow, onDismiss]);
 
   const handleDismissClick = useCallback(() => {
-    onDismiss();
+    onDismiss?.();
     handleClose();
-  }, [handleClose]);
+  }, [handleClose, onDismiss]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -142,14 +169,16 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
     [handleDismissClick],
   );
 
-  if (!isClient) return null;
+  if (!isClient || isSupported === null) return null;
 
-  const positionClasses =
-    position === "bottom-right"
-      ? "right-4 sm:right-6"
-      : position === "bottom-left"
-        ? "left-4 sm:left-6"
-        : "left-1/2 -translate-x-1/2";
+  if (!isSupported) {
+    return (
+      <NotSupportedNotificationsWidget
+        onDismiss={onDismiss}
+        className={className}
+      />
+    );
+  }
 
   return (
     <div
@@ -209,14 +238,14 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
             <div className="mt-4 flex items-center gap-2">
               <button
                 onClick={handleAllowClick}
-                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-[#1d1d1d] bg-[#ff6464] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
+                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-[#1d1d1d] bg-[#ff6464] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition cursor-pointer"
                 aria-label="Allow notifications"
               >
                 {translateFunction("Allow", language)}
               </button>
               <button
                 onClick={handleDismissClick}
-                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 shadow-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition"
+                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 shadow-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition cursor-pointer"
                 aria-label="Not now"
               >
                 {translateFunction("Not now", language)}

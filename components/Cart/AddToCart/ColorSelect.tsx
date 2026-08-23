@@ -92,7 +92,7 @@ function ColorSelect({
             <div
               className="flex-col items-center"
               key={color.color_option}
-              data-cy="add-to-cart-color"
+              data-pw="add-to-cart-color"
             >
               <div
                 key={color?.color_name || color?.color_option}
@@ -117,7 +117,7 @@ function ColorSelect({
               {color?.color_option === selectedColor?.color_option ? (
                 <span
                   className="mt-[3px] semibold text-[7px] text-[#505050]"
-                  data-cy="selected-color-name"
+                  data-pw="selected-color-name"
                 >
                   {color.color_name}
                 </span>
@@ -129,7 +129,7 @@ function ColorSelect({
                     direction: isRtl ? "rtl" : "ltr",
                   }}
                   className="mt-[3px] semibold text-[7px] text-[#FF6200]"
-                  data-cy="selected-color-name"
+                  data-pw="selected-color-name"
                 >
                   {translateFunction("Last")} {isQtyIsLast(color)?.qty}
                 </span>
@@ -139,7 +139,7 @@ function ColorSelect({
                     direction: isRtl ? "rtl" : "ltr",
                   }}
                   className="mt-[3px] semibold text-[7px] text-[#513AAF]"
-                  data-cy="selected-color-name"
+                  data-pw="selected-color-name"
                 >
                   {translateFunction("Sale")}{" "}
                   <span>{IsColorHasDiscount(color)} %</span>

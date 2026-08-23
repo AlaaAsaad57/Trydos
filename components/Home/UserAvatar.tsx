@@ -15,7 +15,7 @@ function UserAvatar({ avatar, onClick, showIndicator }: UserAvatarProps) {
           <div
             onClick={onClick}
             className="nav-question-item nav-img-item w-[30px] h-[30px] relative"
-            data-cy="avatar-options"
+            data-pw="avatar-options"
             style={{
               marginLeft: "0px",
               position: "relative",
@@ -44,7 +44,7 @@ function UserAvatar({ avatar, onClick, showIndicator }: UserAvatarProps) {
         <div
           onClick={onClick}
           className="nav-question-item relative"
-          data-cy="avatar-options"
+          data-pw="avatar-options"
           style={{ marginLeft: "0px" }}
         >
           {showIndicator && (

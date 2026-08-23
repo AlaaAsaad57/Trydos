@@ -171,7 +171,7 @@ function BuyersCommentMenu({
           tabIndex={0}
           role="button"
           aria-label="Comment options menu"
-          data-cy={
+          data-pw={
             !fromComments ? "success-comment-options" : "comment-options"
           }
         >

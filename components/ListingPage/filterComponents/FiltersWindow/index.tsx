@@ -253,7 +253,7 @@ const FiltersWindowUI = ({
     <div className="fixed mx-auto right-0 max-w-[1366px] pt-[20px] gap-[10px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-hidden top-[97px]   left-0 z-9999999999">
       <div className="justify-between fil flex-row align-center h-[50px] shrink-0 pl-[15px] pr-[25px]">
         <div
-          data-cy="backIcon_productPage"
+          data-pw="backIcon_productPage"
           className={`back-icon flex-row`}
           onClick={() => {
             // Sendevent({
@@ -272,7 +272,7 @@ const FiltersWindowUI = ({
             isRtl ? "flex-row-reverse" : "flex-row"
           }  align-center `}
         >
-          <div className="filter-option w-[20px]" data-cy="settingsIcon">
+          <div className="filter-option w-[20px]" data-pw="settingsIcon">
             <img
               src="/icons/filterIcon.svg"
               className={`${filterEnabled && "filter-icon-enabled"}`}
@@ -280,7 +280,7 @@ const FiltersWindowUI = ({
           </div>
           <div
             className="filter-option w-[20px]"
-            data-cy="close-filter-widget-button"
+            data-pw="close-filter-widget-button"
             onClick={() => {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
@@ -444,7 +444,7 @@ const FiltersWindowUI = ({
               </div>
               <div
                 className="price-slider-container mt-10 w-full pr-9 pl-5 z-10"
-                data-cy="slider"
+                data-pw="slider"
               >
                 <PriceSliderComponent
                   symbol={currency?.symbol}

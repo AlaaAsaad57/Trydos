@@ -67,6 +67,7 @@ export interface NamedLookup {
   id: number;
   name: string;
   translated_name?: string;
+  translations?: Record<string, string>[];
 }
 export interface LocationLookup {
   id: number;
@@ -220,6 +221,33 @@ export interface Lookups {
   locations: LocationLookup[];
   descriptor_groups: DescriptorGroup[];
   units: string[];
+  /** Every seller product id already used in this shop, normalized (see
+   *  normalizeSellerProductIds) from the raw `seller_product_id` array the
+   *  create/edit lookups return. */
+  seller_product_ids: string[];
+}
+
+/** The lookups carry the ids already taken as a raw array that can hold nulls
+ *  and numbers (e.g. [null, null, "32"] — products saved without one). Keep the
+ *  trimmed, non-empty values only, deduped. */
+export function normalizeSellerProductIds(raw: any): string[] {
+  if (!Array.isArray(raw)) return [];
+  const out = new Set<string>();
+  for (const v of raw) {
+    const s = String(v ?? "").trim();
+    if (s) out.add(s);
+  }
+  return [...out];
+}
+
+/** True when the typed seller product id is already taken. `taken` must not
+ *  contain the product's own current id — on edit the lookups list includes it
+ *  and keeping it must stay allowed. Empty returns false: the empty case is the
+ *  "required" rule in validate(), not a uniqueness clash. */
+export function isSellerProductIdTaken(value: string, taken: string[]): boolean {
+  const v = String(value ?? "").trim();
+  if (!v) return false;
+  return taken.includes(v);
 }
 
 export interface VariantRow {
@@ -828,10 +856,10 @@ export function validate(
   form: ProductForm,
   isCreate = false,
   /**
-   * Creating a product as a seller who is not approved for new products: the
-   * only price they may enter is purchase_price, so the unit/discount rules are
-   * skipped — the backend drops them on this path too. Purchase price is still
-   * validated. There is no product-level luck-price rule to skip.
+   * Creating or updating a product as a seller who is not approved: the only price
+   * they may enter is purchase_price, so the unit/discount rules are skipped —
+   * the backend drops them on this path too. Purchase price is still validated.
+   * There is no product-level luck-price rule to skip.
    */
   pricesLocked = false,
 ): Record<string, string> {
@@ -843,10 +871,34 @@ export function validate(
   // empty case before a request is made; it confers no security property, and the
   // server still owns brand validity/authorization (spec E-5).
   if (!form.brand_id) e.brand_id = tx("Brand is required");
-  // seller_product_id is optional server-side on both create and update; it is only
-  // checked for marketplace uniqueness when provided.
+  // Required on BOTH create and update. Uniqueness is a separate rule, checked
+  // live in the editor against the lookups list (isSellerProductIdTaken), not
+  // here — this only stops the empty case.
+  if (!form.seller_product_id.trim())
+    e.seller_product_id = tx("Seller Product ID is required");
 
   if (!form.location_id) e.location_id = tx("Location is required");
+  // if( form.shipping_days === "" || isNaN(Number(form.shipping_days)) || Number(form.shipping_days) < 0){
+  //   e.shipping_days = tx("Enter a valid shipping days");
+  // }
+  
+  // Origin country is required on both create and update. The server checks that the value is valid and authorized for the seller, so the client only needs to check that a value was selected.
+  if(form.origin_country_iso===""||!form.origin_country_iso){
+    e.origin_country_iso=tx("Select a valid origin country");
+  }
+  // Count of pieces
+  if(form.count_of_pieces===""||isNaN(Number(form.count_of_pieces))||Number(form.count_of_pieces)<0){
+    e.count_of_pieces=tx("Enter a valid Count of pieces");
+  }
+  // Stock
+  if(!form.current_stock || Number(form.current_stock)<=0 || isNaN(Number(form.current_stock))){
+   if(Object.keys(form.variations).length) {
+    e.current_stock=tx("Enter a Valid Value for Quantity In Variants Table");
+   }
+   else{
+    e.current_stock=tx("Enter a Valid Value for Quantity");
+   }
+  }
 
   const up = num(form.unit_price);
   const dp = num(form.discount_price);
@@ -863,7 +915,7 @@ export function validate(
       }
     }
 
-    if (form.purchase_price !== "") {
+    if (form.purchase_price === ""||!form.purchase_price) {
       if (isNaN(pp) || pp < 0) {
         e.purchase_price = tx("Enter a valid purchase price");
       } else if (form.discount_price !== "" && !isNaN(dp) && dp <= pp) {
@@ -873,7 +925,7 @@ export function validate(
       }
     }
   } else {
-    if (form.purchase_price !== "" && (isNaN(pp) || pp < 0))
+    if (form.purchase_price === "" || (isNaN(pp) || pp < 0))
       e.purchase_price = tx("Enter a valid purchase price");
   }
 
@@ -1015,10 +1067,11 @@ export function validate(
     }
   }
 
+  if (!form.category_id.length)
+    e.category_id = tx("Select at least one category");
+
   if (isCreate) {
     if (!form.boutique_id) e.boutique_id = tx("Boutique is required");
-    if (!form.category_id.length)
-      e.category_id = tx("Select at least one category");
     const descText = form.description
       .replace(/<[^>]*>/g, "")
       .replace(/&nbsp;/g, " ")
@@ -1051,8 +1104,8 @@ const ERROR_CODE_FIELDS = new Set([
   "count_of_pieces",
   "shipping_cost",
   "shipping_days",
-  // tax / tax_type removed: their inputs are hidden, so a server error keyed to
-  // them would highlight nothing — it falls through to the general message.
+  "tax",
+  "tax_type",
   "category_id",
   "description",
   "images",
@@ -1144,30 +1197,26 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
   set("count_of_pieces", form.count_of_pieces === "" ? "1" : form.count_of_pieces);
   set("shipping_cost", form.shipping_cost === "" ? "0" : form.shipping_cost);
   set("shipping_days", form.shipping_days === "" ? "0" : form.shipping_days);
-  // Tax inputs are hidden from the form for now — always send a fixed zero flat
-  // tax (tax_type must be exactly 'flat' or 'percent'; only 'flat' currency-
-  // converts, contract §1b). The ProductForm fields still exist/hydrate, they
-  // are just never user-edited or sent.
-  set("tax", "0");
-  set("tax_type", "flat");
+  // tax / tax_type are both sent on every save. tax_type must be exactly 'flat'
+  // or 'percent' — only 'flat' currency-converts the amount, anything else is
+  // read as a percentage (contract §1b). An empty amount means "no tax" → 0.
+  set("tax", form.tax === "" ? "0" : form.tax);
+  set("tax_type", form.tax_type === "flat" ? "flat" : "percent");
 
   // Always present, always an explicit boolean — the create DTO rejects a missing
   // key ("must be true or false"), so the previous "send 'on' / omit to disable"
-  // encoding is gone. `set` stringifies, so these go on the wire as "true"/"false".
+  // encoding is gone. `set` stringifies, so this goes on the wire as "1"/"0".
   // Contract §1c confirms this is correct: the boolean rule accepts
-  // 1/0/true/false/"1"/"0" and the value is parsed with FILTER_VALIDATE_BOOL,
-  // which reads "true"/"false" correctly. Do NOT reinstate the omit pattern —
-  // §2.2 makes key presence load-bearing on update.
+  // 1/0/true/false/"1"/"0" and the value is parsed with FILTER_VALIDATE_BOOL.
+  // Do NOT reinstate the omit pattern — §2.2 makes key presence load-bearing
+  // on update.
   set("multiplyQTY", form.multiply_qty?1:0);
 
-  // packed_after_ordering is NOT a boolean on the wire. The DTO enables the flag
-  // only on the literal string 'on' (contract §1c, §4); any other value stores 0.
-  // The key is always appended because update reads it with isset.
-  // KNOWN LIMITATION — update only: on CREATE the rule is `nullable|boolean`,
-  // which rejects 'on' while the DTO requires it, so the flag is impossible to
-  // enable at create through this endpoint. That is a backend defect, not
-  // something this builder can work around (spec AC-16).
-  set("packed_after_ordering", form.packed_after_ordering ? "on" : "");
+  // packed_after_ordering is NOT a boolean on the wire: the same "on"/"off"
+  // switch encoding is sent on create and on update. The key is always
+  // appended because update reads it with isset.
+  set("packed_after_ordering", form.packed_after_ordering ? "on" : "off");
+
 
   set("meta_title", form.meta_title);
   set("meta_description", form.meta_description);
@@ -1306,9 +1355,9 @@ const SCALARS: [keyof ProductForm, string][] = [
   ["count_of_pieces", "Pieces / Unit"],
   ["shipping_cost", "Shipping Cost"],
   ["shipping_days", "Shipping Days"],
-  // tax / tax_type are NOT diffed: the inputs are hidden and the payload always
-  // sends the forced 0/flat (see buildUpdateFormData), so a stored non-zero tax
-  // would otherwise show as a phantom change on every save.
+  ["tax", "Tax"],
+  // tax_type is skipped in the loop below and pushed with a translated label.
+  ["tax_type", "Tax Type"],
   ["meta_title", "Meta Title"],
   ["meta_description", "Meta Description"],
   ["origin_country_iso", "Origin Country"],
@@ -1349,10 +1398,21 @@ export function buildDiff(
     return c ? c.nicename : iso.toUpperCase();
   };
 
-  // 1. Scalar Text/Numeric Fields (excluding origin_country_iso which is handled below with flag)
+  // 1. Scalar Text/Numeric Fields (excluding origin_country_iso which is handled
+  // below with flag, and tax_type which shows its translated label)
   for (const [key, label] of SCALARS) {
-    if (key === "origin_country_iso") continue;
+    if (key === "origin_country_iso" || key === "tax_type") continue;
     push(String(key), tx(label), initial[key], current[key]);
+  }
+  const taxTypeLabel = (v: string) => (v === "flat" ? tx("Flat") : tx("Percent"));
+  if (initial.tax_type !== current.tax_type) {
+    out.push({
+      key: "tax_type",
+      label: tx("Tax Type"),
+      from: taxTypeLabel(initial.tax_type),
+      to: taxTypeLabel(current.tax_type),
+      type: "text",
+    });
   }
 
   // 2. Brand, Boutique, Location

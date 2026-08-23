@@ -55,13 +55,13 @@ export function BoutiqueSliderWrapper({ boutique, children }) {
       >
         <span
           className="bold text-[16px] uppercase text-white"
-          data-cy="boutique-name"
+          data-pw="boutique-name"
         >
           {boutique?.name}
         </span>
         {boutique?.description && (
           <span
-            data-cy="boutique-description"
+            data-pw="boutique-description"
             className="regular text-[16px] text-white"
             dangerouslySetInnerHTML={{
               __html: sanitizeHtml(decodeHtmlSSR(boutique?.description)),

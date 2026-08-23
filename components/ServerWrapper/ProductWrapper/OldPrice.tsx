@@ -2,7 +2,7 @@ export const OldPrice = ({ price }) => {
   return (
     <span
       className="old-price relative f-12 text-[#3c3c3c] light-text"
-      data-cy="product-price"
+      data-pw="product-price"
     >
       {price}
       <svg

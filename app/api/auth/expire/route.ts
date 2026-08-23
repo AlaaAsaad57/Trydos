@@ -85,7 +85,9 @@ export async function POST(request: NextRequest) {
       deleteSecureCookie(COOKIE_NAMES.MARKET_TOKEN),
       deleteSecureCookie(COOKIE_NAMES.MARKET_REFRESH_TOKEN),
       deleteSecureCookie(COOKIE_NAMES.CHAT_TOKEN),
+      deleteSecureCookie(COOKIE_NAMES.CHAT_REFRESH_TOKEN),
       deleteSecureCookie(COOKIE_NAMES.STORIES_TOKEN),
+      deleteSecureCookie(COOKIE_NAMES.STORIES_REFRESH_TOKEN),
       deleteSecureCookie(COOKIE_NAMES.WALLET_TOKEN),
       // The comments backend's token — stored under this deliberately opaque
       // cookie name (see COOKIE_NAMES.USER_ID_HASH).

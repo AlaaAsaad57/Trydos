@@ -12,7 +12,7 @@ export * from "./stories";
 
 export async function GetStarttingSetting({ language, country }) {
   let response = await fetchServerData({
-    // Verified users → Laravel, guests → Go (user-based routing)
+    // Verified users → core backend, guests → gateway (user-based routing)
     url: (await resolveMarketFetchBase()) + "/web/home/startingSettings",
     headers: {
       lang: language,

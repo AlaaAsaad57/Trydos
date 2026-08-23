@@ -109,7 +109,7 @@ function GoToSellerDashBoard({
   if (viewState === "error") {
     return (
       <div
-        data-cy="seller-permissions-error"
+        data-pw="seller-permissions-error"
         className={`w-full min-h-[50px] rounded-[15px] bg-[#f8f8f8] border border-gray-100 flex ${
           isRtl ? "flex-row-reverse" : "flex-row"
         } items-center justify-between px-[16px] py-[10px] my-[12px]`}
@@ -119,7 +119,7 @@ function GoToSellerDashBoard({
         </span>
         <button
           type="button"
-          data-cy="retry-permissions-btn"
+          data-pw="retry-permissions-btn"
           onClick={getPermission}
           className={`flex items-center gap-[6px] px-[12px] py-[6px] bg-[#ffffff] border border-gray-200 hover:border-gray-300 rounded-[10px] text-[#1d1d1d] text-[12px] medium transition-all duration-150 cursor-pointer shadow-xs ${
             isRtl ? "flex-row-reverse" : "flex-row"
@@ -156,7 +156,7 @@ function GoToSellerDashBoard({
     return (
       <>
         <button
-          data-cy="become-seller-btn"
+          data-pw="become-seller-btn"
           onClick={() => setOpenSellerModal(true)}
           className="h-[50px] cursor-pointer w-full rounded-[15px] text-[#1d1d1d] bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]"
         >
@@ -172,7 +172,7 @@ function GoToSellerDashBoard({
   // viewState === "sales"
   return (
     <div
-      data-cy="seller-sales"
+      data-pw="seller-sales"
       onClick={() => {
         window.location.href = `/${lang}/sellerProfile`;
       }}

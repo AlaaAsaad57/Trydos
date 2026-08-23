@@ -148,7 +148,7 @@ flowchart TD
 
 What makes it safe:
 
-- **Refresh only for market sessions.** Chat, stories, comments and wallet have their own re-verify flow (a phone-confirmation widget) instead.
+- **Refresh for market, chat, and stories sessions.** Comments and wallet have their own re-verify flow (a phone-confirmation widget) instead.
 - **One refresh at a time.** Parallel failures share a single exchange — the single-use token is never burned twice.
 - **Ties resolve toward the browser.** If two tabs race, the loser retries with the winner's fresh cookies instead of destroying them.
 - **Tokens never appear in responses.** Renewal is delivered only as HttpOnly cookies.

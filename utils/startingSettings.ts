@@ -21,10 +21,20 @@ const GATEWAY_ENVELOPE_KEY = "starting_setting";
 /** The key client code reads the settings object under. */
 export const STARTING_SETTING_KEY = GATEWAY_ENVELOPE_KEY;
 
-/** Coerce to a finite number, treating absent/non-numeric values as 0. */
+/**
+ * Coerce to a whole, non-negative number of days, treating absent/non-numeric
+ * values as 0.
+ *
+ * Rounded **up** and floored at zero on purpose. This value is added to a
+ * product's own shipping days to make a delivery estimate, and the failure this
+ * module exists to stop is an estimate that is too short: half a day cannot be
+ * shown, and a negative would pull the estimate earlier than the product's own
+ * days. Neither shape is sent by a backend today.
+ */
 const toFiniteDays = (value: unknown): number => {
   const days = Number(value);
-  return Number.isFinite(days) ? days : 0;
+  if (!Number.isFinite(days)) return 0;
+  return Math.max(0, Math.ceil(days));
 };
 
 /**
@@ -34,13 +44,23 @@ const toFiniteDays = (value: unknown): number => {
  * order-status list read other fields off the same result.
  */
 export function resolveStartingSetting(payload: any): any {
-  const setting =
-    payload?.[ACCEPTED_ENVELOPE_KEY] ?? payload?.[GATEWAY_ENVELOPE_KEY];
+  const accepted = asSettingsObject(payload?.[ACCEPTED_ENVELOPE_KEY]);
+  const setting = accepted ?? asSettingsObject(payload?.[GATEWAY_ENVELOPE_KEY]);
   if (!setting) return setting;
   return {
     ...setting,
     shipping_duration_days: toFiniteDays(setting.shipping_duration_days),
   };
+}
+
+/**
+ * An envelope entry only counts when it is an object. A `false` or `0` entry
+ * used to be neither empty enough to fall through to the other spelling nor an
+ * object to repair, so it was handed on as it was and every reader indexed into
+ * it and found nothing.
+ */
+function asSettingsObject(entry: unknown): any {
+  return typeof entry === "object" && entry !== null ? entry : undefined;
 }
 
 /**
@@ -52,5 +72,10 @@ export function resolveStartingSetting(payload: any): any {
 export function normaliseStartingSettings(payload: any): any {
   const setting = resolveStartingSetting(payload);
   if (!setting) return payload;
-  return { ...payload, [STARTING_SETTING_KEY]: setting };
+  // The accepted key is dropped rather than left beside the repaired one, so the
+  // envelope carries the settings once. Keeping both meant a core payload held
+  // the same object twice and a reader could pick the spelling the app does not
+  // index.
+  const { [ACCEPTED_ENVELOPE_KEY]: _accepted, ...rest } = payload;
+  return { ...rest, [STARTING_SETTING_KEY]: setting };
 }

@@ -1,3 +1,4 @@
+import { lang as langParam } from "next/root-params";
 export const dynamic = "force-dynamic";
 import StoriesBarServer from "components/Server/StoriesBarServer";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
@@ -20,20 +21,21 @@ import { translateFunction } from "utils/server";
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, query] = await Promise.all([params, searchParams]);
+  const lang = await langParam();
   let mainCategory = query?.mainCategory || null;
   try {
     const metadata = await GetHomeMetaData({
-      local: Params.lang,
+      local: lang,
       category: mainCategory,
     });
 
     return { ...metadata };
   } catch (error) {
-    LogServerError({ error, type: "meta" }, `/${Params.lang}`);
-    const [country, language] = Params.lang.split("-");
+    LogServerError({ error, type: "meta" }, `/${lang}`);
+    const [country, language] = lang.split("-");
     const baseUrl = General_Site_Data.url;
     const path = mainCategory ? `?mainCategory=${mainCategory}` : "";
-    const fullUrl = `${baseUrl}/${Params.lang}${path}`;
+    const fullUrl = `${baseUrl}/${lang}${path}`;
     const ogImageUrl = baseUrl + General_Site_Data.og;
     const title = translateFunction(
       "TryDos - Premium Shopping Experience",
@@ -73,7 +75,7 @@ export async function generateMetadata({ params, searchParams }) {
 
 async function HomePage({ params, searchParams }) {
   let [Params, query] = await Promise.all([params, searchParams]);
-  let lang = Params.lang;
+  const lang = await langParam();
   let mainCategory = query?.mainCategory || null;
   const [country, language] = lang.split("-");
   let currency = getCurrency(country, language);

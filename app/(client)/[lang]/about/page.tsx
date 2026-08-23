@@ -1,3 +1,4 @@
+import { lang as langParam } from "next/root-params";
 import StaticPage from "components/static/StaticPage";
 import { buildAlternates } from "serverRequests/meta/buildAlternates";
 import { getRobotsConfig, translateFunction } from "utils/server";
@@ -18,8 +19,8 @@ const SECTIONS = [
   },
 ];
 
-export async function generateMetadata({ params }) {
-  const { lang } = await params;
+export async function generateMetadata() {
+  const lang = await langParam();
   const [, language] = lang.split("-");
   return {
     title: translateFunction(TITLE, language),
@@ -29,8 +30,8 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default async function Page({ params }) {
-  const { lang } = await params;
+export default async function Page() {
+  const lang = await langParam();
   return (
     <StaticPage lang={lang} title={TITLE} intro={INTRO} sections={SECTIONS} />
   );

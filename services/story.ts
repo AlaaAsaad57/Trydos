@@ -1,12 +1,10 @@
 "use client";
 import { _isStoreLastJson, LogError } from "utils/functions";
-import { LOG_IN_STORIES } from "utils/endpointConfig";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
 
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
-import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 import { REQUESTS_DATA } from "utils/Requests";
 import { GetTicket } from "utils/UploadUtils";
@@ -49,46 +47,12 @@ class StoryService {
     }
     // @ts-ignore
   }
-  async loginStories() {
-    const { loginSuccessStories, userProfile } = useAppStore.getState();
-    const user = userProfile;
-    try {
-      const response = await fetchData({
-        url: LOG_IN_STORIES,
-        reqTitle: REQUESTS_DATA.LOGIN_STORIES,
-        method: "POST",
-        server: "stories",
-        body: JSON.stringify({
-          otp_id_token: localStorage.getItem("ID-TOKEN"),
-          mobile_phone: user?.phone,
-        }),
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
-      }
-      // Update HttpOnly cookie via server route
-      fetch("/api/auth/update-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          updates: [{ name: COOKIE_NAMES.USER_STORIES, value: response.data }],
-        }),
-        credentials: "include",
-      });
-      loginSuccessStories({
-        ...response.data,
-      });
-      await this.getStories();
-    } catch (error) {
-      LogError({
-        error,
-        scenario: "Error in loginStories in services/story",
-      });
-    }
-  }
   async WatchStory(pid: number | string, id: number | string) {
-    const { watchStory } = useAppStore.getState();
+    const { watchStory ,userStories} = useAppStore.getState();
+    // TODO: check if userStories is null or undefined before accessing its properties
+    if(!userStories?.id){
+     return;
+    }
     try {
       if (this.getUserStories()?.id) {
         watchStory({ pid: pid, id: id });

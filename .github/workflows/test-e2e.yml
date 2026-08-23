@@ -1,0 +1,412 @@
+# The browser suite, against real staging.
+#
+# It drives a real `next build` + `next start` in Chromium against the real
+# staging backends. See docs/testing/E2E_TEST_DESIGN.md.
+#
+# ---------------------------------------------------------------------------
+# Why this is its own file and not a job in tests.yml
+#
+# tests.yml sets `cancel-in-progress: true` at the workflow level, which cancels
+# the entire run — every job in it — as soon as another push lands on the same
+# branch. A job-level concurrency group does not protect a job from that.
+#
+# A cancelled browser run is not merely a lost result. By the time it is killed
+# it may already have created a real order on staging, and it will now never
+# reach the teardown that cancels it. So the suite lives here, in a workflow that
+# is never cancelled.
+# ---------------------------------------------------------------------------
+#
+# **Never on a pull request.** Two reasons, and both are load-bearing:
+#
+#   * A pull request must not be blocked because staging is down. A red check on
+#     a pull request has to mean "the code broke", nothing else.
+#   * It needs staging secrets, and a pull request from a fork never gets them.
+#     Gating on push and schedule keeps forks working.
+#
+# ---------------------------------------------------------------------------
+# This file has to exist on `main`, and `main` is the only reason it says
+# `ref:` further down
+#
+# GitHub reads `schedule:` and `workflow_dispatch:` only from the **default**
+# branch, which in this repository is `main`. While this file lived on `develop`
+# alone the cron below was never armed: every run in the history was a `push`,
+# and the nightly silently never happened.
+#
+# So `main` carries this one file — and only this file — out of `develop`. It
+# does not carry the suite: `main` is the staging gate and has no `tests/`, no
+# Playwright config and no `e2e:*` scripts. That shapes the two rules below:
+# nothing here triggers on a push to `main`, and a scheduled run checks out
+# `develop`.
+#
+# Any edit to this file therefore needs a pull request to `main` as well as to
+# `develop`, or the two copies drift and the one that runs the nightly is the
+# stale one.
+# ---------------------------------------------------------------------------
+
+name: E2E
+
+on:
+  # **`develop` only.** `main` carries this file (see above) but not the suite,
+  # so a push to `main` that started this workflow would die on
+  # `pnpm e2e:preflight` — script not found — and paint the staging branch red
+  # for tests it does not contain. Add `main` back on the day `develop` is
+  # merged up and `main` carries the tooling.
+  push:
+    branches: [develop]
+  schedule:
+    # Nightly, 02:30 UTC. Off the hour on purpose — the top of the hour is when
+    # every scheduled workflow on the platform queues at once.
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+# **One global group, and never cancelled.** Both halves matter:
+#
+#   * `live-suite` is shared with every other run of this workflow, so a merge
+#     and the nightly can never be in the same staging shop at the same time.
+#     Two runs adding to one cart break each other for reasons that look exactly
+#     like product bugs.
+#   * `cancel-in-progress: false` because a run killed mid-checkout leaves an
+#     order behind. A queued run is cheap; an orphaned order is not.
+concurrency:
+  group: live-suite
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Browser journeys
+    runs-on: ubuntu-latest
+    # Install, build, browser, journeys. The build is the slow part.
+    timeout-minutes: 45
+
+    outputs:
+      steps: ${{ steps.collect.outputs.steps }}
+      totals: ${{ steps.report.outputs.totals }}
+      failures: ${{ steps.report.outputs.failures }}
+      rollup: ${{ steps.report.outputs.rollup }}
+      tree: ${{ steps.report.outputs.tree }}
+      configured: ${{ steps.preflight.outputs.configured }}
+      staging: ${{ steps.preflight.outputs.staging }}
+      video_url: ${{ steps.upload.outputs.artifact-url }}
+
+    steps:
+      # A scheduled run is dispatched from the default branch, `main`, so left
+      # alone it would check out `main` — the staging gate, which has no tests in
+      # it. The code under test at night is `develop`. Every other event checks
+      # out whatever it was fired on, which is what a push and a manual run
+      # already mean.
+      - name: Check out the code under test
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'schedule' && 'develop' || github.ref }}
+
+      # Pinned here rather than in package.json's `packageManager` field: the
+      # deploy platform runs its own install command, and a `packageManager`
+      # field would also apply there.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.0
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # ---------------------------------------------------------------------
+      # The staging environment.
+      #
+      # One secret holding the whole file, rather than twenty named secrets. The
+      # build needs every NEXT_PUBLIC_ value baked in — media hosts, the default
+      # country and language, the app version — and not just the backend
+      # addresses, so the named-secret version would be a long list that silently
+      # breaks the build whenever the app reads a new one.
+      #
+      # The trade-off, stated so nobody discovers it later: one blob is harder to
+      # audit and rotate than named secrets. It is worth it here because the file
+      # already exists in exactly this form on every developer machine, so CI and
+      # local runs cannot drift apart.
+      #
+      # No secret means no file, which means preflight reports "not configured"
+      # and every step below skips. That is the correct behaviour for a fork and
+      # for a repository nobody has set up yet.
+      # ---------------------------------------------------------------------
+      - name: Write the staging environment
+        env:
+          E2E_ENV_FILE: ${{ secrets.E2E_ENV_FILE }}
+        run: |
+          # The guard is inside the shell, not in `if:` — a step's own `env`
+          # block is not readable from its `if`, so that version would silently
+          # never run.
+          if [ -n "${E2E_ENV_FILE:-}" ]; then
+            printf '%s' "$E2E_ENV_FILE" > .env.development
+            echo "Wrote .env.development from the repository secret."
+          else
+            echo "No E2E_ENV_FILE secret. Preflight will report not configured."
+          fi
+
+      # Configured? Is every backend address a known staging host? And is
+      # staging actually serving? This runs **before** the build, so a wrong
+      # target costs nothing, an unconfigured repository builds nothing at all,
+      # and a backend that is already down does not buy two minutes of build
+      # time to find that out.
+      #
+      # `configured` and `staging` are separate outputs because they are separate
+      # situations: "nobody set this up" is silence, "it is set up and the
+      # backend is down" is news.
+      - name: Preflight
+        id: preflight
+        run: pnpm e2e:preflight
+
+      - name: Cache the browser
+        if: ${{ steps.preflight.outputs.configured == 'true' && steps.preflight.outputs.staging == 'up' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ms-playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      # **No `--with-deps`, on purpose.** It cost three minutes of every run and
+      # installed nothing this suite uses.
+      #
+      # Measured on run 32225455244: the step took 3m10s, and the Chromium
+      # download was not part of it — the cache above hit, so Playwright went
+      # straight to apt. Of that, 80s was `apt-get update` alone (the
+      # `Get:5 … noble-security InRelease` line), 100s was fetching .debs, and
+      # the nine packages it ended up installing were:
+      #
+      #   fonts-wqy-zenhei  fonts-freefont-ttf  fonts-tlwg-loma-otf
+      #   fonts-ipafont-gothic  fonts-unifont  xfonts-encodings
+      #   xfonts-utils  xfonts-cyrillic  xfonts-scalable
+      #
+      # All fonts — Chinese, Japanese, Thai, Cyrillic — and **not one shared
+      # library**. Every library Chromium needs is already on the ubuntu-24.04
+      # image, which ships Chrome, Chromium, Edge and Firefox and therefore their
+      # dependencies. Arabic is not in that list either; it comes from fonts the
+      # image already has.
+      #
+      # It is safe here because nothing in this suite *asserts* on a glyph: the
+      # journeys assert on DOM text through locators. The video and the failure
+      # screenshots are looked at by a human, not compared, so a missing font
+      # costs nothing but a puzzling frame — Arabic renders (the image ships those
+      # fonts), CJK shows as empty boxes. **If that changes** — the day someone
+      # adds `toHaveScreenshot()` or any automated visual comparison — put
+      # `--with-deps` back, or the comparison will fail for reasons nobody can see.
+      #
+      # And it cannot be fixed with a cache instead. The runner is a fresh VM
+      # every run, so apt's system paths never persist, and half the cost is
+      # `apt-get update` reaching the network, which no cache avoids.
+      - name: Install Chromium
+        id: browser
+        if: ${{ steps.preflight.outputs.configured == 'true' && steps.preflight.outputs.staging == 'up' }}
+        run: pnpm exec playwright install chromium
+
+      - name: Build
+        id: build
+        if: ${{ steps.preflight.outputs.configured == 'true' && steps.preflight.outputs.staging == 'up' }}
+        run: pnpm e2e:build
+
+      # `continue-on-error` here does **not** mean a failing suite is tolerated.
+      # It defers the verdict to "Decide the verdict" below, which is the only
+      # step that can fail this job. A step that fails outright ends the job on
+      # the spot, and the whole point is to ask one more question first.
+      - name: Browser journeys
+        id: journeys
+        if: ${{ steps.preflight.outputs.configured == 'true' && steps.preflight.outputs.staging == 'up' }}
+        continue-on-error: true
+        run: pnpm exec playwright test
+
+      # Was staging still up when that failed?
+      #
+      # Preflight passing is not enough. On 2026-08-18 preflight was clean and
+      # Elasticsearch went down ninety seconds later, during the build — so every
+      # journey failed on a blank page and the run was reported as broken code.
+      # Asking again, after the fact, is the only way to tell the two apart.
+      #
+      # Only on failure: a green suite proves staging was up, and probing it
+      # again would be a request that can only produce a confusing answer.
+      - name: Re-check staging
+        id: recheck
+        if: ${{ always() && steps.journeys.outcome == 'failure' }}
+        run: pnpm e2e:health
+
+      # The counts and the failing test names, read from the JSON reporter's
+      # `e2e-results.json`. `always()` because its whole purpose is to describe a
+      # run that failed, and it never fails the job itself — a broken report must
+      # not turn a green suite red.
+      #
+      # Everything it emits is passed through `redact()` first. A Playwright
+      # failure message carries whatever the assertion saw, and this repository
+      # is public.
+      - name: Read the results
+        id: report
+        if: ${{ always() && steps.preflight.outputs.configured == 'true' }}
+        run: pnpm exec tsx tests/e2e/cli.ts report
+
+      # ---------------------------------------------------------------------
+      # The session recording, encrypted before it is uploaded.
+      #
+      # This repository is public, so an uploaded artifact is world-readable —
+      # anyone with the run URL can download it. The recording shows what the
+      # browser showed, which on the login screen is the test identity's phone
+      # number, so it is never uploaded in the clear.
+      #
+      # `-mhe=on` matters as much as the passphrase: without it 7z encrypts the
+      # contents but leaves the file names listable, and the file names are the
+      # failing spec names.
+      #
+      # **A trace is still never recorded** (playwright.config.ts). That one is
+      # different in kind: it archives every request header, so it is the auth
+      # token in a file, and no passphrase makes it worth publishing.
+      #
+      # No passphrase secret means no archive and no upload — which is the right
+      # default for a fork and for a clone nobody has set up.
+      # ---------------------------------------------------------------------
+      - name: Pack the session recording
+        id: pack
+        if: ${{ always() && steps.journeys.outcome != 'skipped' }}
+        env:
+          PASS: ${{ secrets.E2E_ARTIFACT_PASSPHRASE }}
+        run: |
+          set -u
+
+          # The guard is inside the shell, not in `if:` — a step's own `env`
+          # block is not readable from its `if`, so that version would silently
+          # never run.
+          if [ -z "${PASS:-}" ]; then
+            echo "No E2E_ARTIFACT_PASSPHRASE secret. Nothing packed, nothing uploaded."
+            exit 0
+          fi
+
+          if ! command -v 7z >/dev/null 2>&1; then
+            echo "No 7z on this runner — cannot encrypt, so refusing to upload."
+            exit 0
+          fi
+
+          # A run that died in the build never opened a browser, and an empty
+          # archive is worse than no archive: it puts a link in the Telegram
+          # message that leads to nothing.
+          if ! find tests/e2e/.artifacts -type f \( -name '*.webm' -o -name '*.png' \) 2>/dev/null | grep -q .; then
+            echo "No video or screenshot was written — nothing to pack."
+            exit 0
+          fi
+
+          # Never `set -x` in this step: a traced command line prints $PASS.
+          7z a -p"$PASS" -mhe=on /tmp/e2e-session.7z ./tests/e2e/.artifacts >/dev/null
+          echo "packed=true" >> "$GITHUB_OUTPUT"
+          echo "Packed $(du -h /tmp/e2e-session.7z | cut -f1) of recording."
+
+      - name: Upload the session recording
+        id: upload
+        if: ${{ always() && steps.pack.outputs.packed == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-session
+          path: /tmp/e2e-session.7z
+          # Short on purpose. The default is 90 days, and a nightly run would
+          # otherwise leave three months of recordings of the staging account.
+          # Three days covers a weekend, which is the longest a red run should
+          # wait to be looked at.
+          retention-days: 3
+
+      - name: Collect the result
+        id: collect
+        if: ${{ always() }}
+        env:
+          R_CONFIGURED: ${{ steps.preflight.outputs.configured }}
+          R_STAGING: ${{ steps.preflight.outputs.staging }}
+          R_RECHECK: ${{ steps.recheck.outputs.staging }}
+          R_BROWSER: ${{ steps.browser.outcome }}
+          R_BUILD: ${{ steps.build.outcome }}
+          R_JOURNEYS: ${{ steps.journeys.outcome }}
+        run: |
+          set -u
+
+          icon() {
+            case "$1" in
+              success) printf '✅' ;;
+              failure) printf '❌' ;;
+              skipped) printf '⏭️' ;;
+              *)       printf '⚠️' ;;
+            esac
+          }
+
+          if [ "$R_CONFIGURED" != "true" ]; then
+            STEP_LINE="staging not configured — nothing built, nothing run ⏭️"
+          elif [ "$R_STAGING" = "down" ]; then
+            STEP_LINE="staging is down — nothing built, nothing run ⚠️"
+          elif [ "$R_RECHECK" = "down" ]; then
+            # The case this whole file was changed for. Naming it explicitly
+            # matters: without this line the message is a list of failing test
+            # names, and everyone spends an hour reading the wrong code.
+            STEP_LINE="journeys failed, but staging went down mid-run ⚠️ — not a code failure"
+          else
+            STEP_LINE="browser $(icon "$R_BROWSER")  build $(icon "$R_BUILD")  journeys $(icon "$R_JOURNEYS")"
+          fi
+
+          {
+            echo "steps<<TRYDOS_EOF"
+            echo "$STEP_LINE"
+            echo "TRYDOS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # ---------------------------------------------------------------------
+      # The only step that can fail this job.
+      #
+      # A red check here has to mean "the code broke" — that is the rule the top
+      # of this file is built on, and a suite that cannot reach its backend has
+      # not learned anything about the code. So a failure is a failure **unless**
+      # staging was provably not serving when we asked.
+      #
+      # It is deliberately narrow, because the failure mode of getting this wrong
+      # is a real bug reported as an outage. It downgrades only when the probe
+      # says "down" *after* the run, at which point the suite had no backend.
+      # Anything else — a probe that could not decide, a suite that failed with
+      # staging healthy — is a red job.
+      # ---------------------------------------------------------------------
+      - name: Decide the verdict
+        if: ${{ always() }}
+        env:
+          R_JOURNEYS: ${{ steps.journeys.outcome }}
+          R_RECHECK: ${{ steps.recheck.outputs.staging }}
+        run: |
+          set -u
+
+          if [ "$R_JOURNEYS" != "failure" ]; then
+            exit 0
+          fi
+
+          if [ "$R_RECHECK" = "down" ]; then
+            echo "The journeys failed, and staging is not serving."
+            echo "Reporting this as a backend outage, not a code failure."
+            echo "Re-run this workflow once staging is back."
+            exit 0
+          fi
+
+          echo "The journeys failed and staging is up. This is a code failure."
+          exit 1
+
+  notify:
+    name: Telegram
+    needs: e2e
+    # `always()` so a red run is the one that definitely reports. A run that
+    # found staging unconfigured still reports, because silence would be
+    # indistinguishable from the workflow never having triggered.
+    if: ${{ always() }}
+    uses: ./.github/workflows/notify-telegram.yml
+    with:
+      result: ${{ needs.e2e.result }}
+      title: E2E · ${{ github.event_name }}
+      steps: ${{ needs.e2e.outputs.steps }}
+      totals: ${{ needs.e2e.outputs.totals }}
+      failures: ${{ needs.e2e.outputs.failures }}
+      rollup: ${{ needs.e2e.outputs.rollup }}
+      tree: ${{ needs.e2e.outputs.tree }}
+      tree_name: e2e-tests.txt
+      video_url: ${{ needs.e2e.outputs.video_url }}
+    secrets: inherit

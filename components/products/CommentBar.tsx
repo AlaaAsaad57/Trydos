@@ -118,7 +118,7 @@ function CommentBar({ product_data, setCommentsData }) {
     >
       <textarea
         disabled={loading}
-        data-cy="CommentField"
+        data-pw="CommentField"
         tabIndex={0}
         aria-label={translateFunction("Comment input")}
         className={`w-full resize-none outline-hidden p-2 rounded-sm border border-gray-300 min-h-[56px] max-h-[120px] transition-all duration-200 `}
@@ -157,7 +157,7 @@ function CommentBar({ product_data, setCommentsData }) {
           } absolute h-full flex items-center top-0 ${
             loading ? "cursor-help" : "cursor-pointer"
           }`}
-          data-cy="SubmitComment"
+          data-pw="SubmitComment"
           onClick={() => {
             if (loading) return;
             // @ts-ignore

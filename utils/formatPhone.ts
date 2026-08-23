@@ -16,6 +16,7 @@ const NATIONAL_GROUPS: Record<string, number[]> = {
   tr: [3, 3, 4], // +90 552 800 2000
   lb: [2, 3, 3], // +961 70 123 456
   iq: [3, 3, 4], // +964 7XX XXX XXXX
+  ae: [2, 3, 4], // +971 50 123 4567
 };
 
 const toDigits = (value: string) => value.replace(/\D/g, "");

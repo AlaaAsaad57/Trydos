@@ -232,7 +232,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
         />
       )}
 
-      <div className="relative" data-cy="searchImageIcon">
+      <div className="relative" data-pw="searchImageIcon">
         {loading ? (
           <Spinner />
         ) : (

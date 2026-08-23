@@ -98,7 +98,7 @@ function SizeSelect({
               onClick={() => {
                 setSelectedSize(s?.option);
               }}
-              data-cy="add-to-cart-size"
+              data-pw="add-to-cart-size"
               className={`${
                 sizeQty(s?.option) === 0 && !isCollectAfterOrder
                   ? "bg-[#FFF2F2]"
@@ -137,7 +137,7 @@ function SizeSelect({
               {isSizeNotified(s?.option ?? s) && (
                 <span
                   className="absolute top-[-6px] left-[4px]"
-                  data-cy="is-size-notified"
+                  data-pw="is-size-notified"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

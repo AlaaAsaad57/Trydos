@@ -6,7 +6,11 @@ import {
   getCurrencies,
 } from "services/wallet";
 import { WALLET_REAUTH_ON_401 } from "services/wallet/reauthFlag";
-import { CurrenciesApi, GetWalletBalancesApi } from "services/wallet/types";
+import {
+  CurrenciesApi,
+  GetWalletBalancesApi,
+  isWalletUnauthenticated,
+} from "services/wallet/types";
 import { RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
@@ -149,7 +153,11 @@ export default function WalletPaymentModal({
     const loadData = async () => {
       setIsLoadingData(true);
       try {
-        const currRes = await getCurrencies({ local, handleUnauthenticated });
+        const currRes = await getCurrencies({ local });
+        if (isWalletUnauthenticated(currRes)) {
+          handleUnauthenticated();
+          return;
+        }
         if (!currRes?.items?.length) {
           showErrorNotification(
             translateFunction("Failed to load wallet currencies"),
@@ -174,8 +182,12 @@ export default function WalletPaymentModal({
         const balRes = await GetWalletBalanceInCurrency({
           currencyId: matchingCurrency.id,
           local,
-          handleUnauthenticated,
         });
+
+        if (isWalletUnauthenticated(balRes)) {
+          handleUnauthenticated();
+          return;
+        }
 
         if (balRes) setWalletData(balRes);
       } catch (error) {
@@ -224,8 +236,11 @@ export default function WalletPaymentModal({
       const balRes = await GetWalletBalanceInCurrency({
         currencyId: newCurrency.id,
         local,
-        handleUnauthenticated,
       });
+      if (isWalletUnauthenticated(balRes)) {
+        handleUnauthenticated();
+        return;
+      }
       if (balRes) setWalletData(balRes);
     } catch (error) {
       showErrorNotification(translateFunction("Failed to load wallet balance"));
@@ -265,8 +280,16 @@ export default function WalletPaymentModal({
         currencyId: selectedCurrency.id,
         idempotencyKey: idempotencyKey.current,
         local,
-        handleUnauthenticated,
       });
+      if (isWalletUnauthenticated(result)) {
+        trackOrder(ORDER_EVENTS.WALLET_PAYMENT_FAILED, {
+          stage: "unauthenticated",
+        });
+        setIsProcessing(false);
+        isSubmittedRef.current = false;
+        handleUnauthenticated();
+        return;
+      }
       // @ts-ignore
       if (result && !result.paymentFailed) {
         await startOrderConversionPolling(cart[0].cart_group_id);
@@ -424,7 +447,7 @@ export default function WalletPaymentModal({
                 {/* Action Buttons */}
                 <div className="flex-col gap-[10px] mt-[16px]">
                   <div
-                    data-cy="wallet-confirm-payment"
+                    data-pw="wallet-confirm-payment"
                     onClick={() => {
                       if (!isProcessing && isBalanceSufficient) {
                         handleConfirmPayment();
@@ -444,7 +467,7 @@ export default function WalletPaymentModal({
                   </div>
                   {!isProcessing && (
                     <div
-                      data-cy="wallet-cancel-payment"
+                      data-pw="wallet-cancel-payment"
                       onClick={onClose}
                       className="w-full h-[40px] rounded-[15px] flex justify-center items-center cursor-pointer bg-transparent text-[#8D8D8D] regular text-[13px]"
                     >

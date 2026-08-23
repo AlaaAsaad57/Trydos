@@ -30,7 +30,9 @@ export async function POST(request: NextRequest) {
     userStories,
     marketToken,
     chatToken,
+    chatRefreshToken,
     storiesToken,
+    storiesRefreshToken,
     walletToken,
     userIdHash,
   } = body;
@@ -53,9 +55,17 @@ export async function POST(request: NextRequest) {
     await setSimulateCookie(COOKIE_NAMES.CHAT_TOKEN, chatToken);
   else await deleteSecureCookie(COOKIE_NAMES.CHAT_TOKEN);
 
+  if (chatRefreshToken !== undefined)
+    await setSimulateCookie(COOKIE_NAMES.CHAT_REFRESH_TOKEN, chatRefreshToken);
+  else await deleteSecureCookie(COOKIE_NAMES.CHAT_REFRESH_TOKEN);
+
   if (storiesToken !== undefined)
     await setSimulateCookie(COOKIE_NAMES.STORIES_TOKEN, storiesToken);
   else await deleteSecureCookie(COOKIE_NAMES.STORIES_TOKEN);
+
+  if (storiesRefreshToken !== undefined)
+    await setSimulateCookie(COOKIE_NAMES.STORIES_REFRESH_TOKEN, storiesRefreshToken);
+  else await deleteSecureCookie(COOKIE_NAMES.STORIES_REFRESH_TOKEN);
 
   if (walletToken !== undefined)
     await setSimulateCookie(COOKIE_NAMES.WALLET_TOKEN, walletToken);

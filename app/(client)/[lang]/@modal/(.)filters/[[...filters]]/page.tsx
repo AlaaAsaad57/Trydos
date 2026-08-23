@@ -1,3 +1,4 @@
+import { lang as langParam } from "next/root-params";
 import FiltersPageContent from "components/Listing/FiltersPageContent";
 
 export const runtime = "nodejs";
@@ -5,6 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function InterceptedFiltersPage({ params, searchParams }) {
   const Params = await params;
+  const lang = await langParam();
   const sp = (await searchParams) ?? {};
   const sort = typeof sp.sort === "string" ? sp.sort : undefined;
   const search = typeof sp.search === "string" ? sp.search : undefined;

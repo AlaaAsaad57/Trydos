@@ -54,7 +54,7 @@ function OptionsMenu(props) {
             {isSender && !props.isCall ? (
               <button
                 className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-xs hover:shadow-md transition-shadow text-gray-900 font-medium"
-                data-cy="DELETE-OPTION"
+                data-pw="DELETE-OPTION"
                 onClick={() => props.deleteMessage(true)}
                 tabIndex={0}
                 aria-label={translateFunction("For All")}
@@ -70,7 +70,7 @@ function OptionsMenu(props) {
             ) : (
               <button
                 className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-xs hover:shadow-md transition-shadow text-gray-900 font-medium"
-                data-cy="DELETE-OPTION"
+                data-pw="DELETE-OPTION"
                 onClick={() => setDelete(false)}
                 tabIndex={0}
                 aria-label={translateFunction("cancel")}
@@ -180,7 +180,7 @@ function OptionsMenu(props) {
         >
           <div
             className="message-opt"
-            data-cy="DELETE-OPTION"
+            data-pw="DELETE-OPTION"
             onClick={() => {
               setDelete(true);
             }}
@@ -224,7 +224,7 @@ function OptionsMenu(props) {
             {!props.isPrivate && (
               <div
                 className="message-opt "
-                data-cy="FORWARD-OPTION"
+                data-pw="FORWARD-OPTION"
                 onClick={() => props.forward()}
               >
                 <img src="/icons/chat/forward.svg" />
@@ -255,7 +255,7 @@ function OptionsMenu(props) {
             </div>
             <div
               className="message-opt"
-              data-cy="DELETE-OPTION"
+              data-pw="DELETE-OPTION"
               onClick={() => {
                 setDelete(true);
               }}

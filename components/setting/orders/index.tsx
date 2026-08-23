@@ -59,7 +59,7 @@ function OrdersLinkCard({ isRtl, user, local, language }) {
         ${
           isRtl && "items-end"
         } flex-col w-full h-[94px] bg-[#F8F8F8] relative rounded-[12px] p-[12px] cursor-pointer`}
-        data-cy="orders-page-button"
+        data-pw="orders-page-button"
         href={!isNotLogeedIn() ? `/${local}/settings/orders` : pathname}
       >
         <OrderNotified />

@@ -411,7 +411,7 @@ function SearchIcon({ language, country }) {
         className={`search-icon flex items-center h-full cursor-pointer duration-[0.4s] min-w-[50px] ${
           searchEnabled && "active-serach min-w-full"
         }`}
-        data-cy="searchIcon_mainPage"
+        data-pw="searchIcon_mainPage"
         onClick={() => {
           if (!searchEnabled) {
             DisableScroll();
@@ -445,7 +445,7 @@ function SearchIcon({ language, country }) {
             )}
             <input
               maxLength={90}
-              data-cy="inputField"
+              data-pw="inputField"
               onKeyDown={handleKeyDown}
               id="search-element"
               disabled={!searchEnabled}
@@ -466,7 +466,7 @@ function SearchIcon({ language, country }) {
                 <div className={`input-icons right-[38px] flex-row close-search-icon`}>
                   <img
                     src="/icons/SearchCloseIcon.svg"
-                    data-cy="SearchInputCloseIcon"
+                    data-pw="SearchInputCloseIcon"
                     onClick={() => {
                       if (value.length > 0) {
                         setValue("");
@@ -494,7 +494,7 @@ function SearchIcon({ language, country }) {
                 <div className="search-colse-icon flex-row">
                   <img
                     src="/icons/CloseIcon.svg"
-                    data-cy="closeIcon_searchPage"
+                    data-pw="closeIcon_searchPage"
                     onClick={handleClose}
                   />
                 </div>
@@ -651,7 +651,7 @@ const SearchContainer = ({
   return (
     <div
       className="search-container pt-[12px] max-h-full mx-auto left-0 right-0"
-      data-cy="searchContainer"
+      data-pw="searchContainer"
     >
       {/* 1. Empty State: History & Trending */}
       {value.length === 0 && (
@@ -680,7 +680,7 @@ const SearchContainer = ({
       {/* 2. Results State */}
       <div
         className="search-results-container flex-col  overflow-y-scroll pb-[115px]"
-        data-cy="searchResults_body"
+        data-pw="searchResults_body"
       >
         {/* Products */}
         {value.length > 0 && (loading || products?.length > 0) && (
@@ -712,7 +712,7 @@ const SearchContainer = ({
         {(brands?.length > 0 || loading) && (
           <div
             className="products-results shrink-0 brand-results"
-            data-cy="ContainerOfBrands"
+            data-pw="ContainerOfBrands"
           >
             <div
               className={`result-label flex-row ${
@@ -749,7 +749,7 @@ const SearchContainer = ({
         {(categories?.length > 0 || loading) && (
           <div
             className="products-results shrink-0 brand-results"
-            data-cy="ContainerOfCategories"
+            data-pw="ContainerOfCategories"
           >
             <div
               className={`result-label flex-row ${
@@ -803,7 +803,7 @@ const SearchContainer = ({
           return (
             <div
               className="products-results shrink-0 brand-results"
-              data-cy="ContainerOfRelatedCategories"
+              data-pw="ContainerOfRelatedCategories"
             >
               <div
                 className={`result-label flex-row ${
@@ -855,7 +855,7 @@ const SearchContainer = ({
         {(boutiques?.length > 0 || loading) && (
           <div
             className="products-results shrink-0 brand-results"
-            data-cy="ContainerOfBoutiques"
+            data-pw="ContainerOfBoutiques"
           >
             <div
               className={`result-label flex-row ${
@@ -906,14 +906,14 @@ const SearchContainer = ({
         />
         <div
           className="flex-row w-full mt-3 justify-center"
-          data-cy="searchResult"
+          data-pw="searchResult"
         >
           {showButton() &&
             (loading ? (
               <div
                 aria-disabled={loading}
                 className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-white justify-center items-center rounded-xl"
-                data-cy="apply-filters-search"
+                data-pw="apply-filters-search"
               >
                 {translateFunction("Search")}{" "}
                 {loading ? (
@@ -925,7 +925,7 @@ const SearchContainer = ({
                     {total_size > 0 && (
                       <span
                         className="text-[#fafafa] regular ml-2"
-                        data-cy="countAfterFilter"
+                        data-pw="countAfterFilter"
                       >
                         ({translateFunction("Total Products:")} {total_size})
                       </span>
@@ -944,7 +944,7 @@ const SearchContainer = ({
                 }}
                 aria-disabled={loading}
                 className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-white justify-center items-center rounded-xl"
-                data-cy="apply-filters-search"
+                data-pw="apply-filters-search"
               >
                 {translateFunction("Search")}{" "}
                 {loading ? (
@@ -956,7 +956,7 @@ const SearchContainer = ({
                     {total_size > 0 && (
                       <span
                         className="text-[#fafafa] regular ml-2"
-                        data-cy="countAfterFilter"
+                        data-pw="countAfterFilter"
                       >
                         ({translateFunction("Total Products:")} {total_size})
                       </span>
@@ -968,7 +968,7 @@ const SearchContainer = ({
           {(showButton() || total_size === 0) && (
             <div
               className="w-16 h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
-              data-cy="reset-filters-search"
+              data-pw="reset-filters-search"
               onClick={() => {
                 setValue("");
                 setAppliedFilters({

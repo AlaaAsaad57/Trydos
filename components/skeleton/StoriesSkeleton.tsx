@@ -9,7 +9,7 @@ function StoriesSkeleton() {
         className="stories-bar  w-full h-[183px] items-center flex justify-start false"
       >
         <div
-          data-cy="Add-Story-Button"
+          data-pw="Add-Story-Button"
           className="w-[100px] min-w-[100px] add-story-container flex align-center justify-center h-[150px] ml-[20px]"
           style={{
             borderRadius: "20px",
@@ -74,7 +74,7 @@ function StoriesSkeleton() {
             >
               <div
                 className="shadow-[0_3px_6px_rgba(0,0,0,0.2)] rounded-[20px]"
-                data-cy="story-element"
+                data-pw="story-element"
               >
                 <div className="relative w-[100px] h-[150px] rounded-[20px] flex">
                   <Skeleton

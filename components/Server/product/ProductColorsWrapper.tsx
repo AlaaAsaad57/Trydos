@@ -26,23 +26,23 @@ async function ProductColorsWrapper({
       className={`product-colors ${
         isRtl ? "flex-row-reverse " : "flex-row"
       } mt-[12px]  align-start justify-between relative`}
-      data-cy="AvailableColor"
+      data-pw="AvailableColor"
     >
       <div
         className={`${
           isRtl && "items-end"
         } colors-label flex-col align-start py-[8px] justify-center gap-[4px]`}
       >
-        <img src="/icons/colors.svg" data-cy="ColorsIcon" />
+        <img src="/icons/colors.svg" data-pw="ColorsIcon" />
         <span
-          data-cy="Color-Length"
+          data-pw="Color-Length"
           className="regular text-[9px] text-[#1d1d1d] "
         >
           {translateFunction("Available ", language)} {colors?.length || 0}{" "}
           {translateFunction("Color", language)}
         </span>
         <span
-          data-cy="Color-Length"
+          data-pw="Color-Length"
           className="regular text-[11px] flex-row gap-[3px] text-[#1d1d1d] "
         >
           {colors?.length} {translateFunction("Color", language)}{" "}

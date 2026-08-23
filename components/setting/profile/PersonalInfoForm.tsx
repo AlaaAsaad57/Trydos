@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { isGuestName } from "utils/tinyUtils";
 import { useAppStore } from "store";
@@ -8,10 +8,10 @@ import auth from "services/auth";
 
 import { pollinateInput } from "utils/tinyUtils";
 import BackBar from "../BackBar";
-import ConfirmMobileChange from "components/settings/ConfirmMobileChange";
 import { usePhoneInput } from "utils/usePhoneInput";
 import { allCountries } from "country-telephone-data";
-import { createPortal } from "react-dom";
+import AuthOverlay from "components/Login/Enhanced/AuthOverlay";
+import VerifyPhoneFlow from "components/Login/Enhanced/VerifyPhoneFlow";
 
 // Validation helpers
 const isValidEmail = (email: string): boolean => {
@@ -33,7 +33,14 @@ const normalizePhone = (phone: unknown): string =>
   String(phone ?? "").replace(/^\+/, "");
 
 function PersonalInfoForm({ initialData, isRtl, language, local }) {
-  const { userProfile: clientUser, setLoginOpen } = useAppStore();
+  // Per-field selectors: a whole-store destructure would re-render this form
+  // on any unrelated store write. `loginOpen` / `shouldAuthinticated` are read
+  // so this settings overlay can stand down when one of the global auth
+  // surfaces is active (see isPhoneShouldChange below).
+  const clientUser = useAppStore((s) => s.userProfile);
+  const setLoginOpen = useAppStore((s) => s.setLoginOpen);
+  const loginOpen = useAppStore((s) => s.loginOpen);
+  const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
   const user = clientUser || initialData;
 
   const isNotLoggedIn = !user || 
@@ -136,6 +143,17 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
 
   const [isPhoneShouldChange, setIsPhoneShouldChange] = useState(false);
 
+  // The overlay below stands down while a global auth surface is active (see
+  // the comment near it), but that alone leaves `isPhoneShouldChange` true.
+  // Left alone, the overlay would pop back the moment the global surface
+  // clears — mid-flow state gone, at a moment the user never asked for it.
+  // Reset the flag as soon as the gate closes it, so it stays closed after.
+  useEffect(() => {
+    if (loginOpen || shouldAuthinticated) {
+      setIsPhoneShouldChange(false);
+    }
+  }, [loginOpen, shouldAuthinticated]);
+
   const updateField = (field: string, value: any) => {
     setUserProfileData({ ...userProfileData, [field]: value });
     if (showValidation && validationErrors[field]) {
@@ -226,29 +244,39 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
       } ${isNotLoggedIn ? "opacity-65" : ""}`}
       key="personal-info-setting-page"
     >
-      {isPhoneShouldChange && (
-        <ConfirmationModal
-          forVerify={false}
-          closeWindow={() => {
-          //   phoneInput.setValue(
-          //   initialData?.phone === "0" ? "" : initialData?.phone || "",
-          // );
-            setIsPhoneShouldChange(false);
-          }}
-          value={phoneInput.value}
-          successCallback={(idToken) => {
-            updateUserProfile({
-              ...userProfileData,
-              phone: phoneInput.modifiedValue?.includes("+")
-                ? phoneInput.modifiedValue
-                : `+${phoneInput.modifiedValue}`,
-              alternative_phone: alternativePhoneInput.modifiedValue || "",
-              id_token: idToken,
-            });
-
-            setIsPhoneShouldChange(false);
-          }}
-        />
+      {/* AppScaler (the overlay's scaled canvas) is single-instance-only —
+          it hardcodes #app-outer/#master-canvas and :root vars, so a second
+          mounted instance corrupts both. The global auth surface wins:
+          if the token just died (session expired / re-verify needed), the
+          phone change can't complete anyway, so this overlay stands down. */}
+      {isPhoneShouldChange && !loginOpen && !shouldAuthinticated && (
+        <AuthOverlay>
+          <VerifyPhoneFlow
+            initialPhone={phoneInput.value}
+            phoneLocked
+            // A NEW number the shopper just typed — the screens say "Change
+            // Your Number !", not "Verify Your Number !".
+            authType="changePhone"
+            // A NEW number: verify it against the phone-update endpoint, which
+            // returns the id_token the profile save must carry.
+            verify={(code, verificationId) =>
+              auth.VerifyOtpForUpdatePhone(code, verificationId)
+            }
+            onSuccess={(idToken) => {
+              updateUserProfile({
+                ...userProfileData,
+                phone: phoneInput.modifiedValue?.includes("+")
+                  ? phoneInput.modifiedValue
+                  : `+${phoneInput.modifiedValue}`,
+                alternative_phone: alternativePhoneInput.modifiedValue || "",
+                id_token: idToken,
+              });
+              setIsPhoneShouldChange(false);
+            }}
+            onClose={() => setIsPhoneShouldChange(false)}
+            lang={language}
+          />
+        </AuthOverlay>
       )}
       <BackBar
         name={translateFunction("Profile | Personal Info", language)}
@@ -264,7 +292,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
           style={{
             border: "1px solid rgb(211 211 211 / 51%)",
           }}
-          data-cy="address-info-header" // Added data-cy
+          data-pw="address-info-header" // Added data-pw
         >
           <svg
             id="Group_3387"
@@ -320,7 +348,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
       </div>
       <div
         className="flex-col w-full mt-[30px] px-[12px] pb-[110px]"
-        data-cy="container-name-phone"
+        data-pw="container-name-phone"
       >
         <div className="flex-row px-[12px] items-center">
           <svg
@@ -369,7 +397,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
 
           <div
             className="flex mx-[6px] text-[#404040] text-[12px] medium"
-            data-cy="contact-info-text"
+            data-pw="contact-info-text"
           >
             {translateFunction("Full Name", language)}
           </div>
@@ -380,7 +408,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         </div>
         <div
           className="flex-col name-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
-          data-cy="name-container"
+          data-pw="name-container"
           style={{
             border:
               showValidation && validationErrors.name
@@ -390,21 +418,21 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         >
           <div
             className="flex-row regular text-[#505050] text-[12px]"
-            data-cy="recipient-name-statement"
+            data-pw="recipient-name-statement"
           >
             {translateFunction("Recipient Name", language)}
           </div>
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div
               className="medium flex text-[#D3D3D3] text-[14px] w-full"
-              data-cy="Recipient-Name"
+              data-pw="Recipient-Name"
             >
               <input
                 value={userProfileData?.name}
                 onChange={(e) =>
                   updateField("name", pollinateInput(e.target.value))
                 }
-                data-cy="personal-info-recipient-name-input"
+                data-pw="personal-info-recipient-name-input"
                 placeholder={translateFunction("Enter Full Name", language)}
                 className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
               />
@@ -419,7 +447,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         {/*  */}
         <div
           className="flex-col phone-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
-          data-cy="phone-container"
+          data-pw="phone-container"
           style={{
             border:
               showValidation && validationErrors.phone
@@ -429,17 +457,17 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         >
           <div
             className="flex-row regular text-[#505050] text-[12px]"
-            data-cy="phone-statement"
+            data-pw="phone-statement"
           >
             {translateFunction("Phone", language)}
           </div>
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div
               className="medium flex text-[#D3D3D3] text-[14px] w-full"
-              data-cy="Contact-Phone"
+              data-pw="Contact-Phone"
             >
               <input
-                data-cy="personal-info-phone-number-input"
+                data-pw="personal-info-phone-number-input"
                 type="tel"
                 value={phoneInput.value}
                 onChange={(e) => {
@@ -464,19 +492,19 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         {/*  */}
         <div
           className="flex-col cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
-          data-cy="altarnative-Phone-container"
+          data-pw="altarnative-Phone-container"
           style={{
             border: "#d3d3d3a3 1px solid",
           }}
         >
           <div
             className="flex-row regular text-[#505050] text-[12px]"
-            data-cy="altarnative-Phone-statement"
+            data-pw="altarnative-Phone-statement"
           >
             {translateFunction("Alternative Phone", language)}
             <span
               className="text-[#D3D3D3] ml-[4px]"
-              data-cy="optional-statement"
+              data-pw="optional-statement"
             >
               {translateFunction("(Optional)", language)}
             </span>
@@ -484,7 +512,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
-                data-cy="personal-info-alternative-phone-number-input"
+                data-pw="personal-info-alternative-phone-number-input"
                 type="tel"
                 value={alternativePhoneInput.value}
                 onChange={(e) => alternativePhoneInput.setValue(e.target.value)}
@@ -501,7 +529,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         </div>
         <div
           className="flex-col phone-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
-          data-cy="phone-container"
+          data-pw="phone-container"
           style={{
             border:
               showValidation && validationErrors.email
@@ -511,17 +539,17 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         >
           <div
             className="flex-row regular text-[#505050] text-[12px]"
-            data-cy="phone-statement"
+            data-pw="phone-statement"
           >
             {translateFunction("Email", language)}
           </div>
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div
               className="medium flex text-[#D3D3D3] text-[14px] w-full"
-              data-cy="Contact-Phone"
+              data-pw="Contact-Phone"
             >
               <input
-                data-cy="personal-info-Contact-email-input"
+                data-pw="personal-info-Contact-email-input"
                 type="email"
                 value={userProfileData?.email}
                 onChange={(e) =>
@@ -552,7 +580,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         >
           <div
             className="flex-row regular text-[#505050] text-[12px]"
-            data-cy="phone-statement"
+            data-pw="phone-statement"
           >
             {translateFunction("Gender", language)}
           </div>
@@ -566,7 +594,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
                 style={{
                   border: userProfileData.gender === 1 && "1px solid #402CDDa3",
                 }}
-                data-cy={
+                data-pw={
                   userProfileData.gender === 1
                     ? "active-gender-input"
                     : "gender-input"
@@ -582,7 +610,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
                 style={{
                   border: userProfileData.gender === 2 && "1px solid #402CDDa3",
                 }}
-                data-cy={
+                data-pw={
                   userProfileData.gender === 2
                     ? "active-gender-input"
                     : "gender-input"
@@ -598,7 +626,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
                 style={{
                   border: userProfileData.gender === 3 && "1px solid #402CDDa3",
                 }}
-                data-cy={
+                data-pw={
                   userProfileData.gender === 3
                     ? "active-gender-input"
                     : "gender-input"
@@ -620,38 +648,3 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
 }
 
 export default PersonalInfoForm;
-const ConfirmationModal = ({
-  closeWindow,
-  value,
-  successCallback,
-  forVerify,
-}: any) => {
-  return (
-    <>
-      <img
-        onClick={closeWindow}
-        src="/icons/settings/WhiteXicon.svg"
-        className="w-[20px] absolute z-[9999999999] top-[calc(50%-170px)]  right-[30px]  h-[20px] cursor-pointer"
-      />
-
-      {createPortal(
-        <>
-          <div className="fixed z-[999999998] top-0 left-0  w-full h-full bg-black opacity-50" onClick={()=>{
-            // closeWindow();
-          }}/>
-          <div className="p-5 flex  w-auto justify-center z-[999999999] h-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[15px]">
-            <ConfirmMobileChange
-              forVerify={forVerify}
-              closeWindow={closeWindow}
-              value={value}
-              successCallbackFunction={(idToken) => {
-                successCallback(idToken);
-              }}
-            />
-          </div>
-        </>,
-        document.body,
-      )}
-    </>
-  );
-};

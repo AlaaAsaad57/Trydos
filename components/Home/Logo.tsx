@@ -1,6 +1,6 @@
 function Logo({ animated, style }) {
   return (
-    <div className="logo-container" data-cy="storeLogo">
+    <div className="logo-container" data-pw="storeLogo">
       <img
         fetchPriority="high"
         alt="TryDos Logo"

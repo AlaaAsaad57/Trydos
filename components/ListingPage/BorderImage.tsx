@@ -1,7 +1,7 @@
 function BorderImage({ isBig }: any) {
   return (
     <svg
-      data-cy="border_imagr_border"
+      data-pw="border_imagr_border"
       className="boutique-border"
       xmlns="http://www.w3.org/2000/svg"
       width="100%"

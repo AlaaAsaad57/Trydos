@@ -33,7 +33,7 @@ function ChecklistItem({
 
   return (
     <div
-      data-cy="checklist-item"
+      data-pw="checklist-item"
       style={{ direction: isRtl ? "rtl" : "ltr" }}
       className={`relative w-full mt-[8px] rounded-[15px] bg-[#F8F8F8] transition-opacity duration-200 ${
         isRemoving ? "opacity-50 pointer-events-none" : ""
@@ -43,14 +43,14 @@ function ChecklistItem({
         isFromSetting={true}
         data={{ is_product: true, ...item }}
         ariaLabel={item.name}
-        data-cy="checklist-item-link"
+        data-pw="checklist-item-link"
         href={`/${local}/products/${item.slug}`}
         className={`${
           isRtl ? "flex-row-reverse" : "flex-row"
         } w-full items-center gap-[12px] p-[12px] cursor-pointer`}
       >
         <img
-          data-cy="checklist-item-image"
+          data-pw="checklist-item-image"
           src={getConfiguredImage({
             src: GetImageUrl(item.image),
             width: 128,
@@ -60,7 +60,7 @@ function ChecklistItem({
           className="w-[64px] h-[72px] shrink-0 rounded-[10px] bg-white object-cover"
         />
         <span
-          data-cy="checklist-item-name"
+          data-pw="checklist-item-name"
           className={`flex-1 text-[14px] regular text-[#1D1D1D] line-clamp-2 ${
             isRtl ? "text-right" : "text-left"
           }`}
@@ -71,7 +71,7 @@ function ChecklistItem({
 
       <button
         type="button"
-        data-cy="checklist-item-delete"
+        data-pw="checklist-item-delete"
         aria-label={translateFunction("Remove", language)}
         aria-busy={isRemoving}
         onClick={handleRemove}

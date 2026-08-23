@@ -2,7 +2,8 @@ import OfferListServer from "components/Server/OfferListServer";
 import RecomendedProducts from "components/Server/RecomendedProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import { Suspense } from "react";
-import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import ProductCard from "components/products/ProductCard";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { translateFunction } from "utils/server";
@@ -73,7 +74,7 @@ async function RecomendedProductWrapper({
   return (
     <div
       className="flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]"
-      data-cy="recommended-products"
+      data-pw="recommended-products"
     >
       <div
         // href={`/${lang}/featured`}

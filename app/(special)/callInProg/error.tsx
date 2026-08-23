@@ -6,10 +6,10 @@ import { LogError, translateFunction } from "utils/functions";
 import AuthService from "services/auth";
 export default function Error({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   const _getUserAgent = async () => {
     return typeof navigator !== "undefined" ? navigator.userAgent || "" : "";

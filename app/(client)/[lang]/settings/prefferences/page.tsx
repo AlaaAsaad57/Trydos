@@ -1,11 +1,12 @@
+import { lang as langParam } from "next/root-params";
 import Setting from "components/global/Setting";
 import BackBar from "components/setting/BackBar";
 import React from "react";
 
-async function Prefferences({ params }) {
+async function Prefferences() {
   // Server component to render JSON-LD structured data
-  let Params = await params;
-  let [country, language] = Params?.lang?.split("-");
+  const lang = await langParam();
+  let [country, language] = lang?.split("-");
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
@@ -14,10 +15,10 @@ async function Prefferences({ params }) {
     >
       <BackBar
         isRtl={isRtl}
-        local={Params?.lang}
-        preivous_page={`/${Params.lang}/settings`}
+        local={lang}
+        preivous_page={`/${lang}/settings`}
       />
-      <Setting lang={Params.lang} />
+      <Setting lang={lang} />
     </div>
   );
 }

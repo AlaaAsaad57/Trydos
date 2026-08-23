@@ -19,7 +19,7 @@ function ProductNameAndBrandSkeleton({ isRtl }) {
           className={`${
             isRtl && "dir-rtl"
           } text-[#1D1D1D] regular capitalize text-[13px]`}
-          data-cy="productName_productPage"
+          data-pw="productName_productPage"
         >
           <Skeleton width={90} height={14} borderRadius={4} />
         </div>

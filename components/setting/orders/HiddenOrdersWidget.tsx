@@ -73,7 +73,7 @@ function HiddenOrdersWidget({ isRtl }: { isRtl: boolean }) {
         <div
           className="bg-[#F8F8F8] min-h-[50px] flex-row items-center pl-[16px] pr-[12px] py-[10px] rounded-[12px]"
           style={{ border: "1px solid rgb(211 211 211 / 51%)" }}
-          data-cy="hidden-orders-info"
+          data-pw="hidden-orders-info"
         >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -116,7 +116,7 @@ function HiddenOrdersWidget({ isRtl }: { isRtl: boolean }) {
         ) : cards.length === 0 ? (
           <div
             className="text-center text-gray-400 py-10"
-            data-cy="hidden-orders-empty"
+            data-pw="hidden-orders-empty"
           >
             {translateFunction("You have no hidden orders.")}
           </div>

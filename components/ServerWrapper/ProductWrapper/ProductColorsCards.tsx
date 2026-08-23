@@ -44,7 +44,7 @@ function ProductColorsCards({
             ariaLabel={`go to product ${InitialProductData?.name} ${language}`}
             href={getUrlofProduct(color?.color_name, language, country, slug)}
             className="product-container  align-center flex-col relative pb-[12px]"
-            data-cy="product_link"
+            data-pw="product_link"
             id={slug}
           >
             <div
@@ -92,7 +92,7 @@ function ProductColorsCards({
             >
               <div
                 className="prouct-details max-w-full whitespace-normal inline-block  text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[28px]"
-                data-cy="productName"
+                data-pw="productName"
               >
                 <span className="flex-row align-center justify-start gap-[4px]">
                   {InitialProductData.brand?.icon ? (
@@ -112,7 +112,7 @@ function ProductColorsCards({
                 </span>
                 <p
                   className={`${isRtl && "dir-rtl"} truncate w-full max-w-full`}
-                  data-cy="product-name"
+                  data-pw="product-name"
                 >
                   {[
                     InitialProductData.name,

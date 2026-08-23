@@ -9,7 +9,11 @@ import {
   getCurrencies,
 } from "services/wallet";
 import { WALLET_REAUTH_ON_401 } from "services/wallet/reauthFlag";
-import { CurrenciesApi, GetWalletBalancesApi } from "services/wallet/types";
+import {
+  CurrenciesApi,
+  GetWalletBalancesApi,
+  isWalletUnauthenticated,
+} from "services/wallet/types";
 import { RoundPrice, translateFunction } from "utils/functions";
 
 export default function CheckoutButton({ local = "gb-en" }) {
@@ -69,7 +73,12 @@ export default function CheckoutButton({ local = "gb-en" }) {
     const loadData = async () => {
       setIsLoadingData(true);
       try {
-        const currRes = await getCurrencies({ local, handleUnauthenticated });
+        const currRes = await getCurrencies({ local });
+
+        if (isWalletUnauthenticated(currRes)) {
+          handleUnauthenticated();
+          return;
+        }
 
         if (currRes?.items && currRes.items.length > 0) {
           setCurrencies(currRes.items);
@@ -87,8 +96,12 @@ export default function CheckoutButton({ local = "gb-en" }) {
           const balRes = await GetWalletBalanceInCurrency({
             currencyId: matchingCurrency.id,
             local,
-            handleUnauthenticated,
           });
+
+          if (isWalletUnauthenticated(balRes)) {
+            handleUnauthenticated();
+            return;
+          }
 
           if (balRes) setWalletData(balRes);
         }
@@ -155,8 +168,12 @@ export default function CheckoutButton({ local = "gb-en" }) {
         currencyId: selectedCurrency.id,
         idempotencyKey: crypto.randomUUID(),
         local,
-        handleUnauthenticated,
       });
+
+      if (isWalletUnauthenticated(result)) {
+        handleUnauthenticated();
+        return;
+      }
 
       if (result) {
         alert(translateFunction("Payment successful!"));
@@ -182,8 +199,12 @@ export default function CheckoutButton({ local = "gb-en" }) {
       const balRes = await GetWalletBalanceInCurrency({
         currencyId: newCurrency.id,
         local,
-        handleUnauthenticated,
       });
+
+      if (isWalletUnauthenticated(balRes)) {
+        handleUnauthenticated();
+        return;
+      }
 
       if (balRes) setWalletData(balRes);
     } catch (error) {

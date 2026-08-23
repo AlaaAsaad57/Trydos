@@ -7,9 +7,9 @@ import {
   showErrorNotification,
   showSuccessNotification,
 } from "store/notifications/reducer";
-import auth from "../services/auth";
+import auth from "services/auth";
 import { COOKIE_NAMES, getCookie } from "./cookies/cookie-manager";
-import { useAppStore } from "../store";
+import { useAppStore } from "store";
 import { toServiceToken } from "./serviceTokens";
 
 // ---------- Types ----------
@@ -26,6 +26,20 @@ export type ServerType =
 
 type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 const LOCAL_AUTEHD_ROUTES = ["/api/auth/login", "/api/ticket"];
+
+// Which HttpOnly cookies a failed sub-service recovery may clear — keyed by the
+// service that actually returned the 401. The `chat`/`stories`/`comments`/
+// `wallet` arms of `handleUnauthorized` share one exit path (a `switch`
+// fall-through), so the list MUST be looked up per server: a hardcoded list
+// made a chat/wallet/comments 401 delete the stories pair, which killed the
+// stories session (and, once STORIES_REFRESH_TOKEN joined the list, its ability
+// to recover) over a failure in an unrelated service.
+const STALE_TOKENS_FOR: Partial<Record<ServerType, string[]>> = {
+  chat: [COOKIE_NAMES.CHAT_TOKEN, COOKIE_NAMES.CHAT_REFRESH_TOKEN],
+  stories: [COOKIE_NAMES.STORIES_TOKEN, COOKIE_NAMES.STORIES_REFRESH_TOKEN],
+  comments: [COOKIE_NAMES.USER_ID_HASH],
+  wallet: [COOKIE_NAMES.WALLET_TOKEN],
+};
 
 interface FetchDataParams {
   url: string;
@@ -118,14 +132,14 @@ const getLocale = () => {
   const languageCookie = getCookie("language");
   const countryCookie = getCookie("country");
   return {
-    country: country ?? countryCookie ?? "sy",
-    language: lang ?? languageCookie ?? "en",
+    country: country || countryCookie || "sy",
+    language: lang || languageCookie || "en",
   };
 };
 
 const waitUntilRegisteringComplete = async (): Promise<void> => {
   try {
-    const { useAppStore } = await import("../store");
+    const { useAppStore } = await import("store");
     const check = () => useAppStore.getState().isRegisteringReady;
     if (check()) return;
 
@@ -190,7 +204,7 @@ const handleUnauthorized = async (
           server === "market-dashboard" ||
           server === "market"
         ) {
-          const { useAppStore } = await import("../store");
+          const { useAppStore } = await import("store");
           const { isRegisteringReady, shouldAuthinticated, reAuthResult } =
             useAppStore.getState();
 
@@ -228,7 +242,7 @@ const handleUnauthorized = async (
             (server === "market" || server === "market-dashboard") &&
             authAttempt === 0
           ) {
-            const authService = await import("../services/auth");
+            const authService = await import("services/auth");
             const refresh = await authService.default.RefreshSession(
               options?.url,
               server,
@@ -248,7 +262,7 @@ const handleUnauthorized = async (
             (typeof window !== "undefined" &&
               window.location.pathname.includes("/seller"));
 
-          const authService = await import("../services/auth");
+          const authService = await import("services/auth");
           const outcome = await authService.default.ExpiredUser();
 
           // Expire's last-chance refresh renewed the session (a race loser
@@ -279,7 +293,37 @@ const handleUnauthorized = async (
         return false;
 
       case "chat":
+        // Refresh-first for chat, exactly like market: a single 401 tries the
+        // HttpOnly CHAT-REFRESH-TOKEN exchange. On success the proxy's next
+        // request picks up the rotated CHAT-TOKEN automatically; on failure
+        // (or eligibility false) we fall through to the existing need_auth
+        // prompt flow, just like stories/wallet/comments.
+        if (authAttempt === 0) {
+          const authService = await import("services/auth");
+          const refresh = await authService.default.RefreshSession(
+            options?.url,
+            server,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // let the store update propagate before the retry
+          if (refresh.eligible) return true;
+        }
+      // falls through to the shared sub-service need_auth flow
       case "stories":
+        // Refresh-first for stories, using the same backend contract as chat:
+        // a single 401 tries the HttpOnly STORIES-REFRESH-TOKEN exchange. On
+        // success the proxy's next request picks up the rotated STORIES-TOKEN
+        // automatically; on failure we fall through to the existing need_auth
+        // prompt flow, like chat/wallet/comments.
+        if (authAttempt === 0 && server === "stories") {
+          const authService = await import("services/auth");
+          const refresh = await authService.default.RefreshSession(
+            options?.url,
+            server,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // let the store update propagate before the retry
+          if (refresh.eligible) return true;
+        }
+      // falls through to the shared sub-service need_auth flow
       case "comments":
       case "wallet":
         localStorage.setItem(
@@ -290,17 +334,18 @@ const handleUnauthorized = async (
           }),
         );
 
-        // Clear stale tokens server-side (tokens are HttpOnly)
+        // Clear stale tokens server-side (tokens are HttpOnly) — only the ones
+        // belonging to the service that failed (see STALE_TOKENS_FOR).
         await fetch("/api/auth/clear-tokens", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            tokens: [COOKIE_NAMES.CHAT_TOKEN, COOKIE_NAMES.STORIES_TOKEN],
+            tokens: STALE_TOKENS_FOR[server] ?? [],
           }),
           credentials: "include",
         });
 
-        const { useAppStore } = await import("../store");
+        const { useAppStore } = await import("store");
         const {
           setShouldAuthinticated,
           setReAuthResult,
@@ -399,7 +444,7 @@ export const fetchData = async <T = any>(
     signal,
     sellerId,
   } = params;
-  const { useAppStore } = await import("../store");
+  const { useAppStore } = await import("store");
   // Once a logout has started no authed request may go out — a late 401 would
   // trigger a re-register and resurrect the session. The FCM detach used to be
   // exempt here because it had to run before the cookies were cleared; it now
@@ -437,7 +482,7 @@ export const fetchData = async <T = any>(
   const doFetchWithRetry = async (): Promise<T> => {
     await waitUntilRegisteringComplete();
     if (url === "/auth/register-guest") {
-      const { useAppStore } = await import("../store");
+      const { useAppStore } = await import("store");
       let { setIsRegisteringReady, LoggingOut } = useAppStore.getState();
       setIsRegisteringReady(false);
     }
@@ -465,7 +510,7 @@ export const fetchData = async <T = any>(
         if (body && !(body instanceof FormData)) {
           localHeaders["Content-Type"] = "application/json";
         }
-
+           
         res = await fetch(url, {
           method,
           headers: localHeaders,
@@ -511,7 +556,7 @@ export const fetchData = async <T = any>(
       }
 
       status = res.status;
-
+      
       try {
         responseData = await res.json();
       } catch (e) {}

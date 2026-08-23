@@ -55,7 +55,7 @@ function ProductItem({
         href={`/${lang}/products/${product.slug}`}
         data={{ ...product, is_product: true }}
         className="w-full"
-        data-cy="product-result-link"
+        data-pw="product-result-link"
       >
         <div
           className={`result-product flex-row ${

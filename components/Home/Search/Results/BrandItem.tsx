@@ -4,13 +4,13 @@ function BrandItem({ brand, onClick, isActive }) {
   return (
     <div
       className="brand-item min-w-[81px] p-0 relative ml-2 "
-      data-cy="brand-result"
+      data-pw="brand-result"
       onClick={() => onClick()}
     >
       {isActive && (
         <img
           src="/icons/ActiveCategoryIcon.svg"
-          data-cy="IsActive"
+          data-pw="IsActive"
           style={{ top: "-6px", left: "-4px", scale: "0.6" }}
           className="absolute"
         />

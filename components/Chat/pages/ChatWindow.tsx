@@ -32,7 +32,7 @@ function ChatWindow({ close, setOpenContacts, open, setSearch, search }) {
     <div className="chat-window  xs:h-screen">
       <img
         src="/icons/chat/contact.svg"
-        data-cy="ContactsIcon"
+        data-pw="ContactsIcon"
         className="contact-icon-header"
         onClick={() => {
           setOpenContacts(true);

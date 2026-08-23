@@ -44,7 +44,7 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
         ) : (
           <div className="w-10 h-10 rounded-full mr-3 bg-linear-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
             <svg
-              data-cy="svg-notification"
+              data-pw="svg-notification"
               width="20"
               height="20"
               viewBox="0 0 24 24"
@@ -60,23 +60,23 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
           </div>
         )}
 
-        <div className="flex-1" data-cy="notification-item-body">
+        <div className="flex-1" data-pw="notification-item-body">
           <h4
             className="font-medium text-gray-900"
-            data-cy="notification-item-description"
+            data-pw="notification-item-description"
           >
             {parsedDescription.description}
           </h4>
           <p
             className="text-sm text-gray-600"
-            data-cy="notification-Click-show"
+            data-pw="notification-Click-show"
           >
             {translateFunction("Click to view details")}
           </p>
           {parsedDescription.boutique_description && (
             <div
               className="mt-1 text-sm text-gray-500"
-              data-cy="tester-not-know"
+              data-pw="tester-not-know"
               dangerouslySetInnerHTML={{
                 __html: sanitizeHtml(parsedDescription.boutique_description),
               }}

@@ -158,7 +158,7 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
   }, [notifications.length, loading, hasMore]);
   return (
     <div
-      data-cy="notification-container"
+      data-pw="notification-container"
       ref={notificationsRef}
       style={{
         position: "fixed",
@@ -176,7 +176,7 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
       }}
     >
       <div
-        data-cy="notification-header"
+        data-pw="notification-header"
         style={{
           padding: "15px",
           borderBottom: "1px solid #eee",
@@ -187,10 +187,10 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
       >
         <div
           style={{ display: "flex", alignItems: "center", gap: "8px" }}
-          data-cy="notification-left"
+          data-pw="notification-left"
         >
           <svg
-            data-cy="notification-svg"
+            data-pw="notification-svg"
             width="20"
             height="20"
             viewBox="0 0 24 24"
@@ -205,13 +205,13 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
           </svg>
           <span
             style={{ fontWeight: 600, fontSize: "16px", color: "#333" }}
-            data-cy="notification-text"
+            data-pw="notification-text"
           >
             {translateFunction("Notifications")}
           </span>
         </div>
         <button
-          data-cy="button-close"
+          data-pw="button-close"
           onClick={onClose}
           style={{
             background: "none",
@@ -225,7 +225,7 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
           }}
         >
           <svg
-            data-cy="close-svg"
+            data-pw="close-svg"
             width="20"
             height="20"
             viewBox="0 0 24 24"
@@ -241,7 +241,7 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
         </button>
       </div>
       <div
-        data-cy="notification-body"
+        data-pw="notification-body"
         ref={scrollRef}
         style={{
           flex: 1,
@@ -268,7 +268,7 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
         ))}
         {loading && (
           <div
-            data-cy="notification-loading"
+            data-pw="notification-loading"
             style={{
               padding: "16px",
               textAlign: "center",
@@ -280,7 +280,7 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
             }}
           >
             <svg
-              data-cy="loading-svg"
+              data-pw="loading-svg"
               className="animate-spin"
               width="20"
               height="20"
@@ -305,7 +305,7 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
         )}
         {!hasMore && notifications.length > 0 && (
           <div
-            data-cy="no-more-notifications"
+            data-pw="no-more-notifications"
             style={{
               padding: "16px",
               textAlign: "center",
@@ -419,7 +419,7 @@ const NotificationInfo = ({ closeWindow }) => {
         }}
       >
         <NextLink
-          data-cy="notification-settings"
+          data-pw="notification-settings"
           data={{ is_settings: true, href: `/${lang}/settings/prefferences` }}
           href={`/${lang}/settings/prefferences`}
           className="flex-row w-full rounded-md shadow-md h-[50px] bg-[#f8f8f8] text-[#5d5d5d] medium text-[14px] justify-center items-center"

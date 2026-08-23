@@ -286,10 +286,10 @@ function ChangeOrderItem({
             {isChanged() && (
               <pre
                 className="text-[#1d1d1d] medium gap-[4px]"
-                data-cy="new-price-after-change-label"
+                data-pw="new-price-after-change-label"
               >
                 {translateFunction("New Price")}:{" "}
-                <span data-cy="new-price-after-change-value">
+                <span data-pw="new-price-after-change-value">
                   {RoundPrice({
                     num: getVariant()?.offer_price * qty,
                     language: language,

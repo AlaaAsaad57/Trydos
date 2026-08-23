@@ -211,7 +211,7 @@ function OrdersPage({ setStep, close }) {
       )}
       <SlideWidget step={orderStep} duration={400}>
         <div
-          data-cy="swiper-slide"
+          data-pw="swiper-slide"
           className={`min-w-screen h-screen relative cart-widget`}
         >
           {AddressListsOpen && (
@@ -230,16 +230,16 @@ function OrdersPage({ setStep, close }) {
             />
           )}
           <div
-            data-cy="header-delivery"
+            data-pw="header-delivery"
             className="flex-col pl-2 pr-2 bg-white p-1 "
           >
             <div
-              data-cy="header-delivery-container"
+              data-pw="header-delivery-container"
               className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center "
             >
               <img
                 src="/icons/backIcon.svg"
-                data-cy="swiperSlide-backIcon"
+                data-pw="swiperSlide-backIcon"
                 className="cursor-pointer z-50"
                 onClick={() => {
                   // Sendevent({
@@ -252,10 +252,10 @@ function OrdersPage({ setStep, close }) {
               />
               <span
                 className="text-[13px] text-[#505050] regular flex-row items-center "
-                data-cy="TitleInOrderPage"
+                data-pw="TitleInOrderPage"
               >
                 <svg
-                  data-cy="TitleInOrderPage-svg"
+                  data-pw="TitleInOrderPage-svg"
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
                   width="18"
@@ -344,7 +344,7 @@ function OrdersPage({ setStep, close }) {
                   </g>
                 </svg>
                 <span
-                  data-cy="shippingDelivery-text"
+                  data-pw="shippingDelivery-text"
                   className="regular ml-[8px]"
                 >
                   <>{translate("Bag Shipping & Delivery Address")}</>
@@ -354,7 +354,7 @@ function OrdersPage({ setStep, close }) {
             </div>
           </div>
           <div
-            data-cy="Shipping-Address-Container"
+            data-pw="Shipping-Address-Container"
             className="flex-col overflow-auto pb-[292px] max-h-full"
           >
             <ShippingAddressContainer
@@ -457,7 +457,7 @@ function OrdersPage({ setStep, close }) {
                   <img
                     src="/icons/backIcon.svg"
                     className="cursor-pointer z-50"
-                    data-cy="back-icon-addadresspage" // Added data-cy
+                    data-pw="back-icon-addadresspage" // Added data-pw
                     onClick={() => {
                       // Sendevent({
                       //   event: GA_EVENT_NAMES.CLICK,
@@ -470,9 +470,9 @@ function OrdersPage({ setStep, close }) {
                   <span className="text-[13px] text-[#505050] regular flex-row items-center ">
                     <img
                       src="/icons/AddAddress.svg"
-                      data-cy="add-address-icon"
+                      data-pw="add-address-icon"
                     />
-                    <span className="regular ml-[8px]" data-cy="address-text">
+                    <span className="regular ml-[8px]" data-pw="address-text">
                       <>
                         {addressDetails.id
                           ? translate("Edit Shipping Address")
@@ -481,7 +481,7 @@ function OrdersPage({ setStep, close }) {
                     </span>
                   </span>
                   <span
-                    data-cy="delete-icon-container" // Added data-cy
+                    data-pw="delete-icon-container" // Added data-pw
                     onClick={() => {
                       if (addressDetails.id) {
                         // Sendevent({
@@ -494,7 +494,7 @@ function OrdersPage({ setStep, close }) {
                       }
                     }}
                   >
-                    {addressDetails.id && <DeleteIcon data-cy="delete-icon" />}
+                    {addressDetails.id && <DeleteIcon data-pw="delete-icon" />}
                   </span>
                 </div>
               </div>
@@ -734,7 +734,7 @@ export const DeleteModalComponent = ({
               deleteAddress(deletedAddress.id);
             }}
             className="w-full cursor-pointer flex justify-center items-center rounded-[15px] h-[50px] bg-[#F8F8F8] bold text-[16px] text-[#FF5F61]"
-            data-cy="Yes-Delete-Address"
+            data-pw="Yes-Delete-Address"
             style={{
               border: "#ff5f6282 1px solid",
             }}
@@ -908,7 +908,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
           } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
             isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
           } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
-          data-cy="Confirm-shipping-and-payment"
+          data-pw="Confirm-shipping-and-payment"
         >
           {orderLoading || loading ? (
             <Spinner />
@@ -920,7 +920,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
                   LocalizationServiceClass.GetAppLanguage() === "ar" &&
                   "dir-rtl"
                 } `}
-                data-cy="Number-Of-Products-Required"
+                data-pw="Number-Of-Products-Required"
               >
                 {cart.length} {translateFunction("items")}{" "}
                 {RoundPrice({

@@ -44,7 +44,7 @@ function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
     }
   }, [user]);
   return (
-    <div data-cy="deliveryAddress-viewer" className="flex flex-col w-full p-3">
+    <div data-pw="deliveryAddress-viewer" className="flex flex-col w-full p-3">
       <CartItemSelect />
       <ShippingAddressInput
         openAddressList={(e) => {
@@ -68,7 +68,7 @@ const CartItemSelect = () => {
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
-      data-cy="bag-viewer"
+      data-pw="bag-viewer"
       style={{
         border: "1px solid rgb(196 194 194 / 51%)",
         borderRadius: "15px",
@@ -86,10 +86,10 @@ const CartItemSelect = () => {
         className={`${
           isRtl ? "left-[12px]" : "right-[12px]"
         } absolute top-[22px]  `}
-        data-cy="DropDownIcon"
+        data-pw="DropDownIcon"
       >
         <svg
-          data-cy="dropDownIcon-svg"
+          data-pw="dropDownIcon-svg"
           className={`${openCart && "rotate-180"} transition`}
           xmlns="http://www.w3.org/2000/svg"
           width="10"
@@ -104,26 +104,26 @@ const CartItemSelect = () => {
           />
         </svg>
       </span>
-      <div data-cy="bag-viewer-inside" className="flex-row ">
-        <img src="/icons/orderCartIcon.svg" data-cy="Order-Cart-Icon" />
+      <div data-pw="bag-viewer-inside" className="flex-row ">
+        <img src="/icons/orderCartIcon.svg" data-pw="Order-Cart-Icon" />
         <div
-          data-cy="Shopping-bag-texts"
+          data-pw="Shopping-bag-texts"
           className="regular text-[#1D1D1D] text-[14px] ml-2"
         >
           {translateFunction("Your Shopping Bag", language)}
           <span
             className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}
-            data-cy="Count-Of-Shiping"
+            data-pw="Count-Of-Shiping"
           >
             {cart.length}
-            <span data-cy="items-Shiping-text" className={"ml-1"}>
+            <span data-pw="items-Shiping-text" className={"ml-1"}>
               {translateFunction("items", language)}
             </span>
           </span>
         </div>
       </div>
       <div
-        data-cy="bag-product-viewer"
+        data-pw="bag-product-viewer"
         className={`${
           !openCart ? "h-0 pb-0 pt-0" : `pl-[11px] pb-[12px] pt-[11px] `
         } transition flex-row `}
@@ -132,22 +132,22 @@ const CartItemSelect = () => {
           cart.map((s, i) => {
             return (
               <div className="flex flex-col items-center" key={i}>
-                <div className="flex relative h-[125px]" data-cy="Item">
+                <div className="flex relative h-[125px]" data-pw="Item">
                   <span
                     className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
-                    data-cy="cart-item-quantity-label"
+                    data-pw="cart-item-quantity-label"
                   >
                     {s.quantity}
                   </span>
                   <span
-                    data-cy="span-item"
+                    data-pw="span-item"
                     className="absolute w-[91px] h-full z-10 rounded-[15px]"
                     style={{
                       boxShadow: "#ffffff80 0px 3px 6px inset",
                     }}
                   />
                   <img
-                    data-cy="img-item"
+                    data-pw="img-item"
                     className="w-[91px] h-[125px] rounded-[15px]"
                     src={getConfiguredImage({
                       src: GetImageUrl(s.image),
@@ -190,7 +190,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
 
   return (
     <div
-      data-cy="delivery-address-viewer"
+      data-pw="delivery-address-viewer"
       style={{
         border: "1px solid rgb(196 194 194 / 51%)",
         borderRadius: "15px",
@@ -201,10 +201,10 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
         className={`flex-row ${
           language === "ar" || language === "ku" ? "flex-row-reverse" : ""
         }`}
-        data-cy="ShipingBox"
+        data-pw="ShipingBox"
       >
         <svg
-          data-cy="WrapIcon"
+          data-pw="WrapIcon"
           xmlns="http://www.w3.org/2000/svg"
           xmlnsXlink="http://www.w3.org/1999/xlink"
           width="18"
@@ -290,17 +290,17 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
           </g>
         </svg>
         <div
-          data-cy="delivery-address-stexts"
+          data-pw="delivery-address-stexts"
           className={`regular text-[#1D1D1D] text-[14px] ml-2 ${
             language === "ar" || language === "ku" ? "text-right" : ""
           }`}
         >
           {translateFunction("Shipping & Delivery Address", language)}
         </div>
-        <span data-cy="freeShupping-container" className="bold ml-[11px]">
+        <span data-pw="freeShupping-container" className="bold ml-[11px]">
           <img
             src="/icons/FreeShipping.svg"
-            data-cy="WrapIcon1"
+            data-pw="WrapIcon1"
             className="w-[30px] h-[30px]"
           />
         </span>
@@ -311,7 +311,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
         )}
       </div>
       <div
-        data-cy="please-text"
+        data-pw="please-text"
         className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${
           language === "ar" || language === "ku" ? "text-right" : ""
         }`}
@@ -432,7 +432,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
             </svg>
             <span
               className="ml-[4px] flex medium text-[12px] text-[#8D8D8D] "
-              data-cy="Show-Address-That-Added"
+              data-pw="Show-Address-That-Added"
             >
               {translateFunction("Show Address List")}
             </span>
@@ -466,7 +466,7 @@ const AddressContainer = ({ openAddressList, lang }) => {
 
   return (
     <div
-      data-cy="addresses-viewer"
+      data-pw="addresses-viewer"
       onClick={() => {
         if (addressLists?.length > 0) {
           openAddressList(true);
@@ -493,9 +493,9 @@ const AddressContainer = ({ openAddressList, lang }) => {
         </>
       ) : (
         <>
-          <span data-cy="span-noAddress" className="">
+          <span data-pw="span-noAddress" className="">
             <svg
-              data-cy="span-noAddress-svg"
+              data-pw="span-noAddress-svg"
               xmlns="http://www.w3.org/2000/svg"
               width="14"
               height="14"
@@ -538,13 +538,13 @@ const AddressContainer = ({ openAddressList, lang }) => {
             </svg>
           </span>
           <div
-            data-cy="noAddress-text"
+            data-pw="noAddress-text"
             className="flex medium text-[12px] text-[#C4C2C2] mt-[12px]"
           >
             {translateFunction("No Address Selected")}
           </div>
           <div
-            data-cy="canAdd-text"
+            data-pw="canAdd-text"
             className="flex regular text-[12px] text-[#C4C2C2] mt-[3px]"
           >
             {translateFunction("You Can Also Create Multiple Addresses To Use")}
@@ -557,7 +557,7 @@ const AddressContainer = ({ openAddressList, lang }) => {
 const AddAddressButton = ({ onClick }) => {
   return (
     <div
-      data-cy="AddAddres"
+      data-pw="AddAddres"
       className="flex cursor-pointer w-full justify-center h-[40px] mt-[8px] items-center bg-[#E8FFED]"
       style={{
         border: "1px solid rgb(196 194 194 / 51%)",
@@ -567,9 +567,9 @@ const AddAddressButton = ({ onClick }) => {
         onClick();
       }}
     >
-      <img src="/icons/AddAddress.svg" data-cy="AddAddres-svg" />
+      <img src="/icons/AddAddress.svg" data-pw="AddAddres-svg" />
       <div
-        data-cy="addShipping-text"
+        data-pw="addShipping-text"
         className="medium text-[12px] ml-1 text-[#1D1D1D]"
       >
         {translateFunction("Add New Shipping Address")}
@@ -660,17 +660,17 @@ const DefaultAddress = ({
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
-      data-cy="flex-cols"
+      data-pw="flex-cols"
       className={`${isRtl ? "items-end" : "items-start"} flex-col w-full `}
     >
       <div
-        data-cy="flex-row items-centers"
+        data-pw="flex-row items-centers"
         className={`items-center gap-[4px]  ${
           isRtl ? "flex-row-reverse" : "flex-row"
         }`}
       >
         <svg
-          data-cy="flex-col-svg"
+          data-pw="flex-col-svg"
           xmlns="http://www.w3.org/2000/svg"
           width="12"
           height="12"
@@ -685,7 +685,7 @@ const DefaultAddress = ({
         </svg>
 
         <span
-          data-cy="regular-addresses"
+          data-pw="regular-addresses"
           className={`regular  text-[12px] text-[#8D8D8D] flex-row ${
             language === "ar" || language === "ku"
               ? "flex-row-reverse pl-2"
@@ -696,7 +696,7 @@ const DefaultAddress = ({
         </span>
       </div>
       <div
-        data-cy="Address-Added-Last"
+        data-pw="Address-Added-Last"
         className={`flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D] ${
           language === "ar" || language === "ku" ? "flex-row-reverse pl-2" : ""
         }`}
@@ -704,13 +704,13 @@ const DefaultAddress = ({
         {GetAddressString(defaultAddress?.region_details)}
       </div>
       <div
-        data-cy="Address-Added-Last-flex-row"
+        data-pw="Address-Added-Last-flex-row"
         className={`gap-[4px] flex mt-[5px] items-center regular text-[12px] text-[#8D8D8D] ${
           isRtl ? "flex-row-reverse" : "flex-row"
         }`}
       >
         <svg
-          data-cy="Address-Added-Last-flex-row-svg"
+          data-pw="Address-Added-Last-flex-row-svg"
           xmlns="http://www.w3.org/2000/svg"
           xmlnsXlink="http://www.w3.org/1999/xlink"
           width="12"
@@ -747,7 +747,7 @@ const DefaultAddress = ({
         </svg>
 
         <div
-          data-cy="defaultAddress-contactinfo"
+          data-pw="defaultAddress-contactinfo"
           className={`items-center regular text-[12px] text-[#8D8D8D] ${
             isRtl ? "flex-row-reverse" : "flex-row"
           }`}
@@ -755,11 +755,11 @@ const DefaultAddress = ({
           {defaultAddress?.contact_info?.phone}
         </div>
         <div
-          data-cy="flexs-container"
+          data-pw="flexs-container"
           className="flex-row mx-[17px] gap-[4px]  items-center"
         >
           <svg
-            data-cy="flexs-container-svg"
+            data-pw="flexs-container-svg"
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width="12"
@@ -813,7 +813,7 @@ const DefaultAddress = ({
           </svg>
 
           <div
-            data-cy="defaultAddress-contactpersonname"
+            data-pw="defaultAddress-contactpersonname"
             className={`flex-row   items-center regular text-[12px] text-[#8D8D8D] ${
               language === "ar" || language === "ku" ? "flex-row-reverse" : ""
             }`}

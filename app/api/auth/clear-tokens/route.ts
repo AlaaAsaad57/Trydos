@@ -10,7 +10,9 @@ import {
 // Whitelist of cookie names that can be cleared via this endpoint
 const CLEARABLE_TOKENS = new Set([
   COOKIE_NAMES.CHAT_TOKEN,
+  COOKIE_NAMES.CHAT_REFRESH_TOKEN,
   COOKIE_NAMES.STORIES_TOKEN,
+  COOKIE_NAMES.STORIES_REFRESH_TOKEN,
   COOKIE_NAMES.WALLET_TOKEN,
   COOKIE_NAMES.USER_ID_HASH,
 ]);
@@ -33,11 +35,25 @@ export async function POST(request: NextRequest) {
     // Delete stale tokens
     await Promise.all(validTokens.map((name) => deleteSecureCookie(name)));
 
-    // Mark user metadata as needing re-auth
+    // Mark user metadata as needing re-auth — ONLY for the service whose token
+    // was actually cleared. This used to run unconditionally, so a chat, wallet
+    // or comments 401 invalidated the stories profile blob, and every
+    // sub-service 401 downgraded USER_DATA to unverified — which silently
+    // re-routed the market refresh exchange to the guest backend
+    // (isVerifiedMarketUser reads this cookie) over an unrelated failure.
+    const cleared = new Set(validTokens);
+    const clearedChat =
+      cleared.has(COOKIE_NAMES.CHAT_TOKEN) ||
+      cleared.has(COOKIE_NAMES.CHAT_REFRESH_TOKEN);
+    const clearedStories =
+      cleared.has(COOKIE_NAMES.STORIES_TOKEN) ||
+      cleared.has(COOKIE_NAMES.STORIES_REFRESH_TOKEN);
+    const clearedComments = cleared.has(COOKIE_NAMES.USER_ID_HASH);
+
     const [userChat, userStories, userData] = await Promise.all([
-      getSecureCookie<any>(COOKIE_NAMES.USER_CHAT),
-      getSecureCookie<any>(COOKIE_NAMES.USER_STORIES),
-      getSecureCookie<any>(COOKIE_NAMES.USER_DATA),
+      clearedChat ? getSecureCookie<any>(COOKIE_NAMES.USER_CHAT) : null,
+      clearedStories ? getSecureCookie<any>(COOKIE_NAMES.USER_STORIES) : null,
+      clearedComments ? getSecureCookie<any>(COOKIE_NAMES.USER_DATA) : null,
     ]);
 
     await Promise.all([
@@ -45,7 +61,7 @@ export async function POST(request: NextRequest) {
         ? setSecureCookieJSON(COOKIE_NAMES.USER_CHAT, {
             ...userChat,
             access_token: undefined, // fully invalidate — proxy/SSR auth off token cookies now
-            need_auth: true,
+            // need_auth: true,
           })
         : Promise.resolve(),
       userStories?.id

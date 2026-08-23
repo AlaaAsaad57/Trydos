@@ -22,7 +22,14 @@ pnpm knip           # find unused files/exports/deps
 ANALYZE=true pnpm build   # bundle analyzer (@next/bundle-analyzer)
 ```
 
-There is **no test suite** — the project relies on clean code and type-checking, not tests. Do not add test files unless explicitly asked. (`.gitlab-ci.yml` references Cypress but no `cypress/` dir exists in the working tree.)
+```bash
+pnpm test:run       # unit suite (Vitest)
+pnpm test:e2e:live  # browser suite against staging (builds + starts the app first)
+pnpm e2e:health     # is staging answering? run this before blaming a test
+pnpm lint:i18n-parity   # ar/tr/ku translation keys are in step
+```
+
+Two suites exist: the **unit** suite (`tests/`, Vitest) and the **browser** suite (`tests/e2e/`, Playwright, run against staging). Both gate pull requests through `.github/workflows/`. Do not add tests outside these two, and do not add a test for code that has no caller. Anything you do add must follow the rule below.
 
 ## Architecture
 
@@ -73,6 +80,161 @@ Firebase / FCM push (`utils/firebaseAdmin.ts`, `utils/NotificationHandler.ts`, `
 - **React Compiler is enabled** (`reactCompiler: true`) — don't add manual `useMemo`/`useCallback` without a profiled reason.
 - `next/image` domains are allowlisted in `next.config.ts` (`images.domains`); add new media hosts there.
 
+## Testing — MANDATORY: a failure must say exactly what broke
+
+**A test exists to tell you *what* is broken, not *that* something is broken.**
+Read the failure alone, with no code open and no re-run: it must name the step
+that failed, and — when that step called a backend — which backend. If it does
+not, the test is not finished, however green it is today.
+
+This is the single most valuable property a test here can have, because these
+flows are long. Placing an order is a dozen steps across several backends. So
+is signing in. `expect(result).toBeTruthy()` in the middle of one of those turns
+a five-second answer into an afternoon of bisecting by hand.
+
+### The rules
+
+1. **Every assertion carries a message.** Both suites support it — Vitest and
+   Playwright take a message as the second argument to `expect`. The message
+   says what was supposed to be true, in plain words, from the point of view of
+   somebody who did not write the test.
+
+   ```ts
+   ✗ expect(order).toBeTruthy()
+   ✗ expect(res.status).toBe(200)
+   ✓ expect(order.id, "placing the order returned no order id").toBeTruthy()
+   ✓ expect(res.status, `the payment backend refused the charge (${res.status})`).toBe(200)
+   ```
+
+2. **One assertion per step, and one step per thing that can fail
+   independently.** If a flow has ten steps that can each break on their own, it
+   needs ten checks. Never collapse them into one assertion at the end — that
+   assertion can only ever say "the flow did not work".
+
+3. **Name the backend whenever a step crosses one.** This app talks to several:
+   the storefront core, the gateway, chat, stories, comments, wallet, media,
+   search. "Sign-in failed" is not a finding; "the wallet sign-in did not land"
+   is. Where the app already labels the failure itself — the sign-in route
+   collects per-service failures under an `endpoint` label (`CHAT`, `STORIES`,
+   `COMMENTS`, `WALLET`) and returns them as `is_failed` — **quote what the app
+   said** rather than inferring it from what is missing, so the test, the log
+   and Sentry all name the same thing.
+
+4. **A partial success is a failure.** Several of these flows answer `200` with
+   part of the work done, on purpose — a dead wallet must not stop a shopper
+   browsing. That is correct product behaviour and it is exactly why the test
+   has to look at each part: there is no error for it to notice.
+
+5. **Never assert on a count.** `toHaveLength(13)` tells you a number changed,
+   not which one is missing, and it breaks the day a step is added. Assert the
+   thing you mean, by name.
+
+6. **Check the content, not only that something is there.** A cookie, a record
+   or a response that exists but carries no usable payload is a failure. Never
+   assert a name is present and stop.
+
+7. **Put the actual value in the message when it helps.** A status code, an id,
+   the backend's own error string. Never put a token, a one-time code, a phone
+   number or any other credential in it — those must not reach output or any
+   kept artifact.
+
+8. **Long browser flows use `test.step()`** so the report names the step that
+   failed rather than a line number. Nothing in the browser suite does this yet;
+   the next multi-step flow added should be the first.
+
+9. **Adding a step or a backend to a flow means adding its own check** in the
+   same change.
+
+### A red test is not a bug report — confirm, fix, then prove
+
+**MANDATORY on every test ticket.** A test going red means *something* is wrong.
+It does not tell you *what*, and it does not tell you the app is at fault. Most
+red tests are wrong tests. So never change application code because a test asked
+you to. Follow these four steps in order, every time:
+
+1. **Confirm it is a real bug.** Read the application code and prove the fault is
+   there. A red test on its own is not proof — the test may look at the wrong
+   moment, read the wrong value, or assert something the app was never meant to
+   do. Say out loud what the app does wrong and where.
+2. **Only then may you touch application code.** Before step 1 is done,
+   application code is off limits and the fix is in the test. This is the gate:
+   confirmation first, code second, never the other way round.
+3. **Fix the smallest thing** that removes the fault.
+4. **Prove it with a test that failed before the fix and passes after.** If the
+   test passes both before and after, it never covered the bug — go back to
+   step 1. Say which test, and that you saw it red first.
+
+If step 1 says the app is fine, the test was wrong. Fix the test and record what
+it was actually doing, so the next reader does not chase the same ghost.
+
+**A test that cannot prove what it claims is not finished.** Never ship a check
+that reports "pass" for a case it cannot see, and never park one as "known
+weak" — that is the silent pass this whole section exists to prevent. If the
+right signal is hard to find, keep looking, or say plainly that the criterion is
+not covered yet. Do not let a green tick stand in for it.
+
+### Every bug is confirmed by a test before it is fixed — no exceptions
+
+**MANDATORY, repository-wide.** The four steps above are written for a test that
+went red. They apply to a bug found **any** other way too: while reading code,
+from a Sentry report, from a shopper's complaint, from a review comment, or
+because you noticed it in passing. How the bug was found changes nothing.
+
+So, for every fix to application code:
+
+1. **Write a test that fails because of the bug**, before the fix. The test must
+   go red for the bug itself — not for a missing mock, a wrong URL or a typo in
+   the test. Run it and **see it red**.
+2. **Then fix the smallest thing** that removes the fault.
+3. **Run the same test again and see it green.** If it was green before the fix,
+   it never covered the bug: it is the wrong test, and the bug is not confirmed.
+   Go back to step 1.
+4. **Say all three out loud** in the commit, the ticket and the reply: which
+   test, that it was seen red, and that it is green after. "It should be fixed"
+   is not a result.
+
+**Keep the test.** The red-first run confirms the bug; the test that stays in
+the suite is what stops it coming back. If the confirming test is throwaway —
+a script, a one-off `console.log`, a temporary route — then the fix is not
+proved yet, and a real test in `tests/` still has to be written and has to fail
+against the old code. Prove that by reverting the fix, running it, and putting
+the fix back.
+
+**Which suite.** Put the test where the bug lives: the unit suite (`tests/`) for
+anything that can be reproduced without a backend, and the browser suite
+(`tests/e2e/`) only when it genuinely cannot. Prefer the unit suite — it gates
+every pull request; the browser suite never does, so a fix proved only there is
+unguarded from the day it lands.
+
+**The two allowed exceptions, both narrow.**
+
+- **A backend is at fault.** Then there is nothing in this repository to fix.
+  The test stays red and names the backend — see the rule above.
+- **A regression guard for a fix that is already proved.** Adding a cheaper test
+  for a bug some other test already proved is welcome, and it is expected to be
+  green from the moment it is written. Say which test did the proving.
+
+Anything else — a fix with no test, a test written after the fix and never seen
+red, a "too hard to reproduce" — is an unconfirmed fix. Report it as one.
+
+### Scope
+
+Applies to **both** suites — unit (`tests/`, Vitest) and browser (`tests/e2e/`,
+Playwright) — and to every multi-step flow: order placing, checkout and payment,
+sign-in and sign-out, cart changes, media upload, seller dashboard actions.
+
+It binds **every test you write or change from now on**. Existing tests are
+brought up to it as they are touched — there is no sweep, and a bare assertion
+you happen to read is not a ticket. Today about 130 of ~1900 assertions carry a
+message, nearly all of them in the browser suite; that is the gap this rule
+closes over time.
+
+One allowance, not a loophole: in a small unit test whose **name already says
+precisely what failed**, the name is the message and a second one adds nothing.
+The requirement is that *the failure identifies the step* — not that the words
+sit in any particular place. The moment a test covers more than one step or more
+than one backend, that allowance is gone.
+
 ## Internationalization — MANDATORY for every user-visible string
 
 **Any word or sentence a user can see is translatable. Before you write or edit UI copy, translate it — never ship a hardcoded string.** This applies to JSX text, `placeholder` / `aria-label` / `title` / `alt`, button labels, validation and error messages, toast/dialog copy, confirm-diff labels — and to copy built in helper/`.ts` files (e.g. `validate()`, diff builders), not just `.tsx`.
@@ -110,3 +272,204 @@ Two backends serve this app; refer to them by role — the **gateway** (guest/al
 ## Security note
 
 `package.json` contains a **hardcoded GitLab access token** embedded in the `rdb` Git dependency URL. Treat it as a leaked secret — it should be rotated and moved to an auth'd `.npmrc` / env var rather than committed. Flag, don't propagate.
+
+### Known and accepted — do not re-raise
+
+- **`app/api/auth/simulate/route.ts`** — an unauthenticated `POST` that sets `MARKET-TOKEN`, `User-Data`, the chat/stories/wallet tokens and `USER_ID_HASH` from the request body. It has no environment gate, and `proxy.ts`'s matcher excludes `/api`, so nothing gates it in code. **This is known.** It exists for testers only and is slated for removal. Do **not** open a ticket for it, do **not** raise it as a review finding, and do **not** build anything that depends on it — set auth cookies through the browser's own cookie store instead.
+
+## Plan pre-flight — run the review lenses before the review gate
+
+**A Trydos rule, not plugin behaviour.** It applies to `development` work items
+only; `study` and `research` have no plan stage.
+
+The `/wf:review` panel reads `plan.md` and `spec.md`. Nothing stops it reading
+them one stage earlier, while the plan is still cheap to change. So at the end of
+the `plan` stage — after `plan.md` is written, before the `success` outcome is
+recorded — run the same three lenses on the draft:
+
+`wf:senior-reviewer` · `wf:security-reviewer` · `wf:performance-reviewer`
+
+Dispatch all three in parallel as read-only subagents, passing the slug so each
+reads `_specs/<slug>/plan.md` and `spec.md`. Use the **namespaced** names — a
+plugin registers its agents under its own name, so a bare `senior-reviewer` does
+not resolve here.
+
+Then, for every finding at severity `major`, either **fix the plan** or **write
+down why it stands** — one line, in the owner's own words.
+
+Record the outcome in a `## Pre-flight panel` section of `plan.md`: one row per
+`major` — the lens, the finding, and what changed or why it stands. `minor` and
+`info` need no row unless you acted on them. The extra section is safe: RV-3
+checks that the required sections are present, not that no others are.
+
+**What this does not change.** The stage still produces `plan.md` and still
+records `success` → `review`. The pre-flight never blocks: a plan whose majors
+all stand is a legal plan. Run it again on a rewrite after `changes_requested`.
+And nothing enforces it — since v3 no runtime refuses a stage that skipped a step
+(ADR-023), so the section in `plan.md` is the only evidence it ran.
+
+**Never answer a `major` by adding scope.** The senior lens is there partly to
+catch over-engineering, so a new layer or a config flag trades one `major` for
+another. The smallest change that satisfies every `AC-n` is still the target.
+
+**Why bother.** A `major` at `/review` does not fail the gate — the panel is
+advisory (RP-2) and no lens holds a veto. It costs one comprehension question
+(CG-6) and one disposition line. Catching it here is cheaper than answering for
+it there, and this is the last point where changing the plan is free.
+
+<!-- wf governance text: v3.0.0 -->
+
+# CLAUDE.md — Engineering Workflows v3
+
+Governance contract for any AI agent (and human) working in this repository.
+This file is authoritative. When in doubt, stop and ask the Workflow Owner.
+
+---
+
+## Project profile — fill this in per repository
+
+> Everything **below** the `---` after this section is the shared governance
+> text. Copy it unchanged. Only this block changes per project. When the plugin
+> ships a new governance version, re-copy the shared text and keep this block.
+
+**Mission.** This repository hosts the Trydos storefront — a multilingual
+e-commerce / live-shopping web app (Next.js App Router, two backends: the
+**gateway** and the **core** backend). The mission of the engineering workflow is
+to make every change **small, reviewed, and verifiable**, moving through a fixed
+set of stages with explicit review gates — never improvising scope or skipping
+review.
+
+**Base branch — this repository overrides the plugin default.** The shared rules
+(GU-4 / IM-3) say `main`; in this repository the base branch is **`develop`**.
+`main` is the staging branch (storefront gate) and is never branched from or
+merged into directly. So: `implement` creates `ticket/<slug>` from a clean
+**`develop`**, and `/wf:publish-pr` opens the PR against **`develop`**
+(`--base develop`). This applies to `development` work items only — `study` and
+`research` cut no branch and open no PR.
+
+**Protected runtime paths.** The paths below are this repository's runtime. They
+may be changed **only** inside an approved `implement` stage, and only when the
+approved `plan.md` lists them:
+
+- `proxy.ts` — runs on every request (locale routing, country detection, bot
+  handling, the staging gate)
+- `next.config.ts` — build and image/host configuration
+- `instrumentation.ts`, `instrumentation-client.ts`, `sentry.*.config.ts` —
+  error reporting wiring
+- `.github/workflows/**` — CI configuration
+
+---
+
+## Workflow types and stages
+
+Pick the workflow type by what changes when the work is finished: a source file
+→ `development`; your understanding of something that already exists → `study`;
+a decision about a direction → `research`. A work item never changes type, and a
+study never quietly becomes an implementation.
+
+**`development`** — the stages this repository uses for a change:
+
+1. `intake` — capture and qualify the request.
+2. `research` — read-only investigation of the repo and impact.
+3. `spec` — define what "done" means (criteria + test cases).
+4. `plan` — decide the approach and concrete steps.
+5. `review` — review spec/plan, with the comprehension gate, before any code.
+6. `implement` — apply the change per the approved plan.
+7. `verify` — validate the change and review runtime impact.
+
+**`study`** — `intake → scope → analyze → explain → assess` (read-only; no branch,
+no PR). **`research`** — `intake → frame → evidence → evaluate → recommend →
+assess → decide` (evaluates options; records a human decision).
+
+Each stage produces an artifact under `_specs/<ticket>/` in this repository, from
+the templates in the `wf` plugin. The authoritative stage list and the legal
+moves between stages live in the plugin's `workflows/<type>/workflow.yaml`, and the
+plugin's `rules/lifecycle-protocol.md` says how to move — `_specs/<ticket>/ticket.md`
+records the position in `workflow.current_stage` and is written only by the step
+that records an outcome, never by hand. Since v3 nothing *refuses* a bad
+transition; the state history is what makes one visible afterwards.
+`/wf:next <ticket>` runs whatever stage is due.
+
+## Hard stop conditions
+
+Stop immediately and request Workflow Owner direction if any of these occur:
+
+- A change would touch this repository's **protected runtime paths** (listed in
+  **Project profile** above) outside an explicitly approved implement stage.
+- The request requires deleting or rewriting existing workflow artifacts.
+- Acceptance criteria are missing, ambiguous, or untestable.
+- A stage's entry criteria are not met (e.g. implementing before plan approval).
+- Scope grows beyond what the approved spec/plan describes.
+
+## Language
+
+**Everything written to this repository is in English.** Workflow artifacts,
+comprehension questions and their options, review findings, ADRs, commit
+messages, and PR text — regardless of the language the request or conversation
+used. The conversation may be in any language; the artifacts never are.
+
+**Write that English plainly.** The reader's first language is Arabic, so keep
+the wording simple: short sentences, common words, no idioms, no rare or
+academic vocabulary. This is about *vocabulary only* — the reader is a senior
+engineer. Never simplify the technical content, the depth, or the reasoning, and
+keep standard technical terms as they are (`scrape`, `cardinality`, `rollback`,
+`AC-n`, …). Simple words, full engineering substance.
+
+## Forbidden actions
+
+- Do **not** write any artifact, comprehension question, or PR/commit text in a
+  language other than English (see **Language** above).
+- Do **not** create workflow commands unless a phase explicitly authorizes it.
+- Do **not** implement tickets during research, spec, plan, or review stages.
+- Do **not** modify the **protected runtime paths** (see **Project profile**) as
+  part of workflow/governance work.
+- Do **not** delete `_specs/`, `.claude/project-config.yaml` (this project's half
+  of the config), or `.claude/settings.json` (which enables the `wf` plugin).
+- Do **not** hand-edit `ticket.md > workflow.current_stage`, `status`, or its
+  state history outside the step that records an outcome. Since v3 no runtime
+  refuses a bad transition (ADR-023), so this rule is the whole of the protection:
+  editing those fields directly leaves a ticket whose state and history disagree,
+  and nothing will tell you.
+- Do **not** edit the shared governance text below **Project profile** in this
+  copy. It is a copy. Change the master in the `wf` plugin
+  (`templates/CLAUDE.md`), bump the plugin version, then re-copy.
+- Do **not** skip stages or record a gate decision without completing the
+  **comprehension check**. The single owner runs their own `/review` and
+  `/verify` (self-review is expected; ADR-009) — there is no separate-reviewer
+  requirement; the comprehension gate (CG-1..CG-7) is the control against
+  rubber-stamping.
+
+## Review gate requirements
+
+- The gates `/review` and `/verify` are run per ticket by the **owner** themselves
+  (self-review; ADR-009). Gate integrity comes from the **comprehension check**
+  (the owner answers questions generated from the artifact), not a second person.
+  They do **not** require an Engineering Manager.
+- The `review` stage is a **mandatory gate**: no `implement` may begin until the
+  owner accepts the `spec` and `plan` at `/review` (with the comprehension check
+  completed).
+- The owner signs off again at `verify` (comprehension check) before a ticket is
+  considered done.
+- Review decisions are recorded as `CHANGES_REQUESTED` / `REJECTED` / `APPROVED`
+  against the relevant stage.
+- At `/review`, an **advisory** AI panel (senior / security / performance,
+  read-only) reviews the plan and records findings for the owner (ADR-010). It
+  **informs** the decision — it never blocks or makes it; the comprehension gate
+  remains the control.
+- The comprehension check asks **between 3 and 5 questions** — a floor and a
+  ceiling (ADR-012, ADR-022). Every gate includes **≥1 question on the
+  integration / cross-flow axis** (what the change touches outside itself, which
+  other flow shares that code or config), sourced from the plan's required
+  **Integration surface** section; and `/review` adds **one question per `major`
+  panel finding**, up to the ceiling. A finding may still be dismissed — only
+  after it is understood.
+- The **Workflow Owner** owns governance (workflow evolution, governance
+  decisions, escalations, cross-project issues), not per-ticket sign-off. Escalate
+  to the Workflow Owner only when a hard-stop or governance question arises.
+
+## Small-change philosophy
+
+- Prefer the smallest change that satisfies the acceptance criteria.
+- One ticket = one focused outcome; split anything larger.
+- Bias toward read-only investigation first; touch code last and minimally.
+- Every change must be reversible and individually verifiable.

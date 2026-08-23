@@ -276,7 +276,7 @@ const SettingsModal = ({ onClose, lang }) => {
       aria-checked={on}
       disabled={loading}
       onClick={onClick}
-      data-cy={dataCy}
+      data-pw={dataCy}
       className={`relative h-[26px] w-[46px] shrink-0 rounded-full transition-colors duration-200 disabled:opacity-60 disabled:cursor-wait`}
       style={{ backgroundColor: on ? PRIMARY : TRACK_OFF }}
     >
@@ -332,28 +332,28 @@ const SettingsModal = ({ onClose, lang }) => {
               {/* Subscribed topics */}
               {topics?.length > 0 ? (
                 <>
-                  <SectionLabel data-cy="Notifications-Can-Enabled">
+                  <SectionLabel data-pw="Notifications-Can-Enabled">
                     {t("Enabled Notifications Topic:")}
                   </SectionLabel>
                   <ul
                     className="space-y-2 max-h-[240px] overflow-y-auto pr-1"
-                    data-cy="Children-off-Notifications-Can-Enabled"
+                    data-pw="Children-off-Notifications-Can-Enabled"
                   >
                     {topics.map((topic, index) => (
                       <li
                         key={index}
                         className="flex justify-between items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[50px]"
-                        data-cy="NotificationsItem-Can-Enabled"
+                        data-pw="NotificationsItem-Can-Enabled"
                       >
                         <span
                           className="text-[14px] text-[#3c3c3c]"
-                          data-cy="typeof-subscribing"
+                          data-pw="typeof-subscribing"
                         >
                           {formatTopicName(topic)}
                         </span>
                         <button
                           className="rounded-full bg-[#fdecec] text-[#f85555] text-[12px] medium px-3 py-[6px] transition-opacity disabled:opacity-50 disabled:cursor-wait"
-                          data-cy="ButtonToEnabled-NotificationsItem"
+                          data-pw="ButtonToEnabled-NotificationsItem"
                           disabled={loading}
                           onClick={() => handleUnsubscribe(topic)}
                         >
@@ -368,7 +368,7 @@ const SettingsModal = ({ onClose, lang }) => {
               ) : (
                 <p
                   className="text-center text-[#929191] text-[14px] py-6"
-                  data-cy="NoTopics-Subscribe"
+                  data-pw="NoTopics-Subscribe"
                 >
                   {loadingTopics
                     ? t("Loading Topics...")
@@ -379,29 +379,29 @@ const SettingsModal = ({ onClose, lang }) => {
               {/* Unsubscribed topics */}
               {unsubscribedTopics?.length > 0 && (
                 <div>
-                  <SectionLabel data-cy="Notifications-Can-Disenabled">
+                  <SectionLabel data-pw="Notifications-Can-Disenabled">
                     {t("Disabled Notifications Topic:")}
                   </SectionLabel>
                   <ul
                     className="space-y-2 max-h-[240px] overflow-y-auto pr-1"
-                    data-cy="Children-off-Notifications-Can-Disenabled"
+                    data-pw="Children-off-Notifications-Can-Disenabled"
                   >
                     {unsubscribedTopics.map((topic, index) => (
                       <li
                         key={index}
                         className="flex justify-between items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[50px]"
-                        data-cy="NotificationsItem-Can-Disenabled"
+                        data-pw="NotificationsItem-Can-Disenabled"
                       >
                         <span
                           className="text-[14px] text-[#3c3c3c]"
-                          data-cy="typeof-unsubscribing"
+                          data-pw="typeof-unsubscribing"
                         >
                           {formatTopicName(topic)}
                         </span>
                         <button
                           className="rounded-full text-[12px] medium px-3 py-[6px] transition-opacity disabled:opacity-50 disabled:cursor-wait"
                           style={{ backgroundColor: "#efecfc", color: PRIMARY }}
-                          data-cy="ButtonToDisenabled-NotificationsItem"
+                          data-pw="ButtonToDisenabled-NotificationsItem"
                           disabled={loading}
                           onClick={() => handleSubscribe(topic)}
                         >
@@ -414,22 +414,22 @@ const SettingsModal = ({ onClose, lang }) => {
               )}
 
               {/* Notification channels */}
-              <SectionLabel data-cy="notifications-subscription">
+              <SectionLabel data-pw="notifications-subscription">
                 {t("notifications subscription:")}
               </SectionLabel>
               <div className="flex-col w-full space-y-2">
                 <div
                   className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3"
-                  data-cy="notifications-subscription-item"
+                  data-pw="notifications-subscription-item"
                 >
                   <img
                     src="/icons/mail.svg"
                     className="h-[26px] w-[26px]"
-                    data-cy="mail-icon"
+                    data-pw="mail-icon"
                   />
                   <span
                     className="flex-1 text-[14px] text-[#3c3c3c]"
-                    data-cy="statement-mail"
+                    data-pw="statement-mail"
                   >
                     {t("Enable Email Notifications")}
                   </span>

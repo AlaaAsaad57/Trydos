@@ -33,7 +33,7 @@ function OrdersOptionsMenu({
             style={{ borderTop: "1px solid #C4C2C280" }}
           />
           <div
-            data-cy="open-hidden-orders"
+            data-pw="open-hidden-orders"
             onClick={onOpenHidden}
             className={`cursor-pointer mt-[10px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
               isRtl ? "flex-row-reverse" : " "

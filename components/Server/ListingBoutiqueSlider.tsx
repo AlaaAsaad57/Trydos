@@ -27,7 +27,7 @@ function BoutiqueHeader({ boutique }) {
       />
       {boutique?.banners && (
         <div
-          data-cy="boutique_top_icons"
+          data-pw="boutique_top_icons"
           className="boutique-top-info flex-col items-center"
         >
           <div className="boutique-logo-container flex-row align-center gap-[8px]">
@@ -49,12 +49,12 @@ function BoutiqueHeader({ boutique }) {
 }
 const BouqiuePhotoSlider = ({ banners }) => {
   return (
-    <div data-cy="boutique_photo_holder" className="boutique-photo-holder w-full" style={{
+    <div data-pw="boutique_photo_holder" className="boutique-photo-holder w-full" style={{
       minWidth:'min(100vw, 1365px)',
       maxWidth:'1365px'
     }}>
       <div
-        data-cy="banners_length-1"
+        data-pw="banners_length-1"
         className={`${
           banners?.length > 1 && "justify-start"
         } offer-slider-container`}
@@ -66,25 +66,25 @@ const BouqiuePhotoSlider = ({ banners }) => {
           {banners &&
             banners?.map((banner, index) => (
               <div
-                data-cy="embla__slide_embla"
+                data-pw="embla__slide_embla"
                 className="embla__slide"
                 key={index}
               >
                 <div
-                  data-cy="offer_slide_item_embla"
+                  data-pw="offer_slide_item_embla"
                   className="offer-slide-item"
                   style={{ width: "100%" }}
                   key={index}
                 >
-                  <div data-cy="image_offer_image" className="image-offer">
+                  <div data-pw="image_offer_image" className="image-offer">
                     <div
-                      data-cy="image_inner_shadow_image"
+                      data-pw="image_inner_shadow_image"
                       className="image-inner-shadow"
                       style={{ height: "100%" }}
                     />
 
                     <img
-                      data-cy="image_image"
+                      data-pw="image_image"
                       loading={"eager"}
                       fetchPriority={"high"}
                       style={{ borderRadius: "15px", height: "auto" }}

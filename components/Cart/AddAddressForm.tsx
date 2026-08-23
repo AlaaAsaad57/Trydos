@@ -96,14 +96,14 @@ function AddAddressForm({
         className={`${orderLoading ? "opacity-50 scale-[.99]" : ""}${
           isInSettings ? "max-h-[calc(100vh-200px)]" : "max-h-full"
         } flex-col h-full  overflow-auto w-full relative pb-[160px] add-address-form-container`}
-        data-cy="add-address-form" // Added data-cy
+        data-pw="add-address-form" // Added data-pw
       >
         <div
           className="bg-[#F8F8F8] min-h-[50px] flex-row items-center pl-[24px] pr-[20px] "
           style={{
             border: "1px solid rgb(211 211 211 / 51%)",
           }}
-          data-cy="address-info-header" // Added data-cy
+          data-pw="address-info-header" // Added data-pw
         >
           <svg
             id="Group_3387"
@@ -112,7 +112,7 @@ function AddAddressForm({
             width="16"
             height="16"
             viewBox="0 0 16 16"
-            data-cy="info-icon" // Added data-cy
+            data-pw="info-icon" // Added data-pw
           >
             <path
               id="Path_15434"
@@ -152,7 +152,7 @@ function AddAddressForm({
           </svg>
           <div
             className="regular text-[10px] ml-[8px] text-[#8D8D8D]"
-            data-cy="info-text"
+            data-pw="info-text"
           >
             {translateFunction(
               "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
@@ -174,7 +174,7 @@ function AddAddressForm({
               center
             }
             setAddressDetails={(e) => setAddressDetails(e)}
-            data-cy="map-component" // Added data-cy
+            data-pw="map-component" // Added data-pw
           />
         )}
         <AddressSection
@@ -182,7 +182,7 @@ function AddAddressForm({
             setOpenSelect();
           }}
         />
-        <ContactInfo userName={userName} data-cy="contact-info" />
+        <ContactInfo userName={userName} data-pw="contact-info" />
       </div>
       {!expanded && (
         <AddAddressButtons
@@ -192,7 +192,7 @@ function AddAddressForm({
           slidePrev={(id) => {
             slidePrev(id);
           }}
-          data-cy="add-address-buttons" // Added data-cy
+          data-pw="add-address-buttons" // Added data-pw
         />
       )}
     </>
@@ -205,25 +205,25 @@ const AddressSection = ({ setOpenSelect }) => {
   return (
     <div
       className="flex-col w-full mt-[30px] px-[12px]"
-      data-cy="address-section"
+      data-pw="address-section"
     >
       <div className="flex-row px-[12px] items-center">
-        <img src="/icons/AddressIcon.svg" data-cy="address-icon" />
+        <img src="/icons/AddressIcon.svg" data-pw="address-icon" />
         <div
           className="flex mx-[6px] text-[#404040] text-[12px] medium"
-          data-cy="address-info-text"
+          data-pw="address-info-text"
         >
           {translateFunction("Address Info")}
         </div>
         <img
           src="/icons/AddressInfo.svg"
           className="ml-[12px] cursor-pointer"
-          data-cy="address-info-icon"
+          data-pw="address-info-icon"
         />
       </div>
       <CountryLabel />
       <SelectRegion
-        data-cy="select-region"
+        data-pw="select-region"
         setOpenSelect={() => {
           setOpenSelect();
         }}
@@ -248,7 +248,7 @@ const CountryLabel = () => {
   }, []);
   return (
     <div
-      data-cy="country-label" // Added data-cy
+      data-pw="country-label" // Added data-pw
       className="flex-col rounded-[15px] w-full mt-[12px] py-[7px] pl-[12px] items-start justify-center"
       style={{
         border: "#d3d3d3a3 1px solid",
@@ -256,14 +256,14 @@ const CountryLabel = () => {
     >
       <div
         className="flex-row regular text-[#505050] text-[12px]"
-        data-cy="country-region-div"
+        data-pw="country-region-div"
       >
         {translateFunction("Country | Region")}
       </div>
       <div className="flex-row items-center mt-[3px] ">
         <span
           className="h-[20px] rounded-[5px] w-[30px]"
-          data-cy="country-flag"
+          data-pw="country-flag"
         >
           <span className="w-[30px] h-[20px]">
             <FlagIcon iso={country.iso} />
@@ -271,7 +271,7 @@ const CountryLabel = () => {
         </span>
         <div
           className="medium flex text-[#1D1D1D] text-[14px] ml-[8px]"
-          data-cy="country-name"
+          data-pw="country-name"
         >
           {country?.name}
         </div>
@@ -289,19 +289,19 @@ const SelectRegion = ({ setOpenSelect }) => {
         setOpenSelect(true);
       }}
       className="flex-col region-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] pl-[12px] items-start justify-center"
-      data-cy="Change-From-List"
+      data-pw="Change-From-List"
       style={{
         border: "#d3d3d3a3 1px solid",
       }}
     >
       <div
         className="flex-row regular text-[#505050] text-[12px]"
-        data-cy="change-list-statement"
+        data-pw="change-list-statement"
       >
         {translateFunction("Change From List")}
       </div>
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] ">
-        <img src="/icons/Target.svg" data-cy="point-icon" />
+        <img src="/icons/Target.svg" data-pw="point-icon" />
 
         <div
           className={`medium flex ${
@@ -322,24 +322,24 @@ const DetailsAddress = () => {
   return (
     <div
       className="flex-col details-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
-      data-cy="Detailed-Address-field"
+      data-pw="Detailed-Address-field"
       style={{
         border: "#d3d3d3a3 1px solid",
       }}
     >
       <div
         className="flex-row regular text-[#505050] text-[12px]"
-        data-cy="Detailed-Address-statement"
+        data-pw="Detailed-Address-statement"
       >
         {translateFunction("Detailed Address & Note")}
       </div>
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
         <div
           className="medium flex text-[#D3D3D3] text-[14px] w-full"
-          data-cy="Detailed-Address-Note"
+          data-pw="Detailed-Address-Note"
         >
           <textarea
-            data-cy="text-area-placeholder"
+            data-pw="text-area-placeholder"
             value={addressDetails.address_detail}
             onChange={(e) => {
               setAddressDetails({ address_detail: e.target.value });
@@ -359,7 +359,7 @@ const AddressTitle = () => {
   const { setAddressDetails, addressDetails } = useAppStore();
   return (
     <div
-      data-cy="address-title" // Added data-cy
+      data-pw="address-title" // Added data-pw
       className="flex-col title-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
       style={{
         border: "#d3d3d3a3 1px solid",
@@ -367,17 +367,17 @@ const AddressTitle = () => {
     >
       <div
         className="flex-row regular text-[#505050] text-[12px]"
-        data-cy="add-Address-statement"
+        data-pw="add-Address-statement"
       >
         {translateFunction("Address Title")}
       </div>
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
         <div
           className="medium flex text-[#D3D3D3] text-[14px] w-full"
-          data-cy="Address-Title"
+          data-pw="Address-Title"
         >
           <input
-            data-cy="add-address-input"
+            data-pw="add-address-input"
             value={addressDetails.address}
             onChange={(e) => {
               setAddressDetails({ address: pollinateInput(e.target.value) });
@@ -401,43 +401,43 @@ const ContactInfo = ({ userName = null }) => {
   return (
     <div
       className="flex-col w-full mt-[30px] px-[12px] pb-[110px]"
-      data-cy="container-name-phone"
+      data-pw="container-name-phone"
     >
       <div className="flex-row px-[12px] items-center">
-        <img src="/icons/ContactInfoIcon.svg" data-cy="contact-info-icon" />
+        <img src="/icons/ContactInfoIcon.svg" data-pw="contact-info-icon" />
         <div
           className="flex mx-[6px] text-[#404040] text-[12px] medium"
-          data-cy="contact-info-text"
+          data-pw="contact-info-text"
         >
           {translateFunction("Contact Info")}
         </div>
         <img
           src="/icons/AddressInfo.svg"
           className="ml-[12px] cursor-pointer"
-          data-cy="Address-info-icon"
+          data-pw="Address-info-icon"
         />
       </div>
       {userName !== null && userName !== undefined && (
         <div
           className="flex-col username-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
-          data-cy="name-container"
+          data-pw="name-container"
           style={{
             border: "#d3d3d3a3 1px solid",
           }}
         >
           <div
             className="flex-row regular text-[#505050] text-[12px]"
-            data-cy="recipient-name-statement"
+            data-pw="recipient-name-statement"
           >
             {translateFunction("User Name")}
           </div>
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div
               className="medium flex text-[#D3D3D3] text-[14px] w-full"
-              data-cy="Recipient-Name"
+              data-pw="Recipient-Name"
             >
               <input
-                data-cy="user-name-input"
+                data-pw="user-name-input"
                 value={addressDetails?.user_name}
                 onChange={(e) => {
                   const sanitized = pollinateInput(e.target.value);
@@ -455,24 +455,24 @@ const ContactInfo = ({ userName = null }) => {
       )}
       <div
         className="flex-col name-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
-        data-cy="name-container"
+        data-pw="name-container"
         style={{
           border: "#d3d3d3a3 1px solid",
         }}
       >
         <div
           className="flex-row regular text-[#505050] text-[12px]"
-          data-cy="recipient-name-statement"
+          data-pw="recipient-name-statement"
         >
           {translateFunction("Recipient Name")}
         </div>
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div
             className="medium flex text-[#D3D3D3] text-[14px] w-full"
-            data-cy="Recipient-Name"
+            data-pw="Recipient-Name"
           >
             <input
-              data-cy="recipient-name-input"
+              data-pw="recipient-name-input"
               value={
                 addressDetails?.contact_info?.contact_person_name ||
                 // @ts-ignore
@@ -497,24 +497,24 @@ const ContactInfo = ({ userName = null }) => {
       {/*  */}
       <div
         className="flex-col phone-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
-        data-cy="phone-container"
+        data-pw="phone-container"
         style={{
           border: "#d3d3d3a3 1px solid",
         }}
       >
         <div
           className="flex-row regular text-[#505050] text-[12px]"
-          data-cy="phone-statement"
+          data-pw="phone-statement"
         >
           {translateFunction("Contact Phone")}
         </div>
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div
             className="medium flex text-[#D3D3D3] text-[14px] w-full"
-            data-cy="Contact-Phone"
+            data-pw="Contact-Phone"
           >
             <input
-              data-cy="Contact-Phone-input"
+              data-pw="Contact-Phone-input"
               aria-autocomplete="both"
               aria-haspopup="false"
               spellCheck="false"
@@ -542,19 +542,19 @@ const ContactInfo = ({ userName = null }) => {
       {/*  */}
       <div
         className="flex-col cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
-        data-cy="altarnative-Phone-container"
+        data-pw="altarnative-Phone-container"
         style={{
           border: "#d3d3d3a3 1px solid",
         }}
       >
         <div
           className="flex-row regular text-[#505050] text-[12px]"
-          data-cy="altarnative-Phone-statement"
+          data-pw="altarnative-Phone-statement"
         >
           {translateFunction("Alternative Phone")}
           <span
             className="text-[#D3D3D3] ml-[4px]"
-            data-cy="optional-statement"
+            data-pw="optional-statement"
           >
             {translateFunction("(Optional)")}
           </span>
@@ -562,7 +562,7 @@ const ContactInfo = ({ userName = null }) => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
-              data-cy="optional-input"
+              data-pw="optional-input"
               aria-autocomplete="both"
               aria-haspopup="false"
               spellCheck="false"
@@ -685,7 +685,7 @@ const AddAddressButtons = ({
       className={`${"add-address-button"} ${
         orderLoading && "opacity-55"
       } absolute text-center  left-0 w-full h-[100px] bg-white px-[20px] pt-[12px]`}
-      data-cy="add-address-buttons-container" // Added data-cy
+      data-pw="add-address-buttons-container" // Added data-pw
     >
       <div
         onClick={() => {
@@ -699,7 +699,7 @@ const AddAddressButtons = ({
         className={`w-full text-center flex justify-center items-center h-[70px] ${
           valid ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
         } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
-        data-cy="AddSaveButton"
+        data-pw="AddSaveButton"
       >
         {/* @ts-ignore */}
         {addressDetails?.id

@@ -88,7 +88,7 @@ function ProductListServer({
     return (
       <div
         className="listing-empty mt-2 flex min-h-[48vh] w-full flex-col items-center justify-center bg-[#f4f4f4] px-6 py-16 text-center"
-        data-cy="NoProductsFound"
+        data-pw="NoProductsFound"
       >
         <PageLoaderReset />
         <BagNoResults />
@@ -101,7 +101,7 @@ function ProductListServer({
         {clearHref ? (
           <NextLink
             href={clearHref}
-            data-cy="ClearFiltersCta"
+            data-pw="ClearFiltersCta"
             data={{ is_filter: true }}
             className="f-14 medium mt-5 inline-flex items-center rounded-full bg-[#f85555] px-6 py-2.5 text-white"
           >

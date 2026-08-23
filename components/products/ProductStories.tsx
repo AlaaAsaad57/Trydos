@@ -26,7 +26,7 @@ const renderStory = (story) => (
     key={story.id}
     data-id={story.id}
     className="product-story relative"
-    data-cy="Story"
+    data-pw="Story"
     style={{ boxShadow: "0 3px 3px rgba(0, 0, 0, 0.1)" }}
   >
     <svg

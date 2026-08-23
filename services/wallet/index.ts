@@ -1,6 +1,7 @@
 "use server";
 
-import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
 
 import {
   BanksApi,
@@ -13,7 +14,9 @@ import {
   GetJournalEntriesApi,
   GetTransactionsApi,
   GetWalletBalancesApi,
+  isWalletUnauthenticated,
   UploadMediaApi,
+  WalletUnauthenticated,
 } from "./types";
 import { getCurrency } from "serverRequests";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -91,28 +94,25 @@ export async function fetchServerData<T>({
 // --- SMART HELPER: Centralized Response Handler ---
 /**
  * Checks for 401 status and errors.
- * Returns the data if successful, or null/throws if there's an issue.
+ * Returns the data if successful, the unauthenticated sentinel on 401, or throws.
  */
 function processResponse<T>(
   response: any,
-  handleUnauthenticated: () => void,
   logContext?: { scenario: string; userId?: string } & Partial<
     Record<string, any>
   >,
-): T {
+): T | WalletUnauthenticated {
   // 1. Priority Check: Authentication
   if (response?.status === 401) {
-    if (handleUnauthenticated) {
-      handleUnauthenticated();
-    }
-    // Return null or undefined to stop flow without crashing,
-    // assuming the handleUnauthenticated (e.g. redirect) takes over.
-    // @ts-ignore - casting to T to satisfy return type in failure case
+    // These are Server Actions: the caller's reaction (close the sheet, ask
+    // for re-verification) lives on the client and cannot be invoked here.
+    // Hand the sentinel back and let the caller react.
     return {
       error: response.error || "Unauthorized",
       status: 401,
       success: false,
       data: null,
+      unauthenticated: true,
     };
   }
 
@@ -139,11 +139,9 @@ function processResponse<T>(
 export async function checkWallet({
   id,
   local = "gb-en",
-  handleUnauthenticated = () => {},
 }: {
   id: string;
   local?: string;
-  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let res = await fetchServerData({
@@ -157,24 +155,26 @@ export async function checkWallet({
 
   // Specific logic for checkWallet: 401 check first
   if (res?.status === 401) {
-    handleUnauthenticated?.();
-    return;
+    return {
+      error: res.error || "Unauthorized",
+      status: 401,
+      success: false,
+      data: null,
+      unauthenticated: true,
+    } satisfies WalletUnauthenticated;
   }
 
   if (!res || !res.success) {
-    // Pass the handler down to the creation function if needed
-    await createWallet({ id, local, handleUnauthenticated });
+    await createWallet({ id, local });
   }
 }
 
 export async function createWallet({
   id,
   local = "gb-en",
-  handleUnauthenticated = () => {},
 }: {
   id: string;
   local?: string;
-  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response = await fetchServerData({
@@ -192,7 +192,7 @@ export async function createWallet({
   });
 
   // Use helper with specific logging context for creation
-  processResponse(response, handleUnauthenticated, {
+  processResponse(response, {
     scenario: "creating wallet for user",
     userId: id,
   });
@@ -202,10 +202,8 @@ export async function createWallet({
 
 export async function getCurrencies({
   local = "gb-en",
-  handleUnauthenticated = () => {},
 }: {
   local?: string;
-  handleUnauthenticated?: () => void;
 }) {
   const [country, language] = local?.split("-");
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
@@ -221,7 +219,7 @@ export async function getCurrencies({
       },
     });
 
-    return processResponse<CurrenciesApi>(response, handleUnauthenticated, {
+    return processResponse<CurrenciesApi>(response, {
       scenario: "Get Currencies from wallet system",
       userId: "server",
     });
@@ -230,10 +228,8 @@ export async function getCurrencies({
 
 export async function GetBanks({
   local = "gb-en",
-  handleUnauthenticated = () => {},
 }: {
   local?: string;
-  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   try {
@@ -246,7 +242,7 @@ export async function GetBanks({
       },
     });
 
-    return processResponse<BanksApi>(response, handleUnauthenticated, {
+    return processResponse<BanksApi>(response, {
       scenario: "Get Banks from wallet system",
       userId: "server",
     });
@@ -256,11 +252,9 @@ export async function GetBanks({
 export async function UploadMedia({
   file,
   local = "gb-en",
-  handleUnauthenticated = () => {},
 }: {
   file: File;
   local?: string;
-  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let formData = new FormData();
@@ -279,7 +273,7 @@ export async function UploadMedia({
     },
   });
 
-  return processResponse<UploadMediaApi>(response, handleUnauthenticated, {
+  return processResponse<UploadMediaApi>(response, {
     scenario: "UploadMedia from wallet system",
     userId: "server",
   });
@@ -293,7 +287,6 @@ export async function CreateBankDeposit({
   transactionReference,
   idempotencyKey,
   local = "gb-en",
-  handleUnauthenticated = () => {},
 }: {
   bankId: string;
   currencyId: string;
@@ -302,7 +295,6 @@ export async function CreateBankDeposit({
   transactionReference: string;
   idempotencyKey: string;
   local?: string;
-  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<CreateBankDepositeApi> = await fetchServerData({
@@ -322,14 +314,10 @@ export async function CreateBankDeposit({
     },
   });
 
-  return processResponse<CreateBankDepositeApi>(
-    response,
-    handleUnauthenticated,
-    {
-      scenario: "CreateBankDeposit from wallet system",
-      userId: "server",
-    },
-  );
+  return processResponse<CreateBankDepositeApi>(response, {
+    scenario: "CreateBankDeposit from wallet system",
+    userId: "server",
+  });
 }
 
 export async function CalculateFees({
@@ -337,13 +325,11 @@ export async function CalculateFees({
   currencyId,
   amount,
   local = "gb-en",
-  handleUnauthenticated = () => {},
 }: {
   bankId: string;
   currencyId: string;
   amount: number;
   local?: string;
-  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<CalculateFeesApi> = await fetchServerData({
@@ -362,7 +348,7 @@ export async function CalculateFees({
     },
   });
 
-  return processResponse<CalculateFeesApi>(response, handleUnauthenticated, {
+  return processResponse<CalculateFeesApi>(response, {
     scenario: "CalculateFeess from wallet system",
     userId: "server",
   });
@@ -370,10 +356,8 @@ export async function CalculateFees({
 
 export async function GetBankDepostits({
   local = "gb-en",
-  handleUnauthenticated = () => {},
 }: {
   local?: string;
-  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let response: FetchResponse<GetBankDepositeApi> = await fetchServerData({
@@ -385,7 +369,7 @@ export async function GetBankDepostits({
     },
   });
 
-  return processResponse<GetBankDepositeApi>(response, handleUnauthenticated, {
+  return processResponse<GetBankDepositeApi>(response, {
     scenario: "GetBankDepostits from wallet system",
     userId: "server",
   });
@@ -394,11 +378,9 @@ export async function GetBankDepostits({
 export async function GetWalletBalanceInCurrency({
   currencyId,
   local = "gb-en",
-  handleUnauthenticated = () => {},
 }: {
   local?: string;
   currencyId: string;
-  handleUnauthenticated?: () => void;
 }) {
   let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
   let params = new URLSearchParams();
@@ -417,15 +399,11 @@ export async function GetWalletBalanceInCurrency({
     },
   });
 
-  return processResponse<GetWalletBalancesApi>(
-    response,
-    handleUnauthenticated,
-    {
-      scenario: "GetWalletBalance from wallet system",
-      userId: "server",
-      params: params.toString(),
-    },
-  );
+  return processResponse<GetWalletBalancesApi>(response, {
+    scenario: "GetWalletBalance from wallet system",
+    userId: "server",
+    params: params.toString(),
+  });
 }
 
 
@@ -436,7 +414,6 @@ export async function CheckoutOrder({
   idempotencyKey,
   local = "gb-en",
   currencyId,
-  handleUnauthenticated = () => {},
 }: {
   cartId: string;
   amount: number;
@@ -444,7 +421,6 @@ export async function CheckoutOrder({
   local?: string;
   currencyId: string;
   storeKey?: "trydos";
-  handleUnauthenticated?: () => void;
 }) {
   try {
     let user = await getCookieServer<any>(COOKIE_NAMES.USER_DATA);
@@ -488,7 +464,7 @@ export async function CheckoutOrder({
       // A minimal, non-sensitive failure sentinel is all the UI needs.
       return { paymentFailed: true };
     }
-    return processResponse<CheckoutOrderApi>(response, handleUnauthenticated, {
+    return processResponse<CheckoutOrderApi>(response, {
       scenario: "CheckoutOrder in wallet system",
       userId: String(userId),
       url: process.env.WALLET_BACKEND_URL + `/merchant/checkout`,
@@ -508,8 +484,12 @@ export async function GetWalletBalanceForCountryCurrency({ country }) {
     getCurrency(country, "en"),
     getCurrencies({ local: `${country}-en` }),
   ]);
-  if (!currency||!currencies) {
+  if (!currency || !currencies) {
     throw new Error("Currency not found for country: " + country);
+  }
+  // Pass a 401 straight back to the caller — reacting to it is client work.
+  if (isWalletUnauthenticated(currencies)) {
+    return currencies;
   }
   let selected_currency = currencies?.items?.find(
     (c) => c.symbol === currency.code,
@@ -517,8 +497,10 @@ export async function GetWalletBalanceForCountryCurrency({ country }) {
   let balances = await GetWalletBalanceInCurrency({
     currencyId: selected_currency.id,
     local: "gb-en",
-    handleUnauthenticated: () => {},
   });
+  if (isWalletUnauthenticated(balances)) {
+    return balances;
+  }
 
   return {
     totalAvailable: balances.available,

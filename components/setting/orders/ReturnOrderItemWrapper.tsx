@@ -225,7 +225,7 @@ function ReturnOrderItemWrapper({
                   {option.reason_ae_en}
                 </span>
                 {option.is_cost_by_system === 0 && (
-                  <span data-cy="reason-cost">
+                  <span data-pw="reason-cost">
                     (
                     {RoundPrice({
                       num: option.cost,

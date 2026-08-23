@@ -51,11 +51,11 @@ function SearchHistory({ options, setOptions, deleteOption }) {
         className="flex-row align-center cursor-pointer"
         onClick={() => setOpen(!openMenu)}
       >
-        <img src="/icons/SearchHistoryIcon.svg" data-cy="SearchHistoryIcon" />
+        <img src="/icons/SearchHistoryIcon.svg" data-pw="SearchHistoryIcon" />
         {openMenu && (
           <span
             className="filter-label-search"
-            data-cy="SearchHistoryStatement"
+            data-pw="SearchHistoryStatement"
           >
             {translateFunction("Search History")}
           </span>
@@ -69,7 +69,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                 <div
                   key={index}
                   className="search-filter-option"
-                  data-cy="search-history-option"
+                  data-pw="search-history-option"
                   onClick={(e) => {
                     // @ts-ignore
                     if (!e.target.closest(".close-icon-container")) {
@@ -104,7 +104,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
       {openMenu && (
         <span
           className="clear-options-button"
-          data-cy="clearAll"
+          data-pw="clearAll"
           onClick={(e) => {
             localStorage.setItem("search-history", JSON.stringify([]));
           }}

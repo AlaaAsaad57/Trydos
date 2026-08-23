@@ -223,12 +223,12 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
             type="file"
             hidden
             id="profile-file-picker"
-            accept="images/*"
+            accept="image/*"
           />
 
           <div
             id="camera-photo-holder"
-            data-cy="change-photo-menu"
+            data-pw="change-photo-menu"
             onClick={() => {
               if (!file) {
                 setOpenMenu(!openMenu);
@@ -398,7 +398,7 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
                   </div>
                   <div
                     className="flex  flex-row mt-[10px] cursor-pointer"
-                    data-cy="upload-local-photo"
+                    data-pw="upload-local-photo"
                     onClick={() => {
                       document
                         .querySelector<HTMLInputElement>("#profile-file-picker")
@@ -520,7 +520,7 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
             <div
               className="flex flex-row mt-[15px] cursor-pointer"
               onClick={() => setFile(null)}
-              data-cy="remove-photo-button"
+              data-pw="remove-photo-button"
             >
               <svg
                 id="delete"

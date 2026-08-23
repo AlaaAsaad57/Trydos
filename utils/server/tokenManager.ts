@@ -1,5 +1,8 @@
 import { cookies } from "next/headers";
-import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import {
+  COOKIE_NAMES,
+  HTTPONLY_COOKIE_NAMES,
+} from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 
 // ---------- Types ----------
@@ -57,25 +60,18 @@ const ALLOWED_SERVERS: ProxiedServer[] = [
   "market-dashboard",
 ];
 
-// All cookie names that hold sensitive tokens — must be HttpOnly.
+// All cookie names that hold sensitive tokens — must be HttpOnly, and must be
+// purged on logout. Derived from HTTPONLY_COOKIE_NAMES so there is ONE list:
+// a second hand-written copy used to drift (CHAT_REFRESH_TOKEN was in one and
+// not the other), which decided by accident whether a cookie was protected.
+// Add a name in cookie-manager.ts and both meanings follow.
 // DEVICE_TOKEN is legacy (guest JWTs now live in MARKET_TOKEN); it stays in
 // this list ONLY so logout still purges the stale cookie from old browsers —
 // nothing reads or sets it anymore.
-const SECURE_COOKIE_NAMES = [
-  COOKIE_NAMES.MARKET_TOKEN,
-  COOKIE_NAMES.MARKET_REFRESH_TOKEN,
-  COOKIE_NAMES.DEVICE_TOKEN,
-  COOKIE_NAMES.CHAT_TOKEN,
-  COOKIE_NAMES.STORIES_TOKEN,
-  COOKIE_NAMES.WALLET_TOKEN,
-  COOKIE_NAMES.USER_ID_HASH,
-  COOKIE_NAMES.USER_DATA,
-  COOKIE_NAMES.USER_CHAT,
-  COOKIE_NAMES.USER_STORIES,
-  COOKIE_NAMES.WALLET_USER,
-] as const;
+const SECURE_COOKIE_NAMES: readonly string[] = [...HTTPONLY_COOKIE_NAMES];
 
-const GO_APIS = [
+// Paths the gateway serves for guest/allow-listed traffic.
+const GATEWAY_APIS = [
   "/auth/register-guest",
   "/mobile/home/currency",
   "/web/home/startingSettings",
@@ -102,30 +98,30 @@ const GO_APIS = [
   "/web/notification_types",
   "/web/notification_types/customer-notification-to-choose",
   // ── Customer profile API migration (ClickUp 86ey26atu) ──
-  // These four customer operations moved from the Laravel "market" backend to
-  // the Go Store Gateway. Rollback: comment out (or remove) this block to route
-  // them back to BACKEND_URL (Laravel) — no caller change needed.
+  // These four customer operations moved from the core "market" backend to the
+  // store gateway. Rollback: comment out (or remove) this block to route them
+  // back to BACKEND_URL (the core backend) — no caller change needed.
   "/customer/info",
   "/customer/update-profile",
   "/customer/update-name",
   "/customer/approve-policies",
 ];
 
-// Go endpoints whose URL carries a trailing dynamic segment (e.g. a product
-// slug), so the full path never `endsWith` a fixed string. Matched by prefix
-// instead. Keep the trailing slash so `/globalDetails/` can't match a sibling
-// like `/globalDetailsSomethingElse`.
-const GO_API_PREFIXES = [
+// Gateway endpoints whose URL carries a trailing dynamic segment (e.g. a
+// product slug), so the full path never `endsWith` a fixed string. Matched by
+// prefix instead. Keep the trailing slash so `/globalDetails/` can't match a
+// sibling like `/globalDetailsSomethingElse`.
+const GATEWAY_API_PREFIXES = [
   "/web/product/globalDetails/",
   "/web/product/qtyPriceDetails/",
   "/web/product/product-meta/",
 ];
 // ---------- Server URL Resolution ----------
-export const isFromGoApi = (url: string) =>{
+export const isGatewayApi = (url: string) =>{
   let normalizedUrl=url.split('?')?.[0];
   if(url.startsWith('/checklist')) return true;
-  if(GO_API_PREFIXES.some((prefix) => normalizedUrl.includes(prefix))) return true;
- return GO_APIS.some((endpoint) => normalizedUrl.endsWith(endpoint))};
+  if(GATEWAY_API_PREFIXES.some((prefix) => normalizedUrl.includes(prefix))) return true;
+ return GATEWAY_APIS.some((endpoint) => normalizedUrl.endsWith(endpoint))};
 
 // ---------- Verified-user routing (market only) ----------
 
@@ -154,18 +150,18 @@ export async function isVerifiedMarketUser(): Promise<boolean> {
   }
 }
 
-// Base URL for the server-side market fetchers that used to hardcode
-// GO_BACKEND_URL. Deliberately does NOT consult isFromGoApi: likesDetails is
-// hardcoded-to-Go today while NOT allow-listed, so consulting the list would
-// flip guests to Laravel and change guest behavior. Verified → Laravel;
-// guest/tokenless → Go (exactly today's behavior).
+// Base URL for the server-side market fetchers. Deliberately does NOT consult
+// isGatewayApi: likesDetails is pinned to the gateway today while NOT
+// allow-listed, so consulting the list would flip guests to the core backend and
+// change guest behavior. Verified → core backend; guest/tokenless → gateway
+// (exactly today's behavior).
 export async function getMarketFetchBase(): Promise<string> {
   const verified = await isVerifiedMarketUser();
   if (process.env.NODE_ENV !== "production")
     console.log("[MarketRouting]", {
       source: "server-fetch",
       verified,
-      backend: verified ? "laravel" : "go",
+      backend: verified ? "core" : "gateway",
     });
   if (verified) return process.env.BACKEND_URL || "";
   return process.env.GO_BACKEND_URL || "";
@@ -178,24 +174,24 @@ async function getServerBaseUrl(
 
   switch (server) {
     case "market": {
-      // Verified users (valid phone in User-Data) are served ENTIRELY by
-      // Laravel — the Go allow-list is bypassed for them. Guests/tokenless
-      // visitors keep the URL-only routing below.
+      // Verified users (valid phone in User-Data) are served ENTIRELY by the
+      // core backend — the gateway allow-list is bypassed for them.
+      // Guests/tokenless visitors keep the URL-only routing below.
       const verified = await isVerifiedMarketUser();
-      const useGo = !verified && isFromGoApi(url);
+      const useGateway = !verified && isGatewayApi(url);
       if (process.env.NODE_ENV !== "production")
         console.log("[MarketRouting]", {
           source: "proxy",
           url,
           verified,
-          backend: useGo ? "go" : "laravel",
+          backend: useGateway ? "gateway" : "core",
         });
-      if (useGo) return process.env.GO_BACKEND_URL || "";
+      if (useGateway) return process.env.GO_BACKEND_URL || "";
       return process.env.BACKEND_URL || "";
     }
     case "market-dashboard": {
       // URL-only routing, unchanged — the user-based rule is market-only.
-      if (isFromGoApi(url)) return process.env.GO_BACKEND_URL || "";
+      if (isGatewayApi(url)) return process.env.GO_BACKEND_URL || "";
       return process.env.BACKEND_URL || "";
     }
     case "elastic":
@@ -233,8 +229,9 @@ async function getTokenForServer(server: ProxiedServer): Promise<string> {
       // DEVICE_TOKEN is legacy and is never read (kept only in the cleanup lists).
       return cookieStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value || "";
     case "stories":
-      // Auth from the dedicated STORIES_TOKEN cookie (48h). Refreshed on re-auth
-      // by /api/auth/update-user; USER_STORIES holds profile data only.
+      // Auth from the dedicated STORIES_TOKEN cookie (48h). Refreshed reactively
+      // by /api/auth/refresh using STORIES_REFRESH_TOKEN, and on re-auth by
+      // /api/auth/update-user; USER_STORIES holds profile data only.
       return cookieStore.get(COOKIE_NAMES.STORIES_TOKEN)?.value || "";
     case "elastic":
       return "";
@@ -305,13 +302,14 @@ async function getCurrentUser() {
 // Strip tokens and sensitive fields before sending to client
 function sanitizeUserData(data: any) {
   if (!data) return null;
-  const { token, access_token, id_token, ...safe } = data;
+  const { token, access_token, id_token, refresh_token, ...safe } = data;
   return safe;
 }
 
 function sanitizeServiceUser(data: any) {
   if (!data) return null;
-  const { access_token, token, ...safe } = data;
+  const { access_token, token,refresh_token
+, ...safe } = data;
   return safe;
 }
 
