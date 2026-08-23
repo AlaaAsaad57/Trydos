@@ -89,7 +89,12 @@ jobs:
       - name: Measure the bundle
         id: size
         if: ${{ !cancelled() }}
-        run: pnpm cf:size | tee worker-size.txt
+        # `set -o pipefail` is load-bearing: without it the pipeline takes
+        # `tee`'s exit code, so a failed measurement reports success and the
+        # whole job goes green on a build that did not produce a bundle.
+        run: |
+          set -o pipefail
+          pnpm cf:size | tee worker-size.txt
 
       - name: Put the size in the run summary
         if: ${{ !cancelled() }}
