@@ -1181,3 +1181,95 @@ describe("what leaves the process, and what is remembered (AC-12, AC-13)", () =>
     expect(redirectTarget(response)).toBe("/gb-en/shop?no-country=true");
   });
 });
+
+// ---------------------------------------------------------------------------
+// The staging gate — the pre-launch landing page
+// ---------------------------------------------------------------------------
+
+describe("the staging gate", () => {
+  // The gate is opt-in. It answers only to STAGING_GATE=on, so a branch that
+  // sets nothing serves the storefront — that is what makes `main` behave like
+  // `develop` without a setting anywhere.
+  //
+  // These cases cover the half of the gate that reads the setting. Its other
+  // half is `config.matcher`, a build-time export no setting can reach, and the
+  // storefront matcher we ship keeps /api, the sitemaps and the static folders
+  // away from this function — so with the gate on those paths stay live. That
+  // is a known hole, not something these tests can see; AC-11 above pins which
+  // paths reach the proxy at all.
+
+  it("stays off when nothing is set, and the storefront answers", async () => {
+    vi.stubEnv("STAGING_GATE", undefined);
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(makeRequest("/gb-en/shop"));
+
+    expect(
+      response.headers.get("location"),
+      "with no STAGING_GATE setting the storefront has to answer, and this request was sent to the landing page instead",
+    ).toBeNull();
+  });
+
+  it("serves the landing page at the root when it is on", async () => {
+    vi.stubEnv("STAGING_GATE", "on");
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(makeRequest("/"));
+
+    expect(
+      response.headers.get("location"),
+      'the gate has to serve the landing page at "/", and it redirected away from it instead',
+    ).toBeNull();
+  });
+
+  it("sends every other path back to the landing page when it is on", async () => {
+    vi.stubEnv("STAGING_GATE", "on");
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(makeRequest("/gb-en/product/123"));
+
+    expect(
+      redirectTarget(response),
+      "the gate has to send a storefront path to the landing page",
+    ).toBe("/");
+  });
+
+  it("redirects temporarily, so no browser remembers the landing page after launch", async () => {
+    vi.stubEnv("STAGING_GATE", "on");
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(makeRequest("/gb-en/product/123"));
+
+    expect(
+      response.status,
+      `the gate has to redirect with 307 and never 308 — a permanent redirect is cached by the browser and keeps sending real shoppers to the landing page long after launch (got ${response.status})`,
+    ).toBe(307);
+  });
+
+  it("answers before the locale rules, so a path with no locale is not sent to one", async () => {
+    vi.stubEnv("STAGING_GATE", "on");
+    const { proxy } = await loadProxy();
+
+    // Without the gate this is the case that sends a visitor to /gb-en/shop.
+    const response = await proxy(makeRequest("/shop"));
+
+    expect(
+      redirectTarget(response),
+      "a path with no locale has to reach the landing page, not a locale address",
+    ).toBe("/");
+  });
+
+  it("contacts nothing while it is on", async () => {
+    vi.stubEnv("STAGING_GATE", "on");
+    const { proxy } = await loadProxy();
+
+    await proxy(makeRequest("/gb-en/shop"));
+
+    // Read from the recorded calls: the country lookup runs in the background
+    // and swallows its own errors, so it would never surface on its own.
+    expect(
+      net.callCount,
+      "the gate has to answer before anything else, and a country lookup was started anyway",
+    ).toBe(0);
+  });
+});

@@ -2,17 +2,29 @@ import { NextResponse, userAgent, type NextRequest } from "next/server";
 import { ipAddress } from "@vercel/functions";
 import { NextURL } from "next/dist/server/web/next-url";
 
-// ── STAGING GATE — main branch only ──────────────────────────────────
-// Pre-launch, main serves nothing but the centered-logo page (app/page.tsx) at
-// "/". Every other path — pages, /api/*, server actions — 307s back to "/".
+// ── STAGING GATE — off unless asked for ────────────────────────
+// With STAGING_GATE=on this file serves nothing but the centered-logo page
+// (app/page.tsx) at "/", and sends every other path it runs on back to "/".
 // The redirect is deliberately temporary (307, never 308): a permanent redirect
 // would be cached by browsers and keep sending real users to the logo long
 // after launch.
 //
-// This gate and the narrowed `config.matcher` at the bottom of this file are
-// one unit — reverting this commit lifts both together and restores the full
-// storefront. Do not lift one without the other.
-const STAGING_GATE_ENABLED = process.env.STAGING_GATE !== "off";
+// The gate is opt-in: any other value — including no value at all — leaves it
+// off. That is what lets this branch carry the gate and still behave exactly
+// like the storefront. Nothing has to be set to serve the real app, and one
+// setting brings the logo page back.
+//
+// What the gate does NOT cover. Its other half would be `config.matcher` at
+// the bottom of this file, and that is a build-time export — Next only accepts
+// literals there, so it cannot read this setting. We ship the storefront
+// matcher, which keeps /api, the sitemaps, the static folders and (through its
+// `missing:` clause) prefetches and server actions away from this function.
+// Those paths therefore stay live while the gate is on: it turns back every
+// page navigation, and nothing else. Closing that hole means swapping in the
+// wide gate matcher kept next to `config` at the bottom of this file — and
+// swapping it back out at launch, because while it ships this function runs in
+// front of every /api call and every prefetch, gate or no gate.
+const STAGING_GATE_ENABLED = process.env.STAGING_GATE === "on";
 
 // The only path the gate serves. Static assets the logo page needs are handled
 // by the matcher below, which never invokes this function for them.
@@ -288,7 +300,7 @@ const extractLocales=(u:string)=>{
 // Main middleware function
 export async function proxy(request: NextRequest) {
   // Staging gate — see STAGING_GATE_ENABLED above. Must stay the first thing
-  // this function does, so no locale/country/bot logic can run pre-launch.
+  // this function does, so no locale/country/bot logic can run while it is on.
   if (STAGING_GATE_ENABLED) {
     return request.nextUrl.pathname === STAGING_GATE_ALLOWED_PATH
       ? NextResponse.next()
@@ -631,32 +643,52 @@ export async function proxy(request: NextRequest) {
   return NextResponse.redirect(url);
 }
 
-// STAGING GATE matcher (main branch only) — paired with STAGING_GATE_ENABLED.
+// Turning the gate on takes two edits, and the second is the one that gets
+// forgotten:
 //
-// Deliberately far wider than the storefront matcher it replaces: that one
-// excluded /api plus a long list of segments (ingest, noposter, sentry-test,
-// fcm-dashboard, testBoutique, simulateUser, backend-compare, callInProg,
-// call_direct, endCall, selectCountry, revalidate) — none of which invoked the
-// proxy, so all of them stayed fully live and served the real app. It also
-// carried a `missing:` clause that let server actions and RSC prefetches skip
-// the proxy entirely. Both holes are closed here: everything not listed below
-// now hits the gate.
+//   1. Set STAGING_GATE=on — the flag at the top of this file.
+//   2. Swap the storefront matcher below for the gate matcher kept just above
+//      it, commented out.
 //
-// Only what the logo page needs to render — plus crawler hygiene — is excluded:
-//   _next                        bundle + /_next/image for the logo
-//   icons                        image-optimizer source fetch for Logo.svg
-//   favicon.ico
-//   google210329fcef4fbcff.html  search-console verification
-//   robots.txt                   serves `disallow: /` (NEXT_PUBLIC_ALLOW_INDEXING unset)
+// Nothing checks that the two agree. The flag is read at request time and the
+// matcher is fixed at build time, so no test and no runtime check can tell you
+// the pair is half done — this comment is the only link between them. Undo both
+// together when the storefront comes back.
 //
-// Sitemaps are intentionally NOT excluded — they 307 to "/" rather than
-// advertising product URLs that all redirect.
+// ── THE GATE MATCHER — commented out on purpose ─────────────────
+// Far wider than the storefront matcher: everything the logo page does not
+// need reaches this function, so /api, the sitemaps, the static folders,
+// prefetches and server actions are all turned back as well. Excluded is only
+// what the logo page needs to render, plus crawler hygiene — `_next` for the
+// bundle and the image optimizer, `icons` for Logo.svg, `favicon.ico`,
+// `robots.txt` (which serves `disallow: /`), and the search-console file.
+// Sitemaps are deliberately NOT excluded: they 307 to "/" rather than
+// advertising product addresses that all redirect.
 //
-// Restoring the storefront: revert this commit — it returns the matcher, the
-// gate and the logo page together. Reverting only one leaves the app running
-// under the wrong matcher.
+// export const config = {
+//   matcher: [
+//     "/((?!_next|icons|favicon.ico|robots.txt|google210329fcef4fbcff.html).*)",
+//   ],
+// };
+
 export const config = {
   matcher: [
-    "/((?!_next|icons|favicon.ico|robots.txt|google210329fcef4fbcff.html).*)",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    {
+      source:
+        "/((?!api|ingest|noposter|sentry-test|fcm-dashboard|testBoutique|simulateUser|firebase-messaging-sw.js|google210329fcef4fbcff.html|robots.txt|robots.txt|robots|opengraph-image.png|default.mp3|wa.mp3|backend-compare|sitemap|manifest.json|error.png|assets|icons|fonts|translations|reports|images|styles|endCall|sitemap.xml|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
+      missing: [
+        { type: "header", key: "purpose", value: "prefetch" },
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "next-action" },
+        { type: "header", key: "next-router-state-tree" },
+      ],
+    },
   ],
 };
