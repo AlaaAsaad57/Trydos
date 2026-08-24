@@ -227,6 +227,62 @@ describe("updating the profile", () => {
     expect(notifications.showErrorNotification).toHaveBeenCalledTimes(1);
   });
 
+  it("puts the OLD value into the shopper's own copies when a leg is rolled back (AC-25)", async () => {
+    (store as any).__resetAuthStore({
+      userProfile: { id: 7, name: "old", phone: "+90555" },
+      userChat: { id: "c1", name: "old" },
+      userStories: { id: "s1", name: "old" },
+    });
+    market.reply(OK); // stories takes the change
+    market.reply(OK); // chat takes the change
+    market.reply({ success: false, message: "market refused" }); // the core backend refuses
+    market.reply(OK); // stories is put back
+    market.reply(OK); // chat is put back
+
+    await expect(
+      auth.UpdateProfile({ name: "Ada" }, {}),
+      "the core backend was set up to refuse the save, so the call had to raise",
+    ).rejects.toThrow("market refused");
+
+    // Each rolled-back backend was sent the old name. Read what actually went
+    // out rather than trusting the queue order.
+    const bodies = (fetchDataModule.fetchData as any).mock.calls.map((c: any[]) =>
+      JSON.parse(c[0].body),
+    );
+    expect(
+      bodies[3].name,
+      "the rollback sent the new name to the stories backend instead of the old one",
+    ).toBe("old");
+    expect(
+      bodies[4].name,
+      "the rollback sent the new name to the chat backend instead of the old one",
+    ).toBe("old");
+
+    // So the app's own copies have to hold the old name too. If they do not,
+    // the shopper is told the save failed and is still shown the new name.
+    const s = store.useAppStore.getState();
+    expect(
+      s.userStories.name,
+      "the stories copy in the store kept the new name after the stories leg was rolled back",
+    ).toBe("old");
+    expect(
+      s.userChat.name,
+      "the chat copy in the store kept the new name after the chat leg was rolled back",
+    ).toBe("old");
+
+    // …and the same for the stored copies the settings screens render from.
+    const lastWriteTo = (cookie: string) =>
+      net.calls.filter((c) => c.body.updates[0].name === cookie).at(-1);
+    expect(
+      lastWriteTo("USER-STORIES")?.body.updates[0].value.name,
+      "the stored stories copy kept the new name after the stories leg was rolled back",
+    ).toBe("old");
+    expect(
+      lastWriteTo("USER-CHAT")?.body.updates[0].value.name,
+      "the stored chat copy kept the new name after the chat leg was rolled back",
+    ).toBe("old");
+  });
+
   it("does not roll back a leg that never ran (AC-25)", async () => {
     (store as any).__resetAuthStore({ userProfile: { id: 7, name: "old" } });
     market.reply({ success: false, message: "market refused" });
