@@ -5,6 +5,7 @@ import { dataURLtoFile } from "components/Chat/chatsFunctions";
 
 import auth from "services/auth";
 import { LogError, translateFunction } from "utils/functions";
+import { showErrorNotification } from "store/notifications/reducer";
 
 import { GetImageUrl } from "utils/tinyUtils";
 import BackBar from "components/setting/BackBar";
@@ -148,6 +149,20 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
         // TODO: Upload file to server
 
         res = await auth.UpdateProfileImage(UploadedFile);
+        // `UpdateProfileImage` reports a refusal by answering null, it does not
+        // raise. Left unchecked, `res.sub_path` below raises a TypeError that
+        // lands in the catch and is only logged — so the screen simply stopped,
+        // and a shopper could not tell a refused upload from a saved one.
+        if (!res?.sub_path) {
+          // Tell the shopper AND record it. The refusal was previously only
+          // recorded, by way of the TypeError it caused.
+          LogError({
+            error: new Error("Profile picture upload was refused"),
+            scenario: "Error In UploadFile in UploadProfilePhoto",
+          });
+          showErrorNotification(translateFunction("File upload failed."));
+          return;
+        }
       } else {
         res = { sub_path: user?.image };
       }

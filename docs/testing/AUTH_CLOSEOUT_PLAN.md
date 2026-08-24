@@ -398,19 +398,58 @@ test in this plan owes a red run.
 One line per finding, as **Done means** requires. A finding is recorded whether
 it turned out to be the app, the test, or a backend.
 
-### Found while planning items C, D and E — five defects, none ticketed yet
+### Found while planning items C, D and E — five defects, three now fixed
 
-One work item is open at a time, so these wait. They are written here, not in a
+**Three of the five are closed.** The picture-mirror one is recorded under its own
+heading below; the two here marked **FIXED** were fixed directly, each proved by a
+test seen red first, and each in the **unit** suite — the browser suite never
+gates a pull request, so a fix proved only there would be unguarded from the day
+it landed. The two that remain open are both on the one-time-code send path, not
+the profile. They are written here, not in a
 workspace, because a workspace can be deleted and this file is committed. Each is
 subject to the repository rule when picked up: a check that fails because of it,
 seen failing, then the smallest fix.
 
-- **A refused profile-picture upload tells the shopper nothing.** The reply is
-  read, it throws, the handler only logs it, and the navigation never happens — so
-  the shopper stays on the screen with no message and no idea it failed.
-- **`id_token` reaches a kept artifact.** It is absent from every stored copy, but
-  the request body carries it and a failed save ships the whole body to Sentry as
-  `request_body`, with no scrub.
+- **A refused profile-picture upload tells the shopper nothing. FIXED.** The
+  mechanism was worse than this line described. `UpdateProfileImage` reports a
+  refusal by **answering `null`** — it does not raise (`services/auth.ts:1000`).
+  So `res.sub_path` in `UploadProfilePhoto.tsx` was a null dereference, and the
+  `TypeError` it raised landed in the handler's `catch`, which only logged. That
+  is also why `UpdateProfile`'s own "Failed to update profile Info" never showed:
+  the raise happened **before** `UpdateProfile` was ever called.
+  The screen now checks the answer, records the refusal, and shows the existing
+  key `"File upload failed."` (already present in ar/tr/ku — no new key).
+  **Proving test:** `tests/components/settings/UploadProfilePhoto.test.tsx` ->
+  "tells the shopper the upload failed", seen **red** before the fix
+  (`showErrorNotification` never called) and green after. It replaces the old
+  "tells the shopper nothing — pinned, not endorsed" case, exactly as that case's
+  own comment instructed. The sibling case that asserts the refusal is still
+  **recorded** caught a regression in the first attempt at the fix — an early
+  `return` that skipped `LogError` — so the fix now does both.
+- **`id_token` reaches a kept artifact. FIXED — and it was two leaks, not one.**
+  `utils/fetchData.ts` attaches the failing request to every error report, and
+  `utils/errorReported.tsx:82` forwards it to Sentry verbatim. Two things were
+  wrong:
+  1. **The body** carried `id_token` on a profile save after a phone change.
+  2. **The address** carried the one-time code. The code is *not* in the body —
+     `services/auth.ts:153,285` build `/auth/login?...&otp=`, and `request_url`
+     sits on the same error object. This half was not in the original finding.
+
+  A third detail made the first attempt fail: the `LogError` call spread the
+  scrubbed `errorObj` and then **re-added raw `url` and `body`** underneath,
+  putting the credential straight back. All three sites are now scrubbed.
+
+  `scrubRequestBody` / `scrubRequestUrl` redact `id_token`, `otp_id_token`,
+  `otp`, `password`, `token`, `access_token` and `refresh_token`. `code` is
+  deliberately **not** in that list — it is a coupon, a country and a reqTitle
+  field far more often than a one-time code, and over-redacting leaves a report
+  nobody can act on. A body that is not JSON is dropped whole rather than
+  guessed at.
+  **Proving test:** `tests/utils/fetchData.test.ts` -> "never sends a credential
+  from the request body to the error reporter", seen **red** before the fix
+  (`expected true to be false` — the token was in the report) and green after.
+  It also asserts the ordinary field `name` **survives**, so a later tightening
+  cannot quietly scrub the report into uselessness.
 - **Removing a profile picture leaves the old one in the stored copy.** The body
   carries `image: null`; the mirror falls back to the previous value.
 - **The one-time-code cooldown text reaches the public job log unredacted.**

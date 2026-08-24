@@ -799,6 +799,53 @@ describe("response status and message handling", () => {
 });
 
 describe("error handling and retries", () => {
+  it("never sends a credential from the request body to the error reporter", async () => {
+    const { functions } = await setup();
+    const net = makeMockFetch([
+      jsonReply({ message: "refused" }, 500),
+      jsonReply({ message: "refused" }, 500),
+      jsonReply({ message: "refused" }, 500),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    // A profile save after a phone change carries the one-time token that
+    // authorises it. The whole body is what gets attached to the error report.
+    const SECRET = "id-token-must-never-be-reported";
+    await fetchData({
+      ...baseParams,
+      method: "POST" as const,
+      // The one-time code travels in the query string, not the body — see
+      // services/auth.ts, which builds "/auth/login?...&otp=". The report
+      // attaches the url as well as the body, so both have to be clean.
+      url: "/auth/login?verificationId=v1&otp=123456",
+      body: JSON.stringify({ name: "Ada", id_token: SECRET }),
+    });
+
+    expect(
+      functions.LogError,
+      "the failed request was never reported, so this case proves nothing about what the report carries",
+    ).toHaveBeenCalled();
+
+    const reported = (functions.LogError as any).mock.calls
+      .map((c: any[]) => JSON.stringify(c[0] ?? ""))
+      .join(" ");
+    expect(
+      reported.includes(SECRET),
+      "the one-time token from the request body reached the error reporter, which keeps it in a stored report",
+    ).toBe(false);
+    expect(
+      reported.includes("123456"),
+      "the one-time code from the request address reached the error reporter, which keeps it in a stored report",
+    ).toBe(false);
+
+    // The report must still be useful — the non-secret fields stay.
+    expect(
+      reported.includes("Ada"),
+      "scrubbing the credentials also removed the ordinary fields, leaving a report nobody can act on",
+    ).toBe(true);
+  });
+
   it("GET retries on network failures then succeeds", async () => {
     await setup();
     const net = makeMockFetch([
