@@ -777,7 +777,15 @@ class AuthService {
         email: userObj?.email ?? userProfile?.email,
         alternative_phone:
           userObj?.alternative_phone ?? userProfile?.alternative_phone,
-        image: this.getImageForCookie(userObj?.image ?? userProfile?.image),
+        // `??` here would read a deliberate clear as "not supplied". Removing a
+        // picture sends `image: null` (UploadProfilePhoto), and null would fall
+        // back to the old picture — so every backend drops it while the app goes
+        // on showing it. Only an ABSENT field may fall back; null is a value the
+        // shopper chose. The other fields above are safe on `??` because the
+        // form clears a text field to "", which `??` already passes through.
+        image: this.getImageForCookie(
+          userObj?.image !== undefined ? userObj.image : userProfile?.image,
+        ),
       };
       editUserInfo(marketUpdate);
       updateSecureUserData([

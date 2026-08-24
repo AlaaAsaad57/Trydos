@@ -205,6 +205,85 @@ describe("updating the profile", () => {
     expect(marketBody.image).toBe("ada.png");
   });
 
+  it("clears the picture in the shopper's own copy when the picture is removed (AC-24)", async () => {
+    (store as any).__resetAuthStore({
+      userProfile: { id: 7, name: "Ada", image: "ada.png" },
+    });
+    market.reply(OK); // market only — no chat or stories record
+
+    // What removing a picture sends: UploadProfilePhoto passes an explicit null.
+    await withSettle(() => auth.UpdateProfile({ image: null }, {}));
+
+    const marketBody = JSON.parse(
+      (fetchDataModule.fetchData as any).mock.calls[0][0].body,
+    );
+    expect(
+      marketBody.image,
+      "the save did not ask the core backend to clear the picture",
+    ).toBe(null);
+
+    // The backend dropped it, so the app's own copies have to drop it too —
+    // every settings screen renders the picture from them.
+    expect(
+      store.useAppStore.getState().userProfile.image,
+      "the removed picture is still in the profile held in the store",
+    ).toBe(null);
+    expect(
+      net.calls.at(-1)?.body.updates[0].value.image,
+      "the removed picture is still in the stored profile copy",
+    ).toBe(null);
+  });
+
+  it("carries a cleared e-mail and alternative phone through to the stored copy (AC-24)", async () => {
+    (store as any).__resetAuthStore({
+      userProfile: {
+        id: 7,
+        name: "Ada",
+        email: "ada@example.com",
+        alternative_phone: "+90555",
+      },
+    });
+    market.reply(OK); // market only
+
+    // What clearing a text field sends: the form passes the empty string, not
+    // null. An empty string is a real value and must not be read as "absent".
+    await withSettle(() =>
+      auth.UpdateProfile({ email: "", alternative_phone: "" }, {}),
+    );
+
+    const stored = net.calls.at(-1)?.body.updates[0].value;
+    expect(
+      stored.email,
+      "the cleared e-mail was replaced with the old one in the stored copy",
+    ).toBe("");
+    expect(
+      stored.alternative_phone,
+      "the cleared alternative phone was replaced with the old one in the stored copy",
+    ).toBe("");
+  });
+
+  it("keeps a field the save never mentioned (AC-24)", async () => {
+    (store as any).__resetAuthStore({
+      userProfile: { id: 7, name: "old", image: "ada.png", gender: "f" },
+    });
+    market.reply(OK); // market only
+
+    await withSettle(() => auth.UpdateProfile({ name: "Ada" }, {}));
+
+    // The fallback to the old profile is deliberate and has to stay: a save
+    // that changes only the name must not blank everything else.
+    const stored = net.calls.at(-1)?.body.updates[0].value;
+    expect(stored.name, "the new name did not reach the stored copy").toBe("Ada");
+    expect(
+      stored.image,
+      "a save that never mentioned the picture dropped it from the stored copy",
+    ).toBe("/customers/profile/ada.png");
+    expect(
+      stored.gender,
+      "a save that never mentioned gender dropped it from the stored copy",
+    ).toBe("f");
+  });
+
   it("puts every completed leg back when a later one fails, and tells the shopper once (AC-25)", async () => {
     (store as any).__resetAuthStore({
       userProfile: { id: 7, name: "old", phone: "+90555" },
