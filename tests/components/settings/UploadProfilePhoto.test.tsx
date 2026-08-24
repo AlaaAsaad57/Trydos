@@ -66,6 +66,14 @@ vi.mock("services/auth", () => ({
 }));
 
 // `LogError` is the only seam the refused case has for "the failure was logged".
+const showErrorNotification = vi.fn();
+vi.mock("store/notifications/reducer", () => ({
+  showErrorNotification: (...a: unknown[]) => showErrorNotification(...(a as [])),
+}));
+vi.mock("@/store/notifications/reducer", () => ({
+  showErrorNotification: (...a: unknown[]) => showErrorNotification(...(a as [])),
+}));
+
 const logError = vi.fn();
 vi.mock("utils/functions", async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
@@ -123,6 +131,7 @@ beforeEach(() => {
   updateProfileImage.mockReset();
   updateProfile.mockClear();
   logError.mockClear();
+  showErrorNotification.mockClear();
 });
 
 afterEach(() => {
@@ -238,7 +247,7 @@ describe("an upload the media backend refuses", () => {
     ).toBeNull();
   });
 
-  it("tells the shopper nothing — pinned, not endorsed", async () => {
+  it("tells the shopper the upload failed", async () => {
     const user = userEvent.setup();
     updateProfileImage.mockResolvedValue(null);
     await show();
@@ -253,14 +262,17 @@ describe("an upload the media backend refuses", () => {
       ).toHaveBeenCalled();
     });
 
-    // This is the current behaviour, and it is a defect: the shopper is left on
-    // the screen with no message. It is recorded in
-    // `docs/testing/AUTH_CLOSEOUT_PLAN.md > Findings` and fixed in its own work
-    // item. When somebody fixes it, this case goes red — and that is correct:
-    // come here, assert the message, and delete this one.
+    // A refusal the shopper is not told about is indistinguishable from a save
+    // that worked: the screen stops its spinner and stays put either way.
+    await waitFor(() => {
+      expect(
+        showErrorNotification,
+        "the MEDIA backend refused the picture and the shopper was told nothing — the screen just stops, so they cannot tell it from success",
+      ).toHaveBeenCalled();
+    });
     expect(
-      screen.queryByRole("alert"),
-      "the screen now tells the shopper the upload failed. That is an improvement — replace this case with one that asserts the message",
-    ).not.toBeInTheDocument();
+      showErrorNotification.mock.calls[0]?.[0],
+      "the shopper was shown an empty message instead of one saying the upload failed",
+    ).toBeTruthy();
   });
 });

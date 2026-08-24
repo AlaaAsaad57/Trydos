@@ -25,6 +25,58 @@ export type ServerType =
   | "market-dashboard";
 
 type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+/** Field names that carry a credential. Kept deliberately narrow: `code` is not
+ *  here because it is a coupon, a country and a reqTitle field far more often
+ *  than a one-time code, and over-redacting leaves a report nobody can act on.
+ *  The one-time code's real key is `otp`. Mirrors `sanitizeUserData` in
+ *  utils/server/tokenManager.ts. */
+const CREDENTIAL_FIELDS = [
+  "id_token",
+  "otp_id_token",
+  "otp",
+  "password",
+  "token",
+  "access_token",
+  "refresh_token",
+];
+const REDACTED = "[redacted]";
+
+/** Strip credentials from a JSON request body before it is attached to an error
+ *  report. Sentry keeps what it is sent, so a profile save after a phone change
+ *  would otherwise store the one-time token that authorised it. Non-JSON and
+ *  unparseable bodies are dropped whole rather than guessed at. */
+export const scrubRequestBody = (body: unknown): unknown => {
+  if (typeof body !== "string" || body === "") return body;
+  let parsed: any;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    // Not JSON — it cannot be inspected field by field, and it may be a raw
+    // token. Reporting nothing is better than reporting a secret.
+    return REDACTED;
+  }
+  if (!parsed || typeof parsed !== "object") return body;
+  const safe: any = Array.isArray(parsed) ? [...parsed] : { ...parsed };
+  for (const field of CREDENTIAL_FIELDS) {
+    if (safe[field] !== undefined) safe[field] = REDACTED;
+  }
+  return JSON.stringify(safe);
+};
+
+/** The one-time code travels in the query string (see `/auth/login?...&otp=`),
+ *  so the address is as sensitive as the body and is scrubbed the same way. */
+export const scrubRequestUrl = (url: unknown): unknown => {
+  if (typeof url !== "string" || !url.includes("=")) return url;
+  let out = url;
+  for (const field of CREDENTIAL_FIELDS) {
+    out = out.replace(
+      new RegExp(`([?&]${field}=)[^&#]*`, "gi"),
+      `$1${REDACTED}`,
+    );
+  }
+  return out;
+};
+
 const LOCAL_AUTEHD_ROUTES = ["/api/auth/login", "/api/ticket"];
 
 // Which HttpOnly cookies a failed sub-service recovery may clear — keyed by the
@@ -673,9 +725,9 @@ export const fetchData = async <T = any>(
         message: message.substring(0, 200),
         url: window.location.href,
         user_id: auth.UserID(),
-        request_url: url,
+        request_url: scrubRequestUrl(url),
         request_method: method,
-        request_body: body,
+        request_body: scrubRequestBody(body),
         request_server: server,
         // Token is HttpOnly — not accessible from JS (secure by design)
       };
@@ -700,9 +752,12 @@ export const fetchData = async <T = any>(
           userId: auth.UserID()?.toString(),
           lastJson: responseData,
           page: window.location.href,
-          url,
+          // Scrubbed, like the copies in errorObj above. These keys are read by
+          // utils/errorReported.tsx too, so leaving them raw here would put the
+          // credential back into the report the line above just took it out of.
+          url: scrubRequestUrl(url),
           method,
-          body,
+          body: scrubRequestBody(body),
           server,
           country,
           language,
