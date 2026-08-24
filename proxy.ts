@@ -206,7 +206,23 @@ function setLocaleCookies(
 
 // Geo IP utilities
 function getGeoCountry(request: NextRequest): string | undefined {
-  const country = request.headers.get("x-vercel-ip-country");
+  // `x-vercel-ip-country` is derived from the IP that connects to Vercel. Once
+  // Cloudflare proxies this hostname that is a Cloudflare edge IP, not the
+  // visitor, so every request would resolve to the PoP's country and fall
+  // through to the no-country default below. `CF-IPCountry` is set by
+  // Cloudflare from the real client IP, so prefer it.
+  //
+  // The header is absent whenever Cloudflare is not in front — a grey-clouded
+  // record, a direct *.vercel.app request, local dev — and the original Vercel
+  // value is used unchanged. That is what makes this safe to ship BEFORE the
+  // DNS record is proxied, which is the order it has to happen in.
+  //
+  // Cloudflare answers "XX" for unknown and "T1" for Tor. Neither is a
+  // supported country, so validateLocalePair rejects them and they take the
+  // same path an unknown geo takes today.
+  const country =
+    request.headers.get("cf-ipcountry") ??
+    request.headers.get("x-vercel-ip-country");
   return country?.toLowerCase();
 }
 
@@ -281,7 +297,11 @@ function getCleanPathname(
   return pathname;
 }
 function getClientIp(req: NextRequest): string {
-  const ip = ipAddress(req);
+  // Same reasoning as getGeoCountry above: behind Cloudflare, ipAddress() reads
+  // headers describing the connection Vercel saw, which is Cloudflare's edge.
+  // `CF-Connecting-IP` carries the real client. Absent when Cloudflare is not
+  // in front, so the original call still runs everywhere it used to.
+  const ip = req.headers.get("cf-connecting-ip") ?? ipAddress(req);
 
   if (ip) return ip;
   return "0.0.0.0"; // fallback, should not happen on Vercel

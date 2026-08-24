@@ -260,6 +260,50 @@ describe("choosing the country (AC-3)", () => {
     expect(redirectTarget(response)).toBe("/lb-en/shop");
   });
 
+  // Once Cloudflare fronts this hostname, the country Vercel infers describes
+  // a Cloudflare edge rather than the visitor. Cloudflare's own header is the
+  // one that still describes the person.
+  it("prefers the country Cloudflare reports over the one Vercel infers", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/shop", {
+        headers: {
+          "cf-ipcountry": "tr",
+          "x-vercel-ip-country": "lb",
+        },
+      }),
+    );
+
+    expect(redirectTarget(response)).toBe("/tr-en/shop");
+  });
+
+  // The fallback is what makes this change safe to deploy before the DNS
+  // record is proxied: with no Cloudflare in front the header is simply absent
+  // and the previous source is used untouched.
+  it("falls back to the country Vercel infers when Cloudflare is not in front", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/shop", { headers: { "x-vercel-ip-country": "tr" } }),
+    );
+
+    expect(redirectTarget(response)).toBe("/tr-en/shop");
+  });
+
+  // Cloudflare answers "XX" when it cannot place the address, and "T1" for
+  // Tor. Neither is a supported country, so they take the same route an
+  // unknown geo has always taken.
+  it("treats a country Cloudflare could not determine as no country at all", async () => {
+    const { proxy } = await loadProxy();
+
+    const response = await proxy(
+      makeRequest("/shop", { headers: { "cf-ipcountry": "XX" } }),
+    );
+
+    expect(redirectTarget(response)).toBe("/gb-en/shop?no-country=true");
+  });
+
   it("refuses a saved country it does not support and uses the default gb", async () => {
     const { proxy } = await loadProxy();
 

@@ -34,7 +34,7 @@ Two suites exist: the **unit** suite (`tests/`, Vitest) and the **browser** suit
 ## Architecture
 
 ### Request entry: `proxy.ts` (the middleware)
-Next.js 16 renames `middleware.ts` → **`proxy.ts`**. This single file runs on every request and handles:
+Next.js 16 renames `middleware.ts` → **`proxy.ts`**. This single file runs on **full document navigations only** — its matcher (`proxy.ts`, bottom of file) excludes `/api`, `_next`, `static`, sitemaps, `robots`, `manifest.json`, the asset folders (`assets`, `icons`, `fonts`, `images`, `styles`, `translations`, `reports`) and any path containing a dot; and its `missing:` clause additionally skips prefetches (`purpose: prefetch`, `next-router-prefetch`), Server Actions (`next-action`) and RSC navigations (`next-router-state-tree`). **It never runs on `/api/proxy` or any other route handler.** Check the matcher before assuming a request reaches it. It handles:
 - **i18n locale routing** — supported languages `en`/`ar`/`tr`/`ku`, default `en`; country detection (default `gb`). Rewrites/redirects URLs under `app/(client)/[lang]/`.
 - **Bot detection** (googlebot, facebookexternalhit, etc.). Rate limiting / abuse protection is handled at the platform edge by **Vercel Firewall**, not in this file.
 - Locale is persisted in non-HttpOnly cookies for the client.
@@ -314,8 +314,10 @@ merged into directly. So: `implement` creates `ticket/<slug>` from a clean
 may be changed **only** inside an approved `implement` stage, and only when the
 approved `plan.md` lists them:
 
-- `proxy.ts` — runs on every request (locale routing, country detection, bot
-  handling, the staging gate)
+- `proxy.ts` — runs on full document navigations (locale routing, country
+  detection, bot handling, the staging gate). Its matcher excludes `/api`,
+  `_next`, static assets, and all prefetch / Server Action / RSC requests — see
+  "Request entry" above.
 - `next.config.ts` — build and image/host configuration
 - `instrumentation.ts`, `instrumentation-client.ts`, `sentry.*.config.ts` —
   error reporting wiring

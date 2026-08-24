@@ -929,14 +929,12 @@ export function validate(
       e.purchase_price = tx("Enter a valid purchase price");
   }
 
-  if (
-    (form.unit === "pc" || form.unit === "l") &&
-    (form.weight === "" || isNaN(num(form.weight)) || num(form.weight) <= 0)
-  )
-    e.weight = tx("Weight is required for pc / liter units");
-  // Weight stays optional for kg / gms, but a value that was typed must be a
-  // positive number — 0 or a non-number is never a real weight.
-  else if (form.weight !== "" && (isNaN(num(form.weight)) || num(form.weight) <= 0))
+  // Required on every unit, not only pc / l. A product carrying no weight cannot
+  // be shipped or costed however it is sold, and kg / gms products used to be
+  // allowed to save empty. Missing and unusable stay separate messages so the
+  // seller is told which of the two they hit.
+  if (form.weight === "") e.weight = tx("Weight is required");
+  else if (isNaN(num(form.weight)) || num(form.weight) <= 0)
     e.weight = tx("Enter a valid weight");
 
   if (form.current_stock !== "" && (isNaN(num(form.current_stock)) || num(form.current_stock) < 0))
