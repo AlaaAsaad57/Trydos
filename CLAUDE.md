@@ -139,8 +139,11 @@ a five-second answer into an afternoon of bisecting by hand.
    kept artifact.
 
 8. **Long browser flows use `test.step()`** so the report names the step that
-   failed rather than a line number. Nothing in the browser suite does this yet;
-   the next multi-step flow added should be the first.
+   failed rather than a line number. `tests/e2e/profile.live.spec.ts` is the
+   model — including the nested per-backend form, `` await test.step(`the
+   ${leg} backend took the change`, …) ``, which is what makes a fan-out failure
+   name the backend that refused. No other browser spec does this yet; copy that
+   file, not the others.
 
 9. **Adding a step or a backend to a flow means adding its own check** in the
    same change.
@@ -276,46 +279,6 @@ Two backends serve this app; refer to them by role — the **gateway** (guest/al
 ### Known and accepted — do not re-raise
 
 - **`app/api/auth/simulate/route.ts`** — an unauthenticated `POST` that sets `MARKET-TOKEN`, `User-Data`, the chat/stories/wallet tokens and `USER_ID_HASH` from the request body. It has no environment gate, and `proxy.ts`'s matcher excludes `/api`, so nothing gates it in code. **This is known.** It exists for testers only and is slated for removal. Do **not** open a ticket for it, do **not** raise it as a review finding, and do **not** build anything that depends on it — set auth cookies through the browser's own cookie store instead.
-
-## Plan pre-flight — run the review lenses before the review gate
-
-**A Trydos rule, not plugin behaviour.** It applies to `development` work items
-only; `study` and `research` have no plan stage.
-
-The `/wf:review` panel reads `plan.md` and `spec.md`. Nothing stops it reading
-them one stage earlier, while the plan is still cheap to change. So at the end of
-the `plan` stage — after `plan.md` is written, before the `success` outcome is
-recorded — run the same three lenses on the draft:
-
-`wf:senior-reviewer` · `wf:security-reviewer` · `wf:performance-reviewer`
-
-Dispatch all three in parallel as read-only subagents, passing the slug so each
-reads `_specs/<slug>/plan.md` and `spec.md`. Use the **namespaced** names — a
-plugin registers its agents under its own name, so a bare `senior-reviewer` does
-not resolve here.
-
-Then, for every finding at severity `major`, either **fix the plan** or **write
-down why it stands** — one line, in the owner's own words.
-
-Record the outcome in a `## Pre-flight panel` section of `plan.md`: one row per
-`major` — the lens, the finding, and what changed or why it stands. `minor` and
-`info` need no row unless you acted on them. The extra section is safe: RV-3
-checks that the required sections are present, not that no others are.
-
-**What this does not change.** The stage still produces `plan.md` and still
-records `success` → `review`. The pre-flight never blocks: a plan whose majors
-all stand is a legal plan. Run it again on a rewrite after `changes_requested`.
-And nothing enforces it — since v3 no runtime refuses a stage that skipped a step
-(ADR-023), so the section in `plan.md` is the only evidence it ran.
-
-**Never answer a `major` by adding scope.** The senior lens is there partly to
-catch over-engineering, so a new layer or a config flag trades one `major` for
-another. The smallest change that satisfies every `AC-n` is still the target.
-
-**Why bother.** A `major` at `/review` does not fail the gate — the panel is
-advisory (RP-2) and no lens holds a veto. It costs one comprehension question
-(CG-6) and one disposition line. Catching it here is cheaper than answering for
-it there, and this is the last point where changing the plan is free.
 
 <!-- wf governance text: v3.0.0 -->
 

@@ -19,9 +19,9 @@ sections below say what is already on `develop` as well as what is still owed.
 |---|---|---|
 | A | `tests/e2e/profile.live.spec.ts` | **Done** — on `develop` |
 | B | `tests/e2e/profile.scripted.spec.ts` | Not started |
-| C | `tests/e2e/session-recovery.live.spec.ts` | Not started |
-| D | unit `component-tests-profile` | Not started |
-| E | unit guards for the two defects the live suite found | Not started |
+| C | `tests/e2e/session-recovery.live.spec.ts` | **Written** — `RECOV-01`, awaiting its first staging run |
+| D | unit `component-tests-profile` | **Done** — four files, 27 cases |
+| E | unit guards for the two defects the live suite found | **Done** — field parity and the one-time-token exclusion |
 | F | the profile picture and the address, live | Not started |
 
 E and F were not in the first draft of this plan. E exists because the two app
@@ -242,14 +242,6 @@ has no live proof at all.
    user id** — not a new guest, and no bounce to the sign-in screen.
 4. The stored pair changed (`credentialsChangedSince`), and the storefront token
    is still `HttpOnly`.
-5. **The five-minute check does not undo any of it.** `utils/sessionManager.ts`
-   runs on every page load and on a timer through
-   `components/SessionChecker.tsx`, and nothing anywhere proves a tick leaves a
-   good session alone. This spec is already holding a long-lived signed-in
-   context, so it is the cheapest place to assert that after a reload — a real
-   tick — the same user id is still reported and no sign-in prompt appeared.
-   Item D covers the same code in jsdom; that is the unit half, not a substitute
-   for a real load.
 
 The "the exchange is itself refused" half belongs to item B — staging cannot be
 asked to refuse.
@@ -279,8 +271,6 @@ Targets, all currently at zero coverage:
 - `components/setting/profile/index.tsx` (182) — the card for a signed-in
   shopper, for a guest, and for the guest placeholder names the app treats as
   "no picture".
-- `utils/sessionManager.ts` (70) + `components/SessionChecker.tsx` (26) — runs
-  on every page load and every five minutes, and is untested.
 
 Use `tests/mocks/device.ts` and `tests/mocks/location.ts` from phase 11. Assert
 against roles and visible text, not class names.
@@ -372,8 +362,15 @@ The original order was A → B → C → D, and A is done. B is no longer first
 because it is now the only item with an app fix in it, and because C and D both
 return a result sooner.
 
-Each item is one branch off `develop` and one commit set, so any one of them can
-be reverted alone.
+**How they are ticketed.** C, D and E run together as one work item,
+`auth-closeout-tests`: all three are test-only, they share one outcome — the auth
+journey is proved at unit and browser level — and none of them touches
+application code, so the whole thing reverts with no runtime risk. B is its own
+ticket because it carries the rollback-mirror fix, and E's second guard goes with
+it. F is its own ticket because it is additive live surface.
+
+Within that, each item is still its own commit set, so any one of them can be
+reverted alone.
 
 ## Done means
 
@@ -398,6 +395,28 @@ test in this plan owes a red run.
 
 One line per finding, as **Done means** requires. A finding is recorded whether
 it turned out to be the app, the test, or a backend.
+
+### Found while planning items C, D and E — five defects, none ticketed yet
+
+One work item is open at a time, so these wait. They are written here, not in a
+workspace, because a workspace can be deleted and this file is committed. Each is
+subject to the repository rule when picked up: a check that fails because of it,
+seen failing, then the smallest fix.
+
+- **A refused profile-picture upload tells the shopper nothing.** The reply is
+  read, it throws, the handler only logs it, and the navigation never happens — so
+  the shopper stays on the screen with no message and no idea it failed.
+- **`id_token` reaches a kept artifact.** It is absent from every stored copy, but
+  the request body carries it and a failed save ships the whole body to Sentry as
+  `request_body`, with no scrub.
+- **Removing a profile picture leaves the old one in the stored copy.** The body
+  carries `image: null`; the mirror falls back to the previous value.
+- **The one-time-code cooldown text reaches the public job log unredacted.**
+  `redact()` is wired into the CLI, global setup and the server harness — not the
+  reporter path — and the send action rethrows the page's own error text raw.
+- **The exhausted-retry message names nothing.** The retrying send sleeps the
+  cooldown after its final attempt and then throws a generic "Exceeded maximum
+  retry attempts", swallowing the cooldown text the widget gave it.
 
 ### Item A
 

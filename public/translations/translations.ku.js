@@ -2162,6 +2162,7 @@ const translations = {
   "Enter a valid discount price": "نرخێکی داشکاندنی دروست بنووسە",
   "Enter a valid purchase price": "نرخێکی کڕینی دروست بنووسە",
   "Enter a valid stock": "کۆگایەکی دروست بنووسە",
+  "Enter a valid weight": "کێشێکی دروست بنووسە",
   "Enter a valid unit price": "نرخێکی یەکەی دروست بنووسە",
   "Every color needs at least one image": "هەموو ڕەنگێک بەلایەنی کەم یەک وێنەی پێویستە",
   "Every image must be assigned to a color": "هەموو وێنەیەک دەبێت بۆ ڕەنگێک دیاری بکرێت",
