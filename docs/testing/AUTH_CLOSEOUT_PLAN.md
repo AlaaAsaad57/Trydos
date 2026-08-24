@@ -21,7 +21,7 @@ sections below say what is already on `develop` as well as what is still owed.
 | B | `tests/e2e/profile.scripted.spec.ts` | Not started |
 | C | `tests/e2e/session-recovery.live.spec.ts` | **Written** — `RECOV-01`, awaiting its first staging run |
 | D | unit `component-tests-profile` | **Done** — four files, 27 cases |
-| E | unit guards for the two defects the live suite found | **Done** — field parity and the one-time-token exclusion |
+| E | unit guards for the two defects the live suite found | **Done** — field parity, the one-time-token exclusion, and the rollback mirror |
 | F | the profile picture and the address, live | Not started |
 
 E and F were not in the first draft of this plan. E exists because the two app
@@ -218,11 +218,13 @@ The rollback case is the important one and the reason this item exists:
 `UpdateProfile` can answer with two of three legs done. There is no error for a
 test to notice — only the state each backend was left in.
 
-**This item carries an app fix.** The rollback mirror defect below is real,
-confirmed, and deliberately not fixed yet because no test exercises the path. It
-is fixed here, under the four-step rule: the rollback case is written first,
-seen red, then `services/auth.ts` is changed, then the case is seen green. A fix
-landed without a red run does not count.
+**The app fix this item used to carry is done, ahead of the item.** The
+rollback mirror defect turned out to be reproducible with no backend at all, so
+it was proved and fixed in the unit suite instead — see the finding below. What
+is left for this item is the browser half: the cases above still need scripting,
+and the rollback case here is what proves the **shopper-visible** behaviour
+(the completed legs put back, the shopper told once) rather than the stored
+copy alone.
 
 Reuse `recordProfileWrites` — it already separates a `401` retry from a rollback
 and will report the rollback bodies without more work.
@@ -465,9 +467,9 @@ three fields off the stored profile: `gender`, `email` and `alternative_phone`
 are read only by `PersonalInfoForm`, and it already tolerates both shapes the
 backend uses for gender (`user?.gender?.value || user?.gender`).
 
-**App — the rollback path writes the NEW value after reverting to the old one.
-Open; NOT fixed, and deliberately so.** In the same function, both rollback
-mirrors do the inverse of the bug above:
+**App — the chat rollback wrote the NEW value after reverting to the old one.
+FIXED, and proved by a unit test.** In the same function, two rollback mirrors
+did the inverse of the bug above:
 
 ```js
 const revertMarket = { name: userObj?.name ?? userProfile?.name, ... };  // NEW name
@@ -475,11 +477,32 @@ const revertChat   = { name: userObj?.name ?? userProfile?.name, ... };  // NEW 
 ```
 
 The request body sent to each backend is the **old** profile, but the stored
-copy is written with `userObj` — the value that was just rolled back. So after a
-partial failure the app would show the change it had just undone. Left alone on
-purpose: no test exercises the rollback path yet, and a fix has to be proved by
-a test that was red first. **Item B is the ticket that exercises it**, and is
-where this gets fixed. **Item E is where it stays fixed.**
+copy was written with `userObj` — the value that was just rolled back. So after
+a partial failure the app showed the change it had just undone: the shopper is
+told the save failed and is still shown the new name, and chat keeps calling
+them by it.
+
+`revertChat` is fixed. It now reads `userProfile`, the same as `revertStories`
+right above it. **The proving test is `tests/services/auth.profile.test.ts` →
+"puts the OLD value into the shopper's own copies when a leg is rolled back
+(AC-25)"**, and it was seen **red before the fix** — `expected 'Ada' to be
+'old'` on the chat copy in the store — and green after, with the whole suite at
+1469/1469. It is in the unit suite on purpose: the browser suite never gates a
+pull request, so a fix proved only there is unguarded from the day it lands.
+
+The test also asserts the **stories** leg as a control. Stories was already
+correct, and its assertions passed in the same red run — which is what rules out
+the test setup and names chat as the fault.
+
+**`revertMarket` was left alone, and that is a separate finding: it is
+unreachable.** The legs run stories → chat → market, so `market_done` is only
+ever true on the path that returns, and nothing between it and the `return`
+can raise — `updateSecureUserData` swallows every error and is not awaited. The
+block carries the same defect and can never run it. Fixing dead code is not this
+ticket's job and a test for it would have no caller to exercise; whether the
+block is removed or the leg order is what should change is its own decision.
+
+**Item E is where the chat fix stays fixed** — the test above is that guard.
 
 **Test coverage gap — now Item E, no longer just a note.**
 `tests/services/auth.profile.test.ts` has 16 tests over `UpdateProfile` and
