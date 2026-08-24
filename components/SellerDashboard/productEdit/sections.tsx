@@ -492,7 +492,7 @@ export function PricingSection({ form, patch, errors, disabled, currency, prices
           disabled={disabled || hasVariants}
           onChange={(v) => patch({ current_stock: v })}
         />
-        <Num label="Weight" value={form.weight} error={errors.weight} hint={t("Required for pc / liter")} disabled={disabled} onChange={(v) => patch({ weight: v })} />
+        <Num label="Weight" value={form.weight} error={errors.weight} required fieldKey="weight" disabled={disabled} onChange={(v) => patch({ weight: v })} />
         <Num label="Max Allowed Qty" value={form.max_allowed_qty} disabled={disabled} onChange={(v) => patch({ max_allowed_qty: v })} />
         <Num label="Pieces / Unit" value={form.count_of_pieces} error={errors.count_of_pieces} hint={t("Must be a whole number between 1 and 100")} disabled={disabled} step="1" onChange={(v) => patch({ count_of_pieces: v })} />
         {!pricesLocked && (

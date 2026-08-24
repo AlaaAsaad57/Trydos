@@ -2,6 +2,34 @@ import { NextResponse, userAgent, type NextRequest } from "next/server";
 import { ipAddress } from "@vercel/functions";
 import { NextURL } from "next/dist/server/web/next-url";
 
+// ── STAGING GATE — off unless asked for ────────────────────────
+// With STAGING_GATE=on this file serves nothing but the centered-logo page
+// (app/page.tsx) at "/", and sends every other path it runs on back to "/".
+// The redirect is deliberately temporary (307, never 308): a permanent redirect
+// would be cached by browsers and keep sending real users to the logo long
+// after launch.
+//
+// The gate is opt-in: any other value — including no value at all — leaves it
+// off. That is what lets this branch carry the gate and still behave exactly
+// like the storefront. Nothing has to be set to serve the real app, and one
+// setting brings the logo page back.
+//
+// What the gate does NOT cover. Its other half would be `config.matcher` at
+// the bottom of this file, and that is a build-time export — Next only accepts
+// literals there, so it cannot read this setting. We ship the storefront
+// matcher, which keeps /api, the sitemaps, the static folders and (through its
+// `missing:` clause) prefetches and server actions away from this function.
+// Those paths therefore stay live while the gate is on: it turns back every
+// page navigation, and nothing else. Closing that hole means swapping in the
+// wide gate matcher kept next to `config` at the bottom of this file — and
+// swapping it back out at launch, because while it ships this function runs in
+// front of every /api call and every prefetch, gate or no gate.
+const STAGING_GATE_ENABLED = process.env.STAGING_GATE === "on";
+
+// The only path the gate serves. Static assets the logo page needs are handled
+// by the matcher below, which never invokes this function for them.
+const STAGING_GATE_ALLOWED_PATH = "/";
+
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
 const DEFAULT_LANGUAGE = "en";
@@ -178,7 +206,23 @@ function setLocaleCookies(
 
 // Geo IP utilities
 function getGeoCountry(request: NextRequest): string | undefined {
-  const country = request.headers.get("x-vercel-ip-country");
+  // `x-vercel-ip-country` is derived from the IP that connects to Vercel. Once
+  // Cloudflare proxies this hostname that is a Cloudflare edge IP, not the
+  // visitor, so every request would resolve to the PoP's country and fall
+  // through to the no-country default below. `CF-IPCountry` is set by
+  // Cloudflare from the real client IP, so prefer it.
+  //
+  // The header is absent whenever Cloudflare is not in front — a grey-clouded
+  // record, a direct *.vercel.app request, local dev — and the original Vercel
+  // value is used unchanged. That is what makes this safe to ship BEFORE the
+  // DNS record is proxied, which is the order it has to happen in.
+  //
+  // Cloudflare answers "XX" for unknown and "T1" for Tor. Neither is a
+  // supported country, so validateLocalePair rejects them and they take the
+  // same path an unknown geo takes today.
+  const country =
+    request.headers.get("cf-ipcountry") ??
+    request.headers.get("x-vercel-ip-country");
   return country?.toLowerCase();
 }
 
@@ -253,7 +297,11 @@ function getCleanPathname(
   return pathname;
 }
 function getClientIp(req: NextRequest): string {
-  const ip = ipAddress(req);
+  // Same reasoning as getGeoCountry above: behind Cloudflare, ipAddress() reads
+  // headers describing the connection Vercel saw, which is Cloudflare's edge.
+  // `CF-Connecting-IP` carries the real client. Absent when Cloudflare is not
+  // in front, so the original call still runs everywhere it used to.
+  const ip = req.headers.get("cf-connecting-ip") ?? ipAddress(req);
 
   if (ip) return ip;
   return "0.0.0.0"; // fallback, should not happen on Vercel
@@ -271,6 +319,14 @@ const extractLocales=(u:string)=>{
 }
 // Main middleware function
 export async function proxy(request: NextRequest) {
+  // Staging gate — see STAGING_GATE_ENABLED above. Must stay the first thing
+  // this function does, so no locale/country/bot logic can run while it is on.
+  if (STAGING_GATE_ENABLED) {
+    return request.nextUrl.pathname === STAGING_GATE_ALLOWED_PATH
+      ? NextResponse.next()
+      : NextResponse.redirect(new URL("/", request.url), 307);
+  }
+
   const ua = request.headers.get("user-agent") ?? "";
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
@@ -606,6 +662,34 @@ export async function proxy(request: NextRequest) {
   url.searchParams.set("no-country", "true");
   return NextResponse.redirect(url);
 }
+
+// Turning the gate on takes two edits, and the second is the one that gets
+// forgotten:
+//
+//   1. Set STAGING_GATE=on — the flag at the top of this file.
+//   2. Swap the storefront matcher below for the gate matcher kept just above
+//      it, commented out.
+//
+// Nothing checks that the two agree. The flag is read at request time and the
+// matcher is fixed at build time, so no test and no runtime check can tell you
+// the pair is half done — this comment is the only link between them. Undo both
+// together when the storefront comes back.
+//
+// ── THE GATE MATCHER — commented out on purpose ─────────────────
+// Far wider than the storefront matcher: everything the logo page does not
+// need reaches this function, so /api, the sitemaps, the static folders,
+// prefetches and server actions are all turned back as well. Excluded is only
+// what the logo page needs to render, plus crawler hygiene — `_next` for the
+// bundle and the image optimizer, `icons` for Logo.svg, `favicon.ico`,
+// `robots.txt` (which serves `disallow: /`), and the search-console file.
+// Sitemaps are deliberately NOT excluded: they 307 to "/" rather than
+// advertising product addresses that all redirect.
+//
+// export const config = {
+//   matcher: [
+//     "/((?!_next|icons|favicon.ico|robots.txt|google210329fcef4fbcff.html).*)",
+//   ],
+// };
 
 export const config = {
   matcher: [
