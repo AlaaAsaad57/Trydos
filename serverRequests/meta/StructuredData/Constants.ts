@@ -1,7 +1,7 @@
 export const General_Site_Data = {
   // Canonical site origin. Set NEXT_PUBLIC_SITE_URL to the production domain in the
   // production environment; falls back to the dev domain locally / on preview builds.
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://dev.trydos.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://trydos.ramaaz.dev",
   og: "/opengraph-image.png",
   name: "TryDos",
   // Official social profiles feed schema.org `sameAs` (Organization). Set the env vars to the
