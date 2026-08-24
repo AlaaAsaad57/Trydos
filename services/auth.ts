@@ -906,9 +906,13 @@ class AuthService {
         if (!res.success) {
           throw new Error(res.message);
         }
+        // The old profile, not the new one. The request just above puts the
+        // old name back on the chat backend, so writing `userObj` here would
+        // leave the app's own copy holding the value it had just undone — the
+        // shopper is told the save failed and is still shown the new name.
         const revertChat = {
-          name: userObj?.name ?? userProfile?.name,
-          mobile_phone: userObj?.phone ?? userProfile?.phone,
+          name: userProfile?.name,
+          mobile_phone: userProfile?.phone,
           photo_path: this.ConfigurePhoto(userProfile?.image, "chat"),
         };
         loginSuccessChat(revertChat);
