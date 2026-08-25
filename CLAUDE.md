@@ -280,7 +280,7 @@ Two backends serve this app; refer to them by role — the **gateway** (guest/al
 
 - **`app/api/auth/simulate/route.ts`** — an unauthenticated `POST` that sets `MARKET-TOKEN`, `User-Data`, the chat/stories/wallet tokens and `USER_ID_HASH` from the request body. It has no environment gate, and `proxy.ts`'s matcher excludes `/api`, so nothing gates it in code. **This is known.** It exists for testers only and is slated for removal. Do **not** open a ticket for it, do **not** raise it as a review finding, and do **not** build anything that depends on it — set auth cookies through the browser's own cookie store instead.
 
-<!-- wf governance text: v3.0.0 -->
+<!-- wf governance text: v3.4.0 -->
 
 # CLAUDE.md — Engineering Workflows v3
 
@@ -342,6 +342,31 @@ study never quietly becomes an implementation.
 6. `implement` — apply the change per the approved plan.
 7. `verify` — validate the change and review runtime impact.
 
+**Tests are declared, written, and run — in that order.** `plan.md` maps every
+`AC-n` to the test file and case that proves it, or says `none — <reason>`;
+`/implement` writes exactly those and no others; `/verify` runs them through the
+profile named in `.claude/project-config.yaml` and records the exit code per
+`AC-n`. A declared test that never ran is a **failed** verification, not a passed
+one — saying it passes is not evidence (PL-13 / IM-11 / VF-11, ADR-026). A test
+the approved plan never named is still scope creep at `implement` (IM-4): declare
+it first, or revise the plan.
+
+**Look for the test before you write one** (PL-14, ADR-027). Each row of
+`plan.md > Tests` records what already covers that `AC-n` and one disposition:
+`existing` (already proven — write nothing), `extend` (the unit has a test file,
+the case is missing — **add it to that file**), or `new`. **A second, parallel
+test file for a unit that already has one is a defect.** `extend` and `new` both
+put the file under files to change, an existing file included.
+
+**A test that proves existing behaviour wrong is a finding, not a fix** (IM-12 /
+VF-12, ADR-027). Record it as `BUG-n` in `implement.md > Findings` and carry it
+into `verify.md > Findings` — scenario, confirming test, where it lives, expected
+vs actual — and **open a separate ticket for it**. The scope line is the *file*:
+wrong behaviour inside `plan.md > Files to change` is yours to fix here; anywhere
+else it is a finding. Keep the confirming test in the suite under the runner's
+**strict** expected-failure marker with the `BUG-n` id, so the suite stays green
+and the fix ticket cannot land without correcting the test.
+
 **`study`** — `intake → scope → analyze → explain → assess` (read-only; no branch,
 no PR). **`research`** — `intake → frame → evidence → evaluate → recommend →
 assess → decide` (evaluates options; records a human decision).
@@ -363,6 +388,10 @@ Stop immediately and request Workflow Owner direction if any of these occur:
   **Project profile** above) outside an explicitly approved implement stage.
 - The request requires deleting or rewriting existing workflow artifacts.
 - Acceptance criteria are missing, ambiguous, or untestable.
+- A test is needed that the approved `plan.md > Tests` does not declare (revise
+  the plan — do not write it and do not skip it).
+- A test proves existing behaviour wrong **inside** a file this plan changes, and
+  fixing it would grow the change (record it and block — IM-10 — do not improvise).
 - A stage's entry criteria are not met (e.g. implementing before plan approval).
 - Scope grows beyond what the approved spec/plan describes.
 
@@ -401,7 +430,7 @@ keep standard technical terms as they are (`scrape`, `cardinality`, `rollback`,
 - Do **not** skip stages or record a gate decision without completing the
   **comprehension check**. The single owner runs their own `/review` and
   `/verify` (self-review is expected; ADR-009) — there is no separate-reviewer
-  requirement; the comprehension gate (CG-1..CG-7) is the control against
+  requirement; the comprehension gate (CG-1..CG-8) is the control against
   rubber-stamping.
 
 ## Review gate requirements
@@ -428,6 +457,34 @@ keep standard technical terms as they are (`scrape`, `cardinality`, `rollback`,
   **Integration surface** section; and `/review` adds **one question per `major`
   panel finding**, up to the ceiling. A finding may still be dismissed — only
   after it is understood.
+- **A question that can be answered without reading the artifact is not a gate**
+  (ADR-025). Every option names something that **exists in this project** — a real
+  file, component, `AC-n`, flow, decision — never an invented one; the wrong options
+  are the right fact slightly bent; the question asks what **is** the case
+  here, never what is correct in general; and at least half the questions require
+  joining **two** places in the artifacts rather than reading one sentence. Before
+  the owner sees them, the questions go — **alone, with no artifacts attached** —
+  to a falsifier agent, and any question it can answer from general knowledge is
+  thrown out. The four options also share a **shape** — comparable length, same
+  form, none uniquely explaining *why* — because an option that stands out by
+  construction is pickable with the artifact closed (ADR-028).
+- **A gate that cannot be built is administered short, never skipped** (ADR-028).
+  When too few questions survive falsification, the gate asks the ones the
+  falsifier got **wrong** — even a single question, below the usual floor — records
+  how short it was and why in `degraded:`, and that line goes to the team channel
+  with a warning icon. Only a set the falsifier answered entirely correctly stops
+  the gate outright, and stopping still records no decision.
+- **The gate decision is the owner's, and the framework never suggests one**
+  (RV-2, ADR-029). At `/review` you are offered exactly `APPROVED`,
+  `CHANGES_REQUESTED`, `REJECTED` — no fourth option, none marked recommended,
+  and nothing chosen on your behalf. "Review it again" is not a decision: a plan
+  that needs work is `CHANGES_REQUESTED`, which returns it to `/wf:plan`, the only
+  stage allowed to rewrite a plan. If you are ever offered an extra option or a
+  recommendation at a gate, that is a defect — report it.
+- **A gate never edits what it reviews** (RV-11 / VF-7). `/review` writes only
+  `review.md`, `comprehension.md` and `ticket.md`; `/verify` only `verify.md`,
+  `comprehension.md` and `ticket.md`. A stage that rewrites its own evidence and
+  then passes it has reviewed its own work.
 - The **Workflow Owner** owns governance (workflow evolution, governance
   decisions, escalations, cross-project issues), not per-ticket sign-off. Escalate
   to the Workflow Owner only when a hard-stop or governance question arises.
