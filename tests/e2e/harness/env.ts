@@ -49,7 +49,23 @@ export const BACKEND_ADDRESS_KEYS = [
   "COMMENT_BACKEND_URL",
   "FLEET_BASE_URL", // a separate product, phase 19
   "ADMIN_DASHBOARD_BASE_URL", // a separate product, phase 19
+  // The media store. Two keys, and today both resolve to the same host — the
+  // first is where the browser uploads, the second is where it reads a picture
+  // back. Both are checked because a run that uploads to staging and reads from
+  // somewhere else would still be pointing at somewhere else.
+  "NEXT_PUBLIC_MEDIA_SERVER_BASE_URL",
+  "NEXT_PUBLIC_BASE_MEDIA_URL",
 ] as const;
+
+/** The media keys, which the guard additionally requires to be `https:`.
+ *
+ *  Every other address here is reached by the server; these two are reached by
+ *  the browser, and one of them carries an API key in a header. A plain-text
+ *  hop is not acceptable for either. */
+export const HTTPS_ONLY_KEYS: readonly string[] = [
+  "NEXT_PUBLIC_MEDIA_SERVER_BASE_URL",
+  "NEXT_PUBLIC_BASE_MEDIA_URL",
+];
 
 /** Parse one `.env` file.
  *
@@ -145,6 +161,20 @@ export const hasShopperB = (): boolean =>
  *  identities. */
 export const hasTestAccountPhones = (): boolean =>
   hasShopperA() || hasShopperB();
+
+/** The media store. Needed by the cases that upload a profile picture and read
+ *  it back.
+ *
+ *  All three, because the app throws "Media server upload is not configured"
+ *  unless the first two are set (`services/auth.ts`), and the picture is read
+ *  back through the third. Gating on fewer would make a half-configured
+ *  environment **fail** where it should skip. */
+export const hasMedia = (): boolean =>
+  allSet(
+    "NEXT_PUBLIC_MEDIA_SERVER_BASE_URL",
+    "NEXT_PUBLIC_MEDIA_API_KEY",
+    "NEXT_PUBLIC_BASE_MEDIA_URL",
+  );
 
 /** The delivery worker. A separate product with its own login. */
 export const hasFleet = (): boolean =>

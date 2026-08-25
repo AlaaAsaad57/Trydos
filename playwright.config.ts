@@ -21,8 +21,12 @@
 //     the test identity's phone number on the login screen, so the live project
 //     records both and `test-e2e.yml` encrypts them before upload.
 //
-// The scripted project has no real session and no real secrets, so it may record
-// freely.
+// The scripted project used to have no real session and no real secrets, so it
+// could record freely. That is **no longer true of every spec in it**:
+// `profile.scripted.spec.ts` signs in for real, and turns its own trace off with
+// `test.use({ trace: "off" })` for exactly that reason. The project default below
+// stays as it is, because `auth.scripted.spec.ts` still mints no real token — but
+// a new scripted spec that signs in must do the same as the profile one.
 
 import { defineConfig } from "@playwright/test";
 
@@ -114,6 +118,10 @@ export default defineConfig({
       name: "scripted",
       testMatch: /.*\.scripted\.spec\.ts$/,
       use: {
+        // No service worker. `page.route` and `context.route` do not see a
+        // request a service worker makes, so one registering mid-run would be a
+        // hole in the closed mode `profile.scripted.spec.ts` depends on.
+        serviceWorkers: "block",
         trace: "retain-on-failure",
         video: "retain-on-failure",
         screenshot: "only-on-failure",

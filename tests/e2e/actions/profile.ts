@@ -306,6 +306,35 @@ export const typeAlternativePhone = async (
   await field.fill(options.phone);
 };
 
+/** Put a number in the main phone field, the way a shopper would.
+ *
+ *  **Not `fill()`.** That field is controlled by `usePhoneInput`, whose setter
+ *  constrains what it accepts by the country's own length rules — so a value
+ *  pasted in one go can be rejected outright, leaving the field on its previous
+ *  number and the form correctly concluding nothing was edited. Typing it
+ *  character by character is what a shopper does and what the hook expects.
+ *
+ *  Answers whether the field ended up holding what was asked for, so a caller
+ *  can tell "the field would not take it" from "the app ignored the change". */
+export const typePhone = async (
+  page: Page,
+  options: { phone: string },
+): Promise<boolean> => {
+  const field = profile.phoneField(page);
+  await expect(field, "the phone field is not editable").toBeEditable();
+
+  await field.click();
+  await field.press("ControlOrMeta+a");
+  await field.press("Backspace");
+  await field.pressSequentially(options.phone.replace(/^\+/, ""), { delay: 30 });
+  await field.blur();
+
+  const digits = (value: string) => value.replace(/\D/g, "");
+  return digits(await field.inputValue()).endsWith(
+    digits(options.phone).slice(-6),
+  );
+};
+
 /** Is the alternative phone this exact number? Digits on both sides. */
 export const alternativePhoneIs = async (
   page: Page,
@@ -400,4 +429,296 @@ export const attemptSizeSave = async (
     saved,
     refusedWith: saved ? null : await visibleSizeValidationMessage(page),
   };
+};
+
+// ---------------------------------------------------------------------------
+// The picture screen
+//
+// The account's picture is read back by whether the screen offers to remove
+// one. That is not a trick: the screen initialises its state from the stored
+// image and renders the remove control only when there is one, so on a freshly
+// loaded screen the two say the same thing. Reading it this way needs no new
+// marker in application markup, which this ticket does not change.
+
+/** Open the picture screen. */
+export const gotoPicture = async (page: Page): Promise<void> => {
+  await gotoUnderLocale(page, "/settings/profile/picture");
+  // The photo menu, not the Save control: Save is a span the back bar fills only
+  // once there is a change to save, so it is hidden on arrival and waiting for it
+  // reports "the screen did not render" about a screen that rendered perfectly.
+  await expect(
+    profile.changePhotoMenu(page),
+    "the picture screen did not render",
+  ).toBeVisible();
+};
+
+/** Does the account have a picture, as this screen understands it? */
+export const hasPicture = async (page: Page): Promise<boolean> =>
+  profile.removePictureButton(page).isVisible();
+
+/** Choose a picture from the device.
+ *
+ *  The input is hidden on purpose — the screen drives it from its own menu — so
+ *  this sets it directly rather than clicking through the menu. What is under
+ *  test is the upload, not the menu. */
+export const choosePicture = async (
+  page: Page,
+  file: { name: string; mimeType: string; buffer: Buffer },
+): Promise<void> => {
+  await profile.pictureFilePicker(page).setInputFiles(file);
+  await expect(
+    profile.removePictureButton(page),
+    "the screen did not take the chosen picture",
+  ).toBeVisible();
+};
+
+/** Ask the screen to remove the picture it is holding. */
+export const clearChosenPicture = async (page: Page): Promise<void> => {
+  await profile.removePictureButton(page).click();
+};
+
+/** Save whatever the picture screen is holding, and say whether it landed.
+ *
+ *  A saved picture navigates back to the profile screen — the same signal the
+ *  other forms use. A refusal leaves the screen where it is and shows a message,
+ *  which is what `AC-3` reads. */
+export const attemptPictureSave = async (
+  page: Page,
+  options: { timeoutMs?: number } = {},
+): Promise<SaveOutcome> => {
+  const button = profile.pictureSaveButton(page);
+  await expect(button, "there is no Save control on the picture screen").toBeVisible();
+
+  const timeout = options.timeoutMs ?? 45_000;
+
+  // Watched **while** the save runs, not after it.
+  //
+  // The refusal is a notification, and the strip dismisses itself after about
+  // five seconds. Reading it once the navigation wait had already timed out
+  // found nothing every time and reported "the shopper was not told" about a
+  // screen that had told them and moved on.
+  const refusal = page
+    .getByText("File upload failed.", { exact: true })
+    .first()
+    .waitFor({ state: "visible", timeout })
+    .then(() => "File upload failed." as const)
+    .catch(() => null);
+
+  const navigation = page
+    .waitForURL(/\/settings\/profile\/?(\?.*)?$/, {
+      timeout,
+      waitUntil: "domcontentloaded",
+    })
+    .then(() => true)
+    .catch(() => false);
+
+  await button.click();
+
+  const [saved, refusedWith] = await Promise.all([navigation, refusal]);
+
+  return {
+    saved,
+    refusedWith: saved ? null : (refusedWith ?? (await pictureRefusalMessage(page))),
+  };
+};
+
+/** What the picture screen says when it refuses.
+ *
+ *  **Not** `visibleValidationMessage`: that reads the personal-info form's own
+ *  six strings, and a refused upload is not one of them — the screen reports it
+ *  through the app's notification strip instead. Reading the wrong one made this
+ *  answer `null` for a screen that had said exactly what happened.
+ *
+ *  Matched by text for the same reason the form's messages are: the string *is*
+ *  the thing being reported, there is no marker on it, and every spec that
+ *  reaches here has pinned the language to English. */
+const pictureRefusalMessage = async (page: Page): Promise<string | null> => {
+  const failed = page.getByText("File upload failed.", { exact: true }).first();
+  if (await failed.isVisible().catch(() => false)) return "File upload failed.";
+
+  // Anything else the notification strip is showing, so a refusal nobody
+  // anticipated still comes back as words rather than as `null`.
+  const strip = page.getByTestId("notification-text").first();
+  if (await strip.isVisible().catch(() => false)) {
+    return (await strip.textContent())?.trim() || null;
+  }
+  return visibleValidationMessage(page);
+};
+
+// ---------------------------------------------------------------------------
+// The address screen
+//
+// Three markers here are misspelled in the markup and are matched as they are —
+// see `selectors.ts`.
+
+/** Open the address screen. */
+export const gotoAddresses = async (page: Page): Promise<void> => {
+  await gotoUnderLocale(page, "/settings/profile/address");
+  await expect(
+    profile.addAddressButton(page),
+    "the address screen did not render",
+  ).toBeVisible();
+};
+
+/** How many addresses the account lists. A count, used only to compare a
+ *  before with an after — never asserted as a fixed number. */
+export const addressCount = async (page: Page): Promise<number> =>
+  profile.addressCards(page).count();
+
+/** Is an address carrying this text listed?
+ *
+ *  A boolean, so the account's real addresses never reach a message. The text
+ *  passed in is the case's own probe value. */
+export const addressIsListed = async (
+  page: Page,
+  text: string,
+): Promise<boolean> =>
+  (await profile.addressCards(page).filter({ hasText: text }).count()) > 0;
+
+/** Start counting how many notifications the app shows at once.
+ *
+ *  Returns a reader for the **peak** number on screen together — which is what
+ *  "the shopper is told once" means: one message for one save, not one per
+ *  backend that refused.
+ *
+ *  Peak rather than "how many are visible now", because the strip dismisses
+ *  itself after about five seconds. A count taken after a save has finished
+ *  waiting finds nothing and reports that the shopper was never told, about a
+ *  screen that told them and moved on. */
+export const watchNotifications = async (
+  page: Page,
+): Promise<() => Promise<number>> => {
+  await page.evaluate(() => {
+    const w = window as unknown as { __e2ePeakNotices?: number };
+    const count = () =>
+      document.querySelectorAll('[data-pw="notification-text"]').length;
+    w.__e2ePeakNotices = count();
+    new MutationObserver(() => {
+      const now = count();
+      if (now > (w.__e2ePeakNotices ?? 0)) w.__e2ePeakNotices = now;
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+
+  return () =>
+    page.evaluate(
+      () => (window as unknown as { __e2ePeakNotices?: number }).__e2ePeakNotices ?? 0,
+    );
+};
+
+/** Add an address, filling everything the form insists on.
+ *
+ *  Four things are required before it will save, and three of them are easy to
+ *  miss because the form shows no complaint — it simply does nothing:
+ *  a **region**, the address line, the detail line, and a contact name and
+ *  phone. The region is the one that is not a text field: it comes from a picker,
+ *  and without it the save is a no-op that looks exactly like a click that
+ *  worked.
+ *
+ *  Answers whether the form accepted it, so a caller can tell "the form would
+ *  not take it" from "the backend refused it". */
+export const addAddress = async (
+  page: Page,
+  options: { address: string; detail: string; recipient: string; phone: string },
+): Promise<boolean> => {
+  await profile.addAddressButton(page).click();
+  await expect(
+    profile.addressForm(page),
+    "the add-address form did not open",
+  ).toBeVisible();
+
+  // Region first: the picker covers the form's Save while it is open.
+  //
+  // It is a hierarchy — country, province, town, suburb — and every level uses
+  // the same marker. Choosing a province drills one level deeper; only a leaf
+  // sets the region and closes the panel. So this keeps choosing the first row
+  // until the panel goes, rather than assuming one click finishes it.
+  await profile.selectRegionButton(page).click();
+
+  for (let level = 0; level < 6; level += 1) {
+    const choice = profile.regionChoices(page).first();
+    if (!(await choice.isVisible({ timeout: 20_000 }).catch(() => false))) {
+      return false;
+    }
+    await choice.click();
+
+    const closed = await profile
+      .regionPicker(page)
+      .waitFor({ state: "hidden", timeout: 5_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (closed) break;
+  }
+
+  if (await profile.regionPicker(page).isVisible().catch(() => false)) {
+    // Still open after six levels: say so rather than failing later on a Save
+    // the picker is covering.
+    return false;
+  }
+
+  await expect(
+    profile.addressForm(page),
+    "the form did not come back after a region was chosen",
+  ).toBeVisible({ timeout: 20_000 });
+
+  await profile.addressTitleField(page).fill(options.address);
+  await profile.addressDetailField(page).first().fill(options.detail);
+
+  // Contact details are usually seeded from the account; filled only when the
+  // form left them empty, so this never overwrites what the account holds.
+  const recipient = profile.addressRecipientField(page);
+  if ((await recipient.count()) > 0 && (await recipient.inputValue()) === "") {
+    await recipient.fill(options.recipient);
+  }
+  const phone = profile.addressPhoneField(page);
+  if ((await phone.count()) > 0 && (await phone.inputValue()) === "") {
+    await phone.fill(options.phone);
+  }
+
+  await profile.saveAddressButton(page).click();
+  return true;
+};
+
+/** Remove every address carrying this text. Answers whether none is left.
+ *
+ *  **Every** copy, not the first: a run that failed to clean up leaves one
+ *  behind, and the next run adds another. Removing them all means one green run
+ *  also clears whatever earlier runs stranded on the shared account.
+ *
+ *  Deleting is two steps — the icon opens a confirmation, and missing the second
+ *  step leaves the address exactly where it was while looking like a click that
+ *  worked. */
+export const removeAddress = async (
+  page: Page,
+  text: string,
+): Promise<boolean> => {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const card = profile.addressCards(page).filter({ hasText: text }).first();
+    if ((await card.count()) === 0) return true;
+
+    await card.getByTestId("Delete-Address-Icon").click();
+
+    const confirm = profile.confirmDeleteAddress(page);
+    if (!(await confirm.isVisible({ timeout: 10_000 }).catch(() => false))) {
+      return false;
+    }
+    await confirm.click();
+
+    // The list re-renders after the delete; wait for this copy to go before
+    // looking for the next one.
+    const gone = await page
+      .waitForFunction(
+        (probe) =>
+          document.querySelectorAll('[data-pw="Address"]').length === 0 ||
+          !Array.from(document.querySelectorAll('[data-pw="Address"]')).some(
+            (node) => node.textContent?.includes(probe),
+          ),
+        text,
+        { timeout: 20_000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+
+    if (gone) return true;
+  }
+  return false;
 };

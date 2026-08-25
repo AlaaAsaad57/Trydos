@@ -72,8 +72,11 @@
 // does after a failing test. PROF-01 signs in and saves the session to disk;
 // PROF-02 opens it.
 //
-// `tests/e2e/.auth/` is gitignored, is not the directory the pipeline uploads,
-// and the file is removed once the last case that needs it has run.
+// `tests/e2e/.auth/` is gitignored and is not the directory the pipeline
+// uploads. The whole directory is removed in `globalTeardown`, which runs after
+// every spec including a failing one — rather than by whichever case happens to
+// be last, which is what it used to be and which broke the moment cases were
+// added after PROF-04.
 //
 // ---------------------------------------------------------------------------
 // The account is shared, and this file writes to it
@@ -85,10 +88,6 @@
 //
 // Nothing here prints the account's name, phone or e-mail. Comparisons happen
 // inside `actions/profile.ts` or inside the browser and come back as booleans.
-
-import { existsSync, rmSync } from "node:fs";
-import { mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
 
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 
@@ -102,8 +101,18 @@ import {
   cardShowsAccountName,
   chooseGender,
   gotoPersonalInfo,
+  addAddress,
+  gotoAddresses,
+  gotoPicture,
   gotoSettings,
   gotoSize,
+  addressCount,
+  addressIsListed,
+  attemptPictureSave,
+  choosePicture,
+  clearChosenPicture,
+  hasPicture,
+  removeAddress,
   hasGenderSet,
   nameFieldIs,
   otherGenderThan,
@@ -120,17 +129,25 @@ import {
   typeName,
   typeSize,
 } from "./actions/profile";
-import { envValue, hasShopperA } from "./harness/env";
+import { envValue, hasMedia, hasShopperA } from "./harness/env";
+import {
+  SESSION_STATE,
+  forgetSavedSession,
+  handOnSession,
+  newLiveContext,
+  openSignedInSession,
+  saveSession,
+} from "./harness/liveSession";
 import {
   PROFILE_LEGS,
   recordProfileWrites,
   type ProfileLeg,
   type ProfileWriteRecorder,
 } from "./harness/profileWrites";
-import { prompt } from "./selectors";
+import { profile, prompt } from "./selectors";
 
-/** Where the signed-in session waits between the two cases. */
-const SIGNED_IN_STATE = "tests/e2e/.auth/profile.json";
+/** Where the signed-in session waits between the cases in this spec. */
+const SIGNED_IN_STATE = SESSION_STATE.profile;
 
 /** The name PROF-02 saves.
  *
@@ -153,75 +170,16 @@ const PROBE_ALT_PHONE = "963900000001";
 const PROBE_SIZE = { height: "177", weight: "77" };
 const PROBE_SIZE_ALT = { height: "178", weight: "78" };
 
+/** The address PROF-07 adds. Marked, so a run that dies mid-way leaves
+ *  something that reads as "a test stopped here". */
+const PROBE_ADDRESS_TITLE = "Trydos E2E Probe";
+const PROBE_ADDRESS_DETAIL = "Trydos E2E probe address, please delete";
+
 /** How long a leg of the save may take before it counts as never sent.
  *
  *  Generous: three backends answer in sequence and a cold staging route can
  *  spend most of a minute before the first one does. */
 const LEG_ANSWER_MS = 60_000;
-
-const forgetSavedSession = () => rmSync(SIGNED_IN_STATE, { force: true });
-
-/** A context carrying the options the project would have given a fixture page.
- *
- *  A context built by hand inherits none of them, so each one this suite relies
- *  on is passed explicitly. */
-const newLiveContext = async (
-  browser: Browser,
-  extra: { storageState?: string } = {},
-): Promise<BrowserContext> => {
-  const { use, outputDir } = test.info().project;
-
-  const context = await browser.newContext({
-    baseURL: use.baseURL,
-    locale: use.locale,
-    recordVideo: use.video ? { dir: outputDir } : undefined,
-    ...extra,
-  });
-  context.setDefaultTimeout(20_000);
-  context.setDefaultNavigationTimeout(45_000);
-  return context;
-};
-
-/** Write the session back as it is **now**, so the next case inherits it.
- *
- *  This is not tidiness, it is the fix for a real failure. Every case opens the
- *  same file, and a saved session is a **snapshot**: the moment a case does
- *  authenticated work, the app can exchange a refused credential for a fresh
- *  one and the pair on the backend moves on. The file still holds the old pair,
- *  so the next case opens a session whose credential has been superseded, the
- *  app recovers it the only way it can — as a guest — and the account's own
- *  details are simply not there any more.
- *
- *  That is exactly what happened: PROF-03 reported "this account has no gender
- *  set" when run after PROF-02, and passed that same check when run without it.
- *  Nothing was wrong with the app or the account.
- *
- *  Only written when the session is still **this account**. A case that failed
- *  its way down to a guest must not hand that on as if it were a session.  */
-const handOnSession = async (
-  context: BrowserContext,
-  page: Page,
-): Promise<void> => {
-  try {
-    const session = await signedInSession(page);
-    if (!session.phoneVerified) return;
-    await context.storageState({ path: SIGNED_IN_STATE });
-  } catch {
-    // Never let bookkeeping replace the failure a case is reporting.
-  }
-};
-
-const openSignedInSession = async (
-  browser: Browser,
-): Promise<BrowserContext> => {
-  if (!existsSync(SIGNED_IN_STATE)) {
-    throw new Error(
-      "there is no saved signed-in session, so PROF-01 never got far enough to sign in. " +
-        "Read that case's failure — this one had nothing to run against.",
-    );
-  }
-  return newLiveContext(browser, { storageState: SIGNED_IN_STATE });
-};
 
 test.beforeEach(() => {
   test.skip(
@@ -234,7 +192,7 @@ test("PROF-01 the settings screens show the signed-in shopper, not a guest", asy
   browser,
 }) => {
   // Anything left by an earlier run is not this run's session.
-  forgetSavedSession();
+  forgetSavedSession(SIGNED_IN_STATE);
 
   const context = await newLiveContext(browser);
   const page = await context.newPage();
@@ -262,8 +220,7 @@ test("PROF-01 the settings screens show the signed-in shopper, not a guest", asy
 
   // Hand the session on **before** anything is judged, so everything below is
   // free to fail without taking PROF-02 with it.
-  await mkdir(dirname(SIGNED_IN_STATE), { recursive: true });
-  await context.storageState({ path: SIGNED_IN_STATE });
+  await saveSession(context, SIGNED_IN_STATE);
 
   const session = await signedInSession(page);
   expect(
@@ -328,7 +285,7 @@ test("PROF-01 the settings screens show the signed-in shopper, not a guest", asy
 
   // Written again, because both steps above happened after the first snapshot
   // and may have moved the credential on. See `handOnSession`.
-  await handOnSession(context, page);
+  await handOnSession(context, page, SIGNED_IN_STATE);
   await context.close();
 });
 
@@ -339,7 +296,7 @@ test("PROF-02 a name change reaches every backend that keeps a copy", async ({
   // reload between them. The project default is not enough for that.
   test.setTimeout(180_000);
 
-  const context = await openSignedInSession(browser);
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
   const page = await context.newPage();
 
   // Needed before any locale-scoped path can be built: which country this run
@@ -417,7 +374,7 @@ test("PROF-02 a name change reaches every backend that keeps a copy", async ({
         )
         .toBe(true);
     }
-    await handOnSession(context, page);
+    await handOnSession(context, page, SIGNED_IN_STATE);
     await context.close();
   }
 });
@@ -428,7 +385,7 @@ test("PROF-03 gender, e-mail and alternative phone save together", async ({
   // Two saves fanning out to three staging backends each, plus a reload.
   test.setTimeout(180_000);
 
-  const context = await openSignedInSession(browser);
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
   const page = await context.newPage();
 
   await gotoAbout(page);
@@ -526,7 +483,7 @@ test("PROF-03 gender, e-mail and alternative phone save together", async ({
         )
         .toBe(true);
     }
-    await handOnSession(context, page);
+    await handOnSession(context, page, SIGNED_IN_STATE);
     await context.close();
   }
 });
@@ -536,7 +493,7 @@ test("PROF-04 the size screen saves a height and a weight", async ({
 }) => {
   test.setTimeout(180_000);
 
-  const context = await openSignedInSession(browser);
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
   const page = await context.newPage();
 
   await gotoAbout(page);
@@ -621,10 +578,10 @@ test("PROF-04 the size screen saves a height and a weight", async ({
         )
         .toBe(true);
     }
+    // This case saves twice, so the credential can have been exchanged since
+    // PROF-03 handed the session on. The cases below open this same file.
+    await handOnSession(context, page, SIGNED_IN_STATE);
     await context.close();
-    // The last case that needs it has finished. A real credential does not sit
-    // on disk afterwards.
-    forgetSavedSession();
   }
 });
 
@@ -731,3 +688,184 @@ const restoreSize = async (
     return false;
   }
 };
+
+// ---------------------------------------------------------------------------
+// PROF-05 to PROF-07 — the two screens the earlier profile work left out.
+//
+// These run after PROF-04, which is why that case now hands its session on
+// instead of deleting it. The file itself is removed by `globalTeardown`.
+
+test("PROF-05 a chosen picture is the account's, and removing it removes it", async ({
+  browser,
+}) => {
+  test.setTimeout(180_000);
+  test.skip(
+    !hasMedia(),
+    "the media store is not configured — see tests/e2e/README.md.",
+  );
+
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
+  const page = await context.newPage();
+  let chose = false;
+
+  try {
+    // The country-and-language prefix is read off the address, and a fresh
+    // context is at about:blank — same reason PROF-02 opens this way.
+    await gotoAbout(page);
+    await gotoPicture(page);
+    const hadOneBefore = await hasPicture(page);
+
+    // A tiny image the case makes itself, with a marked name so an orphan left
+    // on the media store by a dead run can be recognised and found later.
+    await choosePicture(page, {
+      name: "trydos-e2e-probe-picture.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+        "base64",
+      ),
+    });
+    chose = true;
+
+    const saved = await attemptPictureSave(page);
+    expect(
+      saved.saved,
+      `the media backend did not take the picture${saved.refusedWith ? ` (${saved.refusedWith})` : ""}`,
+    ).toBe(true);
+
+    // A reload proves the app's stored copy was updated, which is a different
+    // thing from the backend having accepted it.
+    await gotoPicture(page);
+    expect(
+      await hasPicture(page),
+      "the account has no picture after a reload, so the upload was accepted but not kept",
+    ).toBe(true);
+
+    await clearChosenPicture(page);
+    const removed = await attemptPictureSave(page);
+    expect(
+      removed.saved,
+      `removing the picture was refused${removed.refusedWith ? ` (${removed.refusedWith})` : ""}`,
+    ).toBe(true);
+
+    await gotoPicture(page);
+    expect(
+      await hasPicture(page),
+      "the picture is still there after a reload, so removing it did not take",
+    ).toBe(false);
+
+    // Left as found. The account had no picture before this case unless it did.
+    expect(
+      hadOneBefore,
+      "this account already had a picture before the case ran, so it has been left without one — restore it by hand",
+    ).toBe(false);
+  } finally {
+    if (chose) {
+      // Best effort: whatever state the assertions left, do not leave a probe
+      // picture on the shared account.
+      await gotoPicture(page)
+        .then(async () => {
+          if (await hasPicture(page)) {
+            await clearChosenPicture(page);
+            await attemptPictureSave(page);
+          }
+        })
+        .catch(() => {});
+    }
+    await handOnSession(context, page, SIGNED_IN_STATE);
+    await context.close();
+  }
+});
+
+test("PROF-06 the profile card leads to the picture screen", async ({
+  browser,
+}) => {
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
+  const page = await context.newPage();
+
+  try {
+    await gotoAbout(page);
+    await gotoSettings(page);
+    const card = await readProfileCard(page);
+    expect(
+      card.shown,
+      "the settings card is not rendered, so there is no route to the picture screen from it",
+    ).toBe(true);
+
+    // Found by address rather than by accessible name: the card's links carry
+    // no accessible name, because the label is declared and never rendered.
+    // That is a real defect in 22 places and is this ticket's out of scope —
+    // matching the address costs nothing and does not paper over it.
+    const link = page.locator('a[href*="/settings/profile/picture"]').first();
+    await expect(
+      link,
+      "the profile card offers no link to the picture screen",
+    ).toBeVisible();
+
+    await link.click();
+    // The photo menu, not Save: Save is a back-bar span the screen fills only
+    // once there is a change to save, so it is hidden on arrival.
+    await expect(
+      profile.changePhotoMenu(page),
+      "following the card's picture link did not reach the picture screen",
+    ).toBeVisible({ timeout: 30_000 });
+  } finally {
+    await handOnSession(context, page, SIGNED_IN_STATE);
+    await context.close();
+  }
+});
+
+test("PROF-07 an address the shopper adds is listed, and can be removed", async ({
+  browser,
+}) => {
+  test.setTimeout(180_000);
+
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
+  const page = await context.newPage();
+  let created = false;
+
+  try {
+    await gotoAbout(page);
+    await gotoAddresses(page);
+    const before = await addressCount(page);
+
+    const offered = await addAddress(page, {
+      address: PROBE_ADDRESS_TITLE,
+      detail: PROBE_ADDRESS_DETAIL,
+      recipient: PROBE_NAME,
+      phone: PROBE_ALT_PHONE,
+    });
+    created = true;
+    expect(
+      offered,
+      "the address form never offered a region, so it could not have saved anything",
+    ).toBe(true);
+
+    await gotoAddresses(page);
+    expect(
+      await addressCount(page),
+      "the address list did not grow, so the address was not added",
+    ).toBeGreaterThan(before);
+
+    // Content, not presence: an address listed without the details that were
+    // entered is a partial success, and a partial success is a failure.
+    expect(
+      await addressIsListed(page, PROBE_ADDRESS_DETAIL),
+      "the address is listed without the details that were entered",
+    ).toBe(true);
+  } finally {
+    if (created) {
+      const gone = await removeAddress(page, PROBE_ADDRESS_DETAIL).catch(
+        () => false,
+      );
+      expect
+        .soft(
+          gone,
+          "the shared test account still carries this case's address — removing it failed",
+        )
+        .toBe(true);
+    }
+    await handOnSession(context, page, SIGNED_IN_STATE);
+    await context.close();
+  }
+});
