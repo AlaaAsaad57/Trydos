@@ -172,7 +172,7 @@ let nextConfig: NextConfig = {
     ];
   },
   images: {
-    unoptimized: false,
+    unoptimized: true,
     qualities: [100,90, 70, 65],
     domains: [
       "cdn.example.com",
