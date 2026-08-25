@@ -16,7 +16,12 @@
 // A deny-list would have to predict what production is called; an allow-list only
 // has to know what staging is called, which we do.
 
-import { BACKEND_ADDRESS_KEYS, envValue, loadLiveEnv } from "./env";
+import {
+  BACKEND_ADDRESS_KEYS,
+  HTTPS_ONLY_KEYS,
+  envValue,
+  loadLiveEnv,
+} from "./env";
 
 /** Every host the live suite is allowed to talk to.
  *
@@ -39,6 +44,15 @@ export const ALLOWED_HOSTS: readonly string[] = [
   // nothing new. It should get a staging hostname and a firewall; until it
   // does, this entry is what keeps the suite from silently pointing elsewhere.
   "13.233.30.40",
+  // The media store, reached by the **browser** rather than the server — both
+  // the upload host and the read-back host resolve here today.
+  //
+  // It carries no `_develop` in its name, and it has no staging twin, because
+  // there is no production environment yet: this is the only media store there
+  // is. That is why it is safe to list, and it is also the thing to re-check
+  // when a production environment appears — the guard compares hostnames only,
+  // so it could not tell a twin apart from this one.
+  "media_server.ramaaz.dev",
 ];
 
 export type TargetReport = {
@@ -69,11 +83,27 @@ export const assertStagingTarget = (): TargetReport => {
     }
 
     let host: string;
+    let scheme: string;
     try {
-      host = new URL(raw).hostname.toLowerCase();
+      const parsed = new URL(raw);
+      host = parsed.hostname.toLowerCase();
+      scheme = parsed.protocol.toLowerCase();
     } catch {
       throw new Error(
         `Live target guard: ${key} is not a valid URL. Refusing to start.`,
+      );
+    }
+
+    // The browser-reached addresses must be https. One of them carries an API
+    // key in a request header, and the guard checks the hostname only — so
+    // without this, a value that merely swapped the scheme would pass.
+    if (HTTPS_ONLY_KEYS.includes(key) && scheme !== "https:") {
+      throw new Error(
+        [
+          `Live target guard: ${key} is "${scheme}//" and must be "https:".`,
+          "The browser reaches this address directly, and one of these carries",
+          "an API key in a header. Refusing to build or start anything.",
+        ].join("\n"),
       );
     }
 

@@ -34,6 +34,30 @@ export const ENDPOINTS = {
   login: "/auth/login",
   registerGuest: "/auth/register-guest",
   sendOtp: "/auth/phone/send_otp",
+
+  /** The three backends a profile save fans out to, in the order it writes
+   *  them. Stories and chat share `/api/v1/users/`, so the stories key carries
+   *  its `/update` and the chat key its own path — a key that is a substring of
+   *  another silently claims the other's traffic, which is how the matcher
+   *  works. */
+  saveStories: "/api/v1/users/update",
+  saveChat: "/api/v1/users/",
+  saveCore: "/customer/update-profile",
+
+  /** The phone-change confirmation. A **GET** that spends a real code, which is
+   *  why closed mode blocks it rather than treating it as a read. */
+  verifyPhone: "/auth/phone/verify_otp",
+
+  /** The app's own routes. Same-origin, so they never carry `x-proxy-url` — the
+   *  faking layer matches these against the pathname instead. */
+  refresh: "/api/auth/refresh",
+  expire: "/api/auth/expire",
+  updateUser: "/api/auth/update-user",
+  authMe: "/api/auth/me",
+
+  /** The picture upload, and the ticket minted just before it. */
+  uploadTicket: "/api/ticket",
+  mediaUpload: "/gated/upload",
 } as const;
 
 /** A believable user object for a faked verify response.
@@ -137,4 +161,120 @@ export const auth = {
   } satisfies MockMap,
 } as const;
 
-export const scenarios = { auth } as const;
+// ---------------------------------------------------------------------------
+// The profile save, and the branches a healthy backend will not perform
+//
+// Every one of these fakes **all three** legs, not just the one under test.
+// Faking one leg and letting the other two run would put real writes on the
+// shared account with no undo but the app's own rollback — which is the thing
+// several of these cases exist to test. Faking all three writes nothing real and
+// still lets the recorder see a fulfilled answer per leg.
+//
+// `/api/auth/refresh` is faked wherever a `401` is induced. Renewal is
+// server-side and single-use, so one real exchange burns the credential in the
+// saved session file and every later case opens a dead one.
+
+const ok = { status: 200, body: { isSuccessful: true, success: true, data: {} } };
+
+/** All three legs accept. The baseline the branches below vary from. */
+const allLegsAccept = {
+  [ENDPOINTS.saveStories]: ok,
+  [ENDPOINTS.saveChat]: ok,
+  [ENDPOINTS.saveCore]: ok,
+  [ENDPOINTS.refresh]: ok,
+  [ENDPOINTS.updateUser]: ok,
+};
+
+export const save = {
+  /** `AC-1` — the core leg refuses, and the app must put the other two back and
+   *  say so once.
+   *
+   *  **500, not 401.** A `401` starts credential recovery instead: the app would
+   *  exchange the credential and retry, which is a different branch entirely and
+   *  the one `AC-5` covers. */
+  coreRefuses: {
+    ...allLegsAccept,
+    [ENDPOINTS.saveCore]: {
+      status: 500,
+      body: { isSuccessful: false, success: false, message: "core refused" },
+    },
+  } satisfies MockMap,
+
+  /** `AC-2` — the account has no chat record, so the chat leg is skipped.
+   *
+   *  The `/api/auth/me` answer carries **the account's own values** with only
+   *  the chat identity nulled. A synthetic user would be copied into the app's
+   *  store and then written to the real account by the save; an empty one makes
+   *  the app register a fresh guest and replace the credential. The case reads
+   *  the real body first and hands it back with one field removed. */
+  noChatRecord: (realMe: unknown) =>
+    ({
+      ...allLegsAccept,
+      [ENDPOINTS.authMe]: { status: 200, body: realMe },
+    }) satisfies MockMap,
+
+  /** `AC-3` — the upload is refused.
+   *
+   *  The ticket **succeeds**: it is minted before the upload, so a refusal there
+   *  would mean the upload was never attempted and the case would pass without
+   *  reaching the thing it names. */
+  uploadRefused: {
+    ...allLegsAccept,
+    [ENDPOINTS.uploadTicket]: {
+      status: 200,
+      body: { success: true, ticket: "e2e-probe-ticket" },
+    },
+    [ENDPOINTS.mediaUpload]: {
+      status: 500,
+      body: { message: "media refused" },
+    },
+  } satisfies MockMap,
+
+  /** `AC-6` — the save is refused and renewing the credential fails too.
+   *
+   *  `expired: true` with no `renewed` — an answer carrying `renewed` short
+   *  circuits before the app ever asks the shopper to sign in again, and the
+   *  case would assert nothing while still reporting its fake was used. */
+  renewalAlsoFails: {
+    ...allLegsAccept,
+    [ENDPOINTS.saveCore]: {
+      status: 401,
+      body: { isSuccessful: false, success: false },
+    },
+    [ENDPOINTS.refresh]: {
+      status: 401,
+      body: { refreshed: false, eligible: true },
+    },
+    [ENDPOINTS.expire]: {
+      status: 200,
+      body: { expired: true, wasVerified: true },
+    },
+  } satisfies MockMap,
+
+  /** `AC-4` — the phone change. Everything after the real send is faked,
+   *  including the app's own cookie mirror, so the shared identity cannot move. */
+  phoneChangeAccepted: (idToken: string) =>
+    ({
+      ...allLegsAccept,
+      [ENDPOINTS.verifyPhone]: {
+        status: 200,
+        body: { isSuccessful: true, success: true, data: { id_token: idToken } },
+      },
+    }) satisfies MockMap,
+} as const;
+
+/** `AC-5` — the core leg refuses once with a `401`, then accepts.
+ *
+ *  A sequence rather than a map: the same endpoint has to answer differently on
+ *  the second call, which is the whole shape of "the credential was exchanged
+ *  mid-save". Install the map first and this second, so this is tried first and
+ *  falls back to the map for everything else.
+ *
+ *  A third core write would fall past the exhausted sequence into the map, which
+ *  is why the map's core answer is a `200` rather than absent. */
+export const credentialRefusedMidSave = [
+  { status: 401, body: { isSuccessful: false, success: false } },
+  ok,
+];
+
+export const scenarios = { auth, save } as const;

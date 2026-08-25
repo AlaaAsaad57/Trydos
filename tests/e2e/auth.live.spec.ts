@@ -32,10 +32,6 @@
 // **AUTH-03 must stay last.** It signs the saved session out.
 // ---------------------------------------------------------------------------
 
-import { existsSync, rmSync } from "node:fs";
-import { mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
-
 import type { Browser, BrowserContext } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
@@ -50,6 +46,13 @@ import {
 } from "./actions/auth";
 import { gotoAbout, gotoHome } from "./actions/nav";
 import { envValue } from "./harness/env";
+import {
+  SESSION_STATE,
+  forgetSavedSession,
+  newLiveContext,
+  openSignedInSession,
+  saveSession,
+} from "./harness/liveSession";
 import { prompt } from "./selectors";
 import {
   ACCESS_COOKIE,
@@ -61,7 +64,7 @@ import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
 /** Where the signed-in session waits between cases. Gitignored, never uploaded,
  *  removed when the run ends. */
-const SIGNED_IN_STATE = "tests/e2e/.auth/signed-in.json";
+const SIGNED_IN_STATE = SESSION_STATE.auth;
 
 /** The parts of the session each backend writes.
  *
@@ -89,56 +92,11 @@ const SHARED_WITH_GUESTS = [
   COOKIE_NAMES.USER_DATA,
 ];
 
-/** A context with the options the project would have given a fixture page.
- *
- *  A context built by hand inherits none of them, so every one this suite relies
- *  on is passed explicitly: the address to resolve relative paths against, the
- *  language, the recording, and the two timeouts. */
-const newLiveContext = async (
-  browser: Browser,
-  extra: { storageState?: string } = {},
-): Promise<BrowserContext> => {
-  const { use, outputDir } = test.info().project;
-
-  const context = await browser.newContext({
-    baseURL: use.baseURL,
-    locale: use.locale,
-    recordVideo: use.video ? { dir: outputDir } : undefined,
-    ...extra,
-  });
-  context.setDefaultTimeout(20_000);
-  context.setDefaultNavigationTimeout(45_000);
-  return context;
-};
-
-/** Open the session AUTH-01 saved, or say plainly why there is none. */
-const openSignedInSession = async (
-  browser: Browser,
-): Promise<BrowserContext> => {
-  if (!existsSync(SIGNED_IN_STATE)) {
-    throw new Error(
-      "there is no saved signed-in session, so AUTH-01 never got far enough to sign in. " +
-        "Read that case's failure — this one had nothing to run against.",
-    );
-  }
-  return newLiveContext(browser, { storageState: SIGNED_IN_STATE });
-};
-
-/** Remove the saved session.
- *
- *  **Not in `afterAll`.** Playwright tears a worker down after a test fails and
- *  starts a fresh one for the next test, so `afterAll` runs *between* these
- *  cases rather than at the end of them — it would delete the session the moment
- *  AUTH-01 went red, which is the one run where the later cases most need it.
- *  Cleared at the start of the run instead, and again once the last case that
- *  needs it has finished. */
-const forgetSavedSession = () => rmSync(SIGNED_IN_STATE, { force: true });
-
 test("AUTH-01 a real sign-in lands on every backend it writes for", async ({
   browser,
 }) => {
   // Anything left by an earlier run is not this run's session.
-  forgetSavedSession();
+  forgetSavedSession(SIGNED_IN_STATE);
 
   const context = await newLiveContext(browser);
   const page = await context.newPage();
@@ -173,8 +131,7 @@ test("AUTH-01 a real sign-in lands on every backend it writes for", async ({
   // The two cases below need a signed-in browser, not a verdict about one. Saved
   // here, everything after this point is free to fail without taking them with
   // it.
-  await mkdir(dirname(SIGNED_IN_STATE), { recursive: true });
-  await context.storageState({ path: SIGNED_IN_STATE });
+  await saveSession(context, SIGNED_IN_STATE);
 
   const session = await signedInSession(page);
 
@@ -209,7 +166,7 @@ test("AUTH-01 a real sign-in lands on every backend it writes for", async ({
 test("AUTH-02 a signed-in session still works after a full page reload", async ({
   browser,
 }) => {
-  const context = await openSignedInSession(browser);
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "AUTH-01");
   const page = await context.newPage();
 
   // The home page, because the cart control is not clickable on the static one
@@ -247,7 +204,7 @@ test("AUTH-02 a signed-in session still works after a full page reload", async (
 });
 
 test("AUTH-03 signing out takes the whole session away", async ({ browser }) => {
-  const context = await openSignedInSession(browser);
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "AUTH-01");
   const page = await context.newPage();
 
   // The static page: signing out reloads, and reloading the home page would put
@@ -300,5 +257,5 @@ test("AUTH-03 signing out takes the whole session away", async ({ browser }) => 
 
   // The last case that needs it has finished, and the session it held has just
   // been signed out anyway. A real credential does not sit on disk afterwards.
-  forgetSavedSession();
+  forgetSavedSession(SIGNED_IN_STATE);
 });

@@ -202,6 +202,14 @@ every time. Item B is what makes a leg fail on purpose.
 
 ## Item B — `tests/e2e/profile.scripted.spec.ts`
 
+> **Status: browser half delivered, E-2 still open.**
+> `SCRIPT-06` to `SCRIPT-12` are written and cover the six failure branches
+> (ticket `profile-closeout-scripted-and-live`). What is **not** delivered is
+> Item E's second unit guard — "the rollback mirror writes the OLD value" —
+> which this item also carries. That guard is the only PR-gated check for a fix
+> that has already landed, so Item B is deliberately **not** marked done: closing
+> it here would lose the guard rather than deliver it.
+
 **What it proves:** the branches staging will not perform on request. This is
 where the honest failures live.
 
@@ -325,6 +333,16 @@ to prove a fix; this one claims to hold a fix that is already proved.
 **Do not assert on a count** of fields or of calls. Assert the fields by name.
 
 ## Item F — the profile picture and the address, live
+
+> **Status: delivered.** `PROF-05`, `PROF-06` and `PROF-07`
+> (ticket `profile-closeout-scripted-and-live`).
+>
+> **The boundary with roadmap phase 15**, which Item F asked to be decided before
+> anything was written: these three cases are **screen-level** — a shopper
+> chooses a picture, follows a link, adds and removes an address, and the result
+> is read back from the screen and from the app's stored copy. Phase 15's live
+> addresses work is **endpoint-level** and is not made redundant by them. The
+> same journey is not written twice; the two look at different things.
 
 **What it proves:** the two parts of the profile that Item A's scope named and
 Item A did not write.

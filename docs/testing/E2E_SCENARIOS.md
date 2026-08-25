@@ -1,15 +1,16 @@
 # E2E scenarios
 
-Every case the browser suite runs — **54** of them today. Add a row whenever a
+Every case the browser suite runs — **63** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
 |---------|-------|-----------|--------------------|
 | Guest journeys | GUEST-01 to GUEST-41 | no | only the guest registrations in GUEST-32 to GUEST-34 |
 | Signed-in journeys | AUTH-01 to AUTH-03 | yes, once, shared | no |
-| Signed-in profile journeys | PROF-01 to PROF-04 | yes, once, shared | yes — the shared test account |
+| Signed-in profile journeys | PROF-01 to PROF-07 | yes, once, shared | yes — the shared test account |
 | Signed-in session recovery | RECOV-01 | yes, its own — a third real code per run | no |
 | Scripted auth branches | SCRIPT-01 to SCRIPT-05 | no | no — only the real one-time-code send |
+| Scripted profile branches | SCRIPT-07 to SCRIPT-12 | **yes — each case signs in for itself** | **no** — every leg is faked, but each sign-in and one change-number send are real |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
 
@@ -120,10 +121,13 @@ inside `actions/profile.ts` and come back as booleans.
 
 | ID | Case | Spec | What it proves |
 |----|------|------|----------------|
-| PROF-01 | The settings screens show the signed-in shopper, not a guest | `profile.live.spec.ts:233` | A real sign-in leaves a session the settings pages render from, and the profile card carries this account rather than a guest placeholder or the previous one |
-| PROF-02 | A name change reaches every backend that keeps a copy | `profile.live.spec.ts:335` | One Save lands on stories, chat and the core backend — each named on its own — and the app's stored copy is updated too, checked separately by a reload |
-| PROF-03 | Gender, e-mail and alternative phone save together | `profile.live.spec.ts:425` | The fix for a real defect: all three backends accepted the change, but only five fields were mirrored into the app's stored copy, so a changed gender was back to the old one after a reload. Seen red before the fix, green after |
-| PROF-04 | The size screen saves a height and a weight | `profile.live.spec.ts:534` | The same fan-out from the size screen — and the control for PROF-03, because `tall` and `weight` were always mirrored, which is what ruled out the test rather than the app |
+| PROF-01 | The settings screens show the signed-in shopper, not a guest | `profile.live.spec.ts:190` | A real sign-in leaves a session the settings pages render from, and the profile card carries this account rather than a guest placeholder or the previous one |
+| PROF-02 | A name change reaches every backend that keeps a copy | `profile.live.spec.ts:291` | One Save lands on stories, chat and the core backend — each named on its own — and the app's stored copy is updated too, checked separately by a reload |
+| PROF-03 | Gender, e-mail and alternative phone save together | `profile.live.spec.ts:381` | The fix for a real defect: all three backends accepted the change, but only five fields were mirrored into the app's stored copy, so a changed gender was back to the old one after a reload. Seen red before the fix, green after |
+| PROF-05 | A chosen picture is the account's, and removing it removes it | `profile.live.spec.ts:697` | The upload reaches the media store, the app's stored copy keeps it across a reload, and removing it takes it off both. Skips when the media store is not configured |
+| PROF-06 | The profile card leads to the picture screen | `profile.live.spec.ts:776` | The card's link is found by address, not by accessible name — the links carry none, which is a real defect in 22 places and this ticket's out of scope |
+| PROF-07 | An address the shopper adds is listed, and can be removed | `profile.live.spec.ts:811` | Read back by its details, not by its presence: an address listed without what was entered is a partial success, and a partial success is a failure |
+| PROF-04 | The size screen saves a height and a weight | `profile.live.spec.ts:490` | The same fan-out from the size screen — and the control for PROF-03, because `tall` and `weight` were always mirrored, which is what ruled out the test rather than the app |
 
 ## Signed-in session recovery
 
@@ -181,3 +185,41 @@ No real session is created, so these are the specs allowed to upload traces.
 | SCRIPT-03 | Logging in with an unregistered number shows the not-registered screen | `auth.scripted.spec.ts:74` | Someone with no account is told so, instead of being left on the code screen |
 | SCRIPT-04 | Signing up with a registered number shows the registered screen | `auth.scripted.spec.ts:89` | Someone who already has an account is sent to sign in, instead of being walked through signup again |
 | SCRIPT-05 | Verify errors are surfaced on the PIN screen | `auth.scripted.spec.ts:103` | Three refusals in a row — a wrong code, a throttled verify and a backend error — each reach the shopper as a visible message rather than a silent no-op |
+
+
+## Scripted profile branches
+
+**Faked, and signed in.** This is the only faking spec that holds a real session,
+and it is the reason `SCRIPT-` no longer means "no sign-in, no writes" — read the
+summary row above rather than assuming the older one still applies.
+
+These are the branches staging will not perform on request: it accepts everything
+it is asked, so a refused leg, a credential refused half way through a save, or a
+refused upload have never run anywhere. Two defects were already found in that
+code by reading it; these make it observable by running it.
+
+**They run closed.** Unlike `auth.scripted.spec.ts`, a call this spec did not name
+is refused and recorded rather than passed through to staging, and each case
+asserts at the end that nothing was refused. The account is shared and signed in,
+so a call nobody thought about would otherwise be a real write nobody finds out
+about — which is what four review rounds of this ticket kept discovering one route
+at a time.
+
+**No session is ever shared.** Each case signs in for itself and throws its own
+copy away — several damage their own session on purpose, and none may pass that
+on. A shared session was tried and measured: nothing renews it, because these
+cases also fake `/api/auth/refresh`, so it aged out mid-run. The identities
+alternate to spread the per-number one-time-code cooldown.
+
+**They keep no trace**, because a trace is the request headers and this spec has a
+real credential in them. Video is kept instead, and the pipeline encrypts the
+whole artifact directory before uploading it.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| SCRIPT-07 | One backend refuses a save, and the shopper is told once | `profile.scripted.spec.ts:173` | With the core leg refusing, every leg was asked and the save is not reported as done. A 500, not a 401 — a 401 starts credential recovery, which is a different branch |
+| SCRIPT-08 | An absent chat record is skipped, and is not reported as a failure | `profile.scripted.spec.ts:211` | The account's own profile answer is handed back with only the chat identity removed, so nothing synthetic reaches the account. Chat is never written; the save still completes |
+| SCRIPT-09 | A refused picture upload is reported, and saves nothing | `profile.scripted.spec.ts:271` | The ticket succeeds and only the upload refuses, so the case reaches the thing it names. The shopper is told, and no leg is written |
+| SCRIPT-10 | A credential refused mid-save is renewed, and the save completes | `profile.scripted.spec.ts:324` | The core leg answers 401 then 200. The second write is shown to be the retry by the value it carried — counting cannot tell a retry from a rollback |
+| SCRIPT-11 | When renewal also fails, the shopper is asked to sign in again | `profile.scripted.spec.ts:377` | The renewal answers "eligible but not refreshed" and the sign-out route answers "expired" — an answer carrying `renewed` would short-circuit before the shopper is ever asked |
+| SCRIPT-12 | Changing the number asks for a confirmation before it saves | `profile.scripted.spec.ts:410` | No leg is written until the new number is confirmed. The number typed is the second configured identity, never an invented one, because the code that follows is a real send |

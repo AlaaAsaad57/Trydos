@@ -227,6 +227,82 @@ export const profile = {
     page.getByTestId("personal-size-weight-input"),
   sizeSaveButton: (page: Page): Locator =>
     page.getByTestId("personal-size-save-button"),
+
+  /** The picture screen (`components/settings/UploadProfilePhoto.tsx`).
+   *
+   *  The file input is hidden and carries an `id` rather than a marker, so it is
+   *  reached by that id — a hidden input is set with `setInputFiles`, which does
+   *  not need it to be visible or clicked. */
+  pictureFilePicker: (page: Page): Locator =>
+    page.locator("#profile-file-picker"),
+  /** Always on the screen, so this is what "the screen rendered" is read from —
+   *  unlike Save, which the back bar only fills when there is a change. */
+  changePhotoMenu: (page: Page): Locator =>
+    page.getByTestId("change-photo-menu"),
+  /** Save on this screen is the back bar's own control, which takes its marker
+   *  straight from `DataCy` — hence no `-save-button` suffix here. */
+  pictureSaveButton: (page: Page): Locator => page.getByTestId("save-image"),
+  /** Remove the picture.
+   *
+   *  **Also the answer to "does this account have a picture".** The screen
+   *  initialises its state from the account's stored image and renders this
+   *  control only when there is one, so on a freshly loaded screen its presence
+   *  *is* the account having a picture. That is why nothing here needs a new
+   *  marker in application markup to read the picture back. */
+  removePictureButton: (page: Page): Locator =>
+    page.getByTestId("remove-photo-button"),
+
+  /** The address screen (`components/settings/PersonalInfoAddress.tsx`, whose
+   *  form is the cart's `AddAddressForm`).
+   *
+   *  Three of these markers are misspelled in the markup — `AddAddres`,
+   *  `Edit-Addres-Icon`. They are matched as they are: renaming them is an
+   *  application change with no test value, and this comment is cheaper than
+   *  the confusion of a silent mismatch. */
+  addressCards: (page: Page): Locator => page.getByTestId("Address"),
+  addAddressButton: (page: Page): Locator => page.getByTestId("AddAddres"),
+  deleteAddressIcon: (page: Page): Locator =>
+    page.getByTestId("Delete-Address-Icon"),
+  addressTitleField: (page: Page): Locator =>
+    page.getByTestId("add-address-input"),
+  addressDetailField: (page: Page): Locator =>
+    page.getByTestId("Detailed-Address-field").locator("textarea, input"),
+  addressForm: (page: Page): Locator => page.getByTestId("add-address-form"),
+  /** The confirmation the delete icon opens. Deleting is two steps, and missing
+   *  the second leaves the address on a shared account. */
+  confirmDeleteAddress: (page: Page): Locator =>
+    page.getByTestId("Yes-Delete-Address"),
+  /** Save on the address form.
+   *
+   *  The surrounding `add-address-buttons` marker is passed as a **prop** to a
+   *  component that never spreads it, so it does not exist in the DOM at all —
+   *  this is the control that does. */
+  saveAddressButton: (page: Page): Locator =>
+    page.getByTestId("AddSaveButton"),
+  /** Opens the region picker. The form will not save without a region.
+   *
+   *  **Not `select-region`.** That marker is written in `AddAddressForm.tsx` as a
+   *  prop on a local component that never spreads it, so it exists in the source
+   *  and never in the DOM — the second such marker in that one file, after
+   *  `add-address-buttons`. This is the element that actually carries the
+   *  click. */
+  selectRegionButton: (page: Page): Locator =>
+    page.getByTestId("Change-From-List"),
+  /** The rows the region picker offers.
+   *
+   *  **The same marker carries two different behaviours.** A province row drills
+   *  one level deeper and leaves the picker open; a result row sets the region
+   *  and closes it. Nothing in the markup distinguishes them, so a caller has to
+   *  keep choosing until the panel goes. */
+  regionChoices: (page: Page): Locator =>
+    page.getByTestId("Firstly-Search-Result"),
+  /** The picker panel itself. While it is open it covers the form's Save. */
+  regionPicker: (page: Page): Locator =>
+    page.getByTestId("Extended-Choose-Area"),
+  addressRecipientField: (page: Page): Locator =>
+    page.getByTestId("recipient-name-input"),
+  addressPhoneField: (page: Page): Locator =>
+    page.getByTestId("Contact-Phone-input"),
 };
 
 export const cart = {

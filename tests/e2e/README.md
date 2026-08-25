@@ -125,7 +125,60 @@ cleans up.
 > exception without the same decision.
 
 **7. One login per identity per run.** The OTP send is rate limited for real.
-The session is created once in global setup and shared.
+Each spec that needs a session creates one and saves it to `tests/e2e/.auth/`,
+where its own later cases open it. (It is not created in global setup — that
+sentence used to say so and was never true.)
+
+> **One accepted exception: Shopper A signs in twice.** `profile.scripted.spec.ts`
+> keeps its own session rather than borrowing the live spec's, because a snapshot
+> shared across two projects is exactly the stale-credential trap that handing a
+> session on exists to avoid. The `live` project is declared before `scripted` in
+> `playwright.config.ts` and `workers` is 1, which is what keeps the two sign-ins
+> from superseding each other. **Reordering the project list would break that.**
+
+### What a full run spends in real one-time codes
+
+Fifteen sends: `AUTH-01`, `PROF-01`, `RECOV-01`, five in `auth.scripted.spec.ts`,
+and **seven** added by the profile branches — one sign-in for each of
+`SCRIPT-07` to `SCRIPT-12`, plus `SCRIPT-12`'s change-number send, which is a
+server action and cannot be intercepted.
+
+**Why six sign-ins and not one.** Those cases may not share a session: several
+damage their own on purpose, and none may hand that on. A shared session was
+tried and measured — nothing renews it, because these cases also fake
+`/api/auth/refresh`, so it ages out mid-run and every later case opens as a
+guest. Signing in per case is what the constraint costs.
+
+The identities **alternate** between the two configured accounts, because six
+sign-ins on one number inside one run is throttled by the per-number cooldown and
+a throttled case fails for a reason unrelated to what it tests. `SCRIPT-12` is
+pinned to the first identity: it types the second one's number into the
+change-number overlay, so that number has to belong to somebody else.
+
+**Fifteen is the best case, not the number.** `sendOtpWithRetry` re-sends after
+sleeping the server's own cooldown, so each send is really bounded by the case
+timeout rather than by its attempt count. `profile.scripted.spec.ts` passes
+`maxAttempts: 2`; the eight older sends still run at the default of five. The
+worst case is therefore a function of the backend's cooldown, which nobody has
+measured — if you measure it, put the number here rather than a guess.
+
+The suite runs on every push to `develop` and nightly.
+
+### Accepted drift, and what it costs
+
+- **Analytics and error reporting are not blocked**, including in the faked
+  cases. Turning them off would mean editing `instrumentation-client.ts` or
+  `sentry.*.config.ts`, which are protected runtime paths. So the deliberate
+  500s and 401s these cases cause **appear in Sentry as real errors**, and
+  because `scrubRequestBody` redacts tokens and one-time codes but **not
+  `phone`, `alternative_phone` or `email`**, the failed save's body carries the
+  shopper's phone number and e-mail with them. That noise is expected, not a
+  signal. It is the one place this suite knowingly does not meet its own rule
+  about credentials in kept output.
+- **`PROF-05` uploads a real file to the media store on every run.** Removing the
+  picture unlinks it from the profile; it does not delete the stored object. The
+  probe file is tiny and named `trydos-e2e-probe-picture.png` so an orphan can be
+  found later. There is no sweeper.
 
 ## What is here now, and what is not
 
