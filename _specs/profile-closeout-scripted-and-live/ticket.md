@@ -11,7 +11,7 @@ created_at: 2026-08-24
 updated_at: 2026-08-25
 links:
   clickup: ""
-  github: ""
+  github: "https://github.com/AlaaAsaad57/Trydos/pull/106"
 ---
 
 # Ticket Record — profile-closeout-scripted-and-live
