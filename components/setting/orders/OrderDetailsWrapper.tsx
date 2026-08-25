@@ -39,6 +39,7 @@ import {
   returnDetails,
 } from "utils/types/OrderInterface";
 import Order from "services/order";
+import { shouldShowReturnedQty } from "./returnedQty";
 import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import OrderChatIcon from "components/settings/OrderChatIcon";
 import { fetchData } from "utils/fetchData";
@@ -1167,10 +1168,8 @@ const ProductCard = ({
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
 
-  // A returned item (whose return request is past the "draft" stage) should
-  // surface the returned quantity beside its "Item: qty" line. Draft returns
-  // are still being composed by the user and aren't shown — same draft check
-  // used in OrderItemReturnConfirmationWindow.
+  // A returned item should surface the returned quantity beside its
+  // "Item: qty" line — see shouldShowReturnedQty for when it is hidden.
   const productReturnInfo = getProductWithReturn(product);
   const returnRequestStatus = returnDetails?.return_requests_data?.find(
     (s) => s.order_id === order.id,
@@ -1178,11 +1177,11 @@ const ProductCard = ({
   const returnedQty = Number(
     productReturnInfo?.return_request_product_quantity,
   );
-  const showReturnedQty =
-    productReturnInfo?.already_return &&
-    !!returnRequestStatus?.value &&
-    !returnRequestStatus?.name?.toLowerCase()?.includes("draft") &&
-    returnedQty > 0;
+  const showReturnedQty = shouldShowReturnedQty({
+    alreadyReturn: productReturnInfo?.already_return,
+    requestStatus: returnRequestStatus,
+    returnedQty,
+  });
 
   return (
     <>
