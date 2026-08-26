@@ -49,6 +49,7 @@ import { envValue } from "./harness/env";
 import {
   SESSION_STATE,
   forgetSavedSession,
+  handOnSession,
   newLiveContext,
   openSignedInSession,
   saveSession,
@@ -199,6 +200,13 @@ test("AUTH-02 a signed-in session still works after a full page reload", async (
     after.phoneVerified,
     "the app no longer treats the visitor as a signed-in shopper after the reload",
   ).toBe(true);
+
+  // Hand the session on before closing. Opening the cart above can make the app
+  // exchange the credential, which moves the pair on the backend. The file
+  // AUTH-01 wrote then holds a superseded pair, and AUTH-03 opens it as a
+  // guest and reports "the saved session is not signed in" — a failure that
+  // belongs to this case's activity, not to signing out.
+  await handOnSession(context, page, SIGNED_IN_STATE);
 
   await context.close();
 });

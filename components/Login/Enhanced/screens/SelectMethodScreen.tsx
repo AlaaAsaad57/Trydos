@@ -101,7 +101,14 @@ export default function SelectMethodScreen({
                                 </div>
                             </div>
                             <div className="flex pt-xd-8 items-center gap-xd-6">
-                                <p className="text-trim-descend text-xd-12 font-medium text-[#1D1D1D]">
+                                {/* Marked because it is the only part of this
+                                    screen that renders in both cases — the Edit
+                                    button below is omitted on a locked number,
+                                    so it cannot identify the screen. */}
+                                <p
+                                    data-pw="method-phone"
+                                    className="text-trim-descend text-xd-12 font-medium text-[#1D1D1D]"
+                                >
                                     +{phone}
                                 </p>
                                 {/* Omitted when the account already owns this

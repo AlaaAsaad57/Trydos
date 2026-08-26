@@ -119,7 +119,15 @@ export const auth = {
     page.getByTestId("input-phone-number-field"),
   submitPhoneButton: (page: Page): Locator =>
     page.getByTestId("send-phone-number"),
-  /** Method selection screen. */
+  /** Method selection screen: the number the code is about to go to.
+   *
+   *  Use this, not `screenTitle`, to tell whether the method screen is up. It
+   *  is the one element the screen draws in **both** cases — `screenTitle` is
+   *  the **Edit** button, which `SelectMethodScreen` omits whenever the account
+   *  already owns the number, so on that locked screen it finds nothing. */
+  methodPhone: (page: Page): Locator => page.getByTestId("method-phone"),
+  /** The **Edit** control beside that number, present only when the number can
+   *  be swapped. Its absence is what "locked" means — see `methodPhone`. */
   screenTitle: (page: Page): Locator => page.getByTestId("edit-phone-number"),
   smsMethod: (page: Page): Locator => page.getByTestId("sms-receive-otp"),
   whatsappMethod: (page: Page): Locator =>
@@ -272,30 +280,24 @@ export const profile = {
    *  the second leaves the address on a shared account. */
   confirmDeleteAddress: (page: Page): Locator =>
     page.getByTestId("Yes-Delete-Address"),
-  /** Save on the address form.
-   *
-   *  The surrounding `add-address-buttons` marker is passed as a **prop** to a
-   *  component that never spreads it, so it does not exist in the DOM at all —
-   *  this is the control that does. */
+  /** Save on the address form. The bar around it is
+   *  `add-address-buttons-container`. */
   saveAddressButton: (page: Page): Locator =>
     page.getByTestId("AddSaveButton"),
-  /** Opens the region picker. The form will not save without a region.
-   *
-   *  **Not `select-region`.** That marker is written in `AddAddressForm.tsx` as a
-   *  prop on a local component that never spreads it, so it exists in the source
-   *  and never in the DOM — the second such marker in that one file, after
-   *  `add-address-buttons`. This is the element that actually carries the
-   *  click. */
+  /** Opens the region picker. The form will not save without a region. */
   selectRegionButton: (page: Page): Locator =>
     page.getByTestId("Change-From-List"),
-  /** The rows the region picker offers.
+  /** A province row: clicking it drills one level deeper and leaves the picker
+   *  open. It never finishes the choice. */
+  provinceChoices: (page: Page): Locator =>
+    page.getByTestId("province-search-result"),
+  /** A leaf row: clicking it sets the region and closes the picker.
    *
-   *  **The same marker carries two different behaviours.** A province row drills
-   *  one level deeper and leaves the picker open; a result row sets the region
-   *  and closes it. Nothing in the markup distinguishes them, so a caller has to
-   *  keep choosing until the panel goes. */
+   *  The two rows used to share one marker, so a caller could not tell "this
+   *  click goes deeper" from "this click finishes" and had to keep clicking
+   *  until the panel happened to close. They are separate markers now. */
   regionChoices: (page: Page): Locator =>
-    page.getByTestId("Firstly-Search-Result"),
+    page.getByTestId("region-search-result"),
   /** The picker panel itself. While it is open it covers the form's Save. */
   regionPicker: (page: Page): Locator =>
     page.getByTestId("Extended-Choose-Area"),

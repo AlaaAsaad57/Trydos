@@ -182,7 +182,7 @@ function AddAddressForm({
             setOpenSelect();
           }}
         />
-        <ContactInfo userName={userName} data-pw="contact-info" />
+        <ContactInfo userName={userName} />
       </div>
       {!expanded && (
         <AddAddressButtons
@@ -192,7 +192,6 @@ function AddAddressForm({
           slidePrev={(id) => {
             slidePrev(id);
           }}
-          data-pw="add-address-buttons" // Added data-pw
         />
       )}
     </>
@@ -223,7 +222,6 @@ const AddressSection = ({ setOpenSelect }) => {
       </div>
       <CountryLabel />
       <SelectRegion
-        data-pw="select-region"
         setOpenSelect={() => {
           setOpenSelect();
         }}

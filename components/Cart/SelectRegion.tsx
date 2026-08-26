@@ -279,7 +279,7 @@ const SearchResults = ({
             <div
               key={i}
               className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
-              data-pw="Firstly-Search-Result"
+              data-pw="province-search-result"
               onClick={() => {
                 searchAction(s);
               }}
@@ -293,7 +293,7 @@ const SearchResults = ({
           <div
             key={i}
             className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
-            data-pw="Firstly-Search-Result"
+            data-pw="region-search-result"
             onClick={() => {
               select(s);
             }}

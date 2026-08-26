@@ -628,26 +628,43 @@ export const addAddress = async (
 
   // Region first: the picker covers the form's Save while it is open.
   //
-  // It is a hierarchy — country, province, town, suburb — and every level uses
-  // the same marker. Choosing a province drills one level deeper; only a leaf
-  // sets the region and closes the panel. So this keeps choosing the first row
-  // until the panel goes, rather than assuming one click finishes it.
+  // It is a hierarchy — country, province, town, suburb. A province row drills
+  // one level deeper and leaves the picker open; only a leaf row sets the
+  // region and closes it. The two carry different markers, so this takes the
+  // province while one is offered and the leaf when one is.
   await profile.selectRegionButton(page).click();
 
   for (let level = 0; level < 6; level += 1) {
-    const choice = profile.regionChoices(page).first();
-    if (!(await choice.isVisible({ timeout: 20_000 }).catch(() => false))) {
-      return false;
-    }
-    await choice.click();
+    const leaf = profile.regionChoices(page).first();
+    const province = profile.provinceChoices(page).first();
 
-    const closed = await profile
-      .regionPicker(page)
-      .waitFor({ state: "hidden", timeout: 5_000 })
+    // The picker draws one kind or the other, never both, so wait for whichever
+    // this level offers rather than timing out on the kind that is not coming.
+    //
+    // `waitFor`, not `isVisible` — `isVisible` ignores its timeout and answers
+    // straight away, so it reports "no rows" for rows that simply have not been
+    // drawn yet.
+    const offered = await leaf
+      .or(province)
+      .waitFor({ state: "visible", timeout: 20_000 })
       .then(() => true)
       .catch(() => false);
-    if (closed) break;
+    if (!offered) {
+      // Nothing left to choose, and the picker will not close on its own.
+      return false;
+    }
+
+    if (await leaf.isVisible().catch(() => false)) {
+      await leaf.click();
+      break;
+    }
+    await province.click();
   }
+
+  await profile
+    .regionPicker(page)
+    .waitFor({ state: "hidden", timeout: 20_000 })
+    .catch(() => {});
 
   if (await profile.regionPicker(page).isVisible().catch(() => false)) {
     // Still open after six levels: say so rather than failing later on a Save

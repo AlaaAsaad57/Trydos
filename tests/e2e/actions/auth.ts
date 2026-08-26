@@ -317,7 +317,10 @@ export const enterPhone = async (
   const submit = auth.submitPhoneButton(page);
   await expect(submit).toBeEnabled();
   await submit.click();
-  await expect(auth.screenTitle(page)).toBeVisible();
+  await expect(
+    auth.methodPhone(page),
+    "the number was submitted but the widget never reached the choose-a-method screen",
+  ).toBeVisible();
 };
 
 const OTP_GUARD_KEY = "otp_guard_v1";
@@ -444,7 +447,10 @@ export const currentAuthScreen = async (
   const pairs: Array<[AuthScreen, Locator]> = [
     ["get-started", auth.getStartedTitle(page)],
     ["input-phone", auth.phoneInput(page)],
-    ["select-method", auth.screenTitle(page)],
+    // The number, not the Edit button beside it. Edit is omitted whenever the
+    // account already owns the number — the re-verify path — and reading the
+    // screen by it reported "no auth screen" for a screen that was plainly up.
+    ["select-method", auth.methodPhone(page)],
     ["enter-pin", auth.otpInput(page)],
     ["welcome", auth.welcomeTitle(page)],
     ["input-name", auth.nameInput(page)],
