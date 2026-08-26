@@ -1,4 +1,3 @@
-import React from "react";
 
 import PricesRowClientLogic from "./PricesRowClientLogic"; // We'll create this
 import PropertiesMarquee from "components/Cart/AddToCart/PropertiesMarquee";

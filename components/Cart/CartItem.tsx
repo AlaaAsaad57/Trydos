@@ -1,6 +1,5 @@
 import Timer from "components/Login/Timer";
 import FlashDealBanner from "components/products/FlashDealBanner";
-import React from "react";
 import { useAppStore } from "store";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";

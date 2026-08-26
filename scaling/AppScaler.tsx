@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import {
   DESIGN_W,
   DESIGN_H,
@@ -12,22 +11,6 @@ import {
   MIN_SCALE,
   OUTER_BG,
 } from './scale.config';
-
-/**
- * Render children outside #master-canvas so they are unaffected by AppScaler's transform.
- * Portals into #app-outer which sits at fixed inset:0 with no transform.
- */
-export function UnscaledPortal({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
-  const target = document.getElementById('app-outer');
-  if (!target) return null;
-  return createPortal(children, target);
-}
-
-/** Shorthand alias — use inside AppScaler JSX to exclude a subtree from scaling. */
-export const Unscaled = UnscaledPortal;
 
 /**
  * AppScaler — Two-phase adaptive scale engine.

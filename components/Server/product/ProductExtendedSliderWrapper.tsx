@@ -1,7 +1,7 @@
 import ActiveColorDetailsSlider from "components/products/ActiveColorDetailsSlider";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { getCookieServer } from "utils/cookies/server-cookie-manager";
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { GetSocialInfoForProduct } from "serverRequests/product";
 import { getColorImageGroups } from "./colorImageGroups";
 

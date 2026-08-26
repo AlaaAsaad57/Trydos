@@ -1,7 +1,6 @@
 import ListingSkeleton from "components/skeleton/listing";
 import { Suspense } from "react";
 import FilterListReactive from "./FilterListReactive";
-import { combineCategoriesWithRelated } from "utils/server";
 import ClientLogger from "components/global/ClientLogger";
 
 async function FilterListContainer({

@@ -1,7 +1,7 @@
 "use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Spinner from "components/global/Spinner";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import auth from "services/auth";
 import { useAppStore } from "store";
 import FaqItemComponent from "./FaqItemComponent";

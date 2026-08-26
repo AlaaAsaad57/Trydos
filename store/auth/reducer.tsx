@@ -171,4 +171,3 @@ export const useAuthStore = (set, get) => ({
     })),
 });
 
-export default useAuthStore;

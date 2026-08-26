@@ -1,6 +1,6 @@
 "use client";
 import { getLocalizedCountryName } from "utils/countryData";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import Map from "./Map";
 import { useParams } from "next/navigation";

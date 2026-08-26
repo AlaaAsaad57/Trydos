@@ -1,5 +1,4 @@
 import "styles/listing-components.css";
-import React from "react";
 import Skeleton from "react-loading-skeleton";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";

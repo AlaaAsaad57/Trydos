@@ -1,13 +1,7 @@
 import { useAppStore } from "store";
 import { getUserChat } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
-import {
-  DeleteMessage,
-  getMessageStatus,
-  getMessageTime,
-  getStatues,
-  IsTextAvatar,
-} from "store/chat/chatUtils";
+import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 import React from "react";
 function VideoMessage({

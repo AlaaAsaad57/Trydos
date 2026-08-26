@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { fetchNotifications } from "../../services/notifications";
 import NotificationItem from "./NotificationItem";
@@ -6,18 +6,9 @@ import auth from "services/auth";
 
 import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
-import {
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-  GA_GLOBAL_SCREEN,
-} from "utils/GAEvents";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { MARKET_NOTIFICATION_RECEIVED_EVENT } from "utils/notificationEvents";
-
-interface NotificationsPanelProps {
-  onClose: () => void;
-  closeWindow: () => void;
-}
 
 const NotificationsPanel = ({ onClose, closeWindow }) => {
   const notificationsRef = useRef<HTMLDivElement>(null);

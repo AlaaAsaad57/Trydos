@@ -89,7 +89,7 @@
 // Nothing here prints the account's name, phone or e-mail. Comparisons happen
 // inside `actions/profile.ts` or inside the browser and come back as booleans.
 
-import type { Browser, BrowserContext, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { attemptAuth, currentAuthScreen, signedInSession } from "./actions/auth";

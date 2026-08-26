@@ -2,7 +2,6 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
 import { BoutiqueSliderWrapper } from "components/Home/OfferWidgets/BoutiqueElement";
 
-import Image from "next/image";
 import { configureImageForBoutique, GetImageUrl } from "utils/server";
 
 function BoutiqueWrapper({ boutique, lang }) {

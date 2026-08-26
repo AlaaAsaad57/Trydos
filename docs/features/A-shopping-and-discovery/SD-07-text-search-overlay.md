@@ -57,7 +57,7 @@ Every shopper — the primary way to find a specific product, brand, category or
 | Path | How |
 |------|-----|
 | Main results | `GetSearchData()` server action (`serverRequests/Search.tsx`) → queries the **Elasticsearch catalog index directly** (products + aggregations for brands/categories/boutiques). |
-| Query analysis | `AnalyzeSearchText` (`services/elastic/analyzeSearchText`) — AI-assisted, multi-word queries only. |
+| Query analysis | `AnalyzeSearchText` (`services/elastic/analyzeSearchTextCerebras`) — AI-assisted, multi-word queries only. |
 | Autocomplete | `GetSearchSuggestion()` server action → `match_phrase_prefix` on the product name (standard + Arabic analyzers), scoped to the active filters. |
 | Search-term logging | Successful searches are logged (`logSearchTerm`) back to the index — this is what feeds Trending (SD-08). |
 

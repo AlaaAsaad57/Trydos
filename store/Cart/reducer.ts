@@ -42,7 +42,7 @@ const openCart = (val) => {
   }
 };
 
-export const useCartStore = (set, get) => ({
+const useCartStore = (set, get) => ({
   // Initial state
   orderLoading: false,
   cart: [],

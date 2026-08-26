@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { OrderInterface } from "utils/types/OrderInterface";
 import { LogError, translateFunction } from "utils/functions";
 import Order from "services/order";

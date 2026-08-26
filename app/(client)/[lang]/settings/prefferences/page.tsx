@@ -1,7 +1,6 @@
 import { lang as langParam } from "next/root-params";
 import Setting from "components/global/Setting";
 import BackBar from "components/setting/BackBar";
-import React from "react";
 
 async function Prefferences() {
   // Server component to render JSON-LD structured data

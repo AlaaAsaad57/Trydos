@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { translateFunction } from "utils/functions";
 import { DisableScroll, getVideoUrl } from "utils/tinyUtils";

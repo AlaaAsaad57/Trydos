@@ -1,5 +1,4 @@
 import Skeleton from "react-loading-skeleton";
-import React from "react";
 
 function OrderSkeletons() {
   return (

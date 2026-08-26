@@ -138,7 +138,7 @@ desktop (the one unavoidable Go touchpoint — out of scope for this frontend PR
 - **Re-gate** the scanner/sheet on `!isNotLoggedIn` in `profile/index.tsx` if
   session invalidation mid-flow becomes possible.
 - Consider adding an explicit `"use client";` to `LoginMethods.tsx` now that it
-  imports a client-only lib (`qrcode.react`).
+  imports a client-only lib (`qrcode`).
 
 ---
 
@@ -190,7 +190,10 @@ the `localStorage`/channel plumbing is deleted. Call sites are untouched.
 - **QR decode (scanner):** native `BarcodeDetector` when available (Android
   Chrome), fallback to `jsQR` over a `<canvas>` frame (iOS Safari has no
   `BarcodeDetector`). Camera via `navigator.mediaDevices.getUserMedia`.
-- **QR render (display):** `qrcode.react` (`<QRCodeSVG value={qrPayload} />`).
+- **QR render (display):** ~~`qrcode.react`~~ — **superseded.** The shipped
+  `components/Login/Enhanced/ui/CustomQRCode.tsx` uses plain `qrcode`
+  (`QRCodeLib.create(...)`) and draws the matrix itself. `qrcode.react` was never
+  used and has been removed from `package.json`.
 
 ---
 
@@ -226,8 +229,8 @@ the `localStorage`/channel plumbing is deleted. Call sites are untouched.
    method in `LoginMethods.tsx`; no new entry point or slide step.
 2. **QR display** — enhance the existing expand panel in place (swap the
    `qrSample.svg` placeholder for a live QR + status).
-3. **Libraries** — add `qrcode.react` + `jsQR` now (real render + decode from
-   the first build).
+3. **Libraries** — `qrcode` is already installed and in use for render; add
+   `jsQR` when decode is built.
 
 ## 9. Remaining open question
 

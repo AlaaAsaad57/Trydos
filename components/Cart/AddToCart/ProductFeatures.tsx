@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { translateFunction } from "utils/functions";
 function PropertiesFeaturesInAddToCart() {
   const marqueeRef = useRef(null);

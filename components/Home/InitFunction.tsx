@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useAppStore } from "store";
 import { getCookie, setLocaizationCookies } from "utils/cookies/cookie-manager";
 

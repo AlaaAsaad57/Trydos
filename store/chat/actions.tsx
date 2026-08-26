@@ -98,30 +98,7 @@ export const setLastSeen = async (MyId) => {
     });
   }
 };
-export const getCalls = async (id) => {
-  const { setCallLoading, setCalls } = useAppStore.getState();
-  try {
-    setCallLoading(true);
-    let response = await fetchData({
-      url: "/api/v1/channels/my_calls",
-      reqTitle: REQUESTS_DATA.GET_CALLS,
-      method: "POST",
-      server: "chat",
-      body: JSON.stringify({ limit: "20", last_message_id: id }),
-    });
-    if (!response.success) {
-      throw new Error(response.message);
-    }
-    setCalls(response.data);
-    setCallLoading(false);
-  } catch (error) {
-    setCallLoading(false);
-    LogError({
-      scenario: "Error in getCalls in  chat/actions",
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
-};
+
 export const SendMessage = async (payload, isNew, isPrivate?) => {
   const { sendNewMessage, sendRealMessage, deleteErrorMessage } =
     useAppStore.getState();
@@ -324,30 +301,6 @@ export async function MuteChat(payload) {
     });
   }
 }
-export async function getMessagesBetweenMessage(payload) {
-  const { setPageData } = useAppStore.getState();
-  try {
-    let response = await fetchData({
-      url: `/api/v1/messages/messages_of_channel/${payload.first}`,
-      reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
-      method: "POST",
-      server: "chat",
-      body: JSON.stringify({ limit: payload.second + 10 }),
-      // ###EDIT###
-      // body: JSON.stringify({ limit: payload.second + 1 }),
-    });
-    // @ts-ignore
-    if (!response.success) {
-      throw new Error(response.message);
-    }
-    setPageData({ mes: response.data, ch: payload.first });
-  } catch (error) {
-    LogError({
-      scenario: "Error in getMessagesBetweenMessage in  chat/actions",
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
-}
 export const getMessagesBetweenTwoMessages = async ({
   first,
   second,
@@ -371,30 +324,6 @@ export const getMessagesBetweenTwoMessages = async ({
   }
   setPageData({ mes: response.data, ch: channel_id });
 };
-export async function GetMessageforRepliedMessages(payload) {
-  const { setPageData } = useAppStore.getState();
-  try {
-    let response = await fetchData({
-      url: `/api/v1/messages/messages_of_channel/${payload.first}`,
-      reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
-      method: "POST",
-      server: "chat",
-      body: JSON.stringify({ limit: payload.second + 1 }),
-      // ###EDIT###
-      // body: JSON.stringify({ limit: payload.second + 1 }),
-    });
-    // @ts-ignore
-    if (!response.success) {
-      throw new Error(response.message);
-    }
-    setPageData({ mes: response.data, ch: payload.first });
-  } catch (error) {
-    LogError({
-      scenario: "Error in GetMessageforRepliedMessages in  chat/actions",
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
-}
 
 export async function getContacts() {
   const { setContacts } = useAppStore.getState();

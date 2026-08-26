@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { translateFunction } from "utils/functions";
 function SearchTrending({ trending, clearAll, setValue }) {

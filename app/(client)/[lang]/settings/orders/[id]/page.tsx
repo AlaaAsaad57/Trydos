@@ -1,6 +1,5 @@
 import { lang as langParam } from "next/root-params";
 import OrderDetailsWrapper from "components/setting/orders/OrderDetailsWrapper";
-import React from "react";
 
 async function OrderDetailsPage({ params, searchParams }) {
   let [Params, query] = await Promise.all([params, searchParams]);

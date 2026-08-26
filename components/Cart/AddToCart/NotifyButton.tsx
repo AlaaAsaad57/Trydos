@@ -1,4 +1,3 @@
-import React from "react";
 import { useAppStore } from "store";
 import { getCart, LogError, translateFunction } from "utils/functions";
 import { RemoveIconHolder } from "./Button";

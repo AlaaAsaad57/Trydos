@@ -198,38 +198,6 @@ function Num({
   );
 }
 
-function Area({
-  label,
-  value,
-  onChange,
-  disabled,
-  rows = 4,
-  fieldKey,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  disabled?: boolean;
-  rows?: number;
-  fieldKey?: string;
-}) {
-  return (
-    <div data-field={fieldKey}>
-      <DashField label={t(label)}>
-        <textarea
-          rows={rows}
-          value={value}
-          disabled={disabled}
-          onChange={(e) => onChange(e.target.value)}
-          className={`${dashInputClass} h-auto py-3 leading-relaxed ${
-            disabled ? "opacity-70" : ""
-          }`}
-        />
-      </DashField>
-    </div>
-  );
-}
-
 function Select({
   label,
   value,

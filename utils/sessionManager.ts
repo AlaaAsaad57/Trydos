@@ -1,4 +1,3 @@
-import { deleteCookie, COOKIE_NAMES } from "./cookies/cookie-manager";
 import { clearAllUserData } from "./tinyUtils";
 
 /**

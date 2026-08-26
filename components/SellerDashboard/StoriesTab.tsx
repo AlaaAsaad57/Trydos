@@ -20,7 +20,6 @@ import {
   LoadingState,
   dashInputClass,
 } from "components/SellerDashboard/ui";
-import { GetTicket } from "utils/UploadUtils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

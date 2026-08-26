@@ -23,7 +23,7 @@
 //
 // Nothing here asserts on the flow's internals. "The overlay was asked to open"
 // is the whole criterion.
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("components/Login/Enhanced/AuthOverlay", () => ({
   default: ({ children }: { children: React.ReactNode }) => (

@@ -293,4 +293,3 @@ export function DashIcon({
   );
 }
 
-export default DashIcon;

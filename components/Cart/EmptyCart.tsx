@@ -1,4 +1,3 @@
-import React from "react";
 import { translateFunction } from "utils/functions";
 
 function EmptyCart() {

@@ -1,6 +1,5 @@
 import Spinner from "components/global/Spinner";
 import Image from "next/image";
-import React from "react";
 import auth from "services/auth";
 import cart from "services/cart";
 import { useAppStore } from "store";

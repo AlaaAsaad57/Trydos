@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { LogError, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import NotificationSkeleton from "components/skeleton/NotificationSkeleton";
 
@@ -20,11 +20,6 @@ import { clearAllUserData } from "utils/tinyUtils";
 import dynamic from "next/dynamic";
 
 import { useAppStore } from "store";
-
-interface MenuProps {
-  user: any;
-  setMenuOpen: (open: boolean) => void;
-}
 
 const MenuIcon = ({ children ,isRtl}) => (
   <svg

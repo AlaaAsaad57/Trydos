@@ -1,5 +1,4 @@
 import Image from "next/image";
-import React from "react";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 

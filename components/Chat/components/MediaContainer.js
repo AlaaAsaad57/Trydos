@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getMedia } from "../../../store/chat/actions";
 import filePng from "../../../public/images/filePng.png";
 import Image from "next/image";

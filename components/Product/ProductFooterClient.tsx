@@ -4,7 +4,7 @@ import ProductFooterWrapper from "components/Server/product/ProductFooter.tsx/Pr
 import ProductPricesWrapper from "components/Server/product/ProductPrices/ProductPricesWrapper";
 import ProductVideosWrapper from "components/Server/product/ProductVideosWrapper";
 import { createPortal } from "react-dom";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "store";
 
 const ProductFooterClient = ({

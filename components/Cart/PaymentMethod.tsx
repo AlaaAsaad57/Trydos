@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_PAYMENTS } from "utils/GAEvents";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
-import { showErrorNotification } from "@/store/notifications/reducer";
 import order from "services/order";
 function PaymentMethod() {
   const {

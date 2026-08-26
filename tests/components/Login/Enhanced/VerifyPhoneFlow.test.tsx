@@ -28,7 +28,6 @@ vi.mock("utils/functions", async (importOriginal) => ({
 }));
 
 import AuthService from "services/auth";
-import { useAppStore } from "store";
 import { lockNumber, recordSessionNumber } from "utils/otpLocks";
 import VerifyPhoneFlow from "components/Login/Enhanced/VerifyPhoneFlow";
 

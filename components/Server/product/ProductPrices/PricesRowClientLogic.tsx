@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import { useLuckTimer } from "hooks/useLuckTimer";
 
 export default function PricesRowClientLogic({

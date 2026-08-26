@@ -96,19 +96,7 @@ export const Decline = async (token, mid, duration) => {
   );
   response = await response.json();
 };
-export const StartTalking = async (token, mid) => {
-  await fetch(
-    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-      `/api/v1/messages/start_talking/${mid}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-      credentials: "omit",
-    }
-  );
-};
+
 export const AnswerWebView = async (token, messageId, fcm) => {
   let obj = {};
   if (fcm?.length) {

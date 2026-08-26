@@ -1,5 +1,5 @@
 import ListingSkeleton from "components/skeleton/listing";
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import ProductListServer from "./ProductList";
 import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { getTitleAndTargetofListing } from "serverRequests/meta/StructuredData/utils";

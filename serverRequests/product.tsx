@@ -11,8 +11,7 @@ import { fetchServerData } from "./ServerFetch";
 import { Metadata } from "next";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import { cookies } from "next/headers";
-import { COOKIE_NAMES, UserData } from "utils/cookies/cookie-manager";
-import { getCookieServer } from "utils/cookies/server-cookie-manager";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 // Safe here: this is a "use server" module — client imports get action
 // proxies, so tokenManager's next/headers never enters the client bundle
@@ -20,14 +19,7 @@ import { LogServerError } from "utils/serverErrorReporter";
 import { getMarketFetchBase } from "utils/server/tokenManager";
 import { General_Site_Data } from "./meta/StructuredData/Constants";
 import { buildAlternates } from "./meta/buildAlternates";
-import {
-  comments_index,
-  comments_interactions_index,
-  product_interactions_index,
-  share_index,
-  user_interactions_index,
-  views_index,
-} from "services/elastic/INDEXES";
+import { comments_index, product_interactions_index, share_index, user_interactions_index, views_index } from "services/elastic/INDEXES";
 
 let client = elasticSearchClient;
 interface ProdutGlobalData {

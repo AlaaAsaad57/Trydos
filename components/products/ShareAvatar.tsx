@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 import profilePng from "public/images/profileNo.png";
 
 function ShareAvatar({ active, setActive, contact, disable }: any) {

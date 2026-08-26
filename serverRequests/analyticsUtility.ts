@@ -5,8 +5,6 @@ import { LogServerError } from "utils/serverErrorReporter";
 import { resolveMarketFetchBase } from "./products";
 import { RedisGet, RedisSet } from "./radis";
 
-export const runtime = "nodejs";
-
 export async function GetColorAndSizes() {
   try {
     let cachedRes = await RedisGet("colors-sizes");

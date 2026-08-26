@@ -1,3 +1,8 @@
+> **Superseded (2026-08-26).** The QR render was built with plain `qrcode`
+> (`components/Login/Enhanced/ui/CustomQRCode.tsx`), not `qrcode.react`.
+> `qrcode.react` was never used and has been removed from `package.json` —
+> do not run the `pnpm add qrcode.react` step below.
+
 # QR Login Frontend Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

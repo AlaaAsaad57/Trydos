@@ -1,5 +1,4 @@
 import { lang as langParam } from "next/root-params";
-import BackBar from "components/setting/BackBar";
 import LanguageSetting from "components/settings/LanguageSetting";
 
 async function LanguagesPage() {

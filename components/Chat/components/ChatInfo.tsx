@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import Image from "next/image";
 import Spinner from "components/global/Spinner";

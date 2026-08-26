@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useParams } from 'next/navigation';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
 

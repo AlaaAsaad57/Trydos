@@ -93,13 +93,6 @@ export const normalizeDialInput = (input: string): string => {
     return digits;
 };
 
-export const getCountryByDialCode = (input: string): CountryData | undefined => {
-    const cleanInput = normalizeDialInput(input);
-    // SORTED_COUNTRIES is a pre-sorted copy — sorting COUNTRIES here would
-    // reorder the shared module-level list on every call.
-    return SORTED_COUNTRIES.find((country) => cleanInput.startsWith(country.dialCode));
-};
-
 export default function RdbPhoneInput({
     value,
     onChange,

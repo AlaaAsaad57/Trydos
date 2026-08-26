@@ -123,14 +123,6 @@ export const startOrderAttempt = (): string => {
   return id;
 };
 
-export const getOrderAttemptId = (): string | undefined => {
-  try {
-    return (useAppStore.getState().orderData as any)?.attempt_id;
-  } catch {
-    return undefined;
-  }
-};
-
 export const endOrderAttempt = () => {
   try {
     useAppStore.getState().setOrderData?.({ attempt_id: undefined });

@@ -1,7 +1,6 @@
 import { lang as langParam } from "next/root-params";
 import BackBar from "components/setting/BackBar";
 import WalletTransactions from "components/settings/WalletTransactions";
-import React from "react";
 import { translateFunction } from "utils/server";
 
 async function Wallet({ searchParams }) {

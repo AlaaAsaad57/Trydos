@@ -1,7 +1,5 @@
 import UPDATED_API_DATA from "migration.staging";
 
-export const LOG_IN_STORIES = "/api/v1/users/login";
-export const REGISTER_DEVICE_URL = "/auth/register-guest";
 export const CUSTOMER_INFO_URL = "/customer/info";
 export const FIREBASE_SETTINGS_URL =
   "/firebase_device_tokens/my_firebase_settings";
@@ -12,7 +10,6 @@ export const STARTER_SETTINGS = "/web/home/startingSettings";
 
 export const PRODUCT_DELIVERY_TIMES = "/web/product/delivery_times";
 
-export const LOG_IN_CHAT = "/api/v1/users/login";
 // Detaches a device's FCM registration from the account. Called server-side by
 // /api/auth/logout (post-response), never from the client.
 export const REMOVE_FCM_TOKEN_URL = "/api/v1/firebase_tokens/remove-token";

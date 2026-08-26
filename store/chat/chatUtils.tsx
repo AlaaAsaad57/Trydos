@@ -1,6 +1,6 @@
 import { useAppStore } from "store";
 import { getUserChat } from "utils/functions";
-import { Message, MessageContent, MessageStatus } from "utils/types/chat";
+import { MessageContent, MessageStatus } from "utils/types/chat";
 import { DeleteMessageApi } from "./actions";
 
 export const getMessageStatus = ({
@@ -155,19 +155,6 @@ export const getMessageTime = (ti, zone) => {
     return `${d.getHours() > 9 ? d.getHours() : "0" + d.getHours()}:${
       d.getMinutes() > 9 ? d.getMinutes() : "0" + d.getMinutes()
     }`;
-  }
-};
-
-export const getStatues = ({
-  message_status,
-}: {
-  message_status: MessageStatus[];
-}) => {
-  let a = message_status.filter((a) => a.user_id !== getUserChat()?.id);
-  if (a.length > 0) {
-    return a[0];
-  } else {
-    return { is_watched: false, is_received: 0 };
   }
 };
 

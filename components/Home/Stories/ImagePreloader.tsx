@@ -1,11 +1,5 @@
 import { useEffect, useRef } from "react";
 
-interface ImagePreloaderProps {
-  stories: Array<{ url?: string; type?: string }>;
-  currentIndex: number;
-  isPaused: boolean;
-}
-
 /**
  * Preloads images to ensure instant display
  * Uses browser's built-in image preloading with priority hints

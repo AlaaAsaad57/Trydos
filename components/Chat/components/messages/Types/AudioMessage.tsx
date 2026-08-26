@@ -1,14 +1,9 @@
-import React, { useRef, useState, useCallback, useMemo } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { useAppStore } from "store";
 import { getUserChat } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
 import Spinner from "components/global/Spinner";
-import {
-  DeleteMessage,
-  getMessageStatus,
-  getMessageTime,
-  getStatues,
-} from "store/chat/chatUtils";
+import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 
 // 1. Move helper outside to prevent re-declaration on every render

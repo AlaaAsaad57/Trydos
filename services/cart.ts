@@ -1,6 +1,5 @@
 import { useAppStore } from "store";
 import { _isStoreLastJson } from "utils/functions";
-import home from "./home";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";

@@ -23,7 +23,7 @@
 | ~**١١٠ حدث مخصّص موثّق** عبر ٥ تدفّقات | `docs/posthog-events.md` | فوق الـ autocapture |
 | **توزيع GA → PostHog**: كل حدث GA يُرسَل أيضاً إلى PostHog | `utils/gtag.ts:GAevent` | ٤٨ حدث من تصنيف GA **تُحاسَب مرّتين** في PostHog |
 | GA4 **القياسي** (الطبقة المجانية)، المُعرّف `G-2R7L674HT6` | `utils/gtag.ts` | حدود أخذ العيّنات/التعدّدية عند حجمنا |
-| Feature flags موصولة لكن **غير مُستخدمة** | `utils/posthog.ts` | لا تكلفة flags اليوم |
+| Feature flags **غير موصولة** (حُذفت الدوال غير المستخدمة) | `utils/posthog.ts` | لا تكلفة flags اليوم |
 
 ---
 

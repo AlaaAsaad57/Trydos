@@ -45,10 +45,7 @@ export const setPreviousStory = (storyId) => {
   const { prevStory } = useAppStore.getState();
   prevStory(storyId);
 };
-export const AddStoryAction = (story) => {
-  const { addStory } = useAppStore.getState();
-  addStory(story);
-};
+
 export const GetUnviewedStory = (story) => {
   // if (typeof window !== "undefined") {
   //   const userStories = getCookie(COOKIE_NAMES.USER_STORIES);
@@ -73,8 +70,3 @@ export const GetUnviewedStory = (story) => {
   return index;
 };
 
-export const LogData = (data) => {
-  if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") {
-    // console.log(data);
-  }
-};

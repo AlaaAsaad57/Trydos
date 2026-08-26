@@ -1,5 +1,4 @@
 import { useParams } from "next/navigation";
-import React from "react";
 import { translateFunction } from "utils/functions";
 
 function OrderMarquee({ shippingCost }) {

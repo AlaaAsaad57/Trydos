@@ -32,7 +32,6 @@
 // **AUTH-03 must stay last.** It signs the saved session out.
 // ---------------------------------------------------------------------------
 
-import type { Browser, BrowserContext } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import {

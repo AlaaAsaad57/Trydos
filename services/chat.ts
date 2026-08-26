@@ -11,7 +11,6 @@ import {
 } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import home from "services/home";
 import UPDATED_API_DATA from "migration.staging";
 import { LogServerError } from "utils/serverErrorReporter";
 import { trackPosthog, CHAT_EVENTS } from "utils/posthogEvents";

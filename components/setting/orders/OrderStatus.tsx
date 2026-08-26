@@ -1,7 +1,6 @@
 import OrderStatusIcon, {
   BagStatusIcon,
 } from "components/settings/cards/OrderStatusIcon";
-import React from "react";
 const OrderStatus = ({
   status,
   isRtl,

@@ -1,11 +1,8 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 
-import {
-  getMessagesBetweenMessage,
-  getMessagesBetweenTwoMessages,
-} from "store/chat/actions";
+import { getMessagesBetweenTwoMessages } from "store/chat/actions";
 
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";

@@ -4,7 +4,6 @@ import {
   deleteCookie,
   clearHashedUserId,
 } from "./cookies/cookie-manager";
-import React from "react";
 import { clearAllUserData } from "./tinyUtils";
 
 // Version cookie name

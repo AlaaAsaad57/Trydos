@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  isAllowedServer,
-  getServerBaseUrl,
-  buildProxyHeaders,
-  logSecureRequest,
-  getTokenForServer,
-  isGatewayApi,
-} from "utils/server/tokenManager";
+import { isAllowedServer, getServerBaseUrl, buildProxyHeaders, logSecureRequest, getTokenForServer } from "utils/server/tokenManager";
 import { SEND_OTP } from "utils/endpointConfig";
 import { fromServiceToken } from "utils/serviceTokens";
 import { LogServerError } from "utils/serverErrorReporter";

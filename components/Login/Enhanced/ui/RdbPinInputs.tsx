@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { NumericKeypad } from './NumericKeypad';
 import { useIsTouchDevice } from 'hooks/useIsTouchDevice';
 

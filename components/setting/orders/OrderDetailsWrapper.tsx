@@ -15,7 +15,6 @@ import OrderExpectedDeliveryCard, {
 import OrderAddressCard from "components/settings/cards/OrderAddressCard";
 // Used by the (currently commented-out) order-message block below; kept imported
 // so re-enabling that block renders sanitized HTML by default. Tree-shaken while unused.
-import { sanitizeHtml } from "utils/sanitizeHtml";
 import RateOrderButton from "components/settings/cards/RateOrderButton";
 import OrderItemsList from "components/settings/cards/OrderItemsList";
 import {
@@ -693,29 +692,6 @@ const isNotDraft=()=>{
                   isExpanded={isExpanded}
                   items={ActivePack?.details || []}
                 />
-               {/* {isNotDraft()&& isExpanded&&IsThereADescriptionMessage()?.length>0? 
-               <div className="p-2 flex flex-col items-center gap-3">
-              {IsThereADescriptionMessage().map((message, index) => (
-                <div
-                  key={index}
-                  className="w-full max-w-md rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 text-amber-500">
-                      ⚠️
-                    </div>
-                    <div>
-
-                      <p className="text-sm text-amber-700">
-                       <div dangerouslySetInnerHTML={{__html:sanitizeHtml(message)}}>
-
-                       </div>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>:<></>} */}
                 {isExpanded && (
                   <OrderExpandedDetails
                     orderData={orderData}

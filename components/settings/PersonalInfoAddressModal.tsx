@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import SettingTopBar from "./TopBar";
 import SelectRegion from "components/Cart/SelectRegion";
 

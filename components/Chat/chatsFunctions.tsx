@@ -574,13 +574,6 @@ export function dataURLtoFile(dataurl, filename) {
   }
   return new File([u8arr], filename, { type: mime });
 }
-export function blobToDataURL(blob, callback) {
-  var a = new FileReader();
-  a.onload = function (e) {
-    callback(e.target.result);
-  };
-  a.readAsDataURL(blob);
-}
 export const showDate = (d) => {
   const { language } = useAppStore.getState();
 

@@ -1,5 +1,5 @@
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 
 async function ListingSearchContainer({
   country,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import auth from "services/auth";
 import { showErrorNotification } from "store/notifications/reducer";
 import { fetchData } from "utils/fetchData";

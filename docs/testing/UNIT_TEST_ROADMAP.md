@@ -325,7 +325,7 @@ number is worse than a crash because nobody notices.
 | 17 | `unit-tests-order-placement` | `services/order.ts` (966) — checkout and the place-order payload | 🔒 |
 | 18 | `unit-tests-order-lifecycle` | `services/order.ts` — status changes, cancel, return; `services/orders.ts` (84); `utils/orderFunnel.ts` (244) | 🔒 |
 | 19 | `component-tests-add-to-cart` | `components/Cart/AddToCart/` (12 files) — `ColorSelect`, `SizeSelect`, `PricesRow`, `Button`, `NotifyButton`, `CartContentOfProduct`, `FlashDealBannerCart` | |
-| 20 | `component-tests-checkout` | `Cart/` — `PlaceOrderWidget`, `PlaceOrderButtons`, `PaymentMethod`, `ShippingAddressContainer`, `AddAddressForm`, `SelectRegion`, `couponElement`, `CheckoutButton`, `WalletPaymentModal`, `OrderSuccess`, `CartItem`, `CartErrorComponent` | |
+| 20 | `component-tests-checkout` | `Cart/` — `PlaceOrderWidget`, `PlaceOrderButtons`, `PaymentMethod`, `ShippingAddressContainer`, `AddAddressForm`, `SelectRegion`, `couponElement`, `WalletPaymentModal`, `OrderSuccess`, `CartItem`, `CartErrorComponent` | |
 
 **Phase 12** is first in this journey because every price the user sees passes
 through it. Pin a fixed timezone and locale, or date assertions pass locally and
@@ -339,9 +339,8 @@ when the value is missing.
 while the deal runs, the ordinary price once it has ended, and the time left. The
 rule reads the end of the deal's last day in **local** time, so a test that writes
 the date as `"2026-08-27"` is timezone-dependent and one that writes
-`"2026-08-27T00:00:00"` is not. **Four other copies of the same end-of-day logic
-are still uncovered** — `ListingPage/Product.tsx:34`,
-`Server/product/ProductPhotoSliderWrapper.tsx:48`,
+`"2026-08-27T00:00:00"` is not. **Three other copies of the same end-of-day logic
+are still uncovered** — `Server/product/ProductPhotoSliderWrapper.tsx:48`,
 `Cart/AddToCart/FlashDealBannerCart.tsx:18` and `FlashDealBanner.tsx:31` — so this
 phase pins one copy, not the behaviour everywhere.
 

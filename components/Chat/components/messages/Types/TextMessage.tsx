@@ -1,14 +1,7 @@
 import React from "react";
 import { getUserChat } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
-import {
-  copyText,
-  DeleteMessage,
-  getMessageStatus,
-  getMessageTime,
-  getStatues,
-  IsTextAvatar,
-} from "store/chat/chatUtils";
+import { copyText, DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 import { useAppStore } from "store";
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import ConversationContainer from "./pages/ConversationContainer";
 import { useAppStore } from "store";
 import "styles/chatcomponent.css";

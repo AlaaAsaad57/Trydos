@@ -130,4 +130,3 @@ export function SlideWidget({
 
 // --- Function: ExampleUsage ---
 
-export default SlideWidget;

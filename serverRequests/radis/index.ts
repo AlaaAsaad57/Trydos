@@ -27,74 +27,7 @@ if (process.env.NEXT_RUNTIME !== "edge") {
   }
 }
 
-// Store product in Redis
-export async function storeProduct(product, slug, lang, country) {
-  if (!redis) {
-    throw new Error("Redis is not available in Edge runtime");
-  }
-  if (!product?.id || !product?.name || !product.images) {
-    throw new Error("Invalid product object, missing product data");
-  }
 
-  const start = process.hrtime.bigint();
-  const ttl = Number(process.env.PRODUCT_REDIS_TTL_SECONDS) || DEFAULT_TTL;
-
-  // Force everything into safe strings
-  const productKey = `product:${String(product.id)}:${String(lang)}:${String(
-    country,
-  )}`;
-  const slugKey = `slug:${String(slug)}:${String(lang)}:${String(country)}`;
-
-  try {
-    await redis.set(productKey, JSON.stringify(product), "EX", ttl);
-    await redis.set(slugKey, String(product.id), "EX", ttl);
-
-    const end = process.hrtime.bigint();
-    return { success: true, timeMs: Number(end - start) / 1_000_000 };
-  } catch (err) {
-    console.error("Redis SET failed", { productKey, slugKey, err });
-    LogServerError(
-      { error: err, type: "redis storeProduct failed", productKey, slugKey },
-      "/",
-    );
-  }
-}
-
-// Get product from Redis
-export async function getProductFromCache(slug, lang, country) {
-  if (!redis) {
-    throw new Error("Redis is not available in Edge runtime");
-  }
-  const start = process.hrtime.bigint();
-  const slugKey = `slug:${String(slug)}:${String(lang)}:${String(country)}`;
-
-  try {
-    const productId = await redis.get(slugKey);
-
-    if (!productId) {
-      const end = process.hrtime.bigint();
-      return { product: null, timeMs: Number(end - start) / 1_000_000 };
-    }
-
-    const productKey = `product:${String(productId)}:${String(lang)}:${String(
-      country,
-    )}`;
-
-    const cachedProduct = await redis.get(productKey);
-
-    const end = process.hrtime.bigint();
-    let product = cachedProduct ? JSON.parse(cachedProduct) : null;
-
-    return {
-      product: { ...product, redis: true },
-      timeMs: Number(end - start) / 1_000_000,
-    };
-  } catch (err) {
-    console.error("Redis GET failed", { slugKey, err });
-    LogServerError({ error: err, type: "redis getProductFromCache failed", slugKey }, "/");
-    throw err;
-  }
-}
 // Get Currency from Redis
 export async function getCurrencyFromCache(country) {
   try {

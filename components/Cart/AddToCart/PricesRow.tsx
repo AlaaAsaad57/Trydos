@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import { RoundPrice } from "utils/functions";
 import PropertiesMarquee from "./PropertiesMarquee";
 

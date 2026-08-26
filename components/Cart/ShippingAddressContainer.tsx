@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";

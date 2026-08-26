@@ -1,5 +1,5 @@
 import Spinner from "components/global/Spinner";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import chat from "services/chat";
 import { useAppStore } from "store";
 import { LogError } from "utils/functions";

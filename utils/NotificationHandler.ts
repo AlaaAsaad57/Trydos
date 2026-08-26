@@ -33,12 +33,6 @@ interface NotificationData {
   type?: string;
 }
 
-interface ServiceWorkerMessage {
-  type: string;
-  payload: NotificationData;
-  timestamp: number;
-}
-
 // --- Helper Functions ---
 
 const safeParse = (data: any) => {

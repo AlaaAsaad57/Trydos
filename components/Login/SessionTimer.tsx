@@ -5,7 +5,6 @@ import {
   checkSessionExpiry,
   clearSimulatedUserSession,
 } from "utils/sessionManager";
-import { COOKIE_NAMES, deleteCookie } from "utils/cookies/cookie-manager";
 import { clearAllUserData } from "utils/tinyUtils";
 import { translateFunction } from "utils/functions";
 

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import auth from "services/auth";
 

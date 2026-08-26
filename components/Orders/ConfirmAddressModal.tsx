@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { translateFunction } from "utils/functions";
 
 import { GetAddressString } from "utils/tinyUtils";

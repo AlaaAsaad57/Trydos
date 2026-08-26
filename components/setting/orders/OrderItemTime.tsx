@@ -1,4 +1,3 @@
-import React from "react";
 
 const OrderItemTime = ({ time, isRtl }) => {
   const formatTime = (timeString: string) => {

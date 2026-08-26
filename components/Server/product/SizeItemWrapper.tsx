@@ -1,6 +1,6 @@
 "use client";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useState } from "react";
 
 function SizeItemWrapper({ children, ActiveSize }) {
   const [activeSize, setActiveSize] = useState(ActiveSize);

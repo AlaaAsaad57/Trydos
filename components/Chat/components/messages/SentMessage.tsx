@@ -1,4 +1,3 @@
-import React from "react";
 import RepliedMessageWrapper from "./RepliedMessage";
 
 function SentMessage({

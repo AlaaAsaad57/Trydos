@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { getUserChat } from "utils/functions";
 import { useAppStore } from "store";
 import { Message, MessageContent, MessageFile } from "utils/types/chat";

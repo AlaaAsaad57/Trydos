@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import Image from "next/image";
 import UploadVideo from "../UploadVideo";
-import { blobToDataURL } from "components/Chat/chatsFunctions";
 import { useStopwatch } from "react-timer-hook";
 import { translateFunction } from "utils/functions";
 

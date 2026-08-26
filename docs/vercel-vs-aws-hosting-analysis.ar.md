@@ -63,7 +63,7 @@ Trydos تطبيق تجارة إلكترونية مزدحم ولحظي في مع�
   *(الكود: `components/Chat/components/ChatVideoCall.tsx`، `ChatVoiceCall.tsx`؛ التوكِن
   يُولَّد على backend الدردشة.)*
 - **البحث يستخدم ذكاء Gemini من Google في موضعين:** فهم عبارات البحث المكتوبة، و«البحث
-  بالصورة». كلاهما نداءات API مدفوعة بالاستخدام. *(الكود: `services/elastic/analyzeSearchText.ts`
+  بالصورة». كلاهما نداءات API مدفوعة بالاستخدام. *(الكود: `services/elastic/analyzeSearchTextCerebras.ts`
   و`app/api/image-search/route.ts`.)*
 - **مؤشّرات الكتابة / حالة «متصل» تستخدم Firebase**، والإشعارات تستخدم Firebase Cloud
   Messaging. **صور المنتجات وفيديوهات القصص تُقدَّم من media server منفصل.**

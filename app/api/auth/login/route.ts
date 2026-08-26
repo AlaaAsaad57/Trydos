@@ -10,14 +10,7 @@ import {
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 import { isGuestName } from "utils/tinyUtils";
-import {
-  SECURE_COOKIE_OPTIONS,
-  REFRESH_COOKIE_OPTIONS,
-  setSecureCookieJSON,
-  sanitizeUserData,
-  sanitizeServiceUser,
-  sanitizeWalletUser,
-} from "utils/server/tokenManager";
+import { SECURE_COOKIE_OPTIONS, REFRESH_COOKIE_OPTIONS, setSecureCookieJSON, sanitizeServiceUser, sanitizeWalletUser } from "utils/server/tokenManager";
 
 // Helper to handle sub-service fetches safely
 async function safeServiceLogin(url: string, body: any) {

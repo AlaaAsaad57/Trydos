@@ -137,15 +137,6 @@ interface SearchFilters {
 
 // Initialize Elasticsearch client
 
-interface ProductImage {
-  id?: string | number;
-  path?: string;
-  url?: string;
-  alt?: string;
-  title?: string;
-  [key: string]: any;
-}
-
 interface ExtractFiltersResult {
   custom_products: CustomProduct[];
   prices: any;

@@ -1,4 +1,3 @@
-import React from "react";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import OfferListSkeleton from "components/skeleton/OfferList";

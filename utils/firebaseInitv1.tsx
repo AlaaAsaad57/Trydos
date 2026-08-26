@@ -54,10 +54,6 @@ export const getFirebaseMessaging = async () => {
   return _messaging;
 };
 
-// Backward-compatible lazy proxy for `db` (used by static imports)
-// Falls back to null until getDb() is called
-export { _db as db };
-
 const waitForServiceWorkerActivation = (
   registration: ServiceWorkerRegistration,
   timeoutMs = 8000,

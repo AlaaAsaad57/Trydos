@@ -41,5 +41,5 @@ Parent design: `docs/superpowers/specs/2026-07-01-listing-pages-refactor-design.
 
 ## C5 — Misc lower-priority
 - `logSearchTerm` (`elasticSearch.ts:679`) — extra ES write per successful search (fire-and-forget, not latency; batch if write volume matters).
-- Hoist static inline SVG icon components to module scope (`Product.tsx:76`, `LuckyDrawer.tsx:110/133/151`, `BuyButton.tsx:99`, `FlashDealBanner.tsx:58`) — React Compiler mitigates, low priority.
+- Hoist static inline SVG icon components to module scope (`LuckyDrawer.tsx:110/133/151`, `FlashDealBanner.tsx:58`) — React Compiler mitigates, low priority.
 - `ProductWrapper` server-side redundant recompute (`rearrangedImages()` called at `:138` and `:140`; name string rebuilt `:366-368`) — server render, low priority; moot once folded into `ProductCard`.

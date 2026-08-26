@@ -1,4 +1,3 @@
-import React from "react";
 import { getUserChat, translateFunction } from "utils/functions";
 import ChatPhoto from "../ChatPhoto";
 import { IsTextAvatar } from "store/chat/chatUtils";

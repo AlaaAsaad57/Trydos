@@ -1,8 +1,7 @@
 "use client";
 import Spinner from "components/global/Spinner";
 import { InView } from "react-intersection-observer";
-import { useEffect, useState } from "react";
-import StoryElement from "./StoryElement";
+import { useState } from "react";
 import { useAppStore } from "store";
 
 import { fetchData } from "utils/fetchData";

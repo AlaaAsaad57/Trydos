@@ -1,5 +1,4 @@
 import ProductVideo from "components/products/ProductVideo";
-import React from "react";
 
 function ProductVideosWrapper({ globalPromise, language }) {
   globalPromise;

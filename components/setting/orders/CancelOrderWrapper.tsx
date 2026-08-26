@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { RoundPrice, translateFunction } from "utils/functions";

@@ -2,14 +2,7 @@ import React from "react";
 import { useAppStore } from "store";
 import { getUserChat } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
-import {
-  copyText,
-  DeleteMessage,
-  getMessageStatus,
-  getMessageTime,
-  getStatues,
-  IsTextAvatar,
-} from "store/chat/chatUtils";
+import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 
 function ImageMessage({

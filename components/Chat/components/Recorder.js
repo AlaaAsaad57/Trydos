@@ -1,6 +1,4 @@
-import React from "react";
 import ReactRecord from "react-record";
-import { SSRDetect } from "utils/functions";
 function Recorder({ isRecording, onStop, setblobUrl, blobs }) {
   return (
     <>
