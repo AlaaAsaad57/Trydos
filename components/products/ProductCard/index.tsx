@@ -25,6 +25,7 @@ import ProductColorsBottomSheet from "components/ServerWrapper/ProductWrapper/Pr
 import ProductColorsCards from "components/ServerWrapper/ProductWrapper/ProductColorsCards";
 import type { ListingProduct } from "types/listing";
 import { deriveCardProps, type CardContext } from "./derivedProps";
+import { resolveCardPrice } from "./flashPrice";
 import { useLuckTimer } from "hooks/useLuckTimer";
 
 interface ProductCardProps extends CardContext {
@@ -62,7 +63,6 @@ function ProductCard({
     brand,
     is_luck,
     endDate,
-    is_flashDeal,
     luck_price,
     price,
     offer_price,
@@ -88,37 +88,16 @@ function ProductCard({
     visible: inView,
   });
   let isRtl = language === "ar" || language === "ku";
-  let isFlash: any = null;
-  let flash_price = offer_price ?? price;
-  if (is_flashDeal && endDate) {
-    const now = new Date();
-    const dealEnd = new Date(endDate);
-    dealEnd.setHours(23, 59, 59, 999);
-    isFlash = now < dealEnd;
-    const endDateObj = new Date(endDate);
-    endDateObj.setHours(23, 59, 59, 999);
-    const difference = endDateObj.getTime() - now.getTime();
-    if (difference > 0) {
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor(
-        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-      );
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-      isFlash = {
-        days: days,
-        hours: hours,
-        minutes: minutes,
-        seconds: seconds,
-      };
-    } else {
-      isFlash = null;
-    }
-  }
-  if (isFlash) {
-    flash_price = flash_deal_price ?? offer_price ?? price;
-  }
+  // One clock read per card per render, the same as before the rule moved out.
+  const { flashPrice: flash_price, timeLeft: isFlash } = resolveCardPrice(
+    {
+      endDate,
+      flashDealPrice: flash_deal_price,
+      offerPrice: offer_price,
+      price,
+    },
+    new Date(),
+  );
 
   const shouldShowOrangeBorder = () => {
     if (isFlash || is_luck) {
