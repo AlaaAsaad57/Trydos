@@ -278,6 +278,29 @@ describe("showing a price (RoundPrice)", () => {
     expect(RoundPrice({ num: 25, rate: 1 })).toBe(25);
     expect(RoundPrice({ num: 25.4, rate: 1 })).toBe(26);
   });
+
+  it("shows nothing rather than \"NaNM\" when the price cannot be read", () => {
+    // A missing or unreadable price makes `Number(num)` NaN. NaN fails every
+    // band test below it, so it fell through to the millions branch and the
+    // shopper was shown "NaNM". The client-side sibling in utils/functions.tsx
+    // already guards this; this copy did not.
+    expect(
+      RoundPrice({ num: undefined, rate: 1 }),
+      "a missing price was drawn as something other than zero",
+    ).toBe("0");
+    expect(
+      RoundPrice({ num: "", rate: 1 }),
+      "an empty price was drawn as something other than zero",
+    ).toBe("0");
+    expect(
+      RoundPrice({ num: "not a price", rate: 1 }),
+      "an unreadable price was drawn as something other than zero",
+    ).toBe("0");
+    expect(
+      RoundPrice({ num: undefined, rate: 1, returnNumber: true }),
+      "a missing price handed back as a number was not zero",
+    ).toBe(0);
+  });
 });
 
 describe("building a video address (getVideoUrl)", () => {
