@@ -18,11 +18,16 @@ sections below say what is already on `develop` as well as what is still owed.
 | Item | What it delivers | State |
 |---|---|---|
 | A | `tests/e2e/profile.live.spec.ts` | **Done** — on `develop` |
-| B | `tests/e2e/profile.scripted.spec.ts` | Not started |
-| C | `tests/e2e/session-recovery.live.spec.ts` | **Written** — `RECOV-01`, awaiting its first staging run |
+| B | `tests/e2e/profile.scripted.spec.ts` | **Done** — `SCRIPT-06` to `SCRIPT-12` |
+| C | `tests/e2e/session-recovery.live.spec.ts` | **Done** — `RECOV-01`, green against staging |
 | D | unit `component-tests-profile` | **Done** — four files, 27 cases |
 | E | unit guards for the two defects the live suite found | **Done** — field parity, the one-time-token exclusion, and the rollback mirror |
-| F | the profile picture and the address, live | Not started |
+| F | the profile picture and the address, live | **Done** — `PROF-05` to `PROF-07` |
+
+**All six are done, so this plan is closed.** Journey 2 is proved at unit and
+browser level. The next tests belong to the money path: Journey 3 in
+`UNIT_TEST_ROADMAP.md`, and the cart and checkout specs named in
+`E2E_TEST_DESIGN.md` section 2.
 
 E and F were not in the first draft of this plan. E exists because the two app
 fixes below are proved **only** by a browser test, and the browser suite never
@@ -190,25 +195,25 @@ Delivered, each step its own `test.step()`:
    ruled the test out as the cause of the mirror defect.
 
 **Two things it did not deliver**, both moved to Item F rather than left
-implied: the profile picture, and the address. Both were named in the scope note
-and neither is written.
+implied: the profile picture, and the address. Both were named in the scope note,
+and Item F wrote them.
 
-**One assertion is written but unproven.** PROF-02 asserts that no leg was
-rolled back, and no run has seen it go red — staging accepted all three legs
-every time. Item B is what makes a leg fail on purpose.
+**One assertion is proved elsewhere.** PROF-02 asserts that no leg was rolled
+back, and no live run has seen it go red — staging accepted all three legs every
+time. `SCRIPT-07` is what makes a leg fail on purpose, and the stored copy after
+a rollback is held by `tests/services/auth.profile.test.ts:309`.
 
 **Never printed:** the account's phone, its name, any token. Use the existing
 `redact()` helper.
 
 ## Item B — `tests/e2e/profile.scripted.spec.ts`
 
-> **Status: browser half delivered, E-2 still open.**
-> `SCRIPT-06` to `SCRIPT-12` are written and cover the six failure branches
-> (ticket `profile-closeout-scripted-and-live`). What is **not** delivered is
-> Item E's second unit guard — "the rollback mirror writes the OLD value" —
-> which this item also carries. That guard is the only PR-gated check for a fix
-> that has already landed, so Item B is deliberately **not** marked done: closing
-> it here would lose the guard rather than deliver it.
+> **Status: delivered.** `SCRIPT-06` to `SCRIPT-12` cover the six failure
+> branches (ticket `profile-closeout-scripted-and-live`). Item E's second unit
+> guard — "the rollback mirror writes the OLD value" — landed in its own ticket,
+> `profile-rollback-mirror` (commit `6f08a4ee`), and now lives at
+> `tests/services/auth.profile.test.ts:309`. It runs on every pull request, so
+> the fix it holds is guarded by CI.
 
 **What it proves:** the branches staging will not perform on request. This is
 where the honest failures live.
@@ -238,6 +243,9 @@ Reuse `recordProfileWrites` — it already separates a `401` retry from a rollba
 and will report the rollback bodies without more work.
 
 ## Item C — `tests/e2e/session-recovery.live.spec.ts`
+
+> **Status: delivered.** `RECOV-01`, ticket `auth-closeout-tests`. It was run
+> against real staging and passed.
 
 **What it proves:** a **signed-in** shopper whose credential is refused
 mid-action is not thrown out.
