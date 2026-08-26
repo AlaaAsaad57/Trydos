@@ -11,7 +11,7 @@ created_at: 2026-08-26
 updated_at: 2026-08-26
 links:
   clickup: ""
-  github: ""
+  github: "https://github.com/AlaaAsaad57/Trydos/pull/107"
 ---
 
 # Ticket Record — unit-tests-price-resolution
