@@ -304,6 +304,28 @@ const treeLines = (suites: PlaywrightSuite[], depth: number): string[] =>
     ];
   });
 
+/** A hard ceiling on the attached tree, in BYTES. The same limit, for the same
+ *  reason, as TREE_BUDGET_BYTES in scripts/unit-report.mjs — keep the two in
+ *  step.
+ *
+ *  The tree travels to the notifier job as an environment variable, and Linux
+ *  caps a single environment variable at MAX_ARG_STRLEN (32 pages, 131072
+ *  bytes). Past that the notifier step does not fail, it never starts:
+ *  "Argument list too long". The unit reporter hit exactly that once its suite
+ *  grew; this one has fewer tests today and would hit it the same way. */
+const TREE_BUDGET_BYTES = 120_000;
+
+/** Cut `text` to at most `maxBytes`, or null when it already fits.
+ *
+ *  Slicing a JavaScript string by index cuts by UTF-16 code unit, which can
+ *  split an emoji in half and leave a lone surrogate. Encoding, cutting and
+ *  decoding drops the incomplete character at the end instead. */
+const clipToBytes = (text: string, maxBytes: number): string | null => {
+  const encoded = new TextEncoder().encode(text);
+  if (encoded.length <= maxBytes) return null;
+  return new TextDecoder("utf-8").decode(encoded.subarray(0, maxBytes));
+};
+
 /** Every describe and every test, for the attached file. */
 const buildTree = (files: PlaywrightSuite[], totals: string): string => {
   const head = [
@@ -334,7 +356,11 @@ const buildTree = (files: PlaywrightSuite[], totals: string): string => {
     ];
   });
 
-  return [...head, ...body, ""].join("\n");
+  const text = [...head, ...body, ""].join("\n");
+  const clipped = clipToBytes(text, TREE_BUDGET_BYTES);
+  return clipped === null
+    ? text
+    : `${clipped}\n\n[cut here — the list was too long to send]\n`;
 };
 
 /** Read the run's results and write the values the notifier wants. */
