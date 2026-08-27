@@ -33,6 +33,7 @@ import {
   seedVariantDefaults,
   ImageItem,
   parseDescriptorOptions,
+  sanitizeSellerProductId,
   renderableDescriptorGroups,
   descriptorIconUrl,
   locationLabel,
@@ -408,7 +409,7 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
     <Section icon="products" title="General" desc="Identity & classification of the product.">
       <Grid>
         <Txt label="Product Name" fieldKey="name" value={form.name} required error={errors.name} disabled={disabled} onChange={(v) => patch({ name: v })} />
-        <Txt label="Seller Product ID" fieldKey="seller_product_id" value={form.seller_product_id} required error={errors.seller_product_id} hint={t("Must stay unique across the marketplace")} disabled={disabled} onChange={(v) => patch({ seller_product_id: v })} />
+        <Txt label="Seller Product ID" fieldKey="seller_product_id" value={form.seller_product_id} required error={errors.seller_product_id} hint={t("Must stay unique across the marketplace")} disabled={disabled} onChange={(v) => patch({ seller_product_id: sanitizeSellerProductId(v) })} />
         <Txt label="Barcode" fieldKey="barcode" value={form.barcode} error={errors.barcode} disabled={disabled} onChange={(v) => patch({ barcode: v })} />
         <Select label="Unit" fieldKey="unit" value={form.unit} required error={errors.unit} disabled={disabled} onChange={(v) => patch({ unit: v })} options={UNITS.map((u) => ({ value: u, label: u }))} />
         <Select label="Brand" fieldKey="brand_id" value={form.brand_id} required error={errors.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.translated_name ?? b.name }))} />

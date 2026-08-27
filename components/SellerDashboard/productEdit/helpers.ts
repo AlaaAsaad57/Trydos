@@ -240,6 +240,24 @@ export function normalizeSellerProductIds(raw: any): string[] {
   return [...out];
 }
 
+/** Keep only what a Seller Product ID may contain: letters in any script,
+ *  digits in any script, hyphen and underscore. Everything else is dropped.
+ *
+ *  This runs on every keystroke, so a refused character never appears in the
+ *  box and there is no message to read. Quotes are the reason it exists — a
+ *  straight or curly quote in an id looks identical on screen to the same id
+ *  without one, yet they are two different values to the backend, to the
+ *  uniqueness check and to anything that has to quote the id again. Blocking
+ *  only the three ASCII quotes would miss the curly ones a phone keyboard
+ *  sends, so the rule is written as an allow-list instead.
+ *
+ *  \p{L} covers Arabic, Turkish and Kurdish letters, not just A-Z; \p{N}
+ *  covers Arabic-Indic digits as well as 0-9. Sellers write these ids in their
+ *  own language. */
+export function sanitizeSellerProductId(value: string): string {
+  return String(value ?? "").replace(/[^\p{L}\p{N}_-]/gu, "");
+}
+
 /** True when the typed seller product id is already taken. `taken` must not
  *  contain the product's own current id — on edit the lookups list includes it
  *  and keeping it must stay allowed. Empty returns false: the empty case is the
