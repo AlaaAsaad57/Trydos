@@ -1937,6 +1937,7 @@ const translations = {
   "Pick a shop to open its dashboard.": "فرۆشگایەک هەڵبژێرە بۆ کردنەوەی داشبۆردەکەی.",
   "Pick colors & sizes, then set price and stock for each combination.": "ڕەنگ و قەبارەکان هەڵبژێرە، ئینجا نرخ و کۆگا بۆ هەر تێکەڵەیەک دیاری بکە.",
   "Pieces / Unit": "پارچە / یەکە",
+  "More problems were reported": "کێشەی زیاتر ڕاپۆرت کرا",
   "Please fix the highlighted fields before saving.": "تکایە خانە دیاریکراوەکان چارەسەر بکە پێش پاشەکەوتکردن.",
   "Preparing your dashboard...": "داشبۆردەکەت ئامادە دەکرێت...",
   "Previous": "پێشوو",

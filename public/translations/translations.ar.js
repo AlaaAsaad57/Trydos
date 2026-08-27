@@ -1902,6 +1902,7 @@ const translations = {
   "Pick a shop to open its dashboard.": "اختر متجراً لفتح لوحة تحكمه.",
   "Pick colors & sizes, then set price and stock for each combination.": "اختر الألوان والمقاسات، ثم حدّد السعر والمخزون لكل تركيبة.",
   "Pieces / Unit": "قطع / وحدة",
+  "More problems were reported": "تم الإبلاغ عن مشاكل أخرى",
   "Please fix the highlighted fields before saving.": "يرجى تصحيح الحقول المظللة قبل الحفظ.",
   "Preparing your dashboard...": "جاري تجهيز لوحة تحكمك...",
   "Previous": "السابق",
