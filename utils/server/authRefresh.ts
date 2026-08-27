@@ -4,6 +4,7 @@ import {
   REFRESH_TOKEN_ENDPOINT,
   CHAT_REFRESH_TOKEN_ENDPOINT,
   STORIES_REFRESH_TOKEN_ENDPOINT,
+  COMMENTS_REFRESH_TOKEN_ENDPOINT,
 } from "utils/fetch/Endpoints";
 import {
   SECURE_COOKIE_OPTIONS,
@@ -96,6 +97,7 @@ const REFRESH_BACKENDS = {
 const marketFlights = new Map<string, Promise<RefreshOutcome>>();
 const chatFlights = new Map<string, Promise<RefreshOutcome>>();
 const storiesFlights = new Map<string, Promise<RefreshOutcome>>();
+const commentsFlights = new Map<string, Promise<RefreshOutcome>>();
 
 async function singleFlight(
   flights: Map<string, Promise<RefreshOutcome>>,
@@ -454,6 +456,121 @@ async function doRefreshStories(): Promise<RefreshOutcome> {
     return { status: "refreshed", token: parsed.token };
   } catch (error) {
     LogServerError({ error, type: "stories refresh-token unexpected failure" });
+    return { status: "unavailable" };
+  }
+}
+
+// Per-backend adapter for the comments service. Its own host
+// (COMMENT_BACKEND_URL) and its own path — the comments backend has no /api/v1
+// prefix, so it does NOT share the chat/stories path. Same contract otherwise:
+// single-use rotation, both cookies replaced, races resolve toward the browser
+// jar, never delete the refresh cookie here.
+const COMMENTS_REFRESH_BACKEND = {
+  baseUrl: () => process.env.COMMENT_BACKEND_URL || "",
+  endpoint: COMMENTS_REFRESH_TOKEN_ENDPOINT,
+  buildBody: (refreshToken: string) =>
+    JSON.stringify({ refresh_token: refreshToken }),
+  // Response envelope mirrors the comments sign-in response:
+  // { isSuccessful, code, message, data: { token, expires_at, refresh_token } }.
+  // The session credential is `token` here, not `access_token` as on chat and
+  // stories.
+  parse: (json: any) => ({
+    token: json?.data?.token as string | undefined,
+    refreshToken: json?.data?.refresh_token as string | undefined,
+  }),
+};
+
+export async function refreshCommentsSession(): Promise<RefreshOutcome> {
+  return singleFlight(
+    commentsFlights,
+    COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
+    doRefreshComments,
+  );
+}
+
+async function doRefreshComments(): Promise<RefreshOutcome> {
+  try {
+    const cookieStore = await cookies();
+
+    // Logout in progress: never mint or rotate credentials mid-logout.
+    if (cookieStore.get(COOKIE_NAMES.LOGOUT_GUARD)?.value) {
+      return { status: "ineligible" };
+    }
+
+    const refreshToken = cookieStore.get(
+      COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
+    )?.value;
+    if (!refreshToken) return { status: "no-token" };
+
+    const backend = COMMENTS_REFRESH_BACKEND;
+    const local = cookieStore.get(COOKIE_NAMES.LOCAL)?.value || "gb-en";
+    const [country, language] = local.split("-");
+
+    let response: Response;
+    try {
+      response = await fetch(backend.baseUrl() + backend.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Lang: language || "en",
+          Country: country || "gb",
+        },
+        body: backend.buildBody(refreshToken),
+        credentials: "omit",
+      });
+    } catch (error) {
+      LogServerError({ error, type: "comments refresh-token network failure" });
+      return { status: "unavailable" };
+    }
+
+    if (response.status === 401) {
+      // Uniform 401 (dead OR raced). Do NOT delete the refresh cookie here —
+      // a concurrent winner may have rotated it; the jar-retry inherits it.
+      return { status: "invalid" };
+    }
+
+    const json = await response.json().catch(() => null);
+    if (!response.ok || !json) {
+      LogServerError({
+        error: { status: response.status, message: json?.message },
+        type: "comments refresh-token exchange failed",
+      });
+      return { status: "unavailable" };
+    }
+
+    const parsed = backend.parse(json);
+    if (!parsed.token || !parsed.refreshToken) {
+      LogServerError({
+        error: { message: "comments refresh response missing token pair" },
+        type: "comments refresh-token exchange failed",
+      });
+      return { status: "unavailable" };
+    }
+
+    try {
+      // The comments session credential is stored under a deliberately opaque
+      // cookie name (see COOKIE_NAMES.USER_ID_HASH).
+      cookieStore.set({
+        name: COOKIE_NAMES.USER_ID_HASH,
+        value: parsed.token,
+        ...SECURE_COOKIE_OPTIONS,
+      });
+      cookieStore.set({
+        name: COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
+        value: parsed.refreshToken,
+        ...REFRESH_COOKIE_OPTIONS,
+      });
+    } catch (error) {
+      LogServerError({
+        error,
+        type: "comments refresh-token rotated pair could not be persisted (caller violated writability contract)",
+      });
+    }
+
+    return { status: "refreshed", token: parsed.token };
+  } catch (error) {
+    LogServerError({ error, type: "comments refresh-token unexpected failure" });
     return { status: "unavailable" };
   }
 }

@@ -50,6 +50,7 @@ const CHAT_REFRESH = "test-chat-refresh-1234567890";
 const STORIES_ACCESS = "test-stories-access-1234567890";
 const STORIES_REFRESH = "test-stories-refresh-1234567890";
 const COMMENTS_TOKEN = "test-comments-token-1234567890";
+const COMMENTS_REFRESH = "test-comments-refresh-1234567890";
 const WALLET_TOKEN = "test-wallet-token-1234567890";
 
 const BACKEND_TECHNOLOGY =
@@ -104,7 +105,24 @@ const storiesReply = () =>
       refresh_token: STORIES_REFRESH,
     },
   });
-const commentsReply = () => jsonReply({ comments_token: COMMENTS_TOKEN });
+// The comments service answers with the same wrapped envelope the other
+// services use: an outer report of how it went, and the credential pair inside
+// `data`. It used to answer with a bare `comments_token` at the top level, and
+// the route was still reading that key long after the service stopped sending
+// it — so the shopper signed in with no comments credential at all.
+const commentsReply = () =>
+  jsonReply({
+    isSuccessful: true,
+    code: 200,
+    hasContent: true,
+    message: "token exchanged successfully",
+    data: {
+      token: COMMENTS_TOKEN,
+      refresh_token: COMMENTS_REFRESH,
+      expires_at: "2026-09-01T00:00:00Z",
+      user: { id: "3", phone: "963900000000" },
+    },
+  });
 const walletReply = () =>
   jsonReply({
     accessToken: { token: WALLET_TOKEN },
@@ -190,8 +208,15 @@ describe("storing what the verification returned (AC-1)", () => {
     const response = await GET(makeRequest());
     const raw = JSON.stringify(await response.json());
 
-    [CHAT_ACCESS, CHAT_REFRESH, STORIES_ACCESS, STORIES_REFRESH, WALLET_TOKEN]
-      .forEach((credential) => expect(raw).not.toContain(credential));
+    [
+      CHAT_ACCESS,
+      CHAT_REFRESH,
+      STORIES_ACCESS,
+      STORIES_REFRESH,
+      COMMENTS_TOKEN,
+      COMMENTS_REFRESH,
+      WALLET_TOKEN,
+    ].forEach((credential) => expect(raw).not.toContain(credential));
   });
 
   it("asks the core backend to verify, carrying the guest credential", async () => {
@@ -231,9 +256,14 @@ describe("one credential per sub-service that answered (AC-2)", () => {
     expect(headers.__lastWrite(COOKIE_NAMES.STORIES_REFRESH_TOKEN)?.value).toBe(
       STORIES_REFRESH,
     );
-    expect(headers.__lastWrite(COOKIE_NAMES.USER_ID_HASH)?.value).toBe(
-      COMMENTS_TOKEN,
-    );
+    expect(
+      headers.__lastWrite(COOKIE_NAMES.USER_ID_HASH)?.value,
+      "the comments session credential was not stored, so every comment, review and rating call signs in as nobody",
+    ).toBe(COMMENTS_TOKEN);
+    expect(
+      headers.__lastWrite(COOKIE_NAMES.COMMENTS_REFRESH_TOKEN)?.value,
+      "the comments renewal credential was not stored, so a comments 401 can never be recovered without a new sign-in",
+    ).toBe(COMMENTS_REFRESH);
     expect(headers.__lastWrite(COOKIE_NAMES.WALLET_TOKEN)?.value).toBe(
       WALLET_TOKEN,
     );
@@ -290,9 +320,48 @@ describe("one credential per sub-service that answered (AC-2)", () => {
     await GET(makeRequest());
 
     expect(headers.__lastWrite(COOKIE_NAMES.USER_ID_HASH)).toBeUndefined();
+    expect(
+      headers.__lastWrite(COOKIE_NAMES.COMMENTS_REFRESH_TOKEN),
+    ).toBeUndefined();
     expect(headers.__lastWrite(COOKIE_NAMES.WALLET_TOKEN)?.value).toBe(
       WALLET_TOKEN,
     );
+  });
+
+  it("stores nothing for comments when comments reports it did not succeed", async () => {
+    net.queueReply(verifyReply());
+    net.queueReply(chatReply());
+    net.queueReply(storiesReply());
+    // A 200 that says it failed — the same shape stories uses to refuse.
+    net.queueReply(jsonReply({ isSuccessful: false, code: 401, data: null }));
+    net.queueReply(walletReply());
+    const { GET } = await loadRoute();
+
+    const response = await GET(makeRequest());
+
+    expect(response.status).toBe(200);
+    expect(
+      headers.__lastWrite(COOKIE_NAMES.USER_ID_HASH),
+      "a comments refusal still stored a comments credential",
+    ).toBeUndefined();
+    // The others are unaffected.
+    expect(headers.__lastWrite(COOKIE_NAMES.CHAT_TOKEN)?.value).toBe(CHAT_ACCESS);
+  });
+
+  it("names comments in the failure report when comments refuses", async () => {
+    net.queueReply(verifyReply());
+    net.queueReply(chatReply());
+    net.queueReply(storiesReply());
+    net.queueReply(jsonReply({ isSuccessful: false, code: 401, data: null }));
+    net.queueReply(walletReply());
+    const { GET } = await loadRoute();
+
+    const body: any = await (await GET(makeRequest())).json();
+
+    expect(
+      (body.is_failed ?? []).map((f: any) => f.endpoint),
+      "a comments refusal was not reported, so nothing tells the shopper or Sentry which service refused",
+    ).toContain("COMMENTS");
   });
 
   it("stores nothing for the wallet when the wallet failed", async () => {

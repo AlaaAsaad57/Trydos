@@ -89,7 +89,7 @@ const LOCAL_AUTEHD_ROUTES = ["/api/auth/login", "/api/ticket"];
 const STALE_TOKENS_FOR: Partial<Record<ServerType, string[]>> = {
   chat: [COOKIE_NAMES.CHAT_TOKEN, COOKIE_NAMES.CHAT_REFRESH_TOKEN],
   stories: [COOKIE_NAMES.STORIES_TOKEN, COOKIE_NAMES.STORIES_REFRESH_TOKEN],
-  comments: [COOKIE_NAMES.USER_ID_HASH],
+  comments: [COOKIE_NAMES.USER_ID_HASH, COOKIE_NAMES.COMMENTS_REFRESH_TOKEN],
   wallet: [COOKIE_NAMES.WALLET_TOKEN],
 };
 
@@ -377,6 +377,21 @@ const handleUnauthorized = async (
         }
       // falls through to the shared sub-service need_auth flow
       case "comments":
+        // Refresh-first for comments, using the comments service own
+        // refresh contract: a single 401 tries the HttpOnly
+        // COMMENTS-REFRESH-TOKEN exchange. On success the proxy next request
+        // picks up the rotated comments token automatically; on failure we
+        // fall through to the existing need_auth prompt flow, like wallet.
+        if (authAttempt === 0 && server === "comments") {
+          const authService = await import("services/auth");
+          const refresh = await authService.default.RefreshSession(
+            options?.url,
+            server,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // let the store update propagate before the retry
+          if (refresh.eligible) return true;
+        }
+      // falls through to the shared sub-service need_auth flow
       case "wallet":
         localStorage.setItem(
           "last_unauthorized_request",
