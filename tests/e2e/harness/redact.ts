@@ -55,7 +55,7 @@ const JWT_PATTERN =
 // opaque rather than a JWT on some of these backends, so the shape rule above
 // would not catch it — but its cookie name is fixed and known.
 const TOKEN_COOKIE_PATTERN =
-  /\b(MARKET-TOKEN|MARKET-REFRESH-TOKEN|CHAT-TOKEN|CHAT-REFRESH-TOKEN|STORIES-TOKEN|STORIES-REFRESH-TOKEN|DEVICE-TOKEN|rdb_at|USER_ID_HASH|VISIT-ID)=([^;,\s"]+)/g;
+  /\b(MARKET-TOKEN|MARKET-REFRESH-TOKEN|CHAT-TOKEN|CHAT-REFRESH-TOKEN|STORIES-TOKEN|STORIES-REFRESH-TOKEN|COMMENTS-REFRESH-TOKEN|DEVICE-TOKEN|rdb_at|USER_ID_HASH|VISIT-ID)=([^;,\s"]+)/g;
 
 // The confirmation a phone change carries.
 //

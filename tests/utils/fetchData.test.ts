@@ -1309,6 +1309,32 @@ describe("401 recovery", () => {
     expect(result.httpStatus).toBe(401);
   });
 
+  it("comments 401 refresh succeeds", async () => {
+    const { auth } = await setup();
+    (auth.default.RefreshSession as any).mockResolvedValue({ eligible: true });
+    const net = makeMockFetch([
+      jsonReply({ data: null }, 401),
+      jsonReply({ data: [] }, 200),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result = await fetchData({ ...baseParams, server: "comments" });
+
+    expect(
+      result.success,
+      "a renewed comments session did not retry the call that was refused",
+    ).toBe(true);
+    expect(
+      auth.default.RefreshSession,
+      "a comments 401 never asked for a renewal, so the shopper is sent to the code prompt instead",
+    ).toHaveBeenCalledOnce();
+    expect(
+      (auth.default.RefreshSession as any).mock.calls[0][1],
+      "the renewal was asked for under the wrong service name, so the wrong credential pair would be spent",
+    ).toBe("comments");
+  });
+
   it("stories 401 refresh succeeds", async () => {
     const { auth } = await setup();
     (auth.default.RefreshSession as any).mockResolvedValue({ eligible: true });
@@ -1412,7 +1438,9 @@ describe("401 recovery", () => {
   });
 
   it("comments 401 need_auth succeeds", async () => {
-    const { store } = await setup();
+    const { auth, store } = await setup();
+    // Renewal is tried first now, so this case is the one where it is refused.
+    (auth.default.RefreshSession as any).mockResolvedValue({ eligible: false });
     const net = makeMockFetch([
       jsonReply({ data: null }, 401),
       jsonReply({ data: null }, 200),
@@ -1422,11 +1450,14 @@ describe("401 recovery", () => {
     const { fetchData } = await loadFetchData();
 
     const promise = fetchData({ ...baseParams, server: "comments" });
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 2100)); // pass the comments refresh delay
     store.useAppStore.setState({ reAuthResult: "success" });
     const result = await promise;
 
-    expect(result.success).toBe(true);
+    expect(
+      result.success,
+      "a refused comments renewal did not fall through to the sign-in prompt",
+    ).toBe(true);
   });
 
   it("wallet 401 need_auth succeeds", async () => {
@@ -1464,7 +1495,13 @@ describe("401 recovery", () => {
         MOCK_COOKIE_NAMES.STORIES_REFRESH_TOKEN,
       ],
     },
-    { server: "comments" as const, expected: [MOCK_COOKIE_NAMES.USER_ID_HASH] },
+    {
+      server: "comments" as const,
+      expected: [
+        MOCK_COOKIE_NAMES.USER_ID_HASH,
+        MOCK_COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
+      ],
+    },
     { server: "wallet" as const, expected: [MOCK_COOKIE_NAMES.WALLET_TOKEN] },
   ])("$server 401 clear-tokens scope", ({ server, expected }) => {
     it(`clears only the ${server} credentials`, async () => {

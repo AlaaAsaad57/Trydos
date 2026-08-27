@@ -65,7 +65,9 @@ let _expirePromise: Promise<ExpireOutcome> | null = null;
 type RefreshResult = { refreshed: boolean; eligible: boolean };
 const _refreshPromises = new Map<string, Promise<RefreshResult>>();
 const refreshKeyFor = (server?: string) =>
-  server === "chat" || server === "stories" ? server : "market";
+  server === "chat" || server === "stories" || server === "comments"
+    ? server
+    : "market";
 class AuthService {
   private async getServiceUsersFromCookies() {
     const data = await fetchAuthMe();

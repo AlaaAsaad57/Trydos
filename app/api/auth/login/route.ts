@@ -200,6 +200,21 @@ export async function GET(request: NextRequest) {
       ),
     ]);
 
+    // The comments service answers with a wrapped envelope — an outer report of
+    // how it went, and the credential pair inside `data`:
+    //   { isSuccessful, code, message, data: { token, refresh_token, expires_at, user } }
+    // It used to answer with a bare `comments_token` at the top level. Read the
+    // current shape first and keep the old key as a fallback, so a backend that
+    // has not been redeployed yet still signs the shopper in to comments.
+    const commentsTokens = {
+      token:
+        commentRes.data?.data?.token ?? commentRes.data?.comments_token ?? "",
+      refreshToken: commentRes.data?.data?.refresh_token ?? "",
+    };
+    // A 200 that says it failed — the same way the stories service refuses.
+    const commentsRefused =
+      commentRes.success && commentRes.data?.isSuccessful === false;
+
     // 4. Collect Failures and Extract Tokens
     const failures = [];
     if (!chatRes.success)
@@ -217,7 +232,7 @@ export async function GET(request: NextRequest) {
         user_id: String(InventoryUser?.id),
         phone: String(InventoryUser.phone),
       });
-    if (!commentRes.success)
+    if (!commentRes.success || commentsRefused)
       failures.push({
         endpoint: "COMMENTS",
         ...commentRes,
@@ -269,8 +284,14 @@ export async function GET(request: NextRequest) {
         value: storiesRes.data?.data?.refresh_token,
       },
       {
+        // The comments session credential — stored under a deliberately opaque
+        // cookie name (see COOKIE_NAMES.USER_ID_HASH).
         name: COOKIE_NAMES.USER_ID_HASH,
-        value: commentRes.data?.comments_token,
+        value: commentsRefused ? "" : commentsTokens.token,
+      },
+      {
+        name: COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
+        value: commentsRefused ? "" : commentsTokens.refreshToken,
       },
     ];
 
@@ -283,6 +304,7 @@ export async function GET(request: NextRequest) {
     const REFRESH_COOKIES = new Set<string>([
       COOKIE_NAMES.CHAT_REFRESH_TOKEN,
       COOKIE_NAMES.STORIES_REFRESH_TOKEN,
+      COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
     ]);
 
     tokensToSet.forEach((token) => {

@@ -48,6 +48,16 @@ export const COOKIE_NAMES = {
   CHAT_REFRESH_TOKEN: "CHAT-REFRESH-TOKEN",
   STORIES_TOKEN: "STORIES-TOKEN",
   STORIES_REFRESH_TOKEN: "STORIES-REFRESH-TOKEN",
+  /**
+   * Single-use rotating refresh token for the comments service. Exchanged at
+   * `/public_comment/auth/refresh-token` for a fresh comments session token +
+   * refresh pair; both cookies are replaced on every rotation. Same contract as
+   * the chat and stories pairs.
+   *
+   * Its access-token counterpart is NOT named COMMENTS_TOKEN — it lives under
+   * the deliberately opaque `USER_ID_HASH` name for historical reasons.
+   */
+  COMMENTS_REFRESH_TOKEN: "COMMENTS-REFRESH-TOKEN",
   USER_CHAT: "USER-CHAT",
   USER_STORIES: "USER-STORIES",
   COUNTRY: "country",
@@ -92,6 +102,7 @@ export const HTTPONLY_COOKIE_NAMES = new Set([
   COOKIE_NAMES.STORIES_REFRESH_TOKEN,
   COOKIE_NAMES.WALLET_TOKEN,
   COOKIE_NAMES.USER_ID_HASH,
+  COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
   COOKIE_NAMES.USER_DATA,
   COOKIE_NAMES.USER_CHAT,
   COOKIE_NAMES.USER_STORIES,
