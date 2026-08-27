@@ -428,6 +428,36 @@ describe("entering the code", () => {
         "a reason the shopper can act on",
     ).toHaveTextContent("Please Enter The Correct Code Sent To Your Phone");
   });
+
+  it("still says why a code was refused once the resend cooldown is running", async () => {
+    // A *successful* send arms the same 120-second per-number cooldown a refused
+    // one does, and the panel re-reads that guard once a second. So about a
+    // second after the code arrives, the cooldown is running for every shopper —
+    // this is the ordinary case, not an edge one. The test above happens to run
+    // inside the gap before the first tick, which is why it passes on a quiet
+    // machine and fails on a loaded one.
+    const { user } = await atCodeStep();
+    await waitFor(
+      () => {
+        expect(
+          screen.getByRole("button", { name: "Resend Code" }),
+          "the cooldown has not reached the panel yet, so this case is not " +
+            "testing what it claims to",
+        ).toBeDisabled();
+      },
+      { timeout: 2000 },
+    );
+
+    verifyOtp.mockRejectedValue(new Error("Wrong Code"));
+    await user.type(codeField()!, "000000");
+
+    expect(
+      await screen.findByRole("alert", {}, { timeout: 2000 }),
+      "a wrong code must say so in words while the resend is on cooldown too — " +
+        "not being allowed to resend yet is no reason to hide why the code was " +
+        "refused",
+    ).toHaveTextContent("Please Enter The Correct Code Sent To Your Phone");
+  });
 });
 
 describe("on a phone", () => {

@@ -111,14 +111,45 @@ not render count).
 Carried from `implement.md`, plus what this run found. **No `BUG-n`:** no test
 written for this ticket proved existing behaviour wrong.
 
-- **`FIND-1` — a flaky test outside this change.**
+- **`FIND-1` — ~~a flaky test outside this change~~. CORRECTED: a real bug in the
+  sign-in panel. Fixed on this branch after verification closed, at the owner's
+  direction.**
+
+  **What this section first said, and why it was wrong.**
   `tests/components/Login/Enhanced/InlineVerifyPanel.test.tsx`, case "says why a
-  code was refused", failed once in four full-suite runs and passes in isolation.
-  Expected: an alert within `findByRole`'s 1000 ms default. Actual: nothing within
-  that window on a loaded run. The file is **outside** `plan.md > Files to change`
-  and unreachable from anything this change touched, so `passed` is permitted
-  (`VF-12`). **The owner opens a separate ticket** — the fix is to make that case
-  wait on the state rather than on a one-second default. Not fixed here (`VF-7`).
+  code was refused", failed once in four full-suite runs and passed in isolation.
+  It was recorded here as a timing flake against `findByRole`'s 1000 ms default.
+  **That diagnosis was wrong.** Setting the window to 1 ms still passed, which
+  falsified it: the alert was already in the DOM when the wait began, so the
+  timeout was never the deciding factor.
+
+  **The real cause.** `InlineVerifyPanel.tsx` gated the verify error on `blocked`
+  (`lockRemaining > 0 || capReached`). A **successful** send arms the same
+  120-second per-number cooldown a refused one does — the component says so in its
+  own comment — and the panel re-reads that guard once a second. So about a second
+  after the code arrives, `blocked` is `true` for every shopper, and a wrong code
+  showed red boxes and **no words** for the next two minutes. The old test only
+  passed because it ran inside the gap before the first tick; a loaded run lost
+  that race, which is what made it look flaky.
+
+  **Confirmed, fixed, proved.** A new case,
+  "still says why a code was refused once the resend cooldown is running", waits
+  for the cooldown to reach the panel before typing a wrong code. It was run and
+  **seen red** — `TestingLibraryElementError: Unable to find role="alert"` —
+  deterministically, not intermittently. The fix removes the `!blocked &&` guard
+  from that one paragraph; the countdown and the refusal are separate facts, and
+  the red "Wait Ns" line cannot collide with it because that line only shows for a
+  **refused** send, which never reaches the code step. The same case is green
+  after: 127 passed across the seven sign-in files, and two full-suite runs at
+  1591 passed, exit `0`.
+
+  **This does not change the verification above.** The fault was in
+  `components/Login/Enhanced/InlineVerifyPanel.tsx`, outside
+  `plan.md > Files to change`, so `passed` was correctly permitted under `VF-12` at
+  the time. The fix landed afterwards as separate work on the same branch, on the
+  owner's instruction, and no acceptance criterion of this ticket depends on it.
+  The state-history note in `ticket.md` still calls it a flaky test; history
+  entries are never edited, so this is where the correction lives.
 
 - **`FIND-2` — the "authorized" exposure is live, as accepted.**
   `store/notifications/reducer.ts:89-91` returns without rendering for any message
