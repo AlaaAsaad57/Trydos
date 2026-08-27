@@ -240,6 +240,24 @@ export function normalizeSellerProductIds(raw: any): string[] {
   return [...out];
 }
 
+/** Keep only what a Seller Product ID may contain: letters in any script,
+ *  digits in any script, hyphen and underscore. Everything else is dropped.
+ *
+ *  This runs on every keystroke, so a refused character never appears in the
+ *  box and there is no message to read. Quotes are the reason it exists — a
+ *  straight or curly quote in an id looks identical on screen to the same id
+ *  without one, yet they are two different values to the backend, to the
+ *  uniqueness check and to anything that has to quote the id again. Blocking
+ *  only the three ASCII quotes would miss the curly ones a phone keyboard
+ *  sends, so the rule is written as an allow-list instead.
+ *
+ *  \p{L} covers Arabic, Turkish and Kurdish letters, not just A-Z; \p{N}
+ *  covers Arabic-Indic digits as well as 0-9. Sellers write these ids in their
+ *  own language. */
+export function sanitizeSellerProductId(value: string): string {
+  return String(value ?? "").replace(/[^\p{L}\p{N}_-]/gu, "");
+}
+
 /** True when the typed seller product id is already taken. `taken` must not
  *  contain the product's own current id — on edit the lookups list includes it
  *  and keeping it must stay allowed. Empty returns false: the empty case is the
@@ -1093,66 +1111,186 @@ const ASSERT_MESSAGE_FIELDS: [string, string][] = [
   ["ordered by priority", "images"],
 ];
 
-const ERROR_CODE_FIELDS = new Set([
+/** The fields this form can display a failure message under — 31 names: the 17
+ *  that already showed one and already carried an anchor, plus the 14 completed
+ *  alongside this function. It replaces a hand-written list of 20 guessed backend
+ *  codes; all 20 are still here, so nothing that mapped before stops mapping.
+ *
+ *  Every name is also a key of `ProductForm`, which is what lets
+ *  `clearServerFieldErrors` clear by patched key with no name-to-name map.
+ *
+ *  `similar_words` is deliberately absent. It carries an anchor but has no
+ *  message slot, so binding to it would mark a field that shows nothing. */
+const DISPLAYABLE_FIELDS = new Set([
+  // already complete before this change
   "name",
+  "seller_product_id",
   "unit",
   "brand_id",
   "boutique_id",
+  "location_id",
+  "description",
   "unit_price",
   "discount_price",
   "purchase_price",
-  "luck_price",
+  "current_stock",
   "weight",
-  "count_of_pieces",
-  "shipping_cost",
-  "shipping_days",
   "tax",
   "tax_type",
   "category_id",
-  "description",
-  "images",
-  "colorImages",
   "variations",
   "translations",
+  // completed alongside this change
+  "count_of_pieces",
+  "labels",
+  "origin_country_iso",
+  "images",
+  "colorImages",
+  "barcode",
+  "luck_price",
+  "model_number",
+  "report_ref_number",
+  "shipping_cost",
+  "shipping_days",
+  "max_allowed_qty",
+  "meta_title",
+  "meta_description",
 ]);
 
-/** Map a rejected save's response body onto the editor's `errors` shape.
+/** The six price inputs `sections.tsx` renders only when prices are unlocked.
+ *  `buildUpdateFormData` sends every one of them on every save regardless, so the
+ *  backend can refuse a key whose input is not on the page. Marking it would
+ *  highlight something nobody can see, and the summary would then claim a
+ *  highlighted field that does not exist — so while prices are locked these are
+ *  not bindable and their messages go to the list instead. */
+const PRICE_LOCKED_FIELDS = new Set([
+  "unit_price",
+  "discount_price",
+  "luck_price",
+  "shipping_cost",
+  "tax",
+  "tax_type",
+]);
+
+/** Only this status carries validation refusals. Anything else keeps the general
+ *  failure message and marks nothing. */
+const VALIDATION_STATUS = 422;
+
+export interface ServerErrorResult {
+  /** Field key -> the message to show under that field. Null-prototype. */
+  fields: Record<string, string>;
+  /** Messages that belong to no input the form owns. Shown as text. */
+  messages: string[];
+  /** Entries deliberately kept off the screen. See the comment below. */
+  withheld: number;
+}
+
+/** Map a refused save onto the fields the form can mark, the messages it cannot
+ *  place, and a count of what it withheld.
  *
- *  Every VALUE is a translated constant of ours — no backend text is ever
- *  surfaced (contract §3.4 failures arrive as raw PHP "Undefined array key"
- *  strings, and the proxy passes backend bodies through unfiltered).
- *  Returns the complete record plus whether anything was attributed, so the
- *  caller can fall back to a general message and set state exactly once. */
-export function mapServerErrors(res: any): {
-  errors: Record<string, string>;
-  attributed: boolean;
-} {
-  const errors: Record<string, string> = {};
+ *  **Showing the backend's own text here is deliberate**, and it reverses an
+ *  earlier rule that said no backend text may be shown. The backend sanitises its
+ *  own responses, so a refusal that names a field cannot carry sensitive data or a
+ *  database statement, and the seller is far better served by the real sentence
+ *  than by a constant of ours.
+ *
+ *  **One class is still withheld, and the exception must not be removed.** This
+ *  same status also returns raw server text when an update omits a key the server
+ *  reads without a fallback — historically "Undefined array key", which names the
+ *  backend technology to the browser. That text arrives carrying **no** `code`, so
+ *  every codeless entry that is not one of the four known image asserts is counted
+ *  rather than shown. The rule turns on whether an entry names a field, never on
+ *  the words inside it — it is not a content filter and must not become one.
+ *
+ *  Nothing is lost: the caller already reports the whole `detailed_error` array to
+ *  error tracking, unchanged by this function. */
+export function mapServerErrors(res: any, pricesLocked = false): ServerErrorResult {
+  const fields: Record<string, string> = Object.create(null);
+  const messages: string[] = [];
+  let withheld = 0;
+
+  if (res?.httpStatus !== VALIDATION_STATUS) return { fields, messages, withheld };
+
   const details = Array.isArray(res?.detailed_error) ? res.detailed_error : [];
 
   for (const d of details) {
-    // FormRequest failures: `code` is the field key, dotted for array items
-    // (`category_id.0`, `labels.1`) — reduce to the base field (contract §3.1).
-    const code = typeof d?.code === "string" ? d.code.split(".")[0] : "";
-    if (code && ERROR_CODE_FIELDS.has(code)) {
-      errors[code] = tx("Please check this field");
+    const message = typeof d?.message === "string" ? d.message.trim() : "";
+    // `code` is the form's own field name, suffixed for an item inside a list
+    // (`category_id.0`, `labels[1]`). Cut at the first `.` or `[` and never at
+    // `_`, so a variant key like `barcode_Black-M` cannot reach flat `barcode`.
+    const raw = typeof d?.code === "string" ? d.code : "";
+    const code = raw ? raw.split(/[.[]/)[0] : "";
+
+    if (code) {
+      if (!message) continue;
+      // Membership is confirmed BEFORE any key is written, and the record has a
+      // null prototype — together that is what stops a backend-controlled code
+      // such as `__proto__`, or one carrying a quote, becoming a key.
+      // Do not reorder these two.
+      if (DISPLAYABLE_FIELDS.has(code) && !(pricesLocked && PRICE_LOCKED_FIELDS.has(code))) {
+        fields[code] = message;
+      } else {
+        messages.push(message);
+      }
       continue;
     }
-    // Service asserts arrive with no code at all (contract §3.2).
-    const msg = typeof d?.message === "string" ? d.message.toLowerCase() : "";
-    if (!msg) continue;
-    for (const [needle, field] of ASSERT_MESSAGE_FIELDS) {
-      if (msg.includes(needle)) {
-        errors[field] =
-          field === "images"
-            ? tx("Check the product images and their order")
-            : tx("Every color needs at least one image, and every image must be assigned");
-        break;
-      }
+
+    if (!message) continue;
+    // Service asserts arrive with no code at all. These four keep marking their
+    // own inputs with our own wording, exactly as before this change — they are
+    // the one exception to the withholding rule above, and the text written here
+    // is ours, never the backend's.
+    const lower = message.toLowerCase();
+    const hit = ASSERT_MESSAGE_FIELDS.find(([needle]) => lower.includes(needle));
+    if (hit) {
+      fields[hit[1]] =
+        hit[1] === "images"
+          ? tx("Check the product images and their order")
+          : tx("Every color needs at least one image, and every image must be assigned");
+      continue;
     }
+    withheld += 1;
   }
 
-  return { errors, attributed: Object.keys(errors).length > 0 };
+  return { fields, messages, withheld };
+}
+
+/** Choose the line shown alongside a refusal. It may claim highlighted fields
+ *  only when a field was actually marked — otherwise it says what really
+ *  happened. Pure, so the choice can be proved without a rendered form. */
+export function chooseSaveErrorSummary(
+  result: ServerErrorResult,
+  fixHighlighted: string,
+  fallback: string,
+): string {
+  if (Object.keys(result.fields).length > 0) return fixHighlighted;
+  if (result.messages.length > 0) return result.messages[0];
+  return fallback;
+}
+
+/** Drop the backend failures sitting on the fields that just changed, leaving
+ *  every other one alone. Returns the **same object** when nothing was cleared,
+ *  so typing in a field that carries no failure costs no extra state change. */
+export function clearServerFieldErrors(
+  current: Record<string, string>,
+  changedKeys: string[],
+): Record<string, string> {
+  if (!current || !changedKeys.length) return current;
+
+  let touched = false;
+  for (const key of changedKeys) {
+    if (current[key] !== undefined) {
+      touched = true;
+      break;
+    }
+  }
+  if (!touched) return current;
+
+  const next: Record<string, string> = Object.create(null);
+  for (const key of Object.keys(current)) {
+    if (!changedKeys.includes(key)) next[key] = current[key];
+  }
+  return next;
 }
 
 /* ---------------------------- update payload ----------------------------- */
@@ -1308,25 +1446,32 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
 
 /* -------------------------- smooth scroll error --------------------------- */
 
+/** The failing field the seller reaches first reading the form from the top —
+ *  not whichever key happens to come first in the record. Walks the anchors once,
+ *  in document order, and returns the **element**: no key from a backend code is
+ *  ever put into a selector string. */
+export function pickTopmostErrorField(errs: Record<string, string>): Element | null {
+  if (typeof document === "undefined" || !errs) return null;
+
+  const anchors = document.querySelectorAll("[data-field]");
+  for (const el of Array.from(anchors)) {
+    const key = el.getAttribute("data-field");
+    if (key && errs[key] !== undefined) return el;
+  }
+  return null;
+}
+
 export function scrollToFirstError(errs: Record<string, string>) {
   if (typeof window === "undefined" || !errs) return;
-  const keys = Object.keys(errs);
-  if (!keys.length) return;
-
-  const firstKey = keys[0];
+  if (!Object.keys(errs).length) return;
 
   setTimeout(() => {
-    let target =
-      document.querySelector(`[data-field="${firstKey}"]`) ||
-      document.getElementById(`field_${firstKey}`) ||
-      document.getElementById(`section_${firstKey}`) ||
-      document.getElementById(firstKey);
-
-    if (!target) {
-      target =
-        document.querySelector(`.border-\\[\\#f85555\\]`) ||
-        document.querySelector(`.text-\\[\\#f85555\\]`);
-    }
+    // The colour-class lookup stays as the fallback for a failing field that has
+    // no anchor of its own — the form's own validation relies on it.
+    const target =
+      pickTopmostErrorField(errs) ||
+      document.querySelector(`.border-\\[\\#f85555\\]`) ||
+      document.querySelector(`.text-\\[\\#f85555\\]`);
 
     if (target) {
       target.scrollIntoView({ behavior: "smooth", block: "center" });

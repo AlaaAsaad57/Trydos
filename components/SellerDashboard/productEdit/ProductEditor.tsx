@@ -31,6 +31,8 @@ import {
   DescriptorGroup,
   DiffEntry,
   emptyProductForm,
+  chooseSaveErrorSummary,
+  clearServerFieldErrors,
   fileName,
   ImageItem,
   isSellerProductIdTaken,
@@ -61,6 +63,11 @@ import {
 } from "./sections";
 
 const t = (s: string) => translateFunction(s);
+
+/** How many unplaceable backend messages the banner shows before it counts the
+ *  rest. One refusal on a product with ten colours and six sizes can carry a
+ *  line per row, and a wall of near-identical lines above the form helps nobody. */
+const SERVER_MESSAGE_LIMIT = 5;
 
 /** Best-effort filename extraction from the media-server /upload/bulk shapes. */
 function extractNames(data: any): string[] {
@@ -140,6 +147,11 @@ export default function ProductEditor({
 
   const [editMode, setEditMode] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  /* Backend refusals are kept apart from `errors`, which belongs to the form's
+     own validation. Clearing a field as the seller types must not wipe a message
+     `validate()` wrote, and the two are merged only for display. */
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
+  const [serverMessages, setServerMessages] = useState<string[]>([]);
   const [uploading, setUploading] = useState<{
     images?: boolean;
     meta?: boolean;
@@ -287,8 +299,16 @@ export default function ProductEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [catKey]);
 
-  const patch = (p: Partial<ProductForm>) =>
+  const patch = (p: Partial<ProductForm>) => {
     setForm((prev) => (prev ? { ...prev, ...p } : prev));
+    // A corrected value must not keep the backend's message about the old one.
+    // Every displayable field name is also a key of the form, so the patched keys
+    // are exactly the failures to drop. The helper returns the same object when
+    // it cleared nothing, which is the whole point of the functional updater
+    // here: this runs on every keystroke on a form with around forty inputs.
+    const changedKeys = Object.keys(p);
+    setServerErrors((prev) => clearServerFieldErrors(prev, changedKeys));
+  };
 
   // Merge every cached category-branch lookup over the base lookups, dedupe by
   // id (descriptor groups by group id, descriptors within a group by id), and
@@ -495,6 +515,11 @@ export default function ProductEditor({
 
   const startSave = () => {
     if (!form || !initial || isSaveDisabled) return;
+    // Every save begins here — this is what opens the confirm dialog that later
+    // calls confirmSave — so clearing the previous refusal here covers both a
+    // save that fails our own validation and one that reaches the backend.
+    setServerErrors({});
+    setServerMessages([]);
     // isCreate gates the three checks the backend enforces only at create
     // (boutique, category, description) — applying them on edit would block
     // saving an existing product that legitimately has one of them empty.
@@ -516,16 +541,22 @@ export default function ProductEditor({
     setConfirm(diff);
   };
 
-  /** A rejected save. The backend's structured errors are mapped onto the form's
-   *  own fields; nothing the backend wrote is ever rendered — a 422 body reaches
-   *  us verbatim through the proxy and can carry raw PHP text, SQL or hostnames.
-   *  Every message shown here is one of our own translated constants. */
+  /** A rejected save. The backend runs rules this form does not have and cannot
+   *  have — a barcode another product already uses, and rules that may be added
+   *  later without telling us — so a refusal that names a field now marks that
+   *  field with the backend's own sentence, and the page moves to it.
+   *
+   *  This does NOT touch `errors`: the form's own validation owns that record and
+   *  is left exactly as it was. The mapper withholds the one class of message that
+   *  arrives naming no field, because that is how raw server text reaches this
+   *  path; the reasoning is on `mapServerErrors` in `helpers.ts`. */
   const handleSaveRejection = (res: any, fallback: string) => {
-    const { errors: mapped, attributed } = mapServerErrors(res);
-    setErrors(mapped);
+    const result = mapServerErrors(res, pricesLocked);
+    setServerErrors(result.fields);
+    setServerMessages(result.messages);
     setConfirm(null);
-    if (attributed && Object.keys(mapped).length > 0) {
-      scrollToFirstError(mapped);
+    if (Object.keys(result.fields).length > 0) {
+      scrollToFirstError({ ...errors, ...result.fields });
     }
     LogError({
       scenario: "ProductEditor.saveRejected",
@@ -534,7 +565,11 @@ export default function ProductEditor({
       productId: productId ?? "new",
     });
     showErrorMessage(
-      attributed ? t("Please fix the highlighted fields before saving.") : fallback,
+      chooseSaveErrorSummary(
+        result,
+        t("Please fix the highlighted fields before saving."),
+        fallback,
+      ),
     );
   };
 
@@ -611,6 +646,8 @@ export default function ProductEditor({
       setInitial(savedForm);
       setEditMode(false);
       setErrors({});
+      setServerErrors({});
+      setServerMessages([]);
       const requiresApproval = !!res.data?.requires_approval;
       setApprovalNote(requiresApproval);
       if (!requiresApproval && descriptorsOk)
@@ -628,6 +665,8 @@ export default function ProductEditor({
   const cancelEdit = () => {
     setForm(initial);
     setErrors({});
+    setServerErrors({});
+    setServerMessages([]);
     setEditMode(false);
   };
 
@@ -787,12 +826,29 @@ export default function ProductEditor({
     return <ErrorState message={loadError} onRetry={load} />;
   if (!form || !lookups) return null;
 
+  /* Display only. Our own validation first, then the live seller-product-id
+     check, then the backend's refusals — so after a refused save the seller reads
+     what the backend actually said. Each spread is conditional so that with
+     nothing to merge this stays the very same object it is today. */
+  const hasServerErrors = Object.keys(serverErrors).length > 0;
+  const mergedErrors =
+    sellerProductIdError || hasServerErrors
+      ? {
+          ...errors,
+          ...(sellerProductIdError ? { seller_product_id: sellerProductIdError } : null),
+          ...serverErrors,
+        }
+      : errors;
+
+  const dedupedServerMessages = Array.from(new Set(serverMessages));
+  const shownServerMessages = dedupedServerMessages.slice(0, SERVER_MESSAGE_LIMIT);
+  const hiddenServerMessageCount =
+    dedupedServerMessages.length - shownServerMessages.length;
+
   const sectionProps: SectionProps = {
     form,
     patch,
-    errors: sellerProductIdError
-      ? { ...errors, seller_product_id: sellerProductIdError }
-      : errors,
+    errors: mergedErrors,
     lookups,
     disabled: !editMode,
     pricesLocked,
@@ -987,6 +1043,30 @@ export default function ProductEditor({
           </p>
         )}
       </div>
+
+      {/* Problems the backend named that belong to no single input — a colour or
+          size row, a translation row, or a field this form submits without
+          showing. They are shown here rather than dropped. Deduped by exact text
+          and capped, because one refusal on a product with many colours and sizes
+          can carry hundreds of near-identical lines. */}
+      {shownServerMessages.length > 0 && (
+        <div className="mt-4">
+          <InlineAlert>
+            <span className="flex flex-col gap-1">
+              {shownServerMessages.map((message, i) => (
+                <span key={`${i}-${message}`} dir="auto">
+                  {message}
+                </span>
+              ))}
+              {hiddenServerMessageCount > 0 && (
+                <span dir="auto">
+                  {`${t("More problems were reported")}: ${hiddenServerMessageCount}`}
+                </span>
+              )}
+            </span>
+          </InlineAlert>
+        </div>
+      )}
 
       {/* Sections */}
       <CoreSection {...sectionProps} />

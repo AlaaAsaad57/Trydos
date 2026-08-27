@@ -33,6 +33,7 @@ import {
   seedVariantDefaults,
   ImageItem,
   parseDescriptorOptions,
+  sanitizeSellerProductId,
   renderableDescriptorGroups,
   descriptorIconUrl,
   locationLabel,
@@ -408,14 +409,14 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
     <Section icon="products" title="General" desc="Identity & classification of the product.">
       <Grid>
         <Txt label="Product Name" fieldKey="name" value={form.name} required error={errors.name} disabled={disabled} onChange={(v) => patch({ name: v })} />
-        <Txt label="Seller Product ID" fieldKey="seller_product_id" value={form.seller_product_id} required error={errors.seller_product_id} hint={t("Must stay unique across the marketplace")} disabled={disabled} onChange={(v) => patch({ seller_product_id: v })} />
-        <Txt label="Barcode" fieldKey="barcode" value={form.barcode} disabled={disabled} onChange={(v) => patch({ barcode: v })} />
+        <Txt label="Seller Product ID" fieldKey="seller_product_id" value={form.seller_product_id} required error={errors.seller_product_id} hint={t("Must stay unique across the marketplace")} disabled={disabled} onChange={(v) => patch({ seller_product_id: sanitizeSellerProductId(v) })} />
+        <Txt label="Barcode" fieldKey="barcode" value={form.barcode} error={errors.barcode} disabled={disabled} onChange={(v) => patch({ barcode: v })} />
         <Select label="Unit" fieldKey="unit" value={form.unit} required error={errors.unit} disabled={disabled} onChange={(v) => patch({ unit: v })} options={UNITS.map((u) => ({ value: u, label: u }))} />
         <Select label="Brand" fieldKey="brand_id" value={form.brand_id} required error={errors.brand_id} disabled={disabled} onChange={(v) => patch({ brand_id: v })} options={(lookups.brands || []).map((b) => ({ value: String(b.id), label: b.translated_name ?? b.name }))} />
         <Select label="Boutique" fieldKey="boutique_id" value={form.boutique_id} error={errors.boutique_id} disabled={disabled} onChange={(v) => patch({ boutique_id: v })} options={(lookups.boutiques || []).map((b) => ({ value: String(b.id), label: b.translated_name ?? b.name }))} />
         <Select label="Location" fieldKey="location_id" value={form.location_id} required error={errors.location_id} disabled={disabled} onChange={(v) => patch({ location_id: v })} options={(lookups.locations || []).map((l) => ({ value: String(l.id), label: locationLabel(l) }))} />
-        <Txt label="Model Number" fieldKey="model_number" value={form.model_number} disabled={disabled} onChange={(v) => patch({ model_number: v })} />
-        <Txt label="Report Ref. Number" fieldKey="report_ref_number" value={form.report_ref_number} disabled={disabled} onChange={(v) => patch({ report_ref_number: v })} />
+        <Txt label="Model Number" fieldKey="model_number" value={form.model_number} error={errors.model_number} disabled={disabled} onChange={(v) => patch({ model_number: v })} />
+        <Txt label="Report Ref. Number" fieldKey="report_ref_number" value={form.report_ref_number} error={errors.report_ref_number} disabled={disabled} onChange={(v) => patch({ report_ref_number: v })} />
       </Grid>
       <div className="mt-5" data-field="description">
         <DashField label={t("Description")}>
@@ -449,7 +450,7 @@ export function PricingSection({ form, patch, errors, disabled, currency, prices
         )}
         <Num label="Purchase Price" fieldKey="purchase_price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ purchase_price: v })} />
         {!pricesLocked && (
-          <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ luck_price: v })} />
+          <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} error={errors.luck_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ luck_price: v })} />
         )}
         <Num
           label="Current Stock"
@@ -461,12 +462,12 @@ export function PricingSection({ form, patch, errors, disabled, currency, prices
           onChange={(v) => patch({ current_stock: v })}
         />
         <Num label="Weight" value={form.weight} error={errors.weight} required fieldKey="weight" disabled={disabled} onChange={(v) => patch({ weight: v })} />
-        <Num label="Max Allowed Qty" value={form.max_allowed_qty} disabled={disabled} onChange={(v) => patch({ max_allowed_qty: v })} />
-        <Num label="Pieces / Unit" value={form.count_of_pieces} error={errors.count_of_pieces} hint={t("Must be a whole number between 1 and 100")} disabled={disabled} step="1" onChange={(v) => patch({ count_of_pieces: v })} />
+        <Num label="Max Allowed Qty" fieldKey="max_allowed_qty" value={form.max_allowed_qty} error={errors.max_allowed_qty} disabled={disabled} onChange={(v) => patch({ max_allowed_qty: v })} />
+        <Num label="Pieces / Unit" fieldKey="count_of_pieces" value={form.count_of_pieces} error={errors.count_of_pieces} hint={t("Must be a whole number between 1 and 100")} disabled={disabled} step="1" onChange={(v) => patch({ count_of_pieces: v })} />
         {!pricesLocked && (
-          <Num label="Shipping Cost" value={form.shipping_cost} disabled={disabled} suffix={currency} onChange={(v) => patch({ shipping_cost: v })} />
+          <Num label="Shipping Cost" fieldKey="shipping_cost" value={form.shipping_cost} error={errors.shipping_cost} disabled={disabled} suffix={currency} onChange={(v) => patch({ shipping_cost: v })} />
         )}
-        <Num label="Shipping Days" value={form.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
+        <Num label="Shipping Days" fieldKey="shipping_days" value={form.shipping_days} error={errors.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
         {/* A flat tax is an amount in the display currency and is converted
             server-side; any other type is read as a percentage (contract §1b).
             Tax changes what the buyer pays, so it follows the same rule as the
@@ -793,7 +794,7 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
               })}
             </div>
           )}
-          {errors.labels && <p className="text-[12px] text-[#f85555] mt-1.5">{errors.labels}</p>}
+          {errors.labels && <p data-field="labels" className="text-[12px] text-[#f85555] mt-1.5">{errors.labels}</p>}
         </div>
         <div>
           <div className="flex  sm:flex-row sm:items-center justify-between gap-2 mb-2">
@@ -865,7 +866,7 @@ export function CountriesSection({ form, patch, lookups, disabled, currency, pri
     <Section icon="shopInfo" title="Origin & Countries">
       <div className="space-y-6">
         <div className="max-w-md">
-          <Select label="Country of Origin" error={errors.origin_country_iso} value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={originCountryOptions} />
+          <Select label="Country of Origin" fieldKey="origin_country_iso" error={errors.origin_country_iso} value={form.origin_country_iso} disabled={disabled} onChange={(v) => patch({ origin_country_iso: v })} options={originCountryOptions} />
         </div>
 
         <div>
@@ -928,7 +929,7 @@ export function CountriesSection({ form, patch, lookups, disabled, currency, pri
   );
 }
 
-export function SeoSection({ form, patch, disabled, onUploadMeta, uploading, sellerId, canUseGallery }: SectionProps) {
+export function SeoSection({ form, patch, errors, disabled, onUploadMeta, uploading, sellerId, canUseGallery }: SectionProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const openDevice = () => fileRef.current?.click();
@@ -939,8 +940,8 @@ export function SeoSection({ form, patch, disabled, onUploadMeta, uploading, sel
   return (
     <Section icon="search" title="SEO / Meta">
       <Grid>
-        <Txt label="Meta Title" value={form.meta_title} disabled={disabled} onChange={(v) => patch({ meta_title: v })} />
-        <Txt label="Meta Description" value={form.meta_description} disabled={disabled} onChange={(v) => patch({ meta_description: v })} />
+        <Txt label="Meta Title" fieldKey="meta_title" value={form.meta_title} error={errors.meta_title} disabled={disabled} onChange={(v) => patch({ meta_title: v })} />
+        <Txt label="Meta Description" fieldKey="meta_description" value={form.meta_description} error={errors.meta_description} disabled={disabled} onChange={(v) => patch({ meta_description: v })} />
       </Grid>
       <div className="mt-5">
         <p className="text-[13px] medium text-[#505050] mb-2">{t("Meta Image")}</p>
@@ -1075,7 +1076,7 @@ export function MediaSection({ form, patch, errors, disabled, onUploadImages, up
   };
   return (
     <Section icon="gallery" title="Images" desc="The first image is the cover. Drag order with the arrows.">
-      {errors.images && <p className="text-[12px] text-[#f85555] mb-3">{errors.images}</p>}
+      {errors.images && <p data-field="images" className="text-[12px] text-[#f85555] mb-3">{errors.images}</p>}
       <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
         {form.images.map((im, i) => (
           <div key={im.name + i} className="relative group rounded-[12px] overflow-hidden border border-[#ededed] bg-[#f4f4f4] aspect-square">
@@ -1408,7 +1409,7 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
           <div className="pt-2">
             <p className="text-[13px] medium text-[#505050] mb-1">{t("Color Images")}</p>
             <p className="text-[12px] text-[#8e8e8e] mb-3">{t("Assign each uploaded image to a color. Every color needs at least one image, and every image must be assigned.")}</p>
-            {errors.colorImages && <p className="text-[12px] text-[#f85555] mb-3">{errors.colorImages}</p>}
+            {errors.colorImages && <p data-field="colorImages" className="text-[12px] text-[#f85555] mb-3">{errors.colorImages}</p>}
             <div className="space-y-4">
               {form.colors.map((c) => {
                 const lookupColor = getColorFromLookup(c.code, lookups, c);

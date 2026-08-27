@@ -1910,6 +1910,7 @@ const translations = {
   "Pick a shop to open its dashboard.": "Panelini açmak için bir mağaza seçin.",
   "Pick colors & sizes, then set price and stock for each combination.": "Renkleri ve bedenleri seçin, ardından her kombinasyon için fiyat ve stok belirleyin.",
   "Pieces / Unit": "Adet / Birim",
+  "More problems were reported": "Daha fazla sorun bildirildi",
   "Please fix the highlighted fields before saving.": "Kaydetmeden önce lütfen vurgulanan alanları düzeltin.",
   "Preparing your dashboard...": "Paneliniz hazırlanıyor...",
   "Previous": "Geri",
