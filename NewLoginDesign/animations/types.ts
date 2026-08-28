@@ -1,0 +1,72 @@
+import type { CSSProperties, ReactNode } from 'react';
+import type { TargetAndTransition, Transition } from 'framer-motion';
+import type { LogoGeometry } from './geometry';
+
+export type LogoVariant = 'header' | 'badge-ring';
+
+/**
+ * What a pattern is allowed to move.
+ *
+ * The list is short on purpose. The wordmark is not in it: no pattern may set
+ * a stroke, a filter, a transform or a colour on the glyph path, because every
+ * one of those changes the shape of the letters. The single exception is
+ * `wordmarkClipId` — a clip path only ever hides part of the mark and hands it
+ * back untouched, so a reveal cannot deform a glyph.
+ */
+export interface ElementMotion {
+    initial?: TargetAndTransition;
+    animate?: TargetAndTransition;
+    transition?: Transition;
+    style?: CSSProperties;
+}
+
+export interface LogoMotion {
+    /**
+     * Whether the engine handed out a pattern at all. Rendered onto the svg as
+     * `data-logo-motion`, so "is it meant to be moving" can be read straight off
+     * the element instead of guessed from whether it happens to be moving.
+     */
+    isActive?: boolean;
+    /** <filter>, <mask>, <clipPath>, <linearGradient> — ids must come from `uid`. */
+    defs?: ReactNode;
+    /** Decoration painted before the mark, so the mark always sits on top of it. */
+    behind?: ReactNode;
+    /**
+     * Decoration painted straight after the ring path and masked to it, so it
+     * can recolour the ring dots and nothing else. Badge variant only.
+     */
+    ringOverlay?: ReactNode;
+    leftDot?: ElementMotion;
+    rightDot?: ElementMotion;
+    ring?: ElementMotion;
+    /** id of a <clipPath> in `defs`. The only handle a pattern has on the wordmark. */
+    wordmarkClipId?: string;
+    /** id of a <mask> in `defs`, applied to the ring path. Hides, never redraws. */
+    ringMaskId?: string;
+    /**
+     * true when the pattern moves something past the edge of the viewBox and
+     * needs the svg to paint outside its box instead of cutting it off.
+     */
+    overflowVisible?: boolean;
+}
+
+/** Eye-lid state, 1 = open, ~0 = shut. Only the `wink` pattern reads it. */
+export interface BlinkState {
+    left: number;
+    right: number;
+}
+
+export interface PatternContext {
+    variant: LogoVariant;
+    geo: LogoGeometry;
+    dotColor: string;
+    ringColor: string;
+    /** Unique per mounted logo. Every svg id must start with it, or two logos on
+     *  one screen will fight over the same <mask>. */
+    uid: string;
+    blink: BlinkState;
+}
+
+export type PatternFactory = (ctx: PatternContext) => LogoMotion;
+
+export const STATIC_MOTION: LogoMotion = {};

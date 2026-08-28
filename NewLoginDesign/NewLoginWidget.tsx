@@ -8,6 +8,7 @@ import 'public/styles/rdb-auth.css';
 import {
     LogoAnimationProvider,
     LOGO_ANIMATION_PRESETS,
+    DEFAULT_LOGO_ANIMATION,
     LogoAnimationType,
 } from './LogoAnimationContext';
 
@@ -65,7 +66,13 @@ export default function NewLoginWidget({
 
     const [showStepBar, setShowStepBar] = useState<boolean>(false);
     const [showAnimBar, setShowAnimBar] = useState<boolean>(false);
-    const [logoAnimation, setLogoAnimation] = useState<LogoAnimationType>('buddy');
+    const [logoAnimation, setLogoAnimation] = useState<LogoAnimationType>(DEFAULT_LOGO_ANIMATION);
+    // On by default here, and only here. Windows and macOS both have a setting
+    // that turns animation off system wide, and a good number of machines have
+    // it on. The product respects it. This demo exists so somebody can look at
+    // the eight patterns and choose one, and it cannot do that job if the
+    // machine it is opened on silently shows eight still logos.
+    const [forceMotion, setForceMotion] = useState<boolean>(true);
     const [isQrOpen, setIsQrOpen] = useState<boolean>(false);
 
     const goTo = (nextStep: AuthStep, dir: number = 1) => {
@@ -97,7 +104,11 @@ export default function NewLoginWidget({
     const activePreset = LOGO_ANIMATION_PRESETS.find((p) => p.id === logoAnimation) || LOGO_ANIMATION_PRESETS[0];
 
     return (
-        <LogoAnimationProvider animation={logoAnimation} setAnimation={setLogoAnimation}>
+        <LogoAnimationProvider
+            animation={logoAnimation}
+            setAnimation={setLogoAnimation}
+            ignoreReducedMotion={forceMotion}
+        >
             <main
                 data-pw="new-login-widget"
                 className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
@@ -129,6 +140,22 @@ export default function NewLoginWidget({
                             <span>{activePreset.icon}</span>
                             <span className="text-[#402CDD] font-bold">Anim:</span>
                             <span>{activePreset.shortName}</span>
+                        </button>
+
+                        {/* 3. Reduced-motion override */}
+                        <button
+                            onClick={() => setForceMotion((prev) => !prev)}
+                            title={
+                                forceMotion
+                                    ? 'Playing the pattern even if this device has animation turned off in its system settings. This is a demo-only override.'
+                                    : 'Following the device setting. If this device has animation turned off, every pattern shows as a still logo.'
+                            }
+                            className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
+                        >
+                            <span
+                                className={`w-2 h-2 rounded-full ${forceMotion ? 'bg-[#28C452]' : 'bg-gray-400'}`}
+                            />
+                            <span>{forceMotion ? 'Motion: forced' : 'Motion: device'}</span>
                         </button>
                     </div>
 
@@ -187,7 +214,9 @@ export default function NewLoginWidget({
                                                     ? 'bg-[#402CDD] text-white font-bold shadow-[0_0_12px_rgba(64,44,221,0.6)] ring-1 ring-white/30 scale-[1.02]'
                                                     : 'bg-white/5 text-gray-300 hover:bg-white/15 hover:text-white'
                                             }`}
-                                            title={preset.description}
+                                            title={`${preset.description}
+
+Best for: ${preset.bestFor}`}
                                         >
                                             <span className="text-sm">{preset.icon}</span>
                                             <span>{preset.label}</span>
@@ -365,10 +394,12 @@ export default function NewLoginWidget({
                                 <NewSuccessScreen
                                     variant={step === 'login-success' ? 'login' : 'signup'}
                                     name={name}
-                                    onDone={() => {
-                                        if (onFinish) onFinish();
-                                        else router.push(`/${langCode}`);
-                                    }}
+                                    // The demo stops here. A host that embeds
+                                    // the widget still gets its onFinish; on its
+                                    // own the screen simply stays put, instead of
+                                    // walking off to the home page two and a half
+                                    // seconds after you arrive on it.
+                                    onDone={onFinish}
                                     delayMs={2500}
                                     lang={langCode}
                                 />
