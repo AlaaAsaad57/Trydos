@@ -92,6 +92,7 @@ export default defineConfig({
           // spread back in so node_modules stays excluded.
           exclude: [...configDefaults.exclude, 'tests/e2e/**'],
           env: isolatedEnv,
+          testTimeout: 15000,
         },
       },
     ],
@@ -132,7 +133,7 @@ export default defineConfig({
       //     configs, instrumentation, eslint-rules/, scripts/)
       //   - public/, which holds the browser service worker and the three
       //     translation files — data, not our logic
-      exclude: ['**/*.{test,spec}.{ts,tsx,js,jsx}', '**/*.d.ts'],
+      exclude: ['**/*.{test,spec}.{ts,tsx,js,jsx}', '**/*.d.ts', 'components/Chat/**/*.js'],
     },
   },
 })

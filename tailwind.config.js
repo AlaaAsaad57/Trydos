@@ -6,6 +6,8 @@ module.exports = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./utils/**/*.{js,ts,jsx,tsx,mdx}",
+    "./NewLoginDesign/**/*.{js,ts,jsx,tsx,mdx}",
+    "./scaling/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   plugins: [],
   theme: {
