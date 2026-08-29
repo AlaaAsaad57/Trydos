@@ -15,10 +15,14 @@ const SHUT = 0.08;
 /**
  * Eye-lid timer for the `wink` pattern.
  *
- * A blink is 110ms. A wink holds one eye 190ms, because a one-eyed shut that
+ * A blink is 95ms. A wink holds one eye 165ms, because a one-eyed shut that
  * lasts as long as a blink reads as a glitch rather than as a joke. The gap
- * between blinks is between 1.8s and 3.6s: a fixed gap is the thing that makes
+ * between blinks is between 1.1s and 2.4s: a fixed gap is the thing that makes
  * a blinking character look mechanical.
+ *
+ * Both the gap and the shut are shorter than they were (1.8-3.6s, 110ms). A
+ * quicker, more frequent blink is what pairs with the darting look-around in
+ * `wink.tsx` — a slow lid over fast eyes reads as drowsy, not as curious.
  */
 function useBlink(active: boolean): BlinkState {
     const [state, setState] = useState<BlinkState>(EYES_OPEN);
@@ -42,10 +46,10 @@ function useBlink(active: boolean): BlinkState {
                             setState(EYES_OPEN);
                             schedule();
                         },
-                        isWink ? 190 : 110,
+                        isWink ? 165 : 95,
                     );
                 },
-                1800 + Math.random() * 1800,
+                1100 + Math.random() * 1300,
             );
         };
 

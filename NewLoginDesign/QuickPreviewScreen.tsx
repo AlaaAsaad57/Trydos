@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import FlexibleSpace from 'scaling/FlexibleSpace';
@@ -94,6 +94,21 @@ const PREVIEW_SLIDES = [
     },
 ];
 
+/**
+ * Collapsed state — how far the pill's top edge sits above the bottom edge of
+ * the canvas, in design px, read off the mock (`mocks/QuickPreview1.png`).
+ *
+ * The pill box there runs 837 -> 869 and the artboard is 932 tall, so the tail
+ * is 932 - 837 = 95. Below the pill sit the 14px gap and the top 49px of the
+ * 150px badge ring, which is the arc-plus-eyes peek the mock shows.
+ *
+ * This is measured from the BOTTOM on purpose. The old code translated the
+ * column down by a fixed 750px from the top, which only lands correctly when
+ * the canvas is exactly DESIGN_H (932). A phone gives ~838, so the pill landed
+ * on the bottom edge and the whole ring fell outside `overflow-hidden`.
+ */
+const COLLAPSED_TAIL = 95;
+
 export default function QuickPreviewScreen({
     onComplete,
     lang = 'en',
@@ -105,7 +120,54 @@ export default function QuickPreviewScreen({
     const [slideIndex, setSlideIndex] = useState<number>(0);
     const [flipTextIndex, setFlipTextIndex] = useState<number>(0);
 
-    // Trigger hydration on mount
+    const canvasRef = useRef<HTMLElement>(null);
+    const columnRef = useRef<HTMLDivElement>(null);
+    const pillRef = useRef<HTMLDivElement>(null);
+
+    /**
+     * Where the column sits, measured from the real canvas instead of assumed.
+     *
+     * `collapsedY` puts the pill's top edge COLLAPSED_TAIL above the bottom
+     * edge, so the ring peeks by the same amount on every screen height.
+     *
+     * `fitScale` is the guard for the expanded state. The spacers below carry a
+     * share budget that adds up to DESIGN_H, so the column fits on its own down
+     * to a 768px canvas. Under that there is no spacer left to give, and this
+     * shrinks the whole column instead of letting the button be cut off.
+     */
+    const [fit, setFit] = useState<{ collapsedY: number; fitScale: number }>({
+        collapsedY: 1000,
+        fitScale: 1,
+    });
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        const column = columnRef.current;
+        const pill = pillRef.current;
+        if (!canvas || !column || !pill) return;
+
+        const measure = () => {
+            const canvasH = canvas.clientHeight;
+            const columnH = column.offsetHeight;
+            setFit({
+                // pill.offsetTop is the top spacer, which the flex deficit
+                // shrinks. Reading it beats recomputing it from the constants.
+                collapsedY: Math.max(0, canvasH - COLLAPSED_TAIL - pill.offsetTop),
+                fitScale: columnH > canvasH ? canvasH / columnH : 1,
+            });
+        };
+
+        measure();
+        // offsetHeight/clientHeight are layout sizes, so the transform this
+        // writes back cannot re-trigger the observer.
+        const observer = new ResizeObserver(measure);
+        observer.observe(canvas);
+        observer.observe(column);
+        return () => observer.disconnect();
+    }, []);
+
+    // Trigger hydration on mount. Declared after the measure effect so the
+    // slide-up starts from a measured offset, not the off-screen default.
     useEffect(() => {
         setIsHydrated(true);
     }, []);
@@ -164,6 +226,7 @@ export default function QuickPreviewScreen({
 
     return (
         <main
+            ref={canvasRef}
             data-pw="quick-preview-screen"
             className="w-full bg-white flex flex-col items-center font-quicksand h-full relative overflow-hidden select-none"
         >
@@ -193,16 +256,21 @@ export default function QuickPreviewScreen({
             {/* ======================================================== */}
             <motion.div
                 key="qp-unified-column"
-                initial={{ y: 1000 }}
-                animate={{ y: !isHydrated ? 1000 : isExpanded ? 0 : 750 }}
+                ref={columnRef}
+                initial={{ y: 1000, scale: 1 }}
+                animate={{
+                    y: !isHydrated ? 1000 : isExpanded ? 0 : fit.collapsedY,
+                    scale: isExpanded ? fit.fitScale : 1,
+                }}
                 transition={{ duration: isExpanded ? 1.1 : 0.8, ease: [0.25, 1, 0.5, 1] }}
+                style={{ transformOrigin: 'top center' }}
                 className="w-full flex flex-col items-center relative z-20"
             >
-                {/* Top Spacing to position button perfectly near bottom edge */}
-                <FlexibleSpace size={70} share={0.3} />
+                {/* Top space above the pill. Mock: the pill box starts at 55. */}
+                <FlexibleSpace size={55} share={0.335} />
 
                 {/* 1. Slogan Pill Badge (Top of column) */}
-                <div className="w-full flex justify-center z-20">
+                <div ref={pillRef} className="w-full flex justify-center z-20">
                     <div className="h-xd-32 px-xd-20 rounded-[16px] bg-[#F4F0FE] border border-[#ECE9FE] flex items-center justify-center  min-w-[270px]">
                         <AnimatePresence mode="wait">
                             <motion.span
@@ -220,7 +288,7 @@ export default function QuickPreviewScreen({
                 </div>
 
                 {/* Gap between Slogan Pill and Dotted Badge: exactly 14px */}
-                <FlexibleSpace size={14} share={0.03} />
+                <FlexibleSpace size={14} share={0.085} />
 
                 {/* 2. Dotted Circular Badge Logo (150px x 150px) */}
                 <div className="flex flex-col items-center justify-center flex-shrink-0">
@@ -233,8 +301,8 @@ export default function QuickPreviewScreen({
                     />
                 </div>
 
-                {/* Gap between Badge and Title (8px) */}
-                <FlexibleSpace size={8} share={0.03} />
+                {/* Gap between Badge and Title (16px in the mock) */}
+                <FlexibleSpace size={16} share={0.098} />
 
                 {/* 3. Header Title: . Quick Preview . */}
                 <div className="w-full flex justify-center items-center flex-shrink-0">
@@ -243,8 +311,8 @@ export default function QuickPreviewScreen({
                     </h1>
                 </div>
 
-                {/* Gap between Title and Card (10px) */}
-                <FlexibleSpace size={10} share={0.04} />
+                {/* Gap between Title and Card (16px in the mock) */}
+                <FlexibleSpace size={16} share={0.098} />
 
                 {/* 4. Main Interactive Preview Card Container (390px x 473px) */}
                 <div className="w-xd-390 h-xd-473 rounded-xd-20 border-[1px] border-[#4A31E7] bg-white flex flex-col items-center justify-center p-xd-16 relative shadow-[0_4px_24px_rgba(74,49,231,0.06)] overflow-hidden flex-shrink-0">
@@ -274,8 +342,8 @@ export default function QuickPreviewScreen({
                     </div>
                 </div>
 
-                {/* Gap between Card and Dots (12px) */}
-                <FlexibleSpace size={12} share={0.05} />
+                {/* Gap between Card and Dots (10px in the mock) */}
+                <FlexibleSpace size={10} share={0.061} />
 
                 {/* 5. Pagination Dots (3 Dots matching Mock) */}
                 <div className="flex items-center gap-xd-8 pb-xd-2 flex-shrink-0">
@@ -293,8 +361,8 @@ export default function QuickPreviewScreen({
                     ))}
                 </div>
 
-                {/* Gap between Dots and Button (16px) */}
-                <FlexibleSpace size={16} share={0.05} />
+                {/* Gap between Dots and Button (20px in the mock) */}
+                <FlexibleSpace size={20} share={0.122} />
 
                 {/* 6. Action Button: Next (Dashed purple) vs Get Started (Solid purple) */}
                 <div className="w-full flex justify-center flex-shrink-0">
@@ -323,8 +391,19 @@ export default function QuickPreviewScreen({
                     )}
                 </div>
 
-                {/* Bottom space below button to bottom edge */}
-                <FlexibleSpace size={42} share={0.5} />
+                {/*
+                  * Bottom space below the button. Mock: the button ends at
+                  * 896, the artboard at 932.
+                  *
+                  * Every share here is size / 164, where 164 is the sum of all
+                  * seven spacers. That is what keeps them all positive: the old
+                  * 0.5 share on a 42px spacer went negative at a deficit of 84
+                  * and stopped absorbing, which pushed the button off the
+                  * bottom edge on any phone. They now all reach zero together,
+                  * at deficit 164, and the column is exactly DESIGN_H (932) at
+                  * deficit 0.
+                  */}
+                <FlexibleSpace size={33} share={0.201} />
             </motion.div>
         </main>
     );

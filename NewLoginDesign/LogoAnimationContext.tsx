@@ -40,7 +40,7 @@ export const LOGO_ANIMATION_PRESETS: LogoAnimationPreset[] = [
         icon: '👀',
         tagline: 'Character — the dots are eyes',
         description:
-            'The two dots look slowly around and blink, and now and then wink with one eye. Blinks last 110ms and come at an uneven gap, so it reads as alive rather than as a timer. The wordmark never moves.',
+            'The two dots dart from one point to the next and hold there, blink, and now and then wink with one eye. Blinks last 95ms and come at an uneven gap, so it reads as alive rather than as a timer. The wordmark never moves.',
         bestFor: 'The first screen, where the brand should feel friendly.',
     },
     {
