@@ -7,7 +7,7 @@ import FlexibleSpace from 'scaling/FlexibleSpace';
 import { getNumberLockRemaining } from 'utils/otpLocks';
 import { translateFunction } from 'utils/functions';
 import { authHeadingKey } from 'components/Login/Enhanced/authHeadings';
-import NewLoginLogo from './NewLoginLogo';
+import AuthLogoSlot from './AuthLogoSlot';
 
 interface NewEnterPinScreenProps {
     onSubmit: (pin: string) => void;
@@ -132,22 +132,17 @@ export default function NewEnterPinScreen({
                 )}
             </div>
 
+            {/* The mark's resting place. Pinned rather than in the flow: the
+                block below hangs off half the canvas, and a 250px slot dropped
+                into that flow would squeeze it and drag the text up with it.
+                The stop is the same one the outcome screens use. */}
+            <AuthLogoSlot stop="top" absolute />
+
             <FlexibleSpace size={0} share={0.3} />
 
             <div className="w-full h-full flex flex-col items-start">
-                {/* Top half — logo + title + OTP info */}
+                {/* Top half — title + OTP info. The mark is pinned above, not in this stack. */}
                 <div className="w-full h-1/2 flex flex-col justify-end px-xd-20 items-start">
-                    {/* Centered Dotted Badge Ring Logo */}
-                    <div className="w-full flex justify-center mb-xd-20">
-                        <NewLoginLogo
-                            variant="badge-ring"
-                            dotColor="purple"
-                            ringColor="#402CDD"
-                            width={150}
-                            height={150}
-                        />
-                    </div>
-
                     <div className="h-xd-138 w-full relative">
                         <h2 className="text-trim-descend text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
                             {translate(authHeadingKey(authType))}

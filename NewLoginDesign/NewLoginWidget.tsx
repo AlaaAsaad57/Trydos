@@ -1,16 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import Page from 'scaling/Page';
 import 'public/styles/rdb-auth.css';
-import {
-    LogoAnimationProvider,
-    LOGO_ANIMATION_PRESETS,
-    DEFAULT_LOGO_ANIMATION,
-    LogoAnimationType,
-} from './LogoAnimationContext';
+import { LogoAnimationProvider } from './LogoAnimationContext';
+import AuthLogoLayer from './AuthLogoLayer';
 
 // New Screens in NewLoginDesign
 import QuickPreviewScreen from './QuickPreviewScreen';
@@ -41,6 +37,22 @@ export type AuthStep =
 
 const transition = { duration: 0.35, ease: [0.4, 0, 0.2, 1] as const };
 
+/**
+ * The badge mark's colour, per step.
+ *
+ * Purple is the flow colour and covers every screen that does not say
+ * otherwise. The three outcome screens each have their own, and each one
+ * matches the background that screen paints.
+ */
+const LOGO_PURPLE = { dot: 'purple', ring: '#402CDD' };
+const STEP_LOGO_COLOR: Partial<Record<AuthStep, { dot: string; ring: string }>> = {
+    'not-registered': { dot: 'orange', ring: '#FAAA2E' },
+    'input-name': { dot: 'green', ring: '#28C452' },
+    // Both endings are the same screen in the same green — see NewSuccessScreen.
+    'login-success': { dot: 'green', ring: '#28C452' },
+    'signup-success': { dot: 'green', ring: '#28C452' },
+};
+
 interface NewLoginWidgetProps {
     initialStep?: AuthStep;
     onFinish?: () => void;
@@ -65,15 +77,15 @@ export default function NewLoginWidget({
     const [error, setError] = useState<string | undefined>(undefined);
 
     const [showStepBar, setShowStepBar] = useState<boolean>(false);
-    const [showAnimBar, setShowAnimBar] = useState<boolean>(false);
-    const [logoAnimation, setLogoAnimation] = useState<LogoAnimationType>(DEFAULT_LOGO_ANIMATION);
     // On by default here, and only here. Windows and macOS both have a setting
     // that turns animation off system wide, and a good number of machines have
-    // it on. The product respects it. This demo exists so somebody can look at
-    // the eight patterns and choose one, and it cannot do that job if the
-    // machine it is opened on silently shows eight still logos.
+    // it on. The product respects it. This demo is here to be looked at, and it
+    // cannot do that job if the machine it is opened on shows a still logo.
     const [forceMotion, setForceMotion] = useState<boolean>(true);
     const [isQrOpen, setIsQrOpen] = useState<boolean>(false);
+
+    /** The box the screens slide inside. `AuthLogoLayer` measures against it. */
+    const stageRef = useRef<HTMLDivElement>(null);
 
     const goTo = (nextStep: AuthStep, dir: number = 1) => {
         setDirection(dir);
@@ -101,48 +113,28 @@ export default function NewLoginWidget({
         return '#FFFFFF';
     };
 
-    const activePreset = LOGO_ANIMATION_PRESETS.find((p) => p.id === logoAnimation) || LOGO_ANIMATION_PRESETS[0];
+    const logoColor = STEP_LOGO_COLOR[step] ?? LOGO_PURPLE;
 
     return (
-        <LogoAnimationProvider
-            animation={logoAnimation}
-            setAnimation={setLogoAnimation}
-            ignoreReducedMotion={forceMotion}
-        >
+        <LogoAnimationProvider ignoreReducedMotion={forceMotion}>
             <main
                 data-pw="new-login-widget"
                 className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
                 style={{ backgroundColor: getScreenBg() }}
             >
-                {/* Floating Top Control Bar (Flow Steps & Animation Selector) */}
+                {/* Floating Top Control Bar (Flow Steps & reduced-motion override) */}
                 <div className="fixed top-3 left-3 z-[999999999999] flex flex-col gap-1.5 items-start font-quicksand select-none">
                     <div className="flex items-center gap-2 flex-wrap">
                         {/* 1. Flow Steps Toggle Button */}
                         <button
-                            onClick={() => {
-                                setShowStepBar((prev) => !prev);
-                                if (!showStepBar) setShowAnimBar(false);
-                            }}
+                            onClick={() => setShowStepBar((prev) => !prev)}
                             className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
                         >
                             <span className="w-2 h-2 rounded-full bg-[#402CDD]" />
                             <span>{showStepBar ? 'Hide Steps' : 'Flow Steps'}</span>
                         </button>
 
-                        {/* 2. Logo Animation Selector Toggle Button */}
-                        <button
-                            onClick={() => {
-                                setShowAnimBar((prev) => !prev);
-                                if (!showAnimBar) setShowStepBar(false);
-                            }}
-                            className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
-                        >
-                            <span>{activePreset.icon}</span>
-                            <span className="text-[#402CDD] font-bold">Anim:</span>
-                            <span>{activePreset.shortName}</span>
-                        </button>
-
-                        {/* 3. Reduced-motion override */}
+                        {/* 2. Reduced-motion override */}
                         <button
                             onClick={() => setForceMotion((prev) => !prev)}
                             title={
@@ -194,38 +186,6 @@ export default function NewLoginWidget({
                             </button>
                         </div>
                     )}
-
-                    {/* Logo Animation Options Strip */}
-                    {showAnimBar && (
-                        <div className="flex flex-col gap-1 bg-black/90 backdrop-blur-md p-2 rounded-2xl text-white text-xs max-w-[92vw] shadow-2xl border border-white/10 animate-fade-in">
-                            <div className="flex items-center justify-between pb-1 px-1 border-b border-white/10 text-[11px] text-gray-400">
-                                <span className="font-semibold text-white/90">Pick Logo Animation:</span>
-                                <span className="text-[10px] text-[#A688FA]">{activePreset.tagline}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 overflow-x-auto py-1">
-                                {LOGO_ANIMATION_PRESETS.map((preset) => {
-                                    const isSelected = logoAnimation === preset.id;
-                                    return (
-                                        <button
-                                            key={preset.id}
-                                            onClick={() => setLogoAnimation(preset.id)}
-                                            className={`px-2.5 py-1.5 rounded-xl text-[11px] whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-                                                isSelected
-                                                    ? 'bg-[#402CDD] text-white font-bold shadow-[0_0_12px_rgba(64,44,221,0.6)] ring-1 ring-white/30 scale-[1.02]'
-                                                    : 'bg-white/5 text-gray-300 hover:bg-white/15 hover:text-white'
-                                            }`}
-                                            title={`${preset.description}
-
-Best for: ${preset.bestFor}`}
-                                        >
-                                            <span className="text-sm">{preset.icon}</span>
-                                            <span>{preset.label}</span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
                 </div>
 
             <Page
@@ -242,10 +202,44 @@ Best for: ${preset.bestFor}`}
                               : undefined
                 }
             >
-                <div className="w-full h-full relative overflow-hidden">
-                    <AnimatePresence initial={false} mode="wait" custom={direction}>
+                <div
+                    ref={stageRef}
+                    /**
+                     * Never let the stage scroll, and put it back if it does.
+                     *
+                     * `overflow: hidden` stops the *user* scrolling. It does not
+                     * stop the browser: the box is still a scroll container, and
+                     * anything that focuses an element inside a screen that is
+                     * still slid off to the right makes the browser scroll this
+                     * box to reveal it. Every child then shifts sideways —
+                     * including the logo, which belongs to the frame and not to
+                     * any screen, so it flew in from the left edge.
+                     *
+                     * The two things that did it now focus with `preventScroll`,
+                     * which is the real fix. This stays as the guard, because the
+                     * next focusable thing added to any screen would otherwise
+                     * bring the fault straight back, and it would look like a
+                     * logo bug rather than a focus one.
+                     */
+                    onScroll={(event) => {
+                        event.currentTarget.scrollLeft = 0;
+                        event.currentTarget.scrollTop = 0;
+                    }}
+                    className="w-full h-full relative overflow-hidden"
+                >
+                    {/*
+                      * Both screens are on stage at once — no `mode="wait"`.
+                      * The old screen has to stay until the new one has laid
+                      * out, because that is what lets `AuthLogoLayer` measure
+                      * the incoming logo slot and start the mark travelling on
+                      * the same frame the content starts sliding. It also makes
+                      * the slide read as one pager instead of two moves with a
+                      * blank gap between them.
+                      */}
+                    <AnimatePresence initial={false} custom={direction}>
                         <motion.div
                             key={step}
+                            data-auth-step={step}
                             custom={direction}
                             initial={{ x: direction > 0 ? '100%' : '-100%', opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}
@@ -406,6 +400,25 @@ Best for: ${preset.bestFor}`}
                             )}
                         </motion.div>
                     </AnimatePresence>
+
+                    {/*
+                      * The one badge mark, above every screen and outside the
+                      * slider. It moves twice in the whole flow and is still
+                      * for the rest of it — see AUTH_LOGO_STOP in AuthLogoSlot.
+                      *
+                      * `live` is the Quick Preview only. That screen lifts its
+                      * whole column off the bottom edge and the mark rides up
+                      * with it, so the mark has to be locked to the slot frame
+                      * by frame there. Everywhere else the slot is still, and
+                      * the mark springs to it.
+                      */}
+                    <AuthLogoLayer
+                        stageRef={stageRef}
+                        step={step}
+                        live={step === 'quick-preview'}
+                        dotColor={logoColor.dot}
+                        ringColor={logoColor.ring}
+                    />
 
                     {/* QR Bottom Sheet Modal (slides up over GetStarted) */}
                     <QrBottomSheet

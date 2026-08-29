@@ -18,7 +18,7 @@ expensive, and the ones that read as a physics exercise did not.
 | 4 | `canon` | character | One eye leads a glance, the other arrives a quarter-second late, overshoots and settles. The dot that leads is always the one moving away. | A screen with personality. |
 | 5 | `tempo` | staccato | 100 BPM, sixteen slots, six used — the 3-3-2 tresillo. Every move is linear and 58ms; every hold is dead flat. | A screen that needs energy. |
 | 6 | `spark` | ambient | Sparkles drift on 28–52 second periods, so the loop is never caught. Dots twinkle underneath. | Long screens: terms, onboarding. |
-| 7 | `reveal` | entrance | Ring draws, wordmark wipes in, dots drop on a spring. Plays once, then perfectly still. | The opening screen, or success. |
+| 7 | `reveal` | build | Ring draws, wordmark wipes in, dots drop. Holds, then runs the whole build backwards, for ever. | A screen that is held, such as Quick Preview. |
 | 8 | `gust` | wave | Wind crosses in 900ms. Each letter leans, lifts and settles 60ms after the one to its left; the same wave runs round the ring. Then six seconds of calm. | Any screen. |
 | 9 | `escape` | comedy | The last letter slips and tips over. The eyes snap to it, then narrow into a flat stare held for a whole second. Then it hops back. | Get Started, Success. Not a PIN screen. |
 | 10 | `sway` | solid body | The whole mark hangs from a point above itself and swings as one object. The two dots run the swing 100ms late. | Anywhere calm. The most restrained one. |
@@ -33,8 +33,9 @@ to the artwork — see **The word, two ways** below.
 
 ## Every loop is 4 seconds
 
-All nine looping patterns run on the same 4 second cycle. `reveal` is not a
-loop — it is an entrance that plays once — so it keeps its own timing.
+Nine of them run on the same 4 second cycle. `reveal` runs on 4.5, because it
+has to fit a build, a hold and the same build in reverse; at 4 the hold is too
+short to read as a finished mark.
 
 One thing is deliberately **not** 4 seconds: the slow background turn some
 patterns give the badge ring, which runs from 40 to 80 seconds. A ring that
@@ -98,10 +99,11 @@ path is still the default and is still what the other seven patterns draw.
 **Even scale only.** A letter may be scaled, but on both axes together.
 `scaleX` on its own is not motion, it is a condensed typeface nobody licensed.
 
-**A clip is still the right tool for an entrance.** `reveal` uncovers the word
-once and then leaves it alone, which a clip does and cannot deform anything. A
-clip is wrong for a loop, because a loop would have to hide the word again on
-every pass.
+**A clip is still the right tool for a build.** `reveal` uncovers the word and
+later covers it again, and a clip does both without deforming anything. What a
+clip must never do is stay half-closed at the end of a cycle: the wipe opens to
+wider than the glyphs on all four sides and closes back to nothing, so every
+cycle starts from the same place.
 
 ## The rules every pattern follows
 
@@ -136,8 +138,9 @@ logo. In practice: the last keyframe of every list equals the first, and a
 rotation ends on a multiple of 360. Nothing enforces it, and a list that ends
 1px out gives one bad frame every few seconds — far enough apart that nobody
 catches it while reviewing the animation, and close enough that everybody
-notices it on the login screen afterwards. `reveal` is the one exception,
-because an entrance is allowed to end where it likes.
+notices it on the login screen afterwards. `reveal` obeys this the hard way:
+every beat that runs `a -> b` on the way in runs `CYCLE - b -> CYCLE - a` on the
+way out, so the last keyframe is the first one by construction.
 
 The same care goes for the arrays themselves: `times` must be the same length as
 its keyframes, and an `ease` array must be one shorter. Framer Motion does not

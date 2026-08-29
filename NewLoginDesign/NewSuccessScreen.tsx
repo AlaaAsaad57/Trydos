@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
-import NewLoginLogo from './NewLoginLogo';
+import AuthLogoSlot from './AuthLogoSlot';
 
 interface NewSuccessScreenProps {
     variant: 'login' | 'signup';
@@ -38,21 +38,18 @@ export default function NewSuccessScreen({
         <div
             data-pw="welcome"
             className="w-full h-full flex flex-col items-start font-quicksand"
-            style={{ backgroundColor: isLogin ? '#FFFDF6' : '#E0FFEE' }}
+            /*
+             * One colour for both endings. Welcome used to paint itself cream
+             * (#FFFDF6) while the widget painted mint (#E0FFEE) around it and
+             * OUTER_BG did the same, so the screen sat in a border of a colour
+             * it did not use. Signing in and signing up are the same moment for
+             * the shopper, so they get the same screen.
+             */
+            style={{ backgroundColor: '#E0FFEE' }}
         >
-            {/* Top space before logo */}
-            <FlexibleSpace size={100} share={0.15} />
-
-            {/* Centered Dotted Badge Ring Logo */}
-            <div className="w-full flex justify-center">
-                <NewLoginLogo
-                    variant="badge-ring"
-                    dotColor={isLogin ? 'purple' : 'green'}
-                    ringColor={isLogin ? '#402CDD' : '#28C452'}
-                    width={150}
-                    height={150}
-                />
-            </div>
+            {/* Top space, then the mark's resting place — AUTH_LOGO_STOP.top,
+                shared with the phone, method and code screens. */}
+            <AuthLogoSlot stop="top" />
 
             {/* 20px clearance below logo */}
             <FlexibleSpace size={20} share={0.03} />

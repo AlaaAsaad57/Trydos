@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
-import NewLoginLogo from './NewLoginLogo';
+import AuthLogoSlot from './AuthLogoSlot';
 
 interface NewInputNameScreenProps {
     onSubmit: (name: string) => void | Promise<void>;
@@ -27,6 +27,20 @@ export default function NewInputNameScreen({
     const setName = propSetName || setInternalName;
     const translate = (key: string) => translateFunction(key, lang);
 
+    /**
+     * Focus the field on arrival, without letting the browser scroll to it.
+     *
+     * `autoFocus` used to do this, and it cannot be told not to scroll. This
+     * screen slides in from a full width to the right, so the browser scrolled
+     * the nearest scroll container to reveal the field — and `overflow: hidden`
+     * still is a scroll container. Everything inside it shifted sideways,
+     * including the shared logo, which is not part of this screen at all.
+     */
+    const inputRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        inputRef.current?.focus({ preventScroll: true });
+    }, []);
+
     const handleSubmit = () => {
         const trimmed = name.trim();
         if (!trimmed || loading) return;
@@ -40,19 +54,9 @@ export default function NewInputNameScreen({
             className="w-full h-full flex flex-col items-start font-quicksand"
             style={{ backgroundColor: '#F4FFF4' }}
         >
-            {/* Top space before logo */}
-            <FlexibleSpace size={100} share={0.15} />
-
-            {/* Centered Green Dotted Badge Ring Logo */}
-            <div className="w-full flex justify-center">
-                <NewLoginLogo
-                    variant="badge-ring"
-                    dotColor="green"
-                    ringColor="#28C452"
-                    width={150}
-                    height={150}
-                />
-            </div>
+            {/* Top space, then the mark's resting place — AUTH_LOGO_STOP.top,
+                shared with the phone, method and code screens. */}
+            <AuthLogoSlot stop="top" />
 
             {/* 20px clearance below logo */}
             <FlexibleSpace size={20} share={0.03} />
@@ -82,7 +86,7 @@ export default function NewInputNameScreen({
                         onChange={(e) => setName(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                         placeholder={translate('Enter Your Name Exact ID')}
-                        autoFocus
+                        ref={inputRef}
                         data-pw="input-user-name-field"
                         className="flex-1 bg-transparent outline-none text-xd-16 font-medium text-[#1D1D1D] placeholder:text-[#1D1D1D]/40 caret-[#1D1D1D] [caret-shape:underscore]"
                     />

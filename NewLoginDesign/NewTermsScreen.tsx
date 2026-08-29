@@ -5,7 +5,7 @@ import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
 import { GA_EVENT_NAMES } from 'utils/GAEvents';
 import { GAevent } from 'utils/gtag';
-import NewLoginLogo from './NewLoginLogo';
+import AuthLogoSlot from './AuthLogoSlot';
 
 interface NewTermsScreenProps {
     onAgree?: () => void;
@@ -19,18 +19,8 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
 
     return (
         <div className="w-full bg-white flex flex-col font-quicksand">
-            <FlexibleSpace size={280} share={0.42} />
-
-            {/* Logo - 150x150 exact same size as all screens */}
-            <div className="flex flex-col items-center justify-center">
-                <NewLoginLogo
-                    variant="badge-ring"
-                    dotColor="purple"
-                    ringColor="#402CDD"
-                    width={150}
-                    height={150}
-                />
-            </div>
+            {/* Same resting place as Get Started, from the same constant. */}
+            <AuthLogoSlot stop="centre" />
             <FlexibleSpace size={150} share={0.25} />
 
             {/* Content */}

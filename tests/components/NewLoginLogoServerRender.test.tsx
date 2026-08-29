@@ -227,9 +227,21 @@ describe('NewLoginLogo — the reveal wipe uncovers the whole wordmark', () => {
                 x: number;
                 y: number;
                 height: number;
-                animate: { width: number };
+                animate: { width: number | number[] };
             };
             const w = geo.wordmark;
+
+            // The wipe opens and closes again on every cycle, so its width is a
+            // keyframe list. The one that has to clear the glyphs is the widest.
+            const widths = Array.isArray(box.animate.width)
+                ? box.animate.width
+                : [box.animate.width];
+            const openWidth = Math.max(...widths);
+
+            expect(
+                Math.min(...widths),
+                `${variant}: the reveal wipe never closes back to zero (its narrowest keyframe is ${Math.min(...widths)}), so the loop starts its next build with the word already part-way in`,
+            ).toBe(0);
 
             expect(
                 box.x,
@@ -237,8 +249,8 @@ describe('NewLoginLogo — the reveal wipe uncovers the whole wordmark', () => {
             ).toBeLessThan(w.x);
 
             expect(
-                box.x + box.animate.width,
-                `${variant}: the reveal clip ends at x=${box.x + box.animate.width} but the glyphs run to x=${w.x + w.width}, so the right edge of the wordmark stays hidden`,
+                box.x + openWidth,
+                `${variant}: the reveal clip opens only to x=${box.x + openWidth} but the glyphs run to x=${w.x + w.width}, so the right edge of the wordmark stays hidden`,
             ).toBeGreaterThan(w.x + w.width);
 
             expect(

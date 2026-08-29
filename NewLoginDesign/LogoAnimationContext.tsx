@@ -21,7 +21,7 @@ export type LogoAnimationType =
     | 'canon'   // 4. character   - one eye leads, the other is half a beat late
     | 'tempo'   // 5. staccato    - hard steps on a beat, silence in between
     | 'spark'    // 6. ambient     - long mismatched periods, no visible repeat
-    | 'reveal'   // 7. entrance    - plays once on mount, then perfectly still
+    | 'reveal'   // 7. build       - assembles, holds, then unbuilds, for ever
     | 'gust'     // 8. wave        - wind crosses, the letters lean in sequence
     | 'escape'   // 9. comedy      - a letter falls out of the word and is stared at
     | 'sway';    // 10. solid body - the whole mark hangs and swings, eyes trailing
@@ -105,10 +105,10 @@ export const LOGO_ANIMATION_PRESETS: LogoAnimationPreset[] = [
         label: 'Cinematic Assembly',
         shortName: 'Reveal',
         icon: '\u{1F3AC}',
-        tagline: 'Entrance - plays once, then still',
+        tagline: 'Build - assembled, then taken apart',
         description:
-            'The ring draws itself, the wordmark wipes in from the left, then the dots drop in on a spring. The wipe uses a clip path, never a stroke on the letters, so the glyphs are never thickened. Ends pixel-identical to the static logo.',
-        bestFor: 'The opening screen, or a success screen.',
+            'The ring draws itself, the wordmark wipes in from the left, then the dots drop in. It holds the finished mark for about two seconds, then runs the whole build backwards - dots out first, then the word, then the ring - and starts again. The wipe uses a clip path, never a stroke on the letters, so the glyphs are never thickened.',
+        bestFor: 'A screen that is held for a while, such as the Quick Preview.',
     },
     {
         id: 'gust',

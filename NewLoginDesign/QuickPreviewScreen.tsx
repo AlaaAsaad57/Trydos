@@ -4,8 +4,10 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import FlexibleSpace from 'scaling/FlexibleSpace';
+import { FLEX_RANGE } from 'scaling/scale.config';
 import { translateFunction } from 'utils/functions';
 import NewLoginLogo from './NewLoginLogo';
+import AuthLogoSlot from './AuthLogoSlot';
 
 interface QuickPreviewScreenProps {
     onComplete: () => void;
@@ -109,6 +111,28 @@ const PREVIEW_SLIDES = [
  */
 const COLLAPSED_TAIL = 95;
 
+/**
+ * How much of a gap the flex system is allowed to take away.
+ *
+ * The seven spacers on this screen add up to 164 design px. The flex system
+ * asks for up to FLEX_RANGE (182) of them, which is more than they have. The
+ * old shares divided the whole ask over those 164px, so on a short screen every
+ * spacer hit zero at the same moment: the pagination dots sat on the card
+ * border and the button sat on the dots. That is what Safari on a phone showed,
+ * and Chrome on a laptop did not, because a laptop window is tall enough that
+ * the deficit never gets there.
+ *
+ * Each gap now gives up at most half of itself. The 18px the spacers cannot
+ * cover, and the rest of the deficit past that, are taken by `fitScale` below:
+ * it shrinks the whole column evenly, so every gap stays in proportion to the
+ * design instead of closing to nothing.
+ *
+ * `flexShare` is computed rather than written out, so the numbers cannot drift
+ * away from the sizes beside them.
+ */
+const FLEX_GIVE = 0.5;
+const flexShare = (size: number) => (size * FLEX_GIVE) / FLEX_RANGE;
+
 export default function QuickPreviewScreen({
     onComplete,
     lang = 'en',
@@ -130,10 +154,12 @@ export default function QuickPreviewScreen({
      * `collapsedY` puts the pill's top edge COLLAPSED_TAIL above the bottom
      * edge, so the ring peeks by the same amount on every screen height.
      *
-     * `fitScale` is the guard for the expanded state. The spacers below carry a
-     * share budget that adds up to DESIGN_H, so the column fits on its own down
-     * to a 768px canvas. Under that there is no spacer left to give, and this
-     * shrinks the whole column instead of letting the button be cut off.
+     * `fitScale` is the guard for the expanded state, and on a phone it is
+     * always doing something. The spacers below give up at most half of
+     * themselves (see FLEX_GIVE), so the column is taller than the canvas on
+     * any screen shorter than the 932px artboard. This shrinks it to fit, from
+     * the top centre, which keeps every gap in the design's proportion instead
+     * of closing the small ones first.
      */
     const [fit, setFit] = useState<{ collapsedY: number; fitScale: number }>({
         collapsedY: 1000,
@@ -241,11 +267,16 @@ export default function QuickPreviewScreen({
                         exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.5, ease: 'easeInOut' } }}
                         className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10"
                     >
+                        {/* The mark that sits above the slider for the first
+                            eight seconds. Cinematic Assembly: the ring draws,
+                            the word wipes in, the eyes drop. It runs forward,
+                            then backwards, for as long as the screen is held. */}
                         <NewLoginLogo
                             variant="header"
                             dotColor="purple"
                             width={176}
                             height={88}
+                            animationVariant="reveal"
                         />
                     </motion.div>
                 )}
@@ -267,7 +298,7 @@ export default function QuickPreviewScreen({
                 className="w-full flex flex-col items-center relative z-20"
             >
                 {/* Top space above the pill. Mock: the pill box starts at 55. */}
-                <FlexibleSpace size={55} share={0.335} />
+                <FlexibleSpace size={55} share={flexShare(55)} />
 
                 {/* 1. Slogan Pill Badge (Top of column) */}
                 <div ref={pillRef} className="w-full flex justify-center z-20">
@@ -288,21 +319,18 @@ export default function QuickPreviewScreen({
                 </div>
 
                 {/* Gap between Slogan Pill and Dotted Badge: exactly 14px */}
-                <FlexibleSpace size={14} share={0.085} />
+                <FlexibleSpace size={14} share={flexShare(14)} />
 
                 {/* 2. Dotted Circular Badge Logo (150px x 150px) */}
-                <div className="flex flex-col items-center justify-center flex-shrink-0">
-                    <NewLoginLogo
-                        variant="badge-ring"
-                        dotColor="purple"
-                        ringColor="#402CDD"
-                        width={150}
-                        height={150}
-                    />
-                </div>
+                {/* The badge that peeks over the bottom edge while the column
+                    is still down, and rides it up. It is the shared mark, so it
+                    carries straight on into Get Started rather than being
+                    swapped for a second copy. Buddy Wink is its pattern: the
+                    dots look around and blink, and the word never moves. */}
+                <AuthLogoSlot />
 
                 {/* Gap between Badge and Title (16px in the mock) */}
-                <FlexibleSpace size={16} share={0.098} />
+                <FlexibleSpace size={16} share={flexShare(16)} />
 
                 {/* 3. Header Title: . Quick Preview . */}
                 <div className="w-full flex justify-center items-center flex-shrink-0">
@@ -312,7 +340,7 @@ export default function QuickPreviewScreen({
                 </div>
 
                 {/* Gap between Title and Card (16px in the mock) */}
-                <FlexibleSpace size={16} share={0.098} />
+                <FlexibleSpace size={16} share={flexShare(16)} />
 
                 {/* 4. Main Interactive Preview Card Container (390px x 473px) */}
                 <div className="w-xd-390 h-xd-473 rounded-xd-20 border-[1px] border-[#4A31E7] bg-white flex flex-col items-center justify-center p-xd-16 relative shadow-[0_4px_24px_rgba(74,49,231,0.06)] overflow-hidden flex-shrink-0">
@@ -343,7 +371,7 @@ export default function QuickPreviewScreen({
                 </div>
 
                 {/* Gap between Card and Dots (10px in the mock) */}
-                <FlexibleSpace size={10} share={0.061} />
+                <FlexibleSpace size={10} share={flexShare(10)} />
 
                 {/* 5. Pagination Dots (3 Dots matching Mock) */}
                 <div className="flex items-center gap-xd-8 pb-xd-2 flex-shrink-0">
@@ -362,7 +390,7 @@ export default function QuickPreviewScreen({
                 </div>
 
                 {/* Gap between Dots and Button (20px in the mock) */}
-                <FlexibleSpace size={20} share={0.122} />
+                <FlexibleSpace size={20} share={flexShare(20)} />
 
                 {/* 6. Action Button: Next (Dashed purple) vs Get Started (Solid purple) */}
                 <div className="w-full flex justify-center flex-shrink-0">
@@ -394,16 +422,8 @@ export default function QuickPreviewScreen({
                 {/*
                   * Bottom space below the button. Mock: the button ends at
                   * 896, the artboard at 932.
-                  *
-                  * Every share here is size / 164, where 164 is the sum of all
-                  * seven spacers. That is what keeps them all positive: the old
-                  * 0.5 share on a 42px spacer went negative at a deficit of 84
-                  * and stopped absorbing, which pushed the button off the
-                  * bottom edge on any phone. They now all reach zero together,
-                  * at deficit 164, and the column is exactly DESIGN_H (932) at
-                  * deficit 0.
                   */}
-                <FlexibleSpace size={33} share={0.201} />
+                <FlexibleSpace size={33} share={flexShare(33)} />
             </motion.div>
         </main>
     );

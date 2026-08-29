@@ -56,7 +56,18 @@ export default function RdbPinInputs({
             return () => clearTimeout(t);
         }
         if (!disabled && !showCustomKeypad && autoFocus) {
-            const t = setTimeout(() => hiddenInputRef.current?.focus(), 300);
+            // `preventScroll` matters here and is not a detail. This fires 300ms
+            // after mount, and the auth flow slides a screen in over 350ms — so
+            // it lands while this screen is still translated a full width to the
+            // right. A plain focus() makes the browser scroll the nearest scroll
+            // container to reveal the input, and `overflow: hidden` still is a
+            // scroll container: it stops the *user* scrolling, not the browser.
+            // Everything in that container then shifts sideways, including things
+            // that are not part of this screen at all.
+            const t = setTimeout(
+                () => hiddenInputRef.current?.focus({ preventScroll: true }),
+                300,
+            );
             return () => clearTimeout(t);
         }
     }, [disabled, showCustomKeypad, autoFocus]);

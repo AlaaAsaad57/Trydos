@@ -15,8 +15,9 @@ import type { ElementMotion, LogoMotion } from './types';
  * copies that into `initial` so every pattern gets it without having to
  * remember, and so a new pattern cannot forget.
  *
- * A pattern that sets its own `initial` keeps it. `reveal` does, because it
- * starts somewhere other than its first keyframe on purpose.
+ * A pattern that sets its own `initial` keeps it. The decorations a pattern
+ * puts in `defs` do not come through here at all, so those still have to name
+ * their own starting value — see the `<motion.rect>` in `reveal`.
  */
 function withStartValues(motion?: ElementMotion): ElementMotion | undefined {
     if (!motion?.animate || motion.initial) return motion;

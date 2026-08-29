@@ -23,17 +23,21 @@ import { swayPattern } from './sway';
  *   canon   character   one eye leads, the other catches up and overshoots
  *   tempo   staccato    hard 58ms steps on a tresillo, silence in between
  *   spark   ambient     long mismatched periods, never repeats visibly
- *   reveal  entrance    plays once on mount, then perfectly still
+ *   reveal  build       assembles, holds, then takes itself apart again
  *   gust    wave        wind crosses, and the letters lean in sequence
  *   escape  comedy      a letter falls out of the word and is stared at
  *   sway    solid body  the whole mark hangs and swings, eyes trailing
  *
- * All but one loop for ever and land back on the static mark at the top of
- * every cycle. `reveal` is the exception, and it is the exception on purpose.
+ * All ten loop for ever and land back on the static mark at the top of every
+ * cycle.
  *
- * Every looping pattern runs on the same 4 second cycle. The slow background
- * turn some of them give the badge ring is the one thing that does not — a
- * ring that laps in 4 seconds is a loading spinner, not a logo.
+ * Every looping pattern runs on the same 4 second cycle, except `reveal`, which
+ * runs on 4.5: it has to fit a build, a hold and the whole build again in
+ * reverse, and squeezing that into 4 makes the hold too short to read.
+ *
+ * One more thing is deliberately off that cycle: the slow background turn some
+ * of them give the badge ring. A ring that laps in 4 seconds is a loading
+ * spinner, not a logo.
  *
  * All three elements of the logo take part in all of them: the dots, the word,
  * and — on the badge — the dotted ring. There are two ways the word joins in.

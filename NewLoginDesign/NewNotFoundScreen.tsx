@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
-import NewLoginLogo from './NewLoginLogo';
+import AuthLogoSlot from './AuthLogoSlot';
 
 interface NewNotFoundScreenProps {
     phone: string;
@@ -50,19 +50,9 @@ export default function NewNotFoundScreen({
                 )}
             </div>
 
-            {/* Top space before logo */}
-            <FlexibleSpace size={100} share={0.15} />
-
-            {/* Centered Amber Dotted Badge Ring Logo */}
-            <div className="w-full flex justify-center">
-                <NewLoginLogo
-                    variant="badge-ring"
-                    dotColor="orange"
-                    ringColor="#FAAA2E"
-                    width={150}
-                    height={150}
-                />
-            </div>
+            {/* Top space, then the mark's resting place — AUTH_LOGO_STOP.top,
+                shared with the phone, method and code screens. */}
+            <AuthLogoSlot stop="top" />
 
             {/* 20px clearance below logo */}
             <FlexibleSpace size={20} share={0.03} />

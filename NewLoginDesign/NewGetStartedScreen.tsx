@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
-import NewLoginLogo from './NewLoginLogo';
+import AuthLogoSlot from './AuthLogoSlot';
 
 interface NewGetStartedScreenProps {
     onExistingAccount?: () => void;
@@ -45,19 +45,10 @@ export default function NewGetStartedScreen({
                 </div>
             )}
 
-            {/* Space above logo */}
-            <FlexibleSpace size={280} share={0.45} />
-
-            {/* Centered Dotted Badge Ring Logo */}
-            <div className="flex flex-col items-center">
-                <NewLoginLogo
-                    variant="badge-ring"
-                    dotColor="purple"
-                    ringColor="#402CDD"
-                    width={150}
-                    height={150}
-                />
-            </div>
+            {/* Space above the mark, then the place the mark rests. Both come
+                from AUTH_LOGO_STOP.centre, which Terms reads too — that is why
+                the mark does not shift when this screen slides away. */}
+            <AuthLogoSlot stop="centre" />
 
             {/* Space between logo and content */}
             <FlexibleSpace size={174} share={0.28} />
