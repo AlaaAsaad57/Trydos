@@ -117,7 +117,7 @@ function displace(point: Offset, pivot: Offset, degrees: number): Offset {
     };
 }
 
-export function swayPattern({ geo, variant }: PatternContext): LogoMotion {
+export function swayPattern({ geo, variant, cycle = CYCLE }: PatternContext): LogoMotion {
     const pivot = pivotOf(geo);
 
     const times: number[] = [];
@@ -145,7 +145,7 @@ export function swayPattern({ geo, variant }: PatternContext): LogoMotion {
                 rotate: track,
             },
             transition: {
-                duration: CYCLE,
+                duration: cycle,
                 times,
                 // No easing curve. A sine is already slowest at the ends, which
                 // is exactly where a pendulum is slowest. Easing it as well
@@ -168,11 +168,11 @@ export function swayPattern({ geo, variant }: PatternContext): LogoMotion {
         return {
             animate: { ...base.animate, scaleY: [1, 1, 0.08, 1, 1] },
             transition: {
-                x: { duration: CYCLE, times, ease: 'linear' as const, repeat: Infinity },
-                y: { duration: CYCLE, times, ease: 'linear' as const, repeat: Infinity },
-                rotate: { duration: CYCLE, times, ease: 'linear' as const, repeat: Infinity },
+                x: { duration: cycle, times, ease: 'linear' as const, repeat: Infinity },
+                y: { duration: cycle, times, ease: 'linear' as const, repeat: Infinity },
+                rotate: { duration: cycle, times, ease: 'linear' as const, repeat: Infinity },
                 scaleY: {
-                    duration: CYCLE,
+                    duration: cycle,
                     times: [0, 0.55, 0.55 + LID, 0.55 + 2 * LID, 1],
                     ease: 'easeOut' as const,
                     repeat: Infinity,

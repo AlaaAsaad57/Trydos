@@ -78,7 +78,7 @@ const DROP_EASE: Easing[] = [
 const DROP = 0.4;
 const DROP_OVERSHOOT = 0.22;
 
-export function revealPattern({ variant, geo, uid }: PatternContext): LogoMotion {
+export function revealPattern({ variant, geo, uid, cycle = CYCLE }: PatternContext): LogoMotion {
     const clipId = `${uid}-reveal-wipe`;
     const w = geo.wordmark;
     const isBadge = variant === 'badge-ring' && geo.ring !== null;
@@ -103,7 +103,7 @@ export function revealPattern({ variant, geo, uid }: PatternContext): LogoMotion
                 initial={{ width: 0 }}
                 animate={{ width: [0, 0, wipeWidth, wipeWidth, 0, 0] }}
                 transition={{
-                    duration: CYCLE,
+                    duration: cycle,
                     times: [
                         0,
                         at(wipeStart),
@@ -131,7 +131,7 @@ export function revealPattern({ variant, geo, uid }: PatternContext): LogoMotion
             opacity: [0, 0, 1, 1, 1, 1, 0, 0],
         },
         transition: {
-            duration: CYCLE,
+            duration: cycle,
             times: [
                 0,
                 at(start),
@@ -185,7 +185,7 @@ export function revealPattern({ variant, geo, uid }: PatternContext): LogoMotion
                         initial={{ strokeDashoffset: c }}
                         animate={{ strokeDashoffset: [c, 0, 0, c] }}
                         transition={{
-                            duration: CYCLE,
+                            duration: cycle,
                             times: [0, at(ringEnd), at(mirror(ringEnd)), 1],
                             // The forward curve is symmetric, so its own
                             // reverse is itself. It is named twice all the same,

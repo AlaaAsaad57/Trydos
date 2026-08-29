@@ -17,6 +17,9 @@ interface Seed {
 // Fixed seeds, not random ones. Random values differ between the server render
 // and the browser render, which makes React throw away the markup and rebuild
 // it. They also make the animation impossible to review twice.
+/** The cycle the seed periods below were tuned against. */
+const CYCLE = 4;
+
 const SPARK_SEEDS: Seed[] = [
     { angle: 18, radiusOffset: 6, size: 4.2, period: 4.9, twinkle: 1.3, delay: 0 },
     { angle: 96, radiusOffset: -7, size: 3.1, period: 6.7, twinkle: 1.8, delay: 0.6 },
@@ -43,8 +46,20 @@ const SPARK_SEEDS: Seed[] = [
  * dots stay crisp and fully saturated on top, and a sparkle passing the ring
  * reads as depth rather than as a smudge on the artwork.
  */
-export function sparkPattern({ variant, geo, ringColor, dotColor }: PatternContext): LogoMotion {
+export function sparkPattern({
+    variant,
+    geo,
+    ringColor,
+    dotColor,
+    cycle = CYCLE,
+}: PatternContext): LogoMotion {
     const tint = lighten(variant === 'badge-ring' ? ringColor : dotColor, 0.35);
+
+    // This pattern has no single loop to lengthen — it is five periods that
+    // never line up. So a longer cycle stretches all five by the same factor,
+    // which keeps them mismatched. Scaling one and not the others would only
+    // move where they line up, not stop them lining up.
+    const stretch = cycle / CYCLE;
 
     const sparkle = (key: string, x: number, y: number, s: Seed) => (
         <motion.g
@@ -53,10 +68,10 @@ export function sparkPattern({ variant, geo, ringColor, dotColor }: PatternConte
             initial={{ opacity: 0.1, scale: 0.5 }}
             animate={{ opacity: [0.1, 1, 0.25, 0.95, 0.1], scale: [0.5, 1.3, 0.75, 1.15, 0.5] }}
             transition={{
-                duration: s.twinkle,
+                duration: s.twinkle * stretch,
                 ease: 'easeInOut',
                 repeat: Infinity,
-                delay: s.delay,
+                delay: s.delay * stretch,
             }}
         >
             <path d={STAR} transform={`translate(${x} ${y}) scale(${s.size})`} fill={tint} />
@@ -65,7 +80,12 @@ export function sparkPattern({ variant, geo, ringColor, dotColor }: PatternConte
 
     const dotTwinkle = (delay: number) => ({
         animate: { opacity: [1, 0.7, 1], scale: [1, 1.07, 1] },
-        transition: { duration: 4, ease: 'easeInOut' as const, repeat: Infinity, delay },
+        transition: {
+            duration: CYCLE * stretch,
+            ease: 'easeInOut' as const,
+            repeat: Infinity,
+            delay,
+        },
     });
 
     if (variant !== 'badge-ring' || !geo.ring) {
@@ -89,7 +109,7 @@ export function sparkPattern({ variant, geo, ringColor, dotColor }: PatternConte
                 </g>
             ),
             leftDot: dotTwinkle(0),
-            rightDot: dotTwinkle(1.3),
+            rightDot: dotTwinkle(1.3 * stretch),
         };
     }
 
@@ -105,7 +125,7 @@ export function sparkPattern({ variant, geo, ringColor, dotColor }: PatternConte
                         cy={cy}
                         // Past the furthest sparkle: track + offset + its own size.
                         radius={r + 16}
-                        seconds={s.period}
+                        seconds={s.period * stretch}
                         clockwise={i % 2 === 0}
                     >
                         <g transform={`rotate(${s.angle} ${cx} ${cy})`}>
@@ -121,6 +141,6 @@ export function sparkPattern({ variant, geo, ringColor, dotColor }: PatternConte
             transition: { duration: 45, ease: 'linear', repeat: Infinity },
         },
         leftDot: dotTwinkle(0),
-        rightDot: dotTwinkle(1.3),
+        rightDot: dotTwinkle(1.3 * stretch),
     };
 }

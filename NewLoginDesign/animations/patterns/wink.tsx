@@ -28,7 +28,7 @@ import type { LogoMotion, PatternContext } from '../types';
 /** Every looping pattern in this set runs on the same 4 second cycle. */
 const CYCLE = 4;
 
-export function winkPattern({ variant, blink }: PatternContext): LogoMotion {
+export function winkPattern({ variant, blink, cycle = CYCLE }: PatternContext): LogoMotion {
     // Peak travel is 9, four fifths of the dot's own radius (11.32). The limit
     // is the header lockup, where the left dot's edge starts 12.6 from the left
     // of the box: at 9 there is 3.6 of air left, and past about 12 the eye
@@ -47,8 +47,8 @@ export function winkPattern({ variant, blink }: PatternContext): LogoMotion {
         0, 0.07, 0.09, 0.24, 0.26, 0.42, 0.44, 0.52, 0.54, 0.68, 0.7, 0.82, 0.84, 0.92, 0.94, 1,
     ];
     const idleTransition = {
-        x: { duration: CYCLE, times: idleTimes, ease: 'easeOut' as const, repeat: Infinity },
-        y: { duration: CYCLE, times: idleTimes, ease: 'easeOut' as const, repeat: Infinity },
+        x: { duration: cycle, times: idleTimes, ease: 'easeOut' as const, repeat: Infinity },
+        y: { duration: cycle, times: idleTimes, ease: 'easeOut' as const, repeat: Infinity },
         scaleY: { type: 'spring' as const, stiffness: 1100, damping: 34 },
     };
 

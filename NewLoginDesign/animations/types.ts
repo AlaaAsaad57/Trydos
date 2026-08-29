@@ -74,6 +74,20 @@ export interface BlinkState {
 
 export interface PatternContext {
     variant: LogoVariant;
+    /**
+     * How long one loop of the pattern takes, in seconds.
+     *
+     * Left out, every pattern uses the cycle it was designed on — 4 seconds for
+     * nine of them, 4.5 for `reveal`. The demo route sets it, so the client can
+     * watch the same pattern run slow or fast before choosing one.
+     *
+     * Only the length of the loop changes. Every `times` array in this folder is
+     * written as a fraction of the cycle, so each beat keeps its place inside it
+     * however long the loop is told to be. The slow background turn some
+     * patterns give the badge ring is not part of the loop and does not follow
+     * this value.
+     */
+    cycle?: number;
     geo: LogoGeometry;
     dotColor: string;
     ringColor: string;

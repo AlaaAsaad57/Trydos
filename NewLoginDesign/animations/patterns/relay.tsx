@@ -70,7 +70,7 @@ function fullCycle(first: Beat[], second: Beat[]): Beat[] {
     return all;
 }
 
-function toMotion(beats: Beat[]) {
+function toMotion(beats: Beat[], cycle: number) {
     return {
         animate: {
             x: beats.map((b) => b.x),
@@ -78,7 +78,7 @@ function toMotion(beats: Beat[]) {
             scaleY: beats.map((b) => b.sy),
         },
         transition: {
-            duration: CYCLE,
+            duration: cycle,
             times: beats.map((b) => b.t),
             // One easing per segment. A single easing for the whole list is the
             // thing that makes a keyframed throw read as a slide: the pull-back
@@ -90,7 +90,7 @@ function toMotion(beats: Beat[]) {
     };
 }
 
-export function relayPattern({ geo, variant, dotColor }: PatternContext): LogoMotion {
+export function relayPattern({ geo, variant, dotColor, cycle = CYCLE }: PatternContext): LogoMotion {
     // Free space between the two dot edges. Everything below is a fraction of
     // it, so the choreography rescales itself if the artwork ever changes.
     const free = geo.rightDot.x - geo.leftDot.x - geo.dotR * 2;
@@ -120,8 +120,8 @@ export function relayPattern({ geo, variant, dotColor }: PatternContext): LogoMo
 
     // The left dot throws in the first half and catches in the second; the
     // right dot does the opposite. Same two lists, swapped.
-    const leftDot = toMotion(fullCycle(throwBeats, catchBeats));
-    const rightDot = toMotion(fullCycle(catchBeats, throwBeats));
+    const leftDot = toMotion(fullCycle(throwBeats, catchBeats), cycle);
+    const rightDot = toMotion(fullCycle(catchBeats, throwBeats), cycle);
 
     // The word lags the pass and arrives late — a heavy thing being pulled by a
     // light one. Impacts land at 0.13 and 0.63, the ghost peaks at 0.17 / 0.67.
@@ -136,7 +136,7 @@ export function relayPattern({ geo, variant, dotColor }: PatternContext): LogoMo
                     opacity: [0.1, 0.1, 0.2, 0.1, 0.1, 0.1, 0.2, 0.1, 0.1],
                 },
                 transition: {
-                    duration: CYCLE,
+                    duration: cycle,
                     times: [0, 0.12, 0.17, 0.34, 0.5, 0.62, 0.67, 0.84, 1],
                     ease: 'easeOut',
                     repeat: Infinity,
@@ -156,7 +156,7 @@ export function relayPattern({ geo, variant, dotColor }: PatternContext): LogoMo
                 ? {
                       animate: { scale: [1, 1, 1.022, 1, 1, 1, 1.022, 1, 1] },
                       transition: {
-                          duration: CYCLE,
+                          duration: cycle,
                           times: [0, 0.12, 0.145, 0.24, 0.5, 0.62, 0.645, 0.74, 1],
                           ease: 'easeOut',
                           repeat: Infinity,

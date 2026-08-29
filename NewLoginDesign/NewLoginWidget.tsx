@@ -5,7 +5,16 @@ import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import Page from 'scaling/Page';
 import 'public/styles/rdb-auth.css';
-import { LogoAnimationProvider } from './LogoAnimationContext';
+import {
+    LogoAnimationProvider,
+    LOGO_ANIMATION_PRESETS,
+    DEFAULT_LOGO_ANIMATION,
+    DEFAULT_LOGO_DURATION,
+    MIN_LOGO_DURATION,
+    MAX_LOGO_DURATION,
+    clampLogoDuration,
+    LogoAnimationType,
+} from './LogoAnimationContext';
 import AuthLogoLayer from './AuthLogoLayer';
 
 // New Screens in NewLoginDesign
@@ -77,11 +86,10 @@ export default function NewLoginWidget({
     const [error, setError] = useState<string | undefined>(undefined);
 
     const [showStepBar, setShowStepBar] = useState<boolean>(false);
-    // On by default here, and only here. Windows and macOS both have a setting
-    // that turns animation off system wide, and a good number of machines have
-    // it on. The product respects it. This demo is here to be looked at, and it
-    // cannot do that job if the machine it is opened on shows a still logo.
-    const [forceMotion, setForceMotion] = useState<boolean>(true);
+    const [showAnimBar, setShowAnimBar] = useState<boolean>(false);
+    const [logoAnimation, setLogoAnimation] = useState<LogoAnimationType>(DEFAULT_LOGO_ANIMATION);
+    /** Seconds for one loop of the picked pattern. The client sets it below. */
+    const [logoDuration, setLogoDuration] = useState<number>(DEFAULT_LOGO_DURATION);
     const [isQrOpen, setIsQrOpen] = useState<boolean>(false);
 
     /** The box the screens slide inside. `AuthLogoLayer` measures against it. */
@@ -114,40 +122,64 @@ export default function NewLoginWidget({
     };
 
     const logoColor = STEP_LOGO_COLOR[step] ?? LOGO_PURPLE;
+    const activePreset =
+        LOGO_ANIMATION_PRESETS.find((preset) => preset.id === logoAnimation) ??
+        LOGO_ANIMATION_PRESETS[0];
 
     return (
-        <LogoAnimationProvider ignoreReducedMotion={forceMotion}>
+        <LogoAnimationProvider
+            animation={logoAnimation}
+            setAnimation={setLogoAnimation}
+            durationSeconds={logoDuration}
+            setDurationSeconds={setLogoDuration}
+            /**
+             * Always on here, and only here. Windows and macOS both have a
+             * setting that turns animation off system wide, and a good number
+             * of machines have it on. The product respects it. This demo exists
+             * to be looked at, and it cannot do that job if the machine it is
+             * opened on shows a still logo — a picker that shows nothing is not
+             * a picker.
+             */
+            ignoreReducedMotion
+        >
             <main
                 data-pw="new-login-widget"
                 className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
                 style={{ backgroundColor: getScreenBg() }}
             >
-                {/* Floating Top Control Bar (Flow Steps & reduced-motion override) */}
+                {/*
+                  * Floating demo control bar: the flow steps, the logo motion
+                  * picker and how long one loop of it runs.
+                  *
+                  * It sits over the widget and belongs to the demo route, not
+                  * to the design. Nothing here changes a screen's own layout.
+                  */}
                 <div className="fixed top-3 left-3 z-[999999999999] flex flex-col gap-1.5 items-start font-quicksand select-none">
                     <div className="flex items-center gap-2 flex-wrap">
                         {/* 1. Flow Steps Toggle Button */}
                         <button
-                            onClick={() => setShowStepBar((prev) => !prev)}
+                            onClick={() => {
+                                setShowStepBar((prev) => !prev);
+                                if (!showStepBar) setShowAnimBar(false);
+                            }}
                             className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
                         >
                             <span className="w-2 h-2 rounded-full bg-[#402CDD]" />
                             <span>{showStepBar ? 'Hide Steps' : 'Flow Steps'}</span>
                         </button>
 
-                        {/* 2. Reduced-motion override */}
+                        {/* 2. Logo Animation Selector Toggle Button */}
                         <button
-                            onClick={() => setForceMotion((prev) => !prev)}
-                            title={
-                                forceMotion
-                                    ? 'Playing the pattern even if this device has animation turned off in its system settings. This is a demo-only override.'
-                                    : 'Following the device setting. If this device has animation turned off, every pattern shows as a still logo.'
-                            }
+                            onClick={() => {
+                                setShowAnimBar((prev) => !prev);
+                                if (!showAnimBar) setShowStepBar(false);
+                            }}
                             className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
                         >
-                            <span
-                                className={`w-2 h-2 rounded-full ${forceMotion ? 'bg-[#28C452]' : 'bg-gray-400'}`}
-                            />
-                            <span>{forceMotion ? 'Motion: forced' : 'Motion: device'}</span>
+                            <span>{activePreset.icon}</span>
+                            <span className="text-[#402CDD] font-bold">Anim:</span>
+                            <span>{activePreset.shortName}</span>
+                            <span className="text-gray-500">{logoDuration}s</span>
                         </button>
                     </div>
 
@@ -184,6 +216,87 @@ export default function NewLoginWidget({
                             >
                                 QR BottomSheet
                             </button>
+                        </div>
+                    )}
+
+                    {/* Logo Animation Options Strip */}
+                    {showAnimBar && (
+                        <div className="flex flex-col gap-1 bg-black/90 backdrop-blur-md p-2 rounded-2xl text-white text-xs max-w-[92vw] shadow-2xl border border-white/10 animate-fade-in">
+                            <div className="flex items-center justify-between pb-1 px-1 border-b border-white/10 text-[11px] text-gray-400">
+                                <span className="font-semibold text-white/90">Pick Logo Animation:</span>
+                                <span className="text-[10px] text-[#A688FA]">{activePreset.tagline}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 overflow-x-auto py-1">
+                                {LOGO_ANIMATION_PRESETS.map((preset) => {
+                                    const isSelected = logoAnimation === preset.id;
+                                    return (
+                                        <button
+                                            key={preset.id}
+                                            onClick={() => setLogoAnimation(preset.id)}
+                                            className={`px-2.5 py-1.5 rounded-xl text-[11px] whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                                                isSelected
+                                                    ? 'bg-[#402CDD] text-white font-bold shadow-[0_0_12px_rgba(64,44,221,0.6)] ring-1 ring-white/30 scale-[1.02]'
+                                                    : 'bg-white/5 text-gray-300 hover:bg-white/15 hover:text-white'
+                                            }`}
+                                            title={`${preset.description}
+
+Best for: ${preset.bestFor}`}
+                                        >
+                                            <span className="text-sm">{preset.icon}</span>
+                                            <span>{preset.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/*
+                              * How long one loop takes, in whole seconds.
+                              *
+                              * Only the length of the loop changes. Each beat
+                              * inside a pattern is written as a fraction of the
+                              * cycle, so a pattern picked apart at 20 seconds is
+                              * the same choreography as at 1 second, played
+                              * slower. `none` has no loop, so the control is
+                              * disabled there rather than lying about it.
+                              */}
+                            <div className="flex items-center gap-2 pt-1.5 px-1 border-t border-white/10">
+                                <span className="text-[11px] text-gray-400 whitespace-nowrap">
+                                    Loop length:
+                                </span>
+                                <input
+                                    type="range"
+                                    min={MIN_LOGO_DURATION}
+                                    max={MAX_LOGO_DURATION}
+                                    step={1}
+                                    value={logoDuration}
+                                    disabled={logoAnimation === 'none'}
+                                    onChange={(event) =>
+                                        setLogoDuration(clampLogoDuration(Number(event.target.value)))
+                                    }
+                                    title={`One loop of "${activePreset.label}" takes ${logoDuration} seconds`}
+                                    className="flex-1 min-w-[120px] accent-[#402CDD] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                                />
+                                <input
+                                    type="number"
+                                    min={MIN_LOGO_DURATION}
+                                    max={MAX_LOGO_DURATION}
+                                    step={1}
+                                    value={logoDuration}
+                                    disabled={logoAnimation === 'none'}
+                                    onChange={(event) =>
+                                        setLogoDuration(clampLogoDuration(Number(event.target.value)))
+                                    }
+                                    className="w-12 bg-white/10 rounded-md px-1.5 py-0.5 text-[11px] text-center text-white outline-none focus:ring-1 focus:ring-[#402CDD] disabled:opacity-40"
+                                />
+                                <span className="text-[11px] text-gray-400">s</span>
+                                <button
+                                    onClick={() => setLogoDuration(DEFAULT_LOGO_DURATION)}
+                                    disabled={logoDuration === DEFAULT_LOGO_DURATION}
+                                    className="px-2 py-0.5 rounded-md text-[10px] bg-white/5 text-gray-300 hover:bg-white/15 hover:text-white transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                    Reset
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

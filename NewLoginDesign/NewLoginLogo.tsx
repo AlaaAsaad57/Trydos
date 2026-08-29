@@ -107,6 +107,7 @@ export default function NewLoginLogo({
         resolvedDotColor,
         resolvedRingColor,
         context.ignoreReducedMotion,
+        context.durationSeconds,
     );
 
     const dot = (props: ElementMotion | undefined, children: React.ReactNode) => (

@@ -154,9 +154,43 @@ export const LOGO_ANIMATION_PRESETS: LogoAnimationPreset[] = [
 
 export const DEFAULT_LOGO_ANIMATION: LogoAnimationType = 'wink';
 
+/**
+ * How long one loop of a pattern takes, in seconds.
+ *
+ * The picker on the demo route hands a number in this range to every pattern,
+ * so the same motion can be watched slow or fast before one is chosen. Left
+ * unset, each pattern keeps the cycle it was designed on — 4 seconds for nine
+ * of them, 4.5 for `reveal`.
+ *
+ * The range is a judgement, not a technical limit. Under a second a four-beat
+ * pattern turns into a flicker; over twenty seconds most of them stop reading
+ * as motion at all.
+ */
+export const MIN_LOGO_DURATION = 1;
+export const MAX_LOGO_DURATION = 20;
+/**
+ * Where the picker starts. Slower than the cycle the patterns were drawn on,
+ * because the first thing a person judges is the shape of the motion, and at 4
+ * seconds several of them are over before that lands.
+ */
+export const DEFAULT_LOGO_DURATION = 8;
+
+/** Keeps a picked number inside the range, as a whole number of seconds. */
+export function clampLogoDuration(seconds: number): number {
+    if (!Number.isFinite(seconds)) return DEFAULT_LOGO_DURATION;
+    return Math.min(MAX_LOGO_DURATION, Math.max(MIN_LOGO_DURATION, Math.round(seconds)));
+}
+
 interface LogoAnimationContextValue {
     animation: LogoAnimationType;
     setAnimation: (anim: LogoAnimationType) => void;
+    /**
+     * Seconds for one loop, or undefined to let each pattern use its own.
+     *
+     * The product leaves it undefined. Only the demo route sets it.
+     */
+    durationSeconds?: number;
+    setDurationSeconds: (seconds: number) => void;
     /**
      * Play the pattern even when the device asks for reduced motion.
      *
@@ -171,6 +205,8 @@ interface LogoAnimationContextValue {
 const LogoAnimationContext = createContext<LogoAnimationContextValue>({
     animation: DEFAULT_LOGO_ANIMATION,
     setAnimation: () => {},
+    durationSeconds: undefined,
+    setDurationSeconds: () => {},
     ignoreReducedMotion: false,
 });
 
@@ -179,21 +215,41 @@ export function LogoAnimationProvider({
     animation: controlledAnimation,
     setAnimation: controlledSetAnimation,
     initialAnimation = DEFAULT_LOGO_ANIMATION,
+    durationSeconds: controlledDuration,
+    setDurationSeconds: controlledSetDuration,
+    initialDurationSeconds,
     ignoreReducedMotion = false,
 }: {
     children: ReactNode;
     animation?: LogoAnimationType;
     setAnimation?: (anim: LogoAnimationType) => void;
     initialAnimation?: LogoAnimationType;
+    durationSeconds?: number;
+    setDurationSeconds?: (seconds: number) => void;
+    initialDurationSeconds?: number;
     ignoreReducedMotion?: boolean;
 }) {
     const [internalAnimation, setInternalAnimation] = useState<LogoAnimationType>(initialAnimation);
+    const [internalDuration, setInternalDuration] = useState<number | undefined>(
+        initialDurationSeconds,
+    );
 
     const animation = controlledAnimation !== undefined ? controlledAnimation : internalAnimation;
     const setAnimation = controlledSetAnimation !== undefined ? controlledSetAnimation : setInternalAnimation;
 
+    const durationSeconds = controlledDuration !== undefined ? controlledDuration : internalDuration;
+    const setDurationSeconds = controlledSetDuration ?? setInternalDuration;
+
     return (
-        <LogoAnimationContext.Provider value={{ animation, setAnimation, ignoreReducedMotion }}>
+        <LogoAnimationContext.Provider
+            value={{
+                animation,
+                setAnimation,
+                durationSeconds,
+                setDurationSeconds,
+                ignoreReducedMotion,
+            }}
+        >
             {children}
         </LogoAnimationContext.Provider>
     );

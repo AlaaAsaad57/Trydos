@@ -89,7 +89,7 @@ function staccato(hits: Hit[]): Frame[] {
     return [...frames.values()].sort((a, b) => a.t - b.t);
 }
 
-function toMotion(hits: Hit[]) {
+function toMotion(hits: Hit[], cycle: number) {
     const frames = staccato(hits);
     return {
         animate: {
@@ -98,7 +98,7 @@ function toMotion(hits: Hit[]) {
             scale: frames.map((f) => f.scale),
         },
         transition: {
-            duration: CYCLE,
+            duration: cycle,
             times: frames.map((f) => f.t),
             ease: 'linear' as const,
             repeat: Infinity,
@@ -106,7 +106,7 @@ function toMotion(hits: Hit[]) {
     };
 }
 
-export function tempoPattern({ geo, variant, dotColor }: PatternContext): LogoMotion {
+export function tempoPattern({ geo, variant, dotColor, cycle = CYCLE }: PatternContext): LogoMotion {
     return {
         overflowVisible: true,
         behind: (
@@ -120,7 +120,7 @@ export function tempoPattern({ geo, variant, dotColor }: PatternContext): LogoMo
                         opacity: [0.12, 0.2, 0.2, 0.12, 0.12, 0.2, 0.2, 0.12, 0.12],
                     },
                     transition: {
-                        duration: CYCLE,
+                        duration: cycle,
                         times: [0, SNAP, 1 / SLOTS, 1 / SLOTS + SNAP, 0.5, 0.5 + SNAP, 9 / SLOTS, 9 / SLOTS + SNAP, 1],
                         ease: 'linear',
                         repeat: Infinity,
@@ -133,19 +133,19 @@ export function tempoPattern({ geo, variant, dotColor }: PatternContext): LogoMo
             { slot: 6, y: 1.7 },
             { slot: 8, scale: 1.07 },
             { slot: 14, x: -1.9 },
-        ]),
+        ], cycle),
         rightDot: toMotion([
             { slot: 0, scale: 1.07 },
             { slot: 3, x: 1.9 },
             { slot: 8, scale: 1.07 },
             { slot: 11, y: -1.7 },
-        ]),
+        ], cycle),
         ring:
             variant === 'badge-ring'
                 ? {
                       animate: { scale: [1, 1.028, 1.028, 1, 1, 1.028, 1.028, 1, 1] },
                       transition: {
-                          duration: CYCLE,
+                          duration: cycle,
                           times: [0, SNAP, 1 / SLOTS, 1 / SLOTS + SNAP, 0.5, 0.5 + SNAP, 9 / SLOTS, 9 / SLOTS + SNAP, 1],
                           ease: 'linear' as const,
                           repeat: Infinity,

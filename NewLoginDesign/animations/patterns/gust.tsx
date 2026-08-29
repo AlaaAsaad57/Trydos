@@ -53,7 +53,7 @@ const LEAN = 4;
 /** Lift, in viewBox units. */
 const LIFT = 2;
 
-export function gustPattern({ geo, variant, dotColor, ringColor, uid }: PatternContext): LogoMotion {
+export function gustPattern({ geo, variant, dotColor, ringColor, uid, cycle = CYCLE }: PatternContext): LogoMotion {
     const tint = lighten(variant === 'badge-ring' ? ringColor : dotColor, 0.42);
     const maskId = `${uid}-gust-ring`;
 
@@ -81,7 +81,7 @@ export function gustPattern({ geo, variant, dotColor, ringColor, uid }: PatternC
                 x: [0, 0, LIFT * 0.5, LIFT * 0.3, -LIFT * 0.1, 0, 0],
             },
             transition: {
-                duration: CYCLE,
+                duration: cycle,
                 times: [
                     0,
                     start,
@@ -117,7 +117,7 @@ export function gustPattern({ geo, variant, dotColor, ringColor, uid }: PatternC
             scaleX: [1, 1.04, 1.06, 1.02, 1, 1, 1, 1],
         },
         transition: {
-            duration: CYCLE,
+            duration: cycle,
             times: [0, 0.02, 0.07, 0.14, 0.2, 0.2 + LID, 0.2 + 2 * LID, 1],
             ease: 'easeOut' as const,
             repeat: Infinity,
@@ -184,7 +184,7 @@ export function gustPattern({ geo, variant, dotColor, ringColor, uid }: PatternC
             >
                 {/* One lap per cycle, so the wave reaches the top of the ring as
                     the gust reaches the letters. 0 to 360 closes the loop. */}
-                <Spin cx={geo.ring!.cx} cy={geo.ring!.cy} radius={geo.ring!.r + 4} seconds={CYCLE}>
+                <Spin cx={geo.ring!.cx} cy={geo.ring!.cy} radius={geo.ring!.r + 4} seconds={cycle}>
                     {arc(track * 0.24, 0.3, 0)}
                     {arc(track * 0.08, 0.95, -track * 0.24)}
                 </Spin>

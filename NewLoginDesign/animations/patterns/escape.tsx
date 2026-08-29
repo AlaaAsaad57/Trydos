@@ -55,7 +55,7 @@ const TIP = 18;
 /** How far an eye turns to look at it. Inside the header lockup's 8.5 limit. */
 const REACH = 6.5;
 
-export function escapePattern({ geo, variant }: PatternContext): LogoMotion {
+export function escapePattern({ geo, variant, cycle = CYCLE }: PatternContext): LogoMotion {
     const runaway = geo.letters.length - 1;
     const target = letterCentre(geo, runaway);
 
@@ -90,7 +90,7 @@ export function escapePattern({ geo, variant }: PatternContext): LogoMotion {
                 scaleX: [1, 1, 1.15, 1.15, 1.02, 1.02, 1, 1],
             },
             transition: {
-                duration: CYCLE,
+                duration: cycle,
                 // The snap is one step from rest to the look, 45ms wide. A
                 // gentler move here would read as the eye drifting over, and
                 // the whole beat depends on it being caught by surprise.
@@ -121,7 +121,7 @@ export function escapePattern({ geo, variant }: PatternContext): LogoMotion {
             scale: [1, 1, 1, 1, 1, 1.02, 0.97, 1, 1],
         },
         transition: {
-            duration: CYCLE,
+            duration: cycle,
             times: [0, SLIP, LANDED, NARROW, HOP, HOME, HOME + 0.02, HOME + 0.05, 1],
             ease: 'easeOut' as const,
             repeat: Infinity,
@@ -139,7 +139,7 @@ export function escapePattern({ geo, variant }: PatternContext): LogoMotion {
         return {
             animate: { y: [0, 0, 1, -0.2, 0, 0] },
             transition: {
-                duration: CYCLE,
+                duration: cycle,
                 times: [0, start, start + 0.008, start + 0.022, start + 0.04, 1],
                 ease: 'easeOut' as const,
                 repeat: Infinity,
@@ -175,7 +175,7 @@ export function escapePattern({ geo, variant }: PatternContext): LogoMotion {
                       transition: {
                           rotate: { duration: 80, ease: 'linear' as const, repeat: Infinity },
                           scale: {
-                              duration: CYCLE,
+                              duration: cycle,
                               times: [0, HOME, HOME + 0.012, HOME + 0.05, 1],
                               ease: 'easeOut' as const,
                               repeat: Infinity,

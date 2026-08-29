@@ -376,3 +376,101 @@ describe('NewLoginLogo — the mark lands where the design file puts it', () => 
         });
     }
 });
+
+/**
+ * The loop length is a setting, and it has to reach every pattern.
+ *
+ * The demo route lets the client play the same pattern over 1 to 20 seconds
+ * before choosing one. That only works if each pattern actually reads the
+ * number it is handed. A pattern that keeps its own hard-coded cycle looks
+ * fine on its own and is only wrong next to the others, which is exactly the
+ * comparison the picker exists to make.
+ *
+ * The second check is the other half: with no number given, a pattern must
+ * still run on the cycle it was designed on. The product never sets one.
+ */
+describe('the loop length reaches every pattern', () => {
+    /** Every `duration` a pattern puts on one element, nested ones included. */
+    function durationsOf(motion: { transition?: unknown } | undefined): number[] {
+        const transition = motion?.transition as Record<string, unknown> | undefined;
+        if (!transition) return [];
+        const found: number[] = [];
+        if (typeof transition.duration === 'number') found.push(transition.duration);
+        for (const value of Object.values(transition)) {
+            if (value && typeof value === 'object' && !Array.isArray(value)) {
+                const nested = (value as Record<string, unknown>).duration;
+                if (typeof nested === 'number') found.push(nested);
+            }
+        }
+        return found;
+    }
+
+    /** The cycle each pattern was designed on, and falls back to. */
+    const DESIGNED_CYCLE: Record<string, number> = {
+        wink: 4,
+        relay: 4,
+        firefly: 4,
+        canon: 4,
+        tempo: 4,
+        spark: 4,
+        reveal: 4.5,
+        gust: 4,
+        escape: 4,
+        sway: 4,
+    };
+
+    for (const seconds of [1, 9, 20]) {
+        it(`plays every pattern over ${seconds} seconds when asked to`, async () => {
+            const { LOGO_PATTERNS } = await import('../../NewLoginDesign/animations/patterns');
+            const { LOGO_GEOMETRY } = await import('../../NewLoginDesign/animations/geometry');
+
+            for (const [id, factory] of Object.entries(LOGO_PATTERNS)) {
+                for (const variant of ['header', 'badge-ring'] as const) {
+                    const result = factory({
+                        variant,
+                        geo: LOGO_GEOMETRY[variant],
+                        dotColor: DOT_COLOR,
+                        ringColor: RING_COLOR,
+                        uid: 'test',
+                        blink: { left: 1, right: 1 },
+                        cycle: seconds,
+                    });
+
+                    const durations = durationsOf(result.leftDot);
+                    expect(
+                        durations.includes(seconds),
+                        `pattern "${id}" on the ${variant} was told to loop in ${seconds}s, but its left dot runs on ${durations.join(', ') || 'no duration at all'}. The picker's loop-length control does nothing for this pattern`,
+                    ).toBe(true);
+                }
+            }
+        });
+    }
+
+    it('falls back to the cycle each pattern was designed on', async () => {
+        const { LOGO_PATTERNS } = await import('../../NewLoginDesign/animations/patterns');
+        const { LOGO_GEOMETRY } = await import('../../NewLoginDesign/animations/geometry');
+
+        for (const [id, factory] of Object.entries(LOGO_PATTERNS)) {
+            const designed = DESIGNED_CYCLE[id];
+            expect(
+                designed,
+                `pattern "${id}" has no designed cycle recorded in this test, so nothing checks what it does when no loop length is given`,
+            ).toBeDefined();
+
+            const result = factory({
+                variant: 'badge-ring',
+                geo: LOGO_GEOMETRY['badge-ring'],
+                dotColor: DOT_COLOR,
+                ringColor: RING_COLOR,
+                uid: 'test',
+                blink: { left: 1, right: 1 },
+            });
+
+            const durations = durationsOf(result.leftDot);
+            expect(
+                durations.includes(designed),
+                `pattern "${id}" was given no loop length, so it should run on the ${designed}s cycle it was designed on, but its left dot runs on ${durations.join(', ') || 'no duration at all'}`,
+            ).toBe(true);
+        }
+    });
+});

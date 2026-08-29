@@ -49,7 +49,7 @@ const blink = {
     times: [0, 0.2, 0.2 + LID, 0.2 + 2 * LID, 0.7, 0.7 + LID, 0.7 + 2 * LID, 1],
 };
 
-export function canonPattern({ geo, variant, dotColor }: PatternContext): LogoMotion {
+export function canonPattern({ geo, variant, dotColor, cycle = CYCLE }: PatternContext): LogoMotion {
     // Leader at 0.05, follower 0.04 of a cycle (256ms) behind, dart 0.02 (128ms).
     const leftDot = {
         animate: {
@@ -60,19 +60,19 @@ export function canonPattern({ geo, variant, dotColor }: PatternContext): LogoMo
         },
         transition: {
             x: {
-                duration: CYCLE,
+                duration: cycle,
                 times: [0, 0.09, 0.11, 0.145, 0.3, 0.32, 0.59, 0.61, 0.645, 0.78, 0.8, 1],
                 ease: 'easeOut' as const,
                 repeat: Infinity,
             },
             y: {
-                duration: CYCLE,
+                duration: cycle,
                 times: [0, 0.09, 0.11, 0.145, 0.3, 0.32, 0.59, 0.61, 0.645, 0.78, 0.8, 1],
                 ease: 'easeOut' as const,
                 repeat: Infinity,
             },
             scaleY: {
-                duration: CYCLE,
+                duration: cycle,
                 times: blink.times,
                 ease: 'easeOut' as const,
                 repeat: Infinity,
@@ -89,19 +89,19 @@ export function canonPattern({ geo, variant, dotColor }: PatternContext): LogoMo
         },
         transition: {
             x: {
-                duration: CYCLE,
+                duration: cycle,
                 times: [0, 0.05, 0.07, 0.34, 0.36, 0.395, 0.55, 0.57, 0.82, 0.84, 0.875, 1],
                 ease: 'easeOut' as const,
                 repeat: Infinity,
             },
             y: {
-                duration: CYCLE,
+                duration: cycle,
                 times: [0, 0.05, 0.07, 0.34, 0.36, 0.395, 0.55, 0.57, 0.82, 0.84, 0.875, 1],
                 ease: 'easeOut' as const,
                 repeat: Infinity,
             },
             scaleY: {
-                duration: CYCLE,
+                duration: cycle,
                 times: blink.times,
                 ease: 'easeOut' as const,
                 repeat: Infinity,
@@ -126,7 +126,7 @@ export function canonPattern({ geo, variant, dotColor }: PatternContext): LogoMo
                         opacity: [0.13, 0.13, 0.18, 0.18, 0.18, 0.18, 0.16, 0.16, 0.13, 0.13],
                     },
                     transition: {
-                        duration: CYCLE,
+                        duration: cycle,
                         times: followTimes,
                         ease: 'easeOut',
                         repeat: Infinity,
@@ -141,7 +141,7 @@ export function canonPattern({ geo, variant, dotColor }: PatternContext): LogoMo
                 ? {
                       animate: { rotate: [0, 0, 2.2, 2.2, -2.2, -2.2, 1.6, 1.6, 0, 0] },
                       transition: {
-                          duration: CYCLE,
+                          duration: cycle,
                           times: followTimes,
                           ease: 'easeOut' as const,
                           repeat: Infinity,

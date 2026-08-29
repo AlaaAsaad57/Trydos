@@ -66,7 +66,7 @@ function useBlink(active: boolean): BlinkState {
 /**
  * Turns a pattern id into the props the logo component applies.
  *
- * Three rules hold for every pattern, and they are kept here rather than
+ * Four rules hold for every pattern, and they are kept here rather than
  * trusted to each one:
  *
  *   1. The server sends the static mark; motion starts in the browser.
@@ -83,7 +83,12 @@ function useBlink(active: boolean): BlinkState {
  *      is not the place to argue. The demo route can override it, because a
  *      picker that shows nothing on a machine with animations turned off is
  *      not a picker.
- *   3. Ids are namespaced with React's `useId`. Two logos are on screen at once
+ *   3. The loop length is the caller's to set. `cycleSeconds` is handed
+ *      straight to the pattern; left out, each pattern uses the cycle it was
+ *      designed on. Nothing here rescales a pattern from outside, because the
+ *      part of a pattern that lives inside `defs` cannot be reached from here,
+ *      and half a pattern running at a different speed is worse than none.
+ *   4. Ids are namespaced with React's `useId`. Two logos are on screen at once
  *      on the Quick Preview, and svg ids are global to the document — without
  *      this the second logo's mask would quietly capture the first one's.
  */
@@ -93,6 +98,7 @@ export function useAnimationEngine(
     dotColor: string,
     ringColor: string,
     ignoreReducedMotion = false,
+    cycleSeconds?: number,
 ): LogoMotion {
     const reactId = useId();
     const prefersReduced = useReducedMotion();
@@ -119,7 +125,8 @@ export function useAnimationEngine(
                 ringColor,
                 uid,
                 blink,
+                cycle: cycleSeconds,
             }),
         });
-    }, [active, factory, variant, dotColor, ringColor, reactId, blink]);
+    }, [active, factory, variant, dotColor, ringColor, reactId, blink, cycleSeconds]);
 }

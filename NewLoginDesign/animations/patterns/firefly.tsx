@@ -62,7 +62,7 @@ function track(geo: LogoGeometry) {
     };
 }
 
-export function fireflyPattern({ geo, variant, dotColor, ringColor }: PatternContext): LogoMotion {
+export function fireflyPattern({ geo, variant, dotColor, ringColor, cycle = CYCLE }: PatternContext): LogoMotion {
     const path = track(geo);
     const tint = lighten(variant === 'badge-ring' ? ringColor : dotColor, 0.28);
 
@@ -106,10 +106,10 @@ export function fireflyPattern({ geo, variant, dotColor, ringColor }: PatternCon
                 scaleY: [1, 1, BLINK_SHUT, 1, 1, BLINK_SHUT, 1, 1],
             },
             transition: {
-                x: { duration: CYCLE, times, ease: 'linear' as const, repeat: Infinity },
-                y: { duration: CYCLE, times, ease: 'linear' as const, repeat: Infinity },
+                x: { duration: cycle, times, ease: 'linear' as const, repeat: Infinity },
+                y: { duration: cycle, times, ease: 'linear' as const, repeat: Infinity },
                 scaleY: {
-                    duration: CYCLE,
+                    duration: cycle,
                     times: [0, 0.3, 0.3 + LID, 0.3 + 2 * LID, 0.77, 0.77 + LID, 0.77 + 2 * LID, 1],
                     ease: 'easeOut' as const,
                     repeat: Infinity,
@@ -126,7 +126,7 @@ export function fireflyPattern({ geo, variant, dotColor, ringColor }: PatternCon
                     style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
                     initial={{ x: flight[0].x, y: flight[0].y }}
                     animate={{ x: flight.map((f) => f.x), y: flight.map((f) => f.y) }}
-                    transition={{ duration: CYCLE, times, ease: 'linear', repeat: Infinity }}
+                    transition={{ duration: cycle, times, ease: 'linear', repeat: Infinity }}
                 >
                     {/* Drawn at the origin and flown by the transform above, so
                         the flight path is written once rather than once per
