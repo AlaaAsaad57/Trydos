@@ -18,21 +18,26 @@ interface Seed {
 // and the browser render, which makes React throw away the markup and rebuild
 // it. They also make the animation impossible to review twice.
 const SPARK_SEEDS: Seed[] = [
-    { angle: 18, radiusOffset: 6, size: 4.2, period: 34, twinkle: 2.1, delay: 0 },
-    { angle: 96, radiusOffset: -7, size: 3.1, period: 46, twinkle: 2.9, delay: 0.6 },
-    { angle: 158, radiusOffset: 8.5, size: 4.8, period: 28, twinkle: 1.7, delay: 1.1 },
-    { angle: 232, radiusOffset: -5, size: 3.5, period: 52, twinkle: 3.3, delay: 0.3 },
-    { angle: 310, radiusOffset: 7, size: 3.9, period: 38, twinkle: 2.4, delay: 1.6 },
+    { angle: 18, radiusOffset: 6, size: 4.2, period: 4.9, twinkle: 1.3, delay: 0 },
+    { angle: 96, radiusOffset: -7, size: 3.1, period: 6.7, twinkle: 1.8, delay: 0.6 },
+    { angle: 158, radiusOffset: 8.5, size: 4.8, period: 4, twinkle: 1.1, delay: 1.1 },
+    { angle: 232, radiusOffset: -5, size: 3.5, period: 7.3, twinkle: 2, delay: 0.3 },
+    { angle: 310, radiusOffset: 7, size: 3.9, period: 5.5, twinkle: 1.5, delay: 1.6 },
 ];
 
 /**
  * 7 — Constellation. Motion language: ambient, premium, almost still.
  *
  * The other patterns ask to be watched. This one does not. Small sparkles drift
- * around the mark on long, mismatched periods — 28 to 52 seconds — so the eye
- * never catches a repeat, and the dots twinkle slowly underneath. It is built
- * for the screens a shopper sits on for a while, where a three-second loop
- * would start to nag after the fourth time round.
+ * around the mark on mismatched periods — 4, 4.9, 5.5, 6.7 and 7.3 seconds — so
+ * no two of them come back to the same place together, and the dots twinkle
+ * underneath on a sixth period again.
+ *
+ * The periods used to run 28 to 52 seconds, which meant the eye could never
+ * catch a repeat at all. They were shortened when the whole set was brought to
+ * a 4 second cycle. The idea survives — the five still never line up — but be
+ * honest about the cost: a patient viewer can now find the loop, which is
+ * exactly what the long periods were there to prevent.
  *
  * Every sparkle sits behind the mark. On the badge that matters: the ring's own
  * dots stay crisp and fully saturated on top, and a sparkle passing the ring
@@ -60,7 +65,7 @@ export function sparkPattern({ variant, geo, ringColor, dotColor }: PatternConte
 
     const dotTwinkle = (delay: number) => ({
         animate: { opacity: [1, 0.7, 1], scale: [1, 1.07, 1] },
-        transition: { duration: 4.4, ease: 'easeInOut' as const, repeat: Infinity, delay },
+        transition: { duration: 4, ease: 'easeInOut' as const, repeat: Infinity, delay },
     });
 
     if (variant !== 'badge-ring' || !geo.ring) {

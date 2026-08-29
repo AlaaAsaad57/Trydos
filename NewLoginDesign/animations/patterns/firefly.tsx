@@ -38,14 +38,14 @@ import type { LogoMotion, PatternContext } from '../types';
  * there is nothing to miss.
  */
 
-const CYCLE = 7;
+const CYCLE = 4;
 const SAMPLES = 48;
 /** How far an eye turns. The limit is the header lockup, where the left dot's
  *  edge starts 12.6 from the left of the box. */
 const REACH = 6.5;
 const BLINK_SHUT = 0.08;
-/** 95ms, as a fraction of the cycle — the same blink length as `wink`. */
-const LID = 0.0136;
+/** 95ms, as a fraction of the 4s cycle — the same blink length as `wink`. */
+const LID = 0.02375;
 
 /** The lap the sparkle flies. Inside the ring on the badge, round the lockup
  *  on the header. */

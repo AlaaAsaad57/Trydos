@@ -38,7 +38,7 @@ import type { LogoMotion, PatternContext } from '../types';
  * takes the impact as a 2% widening, the container absorbing a knock.
  */
 
-const CYCLE = 4.8;
+const CYCLE = 4;
 
 type Ease = 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | [number, number, number, number];
 

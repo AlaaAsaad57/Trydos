@@ -76,6 +76,9 @@ scripts/*
 !scripts/trello_fetch.py
 !scripts/trello_move_card.py
 !scripts/clickup_create_task.py
+# Regenerates the per-letter wordmark data at the bottom of
+# NewLoginDesign/logoPaths.ts, and checks the split moved no outline.
+!scripts/split-wordmark.mjs
 
 # Local design references (XD exports) - not for repo
 xd-designs-for-inspreation/

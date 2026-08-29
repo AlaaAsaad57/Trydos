@@ -1,9 +1,9 @@
-# Logo motion — the seven patterns
+# Logo motion — the ten patterns
 
-Seven ways the trydos mark can move on the new login screens. Pick one in the
+Ten ways the trydos mark can move on the new login screens. Pick one in the
 demo route (`/[lang]/loginDemo` → the **Anim:** button, top left).
 
-They are seven different **motion languages**, not seven settings of one. Two
+They are ten different **motion languages**, not ten settings of one. Two
 patterns that both "pulse a bit" give nobody anything to choose between — which
 is what happened to the seven this set replaced (`bounce`, `magnet`, `wave`,
 `comet`, `radar`, and later `turn` and `thread`). They are gone. Do not bring a
@@ -19,11 +19,39 @@ expensive, and the ones that read as a physics exercise did not.
 | 5 | `tempo` | staccato | 100 BPM, sixteen slots, six used — the 3-3-2 tresillo. Every move is linear and 58ms; every hold is dead flat. | A screen that needs energy. |
 | 6 | `spark` | ambient | Sparkles drift on 28–52 second periods, so the loop is never caught. Dots twinkle underneath. | Long screens: terms, onboarding. |
 | 7 | `reveal` | entrance | Ring draws, wordmark wipes in, dots drop on a spring. Plays once, then perfectly still. | The opening screen, or success. |
+| 8 | `gust` | wave | Wind crosses in 900ms. Each letter leans, lifts and settles 60ms after the one to its left; the same wave runs round the ring. Then six seconds of calm. | Any screen. |
+| 9 | `escape` | comedy | The last letter slips and tips over. The eyes snap to it, then narrow into a flat stare held for a whole second. Then it hops back. | Get Started, Success. Not a PIN screen. |
+| 10 | `sway` | solid body | The whole mark hangs from a point above itself and swings as one object. The two dots run the swing 100ms late. | Anywhere calm. The most restrained one. |
 
 `none` turns everything off and shows the mark exactly as drawn.
 
 The demo and the product both open on `wink`, set by `DEFAULT_LOGO_ANIMATION`
 in `LogoAnimationContext.tsx`.
+
+`gust`, `escape` and `sway` are newer than the other seven and need a change
+to the artwork — see **The word, two ways** below.
+
+## Every loop is 4 seconds
+
+All nine looping patterns run on the same 4 second cycle. `reveal` is not a
+loop — it is an entrance that plays once — so it keeps its own timing.
+
+One thing is deliberately **not** 4 seconds: the slow background turn some
+patterns give the badge ring, which runs from 40 to 80 seconds. A ring that
+laps in 4 seconds is a loading spinner, and a logo should not look like it is
+waiting for a server.
+
+Two patterns paid a price for the shorter cycle, and it is worth knowing which:
+
+- **`spark`** was built on periods of 28 to 52 seconds so the eye could never
+  catch a repeat. Those are now 4 to 7.3 seconds. The five still never line up
+  with each other, so the idea survives — but a patient viewer can now find
+  the loop, which is the one thing the long periods existed to prevent.
+- **`escape`** is built around a held stare. Everything else in it was
+  squeezed to fit 4 seconds; the stare kept its full second, because a pause
+  that is over before it registers is not a pause. The calm either side gave
+  up the time instead.
+
 
 ## All three elements take part
 
@@ -31,27 +59,56 @@ The logo is three things — the two dots, the wordmark, and (on the badge) the
 dotted ring — and a pattern that only moves the dots is animating a third of the
 mark. Every looping pattern above moves all three.
 
-The wordmark is the awkward one, because **no pattern may transform, stroke,
-filter or recolour a glyph**, and the one handle it does have — a clip path —
-can only *hide* part of the word. A clip is right for an entrance, where the
-word is uncovered once and then left alone, which is what `reveal` does. It is
-wrong for a loop, because a loop would have to hide the word again every pass.
+## The word, two ways
 
-`WordmarkEcho.tsx` is the way round it. It paints a second copy of the same
+The wordmark is the awkward one, because **no pattern may reshape a glyph**.
+There are two ways round that, and which one a pattern uses is its own choice.
+
+**A ghost behind it — `WordmarkEcho.tsx`.** It paints a second copy of the same
 glyph outline *behind* the real one and animates that, so what moves is a tinted
 ghost showing a couple of px along one edge. The real letters are the same path
-with the same fill, on top, untouched. Both the outline and its transform come
-from `geometry.ts`, which is where the component reads them too, so the ghost
-cannot drift off the letters. Keep it to 1–2px and 10–20% opacity; past that it
-stops reading as a shadow and starts reading as a printing plate out of
-register, which on a logo is damage rather than motion.
+with the same fill, on top, untouched. Keep it to 1–2px and 10–20% opacity; past
+that it stops reading as a shadow and starts reading as a printing plate out of
+register, which on a logo is damage rather than motion. `relay`, `canon` and
+`tempo` use it.
+
+**One path per letter — `letters`.** A pattern that sets `letters` in its
+`LogoMotion` gets the word drawn as one group per letter and may translate,
+rotate, evenly scale and fade each one. `gust`, `escape` and `sway` use it, and
+none of them could exist without it: a wave needs things in a row, one letter
+leaving a word needs the word to have separate letters, and a rigid body needs
+every part of itself to be able to move.
+
+The letter data is generated. `scripts/split-wordmark.mjs` cuts the single path
+into its subpaths, groups them into letters by containment — so the counter of
+an "o" stays in the same path as its outline, which is the only way the fill
+rule still cuts the hole — and writes `HEADER_LETTERS` and `BADGE_LETTERS` at
+the bottom of `logoPaths.ts`. Two things are checked rather than assumed:
+
+- The script samples every curve before and after the split and fails if any
+  point moved by more than 1e-6. It reports `ok` per wordmark when it runs.
+- The union of the generated letter boxes matches the browser-measured wordmark
+  box in `geometry.ts` to within 0.0011 units.
+
+The split is only equivalent because **no two letters overlap** — the header
+gaps are 6.66, 5.20, 6.84, 7.88 and 5.85 units, the badge gaps 6.70 and 5.23. A
+wordmark with joined script letters would break that, which is why the single
+path is still the default and is still what the other seven patterns draw.
+
+**Even scale only.** A letter may be scaled, but on both axes together.
+`scaleX` on its own is not motion, it is a condensed typeface nobody licensed.
+
+**A clip is still the right tool for an entrance.** `reveal` uncovers the word
+once and then leaves it alone, which a clip does and cannot deform anything. A
+clip is wrong for a loop, because a loop would have to hide the word again on
+every pass.
 
 ## The rules every pattern follows
 
-**1. The wordmark never changes.** A pattern cannot give the glyphs a stroke, a
-filter, a colour or a transform — there is no prop for any of them. The only
-handle it has is a clip path, and a clip can only hide part of the artwork and
-hand the rest back exactly as drawn.
+**1. The glyphs are never reshaped.** A pattern cannot give a letter a stroke, a
+filter or a colour — there is no prop for any of them. It may move a whole
+letter, and it may hide part of the word with a clip. It receives only the
+outline the design file drew, so there is nothing for it to reshape.
 
 This is not a style preference. The usual way to animate a wordmark is to stroke
 it and run `stroke-dashoffset` so the letters draw themselves on. These glyphs
@@ -170,16 +227,23 @@ animations/
   shapes.ts               decoration outlines shared between patterns
   types.ts                what a pattern is allowed to move
   Spin.tsx                rotation about a named point, the only pivot that works
-  WordmarkEcho.tsx        how the word joins in without a glyph being touched
+  WordmarkEcho.tsx        a ghost of the word, for patterns with one path
   normalise.ts            fills in where each animated value starts
   useAnimationEngine.tsx  picks the pattern, namespaces ids, honours reduced motion
   patterns/               one file per pattern, each with its reasoning
+
+scripts/split-wordmark.mjs  regenerates the per-letter wordmark data, and
+                            checks the split moved no outline
 ```
 
 Covered by three test files:
 
 - `NewLoginLogo.test.tsx` — the mark is unchanged by every pattern, in both
-  variants, and lands where the design file puts it.
+  variants, and lands where the design file puts it. It checks both draw
+  forms: a pattern without `letters` must render the single path from the
+  design file, and a pattern with them must render the generated letter
+  outlines in order — neither may be rewritten, stroked, filtered or
+  recoloured.
 - `NewLoginLogoServerRender.test.tsx` — the server sends the static mark, every
   animated value says where it starts, every spin is written as keyframes, and
   the reveal wipe ends up larger than the glyphs on all four sides.
@@ -222,3 +286,9 @@ Measured, so the next person does not start from nothing:
 
 Reproduce it by opening the demo, picking Firefly or Constellation, and watching
 the badge while the preview column is still on screen.
+
+It also decides how the newest patterns behave on that screen. `gust` loses
+the wave running round the ring, because that part is decoration, but keeps
+the letters and the eyes, so most of it still reads. `escape` and `sway` draw
+no decoration at all, so they are the two to demo on Quick Preview until this
+is fixed.

@@ -3,10 +3,15 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 /**
- * The eight logo motion patterns, plus "none".
+ * The ten logo motion patterns, plus "none".
  *
  * Each id is one motion language, not one setting of a shared one. The full
  * reasoning for each lives beside its code in `animations/patterns/`.
+ *
+ * The last three are newer than the rest and rest on a change to the artwork:
+ * the wordmark is now also generated as one path per letter, so a pattern can
+ * move the letters separately. The first seven cannot, and they still draw the
+ * word as the single path they were written against.
  */
 export type LogoAnimationType =
     | 'none'
@@ -15,8 +20,11 @@ export type LogoAnimationType =
     | 'firefly' // 3. character   - a sparkle flies a lap, the eyes follow it
     | 'canon'   // 4. character   - one eye leads, the other is half a beat late
     | 'tempo'   // 5. staccato    - hard steps on a beat, silence in between
-    | 'spark'   // 6. ambient     - long mismatched periods, no visible repeat
-    | 'reveal'; // 7. entrance    - plays once on mount, then perfectly still
+    | 'spark'    // 6. ambient     - long mismatched periods, no visible repeat
+    | 'reveal'   // 7. entrance    - plays once on mount, then perfectly still
+    | 'gust'     // 8. wave        - wind crosses, the letters lean in sequence
+    | 'escape'   // 9. comedy      - a letter falls out of the word and is stared at
+    | 'sway';    // 10. solid body - the whole mark hangs and swings, eyes trailing
 
 export interface LogoAnimationPreset {
     id: LogoAnimationType;
@@ -101,6 +109,36 @@ export const LOGO_ANIMATION_PRESETS: LogoAnimationPreset[] = [
         description:
             'The ring draws itself, the wordmark wipes in from the left, then the dots drop in on a spring. The wipe uses a clip path, never a stroke on the letters, so the glyphs are never thickened. Ends pixel-identical to the static logo.',
         bestFor: 'The opening screen, or a success screen.',
+    },
+    {
+        id: 'gust',
+        label: 'Gust',
+        shortName: 'Gust',
+        icon: '\u{1F343}',
+        tagline: 'Wave - wind crosses, in order',
+        description:
+            'A gust crosses the mark in 900ms and everything it passes leans, lifts and settles - each letter starting 60ms after the one to its left, so the far end is still rising while the near end is coming down. The eyes squint into it and blink once after it has gone. On the badge the same wave runs round the ring, tinting its little dots and leaving the gaps between them empty. Then six seconds of calm.',
+        bestFor: 'Any screen. The clearest use of the word itself.',
+    },
+    {
+        id: 'escape',
+        label: 'Escape',
+        shortName: 'Escape',
+        icon: '\u{1F62E}',
+        tagline: 'Comedy - and a held beat',
+        description:
+            'Everything is still for three seconds. The last letter of the word slips, tips over and lies there. The eyes snap to it, hold wide, then narrow into a flat stare for a whole second while nothing at all moves. Then the letter hops back, the rest of the word bounces after it, and the mark goes still again.',
+        bestFor: 'Get Started, Success, Quick Preview. Not a PIN screen.',
+    },
+    {
+        id: 'sway',
+        label: 'Sway',
+        shortName: 'Sway',
+        icon: '\u{1F3D7}\uFE0F',
+        tagline: 'One solid object, hanging',
+        description:
+            'The mark hangs from a point above itself and swings, like a shop sign on its bracket. Every letter, both dots and the ring are placed by one swing angle, so nothing ever moves against anything else - the word tips like a beam because the maths says it should, not because it was written in. The two dots run the same swing 100ms late, which is the only thing in the file that is not rigid and is what stops it looking like a sliding picture.',
+        bestFor: 'Anywhere calm. The most restrained pattern in the set.',
     },
     {
         id: 'none',

@@ -38,10 +38,10 @@ import type { LogoMotion, PatternContext } from '../types';
  * the whole mark is looking rather than just the two dots.
  */
 
-const CYCLE = 6.4;
+const CYCLE = 4;
 const BLINK_SHUT = 0.08;
 /** 95ms as a fraction of the cycle — the same lid as `wink` and `firefly`. */
-const LID = 0.0148;
+const LID = 0.02375;
 
 /** Blinks sit inside the holds, where there is nothing to miss. */
 const blink = {

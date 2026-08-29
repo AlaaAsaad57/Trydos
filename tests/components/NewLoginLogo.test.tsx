@@ -11,10 +11,13 @@ import {
 } from '../../NewLoginDesign/LogoAnimationContext';
 import {
     BADGE_DOT_PATH,
+    BADGE_LETTERS,
     BADGE_RING_PATH,
     BADGE_WORDMARK_PATH,
     HEADER_DOT_PATH,
+    HEADER_LETTERS,
     HEADER_WORDMARK_PATH,
+    type WordmarkLetter,
 } from '../../NewLoginDesign/logoPaths';
 
 /**
@@ -43,6 +46,7 @@ interface VariantFixture {
     label: string;
     viewBox: string;
     wordmarkPath: string;
+    letters: WordmarkLetter[];
     wordmarkTransform: string;
     dotPath: string;
     leftDotTransform: string;
@@ -56,6 +60,7 @@ const VARIANTS: VariantFixture[] = [
         label: 'header lockup',
         viewBox: '0 0 176.18 87.574',
         wordmarkPath: HEADER_WORDMARK_PATH,
+        letters: HEADER_LETTERS,
         wordmarkTransform: 'translate(-1.35 99.117)',
         dotPath: HEADER_DOT_PATH,
         leftDotTransform: 'translate(12.609 0)',
@@ -67,6 +72,7 @@ const VARIANTS: VariantFixture[] = [
         label: 'badge ring',
         viewBox: '0 0 150 150',
         wordmarkPath: BADGE_WORDMARK_PATH,
+        letters: BADGE_LETTERS,
         wordmarkTransform: 'translate(34.048 131.633)',
         dotPath: BADGE_DOT_PATH,
         leftDotTransform: 'translate(48.606 31.631)',
@@ -91,54 +97,79 @@ function draw(animation: LogoAnimationType, variant: 'header' | 'badge-ring') {
 const partPath = (svg: SVGElement, part: string) =>
     svg.querySelector(`[data-logo-part="${part}"] path`);
 
-describe('NewLoginLogo — the eight patterns never change the mark', () => {
+describe('NewLoginLogo — the ten patterns never change the mark', () => {
     for (const preset of LOGO_ANIMATION_PRESETS) {
         for (const v of VARIANTS) {
             const where = `pattern "${preset.id}" on the ${v.label}`;
 
             it(`${where}: leaves the wordmark exactly as the design file drew it`, () => {
                 const svg = draw(preset.id, v.variant);
-                const wordmark = partPath(svg, 'wordmark');
+                const drawn = Array.from(
+                    svg.querySelectorAll('[data-logo-part="wordmark"] path'),
+                );
 
                 expect(
-                    wordmark,
-                    `${where}: the wordmark path is missing from the rendered logo`,
-                ).not.toBeNull();
+                    drawn.length,
+                    `${where}: the wordmark is missing from the rendered logo`,
+                ).toBeGreaterThan(0);
 
-                expect(
-                    wordmark?.getAttribute('d'),
-                    `${where}: the wordmark path data was rewritten. A pattern may hide part of the wordmark with a clip, never reshape it`,
-                ).toBe(v.wordmarkPath);
+                // The word is drawn one of two ways, and both have to be
+                // checked, because either one being wrong damages the mark.
+                //
+                // A pattern that leaves `letters` unset gets the single path
+                // from the design file. A pattern that sets it gets one path
+                // per letter, generated from that same string by
+                // scripts/split-wordmark.mjs so the letters can be staggered.
+                // Which form a pattern uses is its own choice; what neither is
+                // allowed to do is change an outline.
+                const perLetter = drawn.length > 1;
+                if (perLetter) {
+                    expect(
+                        drawn.map((path) => path.getAttribute('d')),
+                        `${where}: the word is drawn as ${drawn.length} letters but they are not the generated letter outlines. A pattern may move a whole letter, never reshape one`,
+                    ).toEqual(v.letters.map((letter) => letter.d));
+                } else {
+                    expect(
+                        drawn[0].getAttribute('d'),
+                        `${where}: the wordmark path data was rewritten. A pattern may hide part of the wordmark with a clip, never reshape it`,
+                    ).toBe(v.wordmarkPath);
+                }
 
-                expect(
-                    wordmark?.getAttribute('stroke'),
-                    `${where}: a stroke was added to the wordmark. A stroke on these fill-only glyphs thickens every letter and closes the counters, the holes inside the "d" and the "o"`,
-                ).toBeNull();
+                for (const [index, path] of drawn.entries()) {
+                    const which = perLetter
+                        ? `letter "${v.letters[index]?.id ?? index}" of the wordmark`
+                        : 'the wordmark';
 
-                expect(
-                    wordmark?.getAttribute('stroke-dasharray'),
-                    `${where}: a stroke-dasharray was added to the wordmark, which means something is trying to draw the letters on by stroking them. Use the clip path instead`,
-                ).toBeNull();
+                    expect(
+                        path.getAttribute('stroke'),
+                        `${where}: a stroke was added to ${which}. A stroke on these fill-only glyphs thickens every letter and closes the counters, the holes inside the "d" and the "o"`,
+                    ).toBeNull();
 
-                expect(
-                    wordmark?.getAttribute('filter'),
-                    `${where}: a filter was put on the wordmark. Filters blur and recolour glyph edges, and under the scaled canvas they also force a new raster layer`,
-                ).toBeNull();
+                    expect(
+                        path.getAttribute('stroke-dasharray'),
+                        `${where}: a stroke-dasharray was added to ${which}, which means something is trying to draw the letters on by stroking them. Use the clip path instead`,
+                    ).toBeNull();
 
-                expect(
-                    wordmark?.getAttribute('style'),
-                    `${where}: the wordmark was given an inline style, so a pattern is reaching it through the style attribute instead of the one clip handle it is allowed`,
-                ).toBeNull();
+                    expect(
+                        path.getAttribute('filter'),
+                        `${where}: a filter was put on ${which}. Filters blur and recolour glyph edges, and under the scaled canvas they also force a new raster layer`,
+                    ).toBeNull();
 
-                expect(
-                    wordmark?.getAttribute('transform'),
-                    `${where}: the wordmark moved. Its transform must stay the sum of the design file's translates`,
-                ).toBe(v.wordmarkTransform);
+                    expect(
+                        path.getAttribute('style'),
+                        `${where}: ${which} was given an inline style. Motion belongs on the group around a letter, never on the glyph path itself`,
+                    ).toBeNull();
 
-                expect(
-                    wordmark?.getAttribute('fill'),
-                    `${where}: the wordmark colour changed`,
-                ).toBe(WORDMARK_FILL);
+                    expect(
+                        path.getAttribute('transform'),
+                        `${where}: ${which} moved. Its transform must stay the sum of the design file's translates`,
+                    ).toBe(v.wordmarkTransform);
+
+                    expect(
+                        path.getAttribute('fill'),
+                        `${where}: the colour of ${which} changed`,
+                    ).toBe(WORDMARK_FILL);
+                }
             });
 
             it(`${where}: leaves the dots and the ring exactly as the design file drew them`, () => {

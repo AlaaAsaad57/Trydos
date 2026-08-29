@@ -57,18 +57,24 @@ const PIVOT_ON_SELF: React.CSSProperties = {
  *
  * What may move, and what may not
  * -------------------------------
- * The dots and the ring move. The wordmark does not. No pattern can give the
- * glyphs a stroke, a filter, a colour or a transform, because there is no prop
- * for any of those — the only handle a pattern has on the wordmark is a clip
- * path, and a clip can only hide part of the artwork and hand the rest back
- * exactly as drawn.
+ * The dots and the ring move freely. The word moves only as whole letters: a
+ * pattern that sets `letters` gets one group per letter and may translate,
+ * rotate, evenly scale and fade each one. It still cannot give a glyph a
+ * stroke, a filter or a colour, because there is no prop for any of those, and
+ * it cannot reshape one, because it only ever receives the outline the design
+ * file drew.
  *
- * That restriction is the point. The obvious way to animate a wordmark is to
+ * That last part is the point. The obvious way to animate a wordmark is to
  * stroke it and run stroke-dashoffset, which draws the letters on. On this mark
  * it is wrong: the glyphs are fill-only, so the stroke has to be added, and a
  * 1.5px stroke on a 176px-wide logo fattens every letter and starts closing the
  * counters, the holes inside the d and the o. It is quiet damage. A clip path
  * reaches the same effect and cannot deform anything.
+ *
+ * Moving a whole letter is a different thing from reshaping one, and it is the
+ * reason the split was worth doing: the letterforms are untouched, only their
+ * places change. An uneven scale would cross back over that line — `scaleX` on
+ * its own is a condensed typeface — so patterns keep letter scaling even.
  *
  * Decoration is painted before the mark, so the mark is always on top of it.
  * The one exception is the ring overlay, which is painted over the ring but
@@ -114,6 +120,48 @@ export default function NewLoginLogo({
         </motion.g>
     );
 
+    /**
+     * The word, drawn one of two ways.
+     *
+     * Without `letters` it is the single path from the design file, which is
+     * what the mark has always been and what the seven older patterns expect.
+     * With `letters` it is one group per letter, so a pattern can stagger them.
+     *
+     * The two are the same picture. The letters are generated from that same
+     * path by `scripts/split-wordmark.mjs`, no two letters in "trydos" or "try"
+     * overlap, and each letter keeps its own counter as a subpath — so the fill
+     * rule still cuts the hole in the "d" and the "o". None of that is true of
+     * every possible wordmark, which is why the single path stays the default
+     * rather than being deleted.
+     *
+     * Each letter carries the wordmark's own transform on the inner `<path>`,
+     * not on the animated group. That leaves the group's bounding box sitting
+     * on the letter itself, so `transform-box: fill-box` makes the letter turn
+     * and scale about its own middle with no coordinate written down anywhere.
+     */
+    const wordmark = () => {
+        if (!logoMotion.letters) {
+            return (
+                <path d={geo.wordmarkPath} transform={geo.wordmarkTransform} fill={WORDMARK_FILL} />
+            );
+        }
+        return geo.letters.map((letter, index) => {
+            const props = logoMotion.letters?.[index];
+            return (
+                <motion.g
+                    key={letter.id}
+                    data-logo-letter={letter.id}
+                    style={{ ...PIVOT_ON_SELF, ...props?.style }}
+                    initial={props?.initial}
+                    animate={props?.animate}
+                    transition={props?.transition}
+                >
+                    <path d={letter.d} transform={geo.wordmarkTransform} fill={WORDMARK_FILL} />
+                </motion.g>
+            );
+        });
+    };
+
     const svgStyle: React.CSSProperties | undefined = logoMotion.overflowVisible
         ? { overflow: 'visible' }
         : undefined;
@@ -150,11 +198,7 @@ export default function NewLoginLogo({
                 {/* Wordmark. The clip group carries no transform of its own, so a
                     pattern's clip rectangle is read in plain viewBox units. */}
                 <g clipPath={wordmarkClip} data-logo-part="wordmark">
-                    <path
-                        d={geo.wordmarkPath}
-                        transform={geo.wordmarkTransform}
-                        fill={WORDMARK_FILL}
-                    />
+                    {wordmark()}
                 </g>
 
                 <g transform="translate(78.798 31.631)" data-logo-part="dot-right">
@@ -201,12 +245,8 @@ export default function NewLoginLogo({
             {logoMotion.behind}
 
             <g clipPath={wordmarkClip} data-logo-part="wordmark">
-                <path
-                    d={geo.wordmarkPath}
-                    transform={geo.wordmarkTransform}
-                    fill={WORDMARK_FILL}
-                />
-            </g>
+                    {wordmark()}
+                </g>
 
             <g transform="translate(42.799 0)" data-logo-part="dot-right">
                 {dot(logoMotion.rightDot, <path d={HEADER_DOT_PATH} fill={resolvedDotColor} />)}

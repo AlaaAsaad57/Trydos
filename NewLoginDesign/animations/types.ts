@@ -41,6 +41,22 @@ export interface LogoMotion {
     ring?: ElementMotion;
     /** id of a <clipPath> in `defs`. The only handle a pattern has on the wordmark. */
     wordmarkClipId?: string;
+    /**
+     * One entry per letter of `geo.letters`, left to right, or absent.
+     *
+     * Setting it switches the wordmark from one `<path>` to one group per
+     * letter, so the letters can be staggered. Leaving it out keeps the single
+     * path, which is why the seven patterns written before this existed draw
+     * exactly what they always drew.
+     *
+     * The ban on reshaping a glyph has not moved. A letter group may be
+     * translated, rotated, scaled and faded; it may not be stroked, filtered or
+     * recoloured, and it must be scaled evenly. `scaleX: 1.2` on a letter is
+     * not motion, it is a condensed typeface nobody licensed.
+     *
+     * Shorter than `geo.letters` is allowed — the rest simply do not move.
+     */
+    letters?: ElementMotion[];
     /** id of a <mask> in `defs`, applied to the ring path. Hides, never redraws. */
     ringMaskId?: string;
     /**

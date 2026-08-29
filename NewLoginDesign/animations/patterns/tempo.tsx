@@ -12,7 +12,7 @@ import type { LogoMotion, PatternContext } from '../types';
  *
  * It is arranged rather than animated. One tempo drives the whole thing:
  *
- *   100 BPM  ->  beat 600ms  ->  eighth note 300ms  ->  two bars = 4.8s
+ *   120 BPM  ->  beat 500ms  ->  eighth note 250ms  ->  two bars = 4s
  *
  * The 16 eighth-note slots of those two bars are the only times anything is
  * allowed to happen, and only six of them are used: 0, 3, 6, 8, 11, 14. That is
@@ -34,11 +34,11 @@ import type { LogoMotion, PatternContext } from '../types';
  * of every bar and is exactly in register at the top of the loop.
  */
 
-const CYCLE = 4.8;
+const CYCLE = 4;
 const SLOTS = 16;
 /** 58ms, as a fraction of the cycle. Long enough to not tear, short enough to
  *  land as an attack rather than as a move. */
-const SNAP = 0.012;
+const SNAP = 0.0145;
 
 interface Hit {
     slot: number;

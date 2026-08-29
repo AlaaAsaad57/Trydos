@@ -6,14 +6,14 @@ import type { LogoMotion, PatternContext } from '../types';
  * The two dots read as a pair of eyes, so they behave like eyes. Two layers
  * run at once and never fight, because they use different properties:
  *
- *   idle    x / y      a 4.6s curious look-around, both eyes together
+ *   idle    x / y      a 4s curious look-around, both eyes together
  *   blink   scaleY     driven from a timer, 95ms shut, spring back open
  *
  * The look-around is built as darts and holds, not as one smooth sine. Real
  * eyes jump to a target in well under 100ms and then sit on it; a sine spends
  * every frame moving, which reads as drifting or as swaying, never as looking.
  * The `times` array below is what buys that: a glance takes 2% of the cycle to
- * travel (92ms) and then holds for 6-16% (0.3-0.7s). The hold is the part that
+ * travel (80ms) and then holds for 6-16% (0.24-0.6s). The hold is the part that
  * reads — a travel much over ~150ms stops being a glance and becomes a slide.
  *
  * It is mostly left and right, and it is wide. An eye that glances a couple of
@@ -25,6 +25,9 @@ import type { LogoMotion, PatternContext } from '../types';
  * The blink is short on purpose. A blink that takes longer than about 150ms
  * stops reading as a blink and starts reading as "sleepy".
  */
+/** Every looping pattern in this set runs on the same 4 second cycle. */
+const CYCLE = 4;
+
 export function winkPattern({ variant, blink }: PatternContext): LogoMotion {
     // Peak travel is 9, four fifths of the dot's own radius (11.32). The limit
     // is the header lockup, where the left dot's edge starts 12.6 from the left
@@ -44,8 +47,8 @@ export function winkPattern({ variant, blink }: PatternContext): LogoMotion {
         0, 0.07, 0.09, 0.24, 0.26, 0.42, 0.44, 0.52, 0.54, 0.68, 0.7, 0.82, 0.84, 0.92, 0.94, 1,
     ];
     const idleTransition = {
-        x: { duration: 4.6, times: idleTimes, ease: 'easeOut' as const, repeat: Infinity },
-        y: { duration: 4.6, times: idleTimes, ease: 'easeOut' as const, repeat: Infinity },
+        x: { duration: CYCLE, times: idleTimes, ease: 'easeOut' as const, repeat: Infinity },
+        y: { duration: CYCLE, times: idleTimes, ease: 'easeOut' as const, repeat: Infinity },
         scaleY: { type: 'spring' as const, stiffness: 1100, damping: 34 },
     };
 

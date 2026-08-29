@@ -36,5 +36,11 @@ export function normaliseMotion(motion: LogoMotion): LogoMotion {
         leftDot: withStartValues(motion.leftDot),
         rightDot: withStartValues(motion.rightDot),
         ring: withStartValues(motion.ring),
+        // Letters need this more than anything else does. A pattern that
+        // staggers six of them writes six keyframe lists, and one missing
+        // starting value there is a letter rendered with transform="undefined"
+        // — the browser drops it, so the word loses a letter and nothing on the
+        // screen says which pattern did it.
+        letters: motion.letters?.map((letter) => withStartValues(letter) ?? letter),
     };
 }

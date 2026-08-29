@@ -6,11 +6,14 @@ import { canonPattern } from './canon';
 import { tempoPattern } from './tempo';
 import { sparkPattern } from './spark';
 import { revealPattern } from './reveal';
+import { gustPattern } from './gust';
+import { escapePattern } from './escape';
+import { swayPattern } from './sway';
 
 /**
  * The patterns, by id.
  *
- * They are different motion languages rather than seven settings of one.
+ * They are different motion languages rather than ten settings of one.
  * Two patterns that both "pulse a bit" give a client nothing to choose between,
  * which is what happened to the five this set replaced.
  *
@@ -21,14 +24,25 @@ import { revealPattern } from './reveal';
  *   tempo   staccato    hard 58ms steps on a tresillo, silence in between
  *   spark   ambient     long mismatched periods, never repeats visibly
  *   reveal  entrance    plays once on mount, then perfectly still
+ *   gust    wave        wind crosses, and the letters lean in sequence
+ *   escape  comedy      a letter falls out of the word and is stared at
+ *   sway    solid body  the whole mark hangs and swings, eyes trailing
  *
  * All but one loop for ever and land back on the static mark at the top of
  * every cycle. `reveal` is the exception, and it is the exception on purpose.
  *
+ * Every looping pattern runs on the same 4 second cycle. The slow background
+ * turn some of them give the badge ring is the one thing that does not — a
+ * ring that laps in 4 seconds is a loading spinner, not a logo.
+ *
  * All three elements of the logo take part in all of them: the dots, the word,
- * and — on the badge — the dotted ring. The word is the awkward one, because no
- * pattern may transform a glyph; see `WordmarkEcho.tsx` for how it joins in
- * without one being touched.
+ * and — on the badge — the dotted ring. There are two ways the word joins in.
+ * The first seven use `WordmarkEcho.tsx`, a tinted ghost of the word painted
+ * behind the real letters, because back then the word was a single path and a
+ * single path can only move as one lump. The last three set `letters`, which
+ * draws the word as one group per letter so they can be staggered. Either way
+ * no glyph is ever reshaped — see `logoPaths.ts` for how the split is made and
+ * checked.
  */
 export const LOGO_PATTERNS: Record<string, PatternFactory> = {
     wink: winkPattern,
@@ -38,4 +52,7 @@ export const LOGO_PATTERNS: Record<string, PatternFactory> = {
     tempo: tempoPattern,
     spark: sparkPattern,
     reveal: revealPattern,
+    gust: gustPattern,
+    escape: escapePattern,
+    sway: swayPattern,
 };
