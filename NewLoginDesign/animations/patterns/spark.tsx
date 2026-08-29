@@ -1,11 +1,8 @@
 import { motion } from 'framer-motion';
 import { Spin } from '../Spin';
 import { lighten } from '../color';
+import { STAR } from '../shapes';
 import type { LogoMotion, PatternContext } from '../types';
-
-/** A four-point sparkle, radius 1, centred on its own origin. */
-const STAR =
-    'M0,-1 Q0.2,-0.2 1,0 Q0.2,0.2 0,1 Q-0.2,0.2 -1,0 Q-0.2,-0.2 0,-1 Z';
 
 interface Seed {
     /** Where on the track, in degrees, and how far off it. */

@@ -27,6 +27,10 @@
  *                        75 - 0.938 = 74.062
  */
 
+import {
+    BADGE_WORDMARK_PATH,
+    HEADER_WORDMARK_PATH,
+} from '../logoPaths';
 import type { LogoVariant } from './types';
 
 export interface LogoGeometry {
@@ -45,6 +49,18 @@ export interface LogoGeometry {
      * If the artwork changes, measure it again; do not adjust it by eye.
      */
     wordmark: { x: number; y: number; width: number; height: number };
+    /**
+     * The glyph outline and the transform that puts it in place.
+     *
+     * `NewLoginLogo` paints the real wordmark from these, and a pattern that
+     * wants a shadow of the word behind the mark paints the same two. Holding
+     * them in one place is what stops the shadow drifting off the letters the
+     * day the artwork is regenerated — a second copy of the translate would go
+     * stale silently, and a mark with a shadow 2px out of register looks like a
+     * printing fault rather than a bug.
+     */
+    wordmarkPath: string;
+    wordmarkTransform: string;
     /** The dotted badge ring. `null` on the header lockup, which has no ring. */
     ring: { cx: number; cy: number; r: number } | null;
 }
@@ -57,6 +73,8 @@ const HEADER: LogoGeometry = {
     leftDot: { x: 23.93, y: 11.321 },
     rightDot: { x: 54.12, y: 11.321 },
     wordmark: { x: 0, y: 32.516, width: 176.191, height: 55.058 },
+    wordmarkPath: HEADER_WORDMARK_PATH,
+    wordmarkTransform: 'translate(-1.35 99.117)',
     ring: null,
 };
 
@@ -68,6 +86,8 @@ const BADGE: LogoGeometry = {
     leftDot: { x: 59.928, y: 42.953 },
     rightDot: { x: 90.12, y: 42.953 },
     wordmark: { x: 35.397, y: 69.367, width: 79.259, height: 49.997 },
+    wordmarkPath: BADGE_WORDMARK_PATH,
+    wordmarkTransform: 'translate(34.048 131.633)',
     ring: { cx: 75, cy: 75, r: 74.062 },
 };
 

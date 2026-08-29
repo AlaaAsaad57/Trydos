@@ -10,9 +10,7 @@ import {
     BADGE_DOT_PATH,
     BADGE_FRAME_PATH,
     BADGE_RING_PATH,
-    BADGE_WORDMARK_PATH,
     HEADER_DOT_PATH,
-    HEADER_WORDMARK_PATH,
 } from './logoPaths';
 
 export type LogoDotColor = 'purple' | 'green' | 'orange' | 'blue' | string;
@@ -153,8 +151,8 @@ export default function NewLoginLogo({
                     pattern's clip rectangle is read in plain viewBox units. */}
                 <g clipPath={wordmarkClip} data-logo-part="wordmark">
                     <path
-                        d={BADGE_WORDMARK_PATH}
-                        transform="translate(34.048 131.633)"
+                        d={geo.wordmarkPath}
+                        transform={geo.wordmarkTransform}
                         fill={WORDMARK_FILL}
                     />
                 </g>
@@ -204,8 +202,8 @@ export default function NewLoginLogo({
 
             <g clipPath={wordmarkClip} data-logo-part="wordmark">
                 <path
-                    d={HEADER_WORDMARK_PATH}
-                    transform="translate(-1.35 99.117)"
+                    d={geo.wordmarkPath}
+                    transform={geo.wordmarkTransform}
                     fill={WORDMARK_FILL}
                 />
             </g>

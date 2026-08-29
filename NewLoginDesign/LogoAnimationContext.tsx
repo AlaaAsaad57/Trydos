@@ -10,14 +10,13 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
  */
 export type LogoAnimationType =
     | 'none'
-    | 'wink'    // 1. character   — the dots are eyes and behave like eyes
-    | 'bounce'  // 2. gravity     — weight, squash on landing, follow-through
-    | 'magnet'  // 3. spring      — tension built, held, then released
-    | 'wave'    // 4. fluid       — one sine crossing the mark, volume kept
-    | 'comet'   // 5. light       — the mark holds still, the light travels
-    | 'radar'   // 6. instrument  — fixed rate, linear timing, the mark answers
-    | 'spark'   // 7. ambient     — long mismatched periods, no visible repeat
-    | 'reveal'; // 8. entrance    — plays once on mount, then perfectly still
+    | 'wink'    // 1. character   - the dots are eyes and behave like eyes
+    | 'relay'   // 2. weight      - a charge thrown from one dot to the other
+    | 'firefly' // 3. character   - a sparkle flies a lap, the eyes follow it
+    | 'canon'   // 4. character   - one eye leads, the other is half a beat late
+    | 'tempo'   // 5. staccato    - hard steps on a beat, silence in between
+    | 'spark'   // 6. ambient     - long mismatched periods, no visible repeat
+    | 'reveal'; // 7. entrance    - plays once on mount, then perfectly still
 
 export interface LogoAnimationPreset {
     id: LogoAnimationType;
@@ -37,78 +36,68 @@ export const LOGO_ANIMATION_PRESETS: LogoAnimationPreset[] = [
         id: 'wink',
         label: 'Buddy Wink',
         shortName: 'Wink',
-        icon: '👀',
-        tagline: 'Character — the dots are eyes',
+        icon: '\u{1F440}',
+        tagline: 'Character - the dots are eyes',
         description:
-            'The two dots dart from one point to the next and hold there, blink, and now and then wink with one eye. Blinks last 95ms and come at an uneven gap, so it reads as alive rather than as a timer. The wordmark never moves.',
+            'The two dots dart from one point to the next and hold there, blink, and now and then wink with one eye. The glances are wide and mostly sideways, so they read as looking at something. Blinks last 95ms and come at an uneven gap. The wordmark never moves.',
         bestFor: 'The first screen, where the brand should feel friendly.',
     },
     {
-        id: 'bounce',
-        label: 'Drop & Bounce',
-        shortName: 'Bounce',
-        icon: '🏀',
-        tagline: 'Gravity — weight and follow-through',
+        id: 'relay',
+        label: 'Hand-Off',
+        shortName: 'Relay',
+        icon: '\u{1F91D}',
+        tagline: 'Weight - thrown, caught, absorbed',
         description:
-            'The dots fall in, land with a squash that keeps its volume, bounce twice and rest. The right dot lands 120ms after the left one, which is what gives each of them a weight of its own.',
-        bestFor: 'A moment of arrival — a screen the shopper just landed on.',
+            'One dot pulls back, stretches across and hands its weight to the other, which is knocked back on the frame of contact and springs home. The word is dragged after the pass and arrives late; the ring takes the knock as a 2% widening. Then nearly a second of stillness before the return pass.',
+        bestFor: 'A marketplace moment - cart, checkout, anything exchanged.',
     },
     {
-        id: 'magnet',
-        label: 'Magnetic Pull',
-        shortName: 'Magnet',
-        icon: '🧲',
-        tagline: 'Spring — tension held, then released',
+        id: 'firefly',
+        label: 'Firefly',
+        shortName: 'Firefly',
+        icon: '\u2734\uFE0F',
+        tagline: 'Character - the eyes have something to watch',
         description:
-            'The dots draw together until they almost touch, hold, then snap apart and settle. A short field line crackles across the gap while they are close. How far they travel is measured from the real gap, so they can never overlap.',
-        bestFor: 'Screens about connecting — sign in, pairing, QR.',
+            'A sparkle drifts a slow lap around the mark and both eyes follow it the whole way round, aimed at it separately so they converge a little as it passes close. The sparkle goes behind the letters and comes out the other side. Two blinks a lap, timed for the moments it is hidden.',
+        bestFor: 'Any screen. The eyes move for a reason, so it reads at any size.',
     },
     {
-        id: 'wave',
-        label: 'Liquid Wave',
-        shortName: 'Wave',
-        icon: '🌊',
-        tagline: 'Fluid — one sine crossing the mark',
+        id: 'canon',
+        label: 'Half a Beat',
+        shortName: 'Canon',
+        icon: '\u{1F440}',
+        tagline: 'Character - one eye is always quicker',
         description:
-            'A slow wave passes through the dots from left to right, the right one a third of a cycle behind. On the badge the wave carries on into the ring: the ring lights up dot by dot, and stays dotted.',
-        bestFor: 'Waiting screens — sending a code, checking a number.',
+            'The eyes glance around, but one leads and the other arrives a quarter of a second later, hurrying and overshooting before it settles. The dot that leads is always the one moving away, which is what lets the glances be three times wider than a pair moving together could manage. The word and the ring tip after them.',
+        bestFor: 'A screen with personality - welcome, or a first sign-in.',
     },
     {
-        id: 'comet',
-        label: 'Comet Trail',
-        shortName: 'Comet',
-        icon: '☄️',
-        tagline: 'Light — the mark holds still',
+        id: 'tempo',
+        label: 'Downbeat',
+        shortName: 'Tempo',
+        icon: '\u{1F941}',
+        tagline: 'Staccato - hard steps, and silence',
         description:
-            'A glowing head with a fading tail runs around the badge ring and lights the ring dots as it passes. On the header lockup it orbits the two dots and slips behind them, which gives the flat mark depth.',
-        bestFor: 'A hero moment. The strongest of the eight on a big logo.',
-    },
-    {
-        id: 'radar',
-        label: 'Radar Sweep',
-        shortName: 'Radar',
-        icon: '📡',
-        tagline: 'Instrument — fixed rate, no easing',
-        description:
-            'A wedge turns at a constant rate, a ping goes out once per turn, and each dot answers on the frame the sweep reaches it. All timing is linear, because instruments do not accelerate.',
-        bestFor: 'Anything that is working — verifying, searching, scanning.',
+            'Everything else in the set glides; this one snaps. At 100 BPM the two bars have sixteen slots and only six are used - the 3-3-2 tresillo - so ten of them are silent. Every move is linear and lasts 58ms, every hold is dead flat, and nothing travels more than 1.9px.',
+        bestFor: 'A screen that needs energy. Live shopping, a launch.',
     },
     {
         id: 'spark',
         label: 'Constellation',
         shortName: 'Spark',
-        icon: '✨',
-        tagline: 'Ambient — nothing repeats visibly',
+        icon: '\u2728',
+        tagline: 'Ambient - nothing repeats visibly',
         description:
             'Small sparkles drift around the mark on periods of 28 to 52 seconds, so the eye never catches the loop, and the dots twinkle underneath. Built for screens people sit on, where a short loop starts to nag.',
-        bestFor: 'Long screens — terms, onboarding, anything with reading.',
+        bestFor: 'Long screens - terms, onboarding, anything with reading.',
     },
     {
         id: 'reveal',
         label: 'Cinematic Assembly',
         shortName: 'Reveal',
-        icon: '🎬',
-        tagline: 'Entrance — plays once, then still',
+        icon: '\u{1F3AC}',
+        tagline: 'Entrance - plays once, then still',
         description:
             'The ring draws itself, the wordmark wipes in from the left, then the dots drop in on a spring. The wipe uses a clip path, never a stroke on the letters, so the glyphs are never thickened. Ends pixel-identical to the static logo.',
         bestFor: 'The opening screen, or a success screen.',
@@ -117,7 +106,7 @@ export const LOGO_ANIMATION_PRESETS: LogoAnimationPreset[] = [
         id: 'none',
         label: 'None (static)',
         shortName: 'Static',
-        icon: '⏹️',
+        icon: '\u23F9\uFE0F',
         tagline: 'The logo exactly as drawn',
         description:
             'No motion at all. This is also what every pattern falls back to when the device asks for reduced motion.',

@@ -1,36 +1,41 @@
 import type { PatternFactory } from '../types';
 import { winkPattern } from './wink';
-import { bouncePattern } from './bounce';
-import { magnetPattern } from './magnet';
-import { wavePattern } from './wave';
-import { cometPattern } from './comet';
-import { radarPattern } from './radar';
+import { relayPattern } from './relay';
+import { fireflyPattern } from './firefly';
+import { canonPattern } from './canon';
+import { tempoPattern } from './tempo';
 import { sparkPattern } from './spark';
 import { revealPattern } from './reveal';
 
 /**
- * The eight patterns, by id.
+ * The patterns, by id.
  *
- * They are deliberately eight different motion languages rather than eight
- * settings of one. Two patterns that both "pulse a bit" give a client nothing
- * to choose between:
+ * They are different motion languages rather than seven settings of one.
+ * Two patterns that both "pulse a bit" give a client nothing to choose between,
+ * which is what happened to the five this set replaced.
  *
- *   wink    character      the dots are eyes and behave like eyes
- *   bounce  gravity        weight, squash on landing, follow-through
- *   magnet  spring         tension built, held, then released
- *   wave    fluid          one sine crossing the mark, volume kept
- *   comet   moving light   the mark holds still, the light travels
- *   radar   instrument     fixed rate, linear timing, the mark answers
- *   spark   ambient        long mismatched periods, never repeats visibly
- *   reveal  entrance       plays once on mount, then perfectly still
+ *   wink    character   the dots are eyes and behave like eyes
+ *   relay   weight      a charge is thrown from one dot to the other and back
+ *   firefly character   a sparkle flies a lap and the eyes follow it round
+ *   canon   character   one eye leads, the other catches up and overshoots
+ *   tempo   staccato    hard 58ms steps on a tresillo, silence in between
+ *   spark   ambient     long mismatched periods, never repeats visibly
+ *   reveal  entrance    plays once on mount, then perfectly still
+ *
+ * All but one loop for ever and land back on the static mark at the top of
+ * every cycle. `reveal` is the exception, and it is the exception on purpose.
+ *
+ * All three elements of the logo take part in all of them: the dots, the word,
+ * and — on the badge — the dotted ring. The word is the awkward one, because no
+ * pattern may transform a glyph; see `WordmarkEcho.tsx` for how it joins in
+ * without one being touched.
  */
 export const LOGO_PATTERNS: Record<string, PatternFactory> = {
     wink: winkPattern,
-    bounce: bouncePattern,
-    magnet: magnetPattern,
-    wave: wavePattern,
-    comet: cometPattern,
-    radar: radarPattern,
+    relay: relayPattern,
+    firefly: fireflyPattern,
+    canon: canonPattern,
+    tempo: tempoPattern,
     spark: sparkPattern,
     reveal: revealPattern,
 };
