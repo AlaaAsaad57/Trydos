@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
+import { AUTH_SUCCESS_BG } from 'scaling/scale.config';
 import AuthLogoSlot from './AuthLogoSlot';
 
 interface NewSuccessScreenProps {
@@ -39,40 +40,46 @@ export default function NewSuccessScreen({
             data-pw="welcome"
             className="w-full h-full flex flex-col items-start font-quicksand"
             /*
-             * One colour for both endings. Welcome used to paint itself cream
-             * (#FFFDF6) while the widget painted mint (#E0FFEE) around it and
-             * OUTER_BG did the same, so the screen sat in a border of a colour
-             * it did not use. Signing in and signing up are the same moment for
-             * the shopper, so they get the same screen.
+             * The XD ends the two journeys on different colours: signing up on
+             * mint, signing in on cream. They were once folded into one colour
+             * to fix a real bug — this screen painted itself cream while the
+             * widget and OUTER_BG painted mint around it, so it sat in a border
+             * of a colour it did not use. That bug stays fixed: all three read
+             * the same two values, so the screen and its surround always agree.
              */
-            style={{ backgroundColor: '#E0FFEE' }}
+            style={{ backgroundColor: isLogin ? AUTH_SUCCESS_BG.login : AUTH_SUCCESS_BG.signup }}
         >
             {/* Top space, then the mark's resting place — AUTH_LOGO_STOP.top,
                 shared with the phone, method and code screens. */}
             <AuthLogoSlot stop="top" />
 
             {/* 20px clearance below logo */}
-            <FlexibleSpace size={20} share={0.03} />
+            <FlexibleSpace size={17} share={0.03} />
 
             {/* Content block aligned to start (left) with px-xd-30 */}
-            <div className="w-full px-xd-30 flex flex-col items-start">
-                <h2 className="text-xd-30 font-bold text-[#1D1D1D]">
+            <div className="w-full px-xd-40 flex flex-col items-start">
+                <h2 className="text-trim-descend text-xd-30 font-bold text-[#1D1D1D]">
                     {isLogin ? translate('Welcome !') : translate('Sign Up Successfully !')}
                 </h2>
 
                 {isLogin ? (
                     <>
-                        <p className="text-xd-16 font-medium text-[#1D1D1D] mt-xd-8">
+                        <FlexibleSpace size={47} share={0.05} />
+                        <p className="text-trim-descend text-xd-16 leading-xd-20 font-medium text-[#1D1D1D]">
                             {name || 'Mohamad Katmawi'}
                         </p>
-                        <p className="text-xd-12 font-normal text-[#1D1D1D] mt-xd-4">
+                        <FlexibleSpace size={12} share={0} />
+                        <p className="text-trim-descend text-xd-12 leading-xd-16 font-normal text-[#1D1D1D]">
                             {translate('Enjoy With Our Services')}
                         </p>
                     </>
                 ) : (
-                    <p className="text-xd-16 font-medium text-[#1D1D1D] mt-xd-8">
-                        {translate('Last Step And Enjoy Our Services')}
-                    </p>
+                    <>
+                        <FlexibleSpace size={47} share={0.05} />
+                        <p className="text-trim-descend text-xd-16 leading-xd-20 font-medium text-[#1D1D1D]">
+                            {translate('Last Step And Enjoy Our Services')}
+                        </p>
+                    </>
                 )}
             </div>
 

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
 import AuthLogoSlot from './AuthLogoSlot';
+import DashedFrame from 'scaling/DashedFrame';
 
 interface NewNotFoundScreenProps {
     phone: string;
@@ -55,18 +56,20 @@ export default function NewNotFoundScreen({
             <AuthLogoSlot stop="top" />
 
             {/* 20px clearance below logo */}
-            <FlexibleSpace size={20} share={0.03} />
+            <FlexibleSpace size={17} share={0.03} />
 
             {/* Title & Info block */}
-            <div className="w-full px-xd-30 flex flex-col items-start">
-                <h2 className="text-xd-30 font-bold text-[#1D1D1D]">
+            <div className="w-full px-xd-40 flex flex-col items-start">
+                <h2 className="text-trim-descend text-xd-30 font-bold text-[#1D1D1D]">
                     {translate('Not Registered !')}
                 </h2>
-                <p className="text-xd-16 font-medium text-[#1D1D1D] mt-xd-10">
+                <FlexibleSpace size={47} share={0.05} />
+                <p className="text-trim-descend text-xd-16 leading-xd-20 font-medium text-[#1D1D1D]">
                     {translate('Sorry, This Number Is Not Registered With Us !')}
                 </p>
-                <div className="flex items-center gap-xd-2 mt-xd-6">
-                    <p className="text-xd-12 font-normal text-[#1D1D1D]">
+                <FlexibleSpace size={10} share={0} />
+                <div className="flex items-center gap-xd-2">
+                    <p className="text-trim-descend text-xd-12 leading-xd-16 font-normal text-[#1D1D1D]">
                         +{phone}
                     </p>
                     <div className="w-xd-15 h-xd-15 ml-2 shrink-0">
@@ -85,24 +88,25 @@ export default function NewNotFoundScreen({
             <FlexibleSpace grow share={0.7} />
 
             {/* Bottom buttons */}
-            <div className="w-full flex flex-col items-center px-xd-15 pb-xd-10">
+            <div className="w-full flex flex-col items-center px-xd-20 pb-xd-10">
                 <button
                     onClick={onCreateAccount}
                     data-pw="create-account-continue"
-                    className="w-xd-390 h-xd-60 rounded-xd-20 border border-dashed border-[#5D5C5D]/40 bg-[#FAFAFA] text-[#1D1D1D] text-xd-16 font-normal transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center"
+                    className="relative w-xd-390 h-xd-60 rounded-xd-20 bg-[#FAFAFA] text-[#1D1D1D] text-xd-16 leading-xd-20 font-normal transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center"
                 >
-                    {translate('Create New Account & Continue')}
+                    <DashedFrame radius={20} color="#707070" />
+                    <span className="text-trim">{translate('Create New Account & Continue')}</span>
                 </button>
                 <button
                     onClick={onCancel}
                     data-pw="cancel-take-look"
-                    className="text-xd-14 text-[#4D84FF] mt-xd-20 transition-colors hover:opacity-70 cursor-pointer"
+                    className="text-trim-descend text-xd-14 leading-xd-20 text-[#4D84FF] mt-xd-20 transition-colors hover:opacity-70 cursor-pointer"
                 >
                     {translate('Cancel & Take A Look At The App')}
                 </button>
             </div>
 
-            <FlexibleSpace size={35} share={0.05} />
+            <FlexibleSpace size={48} share={0.05} />
         </div>
     );
 }

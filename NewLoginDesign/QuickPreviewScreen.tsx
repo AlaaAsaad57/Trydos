@@ -410,7 +410,7 @@ export default function QuickPreviewScreen({
                   */}
                 <div
                     ref={pillRef}
-                    className="w-full h-xd-32 flex justify-center items-center z-20 flex-shrink-0"
+                    className="w-full h-xd-30 flex justify-center items-center z-20 flex-shrink-0"
                     style={{ perspective: 600 }}
                 >
                     <AnimatePresence mode="wait">
@@ -421,9 +421,9 @@ export default function QuickPreviewScreen({
                             exit={{ rotateX: 90, opacity: 0 }}
                             transition={{ duration: 0.3, ease: 'easeOut' }}
                             style={{ transformOrigin: 'center', backfaceVisibility: 'hidden' }}
-                            className="h-xd-32 px-xd-20 rounded-[16px] bg-[#F4F0FE] border border-[#ECE9FE] flex items-center justify-center whitespace-nowrap"
+                            className="h-xd-30 px-xd-20 rounded-xd-12 bg-[#F8F7FF] flex items-center justify-center whitespace-nowrap"
                         >
-                            <span className="text-xd-14 font-normal text-[#1d1d1d] text-center">
+                            <span className="text-trim-descend text-xd-14 leading-xd-20 font-normal text-[#1d1d1d] text-center">
                                 {FLIP_LABELS[flipTextIndex](translate)}
                             </span>
                         </motion.div>
@@ -494,7 +494,7 @@ export default function QuickPreviewScreen({
                             aria-label={`Slide ${slide.id + 1}`}
                             className={`transition-all duration-300 cursor-pointer ${
                                 slideIndex === slide.id
-                                    ? 'w-xd-18 h-xd-6 rounded-full bg-[#1D1D1D]'
+                                    ? 'w-xd-16 h-xd-8 rounded-full bg-[#1D1D1D]'
                                     : 'w-xd-6 h-xd-6 rounded-full border border-[#1D1D1D] bg-transparent hover:bg-[#1D1D1D]/30'
                             }`}
                         />

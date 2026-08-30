@@ -210,7 +210,7 @@ export default function RdbPhoneInput({
                         if (showCustomKeypad) setKeypadOpen(true);
                         else hiddenInputRef.current?.focus();
                     }}
-                    className={`relative m-1 flex items-center gap-1 w-full h-xd-60 rounded-xd-20 border border-dashed px-xd-16 transition-colors cursor-text ${
+                    className={`relative flex items-center gap-1 w-full h-xd-60 rounded-xd-20 border border-dashed px-xd-16 transition-colors cursor-text ${
                         isFocused || isValidPhone ? 'border-[#388CFF]' : 'border-[#C3C3C3]'
                     }`}
                 >
@@ -236,7 +236,7 @@ export default function RdbPhoneInput({
 
                     {/* Plus sign */}
                     <span
-                        className={`${digits ? 'text-[#1D1D1D]' : 'text-[#8D8D8D]'} text-xd-16 font-medium pl-3 shrink-0 select-none`}
+                        className={`${digits ? 'text-[#1D1D1D]' : 'text-[#8D8D8D]'} text-xd-16 leading-xd-20 font-medium pl-3 shrink-0 select-none`}
                     >
                         +
                     </span>
@@ -245,7 +245,7 @@ export default function RdbPhoneInput({
                     <div className="flex-1 min-w-0 flex items-end gap-0.5">
                         {displayValue ? (
                             <>
-                                <span className="font-medium text-xd-16 text-[#1D1D1D] truncate">
+                                <span className="font-medium text-xd-16 leading-xd-20 text-[#1D1D1D] truncate">
                                     {displayValue}
                                 </span>
                                 {(keypadOpen || isFocused) && !isValidPhone && (
@@ -277,7 +277,7 @@ export default function RdbPhoneInput({
                                         className="absolute top-10 animate-blink mb-0.75 shrink-0 opacity-0!"
                                     />
                                 )}
-                                <span className="pl-1.5 text-xd-16 text-[#C3C3C3]">
+                                <span className="pl-1.5 text-xd-16 leading-xd-20 text-[#C3C3C3]">
                                     {resolvedPlaceholder}
                                 </span>
                             </>

@@ -138,21 +138,27 @@ export default function NewEnterPinScreen({
                 The stop is the same one the outcome screens use. */}
             <AuthLogoSlot stop="top" absolute />
 
-            <FlexibleSpace size={0} share={0.3} />
+            {/* The heading is anchored from the top, at the distance the XD
+                states (baseline 318). It used to be bottom-aligned inside an
+                `h-1/2` half, which tied its position to how tall its own copy
+                happened to be — that is why this screen, Method and the code
+                screen each sat at a different height even though the design
+                puts all three headings on the same line. */}
+            <FlexibleSpace size={297} share={0.3} />
 
             <div className="w-full h-full flex flex-col items-start">
                 {/* Top half — title + OTP info. The mark is pinned above, not in this stack. */}
-                <div className="w-full h-1/2 flex flex-col justify-end px-xd-20 items-start">
-                    <div className="h-xd-138 w-full relative">
+                <div className="w-full flex flex-col px-xd-20 items-start">
+                    <div className="w-full relative">
                         <h2 className="text-trim-descend text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
                             {translate(authHeadingKey(authType))}
                         </h2>
-                        <div className="w-full flex pl-xd-20 pt-xd-12 flex-col items-start">
-                            <p className="text-trim-descend text-xd-16 text-[#1D1D1D] font-medium">
+                        <div className="w-full flex pl-xd-20 pt-xd-17 flex-col items-start">
+                            <p className="text-trim-descend text-xd-16 leading-xd-20 text-[#1D1D1D] font-medium">
                                 {`${translate('Enter Verification Code Sent To Your')} ${methodLabel}`}
                             </p>
                             <div className="flex items-center pt-xd-8 gap-xd-5">
-                                <span className="text-trim-descend text-xd-12 text-[#1D1D1D]">
+                                <span className="text-trim-descend text-xd-12 leading-xd-16 text-[#1D1D1D]">
                                     {translate('We Will Send A Verification Code To The Number')}
                                 </span>
                                 <div className="w-xd-15 h-xd-15 shrink-0">
@@ -231,7 +237,7 @@ export default function NewEnterPinScreen({
                                 </div>
                             )}
                             <div className="flex items-center pt-xd-8 gap-xd-5">
-                                <p className="text-trim-descend text-xd-11 font-medium text-[#4A31E7]">
+                                <p className="text-trim-descend text-xd-11 leading-xd-16 font-normal text-[#4A31E7]">
                                     {translate('Your Privacy Is Completely Safe')}
                                 </p>
                                 <div className="w-xd-14 h-xd-14 shrink-0 flex items-center justify-center">
@@ -252,8 +258,8 @@ export default function NewEnterPinScreen({
                 </div>
 
                 {/* Bottom half — live OTP inputs */}
-                <div className="w-full h-1/2 flex flex-col items-center">
-                    <FlexibleSpace size={30} share={0} />
+                <div className="w-full flex flex-1 flex-col items-center">
+                    <FlexibleSpace size={5} share={0} />
                     <RdbPinInputs
                         value={pin}
                         onChange={setPin}

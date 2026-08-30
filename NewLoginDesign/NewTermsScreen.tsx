@@ -6,6 +6,7 @@ import { translateFunction } from 'utils/functions';
 import { GA_EVENT_NAMES } from 'utils/GAEvents';
 import { GAevent } from 'utils/gtag';
 import AuthLogoSlot from './AuthLogoSlot';
+import DashedFrame from 'scaling/DashedFrame';
 
 interface NewTermsScreenProps {
     onAgree?: () => void;
@@ -26,13 +27,13 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
             {/* Content */}
             <div className="flex flex-col items-center px-xd-20">
                 {/* Description */}
-                <p className="text-xd-14 leading-[1.4] text-[#1D1D1D] text-center">
+                <p className="text-xd-14 leading-xd-20 text-[#1D1D1D] text-center">
                     {translate('To Create New Account Tap “Agree & Continue” To Accept')}{' '}
                     <span className="font-bold">Trydos </span>
                     {translate('terms of services')}
                 </p>
 
-                <FlexibleSpace size={50} share={0.07} />
+                <FlexibleSpace size={65} share={0.07} />
                 {/* Terms icon + label */}
                 <div className="flex flex-col items-center">
                     <div className="w-xd-40 h-xd-40 flex items-center justify-center rounded-xd-10">
@@ -44,7 +45,7 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
                             className="w-xd-25 h-xd-25 object-contain"
                         />
                     </div>
-                    <span className="text-xd-14 text-[#388CFF]">
+                    <span className="text-trim-descend text-xd-14 leading-xd-20 text-[#388CFF]">
                         {translate('Terms Of Services')}
                     </span>
                 </div>
@@ -60,19 +61,20 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
                         onAgree?.();
                     }}
                     data-pw="agree-continue"
-                    className="w-xd-390 m-1 h-xd-60 rounded-xd-20 border-dashed border border-[#5D5C5D]/50 bg-[#FAFAFA] text-[#3C3C3C] text-xd-16 cursor-pointer transition-all active:scale-[0.98]"
+                    className="relative w-xd-390 h-xd-60 rounded-xd-20 bg-[#FAFAFA] text-[#3C3C3C] text-xd-16 leading-xd-20 cursor-pointer transition-all active:scale-[0.98]"
                 >
-                    {translate('Agree & Continue')}
+                    <DashedFrame radius={20} color="#5D5C5D" />
+                    <span className="text-trim">{translate('Agree & Continue')}</span>
                 </button>
 
                 {/* Later */}
-                <FlexibleSpace size={30} share={0.04} />
+                <FlexibleSpace size={26} share={0.04} />
                 {onLater && (
                     <div className="text-center">
                         <button
                             onClick={onLater}
                             data-pw="take-look"
-                            className="text-xd-14 text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
+                            className="text-trim-descend text-xd-14 leading-xd-20 text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
                         >
                             {translate('Later, Take A Look At The App')}
                         </button>

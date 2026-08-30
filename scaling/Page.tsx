@@ -18,18 +18,16 @@ type PageVariant = 'scaled' | 'full';
  */
 export default function Page({
   variant = 'scaled',
-  landscapeThreshold = 1.7,
   outerBg,
   children,
 }: {
   variant?: PageVariant;
-  landscapeThreshold?: number;
   outerBg?: OuterBgKey;
   children: React.ReactNode;
 }) {
   if (variant === 'scaled') {
     return (
-      <AppScaler landscapeThreshold={landscapeThreshold}>
+      <AppScaler>
         <div
           className={`w-full h-full ${outerBg ? ` outer-bg-${outerBg}` : ''} transition-all duration-[300]`}
           style={{ backgroundColor: outerBg && OUTER_BG[outerBg] ? OUTER_BG[outerBg] : undefined }}

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
+import { AUTH_SUCCESS_BG } from 'scaling/scale.config';
 import Page from 'scaling/Page';
 import 'public/styles/rdb-auth.css';
 import { LogoAnimationProvider } from './LogoAnimationContext';
@@ -199,7 +200,8 @@ export default function NewLoginWidget({
         if (step === 'not-registered') return '#FFF9F0';
         if (step === 'already-registered') return '#F4F8FF';
         if (step === 'input-name') return '#F4FFF4';
-        if (step === 'login-success' || step === 'signup-success') return '#E0FFEE';
+        if (step === 'login-success') return AUTH_SUCCESS_BG.login;
+        if (step === 'signup-success') return AUTH_SUCCESS_BG.signup;
         return '#FFFFFF';
     };
 
@@ -331,9 +333,11 @@ export default function NewLoginWidget({
                           ? 'already-registered'
                           : step === 'not-registered'
                             ? 'not-registered'
-                            : step === 'login-success' || step === 'signup-success'
+                            : step === 'login-success'
                               ? 'login-success'
-                              : undefined
+                              : step === 'signup-success'
+                                ? 'signup-success'
+                                : undefined
                 }
             >
                 <div

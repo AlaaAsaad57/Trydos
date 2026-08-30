@@ -175,7 +175,7 @@ export default function RdbPinInputs({
         <>
             <div
                 ref={inputRef}
-                className="flex flex-col items-center gap-xd-5 w-full cursor-pointer"
+                className="flex flex-col items-center gap-xd-6 w-full cursor-pointer"
                 onClick={() => {
                     if (disabled) return;
                     if (showCustomKeypad) setKeypadOpen(true);
@@ -187,7 +187,7 @@ export default function RdbPinInputs({
             >
                 <div
                     key={shakeNonce}
-                    className={`flex items-center justify-center gap-xd-5 w-full ${shake ? 'animate-shake-horizontal' : ''}`}
+                    className={`flex items-center justify-center gap-xd-6 w-full ${shake ? 'animate-shake-horizontal' : ''}`}
                 >
                     {pin.map((digit, i) => (
                         <div

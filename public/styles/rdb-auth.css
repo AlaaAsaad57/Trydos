@@ -13,7 +13,11 @@
 
   --app-scale: 1;
   --xd-flex-deficit: 0px;
-  --xd-unit: clamp(calc(350px / 430), calc(100vw / 430), calc(450px / 430));
+  /* Server-render fallback for --xd-unit. AppScaler replaces it on mount.
+     The upper bound must match MAX_VW in scaling/scale.config.ts (500) — it
+     said 450 here, so the first paint used a different unit from every paint
+     after it. */
+  --xd-unit: clamp(calc(350px / 430), calc(100vw / 430), calc(500px / 430));
 }
 
 #master-canvas {

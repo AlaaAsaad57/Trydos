@@ -5,6 +5,7 @@ import Image from 'next/image';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
 import AuthLogoSlot from './AuthLogoSlot';
+import DashedFrame from 'scaling/DashedFrame';
 
 interface NewInputNameScreenProps {
     onSubmit: (name: string) => void | Promise<void>;
@@ -59,27 +60,30 @@ export default function NewInputNameScreen({
             <AuthLogoSlot stop="top" />
 
             {/* 20px clearance below logo */}
-            <FlexibleSpace size={20} share={0.03} />
+            <FlexibleSpace size={17} share={0.03} />
 
             {/* Title block */}
-            <div className="w-full px-xd-30 flex flex-col items-start">
-                <h2 className="text-xd-30 font-bold text-[#1D1D1D]">
+            <div className="w-full px-xd-40 flex flex-col items-start">
+                <h2 className="text-trim-descend text-xd-30 font-bold text-[#1D1D1D]">
                     {translate('Enter Your Name !')}
                 </h2>
-                <p className="text-xd-16 font-medium text-[#1D1D1D] mt-xd-8">
+                <FlexibleSpace size={47} share={0.05} />
+                <p className="text-trim-descend text-xd-16 leading-xd-20 font-medium text-[#1D1D1D]">
                     {translate('Last Step And Enjoy Our Services')}
                 </p>
-                <p className="text-xd-12 font-normal text-[#1D1D1D] mt-xd-4">
+                <FlexibleSpace size={12} share={0} />
+                <p className="text-trim-descend text-xd-12 leading-xd-16 font-normal text-[#1D1D1D]">
                     {translate('Ensure Greater Security And Protect Your Funds')}
                 </p>
             </div>
 
             {/* Space between title and input */}
-            <FlexibleSpace size={140} share={0.25} />
+            <FlexibleSpace size={122} share={0.25} />
 
             {/* Input row */}
-            <div className="w-full px-xd-15">
-                <div className="relative flex items-center w-full h-xd-60 rounded-xd-20 border border-dashed border-[#C3C3C3] focus-within:border-[#388CFF] px-xd-16 transition-colors bg-white">
+            <div className="w-full px-xd-20">
+                <div className="xd-name-field relative flex items-center w-full h-xd-60 rounded-xd-20 px-xd-16 bg-white">
+                    <DashedFrame radius={20} color="#8D8D8D" />
                     <input
                         type="text"
                         value={name}

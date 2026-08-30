@@ -7,6 +7,7 @@ import { getNumberLockRemaining, isSessionCapReached } from 'utils/otpLocks';
 import { translateFunction } from 'utils/functions';
 import { authHeadingKey } from 'components/Login/Enhanced/authHeadings';
 import AuthLogoSlot from './AuthLogoSlot';
+import DashedFrame from 'scaling/DashedFrame';
 
 interface NewSelectMethodScreenProps {
     setMethod: (method: 'sms' | 'whatsapp') => void;
@@ -80,21 +81,27 @@ export default function NewSelectMethodScreen({
                 The stop is the same one the outcome screens use. */}
             <AuthLogoSlot stop="top" absolute />
 
-            <FlexibleSpace size={0} share={0.3} />
+            {/* The heading is anchored from the top, at the distance the XD
+                states (baseline 318). It used to be bottom-aligned inside an
+                `h-1/2` half, which tied its position to how tall its own copy
+                happened to be — that is why this screen, Method and the code
+                screen each sat at a different height even though the design
+                puts all three headings on the same line. */}
+            <FlexibleSpace size={297} share={0.3} />
 
             <div className="w-full h-full flex flex-col items-start">
                 {/* Top half — title + info. The mark is pinned above, not in this stack. */}
-                <div className="w-full h-1/2 flex flex-col justify-end px-xd-20 items-start">
-                    <div className="h-xd-115 w-full">
+                <div className="w-full flex flex-col px-xd-20 items-start">
+                    <div className="w-full">
                         <h2 className="text-trim-descend text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
                             {translate(authHeadingKey(authType))}
                         </h2>
-                        <div className="w-full flex px-xd-20 flex-col pt-xd-12 items-start">
-                            <p className="text-trim-descend text-xd-16 text-[#1D1D1D] font-medium">
+                        <div className="w-full flex px-xd-20 flex-col pt-xd-1 items-start">
+                            <p className="text-trim-descend text-xd-16 leading-xd-20 text-[#1D1D1D] font-medium">
                                 {translate('Choose Verification Method')}
                             </p>
-                            <div className="flex pt-xd-8 items-center gap-xd-5">
-                                <span className="text-trim-descend text-xd-12 text-[#1D1D1D]">
+                            <div className="flex pt-xd-26 items-center gap-xd-5">
+                                <span className="text-trim-descend text-xd-12 leading-xd-16 text-[#1D1D1D]">
                                     {translate('We Will Send A Verification Code To The Number')}
                                 </span>
                                 <div className="w-xd-15 h-xd-15 shrink-0">
@@ -124,8 +131,8 @@ export default function NewSelectMethodScreen({
                                     </button>
                                 )}
                             </div>
-                            <div className="flex pt-xd-8 items-center gap-xd-6">
-                                <span className="text-trim-descend text-xd-11 text-[#4A31E7] font-medium">
+                            <div className="flex pt-xd-12 items-center gap-xd-6">
+                                <span className="text-trim-descend text-xd-11 leading-xd-16 text-[#4A31E7] font-normal">
                                     {translate('Your Privacy Is Completely Safe')}
                                 </span>
                                 <div className="w-xd-14 h-xd-14 shrink-0 flex items-center justify-center">
@@ -147,21 +154,21 @@ export default function NewSelectMethodScreen({
                 </div>
 
                 {/* Bottom half — live method buttons */}
-                <div className="w-full h-1/2 flex flex-col items-center">
-                    <FlexibleSpace size={37} share={0} />
-                    <div className="flex w-xd-400">
+                <div className="w-full flex flex-1 flex-col items-center">
+                    <FlexibleSpace size={15} share={0} />
+                    <div className="flex w-xd-390 gap-xd-4">
                         <button
                             onClick={() => !loading && !blocked && setMethod('whatsapp')}
                             data-pw="whatsapp-receive-otp"
                             disabled={loading || blocked}
-                            className={`relative my-1 mx-0.5 w-xd-193 flex flex-1 flex-col items-center justify-center h-xd-60 rounded-xd-20 border border-dashed transition-all cursor-pointer disabled:cursor-not-allowed ${
-                                blocked
-                                    ? 'opacity-50 border-[#C3C3C3]'
-                                    : method === 'whatsapp'
-                                      ? 'border-[#388CFF] bg-[#FCFCFC]'
-                                      : 'border-[#C3C3C3]'
+                            className={`relative w-xd-193 flex flex-col items-center justify-center h-xd-60 rounded-xd-20 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                                blocked ? 'opacity-50' : method === 'whatsapp' ? 'bg-[#FCFCFC]' : ''
                             }`}
                         >
+                            <DashedFrame
+                                radius={20}
+                                color={!blocked && method === 'whatsapp' ? '#388CFF' : '#C3C3C3'}
+                            />
                             <span
                                 className={`absolute bg-white -top-2.5 left-xd-14 w-5 h-5 flex z-9999 items-center justify-center ${loading && method === 'whatsapp' ? 'animate-bounce-vertical' : ''}`}
                             >
@@ -173,7 +180,7 @@ export default function NewSelectMethodScreen({
                                     className="size-xd-20 object-contain"
                                 />
                             </span>
-                            <span className="text-xd-16 font-normal text-[#1D1D1D]">
+                            <span className="text-trim text-xd-16 leading-xd-20 font-normal text-[#1D1D1D]">
                                 {translate('Send WhatsApp')}
                             </span>
                         </button>
@@ -182,14 +189,14 @@ export default function NewSelectMethodScreen({
                             onClick={() => !loading && !blocked && setMethod('sms')}
                             data-pw="sms-receive-otp"
                             disabled={loading || blocked}
-                            className={`relative my-1 mx-0.5 w-xd-193 flex flex-1 flex-col items-center justify-center h-xd-60 rounded-xd-20 border border-dashed transition-all cursor-pointer disabled:cursor-not-allowed ${
-                                blocked
-                                    ? 'opacity-50 border-[#C3C3C3]'
-                                    : method === 'sms'
-                                      ? 'border-[#388CFF] bg-[#FCFCFC]'
-                                      : 'border-[#C3C3C3]'
+                            className={`relative w-xd-193 flex flex-col items-center justify-center h-xd-60 rounded-xd-20 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                                blocked ? 'opacity-50' : method === 'sms' ? 'bg-[#FCFCFC]' : ''
                             }`}
                         >
+                            <DashedFrame
+                                radius={20}
+                                color={!blocked && method === 'sms' ? '#388CFF' : '#C3C3C3'}
+                            />
                             <span
                                 className={`absolute bg-white -top-2.5 left-xd-14 w-5 h-5 z-9999 flex items-center justify-center ${loading && method === 'sms' ? 'animate-bounce-vertical' : ''}`}
                             >
@@ -201,7 +208,7 @@ export default function NewSelectMethodScreen({
                                     className="size-xd-20 object-contain"
                                 />
                             </span>
-                            <span className="text-xd-16 text-[#1D1D1D]">
+                            <span className="text-trim text-xd-16 leading-xd-20 font-normal text-[#1D1D1D]">
                                 {translate('Send SMS')}
                             </span>
                         </button>
