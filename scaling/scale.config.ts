@@ -58,10 +58,6 @@ export const OUTER_BG = {
   'not-registered': '#FFF9F0',
   'login-success': '#E0FFEE',
   'signup-success': '#E0FFEE',
-  /** Auth overlays that must let the dimmed page show through. `AppScaler`
-   *  injects `#app-outer:has(.outer-bg-overlay) { background: transparent }`,
-   *  which overrides the opaque `#app-outer` rule in rdb-auth.css. */
-  overlay: 'transparent',
 } as const;
 
 export type OuterBgKey = keyof typeof OUTER_BG | string;
