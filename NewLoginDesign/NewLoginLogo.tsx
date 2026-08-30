@@ -24,6 +24,16 @@ export interface NewLoginLogoProps {
     height?: number;
     /** Overrides the pattern coming from LogoAnimationProvider, for one logo. */
     animationVariant?: LogoAnimationType;
+    /** Overrides the loop length coming from the provider, for one logo. */
+    durationSeconds?: number;
+    /**
+     * Let the pattern touch the word. Default true.
+     *
+     * `false` takes the wordmark clip and the per-letter groups away, so the
+     * ring and the dots still move and the word stands still. It is the
+     * "cinematic build, glyphs held" the Quick Preview asks for.
+     */
+    animateWord?: boolean;
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -93,6 +103,8 @@ export default function NewLoginLogo({
     width,
     height,
     animationVariant,
+    durationSeconds,
+    animateWord = true,
 }: NewLoginLogoProps) {
     const context = useLogoAnimation();
     const animation: LogoAnimationType = animationVariant ?? context.animation ?? 'none';
@@ -101,14 +113,25 @@ export default function NewLoginLogo({
     const resolvedRingColor = ringColor || resolvedDotColor;
 
     const geo = LOGO_GEOMETRY[variant];
-    const logoMotion = useAnimationEngine(
+    const engineMotion = useAnimationEngine(
         animation,
         variant,
         resolvedDotColor,
         resolvedRingColor,
         context.ignoreReducedMotion,
-        context.durationSeconds,
+        durationSeconds ?? context.durationSeconds,
     );
+
+    /**
+     * `animateWord: false` takes away the only two handles a pattern has on the
+     * word — the clip path and the per-letter groups. Everything else it does is
+     * left alone, so the ring still draws and the dots still drop; the word is
+     * simply there the whole time. The unused <clipPath> stays in `defs`, where
+     * it paints nothing.
+     */
+    const logoMotion = animateWord
+        ? engineMotion
+        : { ...engineMotion, wordmarkClipId: undefined, letters: undefined };
 
     const dot = (props: ElementMotion | undefined, children: React.ReactNode) => (
         <motion.g

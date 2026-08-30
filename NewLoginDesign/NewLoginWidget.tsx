@@ -1,21 +1,15 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import Page from 'scaling/Page';
 import 'public/styles/rdb-auth.css';
-import {
-    LogoAnimationProvider,
-    LOGO_ANIMATION_PRESETS,
-    DEFAULT_LOGO_ANIMATION,
-    DEFAULT_LOGO_DURATION,
-    MIN_LOGO_DURATION,
-    MAX_LOGO_DURATION,
-    clampLogoDuration,
-    LogoAnimationType,
-} from './LogoAnimationContext';
+import { LogoAnimationProvider } from './LogoAnimationContext';
 import AuthLogoLayer from './AuthLogoLayer';
+import LogoAnimationModal from './LogoAnimationModal';
+import { DEFAULT_LOGO_CONFIG, cloneLogoConfig } from './logoScreenConfig';
+import type { LogoConfig, LogoSlotId } from './logoScreenConfig';
 
 // New Screens in NewLoginDesign
 import QuickPreviewScreen from './QuickPreviewScreen';
@@ -62,6 +56,68 @@ const STEP_LOGO_COLOR: Partial<Record<AuthStep, { dot: string; ring: string }>> 
     'signup-success': { dot: 'green', ring: '#28C452' },
 };
 
+/**
+ * Which logo config a step reads.
+ *
+ * Both success steps share one entry, because they are one screen in one green
+ * (see NewSuccessScreen). The Quick Preview is not here at all: it has two
+ * marks and its badge changes job halfway through, so the widget picks its slot
+ * from `previewExpanded` below.
+ */
+const STEP_LOGO_SLOT: Record<AuthStep, LogoSlotId> = {
+    'quick-preview': 'quick-preview-badge',
+    'get-started': 'get-started',
+    terms: 'terms',
+    'enter-phone': 'enter-phone',
+    'select-method': 'select-method',
+    'enter-pin': 'enter-pin',
+    'already-registered': 'already-registered',
+    'not-registered': 'not-registered',
+    'input-name': 'input-name',
+    'login-success': 'success',
+    'signup-success': 'success',
+    'qr-login': 'get-started',
+};
+
+/**
+ * Where the client's picks are kept between visits.
+ *
+ * The demo exists so a client can sit with it and compare, which takes more
+ * than one sitting. Losing every choice on a refresh is what made the old
+ * single picker tiring to use.
+ */
+const STORAGE_KEY = 'trydos.logoDemoConfig';
+
+/**
+ * Read the saved picks, filling in anything the file does not carry.
+ *
+ * Merging per slot rather than trusting the stored object is what stops an old
+ * save, written before a slot existed, from leaving that slot undefined and
+ * taking the screen down with it.
+ */
+function readStoredConfig(): LogoConfig {
+    const fresh = cloneLogoConfig(DEFAULT_LOGO_CONFIG);
+    try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (!raw) return fresh;
+        const saved = JSON.parse(raw) as Partial<LogoConfig>;
+        for (const key of Object.keys(fresh) as LogoSlotId[]) {
+            const slot = saved[key];
+            if (slot && Array.isArray(slot.steps) && slot.steps.length > 0) {
+                fresh[key] = {
+                    steps: slot.steps.map((step) => ({ ...step })),
+                    loop: Boolean(slot.loop),
+                    animateWord: slot.animateWord,
+                };
+            }
+        }
+        return fresh;
+    } catch {
+        // Nothing readable there. The defaults are always a working answer.
+        return fresh;
+    }
+}
+
 interface NewLoginWidgetProps {
     initialStep?: AuthStep;
     onFinish?: () => void;
@@ -86,11 +142,34 @@ export default function NewLoginWidget({
     const [error, setError] = useState<string | undefined>(undefined);
 
     const [showStepBar, setShowStepBar] = useState<boolean>(false);
-    const [showAnimBar, setShowAnimBar] = useState<boolean>(false);
-    const [logoAnimation, setLogoAnimation] = useState<LogoAnimationType>(DEFAULT_LOGO_ANIMATION);
-    /** Seconds for one loop of the picked pattern. The client sets it below. */
-    const [logoDuration, setLogoDuration] = useState<number>(DEFAULT_LOGO_DURATION);
+    const [isAnimModalOpen, setIsAnimModalOpen] = useState<boolean>(false);
+    /** One entry per logo in the flow. The modal writes it. */
+    const [logoConfig, setLogoConfig] = useState<LogoConfig>(DEFAULT_LOGO_CONFIG);
+    /**
+     * true once the Quick Preview column has lifted, so the badge there can
+     * change job without the screen having to know about logo config at all.
+     */
+    const [previewExpanded, setPreviewExpanded] = useState<boolean>(false);
     const [isQrOpen, setIsQrOpen] = useState<boolean>(false);
+
+    /**
+     * Saved picks are read after mount, never during render. The server has no
+     * localStorage, so reading it in render would give the two passes different
+     * markup and React would throw the whole tree away.
+     */
+    useEffect(() => {
+        setLogoConfig(readStoredConfig());
+    }, []);
+
+    const applyLogoConfig = (next: LogoConfig) => {
+        setLogoConfig(next);
+        setIsAnimModalOpen(false);
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        } catch {
+            // Private mode, or a full quota. The picks still apply for now.
+        }
+    };
 
     /** The box the screens slide inside. `AuthLogoLayer` measures against it. */
     const stageRef = useRef<HTMLDivElement>(null);
@@ -98,6 +177,9 @@ export default function NewLoginWidget({
     const goTo = (nextStep: AuthStep, dir: number = 1) => {
         setDirection(dir);
         setStep(nextStep);
+        // Walking back to the Quick Preview restarts its 8 second timer, so the
+        // badge has to go back to its first job as well.
+        if (nextStep === 'quick-preview') setPreviewExpanded(false);
     };
 
     const handleBack = () => {
@@ -122,16 +204,20 @@ export default function NewLoginWidget({
     };
 
     const logoColor = STEP_LOGO_COLOR[step] ?? LOGO_PURPLE;
-    const activePreset =
-        LOGO_ANIMATION_PRESETS.find((preset) => preset.id === logoAnimation) ??
-        LOGO_ANIMATION_PRESETS[0];
+    const logoSlotId: LogoSlotId =
+        step === 'quick-preview' && previewExpanded
+            ? 'quick-preview-badge-expanded'
+            : STEP_LOGO_SLOT[step];
+    const activeSlot = logoConfig[logoSlotId];
+    const activeStepCount = activeSlot.steps.length;
 
     return (
         <LogoAnimationProvider
-            animation={logoAnimation}
-            setAnimation={setLogoAnimation}
-            durationSeconds={logoDuration}
-            setDurationSeconds={setLogoDuration}
+            /**
+             * Only a fallback now. Every logo on screen is handed its own
+             * pattern and its own loop length by its slot config, so nothing
+             * reads the provider's animation any more.
+             */
             /**
              * Always on here, and only here. Windows and macOS both have a
              * setting that turns animation off system wide, and a good number
@@ -158,28 +244,31 @@ export default function NewLoginWidget({
                     <div className="flex items-center gap-2 flex-wrap">
                         {/* 1. Flow Steps Toggle Button */}
                         <button
-                            onClick={() => {
-                                setShowStepBar((prev) => !prev);
-                                if (!showStepBar) setShowAnimBar(false);
-                            }}
+                            onClick={() => setShowStepBar((prev) => !prev)}
                             className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
                         >
                             <span className="w-2 h-2 rounded-full bg-[#402CDD]" />
                             <span>{showStepBar ? 'Hide Steps' : 'Flow Steps'}</span>
                         </button>
 
-                        {/* 2. Logo Animation Selector Toggle Button */}
+                        {/* 2. Per-screen logo animation modal */}
                         <button
                             onClick={() => {
-                                setShowAnimBar((prev) => !prev);
-                                if (!showAnimBar) setShowStepBar(false);
+                                setIsAnimModalOpen(true);
+                                setShowStepBar(false);
                             }}
                             className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
                         >
-                            <span>{activePreset.icon}</span>
                             <span className="text-[#402CDD] font-bold">Anim:</span>
-                            <span>{activePreset.shortName}</span>
-                            <span className="text-gray-500">{logoDuration}s</span>
+                            <span>
+                                {activeSlot.steps
+                                    .map((item) => `${item.animation} ${item.seconds}s`)
+                                    .join(' → ')}
+                            </span>
+                            <span className="text-gray-500">
+                                {activeSlot.loop ? 'loop' : 'once'}
+                                {activeStepCount > 1 ? ` · ${activeStepCount} steps` : ''}
+                            </span>
                         </button>
                     </div>
 
@@ -218,88 +307,20 @@ export default function NewLoginWidget({
                             </button>
                         </div>
                     )}
-
-                    {/* Logo Animation Options Strip */}
-                    {showAnimBar && (
-                        <div className="flex flex-col gap-1 bg-black/90 backdrop-blur-md p-2 rounded-2xl text-white text-xs max-w-[92vw] shadow-2xl border border-white/10 animate-fade-in">
-                            <div className="flex items-center justify-between pb-1 px-1 border-b border-white/10 text-[11px] text-gray-400">
-                                <span className="font-semibold text-white/90">Pick Logo Animation:</span>
-                                <span className="text-[10px] text-[#A688FA]">{activePreset.tagline}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 overflow-x-auto py-1">
-                                {LOGO_ANIMATION_PRESETS.map((preset) => {
-                                    const isSelected = logoAnimation === preset.id;
-                                    return (
-                                        <button
-                                            key={preset.id}
-                                            onClick={() => setLogoAnimation(preset.id)}
-                                            className={`px-2.5 py-1.5 rounded-xl text-[11px] whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-                                                isSelected
-                                                    ? 'bg-[#402CDD] text-white font-bold shadow-[0_0_12px_rgba(64,44,221,0.6)] ring-1 ring-white/30 scale-[1.02]'
-                                                    : 'bg-white/5 text-gray-300 hover:bg-white/15 hover:text-white'
-                                            }`}
-                                            title={`${preset.description}
-
-Best for: ${preset.bestFor}`}
-                                        >
-                                            <span className="text-sm">{preset.icon}</span>
-                                            <span>{preset.label}</span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            {/*
-                              * How long one loop takes, in whole seconds.
-                              *
-                              * Only the length of the loop changes. Each beat
-                              * inside a pattern is written as a fraction of the
-                              * cycle, so a pattern picked apart at 20 seconds is
-                              * the same choreography as at 1 second, played
-                              * slower. `none` has no loop, so the control is
-                              * disabled there rather than lying about it.
-                              */}
-                            <div className="flex items-center gap-2 pt-1.5 px-1 border-t border-white/10">
-                                <span className="text-[11px] text-gray-400 whitespace-nowrap">
-                                    Loop length:
-                                </span>
-                                <input
-                                    type="range"
-                                    min={MIN_LOGO_DURATION}
-                                    max={MAX_LOGO_DURATION}
-                                    step={1}
-                                    value={logoDuration}
-                                    disabled={logoAnimation === 'none'}
-                                    onChange={(event) =>
-                                        setLogoDuration(clampLogoDuration(Number(event.target.value)))
-                                    }
-                                    title={`One loop of "${activePreset.label}" takes ${logoDuration} seconds`}
-                                    className="flex-1 min-w-[120px] accent-[#402CDD] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-                                />
-                                <input
-                                    type="number"
-                                    min={MIN_LOGO_DURATION}
-                                    max={MAX_LOGO_DURATION}
-                                    step={1}
-                                    value={logoDuration}
-                                    disabled={logoAnimation === 'none'}
-                                    onChange={(event) =>
-                                        setLogoDuration(clampLogoDuration(Number(event.target.value)))
-                                    }
-                                    className="w-12 bg-white/10 rounded-md px-1.5 py-0.5 text-[11px] text-center text-white outline-none focus:ring-1 focus:ring-[#402CDD] disabled:opacity-40"
-                                />
-                                <span className="text-[11px] text-gray-400">s</span>
-                                <button
-                                    onClick={() => setLogoDuration(DEFAULT_LOGO_DURATION)}
-                                    disabled={logoDuration === DEFAULT_LOGO_DURATION}
-                                    className="px-2 py-0.5 rounded-md text-[10px] bg-white/5 text-gray-300 hover:bg-white/15 hover:text-white transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                                >
-                                    Reset
-                                </button>
-                            </div>
-                        </div>
-                    )}
                 </div>
+
+            {/*
+              * The picker. It belongs to the demo route, like the bar above,
+              * and it is drawn outside <Page> so the scaled canvas cannot
+              * shrink it or clip it.
+              */}
+            <LogoAnimationModal
+                open={isAnimModalOpen}
+                config={logoConfig}
+                currentSlot={logoSlotId}
+                onApply={applyLogoConfig}
+                onClose={() => setIsAnimModalOpen(false)}
+            />
 
             <Page
                 variant="scaled"
@@ -364,6 +385,8 @@ Best for: ${preset.bestFor}`}
                             {step === 'quick-preview' && (
                                 <QuickPreviewScreen
                                     onComplete={() => goTo('get-started', 1)}
+                                    onExpand={() => setPreviewExpanded(true)}
+                                    wordmarkSlot={logoConfig['quick-preview-wordmark']}
                                     lang={langCode}
                                 />
                             )}
@@ -531,6 +554,7 @@ Best for: ${preset.bestFor}`}
                         live={step === 'quick-preview'}
                         dotColor={logoColor.dot}
                         ringColor={logoColor.ring}
+                        slot={activeSlot}
                     />
 
                     {/* QR Bottom Sheet Modal (slides up over GetStarted) */}

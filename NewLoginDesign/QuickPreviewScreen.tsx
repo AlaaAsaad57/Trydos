@@ -6,22 +6,104 @@ import useEmblaCarousel from 'embla-carousel-react';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { FLEX_RANGE } from 'scaling/scale.config';
 import { translateFunction } from 'utils/functions';
-import NewLoginLogo from './NewLoginLogo';
+import SequencedLogo from './useLogoSequence';
 import AuthLogoSlot from './AuthLogoSlot';
+import { DEFAULT_LOGO_CONFIG } from './logoScreenConfig';
+import type { LogoSlotConfig } from './logoScreenConfig';
 
 interface QuickPreviewScreenProps {
     onComplete: () => void;
     lang?: string;
     autoExpandDelayMs?: number; // Defaults to 8000 (8 seconds)
+    /**
+     * Fired when the column lifts. The widget uses it to give the badge its
+     * second job, so this screen never has to know about logo config.
+     */
+    onExpand?: () => void;
+    /** What the centre wordmark plays for the first eight seconds. */
+    wordmarkSlot?: LogoSlotConfig;
 }
 
-const FLIP_TEXTS = [
-    ' Your new shopping buddy ',
-    ' try different online shopping ',
-    ' shop . connect . invest . enjoy ',
-    ' Social e-commerce ',
-    ' Shopping, redefined ',
-    ' A revolutionary new shopping concept ',
+/**
+ * The slogans, as components rather than as strings.
+ *
+ * A string can only ever be one run of one colour. These lines are not that:
+ * the full stops around them are purple while the words are near-black, and
+ * "shop . connect . invest . enjoy" has three more of them in the middle. Held
+ * as strings, that styling had to be bolted on at the one place they were
+ * rendered, which meant every slogan was forced to wear the same decoration.
+ *
+ * Each entry now draws itself, so a slogan can carry its own emphasis, its own
+ * separators, or an icon, without touching the five beside it.
+ *
+ * Each still resolves its wording through `translate`, and the English key is
+ * unchanged, so no translation is lost by the move.
+ */
+type FlipLabel = (translate: (key: string) => string) => React.ReactNode;
+
+/** The purple full stop the design puts around a slogan. */
+const Stop = () => <span className="text-[#4A31E7]">.</span>;
+
+/** The plain shape: a purple stop, the words, a purple stop. */
+const bookended =
+    (key: string): FlipLabel =>
+    (translate) => (
+        <>
+            <Stop /> {translate(key)} <Stop />
+        </>
+    );
+
+/**
+ * The same shape, with the last `count` words a step heavier.
+ *
+ * The design does not set one weight for a whole slogan. ". Your new shopping
+ * buddy ." is Quicksand-Regular 14 with the run "shopping buddy" — and only
+ * that run — in Quicksand-Medium. Reading the emphasis off the end of the
+ * translated line keeps the sentence as one key, the same way `leadWordBold`
+ * reads it off the front.
+ */
+const tailWordsMedium =
+    (key: string, count: number): FlipLabel =>
+    (translate) => {
+        const words = translate(key).trim().split(' ');
+        const head = words.slice(0, -count).join(' ');
+        const tail = words.slice(-count).join(' ');
+        return (
+            <>
+                <Stop /> {head} <span className="font-medium">{tail}</span> <Stop />
+            </>
+        );
+    };
+
+/**
+ * The same shape, with the first word in bold.
+ *
+ * "try different online shopping" opens on the brand word, and the badge mark
+ * beside it is the word "try" on its own (see `mocks/QuickPreview2.png`), so
+ * the slogan leans on it. Bolding it is what ties the two together.
+ *
+ * The sentence stays one translation key, and the bold is taken off the front
+ * of whatever comes back. Splitting it into "try" plus a second key would hand
+ * a translator a bare verb with no sentence around it.
+ */
+const leadWordBold =
+    (key: string): FlipLabel =>
+    (translate) => {
+        const [lead, ...rest] = translate(key).trim().split(' ');
+        return (
+            <>
+                <Stop /> <span className="font-bold">{lead}</span> {rest.join(' ')} <Stop />
+            </>
+        );
+    };
+
+const FLIP_LABELS: FlipLabel[] = [
+    tailWordsMedium(' Your new shopping buddy ', 2),
+    leadWordBold(' try different online shopping '),
+    bookended(' shop . connect . invest . enjoy '),
+    bookended(' Social e-commerce '),
+    bookended(' Shopping, redefined '),
+    bookended(' A revolutionary new shopping concept '),
 ];
 
 const PREVIEW_SLIDES = [
@@ -137,6 +219,8 @@ export default function QuickPreviewScreen({
     onComplete,
     lang = 'en',
     autoExpandDelayMs = 8000,
+    onExpand,
+    wordmarkSlot = DEFAULT_LOGO_CONFIG['quick-preview-wordmark'],
 }: QuickPreviewScreenProps) {
     const translate = (key: string) => translateFunction(key, lang);
     const [isHydrated, setIsHydrated] = useState<boolean>(false);
@@ -223,15 +307,19 @@ export default function QuickPreviewScreen({
         if (!isHydrated) return;
         const timer = setTimeout(() => {
             setIsExpanded(true);
+            onExpand?.();
         }, autoExpandDelayMs);
         return () => clearTimeout(timer);
+        // `onExpand` is deliberately not a dependency. It is a fresh closure on
+        // every render of the widget, so watching it would restart the eight
+        // seconds on any unrelated state change.
     }, [isHydrated, autoExpandDelayMs]);
 
     // Fast slogan flipping interval (1.4s)
     useEffect(() => {
         if (!isHydrated) return;
         const interval = setInterval(() => {
-            setFlipTextIndex((prev) => (prev + 1) % FLIP_TEXTS.length);
+            setFlipTextIndex((prev) => (prev + 1) % FLIP_LABELS.length);
         }, 1400);
         return () => clearInterval(interval);
     }, [isHydrated]);
@@ -268,15 +356,16 @@ export default function QuickPreviewScreen({
                         className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10"
                     >
                         {/* The mark that sits above the slider for the first
-                            eight seconds. Cinematic Assembly: the ring draws,
-                            the word wipes in, the eyes drop. It runs forward,
-                            then backwards, for as long as the screen is held. */}
-                        <NewLoginLogo
+                            eight seconds. It plays whatever its slot says; the
+                            design starts it on Cinematic Assembly with the
+                            glyphs held still, so the ring draws and the eyes
+                            drop around a word that is already there. */}
+                        <SequencedLogo
+                            slot={wordmarkSlot}
                             variant="header"
                             dotColor="purple"
                             width={176}
                             height={88}
-                            animationVariant="reveal"
                         />
                     </motion.div>
                 )}
@@ -300,22 +389,45 @@ export default function QuickPreviewScreen({
                 {/* Top space above the pill. Mock: the pill box starts at 55. */}
                 <FlexibleSpace size={55} share={flexShare(55)} />
 
-                {/* 1. Slogan Pill Badge (Top of column) */}
-                <div ref={pillRef} className="w-full flex justify-center z-20">
-                    <div className="h-xd-32 px-xd-20 rounded-[16px] bg-[#F4F0FE] border border-[#ECE9FE] flex items-center justify-center  min-w-[270px]">
-                        <AnimatePresence mode="wait">
-                            <motion.span
-                                key={flipTextIndex}
-                                initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
-                                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                                exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
-                                transition={{ duration: 0.22, ease: 'easeOut' }}
-                                className="text-xd-14 font-medium text-[#1d1d1d] text-center whitespace-nowrap"
-                            >
-                                <span className="text-[#4A31E7]">.</span> {translate(FLIP_TEXTS[flipTextIndex])} <span className="text-[#4A31E7]">.</span>
-                            </motion.span>
-                        </AnimatePresence>
-                    </div>
+                {/*
+                  * 1. Slogan Pill Badge (Top of column)
+                  *
+                  * The whole pill turns over, and the text goes with it. Before
+                  * this the pill stood still and only the words inside it faded
+                  * up and down, which is a cross-fade, not a flip.
+                  *
+                  * The pill is also only as wide as its own line now. The old
+                  * `min-w-[270px]` held every short slogan out to the width of
+                  * the longest one, and it was raw px on a screen that is
+                  * otherwise all design px, so it did not shrink with the
+                  * canvas. The mock shows a pill hugging its text.
+                  *
+                  * The wrapper carries the height, not the pill alone. With
+                  * `mode="wait"` there is a moment between the two pills where
+                  * nothing is in the box; without a height here the column would
+                  * lose 32px for that moment, and the measure effect above would
+                  * move the badge underneath on every flip.
+                  */}
+                <div
+                    ref={pillRef}
+                    className="w-full h-xd-32 flex justify-center items-center z-20 flex-shrink-0"
+                    style={{ perspective: 600 }}
+                >
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={flipTextIndex}
+                            initial={{ rotateX: -90, opacity: 0 }}
+                            animate={{ rotateX: 0, opacity: 1 }}
+                            exit={{ rotateX: 90, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                            style={{ transformOrigin: 'center', backfaceVisibility: 'hidden' }}
+                            className="h-xd-32 px-xd-20 rounded-[16px] bg-[#F4F0FE] border border-[#ECE9FE] flex items-center justify-center whitespace-nowrap"
+                        >
+                            <span className="text-xd-14 font-normal text-[#1d1d1d] text-center">
+                                {FLIP_LABELS[flipTextIndex](translate)}
+                            </span>
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
 
                 {/* Gap between Slogan Pill and Dotted Badge: exactly 14px */}
@@ -334,7 +446,7 @@ export default function QuickPreviewScreen({
 
                 {/* 3. Header Title: . Quick Preview . */}
                 <div className="w-full flex justify-center items-center flex-shrink-0">
-                    <h1 className="text-xd-30 font-bold text-[#1D1D1D] tracking-tight">
+                    <h1 className="text-xd-30 font-bold text-[#1D1D1D]">
                         {translate('. Quick Preview .')}
                     </h1>
                 </div>

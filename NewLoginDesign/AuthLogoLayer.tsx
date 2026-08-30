@@ -2,8 +2,9 @@
 
 import React, { RefObject, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import NewLoginLogo from './NewLoginLogo';
+import SequencedLogo from './useLogoSequence';
 import { AUTH_LOGO_SIZE } from './AuthLogoSlot';
+import type { LogoSlotConfig } from './logoScreenConfig';
 
 interface Box {
     top: number;
@@ -26,6 +27,16 @@ interface AuthLogoLayerProps {
     live: boolean;
     dotColor: string;
     ringColor: string;
+    /**
+     * What this step's mark plays.
+     *
+     * The mark itself is still one element that is never remounted, so it keeps
+     * travelling between screens as one object. Its motion is not: a step whose
+     * slot names a different pattern restarts the motion on arrival, which is
+     * what the design asks for. Two steps that name the same one hand over with
+     * nothing interrupted, because nothing about the logo changed.
+     */
+    slot: LogoSlotConfig;
 }
 
 /** Below this nothing is worth a re-render, and rounding noise is not a move. */
@@ -103,6 +114,7 @@ export default function AuthLogoLayer({
     live,
     dotColor,
     ringColor,
+    slot,
 }: AuthLogoLayerProps) {
     const [box, setBox] = useState<Box | null>(null);
 
@@ -172,7 +184,8 @@ export default function AuthLogoLayer({
             animate={{ x: box.left, y: box.top, scale: box.scale, opacity: 1 }}
             transition={live ? LOCKED : TRAVEL}
         >
-            <NewLoginLogo
+            <SequencedLogo
+                slot={slot}
                 variant="badge-ring"
                 dotColor={dotColor}
                 ringColor={ringColor}
