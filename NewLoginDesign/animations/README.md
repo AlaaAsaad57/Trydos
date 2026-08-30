@@ -18,7 +18,7 @@ expensive, and the ones that read as a physics exercise did not.
 | 4 | `canon` | character | One eye leads a glance, the other arrives a quarter-second late, overshoots and settles. The dot that leads is always the one moving away. | A screen with personality. |
 | 5 | `tempo` | staccato | 100 BPM, sixteen slots, six used — the 3-3-2 tresillo. Every move is linear and 58ms; every hold is dead flat. | A screen that needs energy. |
 | 6 | `spark` | ambient | Sparkles drift on 28–52 second periods, so the loop is never caught. Dots twinkle underneath. | Long screens: terms, onboarding. |
-| 7 | `reveal` | build | Ring draws, wordmark wipes in, dots drop. Holds, then runs the whole build backwards, for ever. | A screen that is held, such as Quick Preview. |
+| 7 | `reveal` | build | Ring draws, wordmark wipes in, dots drop. Ends assembled and holds there; it never reverses and never repeats. | A screen that is held, such as Quick Preview. |
 | 8 | `gust` | wave | Wind crosses in 900ms. Each letter leans, lifts and settles 60ms after the one to its left; the same wave runs round the ring. Then six seconds of calm. | Any screen. |
 | 9 | `escape` | comedy | The last letter slips and tips over. The eyes snap to it, then narrow into a flat stare held for a whole second. Then it hops back. | Get Started, Success. Not a PIN screen. |
 | 10 | `sway` | solid body | The whole mark hangs from a point above itself and swings as one object. The two dots run the swing 100ms late. | Anywhere calm. The most restrained one. |

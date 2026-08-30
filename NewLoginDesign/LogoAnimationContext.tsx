@@ -105,9 +105,9 @@ export const LOGO_ANIMATION_PRESETS: LogoAnimationPreset[] = [
         label: 'Cinematic Assembly',
         shortName: 'Reveal',
         icon: '\u{1F3AC}',
-        tagline: 'Build - assembled, then taken apart',
+        tagline: 'Build - assembled, and it stays that way',
         description:
-            'The ring draws itself, the wordmark wipes in from the left, then the dots drop in. It holds the finished mark for about two seconds, then runs the whole build backwards - dots out first, then the word, then the ring - and starts again. The wipe uses a clip path, never a stroke on the letters, so the glyphs are never thickened.',
+            'The ring draws itself, the wordmark wipes in from the left, then the dots drop in. It ends on the finished mark and holds there, for as long as the screen is shown. It never runs backwards and never starts again, so it introduces the mark rather than looking like a loading state. The wipe uses a clip path, never a stroke on the letters, so the glyphs are never thickened.',
         bestFor: 'A screen that is held for a while, such as the Quick Preview.',
     },
     {
