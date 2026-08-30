@@ -31,6 +31,21 @@ pnpm lint:i18n-parity   # ar/tr/ku translation keys are in step
 
 Two suites exist: the **unit** suite (`tests/`, Vitest) and the **browser** suite (`tests/e2e/`, Playwright, run against staging). Both gate pull requests through `.github/workflows/`. Do not add tests outside these two, and do not add a test for code that has no caller. Anything you do add must follow the rule below.
 
+## Opening the app by hand — always use the `sy-en` locale
+
+Any URL you open yourself — in a browser, a curl check, a Playwright script, a
+screenshot — must use **`sy-en`**, never `gb-en`:
+
+```
+http://localhost:3000/sy-en/loginDemo     ✓
+http://localhost:3000/gb-en/loginDemo     ✗ opens the region picker over the page
+```
+
+`gb` is not one of the countries the region list offers, so the app opens the
+"Select Your Region" modal on top of whatever you wanted to look at. Every
+screenshot then shows the modal, and every click lands on it. `sy` is in the
+list, so the page loads clean.
+
 ## Architecture
 
 ### Request entry: `proxy.ts` (the middleware)
