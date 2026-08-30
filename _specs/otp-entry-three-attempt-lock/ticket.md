@@ -11,7 +11,7 @@ created_at: 2026-08-29
 updated_at: 2026-08-30
 links:
   clickup: ""
-  github: ""
+  github: "https://github.com/AlaaAsaad57/Trydos/pull/112"
 ---
 
 # Ticket Record — otp-entry-three-attempt-lock
