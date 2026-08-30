@@ -280,17 +280,17 @@ export default function QrBottomSheet({
 
                             {/* Text Instructions Section */}
                             <div className="w-full flex flex-col items-start">
-                                <h2 className="text-xd-30 font-bold text-[#1D1D1D] tracking-tight leading-tight">
+                                <h2 className="text-xd-30 font-bold text-[#1D1D1D] leading-tight">
                                     {translate('Switch From Your App')}
                                 </h2>
 
                                 <div className="w-xd-350 max-w-full">
-                                    <p className="text-xd-14 text-[#5D5C5D] font-normal mt-xd-12 leading-[1.4]">
+                                    <p className="text-xd-16 text-[#5D5C5D] font-medium mt-xd-12 leading-[1.4]">
                                         &ldquo;{translate('You Can Use Your Account On The Web Securely And Easily.')}&rdquo;
                                     </p>
                                 </div>
 
-                                <div className="flex flex-col gap-xd-8 mt-xd-12 text-xd-13 text-[#5D5C5D] font-normal leading-[1.5]">
+                                <div className="flex flex-col gap-xd-8 mt-xd-12 text-xd-14 text-[#5D5C5D] font-normal leading-[1.5]">
                                     <p>- {translate('Open Your Trydos Application')}</p>
                                     <p>- {translate('Choose Switch Web')}</p>
                                     <p>- {translate('Read This Code From Opposite Side Camera')}</p>

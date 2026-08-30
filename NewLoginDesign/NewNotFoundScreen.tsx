@@ -66,7 +66,7 @@ export default function NewNotFoundScreen({
                     {translate('Sorry, This Number Is Not Registered With Us !')}
                 </p>
                 <div className="flex items-center gap-xd-2 mt-xd-6">
-                    <p className="text-xd-12 font-semibold text-[#1D1D1D]">
+                    <p className="text-xd-12 font-normal text-[#1D1D1D]">
                         +{phone}
                     </p>
                     <div className="w-xd-15 h-xd-15 ml-2 shrink-0">
@@ -96,7 +96,7 @@ export default function NewNotFoundScreen({
                 <button
                     onClick={onCancel}
                     data-pw="cancel-take-look"
-                    className="text-xd-13 text-[#4D84FF] mt-xd-20 transition-colors hover:opacity-70 cursor-pointer"
+                    className="text-xd-14 text-[#4D84FF] mt-xd-20 transition-colors hover:opacity-70 cursor-pointer"
                 >
                     {translate('Cancel & Take A Look At The App')}
                 </button>

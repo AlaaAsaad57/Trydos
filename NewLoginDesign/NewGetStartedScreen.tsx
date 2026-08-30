@@ -58,7 +58,7 @@ export default function NewGetStartedScreen({
                 <FlexibleSpace size={24} share={0.04} />
                 <h2
                     data-pw="get-started"
-                    className="text-xd-30 font-bold text-[#1D1D1D] h-xd-40 text-center tracking-tight"
+                    className="text-xd-30 font-bold text-[#1D1D1D] h-xd-40 text-center"
                 >
                     {translate('. Get Started .')}
                 </h2>
@@ -88,7 +88,7 @@ export default function NewGetStartedScreen({
                     <button
                         onClick={onLater}
                         data-pw="take-look"
-                        className="text-xd-13 text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
+                        className="text-xd-14 text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
                     >
                         {translate('Later, Take A Look At The App')}
                     </button>

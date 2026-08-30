@@ -87,11 +87,11 @@ export default function NewEnterPhoneScreen({
                             {translate(authHeadingKey(authType))}
                         </h2>
                         <div className="w-full flex px-xd-20 flex-col pt-xd-12 items-start">
-                            <p className="text-trim-descend text-xd-16 text-[#1D1D1D] font-medium">
+                            <p className="text-trim-descend text-xd-16 text-[#1D1D1D] font-normal">
                                 {translate('Enter Your Phone Number Registered With Us')}
                             </p>
                             <div className="flex items-center pt-xd-8 gap-xd-5">
-                                <span className="text-trim-descend text-xd-12 text-[#1D1D1D]">
+                                <span className="text-trim-descend text-xd-12 text-[#1D1D1D] font-medium">
                                     {translate('We Will Send A Verification Code To The Number')}
                                 </span>
                                 <div className="w-xd-15 h-xd-15 shrink-0">

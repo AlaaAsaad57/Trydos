@@ -96,7 +96,7 @@ export default function NewAlreadyExistScreen({
                 <button
                     onClick={onCancel}
                     data-pw="cancel-take-look"
-                    className="text-xd-13 text-[#4D84FF] mt-xd-20 transition-colors hover:opacity-70 cursor-pointer"
+                    className="text-xd-14 text-[#4D84FF] mt-xd-20 transition-colors hover:opacity-70 cursor-pointer"
                 >
                     {translate('Cancel & Take A Look At The App')}
                 </button>
