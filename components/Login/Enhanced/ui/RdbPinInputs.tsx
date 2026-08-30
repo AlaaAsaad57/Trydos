@@ -13,6 +13,13 @@ interface RdbPinInputsProps {
     label?: string;
     labelTone?: 'default' | 'error';
     autoFocus?: boolean;
+    /**
+     * The boxes are spent — the code ran out of life, or the tries ran out.
+     * Not only a style flag: this is what closes the on-screen keypad. `disabled`
+     * does not, and the outside-click closer gives up while disabled, so a caller
+     * that sets `disabled` alone leaves a keypad standing over dead boxes with no
+     * way to shut it.
+     */
     isExpired?: boolean;
     /**
      * Fall back to the device's own keyboard instead of the in-app keypad.

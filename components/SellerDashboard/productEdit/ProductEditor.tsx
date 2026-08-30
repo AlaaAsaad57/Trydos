@@ -290,14 +290,23 @@ export default function ProductEditor({
     ? [...form.category_id, ...form.sub_category_id, ...form.sub_sub_category_id].join(",")
     : "";
   useEffect(() => {
-    if (!form || !baseLookups.current) return;
+    // Only while the form is editable. The cascading endpoint is gated on
+    // UPDATE_PRODUCT, but GET /edit is not — so a seller with read-only product
+    // permission opens this page and every lookups call comes back 403. Firing
+    // it here bought nothing and cost the page its categories: read mode only
+    // ever shows the SELECTED items, /edit already returned that whole branch
+    // under data.lookups, and a failed round then merged empty arrays over it
+    // (see mergeLookups) — leaving "None" under Sub Categories, Sub-sub
+    // Categories and Attributes. `editMode` is in the deps so the branch still
+    // loads the moment the seller clicks Edit.
+    if (!form || !baseLookups.current || !editMode) return;
     syncCategoryLookups(
       form.category_id,
       form.sub_category_id,
       form.sub_sub_category_id,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [catKey]);
+  }, [catKey, editMode]);
 
   const patch = (p: Partial<ProductForm>) => {
     setForm((prev) => (prev ? { ...prev, ...p } : prev));

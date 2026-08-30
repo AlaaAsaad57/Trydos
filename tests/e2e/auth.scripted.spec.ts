@@ -21,6 +21,7 @@ import {
 } from "./actions/auth";
 import { mockBackend, mockBackendSequence } from "./actions/mock";
 import { ENDPOINTS, scenarios } from "./scenarios";
+import { auth } from "./selectors";
 import { hasTestAccountPhones } from "./harness/env";
 
 const TEST_PHONE_A = () => process.env.TEST_ACCOUNT_PHONE ?? "";
@@ -132,13 +133,57 @@ test.describe("scripted authentication", () => {
       })
       .not.toBeNull();
 
-    // Server error during verify.
+    // Server error during verify. This is the third failed check in a row, so
+    // it is also the one that spends the last of the three tries — every failed
+    // check counts, whatever caused it. The line the shopper reads here is the
+    // cap's, not the backend's; what this step still proves is that the slot is
+    // filled rather than left blank.
     await submitOtp(page, { otp: "000000", phone });
     await expect
       .poll(async () => await visibleVerifyError(page), {
         timeout: 10_000,
-        message: "server-error message did not appear",
+        message:
+          "the third failed check left the message slot empty — after a " +
+          "server error the shopper must read either the reason or the " +
+          "tries-ran-out line, not nothing",
       })
       .not.toBeNull();
+  });
+
+  test("the code boxes stop taking a fourth code", async ({ page }) => {
+    await gotoAbout(page);
+    await mockBackendSequence(page, ENDPOINTS.login, [
+      scenarios.auth.wrongOtp[ENDPOINTS.login],
+      scenarios.auth.wrongOtp[ENDPOINTS.login],
+      scenarios.auth.wrongOtp[ENDPOINTS.login],
+    ]);
+
+    const phone = pickPhone(3);
+    await openLoginWidget(page);
+    await chooseAuthIntent(page, { intent: "login" });
+    await enterPhone(page, { phone });
+    await sendOtpWithRetry(page, { method: "whatsapp", phone });
+
+    for (const attempt of [1, 2, 3]) {
+      await test.step(`wrong code ${attempt} of 3`, async () => {
+        await submitOtp(page, { otp: "000000", phone });
+        await expect
+          .poll(async () => await visibleVerifyError(page), {
+            timeout: 10_000,
+            message: `wrong code ${attempt} produced no message on the PIN screen`,
+          })
+          .not.toBeNull();
+      });
+    }
+
+    // Asserted directly, not through `submitOtp`: that helper waits for the
+    // field to be ENABLED before it types, so using it here would fail as a bare
+    // Playwright timeout naming nothing. It is shared by four spec files and is
+    // not changed for this one case.
+    await expect(
+      auth.otpInput(page),
+      "after three wrong codes the boxes must stop taking input — a shopper " +
+        "who can still type a fourth code has no cap at all",
+    ).toBeDisabled({ timeout: 10_000 });
   });
 });

@@ -50,6 +50,10 @@ async function renderScreen(props: ScreenProps = {}) {
 const codeField = () =>
   document.querySelector<HTMLInputElement>('[data-pw="input-otp-field"]')!;
 
+/** The app's own keypad, drawn only on a touch device. */
+const keypad = () =>
+  document.querySelector<HTMLButtonElement>('[data-pw="keypad-digit-1"]');
+
 beforeEach(() => {
   setDevice("pointer");
   window.sessionStorage.clear();
@@ -295,5 +299,60 @@ describe("asking for another code", () => {
       "the funnel counts one expiry per code, not one per second the screen " +
         "stays open",
     ).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Three wrong codes and the boxes go dead — the same dead state a spent code
+// gives, reached a different way.
+describe("when the tries have run out", () => {
+  it("takes nothing more once the tries have run out", async () => {
+    await renderScreen({ attemptsLocked: true });
+
+    expect(
+      codeField().disabled,
+      "the boxes must stop taking input after the third wrong code, or the " +
+        "cap is only a message and a shopper can keep guessing",
+    ).toBe(true);
+  });
+
+  it("closes the keypad when the tries run out", async () => {
+    // On a pointer device no keypad is ever drawn, so this case would pass
+    // against a broken lock. It has to run as a phone does.
+    setDevice("touch");
+    const { rerender } = await renderScreen({ attemptsLocked: false });
+
+    // The keypad opens on a timer after mount, and only while the boxes are
+    // live — so it must be seen open BEFORE the lock lands. Rendering straight
+    // into the locked state would find no keypad either way and prove nothing.
+    await waitFor(() =>
+      expect(
+        keypad(),
+        "the keypad must be up while the boxes are still live, or this case " +
+          "cannot see the lock close it",
+      ).not.toBeNull(),
+    );
+
+    rerender(<Host attemptsLocked />);
+
+    await waitFor(() =>
+      expect(
+        keypad(),
+        "the keypad must come down with the boxes — left standing it covers " +
+          "dead boxes and cannot be tapped away",
+      ).toBeNull(),
+    );
+  });
+
+  it("says the code ran out of life when it is both spent and locked", async () => {
+    // `timerSeconds: 0` puts the code past its life immediately.
+    await renderScreen({ attemptsLocked: true, timerSeconds: 0 });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText("The Code Sent Has Expired"),
+        "a dead code is the older, plainer fact — it must win the one message " +
+          "slot rather than being replaced by the tries-ran-out line",
+      ).not.toBeNull(),
+    );
   });
 });

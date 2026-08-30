@@ -497,3 +497,49 @@ describe("closing the panel", () => {
     ).toHaveBeenCalledTimes(1);
   });
 });
+
+// Three wrong codes and the boxes go dead — the cart surface in its own right.
+// This panel does not use EnterPinScreen: it draws its own boxes, so the wiring
+// proved here is not the wiring proved on the fullscreen flow.
+describe("the three-try cap on this surface", () => {
+  async function atCodeStep() {
+    sendThatWorked();
+    const panel = await renderPanel({ initialPhone: PHONE, phoneLocked: true });
+    await panel.user.click(screen.getByRole("button", { name: "Send SMS" }));
+    await waitFor(() => expect(codeField()).toBeInTheDocument());
+    return panel;
+  }
+
+  it("locks the boxes after three wrong codes", async () => {
+    verifyOtp.mockRejectedValue(new Error("Wrong Code"));
+    const { user } = await atCodeStep();
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      // Cleared between codes on purpose: the field reports a finished code on
+      // every keystroke once six digits are already in it, so typing over the
+      // last code would spend several tries at once and the boxes would lock
+      // after two codes while this case still passed.
+      await user.clear(codeField()!);
+      await user.type(codeField()!, "000000");
+      await waitFor(() =>
+        expect(
+          verifyOtp,
+          "each typed code must reach the check",
+        ).toHaveBeenCalledTimes(attempt + 1),
+      );
+    }
+
+    expect(
+      verifyOtp,
+      "three typed codes must cost exactly three checks — any more means the " +
+        "boxes locked after fewer codes than the shopper typed",
+    ).toHaveBeenCalledTimes(3);
+    await waitFor(() =>
+      expect(
+        codeField(),
+        "after the third wrong code the cart panel must stop taking input, " +
+          "the same as every other place a code is typed",
+      ).toBeDisabled(),
+    );
+  });
+});

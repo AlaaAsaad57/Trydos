@@ -60,6 +60,7 @@ export default function InlineVerifyPanel({
         isValidPin,
         error,
         loading,
+        attemptsLocked,
         sendMethod,
         verifyPin,
     } = usePhoneVerifyFlow({
@@ -261,12 +262,17 @@ export default function InlineVerifyPanel({
 
             {step === 'enter-pin' && (
                 <>
+                    {/* `isExpired` here is for the dashed dead-box styling, so a
+                        locked shopper reads the same picture on every surface.
+                        Not for the keypad — `disableCustomKeypad` below means
+                        this panel never renders one to strand. */}
                     <RdbPinInputs
                         value={pin}
                         onChange={setPin}
                         onComplete={verifyPin}
-                        disabled={busy || isValidPin === 'valid'}
+                        disabled={busy || isValidPin === 'valid' || attemptsLocked}
                         isValidPin={isValidPin}
+                        isExpired={attemptsLocked}
                         autoFocus={false}
                         disableCustomKeypad
                     />

@@ -21,6 +21,12 @@ interface EnterPinScreenProps {
     onResend?: () => void;
     loading?: string;
     isValidPin?: 'valid' | 'notvalid' | '';
+    /**
+     * The tries ran out — three wrong codes since the last one arrived. Kills the
+     * boxes exactly the way a spent code does. The words come through `error`,
+     * not from here, so the expired line still wins when both are true.
+     */
+    attemptsLocked?: boolean;
     timerSeconds?: number;
     /** Message from a failed verify, already translated by the caller. */
     error?: string;
@@ -43,6 +49,7 @@ export default function EnterPinScreen({
     onResend,
     loading = '',
     isValidPin = '',
+    attemptsLocked = false,
     timerSeconds = 120,
     error,
     onTimerExpired,
@@ -280,9 +287,20 @@ export default function EnterPinScreen({
                         value={pin}
                         onChange={setPin}
                         onComplete={handlePinComplete}
-                        disabled={loading === 'verify-pin' || isValidPin === 'valid' || codeExpired}
+                        // `isExpired` is not decoration next to `disabled`: it is
+                        // the only thing that closes the on-screen keypad
+                        // (RdbPinInputs gates the keypad on it, and its
+                        // outside-click closer gives up while disabled). A lock
+                        // that set `disabled` alone would strand an open keypad
+                        // over dead boxes with no way to shut it.
+                        disabled={
+                            loading === 'verify-pin' ||
+                            isValidPin === 'valid' ||
+                            codeExpired ||
+                            attemptsLocked
+                        }
                         isValidPin={isValidPin}
-                        isExpired={codeExpired}
+                        isExpired={codeExpired || attemptsLocked}
                     />
                     {codeExpired && (
                         <p className="text-xd-11 pt-1 font-medium text-[#1D1D1D]">
