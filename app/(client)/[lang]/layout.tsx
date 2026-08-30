@@ -6,6 +6,7 @@ import { lang as langParam } from "next/root-params";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
+import { IMAGE_FALLBACK_SCRIPT } from "utils/imageFallback";
 import CartProvider from "components/Cart/CartProvider";
 import Init from "components/Home/Init";
 import AuthNavContainer from "components/Home/AuthNavContainer";
@@ -133,6 +134,25 @@ export default async function RootLayout({ children, modal }) {
         className={`${language === "ar" || language === "ku" ? "text-rtl" : ""} notranslate antialiased`}
         translate="no"
       >
+        {/* First child of <body> on purpose. An inline script runs while the
+            browser is still parsing, so this listener exists before any <img>
+            below it does — and images in the server-rendered HTML start loading,
+            and start failing, long before the app becomes interactive.
+
+            A raw <script> rather than next/script: `beforeInteractive` is a
+            client component whose position in the document the framework
+            decides, while a plain element sits exactly where it is written.
+            dangerouslySetInnerHTML is required — React escapes a text child of
+            <script>, which would ship entities and throw on every page (the
+            gtag-init script below does the same thing for the same reason).
+
+            Costs the client bundle nothing: this is a Server Component, so
+            utils/imageFallback.ts is rendered to a string here and never sent to
+            the browser as JavaScript. */}
+        <script
+          id="image-fallback"
+          dangerouslySetInnerHTML={{ __html: IMAGE_FALLBACK_SCRIPT }}
+        />
         <Organaization local={lang} />
         <Website local={lang} />
         <Script

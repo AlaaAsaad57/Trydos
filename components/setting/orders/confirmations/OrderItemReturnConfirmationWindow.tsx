@@ -331,9 +331,6 @@ const RenderReturnedItem = ({
               })}
               alt={return_item.name}
               className="w-full h-full object-cover object-center"
-              onError={(e) => {
-                e.currentTarget.src = "/images/placeholder-product.png";
-              }}
             />
 
             {/* Quantity Badge */}

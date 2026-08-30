@@ -142,10 +142,6 @@ function SearchResult({
         >
           {photo ? (
             <img
-              onError={({ currentTarget }) => {
-                currentTarget.onerror = null; // prevents looping
-                (currentTarget as any).src = ProfilePicture;
-              }}
               alt=""
               src={photo ? GetImageUrl(photo) : ProfilePicture.src}
             />
