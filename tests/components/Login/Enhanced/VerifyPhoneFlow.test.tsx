@@ -575,3 +575,75 @@ describe("in a right-to-left language", () => {
     ).not.toBeInTheDocument();
   });
 });
+
+// Three wrong codes and the boxes go dead. Proved on this surface in its own
+// right: the count lives in the shared flow, but the wiring that feeds it to
+// the screen is this component's.
+describe("the three-try cap on this surface", () => {
+  beforeEach(() => {
+    sendOtp.mockImplementation(async () => {
+      lockNumber(PHONE, 120);
+      recordSessionNumber(PHONE);
+    });
+  });
+
+  async function atCodeStep(props: FlowProps = {}) {
+    const flow = await renderFlow({
+      initialPhone: PHONE,
+      phoneLocked: true,
+      ...props,
+    });
+    await flow.user.click(screen.getByRole("button", { name: /Send SMS/ }));
+    await screen.findByText("Enter Verification Code Sent To Your SMS");
+    return flow;
+  }
+
+  it("locks the boxes after three wrong codes", async () => {
+    const verify = vi.fn().mockRejectedValue(new Error("Wrong Code"));
+    const { user } = await atCodeStep({ verify });
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      // Clearing between codes is not tidiness. The field fires its complete
+      // handler on every keystroke once six digits are already in it, so typing
+      // a second code over the first spends several tries at once — and the
+      // boxes would lock after two codes while this case still went green.
+      await user.clear(codeField());
+      await user.type(codeField(), "000000");
+      await waitFor(() =>
+        expect(verify, "each typed code must reach the check").toHaveBeenCalledTimes(
+          attempt + 1,
+        ),
+      );
+    }
+
+    expect(
+      verify,
+      "three typed codes must cost exactly three checks — more than that means " +
+        "the boxes locked after fewer codes than the shopper actually typed",
+    ).toHaveBeenCalledTimes(3);
+    await waitFor(() =>
+      expect(
+        codeField(),
+        "after the third wrong code this screen must stop taking input",
+      ).toBeDisabled(),
+    );
+  });
+
+  it("still counts down to a new code while the boxes are locked", async () => {
+    const verify = vi.fn().mockRejectedValue(new Error("Wrong Code"));
+    const { user } = await atCodeStep({ verify });
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await user.clear(codeField());
+      await user.type(codeField(), "000000");
+      await waitFor(() => expect(verify).toHaveBeenCalledTimes(attempt + 1));
+    }
+
+    await waitFor(() => expect(codeField()).toBeDisabled());
+    expect(
+      screen.getByText(/Resend After -/),
+      "the way out is a new code, so the wait for one must stay on screen — " +
+        "dead boxes with no countdown leave the shopper nothing to act on",
+    ).toBeInTheDocument();
+  });
+});

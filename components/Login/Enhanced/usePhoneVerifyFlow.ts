@@ -11,6 +11,14 @@ import { normalizeDialInput } from './ui/RdbPhoneInput';
 
 export type PhoneVerifyStep = 'enter-phone' | 'select-method' | 'enter-pin';
 
+/**
+ * Wrong codes allowed per code sent, after which the boxes go dead until a new
+ * code arrives. Fixed in the build on purpose — no env var, no remote setting.
+ * `FullEnhancedLoginWidget` imports this rather than keeping its own 3, so the
+ * two copies of the counter can never disagree about the number.
+ */
+export const MAX_VERIFY_ATTEMPTS = 3;
+
 type Method = 'sms' | 'whatsapp' | '';
 
 // 'send-phone' is never set (the phone step has nothing to await) but stays in
@@ -60,6 +68,13 @@ export interface UsePhoneVerifyFlowResult {
     error: string;
     setError: (error: string) => void;
     loading: LoadingState;
+    /**
+     * The boxes are spent: `MAX_VERIFY_ATTEMPTS` wrong codes have been entered
+     * since the last code arrived. A host feeds this to its pin inputs as both
+     * `disabled` and `isExpired` — the second one is what closes the on-screen
+     * keypad, which `disabled` alone does not do. Cleared by a code that arrives.
+     */
+    attemptsLocked: boolean;
     /**
      * Sends the OTP for the first time (or after a method switch) and, on
      * success, advances to 'enter-pin'.
@@ -116,6 +131,11 @@ export function usePhoneVerifyFlow({
     const [isValidPin, setIsValidPin] = useState<'valid' | 'notvalid' | ''>('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState<LoadingState>('');
+    // Wrong codes since the last code arrived. STATE, not a ref like
+    // `attemptsRef` below, because the boxes and the "tries left" line are drawn
+    // from it — a ref change draws nothing. The two counters are deliberately
+    // separate and count different things; see `attemptsRef`.
+    const [wrongCodes, setWrongCodes] = useState(0);
 
     // The pin inputs can fire onComplete twice inside one tick, before `loading`
     // has re-rendered, and each extra submit burns a server-side attempt.
@@ -124,7 +144,25 @@ export function usePhoneVerifyFlow({
     // resend's GA payload the way `FullEnhancedLoginWidget` does with its own
     // `attemptsRef`. A ref (not state) because it's read inside an async
     // callback and must reflect the count as of the request, not of render.
+    //
+    // This is NOT the cap's counter. It counts EVERY verify, the successful one
+    // included, and it exists for the analytics payload. `wrongCodes` above
+    // counts only the failed ones. Pointing one at the other would silently
+    // change what the `attempts` field on VERIFY_OTP / RESEND_OTP reports.
     const attemptsRef = useRef(0);
+
+    const attemptsLocked = wrongCodes >= MAX_VERIFY_ATTEMPTS;
+
+    /**
+     * What the shopper reads after a failed check. Built from the count passed
+     * in, never from `wrongCodes` — inside the catch the state value is still
+     * the pre-failure one, which would say "Tries left: 3" on the first failure
+     * and make the cap four checks instead of three.
+     */
+    const attemptMessage = (wrong: number) =>
+        wrong >= MAX_VERIFY_ATTEMPTS
+            ? translate('Too many wrong codes. Ask for a new code.')
+            : `${translate('Please Enter The Correct Code Sent To Your Phone')} — ${translate('Tries left')}: ${MAX_VERIFY_ATTEMPTS - wrong}`;
 
     /**
      * A failed request carries either a backend message (already localised by
@@ -178,6 +216,7 @@ export function usePhoneVerifyFlow({
         try {
             await AuthService.SendOtp(phone, selected === 'whatsapp' ? 1 : 0, () => {});
             attemptsRef.current = 0;
+            setWrongCodes(0);
             setPin('');
             setIsValidPin('');
             setLoading('');
@@ -211,6 +250,7 @@ export function usePhoneVerifyFlow({
         try {
             await AuthService.SendOtp(phone, method === 'whatsapp' ? 1 : 0, () => {});
             attemptsRef.current = 0;
+            setWrongCodes(0);
             setPin('');
             setIsValidPin('');
             setLoading('');
@@ -248,9 +288,14 @@ export function usePhoneVerifyFlow({
             // anywhere to flag it.
             setTimeout(() => onSuccess(result), 600);
         } catch (e) {
+            // Every failed check counts the same — a refused code, a network
+            // fault and a server fault are not told apart. That is a decision,
+            // not an oversight; its cost is written up in the ticket's EC-9.
+            const next = wrongCodes + 1;
+            setWrongCodes(next);
             setLoading('');
             setIsValidPin('notvalid');
-            setError(translate('Please Enter The Correct Code Sent To Your Phone'));
+            setError(attemptMessage(next));
             LogError({ error: e, scenario: `Error verifying OTP in ${source}` });
             setTimeout(() => {
                 setIsValidPin('');
@@ -275,6 +320,7 @@ export function usePhoneVerifyFlow({
         error,
         setError,
         loading,
+        attemptsLocked,
         sendMethod,
         resend,
         verifyPin,
