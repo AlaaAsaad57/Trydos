@@ -20,6 +20,20 @@ const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
 const isDev = process.env.NODE_ENV === "development";
 
 let nextConfig: NextConfig = {
+  // Cache Components (Next 16.3). Application-wide by design: the flag cannot be
+  // switched on for one route. It refuses every `dynamic`, `revalidate`,
+  // `runtime`, `dynamicParams` and `fetchCache` route setting, which is why all
+  // 36 of them were deleted across 26 files in the same change.
+  //
+  // No route is converted here. Nothing uses `use cache`, and no cache profile
+  // is defined — this phase only makes the application build and run with the
+  // flag on, so the conversion can be planned against a real route table. See
+  // docs/homepage-cache-phase-2.md.
+  //
+  // One consequence a shopper can see, with no opt-out: the flag enables React
+  // <Activity> route retention, so component state stops resetting when they
+  // navigate away and back.
+  cacheComponents: true,
   reactStrictMode: false,
   // Removes the `X-Powered-By: Next.js` header (security scan F-06 — tech
   // fingerprinting). `Server: Vercel` is platform-managed and can't be dropped.

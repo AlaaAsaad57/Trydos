@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getSecureCookie } from "utils/server/tokenManager";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
-export const dynamic = "force-dynamic";
 
 // Returns the wallet token for the RDB widget
 // This is a controlled exception: the RDB component requires

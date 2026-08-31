@@ -1,4 +1,3 @@
-export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { getRelatedProducts } from "services/elastic/elasticSearch";
 import { LogServerError } from "utils/serverErrorReporter";

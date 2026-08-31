@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateStaticPagesSitemapXML } from "services/elastic/sitemap.service";
 import { LogServerError } from "utils/serverErrorReporter";
 
-export const revalidate = 43200; // static pages change rarely, regenerate every 12h
 
 export async function GET(request: NextRequest) {
   try {

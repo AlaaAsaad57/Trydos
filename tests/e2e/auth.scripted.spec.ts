@@ -166,13 +166,39 @@ test.describe("scripted authentication", () => {
 
     for (const attempt of [1, 2, 3]) {
       await test.step(`wrong code ${attempt} of 3`, async () => {
+        // The boxes must be empty before this code is typed. `submitOtp` uses
+        // `fill`, and filling a field with the value it already holds fires no
+        // change event — so no `onComplete`, and no verify call at all. The app
+        // clears the boxes itself ~1.5s after a failure; waiting for that is
+        // what makes each pass through this loop a real attempt.
+        //
+        // Without this wait the loop silently degraded to ONE attempt: the two
+        // later fills were no-ops, and the poll below passed on the message
+        // attempt 1 had left on screen. The cap was never reached, and the test
+        // blamed the app for a cap that had only ever been asked to count once.
+        await expect(
+          auth.otpInput(page),
+          `the boxes still held the previous code when attempt ${attempt} was ` +
+            `typed, so this attempt would not have been sent`,
+        ).toHaveValue("", { timeout: 10_000 });
+
         await submitOtp(page, { otp: "000000", phone });
+
+        // Asserts the tries-left line for THIS attempt, not merely that some
+        // message is visible. A stale message from the previous attempt is
+        // exactly what hid the no-op fills, so "a message is showing" is not
+        // evidence that this attempt happened.
+        const expected =
+          attempt < 3 ? `Tries left: ${3 - attempt}` : "Too many wrong codes";
         await expect
           .poll(async () => await visibleVerifyError(page), {
             timeout: 10_000,
-            message: `wrong code ${attempt} produced no message on the PIN screen`,
+            message:
+              `after wrong code ${attempt} the PIN screen should read ` +
+              `"${expected}" — a different line means this attempt was not ` +
+              `counted, or the cap moved`,
           })
-          .not.toBeNull();
+          .toContain(expected);
       });
     }
 

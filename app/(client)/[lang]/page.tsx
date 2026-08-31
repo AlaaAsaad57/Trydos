@@ -1,5 +1,4 @@
 import { lang as langParam } from "next/root-params";
-export const dynamic = "force-dynamic";
 import StoriesBarServer from "components/Server/StoriesBarServer";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
@@ -18,6 +17,10 @@ import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct"
 import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
 import { GetHomeMetaData } from "serverRequests/meta/home";
 import { translateFunction } from "utils/server";
+
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, query] = await Promise.all([params, searchParams]);

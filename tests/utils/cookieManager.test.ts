@@ -215,4 +215,26 @@ describe("reading a cookie on the server", () => {
 
     expect(await getCookieServer(COOKIE_NAMES.MARKET_TOKEN)).toBeNull();
   });
+
+  it("re-throws the framework's prerender bail-out instead of swallowing it", async () => {
+    // Under Cache Components, `cookies()` rejects during a prerender to say
+    // "this part is dynamic, defer it". Catching that and answering null turns
+    // a deferral into a lie: the component renders as though the visitor were a
+    // guest, and that guest markup can end up in the static shell.
+    //
+    // Observed for real in the first build with the flag on, which logged
+    // "During prerendering, `cookies()` rejects when the prerender is complete"
+    // at route /[lang]/settings — swallowed here, so the caller never saw it.
+    const getCookieServer = await loadReader();
+    const bailout = Object.assign(
+      new Error("During prerendering, `cookies()` rejects when the prerender is complete."),
+      { digest: "HANGING_PROMISE_REJECTION" },
+    );
+    headers.cookies.mockRejectedValueOnce(bailout);
+
+    await expect(
+      getCookieServer(COOKIE_NAMES.MARKET_TOKEN),
+      "the prerender bail-out was swallowed and answered as a missing cookie, so a guest shell can be prerendered for a signed-in page",
+    ).rejects.toThrow(/prerender/i);
+  });
 });

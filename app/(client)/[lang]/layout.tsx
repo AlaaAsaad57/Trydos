@@ -27,6 +27,10 @@ import NavigationLoaderGate from "components/global/NavigationLoaderGate";
 // loaded after hydration (ssr:false) to trim main-thread hydration cost.
 import DeferredLayoutClients from "components/global/DeferredLayoutClients";
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -112,6 +116,19 @@ const quicksand_semibold = localFont({
   preload: true,
   fallback: ["system-ui", "arial"],
 });
+
+// Root parameters must have at least one value once Cache Components is on, or
+// the build fails (next-root-params.md: "each root parameter must have at least
+// one value or the build fails").
+//
+// One value on purpose. This phase caches nothing, so a longer list would only
+// buy build time; and 20 locales x every category page is between roughly 1,860
+// and 7,420 pages, which is why the conversion prerenders the minimum and builds
+// the rest on first request (D-23). Every locale not listed here still works:
+// Next serves the App Shell and saves the page to disk after the first request.
+export function generateStaticParams() {
+  return [{ lang: "sy-en" }];
+}
 
 export default async function RootLayout({ children, modal }) {
   const lang = await langParam();

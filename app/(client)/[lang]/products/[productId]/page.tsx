@@ -1,12 +1,14 @@
 import { lang as langParam } from "next/root-params";
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 import { RedisSet } from "serverRequests/radis";
 import { GetProductMeta } from "serverRequests/product";
 import { redirect } from "next/navigation";
 import { LogServerError } from "utils/serverErrorReporter";
 import ProductPageContent from "components/Product/ProductPageContent";
 import { Metadata } from "next";
+
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 export async function generateMetadata({ params, searchParams }): Promise<Metadata>{
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
