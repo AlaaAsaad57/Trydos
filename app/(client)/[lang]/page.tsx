@@ -1,8 +1,7 @@
 import { lang as langParam } from "next/root-params";
-import StoriesBarServer from "components/Server/StoriesBarServer";
+import StoriesBarClient from "components/Home/Stories/StoriesBarClient";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
-import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { Suspense } from "react";
 import Home from "components/Home";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
@@ -106,12 +105,15 @@ async function HomePage({ params, searchParams }) {
             <MainCategoriesNavbar lang={lang} mainCategory={mainCategory} />
           </Suspense>
         </div>
-        <Suspense fallback={<StoriesSkeleton />} key={`Stories ${lang}`}>
-          <StoriesBarServer
-            language={lang.split("-")[1]}
-            country={lang.split("-")[0]}
-          />
-        </Suspense>
+        {/* No <Suspense>: this is a client component that fetches the bar
+            itself and shows its own skeleton while it waits. It used to be a
+            server component that read two cookies, which a cached document
+            cannot do. */}
+        <StoriesBarClient
+          key={`Stories ${lang}`}
+          language={lang.split("-")[1]}
+          country={lang.split("-")[0]}
+        />
 
         <Suspense
           fallback={<FeaturedProductsSkeleton />}

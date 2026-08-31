@@ -2,7 +2,10 @@ import Skeleton from "react-loading-skeleton";
 
 function StoriesSkeleton() {
   return (
-    <div className=" stories-bar-container h-[183px] items-center flex w-full z-99999999 max-w-[1365px] justify-start">
+    <div
+      data-pw="stories-skeleton"
+      className=" stories-bar-container h-[183px] items-center flex w-full z-99999999 max-w-[1365px] justify-start"
+    >
       <div
         id="stories-bar"
         className="stories-bar  w-full h-[183px] items-center flex justify-start false"
