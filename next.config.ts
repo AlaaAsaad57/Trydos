@@ -103,10 +103,26 @@ let nextConfig: NextConfig = {
             // triggering SSR renders we pay Function Duration for).
             value: allowIndexing ? "index, follow" : "noindex, nofollow",
           },
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=60, stale-while-revalidate=300",
-          },
+          // NO Cache-Control here — deliberately.
+          //
+          // This block matches `/(.*)`, which includes every HTML document. A
+          // `public` value here was therefore applied to personal pages —
+          // settings/wallet, settings/profile/info, settings/orders,
+          // sellerProfile — all of which render per-visitor data through
+          // AuthNavContainer. Measured on develop before this change, every one
+          // of them answered `public, s-maxage=60, stale-while-revalidate=300`
+          // with no `Vary: Cookie`, so a shared cache could store one shopper's
+          // page and serve it to another for 60s (plus 300s while revalidating).
+          //
+          // Worse, requests that skip the middleware — proxy.ts's `missing:`
+          // clause excludes RSC, prefetch and Server Action requests — carried
+          // the same header with NO Set-Cookie at all, removing the one property
+          // that makes most shared caches refuse to store a response.
+          //
+          // Caching now comes from the route that owns it: static assets keep
+          // their immutable rule below, the sitemaps keep theirs, /api stays
+          // no-store, and every page gets whatever Next.js decides for it. Any
+          // page that should be publicly cached must say so itself.
         ],
       },
       {
