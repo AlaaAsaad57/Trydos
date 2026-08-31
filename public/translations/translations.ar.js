@@ -55,6 +55,7 @@ const translations = {
   "Authorization Letter": "خطاب تفويض",
   "Please select a document type": "الرجاء اختيار نوع المستند",
   "Something went wrong": "حدث خطأ ما",
+  "We could not load this part of the page": "لم نتمكن من تحميل هذا الجزء من الصفحة",
   "Upload URL not found": "لم يتم العثور على رابط الرفع",
   "Failed to upload document": "فشل رفع المستند",
   // Report Story flow

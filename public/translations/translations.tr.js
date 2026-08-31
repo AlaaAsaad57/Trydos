@@ -55,6 +55,7 @@ const translations = {
   "Authorization Letter": "Yetki Belgesi",
   "Please select a document type": "Lütfen bir belge türü seçin",
   "Something went wrong": "Bir şeyler ters gitti",
+  "We could not load this part of the page": "Sayfanın bu bölümünü yükleyemedik",
   "Upload URL not found": "Yükleme bağlantısı bulunamadı",
   "Failed to upload document": "Belge yüklenemedi",
   // Report Story flow
