@@ -2,6 +2,13 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
+import {
+  GetFeaturedProducts,
+  GetFlashDealProducts,
+  GetHomeBoutiques,
+} from "serverRequests/home";
+import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
+import type { ListingProduct } from "types/listing";
 
 // Cached readers for the home and category views.
 //
@@ -69,4 +76,89 @@ export async function getCachedCategories(
   }
 
   return [...byId.values()];
+}
+
+/** A category slug as an Elasticsearch filter, or undefined for "no filter". */
+function categoryFilter(slug: string | null): string | undefined {
+  return slug ? JSON.stringify([slug]) : undefined;
+}
+
+/**
+ * The featured row, for one country, language and category.
+ *
+ * `normalizeListingProduct` no longer reads the redeemed cookie, which is what
+ * makes this cacheable at all (Task 9). What comes back is a fact about the
+ * products; the shopper's own redemption record is applied in their browser.
+ */
+export async function getCachedFeatured(
+  country: string,
+  language: string,
+  categorySlug: string | null,
+): Promise<ListingProduct[]> {
+  "use cache";
+  cacheLife("homepage");
+  cacheTag(`featured-${country}-${language}-${categorySlug ?? "all"}`);
+
+  const response: any = await GetFeaturedProducts({
+    language,
+    country,
+    category: categoryFilter(categorySlug),
+    limit: 10,
+  });
+  return (response?.data?.products ?? []).map((product: any) =>
+    normalizeListingProduct(product),
+  );
+}
+
+/**
+ * The flash-deal row, for one country, language and category.
+ *
+ * The deal window is decided by Elasticsearch date math (`now/d`), not by a
+ * clock read here — a `use cache` scope has no clock, and a baked timestamp
+ * would freeze the deal window into the entry. See services/elastic/helpers.ts.
+ */
+export async function getCachedFlashDeals(
+  country: string,
+  language: string,
+  categorySlug: string | null,
+): Promise<ListingProduct[]> {
+  "use cache";
+  cacheLife("homepage");
+  cacheTag(`flash-${country}-${language}-${categorySlug ?? "all"}`);
+
+  const response: any = await GetFlashDealProducts({
+    language,
+    country,
+    category: categoryFilter(categorySlug),
+    limit: 10,
+  });
+  return (response?.data?.products ?? []).map((product: any) =>
+    normalizeListingProduct(product),
+  );
+}
+
+/**
+ * The boutique offers section, for one country, language and category.
+ *
+ * The offset travels with the boutiques: the infinite scroll asks for the next
+ * page with it, so a cached section without one can never grow.
+ */
+export async function getCachedBoutiques(
+  country: string,
+  language: string,
+  categorySlug: string | null,
+): Promise<{ boutiques: any[]; offset: any }> {
+  "use cache";
+  cacheLife("homepage");
+  cacheTag(`boutiques-${country}-${language}-${categorySlug ?? "all"}`);
+
+  const response: any = await GetHomeBoutiques({
+    language,
+    country,
+    category: categoryFilter(categorySlug) ?? null,
+  });
+  return {
+    boutiques: response?.data?.boutiques ?? [],
+    offset: response?.data?.offset ?? null,
+  };
 }

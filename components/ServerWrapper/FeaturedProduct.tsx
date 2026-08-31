@@ -1,8 +1,14 @@
 import FeatureProducts from "components/Server/FeatureProducts";
+import { getCachedFeatured } from "serverRequests/cached/home";
 
-import { GetFeaturedProducts } from "serverRequests/home";
-import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
-
+/**
+ * The featured row.
+ *
+ * The products come from a cached reader, so this wrapper holds no request-bound
+ * read of its own — no cookie, no header, no clock. `currency` is still awaited
+ * because the home page hands it over as an unresolved promise, which is what
+ * lets the currency fetch overlap the product fetch.
+ */
 export async function FeaturedProductWrapper({
   lang,
   currency: currencyData,
@@ -10,29 +16,16 @@ export async function FeaturedProductWrapper({
 }) {
   const [country, language] = lang?.split("-");
 
-  let category;
-  if (mainCategory) {
-    category = JSON.stringify([mainCategory]);
-  }
-  let [response, currency] = await Promise.all([
-    GetFeaturedProducts({
-      language,
-      country,
-      category: category,
-      limit: 10,
-    }),
+  const [products, currency] = await Promise.all([
+    getCachedFeatured(country, language, mainCategory),
     currencyData,
   ]);
 
-  let productsData = response.data.products.map(normalizeListingProduct);
-
   return (
-    <>
-      <FeatureProducts
-        currencyData={currency}
-        fetauredProductsData={{ data: { products: productsData } }}
-        lang={lang}
-      />
-    </>
+    <FeatureProducts
+      currencyData={currency}
+      fetauredProductsData={{ data: { products } }}
+      lang={lang}
+    />
   );
 }
