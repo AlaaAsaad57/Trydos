@@ -220,9 +220,15 @@ state, which is correct, not a fault.
 
 ## The blocker Phase A found that the plan did not know about
 
-Before any of M-5 could be measured, one thing had to be explained: **no route
-under `app/(client)/[lang]/` was prerendered at all.** Not one. A probe page with
-zero imports and no data was still `ƒ`.
+Before any of M-5 could be measured, one thing had to be explained: **a probe
+page under `app/(client)/[lang]/` with zero imports and no data was still `ƒ`.**
+
+*(Corrected in Task 13.* The first version of this line said "no route under
+`app/(client)/[lang]/` was prerendered at all. Not one." That was too strong —
+the baseline route table already had 24 `◐` routes, several of them under
+`[lang]`. What the probe showed is narrower and still the point: a page that
+reads nothing at all could not be prerendered, so something in the layout was
+opting the route out.*)
 
 It is not the root parameter, and it is not `export const instant = false`. Both
 were ruled out by building with them changed. Replacing the layout with a
@@ -268,6 +274,30 @@ apply the fix directly instead of re-deriving it.
 
 The layout was returned to its committed state after the measurement. Nothing in
 Phase A ships this change.
+
+### What it did when Task 13 shipped it
+
+The four boundaries went in together with the `AuthNavContainer` one (D-9). The
+route table moved:
+
+| | before | after |
+|---|---|---|
+| `○` static | 8 | 8 |
+| `◐` partial prerender | 24 | **44** |
+| `ƒ` dynamic | 90 | **70** |
+
+Ten routes moved from `ƒ` to `◐` (each appears twice in the table, once as
+`/[lang]/…` and once as `/sy-en/…`): `about`, `compare`, `contact`, `loginDemo`,
+`privacy-policy`, `settings/checklist`, `settings/countries`,
+`settings/prefferences`, `settings/wallet`, `terms-of-service`.
+
+`/[lang]` itself is still `ƒ`. It keeps `export const instant = false` until
+Task 15, so this is expected, not a failure.
+
+The `AuthNavSkeleton` shape was measured, not guessed, and the swap was checked
+in a browser: the real navigation lands at exactly the 1189 x 50 the skeleton
+reserved, and total layout shift over the whole page load is 0.031 — the 0.030
+of it comes from the page body arriving in dev mode, not from the navigation.
 
 ---
 

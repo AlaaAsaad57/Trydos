@@ -1,4 +1,5 @@
 import "styles/globals.css";
+import { Suspense } from "react";
 import "styles/home.css";
 
 import localFont from "next/font/local";
@@ -13,6 +14,7 @@ import { isSupportedLocaleSegment } from "utils/locale";
 import CartProvider from "components/Cart/CartProvider";
 import Init from "components/Home/Init";
 import AuthNavContainer from "components/Home/AuthNavContainer";
+import AuthNavSkeleton from "components/Home/AuthNavSkeleton";
 import NavbarClient from "components/Home/NavbarClient";
 import NavigationLoaderSafetyNet from "components/global/NavigationLoaderSafetyNet";
 import Organaization from "serverRequests/meta/StructuredData/Organaization";
@@ -223,7 +225,13 @@ export default async function RootLayout({ children, modal }) {
                 />
               </div>
             </a>
-            <AuthNavContainer />
+            {/* Four cookie reads, so this is request-bound. Wrapped so the
+                rest of the document can be prerendered and this streams in
+                behind it (D-9). Without the boundary the whole route is
+                dynamic and nothing else on the page can be cached. */}
+            <Suspense fallback={<AuthNavSkeleton />}>
+              <AuthNavContainer />
+            </Suspense>
           </div>
           <OverlayVisibilityProvider>
             <NavigationLoaderGate>
@@ -232,12 +240,29 @@ export default async function RootLayout({ children, modal }) {
             </NavigationLoaderGate>
           </OverlayVisibilityProvider>
         </div>
-        <Init />
+        {/* These four call useSearchParams(), and an unwrapped
+            useSearchParams() opts the WHOLE route out of prerendering. They sit
+            in the layout, so before these boundaries they opted out every page
+            under [lang] — the entire storefront. Measured in Phase A: a probe
+            page with no imports at all was still dynamic until they were
+            wrapped. See docs/homepage-cache-phase-2-measurements.md.
+
+            All four render nothing visible — they are effect-only or provider
+            components — so fallback={null} costs no layout shift. */}
+        <Suspense fallback={null}>
+          <Init />
+        </Suspense>
 
         <NavbarClient />
-        <CartProvider language={language} country={country} />
-        <PathTracker />
-        <NavigationLoaderSafetyNet />
+        <Suspense fallback={null}>
+          <CartProvider language={language} country={country} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <PathTracker />
+        </Suspense>
+        <Suspense fallback={null}>
+          <NavigationLoaderSafetyNet />
+        </Suspense>
         <DeferredLayoutClients />
         <svg className="opacity-0 absolute" width={0} height={0}>
           <defs>
