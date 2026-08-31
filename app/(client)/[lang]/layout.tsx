@@ -2,11 +2,13 @@ import "styles/globals.css";
 import "styles/home.css";
 
 import localFont from "next/font/local";
+import { notFound } from "next/navigation";
 import { lang as langParam } from "next/root-params";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
 import { IMAGE_FALLBACK_SCRIPT } from "utils/imageFallback";
+import { isSupportedLocaleSegment } from "utils/locale";
 import CartProvider from "components/Cart/CartProvider";
 import Init from "components/Home/Init";
 import AuthNavContainer from "components/Home/AuthNavContainer";
@@ -132,6 +134,14 @@ export function generateStaticParams() {
 
 export default async function RootLayout({ children, modal }) {
   const lang = await langParam();
+
+  // Refuse a segment this app does not serve. proxy.ts validates the locale
+  // pair, but its matcher's `missing:` clause skips RSC, prefetch and Server
+  // Action requests, so /zz-qq/... reached this layout and rendered. Once these
+  // routes are cached the segment is part of the cache key, and an unchecked
+  // segment is an unbounded number of entries a stranger can create.
+  if (!isSupportedLocaleSegment(lang)) notFound();
+
   const [country, language] = lang.split("-");
   return (
     <html

@@ -15,7 +15,7 @@ import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants"
 import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrapper";
 import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
 import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
-import { GetHomeMetaData } from "serverRequests/meta/home";
+import { GetHomeMetaData, isValidCategorySlug } from "serverRequests/meta/home";
 import { translateFunction } from "utils/server";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
@@ -25,7 +25,12 @@ export const instant = false;
 export async function generateMetadata({ params, searchParams }) {
   let [Params, query] = await Promise.all([params, searchParams]);
   const lang = await langParam();
-  let mainCategory = query?.mainCategory || null;
+  // Validate once, here, so the fallback below cannot use the raw value either:
+  // ?mainCategory= is a query parameter and reaches the Redis key, the title and
+  // the OpenGraph url. Anything that is not slug-shaped means "no category".
+  let mainCategory = isValidCategorySlug(query?.mainCategory)
+    ? query.mainCategory
+    : null;
   try {
     const metadata = await GetHomeMetaData({
       local: lang,

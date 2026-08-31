@@ -7,6 +7,7 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { getCart, LogError, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { isLuckActive } from "utils/luck";
 import { DetectScreen } from "utils/tinyUtils";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
@@ -32,7 +33,11 @@ function AddToCartButton({
   // whether they changed color/size, the deal type, and the source surface
   // (home / product / search-filter / boutique — via DetectScreen).
   const addToCartProps = (quantity: number, productVariationId: any) => {
-    const offer = product?.is_luck
+    // Read the redeemed cookie, not only the product flag. `is_luck` comes from
+    // the product record and stays true after this shopper redeemed it, so the
+    // reported price was a luck price they could no longer take.
+    const luckActive = isLuckActive(product, id);
+    const offer = luckActive
       ? selectedVariant?.luck_price
       : selectedVariant?.offer_price;
     const original = product?.price ?? selectedVariant?.price;
@@ -54,7 +59,7 @@ function AddToCartButton({
       is_flash_deal: Boolean(
         product?.flash_deal_end_date || product?.flash_deal_details,
       ),
-      is_luck: Boolean(product?.is_luck),
+      is_luck: luckActive,
       color_changed: Boolean(colorChanged),
       size_changed: Boolean(sizeChanged),
       selected_color:
@@ -105,7 +110,7 @@ function AddToCartButton({
       is_valid: IsValid(),
       reached_max: reachedMaxQty(),
       already_in_cart: Boolean(isVariantInCart({ exact: false })),
-      is_luck: Boolean(product?.is_luck),
+      is_luck: isLuckActive(product, id),
       source: DetectScreen(),
     });
   };

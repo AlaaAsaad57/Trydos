@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateProductSitemapXML } from "services/elastic/sitemap.service";
+import {
+  generateProductSitemapXML,
+  getProductSitemapPageCount,
+} from "services/elastic/sitemap.service";
 import { LogServerError } from "utils/serverErrorReporter";
 
 
@@ -8,12 +11,25 @@ export async function GET(request: NextRequest) {
   //   status: 200,
 
   // });
-  const page = Math.max(
-    0,
-    parseInt(request.nextUrl.searchParams.get("page") ?? "0", 10) || 0,
-  );
+  // ?page= used to be clamped at the bottom only, so any value was accepted.
+  // The generator builds every url and slices afterwards, so ?page=999999 paid
+  // for the full Elasticsearch scroll and then answered 200 with an empty
+  // sitemap - which a shared cache then kept for an hour, under its own url.
+  //
+  // A page that does not exist is a 404 and must cost nothing. Page 0 always
+  // exists, so the page count is only asked for when a higher page is requested.
+  const rawPage = request.nextUrl.searchParams.get("page");
+  const page = rawPage === null ? 0 : Number(rawPage);
+
+  if (!Number.isInteger(page) || page < 0) {
+    return sitemapPageNotFound();
+  }
 
   try {
+    if (page > 0 && page >= (await getProductSitemapPageCount())) {
+      return sitemapPageNotFound();
+    }
+
     const xml = await generateProductSitemapXML(page);
 
     return new NextResponse(xml, {
@@ -40,4 +56,16 @@ export async function GET(request: NextRequest) {
       },
     });
   }
+}
+
+/** A products sitemap page that does not exist. Cached like the real pages, so a
+ *  crawler asking for it repeatedly does not reach the origin every time. */
+function sitemapPageNotFound() {
+  return new NextResponse("Sitemap page not found", {
+    status: 404,
+    headers: {
+      "Content-Type": "text/plain",
+      "Cache-Control": "public, max-age=3600, s-maxage=3600",
+    },
+  });
 }

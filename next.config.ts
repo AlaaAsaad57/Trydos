@@ -148,34 +148,21 @@ let nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        source: "/:file(sitemap.*\\.xml)",
-        headers: [
-          {
-            key: "Content-Type",
-            value: "application/xml",
-          },
-          {
-            key: "Cache-Control",
-            value:
-              "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/sitemap.xml",
-        headers: [
-          {
-            key: "Content-Type",
-            value: "application/xml",
-          },
-          {
-            key: "Cache-Control",
-            value:
-              "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
+      // NO sitemap rule here - deliberately.
+      //
+      // A rule matching a sitemap URL wins over the header the route handler
+      // sets. app/sitemap-static.xml/route.ts asks for max-age=43200; the
+      // measured response said 3600, because the rule that used to sit here set
+      // 3600 for the same URL. The handler's own value had never taken effect.
+      //
+      // The same override also applied `application/xml` and an hour of public
+      // caching to those routes' failure responses, which are `text/plain` with
+      // status 500 - so a sitemap outage was cached for an hour.
+      //
+      // All seven sitemap routes set their own Content-Type and Cache-Control,
+      // so nothing is lost by leaving them to it. The seventh,
+      // app/(client)/[lang]/sitemap.xml, never matched the removed rule anyway:
+      // its path has two segments and the source matched one.
       {
         source: "/robots.txt",
         headers: [

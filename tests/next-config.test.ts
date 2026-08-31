@@ -74,14 +74,28 @@ describe("next.config.ts response headers", () => {
     ).toContain("no-store");
   });
 
-  it("still caches the sitemaps at the CDN", async () => {
+  // The sitemap routes each set their own Cache-Control. A rule here matching
+  // the same URL wins over the route, so app/sitemap-static.xml/route.ts asked
+  // for max-age=43200 and the measured response said 3600 - the route's value
+  // had never taken effect. The same override also put `application/xml` and an
+  // hour of public caching on those routes' 500 responses, which are text/plain.
+  it("leaves the sitemap Cache-Control to the route that owns it", async () => {
     const rules = await getRules();
-    const values = cacheControlFor(rules, "/:file(sitemap.*\\.xml)");
+
+    const offenders = rules
+      .filter((rule) => rule.source.includes("sitemap"))
+      .flatMap((rule) =>
+        rule.headers
+          .filter((header) => header.key.toLowerCase() === "cache-control")
+          .map((header) => `${rule.source} -> ${header.value}`),
+      );
 
     expect(
-      values.join(" "),
-      "the sitemap rule lost its s-maxage, so every crawler hit would reach the origin",
-    ).toContain("s-maxage=3600");
+      offenders,
+      `next.config.ts sets Cache-Control for a sitemap URL, which overrides the ` +
+        `value the route handler sets and caches its error responses too: ` +
+        `${offenders.join("; ")}`,
+    ).toEqual([]);
   });
 
   it("still caches static assets immutably", async () => {

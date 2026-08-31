@@ -9,9 +9,31 @@ import { LogServerError } from "utils/serverErrorReporter";
 import { catalog_index } from "services/elastic/INDEXES";
 let client = elasticSearchComment;
 
-export async function GetHomeMetaData({ local, category = null }) {
+/**
+ * Is this a value that could be a category slug?
+ *
+ * `?mainCategory=` is a query parameter, so anything can arrive in it — a
+ * sentence, an array (from `?mainCategory=a&mainCategory=b`), or nothing at all.
+ * Whatever arrives ends up in three places that matter: the Redis cache key, the
+ * page title when Elasticsearch finds no such category, and the OpenGraph url a
+ * crawler reads.
+ *
+ * The rule is deliberately about shape, not about a list of real categories:
+ * checking against the real list would mean an Elasticsearch query before the
+ * cache is consulted, and an unknown slug would then cost a query every time it
+ * is sent. Letters and digits (in any script, so Arabic, Turkish and Kurdish
+ * slugs pass), plus `-` and `_`, up to 64 characters. A value that fails is
+ * treated as no category at all, which is the same answer an unknown category
+ * should give.
+ */
+export function isValidCategorySlug(category: unknown): category is string {
+  return typeof category === "string" && /^[\p{L}\p{N}][\p{L}\p{N}_-]{0,63}$/u.test(category);
+}
+
+export async function GetHomeMetaData({ local, category: rawCategory = null }) {
   const [country, language] = local?.split("-");
   const lang = language || "en";
+  const category = isValidCategorySlug(rawCategory) ? rawCategory : null;
   const cacheKey = category
     ? `meta-obj-${category}-${lang}-${country}`
     : `meta-obj-home-${lang}-${country}`;

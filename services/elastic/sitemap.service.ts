@@ -415,6 +415,28 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
             size: limit,
             order: { _count: "desc" },
           },
+          // The country and language most used with each term, read from the
+          // bucket that already exists. This used to be a separate query per
+          // term, awaited inside the loop below - about 101 queries for one
+          // sitemap. The outer `query` already filters results_count > 0, which
+          // is the only filter the per-term query added besides the term itself,
+          // and the term is what the bucket is.
+          aggs: {
+            countries: {
+              terms: {
+                field: "country_iso.keyword",
+                size: 10,
+                missing: "tr", // Default country value is tr
+              },
+            },
+            languages: {
+              terms: {
+                field: "language_code.keyword",
+                size: 10,
+                missing: "en", // Default language value is en
+              },
+            },
+          },
         },
       },
     };
@@ -489,9 +511,9 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
       // Clean the term (remove extra whitespace)
       term = term.trim();
 
-      // For each search term, get the most common country and language used with it
-      const termDetails = await getMostCommonCountryAndLanguageForTerm(term);
-
+      // The country and language for this term come from the bucket, not from
+      // another round trip.
+      const termDetails = resolveTermLocale(bucket);
 
       topTerms.push({
         term: term,
@@ -510,79 +532,45 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
 }
 
 /**
- * Get the most common country and language used with a specific search term
- * (Following PHP pattern from TopSearchServiceForSiteMap.php)
+ * The country and language most used with one search term.
+ *
+ * Reads the `countries` and `languages` sub-aggregations of that term's bucket.
+ * This used to be its own Elasticsearch query, awaited once per term inside the
+ * loop in getTopSearchTerms - about 101 queries to build one sitemap. The
+ * defaults and the supported-country clamp are unchanged; only where the numbers
+ * come from changed. (Following PHP pattern from TopSearchServiceForSiteMap.php)
  */
-async function getMostCommonCountryAndLanguageForTerm(
-  term: string,
-): Promise<{ country_iso: string; language_code: string }> {
-  try {
-    const params = {
-      index: search_log_index,
-      size: 0,
-      query: {
-        bool: {
-          must: [
-            { term: { "search_term.keyword": term } },
-            { range: { results_count: { gt: 0 } } },
-          ],
-        },
-      },
-      aggs: {
-        countries: {
-          terms: {
-            field: "country_iso.keyword",
-            size: 10,
-            missing: "tr", // Default country value is tr
-          },
-        },
-        languages: {
-          terms: {
-            field: "language_code.keyword",
-            size: 10,
-            missing: "en", // Default language value is en
-          },
-        },
-      },
-    };
+function resolveTermLocale(bucket: any): {
+  country_iso: string;
+  language_code: string;
+} {
+  // Extract the most used country
+  const countryBuckets = bucket?.countries?.buckets || [];
+  let country = countryBuckets.length > 0 ? countryBuckets[0].key : "tr"; // Default country is tr
 
-    const response = await elasticSearchClient.search(params);
-    const aggregations = response.aggregations as any;
+  // Extract the most used language
+  const languageBuckets = bucket?.languages?.buckets || [];
+  let language = languageBuckets.length > 0 ? languageBuckets[0].key : "en"; // Default language is en
 
-    // Extract the most used country
-    const countryBuckets = aggregations?.countries?.buckets || [];
-    let country = countryBuckets.length > 0 ? countryBuckets[0].key : "tr"; // Default country is tr
-
-    // Extract the most used language
-    const languageBuckets = aggregations?.languages?.buckets || [];
-    let language = languageBuckets.length > 0 ? languageBuckets[0].key : "en"; // Default language is en
-
-    // Check that values are not empty
-    if (!country || country === "_missing") {
-      country = "tr"; // Default country is tr
-    }
-
-    if (!language || language === "_missing") {
-      language = "en"; // Default language is en
-    }
-
-    // Check that the country is supported
-    const supportedCountries = ["tr", "iq", "lb", "sy"]; // Following PHP pattern
-    if (!supportedCountries.includes(country)) {
-      country = "tr"; // Default country is tr
-    }
-
-    return {
-      country_iso: country,
-      language_code: language,
-    };
-  } catch (error) {
-    console.error("Error getting country and language for term:", error);
-    return {
-      country_iso: "tr", // Default country is tr
-      language_code: "en", // Default language is en
-    };
+  // Check that values are not empty
+  if (!country || country === "_missing") {
+    country = "tr"; // Default country is tr
   }
+
+  if (!language || language === "_missing") {
+    language = "en"; // Default language is en
+  }
+
+  // Check that the country is supported
+  const supportedCountries = ["tr", "iq", "lb", "sy"]; // Following PHP pattern
+  if (!supportedCountries.includes(country)) {
+    country = "tr"; // Default country is tr
+  }
+
+  return {
+    country_iso: country,
+    language_code: language,
+  };
 }
 
 /**
