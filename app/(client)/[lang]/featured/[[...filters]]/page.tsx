@@ -1,6 +1,4 @@
 import { lang as langParam } from "next/root-params";
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import ListingSkeleton from "components/skeleton/listing";
@@ -19,7 +17,11 @@ import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
 import ListingBarOptions from "components/Listing/ListingBarOptions";
-export const dynamicParams = true;
+
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
   const lang = await langParam();

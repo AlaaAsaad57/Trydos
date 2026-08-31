@@ -15,7 +15,6 @@
 // (capture `/e/`, replay `/s/`, flags, etc.) goes to the ingestion host. These
 // mirror the previous next.config.ts rewrites.
 
-export const runtime = "edge";
 
 const POSTHOG_ASSETS_HOST = "https://eu-assets.i.posthog.com";
 const POSTHOG_INGEST_HOST = "https://eu.i.posthog.com";

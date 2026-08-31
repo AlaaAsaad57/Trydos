@@ -3,6 +3,10 @@ import StaticPage from "components/static/StaticPage";
 import { buildAlternates } from "serverRequests/meta/buildAlternates";
 import { getRobotsConfig, translateFunction } from "utils/server";
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const TITLE = "Contact Us";
 const DESCRIPTION =
   "Contact the TryDos team for help with your order, account, or to learn about selling on the platform as a boutique.";
