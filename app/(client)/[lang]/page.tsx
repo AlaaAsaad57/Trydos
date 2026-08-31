@@ -13,6 +13,7 @@ import SearchIcon from "components/Home/Search/SearchIcon";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 
 import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrapper";
+import RecommendedWrapper from "components/ServerWrapper/RecommendedWrapper";
 import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
 import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
 import { GetHomeMetaData, isValidCategorySlug } from "serverRequests/meta/home";
@@ -139,10 +140,21 @@ async function HomePage({ params, searchParams }) {
           key={`OfferList ${lang} ${mainCategory ?? "main"}`}
         >
           <BoutiquesListWrapper
-            currency={currency}
             params={{ lang: lang }}
             mainCategory={mainCategory}
-          />
+          >
+            {/* Rendered here, not inside the wrapper, and in its own
+                <Suspense>. Recommendations read the shopper's User-Data
+                cookie, so they can never join the cached offers section —
+                they stream in beside it instead. */}
+            {!mainCategory ? (
+              <Suspense fallback={<FeaturedProductsSkeleton />}>
+                <RecommendedWrapper lang={lang} currency={currency} />
+              </Suspense>
+            ) : (
+              <></>
+            )}
+          </BoutiquesListWrapper>
         </Suspense>
       </>
     );
