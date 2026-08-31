@@ -1,7 +1,6 @@
 import ListingSkeleton from "components/skeleton/listing";
 import { Suspense } from "react";
 import ProductListServer from "./ProductList";
-import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { getTitleAndTargetofListing } from "serverRequests/meta/StructuredData/utils";
 import ListingBreadcrumbList from "serverRequests/meta/StructuredData/ListingBreadcrumbList";
 import ClientLogger from "components/global/ClientLogger";
@@ -24,10 +23,7 @@ async function ProductListConainer({
     currencyPromise,
     boutiquePromise,
   ]);
-  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = filtersData.products.map((product) =>
-    normalizeListingProduct(product, redeemed_ids),
-  );
+  let productsData = filtersData.products.map(normalizeListingProduct);
   let parsedFiltersVar = {
     ...parsedFilters,
     // search_text drives client pagination (GetProducts page 2+) and sort/search

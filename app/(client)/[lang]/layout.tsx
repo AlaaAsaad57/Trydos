@@ -8,6 +8,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
 import { IMAGE_FALLBACK_SCRIPT } from "utils/imageFallback";
+import RedeemedLuckScript from "components/Home/RedeemedLuckScript";
 import { isSupportedLocaleSegment } from "utils/locale";
 import CartProvider from "components/Cart/CartProvider";
 import Init from "components/Home/Init";
@@ -180,6 +181,13 @@ export default async function RootLayout({ children, modal }) {
           id="image-fallback"
           dangerouslySetInnerHTML={{ __html: IMAGE_FALLBACK_SCRIPT }}
         />
+        {/* Also inline, also near the top of <body>, and for the same reason.
+            The product grids are rendered inside a cached scope shared by every
+            shopper, so a luck badge in the markup says only that the PRODUCT has
+            an offer. This script reads the shopper's own redeemed cookie and
+            hides the badges they can no longer use, before the browser paints
+            them. Costs the client bundle nothing — see RedeemedLuckScript. */}
+        <RedeemedLuckScript />
         <Organaization local={lang} />
         <Website local={lang} />
         <Script

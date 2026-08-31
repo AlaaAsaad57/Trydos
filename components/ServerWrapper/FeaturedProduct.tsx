@@ -1,7 +1,6 @@
 import FeatureProducts from "components/Server/FeatureProducts";
 
 import { GetFeaturedProducts } from "serverRequests/home";
-import { getRedeemedIds } from "utils/cookies/getRedeemedIds";
 import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
 
 export async function FeaturedProductWrapper({
@@ -15,7 +14,7 @@ export async function FeaturedProductWrapper({
   if (mainCategory) {
     category = JSON.stringify([mainCategory]);
   }
-  let [response, currency, redeemedIds] = await Promise.all([
+  let [response, currency] = await Promise.all([
     GetFeaturedProducts({
       language,
       country,
@@ -23,13 +22,9 @@ export async function FeaturedProductWrapper({
       limit: 10,
     }),
     currencyData,
-    getRedeemedIds(),
   ]);
 
-  const redeemed_ids = redeemedIds ?? [];
-  let productsData = response.data.products.map((product) =>
-    normalizeListingProduct(product, redeemed_ids),
-  );
+  let productsData = response.data.products.map(normalizeListingProduct);
 
   return (
     <>

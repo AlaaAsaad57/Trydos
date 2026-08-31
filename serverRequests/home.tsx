@@ -1,6 +1,5 @@
 "use server";
 
-import { getRedeemedIds } from "utils/cookies/getRedeemedIds";
 import BoutiqueWrapper from "components/ServerWrapper/BoutiqueWrapper";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import {
@@ -26,10 +25,7 @@ export async function GetNextRecommendations({
     userId: userId,
     search_after: parseNumberArray(offset),
   });
-  const redeemed_ids = await getRedeemedIds();
-  let productsData = response.products.map((product) =>
-    normalizeListingProduct(product, redeemed_ids),
-  );
+  let productsData = response.products.map(normalizeListingProduct);
   let newOffset = response?.offset;
   return {
     items: productsData,
@@ -115,10 +111,7 @@ export async function GetRecommedndedProducts({
     userId: userId,
     search_after: parseNumberArray(offset),
   });
-  const redeemed_ids = await getRedeemedIds();
-  let productsData = response.products.map((product) =>
-    normalizeListingProduct(product, redeemed_ids),
-  );
+  let productsData = response.products.map(normalizeListingProduct);
   let newOffset = response?.offset;
   return {
     items: productsData,

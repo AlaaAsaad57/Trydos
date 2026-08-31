@@ -1,6 +1,5 @@
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
 import { GetFlashDealProducts } from "serverRequests/home";
-import { getRedeemedIds } from "utils/cookies/getRedeemedIds";
 import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
 
 export async function FlashProductWrapper({
@@ -14,7 +13,7 @@ export async function FlashProductWrapper({
   if (mainCategory) {
     category = JSON.stringify([mainCategory]);
   }
-  let [response, currency, redeemedIds] = await Promise.all([
+  let [response, currency] = await Promise.all([
     GetFlashDealProducts({
       language,
       country,
@@ -22,12 +21,9 @@ export async function FlashProductWrapper({
       limit: 10,
     }),
     currencyData,
-    getRedeemedIds(),
   ]);
-  const redeemed_ids = redeemedIds ?? [];
-  let productsData = response.data.products.map((product) =>
-    normalizeListingProduct(product, redeemed_ids),
-  );
+
+  let productsData = response.data.products.map(normalizeListingProduct);
   return (
     <>
       <FlashDealsProducts

@@ -2,6 +2,15 @@
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
 
+// Every element gated on `luckActive` carries `data-luck-badge={id}`.
+//
+// The server no longer knows whether THIS shopper has already redeemed the
+// product — the product grid is rendered inside a cached scope shared by
+// everybody, so `is_luck` is a fact about the product only. On the first paint
+// `luckActive` is therefore true for a redeemed product too, and the badge is in
+// the HTML. The inline script in the layout reads the shopper's own cookie and
+// hides these three elements before that paint; hydration then removes them for
+// real. See utils/luck/redeemedScript.ts.
 function ProductButtonWrapper({
   language,
   currency,
@@ -45,7 +54,10 @@ function ProductButtonWrapper({
         }}
       >
         {luckActive && (
-          <div className="flex flex-row items-center gap-[2px] w-full justify-end">
+          <div
+            data-luck-badge={id}
+            className="flex flex-row items-center gap-[2px] w-full justify-end"
+          >
             <ClockIcon />
             <div className="flex flex-row text-[#ff6200]">
               <span id={`counter-${id}`} className="bold text-[10px]">
@@ -65,6 +77,7 @@ function ProductButtonWrapper({
             <span>{translateFunction("Buy", language)}</span>
             {luckActive && (
               <RedeemPrice
+                productId={id}
                 price={RoundPrice({
                   num: luck_price,
                   rate: currency?.exchange_rate,
@@ -87,6 +100,7 @@ function ProductButtonWrapper({
 
       {luckActive && (
         <div
+          data-luck-badge={id}
           className="absolute pr-[5px] pl-[8px] text-nowrap flex-row h-[19px] gap-[2px] items-center top-[-8px] left-0 z-99 rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px] bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px] flex"
           style={{
             border: "1px solid #FF6200",
@@ -135,8 +149,8 @@ const ClockIcon = () => (
   </svg>
 );
 
-const RedeemPrice = ({ price, symbol }) => (
-  <div className="gap-[2px] items-center flex">
+const RedeemPrice = ({ price, symbol, productId }) => (
+  <div data-luck-badge={productId} className="gap-[2px] items-center flex">
     <span
       className="text-[10px] pt-[2px] flex align-start bold relative text-[#FF5724]"
       data-pw="product-redeem-price"
