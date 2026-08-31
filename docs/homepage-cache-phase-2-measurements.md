@@ -7,9 +7,9 @@ Each row states what was run, what came back, and the date.
 |---|---|---|---|
 | M-3 | Does an `error.tsx` let a build prerender finish? | **No.** A throw inside a cached segment during prerender fails the whole build. | 2026-08-31 — see below |
 | M-4 | Which clock reads does the prerender reject? | **None of them.** `new Date()` inside `use cache` is allowed, and the value is frozen into the output. | 2026-08-31 — see below |
-| M-5 | Does a middleware `Set-Cookie` stop a stored page being reused? | | |
-| M-6 | Does a crawler still get a complete document? | | |
-| D-3 | Does `expire: 300` get prerendered where `expire: 120` does not? | | |
+| M-5 | Does a middleware `Set-Cookie` stop a stored page being reused? | **No.** The page was stored and reused across all three request shapes. | 2026-08-31 - see below |
+| M-6 | Does a crawler still get a complete document? | **Yes.** Byte-identical to a browser's, same markers. | 2026-08-31 - see below |
+| D-3 | Does `expire: 300` get prerendered where `expire: 120` does not? | **Yes. Amendment 1 is confirmed.** | 2026-08-31 - see below |
 
 ---
 
@@ -215,3 +215,200 @@ staging**, so Task 8 cannot be checked against real data there; its proof has to
 be a unit test on the query the builder returns, which is what the plan already
 asks for. And any browser check of that section on staging will show an empty
 state, which is correct, not a fault.
+
+---
+
+## The blocker Phase A found that the plan did not know about
+
+Before any of M-5 could be measured, one thing had to be explained: **no route
+under `app/(client)/[lang]/` was prerendered at all.** Not one. A probe page with
+zero imports and no data was still `ƒ`.
+
+It is not the root parameter, and it is not `export const instant = false`. Both
+were ruled out by building with them changed. Replacing the layout with a
+minimal one turned the same probe page into `○` static, which proved the cause
+is **inside the layout**.
+
+Bisecting the layout found it. **Four client components in
+`app/(client)/[lang]/layout.tsx` call `useSearchParams()` and none of them sits
+inside a `<Suspense>` boundary:**
+
+| Component | `useSearchParams()` calls |
+|---|---|
+| `components/Home/Init.tsx` | 2 |
+| `components/Cart/CartProvider.tsx` | 3 |
+| `components/PathTracker.tsx` | 2 |
+| `components/global/NavigationLoaderSafetyNet.tsx` | 3 |
+
+An unwrapped `useSearchParams()` opts the whole route out of prerendering. Since
+these four are in the layout, they opted out **every page under `[lang]`** —
+which is the entire storefront.
+
+The fix is four `<Suspense fallback={null}>` wrappers, and it was measured:
+
+| Layout | Probe page result |
+|---|---|
+| As committed | `ƒ` |
+| The four wrapped in `<Suspense>` | `◐` |
+| Minimal layout (control) | `○` |
+
+All four render nothing visible — they are effect-only or provider components —
+so `fallback={null}` costs no layout shift.
+
+Two things were ruled out along the way and should not be re-checked:
+`components/ModalRoute/ModalSlot.tsx` (finding 9) does **not** block
+prerendering — adding it back kept the probe at `◐`. Neither does the
+`isSupportedLocaleSegment` / `notFound()` guard added in the A5 fix.
+
+**This belongs to Task 13**, next to the `AuthNavContainer` wrapper D-9 already
+asks for. It is not optional and it is not cosmetic: without it, Tasks 15 and 16
+cannot produce a prerendered page no matter what they do to the readers, and the
+plan's whole outcome statement fails. The bisect is recorded here so Task 13 can
+apply the fix directly instead of re-deriving it.
+
+The layout was returned to its committed state after the measurement. Nothing in
+Phase A ships this change.
+
+---
+
+## M-5 — does a middleware `Set-Cookie` stop a stored page being reused?
+
+**Answer: no.** The page was stored and reused, and the proxy's `Set-Cookie`
+headers changed nothing.
+
+### What was run
+
+Against `pnpm start -p 3111` on a real build, with the four `<Suspense>`
+wrappers above applied so that routes under `[lang]` were prerenderable, and a
+temporary probe at `/[lang]/m5d/[slug]` whose cached component stamps the time
+it was filled.
+
+`lb-ar` is deliberately **not** in `generateStaticParams`, so this is the D-23
+on-demand path.
+
+| # | Request | Proxy `Set-Cookie`? | Timestamp served |
+|---|---|---|---|
+| 1 | `/lb-ar/m5d/probe-one`, no cookies | yes — `userIP`, `country`, `lang`, `language` | `18:06:09.059Z` |
+| 2 | same URL, no cookies | yes, again | `18:06:09.059Z` |
+| 3 | same URL, cookies already set | none | `18:06:09.059Z` |
+
+All three served the value filled on request 1. So the entry was stored on a
+response that carried four `Set-Cookie` headers, and reused on later requests
+whether or not the proxy wrote cookies again.
+
+### The control, so an unchanging timestamp cannot pass by accident
+
+| Request | Timestamp |
+|---|---|
+| `/lb-ar/m5d/probe-two` — different slug | `18:07:06.435Z` — **new** |
+
+The check can fail. It did not.
+
+### D-23 confirmed on disk
+
+Files written after the build finished, for a locale the build never generated:
+
+```
+.next/server/app/lb-ar/m5d/probe-one.html
+.next/server/app/lb-ar/m5d/probe-one.meta
+.next/server/app/lb-ar/m5d/probe-one.segments/...
+```
+
+This is `dynamic-routes.md:157` — "pages rendered with runtime params are saved
+to disk after a successful first request" — happening. D-23 works.
+
+### The response headers, for finding 1
+
+```
+x-nextjs-postponed: 1
+x-nextjs-stale-time: 180
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+```
+
+The document is sent `private, no-store`. So a shared cache will not keep it,
+and `x-nextjs-postponed: 1` shows the response is a prerendered shell with the
+rest streamed. Note this was measured under `pnpm start`, which has no CDN in
+front of it — the header risk that finding 1 describes is out of this
+measurement's reach, and Task 18 says so too.
+
+### A warning this measurement produced for Task 10
+
+| Request | Timestamp |
+|---|---|
+| `/lb-ar/m5d/probe-one` | `18:06:09.059Z` |
+| `/tr-tr/m5d/probe-one` — **different locale** | `18:06:09.059Z` — **the same entry** |
+
+Two different locales were served one cached value. That is correct framework
+behaviour, and it is the rule from `next-root-params.md`: only the root
+parameters a cached function **actually reads** join its cache key. The probe's
+cached function took `slug` and never called `lang()`, so locale was not part of
+the key.
+
+**Task 10 must not repeat this.** A cached reader that forgets to take `country`
+and `language` — as an argument, or by calling the root param getter inside the
+cached scope — will serve one country's prices and one language's text to every
+other. Nothing warns you; the page renders fine and is simply wrong. Every
+cached reader in Tasks 6, 7, 10 and 17 needs its key checked against this.
+
+---
+
+## M-6 — does a crawler still get a complete document?
+
+**Answer: yes.**
+
+```
+curl -A 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' .../sy-en
+curl -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'          .../sy-en
+```
+
+| | Googlebot | Browser |
+|---|---|---|
+| Document size | 481,796 bytes | 481,795 bytes |
+| `data-pw="boutiques"` | 2 | 2 |
+| `featured-products-container` | 3 | 3 |
+| `stories-bar` | 2 | 2 |
+| `data-pw="NavLogo"` | 1 | 1 |
+
+One byte apart, and every marker matches. A crawler is not served a shell.
+
+**This is a baseline, not a final answer.** It measures the homepage as it is
+today — still `ƒ`, still rendering every reader per request. The move that could
+break it is Task 11, which takes the stories bar out of the server render and
+into the browser. **Task 20 must run this same comparison again** after Phase D
+and put the two tables side by side. `NEXT_PUBLIC_ALLOW_INDEXING` is `false`
+everywhere today, so a bad answer has no live effect yet, but it blocks launch.
+
+---
+
+## D-3 — does `expire: 300` get prerendered where `expire: 120` does not?
+
+**Answer: yes. Amendment 1 is confirmed, and Task 5 writes `expire: 300`.**
+
+The same probe page built twice, changing one number:
+
+```tsx
+async function ProbeBody() {
+  "use cache";
+  cacheLife({ stale: 60, revalidate: 60, expire: /* 120 or 300 */ });
+  return <p data-pw="probe">expire-NNN-marker</p>;
+}
+```
+
+| `expire` | Route table | Marker found in `.next/server/app/sy-en/cache-probe.html` |
+|---|---|---|
+| `120` | `ƒ` dynamic | **no** — 0 matches |
+| `300` | `◐` partial prerender, shown as `1m  5m` | **yes** — 1 match |
+
+Two independent signals agree. The route symbol changed, and the rendered text
+either is or is not in the file the build wrote.
+
+This is exactly what `cacheLife.md` → *Prerendering behavior* describes: an
+`expire` under five minutes excludes the scope from prerenders and makes it a
+dynamic hole resolved at request time. D-3 as originally written would have
+produced a page that prerendered nothing, and on serverless — where
+`use-cache.md` says entries typically do not persist across requests — would
+have run every reader on every request while also paying for the extra
+streaming.
+
+Freshness does not change. `revalidate: 60` still governs how often content
+refreshes.
