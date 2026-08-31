@@ -403,6 +403,23 @@ img {
   color: transparent;
 }
 
+/* A remote image that failed to load. utils/imageFallback.ts sets this attribute,
+   and nothing else in the app sets it, so a working image never matches.
+
+   The mark is drawn whole instead of filling the box, so it is never cropped by
+   the `cover` rule directly above. That rule is marked important, so beating it
+   needs both the higher specificity of the attribute selector AND `!important`.
+
+   NOTHING HERE MAY CHANGE SIZE OR POSITION. This rule lands on every failing
+   image in the app at once — product cards, story circles, chat avatars, brand
+   icons, banners — so a width, a height, an aspect-ratio, a margin or a position
+   would move all of them. Only what is painted inside the existing box may
+   change. tests/utils/imageFallback.test.ts holds this rule to that. */
+img[data-img-fallback] {
+  object-fit: contain !important;
+  background-color: #f0f0f0;
+}
+
 @media only screen and (max-width: 420px) {
   body .site-container {
     transform: none !important;

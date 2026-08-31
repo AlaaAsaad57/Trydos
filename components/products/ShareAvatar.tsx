@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { SyntheticEvent } from "react";
 import profilePng from "public/images/profileNo.png";
 
 function ShareAvatar({ active, setActive, contact, disable }: any) {
@@ -23,10 +22,6 @@ function ShareAvatar({ active, setActive, contact, disable }: any) {
           width={70}
           height={80}
           alt="User"
-          onError={(e: SyntheticEvent<HTMLImageElement, Event>) => {
-            // @ts-ignore
-            e.target.src = "/images/profileNo.png";
-          }}
           src={
             (contact.contact_user?.photo_path &&
               normializePhoto(contact.contact_user?.photo_path)) ??
