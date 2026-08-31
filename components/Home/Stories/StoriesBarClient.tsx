@@ -6,8 +6,12 @@ import AddStoryWidget from "components/Home/Stories/AddStoryWidgetLazy";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import StoriesWrapper from "components/clientWrapper/StoriesWrapper";
 import { fetchData } from "utils/fetchData";
+import { buildProxyGetUrl } from "utils/proxyGetUrl";
 import { REQUESTS_DATA } from "utils/Requests";
 import { useAppStore } from "store";
+
+/** The one backend call this bar makes. */
+const STORIES_PATH = "/api/v1/stories/users_stories?page=1";
 
 /**
  * The stories bar, fetched from the browser.
@@ -45,10 +49,14 @@ export default function StoriesBarClient({
     let cancelled = false;
 
     fetchData({
-      url: "/api/v1/stories/users_stories?page=1",
+      url: STORIES_PATH,
       method: "GET",
       server: "stories",
       reqTitle: REQUESTS_DATA.GET_USER_STORIES,
+      // Address the proxy by query string, so the <link rel="preload"> below
+      // starts this exact request during HTML parse and this call is answered
+      // from it rather than opening a second one (D-5).
+      viaProxyGet: true,
       // A dead stories service must not stop a shopper browsing, and must not
       // pop a message over a page that is otherwise fine.
       noMessage: true,
@@ -76,6 +84,23 @@ export default function StoriesBarClient({
 
   return (
     <>
+      {/* Starts the stories request while the browser is still parsing, instead
+          of after hydration (D-5). The effect above then reads the answer from
+          this preload rather than opening a second request — which only holds
+          while both build the address the same way, so both call
+          buildProxyGetUrl(). `anonymous` is the credentials mode the fetch uses
+          too; a mismatch there is enough to make the browser fetch twice. */}
+      <link
+        rel="preload"
+        as="fetch"
+        crossOrigin="anonymous"
+        href={buildProxyGetUrl({
+          server: "stories",
+          url: STORIES_PATH,
+          country,
+          language,
+        })}
+      />
       <AddStoryWidget />
       <div className="stories-bar-container h-[183px] items-center flex w-full z-99999999 max-w-[1365px] justify-start">
         <div

@@ -57,21 +57,151 @@ const escapesHost = (target: string) =>
   target.startsWith("//") ||
   target.startsWith("/\\");
 
+/** The proxy metadata one request carries, however it was addressed. */
+interface ProxyCall {
+  /** Internal service name, already mapped back from the opaque wire token. */
+  server: string;
+  targetUrl: string;
+  needDecode: boolean;
+  method: string;
+  country: string;
+  language: string;
+  sellerId?: string;
+  /** false for GET, where there is no body to read and none to forward. */
+  allowBody: boolean;
+}
+
+/**
+ * Read the proxy metadata out of the request headers.
+ *
+ * This is the POST contract, and it is the one every client-side call in the
+ * app uses through utils/fetchData.ts. The wire value for the service is an
+ * opaque token; map it back to the internal name before any validation runs, so
+ * the allowlist, the token lookup and the logging all work with readable names.
+ */
+const callFromHeaders = (request: NextRequest): ProxyCall => ({
+  server: fromServiceToken(request.headers.get("x-proxy-server") || ""),
+  targetUrl: request.headers.get("x-proxy-url") || "",
+  needDecode: (request.headers.get("x-need-decode") || "") === "true",
+  method: request.headers.get("x-proxy-method") || "GET",
+  country: request.headers.get("x-country") || "sy",
+  language: request.headers.get("x-language") || "en",
+  sellerId: request.headers.get("x-seller-id") || undefined,
+  allowBody: true,
+});
+
+/**
+ * Read the same metadata out of the query string.
+ *
+ * This is the GET contract, and it exists for one reason: a request the browser
+ * can start while it is still parsing the document. A `<link rel="preload">`
+ * issues a plain GET and can carry no custom header, so the POST contract above
+ * is unreachable from one. Putting the same values in the query string makes
+ * the call preloadable, and later makes it cacheable at the edge.
+ *
+ * Three things are fixed here rather than read, and each closes a hole the
+ * header contract does not have:
+ *
+ *  - The method is always GET. The query may not choose it, so this route can
+ *    never be used to reach a write endpoint from a plain URL.
+ *  - There is no body, on purpose (`allowBody: false`).
+ *  - Cross-site callers are refused, below. The POST contract is protected by
+ *    its own custom headers: they force a CORS preflight that a cross-origin
+ *    page cannot pass. A plain GET has no preflight, so that protection has to
+ *    be written out.
+ *
+ * The parameter names are single letters because the target path now travels in
+ * the URL, where it lands in access logs and referrers — shorter is a little
+ * less to leak, and the service value is already an opaque token.
+ */
+const callFromQuery = (request: NextRequest): ProxyCall => {
+  const q = request.nextUrl.searchParams;
+  return {
+    server: fromServiceToken(q.get("s") || ""),
+    targetUrl: q.get("u") || "",
+    needDecode: q.get("d") === "true",
+    method: "GET",
+    country: q.get("c") || "sy",
+    language: q.get("l") || "en",
+    sellerId: q.get("sid") || undefined,
+    allowBody: false,
+  };
+};
+
+/**
+ * Is this GET coming from our own pages?
+ *
+ * `Sec-Fetch-Site` is set by the browser and cannot be set by page script, so a
+ * value other than "same-origin" means another site made the request. `Origin`
+ * is checked as a second signal for the same reason.
+ *
+ * A missing `Sec-Fetch-Site` is allowed. Every current browser sends it, so an
+ * attack from a browser is caught; refusing when it is absent would only break
+ * older clients while stopping nothing. The GET path is read-only and its
+ * response is not readable across origins, so what is left is bounded.
+ */
+const isSameOriginGet = (request: NextRequest): boolean => {
+  const site = request.headers.get("sec-fetch-site");
+  if (site && site !== "same-origin") return false;
+
+  const origin = request.headers.get("origin");
+  if (origin && origin !== request.nextUrl.origin) return false;
+
+  return true;
+};
+
 export async function POST(request: NextRequest) {
+  return proxyRequest(request, callFromHeaders(request));
+}
+
+/**
+ * The same proxy, addressed by query string instead of headers.
+ *
+ * ---------------------------------------------------------------------------
+ * CLOUDFLARE PROXY WORKER — mirror this there.
+ *
+ * When this proxy moves to a Cloudflare Worker, the Worker must accept BOTH
+ * shapes, with the same rules:
+ *
+ *   POST /api/proxy   metadata in x-proxy-* headers, body forwarded
+ *   GET  /api/proxy   metadata in ?s=&u=&c=&l=&d=&sid=, no body, method forced
+ *                     to GET, cross-site callers refused
+ *
+ * Two things must not be lost in the move:
+ *
+ *  1. The GET form still answers `Cache-Control: no-store`. Its response can
+ *     carry a signed-in shopper's data, because the Worker attaches their token
+ *     from an HttpOnly cookie. Do NOT put these in the edge cache, and do not
+ *     let a route-level cache rule pick them up merely because they are GETs.
+ *     If one endpoint is genuinely public, cache that one by its target path —
+ *     never the /api/proxy route as a whole.
+ *  2. Every guard in proxyRequest() below travels with it: the service
+ *     allowlist, escapesHost(), the resolved-origin and base-path check, and
+ *     the send_otp block. They are the whole of what stops this route being an
+ *     open relay that attaches a real token.
+ * ---------------------------------------------------------------------------
+ */
+export async function GET(request: NextRequest) {
+  if (!isSameOriginGet(request)) {
+    // Same answer as every other refusal, from the same place, so a probe
+    // cannot tell one kind of rejection from another. See proxyFailure().
+    return proxyFailure();
+  }
+  return proxyRequest(request, callFromQuery(request));
+}
+
+async function proxyRequest(request: NextRequest, call: ProxyCall) {
   try {
-    // 1. Read proxy metadata from headers
-    // The wire value is an opaque token; map it back to the internal service
-    // name before any validation runs, so the allowlist, token lookup and
-    // logging below all continue to work with readable names.
-    const server = fromServiceToken(
-      request.headers.get("x-proxy-server") || "",
-    );
-    let targetUrl = request.headers.get("x-proxy-url") || "";
-    let need_decode = request.headers.get("x-need-decode") || "";
-    const method = request.headers.get("x-proxy-method") || "GET";
-    const country = request.headers.get("x-country") || "sy";
-    const language = request.headers.get("x-language") || "en";
-    const sellerId = request.headers.get("x-seller-id") || undefined;
+    const {
+      server,
+      needDecode,
+      method,
+      country,
+      language,
+      sellerId,
+      allowBody,
+    } = call;
+    let targetUrl = call.targetUrl;
 
     // 2. Validate server type (prevent arbitrary URL access)
     if (!isAllowedServer(server)) {
@@ -89,7 +219,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Build the full URL and headers (token injected from HttpOnly cookie)
 
-    if(need_decode==="true"){
+    if (needDecode) {
       targetUrl = decodeURI(targetUrl);
     }
 
@@ -185,7 +315,9 @@ export async function POST(request: NextRequest) {
     let body: BodyInit | null = null;
     const contentType = request.headers.get("content-type") || "";
 
-    if (method !== "GET" && method !== "HEAD") {
+    // `allowBody` is false on the GET contract. There is nothing to read there,
+    // and nothing may be forwarded.
+    if (allowBody && method !== "GET" && method !== "HEAD") {
       if (contentType.includes("multipart/form-data")) {
         body = await request.formData();
       } else if (contentType.includes("application/json")) {
@@ -287,15 +419,16 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    const server =
-      fromServiceToken(request.headers.get("x-proxy-server") || "") ||
-      "unknown";
-    const targetUrl = request.headers.get("x-proxy-url") || "unknown";
+    // Read from `call`, not from the headers. On the GET contract the x-proxy-*
+    // headers are absent, and reading them here would log every GET failure as
+    // "unknown" against an unknown service.
+    const server = call.server || "unknown";
+    const targetUrl = call.targetUrl || "unknown";
 
     await logSecureRequest({
       server,
       url: targetUrl,
-      method: request.headers.get("x-proxy-method") || "GET",
+      method: call.method || "GET",
       status: 503,
       error,
     });
