@@ -19,6 +19,25 @@ const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
 // as well. Keep the two remaining guards.
 const isDev = process.env.NODE_ENV === "development";
 
+// The one cache window the home and category views use (D-3, D-4).
+//
+// HOMEPAGE_CACHE_SECONDS tunes it without shipping new code. 60 is the fallback
+// and the value D-3 chose.
+//
+// `expire` is deliberately NOT 60. Next excludes any cached scope whose expire
+// is under 5 minutes from prerenders, turning it into a dynamic hole resolved on
+// every request - and on serverless the in-memory cache does not survive between
+// requests, so a dynamic hole means a fresh Elasticsearch query every time.
+// Measured on this repo: expire 120 left the probe route dynamic with its text
+// absent from the built HTML; expire 300 made it a partial prerender with the
+// text present. 300 is the smallest value that keeps the segment prerendered.
+//
+// It does not make content staler. `revalidate` governs freshness, and `expire`
+// only decides what the next visitor gets after a stretch with no traffic at all.
+// See node_modules/next/dist/docs/01-app/03-api-reference/04-functions/cacheLife.md
+// and docs/homepage-cache-phase-2-measurements.md.
+const homepageCacheSeconds = Number(process.env.HOMEPAGE_CACHE_SECONDS) || 60;
+
 let nextConfig: NextConfig = {
   // Cache Components (Next 16.3). Application-wide by design: the flag cannot be
   // switched on for one route. It refuses every `dynamic`, `revalidate`,
@@ -34,6 +53,13 @@ let nextConfig: NextConfig = {
   // <Activity> route retention, so component state stops resetting when they
   // navigate away and back.
   cacheComponents: true,
+  cacheLife: {
+    homepage: {
+      stale: homepageCacheSeconds,
+      revalidate: homepageCacheSeconds,
+      expire: Math.max(300, homepageCacheSeconds * 5),
+    },
+  },
   reactStrictMode: false,
   // Removes the `X-Powered-By: Next.js` header (security scan F-06 — tech
   // fingerprinting). `Server: Vercel` is platform-managed and can't be dropped.
