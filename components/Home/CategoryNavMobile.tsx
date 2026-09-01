@@ -28,10 +28,14 @@ function CategoryNavMobile({
         decodeURI(mainCategory) === slug && "active-nav-category"
       }`}
       key={myKey}
+      // D-13: the category view lives at /{lang}/categories/{slug}. The old
+      // `?mainCategory=` address is NOT redirected (D-14), so building it here
+      // sent the shopper to the plain home page and the category was never
+      // applied. Tapping the open category still clears the filter.
       href={
         decodeURI(mainCategory) === slug
           ? `/${params?.lang}`
-          : `/${params?.lang}?mainCategory=${slug}`
+          : `/${params?.lang}/categories/${slug}`
       }
       data-id={slug}
     >
