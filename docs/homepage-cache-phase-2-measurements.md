@@ -442,3 +442,20 @@ streaming.
 
 Freshness does not change. `revalidate: 60` still governs how often content
 refreshes.
+
+---
+
+## The merge threshold
+
+**Written before anything was measured.** A threshold decided after seeing the
+numbers is not a threshold. The table below was committed to this file first,
+then filled in.
+
+This change merges only if all four hold. Any one failing blocks it.
+
+| # | Criterion | Threshold |
+|---|---|---|
+| T-1 | Elasticsearch queries for 20 sequential home requests in one minute | at most **4** (one warm-up per reader). Today it is about 60. |
+| T-2 | `/[lang]` in the build's route table | not `dynamic` |
+| T-3 | Time to first byte, warm cache, home page | no worse than today's, measured on the same machine |
+| T-4 | A guest document containing a signed-in shopper's profile | never (Task 18 green) |
