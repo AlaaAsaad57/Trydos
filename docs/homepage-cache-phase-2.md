@@ -13,6 +13,44 @@ becomes its own work item once phase 1 has merged and produced its numbers.
 
 ---
 
+## Amendments — read these before the rest of this file
+
+Two decisions changed while the work was being done. The rest of this document
+was written before them, so where it disagrees, this section is right.
+
+### Amendment 1 — D-3's `expire` is 300, not 120
+
+D-3 asked for `stale: 60`, `revalidate: 60`, `expire: 120`. `next.config.ts`
+now sets `expire: Math.max(300, HOMEPAGE_CACHE_SECONDS * 5)`.
+
+`expire` under five minutes takes a cached scope out of the build prerender
+entirely and turns it into a dynamic hole resolved on every request. Measured
+both ways: with `expire: 120` the route table said `ƒ` dynamic and the marker
+text was not in the file the build wrote; with `expire: 300` it said `◐` and the
+marker was there. Two independent signals, same answer. See
+`docs/homepage-cache-phase-2-measurements.md`, section "D-3".
+
+Freshness is unchanged. `revalidate: 60` still decides how often content
+refreshes.
+
+### Amendment 2 — an unknown category slug renders, it never 404s
+
+Finding 2 said `notFound()` for an unknown slug contradicts AC-15, because the
+list it would be checked against is itself cached for 60 seconds — so a genuinely
+new category would 404 until the entry expired.
+
+Settled as **shape check only**. `isValidCategorySlug` in
+`serverRequests/meta/home.ts` accepts anything slug-shaped and nothing else;
+`app/(client)/[lang]/categories/[slug]/page.tsx` calls `notFound()` only when the
+shape is wrong. A slug-shaped name the catalog does not know renders the page
+with no products, which is a correct page, not an error. A category created a
+minute ago opens the moment somebody asks for it.
+
+The cost is measured and it is real: see "An unlisted category slug" in the
+measurements file, and the firewall note below.
+
+---
+
 ## Why it was split
 
 Phase 1 is independently revertable — which the combined plan was not — and it is
@@ -206,3 +244,126 @@ stories bar paints one round trip **later** than today. And below roughly one
 visit per (locale × category) route per cache window, this change *raises* total
 Elasticsearch load rather than lowering it — which matters, because no production
 environment exists yet.
+
+---
+
+# What this change does not fix
+
+Recording these is the deliverable. An unrecorded known problem cannot be told
+apart from an unknown one.
+
+### Finding 15 — the CSP nonce, still open, and this change made it harder
+
+The document now carries two inline scripts: the image fallback (already there)
+and the redeemed-luck script (added by this change). A Content-Security-Policy
+`script-src` needs a nonce per response, and a nonce cannot be per-request
+inside a document that is shared between shoppers — the nonce would be stored
+with the page and reused, which is the same as having no nonce.
+
+The CSP work item has to choose one of: a hash-based `script-src` for these two
+scripts (they are fixed strings, so their hashes are stable), or moving both to
+external files, or leaving `script-src` out of the policy. This change did not
+make that choice.
+
+### D-22 — state no longer resets on navigation
+
+Cache Components enables React `<Activity>` route retention, so component state
+survives a navigation away and back. This shipped with **phase 1**, not with
+this change, and is recorded rather than fixed. It affects `SearchIcon` and the
+eleven page-mounted modals.
+
+### Finding 5 — `is_flash_deal_active` and the mobile app
+
+The field is still returned by `app/api/related-products/[id]/route.ts`, and it
+is still correct: the route handler computes it with a real clock. It was
+removed from `formatProduct`, which is now reachable from a cached scope.
+**Confirm with the mobile team** before anything removes it from the response
+entirely.
+
+### Finding 10 — `app/api/products/recomended`
+
+Not touched by this change and not fixed by it. Wildcard CORS, a
+browser-supplied `user_id`, and a 500 body that echoes the error message —
+which names the search engine to the browser — plus every filter. It has its
+own ticket.
+
+Task 20 gives it a second reason to be picked up. Recommendations are the only
+Elasticsearch query left on a warm home page: 30 requests, 30 queries, all of
+them this reader. The rest of the page now costs nothing until the entry
+expires.
+
+### Finding 9 — `ModalSlot` reads `usePathname()` during render
+
+`components/ModalRoute/ModalSlot.tsx` reads the route during render, not inside
+an effect. It is a client component in the layout, so it is not inside a cached
+server scope and it did not block this work. No task here touches it. It is the
+hard case the finding named, and it stays open.
+
+---
+
+## Found while doing the work, not planned for
+
+### The metadata cache adds less than finding 3 claimed
+
+Finding 3 said `generateMetadata` runs on every request, including requests
+served from a cached page, so an uncached reader there asks the search engine
+for a title that did not change once per visit. The first half is true. The
+second is not, and it was measured after the fix went in:
+
+```
+META-ENTER  redisHit=false
+META-CACHED-SCOPE-RAN slug=bags
+META-ES-QUERY slug=bags
+META-ENTER  redisHit=true   (five more times)
+```
+
+The Redis check at the top of `GetHomeMetaData` already answers every repeat.
+The new `use cache` scope was entered **once**, on the only request that got
+past Redis. While Redis is up it removes no query at all.
+
+What it does add is a fallback for when Redis misses or is down, and a
+revalidation tag. That is worth four lines, and the plan approves it, so it
+stayed. But the benefit is smaller than the finding stated, and anyone building
+on it should know that.
+
+### A cached scope leaks through ambient module state
+
+Next refuses `cookies()` inside a `use cache` scope, and it puts every argument
+and every closed-over binding into the cache key. So the obvious ways to leak
+one shopper's data into another's page are blocked by the framework.
+
+Module state is not. A cached scope that reads a module-level variable stores
+whatever the first request happened to write there and hands it to everyone
+afterwards. Demonstrated on a real build while proving
+`tests/cache/sharedEntryIsNotPersonal.test.ts` can fail: a five-line probe in
+`AuthNavContainer` put a signed-in shopper's profile into the next guest's
+document.
+
+Nothing in the code does this today. It is written down because it is the one
+leak the framework will not catch for you.
+
+### An unlisted category slug needs a firewall rule
+
+Measured: about five Elasticsearch queries and one new cache entry per invented
+slug-shaped name, at roughly one second each. Amendment 2 is why, and Amendment
+2 is right — a new category has to open the day it is created. So the limit
+belongs at the platform edge, in the Vercel Firewall, keyed on the path prefix
+`/[lang]/categories/`. It is needed whether or not this change merges. Numbers
+in `docs/homepage-cache-phase-2-measurements.md`, "An unlisted category slug".
+
+### T-1 fails against the threshold that was written for it
+
+`docs/homepage-cache-phase-2-measurements.md` carries the full verdict. In
+short: the threshold asked for at most 4 Elasticsearch queries per 20 home
+requests and the measurement is 20, because the personal recommendations reader
+costs one per visit and is not cached on purpose. Against the load the
+criterion was about, 700 queries became 20. T-2, T-3 and T-4 pass. Whether T-1's
+number is restated is the owner's decision, not this document's.
+
+### A stale comment names the backend technology
+
+`serverRequests/products.ts:146` says "Verified users → Laravel, guests → Go".
+CLAUDE.md's stack-agnostic rule forbids naming the backing technology anywhere
+we control, comments included; the roles are the **core** backend and the
+**gateway**. The file is not changed by this work, so the comment is recorded
+here rather than edited, to keep this change small.
