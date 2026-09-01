@@ -367,3 +367,37 @@ CLAUDE.md's stack-agnostic rule forbids naming the backing technology anywhere
 we control, comments included; the roles are the **core** backend and the
 **gateway**. The file is not changed by this work, so the comment is recorded
 here rather than edited, to keep this change small.
+
+### `notFound()` on a partially prerendered route answers 200, not 404
+
+Found at the final gate. `app/(client)/[lang]/categories/[slug]/page.tsx` calls
+`notFound()` when the slug is not slug-shaped. The not-found page really does
+render — the words are in the document — but the status is **200**.
+
+Measured on the final build:
+
+| request | status | body |
+|---|---|---|
+| `/sy-en/this-route-does-not-exist` (no such route) | **404** | not-found page |
+| `/sy-en/categories/x!y` (route exists, `notFound()` runs) | **200** | not-found page |
+| `/sy-en/categories/..%2F..%2Fetc%2Fpasswd` | **200** | not-found page |
+
+The reason is partial prerendering. `/[lang]/categories/[slug]` is a `◐` route:
+the shared shell is sent first, and by the time the page component runs and
+calls `notFound()`, the status line has already gone out. A route the router
+does not know at all never gets that far, so it still answers 404.
+
+This is not a regression — before this change the category view was
+`?mainCategory=`, which never 404ed either. But the guard does not do what its
+author meant, and it will behave the same on **every** `◐` route in the app that
+calls `notFound()`.
+
+What it costs: a crawler sees a soft 404 — a 200 response with "not found"
+content — so an invented URL can be indexed as a real page. Today
+`X-Robots-Tag: noindex, nofollow` covers it, because `NEXT_PUBLIC_ALLOW_INDEXING`
+is off everywhere. It stops covering it the day a production environment exists.
+
+Not fixed here. A real 404 would mean making the route dynamic, which is the
+opposite of this whole change, so the choice belongs to the owner. The cheapest
+middle answer, if it is wanted, is to return `robots: { index: false }` from
+`generateMetadata` for a slug that fails the shape check.
