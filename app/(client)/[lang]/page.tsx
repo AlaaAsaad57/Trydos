@@ -1,49 +1,28 @@
 import { lang as langParam } from "next/root-params";
-import StoriesBarClient from "components/Home/Stories/StoriesBarClient";
-import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
-import OfferListSkeleton from "components/skeleton/OfferList";
-import { Suspense } from "react";
-import Home from "components/Home";
-import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
-import { getCurrency } from "serverRequests";
-import MainCategoriesNavbar from "components/Server/MainCategories";
-import { LogServerError } from "utils/serverErrorReporter";
-import SearchIcon from "components/Home/Search/SearchIcon";
+import CategoryHomeView from "components/Home/CategoryHomeView";
+import { GetHomeMetaData } from "serverRequests/meta/home";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
-
-import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrapper";
-import RecommendedWrapper from "components/ServerWrapper/RecommendedWrapper";
-import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
-import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
-import { GetHomeMetaData, isValidCategorySlug } from "serverRequests/meta/home";
+import { LogServerError } from "utils/serverErrorReporter";
 import { translateFunction } from "utils/server";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
+// `export const instant = false` is gone. It was phase 1's opt-out, added so the
+// app could build with Cache Components on before any route was converted. This
+// route is converted now.
+//
+// `searchParams` is gone too, and that is the change that makes the rest
+// possible: a page that awaits searchParams is request-bound and can never be
+// cached. ?mainCategory= became /categories/{slug} (D-13). Old addresses are not
+// redirected (D-14) — they now render the plain homepage, which is a correct
+// page, not an error.
 
-export async function generateMetadata({ params, searchParams }) {
-  let [Params, query] = await Promise.all([params, searchParams]);
+export async function generateMetadata() {
   const lang = await langParam();
-  // Validate once, here, so the fallback below cannot use the raw value either:
-  // ?mainCategory= is a query parameter and reaches the Redis key, the title and
-  // the OpenGraph url. Anything that is not slug-shaped means "no category".
-  let mainCategory = isValidCategorySlug(query?.mainCategory)
-    ? query.mainCategory
-    : null;
   try {
-    const metadata = await GetHomeMetaData({
-      local: lang,
-      category: mainCategory,
-    });
-
-    return { ...metadata };
+    return await GetHomeMetaData({ local: lang, category: null });
   } catch (error) {
     LogServerError({ error, type: "meta" }, `/${lang}`);
-    const [country, language] = lang.split("-");
+    const language = lang.split("-")[1];
     const baseUrl = General_Site_Data.url;
-    const path = mainCategory ? `?mainCategory=${mainCategory}` : "";
-    const fullUrl = `${baseUrl}/${lang}${path}`;
     const ogImageUrl = baseUrl + General_Site_Data.og;
     const title = translateFunction(
       "TryDos - Premium Shopping Experience",
@@ -60,16 +39,10 @@ export async function generateMetadata({ params, searchParams }) {
       openGraph: {
         title,
         description,
-        url: fullUrl,
+        url: `${baseUrl}/${lang}`,
         siteName: "Trydos",
         type: "website",
-        images: [
-          {
-            url: ogImageUrl,
-            width: 1200,
-            height: 630,
-          },
-        ],
+        images: [{ url: ogImageUrl, width: 1200, height: 630 }],
       },
       twitter: {
         card: "summary_large_image",
@@ -81,94 +54,10 @@ export async function generateMetadata({ params, searchParams }) {
   }
 }
 
-async function HomePage({ params, searchParams }) {
-  let [Params, query] = await Promise.all([params, searchParams]);
-  const lang = await langParam();
-  let mainCategory = query?.mainCategory || null;
-  const [country, language] = lang.split("-");
-  let currency = getCurrency(country, language);
-  const isRtl = language === "ar" || language === "ku";
-  try {
-    return (
-      <>
-        {/* <StructuredDataScript lang={lang} /> */}
-        <div
-          className={`${
-            isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
-          }  bg-white w-full pl-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.1)] z-999999995`}
-        >
-          <SearchIcon country={country} language={language} />
-          <Suspense
-            fallback={<MobileNavigationSkeleton />}
-            key={`Navbar ${lang}`}
-          >
-            <MainCategoriesNavbar lang={lang} mainCategory={mainCategory} />
-          </Suspense>
-        </div>
-        {/* No <Suspense>: this is a client component that fetches the bar
-            itself and shows its own skeleton while it waits. It used to be a
-            server component that read two cookies, which a cached document
-            cannot do. */}
-        <StoriesBarClient
-          key={`Stories ${lang}`}
-          language={lang.split("-")[1]}
-          country={lang.split("-")[0]}
-        />
-
-        <Suspense
-          fallback={<FeaturedProductsSkeleton />}
-          key={`Featured Products ${lang} ${mainCategory ?? "main"}`}
-        >
-          <FeaturedProductWrapper
-            currency={currency}
-            lang={lang}
-            mainCategory={mainCategory}
-          />
-        </Suspense>
-        <Suspense
-          fallback={<FeaturedProductsSkeleton />}
-          key={`FlashDeals ${lang} ${mainCategory ?? "main"}`}
-        >
-
-          <FlashProductWrapper
-            currency={currency}
-            lang={lang}
-            mainCategory={mainCategory}
-          />
-        </Suspense>
-        <Home key={`Home ${lang}`} />
-        <Suspense
-          fallback={<OfferListSkeleton />}
-          key={`OfferList ${lang} ${mainCategory ?? "main"}`}
-        >
-          <BoutiquesListWrapper
-            params={{ lang: lang }}
-            mainCategory={mainCategory}
-          >
-            {/* Rendered here, not inside the wrapper, and in its own
-                <Suspense>. Recommendations read the shopper's User-Data
-                cookie, so they can never join the cached offers section —
-                they stream in beside it instead. */}
-            {!mainCategory ? (
-              <Suspense fallback={<FeaturedProductsSkeleton />}>
-                <RecommendedWrapper lang={lang} currency={currency} />
-              </Suspense>
-            ) : (
-              <></>
-            )}
-          </BoutiquesListWrapper>
-        </Suspense>
-      </>
-    );
-  } catch (error) {
-    LogServerError(error, `/${lang}`);
-    throw error instanceof Error ? error : new Error(String(error));
-  }
+// The try/catch that used to wrap the JSX is gone. It caught, logged and then
+// re-threw the same error, which is what an error boundary is for — and
+// app/(client)/[lang]/error.tsx is that boundary. Re-throwing from a Server
+// Component only stopped React streaming the parts that had already rendered.
+export default async function HomePage() {
+  return <CategoryHomeView slug={null} />;
 }
-
-export default HomePage;
-// Main Categories Bar
-
-// Featured Products
-
-// FlasDeals Products

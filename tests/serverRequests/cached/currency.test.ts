@@ -4,28 +4,28 @@
 // only be loaded from a server-like test environment. See tests/mocks/serverOnly.ts.
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const getCurrency = vi.fn();
+const getGatewayCurrency = vi.fn();
 
-vi.mock("serverRequests/currency", () => ({ getCurrency }));
+vi.mock("serverRequests/currency", () => ({ getGatewayCurrency }));
 vi.mock("next/cache", () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
 
 describe("getCachedCurrency", () => {
-  beforeEach(() => getCurrency.mockReset());
+  beforeEach(() => getGatewayCurrency.mockReset());
 
   it("passes the country and language straight through", async () => {
-    getCurrency.mockResolvedValue({ exchange_rate: 12, symbol: "£" });
+    getGatewayCurrency.mockResolvedValue({ exchange_rate: 12, symbol: "£" });
 
     const { getCachedCurrency } = await import("serverRequests/cached/currency");
     await getCachedCurrency("sy", "ar");
 
     expect(
-      getCurrency.mock.calls[0],
-      "the cached currency reader called the core currency reader with the wrong arguments, so a shopper in one country would see another country's prices",
+      getGatewayCurrency.mock.calls[0],
+      "the cached currency reader called the gateway currency reader with the wrong arguments, so a shopper in one country would see another country's prices",
     ).toEqual(["sy", "ar"]);
   });
 
   it("drops the timing fields, which differ on every call", async () => {
-    getCurrency.mockResolvedValue({
+    getGatewayCurrency.mockResolvedValue({
       exchange_rate: 12,
       symbol: "£",
       redis: true,
@@ -42,7 +42,7 @@ describe("getCachedCurrency", () => {
   });
 
   it("keeps the empty answer empty rather than inventing a rate", async () => {
-    getCurrency.mockResolvedValue({});
+    getGatewayCurrency.mockResolvedValue({});
 
     const { getCachedCurrency } = await import("serverRequests/cached/currency");
 

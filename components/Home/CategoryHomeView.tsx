@@ -87,7 +87,14 @@ export default async function CategoryHomeView({
         />
       </Suspense>
 
-      <Home key={`Home ${lang}`} />
+      {/* Suspense, even though <Home /> paints nothing. It calls
+          useSearchParams(), and an unwrapped read of that in the static shell
+          makes the WHOLE route dynamic — measured: /[lang] stayed `ƒ` with this
+          boundary missing and turned `◐` with it. The fallback is null because
+          the component itself renders null until a modal is due. */}
+      <Suspense fallback={null} key={`Home ${lang}`}>
+        <Home />
+      </Suspense>
 
       <Suspense
         fallback={<OfferListSkeleton />}
