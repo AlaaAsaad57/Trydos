@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { RedisGet, RedisSet } from "serverRequests/radis";
 import { elasticSearchComment } from "services/elastic/elasticsearch.config";
 import { trydosTranslations } from "./constants-meta";
@@ -47,11 +48,7 @@ export async function GetHomeMetaData({ local, category: rawCategory = null }) {
   if (cachedMeta) return { ...cachedMeta, metadataBase: new URL(baseUrl) };
 
   // 2. Parallel Data Fetch
-  const categoriesMeta = await GetCatgoriesMetaData({
-    country,
-    language: lang,
-    slug: category,
-  });
+  const categoriesMeta = await getCachedMetaSource(country, lang, category);
 
   const t = trydosTranslations[lang] || trydosTranslations.en;
 
@@ -127,6 +124,33 @@ export async function GetHomeMetaData({ local, category: rawCategory = null }) {
 
   return metadataObject;
 }
+/**
+ * The category's name, cached per country, language and slug.
+ *
+ * generateMetadata runs on every request — including the many that are served
+ * from a cached page — so an uncached reader here means the search engine is
+ * asked for a title that did not change, once per visit (finding 3).
+ *
+ * The slug is validated by the caller before it reaches this function, so the
+ * cache key can never carry a value a stranger chose. All three arguments are
+ * read inside the scope, so all three join the cache key.
+ *
+ * The Redis write stays in the caller. A cached scope must not carry a side
+ * effect: the write would run on the call that filled the entry and never
+ * again, which is not what a cache write means.
+ */
+async function getCachedMetaSource(
+  country: string,
+  language: string,
+  category: string | null,
+) {
+  "use cache";
+  cacheLife("homepage");
+  cacheTag(`meta-${country}-${language}-${category ?? "home"}`);
+
+  return GetCatgoriesMetaData({ country, language, slug: category });
+}
+
 // get Cateogires for metadata
 async function GetCatgoriesMetaData({ country, language, slug }) {
   try {

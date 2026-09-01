@@ -19,6 +19,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const redisGet = vi.fn();
 const redisSet = vi.fn();
 const elasticSearch = vi.fn();
+const cacheLife = vi.fn();
+const cacheTag = vi.fn();
 
 vi.mock("serverRequests/radis", () => ({
   RedisGet: (...args: unknown[]) => redisGet(...args),
@@ -32,6 +34,10 @@ vi.mock("utils/server", () => ({
   getRobotsConfig: () => ({ index: false, follow: false }),
 }));
 vi.mock("utils/serverErrorReporter", () => ({ LogServerError: vi.fn() }));
+vi.mock("next/cache", () => ({
+  cacheLife: (...args: unknown[]) => cacheLife(...args),
+  cacheTag: (...args: unknown[]) => cacheTag(...args),
+}));
 
 import { GetHomeMetaData, isValidCategorySlug } from "serverRequests/meta/home";
 
@@ -178,4 +184,92 @@ describe("isValidCategorySlug", () => {
       ).toBe(false);
     },
   );
+});
+
+// What a unit test can and cannot see here.
+//
+// `use cache` is a Next.js compiler feature. Vitest has no runtime for it, so
+// the memoization itself is invisible to this suite: with next/cache mocked the
+// directive is an inert string, and without the mock cacheLife() throws because
+// there is no cache scope to configure. Measured both ways while writing this.
+// The proof that a second identical request does not query the search engine is
+// therefore a runtime measurement on a real build — see the commit for Task 17.
+//
+// What is provable here is the part that decides WHICH entry a request lands in:
+// the cache key. A cached function is keyed on the arguments it actually reads,
+// and the tag is what a revalidation later names. Both are ordinary values.
+describe("the cached metadata reader's key", () => {
+  it("puts the country, the language and the slug in the tag", async () => {
+    elasticSearch.mockResolvedValue(categoryFound);
+
+    await GetHomeMetaData({ local: "sy-en", category: "shoes" });
+
+    expect(
+      cacheTag.mock.calls.map((call) => String(call[0])).join(" "),
+      "the category metadata was tagged without one of the three values that " +
+        "make it different from another page's metadata, so a revalidation " +
+        "would clear the wrong entry",
+    ).toContain("meta-sy-en-shoes");
+  });
+
+  it("gives the plain homepage its own tag instead of an empty one", async () => {
+    elasticSearch.mockResolvedValue(noCategoryFound);
+
+    await GetHomeMetaData({ local: "sy-en", category: null });
+
+    const tags = cacheTag.mock.calls.map((call) => String(call[0])).join(" ");
+    expect(
+      tags,
+      "the homepage metadata was not tagged meta-sy-en-home",
+    ).toContain("meta-sy-en-home");
+    expect(
+      tags,
+      "the homepage tag was built from the empty category value, so the tag " +
+        "reads meta-sy-en-null and no one revalidating the homepage would guess it",
+    ).not.toMatch(/null|undefined/);
+  });
+
+  it("asks for the homepage cache window, not the framework default", async () => {
+    elasticSearch.mockResolvedValue(noCategoryFound);
+
+    await GetHomeMetaData({ local: "sy-en", category: null });
+
+    expect(
+      cacheLife.mock.calls[0]?.[0],
+      "the metadata reader did not ask for the `homepage` profile, so its " +
+        "entry would live for the framework default instead of the window " +
+        "HOMEPAGE_CACHE_SECONDS sets (D-3, D-4)",
+    ).toBe("homepage");
+  });
+
+  it("keeps a slug a stranger chose out of the cache tag", async () => {
+    elasticSearch.mockResolvedValue(noCategoryFound);
+
+    await GetHomeMetaData({ local: "sy-en", category: HOSTILE });
+
+    const tags = cacheTag.mock.calls.map((call) => String(call[0])).join(" ");
+    expect(
+      tags,
+      "text from the URL reached the cache tag; every distinct value a stranger " +
+        "sends would then open another cache entry",
+    ).not.toContain("evil.example");
+    expect(
+      tags,
+      "a rejected slug did not fall back to the homepage tag",
+    ).toContain("meta-sy-en-home");
+  });
+
+  it("still lets a real slug through to the tag", async () => {
+    // The positive control for the check above: if nothing ever reached the tag,
+    // "does not contain evil.example" would pass while proving nothing.
+    elasticSearch.mockResolvedValue(categoryFound);
+
+    await GetHomeMetaData({ local: "sy-en", category: "boots" });
+
+    expect(
+      cacheTag.mock.calls.map((call) => String(call[0])).join(" "),
+      "a valid slug never reached the cache tag, so every category page would " +
+        "share the homepage's metadata entry",
+    ).toContain("meta-sy-en-boots");
+  });
 });
