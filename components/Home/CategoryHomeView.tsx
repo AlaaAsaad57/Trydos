@@ -15,6 +15,27 @@ import OfferListSkeleton from "components/skeleton/OfferList";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 
 import { getCachedCurrency } from "serverRequests/cached/currency";
+import {
+  getCachedFeatured,
+  getCachedFlashDeals,
+} from "serverRequests/cached/home";
+
+/**
+ * Will this row have anything in it?
+ *
+ * A read that fails answers `true`. A broken backend then leaves the page
+ * exactly as it was before this check existed — a skeleton, and then whatever
+ * the row renders — instead of hiding a row that was going to be fine.
+ */
+async function rowHasProducts(
+  read: () => Promise<unknown[]>,
+): Promise<boolean> {
+  try {
+    return (await read()).length > 0;
+  } catch {
+    return true;
+  }
+}
 
 /**
  * The home and category views, which differ only by `slug`.
@@ -44,6 +65,27 @@ export default async function CategoryHomeView({
   // fetch overlaps the product fetches instead of blocking them.
   const currency = getCachedCurrency(country, language);
 
+  // Does each product row have anything to show?
+  //
+  // The two rows are dynamic holes: a product card cannot be prerendered, so the
+  // shell carries a 457px skeleton and the cards arrive about 300ms later. That
+  // skeleton is a guess at the final size, and a wrong guess is a jump. The
+  // flash-deal row is the one that is regularly wrong: with no deal running it
+  // renders nothing, so the skeleton collapsed to zero and pulled the boutiques
+  // section 467px up on every load — measured in a browser.
+  //
+  // Asking here costs no backend call: both readers are cached, and the wrappers
+  // read the same entry again inside the boundary. The shell now reserves space
+  // only for a row that will really be there.
+  //
+  // The answer is as old as the shell, which is at most 60 seconds
+  // (cacheLife "homepage"). A deal that starts inside that window shows up on
+  // the next revalidation, the same delay the row's own data already has.
+  const [hasFeatured, hasFlashDeals] = await Promise.all([
+    rowHasProducts(() => getCachedFeatured(country, language, slug)),
+    rowHasProducts(() => getCachedFlashDeals(country, language, slug)),
+  ]);
+
   return (
     <>
       <div
@@ -65,27 +107,31 @@ export default async function CategoryHomeView({
         country={country}
       />
 
-      <Suspense
-        fallback={<FeaturedProductsSkeleton />}
-        key={`Featured Products ${lang} ${slug ?? "main"}`}
-      >
-        <FeaturedProductWrapper
-          currency={currency}
-          lang={lang}
-          mainCategory={slug}
-        />
-      </Suspense>
+      {hasFeatured && (
+        <Suspense
+          fallback={<FeaturedProductsSkeleton />}
+          key={`Featured Products ${lang} ${slug ?? "main"}`}
+        >
+          <FeaturedProductWrapper
+            currency={currency}
+            lang={lang}
+            mainCategory={slug}
+          />
+        </Suspense>
+      )}
 
-      <Suspense
-        fallback={<FeaturedProductsSkeleton />}
-        key={`FlashDeals ${lang} ${slug ?? "main"}`}
-      >
-        <FlashProductWrapper
-          currency={currency}
-          lang={lang}
-          mainCategory={slug}
-        />
-      </Suspense>
+      {hasFlashDeals && (
+        <Suspense
+          fallback={<FeaturedProductsSkeleton />}
+          key={`FlashDeals ${lang} ${slug ?? "main"}`}
+        >
+          <FlashProductWrapper
+            currency={currency}
+            lang={lang}
+            mainCategory={slug}
+          />
+        </Suspense>
+      )}
 
       {/* Suspense, even though <Home /> paints nothing. It calls
           useSearchParams(), and an unwrapped read of that in the static shell

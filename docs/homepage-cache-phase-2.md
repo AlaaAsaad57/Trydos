@@ -401,3 +401,123 @@ Not fixed here. A real 404 would mean making the route dynamic, which is the
 opposite of this whole change, so the choice belongs to the owner. The cheapest
 middle answer, if it is wanted, is to return `robots: { index: false }` from
 `generateMetadata` for a slug that fails the shape check.
+
+---
+
+## The product rows were never sent as HTML (found after the merge review)
+
+The featured row flashed on every home page load: its skeleton painted, the
+section then collapsed to a bare 50px header, and the product cards appeared
+about a second later — moving everything below them. An earlier change fixed a
+real hydration mismatch in the flash-deal countdown, and the flash stayed. The
+countdown was not the cause.
+
+### What the server was actually sending
+
+Measured on a production build (`pnpm build && pnpm start`), `/sy-en`:
+
+```
+document                                375,874 bytes
+  data-pw="product-name"                      0     ← no real card anywhere
+  id="product_"                               0
+  data-pw="product_link"                     18     ← all of them the skeleton's
+  react-loading-skeleton                     54
+```
+
+The skeleton reuses the real card's `data-pw` markers, which is why a first look
+at those counts is misleading. There was **no product card in the HTML at all**.
+The products were in the document only as streaming payload, so the browser had
+to render the rows itself.
+
+Reading React's own streaming markers made the shape exact. The featured
+boundary resolved on the server as:
+
+```html
+<div hidden id="S:0"><a href="/sy-en/featured">…Featured Products</a></div>
+<script>$RC("B:0","S:0")</script>
+```
+
+Header link, nothing else. `$RC` swaps a boundary's fallback for that content,
+so a 457px skeleton became a 50px header. In a browser: boutiques top at 1301px,
+then 417px, then 834px, with React error #418 in the console.
+
+### Why
+
+A product card cannot be prerendered. The two rows sat in a `<Suspense>`
+boundary with nothing in it that asks for the request, so the prerender had no
+point to stop at, and React gave up on server-rendering the boundary and left it
+to the browser.
+
+This was narrowed down by building the same page four ways and asking each one
+for its HTML:
+
+| what the row rendered | product cards in the HTML |
+|---|---|
+| the real `ProductCard` inside `HortiznalScrollBar` | no |
+| the real `ProductCard` inside a plain `<div>` | no |
+| a plain `<span>` per product | **yes** |
+| the real `ProductCard`, with its two clock reads pinned to a fixed value | no |
+| the real `ProductCard`, with `await connection()` in the wrapper | **yes** |
+
+The clock was the first suspect — `ProductCard` calls `new Date()` and
+`useLuckTimer` calls `Date.now()` during render, and the Next guide names those
+as calls that cannot be deferred. Pinning both did **not** fix it, so the clock
+is not the whole story and neither read was changed. What fixed it is giving the
+prerender somewhere to stop.
+
+### The fix
+
+`await connection()` in `FeaturedProductWrapper` and `FlashProductWrapper`,
+before any card renders. The prerender ends there; at request time the rest of
+the row is rendered on the server and streamed as real HTML. It costs no backend
+call — the products still come from the cached readers.
+
+After: 10 product cards in the HTML, the featured row 457px from its first
+paint, and no React #418.
+
+### The second jump: a skeleton for a row that renders nothing
+
+Fixing the featured row left a 467px jump. The flash-deal row shows the same
+457px skeleton, and with no deal running it renders nothing, so the skeleton
+collapsed to zero and pulled the boutiques section up.
+
+A skeleton is a promise about the final size, and a wrong promise is a jump.
+`CategoryHomeView` now asks the cached readers whether each row will have
+anything in it, and renders the `<Suspense>` only when it will. Asking costs no
+backend call: the wrappers read the same cache entry again inside the boundary.
+
+The answer is as old as the shell, at most 60 seconds. A deal that starts inside
+that window appears at the next revalidation — the same delay the row's own data
+already has.
+
+Measured after both fixes, `/sy-en` in a real browser:
+
+| | boutiques top over the first 6 seconds |
+|---|---|
+| before | 1301 → 417 → 834 (moved 884px) |
+| after `connection()` | 1301 → 834 (moved 467px) |
+| after both | **834, never moves** |
+
+### Still open: the recommendations row
+
+The recommendations row below the boutiques has the same 457px skeleton and
+renders nothing for a signed-out shopper. It is **not** fixed here, and cannot be
+fixed the same way: it reads the shopper's own cookie, so a shell shared by every
+visitor can never know its answer in advance. It sits below the fold on a 900px
+viewport, so it does not move anything a visitor is looking at on load. The check
+in `tests/cache/homeRowsRenderOnTheServer.test.ts` says out loud that it only
+covers the two rows above the boutiques.
+
+### What guards it
+
+`tests/cache/homeRowsRenderOnTheServer.test.ts`:
+
+- a source check, run by CI on every pull request, that every home row which can
+  render a product card asks for the request first;
+- a check against a running server that the home document carries real product
+  cards, not only streaming payload;
+- a check that every product-row skeleton above the boutiques is filled.
+
+Both server checks skip loudly with no server on port 3111, the same as
+`tests/cache/sharedEntryIsNotPersonal.test.ts`, because the unit suite gates
+every pull request with nothing running.

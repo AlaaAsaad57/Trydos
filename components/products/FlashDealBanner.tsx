@@ -168,11 +168,16 @@ function FlashDealBanner({
           `initial` is worked out from a clock — `resolveCardPrice` in
           ProductCard reads `new Date()` during render. That render happens
           twice, once on the server and once again when React hydrates in the
-          browser, and the two are never the same second. React saw the two
-          different countdowns as a hydration mismatch and answered by throwing
-          the whole product row away and rebuilding it: measured on a production
-          build, the featured section vanished for 733ms on every home page
-          load, and the boutiques below it jumped 884px up and back down.
+          browser, and the two are never the same second. React reads two
+          different countdowns as a hydration mismatch and answers by throwing
+          the whole product row away and rebuilding it.
+
+          The mismatch is real and is proved by
+          tests/components/products/ProductCard/hydrationStability.test.tsx,
+          which was red before this gate and green after. It was NOT, however,
+          the cause of the featured section vanishing on every home page load.
+          That had a different cause — the row was never server-rendered at all
+          — and is written up in docs/homepage-cache-phase-2.md.
 
           `initial` still decides whether the banner is here at all, and it
           still decides the price — both of those are stable, because a deal

@@ -10,15 +10,19 @@
 // between them, React calls that a hydration mismatch, and it answers by
 // throwing the whole subtree away and rebuilding it on the client.
 //
-// Measured on a production build before the fix: the featured row disappeared
-// for 733ms on every home page load (skeleton at 445ms, nothing at 846ms,
-// products at 1579ms), the boutiques section jumped up 884px and back down
-// again, and the browser console carried React error #418 — "the server
-// rendered HTML didn't match the client... this tree will be regenerated".
-//
 // So the test does not look at a countdown value. It renders the card at two
 // moments a second apart and compares the markup, which is exactly the
 // comparison React makes.
+//
+// WHAT THIS TEST DOES NOT EXPLAIN
+//
+// It was written while chasing the featured row disappearing for 733ms on every
+// home page load. The mismatch it catches is real, and this test was red before
+// the countdown was gated on `mounted` and green after. It was not the cause of
+// that flash: the row was never server-rendered at all. That is a different
+// fault with a different fix — see docs/homepage-cache-phase-2.md and
+// tests/cache/homeRowsRenderOnTheServer.test.ts. Do not read a pass here as
+// "the home page does not move".
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -123,10 +127,12 @@ describe("a product card rendered at two different moments", () => {
 // The confirming test is "produces the same markup one second later" above,
 // which was seen red first.
 //
-// It also does not yet reproduce the mismatch that is still visible in a real
-// browser on /sy-en. That one needs the real store, the real cookies and a real
-// product, none of which this isolated render has. Until it does, a pass here
-// is not evidence that the page is clean — the browser measurement is.
+// The React #418 that was still visible in a real browser on /sy-en when this
+// file was written has since been traced and fixed, and it was not a mismatch
+// inside the card: the home page's product rows were never server-rendered, so
+// React rebuilt each row from the streaming payload. See
+// docs/homepage-cache-phase-2.md. A pass here still says nothing about that
+// class of fault — tests/cache/homeRowsRenderOnTheServer.test.ts does.
 describe("hydrating the server markup of a product card", () => {
   beforeEach(() => {
     vi.stubGlobal("IntersectionObserver", NoopObserver);
