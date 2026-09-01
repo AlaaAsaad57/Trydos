@@ -369,8 +369,8 @@ export default function BottomNav() {
           height: BAR_H,
           borderRadius: BAR_R,
           background: BAR_BG,
-          backdropFilter: "blur(28px) saturate(180%)",
-          WebkitBackdropFilter: "blur(28px) saturate(180%)",
+          backdropFilter: "blur(15px) saturate(180%)",
+          WebkitBackdropFilter: "blur(15px) saturate(180%)",
           boxShadow:
             "0 4px 18px rgba(0,0,0,0.18), inset 0 0 0 0.5px rgba(255,255,255,0.6), inset 0 -0.5px 0 rgba(255,255,255,0.9)",
           // The scroll and the pulse both drive this, and nothing else touches
