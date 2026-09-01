@@ -1,0 +1,109 @@
+import { Suspense } from "react";
+import { lang as langParam } from "next/root-params";
+
+import SearchIcon from "components/Home/Search/SearchIcon";
+import MainCategoriesNavbar from "components/Server/MainCategories";
+import StoriesBarClient from "components/Home/Stories/StoriesBarClient";
+import Home from "components/Home";
+import RecommendedWrapper from "components/ServerWrapper/RecommendedWrapper";
+import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrapper";
+import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
+import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
+
+import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
+import OfferListSkeleton from "components/skeleton/OfferList";
+import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
+
+import { getCachedCurrency } from "serverRequests/cached/currency";
+
+/**
+ * The home and category views, which differ only by `slug`.
+ *
+ * `slug` is null for the home page and a category slug for /categories/{slug}.
+ * It arrives as a route segment, never as a search parameter: a page that awaits
+ * searchParams can never be cached, which is why D-13 moved the address.
+ *
+ * Every child is either cached or wrapped in its own <Suspense>. Nothing between
+ * them reads a cookie, a header or the clock. Two children are deliberately
+ * request-bound and stream in: the recommendations (they need the shopper's id)
+ * and the stories bar (it runs in the browser).
+ *
+ * The redeemed-luck script is NOT rendered here. It already sits in the [lang]
+ * layout, which wraps both routes; a second copy would run the same pre-paint
+ * script twice on every page.
+ */
+export default async function CategoryHomeView({
+  slug,
+}: {
+  slug: string | null;
+}) {
+  const lang = await langParam();
+  const [country, language] = lang.split("-");
+  const isRtl = language === "ar" || language === "ku";
+  // Not awaited on purpose. The wrappers await it themselves, so the currency
+  // fetch overlaps the product fetches instead of blocking them.
+  const currency = getCachedCurrency(country, language);
+
+  return (
+    <>
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
+        } bg-white w-full pl-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.1)] z-999999995`}
+      >
+        <SearchIcon country={country} language={language} />
+        <Suspense fallback={<MobileNavigationSkeleton />} key={`Navbar ${lang}`}>
+          <MainCategoriesNavbar lang={lang} mainCategory={slug} />
+        </Suspense>
+      </div>
+
+      {/* No <Suspense>: this is a client component that fetches the bar itself
+          and shows its own skeleton while it waits. */}
+      <StoriesBarClient
+        key={`Stories ${lang}`}
+        language={language}
+        country={country}
+      />
+
+      <Suspense
+        fallback={<FeaturedProductsSkeleton />}
+        key={`Featured Products ${lang} ${slug ?? "main"}`}
+      >
+        <FeaturedProductWrapper
+          currency={currency}
+          lang={lang}
+          mainCategory={slug}
+        />
+      </Suspense>
+
+      <Suspense
+        fallback={<FeaturedProductsSkeleton />}
+        key={`FlashDeals ${lang} ${slug ?? "main"}`}
+      >
+        <FlashProductWrapper
+          currency={currency}
+          lang={lang}
+          mainCategory={slug}
+        />
+      </Suspense>
+
+      <Home key={`Home ${lang}`} />
+
+      <Suspense
+        fallback={<OfferListSkeleton />}
+        key={`OfferList ${lang} ${slug ?? "main"}`}
+      >
+        <BoutiquesListWrapper params={{ lang }} mainCategory={slug}>
+          {/* Rendered here, not inside the wrapper, and in its own <Suspense>.
+              Recommendations read the shopper's User-Data cookie, so they can
+              never join the cached offers section — they stream in beside it. */}
+          {slug ? null : (
+            <Suspense fallback={<FeaturedProductsSkeleton />}>
+              <RecommendedWrapper lang={lang} currency={currency} />
+            </Suspense>
+          )}
+        </BoutiquesListWrapper>
+      </Suspense>
+    </>
+  );
+}
