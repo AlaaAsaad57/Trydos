@@ -60,8 +60,11 @@ import { TabIcon } from "./icons";
                       so the pill is black at about 11.5%, NOT a lighter tint.
 
     THE SCROLL
-      icon spacing is 66 at rest and 56 while the page moves. 56 / 66 = 0.85,
-      which is where MIN_SCALE comes from.
+      icon spacing is 66 at rest and 56 while the page MOVES. 56 / 66 = 0.85.
+      Read that wording again: the bar is small while the page is moving and
+      full size once it stops. So the scale follows scroll SPEED, not how far
+      down the page you are. useScrollScale below is built that way, and 0.85
+      is the measured floor — the control panel can take it lower.
   ---------------------------------------------------------------------------
 */
 
@@ -88,8 +91,80 @@ const PILL_H = BAR_H - PAD_Y * 2; // 43
 const GLYPH = 29; // the home path spans 16 of 24 viewBox units, so it draws
 //                   16/24 * 29 = 19.3px — the 19.4 measured in the video
 
-const BAR_BG = "rgba(246,246,246,0.84)";
-const PILL_BG = "rgba(0,0,0,0.115)";
+/* --------------------------- the material -------------------------------- */
+
+export type NavTheme = {
+  /** backdrop-filter blur, in px */
+  blur: number;
+  /** backdrop-filter saturate, in % */
+  saturation: number;
+  /** the bar colour, as #rgb or #rrggbb */
+  color: string;
+  /** how solid that colour is, 0..1 */
+  opacity: number;
+  /** the smallest the bar gets while the page is moving */
+  minScale: number;
+  /** the scroll speed, in px/s, that takes the bar all the way to minScale */
+  speed: number;
+};
+
+/**
+ * The panel opens on the values the bar already used — nothing here is new.
+ * colour + opacity together are the rgba(246,246,246,0.84) fitted over the 76
+ * frames above, blur and saturate are the ones already on the element, and
+ * 0.85 is the measured 56 / 66.
+ *
+ * A smaller floor is a slider away: drag "Smallest size" down and the bar dips
+ * deeper. Nothing in the code has to change to keep a value you like — read it
+ * off the panel and put it here.
+ */
+export const DEFAULT_NAV_THEME: NavTheme = {
+  blur: 15,
+  saturation: 180,
+  color: "#f6f6f6",
+  opacity: 0.84,
+  minScale: 0.85,
+  speed: 1600,
+};
+
+/** Splits #rgb or #rrggbb into its three channels. Bad input stays default. */
+function channels(hex: string): [number, number, number] {
+  const raw = hex.trim().replace(/^#/, "");
+  const full =
+    raw.length === 3
+      ? raw
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : raw;
+  const n = Number.parseInt(full, 16);
+  if (full.length !== 6 || Number.isNaN(n)) return [246, 246, 246];
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+/**
+ * Everything the picked colour decides.
+ *
+ * The measured pill is black at 11.5%. That is right on a light bar and
+ * invisible on a dark one, and the same goes for the black icons and the white
+ * inner highlight. So the ink flips with the bar: work out how bright the
+ * chosen colour is, and draw white on a dark bar. Without this the colour
+ * picker only works for one half of the colour wheel.
+ */
+export function buildSkin(theme: NavTheme) {
+  const [r, g, b] = channels(theme.color);
+  // Rec. 709 luma — the usual weighting for "how bright does this look".
+  const dark = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5;
+  return {
+    filter: `blur(${theme.blur}px) saturate(${theme.saturation}%)`,
+    bar: `rgba(${r},${g},${b},${theme.opacity})`,
+    pill: dark ? "rgba(255,255,255,0.16)" : "rgba(0,0,0,0.115)",
+    ink: dark ? "#fafafa" : "#0a0a0a",
+    shadow: dark
+      ? "0 4px 18px rgba(0,0,0,0.38), inset 0 0 0 0.5px rgba(255,255,255,0.16), inset 0 -0.5px 0 rgba(255,255,255,0.22)"
+      : "0 4px 18px rgba(0,0,0,0.18), inset 0 0 0 0.5px rgba(255,255,255,0.6), inset 0 -0.5px 0 rgba(255,255,255,0.9)",
+  };
+}
 
 /**
  * How wide the bar may get on a desktop screen. A phone draws it at 355, so
@@ -102,27 +177,33 @@ const BAR_MAX_W = 380;
 /** Full size. The bar is never drawn bigger than this. */
 const MAX_SCALE = 1;
 
-/** The smallest the bar ever gets. Measured: 56 / 66. */
-const MIN_SCALE = 0.85;
-
-/** How much downward scroll takes the bar from MAX_SCALE to MIN_SCALE. */
-const RANGE = 120;
-
 /**
- * The most one scroll event may move the bar.
+ * How the bar reads the scroll.
  *
- * This is the cap on the spring's TARGET, not on what you see. The spring is
- * what stops the bar jumping, so the cap only has to keep one event from
- * commanding more than about three quarters of the range. Set it too low (it
- * was 50) and the target creeps along just ahead of the bar: the spring never
- * carries any speed, so it eases to a dead stop at each end with no beat at
- * all. At 100 one firm scroll commands most of the travel, the spring covers
- * it with real speed, and the swing past the end comes out of the physics.
+ * The video shows the bar small while the page MOVES and full size once it
+ * stops, so what drives the scale is scroll SPEED. Reading that speed straight
+ * off the scroll event does not work: browsers fire those in lumps, so inside
+ * one flick the raw number swings between 0 and 4000 px/s and the bar judders.
+ *
+ * So the speed is measured once per animation frame and passed through a
+ * low-pass filter — a rolling average with one time constant. Two constants,
+ * in fact, because rising and falling want different speeds:
+ *
+ *     ATTACK_S   how fast the bar answers you starting to scroll
+ *     RELEASE_S  how fast it grows back after you stop
+ *
+ * RELEASE_S is the longer of the two on purpose. Between two swipes of a
+ * finger the speed touches zero for a moment, and a short release would make
+ * the bar flash back to full size in that gap.
  */
-const MAX_STEP = 100;
+const ATTACK_S = 0.06;
+const RELEASE_S = 0.22;
 
-/** Going back up is a little quicker than going down. */
-const REVEAL_BOOST = 1.6;
+/** Under this speed, in px/s, the page counts as still and the loop parks. */
+const STILL_V = 6;
+
+/** Within this many pixels of the top the bar is always full size. */
+const TOP_HOLD = 8;
 
 /**
  * The one timing function behind the whole scale — the glide AND the beat it
@@ -136,11 +217,13 @@ const REVEAL_BOOST = 1.6;
  *
  * The beat cannot fight the glide, because it is the same motion: shrink, one
  * small swing past the end, settle. It also grades itself by how hard you
- * scrolled, which no separate animation can do. Measured swing past the end:
+ * scrolled, which no separate animation can do — a flick swings further past
+ * the end than a nudge does.
  *
- *     a flick          1.09px
- *     a brisk scroll   0.88px
- *     a slow scroll    0.38px
+ * Measured on a hard flick with the floor at 0.85: the bar reached 0.836, so
+ * it passed the floor by 0.014 of its size, about 5px of width at 380 wide.
+ * The older per-gesture figures that used to sit here were taken against the
+ * distance-based scroll model and no longer describe this one.
  *
  * Raise damping to 28 and the bar stops dead at each end with no beat at all.
  */
@@ -155,18 +238,28 @@ const GLIDE = { stiffness: 220, damping: 15, mass: 0.9 } as const;
   scroll scale and the indicator move stay, and the pulse goes.
 */
 
-/** Moves the indicator. */
-const TRAVEL = { type: "spring", stiffness: 420, damping: 34, mass: 0.9 } as const;
+/**
+ * Moves the indicator. It sets off the moment your finger lands.
+ *
+ * Higher stiffness with the damping ratio kept just under 1 is what makes the
+ * move both quicker and smoother at the same time:
+ * 38 / (2 * sqrt(560 * 0.85)) = 0.87, so it covers the distance fast and
+ * settles with an overshoot of 0.4% — too small to see as a wobble.
+ */
+const TRAVEL = { type: "spring", stiffness: 560, damping: 38, mass: 0.85 } as const;
 
 /** Reacts to a finger going down. */
 const PRESS = { type: "spring", stiffness: 700, damping: 38, mass: 0.6 } as const;
 
-/**
- * The indicator holds still for a moment before it sets off. Without it the
- * pill leaves under your finger and the tap feels unanswered; with it the
- * press reads first and the pill follows.
- */
-const INDICATOR_DELAY = 0.06;
+/*
+  There is no delay in front of the indicator any more.
+
+  It used to wait 60ms so the press would read first. What that actually bought
+  was a pause where the capsule looked stuck under your finger. The press is
+  already answered without it — the icon shrinks and the whole bar pulses, both
+  on the same frame as the pointer down — so the capsule is free to leave at
+  once.
+*/
 
 /**
  * One breath of the whole capsule, for a press — finger or mouse. This is the
@@ -189,54 +282,102 @@ const clamp = (n: number, min: number, max: number) =>
   n < min ? min : n > max ? max : n;
 
 /**
- * The scale of the bar, driven by the scroll.
+ * The scale of the bar, driven by how fast the page is moving.
  *
  * `travelled` is how far into the shrink we are: 0 at full size, 1 at the
- * small size, clamped at both ends. A spring sits between the scroll and the
- * screen, so what the browser draws is always a smooth curve even when the
- * scroll arrives in lumps.
+ * small size. A spring sits between it and the screen, so what the browser
+ * draws is always a smooth curve, even where the scroll arrives in lumps.
  */
-function useScrollScale() {
+function useScrollScale(minScale: number, fullSpeed: number) {
   const travelled = useMotionValue(0);
   const eased = useSpring(travelled, GLIDE);
-  // clamp: false is what lets the beat through. useTransform clamps its output
-  // to the range by default, so the spring's swing past each end was being
-  // measured, computed and then thrown away one step before the screen.
-  // `travelled` itself is still clamped 0..1, so the only values that ever
-  // land outside the range are the swing.
-  const scale = useTransform(eased, [0, 1], [MAX_SCALE, MIN_SCALE], {
-    clamp: false,
-  });
+
+  // The floor is a live motion value, not a plain number, so dragging the
+  // slider redraws the bar at once instead of waiting for the next scroll.
+  const floor = useMotionValue(minScale);
+  useEffect(() => {
+    floor.set(minScale);
+  }, [minScale, floor]);
+
+  // The mix is written out by hand rather than handed to useTransform as an
+  // output range. A range clamps by default, and that clamp would eat the
+  // spring's swing past each end — which is the landing beat.
+  const scale = useTransform(
+    [eased, floor],
+    ([t, m]: number[]) => MAX_SCALE + t * (m - MAX_SCALE)
+  );
+
+  // Read through a ref so moving the sensitivity slider does not tear down
+  // and rebuild the listener.
+  const speed = useRef(fullSpeed);
+  speed.current = fullSpeed;
 
   useEffect(() => {
-    let last = window.scrollY;
+    let frame = 0;
+    let running = false;
+    let lastY = window.scrollY;
+    let lastT = 0;
+    // Pixels scrolled since the last frame looked. The scroll handler adds to
+    // it and the frame empties it, so no movement is counted twice and none is
+    // lost between two events that land in the same frame.
+    let pending = 0;
+    let smoothed = 0;
 
-    const onScroll = () => {
-      const y = window.scrollY;
-      const dy = clamp(y - last, -MAX_STEP, MAX_STEP);
-      last = y;
-      if (dy === 0) return;
+    const tick = (now: number) => {
+      // Clamped so a background tab coming back does not divide by a huge gap.
+      const dt = Math.min(Math.max((now - lastT) / 1000, 0.001), 0.1);
+      lastT = now;
 
-      // At the very top the bar is always full size.
-      if (y <= 8) {
+      const raw = pending / dt;
+      pending = 0;
+
+      // One step of the low-pass filter. It is written as exp(-dt / tau) so
+      // the curve is the same shape on a 60Hz screen and on a 120Hz one.
+      const tau = raw > smoothed ? ATTACK_S : RELEASE_S;
+      smoothed += (raw - smoothed) * (1 - Math.exp(-dt / tau));
+
+      if (smoothed < STILL_V) {
+        // The page has stopped. Park the loop; the spring finishes the last
+        // of the way back to full size on its own.
+        smoothed = 0;
+        running = false;
         travelled.set(0);
         return;
       }
 
-      const step = dy / RANGE;
       travelled.set(
-        clamp(travelled.get() + (dy > 0 ? step : step * REVEAL_BOOST), 0, 1)
+        lastY <= TOP_HOLD ? 0 : clamp(smoothed / speed.current, 0, 1)
       );
+      frame = requestAnimationFrame(tick);
+    };
+
+    const onScroll = () => {
+      const y = window.scrollY;
+      pending += Math.abs(y - lastY);
+      lastY = y;
+      if (running) return;
+      running = true;
+      lastT = performance.now();
+      frame = requestAnimationFrame(tick);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(frame);
+    };
   }, [travelled]);
 
   return scale;
 }
 
-export default function BottomNav() {
+export default function BottomNav({
+  theme = DEFAULT_NAV_THEME,
+}: {
+  /** Every value the control panel can change. Omit it for the measured look. */
+  theme?: NavTheme;
+}) {
+  const skin = buildSkin(theme);
   const [active, setActive] = useState<TabId>("home");
   const [pressed, setPressed] = useState<TabId | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -245,10 +386,10 @@ export default function BottomNav() {
   // How many slots the indicator is about to cross. Drives the squash.
   const [hop, setHop] = useState(0);
 
-  const travelSpring = { ...TRAVEL, delay: INDICATOR_DELAY };
+  const travelSpring = TRAVEL;
   const pressSpring = PRESS;
 
-  const scrollScale = useScrollScale();
+  const scrollScale = useScrollScale(theme.minScale, theme.speed);
 
   // The pulse multiplies the scroll scale rather than replacing it, so a touch
   // during a scroll does not snap the bar back to full size.
@@ -368,11 +509,10 @@ export default function BottomNav() {
           maxWidth: BAR_MAX_W,
           height: BAR_H,
           borderRadius: BAR_R,
-          background: BAR_BG,
-          backdropFilter: "blur(15px) saturate(180%)",
-          WebkitBackdropFilter: "blur(15px) saturate(180%)",
-          boxShadow:
-            "0 4px 18px rgba(0,0,0,0.18), inset 0 0 0 0.5px rgba(255,255,255,0.6), inset 0 -0.5px 0 rgba(255,255,255,0.9)",
+          background: skin.bar,
+          backdropFilter: skin.filter,
+          WebkitBackdropFilter: skin.filter,
+          boxShadow: skin.shadow,
           // The scroll and the pulse both drive this, and nothing else touches
           // the transform, so the bar scales about its own centre and that
           // centre does not shift by a pixel.
@@ -425,7 +565,7 @@ export default function BottomNav() {
                     <motion.span
                       data-pill
                       className="block h-full w-full"
-                      style={{ background: PILL_BG, borderRadius: PILL_H / 2 }}
+                      style={{ background: skin.pill, borderRadius: PILL_H / 2 }}
                       initial={{ scaleX: squashX, scaleY: squashY }}
                       animate={{ scaleX: 1, scaleY: 1 }}
                       transition={travelSpring}
@@ -446,7 +586,8 @@ export default function BottomNav() {
                       commit(t.id);
                     }
                   }}
-                  className="relative flex h-full w-full items-center justify-center text-[#0a0a0a]"
+                  className="relative flex h-full w-full items-center justify-center"
+                  style={{ color: skin.ink }}
                 >
                   <motion.span
                     // Remounting on `pop` replays the little scale-in, so the

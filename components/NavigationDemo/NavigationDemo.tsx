@@ -1,20 +1,28 @@
 "use client";
 
-import React from "react";
-import BottomNav from "./BottomNav";
+import React, { useState } from "react";
+import BottomNav, { DEFAULT_NAV_THEME, type NavTheme } from "./BottomNav";
+import NavControls from "./NavControls";
 
 /**
  * A scrollable page, only so the bar has something to sit on top of and
  * something to react to. The bar itself is BottomNav.tsx.
+ *
+ * The page owns the theme rather than the bar, so the panel and the bar read
+ * the same one value and cannot drift apart.
  */
 export default function NavigationDemo() {
+  const [theme, setTheme] = useState<NavTheme>(DEFAULT_NAV_THEME);
+
   return (
     <div className="min-h-screen w-full bg-[#0b0b0d]">
       <div className="mx-auto w-full max-w-[560px] pb-[160px]">
-        <p className="px-5 py-4 text-center text-[12px] leading-relaxed text-white/45">
-          Scroll down — the bar scales down into its own centre. Scroll up — it
-          scales back. Press the bar and it pulses once. Press and slide
-          across it without lifting to move the indicator.
+        {/* pt-16 keeps this clear of the "Style" chip pinned to the top right. */}
+        <p className="px-5 pb-4 pt-16 text-center text-[12px] leading-relaxed text-white/45">
+          Scroll and the bar shrinks into its own centre — the faster you
+          scroll, the smaller it gets. Stop and it grows back. Press the bar
+          and it pulses once. Press and slide across it without lifting to move
+          the indicator. Use the panel to set the glass by hand.
         </p>
 
         {Array.from({ length: 12 }).map((_, i) => (
@@ -49,7 +57,8 @@ export default function NavigationDemo() {
         ))}
       </div>
 
-      <BottomNav />
+      <NavControls theme={theme} onChange={setTheme} />
+      <BottomNav theme={theme} />
     </div>
   );
 }
