@@ -459,3 +459,134 @@ This change merges only if all four hold. Any one failing blocks it.
 | T-2 | `/[lang]` in the build's route table | not `dynamic` |
 | T-3 | Time to first byte, warm cache, home page | no worse than today's, measured on the same machine |
 | T-4 | A guest document containing a signed-in shopper's profile | never (Task 18 green) |
+
+### The numbers, and the verdict
+
+Both builds were made and run on the same machine, one after the other, with
+`next build` and `next start -p 3111` against the same staging backends. The
+"before" build is `develop` at `ef52e39b` — phase 1, the flag on, no route
+converted. The counting probe wrapped `client.search` on the shared
+Elasticsearch client and logged the index each call asked for. It was removed
+before this commit; `git diff -- services/elastic/elasticsearch.config.ts` is
+empty.
+
+#### Elasticsearch queries per home request
+
+| | before (`develop`) | after |
+|---|---|---|
+| one home request, server just started | **35** | **1** |
+| two home requests | 70 | 2 |
+| 20 requests, all inside one 60-second window | **700** | **20** |
+| wall time for those 20 requests | 78s | 10–13s |
+
+Every one of the 20 queries after the change is the same index:
+`cold_start_recommendations_develop`. Not one comes from a cached reader.
+Measured again over 30 requests in 18 seconds: 30 queries, all
+recommendations, and `x-nextjs-postponed: 1` on all 30 responses — the shared
+shell was reused every time.
+
+Recommendations are personal. The reader takes the shopper's own profile, so it
+is a dynamic hole on purpose and is not cached. Finding 10 keeps that endpoint
+as a separate work item.
+
+#### What one revalidation costs
+
+When the 60-second window turns over, the four cached readers refill together.
+Captured inside a 20-request run that crossed a window boundary:
+
+```
+requests 1–15   1 query each   (recommendations only)
+request 16      34 queries     (24 products_catalog + 10 product_views)
+requests 17–20  1 query each   (recommendations only)
+```
+
+So the total for that run was 54, not 20.
+
+Those 34 are the same 34 that used to run on **every** request: 35 per request
+before, minus the 1 recommendation query that is still there, is 34. The two
+measurements were taken separately and the arithmetic matches exactly. The
+change does not remove the work — it runs it once per 60 seconds instead of
+once per visit.
+
+#### A cold locale
+
+`generateStaticParams` returns one locale (D-23). `/lb-ar` is not in it.
+
+| ask | status | time to first byte | total |
+|---|---|---|---|
+| first | 200 | **2.99s** | 3.68s |
+| second | 200 | 0.012s | 0.85s |
+| third | 200 | 0.011s | 2.67s |
+
+The first visitor to an unlisted locale pays about three seconds before the
+first byte. After that the page is on disk and the next visitor does not. This
+is D-23 working as described.
+
+#### An unlisted category slug — the number to watch
+
+Amendment 2 lets any slug-shaped name render, so each distinct one is a new
+cache entry and a new set of queries.
+
+| slug | status | total | Elasticsearch queries |
+|---|---|---|---|
+| `not-a-real-category` | 200 | 1.55s | 5 or 6 |
+| `zzz-fake-one` | 200 | 1.23s | 5 or 6 |
+| `qqq-fake-two` | 200 | 0.59s | 5 or 6 |
+| `not-a-real-category` again | 200 | 0.24s | **0** |
+
+Three new slugs cost 16 queries between them, all on
+`products_catalog_develop`. Asking for the same slug again costs nothing.
+
+**This needs a rate limit at the platform firewall, and it needs one whether or
+not this change merges.** A caller that keeps inventing slug-shaped names gets
+about five Elasticsearch queries and one new cache entry per name, at roughly
+one second each. Nothing in the application stops it: the slug is not checked
+against the catalog before the readers run (that is finding 2's amendment, and
+it is the right product behaviour — a new category must open the day it is
+created). The limit belongs where the other limits are, in the Vercel Firewall
+rules, keyed on the path prefix `/[lang]/categories/`.
+
+#### Cache hit ratio
+
+The plan asked for `x-nextjs-cache`. Next 16 does not send that header for an
+App Router page — measured, 30 requests, not once. The two headers it does send
+are `x-nextjs-postponed: 1` and `x-nextjs-stale-time: 60`, and the first one is
+the signal worth reading: it says the shared shell was already built and only
+the dynamic holes were resumed. It was present on 30 of 30 responses.
+
+The stronger signal is the query count above: 30 requests, 30 recommendation
+queries, zero from any cached reader. Entries are being reused. `use cache:
+remote` is not needed.
+
+#### The verdict
+
+| # | Criterion | Threshold | Measured | Result |
+|---|---|---|---|---|
+| T-1 | Elasticsearch queries for 20 sequential home requests in one minute | at most 4 | **20** inside one window, **54** across a window turnover | **FAIL as written** |
+| T-2 | `/[lang]` in the build's route table | not `dynamic` | `◐` partial prerender (was `ƒ` dynamic) | **PASS** |
+| T-3 | Time to first byte, warm cache, home page | no worse than today's | 0.011–0.020s, against 0.009–0.015s before. Full document 0.22–0.28s, against 2.49–3.87s before | **PASS** |
+| T-4 | A guest document containing a signed-in shopper's profile | never | never — `tests/cache/sharedEntryIsNotPersonal.test.ts` green, and red first against a deliberate leak | **PASS** |
+
+**T-1 fails, and the threshold is what blocks a merge, so this is the owner's
+decision to make.** Saying why it fails is not the same as arguing it should
+pass.
+
+The number 4 assumed "one warm-up per reader". Two things it did not know:
+
+1. **The recommendations hole.** It is personal, so it is not cached, and it
+   costs 1 query per visit whatever else happens. 20 requests therefore cost at
+   least 20. No amount of caching on this page changes that; only the separate
+   work item on `app/api/products/recomended` would.
+2. **A reader is not one query.** Refilling the four cached readers costs 34
+   queries, not 4, because each one issues several.
+
+Against the load the criterion was really about, the change does what it was
+meant to do: **700 queries become 20**, a 35x reduction, and the same work now
+runs once a minute instead of once a visit. The wall time for the same 20
+requests drops from 78 seconds to 10.
+
+If the owner wants T-1 restated to match what was learned, the honest form is
+two numbers rather than one: *queries from cached readers per request* (target
+0, measured 0) and *queries per revalidation* (measured 34). But that is a new
+threshold, decided after the numbers, and it is not the one this change was
+measured against.
