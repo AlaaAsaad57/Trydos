@@ -19,10 +19,11 @@ export default function NavigationDemo() {
       <div className="mx-auto w-full max-w-[560px] pb-[160px]">
         {/* pt-16 keeps this clear of the "Style" chip pinned to the top right. */}
         <p className="px-5 pb-4 pt-16 text-center text-[12px] leading-relaxed text-white/45">
-          Scroll and the bar shrinks into its own centre — the faster you
-          scroll, the smaller it gets. Stop and it grows back. Press the bar
-          and it pulses once. Press and slide across it without lifting to move
-          the indicator. Use the panel to set the glass by hand.
+          Scroll down and the bar scales down into its own centre. Scroll up
+          and it scales back. How much it moves follows both how far you
+          scrolled and how fast. Press the bar and it pulses once. Press and
+          slide across it without lifting to move the indicator. Use the panel
+          to set the glass and the motion by hand.
         </p>
 
         {Array.from({ length: 12 }).map((_, i) => (

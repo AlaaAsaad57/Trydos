@@ -60,11 +60,12 @@ import { TabIcon } from "./icons";
                       so the pill is black at about 11.5%, NOT a lighter tint.
 
     THE SCROLL
-      icon spacing is 66 at rest and 56 while the page MOVES. 56 / 66 = 0.85.
-      Read that wording again: the bar is small while the page is moving and
-      full size once it stops. So the scale follows scroll SPEED, not how far
-      down the page you are. useScrollScale below is built that way, and 0.85
-      is the measured floor — the control panel can take it lower.
+      icon spacing is 66 at rest and 56 under scroll. 56 / 66 = 0.85, which is
+      the floor. The video only shows the two ends, so it cannot say what the
+      rule between them is. That rule is a design decision, and it is written
+      down in useScrollScale below: scroll down and the bar scales down, scroll
+      up and it scales back up, by an amount that follows BOTH how far you
+      scrolled and how fast.
   ---------------------------------------------------------------------------
 */
 
@@ -102,29 +103,32 @@ export type NavTheme = {
   color: string;
   /** how solid that colour is, 0..1 */
   opacity: number;
-  /** the smallest the bar gets while the page is moving */
+  /** the smallest the bar is allowed to get */
   minScale: number;
-  /** the scroll speed, in px/s, that takes the bar all the way to minScale */
-  speed: number;
+  /** pixels of unhurried scrolling that cover the whole change, top to floor */
+  distance: number;
+  /** how much scroll SPEED counts on top of scroll distance. 0 turns it off */
+  speedEffect: number;
 };
 
 /**
- * The panel opens on the values the bar already used — nothing here is new.
- * colour + opacity together are the rgba(246,246,246,0.84) fitted over the 76
- * frames above, blur and saturate are the ones already on the element, and
- * 0.85 is the measured 56 / 66.
+ * The look opens on the values the bar already used: colour + opacity together
+ * are the rgba(246,246,246,0.84) fitted over the 76 frames above, and blur and
+ * saturate are the ones already on the element.
  *
- * A smaller floor is a slider away: drag "Smallest size" down and the bar dips
- * deeper. Nothing in the code has to change to keep a value you like — read it
- * off the panel and put it here.
+ * The floor is the one number set past its measured value. The video reads
+ * 56 / 66 = 0.85; this opens at 0.72, a deeper dip than the video takes,
+ * because that is what was asked for. Every one of these is a slider — read a
+ * value you like off the panel and put it here to keep it.
  */
 export const DEFAULT_NAV_THEME: NavTheme = {
   blur: 15,
   saturation: 180,
   color: "#f6f6f6",
   opacity: 0.84,
-  minScale: 0.85,
-  speed: 1600,
+  minScale: 0.72,
+  distance: 320,
+  speedEffect: 1,
 };
 
 /** Splits #rgb or #rrggbb into its three channels. Bad input stays default. */
@@ -180,54 +184,70 @@ const MAX_SCALE = 1;
 /**
  * How the bar reads the scroll.
  *
- * The video shows the bar small while the page MOVES and full size once it
- * stops, so what drives the scale is scroll SPEED. Reading that speed straight
- * off the scroll event does not work: browsers fire those in lumps, so inside
- * one flick the raw number swings between 0 and 4000 px/s and the bar judders.
+ * Two things decide how much the bar moves, and both of them matter:
  *
- * So the speed is measured once per animation frame and passed through a
- * low-pass filter — a rolling average with one time constant. Two constants,
- * in fact, because rising and falling want different speeds:
+ *   the VALUE  how far you scrolled. `distance` px of unhurried scrolling
+ *              covers the whole way from full size down to the floor. This is
+ *              what makes the bar answer a slow, deliberate drag at all.
+ *   the SPEED  how fast you scrolled. A flick counts for more per pixel than
+ *              a crawl, up to MAX_GAIN times more.
  *
- *     ATTACK_S   how fast the bar answers you starting to scroll
- *     RELEASE_S  how fast it grows back after you stop
+ * They multiply. One pixel of scroll is worth (1 / distance) * gain of the
+ * way, where gain comes from the speed. Scrolling down adds, scrolling up
+ * subtracts, by the same rule in both directions — up is not a special case.
  *
- * RELEASE_S is the longer of the two on purpose. Between two swipes of a
- * finger the speed touches zero for a moment, and a short release would make
- * the bar flash back to full size in that gap.
+ * The alternative, speed on its own, is what this used to be and it was wrong:
+ * it made the bar shrink whichever way you moved and spring back the moment
+ * you stopped, so the bar never held a size and scrolling up did nothing.
  */
-const ATTACK_S = 0.06;
-const RELEASE_S = 0.22;
 
-/** Under this speed, in px/s, the page counts as still and the loop parks. */
-const STILL_V = 6;
+/** The scroll speed, in px/s, that adds one whole extra unit of gain. */
+const SPEED_REF = 1200;
+
+/**
+ * What one pixel of scroll may be worth, against the plain 1.0.
+ *
+ * The floor is below 1 so that a very slow drag moves the bar slowly rather
+ * than at the same rate as a normal scroll — that is the whole point of the
+ * speed term. The ceiling stops a trackpad flick, which can report several
+ * thousand px/s, from crossing the entire range inside two frames.
+ */
+const MIN_GAIN = 0.6;
+const MAX_GAIN = 2.2;
+
+/**
+ * Smoothing on the SPEED reading only — never on the position.
+ *
+ * Browsers deliver scroll in lumps, so raw px/s swings wildly from frame to
+ * frame inside a single gesture. Averaging it over 80ms takes that judder out
+ * of the gain. The distance term is left exact, because that is the half the
+ * bar has to be honest about: scroll 140px and you have spent 140px, however
+ * the browser chopped it up.
+ */
+const SPEED_TAU = 0.08;
+
+/** Frames with no scroll at all before the loop stops asking. */
+const IDLE_FRAMES = 12;
 
 /** Within this many pixels of the top the bar is always full size. */
 const TOP_HOLD = 8;
 
 /**
- * The one timing function behind the whole scale — the glide AND the beat it
- * lands on. There is no second animation stacked on top.
+ * The spring between the scroll and the screen. It is the only thing that
+ * makes the motion smooth, so it has one job: reach the value the scroll asked
+ * for, quickly, without wobbling around it.
  *
- * A spring is critically damped when damping = 2 * sqrt(stiffness * mass),
- * which here is 2 * sqrt(220 * 0.9) = 28.1. At that value it eases to a stop
- * and never passes the target. Below it the spring carries momentum past the
- * end and comes back once, and that single swing IS the landing beat. damping
- * 15 puts the ratio at 15 / 28.1 = 0.53.
+ * A spring is critically damped at damping = 2 * sqrt(stiffness * mass), which
+ * here is 2 * sqrt(300 * 0.85) = 31.9. Damping 30 puts the ratio at 0.94, just
+ * under that: it settles in about 170ms with an overshoot too small to see.
  *
- * The beat cannot fight the glide, because it is the same motion: shrink, one
- * small swing past the end, settle. It also grades itself by how hard you
- * scrolled, which no separate animation can do — a flick swings further past
- * the end than a nudge does.
- *
- * Measured on a hard flick with the floor at 0.85: the bar reached 0.836, so
- * it passed the floor by 0.014 of its size, about 5px of width at 380 wide.
- * The older per-gesture figures that used to sit here were taken against the
- * distance-based scroll model and no longer describe this one.
- *
- * Raise damping to 28 and the bar stops dead at each end with no beat at all.
+ * This used to sit at 0.53, far below critical, so the bar swung past the end
+ * and came back — a deliberate "beat" borrowed from the video. That works when
+ * the target only ever jumps to one end or the other. It does not work here.
+ * Now the target tracks your finger the whole way, and a spring that loose
+ * lags behind it and reads as rubbery rather than smooth.
  */
-const GLIDE = { stiffness: 220, damping: 15, mass: 0.9 } as const;
+const GLIDE = { stiffness: 300, damping: 30, mass: 0.85 } as const;
 
 /*
   ON prefers-reduced-motion
@@ -262,10 +282,11 @@ const PRESS = { type: "spring", stiffness: 700, damping: 38, mass: 0.6 } as cons
 */
 
 /**
- * One breath of the whole capsule, for a press — finger or mouse. This is the
- * only pulse that is its own animation, because a press is its own event. The
- * beat you see when the scroll scale lands is not this: it comes from the
- * scale spring itself, see GLIDE above.
+ * One breath of the whole capsule, for a press — finger or mouse. It is now
+ * the only animation on the bar that is not the scroll: the scroll scale used
+ * to swing past its end and come back, and that swing is gone since GLIDE was
+ * brought up near critical damping, so a press is the one thing left that
+ * moves the bar on its own.
  *
  * There is deliberately no pulse on hover. A phone has no hover, and on a
  * desktop it fired every time the pointer crossed the bar on its way somewhere
@@ -282,13 +303,19 @@ const clamp = (n: number, min: number, max: number) =>
   n < min ? min : n > max ? max : n;
 
 /**
- * The scale of the bar, driven by how fast the page is moving.
+ * The scale of the bar, driven by the scroll.
  *
- * `travelled` is how far into the shrink we are: 0 at full size, 1 at the
- * small size. A spring sits between it and the screen, so what the browser
- * draws is always a smooth curve, even where the scroll arrives in lumps.
+ * `travelled` is how far into the change we are: 0 at full size, 1 at the
+ * floor, and it is held inside 0..1 at all times. Scrolling down pushes it
+ * towards 1, scrolling up pulls it back towards 0, and it stays where it is
+ * left when the page stops. A spring sits between it and the screen, so what
+ * the browser draws is a smooth curve even where the scroll arrives in lumps.
  */
-function useScrollScale(minScale: number, fullSpeed: number) {
+function useScrollScale(
+  minScale: number,
+  distance: number,
+  speedEffect: number
+) {
   const travelled = useMotionValue(0);
   const eased = useSpring(travelled, GLIDE);
 
@@ -299,64 +326,82 @@ function useScrollScale(minScale: number, fullSpeed: number) {
     floor.set(minScale);
   }, [minScale, floor]);
 
-  // The mix is written out by hand rather than handed to useTransform as an
-  // output range. A range clamps by default, and that clamp would eat the
-  // spring's swing past each end — which is the landing beat.
-  const scale = useTransform(
-    [eased, floor],
-    ([t, m]: number[]) => MAX_SCALE + t * (m - MAX_SCALE)
+  // The two ends are hard limits, so the result is clamped to them. The spring
+  // is set just under critical damping and would only pass the end by a
+  // fraction of a percent, but "would only" is not the same as "cannot", and
+  // the bar must never draw smaller than the floor or bigger than full size.
+  const scale = useTransform([eased, floor], ([t, m]: number[]) =>
+    clamp(MAX_SCALE + t * (m - MAX_SCALE), m, MAX_SCALE)
   );
 
-  // Read through a ref so moving the sensitivity slider does not tear down
-  // and rebuild the listener.
-  const speed = useRef(fullSpeed);
-  speed.current = fullSpeed;
+  // Read through a ref so moving a slider does not tear down the listener.
+  const tuning = useRef({ distance, speedEffect });
+  tuning.current = { distance, speedEffect };
 
   useEffect(() => {
     let frame = 0;
     let running = false;
     let lastY = window.scrollY;
     let lastT = 0;
-    // Pixels scrolled since the last frame looked. The scroll handler adds to
-    // it and the frame empties it, so no movement is counted twice and none is
-    // lost between two events that land in the same frame.
+    // Signed pixels scrolled since the last frame looked. The scroll handler
+    // adds to it and the frame empties it, so nothing is counted twice and
+    // nothing is lost between two events landing in the same frame. Signed,
+    // so a scroll down and a scroll up inside one frame cancel out — which is
+    // what actually happened.
     let pending = 0;
-    let smoothed = 0;
+    let speed = 0;
+    let idle = 0;
 
     const tick = (now: number) => {
       // Clamped so a background tab coming back does not divide by a huge gap.
       const dt = Math.min(Math.max((now - lastT) / 1000, 0.001), 0.1);
       lastT = now;
 
-      const raw = pending / dt;
+      const dy = pending;
       pending = 0;
 
-      // One step of the low-pass filter. It is written as exp(-dt / tau) so
-      // the curve is the same shape on a 60Hz screen and on a 120Hz one.
-      const tau = raw > smoothed ? ATTACK_S : RELEASE_S;
-      smoothed += (raw - smoothed) * (1 - Math.exp(-dt / tau));
+      // Smooth the speed, leave the distance exact. See SPEED_TAU.
+      const raw = Math.abs(dy) / dt;
+      speed += (raw - speed) * (1 - Math.exp(-dt / SPEED_TAU));
 
-      if (smoothed < STILL_V) {
-        // The page has stopped. Park the loop; the spring finishes the last
-        // of the way back to full size on its own.
-        smoothed = 0;
-        running = false;
-        travelled.set(0);
-        return;
+      if (dy === 0) {
+        idle += 1;
+        if (idle > IDLE_FRAMES) {
+          // Nothing is moving. Park the loop and leave the bar at its size —
+          // this scale follows the scroll, so it does not spring back on its
+          // own. The next scroll event starts the loop again.
+          running = false;
+          speed = 0;
+          return;
+        }
+      } else {
+        idle = 0;
+        const gain = clamp(
+          MIN_GAIN + tuning.current.speedEffect * (speed / SPEED_REF),
+          MIN_GAIN,
+          MAX_GAIN
+        );
+        // Down (dy > 0) adds and shrinks; up (dy < 0) subtracts and grows.
+        // Same rule both ways.
+        travelled.set(
+          clamp(travelled.get() + (dy / tuning.current.distance) * gain, 0, 1)
+        );
       }
 
-      travelled.set(
-        lastY <= TOP_HOLD ? 0 : clamp(smoothed / speed.current, 0, 1)
-      );
+      // The top of the page always shows the bar at full size, whatever the
+      // sums above worked out.
+      if (lastY <= TOP_HOLD) travelled.set(0);
+
       frame = requestAnimationFrame(tick);
     };
 
     const onScroll = () => {
       const y = window.scrollY;
-      pending += Math.abs(y - lastY);
+      pending += y - lastY;
       lastY = y;
       if (running) return;
       running = true;
+      idle = 0;
       lastT = performance.now();
       frame = requestAnimationFrame(tick);
     };
@@ -389,7 +434,11 @@ export default function BottomNav({
   const travelSpring = TRAVEL;
   const pressSpring = PRESS;
 
-  const scrollScale = useScrollScale(theme.minScale, theme.speed);
+  const scrollScale = useScrollScale(
+    theme.minScale,
+    theme.distance,
+    theme.speedEffect
+  );
 
   // The pulse multiplies the scroll scale rather than replacing it, so a touch
   // during a scroll does not snap the bar back to full size.

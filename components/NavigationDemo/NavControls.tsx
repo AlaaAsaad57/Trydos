@@ -179,23 +179,37 @@ export default function NavControls({
         <Slider
           label="Smallest size"
           value={theme.minScale}
-          min={0.6}
+          min={0.5}
           max={1}
           step={0.01}
           onChange={(n) => set("minScale", n)}
         />
         <Slider
-          label="Speed for full shrink"
-          value={theme.speed}
-          min={300}
-          max={4000}
-          step={50}
-          unit=" px/s"
-          onChange={(n) => set("speed", n)}
+          label="Scroll for full change"
+          value={theme.distance}
+          min={60}
+          max={700}
+          step={10}
+          unit="px"
+          onChange={(n) => set("distance", n)}
         />
         <p className="-mt-1 text-[10.5px] leading-snug text-white/35">
-          Scroll this fast and the bar reaches its smallest size. Lower it to
-          make the bar react to a gentler scroll.
+          Scroll this far, at an unhurried pace, and the bar covers the whole
+          way between full size and the smallest size.
+        </p>
+
+        <Slider
+          label="Speed effect"
+          value={theme.speedEffect}
+          min={0}
+          max={2}
+          step={0.05}
+          unit="×"
+          onChange={(n) => set("speedEffect", n)}
+        />
+        <p className="-mt-1 text-[10.5px] leading-snug text-white/35">
+          How much a fast scroll counts for over a slow one. Set it to 0 and
+          only the distance matters.
         </p>
 
         <div className="h-px bg-white/10" />
