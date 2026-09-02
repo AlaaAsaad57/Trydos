@@ -15,8 +15,26 @@ function StoriesWrapper({ next_page_url, isRtl, stories, userData }) {
   const storiesRefreshing = useAppStore((s) => s.storiesRefreshing);
   const setStoriesRefreshing = useAppStore((s) => s.setStoriesRefreshing);
   const pathname = usePathname();
+
+  // Seed the shared story list from the page this bar was given — and only when
+  // that page changes.
+  //
+  // This used to run on every route change as well, to repair the list after the
+  // product page borrowed it. But the shared list is the ACCUMULATOR: the next
+  // pages, the watched rings and the optimistic deletes all live in it and
+  // nowhere else, while `stories` is page 1 as fetched. Re-seeding from page 1
+  // therefore threw all of that away — and because a product opens as an
+  // intercepted modal, the page counter in StoriesPaginationWrapper was never
+  // unmounted and carried on from where it was, so the page after the lost one
+  // was skipped for good. ProductStories now gives the list back when it closes,
+  // so there is nothing left here to repair.
   useEffect(() => {
     setStoryData(stories);
+  }, [stories]);
+
+  // The add-story button spins until this runs, so it keeps the trigger it has
+  // always had. Splitting it out is what lets the seeding above drop `pathname`.
+  useEffect(() => {
     if (storiesRefreshing) setStoriesRefreshing(false);
   }, [stories, pathname]);
   const storiesMap = storiesData?.length > 0 ? storiesData : stories;

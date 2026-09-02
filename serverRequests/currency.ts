@@ -10,7 +10,30 @@ interface CurrencyResponse {
   [key: string]: any;
 }
 
+/**
+ * The exchange rate and symbol, from whichever backend the shopper's own
+ * User-Data cookie routes them to (verified -> core, guest -> gateway).
+ *
+ * Do NOT call this from inside a `use cache` scope. getMarketFetchBase() reads
+ * the cookie, a cached scope has no cookies, and the read throws — it fails the
+ * whole prerender of the route. Use getGatewayCurrency() there.
+ */
 export async function getCurrency(country, language) {
+  return currencyFromBase(country, language, await getMarketFetchBase());
+}
+
+/**
+ * The same answer, always from the gateway, chosen with no cookie read (D-11).
+ *
+ * This is the reader a cached render uses. An exchange rate is the same money
+ * for everybody in a country, so there is nothing per-shopper to lose by not
+ * asking which backend they belong to.
+ */
+export async function getGatewayCurrency(country, language) {
+  return currencyFromBase(country, language, process.env.GO_BACKEND_URL || "");
+}
+
+async function currencyFromBase(country, language, base: string) {
   let start = process.hrtime.bigint();
 
   try {
@@ -33,7 +56,7 @@ export async function getCurrency(country, language) {
         time: Number(end - start) / 1_000_000,
       };
     } else {
-      let currencyData = await fetchCurrency(language, country);
+      let currencyData = await fetchCurrencyFrom(base, language, country);
       let currency = { ...currencyData.data };
       let end = process.hrtime.bigint();
       StoreCurrency(country, currency);
@@ -55,11 +78,21 @@ export async function fetchCurrency(
   language: string,
   country: string,
 ): Promise<CurrencyResponse> {
+  return fetchCurrencyFrom(await getMarketFetchBase(), language, country);
+}
+
+// Not exported: this module is "use server", so every export is also a public
+// Server Action endpoint. An exported function that takes a URL base would let
+// a browser choose where the server sends the request.
+async function fetchCurrencyFrom(
+  base: string,
+  language: string,
+  country: string,
+): Promise<CurrencyResponse> {
   let response;
   try {
-    // Verified users → Laravel, guests → Go (user-based routing)
     response = await fetchServerData({
-      url: `${await getMarketFetchBase()}/mobile/home/currency?lang=${language}&country=${country}`,
+      url: `${base}/mobile/home/currency?lang=${language}&country=${country}`,
       method: "GET",
       revalidate: 0,
       local: `${country}-${language}`,

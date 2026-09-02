@@ -27,7 +27,9 @@ vi.mock("services/elastic/elasticsearch.config", () => ({
 }));
 
 import {
+  buildBaseConditions,
   buildCountryAwarePriceRangeCondition,
+  computeFlashActive,
   buildSortClause,
   calculateDiscountedPrice,
   calculatePriceRange,
@@ -800,7 +802,14 @@ describe("turning a search result into a product card (processCustomProduct)", (
     ).toBe(false);
   });
 
-  it("marks a flash deal as running when today falls inside its dates", () => {
+  // These two used to assert that processCustomProduct decided whether a flash
+  // deal was running. It no longer does, and that is the point of the change:
+  // deciding needs the clock, and this function runs inside a cached scope on
+  // the homepage, where a clock read is not refused - it is run once and frozen
+  // into the stored output. The window and the price still come through here;
+  // whether it is running is now computeFlashActive's job, above, and the caller
+  // supplies the moment.
+  it("carries the flash-deal window and price through without deciding if it is running", () => {
     const card: any = processCustomProduct(
       {
         ...base,
@@ -814,11 +823,21 @@ describe("turning a search result into a product card (processCustomProduct)", (
       false,
       "",
     );
-    expect(card.is_flash_deal_active).toBe(true);
-    expect(card.flash_deal_price).toBe(70);
+    expect(
+      card.flash_deal_price,
+      "the flash-deal price did not survive processCustomProduct, so a card would show the ordinary price during a deal",
+    ).toBe(70);
+    expect(
+      [card.flash_deal_start_date, card.flash_deal_end_date],
+      "the flash-deal window did not survive processCustomProduct, so nothing downstream can work out whether the deal is running",
+    ).toEqual(["2000-01-01", "2999-01-01"]);
+    expect(
+      card.is_flash_deal_active,
+      "processCustomProduct set is_flash_deal_active again. It reads the clock to do that, and this function runs inside a cached scope on the homepage, so the answer would freeze at the moment the cache entry was written (finding 6)",
+    ).toBeUndefined();
   });
 
-  it("marks a flash deal as finished once its end date has passed", () => {
+  it("leaves a finished deal's window intact for the caller to judge", () => {
     const card: any = processCustomProduct(
       {
         ...base,
@@ -831,7 +850,10 @@ describe("turning a search result into a product card (processCustomProduct)", (
       false,
       "",
     );
-    expect(card.is_flash_deal_active).toBe(false);
+    expect(
+      computeFlashActive(card, new Date("2026-08-15T12:00:00Z")),
+      "a deal that ended in 2000 was reported as running in 2026",
+    ).toBe(false);
   });
 
   it("ignores a flash deal that was switched off", () => {
@@ -987,5 +1009,85 @@ describe("tidying the pictures on a card (normalizeCustomProducts)", () => {
   it("does nothing when there are no products to tidy", () => {
     const input = { custom_products: [], prices: {} as any };
     expect(normalizeCustomProducts(input)).toBe(input);
+  });
+});
+
+// The flash-deal window, and the clock it used to read.
+//
+// Both of these used to call `new Date()` deep inside code the homepage runs.
+// The homepage now runs that code inside a `use cache` scope, and a cached scope
+// does not refuse a clock read — it runs it once and freezes the answer into the
+// stored output. Measured on this repo: a cached component that built this very
+// query prerendered with `{"range":{"start_date":{"lte":"08/31/2026"}}}` written
+// into static HTML. So the bound has to come from somewhere that is not a
+// JavaScript clock inside the cached call.
+describe("computeFlashActive", () => {
+  const window = {
+    flash_deal_start_date: "2026-08-01T00:00:00Z",
+    flash_deal_end_date: "2026-08-31T23:59:59Z",
+  };
+
+  it("is true for a moment inside the window", () => {
+    expect(
+      computeFlashActive(window, new Date("2026-08-15T12:00:00Z")),
+      "a flash deal that is running was reported as finished, so the mobile app would hide a live offer",
+    ).toBe(true);
+  });
+
+  it("is false before the window opens", () => {
+    expect(
+      computeFlashActive(window, new Date("2026-07-31T23:59:59Z")),
+      "a flash deal that has not started yet was reported as running, so the mobile app would advertise a price nobody can pay",
+    ).toBe(false);
+  });
+
+  it("is false after the window closes", () => {
+    expect(
+      computeFlashActive(window, new Date("2026-09-01T00:00:01Z")),
+      "a finished flash deal was reported as running",
+    ).toBe(false);
+  });
+
+  it("is false when the dates cannot be read", () => {
+    expect(
+      computeFlashActive(
+        { flash_deal_start_date: "not a date", flash_deal_end_date: "" },
+        new Date("2026-08-15T12:00:00Z"),
+      ),
+      "an unreadable flash-deal window was reported as running instead of falling back to false",
+    ).toBe(false);
+  });
+
+  it("takes the moment as an argument and never reads the clock itself", () => {
+    const first = computeFlashActive(window, new Date("2026-08-15T12:00:00Z"));
+    const second = computeFlashActive(window, new Date("2026-09-15T12:00:00Z"));
+    expect(
+      [first, second],
+      "computeFlashActive gave the same answer for two different moments, so it is reading the clock itself rather than the moment it was given — and a cached scope would freeze whichever moment ran first",
+    ).toEqual([true, false]);
+  });
+});
+
+describe("the flash-deal range bound in buildBaseConditions", () => {
+  const flashClause = (country = "sy") => {
+    const built: any = buildBaseConditions({ flashdeal: true } as any, country);
+    return built.must
+      .flatMap((condition: any) => condition?.bool?.must ?? [])
+      .filter((condition: any) => condition?.range);
+  };
+
+  it("bounds the window with the search engine's own date math, not a JavaScript clock", () => {
+    const ranges = flashClause();
+    expect(
+      ranges.map((r: any) => r.range.start_date?.lte ?? r.range.end_date?.gte),
+      "the flash-deal query still carries a fixed day string. Inside a cached scope that day is whatever the clock said when the entry was written, so deals that start later never appear and deals that ended keep showing (finding 6)",
+    ).toEqual(["now/d", "now/d"]);
+  });
+
+  it("builds the same query twice, so nothing about it depends on when it ran", () => {
+    expect(
+      JSON.stringify(flashClause()),
+      "two calls built two different flash-deal queries, which means something inside still reads the clock",
+    ).toBe(JSON.stringify(flashClause()));
   });
 });

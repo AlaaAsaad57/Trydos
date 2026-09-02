@@ -1,6 +1,5 @@
 "use server";
 
-import { getRedeemedIds } from "utils/cookies/getRedeemedIds";
 import BoutiqueWrapper from "components/ServerWrapper/BoutiqueWrapper";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import {
@@ -26,10 +25,7 @@ export async function GetNextRecommendations({
     userId: userId,
     search_after: parseNumberArray(offset),
   });
-  const redeemed_ids = await getRedeemedIds();
-  let productsData = response.products.map((product) =>
-    normalizeListingProduct(product, redeemed_ids),
-  );
+  let productsData = response.products.map(normalizeListingProduct);
   let newOffset = response?.offset;
   return {
     items: productsData,
@@ -60,39 +56,6 @@ export async function GetNextBoutiques({
   return {
     boutiques: items,
     offset: newOffset,
-  };
-}
-
-export async function GetMainCategories({ country, language }) {
-  let Reader = new ElasticsearchReader();
-  // Fast path: a nested aggregation returns one representative doc per unique
-  // category instead of transferring thousands of product docs. If it yields
-  // nothing (e.g. an index-mapping difference), fall back to the original
-  // doc-scan so the navbar never renders empty.
-  let a = await Reader.getCategories({ country: country, size: 4000 });
-  // @ts-ignore
-
-  let mainCategories = a.hits.hits.map((s) => {
-    // @ts-ignore
-    return s._source?.custom_categories?.find(
-      (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase(),
-    );
-  });
-  mainCategories = mainCategories.filter((c) => c !== undefined);
-  mainCategories = Array.from(
-    new Map(mainCategories.map((c: any) => [c.id, c])).values(),
-  );
-  return {
-    data: {
-      mainCategories: mainCategories.map((category: any) => ({
-        id: category.id,
-        name: category.name,
-        slug: category.slug,
-        flat_photo_path: category.flat_photo_path,
-        outline_photo_path: category.outline_photo_path,
-        fill_photo_path: category.fill_photo_path,
-      })),
-    },
   };
 }
 
@@ -148,10 +111,7 @@ export async function GetRecommedndedProducts({
     userId: userId,
     search_after: parseNumberArray(offset),
   });
-  const redeemed_ids = await getRedeemedIds();
-  let productsData = response.products.map((product) =>
-    normalizeListingProduct(product, redeemed_ids),
-  );
+  let productsData = response.products.map(normalizeListingProduct);
   let newOffset = response?.offset;
   return {
     items: productsData,

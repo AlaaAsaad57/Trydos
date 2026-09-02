@@ -1,15 +1,20 @@
 import "styles/globals.css";
+import { Suspense } from "react";
 import "styles/home.css";
 
 import localFont from "next/font/local";
+import { notFound } from "next/navigation";
 import { lang as langParam } from "next/root-params";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
 import { IMAGE_FALLBACK_SCRIPT } from "utils/imageFallback";
+import RedeemedLuckScript from "components/Home/RedeemedLuckScript";
+import { isSupportedLocaleSegment } from "utils/locale";
 import CartProvider from "components/Cart/CartProvider";
 import Init from "components/Home/Init";
 import AuthNavContainer from "components/Home/AuthNavContainer";
+import AuthNavSkeleton from "components/Home/AuthNavSkeleton";
 import NavbarClient from "components/Home/NavbarClient";
 import NavigationLoaderSafetyNet from "components/global/NavigationLoaderSafetyNet";
 import Organaization from "serverRequests/meta/StructuredData/Organaization";
@@ -26,10 +31,6 @@ import NavigationLoaderGate from "components/global/NavigationLoaderGate";
 // Non-critical, render-null / post-hydration client components — code-split and
 // loaded after hydration (ssr:false) to trim main-thread hydration cost.
 import DeferredLayoutClients from "components/global/DeferredLayoutClients";
-
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
 
 export const metadata = {
   title: "TryDos",
@@ -121,17 +122,27 @@ const quicksand_semibold = localFont({
 // the build fails (next-root-params.md: "each root parameter must have at least
 // one value or the build fails").
 //
-// One value on purpose. This phase caches nothing, so a longer list would only
-// buy build time; and 20 locales x every category page is between roughly 1,860
-// and 7,420 pages, which is why the conversion prerenders the minimum and builds
-// the rest on first request (D-23). Every locale not listed here still works:
-// Next serves the App Shell and saves the page to disk after the first request.
+// One value on purpose (D-23). 20 locales times every category page is between
+// roughly 1,860 and 7,420 pages; building them all would make every deploy pay
+// for pages nobody may open, and would tie the build to Elasticsearch.
+//
+// Every locale not listed here still works: Next serves the App Shell and saves
+// the page to disk after the first successful request. That is measured, not
+// assumed — see docs/homepage-cache-phase-2-measurements.md, row M-5.
 export function generateStaticParams() {
   return [{ lang: "sy-en" }];
 }
 
 export default async function RootLayout({ children, modal }) {
   const lang = await langParam();
+
+  // Refuse a segment this app does not serve. proxy.ts validates the locale
+  // pair, but its matcher's `missing:` clause skips RSC, prefetch and Server
+  // Action requests, so /zz-qq/... reached this layout and rendered. Once these
+  // routes are cached the segment is part of the cache key, and an unchecked
+  // segment is an unbounded number of entries a stranger can create.
+  if (!isSupportedLocaleSegment(lang)) notFound();
+
   const [country, language] = lang.split("-");
   return (
     <html
@@ -170,6 +181,13 @@ export default async function RootLayout({ children, modal }) {
           id="image-fallback"
           dangerouslySetInnerHTML={{ __html: IMAGE_FALLBACK_SCRIPT }}
         />
+        {/* Also inline, also near the top of <body>, and for the same reason.
+            The product grids are rendered inside a cached scope shared by every
+            shopper, so a luck badge in the markup says only that the PRODUCT has
+            an offer. This script reads the shopper's own redeemed cookie and
+            hides the badges they can no longer use, before the browser paints
+            them. Costs the client bundle nothing — see RedeemedLuckScript. */}
+        <RedeemedLuckScript />
         <Organaization local={lang} />
         <Website local={lang} />
         <Script
@@ -205,7 +223,13 @@ export default async function RootLayout({ children, modal }) {
                 />
               </div>
             </a>
-            <AuthNavContainer />
+            {/* Four cookie reads, so this is request-bound. Wrapped so the
+                rest of the document can be prerendered and this streams in
+                behind it (D-9). Without the boundary the whole route is
+                dynamic and nothing else on the page can be cached. */}
+            <Suspense fallback={<AuthNavSkeleton />}>
+              <AuthNavContainer />
+            </Suspense>
           </div>
           <OverlayVisibilityProvider>
             <NavigationLoaderGate>
@@ -214,12 +238,29 @@ export default async function RootLayout({ children, modal }) {
             </NavigationLoaderGate>
           </OverlayVisibilityProvider>
         </div>
-        <Init />
+        {/* These four call useSearchParams(), and an unwrapped
+            useSearchParams() opts the WHOLE route out of prerendering. They sit
+            in the layout, so before these boundaries they opted out every page
+            under [lang] — the entire storefront. Measured in Phase A: a probe
+            page with no imports at all was still dynamic until they were
+            wrapped. See docs/homepage-cache-phase-2-measurements.md.
+
+            All four render nothing visible — they are effect-only or provider
+            components — so fallback={null} costs no layout shift. */}
+        <Suspense fallback={null}>
+          <Init />
+        </Suspense>
 
         <NavbarClient />
-        <CartProvider language={language} country={country} />
-        <PathTracker />
-        <NavigationLoaderSafetyNet />
+        <Suspense fallback={null}>
+          <CartProvider language={language} country={country} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <PathTracker />
+        </Suspense>
+        <Suspense fallback={null}>
+          <NavigationLoaderSafetyNet />
+        </Suspense>
         <DeferredLayoutClients />
         <svg className="opacity-0 absolute" width={0} height={0}>
           <defs>

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import nextConfig from "../next.config";
 
@@ -74,14 +74,28 @@ describe("next.config.ts response headers", () => {
     ).toContain("no-store");
   });
 
-  it("still caches the sitemaps at the CDN", async () => {
+  // The sitemap routes each set their own Cache-Control. A rule here matching
+  // the same URL wins over the route, so app/sitemap-static.xml/route.ts asked
+  // for max-age=43200 and the measured response said 3600 - the route's value
+  // had never taken effect. The same override also put `application/xml` and an
+  // hour of public caching on those routes' 500 responses, which are text/plain.
+  it("leaves the sitemap Cache-Control to the route that owns it", async () => {
     const rules = await getRules();
-    const values = cacheControlFor(rules, "/:file(sitemap.*\\.xml)");
+
+    const offenders = rules
+      .filter((rule) => rule.source.includes("sitemap"))
+      .flatMap((rule) =>
+        rule.headers
+          .filter((header) => header.key.toLowerCase() === "cache-control")
+          .map((header) => `${rule.source} -> ${header.value}`),
+      );
 
     expect(
-      values.join(" "),
-      "the sitemap rule lost its s-maxage, so every crawler hit would reach the origin",
-    ).toContain("s-maxage=3600");
+      offenders,
+      `next.config.ts sets Cache-Control for a sitemap URL, which overrides the ` +
+        `value the route handler sets and caches its error responses too: ` +
+        `${offenders.join("; ")}`,
+    ).toEqual([]);
   });
 
   it("still caches static assets immutably", async () => {
@@ -96,5 +110,71 @@ describe("next.config.ts response headers", () => {
       cacheControlFor(rules, assetRule!.source).join(" "),
       "static assets are no longer served immutable, so they would be refetched",
     ).toContain("immutable");
+  });
+});
+
+/**
+ * Guards the `homepage` cacheLife profile (D-3, D-4).
+ *
+ * `expire` is the subtle one. Next excludes any cached scope whose `expire` is
+ * under five minutes from prerenders and resolves it per request instead
+ * (cacheLife.md, "Prerendering behavior"). Measured on this repo: `expire: 120`
+ * left the probe route dynamic and its text absent from the built HTML, while
+ * `expire: 300` made it a partial prerender with the text present. On serverless
+ * a dynamic hole also means no reuse between requests, so the low value would
+ * have cost a fresh Elasticsearch query on every visit and saved nothing.
+ */
+const loadConfig = async () => {
+  vi.resetModules();
+  const loaded = await import("../next.config");
+  return (loaded.default ?? loaded) as any;
+};
+
+describe("the homepage cache profile", () => {
+  it("defines a profile named homepage", async () => {
+    const config = await loadConfig();
+    expect(
+      config.cacheLife?.homepage,
+      "next.config.ts defines no cacheLife profile called 'homepage', so every cacheLife('homepage') call in the home and category routes falls back to the 'default' profile (15 minute revalidate) and shoppers see stale prices",
+    ).toBeDefined();
+  });
+
+  it("revalidates once a minute by default", async () => {
+    const previous = process.env.HOMEPAGE_CACHE_SECONDS;
+    delete process.env.HOMEPAGE_CACHE_SECONDS;
+    try {
+      const config = await loadConfig();
+      expect(
+        config.cacheLife?.homepage?.revalidate,
+        "the homepage profile must refresh once a minute (D-4, fallback 60); a different value changes how stale a price can be",
+      ).toBe(60);
+    } finally {
+      if (previous === undefined) delete process.env.HOMEPAGE_CACHE_SECONDS;
+      else process.env.HOMEPAGE_CACHE_SECONDS = previous;
+    }
+  });
+
+  it("expires no sooner than five minutes, so the segment is prerendered", async () => {
+    const config = await loadConfig();
+    const expire = config.cacheLife?.homepage?.expire;
+    expect(
+      expire,
+      `the homepage profile expires after ${expire}s. Next excludes any scope with expire under 300s from prerenders (cacheLife.md, "Prerendering behavior"), which on serverless means the cached readers re-run on every request and the conversion saves nothing`,
+    ).toBeGreaterThanOrEqual(300);
+  });
+
+  it("reads the window from HOMEPAGE_CACHE_SECONDS", async () => {
+    const previous = process.env.HOMEPAGE_CACHE_SECONDS;
+    process.env.HOMEPAGE_CACHE_SECONDS = "30";
+    try {
+      const config = await loadConfig();
+      expect(
+        config.cacheLife?.homepage?.revalidate,
+        "HOMEPAGE_CACHE_SECONDS=30 did not reach the homepage profile, so the cache window cannot be tuned without a code change (D-4)",
+      ).toBe(30);
+    } finally {
+      if (previous === undefined) delete process.env.HOMEPAGE_CACHE_SECONDS;
+      else process.env.HOMEPAGE_CACHE_SECONDS = previous;
+    }
   });
 });

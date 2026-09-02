@@ -9,7 +9,17 @@
 // on staging into a red suite, which teaches everyone to ignore it.
 
 import { expect, test } from "./fixtures";
-import { gotoFirstProduct, gotoHome, openCart, searchFor } from "./actions/nav";
+import {
+  gotoFirstProduct,
+  gotoHome,
+  leaveProductPage,
+  openProductFromLastBoutique,
+  readScrollPosition,
+  readScrollRestoration,
+  scrollHomeToLastBoutique,
+  searchFor,
+  openCart,
+} from "./actions/nav";
 import { cart, listing, nav } from "./selectors";
 
 test.describe("a guest browsing the storefront", () => {
@@ -70,6 +80,79 @@ test.describe("a guest browsing the storefront", () => {
     expect(opened.name.length, "the product page has no title").toBeGreaterThan(
       0,
     );
+  });
+
+  // GUEST-42. A product opened from deep in the home page is an intercepted
+  // route: it renders in the same document as the home page, which is merely
+  // `display:none` underneath it (`components/ModalRoute/`). Because the two
+  // share one window scroll, the home page's own position is saved and put back
+  // by hand — nothing in the browser or the router does it for them.
+  //
+  // Every step below can break on its own, so each is asked about on its own.
+  // "Coming back was wrong" on its own would not say whether the shopper never
+  // scrolled, the product never opened, or the position was simply lost.
+  test("the home page comes back where it was after a product opens and closes", async ({
+    page,
+  }) => {
+    await gotoHome(page);
+    const homePath = new URL(page.url()).pathname;
+
+    let parked = 0;
+    await test.step("the shopper reaches the last boutique on the home page", async () => {
+      const reached = await scrollHomeToLastBoutique(page);
+      parked = reached.scrollY;
+
+      // A screen-and-a-bit down. Below that the case would pass whatever the
+      // app did, because "the top" and "where it was" would be the same place.
+      expect(
+        parked,
+        `the home page only scrolled ${parked}px, which is too little for coming back to mean anything`,
+      ).toBeGreaterThan(400);
+    });
+
+    await test.step("a product from that boutique opens at its own top", async () => {
+      await openProductFromLastBoutique(page);
+
+      const opened = await readScrollPosition(page);
+      expect(
+        opened,
+        `the product opened ${opened}px down instead of at its top, so it inherited the home page's scroll`,
+      ).toBeLessThan(100);
+    });
+
+    await test.step("closing it returns to the home page", async () => {
+      await leaveProductPage(page);
+
+      expect(
+        new URL(page.url()).pathname,
+        "the back arrow landed somewhere other than the home page",
+      ).toBe(homePath);
+    });
+
+    await test.step("the browser gets its own scroll restoration back", async () => {
+      // The app takes this over for the overlay journey, because the browser
+      // would otherwise put the home page back at the top — the position it
+      // recorded, taken while the page body was hidden. It is per history entry
+      // and it has to be given back: left on "manual", every ordinary Back in
+      // the app stops restoring where the visitor was.
+      await expect
+        .poll(async () => await readScrollRestoration(page), { timeout: 10_000 })
+        .toBe("auto");
+    });
+
+    await test.step("the home page is back where the shopper left it", async () => {
+      // Polled, not read once: the position is put back after the page body is
+      // shown again, which is a later frame than the address changing.
+      await expect
+        .poll(async () => await readScrollPosition(page), { timeout: 15_000 })
+        .toBeGreaterThan(parked - 150);
+
+      const returned = await readScrollPosition(page);
+      expect(
+        Math.abs(returned - parked),
+        `the home page came back at ${returned}px after being left at ${parked}px`,
+      ).toBeLessThanOrEqual(150);
+    });
   });
 
   test("the cart drawer opens for a guest", async ({ page }) => {

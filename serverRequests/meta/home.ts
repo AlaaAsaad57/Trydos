@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { RedisGet, RedisSet } from "serverRequests/radis";
 import { elasticSearchComment } from "services/elastic/elasticsearch.config";
 import { trydosTranslations } from "./constants-meta";
@@ -9,9 +10,31 @@ import { LogServerError } from "utils/serverErrorReporter";
 import { catalog_index } from "services/elastic/INDEXES";
 let client = elasticSearchComment;
 
-export async function GetHomeMetaData({ local, category = null }) {
+/**
+ * Is this a value that could be a category slug?
+ *
+ * `?mainCategory=` is a query parameter, so anything can arrive in it — a
+ * sentence, an array (from `?mainCategory=a&mainCategory=b`), or nothing at all.
+ * Whatever arrives ends up in three places that matter: the Redis cache key, the
+ * page title when Elasticsearch finds no such category, and the OpenGraph url a
+ * crawler reads.
+ *
+ * The rule is deliberately about shape, not about a list of real categories:
+ * checking against the real list would mean an Elasticsearch query before the
+ * cache is consulted, and an unknown slug would then cost a query every time it
+ * is sent. Letters and digits (in any script, so Arabic, Turkish and Kurdish
+ * slugs pass), plus `-` and `_`, up to 64 characters. A value that fails is
+ * treated as no category at all, which is the same answer an unknown category
+ * should give.
+ */
+export function isValidCategorySlug(category: unknown): category is string {
+  return typeof category === "string" && /^[\p{L}\p{N}][\p{L}\p{N}_-]{0,63}$/u.test(category);
+}
+
+export async function GetHomeMetaData({ local, category: rawCategory = null }) {
   const [country, language] = local?.split("-");
   const lang = language || "en";
+  const category = isValidCategorySlug(rawCategory) ? rawCategory : null;
   const cacheKey = category
     ? `meta-obj-${category}-${lang}-${country}`
     : `meta-obj-home-${lang}-${country}`;
@@ -25,11 +48,7 @@ export async function GetHomeMetaData({ local, category = null }) {
   if (cachedMeta) return { ...cachedMeta, metadataBase: new URL(baseUrl) };
 
   // 2. Parallel Data Fetch
-  const categoriesMeta = await GetCatgoriesMetaData({
-    country,
-    language: lang,
-    slug: category,
-  });
+  const categoriesMeta = await getCachedMetaSource(country, lang, category);
 
   const t = trydosTranslations[lang] || trydosTranslations.en;
 
@@ -105,6 +124,33 @@ export async function GetHomeMetaData({ local, category = null }) {
 
   return metadataObject;
 }
+/**
+ * The category's name, cached per country, language and slug.
+ *
+ * generateMetadata runs on every request — including the many that are served
+ * from a cached page — so an uncached reader here means the search engine is
+ * asked for a title that did not change, once per visit (finding 3).
+ *
+ * The slug is validated by the caller before it reaches this function, so the
+ * cache key can never carry a value a stranger chose. All three arguments are
+ * read inside the scope, so all three join the cache key.
+ *
+ * The Redis write stays in the caller. A cached scope must not carry a side
+ * effect: the write would run on the call that filled the entry and never
+ * again, which is not what a cache write means.
+ */
+async function getCachedMetaSource(
+  country: string,
+  language: string,
+  category: string | null,
+) {
+  "use cache";
+  cacheLife("homepage");
+  cacheTag(`meta-${country}-${language}-${category ?? "home"}`);
+
+  return GetCatgoriesMetaData({ country, language, slug: category });
+}
+
 // get Cateogires for metadata
 async function GetCatgoriesMetaData({ country, language, slug }) {
   try {

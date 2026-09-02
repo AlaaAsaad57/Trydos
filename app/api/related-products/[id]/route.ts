@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRelatedProducts } from "services/elastic/elasticSearch";
+import { computeFlashActive } from "services/elastic/helpers";
 import { LogServerError } from "utils/serverErrorReporter";
 
 // Apply CORS headers to any response
@@ -82,7 +83,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 
 
-    const productsData = response.products;
+    // The mobile app reads is_flash_deal_active from this endpoint (finding 5).
+    // processCustomProduct stopped setting it, because it now runs inside a
+    // cached scope on the web homepage where a clock read is run once and then
+    // frozen into the stored output. This route handler is never cached - the
+    // proxy matcher excludes /api and the response is sent no-store - so the
+    // clock here is the real one.
+    const now = new Date();
+    const productsData = (response.products ?? []).map((product: any) => ({
+      ...product,
+      is_flash_deal_active: computeFlashActive(product, now),
+    }));
 
     return withCORS(
       NextResponse.json(

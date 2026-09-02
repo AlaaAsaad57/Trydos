@@ -1,44 +1,28 @@
 import { lang as langParam } from "next/root-params";
-import StoriesBarServer from "components/Server/StoriesBarServer";
-import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
-import OfferListSkeleton from "components/skeleton/OfferList";
-import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
-import { Suspense } from "react";
-import Home from "components/Home";
-import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
-import { getCurrency } from "serverRequests";
-import MainCategoriesNavbar from "components/Server/MainCategories";
-import { LogServerError } from "utils/serverErrorReporter";
-import SearchIcon from "components/Home/Search/SearchIcon";
-import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
-
-import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrapper";
-import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
-import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
+import CategoryHomeView from "components/Home/CategoryHomeView";
 import { GetHomeMetaData } from "serverRequests/meta/home";
+import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
+import { LogServerError } from "utils/serverErrorReporter";
 import { translateFunction } from "utils/server";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
+// `export const instant = false` is gone. It was phase 1's opt-out, added so the
+// app could build with Cache Components on before any route was converted. This
+// route is converted now.
+//
+// `searchParams` is gone too, and that is the change that makes the rest
+// possible: a page that awaits searchParams is request-bound and can never be
+// cached. ?mainCategory= became /categories/{slug} (D-13). Old addresses are not
+// redirected (D-14) — they now render the plain homepage, which is a correct
+// page, not an error.
 
-export async function generateMetadata({ params, searchParams }) {
-  let [Params, query] = await Promise.all([params, searchParams]);
+export async function generateMetadata() {
   const lang = await langParam();
-  let mainCategory = query?.mainCategory || null;
   try {
-    const metadata = await GetHomeMetaData({
-      local: lang,
-      category: mainCategory,
-    });
-
-    return { ...metadata };
+    return await GetHomeMetaData({ local: lang, category: null });
   } catch (error) {
     LogServerError({ error, type: "meta" }, `/${lang}`);
-    const [country, language] = lang.split("-");
+    const language = lang.split("-")[1];
     const baseUrl = General_Site_Data.url;
-    const path = mainCategory ? `?mainCategory=${mainCategory}` : "";
-    const fullUrl = `${baseUrl}/${lang}${path}`;
     const ogImageUrl = baseUrl + General_Site_Data.og;
     const title = translateFunction(
       "TryDos - Premium Shopping Experience",
@@ -55,16 +39,10 @@ export async function generateMetadata({ params, searchParams }) {
       openGraph: {
         title,
         description,
-        url: fullUrl,
+        url: `${baseUrl}/${lang}`,
         siteName: "Trydos",
         type: "website",
-        images: [
-          {
-            url: ogImageUrl,
-            width: 1200,
-            height: 630,
-          },
-        ],
+        images: [{ url: ogImageUrl, width: 1200, height: 630 }],
       },
       twitter: {
         card: "summary_large_image",
@@ -76,80 +54,10 @@ export async function generateMetadata({ params, searchParams }) {
   }
 }
 
-async function HomePage({ params, searchParams }) {
-  let [Params, query] = await Promise.all([params, searchParams]);
-  const lang = await langParam();
-  let mainCategory = query?.mainCategory || null;
-  const [country, language] = lang.split("-");
-  let currency = getCurrency(country, language);
-  const isRtl = language === "ar" || language === "ku";
-  try {
-    return (
-      <>
-        {/* <StructuredDataScript lang={lang} /> */}
-        <div
-          className={`${
-            isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
-          }  bg-white w-full pl-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.1)] z-999999995`}
-        >
-          <SearchIcon country={country} language={language} />
-          <Suspense
-            fallback={<MobileNavigationSkeleton />}
-            key={`Navbar ${lang}`}
-          >
-            <MainCategoriesNavbar lang={lang} mainCategory={mainCategory} />
-          </Suspense>
-        </div>
-        <Suspense fallback={<StoriesSkeleton />} key={`Stories ${lang}`}>
-          <StoriesBarServer
-            language={lang.split("-")[1]}
-            country={lang.split("-")[0]}
-          />
-        </Suspense>
-
-        <Suspense
-          fallback={<FeaturedProductsSkeleton />}
-          key={`Featured Products ${lang} ${mainCategory ?? "main"}`}
-        >
-          <FeaturedProductWrapper
-            currency={currency}
-            lang={lang}
-            mainCategory={mainCategory}
-          />
-        </Suspense>
-        <Suspense
-          fallback={<FeaturedProductsSkeleton />}
-          key={`FlashDeals ${lang} ${mainCategory ?? "main"}`}
-        >
-
-          <FlashProductWrapper
-            currency={currency}
-            lang={lang}
-            mainCategory={mainCategory}
-          />
-        </Suspense>
-        <Home key={`Home ${lang}`} />
-        <Suspense
-          fallback={<OfferListSkeleton />}
-          key={`OfferList ${lang} ${mainCategory ?? "main"}`}
-        >
-          <BoutiquesListWrapper
-            currency={currency}
-            params={{ lang: lang }}
-            mainCategory={mainCategory}
-          />
-        </Suspense>
-      </>
-    );
-  } catch (error) {
-    LogServerError(error, `/${lang}`);
-    throw error instanceof Error ? error : new Error(String(error));
-  }
+// The try/catch that used to wrap the JSX is gone. It caught, logged and then
+// re-threw the same error, which is what an error boundary is for — and
+// app/(client)/[lang]/error.tsx is that boundary. Re-throwing from a Server
+// Component only stopped React streaming the parts that had already rendered.
+export default async function HomePage() {
+  return <CategoryHomeView slug={null} />;
 }
-
-export default HomePage;
-// Main Categories Bar
-
-// Featured Products
-
-// FlasDeals Products

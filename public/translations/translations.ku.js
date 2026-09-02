@@ -55,6 +55,7 @@ const translations = {
   "Authorization Letter": "نامەی ڕێپێدان",
   "Please select a document type": "تکایە جۆری بەڵگەیەک هەڵبژێرە",
   "Something went wrong": "هەڵەیەک ڕوویدا",
+  "We could not load this part of the page": "نەمانتوانی ئەم بەشەی پەڕەکە باربکەین",
   "Upload URL not found": "بەستەری بارکردن نەدۆزرایەوە",
   "Failed to upload document": "بارکردنی بەڵگە سەرکەوتوو نەبوو",
   // Report Story flow

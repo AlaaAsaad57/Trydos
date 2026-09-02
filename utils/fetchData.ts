@@ -11,6 +11,7 @@ import auth from "services/auth";
 import { COOKIE_NAMES, getCookie } from "./cookies/cookie-manager";
 import { useAppStore } from "store";
 import { toServiceToken } from "./serviceTokens";
+import { buildProxyGetUrl } from "./proxyGetUrl";
 
 // ---------- Types ----------
 export type ServerType =
@@ -104,6 +105,15 @@ interface FetchDataParams {
   signal?: AbortSignal;
   noMessage?: boolean;
   sellerId?: string;
+  /**
+   * Address /api/proxy by query string instead of headers (GET only).
+   *
+   * Use it where the request is worth starting before hydration: a
+   * `<link rel="preload">` can only issue a plain GET, so the header contract
+   * is unreachable from one. The caller must build the preload address with
+   * buildProxyGetUrl() so the two match exactly. Ignored for anything but GET.
+   */
+  viaProxyGet?: boolean;
 }
 
 // ---------- Internal State ----------
@@ -510,6 +520,7 @@ export const fetchData = async <T = any>(
     noMessage,
     signal,
     sellerId,
+    viaProxyGet = false,
   } = params;
   const { useAppStore } = await import("store");
   // Once a logout has started no authed request may go out — a late 401 would
@@ -585,6 +596,27 @@ export const fetchData = async <T = any>(
           credentials: "include",
           signal: effectiveSignal,
         });
+      } else if (viaProxyGet && method === "GET") {
+        // ── EXTERNAL, GET form: /api/proxy?s=…&u=… ──
+        //
+        // Same proxy, same token injection, addressed by query string instead
+        // of headers. Opt-in per call, because this only matters where a
+        // `<link rel="preload">` starts the request during HTML parse — and the
+        // hint and this fetch must build the address the same way, or the
+        // browser makes two requests instead of one.
+        //
+        // `credentials: "same-origin"` rather than "include": the URL is
+        // same-origin, so cookies are sent either way, and it is the mode a
+        // `crossOrigin="anonymous"` preload uses. A mismatch there is enough to
+        // stop the preload being reused.
+        res = await fetch(
+          buildProxyGetUrl({ server, url, country, language, sellerId }),
+          {
+            method: "GET",
+            credentials: "same-origin",
+            signal: effectiveSignal,
+          },
+        );
       } else {
         const safeProxyUrl = encodeURI(url);
         // ── EXTERNAL: route through /api/proxy (token injected server-side) ──

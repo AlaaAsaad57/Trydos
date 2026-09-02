@@ -146,7 +146,9 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
 
       case "category created": {
         const slug = parsedDescription.category_slug || parsedDescription.slug;
-        const href = `/${lang}?mainCategory=${slug}`;
+        // D-13: /{lang}/categories/{slug}. The old `?mainCategory=` address is
+        // not redirected, so it would open the plain home page instead.
+        const href = `/${lang}/categories/${slug}`;
         return (
           <div className="felx" onClick={baseOnClick}>
             <NextLink

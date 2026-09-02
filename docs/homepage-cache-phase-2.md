@@ -13,6 +13,44 @@ becomes its own work item once phase 1 has merged and produced its numbers.
 
 ---
 
+## Amendments — read these before the rest of this file
+
+Two decisions changed while the work was being done. The rest of this document
+was written before them, so where it disagrees, this section is right.
+
+### Amendment 1 — D-3's `expire` is 300, not 120
+
+D-3 asked for `stale: 60`, `revalidate: 60`, `expire: 120`. `next.config.ts`
+now sets `expire: Math.max(300, HOMEPAGE_CACHE_SECONDS * 5)`.
+
+`expire` under five minutes takes a cached scope out of the build prerender
+entirely and turns it into a dynamic hole resolved on every request. Measured
+both ways: with `expire: 120` the route table said `ƒ` dynamic and the marker
+text was not in the file the build wrote; with `expire: 300` it said `◐` and the
+marker was there. Two independent signals, same answer. See
+`docs/homepage-cache-phase-2-measurements.md`, section "D-3".
+
+Freshness is unchanged. `revalidate: 60` still decides how often content
+refreshes.
+
+### Amendment 2 — an unknown category slug renders, it never 404s
+
+Finding 2 said `notFound()` for an unknown slug contradicts AC-15, because the
+list it would be checked against is itself cached for 60 seconds — so a genuinely
+new category would 404 until the entry expired.
+
+Settled as **shape check only**. `isValidCategorySlug` in
+`serverRequests/meta/home.ts` accepts anything slug-shaped and nothing else;
+`app/(client)/[lang]/categories/[slug]/page.tsx` calls `notFound()` only when the
+shape is wrong. A slug-shaped name the catalog does not know renders the page
+with no products, which is a correct page, not an error. A category created a
+minute ago opens the moment somebody asks for it.
+
+The cost is measured and it is real: see "An unlisted category slug" in the
+measurements file, and the firewall note below.
+
+---
+
 ## Why it was split
 
 Phase 1 is independently revertable — which the combined plan was not — and it is
@@ -84,20 +122,37 @@ binding unless changed.
 
 ## Open findings phase 2 must answer
 
-Numbered as the advisory panel raised them. None is closed.
+Numbered as the advisory panel raised them. **Finding 1 is closed** — see
+below. The rest are open.
 
 ### Must be settled in the plan, not at merge
 
-1. **The global `Cache-Control` header.** `next.config.ts` sends
-   `public, s-maxage=60, stale-while-revalidate=300` on `/(.*)`. Today
-   `dynamic = "force-dynamic"` makes Next send `private, no-store`, which masks
-   it. Phase 1 removes `force-dynamic`. Phase 2 starts streaming a personalised
-   navigation inside that document. Worse, client-side navigations fetch the RSC
-   payload, and `proxy.ts`'s `missing:` clause skips those requests — so they
-   carry **no `Set-Cookie`**, removing the one property that stops most shared
-   caches storing them. The RSC payload for `/sy-en` contains
-   `UserNavTopSection`'s `initialUserData`. Decide: delete the rule, scope it to
-   assets, or mark document routes `private`.
+1. **The global `Cache-Control` header — CLOSED 2026-08-31, verified 2026-09-02.**
+   Fixed by PR #114 (`31840fbb`), which merged **before** phase 1. The rule that
+   sent `public, s-maxage=60, stale-while-revalidate=300` on `/(.*)` was deleted;
+   `next.config.ts:146` now carries a comment saying why no `Cache-Control`
+   belongs on a catch-all source. Caching comes from the route that owns it.
+
+   Guarded by `tests/next-config.test.ts:41` — "never gives a catch-all source a
+   public Cache-Control" — which runs on every pull request. 8 tests pass.
+
+   Verified on the live phase 2 preview, which is the request the finding was
+   really about. The RSC payload for `/sy-en` — the response a client-side
+   navigation fetches, the one that carries no `Set-Cookie` because `proxy.ts`
+   skips it, and that contains `initialUserData`:
+
+   | | `trydos.ramaaz.dev` (before) | phase 2 preview |
+   |---|---|---|
+   | `cache-control` | `private, no-cache, no-store` | `private, no-store, no-cache` |
+   | `Set-Cookie` headers | 0 | 0 |
+   | `initialUserData` in body | yes | yes |
+
+   The header is `private` on both, so no shared cache may store either. The
+   `Set-Cookie` gap the finding named is real and still there — it just no longer
+   matters, because `private` does the work on its own. The home **document**
+   sends `public, max-age=0, must-revalidate`, which is Next's own prerender
+   header and means a shared cache must revalidate before reuse.
+
 2. **`notFound()` for an unknown category slug contradicts AC-15.** Validating
    against a 60-second cached list means a genuinely new category 404s until the
    entry expires. AC-15 requires it to open. Both cannot be true. Pick one.
@@ -206,3 +261,280 @@ stories bar paints one round trip **later** than today. And below roughly one
 visit per (locale × category) route per cache window, this change *raises* total
 Elasticsearch load rather than lowering it — which matters, because no production
 environment exists yet.
+
+---
+
+# What this change does not fix
+
+Recording these is the deliverable. An unrecorded known problem cannot be told
+apart from an unknown one.
+
+### Finding 15 — the CSP nonce, still open, and this change made it harder
+
+The document now carries two inline scripts: the image fallback (already there)
+and the redeemed-luck script (added by this change). A Content-Security-Policy
+`script-src` needs a nonce per response, and a nonce cannot be per-request
+inside a document that is shared between shoppers — the nonce would be stored
+with the page and reused, which is the same as having no nonce.
+
+The CSP work item has to choose one of: a hash-based `script-src` for these two
+scripts (they are fixed strings, so their hashes are stable), or moving both to
+external files, or leaving `script-src` out of the policy. This change did not
+make that choice.
+
+### D-22 — state no longer resets on navigation
+
+Cache Components enables React `<Activity>` route retention, so component state
+survives a navigation away and back. This shipped with **phase 1**, not with
+this change, and is recorded rather than fixed. It affects `SearchIcon` and the
+eleven page-mounted modals.
+
+### Finding 5 — `is_flash_deal_active` and the mobile app
+
+The field is still returned by `app/api/related-products/[id]/route.ts`, and it
+is still correct: the route handler computes it with a real clock. It was
+removed from `formatProduct`, which is now reachable from a cached scope.
+**Confirm with the mobile team** before anything removes it from the response
+entirely.
+
+### Finding 10 — `app/api/products/recomended`
+
+Not touched by this change and not fixed by it. Wildcard CORS, a
+browser-supplied `user_id`, and a 500 body that echoes the error message —
+which names the search engine to the browser — plus every filter. It has its
+own ticket.
+
+Task 20 gives it a second reason to be picked up. Recommendations are the only
+Elasticsearch query left on a warm home page: 30 requests, 30 queries, all of
+them this reader. The rest of the page now costs nothing until the entry
+expires.
+
+### Finding 9 — `ModalSlot` reads `usePathname()` during render
+
+`components/ModalRoute/ModalSlot.tsx` reads the route during render, not inside
+an effect. It is a client component in the layout, so it is not inside a cached
+server scope and it did not block this work. No task here touches it. It is the
+hard case the finding named, and it stays open.
+
+---
+
+## Found while doing the work, not planned for
+
+### The metadata cache adds less than finding 3 claimed
+
+Finding 3 said `generateMetadata` runs on every request, including requests
+served from a cached page, so an uncached reader there asks the search engine
+for a title that did not change once per visit. The first half is true. The
+second is not, and it was measured after the fix went in:
+
+```
+META-ENTER  redisHit=false
+META-CACHED-SCOPE-RAN slug=bags
+META-ES-QUERY slug=bags
+META-ENTER  redisHit=true   (five more times)
+```
+
+The Redis check at the top of `GetHomeMetaData` already answers every repeat.
+The new `use cache` scope was entered **once**, on the only request that got
+past Redis. While Redis is up it removes no query at all.
+
+What it does add is a fallback for when Redis misses or is down, and a
+revalidation tag. That is worth four lines, and the plan approves it, so it
+stayed. But the benefit is smaller than the finding stated, and anyone building
+on it should know that.
+
+### A cached scope leaks through ambient module state
+
+Next refuses `cookies()` inside a `use cache` scope, and it puts every argument
+and every closed-over binding into the cache key. So the obvious ways to leak
+one shopper's data into another's page are blocked by the framework.
+
+Module state is not. A cached scope that reads a module-level variable stores
+whatever the first request happened to write there and hands it to everyone
+afterwards. Demonstrated on a real build while proving
+`tests/cache/sharedEntryIsNotPersonal.test.ts` can fail: a five-line probe in
+`AuthNavContainer` put a signed-in shopper's profile into the next guest's
+document.
+
+Nothing in the code does this today. It is written down because it is the one
+leak the framework will not catch for you.
+
+### An unlisted category slug needs a firewall rule
+
+Measured: about five Elasticsearch queries and one new cache entry per invented
+slug-shaped name, at roughly one second each. Amendment 2 is why, and Amendment
+2 is right — a new category has to open the day it is created. So the limit
+belongs at the platform edge, in the Vercel Firewall, keyed on the path prefix
+`/[lang]/categories/`. It is needed whether or not this change merges. Numbers
+in `docs/homepage-cache-phase-2-measurements.md`, "An unlisted category slug".
+
+### T-1 fails against the threshold that was written for it
+
+`docs/homepage-cache-phase-2-measurements.md` carries the full verdict. In
+short: the threshold asked for at most 4 Elasticsearch queries per 20 home
+requests and the measurement is 20, because the personal recommendations reader
+costs one per visit and is not cached on purpose. Against the load the
+criterion was about, 700 queries became 20. T-2, T-3 and T-4 pass. Whether T-1's
+number is restated is the owner's decision, not this document's.
+
+### A stale comment names the backend technology
+
+`serverRequests/products.ts:146` says "Verified users → Laravel, guests → Go".
+CLAUDE.md's stack-agnostic rule forbids naming the backing technology anywhere
+we control, comments included; the roles are the **core** backend and the
+**gateway**. The file is not changed by this work, so the comment is recorded
+here rather than edited, to keep this change small.
+
+### `notFound()` on a partially prerendered route answers 200, not 404
+
+Found at the final gate. `app/(client)/[lang]/categories/[slug]/page.tsx` calls
+`notFound()` when the slug is not slug-shaped. The not-found page really does
+render — the words are in the document — but the status is **200**.
+
+Measured on the final build:
+
+| request | status | body |
+|---|---|---|
+| `/sy-en/this-route-does-not-exist` (no such route) | **404** | not-found page |
+| `/sy-en/categories/x!y` (route exists, `notFound()` runs) | **200** | not-found page |
+| `/sy-en/categories/..%2F..%2Fetc%2Fpasswd` | **200** | not-found page |
+
+The reason is partial prerendering. `/[lang]/categories/[slug]` is a `◐` route:
+the shared shell is sent first, and by the time the page component runs and
+calls `notFound()`, the status line has already gone out. A route the router
+does not know at all never gets that far, so it still answers 404.
+
+This is not a regression — before this change the category view was
+`?mainCategory=`, which never 404ed either. But the guard does not do what its
+author meant, and it will behave the same on **every** `◐` route in the app that
+calls `notFound()`.
+
+What it costs: a crawler sees a soft 404 — a 200 response with "not found"
+content — so an invented URL can be indexed as a real page. Today
+`X-Robots-Tag: noindex, nofollow` covers it, because `NEXT_PUBLIC_ALLOW_INDEXING`
+is off everywhere. It stops covering it the day a production environment exists.
+
+Not fixed here. A real 404 would mean making the route dynamic, which is the
+opposite of this whole change, so the choice belongs to the owner. The cheapest
+middle answer, if it is wanted, is to return `robots: { index: false }` from
+`generateMetadata` for a slug that fails the shape check.
+
+---
+
+## The product rows were never sent as HTML (found after the merge review)
+
+The featured row flashed on every home page load: its skeleton painted, the
+section then collapsed to a bare 50px header, and the product cards appeared
+about a second later — moving everything below them. An earlier change fixed a
+real hydration mismatch in the flash-deal countdown, and the flash stayed. The
+countdown was not the cause.
+
+### What the server was actually sending
+
+Measured on a production build (`pnpm build && pnpm start`), `/sy-en`:
+
+```
+document                                375,874 bytes
+  data-pw="product-name"                      0     ← no real card anywhere
+  id="product_"                               0
+  data-pw="product_link"                     18     ← all of them the skeleton's
+  react-loading-skeleton                     54
+```
+
+The skeleton reuses the real card's `data-pw` markers, which is why a first look
+at those counts is misleading. There was **no product card in the HTML at all**.
+The products were in the document only as streaming payload, so the browser had
+to render the rows itself.
+
+Reading React's own streaming markers made the shape exact. The featured
+boundary resolved on the server as:
+
+```html
+<div hidden id="S:0"><a href="/sy-en/featured">…Featured Products</a></div>
+<script>$RC("B:0","S:0")</script>
+```
+
+Header link, nothing else. `$RC` swaps a boundary's fallback for that content,
+so a 457px skeleton became a 50px header. In a browser: boutiques top at 1301px,
+then 417px, then 834px, with React error #418 in the console.
+
+### Why
+
+A product card cannot be prerendered. The two rows sat in a `<Suspense>`
+boundary with nothing in it that asks for the request, so the prerender had no
+point to stop at, and React gave up on server-rendering the boundary and left it
+to the browser.
+
+This was narrowed down by building the same page four ways and asking each one
+for its HTML:
+
+| what the row rendered | product cards in the HTML |
+|---|---|
+| the real `ProductCard` inside `HortiznalScrollBar` | no |
+| the real `ProductCard` inside a plain `<div>` | no |
+| a plain `<span>` per product | **yes** |
+| the real `ProductCard`, with its two clock reads pinned to a fixed value | no |
+| the real `ProductCard`, with `await connection()` in the wrapper | **yes** |
+
+The clock was the first suspect — `ProductCard` calls `new Date()` and
+`useLuckTimer` calls `Date.now()` during render, and the Next guide names those
+as calls that cannot be deferred. Pinning both did **not** fix it, so the clock
+is not the whole story and neither read was changed. What fixed it is giving the
+prerender somewhere to stop.
+
+### The fix
+
+`await connection()` in `FeaturedProductWrapper` and `FlashProductWrapper`,
+before any card renders. The prerender ends there; at request time the rest of
+the row is rendered on the server and streamed as real HTML. It costs no backend
+call — the products still come from the cached readers.
+
+After: 10 product cards in the HTML, the featured row 457px from its first
+paint, and no React #418.
+
+### The second jump: a skeleton for a row that renders nothing
+
+Fixing the featured row left a 467px jump. The flash-deal row shows the same
+457px skeleton, and with no deal running it renders nothing, so the skeleton
+collapsed to zero and pulled the boutiques section up.
+
+A skeleton is a promise about the final size, and a wrong promise is a jump.
+`CategoryHomeView` now asks the cached readers whether each row will have
+anything in it, and renders the `<Suspense>` only when it will. Asking costs no
+backend call: the wrappers read the same cache entry again inside the boundary.
+
+The answer is as old as the shell, at most 60 seconds. A deal that starts inside
+that window appears at the next revalidation — the same delay the row's own data
+already has.
+
+Measured after both fixes, `/sy-en` in a real browser:
+
+| | boutiques top over the first 6 seconds |
+|---|---|
+| before | 1301 → 417 → 834 (moved 884px) |
+| after `connection()` | 1301 → 834 (moved 467px) |
+| after both | **834, never moves** |
+
+### Still open: the recommendations row
+
+The recommendations row below the boutiques has the same 457px skeleton and
+renders nothing for a signed-out shopper. It is **not** fixed here, and cannot be
+fixed the same way: it reads the shopper's own cookie, so a shell shared by every
+visitor can never know its answer in advance. It sits below the fold on a 900px
+viewport, so it does not move anything a visitor is looking at on load. The check
+in `tests/cache/homeRowsRenderOnTheServer.test.ts` says out loud that it only
+covers the two rows above the boutiques.
+
+### What guards it
+
+`tests/cache/homeRowsRenderOnTheServer.test.ts`:
+
+- a source check, run by CI on every pull request, that every home row which can
+  render a product card asks for the request first;
+- a check against a running server that the home document carries real product
+  cards, not only streaming payload;
+- a check that every product-row skeleton above the boutiques is filled.
+
+Both server checks skip loudly with no server on port 3111, the same as
+`tests/cache/sharedEntryIsNotPersonal.test.ts`, because the unit suite gates
+every pull request with nothing running.

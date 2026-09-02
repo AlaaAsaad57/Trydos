@@ -47,19 +47,35 @@ describe("normalizeListingProduct utility", () => {
     expect(normalized.images, "should omit images property when sync_color_images is present").toBeUndefined();
   });
 
-  it("handles is_luck products checking against redeemedIds", () => {
-    const rawProduct = {
+  // The redeemed cookie used to be read here, and it decided is_luck. It no
+  // longer can: this function runs inside a cached scope shared by every
+  // shopper. is_luck is now a fact about the product, and the shopper's own
+  // record is applied in their browser — see tests/utils/luck/redeemedScript.
+  it("marks a luck product as luck, whoever is looking", () => {
+    const normalized = normalizeListingProduct({
       product_id: 201,
       name: "Luck Product",
       is_luck: true,
       luck_price: 10,
-    };
+    });
 
-    const unredeemed = normalizeListingProduct(rawProduct, []);
-    expect(unredeemed.is_luck, "should mark is_luck true when product_id is not in redeemedIds").toBe(true);
+    expect(
+      normalized.is_luck,
+      "a product with a luck offer came back without is_luck, so its badge would never be drawn for anybody",
+    ).toBe(true);
+  });
 
-    const redeemed = normalizeListingProduct(rawProduct, [{ id: 201 }]);
-    expect(redeemed.is_luck, "should mark is_luck false when product_id is in redeemedIds").toBe(false);
+  it("does not mark a luck product with no luck price", () => {
+    const normalized = normalizeListingProduct({
+      product_id: 202,
+      name: "Luck Product With No Price",
+      is_luck: true,
+    });
+
+    expect(
+      normalized.is_luck,
+      "a product flagged as luck but carrying no luck price was marked is_luck, so the card would offer a redeem price it does not have",
+    ).toBeUndefined();
   });
 
   it("handles empty or null inputs gracefully without crashing", () => {

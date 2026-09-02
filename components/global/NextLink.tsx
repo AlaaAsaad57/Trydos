@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppStore } from "store";
+import { rememberBaseScroll } from "components/ModalRoute/overlayScroll";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 
@@ -81,6 +82,13 @@ export default function NextLink({
             onClick();
           }
 
+          // Before `setIsNavigating`, and that order matters. Setting it is what
+          // hides the page body, and a hidden body makes the browser drop the
+          // scroll position — so this is the last moment the page's real
+          // position, and its own history entry, are still available. See
+          // components/ModalRoute/overlayScroll.ts.
+          rememberBaseScroll(href);
+
           setColorBottomSheet(null);
           setLastPathname(pathname);
           setIsNavigating(data);
@@ -150,6 +158,9 @@ export default function NextLink({
         if (onClick) {
           onClick();
         }
+
+        // See the note on the same call above.
+        rememberBaseScroll(href);
 
         setColorBottomSheet(null);
 
