@@ -942,6 +942,26 @@ export function validate(
         e.purchase_price = tx("Unit price must be greater than purchase price");
       }
     }
+
+    // Luck price is what a shopper pays through a luck draw, so it can never sit
+    // above what the product already sells for. The binding limit is the
+    // discount price when one is set, and the unit price otherwise — a discount
+    // price always has to be below the unit price (rule above), so checking the
+    // lower of the two is enough. A blank or unreadable price is left to its own
+    // rule; comparing against it would only produce a second, confusing message.
+    const lp = num(form.luck_price);
+    if (form.luck_price !== "" && !isNaN(lp)) {
+      if (form.discount_price !== "" && !isNaN(dp) && lp > dp) {
+        e.luck_price = tx("Luck price cannot be greater than discount price");
+      } else if (
+        form.discount_price === "" &&
+        form.unit_price !== "" &&
+        !isNaN(up) &&
+        lp > up
+      ) {
+        e.luck_price = tx("Luck price cannot be greater than unit price");
+      }
+    }
   } else {
     if (form.purchase_price === "" || (isNaN(pp) || pp < 0))
       e.purchase_price = tx("Enter a valid purchase price");
@@ -1019,6 +1039,22 @@ export function validate(
     if (r.luck !== "" && (isNaN(num(r.luck)) || num(r.luck) < 0)) {
       e.variations = tx("Variant luck price cannot be negative");
       break;
+    }
+    // Same rule as the product-level luck price, applied to the row the shopper
+    // actually buys. An empty row price is sent as the product unit price
+    // (buildUpdateFormData), so that is what it is compared with; an empty row
+    // discount is sent as "0" — no discount — so the product discount is not
+    // used as a stand-in here.
+    if (!pricesLocked && r.luck !== "" && !isNaN(num(r.luck))) {
+      const rowPrice = r.price !== "" ? r.price : form.unit_price;
+      if (r.discount !== "" && !isNaN(num(r.discount)) && num(r.luck) > num(r.discount)) {
+        e.variations = tx("Variant luck price cannot be greater than discount price");
+        break;
+      }
+      if (r.discount === "" && rowPrice !== "" && !isNaN(num(rowPrice)) && num(r.luck) > num(rowPrice)) {
+        e.variations = tx("Variant luck price cannot be greater than unit price");
+        break;
+      }
     }
     if (!r.location_id) {
       e.variations = tx("Every variant needs a location");
