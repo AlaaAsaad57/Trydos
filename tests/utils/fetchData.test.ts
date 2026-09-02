@@ -15,6 +15,7 @@ vi.mock("components/global/AddToCartMessage", () => makeToastsMock());
 vi.mock("utils/functions", () => ({
   _isStoreLastJson: vi.fn(),
   LogError: vi.fn(),
+  translateFunction: vi.fn((key: string) => key),
 }));
 vi.mock("store/notifications/reducer", () => ({
   showErrorNotification: vi.fn(),
@@ -584,6 +585,24 @@ describe("response status and message handling", () => {
       1,
     );
     expect(functions.LogError).toHaveBeenCalled();
+  });
+
+  it("shows the refused field in words, not the raw JSON the backend sent", async () => {
+    const { notifications } = await setup();
+    // The core backend packs a field-by-field refusal into `message` as a JSON
+    // object. Shown as it arrives, the shopper reads braces and quotes.
+    const net = makeMockFetch([
+      jsonReply({ message: '{"email":["email already exists"]}' }, 422),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    await fetchData({ ...baseParams, server: "market" });
+
+    expect(
+      notifications.showErrorNotification,
+      "the core backend's field refusal was shown to the shopper as raw JSON",
+    ).toHaveBeenCalledWith("Email: email already exists", 5000, null, null, 1);
   });
 
   it("apply coupon success shows a success toast", async () => {

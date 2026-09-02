@@ -2022,6 +2022,7 @@ const translations = {
   "Video upload failed": "بارکردنی ڤیدیۆ سەرکەوتوو نەبوو",
   "View": "بینین",
   "View only": "تەنها بینین",
+  "Height": "باڵا",
   "Weight": "کێش",
   "Welcome back": "بەخێربێیتەوە",
   "You don't have permission to view boutiques": "تۆ مۆڵەتت نییە بۆ بینینی Boutique-ەکان",

@@ -284,6 +284,47 @@ describe("updating the profile", () => {
     ).toBe("f");
   });
 
+  it("does not cover the refused field with a general failure line", async () => {
+    (store as any).__resetAuthStore({
+      userProfile: { id: 7, name: "old", email: "old@trydos.com" },
+    });
+    // No chat or stories record in the store, so the core backend is the first
+    // and only leg. It refuses, naming the field, the way it really does.
+    market.reply({
+      success: false,
+      message: '{"email":["email already exists"]}',
+    });
+
+    await expect(
+      auth.UpdateProfile({ email: "taken@trydos.com" }, {}),
+      "a save the core backend refused must still reject",
+    ).rejects.toThrow();
+
+    // The request layer has already told the shopper which field was refused
+    // and why. A general line added on top of it buries the only useful text.
+    expect(
+      (notifications.showErrorNotification as any).mock.calls.map(
+        (call: any[]) => call[0],
+      ),
+      "the profile save added a general failure line over the named field the core backend refused",
+    ).toEqual([]);
+  });
+
+  it("still says something general when the refusal names no field", async () => {
+    (store as any).__resetAuthStore({ userProfile: { id: 7, name: "old" } });
+    market.reply({ success: false, message: "market refused" });
+
+    await expect(
+      auth.UpdateProfile({ name: "Ada" }, {}),
+      "a save the core backend refused must still reject",
+    ).rejects.toThrow("market refused");
+
+    expect(
+      notifications.showErrorNotification,
+      "a refusal that names no field left the shopper with nothing at all",
+    ).toHaveBeenCalledWith("Failed to update profile Info");
+  });
+
   it("puts every completed leg back when a later one fails, and tells the shopper once (AC-25)", async () => {
     (store as any).__resetAuthStore({
       userProfile: { id: 7, name: "old", phone: "+90555" },

@@ -9,6 +9,7 @@ import auth from "services/auth";
 import { pollinateInput } from "utils/tinyUtils";
 import BackBar from "../BackBar";
 import { usePhoneInput } from "utils/usePhoneInput";
+import { parseFieldErrors } from "utils/fieldErrors";
 import { allCountries } from "country-telephone-data";
 import AuthOverlay from "components/Login/Enhanced/AuthOverlay";
 import VerifyPhoneFlow from "components/Login/Enhanced/VerifyPhoneFlow";
@@ -18,6 +19,37 @@ const isValidEmail = (email: string): boolean => {
   if (!email) return true; // Email is optional if user starts typing we validate
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email.trim());
+};
+
+/** The inputs this form can put a message under. `alternative_phone` is here
+ *  because the backend can refuse it — nothing in the form's own rules ever
+ *  sets it. */
+type ProfileFieldErrors = {
+  name: string;
+  phone: string;
+  email: string;
+  gender: string;
+  alternative_phone: string;
+};
+
+const noFieldErrors = (): ProfileFieldErrors => ({
+  name: "",
+  phone: "",
+  email: "",
+  gender: "",
+  alternative_phone: "",
+});
+
+/** The backend's own field names, mapped onto the inputs above. A key that is
+ *  not listed has no input to sit under — for those the shopper is told by the
+ *  notification the request layer already showed. */
+const REFUSED_FIELD_TO_INPUT: Record<string, keyof ProfileFieldErrors> = {
+  name: "name",
+  email: "email",
+  phone: "phone",
+  mobile_phone: "phone",
+  alternative_phone: "alternative_phone",
+  gender: "gender",
 };
 
 const getCountry = (val: string) => {
@@ -71,12 +103,8 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
     image: user?.image,
   });
 
-  const [validationErrors, setValidationErrors] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    gender: "",
-  });
+  const [validationErrors, setValidationErrors] =
+    useState<ProfileFieldErrors>(noFieldErrors);
   const [showValidation, setShowValidation] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -129,15 +157,25 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         scenario: "Error In updateUserProfile in PersonalInfoForm",
       });
       setLoading(false);
-      // Reset to initial values on error
-      phoneInput.setValue(baseline.phone);
-      alternativePhoneInput.setValue(baseline.alternative_phone);
-      setUserProfileData({
-        name: baseline.name,
-        email: baseline.email,
-        gender: baseline.gender,
-        image: initialData?.image,
-      });
+      // Keep what the shopper typed. Putting the old values back after a
+      // refused save deletes the very change they still have to correct, and
+      // leaves the screen disagreeing with the message that just named the bad
+      // field.
+      //
+      // The backend writes its refusal as field name -> reasons. Put each
+      // reason under its own input, so the shopper reads it where they have to
+      // act. A refusal that names no field marks nothing — the request layer
+      // has already shown it as a notification.
+      const refused = parseFieldErrors((error as any)?.message);
+      if (refused) {
+        const marked = noFieldErrors();
+        for (const { field, messages } of refused) {
+          const input = REFUSED_FIELD_TO_INPUT[field];
+          if (input) marked[input] = messages.join(" ");
+        }
+        setValidationErrors(marked);
+        setShowValidation(true);
+      }
     }
   };
 
@@ -162,12 +200,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
   };
 
   const validateFunction = () => {
-    const errors = {
-      name: "",
-      phone: "",
-      email: "",
-      gender: "",
-    };
+    const errors = noFieldErrors();
 
     if (!userProfileData.name?.trim()) {
       errors.name = translateFunction("Full name is required", language);
@@ -494,7 +527,10 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
           className="flex-col cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
           data-pw="altarnative-Phone-container"
           style={{
-            border: "#d3d3d3a3 1px solid",
+            border:
+              showValidation && validationErrors.alternative_phone
+                ? "#ff0000a3 1px solid"
+                : "#d3d3d3a3 1px solid",
           }}
         >
           <div
@@ -515,7 +551,15 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
                 data-pw="personal-info-alternative-phone-number-input"
                 type="tel"
                 value={alternativePhoneInput.value}
-                onChange={(e) => alternativePhoneInput.setValue(e.target.value)}
+                onChange={(e) => {
+                  alternativePhoneInput.setValue(e.target.value);
+                  if (showValidation && validationErrors.alternative_phone) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      alternative_phone: "",
+                    });
+                  }
+                }}
                 inputMode="tel"
                 autoComplete="tel"
                 placeholder={translateFunction(
@@ -526,6 +570,11 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
               />
             </div>
           </div>
+          {showValidation && validationErrors.alternative_phone && (
+            <div className="text-red-500 text-[10px] mt-1 px-2">
+              {validationErrors.alternative_phone}
+            </div>
+          )}
         </div>
         <div
           className="flex-col phone-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"

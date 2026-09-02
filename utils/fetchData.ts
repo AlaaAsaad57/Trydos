@@ -12,6 +12,7 @@ import { COOKIE_NAMES, getCookie } from "./cookies/cookie-manager";
 import { useAppStore } from "store";
 import { toServiceToken } from "./serviceTokens";
 import { buildProxyGetUrl } from "./proxyGetUrl";
+import { formatFieldErrors } from "./fieldErrors";
 
 // ---------- Types ----------
 export type ServerType =
@@ -761,10 +762,16 @@ export const fetchData = async <T = any>(
       }
 
       const message = err?.message || "";
+      // A backend that refuses a field packs the reason into `message` as JSON
+      // ({"email":["email already exists"]}). Shown as it arrives, the shopper
+      // reads braces and quotes. `formatFieldErrors` turns it into one labelled
+      // line per field, and answers null for every ordinary message — so only
+      // the JSON case is rewritten. The reports below keep the raw text.
+      const shownMessage = formatFieldErrors(message) ?? message;
       if (reqTitle?.reqTitle?.includes("Add to cart widget")) {
-        showErrorMessage(message);
+        showErrorMessage(shownMessage);
       } else if (!ignoredMessages.includes(message) && !noMessage) {
-        showErrorNotification(message, 5000, null, null, reqTitle.code);
+        showErrorNotification(shownMessage, 5000, null, null, reqTitle.code);
       }
 
       const errorObj = {

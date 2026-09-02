@@ -374,8 +374,11 @@ const NotificationsContainer = () => {
                   </span>
                 )}
               </p>
+              {/* `whitespace-pre-line` keeps the line breaks. A refusal that
+                  names more than one field arrives as one line per field, and
+                  without this they all run together into a single sentence. */}
               <p
-                className={`text-[12px] regular text-[#402CDD]`}
+                className={`text-[12px] regular text-[#402CDD] whitespace-pre-line`}
                 data-pw="notification-text"
               >
                 {typeof notification.message === "string"

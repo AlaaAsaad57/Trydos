@@ -1984,6 +1984,7 @@ const translations = {
   "Video upload failed": "فشل رفع الفيديو",
   "View": "عرض",
   "View only": "للعرض فقط",
+  "Height": "الطول",
   "Weight": "الوزن",
   "Welcome back": "مرحباً بعودتك",
   "You don't have permission to view boutiques": "ليس لديك إذن لعرض المتاجر المصغّرة",

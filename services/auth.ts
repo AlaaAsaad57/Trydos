@@ -15,6 +15,7 @@ import {
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { parseFieldErrors } from "utils/fieldErrors";
 import { fetchAuthMe } from "utils/authMe";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
@@ -930,7 +931,17 @@ class AuthService {
           { name: COOKIE_NAMES.USER_CHAT, value: revertChat },
         ]);
       }
-      showErrorNotification(translateFunction("Failed to update profile Info"));
+      // When the backend refused a named field, the request layer has already
+      // told the shopper which field and why, in their own language ("Email:
+      // email already exists"). The general line below would sit on top of that
+      // and say nothing, so it is only shown when there is no named field —
+      // which is the only case where the shopper would otherwise be told
+      // nothing at all.
+      if (!parseFieldErrors((error as any)?.message)) {
+        showErrorNotification(
+          translateFunction("Failed to update profile Info"),
+        );
+      }
       throw error;
     }
   }

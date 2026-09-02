@@ -1992,6 +1992,7 @@ const translations = {
   "Video upload failed": "Video yükleme başarısız",
   "View": "Görüntüle",
   "View only": "Yalnızca görüntüle",
+  "Height": "Boy",
   "Weight": "Ağırlık",
   "Welcome back": "Tekrar hoş geldiniz",
   "You don't have permission to view boutiques": "Butikleri görüntüleme izniniz yok",

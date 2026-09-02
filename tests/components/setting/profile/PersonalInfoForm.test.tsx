@@ -212,6 +212,110 @@ describe("correcting a field (AC-7)", () => {
   });
 });
 
+describe("a save the backend refused", () => {
+  /** How the core backend answers a refused save: the field names and their
+   *  reasons, written as JSON INSIDE the message string. */
+  const refuse = (payload: Record<string, string[]>) =>
+    updateProfile.mockRejectedValueOnce(new Error(JSON.stringify(payload)));
+
+  it("keeps what the shopper typed instead of putting the old value back", async () => {
+    const user = userEvent.setup();
+    await show({ email: "old@trydos.test" });
+    refuse({ email: ["email already exists"] });
+
+    const email = screen.getByPlaceholderText("Enter Email");
+    await user.clear(email);
+    await user.type(email, "taken@trydos.test");
+    await save(user);
+
+    expect(
+      (email as HTMLInputElement).value,
+      "the refused save wiped the e-mail the shopper typed, so they have to type it again to fix it",
+    ).toBe("taken@trydos.test");
+  });
+
+  it("shows the backend's reason under the field the backend named", async () => {
+    const user = userEvent.setup();
+    await show({ email: "old@trydos.test" });
+    refuse({ email: ["email already exists"] });
+
+    const email = screen.getByPlaceholderText("Enter Email");
+    await user.clear(email);
+    await user.type(email, "taken@trydos.test");
+    await save(user);
+
+    expect(
+      await screen.findByText("email already exists"),
+      "the shopper was not told, at the e-mail field, why the core backend refused it",
+    ).toBeInTheDocument();
+  });
+
+  it("marks every field the backend named, not only the first", async () => {
+    const user = userEvent.setup();
+    await show({ email: "old@trydos.test" });
+    refuse({
+      email: ["email already exists"],
+      alternative_phone: ["alternative phone is not valid"],
+    });
+
+    await user.type(
+      screen.getByPlaceholderText("Enter Alternative Phone"),
+      "+10000000009",
+    );
+    await save(user);
+
+    expect(
+      await screen.findByText("email already exists"),
+      "a save refused on two fields marked neither the e-mail nor both",
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("alternative phone is not valid"),
+      "the alternative phone has no message slot, so a refusal on it is invisible",
+    ).toBeInTheDocument();
+  });
+
+  it("takes the backend's message away once the shopper edits that field", async () => {
+    const user = userEvent.setup();
+    await show({ email: "old@trydos.test" });
+    refuse({ email: ["email already exists"] });
+
+    const email = screen.getByPlaceholderText("Enter Email");
+    await user.clear(email);
+    await user.type(email, "taken@trydos.test");
+    await save(user);
+    await screen.findByText("email already exists");
+
+    await user.type(email, "x");
+
+    expect(
+      screen.queryByText("email already exists"),
+      "the backend's message stayed on screen after the shopper changed the e-mail it referred to",
+    ).not.toBeInTheDocument();
+  });
+
+  it("leaves the form alone when the refusal names no field", async () => {
+    const user = userEvent.setup();
+    await show({ email: "old@trydos.test" });
+    updateProfile.mockRejectedValueOnce(new Error("market refused"));
+
+    const email = screen.getByPlaceholderText("Enter Email");
+    await user.clear(email);
+    await user.type(email, "typed@trydos.test");
+    await save(user);
+
+    // Nothing to place under a field — the notification the request layer
+    // already showed is what tells the shopper. What they typed still stands.
+    expect(
+      (email as HTMLInputElement).value,
+      "a refusal that named no field still wiped what the shopper typed",
+    ).toBe("typed@trydos.test");
+    expect(
+      screen.queryByText("market refused"),
+      "a message that names no field was placed under a field anyway",
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("a visitor who is not signed in (AC-8)", () => {
   const GUEST = { phone: "0", name: "", gender: undefined };
 
