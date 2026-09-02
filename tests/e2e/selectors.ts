@@ -74,6 +74,32 @@ export const product = {
   name: (page: Page): Locator => page.getByTestId("productName_productPage"),
   price: (page: Page): Locator => page.getByTestId("product-price"),
   addToCart: (page: Page): Locator => page.getByTestId("addToCartButton"),
+  /** The arrow in the product's own top bar (`ProductBackButton`).
+   *
+   *  Not the browser's Back. The two are the same thing only when the product
+   *  was opened as an overlay; opened as a full page this control pushes the
+   *  page it came from instead. A journey about coming back has to use the one
+   *  a shopper actually presses. */
+  backButton: (page: Page): Locator => page.getByTestId("backIcon_productPage"),
+};
+
+/** The home page's own rows.
+ *
+ *  Its boutique list is the only long scroll in the app that a guest reaches
+ *  without typing anything, which is why the scroll journeys use it. */
+export const home = {
+  /** One boutique card. `BoutiqueWrapper` gives each an `id` of
+   *  `boutique-<slug>`, which is language-independent and already there. */
+  boutiqueCard: (page: Page): Locator => page.locator('[id^="boutique-"]'),
+  /** The banner, which opens that boutique's own listing as an overlay. */
+  boutiqueLink: (page: Page): Locator => page.getByTestId("boutique_link"),
+  /** A product tile in a boutique's strip.
+   *
+   *  Its sibling `boutique_category_link` opens a listing, and both are drawn by
+   *  the same loop from the same `/products/…`-shaped address — see the note in
+   *  `BoutiqueWrapper`. Only this one reaches a product page. */
+  boutiqueProductLink: (page: Page): Locator =>
+    page.getByTestId("boutique_product_link"),
 };
 
 /** Shared static "trust" pages (About, Contact, Privacy, Terms). */

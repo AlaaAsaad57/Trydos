@@ -5,7 +5,7 @@ case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
 |---------|-------|-----------|--------------------|
-| Guest journeys | GUEST-01 to GUEST-41 | no | only the guest registrations in GUEST-32 to GUEST-34 |
+| Guest journeys | GUEST-01 to GUEST-42 | no | only the guest registrations in GUEST-32 to GUEST-34 |
 | Signed-in journeys | AUTH-01 to AUTH-03 | yes, once, shared | no |
 | Signed-in profile journeys | PROF-01 to PROF-07 | yes, once, shared | yes — the shared test account |
 | Signed-in session recovery | RECOV-01 | yes, its own — a third real code per run | no |
@@ -65,6 +65,7 @@ test — about five per run, and they are not cleaned up (see rule 6 in
 | GUEST-39 | The privacy policy page renders without errors | `staticPages.live.spec.ts:35` | The address on app stores and in payment paperwork reaches the page, not the home page |
 | GUEST-40 | The terms of service page renders without errors | `staticPages.live.spec.ts:50` | The shared static layout survives a path with more than one hyphen |
 | GUEST-41 | The back button on a static page keeps the visitor in the app | `staticPages.live.spec.ts:61` | The back bar goes to settings rather than dead-ending or leaving the site |
+| GUEST-42 | The home page comes back where it was after a product opens and closes | `guest.live.spec.ts:93` | An intercepted overlay shares one window scroll with the page under it, so the page's position is saved and put back by hand — the fixed bug in `components/ModalRoute/overlayScroll.ts`, where it was saved after the page body was already hidden and read back as 2px |
 
 ## Signed-in journeys
 

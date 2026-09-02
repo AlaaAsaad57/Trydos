@@ -15,7 +15,15 @@
 import { expect, type Page } from "@playwright/test";
 
 import { LIVE_ORIGIN } from "../harness/env";
-import { listing, nav, product, region, search, staticPage } from "../selectors";
+import {
+  home,
+  listing,
+  nav,
+  product,
+  region,
+  search,
+  staticPage,
+} from "../selectors";
 
 /** Deal with the "Select Your Region" popup, if it is showing.
  *
@@ -196,6 +204,112 @@ export const gotoFirstProduct = async (
     name: (await name.textContent())?.trim() ?? "",
     url: page.url(),
   };
+};
+
+/** Where the window is, in pixels from the top of the document. */
+export const readScrollPosition = (page: Page): Promise<number> =>
+  page.evaluate(() => window.scrollY);
+
+/** Who answers for the scroll position when the browser goes back or forward.
+ *
+ *  `"auto"` is the browser itself and is the default. The app switches it to
+ *  `"manual"` for one journey only — an intercepted overlay, whose base page the
+ *  browser would otherwise put back at the top — and has to hand it straight
+ *  back. Left on `"manual"`, every ordinary Back in the app quietly stops
+ *  restoring where the visitor was, and nothing looks broken until someone
+ *  notices they keep losing their place. */
+export const readScrollRestoration = (page: Page): Promise<string> =>
+  page.evaluate(() => history.scrollRestoration);
+
+/** Scroll the home page down to its last boutique and stop there.
+ *
+ *  The boutique list is an infinite scroll (`components/global/InfinteScroll`),
+ *  so "the last one" is not a fixed place: reaching the bottom loads more and
+ *  the document grows underneath. This loads pages until the count stops
+ *  changing, then parks on the last card — a deep position that stays put,
+ *  which is what a journey about coming back to a place needs.
+ *
+ *  Returns where the window ended up and how many boutiques are on the page. */
+export const scrollHomeToLastBoutique = async (
+  page: Page,
+  options: { maxRounds?: number } = {},
+): Promise<{ scrollY: number; boutiques: number }> => {
+  const cards = home.boutiqueCard(page);
+
+  await expect(
+    cards.first(),
+    "the home page listed no boutiques at all — is the search backend serving?",
+  ).toBeVisible();
+
+  // Scroll, count, repeat until a round adds nothing. `expect.poll` rather than
+  // a sleep so a slow staging answer waits and a fast one does not.
+  let seen = 0;
+  const rounds = options.maxRounds ?? 12;
+  for (let round = 0; round < rounds; round++) {
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight),
+    );
+    const grew = await expect
+      .poll(async () => await cards.count(), { timeout: 8_000 })
+      .toBeGreaterThan(seen)
+      .then(() => true)
+      .catch(() => false);
+    if (!grew) break;
+    seen = await cards.count();
+  }
+
+  const last = cards.last();
+  await last.scrollIntoViewIfNeeded();
+
+  const scrollY = await readScrollPosition(page);
+  expect(
+    scrollY,
+    "the home page did not scroll at all, so nothing here can be about coming back to a place",
+  ).toBeGreaterThan(0);
+
+  return { scrollY, boutiques: await cards.count() };
+};
+
+/** Open a product from the strip under the last boutique on the home page.
+ *
+ *  This is the journey a shopper takes from deep in the home page, and it is
+ *  not the same one as `gotoFirstProduct`: that one clicks a product card in a
+ *  row near the top, so it never leaves the first screen. */
+export const openProductFromLastBoutique = async (
+  page: Page,
+): Promise<{ url: string }> => {
+  const link = home.boutiqueProductLink(page).last();
+
+  await expect(
+    link,
+    "no boutique strip on the home page held a product tile",
+  ).toBeVisible();
+  await link.scrollIntoViewIfNeeded();
+  await link.click();
+
+  await expect(page, "the tile did not open a product page").toHaveURL(
+    /\/products\//,
+    { timeout: 45_000 },
+  );
+  await expect(
+    product.name(page),
+    "the product page opened with no title on it",
+  ).toBeVisible();
+
+  return { url: page.url() };
+};
+
+/** Press the product page's own back arrow and wait until it is gone. */
+export const leaveProductPage = async (page: Page): Promise<void> => {
+  const back = product.backButton(page);
+
+  await expect(back, "the product page drew no back arrow").toBeVisible();
+  await back.click();
+
+  await expect(
+    page,
+    "the back arrow did not leave the product page",
+  ).not.toHaveURL(/\/products\//, { timeout: 45_000 });
 };
 
 /** Open a static "trust" page (About, Contact, Privacy, Terms) and wait for

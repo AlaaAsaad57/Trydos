@@ -69,6 +69,15 @@ const CategoriesSlider = ({ categories, boutique, lang }) => {
       {categories?.map((category) => (
         <NextLink
           key={category?.slug}
+          // Two markers, not one. A tile in this strip is a product for some
+          // categories and a category listing for others, and both addresses
+          // have the same `/products/…` shape — so a test that matched the path
+          // would click a category and be bounced to `?message=product_not_found`.
+          data-pw={
+            category?.is_product_url
+              ? "boutique_product_link"
+              : "boutique_category_link"
+          }
           href={
             category?.is_product_url
               ? `/${lang}/products/${category.slug}`
