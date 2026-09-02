@@ -122,20 +122,37 @@ binding unless changed.
 
 ## Open findings phase 2 must answer
 
-Numbered as the advisory panel raised them. None is closed.
+Numbered as the advisory panel raised them. **Finding 1 is closed** — see
+below. The rest are open.
 
 ### Must be settled in the plan, not at merge
 
-1. **The global `Cache-Control` header.** `next.config.ts` sends
-   `public, s-maxage=60, stale-while-revalidate=300` on `/(.*)`. Today
-   `dynamic = "force-dynamic"` makes Next send `private, no-store`, which masks
-   it. Phase 1 removes `force-dynamic`. Phase 2 starts streaming a personalised
-   navigation inside that document. Worse, client-side navigations fetch the RSC
-   payload, and `proxy.ts`'s `missing:` clause skips those requests — so they
-   carry **no `Set-Cookie`**, removing the one property that stops most shared
-   caches storing them. The RSC payload for `/sy-en` contains
-   `UserNavTopSection`'s `initialUserData`. Decide: delete the rule, scope it to
-   assets, or mark document routes `private`.
+1. **The global `Cache-Control` header — CLOSED 2026-08-31, verified 2026-09-02.**
+   Fixed by PR #114 (`31840fbb`), which merged **before** phase 1. The rule that
+   sent `public, s-maxage=60, stale-while-revalidate=300` on `/(.*)` was deleted;
+   `next.config.ts:146` now carries a comment saying why no `Cache-Control`
+   belongs on a catch-all source. Caching comes from the route that owns it.
+
+   Guarded by `tests/next-config.test.ts:41` — "never gives a catch-all source a
+   public Cache-Control" — which runs on every pull request. 8 tests pass.
+
+   Verified on the live phase 2 preview, which is the request the finding was
+   really about. The RSC payload for `/sy-en` — the response a client-side
+   navigation fetches, the one that carries no `Set-Cookie` because `proxy.ts`
+   skips it, and that contains `initialUserData`:
+
+   | | `trydos.ramaaz.dev` (before) | phase 2 preview |
+   |---|---|---|
+   | `cache-control` | `private, no-cache, no-store` | `private, no-store, no-cache` |
+   | `Set-Cookie` headers | 0 | 0 |
+   | `initialUserData` in body | yes | yes |
+
+   The header is `private` on both, so no shared cache may store either. The
+   `Set-Cookie` gap the finding named is real and still there — it just no longer
+   matters, because `private` does the work on its own. The home **document**
+   sends `public, max-age=0, must-revalidate`, which is Next's own prerender
+   header and means a shared cache must revalidate before reuse.
+
 2. **`notFound()` for an unknown category slug contradicts AC-15.** Validating
    against a 60-second cached list means a genuinely new category 404s until the
    entry expires. AC-15 requires it to open. Both cannot be true. Pick one.
