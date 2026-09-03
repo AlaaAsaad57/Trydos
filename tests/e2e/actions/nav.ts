@@ -15,6 +15,22 @@
 import { expect, type Page } from "@playwright/test";
 
 import { LIVE_ORIGIN } from "../harness/env";
+
+/** How long a product page gets to draw its title after the address changes.
+ *
+ *  The suite's default is 15s, and that is not enough. Measured on this
+ *  repository against staging, opening the first product of a run takes about
+ *  12s end to end — the route renders server-side and waits on the catalogue
+ *  search before it has a title to draw. Three seconds of headroom is not a
+ *  budget, and it showed: `guest.live.spec.ts:70` failed on exactly this step
+ *  in 4 of 16 CI runs while passing 3 of 3 locally, because the CI runner is
+ *  slower than the machine the 15s was never chosen on.
+ *
+ *  Set to match the navigation allowance in the same helpers, so the whole
+ *  "open a product" journey has one budget instead of a generous first half and
+ *  a tight second half. Still far below the 120s per-test limit, so a product
+ *  page that genuinely never renders is still reported as a failure. */
+const PRODUCT_RENDER_MS = 45_000;
 import {
   home,
   listing,
@@ -198,7 +214,10 @@ export const gotoFirstProduct = async (
   await expect(page).toHaveURL(/\/products\//, { timeout: 45_000 });
 
   const name = product.name(page);
-  await expect(name).toBeVisible();
+  await expect(
+    name,
+    "the address changed to a product page but no title was ever drawn on it",
+  ).toBeVisible({ timeout: PRODUCT_RENDER_MS });
 
   return {
     name: (await name.textContent())?.trim() ?? "",
@@ -294,7 +313,7 @@ export const openProductFromLastBoutique = async (
   await expect(
     product.name(page),
     "the product page opened with no title on it",
-  ).toBeVisible();
+  ).toBeVisible({ timeout: PRODUCT_RENDER_MS });
 
   return { url: page.url() };
 };
