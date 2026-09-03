@@ -54,6 +54,64 @@ describe('NewLoginLogo — the server sends the static mark, and motion starts i
     }
 });
 
+describe('NewLoginLogo — with reduced motion overridden, the server sends the first frame of the pattern', () => {
+    /**
+     * The demo route overrides reduced motion, so the server already knows the
+     * pattern will play. Serving the finished mark there is what made the Quick
+     * Preview logo flash: the browser drew the whole logo, hydrated, and then
+     * wiped the eyes away to start the build. Serving the pattern's first frame
+     * instead means the first paint and the first animation frame are the same
+     * picture, and the build carries on from what was already on screen.
+     *
+     * The static gate stays for the product, where the server cannot know the
+     * shopper's reduced-motion setting.
+     */
+    const firstFrame = (animation: LogoAnimationType, variant: 'header' | 'badge-ring') =>
+        renderToString(
+            <LogoAnimationProvider initialAnimation={animation} ignoreReducedMotion>
+                <NewLoginLogo variant={variant} dotColor="#402CDD" ringColor="#28C452" animateWord={false} />
+            </LogoAnimationProvider>,
+        );
+
+    /** The opening tag of the animated group inside one dot. */
+    const dotGroup = (html: string, part: 'dot-left' | 'dot-right') => {
+        const from = html.indexOf(`data-logo-part="${part}"`);
+        if (from < 0) return null;
+        const open = html.indexOf('<g', from);
+        return html.slice(open, html.indexOf('>', open) + 1);
+    };
+
+    it('Cinematic Assembly on the header is served running, with both eyes still hidden', () => {
+        const html = firstFrame('reveal', 'header');
+
+        expect(
+            html,
+            'the server sent the still mark although the pattern is sure to play, so the browser draws the finished logo first and then wipes the eyes away to start the build',
+        ).toContain('data-logo-motion="running"');
+
+        for (const part of ['dot-left', 'dot-right'] as const) {
+            const tag = dotGroup(html, part);
+            expect(tag, `the served html has no animated group for the ${part}`).not.toBeNull();
+            expect(
+                tag,
+                `the ${part} is served visible, but Cinematic Assembly starts with it hidden and drops it in later — so it flashes off at hydration`,
+            ).toMatch(/opacity(:\s*|=")0/);
+        }
+    });
+
+    it('a pattern the product may not play is still served static when nothing overrides reduced motion', () => {
+        const html = renderToString(
+            <LogoAnimationProvider initialAnimation="reveal">
+                <NewLoginLogo variant="header" dotColor="#402CDD" ringColor="#28C452" />
+            </LogoAnimationProvider>,
+        );
+        expect(
+            html,
+            'the server started the pattern without knowing the reduced-motion setting, so a shopper who turned motion off gets a hydration mismatch',
+        ).toContain('data-logo-motion="static"');
+    });
+});
+
 describe('NewLoginLogo — an animated svg attribute also has a static starting value', () => {
     /**
      * Framer Motion drives svg attributes as well as styles. An attribute that

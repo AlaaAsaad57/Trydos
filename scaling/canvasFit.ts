@@ -45,3 +45,39 @@ export function canvasFit(vw: number, vh: number): CanvasFit {
     top: Math.max(0, (vh - DESIGN_H * scale) / 2),
   };
 }
+
+/**
+ * The same fit, as a script the browser runs while it is still parsing the
+ * html — before React, and before the canvas below it is painted.
+ *
+ * Why it exists: AppScaler's effect runs after hydration, and on a phone that
+ * is late. The first paint was the server html, a 932 px canvas at scale 1
+ * drawn off the bottom of the screen, and when React mounted the canvas shrank
+ * and everything on it jumped. On a 430 x 745 phone the centre logo moved 85 px.
+ *
+ * It writes the four `:root` variables the canvas and the effect read, as one
+ * `<style>` rule appended to `<head>`, and nothing else. The effect then sets
+ * the same numbers inline on `:root`, which is not a visible change.
+ *
+ * A stylesheet rule, not an inline style on `<html>`: React owns the `<html>`
+ * element and reports a hydration mismatch when its `style` attribute holds
+ * something React did not render. An extra `<style>` in `<head>` is a node
+ * React 19 skips over, so nothing is reported.
+ *
+ * It repeats the arithmetic of `canvasFit` on purpose: the function above is
+ * a module import and cannot run before the bundle. The two are held together
+ * by `tests/scaling/appScaler.test.tsx`, which runs this script and compares.
+ */
+export const CANVAS_FIT_STYLE_ID = 'app-canvas-fit';
+
+export const CANVAS_FIT_SCRIPT =
+  '(function(){' +
+  'var w=window.innerWidth,h=window.innerHeight;' +
+  `var s=Math.min(w/${DESIGN_W},h/${DESIGN_H},${MAX_SCALE});` +
+  `var e=document.getElementById('${CANVAS_FIT_STYLE_ID}');` +
+  `if(!e){e=document.createElement('style');e.id='${CANVAS_FIT_STYLE_ID}';document.head.appendChild(e);}` +
+  "e.textContent=':root{--app-scale:'+s+';" +
+  `--app-canvas-left:'+Math.max(0,(w-${DESIGN_W}*s)/2)+'px;` +
+  `--app-canvas-top:'+Math.max(0,(h-${DESIGN_H}*s)/2)+'px;` +
+  `--app-canvas-height:'+(${DESIGN_H}*s)+'px}';` +
+  '})()';

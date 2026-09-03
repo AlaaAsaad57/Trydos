@@ -109,8 +109,19 @@ export function useAnimationEngine(
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
+    /**
+     * The gate exists because the server cannot know the reduced-motion setting.
+     * When the caller overrides that setting, the server does know: the pattern
+     * will play. So it sends the pattern's first frame (every animated value
+     * carries its start, see `normaliseMotion`), the browser renders the same
+     * first frame, and the motion carries on from what is already on screen.
+     *
+     * Sending the finished mark there instead is what made the Quick Preview
+     * logo flash: the browser drew the whole logo, hydrated, and then wiped the
+     * eyes away to start the build.
+     */
     const allowed = ignoreReducedMotion || !prefersReduced;
-    const active = Boolean(factory) && mounted && allowed;
+    const active = Boolean(factory) && allowed && (mounted || ignoreReducedMotion);
     const blink = useBlink(active && animation === 'wink');
 
     return useMemo(() => {

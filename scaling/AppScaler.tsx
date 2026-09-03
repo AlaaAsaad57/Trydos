@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 
-import { canvasFit } from './canvasFit';
+import { CANVAS_FIT_SCRIPT, canvasFit } from './canvasFit';
 import {
   DESIGN_H,
   DESIGN_W,
@@ -71,14 +71,14 @@ export default function AppScaler({ children }: { children: React.ReactNode }) {
     const compute = () => {
       const { scale, left, top } = canvasFit(window.innerWidth, window.innerHeight);
 
-      el.style.width = `${DESIGN_W}px`;
-      el.style.height = `${DESIGN_H}px`;
-      el.style.left = `${left}px`;
-      el.style.top = `${top}px`;
-      el.style.transform = `scale(${scale})`;
-
+      // The canvas element reads its scale and its place from these variables
+      // (see the style below). Nothing is written onto the element itself: the
+      // script served ahead of it has already set the same four values before
+      // the first paint, so this write is the same numbers again, and
+      // hydration moves nothing. CANVAS_FIT_SCRIPT explains why.
       const root = document.documentElement;
       root.style.setProperty('--app-scale', String(scale));
+      root.style.setProperty('--app-canvas-left', `${left}px`);
       // Where the drawn canvas actually is, in real px. Anything portaled out of
       // #master-canvas (the QR sheet) needs this: the canvas no longer fills the
       // window, so `100dvh` is not the canvas height any more.
@@ -106,17 +106,26 @@ export default function AppScaler({ children }: { children: React.ReactNode }) {
 
   return (
     <div id="app-outer" style={{ position: 'fixed', inset: 0 }}>
+      {/*
+        * Runs as the browser parses the html, ahead of the canvas, so the
+        * canvas is scaled before it is ever painted. The browser does not run
+        * a script React inserts on a client-side navigation; there the effect
+        * above does the same work.
+        */}
+      <script dangerouslySetInnerHTML={{ __html: CANVAS_FIT_SCRIPT }} />
       <div
         ref={canvasRef}
         id="master-canvas"
         style={{
           position: 'absolute',
-          top: 0,
-          left: `calc((100vw - ${DESIGN_W}px) / 2)`,
+          // The fallbacks are the unscaled artboard, centred, for the one case
+          // where no script ran at all.
+          top: 'var(--app-canvas-top, 0px)',
+          left: `var(--app-canvas-left, calc((100vw - ${DESIGN_W}px) / 2))`,
           width: DESIGN_W,
           height: DESIGN_H,
           transformOrigin: 'top left',
-          transform: 'scale(1)',
+          transform: 'scale(var(--app-scale, 1))',
           overflow: 'hidden',
         }}
       >

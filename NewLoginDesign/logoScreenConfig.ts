@@ -23,7 +23,14 @@ export interface LogoStep {
 export interface LogoSlotConfig {
     /** Played in order. One entry is the normal case. */
     steps: LogoStep[];
-    /** Start the list again after the last step, instead of stopping. */
+    /**
+     * Keep the last step going for ever, instead of stopping on the plain mark.
+     *
+     * The list is played once either way. A chain is an introduction followed
+     * by an idle: Get Started builds once and then hands off. Playing the build
+     * again every few seconds would read as a loading state, so the loop holds
+     * the last step and never returns to the top.
+     */
     loop: boolean;
     /**
      * Let the pattern touch the word.
@@ -72,40 +79,46 @@ export const LOGO_SLOTS: { id: LogoSlotId; label: string; note?: string }[] = [
     { id: 'success', label: 'Success' },
 ];
 
-/** What the rest of the flow plays when nothing else is asked for. */
-const WINK_DEFAULT: LogoSlotConfig = { steps: [{ animation: 'wink', seconds: 5 }], loop: true };
+/** What every screen from Terms onwards plays: Hand-Off, 3 seconds a pass. */
+const HAND_OFF: LogoSlotConfig = { steps: [{ animation: 'relay', seconds: 3 }], loop: true };
 
 /**
- * The picks the design starts from, so the flow reads correctly before anybody
- * opens the modal. The client changes any of it from there.
+ * The picks the client applied in the modal on 3 September 2026.
+ *
+ * The modal saves to the one browser it was used in, so the file has to carry
+ * the same picks or a fresh browser, and localhost, play something else. The
+ * screenshots the picks were read from are in the design folder next to the
+ * XD file. `tests/components/logoSequence.test.tsx` holds them.
  */
 export const DEFAULT_LOGO_CONFIG: Record<LogoSlotId, LogoSlotConfig> = {
-    // Cinematic Assembly, but the glyphs hold still while the ring and the dots
-    // build around them.
+    // Cinematic Assembly once, and the glyphs hold still while the eyes drop in
+    // around them. No loop: the built mark simply stays for the 8 seconds.
     'quick-preview-wordmark': {
-        steps: [{ animation: 'reveal', seconds: 5 }],
-        loop: true,
+        steps: [{ animation: 'reveal', seconds: 3 }],
+        loop: false,
         animateWord: false,
     },
-    // Slow, because the badge is only peeking over the bottom edge here.
-    'quick-preview-badge': { steps: [{ animation: 'wink', seconds: 10 }], loop: true },
-    'quick-preview-badge-expanded': { steps: [{ animation: 'relay', seconds: 5 }], loop: true },
-    // The one chain in the set: it builds, hands off once, and then stops.
+    'quick-preview-badge': HAND_OFF,
+    'quick-preview-badge-expanded': HAND_OFF,
+    // The one chain in the set: it builds once, then hands off for ever. The
+    // loop holds the last step, so the build does not come round again.
     'get-started': {
         steps: [
-            { animation: 'reveal', seconds: 5 },
-            { animation: 'relay', seconds: 5 },
+            { animation: 'reveal', seconds: 3 },
+            { animation: 'relay', seconds: 3 },
         ],
-        loop: false,
+        loop: true,
     },
-    terms: { steps: [{ animation: 'relay', seconds: 5 }], loop: true },
-    'enter-phone': WINK_DEFAULT,
-    'select-method': WINK_DEFAULT,
-    'enter-pin': WINK_DEFAULT,
-    'not-registered': WINK_DEFAULT,
-    'already-registered': WINK_DEFAULT,
-    'input-name': WINK_DEFAULT,
-    success: WINK_DEFAULT,
+    terms: HAND_OFF,
+    'enter-phone': HAND_OFF,
+    'select-method': HAND_OFF,
+    'enter-pin': HAND_OFF,
+    'not-registered': HAND_OFF,
+    'already-registered': HAND_OFF,
+    'input-name': HAND_OFF,
+    // Not in the screenshots (the list was cut off above it). Set to match the
+    // other inner screens.
+    success: HAND_OFF,
 };
 
 export type LogoConfig = Record<LogoSlotId, LogoSlotConfig>;
