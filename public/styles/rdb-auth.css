@@ -28,6 +28,17 @@
 
 .font-quicksand {
   font-family: var(--Quicksand-Regular),'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* The one number that makes a CSS text box land where XD puts it.
+     Quicksand reports ascender 1000 and descender -250 on a 1000 unit em, and
+     USE_TYPO_METRICS is on, so ascender + descender is exactly 1.25em. At
+     line-height 1.25 the half-leading is zero: the top of the box is the top of
+     the ascender, which is the edge XD measures from, and the baseline sits
+     exactly 1.0em below it. So a heading placed at design y 288 needs no
+     correction of any kind — it is at 288.
+     This replaced .text-trim / .text-trim-descend, which changed the box height
+     on some screens and not others, and is why two screens with the same
+     margin showed two different gaps. */
+  line-height: 1.25;
 }
 
 /* Each Quicksand weight is loaded as its own font family (one localFont per
@@ -66,29 +77,6 @@
   transform-origin: center top !important;
   border-radius: 16px !important;
   overflow: hidden !important;
-}
-
-/* Text trim helpers for tight glyph bounding box matching XD design */
-.text-trim {
-  text-box-trim: trim-both;
-  text-box-edge: cap alphabetic;
-}
-
-@supports (text-box: trim-both cap alphabetic) {
-  .text-trim {
-    text-box: trim-both cap alphabetic;
-  }
-}
-
-.text-trim-descend {
-  text-box-trim: trim-both;
-  text-box-edge: cap text;
-}
-
-@supports (text-box: trim-both cap text) {
-  .text-trim-descend {
-    text-box: trim-both cap text;
-  }
 }
 
 /* Dashed hairline border matching XD spec (size 0.5 / dash 3 / gap 3) */

@@ -1,0 +1,165 @@
+/**
+ * The design grid, straight out of the XD file.
+ *
+ * Every number is design px, measured from the top-left of the 430 x 932
+ * artboard. Inside `#master-canvas` one design px is one CSS px, and AppScaler
+ * draws the whole artboard at one scale, so a screen can place a block with a
+ * plain `top: XD.head.title` and it lands exactly where the designer put it, on
+ * every device.
+ *
+ * Read the numbers here and nowhere else. Before this file each screen wrote
+ * its own margins, and the same head block ended up on three different lines on
+ * three screens because `mt-xd-10` on one was `pt-xd-12` on another.
+ *
+ * How the vertical numbers were read out of the file: a text node with
+ * `frame.type = "positioned"` stores its BASELINE in `y`, not its top. Quicksand
+ * has an ascender of exactly 1.0 em, so top = baseline - fontSize. Every number
+ * below is already a top edge, and `.font-quicksand` carries `line-height: 1.25`
+ * so a CSS box top lands on the same edge.
+ *
+ * See docs/login-design-xd-parity.md for how the file was read and for the
+ * artboard each number came from.
+ */
+
+export const XD = {
+    /** The artboard. Also the size of the canvas AppScaler draws. */
+    canvas: { width: 430, height: 932 },
+
+    /** The single control in the top-right corner. Both sit 30 in from the right. */
+    control: {
+        top: 60,
+        right: 30,
+        /** The close "X" on the six screens that can be dismissed. */
+        closeSize: 15,
+        /** The "scan a QR code" icon on Get Started. */
+        qrSize: 25,
+    },
+
+    /** The badge mark. 150 x 150 wherever it appears. */
+    logo: {
+        size: 150,
+        /** Phone, method, code and all four outcome screens. */
+        top: 116,
+        /** Get Started and Terms — the mark sits low, buttons under it. */
+        centre: 390,
+        /** Quick preview, under the slogan pill. */
+        quickPreview: 98,
+    },
+
+    /**
+     * The head block. Four lines, each anchored on its own, because the design
+     * does not space them evenly and a stack of margins cannot reproduce that.
+     */
+    head: {
+        /** 30 Bold #1D1D1D */
+        title: 288,
+        /** 16 */
+        line2: 338,
+        /** 12 */
+        line3: 366,
+        /** 11 #4A31E7 — the privacy line. */
+        line4: 389,
+        /** The method and code screens add a row above it, so line 4 moves. */
+        line4WithRow: 412,
+        /** The expired-code screen pushes it once more. */
+        line4Expired: 435,
+    },
+
+    /** Text starts at 40. Boxes start at 20 and are 390 wide. Nothing uses 30. */
+    textLeft: 40,
+
+    /** Every wide input and every button. */
+    box: {
+        left: 20,
+        width: 390,
+        height: 60,
+        radius: 20,
+        /** Phone input, method row, code row. */
+        top: 503,
+        /** The code row lifts on the wrong and expired screens. */
+        topLifted: 493,
+    },
+
+    /** Six boxes, 20 to 410. */
+    otp: { size: 60, gap: 6, radius: 15 },
+
+    /** Two buttons at x 20 and x 217. */
+    method: {
+        width: 193,
+        gap: 4,
+        /** The icon straddles the top border: 12 in, 10 above. */
+        iconSize: 20,
+        iconLeft: 12,
+        iconAbove: 10,
+    },
+
+    /** The message under the code row on the wrong and expired screens. */
+    otpMessageTop: 561,
+
+    /** Nothing interactive may sit below this line — the keyboard starts here. */
+    keyboardTop: 583,
+
+    /** The bottom of every screen. */
+    cta: {
+        /** The upper of the two buttons, where a screen has two. */
+        second: 721,
+        /** The main button. */
+        primary: 789,
+        /** The 14px link under it. */
+        link: 879,
+    },
+
+    /** Get Started only. */
+    getStarted: { title: 649 },
+
+    /** Terms only. */
+    terms: {
+        body: 600,
+        bodyLineHeight: 1.43,
+        icon: { left: 202, top: 688, size: 25 },
+        linkLine: 721,
+    },
+
+    /** Quick preview only. */
+    quickPreview: {
+        pill: { top: 56, width: 206, height: 30, radius: 12 },
+        logo: 98,
+        title: 268,
+        card: { top: 326, height: 473 },
+        dots: { top: 809, step: 14, gap: 6, activeWidth: 16, size: 8 },
+        button: 837,
+    },
+
+    /** The QR sheet, from `Registration - 1`. */
+    qrSheet: {
+        top: 90,
+        radius: 30,
+        handle: { left: 195, top: 102, width: 40, height: 2 },
+        code: { left: 90, top: 171.5, size: 250 },
+        paragraphLineHeight: 1.54,
+    },
+} as const;
+
+/**
+ * Icon gaps after the third line, checked against the real Quicksand advance
+ * widths from the font's `hmtx` table.
+ *
+ * This is the one place the design file disagrees with itself: the same SIM
+ * icon on the same row sits at 316.1, 320.1 and 322.1 on three artboards. Each
+ * screen keeps its own number rather than an average, because an average is
+ * wrong on all three.
+ */
+/**
+ * The one bit of letter spacing in the whole file.
+ *
+ * XD sets `letterSpacing: 10` on exactly three labels — "login & Continue",
+ * "Create new account & Continue" and "Cancel & take a look at the app". XD
+ * counts in 1/1000 em, so 10 is 0.01em. Everything else in the flow is 0.
+ */
+export const XD_WIDE_LABEL_TRACKING = '0.01em';
+
+export const XD_LINE3_ICON_GAP = {
+    phone: 28,
+    method: 24,
+    code: 23,
+} as const;

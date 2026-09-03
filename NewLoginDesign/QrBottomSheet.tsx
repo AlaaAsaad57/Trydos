@@ -5,7 +5,8 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import CustomQRCode from 'components/Login/Enhanced/ui/CustomQRCode';
 import FlexibleSpace from 'scaling/FlexibleSpace';
-import { DESIGN_W } from 'scaling/scale.config';
+import { DESIGN_H, DESIGN_W } from 'scaling/scale.config';
+import { XD } from './authLayout';
 import { createQrSession, getQrStatus, QrStatusResult } from 'services/qrLogin';
 import { translateFunction } from 'utils/functions';
 
@@ -26,10 +27,16 @@ interface QrSession {
 
 const DEFAULT_MOCK_QR = 'trydos://auth/login?session=trydos_secure_qr_session_app_login';
 
-/** Gap between the top of the sheet and the top of the viewport, in design px. */
-const TOP_GAP = 35;
+/**
+ * The sheet, from `Registration - 1`.
+ *
+ * That artboard also carries a set of get-started buttons and the word "RDB",
+ * both leftovers from another design. Only the sheet is taken from it.
+ */
+/** The sheet starts at design y 90, so it leaves 90 above it. */
+const TOP_GAP = XD.qrSheet.top;
 /** Corner radius of the sheet, in design px. */
-const RADIUS = 30;
+const RADIUS = XD.qrSheet.radius;
 
 /**
  * The scaled canvas the sheet's content is laid out in.
@@ -44,9 +51,9 @@ const RADIUS = 30;
  * its own `w-xd-260` box by 22px.
  *
  * They also drift apart in kind, not only in amount. `--xd-unit` is always
- * derived from the width; `--app-scale` is not. In landscape, or on a viewport
- * short enough that `AppScaler` freezes the canvas and shrinks it further, the
- * two are different numbers entirely.
+ * derived from the width; `--app-scale` is the scale that fits the whole
+ * artboard, which is limited by the height as often as by the width. On any
+ * window taller than about 1084px the two are different numbers entirely.
  *
  * So the content is not laid out in `xd-*` units out here. This rebuilds the
  * canvas contract instead — `--xd-unit: 1px` plus the canvas's own
@@ -62,9 +69,9 @@ const SCALED_CANVAS: React.CSSProperties = {
     top: 0,
     left: '50%',
     width: DESIGN_W,
-    // The visible height is the sheet's height, so the design height is that
-    // with the scale divided back out.
-    height: `calc((100dvh - ${TOP_GAP}px * var(--app-scale, 1)) / var(--app-scale, 1))`,
+    // Plain design px: the sheet is the artboard less the gap above it. This
+    // box is scaled by `--app-scale` below, so no dvh and no division.
+    height: `${DESIGN_H - TOP_GAP}px`,
     // `translateX(-50%)` is measured on the unscaled 430px box and the scale
     // pivots on `top center`, so the two compose to a column 430 * scale wide,
     // centred on the viewport — the same place and size as the canvas behind
@@ -169,7 +176,18 @@ export default function QrBottomSheet({
     return createPortal(
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[99999999999] overflow-hidden font-quicksand flex flex-col justify-end items-center">
+                <div
+                    className="fixed inset-x-0 z-[99999999999] overflow-hidden font-quicksand flex flex-col justify-end items-center"
+                    /* The sheet slides up from the bottom of the CANVAS, not the
+                       bottom of the window. On a tall screen the canvas stops at
+                       its maximum scale and is centred, so the two are different
+                       places and the sheet would otherwise detach from the page
+                       behind it. AppScaler publishes both numbers. */
+                    style={{
+                        top: 'var(--app-canvas-top, 0px)',
+                        height: 'var(--app-canvas-height, 100dvh)',
+                    }}
+                >
                     {/* Fullscreen Dark Dimmed Backdrop Overlay */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -177,7 +195,8 @@ export default function QrBottomSheet({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.25 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-[#2C2C2C]/85 backdrop-blur-[1px] cursor-pointer"
+                        className="fixed inset-0 cursor-pointer"
+                        style={{ backgroundColor: 'rgba(29, 29, 29, 0.9)' }}
                     />
 
                     {/* The white sheet spans the whole viewport, like the backdrop
@@ -198,40 +217,50 @@ export default function QrBottomSheet({
                             // measurements are multiplied out by hand.
                             borderTopLeftRadius: `calc(${RADIUS}px * var(--app-scale, 1))`,
                             borderTopRightRadius: `calc(${RADIUS}px * var(--app-scale, 1))`,
-                            height: `calc(100dvh - ${TOP_GAP}px * var(--app-scale, 1))`,
+                            height: `calc(${DESIGN_H - TOP_GAP}px * var(--app-scale, 1))`,
                         }}
                     >
                         <div
                             data-pw="qr-sheet-canvas"
                             style={SCALED_CANVAS}
-                            className="flex flex-col items-start px-xd-35 pb-xd-10"
+                            className="relative flex flex-col items-start px-xd-35 pb-xd-10"
                         >
-                            {/* Center Top 2px Pill Handle sitting 12px away from top */}
-                            <div className="w-full flex justify-center pt-xd-12">
-                                <svg
-                                    width="34"
-                                    height="2"
-                                    viewBox="0 0 34 2"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <rect width="34" height="2" rx="1" fill="#D1D1D1" />
-                                </svg>
-                            </div>
+                            {/* The grab handle: 40 x 2 at (195, 102) on the
+                                artboard, so 12 below the top of the sheet. */}
+                            <div
+                                className="absolute"
+                                style={{
+                                    left: XD.qrSheet.handle.left,
+                                    top: XD.qrSheet.handle.top - XD.qrSheet.top,
+                                    width: XD.qrSheet.handle.width,
+                                    height: XD.qrSheet.handle.height,
+                                    borderRadius: XD.qrSheet.handle.height / 2,
+                                    backgroundColor: '#C4C2C2',
+                                }}
+                            />
 
-                            {/* Top Space to QR */}
-                            <FlexibleSpace size={50} share={0.08} />
-
-                            {/* Centered QR Code */}
+                            {/* The code: 250 x 250 at (90, 171.5). */}
                             <div className="w-full flex flex-col items-center justify-center">
-                                <div className="relative w-xd-260 h-xd-260 flex items-center justify-center">
+                                <div
+                                    className="absolute flex items-center justify-center"
+                                    style={{
+                                        left: XD.qrSheet.code.left,
+                                        top: XD.qrSheet.code.top - XD.qrSheet.top,
+                                        width: XD.qrSheet.code.size,
+                                        height: XD.qrSheet.code.size,
+                                    }}
+                                >
                                     {qrToken && (
                                         <div
                                             className={`transition-opacity duration-300 ${
                                                 status === 'scanned' ? 'opacity-30' : 'opacity-100'
                                             }`}
                                         >
-                                            <CustomQRCode value={qrToken} size={260} bg="#FFFFFF" />
+                                            <CustomQRCode
+                                                value={qrToken}
+                                                size={XD.qrSheet.code.size}
+                                                bg="#FFFFFF"
+                                            />
                                         </div>
                                     )}
 
@@ -275,30 +304,36 @@ export default function QrBottomSheet({
                                 </div>
                             </div>
 
-                            {/* Space between QR and Title */}
-                            <FlexibleSpace size={70} share={0.11} />
+                            {/* Below the code, which ends at 421.5 on the
+                                artboard — 331.5 from the top of the sheet. */}
+                            <FlexibleSpace
+                                size={XD.qrSheet.code.top - XD.qrSheet.top + XD.qrSheet.code.size + 70}
+                            />
 
                             {/* Text Instructions Section */}
                             <div className="w-full flex flex-col items-start">
                                 <h2 className="text-xd-30 font-bold text-[#1D1D1D] leading-tight">
-                                    {translate('Switch From Your App')}
+                                    {translate('Switch From your App')}
                                 </h2>
 
                                 <div className="w-xd-350 max-w-full">
-                                    <p className="text-xd-16 text-[#5D5C5D] font-medium mt-xd-12 leading-[1.4]">
-                                        &ldquo;{translate('You Can Use Your Account On The Web Securely And Easily.')}&rdquo;
+                                    <p
+                                        className="text-xd-13 text-[#5D5C5D] font-normal mt-xd-12"
+                                        style={{ lineHeight: XD.qrSheet.paragraphLineHeight }}
+                                    >
+                                        &ldquo;{translate('You can use your account on the web securely and easily.')}&rdquo;
                                     </p>
                                 </div>
 
-                                <div className="flex flex-col gap-xd-8 mt-xd-12 text-xd-14 text-[#5D5C5D] font-normal leading-[1.5]">
-                                    <p>- {translate('Open Your Trydos Application')}</p>
-                                    <p>- {translate('Choose Switch Web')}</p>
-                                    <p>- {translate('Read This Code From Opposite Side Camera')}</p>
+                                <div className="flex flex-col gap-xd-8 mt-xd-12 text-xd-14 text-[#1D1D1D] font-normal">
+                                    <p>- {translate('Open your Trydos application')}</p>
+                                    <p>- {translate('choose Switch web')}</p>
+                                    <p>- {translate('read this code from opposite side Camera')}</p>
                                 </div>
                             </div>
 
                             {/* Expandable spacer to bottom */}
-                            <FlexibleSpace grow share={0.65} />
+                            <FlexibleSpace grow />
 
                             {/* Bottom Privacy Section */}
                             <div className="w-full flex flex-col items-center justify-center">
@@ -314,12 +349,12 @@ export default function QrBottomSheet({
                                     </svg>
                                 </div>
                                 <span className="text-xd-11 text-[#388CFF] mt-xd-4 font-normal text-center">
-                                    {translate('Your Privacy Is Completely Safe')}
+                                    {translate('Your privacy is completely safe')}
                                 </span>
                             </div>
 
                             {/* Bottom Space */}
-                            <FlexibleSpace size={30} share={0.05} />
+                            <FlexibleSpace size={30} />
                         </div>
                     </motion.div>
                 </div>

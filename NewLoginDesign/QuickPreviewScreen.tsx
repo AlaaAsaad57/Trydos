@@ -4,10 +4,11 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import FlexibleSpace from 'scaling/FlexibleSpace';
-import { FLEX_RANGE } from 'scaling/scale.config';
 import { translateFunction } from 'utils/functions';
 import SequencedLogo from './useLogoSequence';
+import XdDashedBorder from 'components/Login/Enhanced/ui/XdDashedBorder';
 import AuthLogoSlot from './AuthLogoSlot';
+import { XD } from './authLayout';
 import { DEFAULT_LOGO_CONFIG } from './logoScreenConfig';
 import type { LogoSlotConfig } from './logoScreenConfig';
 
@@ -194,26 +195,31 @@ const PREVIEW_SLIDES = [
 const COLLAPSED_TAIL = 95;
 
 /**
- * How much of a gap the flex system is allowed to take away.
+ * The column, laid out against the XD anchors.
  *
- * The seven spacers on this screen add up to 164 design px. The flex system
- * asks for up to FLEX_RANGE (182) of them, which is more than they have. The
- * old shares divided the whole ask over those 164px, so on a short screen every
- * spacer hit zero at the same moment: the pagination dots sat on the card
- * border and the button sat on the dots. That is what Safari on a phone showed,
- * and Chrome on a laptop did not, because a laptop window is tall enough that
- * the deficit never gets there.
+ * Every gap here is the difference between two anchors in the design file, so
+ * the sum is exactly the 932px artboard:
  *
- * Each gap now gives up at most half of itself. The 18px the spacers cannot
- * cover, and the rest of the deficit past that, are taken by `fitScale` below:
- * it shrinks the whole column evenly, so every gap stays in proportion to the
- * design instead of closing to nothing.
+ *   56 pill(30) 12 logo(150) 20 title(37.5) 20.5 card(473) 10 dots(8) 20
+ *   button(60) 35  =  932
  *
- * `flexShare` is computed rather than written out, so the numbers cannot drift
- * away from the sizes beside them.
+ * They are gaps and not absolute tops because this whole column moves: it
+ * starts below the bottom edge and rides up. Nothing else in the flow does
+ * that, which is why every other screen anchors its blocks instead.
+ *
+ * The spacers no longer give anything away on a short screen. AppScaler draws
+ * the whole artboard at one scale now, so `--xd-flex-deficit` is always 0 and a
+ * FlexibleSpace is exactly its size.
  */
-const FLEX_GIVE = 0.5;
-const flexShare = (size: number) => (size * FLEX_GIVE) / FLEX_RANGE;
+const GAP = {
+    abovePill: 56,
+    pillToLogo: 12,
+    logoToTitle: 20,
+    titleToCard: 20.5,
+    cardToDots: 10,
+    dotsToButton: 20,
+    belowButton: 35,
+} as const;
 
 export default function QuickPreviewScreen({
     onComplete,
@@ -386,8 +392,8 @@ export default function QuickPreviewScreen({
                 style={{ transformOrigin: 'top center' }}
                 className="w-full flex flex-col items-center relative z-20"
             >
-                {/* Top space above the pill. Mock: the pill box starts at 55. */}
-                <FlexibleSpace size={55} share={flexShare(55)} />
+                {/* The pill box starts at 56 in the design file. */}
+                <FlexibleSpace size={GAP.abovePill} />
 
                 {/*
                   * 1. Slogan Pill Badge (Top of column)
@@ -410,8 +416,8 @@ export default function QuickPreviewScreen({
                   */}
                 <div
                     ref={pillRef}
-                    className="w-full h-xd-32 flex justify-center items-center z-20 flex-shrink-0"
-                    style={{ perspective: 600 }}
+                    className="w-full flex justify-center items-center z-20 flex-shrink-0"
+                    style={{ perspective: 600, height: XD.quickPreview.pill.height }}
                 >
                     <AnimatePresence mode="wait">
                         <motion.div
@@ -420,18 +426,26 @@ export default function QuickPreviewScreen({
                             animate={{ rotateX: 0, opacity: 1 }}
                             exit={{ rotateX: 90, opacity: 0 }}
                             transition={{ duration: 0.3, ease: 'easeOut' }}
-                            style={{ transformOrigin: 'center', backfaceVisibility: 'hidden' }}
-                            className="h-xd-32 px-xd-20 rounded-[16px] bg-[#F4F0FE] border border-[#ECE9FE] flex items-center justify-center whitespace-nowrap"
+                            className="flex items-center whitespace-nowrap"
+                            style={{
+                                transformOrigin: 'center',
+                                backfaceVisibility: 'hidden',
+                                width: XD.quickPreview.pill.width,
+                                height: XD.quickPreview.pill.height,
+                                borderRadius: XD.quickPreview.pill.radius,
+                                backgroundColor: '#F8F7FF',
+                                paddingLeft: 12,
+                            }}
                         >
-                            <span className="text-xd-14 font-normal text-[#1d1d1d] text-center">
+                            <span className="text-xd-14 font-normal text-[#4A31E7]">
                                 {FLIP_LABELS[flipTextIndex](translate)}
                             </span>
                         </motion.div>
                     </AnimatePresence>
                 </div>
 
-                {/* Gap between Slogan Pill and Dotted Badge: exactly 14px */}
-                <FlexibleSpace size={14} share={flexShare(14)} />
+                {/* Pill ends at 86, the mark starts at 98. */}
+                <FlexibleSpace size={GAP.pillToLogo} />
 
                 {/* 2. Dotted Circular Badge Logo (150px x 150px) */}
                 {/* The badge that peeks over the bottom edge while the column
@@ -441,21 +455,30 @@ export default function QuickPreviewScreen({
                     dots look around and blink, and the word never moves. */}
                 <AuthLogoSlot />
 
-                {/* Gap between Badge and Title (16px in the mock) */}
-                <FlexibleSpace size={16} share={flexShare(16)} />
+                {/* The mark ends at 248, the title starts at 268. */}
+                <FlexibleSpace size={GAP.logoToTitle} />
 
                 {/* 3. Header Title: . Quick Preview . */}
                 <div className="w-full flex justify-center items-center flex-shrink-0">
                     <h1 className="text-xd-30 font-bold text-[#1D1D1D]">
-                        {translate('. Quick Preview .')}
+                        {translate('. quick preview .')}
                     </h1>
                 </div>
 
-                {/* Gap between Title and Card (16px in the mock) */}
-                <FlexibleSpace size={16} share={flexShare(16)} />
+                {/* The title box ends at 305.5, the card starts at 326. */}
+                <FlexibleSpace size={GAP.titleToCard} />
 
                 {/* 4. Main Interactive Preview Card Container (390px x 473px) */}
-                <div className="w-xd-390 h-xd-473 rounded-xd-20 border-[1px] border-[#4A31E7] bg-white flex flex-col items-center justify-center p-xd-16 relative shadow-[0_4px_24px_rgba(74,49,231,0.06)] overflow-hidden flex-shrink-0">
+                {/* The drop shadow on this card is switched off in the design
+                    file (visible: false), so there is none here either. */}
+                <div className="w-xd-390 h-xd-473 rounded-xd-20 bg-white flex flex-col items-center justify-center p-xd-16 relative overflow-hidden flex-shrink-0">
+                    <XdDashedBorder
+                        width={XD.box.width}
+                        height={XD.quickPreview.card.height}
+                        radius={XD.box.radius}
+                        color="#4A31E7"
+                        solid
+                    />
                     {/* Embla Carousel Swiper Area (Mouse & Touch Swipe) */}
                     <div
                         className="w-full h-full overflow-hidden relative cursor-grab active:cursor-grabbing"
@@ -482,27 +505,40 @@ export default function QuickPreviewScreen({
                     </div>
                 </div>
 
-                {/* Gap between Card and Dots (10px in the mock) */}
-                <FlexibleSpace size={10} share={flexShare(10)} />
+                {/* The card ends at 799, the dots sit at 809. */}
+                <FlexibleSpace size={GAP.cardToDots} />
 
                 {/* 5. Pagination Dots (3 Dots matching Mock) */}
-                <div className="flex items-center gap-xd-8 pb-xd-2 flex-shrink-0">
+                <div
+                    className="flex items-center flex-shrink-0"
+                    style={{ gap: XD.quickPreview.dots.gap }}
+                >
                     {PREVIEW_SLIDES.map((slide) => (
                         <button
                             key={slide.id}
                             onClick={() => scrollToSlide(slide.id)}
                             aria-label={`Slide ${slide.id + 1}`}
-                            className={`transition-all duration-300 cursor-pointer ${
+                            className="transition-all duration-300 cursor-pointer rounded-full"
+                            style={
                                 slideIndex === slide.id
-                                    ? 'w-xd-18 h-xd-6 rounded-full bg-[#1D1D1D]'
-                                    : 'w-xd-6 h-xd-6 rounded-full border border-[#1D1D1D] bg-transparent hover:bg-[#1D1D1D]/30'
-                            }`}
+                                    ? {
+                                          width: XD.quickPreview.dots.activeWidth,
+                                          height: XD.quickPreview.dots.size,
+                                          backgroundColor: '#1D1D1D',
+                                      }
+                                    : {
+                                          width: XD.quickPreview.dots.size,
+                                          height: XD.quickPreview.dots.size,
+                                          border: '1px solid #404040',
+                                          backgroundColor: 'transparent',
+                                      }
+                            }
                         />
                     ))}
                 </div>
 
-                {/* Gap between Dots and Button (20px in the mock) */}
-                <FlexibleSpace size={20} share={flexShare(20)} />
+                {/* The dots end at 817, the button starts at 837. */}
+                <FlexibleSpace size={GAP.dotsToButton} />
 
                 {/* 6. Action Button: Next (Dashed purple) vs Get Started (Solid purple) */}
                 <div className="w-full flex justify-center flex-shrink-0">
@@ -510,32 +546,29 @@ export default function QuickPreviewScreen({
                         <button
                             onClick={handleNext}
                             data-pw="quick-preview-next"
-                            style={{
-                                backgroundImage:
-                                    "url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='390' height='60' fill='none'><rect x='0.5' y='0.5' width='389' height='59' rx='19.5' stroke='%234A31E7' stroke-width='0.75' stroke-dasharray='3 3'/></svg>\")",
-                                backgroundSize: '100% 100%',
-                                backgroundRepeat: 'no-repeat',
-                            }}
-                            className="w-xd-390 h-xd-60 rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-16 font-normal cursor-pointer transition-all duration-200 active:scale-[0.98] hover:bg-[#F8F7FF] flex items-center justify-center"
+                            className="relative w-xd-390 h-xd-60 rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-16 font-normal cursor-pointer transition-all duration-200 active:scale-[0.98] hover:bg-[#F8F7FF] flex items-center justify-center"
                         >
+                            <XdDashedBorder
+                                width={XD.box.width}
+                                height={XD.box.height}
+                                radius={XD.box.radius}
+                                color="#4A31E7"
+                            />
                             {translate('Next')}
                         </button>
                     ) : (
                         <button
                             onClick={handleNext}
                             data-pw="quick-preview-get-started"
-                            className="w-xd-390 h-xd-60 rounded-xd-20 bg-[#402CDD] text-white text-xd-16 font-normal cursor-pointer transition-all duration-200 active:scale-[0.98] hover:bg-[#3623c7] shadow-[0_6px_22px_rgba(64,44,221,0.38)] flex items-center justify-center"
+                            className="w-xd-390 h-xd-60 rounded-xd-20 bg-[#4A31E7] text-white text-xd-16 font-normal cursor-pointer transition-all duration-200 active:scale-[0.98] hover:bg-[#3d28c4] flex items-center justify-center"
                         >
                             {translate('Get Started')}
                         </button>
                     )}
                 </div>
 
-                {/*
-                  * Bottom space below the button. Mock: the button ends at
-                  * 896, the artboard at 932.
-                  */}
-                <FlexibleSpace size={33} share={flexShare(33)} />
+                {/* The button ends at 897, the artboard at 932. */}
+                <FlexibleSpace size={GAP.belowButton} />
             </motion.div>
         </main>
     );

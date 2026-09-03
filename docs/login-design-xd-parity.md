@@ -1,6 +1,6 @@
 # New login design — matching the XD file
 
-**Status:** plan, not started. No application file has been changed.
+**Status:** Ticket A and Ticket B are both done. Nothing is committed yet.
 **Design file:** `../animation decission/NewLoginDesign.xd` (outside the repo).
 **Code:** `NewLoginDesign/`, `scaling/`, `components/Login/Enhanced/ui/`.
 
@@ -357,11 +357,17 @@ File and line numbers are where the fix goes.
 | 1 | The canvas reshapes itself on a short screen instead of scaling. On iPhone Safari the deficit is at its 182 cap and nothing sits where the design puts it. | `scaling/AppScaler.tsx` |
 | 2 | The guard meant to ignore the Safari bars never fires. It divides `screen.availHeight` (already CSS px) by `devicePixelRatio`, so on a DPR-3 phone the test is `innerHeight < 217`, which is never true. | `scaling/AppScaler.tsx:78-82` |
 
-### 8.2 Dead CSS classes (silently do nothing)
+### 8.2 Dead CSS classes (silently do nothing) — FIXED in ticket A
 
-`h-xd-138` (the title block on **both** code screens),
-`w-xd-260`, `h-xd-260` (QR box), `pb-xd-10`, `rounded-xd-16`.
-None are defined in `public/styles/xd-utilities.css`.
+Nine, not five. `tests/styles/xdUtilities.test.ts` found four more than the
+hand search did:
+
+`h-xd-138` (the title block on **both** code screens), `w-xd-260`, `h-xd-260`
+(QR box), `pb-xd-10`, `rounded-xd-16`, and the four negative offsets
+`-top-xd-100`, `-bottom-xd-100`, `-start-xd-100`, `-end-xd-100` that place the
+two blurred background circles in `components/Login/Enhanced/screens/
+SplashScreen.tsx`. All nine are now defined, and the test fails if a tenth
+appears.
 
 ### 8.3 Type
 
@@ -573,10 +579,46 @@ The design file wins on every point.
 
 ---
 
-## 10. Ticket A — one uniform scale
+## 10. Ticket A — one uniform scale — DONE
 
 **Outcome:** at any viewport the 430 x 932 artboard is drawn whole, at one
 scale, with nothing reshaped.
+
+Measured after the change, `/sy-en/loginDemo`. The design canvas is 430 x 932
+design px and `--xd-flex-deficit` is `0px` on every one of them, and the first
+drawn element sits at the same design position on all of them:
+
+| viewport | scale | canvas drawn | side bar each | canvas top |
+|---|---|---|---|---|
+| 430 x 932 | 1.0000 | 430 x 932 | 0 | 0 |
+| 430 x 745 | 0.7994 | 343.7 x 745 | 43.1 | 0 |
+| 390 x 844 | 0.9056 | 389.4 x 844 | 0.3 | 0 |
+| 375 x 534 | 0.5730 | 246.4 x 534 | 64.3 | 0 |
+| 1024 x 1229 | 1.1628 | 500 x 1083.7 | 262 | 72.6 |
+| 1440 x 810 | 0.8691 | 373.7 x 810 | 533.1 | 0 |
+| 2560 x 1296 | 1.1628 | 500 x 1083.7 | 1030 | 106.1 |
+
+The live login (`FullEnhancedLoginWidget`) was measured the same way at
+430 x 932, 430 x 745, 1024 x 1229 and 2560 x 1296. Its three buttons sit at
+design 704.6, 772.6 and 868.6 on all four — the same numbers, which was not
+true before.
+
+### Three corrections to this plan, found while building it
+
+1. **Centre against the real window height.** The draft clamped the height
+   first, so a window taller than `MAX_H` would centre the canvas in its top
+   1200 px instead of in the window.
+2. **`MAX_H` can never bind, so it is gone.** `MAX_SCALE` already caps the
+   canvas at 500 x 1083.7 px. A 1200 px clamp is unreachable. `FLEX_FREEZE_H`
+   went with it — nothing reads it now.
+3. **The old landscape branch had no `MAX_SCALE` cap.** On a 2560 x 1440 screen
+   it drew the canvas at scale 1.39, which is 598 px wide, past the 500 px limit
+   the rest of the system promises. The single formula fixes that.
+
+One more thing the old code hid: `landscapeThreshold` was `vh / vw < 1.7`. A
+430-wide phone crosses it as soon as the page is shorter than 731 px, and Safari
+gives it 745. The build was 15 px away from switching layout engines in the
+middle of portrait. There is no threshold any more.
 
 ### A1 Tests first. They must go red before any code changes.
 
@@ -600,9 +642,17 @@ export function canvasFit(vw: number, vh: number) {
 |---|---|---|
 | 430 x 932 | 1 | the design canvas must render 1:1 |
 | 430 x 745 | 0.7994 | iPhone Safari with its bars must shrink, not reshape |
-| 390 x 844 | 0.9070 | iPhone 13 |
+| 390 x 844 | 0.9056 | iPhone 13 — height is the tighter limit, so height wins |
 | 1440 x 900 | 0.9657 | desktop |
 | 2000 x 3000 | 1.1628 | must stop at MAX_SCALE, never over-scale |
+
+Two test files, not one. `tests/scaling/appScaler.test.tsx` is the confirming
+test: it mounts the real component and reads back `--app-scale`,
+`--xd-flex-deficit` and the canvas box. It was **seen red** against the old
+engine on five cases — 430 x 745, 390 x 844, 2000 x 3000, the centring, and the
+Safari guard — and is green now. `tests/scaling/canvasFit.test.ts` is a
+regression guard over the same maths across thirteen real devices, and was
+written green.
 
 `tests/styles/xdUtilities.test.ts` — new. Collect every `xd-*` class used in
 `NewLoginDesign/**` and `components/Login/Enhanced/**`, collect every class
@@ -611,12 +661,26 @@ second. The message lists the missing names. Red today: five classes.
 
 ### A2 to A5
 
-| Step | File | Change |
-|---|---|---|
-| A2 | `scaling/AppScaler.tsx` | one `canvasFit` call, no portrait/landscape branches. Fixed 430 x 932 box, centred, one `transform: scale()`. Pin `--xd-flex-deficit` to `0px`. Keep `MAX_SCALE` (1.1628) and `MAX_H` (1200) exactly as they are. Drop the dead `availHeight / devicePixelRatio` guard. |
-| A3 | `scaling/scale.config.ts` | `FLEX_FREEZE_H` and `FLEX_RANGE` become unused. Run `pnpm knip` and remove what it reports. `QuickPreviewScreen` imports `FLEX_RANGE` for `flexShare`, so that helper goes too, and its `fitScale` guard becomes inert. |
-| A4 | `public/styles/xd-utilities.css` | add `h-xd-138`, `w-xd-260`, `h-xd-260`, `pb-xd-10`, `rounded-xd-16` |
-| A5 | by hand | check the five other `<Page variant="scaled">` mounts still look right |
+| Step | File | Change | State |
+|---|---|---|---|
+| A2 | `scaling/canvasFit.ts` (new), `scaling/AppScaler.tsx`, `scaling/Page.tsx` | one `canvasFit` call, no portrait/landscape branches, no `landscapeThreshold` prop. Fixed 430 x 932 box, centred, one `transform: scale()`. `--xd-flex-deficit` pinned to `0px`. Dropped the dead `availHeight / devicePixelRatio` guard. | done |
+| A3 | `scaling/scale.config.ts` | `MAX_H` and `FLEX_FREEZE_H` removed. `FLEX_RANGE` kept as a plain `182`, because `QuickPreviewScreen` still divides by it; its shares are inert now and it goes with ticket B. | done |
+| A4 | `public/styles/xd-utilities.css` | added the nine classes in section 8.2 | done |
+| A5 | `NewLoginDesign/QrBottomSheet.tsx` | see below | done |
+| A6 | by hand | the other `<Page variant="scaled">` mounts | live login measured; the four `AuthOverlay` mounts share the same code path and were not opened |
+
+### A5 — the QR sheet had to move with the canvas
+
+`QrBottomSheet` is portaled to `<body>`, outside `#master-canvas`, and sized
+itself with `100dvh`. That was the canvas height only while the canvas filled
+the window. It does not any more: on iPad Pro portrait and on any window taller
+than about 1084 px the canvas stops at `MAX_SCALE` and is centred, so `100dvh`
+is far too tall and the sheet would have detached from the page behind it.
+
+`AppScaler` now publishes `--app-canvas-top` and `--app-canvas-height`, and the
+sheet is anchored to those instead. Measured after the change: the sheet top is
+**35 design px** below the canvas top and its bottom is **exactly on** the canvas
+bottom, at 430 x 932, 430 x 745, 1024 x 1229 and 2560 x 1296.
 
 `FlexibleSpace` keeps its API. With the deficit pinned to zero it returns `size`
 exactly, so every `share=` value stops mattering without deleting anything.
@@ -630,7 +694,74 @@ squeezes them, but each must be seen, not assumed. There are no tests on
 
 ---
 
-## 11. Ticket B — put the screens on the grid
+## 11. Ticket B — put the screens on the grid — DONE
+
+Measured after the change at 430 x 932, in design px, straight from the browser.
+Every number below is the XD number:
+
+| screen | what | XD | measured |
+|---|---|---|---|
+| phone | close X | (385, 60) 15x15 | (385, 60) 15x15 |
+| phone | logo | 116 | 116 |
+| phone | title / line 2 / line 3 / line 4 | 288 / 338 / 366 / 389 | 288 / 338 / 366 / 389.1 |
+| phone | input | (20, 503) 390x60 | (20, 503) 390x60 |
+| phone | flag / icon / plus / number / arrow | 20 / 19.7 / 52 / 65 / right 20 | 20 / 19.7 / 52 / 65 / right 20 |
+| method | two buttons | (20, 503) and (217, 503), 193x60 | the same |
+| method | icons | 12 in, 10 above | 32 and 229, at 493 |
+| method | privacy line | 412 | 412.1 |
+| code | six boxes | 20, 86, 152, 218, 284, 350 at 503 | the same |
+| code | resend row / privacy | 412 / 435 | 412 / 435.1 |
+| outcome | CTA / link | 789 / 879 | 789 / 879 |
+| get started | QR icon / logo / title | (375, 60) 25x25 / 390 / 649 | the same |
+| get started | buttons / link | 721 / 789 / 879 | the same |
+| terms | body / icon / link line | (20, 600) / (202, 688) 25x25 / 721 | the same |
+| quick preview | pill / logo / title | 56 (206x30) / 98 / 268 | the same |
+| quick preview | card / dots / button | 326 (390x473) / 809 / 837 | the same |
+| QR sheet | sheet / handle / code | 90 / (195, 102) 40x2 / (90, 171.5) 250x250 | the same |
+
+### How it was done
+
+Every screen is now `position: absolute` per block, at the design y. Stacking
+margins was the reason three screens showed three different gaps for the same
+head block, and it is why the whole page sat 15 to 27 px too high even on a
+perfect canvas.
+
+`.font-quicksand` carries `line-height: 1.25`, which is exactly
+`ascender + descender` for Quicksand. That makes a CSS box top land on the XD
+top with no arithmetic, so an anchor is just the number in the file.
+`.text-trim` and `.text-trim-descend` are gone — all 45 uses and both class
+definitions.
+
+### The wording came out of the file, not out of a guess
+
+`tmp-xdtext.py` read all 55 text strings out of the `.xd` archive with the
+artboard each one belongs to, and every rename was taken from that list. 43
+keys changed. The new keys are in all three of
+`public/translations/translations.{ar,tr,ku}.js`, each reusing the translation
+of the key it replaces, because only the English capitalisation moved.
+
+Six strings the flow uses had **never been in the translation files at all** —
+`. quick preview .`, `Switch From your App`, the web-account sentence and the
+three QR list lines. That was a pre-existing gap in `QuickPreviewScreen` and
+`QrBottomSheet`. All six are now translated in all three languages.
+
+`pnpm lint:i18n-parity` is green: 2212 keys in all three files.
+
+### Two places the design file was not followed to the letter
+
+Both are written here rather than hidden:
+
+1. **The countdown on the code screen.** The design shows the whole hint in
+   12 Regular `#C3C3C3`, so the timer is grey now too. It used to be bold blue.
+   Nothing in the file says the timer is a different colour, so the file won.
+2. **The SIM icon on the code screen** should be `#C3C3C3` there and
+   `#FBAB2D` on "not registered". Both are `<Image>` files, not inline SVG, so
+   the colour cannot be set from the component. Left as they are, and listed
+   here as the one visual difference still open.
+
+---
+
+## 11b. Ticket B — the steps as planned
 
 | Step | Files | Change |
 |---|---|---|
@@ -657,6 +788,23 @@ expect(top, `${screen}: the logo must sit at ${XD.logo.top} design px, it is at 
 requests and the browser suite does not. The maths is unit-tested in A1. A
 rendered position needs real layout, which jsdom does not have, so parity has to
 be a browser test. That gap is stated here rather than hidden.
+
+The spec landed as `tests/e2e/login-design-parity.scripted.spec.ts` — scripted,
+not live, because the demo route talks to no backend and mints no token. It
+walks nine screens at three viewports and checks every anchor against
+`NewLoginDesign/authLayout.ts`, the same file the screens read.
+
+**It was seen red.** With `NewEnterPhoneScreen.tsx` put back to its old flow
+layout, it failed with:
+
+    the artboard itself, the phone number screen: the close control must have a
+    top of 60 design px, it is 30.0
+
+and green on all three viewports with the file restored.
+
+The demo route's step bar got a `data-pw` per step (`demo-step-<id>`) and now
+wraps instead of scrolling sideways, because a step scrolled out of a narrow bar
+cannot be clicked.
 
 ---
 
