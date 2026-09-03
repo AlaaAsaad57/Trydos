@@ -366,7 +366,19 @@ class HomeService {
 
     // MARKET_TOKEN is the single auth cookie (guest or logged-in) — register a
     // guest only when no token exists at all.
-    if (!hasMarketToken) await this.RegisterDevice();
+    //
+    // Remembered, because `userData` and `hasMarketToken` are read once above
+    // and a registration does not update them. Without this flag the `else`
+    // branch below still sees "no user" and registers a SECOND guest, throwing
+    // away the one just created along with its cart and identity. It also holds
+    // `isRegisteringReady` false for longer, which makes the 401 recovery in
+    // `utils/fetchData.ts` take its "a registration is already running" branch
+    // and skip the refresh entirely.
+    let registeredGuest = false;
+    if (!hasMarketToken) {
+      await this.RegisterDevice();
+      registeredGuest = true;
+    }
 
     if (userData && userData?.is_phone_verified === 1 && hasMarketToken) {
       if (process.env.NODE_ENV === "production")
@@ -395,7 +407,7 @@ class HomeService {
           name: userData.name,
           image: userData.image,
         });
-      } else {
+      } else if (!registeredGuest) {
         this.RegisterDevice();
       }
     }
