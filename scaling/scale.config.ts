@@ -9,11 +9,11 @@
  * DESIGN_W × DESIGN_H is the XD artboard size.
  * All xd-* utilities and FlexibleSpace use these as the 1:1 reference.
  *
- * Flex system
- * ───────────
- * Between DESIGN_H and FLEX_FREEZE_H the layout compresses/expands
- * via FlexibleSpace (--xd-flex-deficit CSS variable).
- * Below FLEX_FREEZE_H the canvas freezes and uniformly shrinks.
+ * How the canvas is fitted
+ * ────────────────────────
+ * One scale, min(vw / DESIGN_W, vh / DESIGN_H, MAX_SCALE) — see canvasFit.ts.
+ * The whole artboard is always drawn, so the layout never reshapes itself and
+ * every element stays where the design puts it.
  *
  * Scale clamp
  * ───────────
@@ -27,12 +27,16 @@ export const DESIGN_W = 430;
 /** XD artboard height (px) — the "ideal" viewport height in design-px */
 export const DESIGN_H = 932;
 
-/** Minimum viewport height (in design-px) before Phase 2 kicks in.
- *  Below this → canvas freezes at FLEX_FREEZE_H and applies extraScale. */
-export const FLEX_FREEZE_H = 750;
-export const MAX_H = 1200;
-/** Total compressible range (design-px) for FlexibleSpace */
-export const FLEX_RANGE = DESIGN_H - FLEX_FREEZE_H; // 182
+/**
+ * Total compressible range (design-px) that FlexibleSpace shares were written
+ * against.
+ *
+ * Nothing compresses any more: AppScaler pins --xd-flex-deficit to 0px, so
+ * every FlexibleSpace returns its full `size`. This is kept only because
+ * QuickPreviewScreen still divides by it to compute its (now inert) shares. It
+ * goes when that screen is put on the design grid.
+ */
+export const FLEX_RANGE = 182;
 
 /** Narrowest viewport (px) the CSS clamp considers — prevents text from getting too small */
 export const MIN_VW = 350;
@@ -56,8 +60,9 @@ export const OUTER_BG = {
   intro: '#FFFFFF',
   'already-registered': '#F4F8FF',
   'not-registered': '#FFF9F0',
-  'login-success': '#E0FFEE',
-  'signup-success': '#E0FFEE',
+  // Two endings, two screens — cream for welcome back, mint for sign-up done.
+  'login-success': '#FFFEF2',
+  'signup-success': '#D8FFEA',
 } as const;
 
 export type OuterBgKey = keyof typeof OUTER_BG | string;

@@ -8,8 +8,8 @@
 export type AuthFlowType = 'signIn' | 'signUp' | 'verify' | 'changePhone';
 
 const HEADING_KEYS: Record<AuthFlowType, string> = {
-    signIn: 'Login !',
-    signUp: 'Sign Up !',
+    signIn: 'login !',
+    signUp: 'Sign up !',
     // Confirming a number the account already owns: the cart's pre-order gate,
     // the re-auth widget, and settings "Verify Now". Not a login — the shopper
     // is already signed in.

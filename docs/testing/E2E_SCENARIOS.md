@@ -7,7 +7,7 @@ case is added, and keep the count above in step.
 |---------|-------|-----------|--------------------|
 | Guest journeys | GUEST-01 to GUEST-42 | no | only the guest registrations in GUEST-32 to GUEST-34 |
 | Signed-in journeys | AUTH-01 to AUTH-03 | yes, once, shared | no |
-| Signed-in profile journeys | PROF-01 to PROF-07 | yes, once, shared | yes — the shared test account |
+| Signed-in profile journeys | PROF-01 to PROF-08 | yes, twice, shared | yes — the shared test account |
 | Signed-in session recovery | RECOV-01 | yes, its own — a third real code per run | no |
 | Scripted auth branches | SCRIPT-01 to SCRIPT-05 | no | no — only the real one-time-code send |
 | Scripted profile branches | SCRIPT-07 to SCRIPT-12 | **yes — each case signs in for itself** | **no** — every leg is faked, but each sign-in and one change-number send are real |
@@ -66,6 +66,7 @@ test — about five per run, and they are not cleaned up (see rule 6 in
 | GUEST-40 | The terms of service page renders without errors | `staticPages.live.spec.ts:50` | The shared static layout survives a path with more than one hyphen |
 | GUEST-41 | The back button on a static page keeps the visitor in the app | `staticPages.live.spec.ts:61` | The back bar goes to settings rather than dead-ending or leaving the site |
 | GUEST-42 | The home page comes back where it was after a product opens and closes | `guest.live.spec.ts:93` | An intercepted overlay shares one window scroll with the page under it, so the page's position is saved and put back by hand — the fixed bug in `components/ModalRoute/overlayScroll.ts`, where it was saved after the page body was already hidden and read back as 2px |
+| GUEST-43 | The home page comes back where it was after a product opens and closes | `guest.live.spec.ts:94` | The intercepted product overlay restores the home page's scroll position, guarding `components/ModalRoute/overlayScroll.ts` against the browser overwriting it |
 
 ## Signed-in journeys
 
@@ -122,13 +123,14 @@ inside `actions/profile.ts` and come back as booleans.
 
 | ID | Case | Spec | What it proves |
 |----|------|------|----------------|
-| PROF-01 | The settings screens show the signed-in shopper, not a guest | `profile.live.spec.ts:190` | A real sign-in leaves a session the settings pages render from, and the profile card carries this account rather than a guest placeholder or the previous one |
-| PROF-02 | A name change reaches every backend that keeps a copy | `profile.live.spec.ts:291` | One Save lands on stories, chat and the core backend — each named on its own — and the app's stored copy is updated too, checked separately by a reload |
-| PROF-03 | Gender, e-mail and alternative phone save together | `profile.live.spec.ts:381` | The fix for a real defect: all three backends accepted the change, but only five fields were mirrored into the app's stored copy, so a changed gender was back to the old one after a reload. Seen red before the fix, green after |
-| PROF-05 | A chosen picture is the account's, and removing it removes it | `profile.live.spec.ts:697` | The upload reaches the media store, the app's stored copy keeps it across a reload, and removing it takes it off both. Skips when the media store is not configured |
-| PROF-06 | The profile card leads to the picture screen | `profile.live.spec.ts:776` | The card's link is found by address, not by accessible name — the links carry none, which is a real defect in 22 places and this ticket's out of scope |
-| PROF-07 | An address the shopper adds is listed, and can be removed | `profile.live.spec.ts:811` | Read back by its details, not by its presence: an address listed without what was entered is a partial success, and a partial success is a failure |
-| PROF-04 | The size screen saves a height and a weight | `profile.live.spec.ts:490` | The same fan-out from the size screen — and the control for PROF-03, because `tall` and `weight` were always mirrored, which is what ruled out the test rather than the app |
+| PROF-01 | The settings screens show the signed-in shopper, not a guest | `profile.live.spec.ts:234` | A real sign-in leaves a session the settings pages render from, and the profile card carries this account rather than a guest placeholder or the previous one |
+| PROF-02 | A name change reaches every backend that keeps a copy | `profile.live.spec.ts:335` | One Save lands on stories, chat and the core backend — each named on its own — and the app's stored copy is updated too, checked separately by a reload |
+| PROF-03 | Gender, e-mail and alternative phone save together | `profile.live.spec.ts:425` | The fix for a real defect: all three backends accepted the change, but only five fields were mirrored into the app's stored copy, so a changed gender was back to the old one after a reload. Seen red before the fix, green after |
+| PROF-05 | A chosen picture is the account's, and removing it removes it | `profile.live.spec.ts:741` | The upload reaches the media store, the app's stored copy keeps it across a reload, and removing it takes it off both. Skips when the media store is not configured |
+| PROF-06 | The profile card leads to the picture screen | `profile.live.spec.ts:816` | The card's link is found by address, not by accessible name — the links carry none, which is a real defect in 22 places and this ticket's out of scope |
+| PROF-07 | An address the shopper adds is listed, and can be removed | `profile.live.spec.ts:854` | Read back by its details, not by its presence: an address listed without what was entered is a partial success, and a partial success is a failure |
+| PROF-04 | The size screen saves a height and a weight | `profile.live.spec.ts:534` | The same fan-out from the size screen — and the control for PROF-03, because `tall` and `weight` were always mirrored, which is what ruled out the test rather than the app |
+| PROF-08 | The backends' own copy carries the change after signing out and in | `profile.live.spec.ts:1000` | **Red on purpose — it found a live defect.** Every other profile case judges a save by the status it was answered with, which says the write was accepted, not that it was kept. This one changes the name and the picture, signs out, signs back in, and reads what the backends answer a fresh sign-in with. The core backend is fine. Stories and chat store the change in one row and answer the sign-in from another, so a shopper who renames themselves finds chat still holding their old name and no picture. The failure names both row numbers |
 
 ## Signed-in session recovery
 
@@ -186,6 +188,7 @@ No real session is created, so these are the specs allowed to upload traces.
 | SCRIPT-03 | Logging in with an unregistered number shows the not-registered screen | `auth.scripted.spec.ts:74` | Someone with no account is told so, instead of being left on the code screen |
 | SCRIPT-04 | Signing up with a registered number shows the registered screen | `auth.scripted.spec.ts:89` | Someone who already has an account is sent to sign in, instead of being walked through signup again |
 | SCRIPT-05 | Verify errors are surfaced on the PIN screen | `auth.scripted.spec.ts:103` | Three refusals in a row — a wrong code, a throttled verify and a backend error — each reach the shopper as a visible message rather than a silent no-op |
+| SCRIPT-13 | The code boxes stop taking a fourth code | `auth.scripted.spec.ts:153` | The three-attempt cap holds in a real browser, not only in the hook — the boxes lock rather than sending a fourth code to the OTP backend |
 
 
 ## Scripted profile branches

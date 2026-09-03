@@ -168,6 +168,13 @@ pattern, and only on server rendered screens. The engine holds motion back to
 after mount, which removes the whole class of fault and the hydration mismatch
 along with it.
 
+The one exception is a caller that overrides reduced motion (the demo route).
+Then the server knows the pattern will play, and it sends the pattern's first
+frame instead of the finished mark — every animated value carries its start
+(5b), so the html is the same frame the browser animates from. Sending the
+finished mark there made the Quick Preview logo flash: the whole logo, then the
+eyes wiped away to start the build.
+
 **5b. Every animated value says where it starts.** Framer Motion writes svg
 values as attributes, not only as styles, and an animated attribute with no
 starting value is written out as the string `"undefined"` on the first render —

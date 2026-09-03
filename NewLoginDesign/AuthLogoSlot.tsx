@@ -2,74 +2,46 @@
 
 import React from 'react';
 
+import { XD } from './authLayout';
+
 /** The badge mark is 150 x 150 design px on every screen that shows it. */
-export const AUTH_LOGO_SIZE = 150;
+export const AUTH_LOGO_SIZE = XD.logo.size;
 
 /**
  * The two places the mark rests in the flow, and nowhere else.
  *
- * Both are written the way the scaling system writes a vertical space:
- * `height = size - share * --xd-flex-deficit`. So the mark compresses with the
- * rest of the screen instead of being pinned to a fixed pixel.
+ * Both are plain design px out of the XD file. The canvas is always the full
+ * 430 x 932 artboard now, so a top is a top: nothing has to be adjusted for the
+ * height of the screen the page is on.
  *
- * `centre` — Get Started and Terms. The mark sits low, with the buttons under
- * it. Both screens read the same numbers from here, so the mark cannot drift by
- * a few pixels between them at any viewport height.
+ * `top` (116) — the phone screen, the method screen, the code screen, and all
+ * four outcome screens. Seven screens, one number, so the mark is completely
+ * still while the content slides underneath it.
  *
- * `top` — the phone screen, the method screen, the code screen, and all four
- * outcome screens. The mark sits near the top with the text below it. Seven
- * screens, one position, for the same reason: the design shows the mark parked
- * there, so it must be still while the content slides underneath it.
+ * `centre` (390) — Get Started and Terms. The mark sits low, with the buttons
+ * under it. Both screens read the same number, so the mark cannot drift between
+ * them.
  *
- * The `top` share is the tighter of the two to set. It has to clear the text
- * block on the phone and code screens, and that block is anchored to the middle
- * of the canvas, so it climbs as the canvas gets shorter. At the shortest
- * canvas the scaling system allows (750 design px) the text starts at 182 and
- * the mark ends at 174. That is where 0.42 comes from — a smaller share and
- * they touch.
+ * These used to be 100 and 280, written as a size and a `share` of the old flex
+ * budget. The budget is gone (AppScaler pins it to zero) and both numbers were
+ * wrong: the design says 116 and 390.
  */
 export const AUTH_LOGO_STOP = {
-    centre: { size: 280, share: 0.45 },
-    top: { size: 100, share: 0.42 },
+    centre: XD.logo.centre,
+    top: XD.logo.top,
 } as const;
 
 export type AuthLogoStop = keyof typeof AUTH_LOGO_STOP;
 
-/**
- * The mark never gets closer than this to the top edge.
- *
- * Without the floor the `top` stop reaches 23.6 at the deepest compression the
- * scaling system allows, and a viewport shorter still would push it negative —
- * the mark would climb out through the top of the canvas, which is what the
- * code and name screens showed. 24 is one notch above that 23.6, so on every
- * height the system actually produces the floor is inert and the stop is doing
- * the work; it only takes over if something later makes the canvas shorter.
- *
- * It cannot go much higher than 24 either: on the phone and code screens the
- * text below starts at 182 at that compression, and the mark is 150 tall.
- */
-const TOP_FLOOR = 24;
-
-/** The distance from the top of the screen to the mark, as one CSS length. */
-const offsetCss = (stop: AuthLogoStop) => {
-    const { size, share } = AUTH_LOGO_STOP[stop];
-    return `max(${TOP_FLOOR}px, calc(${size}px - ${share} * var(--xd-flex-deficit, 0px)))`;
-};
-
 interface AuthLogoSlotProps {
-    /** Which resting place. Leave out to reserve space where the screen is. */
-    stop?: AuthLogoStop;
     /**
-     * Take the slot out of the flow and pin it to `stop` from the top of the
-     * screen.
+     * Which resting place.
      *
-     * The phone, method and code screens need this. Their layout hangs off a
-     * half-canvas box, so a 250px slot dropped into that flow would squeeze the
-     * box and drag the text with it. Pinned, the slot moves nothing at all, and
-     * it still lands on the same `stop` as the screens that keep it in flow —
-     * both read the numbers above.
+     * Leave it out to reserve space where the slot sits in the flow. Only the
+     * quick preview does that: its whole column lifts and shrinks, and the mark
+     * is part of that column, so it cannot be pinned to the canvas.
      */
-    absolute?: boolean;
+    stop?: AuthLogoStop;
     className?: string;
 }
 
@@ -82,44 +54,25 @@ interface AuthLogoSlotProps {
  *
  * A screen still has to say where the mark belongs, and this is how it says it:
  * an empty box the exact size of the logo, marked for the widget to measure.
- * Measuring beats writing the position down twice — whatever the screen's own
- * spacing does at a given viewport height, the mark follows it.
+ * Measuring beats writing the position down twice — whatever the screen does,
+ * the mark follows it.
  */
-export default function AuthLogoSlot({
-    stop,
-    absolute = false,
-    className = '',
-}: AuthLogoSlotProps) {
+export default function AuthLogoSlot({ stop, className = '' }: AuthLogoSlotProps) {
     const box = (
         <div data-auth-logo-slot="" aria-hidden="true" className="w-xd-150 h-xd-150 shrink-0" />
     );
 
-    if (absolute) {
+    if (stop) {
         return (
             <div
                 aria-hidden="true"
                 className={`absolute left-0 w-full flex justify-center pointer-events-none ${className}`}
-                style={{ top: offsetCss(stop ?? 'top') }}
+                style={{ top: AUTH_LOGO_STOP[stop] }}
             >
                 {box}
             </div>
         );
     }
 
-    return (
-        <>
-            {/* The space above the mark, written by hand rather than with
-                FlexibleSpace, so it carries the same floor as the pinned
-                variant. A FlexibleSpace clamps a negative height to zero, which
-                would put the mark 24px higher here than on the screens that pin
-                it, and the two have to land on the same pixel. */}
-            {stop && (
-                <div
-                    aria-hidden="true"
-                    style={{ height: offsetCss(stop), flexShrink: 0, minHeight: 0 }}
-                />
-            )}
-            <div className={`w-full flex justify-center ${className}`}>{box}</div>
-        </>
-    );
+    return <div className={`w-full flex justify-center ${className}`}>{box}</div>;
 }

@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import RdbPinInputs from 'components/Login/Enhanced/ui/RdbPinInputs';
-import FlexibleSpace from 'scaling/FlexibleSpace';
 import { getNumberLockRemaining } from 'utils/otpLocks';
 import { translateFunction } from 'utils/functions';
 import { authHeadingKey } from 'components/Login/Enhanced/authHeadings';
 import AuthLogoSlot from './AuthLogoSlot';
+import { formatPhoneDigits } from 'components/Login/Enhanced/ui/RdbPhoneInput';
+import { XD, XD_LINE3_ICON_GAP } from './authLayout';
 
 interface NewEnterPinScreenProps {
     onSubmit: (pin: string) => void;
@@ -30,6 +31,16 @@ interface NewEnterPinScreenProps {
     variant?: 'floated' | 'fullscreen';
     lang?: string;
 }
+
+/**
+ * Where the grey hint after the number starts.
+ *
+ * Not a gap: the design puts it at a fixed x, and the number before it is a
+ * different length in every country. Read off the artboard, and it agrees with
+ * the real Quicksand advance widths — the number ends at 141.1 and this is the
+ * next thing on the row.
+ */
+const HINT_LEFT = 146;
 
 export default function NewEnterPinScreen({
     onSubmit,
@@ -110,175 +121,195 @@ export default function NewEnterPinScreen({
     const codeExpired = codeSpent && !loading;
     const methodLabel = method === 'whatsapp' ? translate('Whatsapp') : translate('SMS');
 
+    /* The wrong and expired artboards lift the code row and put a message under
+       it. Every other state leaves the row on the normal 503 line. */
+    const lifted = codeExpired || isValidPin === 'notvalid';
+    const otpTop = lifted ? XD.box.topLifted : XD.box.top;
+
+    /* The resend line is a row of its own, so it pushes the privacy line down.
+       That is exactly what `Registration - 16` (the expired code) shows. */
+    const privacyTop = canAskAgain ? XD.head.line4Expired : XD.head.line4WithRow;
+
+    /** One flat blue string: 12 Medium #388CFF, no underline anywhere on it. */
+    const resendLink = (
+        onClick: () => void,
+        label: string,
+        testId: string,
+    ) => (
+        <button
+            onClick={onClick}
+            data-pw={testId}
+            className="text-xd-12 font-medium text-[#388CFF] cursor-pointer"
+        >
+            {translate(label)}
+        </button>
+    );
+
     return (
-        <div className="w-full h-full flex flex-col items-start bg-white font-quicksand relative">
-            {/* Close button */}
-            <div className="flex absolute justify-end right-xd-30 top-xd-30 z-10">
-                {onClose && (
-                    <button
-                        onClick={onClose}
-                        data-pw="close"
-                        className="w-xd-24 h-xd-24 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                        aria-label={translate('Close')}
-                    >
-                        <Image
-                            src="/assets/icons/auth/close.svg"
-                            alt="close"
-                            width={16}
-                            height={16}
-                            className="object-contain"
-                        />
-                    </button>
-                )}
-            </div>
-
-            {/* The mark's resting place. Pinned rather than in the flow: the
-                block below hangs off half the canvas, and a 250px slot dropped
-                into that flow would squeeze it and drag the text up with it.
-                The stop is the same one the outcome screens use. */}
-            <AuthLogoSlot stop="top" absolute />
-
-            <FlexibleSpace size={0} share={0.3} />
-
-            <div className="w-full h-full flex flex-col items-start">
-                {/* Top half — title + OTP info. The mark is pinned above, not in this stack. */}
-                <div className="w-full h-1/2 flex flex-col justify-end px-xd-20 items-start">
-                    <div className="h-xd-138 w-full relative">
-                        <h2 className="text-trim-descend text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
-                            {translate(authHeadingKey(authType))}
-                        </h2>
-                        <div className="w-full flex pl-xd-20 pt-xd-12 flex-col items-start">
-                            <p className="text-trim-descend text-xd-16 text-[#1D1D1D] font-medium">
-                                {`${translate('Enter Verification Code Sent To Your')} ${methodLabel}`}
-                            </p>
-                            <div className="flex items-center pt-xd-8 gap-xd-5">
-                                <span className="text-trim-descend text-xd-12 text-[#1D1D1D]">
-                                    {translate('We Will Send A Verification Code To The Number')}
-                                </span>
-                                <div className="w-xd-15 h-xd-15 shrink-0">
-                                    <Image
-                                        src="/assets/icons/auth/sim.svg"
-                                        alt="sim"
-                                        width={15}
-                                        height={15}
-                                        className="object-contain"
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex items-center pt-xd-8 gap-xd-5">
-                                <span className="text-trim-descend text-xd-12 font-normal text-[#1D1D1D]">
-                                    +{phone}
-                                </span>
-                                {!canAskAgain ? (
-                                    <span className="text-trim-descend text-xd-12 font-normal text-[#C3C3C3]">
-                                        {translate('Resend After -')}{' '}
-                                        <span className="text-[#388CFF] font-bold">
-                                            {formatTime(timeLeft)}
-                                        </span>
-                                    </span>
-                                ) : (
-                                    <span className="text-trim-descend text-xd-12 font-normal text-[#C3C3C3]">
-                                        {translate("Didn't You Receive A Code?")}
-                                    </span>
-                                )}
-                                <div className="w-xd-15 h-xd-15 shrink-0">
-                                    <Image
-                                        src="/assets/icons/auth/info.svg"
-                                        alt="info"
-                                        width={15}
-                                        height={15}
-                                        className="object-contain text-[#C3C3C3]"
-                                    />
-                                </div>
-                            </div>
-                            {canAskAgain && (
-                                <div className="flex items-center pt-xd-8 gap-xd-5">
-                                    <button
-                                        onClick={handleResend}
-                                        data-pw="resend-code"
-                                        className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
-                                    >
-                                        {translate('Resend Code')}
-                                    </button>
-                                    {changeNumber && (
-                                        <>
-                                            <span className="text-trim-descend text-xd-12 text-[#8E8E8E]">
-                                                {translate('Or')}
-                                            </span>
-                                            <button
-                                                onClick={changeNumber}
-                                                data-pw="change-phone-number"
-                                                className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
-                                            >
-                                                {translate('Change Number')}
-                                            </button>
-                                        </>
-                                    )}
-                                    {changeMethod && (
-                                        <>
-                                            <span className="text-trim-descend text-xd-12 text-[#8E8E8E]">
-                                                {translate('Or')}
-                                            </span>
-                                            <button
-                                                onClick={changeMethod}
-                                                data-pw="change-otp-method"
-                                                className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
-                                            >
-                                                {translate('Method')}
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                            <div className="flex items-center pt-xd-8 gap-xd-5">
-                                <p className="text-trim-descend text-xd-11 font-medium text-[#4A31E7]">
-                                    {translate('Your Privacy Is Completely Safe')}
-                                </p>
-                                <div className="w-xd-14 h-xd-14 shrink-0 flex items-center justify-center">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="#4A31E7"
-                                    >
-                                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <FlexibleSpace size={40} share={0} />
-                </div>
-
-                {/* Bottom half — live OTP inputs */}
-                <div className="w-full h-1/2 flex flex-col items-center">
-                    <FlexibleSpace size={30} share={0} />
-                    <RdbPinInputs
-                        value={pin}
-                        onChange={setPin}
-                        onComplete={handlePinComplete}
-                        disabled={loading === 'verify-pin' || isValidPin === 'valid' || codeExpired}
-                        isValidPin={isValidPin}
-                        isExpired={codeExpired}
+        <div className="w-full h-full bg-white font-quicksand relative">
+            {onClose && (
+                <button
+                    onClick={onClose}
+                    data-pw="close"
+                    className="absolute flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                    style={{
+                        top: XD.control.top,
+                        right: XD.control.right,
+                        width: XD.control.closeSize,
+                        height: XD.control.closeSize,
+                    }}
+                    aria-label={translate('Close')}
+                >
+                    <Image
+                        src="/assets/icons/auth/close.svg"
+                        alt="close"
+                        width={XD.control.closeSize}
+                        height={XD.control.closeSize}
+                        className="object-contain"
                     />
-                    {codeExpired && (
-                        <p className="text-xd-11 pt-1 font-medium text-[#1D1D1D]">
-                            {translate('The Code Sent Has Expired')}
-                        </p>
-                    )}
-                    {!codeExpired && error && (
-                        <p
-                            data-pw="verify-otp-error"
-                            role="alert"
-                            className="text-xd-11 pt-1 px-xd-20 font-medium text-[#FF5F61] text-center"
-                        >
-                            {error}
-                        </p>
-                    )}
-                    <FlexibleSpace grow />
+                </button>
+            )}
+
+            <AuthLogoSlot stop="top" />
+
+            <h2
+                className="absolute text-xd-30 font-bold text-[#1D1D1D]"
+                style={{ top: XD.head.title, left: XD.textLeft }}
+            >
+                {translate(authHeadingKey(authType))}
+            </h2>
+
+            <p
+                className="absolute text-xd-16 font-medium text-[#1D1D1D]"
+                style={{ top: XD.head.line2, left: XD.textLeft }}
+            >
+                {`${translate('enter verification code sent to your')} ${methodLabel}`}
+            </p>
+
+            <div
+                className="absolute flex items-center"
+                style={{
+                    top: XD.head.line3,
+                    left: XD.textLeft,
+                    gap: XD_LINE3_ICON_GAP.code,
+                }}
+            >
+                <span className="text-xd-12 font-normal text-[#1D1D1D]">
+                    {translate('We have sent a verification code to the number')}
+                </span>
+                <div className="w-xd-15 h-xd-15 shrink-0">
+                    <Image
+                        src="/assets/icons/auth/sim.svg"
+                        alt="sim"
+                        width={15}
+                        height={15}
+                        className="object-contain"
+                    />
                 </div>
             </div>
+
+            {/* The number sits at the text margin; the hint after it starts at a
+                fixed x, not a gap, because the number length changes by country. */}
+            <span
+                className="absolute text-xd-12 font-normal text-[#1D1D1D]"
+                style={{ top: XD.head.line4, left: XD.textLeft }}
+            >
+                +{formatPhoneDigits(phone ?? '')}
+            </span>
+            <div
+                className="absolute flex items-center"
+                style={{ top: XD.head.line4, left: HINT_LEFT, gap: 11.6 }}
+            >
+                <span className="text-xd-12 font-normal text-[#C3C3C3]">
+                    {canAskAgain
+                        ? translate("Didn’t you receive a code?")
+                        : `${translate('resend after -')} ${formatTime(timeLeft)}`}
+                </span>
+                <div className="w-xd-15 h-xd-15 shrink-0">
+                    <Image
+                        src="/assets/icons/auth/info.svg"
+                        alt="info"
+                        width={15}
+                        height={15}
+                        className="object-contain"
+                    />
+                </div>
+            </div>
+
+            {canAskAgain && (
+                <div
+                    className="absolute flex items-center"
+                    style={{ top: XD.head.line4WithRow, left: XD.textLeft, gap: 5 }}
+                >
+                    {resendLink(handleResend, 'resend code', 'resend-code')}
+                    {changeNumber && (
+                        <>
+                            <span className="text-xd-12 font-medium text-[#388CFF]">
+                                {translate('or')}
+                            </span>
+                            {resendLink(changeNumber, 'Change Number', 'change-phone-number')}
+                        </>
+                    )}
+                    {changeMethod && (
+                        <>
+                            <span className="text-xd-12 font-medium text-[#388CFF]">
+                                {translate('or')}
+                            </span>
+                            {resendLink(changeMethod, 'method', 'change-otp-method')}
+                        </>
+                    )}
+                </div>
+            )}
+
+            <div
+                className="absolute flex items-center"
+                style={{ top: privacyTop, left: XD.textLeft, gap: 10.5 }}
+            >
+                <span className="text-xd-11 font-normal text-[#4A31E7]">
+                    {translate('Your privacy is completely safe')}
+                </span>
+                <div className="w-xd-14 h-xd-14 shrink-0 flex items-center justify-center">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="#4A31E7"
+                    >
+                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+                    </svg>
+                </div>
+            </div>
+
+            <div className="absolute" style={{ top: otpTop, left: XD.box.left }}>
+                <RdbPinInputs
+                    value={pin}
+                    onChange={setPin}
+                    onComplete={handlePinComplete}
+                    disabled={loading === 'verify-pin' || isValidPin === 'valid' || codeExpired}
+                    isValidPin={isValidPin}
+                    isExpired={codeExpired}
+                />
+            </div>
+
+            {codeExpired && (
+                <p
+                    className="absolute w-full text-xd-11 font-medium text-[#1D1D1D] text-center"
+                    style={{ top: XD.otpMessageTop, left: 0 }}
+                >
+                    {translate('The code sent has expired')}
+                </p>
+            )}
+            {!codeExpired && error && (
+                <p
+                    data-pw="verify-otp-error"
+                    role="alert"
+                    className="absolute w-full px-xd-20 text-xd-11 font-medium text-[#FF5F61] text-center"
+                    style={{ top: XD.otpMessageTop, left: 0 }}
+                >
+                    {error}
+                </p>
+            )}
         </div>
     );
 }

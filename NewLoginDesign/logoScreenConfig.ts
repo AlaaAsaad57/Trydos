@@ -4,10 +4,9 @@ import type { LogoAnimationType } from './LogoAnimationContext';
  * One logo, on one screen, and what it plays there.
  *
  * Before this file the whole flow shared a single pattern and a single loop
- * length, so a client could only ever look at one choice at a time. The picks
- * below are what came out of that comparison: the Quick Preview wordmark builds
- * itself once and stops, Get Started builds and then hands off for good, and
- * every other screen hands off on a loop.
+ * length, so a client could only ever look at one choice at a time. The design
+ * calls for something else: the Quick Preview builds itself, Get Started builds
+ * and then hands off once, Terms hands off, and everything after that winks.
  *
  * A slot is a place a mark rests, not a screen. The Quick Preview has three of
  * them — the centre wordmark, the badge peeking at the bottom edge, and the
@@ -24,7 +23,14 @@ export interface LogoStep {
 export interface LogoSlotConfig {
     /** Played in order. One entry is the normal case. */
     steps: LogoStep[];
-    /** Start the list again after the last step, instead of stopping. */
+    /**
+     * Keep the last step going for ever, instead of stopping on the plain mark.
+     *
+     * The list is played once either way. A chain is an introduction followed
+     * by an idle: Get Started builds once and then hands off. Playing the build
+     * again every few seconds would read as a loading state, so the loop holds
+     * the last step and never returns to the top.
+     */
     loop: boolean;
     /**
      * Let the pattern touch the word.
@@ -73,58 +79,46 @@ export const LOGO_SLOTS: { id: LogoSlotId; label: string; note?: string }[] = [
     { id: 'success', label: 'Success' },
 ];
 
+/** What every screen from Terms onwards plays: Hand-Off, 3 seconds a pass. */
+const HAND_OFF: LogoSlotConfig = { steps: [{ animation: 'relay', seconds: 3 }], loop: true };
+
 /**
- * One length for the whole flow.
+ * The picks the client applied in the modal on 3 September 2026.
  *
- * The client watched the patterns side by side and picked 3 seconds for every
- * step, so nothing in the flow runs at a different speed to anything else.
- */
-const STEP_SECONDS = 3;
-
-/** What every screen after the Quick Preview plays: Hand-Off, on a loop. */
-const RELAY_DEFAULT: LogoSlotConfig = {
-    steps: [{ animation: 'relay', seconds: STEP_SECONDS }],
-    loop: true,
-};
-
-/**
- * The picks the client signed off on, so the flow reads correctly before
- * anybody opens the modal. The client changes any of it from there.
+ * The modal saves to the one browser it was used in, so the file has to carry
+ * the same picks or a fresh browser, and localhost, play something else. The
+ * screenshots the picks were read from are in the design folder next to the
+ * XD file. `tests/components/logoSequence.test.tsx` holds them.
  */
 export const DEFAULT_LOGO_CONFIG: Record<LogoSlotId, LogoSlotConfig> = {
-    // Cinematic Assembly, but the glyphs hold still while the ring and the dots
-    // build around them. Loop is off, so it builds the mark once and holds it
-    // for the rest of the eight seconds.
+    // Cinematic Assembly once, and the glyphs hold still while the eyes drop in
+    // around them. No loop: the built mark simply stays for the 8 seconds.
     'quick-preview-wordmark': {
-        steps: [{ animation: 'reveal', seconds: STEP_SECONDS }],
+        steps: [{ animation: 'reveal', seconds: 3 }],
         loop: false,
         animateWord: false,
     },
-    'quick-preview-badge': RELAY_DEFAULT,
-    'quick-preview-badge-expanded': RELAY_DEFAULT,
-    /**
-     * The one chain in the set, and the only place the two patterns meet.
-     *
-     * It builds once with Cinematic Assembly, and then Hand-Off carries on for
-     * as long as the screen is shown. That is what `loop` means here: the list
-     * plays once and the last step is the one that keeps going, so the build
-     * never replays. See `useLogoSequence`.
-     */
+    'quick-preview-badge': HAND_OFF,
+    'quick-preview-badge-expanded': HAND_OFF,
+    // The one chain in the set: it builds once, then hands off for ever. The
+    // loop holds the last step, so the build does not come round again.
     'get-started': {
         steps: [
-            { animation: 'reveal', seconds: STEP_SECONDS },
-            { animation: 'relay', seconds: STEP_SECONDS },
+            { animation: 'reveal', seconds: 3 },
+            { animation: 'relay', seconds: 3 },
         ],
         loop: true,
     },
-    terms: RELAY_DEFAULT,
-    'enter-phone': RELAY_DEFAULT,
-    'select-method': RELAY_DEFAULT,
-    'enter-pin': RELAY_DEFAULT,
-    'not-registered': RELAY_DEFAULT,
-    'already-registered': RELAY_DEFAULT,
-    'input-name': RELAY_DEFAULT,
-    success: RELAY_DEFAULT,
+    terms: HAND_OFF,
+    'enter-phone': HAND_OFF,
+    'select-method': HAND_OFF,
+    'enter-pin': HAND_OFF,
+    'not-registered': HAND_OFF,
+    'already-registered': HAND_OFF,
+    'input-name': HAND_OFF,
+    // Not in the screenshots (the list was cut off above it). Set to match the
+    // other inner screens.
+    success: HAND_OFF,
 };
 
 export type LogoConfig = Record<LogoSlotId, LogoSlotConfig>;

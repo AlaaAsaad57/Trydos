@@ -47,7 +47,7 @@ export default function SplashScreen({
                         className="w-xd-144 h-xd-104 object-contain"
                     />
                 </div>
-                <h1 className="text-xd-32 font-bold text-[#1D1D1D] mt-xd-16 tracking-tight text-trim-descend">
+                <h1 className="text-xd-32 font-bold text-[#1D1D1D] mt-xd-16 tracking-tight ">
                     {translate('Trydos')}
                 </h1>
             </div>

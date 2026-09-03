@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import Image from 'next/image';
+
+import { XD } from 'NewLoginDesign/authLayout';
+import XdDashedBorder from './XdDashedBorder';
 import { NumericKeypad } from './NumericKeypad';
 import { useIsTouchDevice } from 'hooks/useIsTouchDevice';
 import { translateFunction } from 'utils/functions';
@@ -56,6 +59,31 @@ const COUNTRIES: CountryData[] = [
 ];
 
 const SORTED_COUNTRIES = [...COUNTRIES].sort((a, b) => b.dialCode.length - a.dialCode.length);
+
+/**
+ * Digits written the way the design file writes them: the dial code, then the
+ * rest in threes — "905528002000" becomes "90 552 800 200 0". The input shows
+ * the number like this while it is typed, and the screens that repeat the
+ * number afterwards (method, code, the two outcome screens) use the same
+ * grouping, so the number never changes shape between screens.
+ */
+export function formatPhoneDigits(d: string): string {
+    if (!d) return '';
+    let matchedDialCode = '';
+    for (const country of SORTED_COUNTRIES) {
+        if (d.startsWith(country.dialCode)) {
+            matchedDialCode = country.dialCode;
+            break;
+        }
+    }
+    if (matchedDialCode) {
+        const rest = d.slice(matchedDialCode.length);
+        const groups = rest.match(/.{1,3}/g) || [];
+        return [matchedDialCode, ...groups].join(' ');
+    }
+    const groups = d.match(/.{1,3}/g) || [];
+    return groups.join(' ');
+}
 
 const MIN_PHONE_DIGITS = 10;
 const DEFAULT_MAX_TOTAL = 15;
@@ -155,25 +183,7 @@ export default function RdbPhoneInput({
         return null;
     }, [digits]);
 
-    const formatNumber = useCallback((d: string): string => {
-        if (!d) return '';
-        let matchedDialCode = '';
-        for (const country of SORTED_COUNTRIES) {
-            if (d.startsWith(country.dialCode)) {
-                matchedDialCode = country.dialCode;
-                break;
-            }
-        }
-        if (matchedDialCode) {
-            const rest = d.slice(matchedDialCode.length);
-            const groups = rest.match(/.{1,3}/g) || [];
-            return [matchedDialCode, ...groups].join(' ');
-        }
-        const groups = d.match(/.{1,3}/g) || [];
-        return groups.join(' ');
-    }, []);
-
-    const displayValue = useMemo(() => formatNumber(digits), [digits, formatNumber]);
+    const displayValue = useMemo(() => formatPhoneDigits(digits), [digits]);
 
     const maxTotalDigits = useMemo(() => {
         if (!detectedCountry) return DEFAULT_MAX_TOTAL;
@@ -200,112 +210,129 @@ export default function RdbPhoneInput({
 
     return (
         <div className="flex flex-col w-full items-center">
-            {/* Input display */}
-            <div className="flex w-full items-center justify-center">
-                <div
-                    ref={inputRef}
-                    data-pw="phone-number-display"
-                    onClick={() => {
-                        setIsFocused(true);
-                        if (showCustomKeypad) setKeypadOpen(true);
-                        else hiddenInputRef.current?.focus();
-                    }}
-                    className={`relative m-1 flex items-center gap-1 w-full h-xd-60 rounded-xd-20 border border-dashed px-xd-16 transition-colors cursor-text ${
-                        isFocused || isValidPhone ? 'border-[#388CFF]' : 'border-[#C3C3C3]'
-                    }`}
-                >
-                    {/* Country flag on border */}
-                    {detectedCountry && (
-                        <span className="absolute -top-[6.5px] start-xd-16 w-xd-20 h-xd-13 shrink-0 overflow-hidden rounded-sm">
-                            <img
-                                src={`https://flagcdn.com/w40/${detectedCountry.code.toLowerCase()}.png`}
-                                alt="flag"
-                                className="w-full h-full object-cover"
-                            />
-                        </span>
-                    )}
+            {/*
+              * The 390 x 60 input box.
+              *
+              * Everything inside is placed at its own design x, measured from
+              * the box's own left edge, exactly as the XD file has it: flag 20,
+              * phone icon 19.7, plus 52, number 65, send arrow 20 in from the
+              * right. A flex row with gaps cannot reproduce those, because the
+              * gaps in the design are not equal and do not come out of the text
+              * widths.
+              *
+              * The 16px text sits at top 20. With `line-height: 1.25` that puts
+              * its baseline at 36 from the box top, which is where XD puts it.
+              */}
+            <div
+                ref={inputRef}
+                data-pw="phone-number-display"
+                onClick={() => {
+                    setIsFocused(true);
+                    if (showCustomKeypad) setKeypadOpen(true);
+                    else hiddenInputRef.current?.focus();
+                }}
+                className="relative w-full h-xd-60 cursor-text"
+            >
+                <XdDashedBorder
+                    width={XD.box.width}
+                    height={XD.box.height}
+                    radius={XD.box.radius}
+                    color={isFocused || isValidPhone ? '#388CFF' : '#5D5C5D'}
+                />
 
-                    {/* Phone icon — dims when valid */}
-                    <Image
-                        src="/assets/icons/auth/phone.svg"
-                        alt="phone"
-                        width={20}
-                        height={20}
-                        className={`object-contain size-xd-20 transition-opacity ${digits ? 'opacity-100' : 'opacity-50'}`}
-                    />
-
-                    {/* Plus sign */}
+                {/* Country flag — straddles the top border, 6.5 above it. */}
+                {detectedCountry && (
                     <span
-                        className={`${digits ? 'text-[#1D1D1D]' : 'text-[#8D8D8D]'} text-xd-16 font-medium pl-3 shrink-0 select-none`}
+                        className="absolute shrink-0 overflow-hidden rounded-sm"
+                        style={{ left: 20, top: -6.5, width: 20, height: 13 }}
                     >
-                        +
+                        <img
+                            src={`https://flagcdn.com/w40/${detectedCountry.code.toLowerCase()}.png`}
+                            alt="flag"
+                            className="w-full h-full object-cover"
+                        />
                     </span>
+                )}
 
-                    {/* Display value (no native input) */}
-                    <div className="flex-1 min-w-0 flex items-end gap-0.5">
-                        {displayValue ? (
-                            <>
-                                <span className="font-medium text-xd-16 text-[#1D1D1D] truncate">
-                                    {displayValue}
-                                </span>
-                                {(keypadOpen || isFocused) && !isValidPhone && (
-                                    <Image
-                                        src="/assets/icons/auth/phone-cursor.svg"
-                                        alt=""
-                                        width={11}
-                                        height={1}
-                                        className="animate-blink mb-0.75 shrink-0"
-                                    />
-                                )}
-                            </>
-                        ) : (
-                            <>
-                                {keypadOpen || isFocused ? (
-                                    <Image
-                                        src="/assets/icons/auth/phone-cursor.svg"
-                                        alt=""
-                                        width={11}
-                                        height={1}
-                                        className="absolute top-10 font-light text-[#1D1D1D] animate-blink mb-0.75 shrink-0"
-                                    />
-                                ) : (
-                                    <Image
-                                        src="/assets/icons/auth/phone-cursor.svg"
-                                        alt=""
-                                        width={11}
-                                        height={1}
-                                        className="absolute top-10 animate-blink mb-0.75 shrink-0 opacity-0!"
-                                    />
-                                )}
-                                <span className="pl-1.5 text-xd-16 text-[#C3C3C3]">
-                                    {resolvedPlaceholder}
-                                </span>
-                            </>
-                        )}
-                    </div>
+                {/* Phone icon — dims when empty. */}
+                <Image
+                    src="/assets/icons/auth/phone.svg"
+                    alt="phone"
+                    width={21}
+                    height={24}
+                    className={`absolute object-contain transition-opacity ${digits ? 'opacity-100' : 'opacity-50'}`}
+                    style={{ left: 19.7, top: (XD.box.height - 24.3) / 2, width: 20.9, height: 24.3 }}
+                />
 
-                    {/* Send arrow button — shows when valid */}
-                    {isValidPhone && onSend && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onSend();
-                            }}
-                            data-pw="send-phone-number"
-                            disabled={isLoading}
-                            className="shrink-0 w-xd-28 h-xd-28 flex items-center justify-center rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            aria-label={translate('Send phone number')}
-                        >
+                {/* Plus sign */}
+                <span
+                    className={`absolute ${digits ? 'text-[#1D1D1D]' : 'text-[#8D8D8D]'} text-xd-16 font-medium select-none`}
+                    style={{ left: 52, top: 20 }}
+                >
+                    +
+                </span>
+
+                {/* The value, or the placeholder, both starting at the caret. */}
+                <div
+                    className="absolute flex items-end"
+                    style={{ left: 65, top: 20, right: 45 }}
+                >
+                    {displayValue ? (
+                        <>
+                            <span className="font-medium text-xd-16 text-[#1D1D1D] truncate">
+                                {displayValue}
+                            </span>
+                            {(keypadOpen || isFocused) && !isValidPhone && (
+                                <Image
+                                    src="/assets/icons/auth/phone-cursor.svg"
+                                    alt=""
+                                    width={10}
+                                    height={1}
+                                    className="animate-blink shrink-0"
+                                    style={{ width: 10, height: 1, transform: 'translateY(4px)' }}
+                                />
+                            )}
+                        </>
+                    ) : (
+                        <>
                             <Image
-                                src="/assets/icons/auth/arrow-right.svg"
-                                alt="send"
-                                width={20}
-                                height={20}
-                                className="size-xd-20 object-contain"
+                                src="/assets/icons/auth/phone-cursor.svg"
+                                alt=""
+                                width={10}
+                                height={1}
+                                className={`animate-blink shrink-0 ${keypadOpen || isFocused ? '' : 'opacity-0!'}`}
+                                style={{ width: 10, height: 1, transform: 'translateY(4px)' }}
                             />
-                        </button>
+                            <span className="text-xd-16 font-normal text-[#C3C3C3] truncate">
+                                {resolvedPlaceholder}
+                            </span>
+                        </>
                     )}
                 </div>
+
+                {/* Send arrow — shows when the number is complete. */}
+                {isValidPhone && onSend && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onSend();
+                        }}
+                        data-pw="send-phone-number"
+                        disabled={isLoading}
+                        className="absolute shrink-0 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{ right: 20, top: 20, width: 20, height: 20 }}
+                        aria-label={translate('Send phone number')}
+                    >
+                        <Image
+                            src="/assets/icons/auth/arrow-right.svg"
+                            alt="send"
+                            width={20}
+                            height={20}
+                            className="object-contain"
+                            style={{ width: 20, height: 20 }}
+                        />
+                    </button>
+                )}
             </div>
 
             {/* Custom keypad */}

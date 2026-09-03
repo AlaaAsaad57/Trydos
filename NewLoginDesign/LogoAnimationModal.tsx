@@ -105,8 +105,8 @@ export default function LogoAnimationModal({
                     <div>
                         <div className="text-sm font-bold">Logo animation per screen</div>
                         <div className="text-[11px] text-gray-400">
-                            Add steps to play one animation after another. Turn the loop off to
-                            stop on the plain logo.
+                            Add steps to play one animation after another. With the loop on, the
+                            last step keeps going. Turn it off to stop on the plain logo.
                         </div>
                     </div>
                     <button

@@ -79,15 +79,15 @@ export default function SelectMethodScreen({
                 {/* Top half — title + info */}
                 <div className="w-full h-1/2 flex flex-col justify-end px-xd-20 items-start">
                     <div className="h-xd-115 w-full">
-                        <h2 className="text-trim-descend text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
+                        <h2 className="text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
                             {translate(authHeadingKey(authType))}
                         </h2>
                         <div className="w-full flex px-xd-20 flex-col pt-xd-12 items-start">
-                            <p className="text-trim-descend text-xd-16 text-[#1D1D1D] font-medium">
+                            <p className="text-xd-16 text-[#1D1D1D] font-medium">
                                 {translate('Choose Verification Method')}
                             </p>
                             <div className="flex pt-xd-8 items-center gap-xd-5">
-                                <span className="text-trim-descend text-xd-12 text-[#1D1D1D]">
+                                <span className="text-xd-12 text-[#1D1D1D]">
                                     {translate('We Will Send A Verification Code To The Number')}
                                 </span>
                                 <div className="w-xd-15 h-xd-15 shrink-0">
@@ -107,7 +107,7 @@ export default function SelectMethodScreen({
                                     so it cannot identify the screen. */}
                                 <p
                                     data-pw="method-phone"
-                                    className="text-trim-descend text-xd-12 font-medium text-[#1D1D1D]"
+                                    className="text-xd-12 font-medium text-[#1D1D1D]"
                                 >
                                     +{phone}
                                 </p>
@@ -117,14 +117,14 @@ export default function SelectMethodScreen({
                                     <button
                                         onClick={changeNumber}
                                         data-pw="edit-phone-number"
-                                        className="text-trim-descend text-xd-12 font-medium text-[#388CFF] underline cursor-pointer"
+                                        className="text-xd-12 font-medium text-[#388CFF] underline cursor-pointer"
                                     >
                                         {translate('Edit')}
                                     </button>
                                 )}
                             </div>
                             <div className="flex pt-xd-8 items-center gap-xd-6">
-                                <span className="text-trim-descend text-xd-11 text-[#C3C3C3]">
+                                <span className="text-xd-11 text-[#C3C3C3]">
                                     {translate('Your Privacy Is Completely Safe')}
                                 </span>
                                 <div className="w-xd-14 h-xd-14 shrink-0">

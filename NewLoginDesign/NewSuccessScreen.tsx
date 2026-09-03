@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
 import AuthLogoSlot from './AuthLogoSlot';
+import { XD } from './authLayout';
 
 interface NewSuccessScreenProps {
     variant: 'login' | 'signup';
@@ -12,6 +12,19 @@ interface NewSuccessScreenProps {
     delayMs?: number;
     lang?: string;
 }
+
+/**
+ * The two endings are two screens in the design, not one.
+ *
+ * `Registration - 27` (sign-up done) is mint `#D8FFEA` with a green mark.
+ * `Registration - 33` (welcome back) is cream `#FFFEF2` with the purple mark.
+ * The code had merged them into one green screen; the design keeps them apart,
+ * so this does too. The mark's colour is chosen by `NewLoginWidget`.
+ */
+export const SUCCESS_BG = {
+    signup: '#D8FFEA',
+    login: '#FFFEF2',
+} as const;
 
 export default function NewSuccessScreen({
     variant = 'signup',
@@ -37,47 +50,33 @@ export default function NewSuccessScreen({
     return (
         <div
             data-pw="welcome"
-            className="w-full h-full flex flex-col items-start font-quicksand"
-            /*
-             * One colour for both endings. Welcome used to paint itself cream
-             * (#FFFDF6) while the widget painted mint (#E0FFEE) around it and
-             * OUTER_BG did the same, so the screen sat in a border of a colour
-             * it did not use. Signing in and signing up are the same moment for
-             * the shopper, so they get the same screen.
-             */
-            style={{ backgroundColor: '#E0FFEE' }}
+            className="w-full h-full font-quicksand relative"
+            style={{ backgroundColor: SUCCESS_BG[isLogin ? 'login' : 'signup'] }}
         >
-            {/* Top space, then the mark's resting place — AUTH_LOGO_STOP.top,
-                shared with the phone, method and code screens. */}
             <AuthLogoSlot stop="top" />
 
-            {/* 20px clearance below logo */}
-            <FlexibleSpace size={20} share={0.03} />
+            <h2
+                className="absolute text-xd-30 font-bold text-[#1D1D1D]"
+                style={{ top: XD.head.title, left: XD.textLeft }}
+            >
+                {isLogin ? translate('Welcome !') : translate('Sign up successfully !')}
+            </h2>
 
-            {/* Content block aligned to start (left) with px-xd-30 */}
-            <div className="w-full px-xd-30 flex flex-col items-start">
-                <h2 className="text-xd-30 font-bold text-[#1D1D1D]">
-                    {isLogin ? translate('Welcome !') : translate('Sign Up Successfully !')}
-                </h2>
+            <p
+                className="absolute text-xd-16 font-medium text-[#1D1D1D]"
+                style={{ top: XD.head.line2, left: XD.textLeft }}
+            >
+                {isLogin ? name || '' : translate('Last step and enjoy our services')}
+            </p>
 
-                {isLogin ? (
-                    <>
-                        <p className="text-xd-16 font-medium text-[#1D1D1D] mt-xd-8">
-                            {name || 'Mohamad Katmawi'}
-                        </p>
-                        <p className="text-xd-12 font-normal text-[#1D1D1D] mt-xd-4">
-                            {translate('Enjoy With Our Services')}
-                        </p>
-                    </>
-                ) : (
-                    <p className="text-xd-16 font-medium text-[#1D1D1D] mt-xd-8">
-                        {translate('Last Step And Enjoy Our Services')}
-                    </p>
-                )}
-            </div>
-
-            {/* Bottom space */}
-            <FlexibleSpace grow share={0.8} />
+            {isLogin && (
+                <p
+                    className="absolute text-xd-12 font-normal text-[#1D1D1D]"
+                    style={{ top: XD.head.line3, left: XD.textLeft }}
+                >
+                    {translate('Enjoy with our services')}
+                </p>
+            )}
         </div>
     );
 }

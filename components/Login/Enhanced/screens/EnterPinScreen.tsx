@@ -175,15 +175,15 @@ export default function EnterPinScreen({
                 {/* Top half — title + OTP info */}
                 <div className="w-full h-1/2 flex flex-col justify-end px-xd-20 items-start">
                     <div className="h-xd-138 w-full relative">
-                        <h2 className="text-trim-descend text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
+                        <h2 className="text-xd-30 px-xd-20 font-bold text-[#1D1D1D]">
                             {translate(authHeadingKey(authType))}
                         </h2>
                         <div className="w-full flex pl-xd-20 pt-xd-12 flex-col items-start">
-                            <p className="text-trim-descend text-xd-16 text-[#1D1D1D] font-medium">
+                            <p className="text-xd-16 text-[#1D1D1D] font-medium">
                                 {`${translate('Enter Verification Code Sent To Your')} ${methodLabel}`}
                             </p>
                             <div className="flex items-center pt-xd-8 gap-xd-5">
-                                <span className="text-trim-descend text-xd-12 text-[#1D1D1D]">
+                                <span className="text-xd-12 text-[#1D1D1D]">
                                     {translate('We Will Send A Verification Code To The Number')}
                                 </span>
                                 <div className="w-xd-15 h-xd-15 shrink-0">
@@ -197,18 +197,18 @@ export default function EnterPinScreen({
                                 </div>
                             </div>
                             <div className="flex items-center pt-xd-8 gap-xd-5">
-                                <span className="text-trim-descend text-xd-12 font-normal text-[#1D1D1D]">
+                                <span className="text-xd-12 font-normal text-[#1D1D1D]">
                                     +{phone}
                                 </span>
                                 {!canAskAgain ? (
-                                    <span className="text-trim-descend text-xd-12 font-normal text-[#C3C3C3]">
+                                    <span className="text-xd-12 font-normal text-[#C3C3C3]">
                                         {translate('Resend After -')}{' '}
                                         <span className="text-[#388CFF] font-bold">
                                             {formatTime(timeLeft)}
                                         </span>
                                     </span>
                                 ) : (
-                                    <span className="text-trim-descend text-xd-12 font-normal text-[#C3C3C3]">
+                                    <span className="text-xd-12 font-normal text-[#C3C3C3]">
                                         {translate("Didn't You Receive A Code?")}
                                     </span>
                                 )}
@@ -227,19 +227,19 @@ export default function EnterPinScreen({
                                     <button
                                         onClick={handleResend}
                                         data-pw="resend-code"
-                                        className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
+                                        className="text-xd-13 text-[#388CFF] underline cursor-pointer"
                                     >
                                         {translate('Resend Code')}
                                     </button>
                                     {changeNumber && (
                                         <>
-                                            <span className="text-trim-descend text-xd-12 text-[#8E8E8E]">
+                                            <span className="text-xd-12 text-[#8E8E8E]">
                                                 {translate('Or')}
                                             </span>
                                             <button
                                                 onClick={changeNumber}
                                                 data-pw="change-phone-number"
-                                                className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
+                                                className="text-xd-13 text-[#388CFF] underline cursor-pointer"
                                             >
                                                 {translate('Change Number')}
                                             </button>
@@ -247,13 +247,13 @@ export default function EnterPinScreen({
                                     )}
                                     {changeMethod && (
                                         <>
-                                            <span className="text-trim-descend text-xd-12 text-[#8E8E8E]">
+                                            <span className="text-xd-12 text-[#8E8E8E]">
                                                 {translate('Or')}
                                             </span>
                                             <button
                                                 onClick={changeMethod}
                                                 data-pw="change-otp-method"
-                                                className="text-trim-descend text-xd-13 text-[#388CFF] underline cursor-pointer"
+                                                className="text-xd-13 text-[#388CFF] underline cursor-pointer"
                                             >
                                                 {translate('Method')}
                                             </button>
@@ -262,7 +262,7 @@ export default function EnterPinScreen({
                                 </div>
                             )}
                             <span className="flex items-center pt-xd-8 gap-xd-5">
-                                <p className="text-trim-descend text-xd-12 font-normal text-[#C3C3C3]">
+                                <p className="text-xd-12 font-normal text-[#C3C3C3]">
                                     {translate('Your Privacy Is Completely Safe')}
                                 </p>
                                 <div className="w-xd-14 h-xd-14 shrink-0">

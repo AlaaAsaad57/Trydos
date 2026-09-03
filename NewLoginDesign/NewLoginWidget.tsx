@@ -21,7 +21,7 @@ import NewEnterPinScreen from './NewEnterPinScreen';
 import NewNotFoundScreen from './NewNotFoundScreen';
 import NewAlreadyExistScreen from './NewAlreadyExistScreen';
 import NewInputNameScreen from './NewInputNameScreen';
-import NewSuccessScreen from './NewSuccessScreen';
+import NewSuccessScreen, { SUCCESS_BG } from './NewSuccessScreen';
 import QrBottomSheet from './QrBottomSheet';
 
 export type AuthStep =
@@ -49,10 +49,13 @@ const transition = { duration: 0.35, ease: [0.4, 0, 0.2, 1] as const };
  */
 const LOGO_PURPLE = { dot: 'purple', ring: '#402CDD' };
 const STEP_LOGO_COLOR: Partial<Record<AuthStep, { dot: string; ring: string }>> = {
-    'not-registered': { dot: 'orange', ring: '#FAAA2E' },
+    // XD recolours the ring and the two eye dots on their own. On "not
+    // registered" only the dots turn amber — the ring stays the flow purple.
+    'not-registered': { dot: 'orange', ring: '#402CDD' },
     'input-name': { dot: 'green', ring: '#28C452' },
-    // Both endings are the same screen in the same green — see NewSuccessScreen.
-    'login-success': { dot: 'green', ring: '#28C452' },
+    // The two endings are two screens. Welcome back keeps the purple mark on
+    // cream; sign-up done is the green mark on mint. See NewSuccessScreen.
+    'login-success': LOGO_PURPLE,
     'signup-success': { dot: 'green', ring: '#28C452' },
 };
 
@@ -86,10 +89,7 @@ const STEP_LOGO_SLOT: Record<AuthStep, LogoSlotId> = {
  * than one sitting. Losing every choice on a refresh is what made the old
  * single picker tiring to use.
  */
-// The suffix is bumped whenever the signed-off defaults change. A save from
-// before the change would otherwise win over the new defaults, and the demo
-// would keep playing the old picks with nothing on screen to say why.
-const STORAGE_KEY = 'trydos.logoDemoConfig.v2';
+const STORAGE_KEY = 'trydos.logoDemoConfig';
 
 /**
  * Read the saved picks, filling in anything the file does not carry.
@@ -202,7 +202,8 @@ export default function NewLoginWidget({
         if (step === 'not-registered') return '#FFF9F0';
         if (step === 'already-registered') return '#F4F8FF';
         if (step === 'input-name') return '#F4FFF4';
-        if (step === 'login-success' || step === 'signup-success') return '#E0FFEE';
+        if (step === 'login-success') return SUCCESS_BG.login;
+        if (step === 'signup-success') return SUCCESS_BG.signup;
         return '#FFFFFF';
     };
 
@@ -247,6 +248,7 @@ export default function NewLoginWidget({
                     <div className="flex items-center gap-2 flex-wrap">
                         {/* 1. Flow Steps Toggle Button */}
                         <button
+                            data-pw="demo-flow-steps"
                             onClick={() => setShowStepBar((prev) => !prev)}
                             className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
                         >
@@ -277,13 +279,16 @@ export default function NewLoginWidget({
 
                     {/* Step Navigator Strip */}
                     {showStepBar && (
-                        <div className="flex items-center gap-1 bg-black/85 backdrop-blur-md p-1.5 rounded-full text-white text-xs max-w-[92vw] overflow-x-auto shadow-lg animate-fade-in">
+                        /* Wraps rather than scrolls. A scrolling strip hides
+                           half the steps on a narrow window, and the parity
+                           browser test cannot click a step it cannot see. */
+                        <div className="flex flex-wrap items-center gap-1 bg-black/85 backdrop-blur-md p-1.5 rounded-2xl text-white text-xs max-w-[92vw] shadow-lg animate-fade-in">
                             {[
                                 { id: 'quick-preview', label: 'Preview' },
                                 { id: 'get-started', label: 'Get Started' },
                                 { id: 'terms', label: 'Terms' },
                                 { id: 'enter-phone', label: 'Phone' },
-                                { id: 'select-method', label: 'Method' },
+                                { id: 'select-method', label: 'method' },
                                 { id: 'enter-pin', label: 'OTP/PIN' },
                                 { id: 'not-registered', label: 'Not Found' },
                                 { id: 'already-registered', label: 'Exist' },
@@ -292,6 +297,7 @@ export default function NewLoginWidget({
                             ].map((item) => (
                                 <button
                                     key={item.id}
+                                    data-pw={`demo-step-${item.id}`}
                                     onClick={() => goTo(item.id as AuthStep, 1)}
                                     className={`px-2 py-1 rounded-full text-[11px] whitespace-nowrap transition-all cursor-pointer ${
                                         step === item.id
@@ -303,6 +309,7 @@ export default function NewLoginWidget({
                                 </button>
                             ))}
                             <button
+                                data-pw="demo-step-qr-sheet"
                                 onClick={() => setIsQrOpen(true)}
                                 className="px-2 py-1 rounded-full text-[11px] whitespace-nowrap text-gray-300 hover:bg-white/10 cursor-pointer"
                             >
@@ -334,9 +341,11 @@ export default function NewLoginWidget({
                           ? 'already-registered'
                           : step === 'not-registered'
                             ? 'not-registered'
-                            : step === 'login-success' || step === 'signup-success'
+                            : step === 'login-success'
                               ? 'login-success'
-                              : undefined
+                              : step === 'signup-success'
+                                ? 'signup-success'
+                                : undefined
                 }
             >
                 <div
