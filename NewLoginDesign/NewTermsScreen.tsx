@@ -6,7 +6,7 @@ import { translateFunction } from 'utils/functions';
 import { GA_EVENT_NAMES } from 'utils/GAEvents';
 import { GAevent } from 'utils/gtag';
 import AuthLogoSlot from './AuthLogoSlot';
-import { XD } from './authLayout';
+import { XD, fromBottom } from './authLayout';
 
 interface NewTermsScreenProps {
     onAgree?: () => void;
@@ -29,7 +29,7 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
             <p
                 className="absolute text-xd-14 font-normal text-[#1D1D1D] text-center"
                 style={{
-                    top: XD.terms.body,
+                    top: fromBottom(XD.terms.body),
                     left: XD.box.left,
                     width: XD.box.width,
                     lineHeight: XD.terms.bodyLineHeight,
@@ -46,7 +46,7 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
                 height={XD.terms.icon.size}
                 className="absolute object-contain"
                 style={{
-                    top: XD.terms.icon.top,
+                    top: fromBottom(XD.terms.icon.top),
                     left: XD.terms.icon.left,
                     width: XD.terms.icon.size,
                     height: XD.terms.icon.size,
@@ -55,7 +55,7 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
 
             <span
                 className="absolute w-full text-center text-xd-14 font-normal text-[#388CFF]"
-                style={{ top: XD.terms.linkLine, left: 0 }}
+                style={{ top: fromBottom(XD.terms.linkLine), left: 0 }}
             >
                 {translate('Terms of services')}
             </span>
@@ -71,7 +71,7 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
                 data-pw="agree-continue"
                 className="absolute rounded-xd-20 bg-[#FAFAFA] text-[#3C3C3C] text-xd-16 font-normal cursor-pointer transition-all active:scale-[0.98]"
                 style={{
-                    top: XD.cta.primary,
+                    top: fromBottom(XD.cta.primary),
                     left: XD.box.left,
                     width: XD.box.width,
                     height: XD.box.height,
@@ -93,7 +93,7 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
                     onClick={onLater}
                     data-pw="take-look"
                     className="absolute w-full text-center text-xd-14 font-normal text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
-                    style={{ top: XD.cta.link, left: 0 }}
+                    style={{ top: fromBottom(XD.cta.link), left: 0 }}
                 >
                     {translate('Later, take a look at the app')}
                 </button>

@@ -21,6 +21,22 @@
  * artboard each number came from.
  */
 
+/**
+ * A design y that keeps its distance from the BOTTOM of the real page.
+ *
+ * The artboard is 932 tall, but a page in Safari on an iPhone is about 745:
+ * the browser bars take the rest. AppScaler fills the width anyway and
+ * publishes the missing height as `--xd-flex-deficit` (design px, 0 on a full
+ * screen). An element placed with `fromBottom(y)` moves up by that amount, so
+ * the buttons and the link stay above the browser bar and the big empty space
+ * above the mark is what gets shorter. A plain `top: y` stays where it is.
+ *
+ * Which elements use it: everything from the mark's low resting place
+ * (`logo.centre`) down on Get Started and Terms, and the CTA cluster (`cta.*`)
+ * everywhere. The head block, the input row and the corner controls never do.
+ */
+export const fromBottom = (top: number) => `calc(${top}px - var(--xd-flex-deficit, 0px))`;
+
 export const XD = {
     /** The artboard. Also the size of the canvas AppScaler draws. */
     canvas: { width: 430, height: 932 },

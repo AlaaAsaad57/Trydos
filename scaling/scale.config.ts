@@ -11,9 +11,10 @@
  *
  * How the canvas is fitted
  * ────────────────────────
- * One scale, min(vw / DESIGN_W, vh / DESIGN_H, MAX_SCALE) — see canvasFit.ts.
- * The whole artboard is always drawn, so the layout never reshapes itself and
- * every element stays where the design puts it.
+ * The artboard always fills the width: scale = min(vw / DESIGN_W, MAX_SCALE).
+ * The height the page does not have (Safari's bars take ~190 px of an iPhone)
+ * is published as --xd-flex-deficit, and the screens move their bottom cluster
+ * up by it. Only past MAX_DEFICIT does the canvas shrink — see canvasFit.ts.
  *
  * Scale clamp
  * ───────────
@@ -26,6 +27,18 @@ export const DESIGN_W = 430;
 
 /** XD artboard height (px) — the "ideal" viewport height in design-px */
 export const DESIGN_H = 932;
+
+/**
+ * The most design px the screens may give up from their vertical gaps before
+ * the whole canvas shrinks as well.
+ *
+ * An iPhone in Safari needs about 187 (932 - 745). The tightest screen at that
+ * number is Get Started: the mark's top (390 - 187 = 203) still clears the QR
+ * icon (85), and the title (649 - 187 = 462) still clears the mark's bottom
+ * (540 - 187 = 353). At 200 there is still room on every screen; past it the
+ * bottom cluster would climb into the head block, so the canvas shrinks instead.
+ */
+export const MAX_DEFICIT = 200;
 
 /**
  * Total compressible range (design-px) that FlexibleSpace shares were written

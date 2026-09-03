@@ -1,33 +1,37 @@
-import { DESIGN_H, DESIGN_W, MAX_SCALE } from './scale.config';
+import { DESIGN_H, DESIGN_W, MAX_DEFICIT, MAX_SCALE } from './scale.config';
 
 /**
  * canvasFit — where the design canvas goes, and how big it is drawn.
  *
- * The rule is one line: draw the whole 430 x 932 artboard, at one scale, in the
- * middle of the window. Nothing is ever cut off and nothing is ever reshaped, so
- * every element stays exactly where the XD file puts it, whatever the screen.
+ * The rule: the 430-wide artboard always fills the width of the window, at one
+ * scale, capped at MAX_SCALE. Nothing is ever drawn smaller than the design
+ * because the page is short.
+ *
+ * The height is the part the window decides. On an iPhone in Safari the
+ * browser bars take about 190 px of a 932 px screen, so the page is ~745 px
+ * tall. Fitting the whole 932 px artboard into that drew everything at 80%,
+ * with a 43 px white margin on each side — the client saw a smaller app. So the
+ * canvas is now `DESIGN_H - deficit` design px tall, where `deficit` is the
+ * height the page does not have. AppScaler publishes it as `--xd-flex-deficit`
+ * and every bottom-anchored element (`fromBottom()` in authLayout) moves up by
+ * it, so the buttons stay at the bottom of the real page and the empty space
+ * above the mark is what gets shorter.
+ *
+ * `deficit` stops at MAX_DEFICIT. Past that (iPhone SE, a laptop in landscape)
+ * the bottom cluster would climb into the head block, so the canvas shrinks as
+ * well, the way it used to for every short page.
  *
  * Why it is a plain function and not part of the component: this is the only
- * arithmetic in the scaling system, and the fault it replaced (a two-phase
- * engine that squeezed the layout on a short screen) was impossible to check
- * without a browser. A function takes two numbers and returns three, so
- * `tests/scaling/canvasFit.test.ts` can walk real device sizes in a few
- * milliseconds.
- *
- * The three limits, in order:
- *   - vw / DESIGN_W  — the artboard must fit the width
- *   - vh / DESIGN_H  — and the height
- *   - MAX_SCALE      — and it never grows past 500 px wide, however big the
- *                      screen, because the design is a phone layout
- *
- * `vh` is the page height the browser reports, not the height of the phone
- * screen. On iOS the browser bars take about 190 px of a 932 px screen, and the
- * decision (with the designer) is to fit what the page really has rather than
- * draw part of the design behind a bar.
+ * arithmetic in the scaling system, and `tests/scaling/canvasFit.test.ts` walks
+ * real device sizes through it in a few milliseconds.
  */
 export type CanvasFit = {
   /** The single `transform: scale()` factor for the canvas. */
   scale: number;
+  /** Design px the screens must give up from their vertical gaps. 0 on a full screen. */
+  deficit: number;
+  /** The canvas height in design px: DESIGN_H - deficit. */
+  height: number;
   /** Left offset in real px that centres the drawn canvas. */
   left: number;
   /** Top offset in real px. Zero unless the window is taller than the canvas. */
@@ -35,14 +39,22 @@ export type CanvasFit = {
 };
 
 export function canvasFit(vw: number, vh: number): CanvasFit {
-  const scale = Math.min(vw / DESIGN_W, vh / DESIGN_H, MAX_SCALE);
+  const widthScale = Math.min(vw / DESIGN_W, MAX_SCALE);
+  // What the page offers in design px once the artboard fills the width.
+  const pageH = vh / widthScale;
+  const deficit = Math.min(Math.max(0, DESIGN_H - pageH), MAX_DEFICIT);
+  const height = DESIGN_H - deficit;
+  // Equal to widthScale unless the deficit hit its cap.
+  const scale = Math.min(widthScale, vh / height);
 
   return {
     scale,
+    deficit,
+    height,
     left: Math.max(0, (vw - DESIGN_W * scale) / 2),
     // Centred against the real window height. Clamping the height first would
     // centre a tall desktop window against the clamp instead of the window.
-    top: Math.max(0, (vh - DESIGN_H * scale) / 2),
+    top: Math.max(0, (vh - height * scale) / 2),
   };
 }
 
@@ -55,7 +67,7 @@ export function canvasFit(vw: number, vh: number): CanvasFit {
  * drawn off the bottom of the screen, and when React mounted the canvas shrank
  * and everything on it jumped. On a 430 x 745 phone the centre logo moved 85 px.
  *
- * It writes the four `:root` variables the canvas and the effect read, as one
+ * It writes the five `:root` variables the canvas and the effect read, as one
  * `<style>` rule appended to `<head>`, and nothing else. The effect then sets
  * the same numbers inline on `:root`, which is not a visible change.
  *
@@ -73,11 +85,15 @@ export const CANVAS_FIT_STYLE_ID = 'app-canvas-fit';
 export const CANVAS_FIT_SCRIPT =
   '(function(){' +
   'var w=window.innerWidth,h=window.innerHeight;' +
-  `var s=Math.min(w/${DESIGN_W},h/${DESIGN_H},${MAX_SCALE});` +
+  `var ws=Math.min(w/${DESIGN_W},${MAX_SCALE});` +
+  `var d=Math.min(Math.max(0,${DESIGN_H}-h/ws),${MAX_DEFICIT});` +
+  `var ch=${DESIGN_H}-d;` +
+  'var s=Math.min(ws,h/ch);' +
   `var e=document.getElementById('${CANVAS_FIT_STYLE_ID}');` +
   `if(!e){e=document.createElement('style');e.id='${CANVAS_FIT_STYLE_ID}';document.head.appendChild(e);}` +
   "e.textContent=':root{--app-scale:'+s+';" +
   `--app-canvas-left:'+Math.max(0,(w-${DESIGN_W}*s)/2)+'px;` +
-  `--app-canvas-top:'+Math.max(0,(h-${DESIGN_H}*s)/2)+'px;` +
-  `--app-canvas-height:'+(${DESIGN_H}*s)+'px}';` +
+  "--app-canvas-top:'+Math.max(0,(h-ch*s)/2)+'px;" +
+  "--app-canvas-height:'+(ch*s)+'px;" +
+  "--xd-flex-deficit:'+d+'px}';" +
   '})()';

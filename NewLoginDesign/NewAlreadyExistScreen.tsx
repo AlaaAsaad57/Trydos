@@ -5,7 +5,7 @@ import XdDashedBorder from 'components/Login/Enhanced/ui/XdDashedBorder';
 import { translateFunction } from 'utils/functions';
 import AuthLogoSlot from './AuthLogoSlot';
 import { formatPhoneDigits } from 'components/Login/Enhanced/ui/RdbPhoneInput';
-import { XD, XD_PHONE_ICON_GAP, XD_WIDE_LABEL_TRACKING } from './authLayout';
+import { XD, XD_PHONE_ICON_GAP, XD_WIDE_LABEL_TRACKING, fromBottom } from './authLayout';
 
 interface NewAlreadyExistScreenProps {
     phone: string;
@@ -92,7 +92,7 @@ export default function NewAlreadyExistScreen({
                 data-pw="login-continue"
                 className="absolute rounded-xd-20 bg-[#FAFAFA] text-[#1D1D1D] text-xd-16 font-normal transition-all active:scale-[0.98] cursor-pointer"
                 style={{
-                    top: XD.cta.primary,
+                    top: fromBottom(XD.cta.primary),
                     left: XD.box.left,
                     width: XD.box.width,
                     height: XD.box.height,
@@ -114,7 +114,7 @@ export default function NewAlreadyExistScreen({
                 onClick={onCancel}
                 data-pw="cancel-take-look"
                 className="absolute w-full text-center text-xd-14 font-normal text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
-                style={{ top: XD.cta.link, left: 0, letterSpacing: XD_WIDE_LABEL_TRACKING }}
+                style={{ top: fromBottom(XD.cta.link), left: 0, letterSpacing: XD_WIDE_LABEL_TRACKING }}
             >
                 {translate('Cancel & take a look at the app')}
             </button>

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import XdDashedBorder from 'components/Login/Enhanced/ui/XdDashedBorder';
 import { translateFunction } from 'utils/functions';
 import AuthLogoSlot from './AuthLogoSlot';
-import { XD } from './authLayout';
+import { XD, fromBottom } from './authLayout';
 
 interface NewGetStartedScreenProps {
     onExistingAccount?: () => void;
@@ -26,7 +26,7 @@ export default function NewGetStartedScreen({
     const translate = (key: string) => translateFunction(key, lang);
 
     const wideButton = (
-        top: number,
+        top: number | string,
         onClick: (() => void) | undefined,
         label: string,
         testId: string,
@@ -85,20 +85,20 @@ export default function NewGetStartedScreen({
             <h2
                 data-pw="get-started"
                 className="absolute w-full text-center text-xd-30 font-bold text-[#1D1D1D]"
-                style={{ top: XD.getStarted.title, left: 0 }}
+                style={{ top: fromBottom(XD.getStarted.title), left: 0 }}
             >
                 {translate('. Get Started .')}
             </h2>
 
-            {wideButton(XD.cta.second, onExistingAccount, 'I have already account', 'have-account-button')}
-            {wideButton(XD.cta.primary, onNewCustomer, 'New customer', 'create-account')}
+            {wideButton(fromBottom(XD.cta.second), onExistingAccount, 'I have already account', 'have-account-button')}
+            {wideButton(fromBottom(XD.cta.primary), onNewCustomer, 'New customer', 'create-account')}
 
             {onLater && (
                 <button
                     onClick={onLater}
                     data-pw="take-look"
                     className="absolute w-full text-center text-xd-14 font-normal text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
-                    style={{ top: XD.cta.link, left: 0 }}
+                    style={{ top: fromBottom(XD.cta.link), left: 0 }}
                 >
                     {translate('Later, take a look at the app')}
                 </button>

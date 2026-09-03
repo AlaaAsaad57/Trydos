@@ -26,9 +26,11 @@ import { XD } from "../../NewLoginDesign/authLayout";
 const TOLERANCE = 1;
 
 /**
- * The same layout at any size is the point, so every viewport expects the same
- * numbers. 430x745 is an iPhone Pro Max in Safari — the phone the designer was
- * looking at, and the one the old build was ~110 design px out on.
+ * The canvas always fills the width. On a page shorter than the artboard the
+ * screens give up the missing height (`--xd-flex-deficit`, see canvasFit) from
+ * the space ABOVE the mark: a top-anchored element keeps its design y, and a
+ * bottom-anchored one sits `deficit` higher. 430x745 is an iPhone Pro Max in
+ * Safari — the phone the client saw the 80% build on. There the deficit is 187.
  */
 const VIEWPORTS = [
   { name: "the artboard itself", width: 430, height: 932 },
@@ -45,6 +47,8 @@ type Anchor = {
   left?: number;
   width?: number;
   height?: number;
+  /** The element keeps its distance from the bottom of the page, not the artboard. */
+  fromBottom?: true;
 };
 
 type Screen = {
@@ -87,6 +91,9 @@ const wideBox = (selector: string, label: string, top: number): Anchor => ({
   height: XD.box.height,
 });
 
+/** The CTA cluster and everything under the mark's low stop anchor to the bottom. */
+const bottom = (anchor: Anchor): Anchor => ({ ...anchor, fromBottom: true });
+
 const SCREENS: Screen[] = [
   {
     tab: "get-started",
@@ -100,20 +107,20 @@ const SCREENS: Screen[] = [
         width: XD.control.qrSize,
         height: XD.control.qrSize,
       },
-      { ...LOGO, top: XD.logo.centre },
-      { selector: '[data-pw="get-started"]', label: "the title", top: XD.getStarted.title },
-      wideBox('[data-pw="have-account-button"]', "the first button", XD.cta.second),
-      wideBox('[data-pw="create-account"]', "the second button", XD.cta.primary),
-      { selector: '[data-pw="take-look"]', label: "the bottom link", top: XD.cta.link },
+      bottom({ ...LOGO, top: XD.logo.centre }),
+      bottom({ selector: '[data-pw="get-started"]', label: "the title", top: XD.getStarted.title }),
+      bottom(wideBox('[data-pw="have-account-button"]', "the first button", XD.cta.second)),
+      bottom(wideBox('[data-pw="create-account"]', "the second button", XD.cta.primary)),
+      bottom({ selector: '[data-pw="take-look"]', label: "the bottom link", top: XD.cta.link }),
     ],
   },
   {
     tab: "terms",
     name: "terms",
     anchors: [
-      { ...LOGO, top: XD.logo.centre },
-      wideBox('[data-pw="agree-continue"]', "the agree button", XD.cta.primary),
-      { selector: '[data-pw="take-look"]', label: "the bottom link", top: XD.cta.link },
+      bottom({ ...LOGO, top: XD.logo.centre }),
+      bottom(wideBox('[data-pw="agree-continue"]', "the agree button", XD.cta.primary)),
+      bottom({ selector: '[data-pw="take-look"]', label: "the bottom link", top: XD.cta.link }),
     ],
   },
   {
@@ -183,8 +190,8 @@ const SCREENS: Screen[] = [
       CLOSE,
       LOGO,
       TITLE,
-      wideBox('[data-pw="create-account-continue"]', "the create-account button", XD.cta.primary),
-      { selector: '[data-pw="cancel-take-look"]', label: "the bottom link", top: XD.cta.link },
+      bottom(wideBox('[data-pw="create-account-continue"]', "the create-account button", XD.cta.primary)),
+      bottom({ selector: '[data-pw="cancel-take-look"]', label: "the bottom link", top: XD.cta.link }),
     ],
   },
   {
@@ -194,8 +201,8 @@ const SCREENS: Screen[] = [
       CLOSE,
       LOGO,
       TITLE,
-      wideBox('[data-pw="login-continue"]', "the sign-in button", XD.cta.primary),
-      { selector: '[data-pw="cancel-take-look"]', label: "the bottom link", top: XD.cta.link },
+      bottom(wideBox('[data-pw="login-continue"]', "the sign-in button", XD.cta.primary)),
+      bottom({ selector: '[data-pw="cancel-take-look"]', label: "the bottom link", top: XD.cta.link }),
     ],
   },
   {
@@ -247,27 +254,34 @@ for (const view of VIEWPORTS) {
     test(`${view.name}: every screen sits on the anchors in the design file`, async ({
       page,
     }) => {
+      /** Design px the page lacks, read from the canvas once it is drawn. */
+      let deficit = 0;
       await test.step("the demo route draws the design canvas", async () => {
         await page.goto("/sy-en/loginDemo", { waitUntil: "domcontentloaded" });
         await page.waitForSelector("#master-canvas");
 
         const canvas = await page.evaluate(() => {
           const el = document.getElementById("master-canvas");
-          const scale = Number(
-            getComputedStyle(document.documentElement).getPropertyValue("--app-scale"),
-          );
+          const root = getComputedStyle(document.documentElement);
+          const scale = Number(root.getPropertyValue("--app-scale"));
+          const deficit = Number.parseFloat(root.getPropertyValue("--xd-flex-deficit")) || 0;
           const r = el!.getBoundingClientRect();
-          return { designW: r.width / scale, designH: r.height / scale, scale };
+          return { designW: r.width / scale, designH: r.height / scale, scale, deficit };
         });
+        deficit = canvas.deficit;
 
+        expect(
+          canvas.scale,
+          `${view.name}: the canvas must fill the ${view.width} px width (scale ${(view.width / XD.canvas.width).toFixed(4)}) — a shrunk canvas is the 80% app the client saw, the scale is ${canvas.scale.toFixed(4)}`,
+        ).toBeCloseTo(view.width / XD.canvas.width, 3);
         expect(
           canvas.designW,
           `${view.name}: the canvas must be the full ${XD.canvas.width} design px wide however small the screen, it is ${canvas.designW.toFixed(1)}`,
         ).toBeCloseTo(XD.canvas.width, 0);
         expect(
           canvas.designH,
-          `${view.name}: the canvas must be the full ${XD.canvas.height} design px tall — a reshaped canvas is what put every screen out of place, it is ${canvas.designH.toFixed(1)}`,
-        ).toBeCloseTo(XD.canvas.height, 0);
+          `${view.name}: the canvas must be ${XD.canvas.height} design px minus the ${canvas.deficit.toFixed(1)} px deficit, it is ${canvas.designH.toFixed(1)}`,
+        ).toBeCloseTo(XD.canvas.height - canvas.deficit, 0);
       });
 
       await test.step("the demo step bar is open", async () => {
@@ -309,8 +323,10 @@ for (const view of VIEWPORTS) {
             ).not.toBeNull();
             if (!got) continue;
 
+            const wantTop =
+              anchor.top === undefined ? undefined : anchor.top - (anchor.fromBottom ? deficit : 0);
             const checks: [string, number | undefined, number][] = [
-              ["top", anchor.top, got.top],
+              ["top", wantTop, got.top],
               ["left", anchor.left, got.left],
               ["width", anchor.width, got.width],
               ["height", anchor.height, got.height],
@@ -318,9 +334,13 @@ for (const view of VIEWPORTS) {
 
             for (const [side, want, have] of checks) {
               if (want === undefined) continue;
+              const anchored =
+                side === "top" && anchor.fromBottom && deficit
+                  ? ` (${anchor.top} in the design, ${deficit.toFixed(1)} px up because the page is that much shorter than the artboard)`
+                  : "";
               expect(
                 Math.abs(have - want),
-                `${view.name}, the ${screen.name} screen: ${anchor.label} must have a ${side} of ${want} design px, it is ${have.toFixed(1)}`,
+                `${view.name}, the ${screen.name} screen: ${anchor.label} must have a ${side} of ${want.toFixed(1)} design px${anchored}, it is ${have.toFixed(1)}`,
               ).toBeLessThanOrEqual(TOLERANCE);
             }
           }

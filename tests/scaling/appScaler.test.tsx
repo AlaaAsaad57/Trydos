@@ -1,17 +1,16 @@
-// AppScaler must draw the 430 x 932 artboard whole, at one scale, on every
-// viewport.
+// AppScaler must fill the width of every viewport with the 430-wide artboard,
+// and hand the height the page does not have to the screens.
 //
-// The designer's complaint is that the new login does not respect his spaces.
-// Two faults in this file cause it, and both are checked here:
+// The client's complaint: on an iPhone in Safari (430 x 745 of visible page)
+// the whole app looked smaller than the design. The canvas was fitting the
+// full 932 px artboard into the 745 px page, so everything was drawn at 80%
+// with a 43 px white margin on each side. Two things are checked here:
 //
-//   1. On a short screen the canvas RESHAPES instead of shrinking. It keeps the
-//      full width, then hands the missing height to `--xd-flex-deficit`, and
-//      every FlexibleSpace on the page collapses by its own share. On an iPhone
-//      running Safari (430 x 745 of visible page) the deficit reaches its 182
-//      cap and the layout ends up about 110 design px away from the XD file.
-//   2. On a tall wide window the landscape branch scales by height alone, with
-//      no MAX_SCALE cap, so the canvas is drawn wider than the 500 px limit the
-//      rest of the system promises.
+//   1. The canvas is always the full width (up to MAX_SCALE). The missing
+//      height goes to `--xd-flex-deficit`, capped at MAX_DEFICIT, and the
+//      canvas box is `932px - deficit` tall so it still fits the page.
+//   2. On a tall wide window the canvas is never drawn wider than the 500 px
+//      limit the rest of the system promises.
 //
 // Everything AppScaler decides is written straight onto element styles and onto
 // two :root variables, so jsdom can read the answer without any real layout.
@@ -21,7 +20,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import AppScaler from 'scaling/AppScaler';
 import { CANVAS_FIT_STYLE_ID, canvasFit } from 'scaling/canvasFit';
-import { DESIGN_H, DESIGN_W, MAX_SCALE } from 'scaling/scale.config';
+import { DESIGN_H, DESIGN_W, MAX_DEFICIT, MAX_SCALE } from 'scaling/scale.config';
 
 /** Put jsdom's window at a given size, plus the screen facts a phone reports. */
 function setViewport(
@@ -101,8 +100,9 @@ const fromRule = (rule: string, name: string) =>
   rule.match(new RegExp(`${name}:([^;}]+)`))?.[1] ?? '';
 
 /**
- * One row per real device. `scale` is min(vw/430, vh/932, MAX_SCALE) — the whole
- * artboard, shrunk to fit, never stretched past the 500 px width limit.
+ * One row per real device. `scale` is min(vw/430, MAX_SCALE) — the full width —
+ * unless the page is shorter than `932 - MAX_DEFICIT` design px, when the canvas
+ * shrinks as well. `deficit` is the design px the screens give up.
  */
 const VIEWPORTS = [
   {
@@ -110,46 +110,52 @@ const VIEWPORTS = [
     vw: 430,
     vh: 932,
     scale: 1,
+    deficit: 0,
     why: 'the design canvas must render 1:1',
   },
   {
     name: 'iPhone Pro Max in Safari',
     vw: 430,
     vh: 745,
-    scale: 745 / DESIGN_H,
-    why: 'a short screen must shrink the whole artboard, not reshape it',
+    scale: 1,
+    deficit: DESIGN_H - 745,
+    why: 'the client sees the full-width design, and the screens give up the 187 px Safari took',
   },
   {
     name: 'iPhone 13',
     vw: 390,
     vh: 844,
-    scale: 844 / DESIGN_H,
-    why: 'height is the tighter limit here, so height must win',
+    scale: 390 / DESIGN_W,
+    deficit: DESIGN_H - (844 * DESIGN_W) / 390,
+    why: 'the width sets the scale, and the page is 1.4 design px short',
   },
   {
     name: 'iPhone SE',
     vw: 375,
     vh: 534,
-    scale: 534 / DESIGN_H,
-    why: 'the shortest phone must still draw the whole artboard',
+    scale: 534 / (DESIGN_H - MAX_DEFICIT),
+    deficit: MAX_DEFICIT,
+    why: 'the shortest phone hits MAX_DEFICIT, so the canvas shrinks as well',
   },
   {
     name: 'a laptop window',
     vw: 1440,
     vh: 900,
-    scale: 900 / DESIGN_H,
-    why: 'a wide window is limited by its height',
+    scale: MAX_SCALE,
+    deficit: DESIGN_H - 900 / MAX_SCALE,
+    why: 'a wide window is drawn at MAX_SCALE and gives up what its height lacks',
   },
   {
     name: 'a large desktop window',
     vw: 2000,
     vh: 3000,
     scale: MAX_SCALE,
+    deficit: 0,
     why: 'the canvas must stop at MAX_SCALE and never over-scale',
   },
 ] as const;
 
-describe('AppScaler draws the whole artboard at one scale', () => {
+describe('AppScaler fills the width and hands the missing height to the screens', () => {
   for (const view of VIEWPORTS) {
     it(`${view.name} (${view.vw} x ${view.vh}): ${view.why}`, () => {
       const got = mountAt(view.vw, view.vh);
@@ -160,14 +166,14 @@ describe('AppScaler draws the whole artboard at one scale', () => {
       ).toBeCloseTo(view.scale, 4);
 
       expect(
-        got.deficit,
-        `${view.name} (${view.vw} x ${view.vh}): every FlexibleSpace must keep its full design size, so --xd-flex-deficit must be 0px, it is ${got.deficit}`,
-      ).toBe('0px');
+        Number.parseFloat(got.deficit),
+        `${view.name} (${view.vw} x ${view.vh}): --xd-flex-deficit must be ${view.deficit.toFixed(1)}px so the bottom cluster moves up by exactly what the page lacks, it is ${got.deficit}`,
+      ).toBeCloseTo(view.deficit, 2);
 
       expect(
         got.height,
-        `${view.name} (${view.vw} x ${view.vh}): the canvas box must stay ${DESIGN_H} design px tall and be scaled, it is ${got.height}`,
-      ).toBe(`${DESIGN_H}px`);
+        `${view.name} (${view.vw} x ${view.vh}): the canvas box must be ${DESIGN_H}px minus the deficit, read from --xd-flex-deficit, it is ${got.height}`,
+      ).toBe(`calc(${DESIGN_H}px - var(--xd-flex-deficit, 0px))`);
     });
   }
 
@@ -208,16 +214,20 @@ describe('AppScaler draws the whole artboard at one scale', () => {
 
   it('ignores the phone screen height and uses the page the browser actually gives', () => {
     // A real iPhone Pro Max: the screen is 932 CSS px tall, Safari's bars leave
-    // 745 for the page, and the device pixel ratio is 3. The old guard tried to
+    // 745 for the page, and the device pixel ratio is 3. An old guard tried to
     // treat the screen height as the real one, but divided an already-CSS-px
-    // number by the ratio, so it never fired. The design decision is to ignore
-    // the bars entirely and fit what the page really has.
+    // number by the ratio, so it never fired. The page height is what counts:
+    // the deficit must be the 187 px the bars took, not 0.
     const got = mountAt(430, 745, { availHeight: 932, devicePixelRatio: 3 });
 
     expect(
-      got.scale,
-      `430 x 745 with a 932 px screen: the fit must use the 745 px page, so the scale must be ${(745 / DESIGN_H).toFixed(4)}, it is ${got.scale.toFixed(4)}`,
-    ).toBeCloseTo(745 / DESIGN_H, 4);
+      Number.parseFloat(got.deficit),
+      `430 x 745 with a 932 px screen: the fit must use the 745 px page, so the deficit must be ${DESIGN_H - 745}, it is ${got.deficit}`,
+    ).toBeCloseTo(DESIGN_H - 745, 2);
+    expect(
+      got.canvasHeight,
+      `430 x 745 with a 932 px screen: the drawn canvas must be the 745 px page, it is ${got.canvasHeight}`,
+    ).toBe('745px');
   });
 });
 
@@ -276,7 +286,11 @@ describe('AppScaler applies the fit before React hydrates', () => {
     expect(
       fromRule(rule, '--app-canvas-height'),
       '430 x 745: the script and canvasFit disagree on the drawn canvas height',
-    ).toBe(`${DESIGN_H * fit.scale}px`);
+    ).toBe(`${fit.height * fit.scale}px`);
+    expect(
+      fromRule(rule, '--xd-flex-deficit'),
+      '430 x 745: the script and canvasFit disagree on the deficit, so the bottom cluster would jump at hydration',
+    ).toBe(`${fit.deficit}px`);
   });
 
   it('the effect writes exactly what the script wrote, so hydration moves nothing', () => {

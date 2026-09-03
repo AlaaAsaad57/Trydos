@@ -14,27 +14,23 @@ import {
 /**
  * AppScaler — draws the design canvas.
  *
- * The canvas is always the full 430 x 932 artboard. One `transform: scale()`
- * fits it to the window, and it is centred in whatever room is left. There is
- * one code path: no portrait branch, no landscape branch, no threshold to fall
- * either side of.
+ * The canvas is the 430-wide artboard, always filling the width of the window
+ * (capped at MAX_SCALE), and it is centred in whatever room is left. Its height
+ * is `932 - deficit` design px, where `deficit` is the height the page does not
+ * have — see canvasFit.ts for the rule and the reason.
+ *
+ * `--xd-flex-deficit` carries that number to the screens. An element placed
+ * with `fromBottom(y)` (authLayout.ts) keeps its distance from the bottom of the
+ * real page instead of the bottom of the artboard, so on an iPhone in Safari
+ * the buttons sit above the browser bar and the empty space above the mark is
+ * what gets shorter. A plain `top: y` is unaffected. `FlexibleSpace` reads the
+ * same variable through its `share=`, and every call site today passes 0.
  *
  * What this replaced, and why
  * ---------------------------
- * The old engine had two phases and two branches. On a screen shorter than the
- * design it kept the full width and handed the missing height to a CSS variable
- * (`--xd-flex-deficit`); every `FlexibleSpace` on the page then gave up its own
- * `share` of that number. On an iPhone in Safari the page is about 745 px tall,
- * the deficit reached its 182 px cap, and the layout ended up roughly 110 design
- * px away from the XD file. The designer was looking at that phone.
- *
- * A second branch scaled by height alone once the window got wide, with no
- * MAX_SCALE cap, so a large desktop drew the canvas past the 500 px width the
- * rest of the system promises.
- *
- * `--xd-flex-deficit` is still set, and is now always `0px`. `FlexibleSpace`
- * keeps its API and simply returns its `size`, so every `share=` value on every
- * screen stops mattering without a single call site changing.
+ * The previous rule fitted the whole 932 px artboard into the page. On a phone
+ * in Safari (about 745 px of page) that drew everything at 80% with a 43 px
+ * white margin on each side, and the client saw a smaller app than the design.
  *
  * Only one `<Page variant="scaled">` may be mounted at a time: the element ids
  * and the `:root` variables below are fixed names, and nothing counts copies.
@@ -69,7 +65,10 @@ export default function AppScaler({ children }: { children: React.ReactNode }) {
     let debounceTimer: ReturnType<typeof setTimeout>;
 
     const compute = () => {
-      const { scale, left, top } = canvasFit(window.innerWidth, window.innerHeight);
+      const { scale, deficit, height, left, top } = canvasFit(
+        window.innerWidth,
+        window.innerHeight,
+      );
 
       // The canvas element reads its scale and its place from these variables
       // (see the style below). Nothing is written onto the element itself: the
@@ -83,9 +82,10 @@ export default function AppScaler({ children }: { children: React.ReactNode }) {
       // #master-canvas (the QR sheet) needs this: the canvas no longer fills the
       // window, so `100dvh` is not the canvas height any more.
       root.style.setProperty('--app-canvas-top', `${top}px`);
-      root.style.setProperty('--app-canvas-height', `${DESIGN_H * scale}px`);
-      // The layout is never squeezed now. Kept so FlexibleSpace keeps working.
-      root.style.setProperty('--xd-flex-deficit', '0px');
+      root.style.setProperty('--app-canvas-height', `${height * scale}px`);
+      // The height the page does not have, in design px. The canvas box and
+      // every `fromBottom()` position read it.
+      root.style.setProperty('--xd-flex-deficit', `${deficit}px`);
     };
 
     const onWindowResize = () => {
@@ -123,7 +123,7 @@ export default function AppScaler({ children }: { children: React.ReactNode }) {
           top: 'var(--app-canvas-top, 0px)',
           left: `var(--app-canvas-left, calc((100vw - ${DESIGN_W}px) / 2))`,
           width: DESIGN_W,
-          height: DESIGN_H,
+          height: `calc(${DESIGN_H}px - var(--xd-flex-deficit, 0px))`,
           transformOrigin: 'top left',
           transform: 'scale(var(--app-scale, 1))',
           overflow: 'hidden',

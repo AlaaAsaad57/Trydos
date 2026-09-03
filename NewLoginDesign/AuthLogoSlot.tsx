@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import { XD } from './authLayout';
+import { XD, fromBottom } from './authLayout';
 
 /** The badge mark is 150 x 150 design px on every screen that shows it. */
 export const AUTH_LOGO_SIZE = XD.logo.size;
@@ -10,9 +10,10 @@ export const AUTH_LOGO_SIZE = XD.logo.size;
 /**
  * The two places the mark rests in the flow, and nowhere else.
  *
- * Both are plain design px out of the XD file. The canvas is always the full
- * 430 x 932 artboard now, so a top is a top: nothing has to be adjusted for the
- * height of the screen the page is on.
+ * Both are design px out of the XD file. `top` is a plain top. `centre` keeps
+ * its distance from the bottom of the real page (`fromBottom`), because on a
+ * phone in Safari the page is shorter than the artboard and the buttons under
+ * the mark move up with it — see authLayout.ts.
  *
  * `top` (116) — the phone screen, the method screen, the code screen, and all
  * four outcome screens. Seven screens, one number, so the mark is completely
@@ -27,7 +28,7 @@ export const AUTH_LOGO_SIZE = XD.logo.size;
  * wrong: the design says 116 and 390.
  */
 export const AUTH_LOGO_STOP = {
-    centre: XD.logo.centre,
+    centre: fromBottom(XD.logo.centre),
     top: XD.logo.top,
 } as const;
 
