@@ -456,6 +456,36 @@ export const gotoPicture = async (page: Page): Promise<void> => {
 export const hasPicture = async (page: Page): Promise<boolean> =>
   profile.removePictureButton(page).isVisible();
 
+/** The file name of the picture the app currently holds for this account.
+ *
+ *  `null` when it holds none. The **file name**, not the path: the same picture
+ *  is stored as a bare name by the core backend and under `/customers/profile/`
+ *  by stories and chat (`ConfigurePhoto` in `services/auth.ts`), so the name is
+ *  the only part all three agree on.
+ *
+ *  Read from `/api/auth/me`, which is the app's own copy — that is exactly what
+ *  a caller wants here. The point of this value is to be the thing a later,
+ *  independent read from the backends is compared **against**.
+ *
+ *  Reduced in the browser, like every other read in this file, so the rest of
+ *  the answer — the account's phone and e-mail — never crosses into Node. */
+export const storedPictureFile = async (page: Page): Promise<string | null> =>
+  page.evaluate(async () => {
+    const stored = await fetch("/api/auth/me", {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((response) => response.json())
+      .then((body) => body?.user?.image)
+      // Caught in the browser so no parser message — which quotes the input it
+      // choked on — can reach a Node failure line.
+      .catch(() => null);
+
+    if (typeof stored !== "string" || stored.trim() === "") return null;
+    const file = stored.split("/").filter(Boolean).pop() ?? "";
+    return file === "" ? null : file;
+  });
+
 /** Choose a picture from the device.
  *
  *  The input is hidden on purpose — the screen drives it from its own menu — so
