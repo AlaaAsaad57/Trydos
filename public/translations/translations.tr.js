@@ -2566,6 +2566,7 @@ const translations = {
   "Enter your phone number registered with us": "Bizde Kayıtlı Telefon Numaranızı Girin",
   "Your privacy is completely safe": "Gizliliğiniz Tamamen Güvende",
   "We will send a verification code to the number": "Numaraya Doğrulama Kodu Göndereceğiz",
+  "We have sent a verification code to the number": "Numaraya Doğrulama Kodu Gönderdik",
   "Choose verification method": "Doğrulama Yöntemini Seçin",
   "this number already registered with us": "Bu Numara Zaten Bizde Kayıtlı",
   "Sorry, this number is not registered with us !": "Üzgünüz, Bu Numara Bizde Kayıtlı Değil !",

@@ -7,6 +7,7 @@ import { getNumberLockRemaining } from 'utils/otpLocks';
 import { translateFunction } from 'utils/functions';
 import { authHeadingKey } from 'components/Login/Enhanced/authHeadings';
 import AuthLogoSlot from './AuthLogoSlot';
+import { formatPhoneDigits } from 'components/Login/Enhanced/ui/RdbPhoneInput';
 import { XD, XD_LINE3_ICON_GAP } from './authLayout';
 
 interface NewEnterPinScreenProps {
@@ -194,7 +195,7 @@ export default function NewEnterPinScreen({
                 }}
             >
                 <span className="text-xd-12 font-normal text-[#1D1D1D]">
-                    {translate('We will send a verification code to the number')}
+                    {translate('We have sent a verification code to the number')}
                 </span>
                 <div className="w-xd-15 h-xd-15 shrink-0">
                     <Image
@@ -213,11 +214,11 @@ export default function NewEnterPinScreen({
                 className="absolute text-xd-12 font-normal text-[#1D1D1D]"
                 style={{ top: XD.head.line4, left: XD.textLeft }}
             >
-                +{phone}
+                +{formatPhoneDigits(phone ?? '')}
             </span>
             <div
                 className="absolute flex items-center"
-                style={{ top: XD.head.line4, left: HINT_LEFT, gap: 13.6 }}
+                style={{ top: XD.head.line4, left: HINT_LEFT, gap: 11.6 }}
             >
                 <span className="text-xd-12 font-normal text-[#C3C3C3]">
                     {canAskAgain

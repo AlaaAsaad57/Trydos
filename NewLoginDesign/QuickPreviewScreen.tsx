@@ -181,18 +181,20 @@ const PREVIEW_SLIDES = [
 
 /**
  * Collapsed state — how far the pill's top edge sits above the bottom edge of
- * the canvas, in design px, read off the mock (`mocks/QuickPreview1.png`).
+ * the canvas, in design px, read out of the artboard `Ramaaz pay signin - 14`.
  *
- * The pill box there runs 837 -> 869 and the artboard is 932 tall, so the tail
- * is 932 - 837 = 95. Below the pill sit the 14px gap and the top 49px of the
- * 150px badge ring, which is the arc-plus-eyes peek the mock shows.
+ * The pill box there runs 829 -> 859 and the artboard is 932 tall, so the tail
+ * is 932 - 829 = 103. Below the pill sit the 12px gap and the top 61px of the
+ * 150px badge ring (its arc starts at 871), which is the arc-plus-eyes peek
+ * the artboard shows. 837 was the old number here; that is the Next button's
+ * top on the open artboard, not the closed pill.
  *
  * This is measured from the BOTTOM on purpose. The old code translated the
  * column down by a fixed 750px from the top, which only lands correctly when
  * the canvas is exactly DESIGN_H (932). A phone gives ~838, so the pill landed
  * on the bottom edge and the whole ring fell outside `overflow-hidden`.
  */
-const COLLAPSED_TAIL = 95;
+const COLLAPSED_TAIL = 103;
 
 /**
  * The column, laid out against the XD anchors.

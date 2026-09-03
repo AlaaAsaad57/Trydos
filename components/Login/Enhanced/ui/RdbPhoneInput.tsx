@@ -60,6 +60,31 @@ const COUNTRIES: CountryData[] = [
 
 const SORTED_COUNTRIES = [...COUNTRIES].sort((a, b) => b.dialCode.length - a.dialCode.length);
 
+/**
+ * Digits written the way the design file writes them: the dial code, then the
+ * rest in threes — "905528002000" becomes "90 552 800 200 0". The input shows
+ * the number like this while it is typed, and the screens that repeat the
+ * number afterwards (method, code, the two outcome screens) use the same
+ * grouping, so the number never changes shape between screens.
+ */
+export function formatPhoneDigits(d: string): string {
+    if (!d) return '';
+    let matchedDialCode = '';
+    for (const country of SORTED_COUNTRIES) {
+        if (d.startsWith(country.dialCode)) {
+            matchedDialCode = country.dialCode;
+            break;
+        }
+    }
+    if (matchedDialCode) {
+        const rest = d.slice(matchedDialCode.length);
+        const groups = rest.match(/.{1,3}/g) || [];
+        return [matchedDialCode, ...groups].join(' ');
+    }
+    const groups = d.match(/.{1,3}/g) || [];
+    return groups.join(' ');
+}
+
 const MIN_PHONE_DIGITS = 10;
 const DEFAULT_MAX_TOTAL = 15;
 
@@ -158,25 +183,7 @@ export default function RdbPhoneInput({
         return null;
     }, [digits]);
 
-    const formatNumber = useCallback((d: string): string => {
-        if (!d) return '';
-        let matchedDialCode = '';
-        for (const country of SORTED_COUNTRIES) {
-            if (d.startsWith(country.dialCode)) {
-                matchedDialCode = country.dialCode;
-                break;
-            }
-        }
-        if (matchedDialCode) {
-            const rest = d.slice(matchedDialCode.length);
-            const groups = rest.match(/.{1,3}/g) || [];
-            return [matchedDialCode, ...groups].join(' ');
-        }
-        const groups = d.match(/.{1,3}/g) || [];
-        return groups.join(' ');
-    }, []);
-
-    const displayValue = useMemo(() => formatNumber(digits), [digits, formatNumber]);
+    const displayValue = useMemo(() => formatPhoneDigits(digits), [digits]);
 
     const maxTotalDigits = useMemo(() => {
         if (!detectedCountry) return DEFAULT_MAX_TOTAL;

@@ -141,13 +141,20 @@ export const XD = {
 } as const;
 
 /**
- * Icon gaps after the third line, checked against the real Quicksand advance
- * widths from the font's `hmtx` table.
+ * Icon gaps after the third line.
+ *
+ * The icon follows the sentence with a gap, not a fixed x, because the sentence
+ * is translated and its length changes. Each gap is the icon's left in the
+ * design file minus the text's left (40) minus the width the browser draws the
+ * English sentence at, measured in Chromium with the shipped Quicksand files:
+ * 257 for "We will send..." and 263 for "We have sent...", at 12px, the same
+ * at Regular and Medium. The font's `hmtx` table gave 5px less than that, which
+ * is why the first numbers here put every icon 5px right of the design.
  *
  * This is the one place the design file disagrees with itself: the same SIM
- * icon on the same row sits at 316.1, 320.1 and 322.1 on three artboards. Each
- * screen keeps its own number rather than an average, because an average is
- * wrong on all three.
+ * icon on the same row sits at 320.1 (phone), 316.1 (method) and 322.1 (code)
+ * on three artboards. Each screen keeps its own number rather than an average,
+ * because an average is wrong on all three.
  */
 /**
  * The one bit of letter spacing in the whole file.
@@ -159,7 +166,14 @@ export const XD = {
 export const XD_WIDE_LABEL_TRACKING = '0.01em';
 
 export const XD_LINE3_ICON_GAP = {
-    phone: 28,
-    method: 24,
-    code: 23,
+    phone: 23.1,
+    method: 19.1,
+    code: 19.1,
 } as const;
+
+/**
+ * The gap after a phone number written as "+90 552 800 200 0", which the
+ * browser draws 102 wide at 12px. The info icon sits at 148.6 on the two
+ * outcome artboards (`Registration - 25`, `- 26`): 148.6 - 40 - 102.
+ */
+export const XD_PHONE_ICON_GAP = 6.6;

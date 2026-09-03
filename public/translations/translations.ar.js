@@ -2535,6 +2535,7 @@ const translations = {
   "Enter your phone number registered with us": "أدخل رقم هاتفك المسجل لدينا",
   "Your privacy is completely safe": "خصوصيتك آمنة تماماً",
   "We will send a verification code to the number": "سنقوم بإرسال رمز التحقق إلى الرقم",
+  "We have sent a verification code to the number": "لقد أرسلنا رمز التحقق إلى الرقم",
   "Choose verification method": "اختر طريقة التحقق",
   "this number already registered with us": "هذا الرقم مسجل لدينا بالفعل",
   "Sorry, this number is not registered with us !": "عذراً، هذا الرقم غير مسجل لدينا !",

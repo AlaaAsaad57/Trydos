@@ -4,7 +4,8 @@ import Image from 'next/image';
 import XdDashedBorder from 'components/Login/Enhanced/ui/XdDashedBorder';
 import { translateFunction } from 'utils/functions';
 import AuthLogoSlot from './AuthLogoSlot';
-import { XD, XD_WIDE_LABEL_TRACKING } from './authLayout';
+import { formatPhoneDigits } from 'components/Login/Enhanced/ui/RdbPhoneInput';
+import { XD, XD_PHONE_ICON_GAP, XD_WIDE_LABEL_TRACKING } from './authLayout';
 
 interface NewNotFoundScreenProps {
     phone: string;
@@ -72,9 +73,9 @@ export default function NewNotFoundScreen({
 
             <div
                 className="absolute flex items-center"
-                style={{ top: XD.head.line3, left: XD.textLeft, gap: 7.5 }}
+                style={{ top: XD.head.line3, left: XD.textLeft, gap: XD_PHONE_ICON_GAP }}
             >
-                <span className="text-xd-12 font-normal text-[#1D1D1D]">+{phone}</span>
+                <span className="text-xd-12 font-normal text-[#1D1D1D]">+{formatPhoneDigits(phone)}</span>
                 <div className="w-xd-15 h-xd-15 shrink-0">
                     <Image
                         src="/assets/icons/auth/warn-info.svg"

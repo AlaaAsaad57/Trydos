@@ -7,6 +7,7 @@ import { getNumberLockRemaining, isSessionCapReached } from 'utils/otpLocks';
 import { translateFunction } from 'utils/functions';
 import { authHeadingKey } from 'components/Login/Enhanced/authHeadings';
 import AuthLogoSlot from './AuthLogoSlot';
+import { formatPhoneDigits } from 'components/Login/Enhanced/ui/RdbPhoneInput';
 import { XD, XD_LINE3_ICON_GAP } from './authLayout';
 
 interface NewSelectMethodScreenProps {
@@ -190,7 +191,7 @@ export default function NewSelectMethodScreen({
                 style={{ top: XD.head.line4, left: XD.textLeft, gap: 5 }}
             >
                 <span data-pw="method-phone" className="text-xd-12 font-medium text-[#388CFF]">
-                    +{phone}
+                    +{formatPhoneDigits(phone ?? '')}
                 </span>
                 {changeNumber && (
                     <button

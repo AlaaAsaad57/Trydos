@@ -2584,6 +2584,7 @@ const translations = {
   "Enter your phone number registered with us": "ژمارەی مۆبایلە تۆمارکراوەکەت بنووسە",
   "Your privacy is completely safe": "زانیارییەکانت بە تەواوی پارێزراون",
   "We will send a verification code to the number": "کۆدی پشتڕاستکردنەوە بۆ ئەم ژمارەیە دەنێردرێت",
+  "We have sent a verification code to the number": "کۆدی پشتڕاستکردنەوە بۆ ئەم ژمارەیە نێردرا",
   "Choose verification method": "ڕێگەی پشتڕاستکردنەوە هەڵبژێرە",
   "this number already registered with us": "ئەم ژمارەیە پێشتر تۆمارکراوە",
   "Sorry, this number is not registered with us !": "ببوورە، ئەم ژمارەیە تۆمارنەکراوە !",
